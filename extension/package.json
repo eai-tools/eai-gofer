@@ -1,0 +1,212 @@
+{
+  "name": "specrunner",
+  "displayName": "SpecRunner (Enterprise AI)",
+  "description": "Enterprise AI Pty Ltd - GitHub Spec Kit integration for Claude terminals and Copilot - spec-driven development in any repo",
+  "version": "1.0.0",
+  "publisher": "EnterpriseAI",
+  "author": {
+    "name": "Enterprise AI Pty Ltd",
+    "url": "https://enterpriseai.com.au"
+  },
+  "license": "SEE LICENSE IN LICENSE",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:eai-tools/specrunner.git"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "AI",
+    "Testing",
+    "Other"
+  ],
+  "keywords": [
+    "spec-driven",
+    "spec-kit",
+    "github",
+    "claude",
+    "copilot",
+    "ai",
+    "testing",
+    "playwright"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "specKit.initialize",
+        "title": "Spec Kit: Initialize Repository",
+        "icon": "$(rocket)"
+      },
+      {
+        "command": "specKit.createSpec",
+        "title": "Spec Kit: Create New Specification",
+        "icon": "$(new-file)"
+      },
+      {
+        "command": "specKit.createPlan",
+        "title": "Spec Kit: Generate Technical Plan",
+        "icon": "$(checklist)"
+      },
+      {
+        "command": "specKit.generateTasks",
+        "title": "Spec Kit: Generate Task Breakdown",
+        "icon": "$(tasklist)"
+      },
+      {
+        "command": "specKit.validate",
+        "title": "Spec Kit: Validate Specifications",
+        "icon": "$(check-all)"
+      },
+      {
+        "command": "specKit.sendToClaude",
+        "title": "Spec Kit: Send Current Task to Claude",
+        "icon": "$(send)"
+      },
+      {
+        "command": "specKit.sendToCopilot",
+        "title": "Spec Kit: Send Current Task to Copilot",
+        "icon": "$(comment-discussion)"
+      },
+      {
+        "command": "specKit.showProgress",
+        "title": "Spec Kit: Show Progress Panel",
+        "icon": "$(dashboard)"
+      },
+      {
+        "command": "specKit.refreshSpecs",
+        "title": "Spec Kit: Refresh Specifications",
+        "icon": "$(refresh)"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "spec-kit",
+          "title": "SpecRunner - Enterprise AI",
+          "icon": "$(notebook)"
+        }
+      ]
+    },
+    "views": {
+      "spec-kit": [
+        {
+          "id": "specKitProgress",
+          "name": "Specifications",
+          "icon": "$(notebook)",
+          "contextualTitle": "Spec Kit"
+        },
+        {
+          "id": "specKitConstitution",
+          "name": "Constitution",
+          "icon": "$(law)",
+          "contextualTitle": "Project Principles"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "specKitProgress",
+        "contents": "No Spec Kit structure found in this workspace.\n[Initialize Spec Kit](command:specKit.initialize)\nThis will create the .specify folder structure following GitHub Spec Kit standards."
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "specKit.createSpec",
+          "when": "view == specKitProgress",
+          "group": "navigation"
+        },
+        {
+          "command": "specKit.refreshSpecs",
+          "when": "view == specKitProgress",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "specKit.sendToClaude",
+          "when": "view == specKitProgress && viewItem == task",
+          "group": "inline"
+        },
+        {
+          "command": "specKit.sendToCopilot",
+          "when": "view == specKitProgress && viewItem == task",
+          "group": "inline"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "specKit.sendToClaude",
+          "when": "specKitActive"
+        },
+        {
+          "command": "specKit.sendToCopilot",
+          "when": "specKitActive"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "SpecRunner - Enterprise AI",
+      "properties": {
+        "specKit.autoInitialize": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically offer to initialize Spec Kit when opening a repository without it"
+        },
+        "specKit.preferredAI": {
+          "type": "string",
+          "enum": ["claude", "copilot", "ask"],
+          "default": "ask",
+          "description": "Preferred AI tool when sending tasks (ask, claude, copilot)"
+        },
+        "specKit.claudeTerminalName": {
+          "type": "string",
+          "default": "Claude",
+          "description": "Name pattern to identify Claude Code terminals"
+        },
+        "specKit.autoValidate": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically validate specs against constitution when creating/updating"
+        },
+        "specKit.showWelcome": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show welcome message and quick start when initializing"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "webpack",
+    "watch": "webpack --watch",
+    "package": "webpack --mode production --devtool hidden-source-map",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "^20.x",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "eslint": "^8.56.0",
+    "typescript": "^5.3.3",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4",
+    "ts-loader": "^9.5.1",
+    "yaml": "^2.3.4"
+  },
+  "dependencies": {
+    "chokidar": "^3.5.3",
+    "yaml": "^2.3.4"
+  }
+}

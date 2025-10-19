@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+extension/node_modules/
+package-lock.json
+
+# Build output
+dist/
+extension/dist/
+extension/out/
+
+# Environment variables
+.env
+
+# IDE
+.vscode/*
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
+
+# Test results
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Communication files
+.claude-input.txt
+.claude-output.txt
+.claude-question.txt
+.claude-answer.txt
+.claude-history.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+
+# Extension packaging
+*.vsix

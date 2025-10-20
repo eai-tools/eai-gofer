@@ -24,18 +24,31 @@ export class SpecGoferLSPClient {
 
   async start(): Promise<void> {
     // Get the path to the language server
-    const serverModule = this.context.asAbsolutePath(
-      path.join('..', 'language-server', 'dist', 'server.js')
+    // In production VSIX: language-server is copied into extension directory
+    // In development: language-server is in parent directory
+    const fs = require('fs');
+
+    let serverModule = this.context.asAbsolutePath(
+      path.join('language-server', 'dist', 'server.js')
     );
 
+    // Fallback to development path if not found in production location
+    if (!fs.existsSync(serverModule)) {
+      serverModule = this.context.asAbsolutePath(
+        path.join('..', 'language-server', 'dist', 'server.js')
+      );
+    }
+
     // Check if server exists
-    const fs = require('fs');
     if (!fs.existsSync(serverModule)) {
       vscode.window.showErrorMessage(
-        'SpecGofer Language Server not found. Please build the language-server directory.'
+        'SpecGofer Language Server not found. Please build the language-server directory.\n\n' +
+        `Tried: ${serverModule}`
       );
       return;
     }
+
+    this.outputChannel.appendLine(`Language Server found at: ${serverModule}`);
 
     // Server options
     const serverOptions: ServerOptions = {

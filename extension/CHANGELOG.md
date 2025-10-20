@@ -2,6 +2,14 @@
 
 All notable changes to the SpecGofer extension will be documented in this file.
 
+## [1.2.1] - 2025-10-20
+
+### Fixed
+- **Language Server Path Resolution**: Fixed critical bug where Language Server could not be found in packaged VSIX
+  - Added fallback logic to check both production (`language-server/`) and development (`../language-server/`) paths
+  - Improved error messages to show attempted paths for debugging
+  - Added logging to show resolved Language Server path on startup
+
 ## [1.2.0] - 2025-10-20
 
 ### Added

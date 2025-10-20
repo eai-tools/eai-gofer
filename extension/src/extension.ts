@@ -22,7 +22,7 @@ export function activate(context: vscode.ExtensionContext) {
   // Setup auto-updater
   const packageJson = require('../package.json');
   autoUpdater = new AutoUpdater(
-    'eai-tools/specrunner',  // GitHub repo
+    'eai-tools/specgofer',  // GitHub repo
     packageJson.version       // Current version
   );
 

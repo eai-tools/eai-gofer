@@ -71,21 +71,21 @@ vsce package
 code --install-extension spec-driven-orchestrator-0.1.0.vsix
 ```
 
-### Step 3: Configure API Key
+### Step 3: Configure API Key (Optional)
 
-When you first start the orchestrator, you'll be prompted for your Anthropic API key.
+**Note**: SpecGofer uses the Anthropic API key from your VSCode environment. If you have Claude Code or GitHub Copilot configured with Claude, SpecGofer will use that authentication.
 
-Alternatively, configure it in VSCode settings:
+If you need to configure a separate API key:
 1. Open Settings (`Cmd+,` or `Ctrl+,`)
-2. Search for "Spec Orchestrator"
-3. Enter your API key in `Spec Orchestrator: Anthropic Api Key`
+2. Search for "SpecGofer"
+3. Enter your API key in `SpecGofer: Anthropic Api Key`
 
 ## Usage
 
-### Starting the Orchestrator
+### Starting SpecGofer
 
 1. Open a workspace that contains a `.specify/` folder
-2. Run command: `Spec Orchestrator: Start` (Cmd/Ctrl+Shift+P)
+2. Run command: `SpecGofer: Start` (Cmd/Ctrl+Shift+P)
 3. The extension will:
    - Start the orchestrator process
    - Begin monitoring `.claude-input.txt`
@@ -93,30 +93,31 @@ Alternatively, configure it in VSCode settings:
 
 ### Viewing Progress
 
-- **Progress Panel**: Click "Spec Orchestrator" in the Explorer sidebar
-- **Status Bar**: Shows "Orchestrator Running" indicator at the bottom
-- **Output Channel**: View detailed logs in "Spec Orchestrator" output channel
+- **Progress Panel**: Click "SpecGofer" in the Explorer sidebar
+- **Status Bar**: Shows "SpecGofer Running" indicator at the bottom
+- **Output Channel**: View detailed logs in "SpecGofer" output channel
 
-### Stopping the Orchestrator
+### Stopping SpecGofer
 
-Run command: `Spec Orchestrator: Stop`
+Run command: `SpecGofer: Stop`
 
 ## Extension Commands
 
 | Command | Description |
 |---------|-------------|
-| `Spec Orchestrator: Start` | Start the automated orchestrator |
-| `Spec Orchestrator: Stop` | Stop the orchestrator |
-| `Spec Orchestrator: Show Progress Panel` | Open the progress tree view |
-| `Spec Orchestrator: Refresh Specs` | Reload specifications from disk |
+| `SpecGofer: Start` | Start the automated orchestrator |
+| `SpecGofer: Stop` | Stop the orchestrator |
+| `SpecGofer: Show Progress Panel` | Open the progress tree view |
+| `SpecGofer: Refresh Specs` | Reload specifications from disk |
+| `SpecGofer: Check for Updates` | Manually check for extension updates |
 
 ## Configuration Options
 
 | Setting | Description | Default |
 |---------|-------------|---------|
-| `specOrchestrator.specDir` | Directory containing spec files | `.specify` |
-| `specOrchestrator.autoStart` | Auto-start on workspace open | `false` |
-| `specOrchestrator.anthropicApiKey` | Your Anthropic API key | `""` |
+| `specGofer.specDir` | Directory containing spec files | `.specify` |
+| `specGofer.autoStart` | Auto-start on workspace open | `false` |
+| `specGofer.anthropicApiKey` | Your Anthropic API key (optional) | `""` |
 
 ## Project Structure
 
@@ -216,9 +217,9 @@ The tree view shows:
 **Problem**: Orchestrator process exits immediately
 
 **Solution**:
-- Check "Spec Orchestrator" output channel for errors
+- Check "SpecGofer" output channel for errors
 - Ensure `npm install` was run in project root
-- Verify `.env` file has correct API key
+- Verify `.env` file has correct API key (if using standalone mode)
 - Build orchestrator: `npm run build`
 
 ### File Monitor Not Working

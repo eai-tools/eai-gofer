@@ -142,7 +142,7 @@ Create a spec file in `.specify/your-feature.json`:
 In VSCode:
 1. Open your project workspace (with `.specify/` folder)
 2. Open Command Palette (`Cmd/Ctrl+Shift+P`)
-3. Run: **"Spec Orchestrator: Start"**
+3. Run: **"SpecGofer: Start"**
 
 **That's it!** The system now runs fully autonomously:
 1. Orchestrator reads your spec and identifies the first task

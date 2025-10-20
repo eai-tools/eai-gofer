@@ -1,29 +1,5 @@
 import * as vscode from 'vscode';
-import * as fs from 'fs/promises';
-import * as path from 'path';
-
-interface Spec {
-  id: string;
-  title: string;
-  description: string;
-  tasks: Task[];
-  acceptanceCriteria: AcceptanceCriteria[];
-}
-
-interface Task {
-  id: string;
-  description: string;
-  status: 'pending' | 'in_progress' | 'testing' | 'completed' | 'failed';
-  dependencies: string[];
-  attempts?: number;
-}
-
-interface AcceptanceCriteria {
-  id: string;
-  description: string;
-  testType: string;
-  testPath: string;
-}
+import { SpecKitParser, Spec, Task, SpecStatus, TaskStatus } from './specKitParser';
 
 class SpecItem extends vscode.TreeItem {
   constructor(
@@ -39,6 +15,7 @@ class SpecItem extends vscode.TreeItem {
       this.tooltip = spec.description;
       this.description = this.getSpecStatus(spec);
       this.iconPath = new vscode.ThemeIcon(this.getSpecIcon(spec));
+      this.contextValue = 'spec';
     } else if (task) {
       // This is a task item
       this.tooltip = task.description;
@@ -52,11 +29,21 @@ class SpecItem extends vscode.TreeItem {
     const total = spec.tasks.length;
     const completed = spec.tasks.filter((t) => t.status === 'completed').length;
     const failed = spec.tasks.filter((t) => t.status === 'failed').length;
+    const inProgress = spec.tasks.filter((t) => t.status === 'in_progress').length;
+
+    const parts: string[] = [];
+
+    if (inProgress > 0) {
+      parts.push(`${inProgress} in progress`);
+    }
+
+    parts.push(`${completed}/${total}`);
 
     if (failed > 0) {
-      return `${completed}/${total} (${failed} failed)`;
+      parts.push(`${failed} failed`);
     }
-    return `${completed}/${total}`;
+
+    return parts.join(' • ');
   }
 
   private getSpecIcon(spec: Spec): string {
@@ -65,9 +52,11 @@ class SpecItem extends vscode.TreeItem {
     const anyInProgress = spec.tasks.some(
       (t) => t.status === 'in_progress' || t.status === 'testing'
     );
+    const anyBlocked = spec.tasks.some((t) => t.status === 'blocked');
 
     if (allCompleted) return 'check';
     if (anyFailed) return 'error';
+    if (anyBlocked) return 'lock';
     if (anyInProgress) return 'sync~spin';
     return 'circle-outline';
   }
@@ -75,12 +64,27 @@ class SpecItem extends vscode.TreeItem {
   private getTaskDescription(task: Task): string {
     const parts: string[] = [];
 
-    if (task.attempts && task.attempts > 1) {
-      parts.push(`Attempt ${task.attempts}`);
+    // Show task ID
+    parts.push(task.id);
+
+    // Show attempts if > 0
+    if (task.attempts && task.attempts > 0) {
+      parts.push(`Attempt ${task.attempts + 1}`);
     }
 
+    // Show dependencies
     if (task.dependencies.length > 0) {
-      parts.push(`${task.dependencies.length} deps`);
+      parts.push(`Deps: ${task.dependencies.join(', ')}`);
+    }
+
+    // Show parallel marker
+    if (task.parallel) {
+      parts.push('[P]');
+    }
+
+    // Show estimated time
+    if (task.estimated) {
+      parts.push(task.estimated);
     }
 
     return parts.join(' • ');
@@ -96,6 +100,8 @@ class SpecItem extends vscode.TreeItem {
         return 'sync~spin';
       case 'testing':
         return 'beaker';
+      case 'blocked':
+        return 'lock';
       case 'pending':
       default:
         return 'circle-outline';
@@ -104,17 +110,18 @@ class SpecItem extends vscode.TreeItem {
 }
 
 /**
- * Provides a tree view of spec progress
+ * Provides a tree view of spec progress (GitHub Spec Kit format)
  */
 export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
   private _onDidChangeTreeData = new vscode.EventEmitter<SpecItem | undefined | null | void>();
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
-  private workspacePath: string;
+  private parser: SpecKitParser;
   private specs: Spec[] = [];
+  private loadError: string | null = null;
 
   constructor(workspacePath: string) {
-    this.workspacePath = workspacePath;
+    this.parser = new SpecKitParser(workspacePath);
     this.loadSpecs();
   }
 
@@ -128,8 +135,28 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
   }
 
   async getChildren(element?: SpecItem): Promise<SpecItem[]> {
+    // Check for load errors
+    if (this.loadError && !element) {
+      const errorItem = new SpecItem(
+        `Error: ${this.loadError}`,
+        vscode.TreeItemCollapsibleState.None
+      );
+      errorItem.iconPath = new vscode.ThemeIcon('error');
+      return [errorItem];
+    }
+
     if (!element) {
       // Root level - show specs
+      if (this.specs.length === 0) {
+        const noSpecsItem = new SpecItem(
+          'No specs found',
+          vscode.TreeItemCollapsibleState.None
+        );
+        noSpecsItem.iconPath = new vscode.ThemeIcon('info');
+        noSpecsItem.tooltip = 'Create specs in .specify/specs/ directory';
+        return [noSpecsItem];
+      }
+
       return this.specs.map(
         (spec) =>
           new SpecItem(
@@ -156,32 +183,36 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
   }
 
   private async loadSpecs(): Promise<void> {
-    const specDir = path.join(this.workspacePath, '.specify');
-
     try {
-      const files = await fs.readdir(specDir);
-      const specFiles = files.filter((f) => f.endsWith('.json') && f !== 'spec-schema.json');
+      this.specs = await this.parser.loadAllSpecs();
+      this.loadError = null;
 
-      this.specs = [];
-
-      for (const file of specFiles) {
-        try {
-          const content = await fs.readFile(path.join(specDir, file), 'utf-8');
-          const spec = JSON.parse(content) as Spec;
-          this.specs.push(spec);
-        } catch (error) {
-          console.error(`Error loading spec ${file}:`, error);
-        }
-      }
-
-      // Sort specs by completion status
+      // Sort specs by status and completion
       this.specs.sort((a, b) => {
-        const aCompleted = a.tasks.filter((t) => t.status === 'completed').length;
-        const bCompleted = b.tasks.filter((t) => t.status === 'completed').length;
+        // Priority order: in_progress > ready > draft > completed > blocked
+        const statusPriority: Record<SpecStatus, number> = {
+          in_progress: 1,
+          ready: 2,
+          draft: 3,
+          completed: 4,
+          blocked: 5,
+        };
+
+        const aPriority = statusPriority[a.status] || 99;
+        const bPriority = statusPriority[b.status] || 99;
+
+        if (aPriority !== bPriority) {
+          return aPriority - bPriority;
+        }
+
+        // Within same status, sort by completion percentage
+        const aCompleted = a.tasks.filter((t) => t.status === 'completed').length / a.tasks.length;
+        const bCompleted = b.tasks.filter((t) => t.status === 'completed').length / b.tasks.length;
         return bCompleted - aCompleted;
       });
     } catch (error) {
       console.error('Error loading specs:', error);
+      this.loadError = error instanceof Error ? error.message : 'Unknown error';
       this.specs = [];
     }
   }
@@ -192,12 +223,63 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
   getCurrentTask(): { spec: Spec; task: Task } | undefined {
     for (const spec of this.specs) {
       for (const task of spec.tasks) {
-        if (task.status === 'in_progress' || task.status === 'pending') {
+        if (task.status === 'in_progress') {
           return { spec, task };
         }
       }
     }
+
+    // If no in_progress, find first pending with dependencies met
+    for (const spec of this.specs) {
+      for (const task of spec.tasks) {
+        if (task.status === 'pending' && this.areDependenciesMet(spec, task)) {
+          return { spec, task };
+        }
+      }
+    }
+
     return undefined;
+  }
+
+  /**
+   * Check if task dependencies are met
+   */
+  private areDependenciesMet(spec: Spec, task: Task): boolean {
+    if (task.dependencies.length === 0) {
+      return true;
+    }
+
+    return task.dependencies.every((depId) => {
+      const depTask = spec.tasks.find((t) => t.id === depId);
+      return depTask && depTask.status === 'completed';
+    });
+  }
+
+  /**
+   * Get next available tasks (pending with dependencies met)
+   */
+  getNextAvailableTasks(): Array<{ spec: Spec; task: Task }> {
+    const available: Array<{ spec: Spec; task: Task }> = [];
+
+    for (const spec of this.specs) {
+      for (const task of spec.tasks) {
+        if (
+          task.status === 'pending' &&
+          this.areDependenciesMet(spec, task)
+        ) {
+          available.push({ spec, task });
+        }
+      }
+    }
+
+    return available;
+  }
+
+  /**
+   * Get parallel tasks (tasks marked [P] that can run concurrently)
+   */
+  getParallelTasks(): Array<{ spec: Spec; task: Task }> {
+    return this.getNextAvailableTasks().filter(({ task }) => task.parallel);
   }
 
   /**
@@ -206,31 +288,78 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
   getProgress(): {
     totalSpecs: number;
     completedSpecs: number;
+    inProgressSpecs: number;
     totalTasks: number;
     completedTasks: number;
+    inProgressTasks: number;
     failedTasks: number;
+    blockedTasks: number;
+    pendingTasks: number;
   } {
     const totalSpecs = this.specs.length;
     const completedSpecs = this.specs.filter((s) =>
       s.tasks.every((t) => t.status === 'completed')
     ).length;
+    const inProgressSpecs = this.specs.filter((s) =>
+      s.tasks.some((t) => t.status === 'in_progress')
+    ).length;
 
     let totalTasks = 0;
     let completedTasks = 0;
+    let inProgressTasks = 0;
     let failedTasks = 0;
+    let blockedTasks = 0;
+    let pendingTasks = 0;
 
     for (const spec of this.specs) {
       totalTasks += spec.tasks.length;
       completedTasks += spec.tasks.filter((t) => t.status === 'completed').length;
+      inProgressTasks += spec.tasks.filter((t) => t.status === 'in_progress').length;
       failedTasks += spec.tasks.filter((t) => t.status === 'failed').length;
+      blockedTasks += spec.tasks.filter((t) => t.status === 'blocked').length;
+      pendingTasks += spec.tasks.filter((t) => t.status === 'pending').length;
     }
 
     return {
       totalSpecs,
       completedSpecs,
+      inProgressSpecs,
       totalTasks,
       completedTasks,
+      inProgressTasks,
       failedTasks,
+      blockedTasks,
+      pendingTasks,
     };
+  }
+
+  /**
+   * Get all specs
+   */
+  getSpecs(): Spec[] {
+    return this.specs;
+  }
+
+  /**
+   * Get spec by ID
+   */
+  getSpec(specId: string): Spec | undefined {
+    return this.specs.find((s) => s.id === specId);
+  }
+
+  /**
+   * Update task status
+   */
+  async updateTaskStatus(specId: string, taskId: string, status: TaskStatus): Promise<void> {
+    await this.parser.updateTaskStatus(specId, taskId, status);
+    this.refresh();
+  }
+
+  /**
+   * Update spec status
+   */
+  async updateSpecStatus(specId: string, status: SpecStatus): Promise<void> {
+    await this.parser.updateSpecStatus(specId, status);
+    this.refresh();
   }
 }

@@ -8,3 +8,9 @@ webpack.config.js
 **/.eslintrc.json
 **/*.map
 **/*.ts
+# Keep the Language Server (copied during build)
+!language-server/dist/**
+!language-server/package.json
+!language-server/node_modules/**
+# Exclude Language Server source
+language-server/src/**

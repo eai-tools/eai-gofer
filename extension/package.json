@@ -4,6 +4,7 @@
   "description": "Enterprise AI Pty Ltd - GitHub Spec Kit integration for Claude terminals and Copilot - spec-driven development in any repo",
   "version": "1.0.0",
   "publisher": "EnterpriseAI",
+  "icon": "icon.png",
   "author": {
     "name": "Enterprise AI Pty Ltd",
     "url": "https://enterpriseai.com.au"

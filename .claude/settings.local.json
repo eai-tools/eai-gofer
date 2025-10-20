@@ -15,7 +15,16 @@
       "Bash(git push -u origin main)",
       "Bash(npx @vscode/vsce package --out specrunner-1.0.0.vsix)",
       "Bash(git remote set-url origin https://github.com/eai-tools/specgofer.git)",
-      "Bash(git add -A)"
+      "Bash(git add -A)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nRebrand to SpecGofer by Enterprise AI Pty Ltd\n\n- Updated package names to specgofer\n- Changed display names to SpecGofer (Enterprise AI)\n- Updated repository URL to eai-tools/specgofer\n- Updated all branding and documentation\n- Updated VSCode extension UI elements\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git remote set-url origin git@github.com:eai-tools/specgofer.git)",
+      "Bash(qlmanage -t -s 128 -o . icon.svg)",
+      "Bash(npx @vscode/vsce package --out specgofer-1.0.0.vsix)",
+      "Bash(code --install-extension specgofer-1.0.0.vsix)",
+      "Bash(/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code --install-extension specgofer-1.0.0.vsix)",
+      "Bash(/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code --list-extensions)",
+      "Bash(/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code --install-extension specgofer-1.0.0.vsix --force)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nUpdate auto-updater branding to SpecGofer\n\n- Updated GitHub repo reference to eai-tools/specgofer\n- Changed update notification messages to SpecGofer\n- Fixed VSIX filename in update instructions\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
     ],
     "deny": [],
     "ask": []

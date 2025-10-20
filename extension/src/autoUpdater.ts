@@ -12,7 +12,7 @@ export class AutoUpdater {
   private checkInterval: number = 24 * 60 * 60 * 1000; // 24 hours
 
   constructor(githubRepo: string, currentVersion: string) {
-    this.githubRepo = githubRepo; // e.g., "yourusername/spec-kit-orchestrator"
+    this.githubRepo = githubRepo; // e.g., "eai-tools/specgofer"
     this.currentVersion = currentVersion;
   }
 
@@ -97,7 +97,7 @@ export class AutoUpdater {
    */
   private async promptUpdate(newVersion: string): Promise<void> {
     const choice = await vscode.window.showInformationMessage(
-      `🎉 Spec Kit Orchestrator v${newVersion} is available! (Current: v${this.currentVersion})`,
+      `🎉 SpecGofer v${newVersion} is available! (Current: v${this.currentVersion})`,
       'View Release Notes',
       'Download Update',
       'Later'
@@ -111,12 +111,12 @@ export class AutoUpdater {
       vscode.env.openExternal(vscode.Uri.parse(url));
 
       vscode.window.showInformationMessage(
-        'Download the .vsix file and run: code --install-extension spec-kit-orchestrator-' + newVersion + '.vsix',
+        'Download the .vsix file and run: code --install-extension specgofer-' + newVersion + '.vsix',
         'Copy Command'
       ).then(choice => {
         if (choice === 'Copy Command') {
           vscode.env.clipboard.writeText(
-            `code --install-extension spec-kit-orchestrator-${newVersion}.vsix`
+            `code --install-extension specgofer-${newVersion}.vsix`
           );
         }
       });

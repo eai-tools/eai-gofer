@@ -10,7 +10,12 @@
       "Bash(npx @vscode/vsce package --out spec-kit-orchestrator-1.0.0.vsix)",
       "Bash(git init)",
       "Bash(git remote add origin git@github.com:eai-tools/specrunner.git)",
-      "Bash(git add .)"
+      "Bash(git add .)",
+      "Bash(git branch -M main)",
+      "Bash(git push -u origin main)",
+      "Bash(npx @vscode/vsce package --out specrunner-1.0.0.vsix)",
+      "Bash(git remote set-url origin https://github.com/eai-tools/specgofer.git)",
+      "Bash(git add -A)"
     ],
     "deny": [],
     "ask": []

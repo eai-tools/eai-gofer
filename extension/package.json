@@ -1,6 +1,6 @@
 {
-  "name": "specrunner",
-  "displayName": "SpecRunner (Enterprise AI)",
+  "name": "specgofer",
+  "displayName": "SpecGofer (Enterprise AI)",
   "description": "Enterprise AI Pty Ltd - GitHub Spec Kit integration for Claude terminals and Copilot - spec-driven development in any repo",
   "version": "1.0.0",
   "publisher": "EnterpriseAI",
@@ -11,7 +11,7 @@
   "license": "SEE LICENSE IN LICENSE",
   "repository": {
     "type": "git",
-    "url": "git@github.com:eai-tools/specrunner.git"
+    "url": "https://github.com/eai-tools/specgofer"
   },
   "engines": {
     "vscode": "^1.85.0"
@@ -81,13 +81,18 @@
         "command": "specKit.refreshSpecs",
         "title": "Spec Kit: Refresh Specifications",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "specKit.checkForUpdates",
+        "title": "Spec Kit: Check for Updates",
+        "icon": "$(cloud-download)"
       }
     ],
     "viewsContainers": {
       "activitybar": [
         {
           "id": "spec-kit",
-          "title": "SpecRunner - Enterprise AI",
+          "title": "SpecGofer - Enterprise AI",
           "icon": "$(notebook)"
         }
       ]
@@ -151,7 +156,7 @@
       ]
     },
     "configuration": {
-      "title": "SpecRunner - Enterprise AI",
+      "title": "SpecGofer - Enterprise AI",
       "properties": {
         "specKit.autoInitialize": {
           "type": "boolean",

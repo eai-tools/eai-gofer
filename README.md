@@ -1,4 +1,6 @@
-# Spec-Driven Development System
+# SpecGofer - Spec-Driven Development System
+
+**Enterprise AI Pty Ltd**
 
 An intelligent orchestrator that automates spec-driven development using Claude AI, Playwright testing, and multi-agent validation - **fully automated via VSCode extension**.
 

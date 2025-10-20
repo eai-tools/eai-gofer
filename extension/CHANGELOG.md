@@ -2,6 +2,29 @@
 
 All notable changes to the SpecGofer extension will be documented in this file.
 
+## [1.3.0] - 2025-10-20
+
+### Added
+- **Automatic Update Installation**: Auto-updater now downloads and installs updates automatically
+  - Downloads VSIX from GitHub releases
+  - Installs via `code --install-extension` using child_process
+  - Prompts user to reload VSCode after installation
+  - Fallback to manual download if automatic installation fails
+  - Works with both public and private GitHub repositories
+
+### Changed
+- **Improved Update UX**: "Install Update" button replaces "Download Update"
+  - One-click update process (download + install)
+  - Status bar shows progress during download/install
+  - Automatic cleanup of temporary VSIX files
+- **Better Error Handling**: Clear error messages with manual fallback option
+
+### Technical Details
+- Uses Node.js `child_process.exec()` to invoke VSCode CLI
+- Downloads VSIX to system temp directory
+- Follows GitHub API redirects automatically
+- Cross-platform support (macOS, Linux, Windows)
+
 ## [1.2.1] - 2025-10-20
 
 ### Fixed

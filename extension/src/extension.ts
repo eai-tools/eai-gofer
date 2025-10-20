@@ -28,7 +28,8 @@ export async function activate(context: vscode.ExtensionContext) {
   const packageJson = require('../package.json');
   autoUpdater = new AutoUpdater(
     'eai-tools/specgofer',  // GitHub repo
-    packageJson.version       // Current version
+    packageJson.version,    // Current version
+    'specgofer'             // Extension name for VSIX filename
   );
 
   // Start checking for updates

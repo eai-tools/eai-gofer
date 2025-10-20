@@ -28,27 +28,44 @@ export class SpecGoferLSPClient {
     // In development: language-server is in parent directory
     const fs = require('fs');
 
+    // Log extension path for debugging
+    const extensionPath = this.context.extensionPath;
+    this.outputChannel.appendLine(`Extension path: ${extensionPath}`);
+    this.outputChannel.appendLine(`Checking for Language Server...`);
+
     let serverModule = this.context.asAbsolutePath(
       path.join('language-server', 'dist', 'server.js')
     );
+    this.outputChannel.appendLine(`Trying production path: ${serverModule}`);
+    this.outputChannel.appendLine(`  Exists: ${fs.existsSync(serverModule)}`);
 
     // Fallback to development path if not found in production location
     if (!fs.existsSync(serverModule)) {
       serverModule = this.context.asAbsolutePath(
         path.join('..', 'language-server', 'dist', 'server.js')
       );
+      this.outputChannel.appendLine(`Trying development path: ${serverModule}`);
+      this.outputChannel.appendLine(`  Exists: ${fs.existsSync(serverModule)}`);
     }
 
     // Check if server exists
     if (!fs.existsSync(serverModule)) {
+      // List what's actually in the extension directory
+      try {
+        const contents = fs.readdirSync(extensionPath);
+        this.outputChannel.appendLine(`Extension directory contents: ${contents.join(', ')}`);
+      } catch (err) {
+        this.outputChannel.appendLine(`Failed to list directory: ${err}`);
+      }
+
       vscode.window.showErrorMessage(
-        'SpecGofer Language Server not found. Please build the language-server directory.\n\n' +
-        `Tried: ${serverModule}`
+        'SpecGofer Language Server not found. Check Output panel (SpecGofer Language Server) for details.'
       );
+      this.outputChannel.show();
       return;
     }
 
-    this.outputChannel.appendLine(`Language Server found at: ${serverModule}`);
+    this.outputChannel.appendLine(`✓ Language Server found at: ${serverModule}`);
 
     // Server options
     const serverOptions: ServerOptions = {

@@ -3,6 +3,8 @@ import * as path from 'path';
 import { SpecKitMigrator } from './specKitMigrator';
 import { ProgressProvider } from './progressProvider';
 import { AutoUpdater } from './autoUpdater';
+import { SpecGoferLSPClient } from './lspClient';
+import { MCPConfigHelper } from './mcpConfig';
 
 /**
  * SpecGofer Extension
@@ -11,12 +13,15 @@ import { AutoUpdater } from './autoUpdater';
  *
  * Automatically detects, upgrades, and works with .specify folders
  * in any repository you open.
+ *
+ * Now with LSP + MCP integration for automated orchestration!
  */
 
 let progressProvider: ProgressProvider | undefined;
 let autoUpdater: AutoUpdater | undefined;
+let lspClient: SpecGoferLSPClient | undefined;
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
   console.log('SpecGofer (Enterprise AI) extension activated');
 
   // Setup auto-updater
@@ -29,6 +34,16 @@ export function activate(context: vscode.ExtensionContext) {
   // Start checking for updates
   autoUpdater.startPeriodicChecks(context);
 
+  // Start Language Server
+  lspClient = new SpecGoferLSPClient(context);
+  try {
+    await lspClient.start();
+    console.log('Language Server started successfully');
+  } catch (error) {
+    console.error('Failed to start Language Server:', error);
+    vscode.window.showErrorMessage(`SpecGofer Language Server failed to start: ${error}`);
+  }
+
   const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
   if (!workspaceFolder) {
     // No workspace open yet, wait for one
@@ -38,7 +53,7 @@ export function activate(context: vscode.ExtensionContext) {
     return;
   }
 
-  initializeForWorkspace(context);
+  await initializeForWorkspace(context);
 }
 
 async function initializeForWorkspace(context: vscode.ExtensionContext) {
@@ -90,7 +105,7 @@ async function handleNoSpecKit(
 
   if (autoInit) {
     const choice = await vscode.window.showInformationMessage(
-      'No Spec Kit found in this workspace. Initialize now?',
+      'No SpecGofer structure found in this workspace. Initialize now?',
       'Yes', 'No', 'Don\'t ask again'
     );
 
@@ -133,6 +148,14 @@ async function handleSpecKitFormat(
   console.log('Spec Kit format detected - ready to use');
 
   await initializeProgressProvider(context, workspacePath);
+
+  // Auto-setup MCP configuration for Claude Code integration
+  const mcpConfigHelper = new MCPConfigHelper(workspacePath, context);
+  const created = await mcpConfigHelper.autoSetup();
+
+  if (created) {
+    console.log('MCP configuration auto-created for Claude Code integration');
+  }
 
   vscode.window.setStatusBarMessage('$(notebook) SpecGofer - Enterprise AI ready', 3000);
 }
@@ -191,7 +214,7 @@ function registerCommands(
         if (versionInfo.needsUpgrade) {
           await migrator.upgrade();
         } else {
-          vscode.window.showInformationMessage('Spec Kit already initialized!');
+          vscode.window.showInformationMessage('SpecGofer already initialized!');
         }
       } else {
         // Create from scratch
@@ -218,7 +241,7 @@ function registerCommands(
       const versionInfo = await migrator.getVersionInfo();
 
       vscode.window.showInformationMessage(
-        `Spec Kit Status:\n\nFormat: ${versionInfo.format}\n${versionInfo.details}`,
+        `SpecGofer Status:\n\nFormat: ${versionInfo.format}\n${versionInfo.details}`,
         versionInfo.needsUpgrade ? 'Upgrade' : 'OK'
       ).then(choice => {
         if (choice === 'Upgrade') {
@@ -254,6 +277,14 @@ function registerCommands(
   );
 }
 
-export function deactivate() {
+export async function deactivate() {
+  console.log('SpecGofer extension deactivating...');
+
+  // Stop Language Server
+  if (lspClient) {
+    await lspClient.stop();
+    console.log('Language Server stopped');
+  }
+
   console.log('SpecGofer extension deactivated');
 }

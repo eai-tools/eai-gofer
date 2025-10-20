@@ -24,7 +24,21 @@
       "Bash(/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code --install-extension specgofer-1.0.0.vsix)",
       "Bash(/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code --list-extensions)",
       "Bash(/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code --install-extension specgofer-1.0.0.vsix --force)",
-      "Bash(git commit -m \"$(cat <<''EOF''\nUpdate auto-updater branding to SpecGofer\n\n- Updated GitHub repo reference to eai-tools/specgofer\n- Changed update notification messages to SpecGofer\n- Fixed VSIX filename in update instructions\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
+      "Bash(git commit -m \"$(cat <<''EOF''\nUpdate auto-updater branding to SpecGofer\n\n- Updated GitHub repo reference to eai-tools/specgofer\n- Changed update notification messages to SpecGofer\n- Fixed VSIX filename in update instructions\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push)",
+      "Bash(npx @vscode/vsce package --out specgofer-1.1.0.vsix)",
+      "Bash(/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code --install-extension specgofer-1.1.0.vsix --force)",
+      "Bash(npm install --save yaml)",
+      "Bash(npm install --save vscode-languageclient)",
+      "Bash(tree -L 3 /Users/douglaswross/spec-driven-dev-system/.specify --charset ascii)",
+      "Bash(npx @vscode/vsce package --out specgofer-lsp-mcp-1.0.0.vsix)",
+      "Bash(npx @vscode/vsce ls --tree)",
+      "Bash(node -e \"\nconst { SpecKitLoader } = require(''./dist/utils/specKitLoader'');\nconst loader = new SpecKitLoader(''/Users/douglaswross/spec-driven-dev-system'');\nloader.loadSpec(''test-001'').then(spec => {\n  console.log(''Spec loaded successfully:'');\n  console.log(''ID:'', spec.id);\n  console.log(''Title:'', spec.title);\n  console.log(''Tasks count:'', spec.tasks.length);\n  spec.tasks.forEach(t => console.log(''  -'', t.id, '':'', t.description.substring(0, 40)));\n}).catch(err => {\n  console.error(''Error loading spec:'', err.message);\n});\n\")",
+      "Bash(npm run package)",
+      "Bash(cat /Users/douglaswross/spec-driven-dev-system/.specify/specs/test-001/tasks.md)",
+      "Bash(node -e \"\nconst content = require(''fs'').readFileSync(''/Users/douglaswross/spec-driven-dev-system/.specify/specs/test-001/tasks.md'', ''utf-8'');\nconsole.log(''Task file content:'');\nconsole.log(content);\nconsole.log(''\\nTesting regex:'');\nconst lines = content.split(''\\n'');\nlines.forEach((line, i) => {\n  const match = line.match(/^-\\s+\\[([x ])\\]\\s+\\*\\*([A-Z]\\d+)\\*\\*:\\s+(.+)$/);\n  if (match) {\n    console.log(''Line'', i, ''matched:'', match[2], match[3]);\n  }\n});\n\")",
+      "Bash(find . -name \"*.md\" -path \"*/.specify/specs/*\" -exec grep -l \"^\\- \\[\" {})",
+      "Bash(npx @vscode/vsce package --out specgofer-lsp-mcp-fixed-1.0.0.vsix)"
     ],
     "deny": [],
     "ask": []

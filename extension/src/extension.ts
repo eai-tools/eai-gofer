@@ -2,9 +2,10 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { SpecKitMigrator } from './specKitMigrator';
 import { ProgressProvider } from './progressProvider';
+import { AutoUpdater } from './autoUpdater';
 
 /**
- * SpecRunner Extension
+ * SpecGofer Extension
  *
  * © 2025 Enterprise AI Pty Ltd
  *
@@ -13,9 +14,20 @@ import { ProgressProvider } from './progressProvider';
  */
 
 let progressProvider: ProgressProvider | undefined;
+let autoUpdater: AutoUpdater | undefined;
 
 export function activate(context: vscode.ExtensionContext) {
-  console.log('SpecRunner (Enterprise AI) extension activated');
+  console.log('SpecGofer (Enterprise AI) extension activated');
+
+  // Setup auto-updater
+  const packageJson = require('../package.json');
+  autoUpdater = new AutoUpdater(
+    'eai-tools/specrunner',  // GitHub repo
+    packageJson.version       // Current version
+  );
+
+  // Start checking for updates
+  autoUpdater.startPeriodicChecks(context);
 
   const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
   if (!workspaceFolder) {
@@ -122,7 +134,7 @@ async function handleSpecKitFormat(
 
   await initializeProgressProvider(context, workspacePath);
 
-  vscode.window.setStatusBarMessage('$(notebook) SpecRunner - Enterprise AI ready', 3000);
+  vscode.window.setStatusBarMessage('$(notebook) SpecGofer - Enterprise AI ready', 3000);
 }
 
 async function handleMixedFormat(
@@ -231,8 +243,17 @@ function registerCommands(
       vscode.commands.executeCommand('specKitProgress.focus');
     })
   );
+
+  // Manual update check
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specKit.checkForUpdates', async () => {
+      if (autoUpdater) {
+        await autoUpdater.manualCheck();
+      }
+    })
+  );
 }
 
 export function deactivate() {
-  console.log('SpecRunner extension deactivated');
+  console.log('SpecGofer extension deactivated');
 }

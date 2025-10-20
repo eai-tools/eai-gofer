@@ -1,4 +1,4 @@
-# SpecRunner - VSCode Extension
+# SpecGofer - VSCode Extension
 
 **Enterprise AI Pty Ltd**
 

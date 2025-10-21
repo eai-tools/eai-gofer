@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { Orchestrator } from './orchestrator/Orchestrator.js';
+import { AutonomousOrchestrator } from './orchestrator/AutonomousOrchestrator.js';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -30,42 +30,53 @@ async function main() {
   console.log(`
 ╔═══════════════════════════════════════════════════════════╗
 ║                                                           ║
-║   Spec-Driven Development Orchestrator                   ║
-║   Powered by Claude Code                                  ║
+║         🚀 SpecGofer Autonomous Mode 🚀                   ║
+║         Spec-Driven Development on Autopilot              ║
 ║                                                           ║
 ╚═══════════════════════════════════════════════════════════╝
 
 📁 Spec directory: ${specDir}
 📁 Workspace: ${workspaceDir}
-🤖 Using Claude Sonnet 4.5
-${twilioConfig.accountSid ? '📱 SMS notifications: Enabled' : '📱 SMS notifications: Disabled (simulation mode)'}
+🤖 Using Claude 3.7 Sonnet
+${twilioConfig.accountSid ? '📱 SMS notifications: Enabled' : '📱 SMS notifications: Disabled'}
 `);
 
-  const orchestrator = new Orchestrator(
+  const orchestrator = new AutonomousOrchestrator(
     specDir,
     apiKey,
     twilioConfig,
     workspaceDir
   );
 
-  // Handle command line arguments
-  const args = process.argv.slice(2);
+  // Handle graceful shutdown
+  let isShuttingDown = false;
+  
+  const shutdown = () => {
+    if (isShuttingDown) return;
+    isShuttingDown = true;
+    
+    console.log('\n\n🛑 Received shutdown signal...');
+    orchestrator.stop();
+    
+    setTimeout(() => {
+      console.log('👋 Goodbye!');
+      process.exit(0);
+    }, 2000);
+  };
 
-  if (args[0] === 'question' && args[1]) {
-    // Manual question mode
-    const question = args.slice(1).join(' ');
-    await orchestrator.handleManualQuestion(question);
-    process.exit(0);
-  }
+  process.on('SIGINT', shutdown);
+  process.on('SIGTERM', shutdown);
 
-  // Start the orchestrator with file watching
-  await orchestrator.start(workspaceDir);
+  // Status monitoring
+  setInterval(() => {
+    const status = orchestrator.getStatus();
+    if (status.currentTask) {
+      console.log(`\n� Status: ${status.currentTask.id} - ${status.currentTask.description.substring(0, 50)}...`);
+    }
+  }, 30000); // Log status every 30 seconds
 
-  // Keep the process running
-  process.on('SIGINT', () => {
-    console.log('\n\n👋 Shutting down...');
-    process.exit(0);
-  });
+  // Start the autonomous execution
+  await orchestrator.start();
 }
 
 main().catch(error => {

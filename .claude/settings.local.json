@@ -12,7 +12,13 @@
       "Bash(npx @vscode/vsce package:*)",
       "Bash(/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code --install-extension extension/specgofer-1.3.2.vsix --force)",
       "Bash(/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code --install-extension specgofer-1.3.2.vsix --force)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(git tag:*)",
+      "Bash(git push:*)",
+      "Bash(gh release create:*)",
+      "Bash(gh release view:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []

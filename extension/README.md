@@ -2,7 +2,7 @@
 
 **Enterprise AI Pty Ltd**
 
-This VSCode extension provides automated integration between the Spec-Driven Development System and Claude Code, eliminating manual copy/paste workflows.
+Spec-driven development for AI assistants. SpecGofer exposes 6 MCP tools that enable Claude Code and GitHub Copilot to autonomously implement features from GitHub Spec Kit specifications.
 
 ---
 
@@ -10,254 +10,285 @@ This VSCode extension provides automated integration between the Spec-Driven Dev
 
 ## Features
 
-- **Automated Claude Code Integration** - Automatically sends tasks to Claude and captures responses
-- **Real-time Progress Tracking** - Visual tree view showing spec and task progress
-- **File Monitoring** - Watches `.claude-input.txt` and processes prompts automatically
-- **Conversation History** - Maintains context across multiple tasks
-- **SMS Escalation** - Notifies you when manual intervention is needed
-- **Zero Manual Intervention** - Fully automated development workflow
+### MCP Tools for AI Assistants
+
+SpecGofer provides 6 Model Context Protocol (MCP) tools that AI assistants can invoke:
+
+- **`specgofer_get_specs`** - Get all specifications and tasks
+- **`specgofer_get_next_task`** - Get next task based on dependencies
+- **`specgofer_execute_task`** - Mark task in-progress, get full context
+- **`specgofer_update_task_status`** - Update task completion status
+- **`specgofer_validate_code`** - Validate code against project constitution
+- **`specgofer_run_tests`** - Run Playwright tests for acceptance criteria
+
+### GitHub Spec Kit Integration
+
+- **Markdown-based specs** with YAML frontmatter
+- **Automatic migration** from legacy JSON format
+- **Branch-aware** spec management
+- **Task dependencies** and parallel execution support
+
+### Visual Progress Tracking
+
+- **Sidebar panel** showing all specs and tasks
+- **Real-time status** updates (pending, in-progress, testing, completed)
+- **Constitution view** for project principles
+- **Click to focus** on specific specs
+
+### Auto-Updates
+
+- **Automatic update checks** from GitHub releases
+- **One-click installation** of new versions
+- **Changelog integration** in release notes
 
 ## How It Works
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    VSCode Extension                          │
-│                                                              │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
-│  │ File Monitor │  │ Claude Bridge│  │Progress Panel│     │
-│  │              │  │              │  │              │     │
-│  │ Watches      │→ │ Calls Claude │→ │ Shows Status │     │
-│  │ .claude-     │  │ API          │  │              │     │
-│  │ input.txt    │  │              │  │              │     │
-│  └──────────────┘  └──────────────┘  └──────────────┘     │
-│         ↓                  ↓                                │
-│  .claude-output.txt   Response                             │
-└─────────────────────────────────────────────────────────────┘
-         ↓
-┌─────────────────────────────────────────────────────────────┐
-│                    Orchestrator Process                      │
-│                                                              │
-│  Reads output → Runs tests → Validates → Next task          │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────┐
+│               VSCode with MCP Support                    │
+│                    (VSCode 1.102+)                       │
+│                                                          │
+│  ┌──────────────┐         ┌────────────────────────┐   │
+│  │ Claude Code  │───MCP──→│ SpecGofer Extension     │   │
+│  │ or Copilot   │         │ (Language Server)       │   │
+│  └──────────────┘         └────────────────────────┘   │
+│                                     │                   │
+│                                     ↓                   │
+│                           Reads/writes:                 │
+│                           - .specify/specs/             │
+│                           - .specify/constitution/      │
+│                           - Playwright tests            │
+└─────────────────────────────────────────────────────────┘
+
+AI calls MCP tools → Implements code → Runs tests → Updates status
 ```
 
 ## Installation
 
-### Prerequisites
+### From GitHub Releases (Recommended)
 
-1. **Node.js** 18+ installed
-2. **VSCode** 1.85.0 or higher
-3. **Anthropic API Key** - Get one from [console.anthropic.com](https://console.anthropic.com)
+```bash
+# Download latest release
+gh release download --repo eai-tools/specgofer --pattern "*.vsix"
 
-### Step 1: Build the Extension
+# Install
+code --install-extension specgofer-*.vsix
+
+# Reload VSCode
+```
+
+### From Source
 
 ```bash
 cd extension
 npm install
 npm run compile
+npx @vscode/vsce package
+code --install-extension specgofer-*.vsix
 ```
 
-### Step 2: Install in VSCode
+## Quick Start
 
-**Option A: Development Mode**
-1. Open VSCode
-2. Press `F5` to open Extension Development Host
-3. The extension will activate automatically when it detects a `.specify/` folder
+### 1. Initialize SpecGofer
 
-**Option B: Package and Install**
-```bash
-npm install -g @vscode/vsce
-vsce package
-code --install-extension spec-driven-orchestrator-0.1.0.vsix
+1. Open Command Palette (`Cmd/Ctrl+Shift+P`)
+2. Run: **"SpecGofer: Initialize Repository"**
+
+This creates the `.specify/` folder structure and auto-configures MCP in `.vscode/mcp.json`.
+
+### 2. Create a Specification
+
+Create `.specify/specs/my-feature/spec.md`:
+
+```markdown
+---
+feature: my-feature
+status: draft
+created: 2025-10-21
+---
+
+# My Feature
+
+Feature description
+
+## Functional Requirements
+
+1. **FR-001**: First requirement
+2. **FR-002**: Second requirement
+
+## Success Criteria
+
+- Acceptance criterion 1
+- Acceptance criterion 2
 ```
 
-### Step 3: Configure API Key (Optional)
+### 3. Let AI Implement
 
-**Note**: SpecGofer uses the Anthropic API key from your VSCode environment. If you have Claude Code or GitHub Copilot configured with Claude, SpecGofer will use that authentication.
+In Claude Code or GitHub Copilot:
 
-If you need to configure a separate API key:
-1. Open Settings (`Cmd+,` or `Ctrl+,`)
-2. Search for "SpecGofer"
-3. Enter your API key in `SpecGofer: Anthropic Api Key`
+```
+@specgofer please implement the next task
+```
 
-## Usage
+AI will:
+1. Call `specgofer_get_next_task`
+2. Implement the feature
+3. Call `specgofer_run_tests`
+4. Call `specgofer_update_task_status`
+5. Move to next task
 
-### Starting SpecGofer
-
-1. Open a workspace that contains a `.specify/` folder
-2. Run command: `SpecGofer: Start` (Cmd/Ctrl+Shift+P)
-3. The extension will:
-   - Start the orchestrator process
-   - Begin monitoring `.claude-input.txt`
-   - Show progress panel in the Explorer sidebar
-
-### Viewing Progress
-
-- **Progress Panel**: Click "SpecGofer" in the Explorer sidebar
-- **Status Bar**: Shows "SpecGofer Running" indicator at the bottom
-- **Output Channel**: View detailed logs in "SpecGofer" output channel
-
-### Stopping SpecGofer
-
-Run command: `SpecGofer: Stop`
-
-## Extension Commands
+## Commands
 
 | Command | Description |
 |---------|-------------|
-| `SpecGofer: Start` | Start the automated orchestrator |
-| `SpecGofer: Stop` | Stop the orchestrator |
-| `SpecGofer: Show Progress Panel` | Open the progress tree view |
-| `SpecGofer: Refresh Specs` | Reload specifications from disk |
-| `SpecGofer: Check for Updates` | Manually check for extension updates |
+| `SpecGofer: Initialize Repository` | Create .specify folder structure |
+| `SpecGofer: Upgrade to Spec Kit Format` | Migrate legacy JSON specs |
+| `SpecGofer: Show Progress Panel` | Open specifications sidebar |
+| `SpecGofer: Refresh Specifications` | Reload specs from disk |
+| `SpecGofer: Refresh Constitution` | Reload project principles |
+| `SpecGofer: Update Now` | Check for and install updates |
+| `SpecGofer: Show Constitution Panel` | View project principles |
 
-## Configuration Options
+## Configuration
+
+Configure in VSCode Settings (`Cmd/Ctrl+,`):
+
+```json
+{
+  "specKit.autoInitialize": false,
+  "specKit.preferredAI": "ask",
+  "specKit.autoValidate": true,
+  "specKit.showWelcome": true
+}
+```
+
+### Settings Reference
 
 | Setting | Description | Default |
 |---------|-------------|---------|
-| `specGofer.specDir` | Directory containing spec files | `.specify` |
-| `specGofer.autoStart` | Auto-start on workspace open | `false` |
-| `specGofer.anthropicApiKey` | Your Anthropic API key (optional) | `""` |
+| `specKit.autoInitialize` | Auto-offer initialization on first use | `false` |
+| `specKit.preferredAI` | Preferred AI (claude, copilot, ask) | `"ask"` |
+| `specKit.autoValidate` | Auto-validate against constitution | `true` |
+| `specKit.showWelcome` | Show welcome message | `true` |
+
+## MCP Configuration
+
+SpecGofer automatically creates `.vscode/mcp.json`:
+
+```json
+{
+  "mcp": {
+    "servers": {
+      "specgofer": {
+        "command": "node",
+        "args": ["<extension-path>/language-server/dist/server.js"],
+        "description": "SpecGofer - Spec-driven development orchestrator"
+      }
+    }
+  }
+}
+```
+
+**Reload VSCode** after initialization to activate MCP tools.
 
 ## Project Structure
 
 ```
 extension/
 ├── src/
-│   ├── extension.ts              # Main extension entry point
-│   ├── claudeCodeBridge.ts       # Claude API integration
-│   ├── fileMonitor.ts            # File watching and automation
-│   ├── progressProvider.ts       # Tree view provider
-│   └── orchestratorProcess.ts    # Manages orchestrator subprocess
-├── package.json                   # Extension manifest
-├── tsconfig.json                  # TypeScript config
-└── webpack.config.js              # Build configuration
+│   ├── extension.ts            # Main entry point
+│   ├── lspClient.ts            # Language Server Protocol client
+│   ├── mcpConfig.ts            # MCP configuration helper
+│   ├── progressProvider.ts    # Specifications tree view
+│   ├── constitutionProvider.ts # Constitution tree view
+│   ├── specKitMigrator.ts     # Legacy JSON migration
+│   ├── branchSpecManager.ts   # Git branch awareness
+│   └── autoUpdater.ts         # Automatic updates
+├── language-server/            # LSP server with MCP tools
+│   └── dist/
+│       └── server.js
+└── package.json               # Extension manifest
 ```
 
-## How the Automation Works
+## Spec Structure
 
-### 1. File Monitoring
-
-The extension watches `.claude-input.txt` using `chokidar`:
-- Detects when orchestrator writes a new task
-- Ignores empty or unchanged content
-- Waits for file write to stabilize (500ms)
-
-### 2. Claude Code Bridge
-
-When a new prompt is detected:
-1. Reads prompt from `.claude-input.txt`
-2. Maintains conversation history for context
-3. Calls Claude API with full context
-4. Writes response to `.claude-output.txt`
-5. Saves conversation history to `.claude-history.json`
-
-### 3. Orchestrator Integration
-
-The orchestrator process:
-1. Watches `.claude-output.txt` for responses
-2. Runs Playwright tests automatically
-3. Validates implementation with Engineer Agent
-4. Writes fix requests back to `.claude-input.txt` if needed
-5. Moves to next task on success
-
-### 4. Progress Tracking
-
-The tree view shows:
-- All specs with completion status
-- Individual tasks with status icons:
-  - ⚪ Pending
-  - 🔄 In Progress
-  - 🧪 Testing
-  - ✅ Completed
-  - ❌ Failed
-- Attempt count and dependency info
+```
+.specify/
+├── specs/
+│   ├── feature-001/
+│   │   └── spec.md           # Markdown with YAML frontmatter
+│   └── feature-002/
+│       └── spec.md
+└── constitution/
+    ├── principles.md         # Code quality principles
+    └── architecture.md       # Architecture decisions
+```
 
 ## Example Workflow
 
-1. **You create a spec** in `.specify/login-feature.json`
-2. **Start orchestrator** via command palette
-3. **Extension activates** and starts monitoring
-4. **Orchestrator writes task** to `.claude-input.txt`
-5. **Extension detects change** and calls Claude API
-6. **Claude implements feature** (creates files, writes code)
-7. **Extension writes response** to `.claude-output.txt`
-8. **Orchestrator runs tests** automatically
-9. **Tests pass** → Move to next task
-10. **Tests fail** → Engineer Agent analyzes → Fix request to `.claude-input.txt`
-11. **Repeat** until all tasks complete
-
-**You only intervene when:**
-- Claude asks a question the spec can't answer
-- Tests fail 3+ times
-- Manual approval is needed
+1. **Create spec** - Write `auth-001/spec.md` with 3 functional requirements
+2. **Ask AI** - In Claude Code: `@specgofer implement all tasks from auth-001`
+3. **AI autonomously:**
+   - Gets FR-001 via `specgofer_get_next_task`
+   - Implements code
+   - Runs tests via `specgofer_run_tests`
+   - Marks complete via `specgofer_update_task_status`
+   - Moves to FR-002, then FR-003
+4. **Review** - All tasks complete ✅, merge the PR!
 
 ## Troubleshooting
 
+### MCP Tools Not Available
+
+**Check:** `.vscode/mcp.json` exists
+
+```bash
+ls .vscode/mcp.json
+```
+
+**Fix:** Run `SpecGofer: Initialize Repository` then reload VSCode
+
+### Language Server Not Starting
+
+**Check:** VSCode Output panel → "SpecGofer Language Server"
+
+**Fix:**
+- Ensure node_modules installed: `cd extension && npm install`
+- Rebuild: `npm run compile`
+- Check VSCode version (1.85.0+)
+
+### Specs Not Showing
+
+**Check:** Spec file format
+
+```bash
+# Must have YAML frontmatter
+head -10 .specify/specs/*/spec.md
+```
+
+**Fix:**
+- Ensure `---` frontmatter delimiters
+- File must be named `spec.md`
+- Run `SpecGofer: Refresh Specifications`
+
 ### Extension Won't Activate
 
-**Problem**: Extension doesn't activate when opening workspace
-
-**Solution**:
-- Ensure `.specify/` folder exists in workspace root
-- Check VSCode Output channel "Extension Host" for errors
-- Reload window: `Developer: Reload Window`
-
-### API Key Issues
-
-**Problem**: "API key is required" error
-
-**Solution**:
-- Set `ANTHROPIC_API_KEY` environment variable, OR
-- Configure in VSCode settings, OR
-- Enter when prompted on first start
-
-### Orchestrator Process Fails
-
-**Problem**: Orchestrator process exits immediately
-
-**Solution**:
-- Check "SpecGofer" output channel for errors
-- Ensure `npm install` was run in project root
-- Verify `.env` file has correct API key (if using standalone mode)
-- Build orchestrator: `npm run build`
-
-### File Monitor Not Working
-
-**Problem**: Tasks not being processed automatically
-
-**Solution**:
-- Check if `.claude-input.txt` exists
-- Verify file permissions (readable/writable)
-- Check extension output for file watcher errors
-- Restart orchestrator: Stop → Start
-
-### Conversation History Too Long
-
-**Problem**: Claude API errors about context length
-
-**Solution**:
-- Delete `.claude-history.json` to reset conversation
-- Extension will start fresh conversation
+**Fix:**
+- Check `.specify/` folder exists
+- View "Extension Host" logs in Output panel
+- Run `Developer: Reload Window`
 
 ## Development
 
-### Running Extension in Dev Mode
+### Running in Dev Mode
 
 ```bash
 cd extension
 npm install
-npm run watch  # Watch mode for development
+npm run watch
 ```
 
-Press `F5` in VSCode to launch Extension Development Host.
-
-### Debugging
-
-1. Set breakpoints in `src/*.ts` files
-2. Press `F5` to start debugging
-3. Debug console shows extension logs
-4. Use `console.log()` for debugging (appears in "Extension Host" output)
+Press `F5` to launch Extension Development Host.
 
 ### Building for Production
 
@@ -265,67 +296,70 @@ Press `F5` in VSCode to launch Extension Development Host.
 npm run package
 ```
 
-This creates a minified `dist/extension.js` ready for distribution.
+Creates production-ready VSIX package.
 
-## Architecture Details
+### Testing MCP Tools
 
-### Claude Code Bridge
+With Claude Code installed:
 
-The `ClaudeCodeBridge` maintains conversation context across tasks:
-- Uses Anthropic SDK for API calls
-- Stores message history in memory and on disk
-- Provides system prompt with workspace context
-- Handles questions and clarifications
+```
+@specgofer specgofer_get_specs
+```
 
-### File Monitor
+Expected response:
 
-The `FileMonitor` uses `chokidar` for reliable file watching:
-- Debounces rapid file changes (500ms stabilization)
-- Prevents duplicate processing
-- Handles errors gracefully
-- Provides user feedback via notifications
+```json
+{
+  "success": true,
+  "count": 1,
+  "specs": [...]
+}
+```
 
-### Progress Provider
+## Architecture
 
-The `ProgressProvider` implements `TreeDataProvider`:
-- Reads specs from `.specify/` folder
-- Updates when specs change
-- Shows hierarchical spec → task structure
-- Provides visual progress indicators
+### Language Server Protocol (LSP)
 
-### Orchestrator Process
+SpecGofer runs a Language Server that:
+- Parses GitHub Spec Kit Markdown files
+- Manages spec and task state
+- Exposes MCP tools via experimental capabilities
+- Provides real-time updates to VSCode UI
 
-The `OrchestratorProcess` manages the Node.js subprocess:
-- Spawns orchestrator with correct environment
-- Captures stdout/stderr to output channel
-- Handles graceful shutdown
-- Provides restart capability
+### Model Context Protocol (MCP)
 
-## Security Notes
+MCP tools allow AI assistants to:
+- **Read** specifications and tasks
+- **Execute** tasks with full context
+- **Update** task status
+- **Validate** code against constitution
+- **Run** acceptance tests
 
-- API keys are stored in VSCode global settings
-- Never commit `.env` or `.claude-history.json`
-- Conversation history may contain sensitive code
-- Use `.gitignore` to exclude sensitive files
+### Branch Awareness
 
-## Future Enhancements
+SpecGofer detects Git branch and shows branch-specific specs:
 
-Potential improvements:
-- [ ] WebSocket mode for lower latency
-- [ ] Multi-spec parallel execution
-- [ ] Web UI for spec management
-- [ ] GitHub integration for PR creation
-- [ ] Test result visualization
-- [ ] Code diff view before tests
-- [ ] Rollback on test failure
-- [ ] Metrics and analytics
+```
+.specify/
+├── specs/              # Main branch
+└── branches/
+    └── feature/auth/   # Branch-specific
+        └── specs/
+```
+
+## Security
+
+- API keys managed by VSCode/AI extensions
+- No credentials stored by SpecGofer
+- MCP tools validate input for path traversal
+- Constitution validation is optional
 
 ## Support
 
-For issues, questions, or contributions:
-- GitHub Issues: [your-repo-url]
-- Documentation: [your-docs-url]
+- **Documentation:** <https://github.com/eai-tools/specgofer>
+- **Issues:** <https://github.com/eai-tools/specgofer/issues>
+- **Discussions:** <https://github.com/eai-tools/specgofer/discussions>
 
 ## License
 
-MIT
+MIT © 2025 Enterprise AI Pty Ltd

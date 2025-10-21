@@ -2,6 +2,8 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { SpecKitMigrator } from './specKitMigrator';
 import { ProgressProvider } from './progressProvider';
+import { ConstitutionProvider } from './constitutionProvider';
+import { BranchSpecManager } from './branchSpecManager';
 import { AutoUpdater } from './autoUpdater';
 import { SpecGoferLSPClient } from './lspClient';
 import { MCPConfigHelper } from './mcpConfig';
@@ -18,6 +20,8 @@ import { MCPConfigHelper } from './mcpConfig';
  */
 
 let progressProvider: ProgressProvider | undefined;
+let constitutionProvider: ConstitutionProvider | undefined;
+let branchSpecManager: BranchSpecManager | undefined;
 let autoUpdater: AutoUpdater | undefined;
 let lspClient: SpecGoferLSPClient | undefined;
 
@@ -47,6 +51,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
   if (!workspaceFolder) {
+    console.log('[SpecGofer] No workspace folder open, waiting...');
     // No workspace open yet, wait for one
     vscode.workspace.onDidChangeWorkspaceFolders(async () => {
       await initializeForWorkspace(context);
@@ -54,6 +59,7 @@ export async function activate(context: vscode.ExtensionContext) {
     return;
   }
 
+  console.log(`[SpecGofer] Workspace detected: ${workspaceFolder.uri.fsPath}`);
   await initializeForWorkspace(context);
 }
 
@@ -185,18 +191,53 @@ async function initializeProgressProvider(
   context: vscode.ExtensionContext,
   workspacePath: string
 ) {
-  // Initialize the progress tree view
-  progressProvider = new ProgressProvider(workspacePath);
+  // Initialize branch-aware spec manager
+  branchSpecManager = new BranchSpecManager(workspacePath);
+  await branchSpecManager.initializeBranchStructure();
+
+  // Initialize the progress tree view with branch support
+  progressProvider = new ProgressProvider(workspacePath, branchSpecManager);
 
   context.subscriptions.push(
     vscode.window.registerTreeDataProvider('specKitProgress', progressProvider)
   );
+
+  // Initialize constitution tree view
+  constitutionProvider = new ConstitutionProvider(workspacePath);
+
+  context.subscriptions.push(
+    vscode.window.registerTreeDataProvider('specKitConstitution', constitutionProvider)
+  );
+
+  // Watch for git branch changes
+  const gitExtension = vscode.extensions.getExtension('vscode.git');
+  if (gitExtension) {
+    const git = gitExtension.exports.getAPI(1);
+    if (git.repositories.length > 0) {
+      const repo = git.repositories[0];
+      repo.state.onDidChange(() => {
+        // Branch might have changed
+        handleBranchChange();
+      });
+    }
+  }
 
   // Set context for when clause
   vscode.commands.executeCommand('setContext', 'specKitActive', true);
 
   // Show the Spec Kit view
   vscode.commands.executeCommand('specKitProgress.focus');
+}
+
+async function handleBranchChange() {
+  if (branchSpecManager) {
+    await branchSpecManager.refreshBranch();
+    if (progressProvider) {
+      progressProvider.refresh();
+    }
+    const currentBranch = branchSpecManager.getBranch();
+    vscode.window.setStatusBarMessage(`$(git-branch) SpecGofer: Switched to ${currentBranch}`, 3000);
+  }
 }
 
 function registerCommands(
@@ -261,10 +302,26 @@ function registerCommands(
     })
   );
 
+  // Refresh constitution
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specKit.refreshConstitution', () => {
+      if (constitutionProvider) {
+        constitutionProvider.refresh();
+      }
+    })
+  );
+
   // Show progress panel
   context.subscriptions.push(
     vscode.commands.registerCommand('specKit.showProgress', () => {
       vscode.commands.executeCommand('specKitProgress.focus');
+    })
+  );
+
+  // Show constitution panel
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specKit.showConstitution', () => {
+      vscode.commands.executeCommand('specKitConstitution.focus');
     })
   );
 

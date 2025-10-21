@@ -192,9 +192,23 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
 
   private async loadSpecs(): Promise<void> {
     try {
+      // Check if .specify exists in this workspace
+      const fs = require('fs').promises;
+      const path = require('path');
+      const specifyPath = path.join(this.parser['workspacePath'], '.specify');
+
+      try {
+        await fs.access(specifyPath);
+      } catch (error) {
+        this.loadError = `.specify folder not found in this workspace`;
+        this.specs = [];
+        console.log(`[SpecGofer] .specify folder not found at ${specifyPath}`);
+        return;
+      }
+
       this.specs = await this.parser.loadAllSpecs();
       this.loadError = null;
-      console.log(`[SpecGofer] Loaded ${this.specs.length} spec(s)`);
+      console.log(`[SpecGofer] Loaded ${this.specs.length} spec(s) from ${specifyPath}`);
 
       // Sort specs by status and completion
       this.specs.sort((a, b) => {

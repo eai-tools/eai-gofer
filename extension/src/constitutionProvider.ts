@@ -145,10 +145,20 @@ export class ConstitutionProvider implements vscode.TreeDataProvider<Constitutio
 
   private async loadConstitution(): Promise<void> {
     try {
+      // Check if the constitution file exists
+      try {
+        await fs.access(this.constitutionPath);
+      } catch (error) {
+        this.loadError = `Constitution file not found at ${this.constitutionPath}`;
+        this.articles = [];
+        console.log(`[SpecGofer] Constitution not found at ${this.constitutionPath}`);
+        return;
+      }
+
       const content = await fs.readFile(this.constitutionPath, 'utf-8');
       this.parseConstitution(content);
       this.loadError = null;
-      console.log(`[SpecGofer] Loaded constitution with ${this.articles.length} article(s)`);
+      console.log(`[SpecGofer] Loaded constitution with ${this.articles.length} article(s) from ${this.constitutionPath}`);
     } catch (error) {
       console.error('Error loading constitution:', error);
       this.loadError = error instanceof Error ? error.message : 'Unknown error';

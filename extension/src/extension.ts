@@ -54,12 +54,35 @@ export async function activate(context: vscode.ExtensionContext) {
     console.log('[SpecGofer] No workspace folder open, waiting...');
     // No workspace open yet, wait for one
     vscode.workspace.onDidChangeWorkspaceFolders(async () => {
-      await initializeForWorkspace(context);
+      await reinitializeExtension(context);
     });
     return;
   }
 
   console.log(`[SpecGofer] Workspace detected: ${workspaceFolder.uri.fsPath}`);
+  await initializeForWorkspace(context);
+
+  // Listen for workspace changes to reinitialize
+  vscode.workspace.onDidChangeWorkspaceFolders(async () => {
+    await reinitializeExtension(context);
+  });
+}
+
+async function reinitializeExtension(context: vscode.ExtensionContext) {
+  console.log('[SpecGofer] Workspace changed, reinitializing...');
+
+  // Dispose existing providers
+  if (progressProvider) {
+    progressProvider = undefined;
+  }
+  if (constitutionProvider) {
+    constitutionProvider = undefined;
+  }
+  if (branchSpecManager) {
+    branchSpecManager = undefined;
+  }
+
+  // Reinitialize for new workspace
   await initializeForWorkspace(context);
 }
 
@@ -328,6 +351,15 @@ function registerCommands(
   // Manual update check
   context.subscriptions.push(
     vscode.commands.registerCommand('specKit.checkForUpdates', async () => {
+      if (autoUpdater) {
+        await autoUpdater.manualCheck();
+      }
+    })
+  );
+
+  // Update now command
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specKit.updateNow', async () => {
       if (autoUpdater) {
         await autoUpdater.manualCheck();
       }

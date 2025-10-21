@@ -39,10 +39,23 @@ jobs:
         id: get_version
         run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
 
+      - name: Extract changelog for version
+        id: changelog
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          cd extension
+          # Extract the changelog section for this version
+          awk "/## \[$VERSION\]/,/## \[/" CHANGELOG.md | sed '$d' > /tmp/release_notes.md
+          # If empty, use a default message
+          if [ ! -s /tmp/release_notes.md ]; then
+            echo "See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/extension/CHANGELOG.md) for details." > /tmp/release_notes.md
+          fi
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
           files: extension/*.vsix
+          body_path: /tmp/release_notes.md
           generate_release_notes: true
           draft: false
           prerelease: false

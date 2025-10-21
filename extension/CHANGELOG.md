@@ -2,6 +2,31 @@
 
 All notable changes to the SpecGofer extension will be documented in this file.
 
+## [1.3.3] - 2025-10-21
+
+### Added
+- **Update Now Button**: Added "Update Now" button to Specifications view for easy one-click updates
+- **Multi-Workspace Support**: Extension now properly reinitializes when switching between workspaces
+
+### Fixed
+- **Workspace Detection**: Fixed specifications and constitution not being found when opening different repositories
+- **Error Messages**: Improved error messages showing exact paths when .specify folder or constitution is not found
+- **Provider Reinitialization**: Providers now properly dispose and reinitialize on workspace changes
+
+### Changed
+- **GitHub Actions**: Enhanced release workflow to include version-specific changelog entries in release notes
+- **CHANGELOG**: Now properly maintained and extracted for GitHub releases
+
+## [1.3.2] - 2025-10-21
+
+### Fixed
+- **Language Server Path Resolution**: Improved path resolution for packaged VSIX installations
+- **Build Process**: Enhanced webpack configuration for production builds
+
+### Changed
+- Updated extension metadata and documentation
+- Improved error handling and logging
+
 ## [1.3.0] - 2025-10-20
 
 ### Added

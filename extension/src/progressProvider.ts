@@ -119,9 +119,12 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
   private parser: SpecKitParser;
   private specs: Spec[] = [];
   private loadError: string | null = null;
+  private branchSpecManager: any;
 
-  constructor(workspacePath: string) {
-    this.parser = new SpecKitParser(workspacePath);
+  constructor(workspacePath: string, branchSpecManager?: any) {
+    console.log(`[SpecGofer] ProgressProvider initialized for workspace: ${workspacePath}`);
+    this.branchSpecManager = branchSpecManager;
+    this.parser = new SpecKitParser(workspacePath, branchSpecManager);
     this.loadSpecs();
   }
 
@@ -142,6 +145,7 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
         vscode.TreeItemCollapsibleState.None
       );
       errorItem.iconPath = new vscode.ThemeIcon('error');
+      errorItem.tooltip = `Workspace: ${this.parser['workspacePath']}\n\nError: ${this.loadError}`;
       return [errorItem];
     }
 
@@ -153,7 +157,11 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
           vscode.TreeItemCollapsibleState.None
         );
         noSpecsItem.iconPath = new vscode.ThemeIcon('info');
-        noSpecsItem.tooltip = 'Create specs in .specify/specs/ directory';
+        noSpecsItem.tooltip = `Workspace: ${this.parser['workspacePath']}\n\nLooking for specs in: .specify/specs/\n\nClick "Initialize SpecGofer" to create the structure.`;
+        noSpecsItem.command = {
+          command: 'specKit.initialize',
+          title: 'Initialize SpecGofer'
+        };
         return [noSpecsItem];
       }
 
@@ -186,6 +194,7 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
     try {
       this.specs = await this.parser.loadAllSpecs();
       this.loadError = null;
+      console.log(`[SpecGofer] Loaded ${this.specs.length} spec(s)`);
 
       // Sort specs by status and completion
       this.specs.sort((a, b) => {

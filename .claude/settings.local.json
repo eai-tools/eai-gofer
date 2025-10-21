@@ -1,7 +1,18 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git commit -m \"$(cat <<''EOF''\nfeat: Add automatic VSIX download and installation (v1.3.0)\n\nImplement fully automatic update installation using child_process to\ndownload VSIX from GitHub releases and install via VSCode CLI.\n\n## Major Features\n\n- **Automatic VSIX Download**: Downloads extension from GitHub releases\n  - Fetches release assets via GitHub API\n  - Follows HTTP redirects automatically\n  - Saves to system temp directory\n  - Automatic cleanup after installation\n\n- **Automatic Installation**: Installs VSIX using VSCode CLI\n  - Uses child_process.exec() to run code --install-extension\n  - Cross-platform support (macOS, Linux, Windows)\n  - Force flag ensures clean upgrade\n  - Validates installation output for errors\n\n- **Enhanced User Experience**:\n  - One-click \"Install Update\" button (replaces manual download)\n  - Real-time status indicators during download/install\n  - Prompts user to reload VSCode after installation\n  - Fallback to manual download if auto-install fails\n  - Clear error messages with actionable options\n\n## Technical Implementation\n\n- downloadFile(): Handles HTTPS downloads with redirect support\n- getDownloadUrl(): Fetches VSIX asset URL from GitHub API\n- installVsix(): Executes VSCode CLI command via child_process\n- downloadAndInstall(): Orchestrates complete update flow\n\n## Research Findings\n\n✅ VSCode extensions CAN use child_process.exec() without restrictions\n✅ No sandboxing prevents executing code --install-extension\n✅ Works for both public and private GitHub repositories\n✅ No security restrictions as of VSCode 2025\n\n## Files Modified\n\n- extension/src/autoUpdater.ts: Added download/install methods\n- extension/src/extension.ts: Pass extension name to AutoUpdater\n- extension/package.json: Version bump to 1.3.0\n- extension/CHANGELOG.md: Added v1.3.0 release notes\n\n## User Flow\n\n1. Auto-updater checks GitHub every 24 hours\n2. Detects newer version → shows notification\n3. User clicks \"Install Update\"\n4. Downloads VSIX → Installs via CLI → Prompts reload\n5. User reloads VSCode → New version active\n\n## Breaking Changes\n\nNone. Fully backward compatible with v1.2.1.\n\n## Testing\n\n- ✅ Compilation successful\n- ✅ VSIX package created (7.5 MB)\n- ⏳ Integration testing requires GitHub release\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
+      "Bash(gh release create v1.3.0 specgofer-1.3.0.vsix )",
+      "Bash(gh release create v1.3.0 ./extension/specgofer-1.3.0.vsix )",
+      "Bash(tree -L 3 .specify --charset ascii)",
+      "Bash(cat .specify/specs/test-001/spec.md)",
+      "Bash(npx @vscode/vsce package --out specgofer-1.3.1.vsix)",
+      "Bash(code --install-extension ./extension/specgofer-1.3.1.vsix --force)",
+      "Bash(/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code --install-extension ./extension/specgofer-1.3.1.vsix --force)",
+      "Bash(/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code --install-extension specgofer-1.3.1.vsix --force)",
+      "Bash(npx @vscode/vsce package:*)",
+      "Bash(/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code --install-extension extension/specgofer-1.3.2.vsix --force)",
+      "Bash(/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code --install-extension specgofer-1.3.2.vsix --force)",
+      "Bash(tree:*)"
     ],
     "deny": [],
     "ask": []

@@ -2,7 +2,7 @@
   "name": "specgofer",
   "displayName": "SpecGofer (Enterprise AI) [PREVIEW]",
   "description": "Enterprise AI Pty Ltd - GitHub Spec Kit format support and migration. LSP+MCP orchestration ready for testing.",
-  "version": "1.3.0",
+  "version": "1.3.2",
   "publisher": "EnterpriseAI",
   "icon": "icon.png",
   "author": {
@@ -62,6 +62,16 @@
         "command": "specKit.checkForUpdates",
         "title": "SpecGofer: Check for Updates",
         "icon": "$(cloud-download)"
+      },
+      {
+        "command": "specKit.refreshConstitution",
+        "title": "SpecGofer: Refresh Constitution",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "specKit.showConstitution",
+        "title": "SpecGofer: Show Constitution Panel",
+        "icon": "$(law)"
       }
     ],
     "viewsContainers": {
@@ -100,6 +110,11 @@
         {
           "command": "specKit.refreshSpecs",
           "when": "view == specKitProgress",
+          "group": "navigation"
+        },
+        {
+          "command": "specKit.refreshConstitution",
+          "when": "view == specKitConstitution",
           "group": "navigation"
         }
       ]

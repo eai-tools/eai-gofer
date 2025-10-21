@@ -63,34 +63,45 @@ export interface YAMLFrontmatter {
  * SpecKitParser - Parses GitHub Spec Kit format
  */
 export class SpecKitParser {
-  constructor(private workspacePath: string) {}
+  constructor(private workspacePath: string, private branchSpecManager?: any) {}
 
   /**
    * Load all specs from .specify/specs/ directory
+   * If branchSpecManager is provided, loads branch-aware specs
    */
   async loadAllSpecs(): Promise<Spec[]> {
-    const specsDir = path.join(this.workspacePath, '.specify', 'specs');
+    let specsDirs: string[];
 
-    try {
-      const entries = await fs.readdir(specsDir, { withFileTypes: true });
-      const specDirs = entries.filter((e) => e.isDirectory());
-
-      const specs = await Promise.all(
-        specDirs.map(async (dir) => {
-          try {
-            return await this.loadSpec(dir.name);
-          } catch (error) {
-            console.error(`Failed to load spec ${dir.name}:`, error);
-            return null;
-          }
-        })
-      );
-
-      return specs.filter((s): s is Spec => s !== null);
-    } catch (error) {
-      console.error('Failed to read specs directory:', error);
-      return [];
+    if (this.branchSpecManager) {
+      // Get branch-aware spec paths
+      specsDirs = await this.branchSpecManager.getAllSpecPaths();
+    } else {
+      // Fallback to simple .specify/specs
+      const specsDir = path.join(this.workspacePath, '.specify', 'specs');
+      try {
+        const entries = await fs.readdir(specsDir, { withFileTypes: true });
+        specsDirs = entries
+          .filter((e) => e.isDirectory())
+          .map((e) => path.join(specsDir, e.name));
+      } catch (error) {
+        console.error('Failed to read specs directory:', error);
+        return [];
+      }
     }
+
+    const specs = await Promise.all(
+      specsDirs.map(async (specPath) => {
+        try {
+          const specId = path.basename(specPath);
+          return await this.loadSpecFromPath(specId, specPath);
+        } catch (error) {
+          console.error(`Failed to load spec ${specPath}:`, error);
+          return null;
+        }
+      })
+    );
+
+    return specs.filter((s): s is Spec => s !== null);
   }
 
   /**
@@ -99,6 +110,15 @@ export class SpecKitParser {
    */
   async loadSpec(specId: string): Promise<Spec> {
     const specDir = path.join(this.workspacePath, '.specify', 'specs', specId);
+    return this.loadSpecFromPath(specId, specDir);
+  }
+
+  /**
+   * Load a single spec from a specific path
+   * @param specId - e.g., "001-login-feature"
+   * @param specDir - full path to spec directory
+   */
+  private async loadSpecFromPath(specId: string, specDir: string): Promise<Spec> {
     const specPath = path.join(specDir, 'spec.md');
     const tasksPath = path.join(specDir, 'tasks.md');
     const planPath = path.join(specDir, 'plan.md');
@@ -107,9 +127,15 @@ export class SpecKitParser {
     const specContent = await fs.readFile(specPath, 'utf-8');
     const { frontmatter, content } = this.parseFrontmatter(specContent);
 
-    // Parse tasks.md (required)
-    const tasksContent = await fs.readFile(tasksPath, 'utf-8');
-    const tasks = this.parseTasks(tasksContent);
+    // Parse tasks.md (optional - may not exist yet)
+    let tasks: Task[] = [];
+    try {
+      const tasksContent = await fs.readFile(tasksPath, 'utf-8');
+      tasks = this.parseTasks(tasksContent);
+    } catch {
+      // Tasks file is optional
+      console.log(`No tasks.md found for spec ${specId}`);
+    }
 
     // Parse plan.md (optional)
     let plan: TechnicalPlan | undefined;
@@ -162,6 +188,9 @@ export class SpecKitParser {
    *
    * - [x] **T002**: Add form validation
    *   - Dependencies: T001
+   *
+   * Also supports simple format:
+   * - [ ] #1 Create calculator.ts module structure
    */
   private parseTasks(content: string): Task[] {
     const tasks: Task[] = [];
@@ -171,8 +200,8 @@ export class SpecKitParser {
     let taskIndex = 0;
 
     for (const line of lines) {
-      // Match task line: - [ ] **T001**: Description or - [x] **T001**: Description
-      const taskMatch = line.match(/^-\s+\[([x ])\]\s+\*\*([A-Z]\d+)\*\*:\s+(.+)$/);
+      // Match task line with **T001** prefix: - [ ] **T001**: Description
+      let taskMatch = line.match(/^-\s+\[([x ])\]\s+\*\*([A-Z]\d+)\*\*:\s+(.+)$/);
       if (taskMatch) {
         // Save previous task if exists
         if (currentTask && currentTask.id) {
@@ -182,6 +211,26 @@ export class SpecKitParser {
         const [, checkbox, id, description] = taskMatch;
         currentTask = {
           id,
+          description: description.trim(),
+          status: checkbox === 'x' ? 'completed' : 'pending',
+          dependencies: [],
+          parallel: false,
+          attempts: 0,
+        };
+        continue;
+      }
+
+      // Match task line with #N prefix: - [ ] #1 Description
+      taskMatch = line.match(/^-\s+\[([x ])\]\s+#(\d+)\s+(.+)$/);
+      if (taskMatch) {
+        // Save previous task if exists
+        if (currentTask && currentTask.id) {
+          tasks.push(this.completeTask(currentTask, taskIndex++));
+        }
+
+        const [, checkbox, taskNum, description] = taskMatch;
+        currentTask = {
+          id: `T${taskNum.padStart(3, '0')}`,
           description: description.trim(),
           status: checkbox === 'x' ? 'completed' : 'pending',
           dependencies: [],

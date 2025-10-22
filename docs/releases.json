@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.4.6",
+  "latest_version": "1.4.7",
   "repository": "eai-tools/specgofer",
-  "last_updated": "2025-10-22T10:17:44.395Z",
+  "last_updated": "2025-10-22T10:24:43.205Z",
   "releases": [
+    {
+      "version": "1.4.7",
+      "tag_name": "v1.4.7",
+      "published_at": "2025-10-22T10:24:43.204Z",
+      "download_url": "https://github.com/eai-tools/specgofer/releases/download/v1.4.7/specgofer-1.4.7.vsix",
+      "notes": "Fix auto-updater for github releases public page",
+      "prerelease": false,
+      "size_mb": 8.5
+    },
     {
       "version": "1.4.6",
       "tag_name": "v1.4.6",

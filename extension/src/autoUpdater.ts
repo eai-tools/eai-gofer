@@ -63,7 +63,7 @@ export class AutoUpdater {
         hostname: 'eai-tools.github.io',
         path: '/specgofer/releases.json',
         headers: {
-          'user-agent': 'VSCode-Extension-Updater',
+          'userAgent': 'VSCode-Extension-Updater',
           'accept': 'application/json'
         }
       };
@@ -112,8 +112,12 @@ export class AutoUpdater {
     const currentParts = current.split('.').map(Number);
 
     for (let i = 0; i < 3; i++) {
-      if (latestParts[i] > currentParts[i]) return true;
-      if (latestParts[i] < currentParts[i]) return false;
+      if (latestParts[i] > currentParts[i]) {
+        return true;
+      }
+      if (latestParts[i] < currentParts[i]) {
+        return false;
+      }
     }
 
     return false;
@@ -126,7 +130,7 @@ export class AutoUpdater {
     return new Promise((resolve, reject) => {
       const file = require('fs').createWriteStream(destPath);
 
-      https.get(url, { headers: { 'User-Agent': 'VSCode-Extension-Updater' } }, (response) => {
+      https.get(url, { headers: { 'userAgent': 'VSCode-Extension-Updater' } }, (response) => {
         // Follow redirects
         if (response.statusCode === 302 || response.statusCode === 301) {
           const redirectUrl = response.headers.location;
@@ -163,7 +167,7 @@ export class AutoUpdater {
         hostname: 'eai-tools.github.io',
         path: '/specgofer/releases.json',
         headers: {
-          'user-agent': 'VSCode-Extension-Updater',
+          'userAgent': 'VSCode-Extension-Updater',
           'accept': 'application/json'
         }
       };

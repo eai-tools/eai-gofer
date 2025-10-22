@@ -27,7 +27,10 @@
       "Bash(.specify/scripts/bash/create-new-feature.sh:*)",
       "Bash(git checkout:*)",
       "Bash(npm install:*)",
-      "Bash(npm run compile:*)"
+      "Bash(npm run compile:*)",
+      "Read(//Users/douglaswross/**)",
+      "Bash(gh release list:*)",
+      "Bash(./release-auto.sh:*)"
     ],
     "deny": [],
     "ask": []

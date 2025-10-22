@@ -255,4 +255,40 @@ export class TestAgent {
       return false;
     }
   }
+
+    } catch (error: any) {
+      results.passed = false;
+      results.failedTests = criteria.map(c => c.id);
+      results.summary = `Test execution failed: ${error.message}\n${error.stdout || ''}\n${error.stderr || ''}`;
+    }
+
+    return results;
+  }
+
+  async runSingleTest(testPath: string): Promise<boolean> {
+    try {
+      await execAsync(`npx playwright test ${testPath}`, { cwd: this.workspaceDir });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async generateTestReport(criteria: AcceptanceCriteria[]): Promise<string> {
+    const result = await this.runTests(criteria);
+
+    return `
+# Test Report
+
+**Status**: ${result.passed ? '✅ PASSED' : '❌ FAILED'}
+
+## Summary
+${result.summary}
+
+## Test Coverage
+${criteria.map(c => `- [${c.testPath}] ${c.description}`).join('\n')}
+
+${result.failedTests.length > 0 ? `## Failed Tests\n${result.failedTests.join('\n')}` : ''}
+`;
+  }
 }

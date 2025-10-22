@@ -2,6 +2,10 @@
 
 All notable changes to the SpecGofer extension will be documented in this file.
 
+## [1.4.4] - 2025-10-22
+
+Patch to try to get tree views to work better
+
 ## [1.4.3] - 2025-10-22
 
 Test GitHub Actions permissions fix

@@ -2,6 +2,10 @@
 
 All notable changes to the SpecGofer extension will be documented in this file.
 
+## [1.4.8] - 2025-10-23
+
+Test end-to-end workflow: GitHub Pages + auto-updater integration
+
 ## [1.4.7] - 2025-10-22
 
 Fix auto-updater for github releases public page

@@ -232,18 +232,27 @@
                 // Load releases from JSON API
         async function loadReleases() {
             try {
-                // Use absolute URL to ensure it works on GitHub Pages
-                const response = await fetch('https://eai-tools.github.io/specgofer/releases.json');
+                console.log('Loading releases from API...');
+                
+                // Try relative path first, fallback to absolute URL
+                let response;
+                try {
+                    response = await fetch('./releases.json');
+                } catch (e) {
+                    console.log('Relative path failed, trying absolute URL...');
+                    response = await fetch('https://eai-tools.github.io/specgofer/releases.json');
+                }
                 
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
                 
                 const data = await response.json();
+                console.log('Loaded releases:', data);
                 displayReleases(data);
             } catch (error) {
                 console.error('Failed to load releases:', error);
-                displayError(`Failed to load releases: ${error.message}. Please try again later.`);
+                displayError(`Failed to load releases: ${error.message}. Please refresh the page or try again later.`);
             }
         }
         

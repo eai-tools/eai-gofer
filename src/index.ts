@@ -17,7 +17,7 @@ async function main() {
     process.exit(1);
   }
 
-  const specDir = process.env.SPEC_DIR || '.specify';
+  const specDir = process.env.SPEC_DIR || '.specify/specs';
   const workspaceDir = process.env.WORKSPACE_DIR || process.cwd();
 
   const twilioConfig = {

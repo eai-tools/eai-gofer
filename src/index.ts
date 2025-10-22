@@ -27,6 +27,19 @@ async function main() {
     toNumber: process.env.YOUR_PHONE_NUMBER || ''
   };
 
+  const whatsappConfig = {
+    enabled: process.env.WHATSAPP_ENABLED === 'true',
+    phoneNumber: process.env.WHATSAPP_PHONE_NUMBER || '' // Format: 1234567890@c.us
+  };
+
+  // Determine notification method
+  let notificationStatus = '📱 Notifications: Disabled';
+  if (whatsappConfig.enabled && whatsappConfig.phoneNumber) {
+    notificationStatus = '💬 Notifications: WhatsApp (scan QR on first run)';
+  } else if (twilioConfig.accountSid && twilioConfig.accountSid.startsWith('AC')) {
+    notificationStatus = '📱 Notifications: SMS (Twilio)';
+  }
+
   console.log(`
 ╔═══════════════════════════════════════════════════════════╗
 ║                                                           ║
@@ -38,13 +51,14 @@ async function main() {
 📁 Spec directory: ${specDir}
 📁 Workspace: ${workspaceDir}
 🤖 Using Claude 3.7 Sonnet
-${twilioConfig.accountSid ? '📱 SMS notifications: Enabled' : '📱 SMS notifications: Disabled'}
+${notificationStatus}
 `);
 
   const orchestrator = new AutonomousOrchestrator(
     specDir,
     apiKey,
     twilioConfig,
+    whatsappConfig,
     workspaceDir
   );
 

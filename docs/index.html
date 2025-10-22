@@ -232,12 +232,20 @@
         // Load releases from JSON API
         async function loadReleases() {
             try {
+                console.log('Loading releases from releases.json...');
                 const response = await fetch('./releases.json');
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
                 const data = await response.json();
+                console.log('Loaded data:', data);
                 displayReleases(data);
             } catch (error) {
                 console.error('Failed to load releases:', error);
-                displayError('Failed to load releases. Please try again later.');
+                displayError(`Failed to load releases: ${error.message}. Please try again later.`);
             }
         }
         

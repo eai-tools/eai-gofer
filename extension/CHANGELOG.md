@@ -2,6 +2,10 @@
 
 All notable changes to the SpecGofer extension will be documented in this file.
 
+## [1.4.5] - 2025-10-22
+
+Critical fixes: Preserve constitution during updates, fix update button error
+
 ## [1.4.4] - 2025-10-22
 
 Patch to try to get tree views to work better

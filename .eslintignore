@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+extension/node_modules/
+language-server/node_modules/
+
+# Build output
+dist/
+build/
+extension/dist/
+extension/out/
+language-server/dist/
+
+# Test coverage
+coverage/
+
+# Generated files
+*.min.js
+*.bundle.js
+
+# Package files
+*.tgz
+*.tar.gz
+
+# Extension packaging
+*.vsix
+
+# Communication files
+.claude-input.txt
+.claude-output.txt
+.claude-question.txt
+.claude-answer.txt
+
+# Test results
+test-results/
+playwright-report/
+
+# VS Code Extension testing
+extension/.vscode-test/
+.vscode-test/

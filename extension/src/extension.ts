@@ -365,6 +365,153 @@ function registerCommands(
       }
     })
   );
+
+  // Update templates command
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specKit.updateTemplates', async () => {
+      vscode.window.showInformationMessage('Updating Spec Kit templates...');
+      // TODO: Implement template updater integration
+      // This would call the templateDownloader to get latest templates
+    })
+  );
+
+  // Create new specification command
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specKit.createSpec', async (uri?: vscode.Uri) => {
+      const specName = await vscode.window.showInputBox({
+        prompt: 'Enter specification name (e.g., "user-authentication")',
+        placeHolder: 'my-feature',
+        validateInput: (value) => {
+          if (!value || value.trim().length === 0) {
+            return 'Specification name is required';
+          }
+          if (!/^[a-z0-9-]+$/.test(value.trim())) {
+            return 'Name must be lowercase with dashes only (a-z, 0-9, -)';
+          }
+          return null;
+        }
+      });
+
+      if (specName) {
+        const specsPath = path.join(workspacePath, '.specify', 'specs', specName.trim());
+        const specFile = path.join(specsPath, 'spec.md');
+
+        try {
+          // Create directory if it doesn't exist
+          await vscode.workspace.fs.createDirectory(vscode.Uri.file(specsPath));
+
+          // Create spec template
+          const specTemplate = `---
+id: "${specName.trim()}"
+title: "${specName.trim().replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}"
+status: "draft"
+created: "${new Date().toISOString().split('T')[0]}"
+---
+
+# ${specName.trim().replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+
+## Overview
+
+Brief description of the feature or requirement.
+
+## Problem Statement
+
+What problem does this solve?
+
+## Solution
+
+How will this be implemented?
+
+## Acceptance Criteria
+
+### AC1: First Criterion
+- **Given** initial condition
+- **When** user performs action
+- **Then** expected outcome occurs
+
+## Tasks
+
+- [ ] #T001 First task (deps: none)
+- [ ] #T002 Second task (deps: T001)
+
+## Dependencies
+
+### Internal
+- List internal dependencies
+
+### External
+- List external dependencies
+
+## Test Strategy
+
+How will this be tested?
+
+## Success Metrics
+
+How will success be measured?
+`;
+
+          await vscode.workspace.fs.writeFile(vscode.Uri.file(specFile), Buffer.from(specTemplate));
+
+          // Open the new spec file
+          const doc = await vscode.workspace.openTextDocument(specFile);
+          await vscode.window.showTextDocument(doc);
+
+          // Refresh tree view
+          if (progressProvider) {
+            progressProvider.refresh();
+          }
+
+          vscode.window.showInformationMessage(`Created new specification: ${specName}`);
+        } catch (error) {
+          vscode.window.showErrorMessage(`Failed to create specification: ${error}`);
+        }
+      }
+    })
+  );
+
+  // Open specification command
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specKit.openSpec', async (specId?: string) => {
+      if (specId) {
+        const specFile = path.join(workspacePath, '.specify', 'specs', specId, 'spec.md');
+        try {
+          const doc = await vscode.workspace.openTextDocument(specFile);
+          await vscode.window.showTextDocument(doc);
+        } catch (error) {
+          vscode.window.showErrorMessage(`Failed to open specification: ${error}`);
+        }
+      } else {
+        // Show quick pick for all specs
+        const specsDir = path.join(workspacePath, '.specify', 'specs');
+        try {
+          const specs = await vscode.workspace.fs.readDirectory(vscode.Uri.file(specsDir));
+          const specItems = specs
+            .filter(([name, type]) => type === vscode.FileType.Directory)
+            .map(([name]) => ({
+              label: name,
+              description: `Open ${name} specification`,
+              specId: name
+            }));
+
+          if (specItems.length === 0) {
+            vscode.window.showInformationMessage('No specifications found. Create one first!');
+            return;
+          }
+
+          const selected = await vscode.window.showQuickPick(specItems, {
+            placeHolder: 'Select a specification to open'
+          });
+
+          if (selected) {
+            vscode.commands.executeCommand('specKit.openSpec', selected.specId);
+          }
+        } catch (error) {
+          vscode.window.showErrorMessage(`Failed to list specifications: ${error}`);
+        }
+      }
+    })
+  );
 }
 
 export async function deactivate() {

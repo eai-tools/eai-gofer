@@ -1,0 +1,327 @@
+name: Release Extension
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 1.0.0)'
+        required: true
+      prerelease:
+        description: 'Mark as pre-release'
+        type: boolean
+        default: false
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: |
+          package-lock.json
+          extension/package-lock.json
+          language-server/package-lock.json
+
+    - name: Install root dependencies
+      run: npm ci
+
+    - name: Install extension dependencies
+      working-directory: ./extension
+      run: npm ci
+
+    - name: Install language server dependencies  
+      working-directory: ./language-server
+      run: npm ci
+
+    - name: Build language server
+      working-directory: ./language-server
+      run: npm run build
+
+    - name: Build extension
+      working-directory: ./extension
+      run: npm run compile
+
+    - name: Run extension tests
+      working-directory: ./extension
+      run: |
+        export DISPLAY=:99
+        Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+        npm test
+      env:
+        SKIP_NETWORK_TESTS: true
+
+    - name: Run linting
+      working-directory: ./extension
+      run: npm run lint
+
+  package-extension:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    
+    outputs:
+      version: ${{ steps.package.outputs.version }}
+      vsix-name: ${{ steps.package.outputs.vsix-name }}
+      
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      working-directory: ./extension
+      run: npm ci
+
+    - name: Install language server dependencies
+      working-directory: ./language-server  
+      run: npm ci
+
+    - name: Build language server
+      working-directory: ./language-server
+      run: npm run build
+
+    - name: Prepare language server for bundling
+      working-directory: ./extension
+      run: npm run prepare-language-server
+
+    - name: Update version if manual dispatch
+      if: github.event_name == 'workflow_dispatch'
+      working-directory: ./extension
+      run: |
+        npm version ${{ github.event.inputs.version }} --no-git-tag-version
+        echo "Updated version to ${{ github.event.inputs.version }}"
+
+    - name: Package extension
+      id: package
+      working-directory: ./extension
+      run: |
+        npm install -g @vscode/vsce
+        vsce package --no-dependencies
+        
+        # Get version and VSIX filename
+        VERSION=$(node -p "require('./package.json').version")
+        VSIX_NAME="specgofer-${VERSION}.vsix"
+        
+        echo "version=${VERSION}" >> $GITHUB_OUTPUT
+        echo "vsix-name=${VSIX_NAME}" >> $GITHUB_OUTPUT
+        
+        # Verify VSIX was created
+        if [ ! -f "${VSIX_NAME}" ]; then
+          echo "Error: VSIX file ${VSIX_NAME} was not created"
+          exit 1
+        fi
+        
+        echo "Successfully packaged ${VSIX_NAME}"
+
+    - name: Upload VSIX artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: extension-vsix
+        path: extension/*.vsix
+        retention-days: 30
+
+    - name: Test VSIX installation
+      working-directory: ./extension
+      run: |
+        # Install the VSIX to verify it's valid
+        npm install -g @vscode/vsce
+        vsce ls ${{ steps.package.outputs.vsix-name }}
+        echo "VSIX validation successful"
+
+  create-release:
+    needs: [build-and-test, package-extension]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Download VSIX artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: extension-vsix
+        path: ./release
+
+    - name: Extract changelog for version
+      id: changelog
+      run: |
+        VERSION="${{ needs.package-extension.outputs.version }}"
+        
+        # Extract changelog section for this version
+        if [ -f "extension/CHANGELOG.md" ]; then
+          # Get changelog section between this version and next version header
+          CHANGELOG=$(awk "/^## \[${VERSION}\]/{flag=1; next} /^## \[/{flag=0} flag" extension/CHANGELOG.md || echo "No changelog found for version ${VERSION}")
+        else
+          CHANGELOG="Version ${VERSION} release"
+        fi
+        
+        # Write to file to preserve formatting
+        echo "${CHANGELOG}" > release_notes.md
+        echo "Extracted changelog for version ${VERSION}"
+
+    - name: Create GitHub Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref_name }}
+        release_name: SpecGofer Extension v${{ needs.package-extension.outputs.version }}
+        body_path: release_notes.md
+        draft: false
+        prerelease: ${{ contains(github.ref_name, '-') }}
+
+    - name: Upload VSIX to Release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./release/${{ needs.package-extension.outputs.vsix-name }}
+        asset_name: ${{ needs.package-extension.outputs.vsix-name }}
+        asset_content_type: application/zip
+
+  publish-marketplace:
+    needs: [build-and-test, package-extension, create-release]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') && !contains(github.ref_name, '-')
+    environment: marketplace-publishing
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+
+    - name: Download VSIX artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: extension-vsix
+        path: ./publish
+
+    - name: Publish to VS Code Marketplace
+      working-directory: ./publish
+      run: |
+        npm install -g @vscode/vsce
+        
+        # Verify VSIX exists
+        VSIX_FILE="${{ needs.package-extension.outputs.vsix-name }}"
+        if [ ! -f "${VSIX_FILE}" ]; then
+          echo "Error: VSIX file ${VSIX_FILE} not found"
+          exit 1
+        fi
+        
+        # Publish to marketplace
+        vsce publish --packagePath "${VSIX_FILE}"
+        echo "Successfully published ${VSIX_FILE} to VS Code Marketplace"
+      env:
+        VSCE_PAT: ${{ secrets.VSCE_PAT }}
+
+    - name: Publish to Open VSX Registry
+      working-directory: ./publish
+      run: |
+        npm install -g ovsx
+        
+        # Publish to Open VSX (alternative marketplace)
+        ovsx publish ${{ needs.package-extension.outputs.vsix-name }}
+        echo "Successfully published to Open VSX Registry"
+      env:
+        OVSX_PAT: ${{ secrets.OVSX_PAT }}
+
+  manual-release:
+    needs: [build-and-test, package-extension]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Download VSIX artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: extension-vsix
+        path: ./manual-release
+
+    - name: Create manual release
+      uses: actions/create-release@v1
+      id: create_manual_release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ github.event.inputs.version }}
+        release_name: SpecGofer Extension v${{ github.event.inputs.version }}
+        body: |
+          Manual release of SpecGofer Extension v${{ github.event.inputs.version }}
+          
+          ## Installation
+          Download the VSIX file and install via:
+          ```
+          code --install-extension ${{ needs.package-extension.outputs.vsix-name }}
+          ```
+          
+          ## Changes
+          See [CHANGELOG.md](https://github.com/eai-tools/specgofer/blob/main/extension/CHANGELOG.md) for details.
+        draft: true
+        prerelease: ${{ github.event.inputs.prerelease }}
+
+    - name: Upload VSIX to manual release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_manual_release.outputs.upload_url }}
+        asset_path: ./manual-release/${{ needs.package-extension.outputs.vsix-name }}
+        asset_name: ${{ needs.package-extension.outputs.vsix-name }}
+        asset_content_type: application/zip
+
+    - name: Manual publish option
+      if: github.event.inputs.prerelease == 'false'
+      working-directory: ./manual-release
+      run: |
+        echo "To publish to marketplace manually, run:"
+        echo "npm install -g @vscode/vsce"
+        echo "vsce publish --packagePath ${{ needs.package-extension.outputs.vsix-name }}"
+        echo ""
+        echo "Environment variable needed: VSCE_PAT=<your-marketplace-token>"
+
+  notify-completion:
+    needs: [build-and-test, package-extension, create-release, publish-marketplace]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+    - name: Report status
+      run: |
+        if [ "${{ needs.publish-marketplace.result }}" == "success" ]; then
+          echo "✅ Extension successfully published to VS Code Marketplace!"
+          echo "Version: ${{ needs.package-extension.outputs.version }}"
+          echo "VSIX: ${{ needs.package-extension.outputs.vsix-name }}"
+        elif [ "${{ needs.create-release.result }}" == "success" ]; then
+          echo "✅ GitHub release created successfully!"
+          echo "Manual marketplace publishing may be required."
+        elif [ "${{ needs.package-extension.result }}" == "success" ]; then
+          echo "✅ Extension packaged successfully!"
+          echo "Release creation may have failed."
+        else
+          echo "❌ Workflow completed with errors."
+          echo "Check the logs for details."
+        fi

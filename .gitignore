@@ -49,3 +49,11 @@ Thumbs.db
 
 # Extension packaging
 *.vsix
+extension/*.vsix
+
+# VS Code Extension testing
+extension/.vscode-test/
+.vscode-test/
+
+# Extension compiled output
+extension/out/

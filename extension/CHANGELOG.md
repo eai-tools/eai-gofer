@@ -2,6 +2,10 @@
 
 All notable changes to the SpecGofer extension will be documented in this file.
 
+## [1.4.1] - 2025-10-22
+
+Added speckit internal delivery
+
 ## [1.4.0] - 2025-10-22
 
 Added speckit internal delivery

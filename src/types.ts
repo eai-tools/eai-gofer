@@ -2,6 +2,9 @@ export interface Spec {
   id: string;
   title: string;
   description: string;
+  status?: 'draft' | 'in_progress' | 'testing' | 'completed' | 'failed';
+  created?: string;
+  featureBranch?: string;
   tasks: Task[];
   acceptanceCriteria: AcceptanceCriteria[];
   qaRules: QARule[];

@@ -28,7 +28,7 @@ let lspClient: SpecGoferLSPClient | undefined;
 export async function activate(context: vscode.ExtensionContext) {
   console.log('SpecGofer (Enterprise AI) extension activated');
 
-  // Setup auto-updater
+  // Setup auto-updater (using GitHub Pages API for private repo)
   const packageJson = require('../package.json');
   autoUpdater = new AutoUpdater(
     'eai-tools/specgofer',  // GitHub repo
@@ -36,7 +36,7 @@ export async function activate(context: vscode.ExtensionContext) {
     'specgofer'             // Extension name for VSIX filename
   );
 
-  // Start checking for updates
+  // Start checking for updates using GitHub Pages API
   autoUpdater.startPeriodicChecks(context);
 
   // Start Language Server

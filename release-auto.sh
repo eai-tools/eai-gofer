@@ -92,10 +92,36 @@ print_success "Updated package.json and CHANGELOG.md"
 # Build VSIX
 print_info "Building VSIX package..."
 cd extension
-npx @vscode/vsce package --out "specgofer-$NEW_VERSION.vsix" 2>&1 | grep -E "(Packaged|DONE|WARNING)" || true
+
+# Run vsce package and capture both success and failure
+if npx @vscode/vsce package --out "specgofer-$NEW_VERSION.vsix"; then
+    print_success "VSIX package built successfully"
+else
+    print_error "Failed to build VSIX package"
+    cd ..
+    exit 1
+fi
+
 cd ..
-mv "extension/specgofer-$NEW_VERSION.vsix" "./specgofer-$NEW_VERSION.vsix" 2>/dev/null || true
-print_success "Built specgofer-$NEW_VERSION.vsix"
+
+# Move VSIX file and verify it exists
+if [ -f "extension/specgofer-$NEW_VERSION.vsix" ]; then
+    mv "extension/specgofer-$NEW_VERSION.vsix" "./specgofer-$NEW_VERSION.vsix"
+    print_success "Built specgofer-$NEW_VERSION.vsix"
+else
+    print_error "VSIX file was not created: extension/specgofer-$NEW_VERSION.vsix"
+    exit 1
+fi
+
+# Update GitHub Pages releases.json
+print_info "Updating GitHub Pages releases.json..."
+if [ -f "docs/update-releases.js" ]; then
+    node docs/update-releases.js "$NEW_VERSION" "$COMMIT_MSG"
+    git add docs/releases.json
+    print_success "Updated GitHub Pages release data"
+else
+    print_warning "GitHub Pages update script not found, skipping..."
+fi
 
 # Commit
 print_info "Committing changes..."

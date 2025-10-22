@@ -48,19 +48,23 @@ export class AutoUpdater {
       }
     } catch (error) {
       console.error('Update check failed:', error);
+      // Don't show error popups for automatic checks to avoid spamming users
+      // Only show errors for manual checks
     }
   }
 
   /**
-   * Get latest version from GitHub Releases API
+   * Get latest version from GitHub Pages JSON API
+   * This works even for private repositories since GitHub Pages can be public
    */
   private async getLatestVersion(): Promise<string> {
     return new Promise((resolve, reject) => {
       const options = {
-        hostname: 'api.github.com',
-        path: `/repos/${this.githubRepo}/releases/latest`,
+        hostname: 'eai-tools.github.io',
+        path: '/specgofer/releases.json',
         headers: {
-          'User-Agent': 'VSCode-Extension-Updater'
+          'user-agent': 'VSCode-Extension-Updater',
+          'accept': 'application/json'
         }
       };
 
@@ -73,9 +77,25 @@ export class AutoUpdater {
 
         res.on('end', () => {
           try {
-            const release = JSON.parse(data);
-            const version = release.tag_name.replace('v', ''); // "v1.0.0" -> "1.0.0"
-            resolve(version);
+            // Log the response for debugging
+            console.log(`GitHub Pages API Response Status: ${res.statusCode}`);
+            console.log(`GitHub Pages API Response Data: ${data.substring(0, 500)}...`);
+
+            if (res.statusCode === 404) {
+              reject(new Error(`Release page not found. GitHub Pages may not be set up yet for ${this.githubRepo}.`));
+              return;
+            } else if (res.statusCode !== 200) {
+              reject(new Error(`GitHub Pages returned status ${res.statusCode}: ${data}`));
+              return;
+            }
+
+            const releaseData = JSON.parse(data);
+            if (!releaseData || !releaseData.latest_version) {
+              reject(new Error(`Invalid release data received from GitHub Pages. Received: ${JSON.stringify(releaseData).substring(0, 200)}`));
+              return;
+            }
+            
+            resolve(releaseData.latest_version);
           } catch (error) {
             reject(error);
           }
@@ -135,15 +155,16 @@ export class AutoUpdater {
   }
 
   /**
-   * Get download URL for VSIX file from GitHub release
+   * Get download URL for VSIX file from GitHub Pages release data
    */
   private async getDownloadUrl(version: string): Promise<string> {
     return new Promise((resolve, reject) => {
       const options = {
-        hostname: 'api.github.com',
-        path: `/repos/${this.githubRepo}/releases/tags/v${version}`,
+        hostname: 'eai-tools.github.io',
+        path: '/specgofer/releases.json',
         headers: {
-          'User-Agent': 'VSCode-Extension-Updater'
+          'user-agent': 'VSCode-Extension-Updater',
+          'accept': 'application/json'
         }
       };
 
@@ -156,17 +177,15 @@ export class AutoUpdater {
 
         res.on('end', () => {
           try {
-            const release = JSON.parse(data);
+            const releaseData = JSON.parse(data);
 
-            // Find the .vsix asset
-            const vsixAsset = release.assets?.find((asset: any) =>
-              asset.name.endsWith('.vsix') && asset.name.includes(this.extensionName)
-            );
+            // Find the specific version in releases array
+            const release = releaseData.releases?.find((r: any) => r.version === version);
 
-            if (vsixAsset) {
-              resolve(vsixAsset.browser_download_url);
+            if (release && release.download_url) {
+              resolve(release.download_url);
             } else {
-              reject(new Error('No .vsix file found in release assets'));
+              reject(new Error(`No download URL found for version ${version}`));
             }
           } catch (error) {
             reject(error);
@@ -289,9 +308,25 @@ export class AutoUpdater {
         );
       }
     } catch (error) {
-      vscode.window.showErrorMessage(
-        `Failed to check for updates: ${error instanceof Error ? error.message : String(error)}`
-      );
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      
+      if (errorMessage.includes('not found') || errorMessage.includes('404')) {
+        vscode.window.showInformationMessage(
+          `� GitHub Pages release site not found.\n\nCurrent version: v${this.currentVersion}\n\nPlease check that GitHub Pages is enabled for the repository.\n\nSite URL: https://eai-tools.github.io/specgofer`,
+          'Open Release Site', 'OK'
+        ).then(choice => {
+          if (choice === 'Open Release Site') {
+            vscode.env.openExternal(vscode.Uri.parse('https://eai-tools.github.io/specgofer'));
+          }
+        });
+      } else if (errorMessage.includes('rate limit')) {
+        vscode.window.showWarningMessage(
+          `⏳ Too many requests.\n\nCurrent version: v${this.currentVersion}\n\nPlease try again later.`,
+          'OK'
+        );
+      } else {
+        vscode.window.showErrorMessage(`Failed to check for updates: ${errorMessage}`);
+      }
     } finally {
       statusBarItem.dispose();
     }

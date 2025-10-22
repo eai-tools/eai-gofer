@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpecGofer Releases - Enterprise AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .hero {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .releases-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .releases-header {
+            background: #2d3748;
+            color: white;
+            padding: 20px 30px;
+        }
+        
+        .releases-header h2 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+        
+        .current-version {
+            background: #4299e1;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .release-item {
+            border-bottom: 1px solid #e2e8f0;
+            padding: 25px 30px;
+            transition: background-color 0.2s;
+        }
+        
+        .release-item:hover {
+            background-color: #f8fafc;
+        }
+        
+        .release-item:last-child {
+            border-bottom: none;
+        }
+        
+        .release-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        
+        .version-info h3 {
+            font-size: 1.3rem;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+        
+        .release-date {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+        
+        .download-btn {
+            background: #4299e1;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background-color 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .download-btn:hover {
+            background: #3182ce;
+        }
+        
+        .release-notes {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #4299e1;
+        }
+        
+        .release-notes h4 {
+            margin-bottom: 10px;
+            color: #2d3748;
+        }
+        
+        .release-notes ul {
+            margin-left: 20px;
+        }
+        
+        .release-notes li {
+            margin-bottom: 5px;
+        }
+        
+        .installation-guide {
+            background: #f0fff4;
+            border: 1px solid #9ae6b4;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+        
+        .installation-guide h3 {
+            color: #2f855a;
+            margin-bottom: 15px;
+        }
+        
+        .installation-steps {
+            margin-left: 20px;
+        }
+        
+        .installation-steps li {
+            margin-bottom: 8px;
+        }
+        
+        .code {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: white;
+            opacity: 0.8;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+        }
+        
+        .error {
+            background: #fed7d7;
+            border: 1px solid #feb2b2;
+            color: #c53030;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="hero">
+            <h1>🚀 SpecGofer Releases</h1>
+            <p>AI-powered spec-driven development for VS Code</p>
+        </div>
+        
+        <div class="releases-container">
+            <div class="releases-header">
+                <h2>Available Releases</h2>
+                <span class="current-version" id="currentVersion">Loading...</span>
+            </div>
+            
+            <div id="releasesContent">
+                <div class="loading">
+                    <p>Loading releases...</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="installation-guide">
+            <h3>📥 Installation Instructions</h3>
+            <ol class="installation-steps">
+                <li>Download the latest <span class="code">.vsix</span> file from above</li>
+                <li>Open VS Code</li>
+                <li>Press <span class="code">Cmd+Shift+P</span> (macOS) or <span class="code">Ctrl+Shift+P</span> (Windows/Linux)</li>
+                <li>Type "Extensions: Install from VSIX"</li>
+                <li>Select the downloaded <span class="code">.vsix</span> file</li>
+                <li>Restart VS Code</li>
+                <li>Open a workspace with a <span class="code">.specify/</span> folder to activate SpecGofer</li>
+            </ol>
+        </div>
+        
+        <div class="footer">
+            <p>&copy; 2025 Enterprise AI Pty Ltd. All rights reserved.</p>
+        </div>
+    </div>
+    
+    <script>
+        // Load releases from JSON API
+        async function loadReleases() {
+            try {
+                const response = await fetch('./releases.json');
+                const data = await response.json();
+                displayReleases(data);
+            } catch (error) {
+                console.error('Failed to load releases:', error);
+                displayError('Failed to load releases. Please try again later.');
+            }
+        }
+        
+        function displayReleases(data) {
+            const currentVersionEl = document.getElementById('currentVersion');
+            const contentEl = document.getElementById('releasesContent');
+            
+            if (!data.releases || data.releases.length === 0) {
+                displayError('No releases available yet.');
+                return;
+            }
+            
+            // Update current version
+            currentVersionEl.textContent = `v${data.latest_version}`;
+            
+            // Generate release items
+            const releasesHTML = data.releases.map(release => `
+                <div class="release-item">
+                    <div class="release-header">
+                        <div class="version-info">
+                            <h3>Version ${release.version}</h3>
+                            <div class="release-date">${formatDate(release.published_at)}</div>
+                        </div>
+                        <a href="${release.download_url}" class="download-btn">
+                            📦 Download VSIX
+                        </a>
+                    </div>
+                    <div class="release-notes">
+                        <h4>Release Notes</h4>
+                        <div>${formatReleaseNotes(release.notes)}</div>
+                    </div>
+                </div>
+            `).join('');
+            
+            contentEl.innerHTML = releasesHTML;
+        }
+        
+        function displayError(message) {
+            const contentEl = document.getElementById('releasesContent');
+            contentEl.innerHTML = `<div class="error">${message}</div>`;
+        }
+        
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+        
+        function formatReleaseNotes(notes) {
+            // Convert markdown-style notes to HTML
+            return notes
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/`(.*?)`/g, '<code>$1</code>')
+                .replace(/\n/g, '<br>');
+        }
+        
+        // Load releases on page load
+        loadReleases();
+    </script>
+</body>
+</html>

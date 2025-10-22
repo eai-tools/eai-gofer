@@ -100,12 +100,84 @@ export class SpecKitLoader {
     };
   }
 
+  /**
+   * Parse header metadata from official GitHub Spec Kit format
+   */
+  private parseSpecHeader(content: string): { metadata: any; content: string } {
+    const lines = content.split('\n');
+    const metadata: any = {};
+    let contentStartIndex = 0;
+
+    // Extract title from first line
+    const titleMatch = lines[0]?.match(/^#\s*(?:Feature Specification:\s*)?(.+)$/);
+    if (titleMatch) {
+      metadata.title = titleMatch[1].trim();
+      contentStartIndex = 1;
+    }
+
+    // Parse metadata lines
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      
+      if (!line) {
+        contentStartIndex = i + 1;
+        break;
+      }
+
+      // Parse metadata fields
+      const featureBranchMatch = line.match(/^Feature Branch:\s*`?([^`]+)`?$/);
+      if (featureBranchMatch) {
+        metadata.branch = featureBranchMatch[1];
+        continue;
+      }
+
+      const createdMatch = line.match(/^Created:\s*(.+)$/);
+      if (createdMatch) {
+        metadata.created = createdMatch[1];
+        continue;
+      }
+
+      const statusMatch = line.match(/^Status:\s*(.+)$/);
+      if (statusMatch) {
+        metadata.status = statusMatch[1];
+        continue;
+      }
+
+      const inputMatch = line.match(/^Input:\s*(.+)$/);
+      if (inputMatch) {
+        metadata.input = inputMatch[1];
+        continue;
+      }
+
+      // If we hit a non-metadata line, start content from here
+      contentStartIndex = i;
+      break;
+    }
+
+    const bodyContent = lines.slice(contentStartIndex).join('\n').trim();
+    return { metadata, content: bodyContent };
+  }
+
   private parseFrontmatter(content: string): { frontmatter: any; content: string } {
     const frontmatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/;
     const match = content.match(frontmatterRegex);
 
     if (!match) {
-      throw new Error('No YAML frontmatter found');
+      // Try to parse as official GitHub Spec Kit format
+      const { metadata, content: bodyContent } = this.parseSpecHeader(content);
+      
+      // Convert to legacy format for compatibility
+      const frontmatter = {
+        id: metadata.branch || 'unknown',
+        title: metadata.title || 'Unknown Feature',
+        status: metadata.status || 'draft',
+        created: metadata.created || new Date().toISOString(),
+        updated: metadata.created || new Date().toISOString(),
+        author: undefined,
+        dependencies: []
+      };
+
+      return { frontmatter, content: bodyContent };
     }
 
     const frontmatter = yaml.parse(match[1]);

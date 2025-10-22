@@ -1,14 +1,9 @@
----
-id: "002-language-server"
-title: "Language Server - LSP + MCP Dual Protocol"
-status: "in_progress"
-created: "2025-10-21"
-updated: "2025-10-21"
-priority: "critical"
-assignee: "engineer-agent"
----
-
 # Language Server - LSP + MCP Dual Protocol
+
+Feature Branch: `002-language-server`
+Created: 2025-10-21
+Status: in_progress
+Input: User description: "Implement dual-protocol server for LSP and MCP integration"
 
 ## Overview
 

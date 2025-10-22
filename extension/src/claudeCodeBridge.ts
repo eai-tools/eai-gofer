@@ -69,8 +69,8 @@ export class ClaudeCodeBridge {
 
           // Extract text response
           const textContent = response.content
-            .filter((block): block is Anthropic.TextBlock => block.type === 'text')
-            .map((block) => block.text)
+            .filter((block: any): block is Anthropic.TextBlock => block.type === 'text')
+            .map((block: any) => block.text)
             .join('\n');
 
           // Add assistant response to history

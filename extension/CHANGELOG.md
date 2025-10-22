@@ -2,6 +2,10 @@
 
 All notable changes to the SpecGofer extension will be documented in this file.
 
+## [1.4.3] - 2025-10-22
+
+Test GitHub Actions permissions fix
+
 ## [1.4.2] - 2025-10-22
 
 Create v1.4.2 with all fixes applied

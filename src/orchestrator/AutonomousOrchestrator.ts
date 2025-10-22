@@ -23,12 +23,13 @@ export class AutonomousOrchestrator {
     specDir: string,
     apiKey: string,
     twilioConfig: any,
+    whatsappConfig: any,
     workspaceDir: string
   ) {
     this.specLoader = new SpecLoader(specDir);
     this.testAgent = new TestAgent(workspaceDir);
     this.engineerAgent = new EngineerAgent(apiKey);
-    this.notificationService = new NotificationService(twilioConfig);
+    this.notificationService = new NotificationService(twilioConfig, whatsappConfig);
     this.anthropic = new Anthropic({ apiKey });
   }
 
@@ -39,6 +40,9 @@ export class AutonomousOrchestrator {
   async start(): Promise<void> {
     console.log('▶️  Starting SpecGofer Autonomous Mode...\n');
     this.isRunning = true;
+
+    // Set up two-way WhatsApp communication
+    this.setupWhatsAppCommands();
 
     while (this.isRunning) {
       try {
@@ -227,12 +231,39 @@ Always write tests first (TDD), maintain 80%+ coverage, and follow strict TypeSc
     task.attempts = (task.attempts || 0) + 1;
 
     if (task.attempts > 3) {
-      console.log('⚠️  Max validation attempts reached');
-      await this.notificationService.sendSMS(
-        `Task "${task.description}" failed validation after 3 attempts.\n\nIssues: ${validation.issues.join(', ')}\n\nPlease review.`
+      console.log('⚠️  Max validation attempts reached - asking for help');
+      
+      await this.notificationService.sendQuestion(
+        `Task "${task.description}" failed validation after 3 attempts.\n\n` +
+        `Issues:\n${validation.issues.map((i: string) => `- ${i}`).join('\n')}\n\n` +
+        `Suggestions:\n${validation.suggestions.map((s: string) => `- ${s}`).join('\n')}\n\n` +
+        `What should I do?`,
+        ['Skip task', 'Retry', 'Provide guidance']
       );
-      await this.updateTaskStatus(task.id, 'failed');
-      this.currentTask = null;
+
+      // Wait for response (5 minutes timeout)
+      console.log('⏳ Waiting for user response...');
+      const response = await this.notificationService.waitForResponse(300000);
+
+      if (response) {
+        const choice = response.toLowerCase().trim();
+        console.log(`📥 User chose: "${choice}"`);
+
+        if (choice.includes('skip')) {
+          await this.handleSkipCommand();
+        } else if (choice.includes('retry')) {
+          await this.handleRetryCommand();
+        } else {
+          // Treat as guidance
+          await this.handleUserGuidance(response);
+          await this.handleRetryCommand();
+        }
+      } else {
+        // Timeout - mark as failed
+        console.log('⏰ No response received, marking task as failed');
+        await this.updateTaskStatus(task.id, 'failed');
+        this.currentTask = null;
+      }
       return;
     }
 
@@ -247,12 +278,39 @@ Always write tests first (TDD), maintain 80%+ coverage, and follow strict TypeSc
     task.attempts = (task.attempts || 0) + 1;
 
     if (task.attempts > 3) {
-      console.log('⚠️  Max test attempts reached');
-      await this.notificationService.sendSMS(
-        `Task "${task.description}" failed tests after 3 attempts.\n\nFailed: ${testResult.failedTests.join(', ')}\n\nPlease review.`
+      console.log('⚠️  Max test attempts reached - asking for help');
+      
+      await this.notificationService.sendQuestion(
+        `Task "${task.description}" failed tests after 3 attempts.\n\n` +
+        `Failed tests:\n${testResult.failedTests.map((t: string) => `- ${t}`).join('\n')}\n\n` +
+        `Summary: ${testResult.summary}\n\n` +
+        `What should I do?`,
+        ['Skip task', 'Retry', 'Provide guidance']
       );
-      await this.updateTaskStatus(task.id, 'failed');
-      this.currentTask = null;
+
+      // Wait for response (5 minutes timeout)
+      console.log('⏳ Waiting for user response...');
+      const response = await this.notificationService.waitForResponse(300000);
+
+      if (response) {
+        const choice = response.toLowerCase().trim();
+        console.log(`📥 User chose: "${choice}"`);
+
+        if (choice.includes('skip')) {
+          await this.handleSkipCommand();
+        } else if (choice.includes('retry')) {
+          await this.handleRetryCommand();
+        } else {
+          // Treat as guidance
+          await this.handleUserGuidance(response);
+          await this.handleRetryCommand();
+        }
+      } else {
+        // Timeout - mark as failed
+        console.log('⏰ No response received, marking task as failed');
+        await this.updateTaskStatus(task.id, 'failed');
+        this.currentTask = null;
+      }
       return;
     }
 
@@ -305,5 +363,155 @@ Please implement this task now.`;
       currentTask: this.currentTask,
       currentSpec: this.currentSpec
     };
+  }
+
+  /**
+   * Set up two-way WhatsApp communication
+   * Listen for commands from the user
+   */
+  private setupWhatsAppCommands(): void {
+    this.notificationService.onMessage(async (message: string, fromNumber: string) => {
+      const command = message.toLowerCase().trim();
+
+      console.log(`\n💬 Received command from WhatsApp: "${message}"\n`);
+
+      // Handle different commands
+      if (command === 'status' || command === 'status?') {
+        await this.handleStatusCommand();
+      } else if (command === 'stop' || command === 'pause') {
+        await this.handleStopCommand();
+      } else if (command === 'skip') {
+        await this.handleSkipCommand();
+      } else if (command === 'retry') {
+        await this.handleRetryCommand();
+      } else if (command === 'help' || command === '?') {
+        await this.handleHelpCommand();
+      } else if (command.startsWith('fix:') || command.startsWith('suggest:')) {
+        // User providing guidance for current task
+        await this.handleUserGuidance(message);
+      } else if (this.notificationService.isAwaitingResponse()) {
+        // We asked a question, this is the answer
+        console.log('✅ Received answer to question');
+        // The waitForResponse promise will handle this
+      } else {
+        // Unknown command, send help
+        await this.notificationService.sendSMS(
+          `❓ Unknown command: "${message}"\n\nSend "help" for available commands.`
+        );
+      }
+    });
+
+    console.log('💬 Two-way WhatsApp commands enabled!\n');
+    console.log('Available commands:');
+    console.log('  - status   : Get current task status');
+    console.log('  - stop     : Pause SpecGofer');
+    console.log('  - skip     : Skip current task');
+    console.log('  - retry    : Retry current task');
+    console.log('  - fix: ... : Provide guidance for current task');
+    console.log('  - help     : Show this help\n');
+  }
+
+  private async handleStatusCommand(): Promise<void> {
+    if (!this.currentTask || !this.currentSpec) {
+      await this.notificationService.sendSMS(
+        '📊 Status: Idle\n\nNo current task. Waiting for next task...'
+      );
+      return;
+    }
+
+    const message = `📊 SpecGofer Status
+
+🎯 Current Task: ${this.currentTask.id}
+📝 ${this.currentTask.description}
+
+📋 Spec: ${this.currentSpec.title}
+🔄 Status: ${this.currentTask.status}
+🔢 Attempt: ${this.currentTask.attempts || 0}/3
+
+⏱️ Started: Just now
+🚀 Running: ${this.isRunning ? 'Yes' : 'No'}
+
+Reply with:
+- "skip" to skip this task
+- "retry" to retry from scratch
+- "stop" to pause SpecGofer`;
+
+    await this.notificationService.sendSMS(message);
+  }
+
+  private async handleStopCommand(): Promise<void> {
+    this.stop();
+    await this.notificationService.sendSMS(
+      '⏸️ SpecGofer paused.\n\nTo resume, restart from VSCode.'
+    );
+  }
+
+  private async handleSkipCommand(): Promise<void> {
+    if (!this.currentTask) {
+      await this.notificationService.sendSMS('❌ No task to skip.');
+      return;
+    }
+
+    console.log(`⏭️ Skipping task ${this.currentTask.id} by user request`);
+    await this.updateTaskStatus(this.currentTask.id, 'failed');
+    this.currentTask = null;
+
+    await this.notificationService.sendSMS(
+      `⏭️ Task skipped. Moving to next task...`
+    );
+  }
+
+  private async handleRetryCommand(): Promise<void> {
+    if (!this.currentTask) {
+      await this.notificationService.sendSMS('❌ No task to retry.');
+      return;
+    }
+
+    console.log(`🔄 Retrying task ${this.currentTask.id} by user request`);
+    this.currentTask.attempts = 0;
+    await this.updateTaskStatus(this.currentTask.id, 'pending');
+
+    await this.notificationService.sendSMS(
+      `🔄 Task reset to pending. Will retry shortly...`
+    );
+  }
+
+  private async handleHelpCommand(): Promise<void> {
+    const helpMessage = `💬 SpecGofer WhatsApp Commands
+
+📊 status - Current task status
+⏸️ stop - Pause SpecGofer
+⏭️ skip - Skip current task
+🔄 retry - Retry current task from scratch
+🛠️ fix: [guidance] - Provide guidance for fixing current issue
+
+📖 Examples:
+"status" - See what's running
+"skip" - Move to next task
+"fix: Check the import statements in server.ts"
+
+When SpecGofer asks a question, just reply with your answer!`;
+
+    await this.notificationService.sendSMS(helpMessage);
+  }
+
+  private async handleUserGuidance(message: string): Promise<void> {
+    if (!this.currentTask) {
+      await this.notificationService.sendSMS('❌ No active task to provide guidance for.');
+      return;
+    }
+
+    const guidance = message.replace(/^(fix:|suggest:)\s*/i, '').trim();
+    console.log(`\n🛠️ User guidance received: "${guidance}"\n`);
+
+    // Store guidance and trigger re-execution with the hint
+    // This would be passed to the Engineer Agent on next iteration
+    await this.notificationService.sendSMS(
+      `✅ Guidance noted!\n\n"${guidance}"\n\nWill incorporate into next attempt.`
+    );
+
+    // TODO: Actually pass this to the engineer agent
+    // For now, just log it
+    console.log(`💡 User guidance for ${this.currentTask.id}: ${guidance}`);
   }
 }

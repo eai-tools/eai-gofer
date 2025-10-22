@@ -31,7 +31,8 @@ A VSCode extension that:
 3. Launches and manages Language Server process
 4. Auto-generates MCP configuration for Claude integration
 5. Handles Spec Kit migration from legacy formats
-6. Provides auto-update capabilities
+6. Downloads latest Spec Kit templates from GitHub releases during initialization
+7. Provides auto-update capabilities for both extension and templates
 
 ## Acceptance Criteria
 
@@ -55,17 +56,27 @@ A VSCode extension that:
 - **Then** a constitution tree view displays all articles
 - **And** clicking an article opens the constitution file
 
-### AC4: Repository Initialization
+### AC4: Repository Initialization with Spec Kit Templates
+
 - **Given** a workspace with no `.specify/` folder
 - **When** user runs "SpecGofer: Initialize Repository" command
 - **Then** `.specify/` structure is created with:
   - `memory/constitution.md`
-  - `specs/` directory
+  - `specs/` directory  
   - `templates/` directory
   - `scripts/` directory
   - `README.md`
+- **And** extension fetches latest Spec Kit templates from GitHub:
+  - Downloads `spec-kit-template-claude-sh-vxxx.zip` from `https://github.com/github/spec-kit/releases`
+  - Downloads `spec-kit-template-copilot-sh-vxxx.zip` from `https://github.com/github/spec-kit/releases`
+  - Extracts template files to `.specify/templates/`
+  - Extracts script files to `.specify/scripts/`
+  - Overwrites any existing template files
+- **And** shows progress indicator during download
+- **And** handles network errors gracefully (fallback to bundled templates)
 
 ### AC5: Language Server Launch
+
 - **Given** the extension activates
 - **When** workspace path is available
 - **Then** Language Server process starts
@@ -74,23 +85,29 @@ A VSCode extension that:
 - **And** `.vscode/mcp.json` is created for Claude Code
 
 ### AC6: Spec Kit Migration
+
 - **Given** a workspace with legacy JSON specs
 - **When** user runs "SpecGofer: Upgrade to Spec Kit Format"
 - **Then** all JSON specs are converted to Markdown with YAML frontmatter
 - **And** task dependencies are preserved
 - **And** original files are backed up to `.specify/_backup/`
 
-### AC7: Auto-Update Check
+### AC7: Extension and Template Auto-Updates
+
 - **Given** the extension is installed
 - **When** VSCode starts or every 24 hours
-- **Then** extension checks GitHub releases for updates
-- **And** if newer version exists, shows notification
+- **Then** extension checks GitHub releases for:
+  - Extension updates (`eai-tools/specgofer`)
+  - Spec Kit template updates (`github/spec-kit`)
+- **And** if newer versions exist, shows notification
 - **And** user can click to download and install
+- **And** template updates automatically refresh `.specify/templates/` and `.specify/scripts/`
 
 ### AC8: Branch-Specific Specs
+
 - **Given** multiple git branches with different specs
 - **When** user switches branches
-- **Then** extension reloads specs from current branch
+- **Then** extension reloads specs from current branch (`.specify/specs/`)
 - **And** progress panel updates to show current branch specs
 
 ## Technical Design
@@ -140,6 +157,13 @@ extension/
 - Converts to GitHub Spec Kit format
 - Preserves all data and relationships
 
+**6. Spec Kit Template Manager**
+- Downloads latest templates from `https://github.com/github/spec-kit/releases`
+- Fetches `spec-kit-template-claude-sh-vxxx.zip` and `spec-kit-template-copilot-sh-vxxx.zip`
+- Extracts files to `.specify/templates/` and `.specify/scripts/`
+- Handles version checking and automatic updates
+- Provides fallback to bundled templates on network failure
+
 ## Tasks
 
 - [x] #T001 Create extension entry point with activation logic (deps: none)
@@ -152,15 +176,17 @@ extension/
 - [x] #T008 Add repository initialization command (deps: T001)
 - [x] #T009 Implement branch-specific spec manager (deps: T005)
 - [x] #T010 Add auto-updater with GitHub release checking (deps: T001)
-- [ ] #T011 Create comprehensive integration tests (deps: T001,T002,T003,T004)
-- [ ] #T012 Add error handling and logging (deps: T011)
-- [ ] #T013 Document extension API and commands (deps: T012)
+- [ ] #T011 Implement Spec Kit template downloader (deps: T001)
+- [ ] #T012 Add template version checking and auto-update (deps: T011)
+- [ ] #T013 Create comprehensive integration tests (deps: T001,T002,T003,T004,T011,T012)
+- [ ] #T014 Add error handling and logging (deps: T013)
+- [ ] #T015 Document extension API and commands (deps: T014)
 
 ## Dependencies
 
 ### Internal
 - Language Server must be running
-- `.specify/` folder structure must exist
+- `.specify/specs/` folder structure must exist (note: specs at `.specify/specs/`, not root)
 
 ### External
 - VSCode 1.85.0+

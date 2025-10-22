@@ -23,7 +23,9 @@
       "Bash(gh run view:*)",
       "Bash(git ls-tree:*)",
       "Bash(git check-ignore:*)",
-      "Bash(chmod:*)"
+      "Bash(chmod:*)",
+      "Bash(.specify/scripts/bash/create-new-feature.sh:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []

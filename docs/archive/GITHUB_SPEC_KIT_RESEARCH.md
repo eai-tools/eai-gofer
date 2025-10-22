@@ -87,9 +87,9 @@ Features are auto-numbered with branches like:
 - `002-user-authentication`
 - `003-search-functionality`
 
-Each creates a corresponding directory in `specs/`:
+Each creates a corresponding directory in `.specify/specs/`:
 ```
-specs/001-photo-albums/
+.specify/specs/001-photo-albums/
 ├── spec.md          # Main specification (always present)
 ├── plan.md          # Technical plan (Phase 1)
 ├── research.md      # Technical research (Phase 0)

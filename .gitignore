@@ -36,6 +36,10 @@ playwright/.cache/
 .claude-answer.txt
 .claude-history.json
 
+# WhatsApp session data
+.wwebjs_auth/
+.wwebjs_cache/
+
 # OS
 .DS_Store
 Thumbs.db

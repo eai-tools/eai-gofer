@@ -270,3 +270,10 @@ The goal: **You write specs, SpecGofer builds them autonomously.**
 ---
 
 © 2025 Enterprise AI Pty Ltd. This is a drinking-our-own-champagne project.
+
+## Active Technologies
+- TypeScript 5.7.2 (VSCode Extension API) (001-vscode-extension)
+- Filesystem (`.specify/` folder structure, `.vscode/mcp.json`) (001-vscode-extension)
+
+## Recent Changes
+- 001-vscode-extension: Added TypeScript 5.7.2 (VSCode Extension API)

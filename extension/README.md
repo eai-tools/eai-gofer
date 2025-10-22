@@ -1,14 +1,30 @@
-# SpecGofer - VSCode Extension
+# SpecGofer VSCode Extension
 
-**Enterprise AI Pty Ltd**
+**Transform any repository into a spec-driven development workspace with AI-powered automation.**
 
-Spec-driven development for AI assistants. SpecGofer exposes 6 MCP tools that enable Claude Code and GitHub Copilot to autonomously implement features from GitHub Spec Kit specifications.
+SpecGofer is a VSCode extension that provides seamless integration with the spec-driven development system, enabling developers to manage specifications, track progress, and leverage AI assistance through Claude Code integration.
 
 ---
 
 **© 2025 Enterprise AI Pty Ltd. All rights reserved.**
 
-## Features
+## 🚀 Features
+
+### Core Functionality
+- **Auto-Detection**: Automatically activates when `.specify/` folder is detected
+- **Visual Progress Tracking**: Tree view panels showing specs and tasks with status indicators
+- **Constitution Management**: Display and navigate project principles and guidelines
+- **Language Server Integration**: Provides MCP tools for Claude Code AI assistance
+
+### Smart Templates
+- **GitHub Integration**: Downloads latest Spec Kit templates from GitHub releases
+- **Repository Initialization**: One-click setup of `.specify/` structure
+- **Template Updates**: Automatic checking and updating of Spec Kit templates
+
+### Advanced Features
+- **Legacy Migration**: Converts old JSON specs to modern GitHub Spec Kit format
+- **Branch-Specific Specs**: Automatically reloads specs when switching Git branches
+- **Real-time Updates**: File watching with automatic refresh of tree views
 
 ### MCP Tools for AI Assistants
 
@@ -21,29 +37,156 @@ SpecGofer provides 6 Model Context Protocol (MCP) tools that AI assistants can i
 - **`specgofer_validate_code`** - Validate code against project constitution
 - **`specgofer_run_tests`** - Run Playwright tests for acceptance criteria
 
-### GitHub Spec Kit Integration
+## 📦 Installation
 
-- **Markdown-based specs** with YAML frontmatter
-- **Automatic migration** from legacy JSON format
-- **Branch-aware** spec management
-- **Task dependencies** and parallel execution support
+### From VS Code Marketplace
+1. Open VS Code
+2. Go to Extensions (Ctrl+Shift+X / Cmd+Shift+X)
+3. Search for "SpecGofer"
+4. Click "Install"
 
-### Visual Progress Tracking
+### Manual Installation
+1. Download the latest `.vsix` file from [releases](https://github.com/eai-tools/specgofer/releases)
+2. Open VS Code
+3. Run command: `Extensions: Install from VSIX...`
+4. Select the downloaded `.vsix` file
 
-- **Sidebar panel** showing all specs and tasks
-- **Real-time status** updates (pending, in-progress, testing, completed)
-- **Constitution view** for project principles
-- **Click to focus** on specific specs
+### Development Installation
+```bash
+git clone https://github.com/eai-tools/specgofer.git
+cd specgofer/extension
+npm install
+npm run compile
+# Open VS Code and press F5 to launch Extension Development Host
+```
 
-### Auto-Updates
+## 🎯 Quick Start
 
-- **Automatic update checks** from GitHub releases
-- **One-click installation** of new versions
-- **Changelog integration** in release notes
+### Initialize a New Repository
+1. Open any workspace in VS Code
+2. Press `Ctrl+Shift+P` / `Cmd+Shift+P`
+3. Run: `SpecGofer: Initialize Repository`
+4. The extension will create `.specify/` structure and download latest templates
+
+### Using with Existing Specs
+1. Open a workspace containing a `.specify/` folder
+2. The extension automatically activates
+3. View specs in the "SpecGofer Progress" panel
+4. View constitution in the "Constitution" panel
+
+### Claude Code Integration
+The extension automatically configures Claude Code integration:
+1. Ensure you have VS Code 1.102+ with MCP support
+2. The extension creates `.vscode/mcp.json` automatically
+3. Claude Code can now access MCP tools for spec management
+
+## 📋 Commands
+
+| Command | Keyboard Shortcut | Description |
+|---------|------------------|-------------|
+| `SpecGofer: Initialize Repository` | `Ctrl+Shift+Alt+I` | Create `.specify/` structure with templates |
+| `SpecGofer: Refresh Progress` | `Ctrl+Shift+Alt+R` | Manually refresh spec and task views |
+| `SpecGofer: Upgrade to Spec Kit Format` | - | Convert legacy JSON specs to Spec Kit format |
+| `SpecGofer: Update Templates` | - | Download latest Spec Kit templates |
+| `SpecGofer: Show Progress Panel` | `Ctrl+Shift+Alt+P` | Open the progress tracking panel |
+| `SpecGofer: Check for Updates` | - | Check for extension and template updates |
 
 ## How It Works
 
+
+## 📊 Progress Panel
+
+The progress panel shows:
+
+- **Specifications**: All specs in `.specify/specs/` 
+- **Tasks**: Nested under each spec with dependency tracking
+- **Status Icons**:
+  - ✅ Completed tasks
+  - 🔄 In-progress tasks  
+  - ⏸️ Pending tasks
+  - ❌ Failed tasks
+
+Click any spec or task to open the corresponding file.
+
+## 📜 Constitution Panel
+
+Displays project principles from `.specify/memory/constitution.md`:
+
+- **Articles**: Main principle categories
+- **Sections**: Detailed guidelines under each article
+- **Navigation**: Click to jump to specific constitution sections
+
+## ⚙️ Configuration
+
+Configure the extension through VS Code settings:
+
+```json
+{
+  "specgofer.autoRefresh": true,
+  "specgofer.showNotifications": true,
+  "specgofer.telemetryEnabled": false,
+  "specgofer.templateSource": "github",
+  "specgofer.updateCheckInterval": 86400000,
+  "specgofer.branchSpecificSpecs": true
+}
 ```
+
+### Settings Reference
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `specgofer.autoRefresh` | `true` | Auto-refresh panels on file changes |
+| `specgofer.showNotifications` | `true` | Show update and status notifications |
+| `specgofer.telemetryEnabled` | `false` | Enable anonymous usage analytics |
+| `specgofer.templateSource` | `"github"` | Template source: "github" or "bundled" |
+| `specgofer.updateCheckInterval` | `86400000` | Update check interval in milliseconds |
+| `specgofer.branchSpecificSpecs` | `true` | Reload specs when switching branches |
+
+## 🔧 Troubleshooting
+
+### Common Issues
+
+**Extension not activating**
+
+- Ensure `.specify/` folder exists in workspace root
+- Check VS Code version (requires 1.85.0+)
+- Restart VS Code after installation
+
+**Progress panel empty**
+
+- Verify specs exist in `.specify/specs/`
+- Check spec files use valid GitHub Spec Kit format
+- Run "SpecGofer: Refresh Progress" command
+
+**Language Server not starting**
+
+- Check Output panel → "SpecGofer Language Server"
+- Ensure Node.js 18+ is installed
+- Try restarting VS Code
+
+**MCP tools not available in Claude Code**
+
+- Verify VS Code 1.102+ for native MCP support
+- Check `.vscode/mcp.json` was created
+- Restart Claude Code after installation
+
+**Template download fails**
+
+- Check internet connection
+- Verify GitHub API rate limits
+- Extension falls back to bundled templates
+
+### Getting Help
+
+1. **Check Logs**: View Output panel → "SpecGofer" channel
+2. **Report Issues**: [GitHub Issues](https://github.com/eai-tools/specgofer/issues)
+3. **Documentation**: [Full Documentation](https://github.com/eai-tools/specgofer/tree/main/docs)
+
+## 🏗️ Architecture
+
+The extension works through a dual-protocol approach:
+
+```text
 ┌─────────────────────────────────────────────────────────┐
 │               VSCode with MCP Support                    │
 │                    (VSCode 1.102+)                       │
@@ -63,257 +206,41 @@ SpecGofer provides 6 Model Context Protocol (MCP) tools that AI assistants can i
 AI calls MCP tools → Implements code → Runs tests → Updates status
 ```
 
-## Installation
+### Development
 
-### From GitHub Releases (Recommended)
+**Contributing**
 
-```bash
-# Download latest release
-gh release download --repo eai-tools/specgofer --pattern "*.vsix"
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines.
 
-# Install
-code --install-extension specgofer-*.vsix
+**Architecture**
 
-# Reload VSCode
-```
+- **Extension**: TypeScript VSCode extension
+- **Language Server**: Dual LSP+MCP server for Claude integration
+- **MCP Tools**: 6 tools for spec management automation
 
-### From Source
+**Building**
 
 ```bash
 cd extension
 npm install
 npm run compile
+npm run test
 npx @vscode/vsce package
-code --install-extension specgofer-*.vsix
 ```
 
-## Quick Start
+## 📄 License
 
-### 1. Initialize SpecGofer
+MIT License - see [LICENSE](LICENSE) file for details.
 
-1. Open Command Palette (`Cmd/Ctrl+Shift+P`)
-2. Run: **"SpecGofer: Initialize Repository"**
+## 🙏 Acknowledgments
 
-This creates the `.specify/` folder structure and auto-configures MCP in `.vscode/mcp.json`.
+- Built on [GitHub Spec Kit](https://github.com/github/spec-kit) format
+- Inspired by spec-driven development principles
+- Powered by Claude AI through MCP integration
 
-### 2. Create a Specification
-
-Create `.specify/specs/my-feature/spec.md`:
-
-```markdown
----
-feature: my-feature
-status: draft
-created: 2025-10-21
 ---
 
-# My Feature
-
-Feature description
-
-## Functional Requirements
-
-1. **FR-001**: First requirement
-2. **FR-002**: Second requirement
-
-## Success Criteria
-
-- Acceptance criterion 1
-- Acceptance criterion 2
-```
-
-### 3. Let AI Implement
-
-In Claude Code or GitHub Copilot:
-
-```
-@specgofer please implement the next task
-```
-
-AI will:
-1. Call `specgofer_get_next_task`
-2. Implement the feature
-3. Call `specgofer_run_tests`
-4. Call `specgofer_update_task_status`
-5. Move to next task
-
-## Commands
-
-| Command | Description |
-|---------|-------------|
-| `SpecGofer: Initialize Repository` | Create .specify folder structure |
-| `SpecGofer: Upgrade to Spec Kit Format` | Migrate legacy JSON specs |
-| `SpecGofer: Show Progress Panel` | Open specifications sidebar |
-| `SpecGofer: Refresh Specifications` | Reload specs from disk |
-| `SpecGofer: Refresh Constitution` | Reload project principles |
-| `SpecGofer: Update Now` | Check for and install updates |
-| `SpecGofer: Show Constitution Panel` | View project principles |
-
-## Configuration
-
-Configure in VSCode Settings (`Cmd/Ctrl+,`):
-
-```json
-{
-  "specKit.autoInitialize": false,
-  "specKit.preferredAI": "ask",
-  "specKit.autoValidate": true,
-  "specKit.showWelcome": true
-}
-```
-
-### Settings Reference
-
-| Setting | Description | Default |
-|---------|-------------|---------|
-| `specKit.autoInitialize` | Auto-offer initialization on first use | `false` |
-| `specKit.preferredAI` | Preferred AI (claude, copilot, ask) | `"ask"` |
-| `specKit.autoValidate` | Auto-validate against constitution | `true` |
-| `specKit.showWelcome` | Show welcome message | `true` |
-
-## MCP Configuration
-
-SpecGofer automatically creates `.vscode/mcp.json`:
-
-```json
-{
-  "mcp": {
-    "servers": {
-      "specgofer": {
-        "command": "node",
-        "args": ["<extension-path>/language-server/dist/server.js"],
-        "description": "SpecGofer - Spec-driven development orchestrator"
-      }
-    }
-  }
-}
-```
-
-**Reload VSCode** after initialization to activate MCP tools.
-
-## Project Structure
-
-```
-extension/
-├── src/
-│   ├── extension.ts            # Main entry point
-│   ├── lspClient.ts            # Language Server Protocol client
-│   ├── mcpConfig.ts            # MCP configuration helper
-│   ├── progressProvider.ts    # Specifications tree view
-│   ├── constitutionProvider.ts # Constitution tree view
-│   ├── specKitMigrator.ts     # Legacy JSON migration
-│   ├── branchSpecManager.ts   # Git branch awareness
-│   └── autoUpdater.ts         # Automatic updates
-├── language-server/            # LSP server with MCP tools
-│   └── dist/
-│       └── server.js
-└── package.json               # Extension manifest
-```
-
-## Spec Structure
-
-```
-.specify/
-├── specs/
-│   ├── feature-001/
-│   │   └── spec.md           # Markdown with YAML frontmatter
-│   └── feature-002/
-│       └── spec.md
-└── constitution/
-    ├── principles.md         # Code quality principles
-    └── architecture.md       # Architecture decisions
-```
-
-## Example Workflow
-
-1. **Create spec** - Write `auth-001/spec.md` with 3 functional requirements
-2. **Ask AI** - In Claude Code: `@specgofer implement all tasks from auth-001`
-3. **AI autonomously:**
-   - Gets FR-001 via `specgofer_get_next_task`
-   - Implements code
-   - Runs tests via `specgofer_run_tests`
-   - Marks complete via `specgofer_update_task_status`
-   - Moves to FR-002, then FR-003
-4. **Review** - All tasks complete ✅, merge the PR!
-
-## Troubleshooting
-
-### MCP Tools Not Available
-
-**Check:** `.vscode/mcp.json` exists
-
-```bash
-ls .vscode/mcp.json
-```
-
-**Fix:** Run `SpecGofer: Initialize Repository` then reload VSCode
-
-### Language Server Not Starting
-
-**Check:** VSCode Output panel → "SpecGofer Language Server"
-
-**Fix:**
-- Ensure node_modules installed: `cd extension && npm install`
-- Rebuild: `npm run compile`
-- Check VSCode version (1.85.0+)
-
-### Specs Not Showing
-
-**Check:** Spec file format
-
-```bash
-# Must have YAML frontmatter
-head -10 .specify/specs/*/spec.md
-```
-
-**Fix:**
-- Ensure `---` frontmatter delimiters
-- File must be named `spec.md`
-- Run `SpecGofer: Refresh Specifications`
-
-### Extension Won't Activate
-
-**Fix:**
-- Check `.specify/` folder exists
-- View "Extension Host" logs in Output panel
-- Run `Developer: Reload Window`
-
-## Development
-
-### Running in Dev Mode
-
-```bash
-cd extension
-npm install
-npm run watch
-```
-
-Press `F5` to launch Extension Development Host.
-
-### Building for Production
-
-```bash
-npm run package
-```
-
-Creates production-ready VSIX package.
-
-### Testing MCP Tools
-
-With Claude Code installed:
-
-```
-@specgofer specgofer_get_specs
-```
-
-Expected response:
-
-```json
-{
-  "success": true,
-  "count": 1,
-  "specs": [...]
-}
+**Enterprise AI Pty Ltd** - Transforming development with AI-powered specifications.
 ```
 
 ## Architecture

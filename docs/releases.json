@@ -1,0 +1,52 @@
+{
+  "latest_version": "1.4.6",
+  "repository": "eai-tools/specgofer",
+  "last_updated": "2025-10-22T10:17:44.395Z",
+  "releases": [
+    {
+      "version": "1.4.6",
+      "tag_name": "v1.4.6",
+      "published_at": "2025-10-22T10:17:44.394Z",
+      "download_url": "https://github.com/eai-tools/specgofer/releases/download/v1.4.6/specgofer-1.4.6.vsix",
+      "notes": "Updated auto-updater to use GitHub Pages API for private repository compatibility",
+      "prerelease": false,
+      "size_mb": 8.5
+    },
+    {
+      "version": "1.4.6",
+      "tag_name": "v1.4.6",
+      "published_at": "2025-10-22T21:00:00Z",
+      "download_url": "https://github.com/eai-tools/specgofer/releases/download/v1.4.6/specgofer-1.4.6.vsix",
+      "notes": "**Critical fixes for private repository updates**\n\n• Fixed auto-updater error handling for private repositories\n• Improved error messages with clear guidance\n• Better authentication handling for GitHub API\n• Added support for public releases on private repos",
+      "prerelease": false,
+      "size_mb": 8.5
+    },
+    {
+      "version": "1.4.5",
+      "tag_name": "v1.4.5",
+      "published_at": "2025-10-22T20:37:00Z",
+      "download_url": "https://github.com/eai-tools/specgofer/releases/download/v1.4.5/specgofer-1.4.5.vsix",
+      "notes": "**Critical fixes: Preserve constitution during updates, fix update button error**\n\n• Fixed constitution being overwritten during template updates\n• Added constitution backup/restore during spec-kit init\n• Fixed undefined.replace() error in auto-updater\n• Better GitHub API error handling",
+      "prerelease": false,
+      "size_mb": 8.6
+    },
+    {
+      "version": "1.4.4",
+      "tag_name": "v1.4.4",
+      "published_at": "2025-10-22T20:30:00Z",
+      "download_url": "https://github.com/eai-tools/specgofer/releases/download/v1.4.4/specgofer-1.4.4.vsix",
+      "notes": "**Tree view fixes for specifications and constitution**\n\n• Fixed ConstitutionProvider parsing for actual constitution.md format\n• Fixed ProgressProvider task display (support for #T001 format)\n• Tree views now correctly show constitution articles and task details\n• Improved spec parsing reliability",
+      "prerelease": false,
+      "size_mb": 8.6
+    },
+    {
+      "version": "1.4.3",
+      "tag_name": "v1.4.3",
+      "published_at": "2025-10-22T17:09:00Z",
+      "download_url": "https://github.com/eai-tools/specgofer/releases/download/v1.4.3/specgofer-1.4.3.vsix",
+      "notes": "**Major infrastructure completion**\n\n• Complete VSCode extension documentation\n• Added comprehensive command integration\n• E2E testing with Playwright\n• Performance testing and monitoring\n• Distribution workflow automation\n• Extension marketplace preparation",
+      "prerelease": false,
+      "size_mb": 8.9
+    }
+  ]
+}

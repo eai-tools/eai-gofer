@@ -297,6 +297,7 @@
     "yaml": "^2.8.1"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.67.0",
     "@types/jszip": "^3.4.0",
     "chokidar": "^3.5.3",
     "jszip": "^3.10.1",

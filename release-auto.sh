@@ -114,8 +114,8 @@ git tag "v$NEW_VERSION"
 print_success "Created tag v$NEW_VERSION"
 
 # Push
-print_info "Pushing to GitHub..."
-git push && git push --tags
+print_info "Pushing to GitHub (main branch)..."
+git push origin HEAD:main && git push --tags
 
 print_success "🎉 Release $NEW_VERSION complete!"
 echo ""

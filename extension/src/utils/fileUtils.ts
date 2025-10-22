@@ -321,7 +321,7 @@ export class SpecifyFolderUtils {
 
     // Check required subdirectories
     if (!await FileUtils.exists(paths.specs)) {
-      errors.push('specs/ folder missing');
+      errors.push('.specify/specs/ folder missing');
     }
 
     if (!await FileUtils.exists(paths.memory)) {

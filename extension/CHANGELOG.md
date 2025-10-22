@@ -2,6 +2,14 @@
 
 All notable changes to the SpecGofer extension will be documented in this file.
 
+## [1.4.7] - 2025-10-22
+
+Fix auto-updater for github releases public page
+
+## [1.4.6] - 2025-10-22
+
+Fix auto-updater when GitHub releases not available yet
+
 ## [1.4.5] - 2025-10-22
 
 Critical fixes: Preserve constitution during updates, fix update button error

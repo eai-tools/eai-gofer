@@ -186,11 +186,12 @@ export class ConstitutionProvider implements vscode.TreeDataProvider<Constitutio
     let currentArticle: ConstitutionArticle | null = null;
     let currentSection: ConstitutionSection | null = null;
     let sectionContent: string[] = [];
+    let sectionCounter = 1;
 
     for (const line of lines) {
-      // Match article headers: ## Article I: Code Quality
-      const articleMatch = line.match(/^##\s+Article\s+([IVX]+):\s+(.+)$/);
-      if (articleMatch) {
+      // Match principle headers: ### I. Test-Driven Development (NON-NEGOTIABLE)
+      const principleMatch = line.match(/^###\s+([IVX]+)\.\s+(.+)$/);
+      if (principleMatch) {
         // Save previous section if exists
         if (currentSection && currentArticle) {
           currentSection.content = sectionContent.join('\n').trim();
@@ -205,16 +206,17 @@ export class ConstitutionProvider implements vscode.TreeDataProvider<Constitutio
         }
 
         currentArticle = {
-          number: this.romanToNumber(articleMatch[1]),
-          title: articleMatch[2].trim(),
+          number: this.romanToNumber(principleMatch[1]),
+          title: principleMatch[2].trim(),
           sections: [],
         };
+        sectionCounter = 1;
         continue;
       }
 
-      // Match section headers: ### 1.1 Language Standards
-      const sectionMatch = line.match(/^###\s+([\d.]+)\s+(.+)$/);
-      if (sectionMatch && currentArticle) {
+      // Match section headers under major sections: ### Multi-Layered System, ### Task Execution Flow, etc.
+      const sectionMatch = line.match(/^###\s+([^IVX].+)$/);
+      if (sectionMatch && !principleMatch && currentArticle) {
         // Save previous section if exists
         if (currentSection) {
           currentSection.content = sectionContent.join('\n').trim();
@@ -223,15 +225,52 @@ export class ConstitutionProvider implements vscode.TreeDataProvider<Constitutio
         }
 
         currentSection = {
-          number: sectionMatch[1],
-          title: sectionMatch[2].trim(),
+          number: sectionCounter.toString(),
+          title: sectionMatch[1].trim(),
           content: '',
         };
+        sectionCounter++;
+        continue;
+      }
+
+      // Match main section headers: ## Core Principles, ## Architecture Standards, etc.
+      const mainSectionMatch = line.match(/^##\s+(.+)$/);
+      if (mainSectionMatch && !line.includes('Article')) {
+        // Save previous section if exists
+        if (currentSection && currentArticle) {
+          currentSection.content = sectionContent.join('\n').trim();
+          currentArticle.sections.push(currentSection);
+          currentSection = null;
+          sectionContent = [];
+        }
+
+        // Save previous article if exists
+        if (currentArticle) {
+          this.articles.push(currentArticle);
+        }
+
+        // Create article for main sections like "Architecture Standards", "Development Workflow", etc.
+        currentArticle = {
+          number: this.articles.length + 1,
+          title: mainSectionMatch[1].trim(),
+          sections: [],
+        };
+        sectionCounter = 1;
         continue;
       }
 
       // Collect section content
-      if (currentSection && line.trim() && !line.startsWith('#')) {
+      if (currentSection && line.trim() && !line.startsWith('#') && !line.startsWith('<!--')) {
+        sectionContent.push(line);
+      } else if (currentArticle && !currentSection && line.trim() && !line.startsWith('#') && !line.startsWith('<!--')) {
+        // Content directly under an article without a subsection
+        if (!currentSection) {
+          currentSection = {
+            number: '1',
+            title: 'Overview',
+            content: '',
+          };
+        }
         sectionContent.push(line);
       }
     }
@@ -244,22 +283,25 @@ export class ConstitutionProvider implements vscode.TreeDataProvider<Constitutio
     if (currentArticle) {
       this.articles.push(currentArticle);
     }
+
+    console.log(`[SpecGofer] Parsed constitution: ${this.articles.length} articles with ${this.articles.reduce((sum, a) => sum + a.sections.length, 0)} total sections`);
   }
 
   private romanToNumber(roman: string): number {
-    const romanNumerals: Record<string, number> = {
-      I: 1,
-      II: 2,
-      III: 3,
-      IV: 4,
-      V: 5,
-      VI: 6,
-      VII: 7,
-      VIII: 8,
-      IX: 9,
-      X: 10,
-    };
-    return romanNumerals[roman] || 0;
+    // Roman numeral to number conversion
+    switch (roman) {
+      case 'I': return 1;
+      case 'II': return 2;
+      case 'III': return 3;
+      case 'IV': return 4;
+      case 'V': return 5;
+      case 'VI': return 6;
+      case 'VII': return 7;
+      case 'VIII': return 8;
+      case 'IX': return 9;
+      case 'X': return 10;
+      default: return 0;
+    }
   }
 
   /**

@@ -5,7 +5,10 @@ on:
     branches: [ main ]
     paths:
       - 'docs/**'
+  release:
+    types: [published]
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read

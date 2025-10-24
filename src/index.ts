@@ -20,13 +20,6 @@ async function main() {
   const specDir = process.env.SPEC_DIR || '.specify/specs';
   const workspaceDir = process.env.WORKSPACE_DIR || process.cwd();
 
-  const twilioConfig = {
-    accountSid: process.env.TWILIO_ACCOUNT_SID || '',
-    authToken: process.env.TWILIO_AUTH_TOKEN || '',
-    fromNumber: process.env.TWILIO_PHONE_NUMBER || '',
-    toNumber: process.env.YOUR_PHONE_NUMBER || ''
-  };
-
   const whatsappConfig = {
     enabled: process.env.WHATSAPP_ENABLED === 'true',
     phoneNumber: process.env.WHATSAPP_PHONE_NUMBER || '' // Format: 1234567890@c.us
@@ -36,8 +29,6 @@ async function main() {
   let notificationStatus = '📱 Notifications: Disabled';
   if (whatsappConfig.enabled && whatsappConfig.phoneNumber) {
     notificationStatus = '💬 Notifications: WhatsApp (scan QR on first run)';
-  } else if (twilioConfig.accountSid && twilioConfig.accountSid.startsWith('AC')) {
-    notificationStatus = '📱 Notifications: SMS (Twilio)';
   }
 
   console.log(`
@@ -57,7 +48,6 @@ ${notificationStatus}
   const orchestrator = new AutonomousOrchestrator(
     specDir,
     apiKey,
-    twilioConfig,
     whatsappConfig,
     workspaceDir
   );
@@ -66,7 +56,7 @@ ${notificationStatus}
   let isShuttingDown = false;
   
   const shutdown = () => {
-    if (isShuttingDown) return;
+    if (isShuttingDown) {return;}
     isShuttingDown = true;
     
     console.log('\n\n🛑 Received shutdown signal...');

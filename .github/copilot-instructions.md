@@ -274,6 +274,8 @@ The goal: **You write specs, SpecGofer builds them autonomously.**
 ## Active Technologies
 - TypeScript 5.7.2 (VSCode Extension API) (001-vscode-extension)
 - Filesystem (`.specify/` folder structure, `.vscode/mcp.json`) (001-vscode-extension)
+- TypeScript 5.7.2 targeting Node.js 18+ (ES2022) + vscode-languageserver 9.0.1, @anthropic-ai/sdk 0.35.0 (002-language-server)
+- File system based (.specify/specs/*.md), no database (002-language-server)
 
 ## Recent Changes
 - 001-vscode-extension: Added TypeScript 5.7.2 (VSCode Extension API)

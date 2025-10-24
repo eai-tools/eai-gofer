@@ -1,0 +1,353 @@
+name: SpecGofer CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install root dependencies
+      run: npm ci
+
+    - name: Install extension dependencies
+      working-directory: ./extension
+      run: npm ci
+
+    - name: Install language server dependencies
+      working-directory: ./language-server
+      run: npm ci
+
+    - name: Build project
+      run: npm run build
+
+    - name: Build extension
+      working-directory: ./extension
+      run: npm run compile
+
+    - name: Run unit tests
+      run: npm test
+
+    - name: Run integration tests
+      run: npm run test:integration
+      env:
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+    - name: Generate test coverage
+      run: npm run test:coverage
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        file: ./coverage/lcov.info
+        fail_ci_if_error: true
+
+  e2e-tests:
+    name: End-to-End Tests
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: |
+        npm ci
+        cd extension && npm ci
+        cd ../language-server && npm ci
+
+    - name: Build project
+      run: npm run build
+
+    - name: Install Playwright
+      run: npx playwright install --with-deps
+
+    - name: Run E2E tests
+      run: npm run test:e2e
+      env:
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+    - name: Upload E2E test results
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: e2e-test-results
+        path: test-results/
+
+  lint-and-typecheck:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: |
+        npm ci
+        cd extension && npm ci
+        cd ../language-server && npm ci
+
+    - name: TypeScript type check
+      run: |
+        npx tsc --noEmit
+        cd extension && npx tsc --noEmit
+        cd ../language-server && npx tsc --noEmit
+
+    - name: ESLint check
+      run: npm run lint
+
+    - name: Prettier format check
+      run: npm run format:check
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run npm audit
+      run: npm audit --audit-level=moderate
+
+    - name: Run CodeQL Analysis
+      uses: github/codeql-action/init@v2
+      with:
+        languages: typescript, javascript
+
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v2
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v2
+
+  build-extension:
+    name: Build VSCode Extension
+    runs-on: ubuntu-latest
+    needs: [test, lint-and-typecheck]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: |
+        npm ci
+        cd extension && npm ci
+        cd ../language-server && npm ci
+
+    - name: Build project
+      run: npm run build
+
+    - name: Build and package extension
+      working-directory: ./extension
+      run: |
+        npm run compile
+        npx @vscode/vsce package
+
+    - name: Upload extension artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: vscode-extension
+        path: extension/*.vsix
+
+  constitutional-validation:
+    name: Constitutional Validation
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run constitutional validation
+      run: |
+        # Check for any type usage
+        if grep -r ": any" src/ extension/src/ language-server/src/ --include="*.ts"; then
+          echo "❌ Constitutional violation: 'any' types found"
+          exit 1
+        fi
+        
+        # Check for TODO/FIXME comments
+        if grep -r "TODO\|FIXME" src/ extension/src/ language-server/src/ --include="*.ts"; then
+          echo "⚠️  Warning: TODO/FIXME comments found"
+        fi
+        
+        # Check for hardcoded secrets patterns
+        if grep -r "password\|secret\|key.*=" src/ extension/src/ language-server/src/ --include="*.ts" | grep -v "process.env"; then
+          echo "❌ Constitutional violation: Potential hardcoded secrets"
+          exit 1
+        fi
+        
+        # Check function length (basic check for functions > 50 lines)
+        find src/ extension/src/ language-server/src/ -name "*.ts" -exec awk '
+          /^[[:space:]]*function|^[[:space:]]*async function|^[[:space:]]*const.*=.*function|=.*=>/ {
+            start=NR; func_name=$0
+          }
+          /^[[:space:]]*}[[:space:]]*$/ && start {
+            if (NR - start > 50) {
+              print FILENAME ":" start ": Function too long (" (NR-start) " lines): " func_name
+            }
+            start=0
+          }
+        ' {} \;
+        
+        echo "✅ Constitutional validation passed"
+
+  deployment:
+    name: Deploy
+    runs-on: ubuntu-latest
+    needs: [test, e2e-tests, lint-and-typecheck, security-scan, build-extension, constitutional-validation]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Download extension artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: vscode-extension
+        path: ./extension
+
+    - name: Publish to VS Code Marketplace
+      if: startsWith(github.ref, 'refs/tags/v')
+      working-directory: ./extension
+      run: |
+        npx @vscode/vsce publish --pat ${{ secrets.VSCODE_MARKETPLACE_TOKEN }}
+      env:
+        VSCODE_MARKETPLACE_TOKEN: ${{ secrets.VSCODE_MARKETPLACE_TOKEN }}
+
+    - name: Create GitHub Release
+      if: startsWith(github.ref, 'refs/tags/v')
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        body: |
+          ## SpecGofer Release ${{ github.ref }}
+          
+          ### New Features
+          - Autonomous development workflow
+          - Constitutional code validation
+          - MCP tool integration with Claude Code
+          
+          ### Installation
+          Download the .vsix file and install via:
+          ```
+          code --install-extension specgofer-*.vsix
+          ```
+        draft: false
+        prerelease: false
+
+    - name: Upload release asset
+      if: startsWith(github.ref, 'refs/tags/v')
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./extension/specgofer-*.vsix
+        asset_name: specgofer-extension.vsix
+        asset_content_type: application/zip
+
+  notify-on-failure:
+    name: Notify on Failure
+    runs-on: ubuntu-latest
+    needs: [test, e2e-tests, lint-and-typecheck, security-scan, constitutional-validation]
+    if: failure()
+    
+    steps:
+    - name: Send Slack notification
+      uses: 8398a7/action-slack@v3
+      if: env.SLACK_WEBHOOK_URL != ''
+      with:
+        status: failure
+        webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+        text: |
+          🚨 SpecGofer CI/CD Pipeline Failed!
+          
+          Branch: ${{ github.ref }}
+          Commit: ${{ github.sha }}
+          Author: ${{ github.actor }}
+          
+          Please check the GitHub Actions logs for details.
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+    - name: Send SMS notification (if configured)
+      if: env.TWILIO_ACCOUNT_SID != ''
+      run: |
+        curl -X POST "https://api.twilio.com/2010-04-01/Accounts/${{ secrets.TWILIO_ACCOUNT_SID }}/Messages.json" \
+        --data-urlencode "From=${{ secrets.TWILIO_PHONE_NUMBER }}" \
+        --data-urlencode "To=${{ secrets.YOUR_PHONE_NUMBER }}" \
+        --data-urlencode "Body=🚨 SpecGofer CI/CD failed on ${{ github.ref }}. Check GitHub Actions." \
+        -u "${{ secrets.TWILIO_ACCOUNT_SID }}:${{ secrets.TWILIO_AUTH_TOKEN }}"
+      env:
+        TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+        TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
+        TWILIO_PHONE_NUMBER: ${{ secrets.TWILIO_PHONE_NUMBER }}
+        YOUR_PHONE_NUMBER: ${{ secrets.YOUR_PHONE_NUMBER }}

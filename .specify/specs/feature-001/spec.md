@@ -1,8 +1,8 @@
 ---
 feature: feature-001
 status: draft
-created: 2025-10-22
-updated: 2025-10-22
+created: 2025-10-23
+updated: 2025-10-23
 author: migrated
 ---
 

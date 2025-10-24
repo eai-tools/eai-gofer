@@ -113,12 +113,20 @@ else
     exit 1
 fi
 
-# Update GitHub Pages releases.json
+# Create releases directory and copy VSIX for GitHub Pages hosting
+print_info "Preparing GitHub Pages release assets..."
+mkdir -p docs/releases
+cp "specgofer-$NEW_VERSION.vsix" "docs/releases/"
+print_success "Copied VSIX to docs/releases/ for GitHub Pages hosting"
+
+# Update GitHub Pages releases.json with GitHub Pages download URLs
 print_info "Updating GitHub Pages releases.json..."
 if [ -f "docs/update-releases.js" ]; then
-    node docs/update-releases.js "$NEW_VERSION" "$COMMIT_MSG"
-    git add docs/releases.json
-    print_success "Updated GitHub Pages release data"
+    # Update the script to use GitHub Pages URLs
+    GITHUB_PAGES_URL="https://eai-tools.github.io/specgofer/releases/specgofer-$NEW_VERSION.vsix"
+    node docs/update-releases.js "$NEW_VERSION" "$COMMIT_MSG" "$GITHUB_PAGES_URL"
+    git add docs/releases.json docs/releases/
+    print_success "Updated GitHub Pages release data with assets"
 else
     print_warning "GitHub Pages update script not found, skipping..."
 fi

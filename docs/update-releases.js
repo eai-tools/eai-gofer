@@ -15,16 +15,20 @@ const __dirname = path.dirname(__filename);
 // Get version from command line or package.json
 const version = process.argv[2] || JSON.parse(fs.readFileSync(path.join(__dirname, '../extension/package.json'), 'utf8')).version;
 const releaseNotes = process.argv[3] || 'New release';
+const customDownloadUrl = process.argv[4]; // Optional custom download URL
 
 const releasesPath = path.join(__dirname, 'releases.json');
 const releases = JSON.parse(fs.readFileSync(releasesPath, 'utf8'));
+
+// Determine download URL - use custom URL if provided, otherwise default to GitHub Releases
+const downloadUrl = customDownloadUrl || `https://github.com/eai-tools/specgofer/releases/download/v${version}/specgofer-${version}.vsix`;
 
 // Create new release entry
 const newRelease = {
   version: version,
   tag_name: `v${version}`,
   published_at: new Date().toISOString(),
-  download_url: `https://github.com/eai-tools/specgofer/releases/download/v${version}/specgofer-${version}.vsix`,
+  download_url: downloadUrl,
   notes: releaseNotes,
   prerelease: false,
   size_mb: 8.5 // Approximate size

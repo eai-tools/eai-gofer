@@ -51,10 +51,15 @@ describe('TestAgent', () => {
         config: {},
         suites: [{
           title: 'Feature Tests',
-          tests: [{
-            title: 'should work',
-            status: 'passed',
-            duration: 1000
+          specs: [{
+            title: 'Feature Spec',
+            tests: [{
+              title: 'should work',
+              results: [{
+                status: 'passed',
+                duration: 1000
+              }]
+            }]
           }]
         }]
       });

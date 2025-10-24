@@ -63,7 +63,7 @@ export class Orchestrator {
   }
 
   private async processNextSpec(): Promise<void> {
-    if (this.isProcessing) return;
+    if (this.isProcessing) {return;}
 
     const specs = await this.specLoader.loadAllSpecs();
     const pendingSpec = specs.find(s => s.tasks.some(t => t.status !== 'completed'));
@@ -80,12 +80,12 @@ export class Orchestrator {
   }
 
   private async processNextTask(): Promise<void> {
-    if (!this.currentSpec) return;
+    if (!this.currentSpec) {return;}
 
     // Find next task that has all dependencies completed
     const nextTask = this.currentSpec.tasks.find(task => {
-      if (task.status === 'completed') return false;
-      if (task.status === 'in_progress' || task.status === 'testing') return true;
+      if (task.status === 'completed') {return false;}
+      if (task.status === 'in_progress' || task.status === 'testing') {return true;}
 
       // Check if all dependencies are completed
       return task.dependencies.every(depId =>
@@ -116,7 +116,7 @@ export class Orchestrator {
   }
 
   private async handleClaudeCodeResponse(response: string): Promise<void> {
-    if (!this.currentSpec || !this.currentTask) return;
+    if (!this.currentSpec || !this.currentTask) {return;}
 
     console.log('\n📥 Received response from Claude Code');
 

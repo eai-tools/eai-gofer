@@ -1,13 +1,22 @@
 {
   "latest_version": "1.4.8",
   "repository": "eai-tools/specgofer",
-  "last_updated": "2025-10-22T19:39:53.888Z",
+  "last_updated": "2025-10-24T04:22:48.502Z",
   "releases": [
     {
       "version": "1.4.8",
       "tag_name": "v1.4.8",
+      "published_at": "2025-10-24T04:22:48.501Z",
+      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-1.4.8.vsix",
+      "notes": "Complete end-to-end workflow: GitHub Pages + auto-updater integration with working downloads",
+      "prerelease": false,
+      "size_mb": 8.5
+    },
+    {
+      "version": "1.4.8",
+      "tag_name": "v1.4.8",
       "published_at": "2025-10-22T19:39:53.887Z",
-      "download_url": "https://github.com/eai-tools/specgofer/releases/download/v1.4.8/specgofer-1.4.8.vsix",
+      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-1.4.8.vsix",
       "notes": "Test end-to-end workflow: GitHub Pages + auto-updater integration",
       "prerelease": false,
       "size_mb": 8.5
@@ -16,7 +25,7 @@
       "version": "1.4.7",
       "tag_name": "v1.4.7",
       "published_at": "2025-10-22T10:24:43.204Z",
-      "download_url": "https://github.com/eai-tools/specgofer/releases/download/v1.4.7/specgofer-1.4.7.vsix",
+      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-1.4.7.vsix",
       "notes": "Fix auto-updater for github releases public page",
       "prerelease": false,
       "size_mb": 8.5

@@ -51,7 +51,6 @@ describe('Orchestrator Integration', () => {
     orchestrator = new AutonomousOrchestrator(
       mockConfig.specDir,
       mockConfig.apiKey,
-      mockConfig.twilioConfig,
       mockConfig.whatsappConfig,
       mockConfig.workspaceDir
     );

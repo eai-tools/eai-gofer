@@ -261,10 +261,10 @@ export class SpecLoader {
     } else {
       // Legacy JSON format
       const spec = await this.loadSpec(specId);
-      if (!spec) throw new Error(`Spec ${specId} not found`);
+      if (!spec) {throw new Error(`Spec ${specId} not found`);}
 
       const task = spec.tasks.find(t => t.id === taskId);
-      if (!task) throw new Error(`Task ${taskId} not found in spec ${specId}`);
+      if (!task) {throw new Error(`Task ${taskId} not found in spec ${specId}`);}
 
       task.status = status;
       await this.saveSpec(spec);

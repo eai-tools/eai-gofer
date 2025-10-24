@@ -50,6 +50,8 @@ Thumbs.db
 # Extension packaging
 *.vsix
 extension/*.vsix
+# Exception: Allow VSIX files in docs/releases/ for GitHub Pages hosting
+!docs/releases/*.vsix
 
 # VS Code Extension testing
 extension/.vscode-test/

@@ -1,14 +1,6 @@
-import twilio from 'twilio';
 import pkg from 'whatsapp-web.js';
 const { Client, LocalAuth } = pkg;
 import qrcode from 'qrcode-terminal';
-
-export interface TwilioConfig {
-  accountSid: string;
-  authToken: string;
-  fromNumber: string;
-  toNumber: string;
-}
 
 export interface WhatsAppConfig {
   enabled: boolean;
@@ -18,38 +10,21 @@ export interface WhatsAppConfig {
 export type MessageHandler = (message: string, fromNumber: string) => Promise<void>;
 
 export class NotificationService {
-  private twilioClient: twilio.Twilio | null = null;
   private whatsappClient: any = null;
-  private twilioConfig: TwilioConfig;
-  private whatsappConfig?: WhatsAppConfig;
+  private whatsappConfig: WhatsAppConfig;
   private enabled: boolean = false;
-  private notificationType: 'twilio' | 'whatsapp' | 'none' = 'none';
   private messageHandlers: MessageHandler[] = [];
   private awaitingResponse: boolean = false;
   private lastQuestionTime: number = 0;
 
-  constructor(twilioConfig: TwilioConfig, whatsappConfig?: WhatsAppConfig) {
-    this.twilioConfig = twilioConfig;
+  constructor(whatsappConfig: WhatsAppConfig) {
     this.whatsappConfig = whatsappConfig;
 
-    // Try WhatsApp first (free and better UX)
-    if (whatsappConfig?.enabled && whatsappConfig.phoneNumber) {
+    // Initialize WhatsApp for messaging
+    if (whatsappConfig.enabled && whatsappConfig.phoneNumber) {
       this.initializeWhatsApp();
-    } 
-    // Fall back to Twilio SMS
-    else if (twilioConfig.accountSid && twilioConfig.authToken && 
-        twilioConfig.accountSid.trim() !== '' && twilioConfig.authToken.trim() !== '' &&
-        twilioConfig.accountSid.startsWith('AC')) {
-      try {
-        this.twilioClient = twilio(twilioConfig.accountSid, twilioConfig.authToken);
-        this.enabled = true;
-        this.notificationType = 'twilio';
-        console.log('📱 SMS notifications enabled via Twilio');
-      } catch (error) {
-        console.warn('⚠️  Twilio initialization failed - notifications disabled:', error);
-      }
     } else {
-      console.log('📱 Notifications disabled (no Twilio or WhatsApp configured)');
+      console.log('📱 Notifications disabled (WhatsApp not configured)');
     }
   }
 
@@ -74,14 +49,13 @@ export class NotificationService {
     this.whatsappClient.on('ready', () => {
       console.log('✅ WhatsApp client is ready!');
       this.enabled = true;
-      this.notificationType = 'whatsapp';
     });
 
     this.whatsappClient.on('authenticated', () => {
       console.log('✅ WhatsApp authenticated');
     });
 
-    this.whatsappClient.on('auth_failure', (msg: any) => {
+    this.whatsappClient.on('auth_failure', (msg: unknown) => {
       console.error('❌ WhatsApp authentication failed:', msg);
       console.log('📱 Falling back to disabled mode');
     });
@@ -97,7 +71,7 @@ export class NotificationService {
       const messageText = msg.body;
 
       // Only respond to messages from the configured phone number
-      if (fromNumber === this.whatsappConfig!.phoneNumber) {
+      if (fromNumber === this.whatsappConfig.phoneNumber) {
         console.log(`\n📱 Received WhatsApp message: "${messageText}"\n`);
 
         // Call all registered handlers
@@ -151,20 +125,11 @@ export class NotificationService {
     }
 
     try {
-      if (this.notificationType === 'whatsapp' && this.whatsappClient) {
+      if (this.whatsappClient) {
         // Send via WhatsApp
-        const chatId = this.whatsappConfig!.phoneNumber;
+        const chatId = this.whatsappConfig.phoneNumber;
         await this.whatsappClient.sendMessage(chatId, message);
         console.log(`✅ WhatsApp message sent to ${chatId}`);
-        return true;
-      } else if (this.notificationType === 'twilio' && this.twilioClient) {
-        // Send via Twilio SMS
-        await this.twilioClient.messages.create({
-          body: message,
-          from: this.twilioConfig.fromNumber,
-          to: this.twilioConfig.toNumber
-        });
-        console.log(`📱 SMS sent to ${this.twilioConfig.toNumber}`);
         return true;
       }
       return false;

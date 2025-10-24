@@ -30,7 +30,6 @@ export class AutonomousOrchestrator {
   constructor(
     specDir: string,
     apiKey: string,
-    twilioConfig: any,
     whatsappConfig: any,
     workspaceDir: string
   ) {
@@ -38,7 +37,7 @@ export class AutonomousOrchestrator {
     this.specLoader = new SpecLoader(specDir);
     this.testAgent = new TestAgent(workspaceDir);
     this.engineerAgent = new EngineerAgent(apiKey);
-    this.notificationService = new NotificationService(twilioConfig, whatsappConfig);
+    this.notificationService = new NotificationService(whatsappConfig);
     this.interceptor = new ClaudeCodeInterceptor();
     this.anthropic = new Anthropic({ apiKey });
   }
@@ -140,6 +139,17 @@ export class AutonomousOrchestrator {
   stop(): void {
     console.log('\n⏹️  Stopping SpecGofer Autonomous Mode...');
     this.isRunning = false;
+  }
+
+  /**
+   * Get current orchestrator status
+   */
+  getStatus(): { isRunning: boolean; currentTask: Task | null; currentSpec: Spec | null } {
+    return {
+      isRunning: this.isRunning,
+      currentTask: this.currentTask,
+      currentSpec: this.currentSpec
+    };
   }
 
   /**

@@ -30,7 +30,14 @@
       "Bash(npm run compile:*)",
       "Read(//Users/douglaswross/**)",
       "Bash(gh release list:*)",
-      "Bash(./release-auto.sh:*)"
+      "Bash(./release-auto.sh:*)",
+      "Bash(npm run test:coverage-report:*)",
+      "Bash(tee:*)",
+      "Bash(perl:*)",
+      "Bash(perl -i -0777 -pe:*)",
+      "Bash(cat:*)",
+      "Bash(npm run build:*)",
+      "Bash(npm test:*)"
     ],
     "deny": [],
     "ask": []

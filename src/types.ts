@@ -37,7 +37,7 @@ export interface QARule {
 export interface AgentResponse {
   success: boolean;
   message: string;
-  data?: any;
+  data?: unknown;
   needsHumanInput?: boolean;
   question?: string;
   options?: string[];
@@ -53,4 +53,26 @@ export interface ValidationResult {
   isValid: boolean;
   issues: string[];
   suggestions: string[];
+}
+
+export interface SpecMetadata {
+  title?: string;
+  branch?: string;
+  created?: string;
+  status?: 'draft' | 'in_progress' | 'testing' | 'completed' | 'failed';
+  input?: string;
+  id?: string;
+  [key: string]: string | undefined;
+}
+
+export interface ParsedSpec {
+  metadata: SpecMetadata;
+  content: string;
+}
+
+export interface TwilioConfig {
+  accountSid?: string;
+  authToken?: string;
+  phoneNumber?: string;
+  enabled?: boolean;
 }

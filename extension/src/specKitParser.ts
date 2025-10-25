@@ -105,10 +105,32 @@ export class SpecKitParser {
   }
 
   /**
+   * Validate spec ID to prevent path traversal attacks
+   * @param specId - e.g., "001-login-feature"
+   */
+  private validateSpecId(specId: string): void {
+    // Check for path traversal attempts
+    if (specId.includes('..') || specId.includes('/') || specId.includes('\\')) {
+      throw new Error(`Invalid spec ID: ${specId}. Spec IDs cannot contain path traversal characters.`);
+    }
+
+    // Check for valid characters (alphanumeric, hyphens, underscores)
+    if (!/^[a-zA-Z0-9_-]+$/.test(specId)) {
+      throw new Error(`Invalid spec ID: ${specId}. Spec IDs can only contain alphanumeric characters, hyphens, and underscores.`);
+    }
+
+    // Check length
+    if (specId.length > 100) {
+      throw new Error(`Invalid spec ID: ${specId}. Spec IDs must be 100 characters or less.`);
+    }
+  }
+
+  /**
    * Load a single spec by ID
    * @param specId - e.g., "001-login-feature"
    */
   async loadSpec(specId: string): Promise<Spec> {
+    this.validateSpecId(specId);
     const specDir = path.join(this.workspacePath, '.specify', 'specs', specId);
     return this.loadSpecFromPath(specId, specDir);
   }
@@ -119,6 +141,9 @@ export class SpecKitParser {
    * @param specDir - full path to spec directory
    */
   private async loadSpecFromPath(specId: string, specDir: string): Promise<Spec> {
+    // Validate spec ID even when loading from path
+    this.validateSpecId(specId);
+
     const specPath = path.join(specDir, 'spec.md');
     const tasksPath = path.join(specDir, 'tasks.md');
     const planPath = path.join(specDir, 'plan.md');

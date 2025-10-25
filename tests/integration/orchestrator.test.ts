@@ -14,35 +14,60 @@ vi.mock('@anthropic-ai/sdk');
 
 describe('Orchestrator Integration', () => {
   let orchestrator: AutonomousOrchestrator;
-  let mockEngineerAgent: Partial<EngineerAgent>;
-  let mockTestAgent: Partial<TestAgent>;
-  let mockSpecLoader: Partial<SpecLoader>;
+  let mockEngineerAgent: EngineerAgent;
+  let mockTestAgent: TestAgent;
+  let mockSpecLoader: SpecLoader;
 
   const mockConfig = {
     specDir: '.specify/specs',
     apiKey: 'test-key',
     twilioConfig: { accountSid: 'test', authToken: 'test', phoneNumber: '+1234567890' },
     whatsappConfig: { enabled: false, phoneNumber: '+1234567890' },
-    workspaceDir: '/test/workspace'
+    workspaceDir: '/test/workspace',
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
 
-    // Setup mocks
+    // Setup mocks with proper typing using unknown for type safety
     mockEngineerAgent = {
       validate: vi.fn(),
-      validateConstitution: vi.fn()
-    };
-    
+      validateConstitution: vi.fn(),
+      loadConstitution: vi.fn().mockResolvedValue(''),
+      parseValidationResponse: vi.fn(),
+    } as unknown as EngineerAgent;
+
     mockTestAgent = {
-      runTests: vi.fn()
-    };
+      runTests: vi.fn(),
+      workspaceDir: '/test/workspace',
+      runPlaywrightTests: vi.fn(),
+      runUnitTests: vi.fn(),
+      runIntegrationTests: vi.fn(),
+      generatePlaywrightTests: vi.fn(),
+      parsePlaywrightResults: vi.fn(),
+      parseUnitTestResults: vi.fn(),
+      parseIntegrationTestResults: vi.fn(),
+      ensurePlaywrightInstalled: vi.fn(),
+      parseTestResults: vi.fn(),
+      fileExists: vi.fn(),
+    } as unknown as TestAgent;
 
     mockSpecLoader = {
       loadAllSpecs: vi.fn(),
-      loadSpec: vi.fn()
-    };
+      loadSpec: vi.fn(),
+      specDir: '.specify/specs',
+      loadSpecKitSpecs: vi.fn(),
+      parseSpecHeader: vi.fn(),
+      loadSpecKitSpec: vi.fn(),
+      parseTasks: vi.fn(),
+      parseAcceptanceCriteria: vi.fn(),
+      loadLegacyJsonSpecs: vi.fn(),
+      loadSpecKitTasks: vi.fn(),
+      saveSpec: vi.fn(),
+      saveSpecKitSpec: vi.fn(),
+      updateTasksMarkdown: vi.fn(),
+      updateTaskStatus: vi.fn(),
+    } as unknown as SpecLoader;
 
     vi.mocked(EngineerAgent).mockImplementation(() => mockEngineerAgent);
     vi.mocked(TestAgent).mockImplementation(() => mockTestAgent);
@@ -65,11 +90,11 @@ describe('Orchestrator Integration', () => {
 
     it('should provide status information', () => {
       const status = orchestrator.getStatus();
-      
+
       expect(status).toEqual({
         isRunning: false,
         currentTask: null,
-        currentSpec: null
+        currentSpec: null,
       });
     });
   });
@@ -80,33 +105,39 @@ describe('Orchestrator Integration', () => {
         {
           id: '001-test-spec',
           title: 'Test Spec',
+          description: 'Test specification',
           tasks: [
             {
               id: 'T001',
               description: 'First task',
               dependencies: [],
-              status: 'pending',
-              deliveryPrompt: 'Implement first task'
+              status: 'pending' as const,
+              deliveryPrompt: 'Implement first task',
             },
             {
-              id: 'T002', 
+              id: 'T002',
               description: 'Second task',
               dependencies: ['T001'],
-              status: 'pending',
-              deliveryPrompt: 'Implement second task'
-            }
+              status: 'pending' as const,
+              deliveryPrompt: 'Implement second task',
+            },
           ],
-          acceptanceCriteria: []
-        }
+          acceptanceCriteria: [],
+          qaRules: [],
+        },
       ];
 
-      mockSpecLoader.loadAllSpecs.mockResolvedValue(mockSpecs);
+      vi.mocked(mockSpecLoader.loadAllSpecs).mockResolvedValue(mockSpecs);
 
       // Access private method for testing
-      await (orchestrator as any).buildTaskQueue();
+      interface OrchestratorWithPrivates {
+        buildTaskQueue(): Promise<void>;
+        processingQueue: unknown[];
+      }
+      await (orchestrator as unknown as OrchestratorWithPrivates).buildTaskQueue();
 
       expect(mockSpecLoader.loadAllSpecs).toHaveBeenCalled();
-      expect((orchestrator as any).processingQueue).toHaveLength(2);
+      expect((orchestrator as unknown as OrchestratorWithPrivates).processingQueue).toHaveLength(2);
     });
 
     it('should handle circular dependencies', async () => {
@@ -114,30 +145,37 @@ describe('Orchestrator Integration', () => {
         {
           id: '001-circular',
           title: 'Circular Deps',
+          description: 'Circular dependency test',
           tasks: [
             {
               id: 'T001',
               description: 'Task 1',
               dependencies: ['T002'],
-              status: 'pending',
-              deliveryPrompt: 'Task 1'
+              status: 'pending' as const,
+              deliveryPrompt: 'Task 1',
             },
             {
               id: 'T002',
-              description: 'Task 2', 
+              description: 'Task 2',
               dependencies: ['T001'],
-              status: 'pending',
-              deliveryPrompt: 'Task 2'
-            }
+              status: 'pending' as const,
+              deliveryPrompt: 'Task 2',
+            },
           ],
-          acceptanceCriteria: []
-        }
+          acceptanceCriteria: [],
+          qaRules: [],
+        },
       ];
 
-      mockSpecLoader.loadAllSpecs.mockResolvedValue(mockSpecs);
+      vi.mocked(mockSpecLoader.loadAllSpecs).mockResolvedValue(mockSpecs);
 
       // Should throw error for circular dependency
-      await expect((orchestrator as any).buildTaskQueue()).rejects.toThrow(/circular dependency/i);
+      interface OrchestratorWithPrivates {
+        buildTaskQueue(): Promise<void>;
+      }
+      await expect(
+        (orchestrator as unknown as OrchestratorWithPrivates).buildTaskQueue()
+      ).rejects.toThrow(/circular dependency/i);
     });
   });
 
@@ -148,23 +186,23 @@ describe('Orchestrator Integration', () => {
         description: 'Test task',
         dependencies: [],
         status: 'pending',
-        deliveryPrompt: 'Implement test'
+        deliveryPrompt: 'Implement test',
       };
 
       const mockImplementation = 'function test() { return true; }';
 
       // Mock successful validation
-      mockEngineerAgent.validate.mockResolvedValue({
+      vi.mocked(mockEngineerAgent.validate).mockResolvedValue({
         isValid: true,
         issues: [],
-        suggestions: []
+        suggestions: [],
       });
 
       // Mock successful tests
-      mockTestAgent.runTests.mockResolvedValue({
+      vi.mocked(mockTestAgent.runTests).mockResolvedValue({
         passed: true,
         failedTests: [],
-        summary: 'All tests passed'
+        summary: 'All tests passed',
       });
 
       // Test the validation workflow
@@ -190,21 +228,21 @@ describe('Orchestrator Integration', () => {
         id: 'T001',
         description: 'Failing task',
         attempts: 0,
-        deliveryPrompt: 'Implement failing feature'
+        deliveryPrompt: 'Implement failing feature',
       };
 
       // Mock validation failure
-      mockEngineerAgent.validate.mockResolvedValue({
+      vi.mocked(mockEngineerAgent.validate).mockResolvedValue({
         isValid: false,
         issues: ['Code quality issues'],
-        suggestions: ['Fix the issues']
+        suggestions: ['Fix the issues'],
       });
 
-      const validationResult = await mockEngineerAgent.validate(
-        mockTask.description,
-        'bad code',
-        { passed: true, failedTests: [], summary: 'OK' }
-      );
+      const validationResult = await mockEngineerAgent.validate(mockTask.description, 'bad code', {
+        passed: true,
+        failedTests: [],
+        summary: 'OK',
+      });
 
       expect(validationResult.isValid).toBe(false);
       expect(validationResult.issues).toContain('Code quality issues');
@@ -219,23 +257,27 @@ describe('Orchestrator Integration', () => {
       const mockTask = {
         id: 'T001',
         description: 'Test task',
-        attempts: 0
+        attempts: 0,
       };
 
       // Mock passing validation but failing tests
-      mockEngineerAgent.validate.mockResolvedValue({
+      vi.mocked(mockEngineerAgent.validate).mockResolvedValue({
         isValid: true,
         issues: [],
-        suggestions: []
+        suggestions: [],
       });
 
-      mockTestAgent.runTests.mockResolvedValue({
+      vi.mocked(mockTestAgent.runTests).mockResolvedValue({
         passed: false,
         failedTests: ['login test', 'auth test'],
-        summary: '2 tests failed'
+        summary: '2 tests failed',
       });
 
-      const validationResult = await mockEngineerAgent.validate('task', 'code', { passed: true, failedTests: [], summary: 'OK' });
+      const validationResult = await mockEngineerAgent.validate('task', 'code', {
+        passed: true,
+        failedTests: [],
+        summary: 'OK',
+      });
       const testResult = await mockTestAgent.runTests([]);
 
       expect(validationResult.isValid).toBe(true);
@@ -253,16 +295,18 @@ describe('Orchestrator Integration', () => {
       const mockTask = {
         id: 'T001',
         description: 'Stubborn task',
-        attempts: 3 // Already at max attempts
+        attempts: 3, // Already at max attempts
       };
 
-      const maxAttempts = (orchestrator as any).maxAttempts;
+      interface OrchestratorWithPrivates {
+        maxAttempts: number;
+      }
+      const maxAttempts = (orchestrator as unknown as OrchestratorWithPrivates).maxAttempts;
       expect(maxAttempts).toBe(3);
 
       // When task reaches max attempts, should escalate
       if (mockTask.attempts >= maxAttempts) {
-        // Simulate escalation
-        console.log('Task would be escalated to human');
+        // Simulate escalation (task would be escalated to human)
         expect(mockTask.attempts).toBeGreaterThanOrEqual(maxAttempts);
       }
     });
@@ -272,33 +316,41 @@ describe('Orchestrator Integration', () => {
         {
           id: '001-test',
           title: 'Test',
+          description: 'Test spec',
           tasks: [
             {
               id: 'T002',
               description: 'Task with missing dep',
               dependencies: ['T001'], // T001 doesn't exist
-              status: 'pending',
-              deliveryPrompt: 'Implement task'
-            }
+              status: 'pending' as const,
+              deliveryPrompt: 'Implement task',
+            },
           ],
-          acceptanceCriteria: []
-        }
+          acceptanceCriteria: [],
+          qaRules: [],
+        },
       ];
 
-      mockSpecLoader.loadAllSpecs.mockResolvedValue(mockSpecs);
+      vi.mocked(mockSpecLoader.loadAllSpecs).mockResolvedValue(mockSpecs);
 
       // Should handle missing dependencies without crashing
-      await expect((orchestrator as any).buildTaskQueue()).resolves.not.toThrow();
+      interface OrchestratorWithPrivates {
+        buildTaskQueue(): Promise<void>;
+      }
+      await expect(
+        (orchestrator as unknown as OrchestratorWithPrivates).buildTaskQueue()
+      ).resolves.not.toThrow();
     });
 
     it('should handle API errors in agents', async () => {
-      mockEngineerAgent.validate.mockRejectedValue(new Error('API Error'));
+      vi.mocked(mockEngineerAgent.validate).mockRejectedValue(new Error('API Error'));
 
-      const result = await mockEngineerAgent.validate('task', 'code', { passed: true, failedTests: [], summary: 'OK' })
+      const result = await mockEngineerAgent
+        .validate('task', 'code', { passed: true, failedTests: [], summary: 'OK' })
         .catch(() => ({
           isValid: false,
           issues: ['API Error occurred'],
-          suggestions: ['Retry later']
+          suggestions: ['Retry later'],
         }));
 
       expect(result.isValid).toBe(false);
@@ -309,9 +361,9 @@ describe('Orchestrator Integration', () => {
   describe('lifecycle management', () => {
     it('should start and stop gracefully', () => {
       expect(orchestrator.getStatus().isRunning).toBe(false);
-      
+
       orchestrator.stop();
-      
+
       expect(orchestrator.getStatus().isRunning).toBe(false);
     });
   });

@@ -22,7 +22,8 @@
     "vscode-languageserver-textdocument": "^1.0.11",
     "yaml": "^2.3.4",
     "gray-matter": "^4.0.3",
-    "@anthropic-ai/sdk": "^0.30.0"
+    "@anthropic-ai/sdk": "^0.30.0",
+    "chokidar": "^3.5.3"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",

@@ -1,6 +1,6 @@
 {
   "name": "specgofer",
-  "version": "1.5.0",
+  "version": "1.12.0",
   "description": "Enterprise AI Pty Ltd - Automated spec-driven development system with Claude Code integration",
   "author": "Enterprise AI Pty Ltd",
   "license": "SEE LICENSE IN LICENSE",
@@ -73,7 +73,7 @@
       "prettier --write"
     ],
     "language-server/src/**/*.{ts,js}": [
-      "eslint --fix", 
+      "eslint --fix",
       "prettier --write"
     ],
     "tests/**/*.{ts,js}": [

@@ -2,30 +2,18 @@
 
 import { AutonomousOrchestrator } from './orchestrator/AutonomousOrchestrator.js';
 import dotenv from 'dotenv';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
 
 dotenv.config();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-async function main() {
+async function main(): Promise<void> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    console.error('❌ ANTHROPIC_API_KEY not set in environment');
+    process.stderr.write('❌ ANTHROPIC_API_KEY not set in environment\n');
     process.exit(1);
   }
 
   const specDir = process.env.SPEC_DIR || '.specify/specs';
   const workspaceDir = process.env.WORKSPACE_DIR || process.cwd();
-
-  const twilioConfig = {
-    accountSid: process.env.TWILIO_ACCOUNT_SID || '',
-    authToken: process.env.TWILIO_AUTH_TOKEN || '',
-    fromNumber: process.env.TWILIO_PHONE_NUMBER || '',
-    toNumber: process.env.YOUR_PHONE_NUMBER || ''
-  };
 
   const whatsappConfig = {
     enabled: process.env.WHATSAPP_ENABLED === 'true',
@@ -36,11 +24,9 @@ async function main() {
   let notificationStatus = '📱 Notifications: Disabled';
   if (whatsappConfig.enabled && whatsappConfig.phoneNumber) {
     notificationStatus = '💬 Notifications: WhatsApp (scan QR on first run)';
-  } else if (twilioConfig.accountSid && twilioConfig.accountSid.startsWith('AC')) {
-    notificationStatus = '📱 Notifications: SMS (Twilio)';
   }
 
-  console.log(`
+  process.stdout.write(`
 ╔═══════════════════════════════════════════════════════════╗
 ║                                                           ║
 ║         🚀 SpecGofer Autonomous Mode 🚀                   ║
@@ -57,7 +43,6 @@ ${notificationStatus}
   const orchestrator = new AutonomousOrchestrator(
     specDir,
     apiKey,
-    twilioConfig,
     whatsappConfig,
     workspaceDir
   );
@@ -65,15 +50,15 @@ ${notificationStatus}
   // Handle graceful shutdown
   let isShuttingDown = false;
   
-  const shutdown = () => {
-    if (isShuttingDown) return;
+  const shutdown = (): void => {
+    if (isShuttingDown) {return;}
     isShuttingDown = true;
     
-    console.log('\n\n🛑 Received shutdown signal...');
+    process.stderr.write('\n\n🛑 Received shutdown signal...\n');
     orchestrator.stop();
     
     setTimeout(() => {
-      console.log('👋 Goodbye!');
+      process.stderr.write('👋 Goodbye!\n');
       process.exit(0);
     }, 2000);
   };
@@ -85,7 +70,7 @@ ${notificationStatus}
   setInterval(() => {
     const status = orchestrator.getStatus();
     if (status.currentTask) {
-      console.log(`\n� Status: ${status.currentTask.id} - ${status.currentTask.description.substring(0, 50)}...`);
+      process.stdout.write(`\n📊 Status: ${status.currentTask.id} - ${status.currentTask.description.substring(0, 50)}...\n`);
     }
   }, 30000); // Log status every 30 seconds
 
@@ -94,6 +79,6 @@ ${notificationStatus}
 }
 
 main().catch(error => {
-  console.error('❌ Fatal error:', error);
+  process.stderr.write(`❌ Fatal error: ${error}\n`);
   process.exit(1);
 });

@@ -3,8 +3,9 @@ import { Spec, Task, ValidationResult, TestResult } from '../types.js';
 import { SpecLoader } from './SpecLoader.js';
 import { TestAgent } from '../agents/TestAgent.js';
 import { EngineerAgent } from '../agents/EngineerAgent.js';
-import { NotificationService } from '../utils/NotificationService.js';
+import { NotificationService, WhatsAppConfig } from '../utils/NotificationService.js';
 import { ClaudeCodeInterceptor } from '../interceptor/ClaudeCodeInterceptor.js';
+import { QAEngine } from './QAEngine.js';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
@@ -18,6 +19,7 @@ export class AutonomousOrchestrator {
   private engineerAgent: EngineerAgent;
   private notificationService: NotificationService;
   private interceptor: ClaudeCodeInterceptor;
+  private qaEngine: QAEngine;
   private anthropic: Anthropic;
   private isRunning = false;
   private currentTask: Task | null = null;
@@ -30,16 +32,16 @@ export class AutonomousOrchestrator {
   constructor(
     specDir: string,
     apiKey: string,
-    twilioConfig: any,
-    whatsappConfig: any,
+    whatsappConfig: WhatsAppConfig,
     workspaceDir: string
   ) {
     this.workspaceDir = workspaceDir;
     this.specLoader = new SpecLoader(specDir);
     this.testAgent = new TestAgent(workspaceDir);
     this.engineerAgent = new EngineerAgent(apiKey);
-    this.notificationService = new NotificationService(twilioConfig, whatsappConfig);
+    this.notificationService = new NotificationService(whatsappConfig);
     this.interceptor = new ClaudeCodeInterceptor();
+    this.qaEngine = new QAEngine(apiKey, []); // Will load specs after initialization
     this.anthropic = new Anthropic({ apiKey });
   }
 
@@ -143,6 +145,17 @@ export class AutonomousOrchestrator {
   }
 
   /**
+   * Get current orchestrator status
+   */
+  getStatus(): { isRunning: boolean; currentTask: Task | null; currentSpec: Spec | null } {
+    return {
+      isRunning: this.isRunning,
+      currentTask: this.currentTask,
+      currentSpec: this.currentSpec
+    };
+  }
+
+  /**
    * Set up file monitoring for Claude Code communication
    */
   private async setupFileMonitoring(): Promise<void> {
@@ -168,9 +181,13 @@ export class AutonomousOrchestrator {
    */
   private async buildTaskQueue(): Promise<void> {
     console.log('📋 Building task queue with dependency resolution...');
-    
+
     const specs = await this.specLoader.loadAllSpecs();
     const allTasks: Task[] = [];
+
+    // Update QAEngine with current specs for question answering
+    const apiKey = this.anthropic.apiKey || process.env.ANTHROPIC_API_KEY || '';
+    this.qaEngine = new QAEngine(apiKey, specs);
 
     // Collect all tasks from all specs
     for (const spec of specs) {
@@ -183,7 +200,7 @@ export class AutonomousOrchestrator {
 
     // Sort by dependencies (topological sort)
     this.processingQueue = this.topologicalSort(allTasks);
-    
+
     console.log(`📊 Task queue built: ${this.processingQueue.length} tasks ready`);
   }
 
@@ -276,25 +293,47 @@ Focus on:
   }
 
   /**
+   * Calculate exponential backoff delay with jitter
+   * @param attempt - Current attempt number (0-indexed)
+   * @returns Delay in milliseconds
+   */
+  private calculateBackoffDelay(attempt: number): number {
+    // Base delay: 5 seconds, exponentially increasing
+    const baseDelay = 5000;
+    const exponentialDelay = baseDelay * Math.pow(2, attempt);
+
+    // Add jitter (random 0-25% variation) to prevent thundering herd
+    const jitter = Math.random() * 0.25 * exponentialDelay;
+
+    // Cap at 2 minutes
+    return Math.min(exponentialDelay + jitter, 120000);
+  }
+
+  /**
    * Handle validation failure
    */
   private async handleValidationFailure(
-    task: Task, 
-    validation: ValidationResult, 
+    task: Task,
+    validation: ValidationResult,
     response: string
   ): Promise<void> {
     task.attempts = (task.attempts || 0) + 1;
-    
+
     if (task.attempts >= this.maxAttempts) {
       console.log(`💥 Task ${task.id} failed validation ${this.maxAttempts} times. Escalating to human.`);
-      
+
       await this.notificationService.sendSMS(
         `Task ${task.id} failed validation multiple times:\n\n${validation.issues?.join('\n')}\n\nNeeds human intervention.`
       );
-      
+
       await this.updateTaskStatus(task.id, 'failed');
       return;
     }
+
+    // Calculate backoff delay
+    const delay = this.calculateBackoffDelay(task.attempts - 1);
+    console.log(`⏱️  Waiting ${Math.round(delay / 1000)}s before retry (exponential backoff)...`);
+    await new Promise(resolve => setTimeout(resolve, delay));
 
     // Create feedback prompt for Claude Code
     const feedbackPrompt = `# Validation Failed - Task: ${task.id}
@@ -314,7 +353,7 @@ Please fix the issues and implement the task correctly.`;
 
     const inputFile = path.join(this.workspaceDir, '.claude-input.txt');
     await fs.writeFile(inputFile, feedbackPrompt, 'utf-8');
-    
+
     console.log(`🔄 Retry ${task.attempts}/${this.maxAttempts} - Feedback sent to Claude Code`);
   }
 
@@ -322,22 +361,27 @@ Please fix the issues and implement the task correctly.`;
    * Handle test failure
    */
   private async handleTestFailure(
-    task: Task, 
-    testResult: TestResult, 
+    task: Task,
+    testResult: TestResult,
     response: string
   ): Promise<void> {
     task.attempts = (task.attempts || 0) + 1;
-    
+
     if (task.attempts >= this.maxAttempts) {
       console.log(`💥 Task ${task.id} failed tests ${this.maxAttempts} times. Escalating to human.`);
-      
+
       await this.notificationService.sendSMS(
         `Task ${task.id} failed tests multiple times:\n\n${testResult.summary}\n\nNeeds human intervention.`
       );
-      
+
       await this.updateTaskStatus(task.id, 'failed');
       return;
     }
+
+    // Calculate backoff delay
+    const delay = this.calculateBackoffDelay(task.attempts - 1);
+    console.log(`⏱️  Waiting ${Math.round(delay / 1000)}s before retry (exponential backoff)...`);
+    await new Promise(resolve => setTimeout(resolve, delay));
 
     // Get detailed feedback from Engineer Agent
     const engineerFeedback = await this.engineerAgent.validate(
@@ -376,8 +420,31 @@ Please fix the failing tests and implement the task correctly.`;
    */
   private async handleClaudeQuestion(question: string): Promise<void> {
     console.log('🤔 Handling Claude Code question...');
-    
-    // For now, send question to human via SMS
+
+    try {
+      // First, try to answer using QAEngine
+      const qaResult = await this.qaEngine.answerQuestion(question);
+
+      if (qaResult.answer && (qaResult.confidence === 'high' || qaResult.confidence === 'medium') && !qaResult.needsHuman) {
+        // High or medium confidence answer - send it back to Claude Code
+        console.log(`✅ QAEngine answered with ${qaResult.confidence} confidence`);
+
+        const answerPath = path.join(this.workspaceDir, '.claude-output.txt');
+        await fs.writeFile(
+          answerPath,
+          `Answer to your question:\n\n${qaResult.answer}\n\n(Confidence: ${qaResult.confidence})`,
+          'utf-8'
+        );
+        return;
+      }
+
+      // Low confidence or no answer - escalate to human
+      console.log(`⚠️  QAEngine confidence too low (${qaResult.confidence}), escalating to human`);
+    } catch (error) {
+      console.error('❌ QAEngine error:', error);
+    }
+
+    // Fallback: send question to human via SMS
     await this.notificationService.sendSMS(
       `Claude Code has a question:\n\n${question}\n\nPlease respond via WhatsApp.`
     );
@@ -386,11 +453,12 @@ Please fix the failing tests and implement the task correctly.`;
   /**
    * Handle orchestration errors
    */
-  private async handleOrchestrationError(error: any): Promise<void> {
+  private async handleOrchestrationError(error: Error | unknown): Promise<void> {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     console.error('🚨 Orchestration error:', error);
     
     await this.notificationService.sendSMS(
-      `SpecGofer orchestration error:\n\n${error.message}\n\nCheck logs for details.`
+      `SpecGofer orchestration error:\n\n${errorMessage}\n\nCheck logs for details.`
     );
   }
 
@@ -398,9 +466,23 @@ Please fix the failing tests and implement the task correctly.`;
    * Update task status
    */
   private async updateTaskStatus(taskId: string, status: string): Promise<void> {
-    // This would use the SpecLoader to update the task status
-    // For now, just log it
-    console.log(`📝 Task ${taskId} status: ${status}`);
+    if (!this.currentSpec) {
+      console.warn(`⚠️  Cannot update task ${taskId}: no current spec`);
+      return;
+    }
+
+    try {
+      await this.specLoader.updateTaskStatus(this.currentSpec.id, taskId, status as any);
+      console.log(`📝 Task ${taskId} status updated to: ${status}`);
+
+      // Update the task in memory as well
+      const task = this.currentSpec.tasks.find(t => t.id === taskId);
+      if (task) {
+        task.status = status as any;
+      }
+    } catch (error) {
+      console.error(`❌ Failed to update task status for ${taskId}:`, error);
+    }
   }
 
   /**

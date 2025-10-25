@@ -1,6 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
-import { Spec } from '../types.js';
+import { Spec, Task, SpecMetadata, ParsedSpec } from '../types.js';
 
 export class SpecLoader {
   private specDir: string;
@@ -53,9 +53,9 @@ export class SpecLoader {
   /**
    * Parse header metadata from official GitHub Spec Kit format
    */
-  private parseSpecHeader(content: string): { metadata: any; content: string } {
+  private parseSpecHeader(content: string): ParsedSpec {
     const lines = content.split('\n');
-    const metadata: any = {};
+    const metadata: SpecMetadata = {};
     let contentStartIndex = 0;
 
     // Extract title from first line
@@ -95,7 +95,11 @@ export class SpecLoader {
 
       const statusMatch = line.match(/^Status:\s*(.+)$/);
       if (statusMatch) {
-        metadata.status = statusMatch[1];
+        const statusValue = statusMatch[1].trim();
+        const validStatuses = ['draft', 'in_progress', 'testing', 'completed', 'failed'];
+        if (validStatuses.includes(statusValue)) {
+          metadata.status = statusValue as 'draft' | 'in_progress' | 'testing' | 'completed' | 'failed';
+        }
         continue;
       }
 
@@ -121,7 +125,7 @@ export class SpecLoader {
       
       // Try YAML frontmatter first (legacy format)
       const yamlMatch = content.match(/^---\n([\s\S]*?)\n---/);
-      let frontmatter: any = {};
+      let frontmatter: SpecMetadata = {};
       let markdownContent: string;
 
       if (yamlMatch) {
@@ -140,10 +144,15 @@ export class SpecLoader {
       } else {
         // Official GitHub Spec Kit format
         const { metadata, content: bodyContent } = this.parseSpecHeader(content);
+        const validStatuses = ['draft', 'in_progress', 'testing', 'completed', 'failed'];
+        const statusValue = metadata.status && validStatuses.includes(metadata.status)
+          ? (metadata.status as 'draft' | 'in_progress' | 'testing' | 'completed' | 'failed')
+          : 'draft';
+
         frontmatter = {
           id: metadata.branch || specId,
           title: metadata.title || 'Untitled',
-          status: metadata.status || 'draft',
+          status: statusValue,
           created: metadata.created || new Date().toISOString(),
         };
         markdownContent = bodyContent;
@@ -155,7 +164,7 @@ export class SpecLoader {
       return {
         id: frontmatter.id || specId,
         title: frontmatter.title || 'Untitled',
-        status: frontmatter.status || 'draft',
+        status: (frontmatter.status as 'draft' | 'in_progress' | 'testing' | 'completed' | 'failed') || 'draft',
         created: frontmatter.created || new Date().toISOString(),
         featureBranch: frontmatter.branch || frontmatter.id,
         description: markdownContent.split('\n').slice(0, 3).join('\n'),
@@ -172,12 +181,12 @@ export class SpecLoader {
   /**
    * Load tasks from tasks.md file
    */
-  private async loadSpecKitTasks(specId: string): Promise<any[]> {
+  private async loadSpecKitTasks(specId: string): Promise<Task[]> {
     const tasksPath = path.join(this.specDir, specId, 'tasks.md');
     
     try {
       const content = await fs.readFile(tasksPath, 'utf-8');
-      const tasks: any[] = [];
+      const tasks: Task[] = [];
 
       // Parse task lines (simple implementation)
       const lines = content.split('\n');
@@ -243,9 +252,8 @@ export class SpecLoader {
 
   async saveSpec(spec: Spec): Promise<void> {
     if (this.specDir.endsWith('/specs') || this.specDir.endsWith('/specs/')) {
-      // For Spec Kit format, we would need to update tasks.md
-      // This is a complex operation, so for now we'll log a warning
-      console.warn('Saving Spec Kit format specs is not fully implemented. Task status updates will be ignored.');
+      // For Spec Kit format, save to spec.md (frontmatter) and tasks.md
+      await this.saveSpecKitSpec(spec);
     } else {
       // Legacy JSON format
       const filePath = path.join(this.specDir, `${spec.id}.json`);
@@ -253,18 +261,99 @@ export class SpecLoader {
     }
   }
 
+  private async saveSpecKitSpec(spec: Spec): Promise<void> {
+    const specPath = path.join(this.specDir, spec.id);
+    const specMdPath = path.join(specPath, 'spec.md');
+
+    // Update spec.md frontmatter
+    try {
+      const content = await fs.readFile(specMdPath, 'utf-8');
+      const lines = content.split('\n');
+
+      if (lines[0] === '---') {
+        let endIndex = lines.findIndex((line, idx) => idx > 0 && line === '---');
+        if (endIndex !== -1) {
+          // Update status in frontmatter
+          const frontmatterLines = lines.slice(1, endIndex);
+          const updatedFrontmatter = frontmatterLines.map(line => {
+            if (line.startsWith('status:')) {
+              return `status: "${spec.status}"`;
+            }
+            if (line.startsWith('updated:')) {
+              return `updated: "${new Date().toISOString().split('T')[0]}"`;
+            }
+            return line;
+          });
+
+          const newContent = [
+            '---',
+            ...updatedFrontmatter,
+            ...lines.slice(endIndex)
+          ].join('\n');
+
+          await fs.writeFile(specMdPath, newContent, 'utf-8');
+        }
+      }
+    } catch (error) {
+      console.error(`Failed to update spec.md for ${spec.id}:`, error);
+    }
+
+    // Update tasks.md if it exists
+    if (spec.tasks && spec.tasks.length > 0) {
+      await this.updateTasksMarkdown(spec.id, spec.tasks);
+    }
+  }
+
+  private async updateTasksMarkdown(specId: string, tasks: Spec['tasks']): Promise<void> {
+    const tasksMdPath = path.join(this.specDir, specId, 'tasks.md');
+
+    try {
+      const content = await fs.readFile(tasksMdPath, 'utf-8');
+      let updatedContent = content;
+
+      // Update each task checkbox based on status
+      for (const task of tasks) {
+        const taskIdPattern = new RegExp(`(- \\[[ xX]\\]\\s+#?${task.id}\\b)`, 'gm');
+        const checkbox = task.status === 'completed' ? '[x]' : '[ ]';
+        updatedContent = updatedContent.replace(taskIdPattern, `- ${checkbox} #${task.id}`);
+      }
+
+      // Write atomically using temp file
+      const tempPath = `${tasksMdPath}.tmp`;
+      await fs.writeFile(tempPath, updatedContent, 'utf-8');
+      await fs.rename(tempPath, tasksMdPath);
+    } catch (error) {
+      console.error(`Failed to update tasks.md for ${specId}:`, error);
+    }
+  }
+
   async updateTaskStatus(specId: string, taskId: string, status: Spec['tasks'][0]['status']): Promise<void> {
     if (this.specDir.endsWith('/specs') || this.specDir.endsWith('/specs/')) {
-      // For Spec Kit format, we would need to update the checkbox in tasks.md
-      // This is complex as it requires markdown parsing and rewriting
-      console.warn(`Task status update for ${specId}:${taskId} -> ${status} (Spec Kit format updates not fully implemented)`);
+      // For Spec Kit format, update the checkbox in tasks.md
+      const spec = await this.loadSpec(specId);
+      if (!spec) {
+        throw new Error(`Spec ${specId} not found`);
+      }
+
+      const task = spec.tasks.find(t => t.id === taskId);
+      if (!task) {
+        throw new Error(`Task ${taskId} not found in spec ${specId}`);
+      }
+
+      // Update task status in memory
+      task.status = status;
+
+      // Update the tasks.md file
+      await this.updateTasksMarkdown(specId, spec.tasks);
+
+      console.log(`✅ Updated task ${taskId} in ${specId} to status: ${status}`);
     } else {
       // Legacy JSON format
       const spec = await this.loadSpec(specId);
-      if (!spec) throw new Error(`Spec ${specId} not found`);
+      if (!spec) {throw new Error(`Spec ${specId} not found`);}
 
       const task = spec.tasks.find(t => t.id === taskId);
-      if (!task) throw new Error(`Task ${taskId} not found in spec ${specId}`);
+      if (!task) {throw new Error(`Task ${taskId} not found in spec ${specId}`);}
 
       task.status = status;
       await this.saveSpec(spec);

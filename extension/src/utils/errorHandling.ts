@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { Logger, LogLevel } from './logger.js';
-import { ConfigManager } from '../config.js';
+import { Logger, LogLevel } from './logger';
+import { ConfigManager } from '../config';
 
 /**
  * Comprehensive error handling utilities for the extension

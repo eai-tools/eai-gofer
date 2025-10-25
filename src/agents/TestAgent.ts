@@ -6,6 +6,28 @@ import * as fs from 'fs/promises';
 
 const execAsync = promisify(exec);
 
+// Playwright result types
+interface PlaywrightTestResult {
+  status: string;
+}
+
+interface PlaywrightTest {
+  results?: PlaywrightTestResult[];
+}
+
+interface PlaywrightSpec {
+  title: string;
+  tests?: PlaywrightTest[];
+}
+
+interface PlaywrightSuite {
+  specs?: PlaywrightSpec[];
+}
+
+interface PlaywrightOutput {
+  suites?: PlaywrightSuite[];
+}
+
 export class TestAgent {
   private workspaceDir: string;
 
@@ -192,15 +214,15 @@ export class TestAgent {
    */
   private parsePlaywrightResults(stdout: string, stderr: string, criteria: AcceptanceCriteria[]): TestResult {
     try {
-      const jsonOutput = JSON.parse(stdout);
+      const jsonOutput = JSON.parse(stdout) as PlaywrightOutput;
       
-      const failed = jsonOutput.suites?.flatMap((suite: any) =>
-        suite.specs?.filter((spec: any) => 
-          spec.tests?.some((test: any) => 
-            test.results?.some((r: any) => r.status === 'failed')
+      const failed = jsonOutput.suites?.flatMap((suite: PlaywrightSuite) =>
+        suite.specs?.filter((spec: PlaywrightSpec) => 
+          spec.tests?.some((test: PlaywrightTest) => 
+            test.results?.some((r: PlaywrightTestResult) => r.status === 'failed')
           )
-        ).map((spec: any) => spec.title)
-      ) || [];
+        ).map((spec: PlaywrightSpec) => spec.title)
+      ).filter((title): title is string => typeof title === 'string') || [];
 
       return {
         passed: failed.length === 0,

@@ -109,6 +109,7 @@ You **MUST** consider the user input before proceeding (if not empty).
    - **Core development**: Implement models, services, CLI commands, endpoints
    - **Integration work**: Database connections, middleware, logging, external services
    - **Polish and validation**: Unit tests, performance optimization, documentation
+   - **Code quality**: All generated code and documentation MUST be lint-error free (see AGENTS.md for guidelines)
 
 8. Progress tracking and error handling:
    - Report progress after each completed task
@@ -123,6 +124,11 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Check that implemented features match the original specification
    - Validate that tests pass and coverage meets requirements
    - Confirm the implementation follows the technical plan
+   - **Quality gates**: Run linters and fix all errors before marking complete:
+     * Markdown files: `npm run lint:md` (must pass)
+     * TypeScript/JavaScript: `npm run lint:ts` (must pass)
+     * Code formatting: `npm run format` (auto-fix)
+     * Tests: `npm test` (all pass)
    - Report final status with summary of completed work
 
 Note: This command assumes a complete task breakdown exists in tasks.md. If tasks are incomplete or missing, suggest running `/tasks` first to regenerate the task list.

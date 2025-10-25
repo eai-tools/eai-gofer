@@ -22,7 +22,7 @@ describe('Orchestrator Integration', () => {
     specDir: '.specify/specs',
     apiKey: 'test-key',
     twilioConfig: { accountSid: 'test', authToken: 'test', phoneNumber: '+1234567890' },
-    whatsappConfig: { phoneNumber: '+1234567890' },
+    whatsappConfig: { enabled: false, phoneNumber: '+1234567890' },
     workspaceDir: '/test/workspace'
   };
 

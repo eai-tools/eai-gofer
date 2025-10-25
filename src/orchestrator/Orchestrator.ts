@@ -1,10 +1,10 @@
-import { Spec, Task, AgentResponse } from '../types.js';
+import { Spec, Task } from '../types.js';
 import { SpecLoader } from './SpecLoader.js';
 import { QAEngine } from './QAEngine.js';
 import { TestAgent } from '../agents/TestAgent.js';
 import { EngineerAgent } from '../agents/EngineerAgent.js';
 import { ClaudeCodeInterceptor } from '../interceptor/ClaudeCodeInterceptor.js';
-import { NotificationService } from '../utils/NotificationService.js';
+import { NotificationService, WhatsAppConfig } from '../utils/NotificationService.js';
 
 export class Orchestrator {
   private specLoader: SpecLoader;
@@ -20,13 +20,13 @@ export class Orchestrator {
   constructor(
     specDir: string,
     apiKey: string,
-    twilioConfig: any,
+    whatsappConfig: WhatsAppConfig,
     workspaceDir: string
   ) {
     this.specLoader = new SpecLoader(specDir);
     this.testAgent = new TestAgent(workspaceDir);
     this.engineerAgent = new EngineerAgent(apiKey);
-    this.notificationService = new NotificationService(twilioConfig);
+    this.notificationService = new NotificationService(whatsappConfig);
     this.interceptor = new ClaudeCodeInterceptor();
 
     // Initialize QA engine (will load specs async)

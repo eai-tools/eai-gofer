@@ -49,6 +49,10 @@ export async function activate(context: vscode.ExtensionContext) {
     vscode.window.showErrorMessage(`SpecGofer Language Server failed to start: ${error}`);
   }
 
+  // Register commands globally (before workspace check)
+  // This ensures commands are always available even without a workspace
+  registerGlobalCommands(context);
+
   const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
   if (!workspaceFolder) {
     console.log('[SpecGofer] No workspace folder open, waiting...');
@@ -263,6 +267,72 @@ async function handleBranchChange() {
   }
 }
 
+/**
+ * Register commands that work globally without requiring a workspace
+ */
+function registerGlobalCommands(context: vscode.ExtensionContext) {
+  // Show progress panel
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specKit.showProgress', () => {
+      vscode.commands.executeCommand('specKitProgress.focus');
+    })
+  );
+
+  // Show constitution panel
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specKit.showConstitution', () => {
+      vscode.commands.executeCommand('specKitConstitution.focus');
+    })
+  );
+
+  // Manual update check
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specKit.checkForUpdates', async () => {
+      if (autoUpdater) {
+        await autoUpdater.manualCheck();
+      } else {
+        vscode.window.showErrorMessage('Auto-updater not initialized');
+      }
+    })
+  );
+
+  // Update now command
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specKit.updateNow', async () => {
+      if (autoUpdater) {
+        await autoUpdater.manualCheck();
+      } else {
+        vscode.window.showErrorMessage('Auto-updater not initialized');
+      }
+    })
+  );
+
+  // Refresh specs
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specKit.refreshSpecs', () => {
+      if (progressProvider) {
+        progressProvider.refresh();
+      } else {
+        vscode.window.showWarningMessage('No workspace with SpecGofer initialized');
+      }
+    })
+  );
+
+  // Refresh constitution
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specKit.refreshConstitution', () => {
+      if (constitutionProvider) {
+        constitutionProvider.refresh();
+      } else {
+        vscode.window.showWarningMessage('No workspace with SpecGofer initialized');
+      }
+    })
+  );
+}
+
+/**
+ * Register commands that require a workspace
+ */
 function registerCommands(
   context: vscode.ExtensionContext,
   workspacePath: string,
@@ -313,56 +383,6 @@ function registerCommands(
           vscode.commands.executeCommand('specKit.upgrade');
         }
       });
-    })
-  );
-
-  // Refresh specs
-  context.subscriptions.push(
-    vscode.commands.registerCommand('specKit.refreshSpecs', () => {
-      if (progressProvider) {
-        progressProvider.refresh();
-      }
-    })
-  );
-
-  // Refresh constitution
-  context.subscriptions.push(
-    vscode.commands.registerCommand('specKit.refreshConstitution', () => {
-      if (constitutionProvider) {
-        constitutionProvider.refresh();
-      }
-    })
-  );
-
-  // Show progress panel
-  context.subscriptions.push(
-    vscode.commands.registerCommand('specKit.showProgress', () => {
-      vscode.commands.executeCommand('specKitProgress.focus');
-    })
-  );
-
-  // Show constitution panel
-  context.subscriptions.push(
-    vscode.commands.registerCommand('specKit.showConstitution', () => {
-      vscode.commands.executeCommand('specKitConstitution.focus');
-    })
-  );
-
-  // Manual update check
-  context.subscriptions.push(
-    vscode.commands.registerCommand('specKit.checkForUpdates', async () => {
-      if (autoUpdater) {
-        await autoUpdater.manualCheck();
-      }
-    })
-  );
-
-  // Update now command
-  context.subscriptions.push(
-    vscode.commands.registerCommand('specKit.updateNow', async () => {
-      if (autoUpdater) {
-        await autoUpdater.manualCheck();
-      }
     })
   );
 

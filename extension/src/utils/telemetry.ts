@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { ConfigManager } from '../config.js';
-import { Logger } from './logger.js';
+import { ConfigManager } from '../config';
+import { Logger } from './logger';
 
 /**
  * Privacy-compliant telemetry system for usage analytics

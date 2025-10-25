@@ -199,9 +199,127 @@ npm list @playwright/test
    - Moves to FR-002, then FR-003
 4. **Review** - All tasks green ✅, merge the PR!
 
+## Architecture
+
+SpecGofer consists of three main components:
+
+### 1. VSCode Extension ([extension/](extension/))
+- **Purpose**: UI and integration layer
+- **Features**: Progress panel, constitution viewer, commands
+- **Technologies**: TypeScript, VSCode Extension API
+- **Key Files**:
+  - `extension.ts` - Main entry point
+  - `progressProvider.ts` - Spec tree view
+  - `constitutionProvider.ts` - Constitution tree view
+  - `specKitParser.ts` - Spec file parser
+
+### 2. Language Server ([language-server/](language-server/))
+- **Purpose**: LSP + MCP dual-protocol server
+- **Features**: 6 MCP tools for AI integration
+- **Technologies**: TypeScript, vscode-languageserver
+- **Key Files**:
+  - `server.ts` - LSP + MCP server implementation
+  - `mcp/toolHandler.ts` - MCP tool implementations
+  - `utils/specKitLoader.ts` - Spec loading and parsing
+
+### 3. Orchestrator ([src/](src/))
+- **Purpose**: Autonomous execution engine
+- **Features**: Task coordination, agent management
+- **Technologies**: TypeScript, Anthropic SDK, Playwright
+- **Key Files**:
+  - `orchestrator/Orchestrator.ts` - Main workflow coordinator
+  - `agents/EngineerAgent.ts` - Code validation agent
+  - `agents/TestAgent.ts` - Test execution agent
+  - `utils/NotificationService.ts` - WhatsApp notifications
+
+### System Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         VSCode                                   │
+│  ┌────────────────┐                    ┌────────────────────┐   │
+│  │  SpecGofer     │◄──────LSP─────────►│  Language Server   │   │
+│  │  Extension     │                    │  (LSP + MCP)       │   │
+│  └────────────────┘                    └────────────────────┘   │
+│         │                                        ▲               │
+│         │                                        │               │
+│         ▼                                        │               │
+│  ┌────────────────┐                             │               │
+│  │  Progress UI   │                             │               │
+│  │  Constitution  │                      MCP Tools:             │
+│  │  Commands      │                      - get_specs            │
+│  └────────────────┘                      - get_next_task        │
+│                                           - execute_task         │
+│                                           - update_status        │
+│                                           - validate_code        │
+│                                           - run_tests            │
+└─────────────────────────────────────────────────────────────────┘
+                                                   ▲
+                                                   │
+                                                   │ MCP Protocol
+                                                   │
+                                      ┌────────────┴─────────────┐
+                                      │   Claude Code /          │
+                                      │   GitHub Copilot         │
+                                      └──────────────────────────┘
+
+                          Autonomous Mode (Optional)
+
+                    ┌──────────────────────────────┐
+                    │    Orchestrator Process      │
+                    │  ┌────────────────────────┐  │
+                    │  │  AutonomousOrchestrator │  │
+                    │  └────────────────────────┘  │
+                    │           │                  │
+                    │    ┌──────┴───────┐          │
+                    │    │              │          │
+                    │  ┌─▼────────┐  ┌──▼──────┐  │
+                    │  │ Engineer │  │  Test   │  │
+                    │  │  Agent   │  │  Agent  │  │
+                    │  └──────────┘  └─────────┘  │
+                    │           │                  │
+                    │           ▼                  │
+                    │  ┌─────────────────────┐    │
+                    │  │ WhatsApp            │    │
+                    │  │ Notifications       │    │
+                    │  └─────────────────────┘    │
+                    └──────────────────────────────┘
+```
+
+### Component Communication
+
+1. **Extension ↔ Language Server**: LSP protocol over stdio
+2. **AI ↔ Language Server**: MCP tools via native VSCode MCP support
+3. **Language Server ↔ Filesystem**: Reads/writes `.specify/` specs
+4. **Orchestrator ↔ Agents**: Direct TypeScript function calls
+5. **Orchestrator ↔ External**: Anthropic API, Playwright, WhatsApp
+
+### Test Coverage
+
+Current test coverage: **36.15%** (target: 80%)
+
+| Component | Coverage | Status |
+|-----------|----------|--------|
+| EngineerAgent | 69.49% | 🟡 Good |
+| TestAgent | 84.53% | ✅ Excellent |
+| SpecLoader | 47.05% | 🟡 Fair |
+| Orchestrator | 37.18% | 🔴 Needs improvement |
+| ClaudeCodeInterceptor | 6.31% | 🔴 Low |
+| NotificationService | 2.89% | 🔴 Low |
+
+Run tests:
+```bash
+npm test                    # All tests
+npm run test:coverage       # With coverage report
+npm run test:unit           # Unit tests only
+npm run test:integration    # Integration tests
+npm run test:e2e            # End-to-end tests
+```
+
 ## More Information
 
 - **Full Documentation:** [docs/](docs/)
+- **AI Agent Guidelines:** [AGENTS.md](AGENTS.md) - Quality standards for AI-generated code
 - **Testing Guide:** [docs/TESTING_GUIDE.md](docs/TESTING_GUIDE.md)
 - **Release Guide:** [docs/RELEASE_GUIDE.md](docs/RELEASE_GUIDE.md)
 - **GitHub:** <https://github.com/eai-tools/specgofer>

@@ -8,6 +8,85 @@
 import { Connection } from 'vscode-languageserver';
 import { SpecKitLoader, Spec, Task } from '../utils/specKitLoader';
 import Anthropic from '@anthropic-ai/sdk';
+import * as fs from 'fs/promises';
+
+// Type definitions for MCP tool responses
+interface SpecSummary {
+  id: string;
+  title: string;
+  status: string;
+  taskCount: number;
+  completedTasks: number;
+  tasks: Array<{
+    id: string;
+    description: string;
+    status: string;
+    dependencies: string[];
+  }>;
+}
+
+interface GetSpecsResponse {
+  success: boolean;
+  count?: number;
+  specs?: SpecSummary[];
+  error?: string;
+}
+
+interface GetNextTaskResponse {
+  success?: boolean;
+  spec?: Partial<Spec> | null;
+  task?: Partial<Task> | null;
+  message?: string;
+  error?: string;
+}
+
+interface ExecuteTaskResponse {
+  success?: boolean;
+  spec?: Spec;
+  task?: Task;
+  constitution?: string;
+  error?: string;
+  errorCode?: string;
+}
+
+interface UpdateTaskStatusResponse {
+  success: boolean;
+  spec?: Spec;
+  task?: Task;
+  message?: string;
+  error?: string;
+  errorCode?: string;
+}
+
+interface ValidationIssue {
+  file: string;
+  line?: number;
+  severity: 'error' | 'warning';
+  message: string;
+}
+
+interface ValidateCodeResponse {
+  success?: boolean;
+  isValid?: boolean;
+  issues?: ValidationIssue[];
+  summary?: string;
+  message?: string;
+  error?: string;
+}
+
+interface TestResult {
+  success?: boolean;
+  passed?: boolean;
+  total?: number;
+  passed_count?: number;
+  failed_count?: number;
+  failed_tests?: string[];
+  output?: string;
+  message?: string;
+  note?: string;
+  specId?: string;
+  error?: string;
+}
 
 export class MCPToolHandler {
   private specKitLoader: SpecKitLoader;
@@ -27,25 +106,49 @@ export class MCPToolHandler {
   }
 
   /**
+   * Log security violations for monitoring
+   */
+  private logSecurityViolation(message: string, details: Record<string, unknown>): void {
+    const timestamp = new Date().toISOString();
+    const logEntry = {
+      timestamp,
+      type: 'SECURITY_VIOLATION',
+      message,
+      details,
+      workspacePath: this.workspacePath
+    };
+    
+    // Send to stderr for proper logging (don't use console.log/warn in production)
+    process.stderr.write(`🔒 Security Violation: ${JSON.stringify(logEntry)}\n`);
+    
+    // Send notification to extension for monitoring
+    this.connection.sendNotification('specKit/securityViolation', logEntry);
+  }
+
+  /**
    * Validate and sanitize spec ID to prevent path traversal attacks
    */
   private validateSpecId(specId: string): { valid: boolean; error?: string } {
     if (!specId || typeof specId !== 'string') {
+      this.logSecurityViolation('Invalid specId type', { specId, type: typeof specId });
       return { valid: false, error: 'specId must be a non-empty string' };
     }
 
     // Check for path traversal attempts
     if (specId.includes('..') || specId.includes('/') || specId.includes('\\')) {
+      this.logSecurityViolation('Path traversal attempt in specId', { specId });
       return { valid: false, error: 'specId contains invalid characters (path traversal)' };
     }
 
     // Check for reasonable length
     if (specId.length > 100) {
+      this.logSecurityViolation('SpecId exceeds maximum length', { specId: specId.substring(0, 50) + '...', length: specId.length });
       return { valid: false, error: 'specId is too long (max 100 characters)' };
     }
 
     // Validate format (alphanumeric, hyphens, underscores only)
     if (!/^[a-zA-Z0-9_-]+$/.test(specId)) {
+      this.logSecurityViolation('Invalid characters in specId', { specId });
       return { valid: false, error: 'specId must contain only alphanumeric characters, hyphens, and underscores' };
     }
 
@@ -57,15 +160,18 @@ export class MCPToolHandler {
    */
   private validateTaskId(taskId: string): { valid: boolean; error?: string } {
     if (!taskId || typeof taskId !== 'string') {
+      this.logSecurityViolation('Invalid taskId type', { taskId, type: typeof taskId });
       return { valid: false, error: 'taskId must be a non-empty string' };
     }
 
     if (taskId.length > 20) {
+      this.logSecurityViolation('TaskId exceeds maximum length', { taskId: taskId.substring(0, 10) + '...', length: taskId.length });
       return { valid: false, error: 'taskId is too long (max 20 characters)' };
     }
 
     // Allow formats like "T001", "#1", "1"
     if (!/^[#]?\d+$|^[A-Z]\d+$/.test(taskId)) {
+      this.logSecurityViolation('Invalid characters in taskId', { taskId });
       return { valid: false, error: 'taskId must match format: T001, #1, or 1' };
     }
 
@@ -76,7 +182,7 @@ export class MCPToolHandler {
    * MCP Tool: specgofer_get_specs
    * Returns all specifications
    */
-  async getSpecs(): Promise<any> {
+  async getSpecs(): Promise<GetSpecsResponse> {
     try {
       const specs = await this.specKitLoader.loadAllSpecs();
 
@@ -109,7 +215,7 @@ export class MCPToolHandler {
    * MCP Tool: specgofer_get_next_task
    * Returns the next available task to work on
    */
-  async getNextTask(): Promise<any> {
+  async getNextTask(): Promise<GetNextTaskResponse> {
     try {
       const specs = await this.specKitLoader.loadAllSpecs();
 
@@ -187,7 +293,7 @@ export class MCPToolHandler {
    * MCP Tool: specgofer_execute_task
    * Execute a specific task (returns task context for Claude to implement)
    */
-  async executeTask(specId: string, taskId: string): Promise<any> {
+  async executeTask(specId: string, taskId: string): Promise<ExecuteTaskResponse> {
     // Validate inputs
     const specValidation = this.validateSpecId(specId);
     if (!specValidation.valid) {
@@ -201,6 +307,15 @@ export class MCPToolHandler {
 
     try {
       const spec = await this.specKitLoader.loadSpec(specId);
+
+      if (!spec) {
+        return {
+          success: false,
+          error: `Spec ${specId} not found or could not be loaded`,
+          errorCode: 'SPEC_NOT_FOUND',
+        };
+      }
+
       const task = spec.tasks.find((t) => t.id === taskId);
 
       if (!task) {
@@ -222,7 +337,6 @@ export class MCPToolHandler {
       const constitutionPath = `${this.workspacePath}/.specify/memory/constitution.md`;
       let constitution = '';
       try {
-        const fs = require('fs').promises;
         constitution = await fs.readFile(constitutionPath, 'utf-8');
       } catch {
         // Constitution is optional
@@ -231,23 +345,9 @@ export class MCPToolHandler {
       // Return task context for Claude to implement
       return {
         success: true,
-        message: 'Task ready for implementation',
-        context: {
-          spec: {
-            id: spec.id,
-            title: spec.title,
-            description: spec.description,
-          },
-          task: {
-            id: task.id,
-            description: task.description,
-            status: task.status,
-            dependencies: task.dependencies,
-            estimated: task.estimated,
-          },
-          constitution: constitution ? constitution.substring(0, 2000) : undefined,
-          instructions: `Please implement the following task:\n\n**Task ${task.id}:** ${task.description}\n\n**Spec:** ${spec.title}\n${spec.description}\n\nFollow TDD principles: write tests first, then implementation.\nEnsure code quality according to the constitutional requirements.`,
-        },
+        spec,
+        task,
+        constitution: constitution ? constitution.substring(0, 2000) : undefined,
       };
     } catch (error) {
       return {
@@ -261,7 +361,7 @@ export class MCPToolHandler {
    * MCP Tool: specgofer_update_task_status
    * Update the status of a task
    */
-  async updateTaskStatus(specId: string, taskId: string, status: string): Promise<any> {
+  async updateTaskStatus(specId: string, taskId: string, status: string): Promise<UpdateTaskStatusResponse> {
     // Validate inputs
     const specValidation = this.validateSpecId(specId);
     if (!specValidation.valid) {
@@ -306,16 +406,17 @@ export class MCPToolHandler {
    * MCP Tool: specgofer_validate_code
    * Validate code against constitutional requirements
    */
-  async validateCode(files: string[]): Promise<any> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async validateCode(files: string[]): Promise<ValidateCodeResponse> {
     try {
       // Placeholder for constitutional validation
       // Full implementation will use ESLint, TypeScript compiler, coverage tools, etc.
 
       return {
         success: true,
-        message: 'Validation not yet implemented',
-        note: 'Constitutional validation will be implemented in Phase 2',
-        files,
+        isValid: true,
+        message: 'Validation not yet implemented. Constitutional validation will be implemented in Phase 2.',
+        issues: [],
       };
     } catch (error) {
       return {
@@ -329,7 +430,7 @@ export class MCPToolHandler {
    * MCP Tool: specgofer_run_tests
    * Run tests for a specification
    */
-  async runTests(specId: string): Promise<any> {
+  async runTests(specId: string): Promise<TestResult> {
     try {
       // Placeholder for test runner
       // Full implementation will detect framework and run tests

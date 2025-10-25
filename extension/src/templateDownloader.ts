@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { Logger } from './utils/logger.js';
-import { FileUtils } from './utils/fileUtils.js';
-import { GitHubApiClient, downloadLatestTemplates, getLatestTemplateRelease } from './utils/githubApi.js';
-import { getWorkspacePaths } from './config.js';
+import { Logger } from './utils/logger';
+import { FileUtils } from './utils/fileUtils';
+import { GitHubApiClient, downloadLatestTemplates, getLatestTemplateRelease } from './utils/githubApi';
+import { getWorkspacePaths } from './config';
 
 /**
  * Template downloader with ZIP extraction and GitHub integration

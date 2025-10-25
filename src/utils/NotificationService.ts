@@ -10,6 +10,7 @@ export interface WhatsAppConfig {
 export type MessageHandler = (message: string, fromNumber: string) => Promise<void>;
 
 export class NotificationService {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private whatsappClient: any = null;
   private whatsappConfig: WhatsAppConfig;
   private enabled: boolean = false;
@@ -66,6 +67,7 @@ export class NotificationService {
     });
 
     // Listen for incoming messages (two-way communication!)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.whatsappClient.on('message', async (msg: any) => {
       const fromNumber = msg.from;
       const messageText = msg.body;

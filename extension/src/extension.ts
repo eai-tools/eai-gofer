@@ -369,9 +369,47 @@ function registerCommands(
   // Update templates command
   context.subscriptions.push(
     vscode.commands.registerCommand('specKit.updateTemplates', async () => {
-      vscode.window.showInformationMessage('Updating Spec Kit templates...');
-      // TODO: Implement template updater integration
-      // This would call the templateDownloader to get latest templates
+      const workspacePath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+      if (!workspacePath) {
+        vscode.window.showErrorMessage('No workspace folder open');
+        return;
+      }
+
+      await vscode.window.withProgress(
+        {
+          location: vscode.ProgressLocation.Notification,
+          title: 'Updating Spec Kit Templates',
+          cancellable: false,
+        },
+        async (progress) => {
+          try {
+            const { TemplateDownloader } = await import('./templateDownloader');
+            const cacheDir = path.join(context.globalStorageUri.fsPath, 'templates');
+            const downloader = TemplateDownloader.getInstance(cacheDir);
+
+            const manifest = await downloader.downloadLatestTemplates(workspacePath, {
+              force: true, // Force download to get latest
+              progress: (update) => {
+                progress.report({
+                  message: update.message,
+                  increment: update.progress ? update.progress / 5 : undefined,
+                });
+              },
+            });
+
+            vscode.window.showInformationMessage(
+              `✅ Templates updated to version ${manifest.version}`
+            );
+
+            // Refresh the progress view
+            progressProvider?.refresh();
+          } catch (error) {
+            vscode.window.showErrorMessage(
+              `Failed to update templates: ${error instanceof Error ? error.message : String(error)}`
+            );
+          }
+        }
+      );
     })
   );
 

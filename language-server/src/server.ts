@@ -11,27 +11,90 @@
 import {
   createConnection,
   TextDocuments,
-  Diagnostic,
-  DiagnosticSeverity,
   ProposedFeatures,
   InitializeParams,
   DidChangeConfigurationNotification,
-  CompletionItem,
-  CompletionItemKind,
-  TextDocumentPositionParams,
   TextDocumentSyncKind,
   InitializeResult,
-  DocumentDiagnosticReportKind,
-  type DocumentDiagnosticReport,
+  Connection,
 } from 'vscode-languageserver/node';
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import * as path from 'path';
 import { SpecKitLoader } from './utils/specKitLoader';
 import { MCPToolHandler } from './mcp/toolHandler';
 
+// Error types for better error handling
+export class ServerError extends Error {
+  constructor(
+    message: string,
+    public code: string,
+    public statusCode?: number
+  ) {
+    super(message);
+    this.name = 'ServerError';
+  }
+}
+
+export class ValidationError extends ServerError {
+  constructor(message: string) {
+    super(message, 'VALIDATION_ERROR', 400);
+    this.name = 'ValidationError';
+  }
+}
+
+export class NotFoundError extends ServerError {
+  constructor(resource: string) {
+    super(`Resource not found: ${resource}`, 'NOT_FOUND', 404);
+    this.name = 'NotFoundError';
+  }
+}
+
+// Logger utility with levels
+class Logger {
+  private connection: Connection;
+
+  constructor(connection: Connection) {
+    this.connection = connection;
+  }
+
+  debug(message: string, data?: unknown): void {
+    this.connection.console.log(`[DEBUG] ${message}${data ? ` ${JSON.stringify(data)}` : ''}`);
+  }
+
+  info(message: string, data?: unknown): void {
+    this.connection.console.info(`[INFO] ${message}${data ? ` ${JSON.stringify(data)}` : ''}`);
+  }
+
+  warn(message: string, data?: unknown): void {
+    this.connection.console.warn(`[WARN] ${message}${data ? ` ${JSON.stringify(data)}` : ''}`);
+  }
+
+  error(message: string, error?: Error | unknown, data?: unknown): void {
+    const errorDetails = error instanceof Error 
+      ? { message: error.message, stack: error.stack, name: error.name }
+      : error;
+    
+    this.connection.console.error(
+      `[ERROR] ${message}${errorDetails ? ` Error: ${JSON.stringify(errorDetails)}` : ''}${
+        data ? ` Data: ${JSON.stringify(data)}` : ''
+      }`
+    );
+  }
+
+  logServerEvent(event: string, data?: unknown): void {
+    this.info(`Server Event: ${event}`, data);
+  }
+
+  logPerformance(operation: string, duration: number): void {
+    this.debug(`Performance: ${operation} took ${duration}ms`);
+  }
+}
+
 // Create LSP connection
 const connection = createConnection(ProposedFeatures.all);
+
+// Create logger instance
+const logger = new Logger(connection);
 
 // Create text document manager
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
@@ -39,46 +102,74 @@ const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 // Global state
 let hasConfigurationCapability = false;
 let hasWorkspaceFolderCapability = false;
-let hasDiagnosticRelatedInformationCapability = false;
 let workspacePath: string | undefined;
 
 // Initialize SpecKit loader and MCP tool handler
 let specKitLoader: SpecKitLoader | undefined;
 let mcpToolHandler: MCPToolHandler | undefined;
 
-connection.onInitialize((params: InitializeParams) => {
-  const capabilities = params.capabilities;
-
-  // Check client capabilities
-  hasConfigurationCapability = !!(
-    capabilities.workspace && !!capabilities.workspace.configuration
-  );
-  hasWorkspaceFolderCapability = !!(
-    capabilities.workspace && !!capabilities.workspace.workspaceFolders
-  );
-  hasDiagnosticRelatedInformationCapability = !!(
-    capabilities.textDocument &&
-    capabilities.textDocument.publishDiagnostics &&
-    capabilities.textDocument.publishDiagnostics.relatedInformation
-  );
-
-  // Get workspace path
-  if (params.workspaceFolders && params.workspaceFolders.length > 0) {
-    workspacePath = params.workspaceFolders[0].uri.replace('file://', '');
-    connection.console.log(`Workspace path: ${workspacePath}`);
-
-    // Initialize SpecKit loader
-    specKitLoader = new SpecKitLoader(workspacePath);
-    mcpToolHandler = new MCPToolHandler(workspacePath, connection);
+// Async error wrapper
+async function withErrorHandling<T>(
+  operation: string,
+  fn: () => Promise<T>
+): Promise<T> {
+  const startTime = Date.now();
+  
+  try {
+    logger.debug(`Starting operation: ${operation}`);
+    const result = await fn();
+    const duration = Date.now() - startTime;
+    logger.logPerformance(operation, duration);
+    return result;
+  } catch (error) {
+    const duration = Date.now() - startTime;
+    logger.error(`Operation failed: ${operation} (${duration}ms)`, error);
+    throw error;
   }
+}
 
-  const result: InitializeResult = {
-    capabilities: {
-      textDocumentSync: TextDocumentSyncKind.Incremental,
-      // LSP capabilities
-      completionProvider: {
-        resolveProvider: true,
-      },
+connection.onInitialize(async (params: InitializeParams): Promise<InitializeResult> => {
+  return withErrorHandling('server-initialization', async () => {
+    logger.logServerEvent('Initializing SpecGofer Language Server', {
+      processId: params.processId,
+      workspaceFolders: params.workspaceFolders?.map(f => f.uri)
+    });
+
+    const capabilities = params.capabilities;
+
+    // Check client capabilities
+    hasConfigurationCapability = !!(
+      capabilities.workspace && !!capabilities.workspace.configuration
+    );
+    hasWorkspaceFolderCapability = !!(
+      capabilities.workspace && !!capabilities.workspace.workspaceFolders
+    );
+
+    // Get workspace path
+    if (params.workspaceFolders && params.workspaceFolders.length > 0) {
+      workspacePath = params.workspaceFolders[0].uri.replace('file://', '');
+      logger.info(`Workspace path: ${workspacePath}`);
+
+      try {
+        // Initialize SpecKit loader
+        specKitLoader = new SpecKitLoader(workspacePath);
+        mcpToolHandler = new MCPToolHandler(workspacePath, connection);
+        logger.info('SpecKit loader and MCP tool handler initialized successfully');
+      } catch (error) {
+        logger.error('Failed to initialize SpecKit components', error);
+        throw new ServerError('Failed to initialize server components', 'INIT_ERROR');
+      }
+    } else {
+      logger.warn('No workspace folders provided during initialization');
+    }
+
+    const result: InitializeResult = {
+      capabilities: {
+        textDocumentSync: TextDocumentSyncKind.Incremental,
+        // LSP capabilities
+        completionProvider: {
+          resolveProvider: true,
+        },
       // MCP capabilities (experimental)
       experimental: {
         mcp: {
@@ -186,21 +277,30 @@ connection.onInitialize((params: InitializeParams) => {
     };
   }
 
+  logger.info('Server initialization completed successfully');
   return result;
+  });
 });
 
 connection.onInitialized(() => {
-  if (hasConfigurationCapability) {
-    // Register for configuration changes
-    connection.client.register(DidChangeConfigurationNotification.type, undefined);
-  }
-  if (hasWorkspaceFolderCapability) {
-    connection.workspace.onDidChangeWorkspaceFolders((_event) => {
-      connection.console.log('Workspace folder change event received.');
-    });
-  }
+  try {
+    logger.logServerEvent('Server initialized notification received');
+    
+    if (hasConfigurationCapability) {
+      // Register for configuration changes
+      connection.client.register(DidChangeConfigurationNotification.type, undefined);
+    }
+    
+    if (hasWorkspaceFolderCapability) {
+      connection.workspace.onDidChangeWorkspaceFolders(() => {
+        logger.info('Workspace folder change event received');
+      });
+    }
 
-  connection.console.log('SpecGofer Language Server initialized successfully');
+    logger.info('SpecGofer Language Server initialized successfully');
+  } catch (error) {
+    logger.error('Error during server initialization', error);
+  }
 });
 
 // ============================================================================
@@ -211,73 +311,106 @@ connection.onInitialized(() => {
  * LSP Custom Method: specKit/getSpecs
  * Returns all specifications from .specify/specs/
  */
-connection.onRequest('specKit/getSpecs', async (params: { workspaceRoot?: string }) => {
-  try {
+connection.onRequest('specKit/getSpecs', async (): Promise<{
+  success: boolean;
+  specs?: unknown[];
+  error?: string;
+}> => {
+  return withErrorHandling('lsp-get-specs', async () => {
     if (!specKitLoader) {
-      throw new Error('SpecKit loader not initialized');
+      throw new ServerError('SpecKit loader not initialized', 'NOT_INITIALIZED');
     }
 
     const specs = await specKitLoader.loadAllSpecs();
-
-    connection.console.log(`Loaded ${specs.length} specifications`);
-
+    logger.debug(`Retrieved ${specs.length} specifications`);
+    
     return {
       success: true,
-      specs,
+      specs: specs
     };
-  } catch (error) {
-    connection.console.error(`Error loading specs: ${error}`);
+  }).catch((error) => {
+    logger.error('Failed to get specs via LSP', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
-      specs: [],
+      error: error instanceof Error ? error.message : 'Unknown error'
     };
-  }
+  });
 });
 
 /**
  * LSP Custom Method: specKit/executeTask
- * Execute a task (called by extension, not MCP)
+ * Returns full context for a specific task
  */
 connection.onRequest(
   'specKit/executeTask',
-  async (params: { specId: string; taskId: string; context?: any }) => {
-    try {
-      if (!mcpToolHandler) {
-        throw new Error('MCP tool handler not initialized');
+    async (params: { specId: string; taskId: string; context?: unknown }): Promise<{
+    success: boolean;
+    task?: unknown;
+    spec?: unknown;
+    error?: string;
+  }> => {
+    return withErrorHandling('lsp-execute-task', async () => {
+      if (!specKitLoader) {
+        throw new ServerError('SpecKit loader not initialized', 'NOT_INITIALIZED');
       }
 
-      // For now, just return task info
-      // Full implementation will call Claude API
-      const result = await mcpToolHandler.executeTask(params.specId, params.taskId);
+      if (!params.specId || !params.taskId) {
+        throw new ValidationError('specId and taskId are required');
+      }
+
+      const spec = await specKitLoader.loadSpec(params.specId);
+      if (!spec) {
+        throw new NotFoundError(`Specification: ${params.specId}`);
+      }
+
+      const task = spec.tasks.find((t: { id: string }) => t.id === params.taskId);
+      if (!task) {
+        throw new NotFoundError(`Task: ${params.taskId} in spec ${params.specId}`);
+      }
+
+      logger.debug(`Executing task ${params.taskId} from spec ${params.specId}`);
 
       return {
         success: true,
-        result,
+        task: task,
+        spec: spec
       };
-    } catch (error) {
-      connection.console.error(`Error executing task: ${error}`);
+    }).catch((error) => {
+      logger.error('Failed to execute task via LSP', error, { params });
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : 'Unknown error'
       };
-    }
+    });
   }
 );
 
 /**
  * LSP Custom Method: specKit/updateTaskStatus
- * Update task status in tasks.md
+ * Updates task status in specification file
  */
 connection.onRequest(
   'specKit/updateTaskStatus',
-  async (params: { specId: string; taskId: string; status: string }) => {
-    try {
+  async (params: { specId: string; taskId: string; status: string }): Promise<{
+    success: boolean;
+    error?: string;
+  }> => {
+    return withErrorHandling('lsp-update-task-status', async () => {
       if (!specKitLoader) {
-        throw new Error('SpecKit loader not initialized');
+        throw new ServerError('SpecKit loader not initialized', 'NOT_INITIALIZED');
+      }
+
+      if (!params.specId || !params.taskId || !params.status) {
+        throw new ValidationError('specId, taskId, and status are required');
+      }
+
+      const validStatuses = ['pending', 'in_progress', 'testing', 'completed', 'failed', 'blocked'];
+      if (!validStatuses.includes(params.status)) {
+        throw new ValidationError(`Invalid status: ${params.status}. Valid statuses: ${validStatuses.join(', ')}`);
       }
 
       await specKitLoader.updateTaskStatus(params.specId, params.taskId, params.status);
+      logger.info(`Updated task ${params.taskId} in spec ${params.specId} to status: ${params.status}`);
 
       // Notify extension of progress
       connection.sendNotification('specKit/taskProgress', {
@@ -288,17 +421,23 @@ connection.onRequest(
       });
 
       return {
-        success: true,
+        success: true
       };
-    } catch (error) {
-      connection.console.error(`Error updating task status: ${error}`);
+    }).catch((error) => {
+      logger.error('Failed to update task status via LSP', error, { params });
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : 'Unknown error'
       };
-    }
+    });
   }
 );
+
+/**
+ * LSP Custom Method: specKit/executeTask
+ * Execute a task (called by extension, not MCP)
+ */
+// Note: Duplicate handler was removed - using improved version above with proper validation
 
 // ============================================================================
 // MCP TOOL HANDLERS
@@ -308,59 +447,88 @@ connection.onRequest(
  * MCP Tool Invocation Handler
  * Called by Claude Code or GitHub Copilot via VSCode's native MCP support
  */
-connection.onRequest('mcp/tools/execute', async (params: { name: string; arguments: any }) => {
-  try {
+connection.onRequest('tools/call', async (params: { name: string; arguments: Record<string, unknown> }) => {
+  return withErrorHandling('mcp-tools-call', async () => {
     if (!mcpToolHandler) {
-      throw new Error('MCP tool handler not initialized');
+      throw new ServerError('MCP tool handler not initialized', 'NOT_INITIALIZED');
     }
 
     const { name, arguments: args } = params;
+    logger.debug(`MCP tool called: ${name}`, args);
 
-    connection.console.log(`MCP tool called: ${name} with args: ${JSON.stringify(args)}`);
-
-    // Route to appropriate handler
+    let result;
     switch (name) {
       case 'specgofer_get_specs':
-        return await mcpToolHandler.getSpecs();
+        result = await mcpToolHandler.getSpecs();
+        break;
 
       case 'specgofer_get_next_task':
-        return await mcpToolHandler.getNextTask();
+        result = await mcpToolHandler.getNextTask();
+        break;
 
       case 'specgofer_execute_task':
-        return await mcpToolHandler.executeTask(args.specId, args.taskId);
+        result = await mcpToolHandler.executeTask(
+          args.specId as string, 
+          args.taskId as string
+        );
+        break;
 
       case 'specgofer_update_task_status':
-        return await mcpToolHandler.updateTaskStatus(args.specId, args.taskId, args.status);
+        result = await mcpToolHandler.updateTaskStatus(
+          args.specId as string, 
+          args.taskId as string, 
+          args.status as string
+        );
+        break;
 
       case 'specgofer_validate_code':
-        return await mcpToolHandler.validateCode(args.files);
+        result = await mcpToolHandler.validateCode(args.files as string[]);
+        break;
 
       case 'specgofer_run_tests':
-        return await mcpToolHandler.runTests(args.specId);
+        result = await mcpToolHandler.runTests(args.specId as string);
+        break;
 
       default:
-        throw new Error(`Unknown tool: ${name}`);
+        throw new ValidationError(`Unknown tool: ${name}`);
     }
-  } catch (error) {
-    connection.console.error(`MCP tool execution error: ${error}`);
+
     return {
-      error: error instanceof Error ? error.message : 'Unknown error',
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(result, null, 2)
+        }
+      ],
+      isError: false
     };
-  }
+  }).catch((error) => {
+    logger.error(`MCP tool ${params.name} failed`, error);
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
+        }
+      ],
+      isError: true
+    };
+  });
 });
 
 // ============================================================================
 // STANDARD LSP HANDLERS
 // ============================================================================
 
-connection.onDidChangeConfiguration((change) => {
+connection.onDidChangeConfiguration(() => {
   // Handle configuration changes
-  connection.console.log('Configuration changed');
+  logger.debug('Configuration changed');
 });
 
 // Text document changes
-documents.onDidChangeContent((change) => {
+documents.onDidChangeContent(() => {
   // Handle document changes
+  logger.debug('Document content changed');
 });
 
 // Make the text document manager listen on the connection
@@ -369,4 +537,4 @@ documents.listen(connection);
 // Listen on the connection
 connection.listen();
 
-connection.console.log('SpecGofer Language Server started');
+logger.info('SpecGofer Language Server started');

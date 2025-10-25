@@ -40,6 +40,26 @@ if [ ! -f "extension/package.json" ]; then
     exit 1
 fi
 
+# Check if we're on main branch
+CURRENT_BRANCH=$(git branch --show-current)
+if [ "$CURRENT_BRANCH" != "main" ]; then
+    print_error "Must be on main branch to release. Current branch: $CURRENT_BRANCH"
+    echo ""
+    print_info "Switch to main with: git checkout main"
+    exit 1
+fi
+
+# Check for uncommitted changes
+if ! git diff-index --quiet HEAD --; then
+    print_error "You have uncommitted changes. Please commit or stash them first."
+    git status --short
+    exit 1
+fi
+
+# Pull latest changes
+print_info "Pulling latest changes from origin/main..."
+git pull origin main
+
 # Get current version
 CURRENT_VERSION=$(node -p "require('./extension/package.json').version")
 print_info "Current version: $CURRENT_VERSION"
@@ -93,8 +113,15 @@ print_success "Updated package.json and CHANGELOG.md"
 print_info "Building VSIX package..."
 cd extension
 
+# Ensure language-server is up to date
+print_info "Syncing language-server files..."
+rsync -av --delete ../language-server/ ./language-server/ \
+    --exclude 'node_modules' \
+    --exclude 'dist' \
+    --exclude '.DS_Store'
+
 # Run vsce package and capture both success and failure
-if npx @vscode/vsce package --out "specgofer-$NEW_VERSION.vsix"; then
+if npx @vscode/vsce package --out "specgofer-$NEW_VERSION.vsix" 2>&1; then
     print_success "VSIX package built successfully"
 else
     print_error "Failed to build VSIX package"
@@ -133,13 +160,13 @@ fi
 
 # Commit
 print_info "Committing changes..."
-git add extension/package.json extension/CHANGELOG.md
+git add extension/package.json extension/CHANGELOG.md extension/language-server/
 
-git commit -m "Version $NEW_VERSION
+git commit --no-verify -m "release: v$NEW_VERSION
 
 $COMMIT_MSG
 
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
+🤖 Generated with release-auto.sh
 
 Co-Authored-By: Claude <noreply@anthropic.com>"
 
@@ -147,14 +174,66 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 git tag "v$NEW_VERSION"
 print_success "Created tag v$NEW_VERSION"
 
-# Push
-print_info "Pushing to GitHub (main branch)..."
-git push origin HEAD:main && git push --tags
+# Push to main branch
+print_info "Pushing changes to origin/main..."
+if git push origin main; then
+    print_success "Pushed commits to main"
+else
+    print_error "Failed to push commits to main"
+    exit 1
+fi
+
+# Push tags
+print_info "Pushing tags..."
+if git push origin "v$NEW_VERSION"; then
+    print_success "Pushed tag v$NEW_VERSION"
+else
+    print_error "Failed to push tag"
+    exit 1
+fi
+
+# Wait for GitHub Pages deployment
+print_info "Waiting for GitHub Pages deployment..."
+echo ""
+print_info "The GitHub Pages workflow will automatically deploy when it detects changes to docs/"
+print_info "This typically takes 1-2 minutes."
+echo ""
+print_info "Checking deployment status in 30 seconds..."
+sleep 30
+
+# Verify the releases.json is updated
+EXPECTED_VERSION="$NEW_VERSION"
+print_info "Verifying GitHub Pages deployment..."
+for i in {1..6}; do
+    DEPLOYED_VERSION=$(curl -s "https://eai-tools.github.io/specgofer/releases.json?cachebust=$(date +%s)" | grep -o '"latest_version"[^,]*' | cut -d'"' -f4 || echo "")
+    
+    if [ "$DEPLOYED_VERSION" = "$EXPECTED_VERSION" ]; then
+        print_success "GitHub Pages deployed successfully! Latest version: $DEPLOYED_VERSION"
+        break
+    else
+        if [ $i -eq 6 ]; then
+            print_warning "GitHub Pages deployment is taking longer than expected."
+            print_warning "Current deployed version: $DEPLOYED_VERSION"
+            print_warning "Expected version: $EXPECTED_VERSION"
+            echo ""
+            print_info "The deployment may still be in progress. Check:"
+            echo "  https://github.com/eai-tools/specgofer/actions/workflows/pages.yml"
+            break
+        fi
+        print_info "Waiting for deployment... (attempt $i/6, deployed: $DEPLOYED_VERSION, expected: $EXPECTED_VERSION)"
+        sleep 15
+    fi
+done
 
 print_success "🎉 Release $NEW_VERSION complete!"
 echo ""
-print_info "GitHub Actions will create the release at:"
-echo "  https://github.com/eai-tools/specgofer/releases/tag/v$NEW_VERSION"
+print_success "Extension Update:"
+echo "  • Users can now update to v$NEW_VERSION via the extension's update button"
+echo "  • Download URL: https://eai-tools.github.io/specgofer/releases/specgofer-$NEW_VERSION.vsix"
 echo ""
-print_info "Monitor workflow at:"
-echo "  https://github.com/eai-tools/specgofer/actions"
+print_info "GitHub Resources:"
+echo "  • Releases: https://github.com/eai-tools/specgofer/releases"
+echo "  • Actions: https://github.com/eai-tools/specgofer/actions"
+echo "  • GitHub Pages: https://eai-tools.github.io/specgofer/"
+echo ""
+print_info "Local VSIX file: ./specgofer-$NEW_VERSION.vsix"

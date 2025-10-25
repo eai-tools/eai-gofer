@@ -49,11 +49,69 @@ if [ "$CURRENT_BRANCH" != "main" ]; then
     exit 1
 fi
 
-# Check for uncommitted changes
+# Check for uncommitted changes and auto-commit with AI-generated message
 if ! git diff-index --quiet HEAD --; then
-    print_error "You have uncommitted changes. Please commit or stash them first."
+    print_warning "Uncommitted changes detected. Generating AI commit message..."
     git status --short
-    exit 1
+    echo ""
+    
+    # Get the diff for AI analysis
+    CHANGES=$(git diff --stat)
+    FILES_CHANGED=$(git status --short)
+    
+    print_info "Generating commit message with AI..."
+    
+    # Create a prompt for AI to generate commit message
+    AI_PROMPT="Based on these git changes, write a concise conventional commit message (50 chars max for title, detailed body if needed):
+
+Changed files:
+$FILES_CHANGED
+
+Changes summary:
+$CHANGES
+
+Format: <type>(<scope>): <subject>
+
+Where type is one of: feat, fix, docs, style, refactor, test, chore"
+    
+    # Use Claude API if available, otherwise use a simple default
+    if command -v claude &> /dev/null; then
+        COMMIT_MSG=$(echo "$AI_PROMPT" | claude --no-stream 2>/dev/null | head -100)
+    elif [ ! -z "$ANTHROPIC_API_KEY" ]; then
+        # Try using curl with Anthropic API
+        COMMIT_MSG=$(curl -s https://api.anthropic.com/v1/messages \
+            -H "content-type: application/json" \
+            -H "x-api-key: $ANTHROPIC_API_KEY" \
+            -H "anthropic-version: 2023-06-01" \
+            -d "{
+                \"model\": \"claude-3-5-sonnet-20241022\",
+                \"max_tokens\": 200,
+                \"messages\": [{
+                    \"role\": \"user\",
+                    \"content\": $(echo "$AI_PROMPT" | jq -Rs .)
+                }]
+            }" 2>/dev/null | jq -r '.content[0].text // empty' 2>/dev/null)
+    fi
+    
+    # Fallback to default message if AI generation failed
+    if [ -z "$COMMIT_MSG" ]; then
+        print_warning "AI commit message generation unavailable, using default..."
+        CURRENT_VER=$(node -p "require('./extension/package.json').version" 2>/dev/null || echo "next")
+        COMMIT_MSG="chore: pre-release changes
+
+Auto-committed changes before release v${CURRENT_VER}"
+    fi
+    
+    print_success "Generated commit message:"
+    echo "$COMMIT_MSG"
+    echo ""
+    
+    # Commit all changes
+    print_info "Committing changes..."
+    git add -A
+    git commit --no-verify -m "$COMMIT_MSG"
+    print_success "Changes committed successfully"
+    echo ""
 fi
 
 # Pull latest changes

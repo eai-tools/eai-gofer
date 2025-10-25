@@ -14,9 +14,9 @@ vi.mock('@anthropic-ai/sdk');
 
 describe('Orchestrator Integration', () => {
   let orchestrator: AutonomousOrchestrator;
-  let mockEngineerAgent: any;
-  let mockTestAgent: any;
-  let mockSpecLoader: any;
+  let mockEngineerAgent: Partial<EngineerAgent>;
+  let mockTestAgent: Partial<TestAgent>;
+  let mockSpecLoader: Partial<SpecLoader>;
 
   const mockConfig = {
     specDir: '.specify/specs',

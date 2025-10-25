@@ -1,8 +1,8 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { getWorkspacePaths, VALIDATION } from '../config.js';
-import { Logger } from './logger.js';
+import { getWorkspacePaths, VALIDATION } from '../config';
+import { Logger } from './logger';
 
 /**
  * File system utilities for .specify/ folder operations

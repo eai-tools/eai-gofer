@@ -23,9 +23,18 @@ The `release-auto.sh` script performs a complete automated release:
 ### 1. Pre-flight Checks ✈️
 
 - Verifies you're on the `main` branch
-- Checks for uncommitted changes
+- **Auto-commits uncommitted changes** with AI-generated message (if any)
 - Pulls latest changes from origin
 - Validates repository structure
+
+**New**: If you have uncommitted changes, the script will:
+
+1. Analyze your changes (files modified, diff stats)
+2. Generate a conventional commit message using Claude AI
+3. Commit everything automatically
+4. Continue with the release
+
+No more "uncommitted changes" errors! 🎉
 
 ### 2. Version Management 🔢
 
@@ -78,7 +87,8 @@ The `release-auto.sh` script performs a complete automated release:
                   │
                   ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ 2. Script validates: main branch, no uncommitted changes    │
+│ 2. Script validates: main branch                            │
+│    🆕 Auto-commits any uncommitted changes with AI message  │
 └─────────────────┬───────────────────────────────────────────┘
                   │
                   ▼

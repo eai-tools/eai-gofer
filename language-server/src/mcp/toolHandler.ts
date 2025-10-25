@@ -345,22 +345,9 @@ export class MCPToolHandler {
       // Return task context for Claude to implement
       return {
         success: true,
-        context: {
-          spec: {
-            id: spec.id,
-            title: spec.title,
-            description: spec.description,
-          },
-          task: {
-            id: task.id,
-            description: task.description,
-            status: task.status,
-            dependencies: task.dependencies,
-            estimated: task.estimated,
-          },
-          constitution: constitution ? constitution.substring(0, 2000) : undefined,
-          instructions: `Please implement the following task:\n\n**Task ${task.id}:** ${task.description}\n\n**Spec:** ${spec.title}\n${spec.description}\n\nFollow TDD principles: write tests first, then implementation.\nEnsure code quality according to the constitutional requirements.`,
-        },
+        spec,
+        task,
+        constitution: constitution ? constitution.substring(0, 2000) : undefined,
       };
     } catch (error) {
       return {
@@ -419,6 +406,7 @@ export class MCPToolHandler {
    * MCP Tool: specgofer_validate_code
    * Validate code against constitutional requirements
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async validateCode(files: string[]): Promise<ValidateCodeResponse> {
     try {
       // Placeholder for constitutional validation
@@ -426,9 +414,9 @@ export class MCPToolHandler {
 
       return {
         success: true,
-        message: 'Validation not yet implemented',
-        note: 'Constitutional validation will be implemented in Phase 2',
-        files,
+        isValid: true,
+        message: 'Validation not yet implemented. Constitutional validation will be implemented in Phase 2.',
+        issues: [],
       };
     } catch (error) {
       return {

@@ -226,7 +226,7 @@ export class SpecKitLoader {
         currentTask = {
           id,
           description: description.trim(),
-          status: checkbox === 'x' ? 'completed' : 'pending',
+          status: (checkbox === 'x' ? 'completed' : 'pending') as TaskStatus,
           dependencies: [],
           parallel: false,
           attempts: 0,

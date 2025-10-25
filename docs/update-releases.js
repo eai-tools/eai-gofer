@@ -23,6 +23,17 @@ const releases = JSON.parse(fs.readFileSync(releasesPath, 'utf8'));
 // Determine download URL - use custom URL if provided, otherwise default to GitHub Releases
 const downloadUrl = customDownloadUrl || `https://github.com/eai-tools/specgofer/releases/download/v${version}/specgofer-${version}.vsix`;
 
+// Calculate actual file size if the VSIX exists in docs/releases/
+const vsixPath = path.join(__dirname, 'releases', `specgofer-${version}.vsix`);
+let fileSize = 8.5; // Default approximate size
+if (fs.existsSync(vsixPath)) {
+  const stats = fs.statSync(vsixPath);
+  fileSize = (stats.size / (1024 * 1024)).toFixed(1); // Convert bytes to MB
+  console.log(`📏 Actual file size: ${fileSize} MB`);
+} else {
+  console.log(`⚠️  VSIX file not found at ${vsixPath}, using default size: ${fileSize} MB`);
+}
+
 // Create new release entry
 const newRelease = {
   version: version,
@@ -31,7 +42,7 @@ const newRelease = {
   download_url: downloadUrl,
   notes: releaseNotes,
   prerelease: false,
-  size_mb: 8.5 // Approximate size
+  size_mb: parseFloat(fileSize)
 };
 
 // Add to beginning of releases array

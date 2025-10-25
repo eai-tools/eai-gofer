@@ -2,6 +2,22 @@
 
 All notable changes to the SpecGofer extension will be documented in this file.
 
+## [1.11.0] - 2025-10-25
+
+Fix branch-info.json location and simplify BranchSpecManager
+
+## [1.10.0] - 2025-10-25
+
+Fix branch-info.json location and simplify BranchSpecManager
+
+## [1.9.0] - 2025-10-25
+
+Fix branch-info.json location and simplify BranchSpecManager
+
+## [1.8.0] - 2025-10-25
+
+Fix branch-info.json location and simplify BranchSpecManager
+
 ## [1.7.0] - 2025-10-24
 
 Auto-release

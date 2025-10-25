@@ -20,7 +20,7 @@ vi.mock('fs/promises', () => ({
 const { TestAgent } = await import('../../src/agents/TestAgent.js');
 
 describe('TestAgent', () => {
-  let testAgent: TestAgent;
+  let testAgent: InstanceType<typeof TestAgent>;
 
   beforeEach(() => {
     vi.clearAllMocks();

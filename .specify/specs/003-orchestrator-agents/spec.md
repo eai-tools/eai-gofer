@@ -102,7 +102,7 @@ An orchestrator process that:
 - **Given** task fails 3 times
 - **Or** Engineer agent cannot determine fix
 - **When** max attempts reached
-- **Then** SMS notification is sent via Twilio
+- **Then** WhatsApp notification is sent via whatsapp-web.js
 - **And** notification includes:
   - Task description
   - Last error summary
@@ -195,6 +195,12 @@ src/
 - Response parsing
 - Question detection
 
+**7. NotificationService (NotificationService.ts)**
+- WhatsApp integration via whatsapp-web.js
+- QR code authentication on first run
+- Message formatting and delivery
+- Connection management
+
 ## Tasks
 
 - [x] #T001 Create Orchestrator class with workflow logic (deps: none)
@@ -207,10 +213,10 @@ src/
 - [x] #T008 Integrate all components in Orchestrator (deps: T001,T002,T003,T004,T005,T006,T007)
 - [x] #T009 Add task dependency resolution (deps: T002,T008)
 - [x] #T010 Implement retry logic with attempt tracking (deps: T008)
-- [ ] #T011 Add constitution validation in EngineerAgent (deps: T003)
-- [ ] #T012 Create comprehensive test suite (deps: T011)
-- [ ] #T013 Add error handling and recovery (deps: T012)
-- [ ] #T014 Implement graceful shutdown (deps: T013)
+- [x] #T011 Add constitution validation in EngineerAgent (deps: T003)
+- [x] #T012 Create comprehensive test suite (deps: T011)
+- [x] #T013 Add error handling and recovery (deps: T012)
+- [x] #T014 Implement graceful shutdown (deps: T013)
 - [ ] #T015 Add performance monitoring (deps: T014)
 
 ## Dependencies
@@ -223,7 +229,7 @@ src/
 ### External
 - Anthropic API key
 - Playwright installed
-- Twilio account (optional)
+- WhatsApp Web.js (for notifications, optional)
 - Node.js 18+
 
 ## Test Strategy

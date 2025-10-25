@@ -25,7 +25,7 @@ interface Spec {
 interface Task {
   id: string;
   description: string;
-  status: string;
+  status: 'pending' | 'in_progress' | 'testing' | 'completed' | 'failed' | 'blocked';
   dependencies: string[];
   parallel: boolean;
   estimated?: string;

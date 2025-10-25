@@ -1,0 +1,136 @@
+name: Release Automation
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.0.0)'
+        required: true
+        type: string
+
+env:
+  NODE_VERSION: '20.x'
+
+jobs:
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: Install Dependencies
+      run: |
+        npm ci
+        cd extension && npm ci
+        cd ../language-server && npm ci
+        
+    - name: Run All Tests
+      run: npm test
+      env:
+        CI: true
+        
+    - name: Build All Components
+      run: |
+        npm run build
+        cd extension
+        npm run compile
+        cd ../language-server
+        npm run build || tsc
+        
+    - name: Package VSCode Extension
+      run: |
+        cd extension
+        npx @vscode/vsce package
+        
+    - name: Create Release Archive
+      run: |
+        mkdir -p release-assets
+        
+        # Copy built files
+        cp -r dist/ release-assets/orchestrator/
+        cp -r extension/dist/ release-assets/extension/
+        cp -r language-server/dist/ release-assets/language-server/
+        
+        # Copy extension package
+        cp extension/*.vsix release-assets/
+        
+        # Copy documentation
+        cp README.md CHANGELOG.md LICENSE release-assets/
+        
+        # Create archive
+        tar -czf specgofer-release.tar.gz release-assets/
+        
+    - name: Generate Release Notes
+      id: release-notes
+      run: |
+        echo "# SpecGofer Release ${{ github.ref_name || github.event.inputs.version }}" > release-notes.md
+        echo "" >> release-notes.md
+        echo "## What's New" >> release-notes.md
+        echo "" >> release-notes.md
+        
+        # Get commits since last tag
+        if git describe --tags --abbrev=0 HEAD~1 >/dev/null 2>&1; then
+          last_tag=$(git describe --tags --abbrev=0 HEAD~1)
+          echo "### Changes since $last_tag:" >> release-notes.md
+          git log --pretty=format:"- %s" $last_tag..HEAD >> release-notes.md
+        else
+          echo "### Initial Release" >> release-notes.md
+          echo "- First release of SpecGofer autonomous development system" >> release-notes.md
+        fi
+        
+        echo "" >> release-notes.md
+        echo "## Components Included" >> release-notes.md
+        echo "- 🎯 **Orchestrator**: Core autonomous development engine" >> release-notes.md
+        echo "- 🔧 **VSCode Extension**: Development environment integration" >> release-notes.md
+        echo "- 🌐 **Language Server**: MCP tools for Claude Code/Copilot" >> release-notes.md
+        echo "" >> release-notes.md
+        echo "## Installation" >> release-notes.md
+        echo "1. Download the VSCode extension (.vsix file)" >> release-notes.md
+        echo "2. Install in VSCode: \`code --install-extension specgofer-*.vsix\`" >> release-notes.md
+        echo "3. Follow setup instructions in README.md" >> release-notes.md
+        
+    - name: Create GitHub Release
+      uses: actions/create-release@v1
+      id: create_release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref_name || github.event.inputs.version }}
+        release_name: SpecGofer ${{ github.ref_name || github.event.inputs.version }}
+        body_path: release-notes.md
+        draft: false
+        prerelease: false
+        
+    - name: Upload Release Archive
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./specgofer-release.tar.gz
+        asset_name: specgofer-${{ github.ref_name || github.event.inputs.version }}.tar.gz
+        asset_content_type: application/gzip
+        
+    - name: Upload VSCode Extension
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./extension/specgofer-*.vsix
+        asset_name: specgofer-extension-${{ github.ref_name || github.event.inputs.version }}.vsix
+        asset_content_type: application/octet-stream

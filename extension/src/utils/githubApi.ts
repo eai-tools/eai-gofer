@@ -1,5 +1,5 @@
-import { Logger } from './logger.js';
-import { GITHUB_API_BASE, GITHUB_OWNER, GITHUB_REPO } from '../config.js';
+import { Logger } from './logger';
+import { GITHUB_API_BASE, GITHUB_OWNER, GITHUB_REPO } from '../config';
 
 /**
  * GitHub API client for fetching releases and downloading templates

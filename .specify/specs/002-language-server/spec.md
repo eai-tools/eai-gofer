@@ -2,7 +2,7 @@
 
 Feature Branch: `002-language-server`
 Created: 2025-10-21
-Status: in_progress
+Status: completed
 Input: User description: "Implement dual-protocol server for LSP and MCP integration"
 
 ## Overview
@@ -12,6 +12,7 @@ The SpecGofer Language Server is a Node.js process that implements both Language
 ## Problem Statement
 
 AI coding agents need:
+
 - Structured access to specifications
 - Ability to query next available tasks
 - Task execution coordination
@@ -20,6 +21,7 @@ AI coding agents need:
 - Test execution triggers
 
 The VSCode extension needs:
+
 - Real-time spec data
 - Task status updates
 - Completion notifications
@@ -27,6 +29,7 @@ The VSCode extension needs:
 ## Solution
 
 A single server process that:
+
 1. Implements LSP for extension ↔ server communication
 2. Exposes MCP tools for AI agents
 3. Loads and parses GitHub Spec Kit specifications
@@ -137,7 +140,7 @@ A single server process that:
 
 ### Server Structure
 
-```
+```text
 language-server/
 ├── src/
 │   ├── server.ts              # Main LSP + MCP server
@@ -152,19 +155,22 @@ language-server/
 
 ### Key Components
 
-**1. LSP Server (server.ts)**
+#### 1. LSP Server (server.ts)
+
 - Handles LSP lifecycle (initialize, initialized, shutdown)
 - Registers MCP tools in capabilities
 - Implements custom LSP methods for extension
 - Routes MCP tool calls to handler
 
-**2. MCP Tool Handler (toolHandler.ts)**
+#### 2. MCP Tool Handler (toolHandler.ts)
+
 - Implements all 6 MCP tools
 - Validates inputs
 - Coordinates with SpecKitLoader
 - Returns structured responses
 
-**3. Spec Kit Loader (specKitLoader.ts)**
+#### 3. Spec Kit Loader (specKitLoader.ts)
+
 - Discovers spec directories
 - Parses YAML frontmatter
 - Parses Markdown task lists
@@ -173,7 +179,7 @@ language-server/
 
 ### Communication Flow
 
-```
+```text
 Claude Code → VSCode MCP Client → Language Server → Tool Handler → Spec Files
               ↑                                                        ↓
 Extension ← LSP Methods ← Language Server ← Spec Updates ← File System
@@ -192,19 +198,21 @@ Extension ← LSP Methods ← Language Server ← Spec Updates ← File System
 - [x] #T009 Implement specgofer_validate_code tool (deps: T004)
 - [x] #T010 Implement specgofer_run_tests tool (deps: T004)
 - [x] #T011 Add input validation and security checks (deps: T005,T006,T007,T008)
-- [ ] #T012 Add comprehensive error handling (deps: T011)
-- [ ] #T013 Create integration tests for all tools (deps: T012)
-- [ ] #T014 Add logging and debugging support (deps: T012)
+- [x] #T012 Add comprehensive error handling (deps: T011)
+- [x] #T013 Create integration tests for all tools (deps: T012)
+- [x] #T014 Add logging and debugging support (deps: T012)
 - [ ] #T015 Document MCP tool schemas (deps: T014)
 
 ## Dependencies
 
 ### Internal
+
 - Extension must spawn server process
 - `.specify/` folder must exist
 - Spec Kit format must be valid
 
 ### External
+
 - Node.js 18+
 - vscode-languageserver package
 - Anthropic SDK (for validation)
@@ -212,18 +220,21 @@ Extension ← LSP Methods ← Language Server ← Spec Updates ← File System
 ## Test Strategy
 
 ### Unit Tests
+
 - SpecKitLoader parsing various formats
 - Tool handler input validation
 - Dependency resolution logic
 - Status update file operations
 
 ### Integration Tests
+
 - Full tool invocation flow
 - Multiple concurrent tool calls
 - Error scenarios (missing files, invalid IDs)
 - Status persistence across server restarts
 
 ### E2E Tests
+
 1. Start Language Server manually
 2. Use LSP client to call tools
 3. Verify responses match schemas

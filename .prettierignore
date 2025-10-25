@@ -1,0 +1,15 @@
+node_modules/
+dist/
+coverage/
+*.log
+.DS_Store
+.vscode/
+.idea/
+*.vsix
+.env
+.env.local
+test-results/
+playwright-report/
+.specify/scripts/
+*.tgz
+*.tar.gz

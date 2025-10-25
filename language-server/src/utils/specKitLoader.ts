@@ -8,6 +8,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as yaml from 'yaml';
+import { SpecCache } from './specCache.js';
 
 export interface Spec {
   id: string;
@@ -47,7 +48,13 @@ export interface TechnicalPlan {
 }
 
 export class SpecKitLoader {
-  constructor(private workspacePath: string) {}
+  private cache: SpecCache;
+
+  constructor(private workspacePath: string) {
+    const specsDir = path.join(workspacePath, '.specify', 'specs');
+    this.cache = new SpecCache(specsDir, 100, 5 * 60 * 1000); // 100 specs, 5 min TTL
+    void this.cache.initialize();
+  }
 
   async loadAllSpecs(): Promise<Spec[]> {
     const specsDir = path.join(this.workspacePath, '.specify', 'specs');
@@ -60,21 +67,27 @@ export class SpecKitLoader {
         specDirs.map(async (dir) => {
           try {
             return await this.loadSpec(dir.name);
-          } catch (error) {
-            console.error(`Failed to load spec ${dir.name}:`, error);
+          } catch (_error) {
+            // Silently skip specs that fail to load
             return null;
           }
         })
       );
 
       return specs.filter((s): s is Spec => s !== null);
-    } catch (error) {
-      console.error('Failed to read specs directory:', error);
+    } catch (_error) {
+      // Return empty array if directory doesn't exist
       return [];
     }
   }
 
   async loadSpec(specId: string): Promise<Spec> {
+    // Check cache first
+    const cached = this.cache.get(specId);
+    if (cached) {
+      return cached;
+    }
+
     const specDir = path.join(this.workspacePath, '.specify', 'specs', specId);
     const specPath = path.join(specDir, 'spec.md');
     const tasksPath = path.join(specDir, 'tasks.md');
@@ -87,25 +100,30 @@ export class SpecKitLoader {
     const tasksContent = await fs.readFile(tasksPath, 'utf-8');
     const tasks = this.parseTasks(tasksContent);
 
-    return {
+    const spec: Spec = {
       id: specId,
-      title: frontmatter.feature || specId,
+      title: typeof frontmatter.feature === 'string' ? frontmatter.feature : specId,
       description: content,
-      status: this.parseSpecStatus(frontmatter.status),
-      created: new Date(frontmatter.created),
-      updated: new Date(frontmatter.updated),
-      author: frontmatter.author,
+      status: this.parseSpecStatus(typeof frontmatter.status === 'string' ? frontmatter.status : 'draft'),
+      created: new Date(typeof frontmatter.created === 'string' ? frontmatter.created : Date.now()),
+      updated: new Date(typeof frontmatter.updated === 'string' ? frontmatter.updated : Date.now()),
+      author: typeof frontmatter.author === 'string' ? frontmatter.author : undefined,
       tasks,
-      dependencies: frontmatter.dependencies || [],
+      dependencies: Array.isArray(frontmatter.dependencies) ? frontmatter.dependencies : [],
     };
+
+    // Cache the parsed spec
+    this.cache.set(specId, spec, specPath);
+
+    return spec;
   }
 
   /**
    * Parse header metadata from official GitHub Spec Kit format
    */
-  private parseSpecHeader(content: string): { metadata: any; content: string } {
+  private parseSpecHeader(content: string): { metadata: Record<string, string>; content: string } {
     const lines = content.split('\n');
-    const metadata: any = {};
+    const metadata: Record<string, string> = {};
     let contentStartIndex = 0;
 
     // Extract title from first line
@@ -158,7 +176,7 @@ export class SpecKitLoader {
     return { metadata, content: bodyContent };
   }
 
-  private parseFrontmatter(content: string): { frontmatter: any; content: string } {
+  private parseFrontmatter(content: string): { frontmatter: Record<string, unknown>; content: string } {
     const frontmatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/;
     const match = content.match(frontmatterRegex);
 
@@ -208,7 +226,7 @@ export class SpecKitLoader {
         currentTask = {
           id,
           description: description.trim(),
-          status: checkbox === 'x' ? 'completed' : 'pending',
+          status: (checkbox === 'x' ? 'completed' : 'pending') as TaskStatus,
           dependencies: [],
           parallel: false,
           attempts: 0,
@@ -287,5 +305,29 @@ export class SpecKitLoader {
     content = content.replace(taskRegex, `$1${checkbox}$2`);
 
     await fs.writeFile(tasksPath, content, 'utf-8');
+
+    // Invalidate cache for this spec
+    this.cache.invalidate(specId);
+  }
+
+  /**
+   * Get cache statistics
+   */
+  getCacheStats(): { hits: number; misses: number; size: number; evictions: number } {
+    return this.cache.getStats();
+  }
+
+  /**
+   * Clear the spec cache
+   */
+  clearCache(): void {
+    this.cache.clear();
+  }
+
+  /**
+   * Shutdown and cleanup resources
+   */
+  async shutdown(): Promise<void> {
+    await this.cache.shutdown();
   }
 }

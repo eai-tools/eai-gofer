@@ -46,14 +46,23 @@ The `release-auto.sh` script performs a complete automated release:
   - Release notes
   - Timestamp
 
-### 4. Git Operations 📦
+### 4. Pre-Push Validation ✅
+
+- **Runs linters** (`npm run lint:fix`) to catch code style issues
+- **Runs tests** (`npm test`) to catch regressions
+- Provides warnings if issues found but continues release
+- Ensures quality before pushing to GitHub
+
+**Note**: Validation runs BEFORE git push, so you catch issues early!
+
+### 5. Git Operations 📦
 
 - Commits all changes with structured commit message
 - Creates git tag `vX.Y.Z`
-- Pushes commits to `origin/main`
+- Pushes commits to `origin/main` (skips hooks - already validated)
 - Pushes tags to origin
 
-### 5. Deployment Verification ✅
+### 6. Deployment Verification ✅
 
 - Waits 30 seconds for GitHub Actions to start
 - Polls GitHub Pages (up to 6 attempts, 15 seconds apart)
@@ -95,30 +104,38 @@ The `release-auto.sh` script performs a complete automated release:
                   │
                   ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ 6. Git commit & tag & push to origin/main                   │
+│ 6. Runs pre-push validation:                                │
+│    • npm run lint:fix (code quality)                        │
+│    • npm test (catch regressions)                           │
+│    ⚠️  Warns but continues if issues found                  │
 └─────────────────┬───────────────────────────────────────────┘
                   │
                   ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ 7. GitHub Actions triggers (.github/workflows/pages.yml)    │
+│ 7. Git commit & tag & push to origin/main (--no-verify)     │
+└─────────────────┬───────────────────────────────────────────┘
+                  │
+                  ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 8. GitHub Actions triggers (.github/workflows/pages.yml)    │
 │    Detects changes to docs/** on main branch                │
 └─────────────────┬───────────────────────────────────────────┘
                   │
                   ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ 8. GitHub Pages deploys docs/ folder                        │
+│ 9. GitHub Pages deploys docs/ folder                        │
 │    Site: https://eai-tools.github.io/specgofer/            │
 └─────────────────┬───────────────────────────────────────────┘
                   │
                   ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ 9. Script verifies deployment (polls releases.json)         │
+│ 10. Script verifies deployment (polls releases.json)        │
 │    Confirms: latest_version = "1.11.1"                      │
 └─────────────────┬───────────────────────────────────────────┘
                   │
                   ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ 10. ✅ COMPLETE! Users can now update via extension button  │
+│ 11. ✅ COMPLETE! Users can now update via extension button  │
 └─────────────────────────────────────────────────────────────┘
 ```
 

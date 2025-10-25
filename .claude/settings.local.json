@@ -37,7 +37,9 @@
       "Bash(perl -i -0777 -pe:*)",
       "Bash(cat:*)",
       "Bash(npm run build:*)",
-      "Bash(npm test:*)"
+      "Bash(npm test:*)",
+      "Bash(npm run vscode:prepublish:*)",
+      "Bash(/Applications/Visual\\ Studio\\ Code.app/Contents/Resources/app/bin/code:*)"
     ],
     "deny": [],
     "ask": []

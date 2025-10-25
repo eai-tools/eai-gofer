@@ -129,7 +129,7 @@ The action plan includes:
 - TestAgent runs Playwright tests
 - Task dependency resolution works
 - Retry logic (max 3 attempts)
-- SMS escalation via Twilio
+- WhatsApp escalation for two-way communication
 
 ### What's Missing (Critical Path)
 
@@ -179,7 +179,7 @@ The action plan includes:
    - Test orchestrator flow
    - Test spec loader
    - Test agents (Engineer, Test, QA)
-   - Mock external APIs (Claude, Twilio)
+   - Mock external APIs (Claude, WhatsApp)
    - Target: 80%+ code coverage
 
 4. **E2E Tests** (68 hours)

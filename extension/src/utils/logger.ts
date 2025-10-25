@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { ConfigManager } from '../config.js';
+import { ConfigManager } from '../config';
 
 /**
  * Logging levels in order of severity

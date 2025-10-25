@@ -200,24 +200,80 @@ export class AutoUpdater {
   }
 
   /**
-   * Install VSIX file using VSCode CLI
+   * Install VSIX file using VSCode Extension API
    */
   private async installVsix(vsixPath: string): Promise<void> {
     try {
-      // Get the code command path
-      const codeCommand = process.platform === 'win32' ? 'code.cmd' : 'code';
-
-      // Install the extension
-      const { stdout, stderr } = await execAsync(`${codeCommand} --install-extension "${vsixPath}" --force`);
-
-      if (stderr && !stderr.includes('successfully installed')) {
-        throw new Error(stderr);
-      }
-
-      console.log('Extension installed:', stdout);
+      // Check if the VSIX file exists
+      await fs.access(vsixPath);
+      
+      // Use VS Code's built-in extension installation
+      const vsixUri = vscode.Uri.file(vsixPath);
+      await vscode.commands.executeCommand('workbench.extensions.installExtension', vsixUri);
+      
+      console.log('Extension installed successfully via VS Code API');
     } catch (error) {
-      throw new Error(`Failed to install extension: ${error instanceof Error ? error.message : String(error)}`);
+      // Fallback: Try the CLI approach with better error handling
+      console.log('VS Code API installation failed, trying CLI fallback...');
+      
+      try {
+        // Try to find the code command in common locations
+        const possibleCodePaths = [
+          'code',
+          '/usr/local/bin/code',
+          '/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code',
+          process.platform === 'win32' ? 'code.cmd' : 'code'
+        ];
+        
+        let codeCommand = null;
+        for (const codePath of possibleCodePaths) {
+          try {
+            await execAsync(`which "${codePath}" 2>/dev/null || command -v "${codePath}" 2>/dev/null`);
+            codeCommand = codePath;
+            break;
+          } catch {
+            // Continue to next path
+          }
+        }
+        
+        if (!codeCommand) {
+          throw new Error('VS Code CLI command not found. Please install VS Code CLI or restart VS Code to complete the update.');
+        }
+        
+        // Install the extension using CLI
+        const { stdout, stderr } = await execAsync(`"${codeCommand}" --install-extension "${vsixPath}" --force`);
+
+        if (stderr && !stderr.includes('successfully installed') && !stderr.includes('Extension') && !stderr.includes('installed')) {
+          throw new Error(stderr);
+        }
+
+        console.log('Extension installed via CLI:', stdout);
+      } catch (cliError) {
+        // If both methods fail, provide clear instructions
+        const errorMsg = cliError instanceof Error ? cliError.message : String(cliError);
+        
+        if (errorMsg.includes('command not found') || errorMsg.includes('not found')) {
+          throw new Error(`Cannot auto-install update. Please install manually:
+
+1. Download: https://eai-tools.github.io/specgofer/releases/specgofer-${this.getCurrentVersionFromPath(vsixPath)}.vsix
+2. Open VS Code Command Palette (Cmd+Shift+P / Ctrl+Shift+P)
+3. Run "Extensions: Install from VSIX..."
+4. Select the downloaded file
+
+Or install VS Code CLI: https://code.visualstudio.com/docs/editor/command-line`);
+        } else {
+          throw new Error(`Failed to install extension: ${errorMsg}`);
+        }
+      }
     }
+  }
+  
+  /**
+   * Extract version from VSIX path for error messages
+   */
+  private getCurrentVersionFromPath(vsixPath: string): string {
+    const match = vsixPath.match(/(\d+\.\d+\.\d+)/);
+    return match ? match[1] : 'latest';
   }
 
   /**
@@ -282,15 +338,45 @@ export class AutoUpdater {
       statusBarItem.dispose();
 
       const errorMessage = error instanceof Error ? error.message : String(error);
-      const fallbackChoice = await vscode.window.showErrorMessage(
-        `Failed to auto-update: ${errorMessage}`,
-        'Download Manually',
-        'Dismiss'
-      );
+      
+      // Check if this is a CLI installation issue
+      if (errorMessage.includes('command not found') || errorMessage.includes('Cannot auto-install')) {
+        const manualChoice = await vscode.window.showWarningMessage(
+          `⚠️ Auto-update requires manual installation\n\nReason: ${errorMessage.split('\n')[0]}`,
+          'Download & Install Manually',
+          'Install VS Code CLI',
+          'Dismiss'
+        );
 
-      if (fallbackChoice === 'Download Manually') {
-        const url = `https://github.com/${this.githubRepo}/releases/latest`;
-        vscode.env.openExternal(vscode.Uri.parse(url));
+        if (manualChoice === 'Download & Install Manually') {
+          // Open the GitHub Pages release page directly
+          vscode.env.openExternal(vscode.Uri.parse('https://eai-tools.github.io/specgofer/'));
+          
+          // Show installation instructions
+          vscode.window.showInformationMessage(
+            `📦 Manual Installation Steps:
+
+1. Download the .vsix file from the opened page
+2. Open Command Palette (Cmd+Shift+P / Ctrl+Shift+P)  
+3. Run "Extensions: Install from VSIX..."
+4. Select the downloaded file
+5. Reload VS Code when prompted`,
+            'Got it'
+          );
+        } else if (manualChoice === 'Install VS Code CLI') {
+          vscode.env.openExternal(vscode.Uri.parse('https://code.visualstudio.com/docs/editor/command-line'));
+        }
+      } else {
+        // Other errors - show generic fallback
+        const fallbackChoice = await vscode.window.showErrorMessage(
+          `Failed to auto-update: ${errorMessage}`,
+          'Download Manually',
+          'Dismiss'
+        );
+
+        if (fallbackChoice === 'Download Manually') {
+          vscode.env.openExternal(vscode.Uri.parse('https://eai-tools.github.io/specgofer/'));
+        }
       }
     }
   }

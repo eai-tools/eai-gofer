@@ -176,10 +176,10 @@ extension/
 - [x] #T008 Add repository initialization command (deps: T001)
 - [x] #T009 Implement branch-specific spec manager (deps: T005)
 - [x] #T010 Add auto-updater with GitHub release checking (deps: T001)
-- [ ] #T011 Implement Spec Kit template downloader (deps: T001)
-- [ ] #T012 Add template version checking and auto-update (deps: T011)
-- [ ] #T013 Create comprehensive integration tests (deps: T001,T002,T003,T004,T011,T012)
-- [ ] #T014 Add error handling and logging (deps: T013)
+- [x] #T011 Implement Spec Kit template downloader (deps: T001)
+- [x] #T012 Add template version checking and auto-update (deps: T011)
+- [x] #T013 Create comprehensive integration tests (deps: T001,T002,T003,T004,T011,T012)
+- [x] #T014 Add error handling and logging (deps: T013)
 - [ ] #T015 Document extension API and commands (deps: T014)
 
 ## Dependencies

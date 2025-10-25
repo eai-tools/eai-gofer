@@ -30,7 +30,7 @@ vi.mock('twilio', () => ({
 }));
 
 // Mock VSCode API
-global.vscode = {
+(global as any).vscode = {
   window: {
     showInformationMessage: vi.fn(),
     showErrorMessage: vi.fn(),
@@ -65,6 +65,36 @@ global.vscode = {
     file: (path: string) => ({ fsPath: path, scheme: 'file', path }),
   },
 };
+
+// Mock Node.js built-in modules
+vi.mock('fs', () => ({
+  promises: {
+    readdir: vi.fn(),
+    readFile: vi.fn(),
+    writeFile: vi.fn(),
+    mkdir: vi.fn(),
+    stat: vi.fn(),
+    access: vi.fn(),
+  },
+}));
+
+vi.mock('fs/promises', () => ({
+  readdir: vi.fn(),
+  readFile: vi.fn(),
+  writeFile: vi.fn(),
+  mkdir: vi.fn(),
+  stat: vi.fn(),
+  access: vi.fn(),
+}));
+
+vi.mock('child_process', () => ({
+  exec: vi.fn(),
+  spawn: vi.fn(),
+}));
+
+vi.mock('util', () => ({
+  promisify: vi.fn((fn) => fn),
+}));
 
 // Mock environment variables
 process.env.ANTHROPIC_API_KEY = 'test-api-key';

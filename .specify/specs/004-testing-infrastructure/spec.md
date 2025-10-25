@@ -1,9 +1,9 @@
 ---
 id: "004-testing-infrastructure"
 title: "Testing Infrastructure and Quality Assurance"
-status: "pending"
+status: "in_progress"
 created: "2025-10-21"
-updated: "2025-10-21"
+updated: "2025-10-24"
 priority: "high"
 assignee: "tester-agent"
 ---
@@ -188,22 +188,22 @@ tests/
 
 ## Tasks
 
-- [ ] #T001 Set up Jest/Vitest test framework (deps: none)
-- [ ] #T002 Create unit tests for specKitParser (deps: T001)
-- [ ] #T003 Create unit tests for specKitLoader (deps: T001)
-- [ ] #T004 Create unit tests for MCP tool handler (deps: T001)
-- [ ] #T005 Create unit tests for EngineerAgent (deps: T001)
-- [ ] #T006 Create unit tests for TestAgent (deps: T001)
-- [ ] #T007 Create integration tests for orchestrator (deps: T001)
-- [ ] #T008 Create integration tests for agent coordination (deps: T001)
-- [ ] #T009 Set up Playwright for E2E tests (deps: none)
-- [ ] #T010 Create E2E test for extension activation (deps: T009)
-- [ ] #T011 Create E2E test for spec creation (deps: T009)
-- [ ] #T012 Create MCP tool contract tests (deps: T001)
-- [ ] #T013 Create constitution validation tests (deps: T001)
-- [ ] #T014 Set up GitHub Actions CI workflow (deps: T001,T009)
-- [ ] #T015 Configure code coverage reporting (deps: T014)
-- [ ] #T016 Add pre-commit hooks for tests (deps: T014)
+- [x] #T001 Set up Jest/Vitest test framework (deps: none)
+- [x] #T002 Create unit tests for specKitParser (deps: T001)
+- [x] #T003 Create unit tests for specKitLoader (deps: T001)
+- [x] #T004 Create unit tests for MCP tool handler (deps: T001)
+- [x] #T005 Create unit tests for EngineerAgent (deps: T001)
+- [x] #T006 Create unit tests for TestAgent (deps: T001)
+- [x] #T007 Create integration tests for orchestrator (deps: T001)
+- [x] #T008 Create integration tests for agent coordination (deps: T001)
+- [x] #T009 Set up Playwright for E2E tests (deps: none)
+- [x] #T010 Create E2E test for extension activation (deps: T009)
+- [x] #T011 Create E2E test for spec creation (deps: T009)
+- [x] #T012 Create MCP tool contract tests (deps: T001)
+- [x] #T013 Create constitution validation tests (deps: T001)
+- [x] #T014 Set up GitHub Actions CI workflow (deps: T001,T009)
+- [x] #T015 Configure code coverage reporting (deps: T014)
+- [x] #T016 Add pre-commit hooks for tests (deps: T014)
 - [ ] #T017 Document testing guidelines (deps: T016)
 
 ## Dependencies

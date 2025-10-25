@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
-import { Logger } from './logger.js';
-import { ConfigManager } from '../config.js';
+import { Logger } from './logger';
+import { ConfigManager } from '../config';
 
 /**
  * Performance optimization utilities for large repositories

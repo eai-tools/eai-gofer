@@ -135,7 +135,8 @@ export class SpecKitMigrator {
 
     if (format === 'spec-kit') {
       // Even if already in spec-kit format, check if templates need updating
-      await this.updateSpecKitTemplates();
+      // Skip confirmation when called from Initialize command - user already initiated action
+      await this.updateSpecKitTemplates(true);
       return;
     }
 
@@ -270,14 +271,19 @@ export class SpecKitMigrator {
   /**
    * Update spec-kit templates for existing installation
    */
-  private async updateSpecKitTemplates(): Promise<void> {
-    const choice = await vscode.window.showInformationMessage(
-      'Update Spec Kit templates to latest version?',
-      'Update', 'Cancel'
-    );
+  private async updateSpecKitTemplates(skipConfirmation: boolean = false): Promise<void> {
+    console.log('[updateSpecKitTemplates] Starting... skipConfirmation:', skipConfirmation);
 
-    if (choice !== 'Update') {
-      return;
+    if (!skipConfirmation) {
+      const choice = await vscode.window.showInformationMessage(
+        'Update Spec Kit templates to latest version?',
+        'Update', 'Cancel'
+      );
+
+      if (choice !== 'Update') {
+        console.log('[updateSpecKitTemplates] User cancelled update');
+        return;
+      }
     }
 
     await vscode.window.withProgress(

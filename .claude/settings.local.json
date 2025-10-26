@@ -40,7 +40,8 @@
       "Bash(npm test:*)",
       "Bash(npm run vscode:prepublish:*)",
       "Bash(/Applications/Visual\\ Studio\\ Code.app/Contents/Resources/app/bin/code:*)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []

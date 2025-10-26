@@ -2,6 +2,12 @@
 
 All notable changes to the SpecGofer extension will be documented in this file.
 
+## [1.12.9] - 2025-10-26
+
+chore: pre-release changes
+
+Auto-committed changes before release v1.12.8
+
 ## [1.12.8] - 2025-10-26
 
 Fix Initialize command to always trigger update flow for spec-kit format

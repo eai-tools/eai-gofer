@@ -157,19 +157,34 @@ export class SpecKitMigrator {
       },
       async (progress) => {
         progress.report({ message: 'Installing spec-kit CLI...' });
+        console.log('[SpecKit] Starting CLI installation...');
         await this.installSpecKitCLI();
 
         progress.report({ message: 'Creating folder structure...' });
+        console.log('[SpecKit] Creating folder structure...');
         await this.createSpecKitStructure();
 
         progress.report({ message: 'Migrating specifications...' });
+        console.log('[SpecKit] Migrating specifications...');
         await this.migrateJsonSpecs();
 
         progress.report({ message: 'Setting up Claude commands...' });
+        console.log('[SpecKit] Setting up Claude commands...');
         await this.setupClaudeCommands();
 
+        progress.report({ message: 'Creating bash scripts...' });
+        console.log('[SpecKit] Creating bash scripts...');
+        await this.createBashScripts();
+
+        progress.report({ message: 'Configuring VSCode settings...' });
+        console.log('[SpecKit] Configuring VSCode settings...');
+        await this.createVSCodeSettings();
+
         progress.report({ message: 'Finalizing...' });
+        console.log('[SpecKit] Creating README...');
         await this.createReadme();
+
+        console.log('[SpecKit] Installation complete!');
       }
     );
 
@@ -284,34 +299,49 @@ export class SpecKitMigrator {
    */
   private async setupClaudeCommands(): Promise<void> {
     try {
+      console.log('[setupClaudeCommands] Starting...');
+
       // Get the extension's bundled commands
       const extensionPath = vscode.extensions.getExtension('eai-tools.specgofer')?.extensionPath;
       if (!extensionPath) {
-        console.warn('Could not find extension path for Claude commands');
+        console.warn('[setupClaudeCommands] Could not find extension path for Claude commands');
         return;
       }
+
+      console.log('[setupClaudeCommands] Extension path:', extensionPath);
 
       // Check if we have Claude commands in the extension bundle
       const bundledCommandsPath = path.join(extensionPath, 'resources', 'claude-commands');
       const claudeDir = path.join(this.workspacePath, '.claude');
       const commandsDir = path.join(claudeDir, 'commands');
 
+      console.log('[setupClaudeCommands] Bundled commands path:', bundledCommandsPath);
+      console.log('[setupClaudeCommands] Target commands dir:', commandsDir);
+
       // Ensure .claude/commands directory exists
       await fs.mkdir(commandsDir, { recursive: true });
+      console.log('[setupClaudeCommands] Created directory:', commandsDir);
 
       try {
         // Try to copy from bundled resources first
         const files = await fs.readdir(bundledCommandsPath);
+        console.log('[setupClaudeCommands] Found bundled files:', files.length);
+
+        let copiedCount = 0;
         for (const file of files) {
           if (file.startsWith('speckit.') && file.endsWith('.md')) {
             const source = path.join(bundledCommandsPath, file);
             const target = path.join(commandsDir, file);
             await fs.copyFile(source, target);
+            copiedCount++;
+            console.log('[setupClaudeCommands] Copied:', file);
           }
         }
-      } catch {
+        console.log('[setupClaudeCommands] Successfully copied', copiedCount, 'command files');
+      } catch (error) {
         // If no bundled commands, try to get from GitHub or local spec-kit installation
-        console.log('No bundled Claude commands found, checking for spec-kit installation');
+        console.error('[setupClaudeCommands] Error reading bundled commands:', error);
+        console.log('[setupClaudeCommands] No bundled Claude commands found, checking for spec-kit installation');
 
         // Check if spec-kit created the commands
         const specKitCommandsDir = path.join(this.workspacePath, '.claude', 'commands');
@@ -320,14 +350,16 @@ export class SpecKitMigrator {
           const hasSpecKitCommands = files.some(f => f.startsWith('speckit.'));
 
           if (!hasSpecKitCommands) {
-            console.warn('No spec-kit Claude commands found after installation');
+            console.warn('[setupClaudeCommands] No spec-kit Claude commands found after installation');
+          } else {
+            console.log('[setupClaudeCommands] Found spec-kit commands from CLI installation');
           }
         } catch {
-          console.warn('Claude commands directory not found');
+          console.warn('[setupClaudeCommands] Claude commands directory not found');
         }
       }
     } catch (error) {
-      console.error('Failed to setup Claude commands:', error);
+      console.error('[setupClaudeCommands] Failed to setup Claude commands:', error);
     }
   }
 
@@ -357,16 +389,26 @@ export class SpecKitMigrator {
     }
 
     // Create proper templates from spec-kit format
+    console.log('[SpecKit Fallback] Creating templates...');
     await this.createTemplates();
 
     // Setup Claude commands from bundled resources
+    console.log('[SpecKit Fallback] Setting up Claude commands...');
     await this.setupClaudeCommands();
 
     // Create bash scripts from bundled resources
+    console.log('[SpecKit Fallback] Creating bash scripts...');
     await this.createBashScripts();
 
+    // Configure VSCode settings
+    console.log('[SpecKit Fallback] Configuring VSCode settings...');
+    await this.createVSCodeSettings();
+
     // Create README
+    console.log('[SpecKit Fallback] Creating README...');
     await this.createReadme();
+
+    console.log('[SpecKit Fallback] Manual setup complete!');
   }
 
   /**
@@ -946,21 +988,32 @@ T001 (Setup)
    */
   private async createBashScripts(): Promise<void> {
     try {
+      console.log('[createBashScripts] Starting...');
+
       const extensionPath = vscode.extensions.getExtension('eai-tools.specgofer')?.extensionPath;
       if (!extensionPath) {
-        console.warn('Could not find extension path for bash scripts');
+        console.warn('[createBashScripts] Could not find extension path for bash scripts');
         return;
       }
+
+      console.log('[createBashScripts] Extension path:', extensionPath);
 
       const bundledScriptsPath = path.join(extensionPath, 'resources', 'bash-scripts');
       const targetScriptsPath = path.join(this.specifyPath, 'scripts', 'bash');
 
+      console.log('[createBashScripts] Bundled scripts path:', bundledScriptsPath);
+      console.log('[createBashScripts] Target scripts path:', targetScriptsPath);
+
       // Ensure target directory exists
       await fs.mkdir(targetScriptsPath, { recursive: true });
+      console.log('[createBashScripts] Created directory:', targetScriptsPath);
 
       try {
         // Copy all .sh files from bundled resources
         const files = await fs.readdir(bundledScriptsPath);
+        console.log('[createBashScripts] Found bundled files:', files.length);
+
+        let copiedCount = 0;
         for (const file of files) {
           if (file.endsWith('.sh')) {
             const source = path.join(bundledScriptsPath, file);
@@ -969,14 +1022,79 @@ T001 (Setup)
 
             // Make scripts executable
             await fs.chmod(target, 0o755);
+            copiedCount++;
+            console.log('[createBashScripts] Copied and made executable:', file);
           }
         }
-        console.log('Bash scripts created successfully');
+        console.log('[createBashScripts] Successfully created', copiedCount, 'bash scripts');
       } catch (error) {
-        console.warn('No bundled bash scripts found, skipping script creation');
+        console.error('[createBashScripts] Error reading bundled scripts:', error);
+        console.warn('[createBashScripts] No bundled bash scripts found, skipping script creation');
       }
     } catch (error) {
-      console.error('Failed to create bash scripts:', error);
+      console.error('[createBashScripts] Failed to create bash scripts:', error);
+    }
+  }
+
+  /**
+   * Create or update VSCode settings.json for Spec Kit
+   */
+  private async createVSCodeSettings(): Promise<void> {
+    try {
+      console.log('[createVSCodeSettings] Starting...');
+
+      const vscodeDir = path.join(this.workspacePath, '.vscode');
+      const settingsPath = path.join(vscodeDir, 'settings.json');
+
+      console.log('[createVSCodeSettings] VSCode dir:', vscodeDir);
+      console.log('[createVSCodeSettings] Settings path:', settingsPath);
+
+      // Ensure .vscode directory exists
+      await fs.mkdir(vscodeDir, { recursive: true });
+      console.log('[createVSCodeSettings] Created directory:', vscodeDir);
+
+      // Read existing settings or start with empty object
+      let settings: any = {};
+      try {
+        const existingContent = await fs.readFile(settingsPath, 'utf-8');
+        settings = JSON.parse(existingContent);
+        console.log('[createVSCodeSettings] Loaded existing settings');
+      } catch {
+        console.log('[createVSCodeSettings] No existing settings found, creating new');
+      }
+
+      // Add Spec Kit specific settings
+      const specKitSettings = {
+        'files.associations': {
+          '**/.specify/**/*.md': 'markdown',
+          '**/.claude/commands/*.md': 'markdown'
+        },
+        'search.exclude': {
+          '**/.specify/_backup/**': true,
+          '**/.specify/_archive/**': true
+        },
+        'files.exclude': {
+          '**/.specify/_backup/**': true
+        }
+      };
+
+      // Merge settings (don't overwrite existing)
+      for (const [key, value] of Object.entries(specKitSettings)) {
+        if (!settings[key]) {
+          settings[key] = value;
+          console.log('[createVSCodeSettings] Added setting:', key);
+        } else {
+          // Merge nested objects
+          settings[key] = { ...value, ...settings[key] };
+          console.log('[createVSCodeSettings] Merged setting:', key);
+        }
+      }
+
+      // Write back to file
+      await fs.writeFile(settingsPath, JSON.stringify(settings, null, 2) + '\n');
+      console.log('[createVSCodeSettings] Successfully updated .vscode/settings.json');
+    } catch (error) {
+      console.error('[createVSCodeSettings] Failed to create VSCode settings:', error);
     }
   }
 

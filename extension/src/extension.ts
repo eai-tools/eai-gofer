@@ -346,7 +346,11 @@ function registerCommands(
         const versionInfo = await migrator.getVersionInfo();
 
         if (versionInfo.needsUpgrade) {
+          // Legacy or mixed format - needs upgrade
           await migrator.upgrade();
+        } else if (versionInfo.format === 'spec-kit') {
+          // Already spec-kit format - offer to update templates/scripts
+          await migrator.upgrade(); // This will call updateSpecKitTemplates()
         } else {
           vscode.window.showInformationMessage('SpecGofer already initialized!');
         }

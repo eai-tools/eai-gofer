@@ -20,8 +20,8 @@ const customDownloadUrl = process.argv[4]; // Optional custom download URL
 const releasesPath = path.join(__dirname, 'releases.json');
 const releases = JSON.parse(fs.readFileSync(releasesPath, 'utf8'));
 
-// Determine download URL - use custom URL if provided, otherwise default to GitHub Releases
-const downloadUrl = customDownloadUrl || `https://github.com/eai-tools/specgofer/releases/download/v${version}/specgofer-${version}.vsix`;
+// Determine download URL - use custom URL if provided, otherwise default to GitHub Pages
+const downloadUrl = customDownloadUrl || `https://eai-tools.github.io/specgofer/releases/specgofer-${version}.vsix`;
 
 // Calculate actual file size if the VSIX exists in docs/releases/
 const vsixPath = path.join(__dirname, 'releases', `specgofer-${version}.vsix`);

@@ -321,7 +321,7 @@ export class SpecKitMigrator {
       console.log('[setupClaudeCommands] Starting...');
 
       // Get the extension's bundled commands
-      const extensionPath = vscode.extensions.getExtension('eai-tools.specgofer')?.extensionPath;
+      const extensionPath = vscode.extensions.getExtension('EnterpriseAI.specgofer')?.extensionPath;
       if (!extensionPath) {
         console.warn('[setupClaudeCommands] Could not find extension path for Claude commands');
         return;
@@ -1009,7 +1009,7 @@ T001 (Setup)
     try {
       console.log('[createBashScripts] Starting...');
 
-      const extensionPath = vscode.extensions.getExtension('eai-tools.specgofer')?.extensionPath;
+      const extensionPath = vscode.extensions.getExtension('EnterpriseAI.specgofer')?.extensionPath;
       if (!extensionPath) {
         console.warn('[createBashScripts] Could not find extension path for bash scripts');
         return;

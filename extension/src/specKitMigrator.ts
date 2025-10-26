@@ -358,6 +358,15 @@ export class SpecKitMigrator {
 
     // Create proper templates from spec-kit format
     await this.createTemplates();
+
+    // Setup Claude commands from bundled resources
+    await this.setupClaudeCommands();
+
+    // Create bash scripts from bundled resources
+    await this.createBashScripts();
+
+    // Create README
+    await this.createReadme();
   }
 
   /**
@@ -930,6 +939,45 @@ T001 (Setup)
 `;
 
     await fs.writeFile(path.join(templatesDir, 'tasks-template.md'), tasksTemplate);
+  }
+
+  /**
+   * Create bash scripts from bundled resources
+   */
+  private async createBashScripts(): Promise<void> {
+    try {
+      const extensionPath = vscode.extensions.getExtension('eai-tools.specgofer')?.extensionPath;
+      if (!extensionPath) {
+        console.warn('Could not find extension path for bash scripts');
+        return;
+      }
+
+      const bundledScriptsPath = path.join(extensionPath, 'resources', 'bash-scripts');
+      const targetScriptsPath = path.join(this.specifyPath, 'scripts', 'bash');
+
+      // Ensure target directory exists
+      await fs.mkdir(targetScriptsPath, { recursive: true });
+
+      try {
+        // Copy all .sh files from bundled resources
+        const files = await fs.readdir(bundledScriptsPath);
+        for (const file of files) {
+          if (file.endsWith('.sh')) {
+            const source = path.join(bundledScriptsPath, file);
+            const target = path.join(targetScriptsPath, file);
+            await fs.copyFile(source, target);
+
+            // Make scripts executable
+            await fs.chmod(target, 0o755);
+          }
+        }
+        console.log('Bash scripts created successfully');
+      } catch (error) {
+        console.warn('No bundled bash scripts found, skipping script creation');
+      }
+    } catch (error) {
+      console.error('Failed to create bash scripts:', error);
+    }
   }
 
   /**

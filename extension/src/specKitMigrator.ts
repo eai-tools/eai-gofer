@@ -287,11 +287,26 @@ export class SpecKitMigrator {
         cancellable: false
       },
       async (progress) => {
+        const packageJson = require('../../package.json');
+        console.log(`[SpecKit v${packageJson.version}] Updating existing installation...`);
+
         progress.report({ message: 'Reinstalling spec-kit with latest templates...' });
+        console.log('[SpecKit Update] Starting CLI installation...');
         await this.installSpecKitCLI();
 
         progress.report({ message: 'Updating Claude commands...' });
+        console.log('[SpecKit Update] Setting up Claude commands...');
         await this.setupClaudeCommands();
+
+        progress.report({ message: 'Updating bash scripts...' });
+        console.log('[SpecKit Update] Creating bash scripts...');
+        await this.createBashScripts();
+
+        progress.report({ message: 'Updating VSCode settings...' });
+        console.log('[SpecKit Update] Configuring VSCode settings...');
+        await this.createVSCodeSettings();
+
+        console.log('[SpecKit Update] Update complete!');
       }
     );
 

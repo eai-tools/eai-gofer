@@ -2,6 +2,10 @@
 
 All notable changes to the SpecGofer extension will be documented in this file.
 
+## [1.12.3] - 2025-10-26
+
+Fix fallback setup when spec-kit CLI fails + improve release automation
+
 ## [1.11.0] - 2025-10-25
 
 Fix branch-info.json location and simplify BranchSpecManager

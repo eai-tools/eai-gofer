@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.12.1",
+  "latest_version": "1.12.3",
   "repository": "eai-tools/specgofer",
-  "last_updated": "2025-10-25T18:57:19.946Z",
+  "last_updated": "2025-10-26T04:33:09.721Z",
   "releases": [
+    {
+      "version": "1.12.3",
+      "tag_name": "v1.12.3",
+      "published_at": "2025-10-26T04:33:09.720Z",
+      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-1.12.3.vsix",
+      "notes": "Fix fallback setup when spec-kit CLI fails + improve release automation",
+      "prerelease": false,
+      "size_mb": 8.8
+    },
     {
       "version": "1.12.1",
       "tag_name": "v1.12.1",
@@ -83,15 +92,6 @@
       "notes": "**Critical fixes for private repository updates**\n\n• Fixed auto-updater error handling for private repositories\n• Improved error messages with clear guidance\n• Better authentication handling for GitHub API\n• Added support for public releases on private repos",
       "prerelease": false,
       "size_mb": 8.5
-    },
-    {
-      "version": "1.4.5",
-      "tag_name": "v1.4.5",
-      "published_at": "2025-10-22T20:37:00Z",
-      "download_url": "https://github.com/eai-tools/specgofer/releases/download/v1.4.5/specgofer-1.4.5.vsix",
-      "notes": "**Critical fixes: Preserve constitution during updates, fix update button error**\n\n• Fixed constitution being overwritten during template updates\n• Added constitution backup/restore during spec-kit init\n• Fixed undefined.replace() error in auto-updater\n• Better GitHub API error handling",
-      "prerelease": false,
-      "size_mb": 8.6
     }
   ]
 }

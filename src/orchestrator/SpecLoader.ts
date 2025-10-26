@@ -271,7 +271,7 @@ export class SpecLoader {
       const lines = content.split('\n');
 
       if (lines[0] === '---') {
-        let endIndex = lines.findIndex((line, idx) => idx > 0 && line === '---');
+        const endIndex = lines.findIndex((line, idx) => idx > 0 && line === '---');
         if (endIndex !== -1) {
           // Update status in frontmatter
           const frontmatterLines = lines.slice(1, endIndex);

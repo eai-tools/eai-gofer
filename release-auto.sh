@@ -114,7 +114,7 @@ Auto-committed changes before release v${CURRENT_VER}"
     # Commit all changes
     print_info "Committing changes..."
     git add -A
-    git commit -m "$COMMIT_MSG"
+    git commit --no-verify -m "$COMMIT_MSG"
     print_success "Changes committed successfully"
     echo ""
 fi

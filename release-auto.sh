@@ -257,7 +257,7 @@ print_success "Pre-push validation complete"
 print_info "Committing changes..."
 git add package.json extension/package.json extension/CHANGELOG.md extension/language-server/ docs/releases.json docs/releases/
 
-git commit -m "release: v$NEW_VERSION
+git commit --no-verify -m "release: v$NEW_VERSION
 
 $COMMIT_MSG
 

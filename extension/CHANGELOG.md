@@ -2,6 +2,10 @@
 
 All notable changes to the SpecGofer extension will be documented in this file.
 
+## [1.12.4] - 2025-10-26
+
+Complete SpecKit setup: bash scripts, Claude commands, VSCode settings + debug logging
+
 ## [1.12.3] - 2025-10-26
 
 Fix fallback setup when spec-kit CLI fails + improve release automation

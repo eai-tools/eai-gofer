@@ -26,10 +26,9 @@ let autoUpdater: AutoUpdater | undefined;
 let lspClient: SpecGoferLSPClient | undefined;
 
 export async function activate(context: vscode.ExtensionContext) {
-  console.log('SpecGofer (Enterprise AI) extension activated');
-
   // Setup auto-updater (using GitHub Pages API for private repo)
   const packageJson = require('../package.json');
+  console.log(`SpecGofer (Enterprise AI) v${packageJson.version} extension activated`);
   autoUpdater = new AutoUpdater(
     'eai-tools/specgofer',  // GitHub repo
     packageJson.version,    // Current version

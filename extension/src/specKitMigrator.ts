@@ -156,6 +156,10 @@ export class SpecKitMigrator {
         cancellable: false
       },
       async (progress) => {
+        // Log version info
+        const packageJson = require('../../package.json');
+        console.log(`[SpecKit v${packageJson.version}] Starting initialization...`);
+
         progress.report({ message: 'Installing spec-kit CLI...' });
         console.log('[SpecKit] Starting CLI installation...');
         await this.installSpecKitCLI();

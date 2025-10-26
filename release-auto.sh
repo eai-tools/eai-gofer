@@ -142,13 +142,20 @@ esac
 NEW_VERSION="$MAJOR.$MINOR.$PATCH"
 print_success "New version: $NEW_VERSION"
 
-# Update package.json
-print_info "Updating package.json..."
+# Update package.json (both root and extension)
+print_info "Updating package.json files..."
 node -e "
 const fs = require('fs');
-const pkg = JSON.parse(fs.readFileSync('./extension/package.json', 'utf8'));
-pkg.version = '$NEW_VERSION';
-fs.writeFileSync('./extension/package.json', JSON.stringify(pkg, null, 2) + '\n');
+
+// Update extension package.json
+const extPkg = JSON.parse(fs.readFileSync('./extension/package.json', 'utf8'));
+extPkg.version = '$NEW_VERSION';
+fs.writeFileSync('./extension/package.json', JSON.stringify(extPkg, null, 2) + '\n');
+
+// Update root package.json
+const rootPkg = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
+rootPkg.version = '$NEW_VERSION';
+fs.writeFileSync('./package.json', JSON.stringify(rootPkg, null, 2) + '\n');
 "
 
 # Update CHANGELOG with placeholder
@@ -248,7 +255,7 @@ print_success "Pre-push validation complete"
 
 # Commit
 print_info "Committing changes..."
-git add extension/package.json extension/CHANGELOG.md extension/language-server/
+git add package.json extension/package.json extension/CHANGELOG.md extension/language-server/ docs/releases.json docs/releases/
 
 git commit -m "release: v$NEW_VERSION
 

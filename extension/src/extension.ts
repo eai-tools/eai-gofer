@@ -589,6 +589,14 @@ How will success be measured?
       showSectionDetailsWebview(context, section, article);
     })
   );
+
+  // Show article details command (from constitution article clicks)
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specKit.showArticleDetails', async (article: any) => {
+      const { showArticleDetailsWebview } = await import('./webviewHelpers');
+      showArticleDetailsWebview(context, article);
+    })
+  );
 }
 
 export async function deactivate() {

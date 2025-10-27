@@ -2,6 +2,10 @@
 
 All notable changes to the SpecGofer extension will be documented in this file.
 
+## [1.13.0] - 2025-10-27
+
+Just updating so that I know we are on the latest
+
 ## [1.12.10] - 2025-10-26
 
 chore: pre-release changes

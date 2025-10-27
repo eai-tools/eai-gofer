@@ -1,26 +1,27 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
 
 /**
- * Show spec details in a webview panel
+ * Show spec details using VSCode's native markdown preview
  */
-export function showSpecDetailsWebview(context: vscode.ExtensionContext, spec: any) {
-  const panel = vscode.window.createWebviewPanel(
-    'specDetails',
-    `Spec: ${spec.title}`,
-    vscode.ViewColumn.One,
-    { enableScripts: true }
-  );
+export async function showSpecDetailsWebview(context: vscode.ExtensionContext, spec: any) {
+  const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+  if (!workspaceFolder) {
+    vscode.window.showErrorMessage('No workspace folder open');
+    return;
+  }
 
-  const total = spec.tasks.length;
-  const completed = spec.tasks.filter((t: any) => t.status === 'completed').length;
-  const inProgress = spec.tasks.filter((t: any) => t.status === 'in_progress').length;
-  const testing = spec.tasks.filter((t: any) => t.status === 'testing').length;
-  const failed = spec.tasks.filter((t: any) => t.status === 'failed').length;
-  const blocked = spec.tasks.filter((t: any) => t.status === 'blocked').length;
-  const pending = spec.tasks.filter((t: any) => t.status === 'pending').length;
-  const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+  // Try to open the spec.md file
+  const specFile = path.join(workspaceFolder.uri.fsPath, '.specify', 'specs', spec.id, 'spec.md');
+  try {
+    const uri = vscode.Uri.file(specFile);
+    const doc = await vscode.workspace.openTextDocument(uri);
 
-  panel.webview.html = getSpecDetailsHTML(spec, { total, completed, inProgress, testing, failed, blocked, pending, percentage });
+    // Open in markdown preview
+    await vscode.commands.executeCommand('markdown.showPreview', uri);
+  } catch (error) {
+    vscode.window.showErrorMessage(`Failed to open specification: ${error}`);
+  }
 }
 
 /**
@@ -38,31 +39,39 @@ export function showTaskDetailsWebview(context: vscode.ExtensionContext, task: a
 }
 
 /**
- * Show article details in a webview panel
+ * Show article details using VSCode's native markdown preview
  */
-export function showArticleDetailsWebview(context: vscode.ExtensionContext, article: any) {
-  const panel = vscode.window.createWebviewPanel(
-    'articleDetails',
-    `Article ${article.number}: ${article.title}`,
-    vscode.ViewColumn.One,
-    { enableScripts: true }
-  );
-
-  panel.webview.html = getArticleDetailsHTML(article);
+export async function showArticleDetailsWebview(context: vscode.ExtensionContext, article: any) {
+  await openConstitutionPreview();
 }
 
 /**
- * Show section details in a webview panel
+ * Show section details using VSCode's native markdown preview
  */
-export function showSectionDetailsWebview(context: vscode.ExtensionContext, section: any, article: any) {
-  const panel = vscode.window.createWebviewPanel(
-    'sectionDetails',
-    section.title,
-    vscode.ViewColumn.One,
-    { enableScripts: true }
-  );
+export async function showSectionDetailsWebview(context: vscode.ExtensionContext, section: any, article: any) {
+  await openConstitutionPreview();
+}
 
-  panel.webview.html = getSectionDetailsHTML(section, article);
+/**
+ * Helper to open constitution.md in markdown preview
+ */
+async function openConstitutionPreview(): Promise<void> {
+  const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+  if (!workspaceFolder) {
+    vscode.window.showErrorMessage('No workspace folder open');
+    return;
+  }
+
+  const constitutionFile = path.join(workspaceFolder.uri.fsPath, '.specify', 'memory', 'constitution.md');
+  try {
+    const uri = vscode.Uri.file(constitutionFile);
+    const doc = await vscode.workspace.openTextDocument(uri);
+
+    // Open in markdown preview
+    await vscode.commands.executeCommand('markdown.showPreview', uri);
+  } catch (error) {
+    vscode.window.showErrorMessage(`Failed to open constitution: ${error}`);
+  }
 }
 
 function getSpecDetailsHTML(spec: any, stats: any): string {

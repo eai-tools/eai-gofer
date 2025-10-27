@@ -258,7 +258,7 @@ async function initializeProgressProvider(
   }
 
   // Set context for when clause
-  vscode.commands.executeCommand('setContext', 'specKitActive', true);
+  vscode.commands.executeCommand('setContext', 'specGoferInitialized', true);
 
   // Show the Spec Kit view
   vscode.commands.executeCommand('specGoferProgress.focus');

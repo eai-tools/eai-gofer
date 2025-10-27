@@ -53,7 +53,12 @@
       "Bash(npm run typecheck:*)",
       "Bash(rm:*)",
       "Bash(npm run lint)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code:*)",
+      "Bash(awk:*)",
+      "Bash(xargs cat:*)",
+      "Bash(find:*)",
+      "Read(//Users/**)"
     ],
     "deny": [],
     "ask": []

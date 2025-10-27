@@ -573,6 +573,22 @@ How will success be measured?
       }
     })
   );
+
+  // Show spec details command (from tree view clicks)
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specKit.showSpecDetails', async (spec: any) => {
+      const { showSpecDetailsWebview } = await import('./webviewHelpers');
+      showSpecDetailsWebview(context, spec);
+    })
+  );
+
+  // Show section details command (from constitution tree view clicks)
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specKit.showSectionDetails', async (section: any, article: any) => {
+      const { showSectionDetailsWebview } = await import('./webviewHelpers');
+      showSectionDetailsWebview(context, section, article);
+    })
+  );
 }
 
 export async function deactivate() {

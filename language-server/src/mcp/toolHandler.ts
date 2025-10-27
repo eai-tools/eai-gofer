@@ -122,7 +122,7 @@ export class MCPToolHandler {
     process.stderr.write(`🔒 Security Violation: ${JSON.stringify(logEntry)}\n`);
     
     // Send notification to extension for monitoring
-    this.connection.sendNotification('specKit/securityViolation', logEntry);
+    this.connection.sendNotification('specGofer/securityViolation', logEntry);
   }
 
   /**
@@ -383,7 +383,7 @@ export class MCPToolHandler {
       await this.specKitLoader.updateTaskStatus(specId, taskId, status);
 
       // Notify extension via LSP
-      this.connection.sendNotification('specKit/taskProgress', {
+      this.connection.sendNotification('specGofer/taskProgress', {
         specId,
         taskId,
         status,

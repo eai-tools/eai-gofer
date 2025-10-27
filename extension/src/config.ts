@@ -53,8 +53,9 @@ export const COMMANDS = {
 
 // View IDs
 export const VIEWS = {
-  progress: 'specKitProgress',
-  constitution: 'specKitConstitution',
+  progress: 'specGoferProgress',
+  constitution: 'specGoferConstitution',
+  memory: 'specGoferMemory',
   container: 'spec-kit',
 } as const;
 

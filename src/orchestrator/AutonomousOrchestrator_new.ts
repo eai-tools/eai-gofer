@@ -28,7 +28,7 @@ export class AutonomousOrchestrator {
 
     while (this.isRunning) {
       const task = this.taskQueue.getNextTask();
-      if (!task) break;
+      if (!task) {break;}
 
       await this.executeTask(task);
     }

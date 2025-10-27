@@ -256,6 +256,80 @@ If a task fails:
 
 **Fix**: Click the SpecGofer icon in the Activity Bar (left side of VSCode).
 
+## Markdown Viewing Options
+
+SpecGofer lets you view and edit your specifications, constitution, and memory documents in different ways. By default, it uses VSCode's built-in markdown preview (read-only), but you can install WYSIWYG editors for a better editing experience.
+
+### Available Viewers
+
+#### 1. VSCode Preview (Default)
+
+- **Built-in** - no installation needed
+- **Read-only** viewing
+- Fast and lightweight
+- Good for reviewing specs
+
+#### 2. Mark Sharp (Recommended for WYSIWYG)
+
+- **Install**: [Mark Sharp Extension](https://marketplace.visualstudio.com/items?itemName=JonathanYeung.mark-sharp)
+- **Features**: Fast WYSIWYG editor with live preview
+- **Best for**: Quick edits while seeing rendered output
+- **Command**: `Cmd+Shift+P` → "Mark Sharp: Switch Editor Mode"
+
+#### 3. Markdown Editor by zaaack
+
+- **Install**: [Markdown Editor Extension](https://marketplace.visualstudio.com/items?itemName=zaaack.markdown-editor)
+- **Features**: Feature-rich WYSIWYG with formatting toolbar
+- **Best for**: Complex documents with tables and formatting
+- **Shortcut**: `Ctrl+Shift+Alt+M` (Windows/Linux) or `Cmd+Shift+Alt+M` (Mac)
+
+#### 4. Markdown WYSIWYG
+
+- **Install**: [Markdown WYSIWYG Extension](https://marketplace.visualstudio.com/items?itemName=adamerose.markdown-wysiwyg)
+- **Features**: Simple WYSIWYG toggle
+- **Best for**: Basic editing with visual feedback
+- **Toggle**: `Ctrl+Shift+E` (Windows/Linux) or `Cmd+Shift+E` (Mac)
+
+### How to Use
+
+#### Set Your Default Viewer
+
+1. Open VSCode Settings (`Cmd+,`)
+2. Search for "SpecGofer Markdown Viewer"
+3. Choose your preferred viewer:
+   - **preview** - Built-in preview (read-only)
+   - **mark-sharp** - Mark Sharp WYSIWYG
+   - **markdown-editor** - Markdown Editor
+   - **markdown-wysiwyg** - Markdown WYSIWYG
+
+#### Use Context Menu for One-Time Choice
+
+Right-click any item in the SpecGofer sidebar (Specifications, Constitution, or Memory):
+
+- **Open with Preview** - Use VSCode's built-in preview
+- **Open with Mark Sharp** - Use Mark Sharp WYSIWYG
+- **Open with Markdown Editor** - Use Markdown Editor
+- **Open with Markdown WYSIWYG** - Use Markdown WYSIWYG
+
+This lets you choose a different viewer each time without changing your default setting.
+
+### Installation Tips
+
+**To install a WYSIWYG extension**:
+
+1. Open Extensions view (`Cmd+Shift+X`)
+2. Search for the extension name
+3. Click Install
+4. Reload VSCode if prompted
+5. Update your SpecGofer setting or use the context menu
+
+**If you get an error** when using a WYSIWYG viewer:
+
+- Make sure the extension is installed
+- Check that you've reloaded VSCode after installation
+- Try the context menu "Open With..." option to test
+- Fall back to "preview" in settings if issues persist
+
 ## Next Steps
 
 1. **Try the example above** - Create a simple API spec and let it build

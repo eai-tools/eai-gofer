@@ -18,7 +18,7 @@ class SpecItem extends vscode.TreeItem {
       this.contextValue = 'spec';
       // Add click command to show spec details
       this.command = {
-        command: 'specKit.showSpecDetails',
+        command: 'specGofer.showSpecDetails',
         title: 'Show Spec Details',
         arguments: [spec]
       };
@@ -30,7 +30,7 @@ class SpecItem extends vscode.TreeItem {
       this.contextValue = 'task';
       // Add click command to show task details
       this.command = {
-        command: 'specKit.showTaskDetails',
+        command: 'specGofer.showTaskDetails',
         title: 'Show Task Details',
         arguments: [task, spec]
       };
@@ -191,7 +191,7 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
         noSpecsItem.iconPath = new vscode.ThemeIcon('info');
         noSpecsItem.tooltip = `Workspace: ${this.parser['workspacePath']}\n\nLooking for specs in: .specify/specs/\n\nClick "Initialize SpecGofer" to create the structure.`;
         noSpecsItem.command = {
-          command: 'specKit.initialize',
+          command: 'specGofer.initialize',
           title: 'Initialize SpecGofer'
         };
         return [noSpecsItem];

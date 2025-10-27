@@ -39,132 +39,132 @@
   "contributes": {
     "commands": [
       {
-        "command": "specKit.initialize",
+        "command": "specGofer.initialize",
         "title": "SpecGofer: Initialize Repository",
         "icon": "$(rocket)"
       },
       {
-        "command": "specKit.upgrade",
+        "command": "specGofer.upgrade",
         "title": "SpecGofer: Upgrade to Spec Kit Format",
         "icon": "$(arrow-up)"
       },
       {
-        "command": "specKit.showProgress",
+        "command": "specGofer.showProgress",
         "title": "SpecGofer: Show Progress Panel",
         "icon": "$(dashboard)"
       },
       {
-        "command": "specKit.refreshSpecs",
+        "command": "specGofer.refreshSpecs",
         "title": "SpecGofer: Refresh Specifications",
         "icon": "$(refresh)"
       },
       {
-        "command": "specKit.checkForUpdates",
+        "command": "specGofer.checkForUpdates",
         "title": "SpecGofer: Check for Updates",
         "icon": "$(cloud-download)"
       },
       {
-        "command": "specKit.updateNow",
+        "command": "specGofer.updateNow",
         "title": "SpecGofer: Update Now",
         "icon": "$(desktop-download)"
       },
       {
-        "command": "specKit.refreshConstitution",
+        "command": "specGofer.refreshConstitution",
         "title": "SpecGofer: Refresh Constitution",
         "icon": "$(refresh)"
       },
       {
-        "command": "specKit.refreshMemory",
+        "command": "specGofer.refreshMemory",
         "title": "SpecGofer: Refresh Memory",
         "icon": "$(refresh)"
       },
       {
-        "command": "specKit.showConstitution",
+        "command": "specGofer.showConstitution",
         "title": "SpecGofer: Show Constitution Panel",
         "icon": "$(law)"
       },
       {
-        "command": "specKit.updateTemplates",
+        "command": "specGofer.updateTemplates",
         "title": "SpecGofer: Update Templates",
         "icon": "$(cloud-download)"
       },
       {
-        "command": "specKit.openSpec",
+        "command": "specGofer.openSpec",
         "title": "SpecGofer: Open Specification",
         "icon": "$(file-text)"
       },
       {
-        "command": "specKit.createSpec",
+        "command": "specGofer.createSpec",
         "title": "SpecGofer: Create New Specification",
         "icon": "$(file-add)"
       },
       {
-        "command": "specKit.showSpecDetails",
+        "command": "specGofer.showSpecDetails",
         "title": "SpecGofer: Show Specification Details"
       },
       {
-        "command": "specKit.showSectionDetails",
+        "command": "specGofer.showSectionDetails",
         "title": "SpecGofer: Show Constitution Section Details"
       },
       {
-        "command": "specKit.showArticleDetails",
+        "command": "specGofer.showArticleDetails",
         "title": "SpecGofer: Show Constitution Article Details"
       },
       {
-        "command": "specKit.showMemoryDocument",
+        "command": "specGofer.showMemoryDocument",
         "title": "SpecGofer: Show Memory Document"
       },
       {
-        "command": "specKit.showMemorySection",
+        "command": "specGofer.showMemorySection",
         "title": "SpecGofer: Show Memory Section"
       },
       {
-        "command": "specKit.openWithPreview",
+        "command": "specGofer.openWithPreview",
         "title": "Open with Preview"
       },
       {
-        "command": "specKit.openWithMarkSharp",
+        "command": "specGofer.openWithMarkSharp",
         "title": "Open with Mark Sharp"
       },
       {
-        "command": "specKit.openWithMarkdownEditor",
+        "command": "specGofer.openWithMarkdownEditor",
         "title": "Open with Markdown Editor"
       },
       {
-        "command": "specKit.openWithMarkdownWYSIWYG",
+        "command": "specGofer.openWithMarkdownWYSIWYG",
         "title": "Open with Markdown WYSIWYG"
       }
     ],
     "keybindings": [
       {
-        "command": "specKit.initialize",
+        "command": "specGofer.initialize",
         "key": "ctrl+shift+alt+i",
         "mac": "cmd+shift+alt+i",
         "when": "editorTextFocus || explorerResourceIsFolder"
       },
       {
-        "command": "specKit.showProgress",
+        "command": "specGofer.showProgress",
         "key": "ctrl+shift+alt+p",
         "mac": "cmd+shift+alt+p"
       },
       {
-        "command": "specKit.refreshSpecs",
+        "command": "specGofer.refreshSpecs",
         "key": "ctrl+shift+alt+r",
         "mac": "cmd+shift+alt+r"
       },
       {
-        "command": "specKit.showConstitution",
+        "command": "specGofer.showConstitution",
         "key": "ctrl+shift+alt+c",
         "mac": "cmd+shift+alt+c"
       },
       {
-        "command": "specKit.createSpec",
+        "command": "specGofer.createSpec",
         "key": "ctrl+shift+alt+n",
         "mac": "cmd+shift+alt+n",
         "when": "explorerResourceIsFolder"
       },
       {
-        "command": "specKit.checkForUpdates",
+        "command": "specGofer.checkForUpdates",
         "key": "ctrl+shift+alt+u",
         "mac": "cmd+shift+alt+u"
       }
@@ -203,117 +203,117 @@
     "viewsWelcome": [
       {
         "view": "specKitProgress",
-        "contents": "No SpecGofer structure found in this workspace.\n[Initialize SpecGofer](command:specKit.initialize)\nThis will create the .specify folder structure following GitHub Spec Kit standards."
+        "contents": "No SpecGofer structure found in this workspace.\n[Initialize SpecGofer](command:specGofer.initialize)\nThis will create the .specify folder structure following GitHub Spec Kit standards."
       }
     ],
     "menus": {
       "view/title": [
         {
-          "command": "specKit.refreshSpecs",
+          "command": "specGofer.refreshSpecs",
           "when": "view == specKitProgress",
           "group": "navigation@1"
         },
         {
-          "command": "specKit.updateNow",
+          "command": "specGofer.updateNow",
           "when": "view == specKitProgress",
           "group": "navigation@2"
         },
         {
-          "command": "specKit.refreshConstitution",
+          "command": "specGofer.refreshConstitution",
           "when": "view == specKitConstitution",
           "group": "navigation"
         },
         {
-          "command": "specKit.refreshMemory",
+          "command": "specGofer.refreshMemory",
           "when": "view == specKitMemory",
           "group": "navigation"
         }
       ],
       "view/item/context": [
         {
-          "command": "specKit.openWithPreview",
+          "command": "specGofer.openWithPreview",
           "when": "viewItem == spec || viewItem == constitution-article || viewItem == constitution-section || viewItem == memory-document || viewItem == memory-section",
           "group": "openwith@1"
         },
         {
-          "command": "specKit.openWithMarkSharp",
+          "command": "specGofer.openWithMarkSharp",
           "when": "viewItem == spec || viewItem == constitution-article || viewItem == constitution-section || viewItem == memory-document || viewItem == memory-section",
           "group": "openwith@2"
         },
         {
-          "command": "specKit.openWithMarkdownEditor",
+          "command": "specGofer.openWithMarkdownEditor",
           "when": "viewItem == spec || viewItem == constitution-article || viewItem == constitution-section || viewItem == memory-document || viewItem == memory-section",
           "group": "openwith@3"
         },
         {
-          "command": "specKit.openWithMarkdownWYSIWYG",
+          "command": "specGofer.openWithMarkdownWYSIWYG",
           "when": "viewItem == spec || viewItem == constitution-article || viewItem == constitution-section || viewItem == memory-document || viewItem == memory-section",
           "group": "openwith@4"
         }
       ],
       "explorer/context": [
         {
-          "command": "specKit.initialize",
+          "command": "specGofer.initialize",
           "when": "explorerResourceIsFolder && !specKitInitialized",
           "group": "specgofer@1"
         },
         {
-          "command": "specKit.createSpec",
+          "command": "specGofer.createSpec",
           "when": "explorerResourceIsFolder && specKitInitialized",
           "group": "specgofer@2"
         }
       ],
       "commandPalette": [
         {
-          "command": "specKit.initialize",
+          "command": "specGofer.initialize",
           "when": "!specKitInitialized"
         },
         {
-          "command": "specKit.showProgress",
+          "command": "specGofer.showProgress",
           "when": "specKitInitialized"
         },
         {
-          "command": "specKit.showConstitution",
+          "command": "specGofer.showConstitution",
           "when": "specKitInitialized"
         },
         {
-          "command": "specKit.refreshSpecs",
+          "command": "specGofer.refreshSpecs",
           "when": "specKitInitialized"
         },
         {
-          "command": "specKit.refreshConstitution",
+          "command": "specGofer.refreshConstitution",
           "when": "specKitInitialized"
         },
         {
-          "command": "specKit.upgrade",
+          "command": "specGofer.upgrade",
           "when": "specKitInitialized"
         },
         {
-          "command": "specKit.updateTemplates",
+          "command": "specGofer.updateTemplates",
           "when": "specKitInitialized"
         },
         {
-          "command": "specKit.createSpec",
+          "command": "specGofer.createSpec",
           "when": "specKitInitialized"
         }
       ]
     },
     "configuration": {
-      "title": "SpecGofer - Enterprise AI",
+      "title": "SpecGofer",
       "properties": {
-        "specKit.anthropicApiKey": {
+        "specGofer.anthropicApiKey": {
           "type": "string",
           "default": "",
           "description": "Anthropic API Key for Claude (get yours at https://console.anthropic.com/settings/keys)",
           "markdownDescription": "Your Anthropic API key for Claude. [Get one here](https://console.anthropic.com/settings/keys). This is stored securely in VSCode settings and never shared.",
           "order": 0
         },
-        "specKit.autoInitialize": {
+        "specGofer.autoInitialize": {
           "type": "boolean",
           "default": false,
           "description": "Automatically offer to initialize SpecGofer when opening a repository without it"
         },
-        "specKit.preferredAI": {
+        "specGofer.preferredAI": {
           "type": "string",
           "enum": [
             "claude",
@@ -323,22 +323,22 @@
           "default": "ask",
           "description": "Preferred AI tool when sending tasks (ask, claude, copilot)"
         },
-        "specKit.claudeTerminalName": {
+        "specGofer.claudeTerminalName": {
           "type": "string",
           "default": "Claude",
           "description": "Name pattern to identify Claude Code terminals"
         },
-        "specKit.autoValidate": {
+        "specGofer.autoValidate": {
           "type": "boolean",
           "default": true,
           "description": "Automatically validate specs against constitution when creating/updating"
         },
-        "specKit.showWelcome": {
+        "specGofer.showWelcome": {
           "type": "boolean",
           "default": true,
           "description": "Show welcome message and quick start when initializing"
         },
-        "specKit.markdownViewer": {
+        "specGofer.markdownViewer": {
           "type": "string",
           "enum": [
             "preview",

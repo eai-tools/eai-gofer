@@ -145,7 +145,7 @@ async function handleNoSpecKit(
     );
 
     if (choice === 'Yes') {
-      await vscode.commands.executeCommand('specKit.initialize');
+      await vscode.commands.executeCommand('specGofer.initialize');
     } else if (choice === 'Don\'t ask again') {
       await config.update('autoInitialize', false, vscode.ConfigurationTarget.Global);
     }
@@ -281,21 +281,21 @@ async function handleBranchChange() {
 function registerGlobalCommands(context: vscode.ExtensionContext) {
   // Show progress panel
   context.subscriptions.push(
-    vscode.commands.registerCommand('specKit.showProgress', () => {
+    vscode.commands.registerCommand('specGofer.showProgress', () => {
       vscode.commands.executeCommand('specKitProgress.focus');
     })
   );
 
   // Show constitution panel
   context.subscriptions.push(
-    vscode.commands.registerCommand('specKit.showConstitution', () => {
+    vscode.commands.registerCommand('specGofer.showConstitution', () => {
       vscode.commands.executeCommand('specKitConstitution.focus');
     })
   );
 
   // Manual update check
   context.subscriptions.push(
-    vscode.commands.registerCommand('specKit.checkForUpdates', async () => {
+    vscode.commands.registerCommand('specGofer.checkForUpdates', async () => {
       if (autoUpdater) {
         await autoUpdater.manualCheck();
       } else {
@@ -306,7 +306,7 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
 
   // Update now command
   context.subscriptions.push(
-    vscode.commands.registerCommand('specKit.updateNow', async () => {
+    vscode.commands.registerCommand('specGofer.updateNow', async () => {
       if (autoUpdater) {
         await autoUpdater.manualCheck();
       } else {
@@ -317,7 +317,7 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
 
   // Refresh specs
   context.subscriptions.push(
-    vscode.commands.registerCommand('specKit.refreshSpecs', () => {
+    vscode.commands.registerCommand('specGofer.refreshSpecs', () => {
       if (progressProvider) {
         progressProvider.refresh();
       } else {
@@ -328,7 +328,7 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
 
   // Refresh constitution
   context.subscriptions.push(
-    vscode.commands.registerCommand('specKit.refreshConstitution', () => {
+    vscode.commands.registerCommand('specGofer.refreshConstitution', () => {
       if (constitutionProvider) {
         constitutionProvider.refresh();
       } else {
@@ -339,7 +339,7 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
 
   // Refresh memory
   context.subscriptions.push(
-    vscode.commands.registerCommand('specKit.refreshMemory', () => {
+    vscode.commands.registerCommand('specGofer.refreshMemory', () => {
       if (memoryProvider) {
         memoryProvider.refresh();
       } else {
@@ -359,7 +359,7 @@ function registerCommands(
 ) {
   // Initialize/Create Spec Kit structure
   context.subscriptions.push(
-    vscode.commands.registerCommand('specKit.initialize', async () => {
+    vscode.commands.registerCommand('specGofer.initialize', async () => {
       const exists = await migrator.exists();
 
       if (exists) {
@@ -385,7 +385,7 @@ function registerCommands(
 
   // Upgrade existing .specify
   context.subscriptions.push(
-    vscode.commands.registerCommand('specKit.upgrade', async () => {
+    vscode.commands.registerCommand('specGofer.upgrade', async () => {
       await migrator.upgrade();
       if (progressProvider) {
         progressProvider.refresh();
@@ -395,7 +395,7 @@ function registerCommands(
 
   // Show version info
   context.subscriptions.push(
-    vscode.commands.registerCommand('specKit.checkVersion', async () => {
+    vscode.commands.registerCommand('specGofer.checkVersion', async () => {
       const versionInfo = await migrator.getVersionInfo();
 
       vscode.window.showInformationMessage(
@@ -403,7 +403,7 @@ function registerCommands(
         versionInfo.needsUpgrade ? 'Upgrade' : 'OK'
       ).then(choice => {
         if (choice === 'Upgrade') {
-          vscode.commands.executeCommand('specKit.upgrade');
+          vscode.commands.executeCommand('specGofer.upgrade');
         }
       });
     })
@@ -411,7 +411,7 @@ function registerCommands(
 
   // Update templates command
   context.subscriptions.push(
-    vscode.commands.registerCommand('specKit.updateTemplates', async () => {
+    vscode.commands.registerCommand('specGofer.updateTemplates', async () => {
       const workspacePath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
       if (!workspacePath) {
         vscode.window.showErrorMessage('No workspace folder open');
@@ -458,7 +458,7 @@ function registerCommands(
 
   // Create new specification command
   context.subscriptions.push(
-    vscode.commands.registerCommand('specKit.createSpec', async (uri?: vscode.Uri) => {
+    vscode.commands.registerCommand('specGofer.createSpec', async (uri?: vscode.Uri) => {
       const specName = await vscode.window.showInputBox({
         prompt: 'Enter specification name (e.g., "user-authentication")',
         placeHolder: 'my-feature',
@@ -553,7 +553,7 @@ How will success be measured?
 
   // Open specification command
   context.subscriptions.push(
-    vscode.commands.registerCommand('specKit.openSpec', async (specId?: string) => {
+    vscode.commands.registerCommand('specGofer.openSpec', async (specId?: string) => {
       if (specId) {
         const specFile = path.join(workspacePath, '.specify', 'specs', specId, 'spec.md');
         try {
@@ -585,7 +585,7 @@ How will success be measured?
           });
 
           if (selected) {
-            vscode.commands.executeCommand('specKit.openSpec', selected.specId);
+            vscode.commands.executeCommand('specGofer.openSpec', selected.specId);
           }
         } catch (error) {
           vscode.window.showErrorMessage(`Failed to list specifications: ${error}`);
@@ -596,7 +596,7 @@ How will success be measured?
 
   // Show spec details command (from tree view clicks)
   context.subscriptions.push(
-    vscode.commands.registerCommand('specKit.showSpecDetails', async (spec: any) => {
+    vscode.commands.registerCommand('specGofer.showSpecDetails', async (spec: any) => {
       const { showSpecDetailsWebview } = await import('./webviewHelpers');
       showSpecDetailsWebview(context, spec);
     })
@@ -604,7 +604,7 @@ How will success be measured?
 
   // Show section details command (from constitution tree view clicks)
   context.subscriptions.push(
-    vscode.commands.registerCommand('specKit.showSectionDetails', async (section: any, article: any) => {
+    vscode.commands.registerCommand('specGofer.showSectionDetails', async (section: any, article: any) => {
       const { showSectionDetailsWebview } = await import('./webviewHelpers');
       showSectionDetailsWebview(context, section, article);
     })
@@ -612,7 +612,7 @@ How will success be measured?
 
   // Show article details command (from constitution article clicks)
   context.subscriptions.push(
-    vscode.commands.registerCommand('specKit.showArticleDetails', async (article: any) => {
+    vscode.commands.registerCommand('specGofer.showArticleDetails', async (article: any) => {
       const { showArticleDetailsWebview } = await import('./webviewHelpers');
       showArticleDetailsWebview(context, article);
     })
@@ -620,7 +620,7 @@ How will success be measured?
 
   // Show memory document command (from memory tree view clicks)
   context.subscriptions.push(
-    vscode.commands.registerCommand('specKit.showMemoryDocument', async (document: any) => {
+    vscode.commands.registerCommand('specGofer.showMemoryDocument', async (document: any) => {
       const { showMemoryDocumentWebview } = await import('./webviewHelpers');
       await showMemoryDocumentWebview(context, document);
     })
@@ -628,7 +628,7 @@ How will success be measured?
 
   // Show memory section command (from memory section clicks)
   context.subscriptions.push(
-    vscode.commands.registerCommand('specKit.showMemorySection', async (section: any, document: any) => {
+    vscode.commands.registerCommand('specGofer.showMemorySection', async (section: any, document: any) => {
       const { showMemorySectionWebview } = await import('./webviewHelpers');
       await showMemorySectionWebview(context, section, document);
     })
@@ -636,28 +636,28 @@ How will success be measured?
 
   // Open With... context menu commands
   context.subscriptions.push(
-    vscode.commands.registerCommand('specKit.openWithPreview', async (item: any) => {
+    vscode.commands.registerCommand('specGofer.openWithPreview', async (item: any) => {
       const { openWithPreview } = await import('./webviewHelpers');
       await openWithPreview(item);
     })
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand('specKit.openWithMarkSharp', async (item: any) => {
+    vscode.commands.registerCommand('specGofer.openWithMarkSharp', async (item: any) => {
       const { openWithMarkSharp } = await import('./webviewHelpers');
       await openWithMarkSharp(item);
     })
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand('specKit.openWithMarkdownEditor', async (item: any) => {
+    vscode.commands.registerCommand('specGofer.openWithMarkdownEditor', async (item: any) => {
       const { openWithMarkdownEditor } = await import('./webviewHelpers');
       await openWithMarkdownEditor(item);
     })
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand('specKit.openWithMarkdownWYSIWYG', async (item: any) => {
+    vscode.commands.registerCommand('specGofer.openWithMarkdownWYSIWYG', async (item: any) => {
       const { openWithMarkdownWYSIWYG } = await import('./webviewHelpers');
       await openWithMarkdownWYSIWYG(item);
     })

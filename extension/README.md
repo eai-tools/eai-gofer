@@ -97,21 +97,26 @@ SpecGofer supports multiple ways to view and edit your specifications, constitut
 ### Available Viewers
 
 #### VSCode Preview (Default - Built-in)
+
 - No installation needed
 - Read-only viewing
 - Fast and lightweight
 
 #### Mark Sharp (Recommended for WYSIWYG)
-- **Install**: [Mark Sharp Extension](https://marketplace.visualstudio.com/items?itemName=JonathanYeung.mark-sharp)
+
+- **Install**: Search "Mark Sharp" in VSCode Extensions or install via Command Palette: `ext install JonathanYeung.mark-sharp`
 - Fast WYSIWYG editor with live preview
 - Best for quick edits while seeing rendered output
+- **Note**: If the extension is not available, you may need to search for alternative markdown WYSIWYG editors in the marketplace
 
 #### Markdown Editor by zaaack
+
 - **Install**: [Markdown Editor Extension](https://marketplace.visualstudio.com/items?itemName=zaaack.markdown-editor)
 - Feature-rich WYSIWYG with formatting toolbar
 - Best for complex documents with tables and formatting
 
 #### Markdown WYSIWYG
+
 - **Install**: [Markdown WYSIWYG Extension](https://marketplace.visualstudio.com/items?itemName=adamerose.markdown-wysiwyg)
 - Simple WYSIWYG toggle
 - Best for basic editing with visual feedback
@@ -120,11 +125,17 @@ SpecGofer supports multiple ways to view and edit your specifications, constitut
 
 **Set Default Viewer:**
 1. Open VSCode Settings (`Cmd+,` or `Ctrl+,`)
-2. Search for "SpecGofer Markdown Viewer"
-3. Choose your preferred viewer: `preview`, `mark-sharp`, `markdown-editor`, or `markdown-wysiwyg`
+2. Search for `specGofer.markdownViewer` or just `markdown viewer`
+3. In the "SpecGofer: Markdown Viewer" dropdown, choose your preferred viewer:
+   - `preview` - VSCode's built-in preview (default)
+   - `mark-sharp` - Mark Sharp WYSIWYG editor
+   - `markdown-editor` - Markdown Editor by zaaack
+   - `markdown-wysiwyg` - Markdown WYSIWYG by adamerose
 
 **Use Context Menu:**
+
 Right-click any item in the SpecGofer sidebar (Specifications, Constitution, or Memory) and choose:
+
 - **Open with Preview** - VSCode's built-in preview
 - **Open with Mark Sharp** - Mark Sharp WYSIWYG
 - **Open with Markdown Editor** - Markdown Editor
@@ -173,13 +184,13 @@ Configure the extension through VS Code settings:
 
 ```json
 {
-  "specKit.markdownViewer": "preview",
-  "specKit.autoRefresh": true,
-  "specKit.showNotifications": true,
-  "specKit.telemetryEnabled": false,
-  "specKit.templateSource": "github",
-  "specKit.updateCheckInterval": 86400000,
-  "specKit.branchSpecificSpecs": true
+  "specGofer.markdownViewer": "preview",
+  "specGofer.autoRefresh": true,
+  "specGofer.showNotifications": true,
+  "specGofer.telemetryEnabled": false,
+  "specGofer.templateSource": "github",
+  "specGofer.updateCheckInterval": 86400000,
+  "specGofer.branchSpecificSpecs": true
 }
 ```
 
@@ -187,13 +198,13 @@ Configure the extension through VS Code settings:
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| `specKit.markdownViewer` | `"preview"` | Markdown viewer: "preview", "mark-sharp", "markdown-editor", or "markdown-wysiwyg" |
-| `specKit.autoRefresh` | `true` | Auto-refresh panels on file changes |
-| `specKit.showNotifications` | `true` | Show update and status notifications |
-| `specKit.telemetryEnabled` | `false` | Enable anonymous usage analytics |
-| `specKit.templateSource` | `"github"` | Template source: "github" or "bundled" |
-| `specKit.updateCheckInterval` | `86400000` | Update check interval in milliseconds |
-| `specKit.branchSpecificSpecs` | `true` | Reload specs when switching branches |
+| `specGofer.markdownViewer` | `"preview"` | Markdown viewer: "preview", "mark-sharp", "markdown-editor", or "markdown-wysiwyg" |
+| `specGofer.autoRefresh` | `true` | Auto-refresh panels on file changes |
+| `specGofer.showNotifications` | `true` | Show update and status notifications |
+| `specGofer.telemetryEnabled` | `false` | Enable anonymous usage analytics |
+| `specGofer.templateSource` | `"github"` | Template source: "github" or "bundled" |
+| `specGofer.updateCheckInterval` | `86400000` | Update check interval in milliseconds |
+| `specGofer.branchSpecificSpecs` | `true` | Reload specs when switching branches |
 
 ## 🔧 Troubleshooting
 

@@ -256,7 +256,7 @@ suite('E2E GitHub API Tests', () => {
 
       // Execute the initialize command
       try {
-        await vscode.commands.executeCommand('specKit.initialize');
+        await vscode.commands.executeCommand('specGofer.initialize');
         
         // Verify the command completed (no exception thrown)
         assert.ok(true, 'Initialize command should execute without errors');
@@ -281,7 +281,7 @@ suite('E2E GitHub API Tests', () => {
       }
 
       try {
-        await vscode.commands.executeCommand('specKit.updateTemplates');
+        await vscode.commands.executeCommand('specGofer.updateTemplates');
         assert.ok(true, 'Update templates command should execute');
       } catch (error) {
         console.warn('Update templates command failed in test environment:', error);
@@ -295,7 +295,7 @@ suite('E2E GitHub API Tests', () => {
       }
 
       try {
-        await vscode.commands.executeCommand('specKit.checkForUpdates');
+        await vscode.commands.executeCommand('specGofer.checkForUpdates');
         assert.ok(true, 'Check for updates command should execute');
       } catch (error) {
         console.warn('Check for updates command failed in test environment:', error);

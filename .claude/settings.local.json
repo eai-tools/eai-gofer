@@ -51,7 +51,8 @@
       "Bash(bash:*)",
       "Bash(npm run test:*)",
       "Bash(npm run typecheck:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(npm run lint)"
     ],
     "deny": [],
     "ask": []

@@ -40,8 +40,10 @@
     "@anthropic-ai/sdk": "^0.32.1",
     "chokidar": "^4.0.3",
     "dotenv": "^16.4.5",
+    "gray-matter": "^4.0.3",
     "qrcode-terminal": "^0.12.0",
     "whatsapp-web.js": "^1.34.1",
+    "winston": "^3.17.0",
     "ws": "^8.18.0",
     "zod": "^3.24.1"
   },

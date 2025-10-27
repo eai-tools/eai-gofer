@@ -34,7 +34,7 @@ class ConstitutionItem extends vscode.TreeItem {
       this.tooltip = `Article ${article.number}: ${article.title}`;
       // Add click command to show article details
       this.command = {
-        command: 'specKit.showArticleDetails',
+        command: 'specGofer.showArticleDetails',
         title: 'Show Article Details',
         arguments: [article]
       };
@@ -46,7 +46,7 @@ class ConstitutionItem extends vscode.TreeItem {
       this.description = section.number;
       // Add click command to show section details
       this.command = {
-        command: 'specKit.showSectionDetails',
+        command: 'specGofer.showSectionDetails',
         title: 'Show Section Details',
         arguments: [section, article]
       };

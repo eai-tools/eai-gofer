@@ -40,15 +40,15 @@ export const MCP_TOOLS = {
 
 // Commands
 export const COMMANDS = {
-  initialize: 'specKit.initialize',
-  upgrade: 'specKit.upgrade',
-  checkVersion: 'specKit.checkVersion',
-  refreshSpecs: 'specKit.refreshSpecs',
-  refreshConstitution: 'specKit.refreshConstitution',
-  showProgress: 'specKit.showProgress',
-  showConstitution: 'specKit.showConstitution',
-  checkForUpdates: 'specKit.checkForUpdates',
-  updateNow: 'specKit.updateNow',
+  initialize: 'specGofer.initialize',
+  upgrade: 'specGofer.upgrade',
+  checkVersion: 'specGofer.checkVersion',
+  refreshSpecs: 'specGofer.refreshSpecs',
+  refreshConstitution: 'specGofer.refreshConstitution',
+  showProgress: 'specGofer.showProgress',
+  showConstitution: 'specGofer.showConstitution',
+  checkForUpdates: 'specGofer.checkForUpdates',
+  updateNow: 'specGofer.updateNow',
 } as const;
 
 // View IDs
@@ -60,13 +60,13 @@ export const VIEWS = {
 
 // Configuration keys
 export const CONFIG_KEYS = {
-  anthropicApiKey: 'specKit.anthropicApiKey',
-  autoInitialize: 'specKit.autoInitialize',
-  preferredAi: 'specKit.preferredAI',
-  autoUpdateCheck: 'specKit.autoUpdateCheck',
-  telemetryEnabled: 'specKit.telemetryEnabled',
-  updateCheckInterval: 'specKit.updateCheckInterval',
-  performanceMode: 'specKit.performanceMode',
+  anthropicApiKey: 'specGofer.anthropicApiKey',
+  autoInitialize: 'specGofer.autoInitialize',
+  preferredAi: 'specGofer.preferredAI',
+  autoUpdateCheck: 'specGofer.autoUpdateCheck',
+  telemetryEnabled: 'specGofer.telemetryEnabled',
+  updateCheckInterval: 'specGofer.updateCheckInterval',
+  performanceMode: 'specGofer.performanceMode',
 } as const;
 
 // Default values
@@ -97,7 +97,7 @@ export class ConfigManager {
   private config: vscode.WorkspaceConfiguration;
 
   private constructor() {
-    this.config = vscode.workspace.getConfiguration('specKit');
+    this.config = vscode.workspace.getConfiguration('specGofer');
   }
 
   public static getInstance(): ConfigManager {
@@ -111,63 +111,63 @@ export class ConfigManager {
    * Refresh configuration (call when settings change)
    */
   public refresh(): void {
-    this.config = vscode.workspace.getConfiguration('specKit');
+    this.config = vscode.workspace.getConfiguration('specGofer');
   }
 
   /**
    * Get Anthropic API key
    */
   public getAnthropicApiKey(): string {
-    return this.config.get<string>(CONFIG_KEYS.anthropicApiKey.replace('specKit.', ''), '') || '';
+    return this.config.get<string>(CONFIG_KEYS.anthropicApiKey.replace('specGofer.', ''), '') || '';
   }
 
   /**
    * Get auto-initialize setting
    */
   public getAutoInitialize(): boolean {
-    return this.config.get<boolean>(CONFIG_KEYS.autoInitialize.replace('specKit.', ''), DEFAULTS.autoInitialize);
+    return this.config.get<boolean>(CONFIG_KEYS.autoInitialize.replace('specGofer.', ''), DEFAULTS.autoInitialize);
   }
 
   /**
    * Set auto-initialize setting
    */
   public async setAutoInitialize(value: boolean, target: vscode.ConfigurationTarget = vscode.ConfigurationTarget.Global): Promise<void> {
-    await this.config.update(CONFIG_KEYS.autoInitialize.replace('specKit.', ''), value, target);
+    await this.config.update(CONFIG_KEYS.autoInitialize.replace('specGofer.', ''), value, target);
   }
 
   /**
    * Get preferred AI setting
    */
   public getPreferredAI(): string {
-    return this.config.get<string>(CONFIG_KEYS.preferredAi.replace('specKit.', ''), DEFAULTS.preferredAi);
+    return this.config.get<string>(CONFIG_KEYS.preferredAi.replace('specGofer.', ''), DEFAULTS.preferredAi);
   }
 
   /**
    * Get auto-update check setting
    */
   public getAutoUpdateCheck(): boolean {
-    return this.config.get<boolean>(CONFIG_KEYS.autoUpdateCheck.replace('specKit.', ''), DEFAULTS.autoUpdateCheck);
+    return this.config.get<boolean>(CONFIG_KEYS.autoUpdateCheck.replace('specGofer.', ''), DEFAULTS.autoUpdateCheck);
   }
 
   /**
    * Get telemetry enabled setting
    */
   public getTelemetryEnabled(): boolean {
-    return this.config.get<boolean>(CONFIG_KEYS.telemetryEnabled.replace('specKit.', ''), DEFAULTS.telemetryEnabled);
+    return this.config.get<boolean>(CONFIG_KEYS.telemetryEnabled.replace('specGofer.', ''), DEFAULTS.telemetryEnabled);
   }
 
   /**
    * Get update check interval
    */
   public getUpdateCheckInterval(): number {
-    return this.config.get<number>(CONFIG_KEYS.updateCheckInterval.replace('specKit.', ''), DEFAULTS.updateCheckInterval);
+    return this.config.get<number>(CONFIG_KEYS.updateCheckInterval.replace('specGofer.', ''), DEFAULTS.updateCheckInterval);
   }
 
   /**
    * Get performance mode
    */
   public getPerformanceMode(): 'fast' | 'balanced' | 'thorough' {
-    return this.config.get<'fast' | 'balanced' | 'thorough'>(CONFIG_KEYS.performanceMode.replace('specKit.', ''), DEFAULTS.performanceMode as 'balanced');
+    return this.config.get<'fast' | 'balanced' | 'thorough'>(CONFIG_KEYS.performanceMode.replace('specGofer.', ''), DEFAULTS.performanceMode as 'balanced');
   }
 
   /**

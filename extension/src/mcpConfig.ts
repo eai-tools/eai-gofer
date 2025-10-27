@@ -35,7 +35,7 @@ export class MCPConfigHelper {
     );
 
     // Get API key from VSCode settings or environment variable
-    const config = vscode.workspace.getConfiguration('specKit');
+    const config = vscode.workspace.getConfiguration('specGofer');
     const apiKey = config.get<string>('anthropicApiKey') || '${env:ANTHROPIC_API_KEY}';
 
     // MCP configuration
@@ -146,7 +146,7 @@ export class MCPConfigHelper {
         await this.createOrUpdateConfig();
 
         // Check if API key is set in settings or environment
-        const config = vscode.workspace.getConfiguration('specKit');
+        const config = vscode.workspace.getConfiguration('specGofer');
         const settingsApiKey = config.get<string>('anthropicApiKey');
         const hasApiKey = !!settingsApiKey || !!process.env.ANTHROPIC_API_KEY;
 
@@ -160,7 +160,7 @@ export class MCPConfigHelper {
           );
 
           if (settingChoice === 'Open Settings') {
-            vscode.commands.executeCommand('workbench.action.openSettings', 'specKit.anthropicApiKey');
+            vscode.commands.executeCommand('workbench.action.openSettings', 'specGofer.anthropicApiKey');
           }
         } else {
           vscode.window.showInformationMessage(

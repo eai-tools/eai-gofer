@@ -34,7 +34,7 @@ class MemoryItem extends vscode.TreeItem {
       this.tooltip = `Memory document: ${document.name}`;
       // Add click command to open document in preview
       this.command = {
-        command: 'specKit.showMemoryDocument',
+        command: 'specGofer.showMemoryDocument',
         title: 'Show Memory Document',
         arguments: [document]
       };
@@ -45,7 +45,7 @@ class MemoryItem extends vscode.TreeItem {
       this.tooltip = `${section.title} (line ${section.line})`;
       // Add click command to show section in document
       this.command = {
-        command: 'specKit.showMemorySection',
+        command: 'specGofer.showMemorySection',
         title: 'Show Memory Section',
         arguments: [section, document]
       };

@@ -102,7 +102,7 @@ describe('MCPToolHandler', () => {
           expect.stringContaining('Security Violation')
         );
         expect(mockConnection.sendNotification).toHaveBeenCalledWith(
-          'specKit/securityViolation',
+          'specGofer/securityViolation',
           expect.objectContaining({
             type: 'SECURITY_VIOLATION',
             message: 'Path traversal attempt in specId'

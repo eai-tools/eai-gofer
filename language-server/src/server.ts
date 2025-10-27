@@ -311,7 +311,7 @@ connection.onInitialized(() => {
  * LSP Custom Method: specKit/getSpecs
  * Returns all specifications from .specify/specs/
  */
-connection.onRequest('specKit/getSpecs', async (): Promise<{
+connection.onRequest('specGofer/getSpecs', async (): Promise<{
   success: boolean;
   specs?: unknown[];
   error?: string;
@@ -342,7 +342,7 @@ connection.onRequest('specKit/getSpecs', async (): Promise<{
  * Returns full context for a specific task
  */
 connection.onRequest(
-  'specKit/executeTask',
+  'specGofer/executeTask',
     async (params: { specId: string; taskId: string; context?: unknown }): Promise<{
     success: boolean;
     task?: unknown;
@@ -390,7 +390,7 @@ connection.onRequest(
  * Updates task status in specification file
  */
 connection.onRequest(
-  'specKit/updateTaskStatus',
+  'specGofer/updateTaskStatus',
   async (params: { specId: string; taskId: string; status: string }): Promise<{
     success: boolean;
     error?: string;
@@ -413,7 +413,7 @@ connection.onRequest(
       logger.info(`Updated task ${params.taskId} in spec ${params.specId} to status: ${params.status}`);
 
       // Notify extension of progress
-      connection.sendNotification('specKit/taskProgress', {
+      connection.sendNotification('specGofer/taskProgress', {
         specId: params.specId,
         taskId: params.taskId,
         status: params.status,

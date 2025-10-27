@@ -16,12 +16,24 @@ class SpecItem extends vscode.TreeItem {
       this.description = this.getSpecStatus(spec);
       this.iconPath = new vscode.ThemeIcon(this.getSpecIcon(spec));
       this.contextValue = 'spec';
+      // Add click command to show spec details
+      this.command = {
+        command: 'specKit.showSpecDetails',
+        title: 'Show Spec Details',
+        arguments: [spec]
+      };
     } else if (task) {
       // This is a task item
       this.tooltip = task.description;
       this.description = this.getTaskDescription(task);
       this.iconPath = new vscode.ThemeIcon(this.getTaskIcon(task));
       this.contextValue = 'task';
+      // Add click command to show task details
+      this.command = {
+        command: 'specKit.showTaskDetails',
+        title: 'Show Task Details',
+        arguments: [task, spec]
+      };
     }
   }
 
@@ -30,20 +42,40 @@ class SpecItem extends vscode.TreeItem {
     const completed = spec.tasks.filter((t) => t.status === 'completed').length;
     const failed = spec.tasks.filter((t) => t.status === 'failed').length;
     const inProgress = spec.tasks.filter((t) => t.status === 'in_progress').length;
+    const testing = spec.tasks.filter((t) => t.status === 'testing').length;
+    const blocked = spec.tasks.filter((t) => t.status === 'blocked').length;
 
     const parts: string[] = [];
 
+    // Show Harvey ball / percentage
+    const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+    const harveyBall = this.getHarveyBall(percentage);
+    parts.push(`${harveyBall} ${percentage}%`);
+
+    // Show active states
     if (inProgress > 0) {
       parts.push(`${inProgress} in progress`);
     }
-
-    parts.push(`${completed}/${total}`);
-
+    if (testing > 0) {
+      parts.push(`${testing} testing`);
+    }
+    if (blocked > 0) {
+      parts.push(`${blocked} blocked`);
+    }
     if (failed > 0) {
       parts.push(`${failed} failed`);
     }
 
     return parts.join(' • ');
+  }
+
+  private getHarveyBall(percentage: number): string {
+    // Harvey ball representation using Unicode
+    if (percentage === 0) return '○'; // Empty circle
+    if (percentage <= 25) return '◔'; // Quarter filled
+    if (percentage <= 50) return '◑'; // Half filled
+    if (percentage <= 75) return '◕'; // Three quarters filled
+    return '●'; // Full circle
   }
 
   private getSpecIcon(spec: Spec): string {

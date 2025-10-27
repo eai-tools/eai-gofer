@@ -32,12 +32,24 @@ class ConstitutionItem extends vscode.TreeItem {
       this.iconPath = new vscode.ThemeIcon('law');
       this.contextValue = 'article';
       this.tooltip = `Article ${article.number}: ${article.title}`;
+      // Add click command to show article details
+      this.command = {
+        command: 'specKit.showArticleDetails',
+        title: 'Show Article Details',
+        arguments: [article]
+      };
     } else if (section) {
       // This is a section item
       this.iconPath = new vscode.ThemeIcon('chevron-right');
       this.contextValue = 'section';
       this.tooltip = section.content.substring(0, 200) + '...';
       this.description = section.number;
+      // Add click command to show section details
+      this.command = {
+        command: 'specKit.showSectionDetails',
+        title: 'Show Section Details',
+        arguments: [section, article]
+      };
     }
   }
 }

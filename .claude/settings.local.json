@@ -42,7 +42,15 @@
       "Bash(/Applications/Visual\\ Studio\\ Code.app/Contents/Resources/app/bin/code:*)",
       "Bash(git restore:*)",
       "Bash(curl:*)",
-      "Bash(code --list-extensions --show-versions:*)"
+      "Bash(code --list-extensions --show-versions:*)",
+      "Bash(/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code --install-extension extension/specgofer-1.12.10.vsix --force)",
+      "Bash(/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code --install-extension specgofer-1.12.10.vsix --force)",
+      "SlashCommand(/speckit.specify)",
+      "Bash(.specify/scripts/bash/check-prerequisites.sh:*)",
+      "Bash(.specify/scripts/bash/setup-plan.sh:*)",
+      "Bash(bash:*)",
+      "Bash(npm run test:*)",
+      "Bash(npm run typecheck:*)"
     ],
     "deny": [],
     "ask": []

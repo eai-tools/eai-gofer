@@ -2,7 +2,7 @@
   "name": "specgofer",
   "displayName": "SpecGofer (Enterprise AI) [PREVIEW]",
   "description": "Spec-driven development for AI. Exposes 6 MCP tools that let Claude Code and GitHub Copilot autonomously implement features from GitHub Spec Kit specifications.",
-  "version": "1.13.0",
+  "version": "1.14.0",
   "publisher": "EnterpriseAI",
   "icon": "icon.png",
   "author": {

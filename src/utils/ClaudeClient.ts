@@ -103,7 +103,12 @@ export class ClaudeClient {
           return '';
         }
 
-        return response.content[0].text;
+        const firstBlock = response.content[0];
+        if (firstBlock.type === 'text') {
+          return firstBlock.text;
+        }
+
+        return '';
       } catch (error: any) {
         // Handle rate limiting
         if (error.status === 429) {

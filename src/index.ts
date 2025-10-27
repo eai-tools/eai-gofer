@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { AutonomousOrchestrator } from './orchestrator/AutonomousOrchestrator.js';
+import { AutonomousOrchestrator } from './orchestrator/AutonomousOrchestrator_new.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -40,23 +40,18 @@ async function main(): Promise<void> {
 ${notificationStatus}
 `);
 
-  const orchestrator = new AutonomousOrchestrator(
-    specDir,
-    apiKey,
-    whatsappConfig,
-    workspaceDir
-  );
+  const orchestrator = new AutonomousOrchestrator(specDir);
 
   // Handle graceful shutdown
   let isShuttingDown = false;
-  
+
   const shutdown = (): void => {
     if (isShuttingDown) {return;}
     isShuttingDown = true;
-    
+
     process.stderr.write('\n\n🛑 Received shutdown signal...\n');
     orchestrator.stop();
-    
+
     setTimeout(() => {
       process.stderr.write('👋 Goodbye!\n');
       process.exit(0);
@@ -66,15 +61,8 @@ ${notificationStatus}
   process.on('SIGINT', shutdown);
   process.on('SIGTERM', shutdown);
 
-  // Status monitoring
-  setInterval(() => {
-    const status = orchestrator.getStatus();
-    if (status.currentTask) {
-      process.stdout.write(`\n📊 Status: ${status.currentTask.id} - ${status.currentTask.description.substring(0, 50)}...\n`);
-    }
-  }, 30000); // Log status every 30 seconds
-
   // Start the autonomous execution
+  process.stdout.write('\n🚀 Starting autonomous orchestrator...\n\n');
   await orchestrator.start();
 }
 

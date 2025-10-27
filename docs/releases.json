@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.13.0",
+  "latest_version": "1.14.0",
   "repository": "eai-tools/specgofer",
-  "last_updated": "2025-10-27T02:36:12.572Z",
+  "last_updated": "2025-10-27T05:14:38.455Z",
   "releases": [
+    {
+      "version": "1.14.0",
+      "tag_name": "v1.14.0",
+      "published_at": "2025-10-27T05:14:38.454Z",
+      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-1.14.0.vsix",
+      "notes": "Auto-release",
+      "prerelease": false,
+      "size_mb": 8.8
+    },
     {
       "version": "1.13.0",
       "tag_name": "v1.13.0",
@@ -83,15 +92,6 @@
       "notes": "New release",
       "prerelease": false,
       "size_mb": 8.8
-    },
-    {
-      "version": "1.11.0",
-      "tag_name": "v1.11.0",
-      "published_at": "2025-10-25T03:28:41.816Z",
-      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-1.11.0.vsix",
-      "notes": "Fix branch-info.json location and simplify BranchSpecManager",
-      "prerelease": false,
-      "size_mb": 8.5
     }
   ]
 }

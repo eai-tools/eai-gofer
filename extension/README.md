@@ -90,6 +90,48 @@ The extension automatically configures Claude Code integration:
 2. The extension creates `.vscode/mcp.json` automatically
 3. Claude Code can now access MCP tools for spec management
 
+## 📝 Markdown Viewing Options
+
+SpecGofer supports multiple ways to view and edit your specifications, constitution, and memory documents. By default, it uses VSCode's built-in markdown preview (read-only), but you can install WYSIWYG editors for a better editing experience.
+
+### Available Viewers
+
+#### VSCode Preview (Default - Built-in)
+- No installation needed
+- Read-only viewing
+- Fast and lightweight
+
+#### Mark Sharp (Recommended for WYSIWYG)
+- **Install**: [Mark Sharp Extension](https://marketplace.visualstudio.com/items?itemName=JonathanYeung.mark-sharp)
+- Fast WYSIWYG editor with live preview
+- Best for quick edits while seeing rendered output
+
+#### Markdown Editor by zaaack
+- **Install**: [Markdown Editor Extension](https://marketplace.visualstudio.com/items?itemName=zaaack.markdown-editor)
+- Feature-rich WYSIWYG with formatting toolbar
+- Best for complex documents with tables and formatting
+
+#### Markdown WYSIWYG
+- **Install**: [Markdown WYSIWYG Extension](https://marketplace.visualstudio.com/items?itemName=adamerose.markdown-wysiwyg)
+- Simple WYSIWYG toggle
+- Best for basic editing with visual feedback
+
+### How to Use
+
+**Set Default Viewer:**
+1. Open VSCode Settings (`Cmd+,` or `Ctrl+,`)
+2. Search for "SpecGofer Markdown Viewer"
+3. Choose your preferred viewer: `preview`, `mark-sharp`, `markdown-editor`, or `markdown-wysiwyg`
+
+**Use Context Menu:**
+Right-click any item in the SpecGofer sidebar (Specifications, Constitution, or Memory) and choose:
+- **Open with Preview** - VSCode's built-in preview
+- **Open with Mark Sharp** - Mark Sharp WYSIWYG
+- **Open with Markdown Editor** - Markdown Editor
+- **Open with Markdown WYSIWYG** - Markdown WYSIWYG
+
+This allows you to choose different viewers for different documents without changing your default setting.
+
 ## 📋 Commands
 
 | Command | Keyboard Shortcut | Description |
@@ -131,12 +173,13 @@ Configure the extension through VS Code settings:
 
 ```json
 {
-  "specgofer.autoRefresh": true,
-  "specgofer.showNotifications": true,
-  "specgofer.telemetryEnabled": false,
-  "specgofer.templateSource": "github",
-  "specgofer.updateCheckInterval": 86400000,
-  "specgofer.branchSpecificSpecs": true
+  "specKit.markdownViewer": "preview",
+  "specKit.autoRefresh": true,
+  "specKit.showNotifications": true,
+  "specKit.telemetryEnabled": false,
+  "specKit.templateSource": "github",
+  "specKit.updateCheckInterval": 86400000,
+  "specKit.branchSpecificSpecs": true
 }
 ```
 
@@ -144,12 +187,13 @@ Configure the extension through VS Code settings:
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| `specgofer.autoRefresh` | `true` | Auto-refresh panels on file changes |
-| `specgofer.showNotifications` | `true` | Show update and status notifications |
-| `specgofer.telemetryEnabled` | `false` | Enable anonymous usage analytics |
-| `specgofer.templateSource` | `"github"` | Template source: "github" or "bundled" |
-| `specgofer.updateCheckInterval` | `86400000` | Update check interval in milliseconds |
-| `specgofer.branchSpecificSpecs` | `true` | Reload specs when switching branches |
+| `specKit.markdownViewer` | `"preview"` | Markdown viewer: "preview", "mark-sharp", "markdown-editor", or "markdown-wysiwyg" |
+| `specKit.autoRefresh` | `true` | Auto-refresh panels on file changes |
+| `specKit.showNotifications` | `true` | Show update and status notifications |
+| `specKit.telemetryEnabled` | `false` | Enable anonymous usage analytics |
+| `specKit.templateSource` | `"github"` | Template source: "github" or "bundled" |
+| `specKit.updateCheckInterval` | `86400000` | Update check interval in milliseconds |
+| `specKit.branchSpecificSpecs` | `true` | Reload specs when switching branches |
 
 ## 🔧 Troubleshooting
 

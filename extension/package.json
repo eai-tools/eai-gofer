@@ -92,6 +92,14 @@
         "command": "specKit.createSpec",
         "title": "SpecGofer: Create New Specification",
         "icon": "$(file-add)"
+      },
+      {
+        "command": "specKit.showSpecDetails",
+        "title": "SpecGofer: Show Specification Details"
+      },
+      {
+        "command": "specKit.showSectionDetails",
+        "title": "SpecGofer: Show Constitution Section Details"
       }
     ],
     "keybindings": [

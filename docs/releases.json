@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.14.0",
+  "latest_version": "1.15.0",
   "repository": "eai-tools/specgofer",
-  "last_updated": "2025-10-27T05:14:38.455Z",
+  "last_updated": "2025-10-27T19:35:24.953Z",
   "releases": [
+    {
+      "version": "1.15.0",
+      "tag_name": "v1.15.0",
+      "published_at": "2025-10-27T19:35:24.953Z",
+      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-1.15.0.vsix",
+      "notes": "Auto-release",
+      "prerelease": false,
+      "size_mb": 8.8
+    },
     {
       "version": "1.14.0",
       "tag_name": "v1.14.0",
@@ -81,15 +90,6 @@
       "published_at": "2025-10-26T04:33:09.720Z",
       "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-1.12.3.vsix",
       "notes": "Fix fallback setup when spec-kit CLI fails + improve release automation",
-      "prerelease": false,
-      "size_mb": 8.8
-    },
-    {
-      "version": "1.12.1",
-      "tag_name": "v1.12.1",
-      "published_at": "2025-10-25T18:57:19.945Z",
-      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-1.12.1.vsix",
-      "notes": "New release",
       "prerelease": false,
       "size_mb": 8.8
     }

@@ -65,6 +65,42 @@ created: "2025-10-20"
 **Key Pattern**: The extension uses `specKitParser.ts` to extract YAML
 frontmatter and parse Markdown task lists with dependencies.
 
+## SpecGofer Autonomous Workflow (For Users)
+
+When users ask "how do I use this?" or "how does this work?", guide them through this workflow:
+
+### The Complete Autonomous Workflow
+
+```bash
+# Step 1: Create specification
+/speckit.specify
+# User provides: "Build a feature that does X"
+# Output: .specify/specs/NNN-feature/spec.md
+
+# Step 2: Generate implementation plan
+/speckit.plan
+# Output: plan.md, tasks.md with all tasks and dependencies
+
+# Step 3: (Optional) Clarify ambiguities
+/speckit.clarify
+
+# Step 4: (Optional) Validate consistency
+/speckit.analyze
+
+# Step 5: AUTONOMOUS IMPLEMENTATION
+/speckit.implement
+# SpecGofer will autonomously:
+# - Read all tasks from tasks.md
+# - Implement each task in dependency order
+# - Run tests after each implementation
+# - Fix failures (up to 3 retries)
+# - Update task status automatically
+# - KEEP GOING until all tasks complete!
+```
+
+**Key Point**: Users do NOT need to prompt for each task. `/speckit.implement` runs autonomously until done!
+Refer users to QUICKSTART.md for detailed walkthrough.
+
 ## Developer Workflows
 
 ### Build & Run

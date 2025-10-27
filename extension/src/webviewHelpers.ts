@@ -2,6 +2,124 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 
 /**
+ * Open a markdown file with the user's preferred viewer
+ */
+async function openMarkdownFile(uri: vscode.Uri): Promise<void> {
+  const config = vscode.workspace.getConfiguration('specKit');
+  const viewer = config.get<string>('markdownViewer', 'preview');
+
+  await openMarkdownFileWith(uri, viewer);
+}
+
+/**
+ * Open a markdown file with a specific viewer
+ */
+async function openMarkdownFileWith(uri: vscode.Uri, viewer: string): Promise<void> {
+  switch (viewer) {
+    case 'mark-sharp':
+      // Open with Mark Sharp - Fast WYSIWYG editor
+      try {
+        await vscode.window.showTextDocument(uri);
+        await vscode.commands.executeCommand('markSharp.switchEditorMode');
+      } catch (error) {
+        vscode.window.showErrorMessage('Mark Sharp extension not installed. Install it from the marketplace or change your viewer setting.');
+      }
+      break;
+
+    case 'markdown-editor':
+      // Open with Markdown Editor by zaaack
+      try {
+        await vscode.window.showTextDocument(uri);
+        await vscode.commands.executeCommand('markdown-editor.toggleEditor');
+      } catch (error) {
+        vscode.window.showErrorMessage('Markdown Editor extension not installed. Install it from the marketplace or change your viewer setting.');
+      }
+      break;
+
+    case 'markdown-wysiwyg':
+      // Open with Markdown WYSIWYG
+      try {
+        await vscode.window.showTextDocument(uri);
+        await vscode.commands.executeCommand('markdown-wysiwyg.toggle');
+      } catch (error) {
+        vscode.window.showErrorMessage('Markdown WYSIWYG extension not installed. Install it from the marketplace or change your viewer setting.');
+      }
+      break;
+
+    case 'preview':
+    default:
+      // VSCode built-in markdown preview
+      await vscode.commands.executeCommand('markdown.showPreview', uri);
+      break;
+  }
+}
+
+/**
+ * Get the URI for a tree view item (spec, constitution, or memory)
+ */
+function getUriForTreeItem(item: any): vscode.Uri | null {
+  const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+  if (!workspaceFolder) {
+    return null;
+  }
+
+  // Handle spec items
+  if (item.id && item.id.startsWith('spec-')) {
+    const specFile = path.join(workspaceFolder.uri.fsPath, '.specify', 'specs', item.id, 'spec.md');
+    return vscode.Uri.file(specFile);
+  }
+
+  // Handle memory items
+  if (item.path) {
+    return vscode.Uri.file(item.path);
+  }
+
+  // Handle constitution items
+  const constitutionFile = path.join(workspaceFolder.uri.fsPath, '.specify', 'memory', 'constitution.md');
+  return vscode.Uri.file(constitutionFile);
+}
+
+/**
+ * Open with Preview - context menu command
+ */
+export async function openWithPreview(item: any): Promise<void> {
+  const uri = getUriForTreeItem(item);
+  if (uri) {
+    await openMarkdownFileWith(uri, 'preview');
+  }
+}
+
+/**
+ * Open with Mark Sharp - context menu command
+ */
+export async function openWithMarkSharp(item: any): Promise<void> {
+  const uri = getUriForTreeItem(item);
+  if (uri) {
+    await openMarkdownFileWith(uri, 'mark-sharp');
+  }
+}
+
+/**
+ * Open with Markdown Editor - context menu command
+ */
+export async function openWithMarkdownEditor(item: any): Promise<void> {
+  const uri = getUriForTreeItem(item);
+  if (uri) {
+    await openMarkdownFileWith(uri, 'markdown-editor');
+  }
+}
+
+/**
+ * Open with Markdown WYSIWYG - context menu command
+ */
+export async function openWithMarkdownWYSIWYG(item: any): Promise<void> {
+  const uri = getUriForTreeItem(item);
+  if (uri) {
+    await openMarkdownFileWith(uri, 'markdown-wysiwyg');
+  }
+}
+
+/**
  * Show spec details using VSCode's native markdown preview
  */
 export async function showSpecDetailsWebview(context: vscode.ExtensionContext, spec: any) {
@@ -17,8 +135,8 @@ export async function showSpecDetailsWebview(context: vscode.ExtensionContext, s
     const uri = vscode.Uri.file(specFile);
     const doc = await vscode.workspace.openTextDocument(uri);
 
-    // Open in markdown preview
-    await vscode.commands.executeCommand('markdown.showPreview', uri);
+    // Open with user's preferred viewer
+    await openMarkdownFile(uri);
   } catch (error) {
     vscode.window.showErrorMessage(`Failed to open specification: ${error}`);
   }
@@ -67,8 +185,8 @@ async function openConstitutionPreview(): Promise<void> {
     const uri = vscode.Uri.file(constitutionFile);
     const doc = await vscode.workspace.openTextDocument(uri);
 
-    // Open in markdown preview
-    await vscode.commands.executeCommand('markdown.showPreview', uri);
+    // Open with user's preferred viewer
+    await openMarkdownFile(uri);
   } catch (error) {
     vscode.window.showErrorMessage(`Failed to open constitution: ${error}`);
   }
@@ -82,8 +200,8 @@ export async function showMemoryDocumentWebview(context: vscode.ExtensionContext
     const uri = vscode.Uri.file(document.path);
     const doc = await vscode.workspace.openTextDocument(uri);
 
-    // Open in markdown preview
-    await vscode.commands.executeCommand('markdown.showPreview', uri);
+    // Open with user's preferred viewer
+    await openMarkdownFile(uri);
   } catch (error) {
     vscode.window.showErrorMessage(`Failed to open memory document: ${error}`);
   }
@@ -109,8 +227,8 @@ export async function showMemorySectionWebview(context: vscode.ExtensionContext,
     editor.selection = new vscode.Selection(position, position);
     editor.revealRange(new vscode.Range(position, position), vscode.TextEditorRevealType.InCenter);
 
-    // Then show preview
-    await vscode.commands.executeCommand('markdown.showPreview', uri);
+    // Then show with user's preferred viewer
+    await openMarkdownFile(uri);
   } catch (error) {
     vscode.window.showErrorMessage(`Failed to open memory section: ${error}`);
   }

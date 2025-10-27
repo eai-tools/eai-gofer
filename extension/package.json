@@ -74,6 +74,11 @@
         "icon": "$(refresh)"
       },
       {
+        "command": "specKit.refreshMemory",
+        "title": "SpecGofer: Refresh Memory",
+        "icon": "$(refresh)"
+      },
+      {
         "command": "specKit.showConstitution",
         "title": "SpecGofer: Show Constitution Panel",
         "icon": "$(law)"
@@ -104,6 +109,14 @@
       {
         "command": "specKit.showArticleDetails",
         "title": "SpecGofer: Show Constitution Article Details"
+      },
+      {
+        "command": "specKit.showMemoryDocument",
+        "title": "SpecGofer: Show Memory Document"
+      },
+      {
+        "command": "specKit.showMemorySection",
+        "title": "SpecGofer: Show Memory Section"
       }
     ],
     "keybindings": [
@@ -162,6 +175,12 @@
           "name": "Constitution",
           "icon": "$(law)",
           "contextualTitle": "Project Principles"
+        },
+        {
+          "id": "specKitMemory",
+          "name": "Memory",
+          "icon": "$(database)",
+          "contextualTitle": "Project Memory"
         }
       ]
     },
@@ -186,6 +205,11 @@
         {
           "command": "specKit.refreshConstitution",
           "when": "view == specKitConstitution",
+          "group": "navigation"
+        },
+        {
+          "command": "specKit.refreshMemory",
+          "when": "view == specKitMemory",
           "group": "navigation"
         }
       ],

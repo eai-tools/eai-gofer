@@ -3,6 +3,7 @@ import * as path from 'path';
 import { SpecKitMigrator } from './specKitMigrator';
 import { ProgressProvider } from './progressProvider';
 import { ConstitutionProvider } from './constitutionProvider';
+import { MemoryProvider } from './memoryProvider';
 import { BranchSpecManager } from './branchSpecManager';
 import { AutoUpdater } from './autoUpdater';
 import { SpecGoferLSPClient } from './lspClient';
@@ -21,6 +22,7 @@ import { MCPConfigHelper } from './mcpConfig';
 
 let progressProvider: ProgressProvider | undefined;
 let constitutionProvider: ConstitutionProvider | undefined;
+let memoryProvider: MemoryProvider | undefined;
 let branchSpecManager: BranchSpecManager | undefined;
 let autoUpdater: AutoUpdater | undefined;
 let lspClient: SpecGoferLSPClient | undefined;
@@ -235,6 +237,13 @@ async function initializeProgressProvider(
     vscode.window.registerTreeDataProvider('specKitConstitution', constitutionProvider)
   );
 
+  // Initialize memory tree view
+  memoryProvider = new MemoryProvider(workspacePath);
+
+  context.subscriptions.push(
+    vscode.window.registerTreeDataProvider('specKitMemory', memoryProvider)
+  );
+
   // Watch for git branch changes
   const gitExtension = vscode.extensions.getExtension('vscode.git');
   if (gitExtension) {
@@ -322,6 +331,17 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('specKit.refreshConstitution', () => {
       if (constitutionProvider) {
         constitutionProvider.refresh();
+      } else {
+        vscode.window.showWarningMessage('No workspace with SpecGofer initialized');
+      }
+    })
+  );
+
+  // Refresh memory
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specKit.refreshMemory', () => {
+      if (memoryProvider) {
+        memoryProvider.refresh();
       } else {
         vscode.window.showWarningMessage('No workspace with SpecGofer initialized');
       }
@@ -595,6 +615,22 @@ How will success be measured?
     vscode.commands.registerCommand('specKit.showArticleDetails', async (article: any) => {
       const { showArticleDetailsWebview } = await import('./webviewHelpers');
       showArticleDetailsWebview(context, article);
+    })
+  );
+
+  // Show memory document command (from memory tree view clicks)
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specKit.showMemoryDocument', async (document: any) => {
+      const { showMemoryDocumentWebview } = await import('./webviewHelpers');
+      await showMemoryDocumentWebview(context, document);
+    })
+  );
+
+  // Show memory section command (from memory section clicks)
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specKit.showMemorySection', async (section: any, document: any) => {
+      const { showMemorySectionWebview } = await import('./webviewHelpers');
+      await showMemorySectionWebview(context, section, document);
     })
   );
 }

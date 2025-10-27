@@ -41,7 +41,7 @@ export class TaskQueue {
     const sorted: Task[] = [];
 
     const visit = (taskId: string): void => {
-      if (visited.has(taskId)) return;
+      if (visited.has(taskId)) {return;}
       if (visiting.has(taskId)) {
         throw new Error(`Circular dependency detected involving task ${taskId}`);
       }

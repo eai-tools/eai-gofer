@@ -1,5 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { Spec, QARule } from '../types.js';
+import type { Specification, QARule, Task, AcceptanceCriterion } from '../types/index.js';
+
+type Spec = Specification;
 
 export class QAEngine {
   private anthropic: Anthropic;
@@ -19,10 +21,11 @@ export class QAEngine {
     // First, check if any QA rules match
     const ruleMatch = this.findMatchingRule(question);
     if (ruleMatch) {
+      const confidence = ruleMatch.confidence >= 80 ? 'high' : ruleMatch.confidence >= 60 ? 'medium' : 'low';
       return {
         answer: ruleMatch.answer,
-        confidence: ruleMatch.confidence,
-        needsHuman: ruleMatch.confidence === 'low',
+        confidence,
+        needsHuman: confidence === 'low',
         source: 'qa-rule'
       };
     }
@@ -73,11 +76,15 @@ ANSWER: [your answer or "NEEDS_HUMAN"]`
 
     for (const spec of this.specs) {
       for (const rule of spec.qaRules || []) {
-        const pattern = rule.question.toLowerCase();
+        const pattern = rule.pattern.toLowerCase();
 
         // Simple pattern matching (could be enhanced with regex)
         if (normalizedQuestion.includes(pattern) || pattern.includes(normalizedQuestion)) {
-          return rule;
+          return {
+            pattern: rule.pattern,
+            answer: rule.answer,
+            confidence: rule.confidence
+          };
         }
       }
     }
@@ -88,16 +95,15 @@ ANSWER: [your answer or "NEEDS_HUMAN"]`
   private buildSpecContext(): string {
     return this.specs.map(spec => `
 ## ${spec.title} (${spec.id})
-${spec.description}
 
 Tasks:
-${spec.tasks.map(t => `- ${t.description}`).join('\n')}
+${spec.tasks.map((t: Task) => `- ${t.description}`).join('\n')}
 
 Acceptance Criteria:
-${spec.acceptanceCriteria.map(ac => `- ${ac.description}`).join('\n')}
+${spec.acceptanceCriteria.map((ac: AcceptanceCriterion) => `- ${ac.description}`).join('\n')}
 
 QA Rules:
-${spec.qaRules?.map(qa => `Q: ${qa.question}\nA: ${qa.answer}`).join('\n') || 'None'}
+${spec.qaRules?.map((qa: QARule) => `Q: ${qa.pattern}\nA: ${qa.answer}`).join('\n') || 'None'}
 `).join('\n---\n');
   }
 

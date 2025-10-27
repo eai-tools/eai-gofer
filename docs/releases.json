@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.18.0",
+  "latest_version": "1.18.1",
   "repository": "eai-tools/specgofer",
-  "last_updated": "2025-10-27T21:45:24.404Z",
+  "last_updated": "2025-10-27T21:53:58.210Z",
   "releases": [
+    {
+      "version": "1.18.1",
+      "tag_name": "v1.18.1",
+      "published_at": "2025-10-27T21:53:58.209Z",
+      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-1.18.1.vsix",
+      "notes": "Auto-release",
+      "prerelease": false,
+      "size_mb": 8.8
+    },
     {
       "version": "1.18.0",
       "tag_name": "v1.18.0",
@@ -81,15 +90,6 @@
       "published_at": "2025-10-26T05:58:10.910Z",
       "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-1.12.9.vsix",
       "notes": "chore: pre-release changes\n\nAuto-committed changes before release v1.12.8",
-      "prerelease": false,
-      "size_mb": 8.8
-    },
-    {
-      "version": "1.12.8",
-      "tag_name": "v1.12.8",
-      "published_at": "2025-10-26T05:51:21.795Z",
-      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-1.12.8.vsix",
-      "notes": "Fix Initialize command to always trigger update flow for spec-kit format",
       "prerelease": false,
       "size_mb": 8.8
     }

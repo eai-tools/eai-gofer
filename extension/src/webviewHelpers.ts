@@ -5,7 +5,7 @@ import * as path from 'path';
  * Open a markdown file with the user's preferred viewer
  */
 async function openMarkdownFile(uri: vscode.Uri): Promise<void> {
-  const config = vscode.workspace.getConfiguration('specKit');
+  const config = vscode.workspace.getConfiguration('specGofer');
   const viewer = config.get<string>('markdownViewer', 'preview');
 
   await openMarkdownFileWith(uri, viewer);
@@ -20,7 +20,7 @@ async function openMarkdownFileWith(uri: vscode.Uri, viewer: string): Promise<vo
       // Open with Mark Sharp - Fast WYSIWYG editor
       try {
         await vscode.window.showTextDocument(uri);
-        await vscode.commands.executeCommand('markSharp.switchEditorMode');
+        await vscode.commands.executeCommand('mark-sharp.switch-editor-mode');
       } catch (error) {
         vscode.window.showErrorMessage('Mark Sharp extension not installed. Install it from the marketplace or change your viewer setting.');
       }

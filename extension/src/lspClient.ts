@@ -164,7 +164,7 @@ export class SpecGoferLSPClient {
     }
 
     // Handle task progress notifications
-    this.client.onNotification('specKit/taskProgress', (params: any) => {
+    this.client.onNotification('specGofer/taskProgress', (params: any) => {
       this.outputChannel.appendLine(
         `Task progress: ${params.specId}/${params.taskId} → ${params.status}`
       );
@@ -179,13 +179,13 @@ export class SpecGoferLSPClient {
    */
 
   async getSpecs(): Promise<any> {
-    return this.sendRequest('specKit/getSpecs', {
+    return this.sendRequest('specGofer/getSpecs', {
       workspaceRoot: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath,
     });
   }
 
   async executeTask(specId: string, taskId: string, context?: any): Promise<any> {
-    return this.sendRequest('specKit/executeTask', {
+    return this.sendRequest('specGofer/executeTask', {
       specId,
       taskId,
       context,
@@ -193,7 +193,7 @@ export class SpecGoferLSPClient {
   }
 
   async updateTaskStatus(specId: string, taskId: string, status: string): Promise<any> {
-    return this.sendRequest('specKit/updateTaskStatus', {
+    return this.sendRequest('specGofer/updateTaskStatus', {
       specId,
       taskId,
       status,

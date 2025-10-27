@@ -134,19 +134,19 @@ describe('Language Server', () => {
 
     it('should register specKit/getSpecs method', () => {
       const requestCalls = mockConnection.onRequest.mock.calls;
-      const hasGetSpecs = requestCalls.some(call => call[0] === 'specKit/getSpecs');
+      const hasGetSpecs = requestCalls.some(call => call[0] === 'specGofer/getSpecs');
       expect(hasGetSpecs).toBe(true);
     });
 
     it('should register specKit/executeTask method', () => {
       const requestCalls = mockConnection.onRequest.mock.calls;
-      const hasExecuteTask = requestCalls.some(call => call[0] === 'specKit/executeTask');
+      const hasExecuteTask = requestCalls.some(call => call[0] === 'specGofer/executeTask');
       expect(hasExecuteTask).toBe(true);
     });
 
     it('should register specKit/updateTaskStatus method', () => {
       const requestCalls = mockConnection.onRequest.mock.calls;
-      const hasUpdateTaskStatus = requestCalls.some(call => call[0] === 'specKit/updateTaskStatus');
+      const hasUpdateTaskStatus = requestCalls.some(call => call[0] === 'specGofer/updateTaskStatus');
       expect(hasUpdateTaskStatus).toBe(true);
     });
   });

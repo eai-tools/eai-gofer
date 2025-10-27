@@ -227,21 +227,21 @@ async function initializeProgressProvider(
   progressProvider = new ProgressProvider(workspacePath, branchSpecManager);
 
   context.subscriptions.push(
-    vscode.window.registerTreeDataProvider('specKitProgress', progressProvider)
+    vscode.window.registerTreeDataProvider('specGoferProgress', progressProvider)
   );
 
   // Initialize constitution tree view
   constitutionProvider = new ConstitutionProvider(workspacePath);
 
   context.subscriptions.push(
-    vscode.window.registerTreeDataProvider('specKitConstitution', constitutionProvider)
+    vscode.window.registerTreeDataProvider('specGoferConstitution', constitutionProvider)
   );
 
   // Initialize memory tree view
   memoryProvider = new MemoryProvider(workspacePath);
 
   context.subscriptions.push(
-    vscode.window.registerTreeDataProvider('specKitMemory', memoryProvider)
+    vscode.window.registerTreeDataProvider('specGoferMemory', memoryProvider)
   );
 
   // Watch for git branch changes
@@ -261,7 +261,7 @@ async function initializeProgressProvider(
   vscode.commands.executeCommand('setContext', 'specKitActive', true);
 
   // Show the Spec Kit view
-  vscode.commands.executeCommand('specKitProgress.focus');
+  vscode.commands.executeCommand('specGoferProgress.focus');
 }
 
 async function handleBranchChange() {
@@ -282,14 +282,14 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
   // Show progress panel
   context.subscriptions.push(
     vscode.commands.registerCommand('specGofer.showProgress', () => {
-      vscode.commands.executeCommand('specKitProgress.focus');
+      vscode.commands.executeCommand('specGoferProgress.focus');
     })
   );
 
   // Show constitution panel
   context.subscriptions.push(
     vscode.commands.registerCommand('specGofer.showConstitution', () => {
-      vscode.commands.executeCommand('specKitConstitution.focus');
+      vscode.commands.executeCommand('specGoferConstitution.focus');
     })
   );
 

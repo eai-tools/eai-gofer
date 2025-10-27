@@ -50,7 +50,8 @@
       "Bash(.specify/scripts/bash/setup-plan.sh:*)",
       "Bash(bash:*)",
       "Bash(npm run test:*)",
-      "Bash(npm run typecheck:*)"
+      "Bash(npm run typecheck:*)",
+      "Bash(rm:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,6 +1,36 @@
 import fs from 'fs/promises';
 import path from 'path';
-import { Spec, Task, SpecMetadata, ParsedSpec } from '../types.js';
+import type { Task, TaskStatus } from '../types/index.js';
+
+// Legacy type compatibility
+interface Spec {
+  id: string;
+  title: string;
+  description: string;
+  status: 'draft' | 'in_progress' | 'testing' | 'completed' | 'failed';
+  created: string;
+  updated: string;
+  priority: 'critical' | 'high' | 'medium' | 'low';
+  featureBranch?: string;
+  tasks: Task[];
+  acceptanceCriteria: Array<{ id: string; description: string; status: string }>;
+  qaRules: Array<{ pattern: string; answer: string; confidence: number }>;
+}
+
+interface SpecMetadata {
+  title?: string;
+  branch?: string;
+  created?: string;
+  status?: 'draft' | 'in_progress' | 'testing' | 'completed' | 'failed';
+  input?: string;
+  id?: string;
+  [key: string]: string | undefined;
+}
+
+interface ParsedSpec {
+  metadata: SpecMetadata;
+  content: string;
+}
 
 export class SpecLoader {
   private specDir: string;
@@ -161,15 +191,18 @@ export class SpecLoader {
       // Load tasks if they exist
       const tasks = await this.loadSpecKitTasks(specId);
 
+      const now = new Date().toISOString();
       return {
         id: frontmatter.id || specId,
         title: frontmatter.title || 'Untitled',
         status: (frontmatter.status as 'draft' | 'in_progress' | 'testing' | 'completed' | 'failed') || 'draft',
-        created: frontmatter.created || new Date().toISOString(),
+        created: frontmatter.created || now,
+        updated: now,
+        priority: 'medium' as const,
         featureBranch: frontmatter.branch || frontmatter.id,
         description: markdownContent.split('\n').slice(0, 3).join('\n'),
         tasks: tasks,
-        acceptanceCriteria: [], // TODO: Parse from spec content if needed
+        acceptanceCriteria: [],
         qaRules: []
       };
     } catch (error) {
@@ -195,13 +228,15 @@ export class SpecLoader {
         if (taskMatch) {
           const isCompleted = taskMatch[1] === 'x';
           const description = taskMatch[2];
-          
+
           tasks.push({
             id: `task-${tasks.length + 1}`,
+            specId,
             description,
-            status: isCompleted ? 'completed' : 'pending',
+            status: (isCompleted ? 'completed' : 'pending') as TaskStatus,
             dependencies: [],
-            deliveryPrompt: description
+            deliveryPrompt: description,
+            attemptCount: 0
           });
         }
       }

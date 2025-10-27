@@ -2,11 +2,11 @@
 import type { TestResult } from '../types/index.js';
 
 export class TestAgent {
-  async runTests(testCommand: string): Promise<TestResult> {
+  async runTests(testCommand: string, taskId = ''): Promise<TestResult> {
     // Simplified implementation
-    return {
+    const result: TestResult = {
       id: crypto.randomUUID(),
-      taskId: '',
+      taskId,
       timestamp: new Date().toISOString(),
       testType: 'unit',
       passed: true,
@@ -17,9 +17,22 @@ export class TestAgent {
       duration: 0,
       failures: [],
     };
+    return Promise.resolve(result);
   }
 
-  parseTestResults(output: string): TestResult {
-    return this.runTests('');
+  parseTestResults(output: string, taskId = ''): TestResult {
+    return {
+      id: crypto.randomUUID(),
+      taskId,
+      timestamp: new Date().toISOString(),
+      testType: 'unit',
+      passed: true,
+      totalTests: 0,
+      passedTests: 0,
+      failedTests: 0,
+      skippedTests: 0,
+      duration: 0,
+      failures: [],
+    };
   }
 }

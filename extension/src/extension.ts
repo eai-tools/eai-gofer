@@ -633,6 +633,35 @@ How will success be measured?
       await showMemorySectionWebview(context, section, document);
     })
   );
+
+  // Open With... context menu commands
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specKit.openWithPreview', async (item: any) => {
+      const { openWithPreview } = await import('./webviewHelpers');
+      await openWithPreview(item);
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specKit.openWithMarkSharp', async (item: any) => {
+      const { openWithMarkSharp } = await import('./webviewHelpers');
+      await openWithMarkSharp(item);
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specKit.openWithMarkdownEditor', async (item: any) => {
+      const { openWithMarkdownEditor } = await import('./webviewHelpers');
+      await openWithMarkdownEditor(item);
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specKit.openWithMarkdownWYSIWYG', async (item: any) => {
+      const { openWithMarkdownWYSIWYG } = await import('./webviewHelpers');
+      await openWithMarkdownWYSIWYG(item);
+    })
+  );
 }
 
 export async function deactivate() {

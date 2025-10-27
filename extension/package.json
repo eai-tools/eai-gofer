@@ -117,6 +117,22 @@
       {
         "command": "specKit.showMemorySection",
         "title": "SpecGofer: Show Memory Section"
+      },
+      {
+        "command": "specKit.openWithPreview",
+        "title": "Open with Preview"
+      },
+      {
+        "command": "specKit.openWithMarkSharp",
+        "title": "Open with Mark Sharp"
+      },
+      {
+        "command": "specKit.openWithMarkdownEditor",
+        "title": "Open with Markdown Editor"
+      },
+      {
+        "command": "specKit.openWithMarkdownWYSIWYG",
+        "title": "Open with Markdown WYSIWYG"
       }
     ],
     "keybindings": [
@@ -213,6 +229,28 @@
           "group": "navigation"
         }
       ],
+      "view/item/context": [
+        {
+          "command": "specKit.openWithPreview",
+          "when": "viewItem == spec || viewItem == constitution-article || viewItem == constitution-section || viewItem == memory-document || viewItem == memory-section",
+          "group": "openwith@1"
+        },
+        {
+          "command": "specKit.openWithMarkSharp",
+          "when": "viewItem == spec || viewItem == constitution-article || viewItem == constitution-section || viewItem == memory-document || viewItem == memory-section",
+          "group": "openwith@2"
+        },
+        {
+          "command": "specKit.openWithMarkdownEditor",
+          "when": "viewItem == spec || viewItem == constitution-article || viewItem == constitution-section || viewItem == memory-document || viewItem == memory-section",
+          "group": "openwith@3"
+        },
+        {
+          "command": "specKit.openWithMarkdownWYSIWYG",
+          "when": "viewItem == spec || viewItem == constitution-article || viewItem == constitution-section || viewItem == memory-document || viewItem == memory-section",
+          "group": "openwith@4"
+        }
+      ],
       "explorer/context": [
         {
           "command": "specKit.initialize",
@@ -299,6 +337,24 @@
           "type": "boolean",
           "default": true,
           "description": "Show welcome message and quick start when initializing"
+        },
+        "specKit.markdownViewer": {
+          "type": "string",
+          "enum": [
+            "preview",
+            "mark-sharp",
+            "markdown-editor",
+            "markdown-wysiwyg"
+          ],
+          "enumDescriptions": [
+            "VSCode's built-in Markdown Preview (read-only)",
+            "Mark Sharp - Fast WYSIWYG editor with live preview (requires extension: JonathanYeung.mark-sharp)",
+            "Markdown Editor - Feature-rich WYSIWYG editor (requires extension: zaaack.markdown-editor)",
+            "Markdown WYSIWYG - Simple WYSIWYG editor (requires extension: adamerose.markdown-wysiwyg)"
+          ],
+          "default": "preview",
+          "description": "Choose how to view markdown files when clicking tree view items",
+          "markdownDescription": "Choose how to view markdown files when clicking tree view items.\n\n**Recommended WYSIWYG Extensions:**\n- [Mark Sharp](https://marketplace.visualstudio.com/items?itemName=JonathanYeung.mark-sharp) - Fast & modern\n- [Markdown Editor](https://marketplace.visualstudio.com/items?itemName=zaaack.markdown-editor) - Feature-rich\n- [Markdown WYSIWYG](https://marketplace.visualstudio.com/items?itemName=adamerose.markdown-wysiwyg) - Simple"
         }
       }
     }

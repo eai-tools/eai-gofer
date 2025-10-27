@@ -50,6 +50,10 @@ export async function activate(context: vscode.ExtensionContext) {
     vscode.window.showErrorMessage(`SpecGofer Language Server failed to start: ${error}`);
   }
 
+  // Register tree views IMMEDIATELY (even if empty) so VSCode can find them
+  // This must happen before any commands that reference these views
+  registerTreeViews(context);
+
   // Register commands globally (before workspace check)
   // This ensures commands are always available even without a workspace
   registerGlobalCommands(context);
@@ -73,18 +77,60 @@ export async function activate(context: vscode.ExtensionContext) {
   });
 }
 
+/**
+ * Register tree views immediately on activation
+ * Views must be registered before commands that reference them
+ */
+function registerTreeViews(context: vscode.ExtensionContext) {
+  // Get workspace path (or use empty string if no workspace)
+  const workspacePath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '';
+
+  // Create providers with empty/initial state
+  // They will be properly initialized later when workspace is ready
+  progressProvider = new ProgressProvider(workspacePath, undefined);
+  constitutionProvider = new ConstitutionProvider(workspacePath);
+  memoryProvider = new MemoryProvider(workspacePath);
+
+  // Register tree data providers - MUST happen before commands are registered
+  context.subscriptions.push(
+    vscode.window.registerTreeDataProvider('specGoferProgress', progressProvider)
+  );
+
+  context.subscriptions.push(
+    vscode.window.registerTreeDataProvider('specGoferConstitution', constitutionProvider)
+  );
+
+  context.subscriptions.push(
+    vscode.window.registerTreeDataProvider('specGoferMemory', memoryProvider)
+  );
+
+  console.log('[SpecGofer] Tree views registered');
+}
+
 async function reinitializeExtension(context: vscode.ExtensionContext) {
   console.log('[SpecGofer] Workspace changed, reinitializing...');
 
-  // Dispose existing providers
-  if (progressProvider) {
-    progressProvider = undefined;
-  }
-  if (constitutionProvider) {
-    constitutionProvider = undefined;
-  }
-  if (branchSpecManager) {
-    branchSpecManager = undefined;
+  // Refresh the providers with new workspace data
+  const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+  if (workspaceFolder) {
+    const workspacePath = workspaceFolder.uri.fsPath;
+
+    // Reinitialize branch spec manager
+    if (branchSpecManager) {
+      branchSpecManager = new BranchSpecManager(workspacePath);
+      await branchSpecManager.initializeBranchStructure();
+    }
+
+    // Update providers with new workspace
+    if (progressProvider) {
+      progressProvider.refresh();
+    }
+    if (constitutionProvider) {
+      constitutionProvider.refresh();
+    }
+    if (memoryProvider) {
+      memoryProvider.refresh();
+    }
   }
 
   // Reinitialize for new workspace
@@ -135,7 +181,7 @@ async function handleNoSpecKit(
 ) {
   console.log('No .specify folder found');
 
-  const config = vscode.workspace.getConfiguration('specKit');
+  const config = vscode.workspace.getConfiguration('specGofer');
   const autoInit = config.get<boolean>('autoInitialize', false);
 
   if (autoInit) {
@@ -223,26 +269,20 @@ async function initializeProgressProvider(
   branchSpecManager = new BranchSpecManager(workspacePath);
   await branchSpecManager.initializeBranchStructure();
 
-  // Initialize the progress tree view with branch support
-  progressProvider = new ProgressProvider(workspacePath, branchSpecManager);
-
-  context.subscriptions.push(
-    vscode.window.registerTreeDataProvider('specGoferProgress', progressProvider)
-  );
-
-  // Initialize constitution tree view
-  constitutionProvider = new ConstitutionProvider(workspacePath);
-
-  context.subscriptions.push(
-    vscode.window.registerTreeDataProvider('specGoferConstitution', constitutionProvider)
-  );
-
-  // Initialize memory tree view
-  memoryProvider = new MemoryProvider(workspacePath);
-
-  context.subscriptions.push(
-    vscode.window.registerTreeDataProvider('specGoferMemory', memoryProvider)
-  );
+  // The providers are already registered - just refresh them with new data
+  // They will pick up the new branchSpecManager and workspacePath
+  if (progressProvider) {
+    // ProgressProvider needs to be updated with the branch manager
+    // We need to set its branch manager reference
+    (progressProvider as any).branchManager = branchSpecManager;
+    progressProvider.refresh();
+  }
+  if (constitutionProvider) {
+    constitutionProvider.refresh();
+  }
+  if (memoryProvider) {
+    memoryProvider.refresh();
+  }
 
   // Watch for git branch changes
   const gitExtension = vscode.extensions.getExtension('vscode.git');

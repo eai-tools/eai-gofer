@@ -1,6 +1,8 @@
 # AI Agent Guidelines for Code and Documentation Quality
 
-This document provides guidelines for AI agents (Claude, Copilot, etc.) working on this project to ensure all generated code and documentation is lint-error free.
+This document provides guidelines for AI agents (Claude, Copilot, etc.) working
+on this project to ensure all generated code and documentation is lint-error
+free.
 
 ## Table of Contents
 
@@ -15,15 +17,21 @@ This document provides guidelines for AI agents (Claude, Copilot, etc.) working 
 
 ### Before Writing Code or Documentation
 
-1. **Understand the context**: Read existing code/documentation in the same area to match the style
-2. **Check linting rules**: Review `.markdownlintrc`, `eslint.config.mjs`, and `.prettierrc` files
-3. **Run linters before committing**: Always validate your changes before suggesting them
-4. **Fix, don't ignore**: Address linting errors rather than adding ignore comments
+1. **Understand the context**: Read existing code/documentation in the same area
+   to match the style
+2. **Check linting rules**: Review `.markdownlintrc`, `eslint.config.mjs`, and
+   `.prettierrc` files
+3. **Run linters before committing**: Always validate your changes before
+   suggesting them
+4. **Fix, don't ignore**: Address linting errors rather than adding ignore
+   comments
 
 ### Quality Standards
 
-- **Zero tolerance for linting errors**: All code and documentation must pass linting
-- **Type safety**: Use explicit types in TypeScript, avoid `any` unless absolutely necessary
+- **Zero tolerance for linting errors**: All code and documentation must pass
+  linting
+- **Type safety**: Use explicit types in TypeScript, avoid `any` unless
+  absolutely necessary
 - **Documentation**: Keep README files, comments, and JSDoc up to date
 - **Test coverage**: Maintain or improve test coverage with new code
 
@@ -31,7 +39,8 @@ This document provides guidelines for AI agents (Claude, Copilot, etc.) working 
 
 ### Configuration
 
-The project uses markdownlint with rules defined in `.markdownlintrc`. Key rules:
+The project uses markdownlint with rules defined in `.markdownlintrc`. Key
+rules:
 
 ### Common Rules and Fixes
 
@@ -43,6 +52,7 @@ The project uses markdownlint with rules defined in `.markdownlintrc`. Key rules
 
 ```markdown
 ## Heading
+
 Content starts immediately
 ```
 
@@ -62,9 +72,9 @@ Content starts after blank line
 
 ```markdown
 Some text
+
 - List item 1
-- List item 2
-More text
+- List item 2 More text
 ```
 
 **Good**:
@@ -84,9 +94,7 @@ More text
 
 **Bad**:
 
-\`\`\`
-code here
-\`\`\`
+\`\`\` code here \`\`\`
 
 **Good**:
 
@@ -122,7 +130,8 @@ Content here
 
 #### MD009: No trailing spaces
 
-**Rule**: Lines should not have trailing spaces (except 2 spaces for line breaks).
+**Rule**: Lines should not have trailing spaces (except 2 spaces for line
+breaks).
 
 **Fix**: Remove trailing whitespace from all lines.
 
@@ -134,7 +143,6 @@ Content here
 
 ```markdown
 Paragraph 1
-
 
 Paragraph 2
 ```
@@ -154,11 +162,7 @@ Paragraph 2
 **Bad**:
 
 ```markdown
-Text before
-\`\`\`bash
-code
-\`\`\`
-Text after
+Text before \`\`\`bash code \`\`\` Text after
 ```
 
 **Good**:
@@ -166,9 +170,7 @@ Text after
 ```markdown
 Text before
 
-\`\`\`bash
-code
-\`\`\`
+\`\`\`bash code \`\`\`
 
 Text after
 ```
@@ -199,7 +201,8 @@ Text after
 
 ### Configuration
 
-The project uses ESLint with TypeScript support configured in `eslint.config.mjs`.
+The project uses ESLint with TypeScript support configured in
+`eslint.config.mjs`.
 
 ### Common Rules and Fixes
 
@@ -211,7 +214,7 @@ The project uses ESLint with TypeScript support configured in `eslint.config.mjs
 
 ```typescript
 function getName() {
-  return "John";
+  return 'John';
 }
 ```
 
@@ -219,7 +222,7 @@ function getName() {
 
 ```typescript
 function getName(): string {
-  return "John";
+  return 'John';
 }
 ```
 
@@ -263,7 +266,8 @@ function process(data: ProcessData): void {
 }
 ```
 
-**When `any` is unavoidable**: Use `unknown` and narrow with type guards, or use proper generic types.
+**When `any` is unavoidable**: Use `unknown` and narrow with type guards, or use
+proper generic types.
 
 #### @typescript-eslint/no-var-requires
 
@@ -367,7 +371,8 @@ The project uses Prettier for code formatting. Configuration in `.prettierrc`.
    - Quote style
    - Trailing commas
 
-3. **Don't fight Prettier**: Accept its formatting decisions to maintain consistency
+3. **Don't fight Prettier**: Accept its formatting decisions to maintain
+   consistency
 
 ## Git Commit Messages
 
@@ -543,6 +548,54 @@ cd language-server && npm run compile
 npm run build
 ```
 
+### Releasing (CRITICAL - ALWAYS USE RELEASE SCRIPT)
+
+**IMPORTANT**: NEVER manually run version commands. Always use
+`release-auto.sh`:
+
+```bash
+# For bug fixes (1.14.0 -> 1.14.1)
+./release-auto.sh patch
+
+# For new features (1.14.0 -> 1.15.0)
+./release-auto.sh minor
+
+# For breaking changes (1.14.0 -> 2.0.0)
+./release-auto.sh major
+```
+
+**What the script does automatically**:
+
+- ✅ Bumps version in all package.json files
+- ✅ Updates CHANGELOG.md with release notes
+- ✅ Builds VSIX package
+- ✅ Runs linting and tests (validates quality)
+- ✅ Commits changes with conventional commit message
+- ✅ Creates and pushes git tag
+- ✅ Pushes to GitHub main branch
+- ✅ Deploys to GitHub Pages
+- ✅ Updates releases.json for extension auto-updater
+
+**NEVER manually run these commands**:
+
+- ❌ `npm version major|minor|patch`
+- ❌ `npx @vscode/vsce package`
+- ❌ `git tag v1.x.x`
+- ❌ Manual version edits in package.json
+
+**Why?** The release script ensures:
+
+1. All three package.json files stay in sync (root, extension, language-server)
+2. CHANGELOG.md is properly updated
+3. VSIX package is built with correct version
+4. Tests and linting pass before release
+5. GitHub Pages deployment happens automatically
+6. Extension auto-updater gets the new version
+
+**When creating releases as an AI agent**: Always invoke `./release-auto.sh`
+with the appropriate semver increment (patch/minor/major) instead of manually
+bumping versions.
+
 ## Troubleshooting
 
 ### "Multiple consecutive blank lines" error
@@ -565,10 +618,10 @@ npm run build
 
 ```typescript
 // Before
-function test() { }
+function test() {}
 
 // After
-function test(): void { }
+function test(): void {}
 ```
 
 ### "Unexpected any"
@@ -579,10 +632,10 @@ function test(): void { }
 
 ```typescript
 // Before
-function handle(data: any) { }
+function handle(data: any) {}
 
 // After
-function handle(data: unknown) { }
+function handle(data: unknown) {}
 ```
 
 ## Additional Resources
@@ -594,4 +647,5 @@ function handle(data: unknown) { }
 
 ---
 
-**Remember**: Quality over speed. Taking time to write lint-free code saves time in code review and maintenance.
+**Remember**: Quality over speed. Taking time to write lint-free code saves time
+in code review and maintenance.

@@ -74,6 +74,48 @@ async function openConstitutionPreview(): Promise<void> {
   }
 }
 
+/**
+ * Show memory document using VSCode's native markdown preview
+ */
+export async function showMemoryDocumentWebview(context: vscode.ExtensionContext, document: any) {
+  try {
+    const uri = vscode.Uri.file(document.path);
+    const doc = await vscode.workspace.openTextDocument(uri);
+
+    // Open in markdown preview
+    await vscode.commands.executeCommand('markdown.showPreview', uri);
+  } catch (error) {
+    vscode.window.showErrorMessage(`Failed to open memory document: ${error}`);
+  }
+}
+
+/**
+ * Show memory section using VSCode's native markdown preview
+ * Opens the document and scrolls to the section
+ */
+export async function showMemorySectionWebview(context: vscode.ExtensionContext, section: any, document: any) {
+  try {
+    const uri = vscode.Uri.file(document.path);
+    const doc = await vscode.workspace.openTextDocument(uri);
+
+    // Open in editor first (to allow scrolling to line)
+    const editor = await vscode.window.showTextDocument(doc, {
+      preview: true,
+      viewColumn: vscode.ViewColumn.One
+    });
+
+    // Scroll to the section line
+    const position = new vscode.Position(section.line - 1, 0);
+    editor.selection = new vscode.Selection(position, position);
+    editor.revealRange(new vscode.Range(position, position), vscode.TextEditorRevealType.InCenter);
+
+    // Then show preview
+    await vscode.commands.executeCommand('markdown.showPreview', uri);
+  } catch (error) {
+    vscode.window.showErrorMessage(`Failed to open memory section: ${error}`);
+  }
+}
+
 function getSpecDetailsHTML(spec: any, stats: any): string {
   const { total, completed, inProgress, testing, failed, blocked, pending, percentage } = stats;
 

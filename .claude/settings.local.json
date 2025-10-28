@@ -59,7 +59,12 @@
       "Bash(xargs cat:*)",
       "Bash(find:*)",
       "Read(//Users/**)",
-      "Read(///**)"
+      "Read(///**)",
+      "Bash(git rev-parse:*)",
+      "Bash(for branch in 001-vscode-extension 002-language-server 005-test-update)",
+      "Bash(do)",
+      "Bash(echo:*)",
+      "Bash(done)"
     ],
     "deny": [],
     "ask": []

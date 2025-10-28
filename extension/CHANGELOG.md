@@ -2,6 +2,10 @@
 
 All notable changes to the SpecGofer extension will be documented in this file.
 
+## [1.19.6] - 2025-10-28
+
+fix: comprehensive rebranding and bug fixes - tree views, commands, task parsing, and settings
+
 ## [1.19.5] - 2025-10-28
 
 chore: pre-release changes

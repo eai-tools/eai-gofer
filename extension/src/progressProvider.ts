@@ -186,7 +186,15 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
         return [noSpecsItem];
       }
 
-      return this.specs.map(
+      // Sort specs by ID (numeric part) before displaying
+      const sortedSpecs = [...this.specs].sort((a, b) => {
+        // Extract numeric prefix from spec IDs (e.g., "001" from "001-vscode-extension")
+        const aNum = parseInt(a.id.split('-')[0]) || 0;
+        const bNum = parseInt(b.id.split('-')[0]) || 0;
+        return aNum - bNum;
+      });
+
+      return sortedSpecs.map(
         (spec) =>
           new SpecItem(
             spec.title,

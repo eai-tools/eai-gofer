@@ -250,8 +250,10 @@ export class SpecKitMigrator {
       if (existingConstitution) {
         await fs.writeFile(constitutionPath, existingConstitution);
         console.log('Restored existing constitution after spec-kit init');
-        vscode.window.showInformationMessage('✅ Templates updated while preserving your existing constitution');
       }
+
+      // Move specs/ from root to .specify/specs/ (SpecGofer convention)
+      await this.moveSpecsToSpecifyFolder();
 
       console.log('Spec-kit CLI installed successfully');
     } catch (error: any) {
@@ -341,15 +343,18 @@ export class SpecKitMigrator {
 
       // Check if we have Claude commands in the extension bundle
       const bundledCommandsPath = path.join(extensionPath, 'resources', 'claude-commands');
-      const claudeDir = path.join(this.workspacePath, '.claude');
-      const commandsDir = path.join(claudeDir, 'commands');
+      // SpecGofer uses .specify/scripts/claude/commands/ (not .claude/commands/)
+      const commandsDir = path.join(this.specifyPath, 'scripts', 'claude', 'commands');
 
       console.log('[setupClaudeCommands] Bundled commands path:', bundledCommandsPath);
       console.log('[setupClaudeCommands] Target commands dir:', commandsDir);
 
-      // Ensure .claude/commands directory exists
+      // Ensure .specify/scripts/claude/commands/ directory exists
       await fs.mkdir(commandsDir, { recursive: true });
       console.log('[setupClaudeCommands] Created directory:', commandsDir);
+
+      // Migrate old .claude/commands to new location if exists
+      await this.migrateClaudeCommands();
 
       try {
         // Try to copy from bundled resources first
@@ -372,8 +377,8 @@ export class SpecKitMigrator {
         console.error('[setupClaudeCommands] Error reading bundled commands:', error);
         console.log('[setupClaudeCommands] No bundled Claude commands found, checking for spec-kit installation');
 
-        // Check if spec-kit created the commands
-        const specKitCommandsDir = path.join(this.workspacePath, '.claude', 'commands');
+        // Check if spec-kit created the commands in .specify/scripts/claude/commands/
+        const specKitCommandsDir = path.join(this.specifyPath, 'scripts', 'claude', 'commands');
         try {
           const files = await fs.readdir(specKitCommandsDir);
           const hasSpecKitCommands = files.some(f => f.startsWith('speckit.'));
@@ -1162,6 +1167,139 @@ See the extension documentation for more details.
 `;
 
     await fs.writeFile(path.join(this.specifyPath, 'README.md'), readme);
+  }
+
+  /**
+   * Migrate .claude/commands to .specify/scripts/claude/commands
+   * SpecKit puts commands in .claude/commands/, but SpecGofer uses .specify/scripts/claude/commands/
+   */
+  private async migrateClaudeCommands(): Promise<void> {
+    const oldCommandsDir = path.join(this.workspacePath, '.claude', 'commands');
+    const newCommandsDir = path.join(this.specifyPath, 'scripts', 'claude', 'commands');
+
+    try {
+      // Check if old commands directory exists
+      try {
+        await fs.access(oldCommandsDir);
+      } catch {
+        // Old directory doesn't exist - nothing to migrate
+        console.log('[Migrate Commands] No .claude/commands directory found');
+        return;
+      }
+
+      // Read old commands
+      const files = await fs.readdir(oldCommandsDir);
+      const commandFiles = files.filter(f => f.endsWith('.md'));
+
+      if (commandFiles.length === 0) {
+        console.log('[Migrate Commands] No command files to migrate');
+        return;
+      }
+
+      // Ensure new directory exists
+      await fs.mkdir(newCommandsDir, { recursive: true });
+
+      // Get existing files in new location
+      let existingFiles: string[] = [];
+      try {
+        existingFiles = await fs.readdir(newCommandsDir);
+      } catch {
+        // New directory is empty
+      }
+
+      // Move each command file
+      let movedCount = 0;
+      for (const file of commandFiles) {
+        const sourcePath = path.join(oldCommandsDir, file);
+        const destPath = path.join(newCommandsDir, file);
+
+        // Don't overwrite if file already exists in new location
+        if (existingFiles.includes(file)) {
+          console.log(`[Migrate Commands] Skipping ${file} - already exists in new location`);
+          continue;
+        }
+
+        // Copy the file (don't move, in case something still references it)
+        await fs.copyFile(sourcePath, destPath);
+        movedCount++;
+        console.log(`[Migrate Commands] Copied ${file} to .specify/scripts/claude/commands/`);
+      }
+
+      if (movedCount > 0) {
+        console.log(`[Migrate Commands] Migrated ${movedCount} command files`);
+      }
+    } catch (error) {
+      console.error('[Migrate Commands] Error migrating commands:', error);
+      // Don't throw - this is not critical
+    }
+  }
+
+  /**
+   * Move specs/ from root to .specify/specs/ (SpecGofer convention)
+   * GitHub spec-kit puts specs in root, but SpecGofer uses .specify/specs/
+   */
+  private async moveSpecsToSpecifyFolder(): Promise<void> {
+    const rootSpecsDir = path.join(this.workspacePath, 'specs');
+    const specifySpecsDir = path.join(this.specifyPath, 'specs');
+
+    try {
+      // Check if specs/ exists in root
+      const rootSpecsExists = await this.hasDirectory('../specs');
+      if (!rootSpecsExists) {
+        console.log('[Move Specs] No specs/ folder in root - nothing to move');
+        return;
+      }
+
+      // Check if .specify/specs/ already has content
+      let existingSpecs: string[] = [];
+      try {
+        const entries = await fs.readdir(specifySpecsDir, { withFileTypes: true });
+        existingSpecs = entries.filter(e => e.isDirectory()).map(e => e.name);
+      } catch {
+        // .specify/specs/ doesn't exist yet
+      }
+
+      // Read contents of root specs/
+      const rootEntries = await fs.readdir(rootSpecsDir, { withFileTypes: true });
+      const rootSpecDirs = rootEntries.filter(e => e.isDirectory()).map(e => e.name);
+
+      if (rootSpecDirs.length === 0) {
+        console.log('[Move Specs] Root specs/ is empty - removing');
+        await fs.rm(rootSpecsDir, { recursive: true, force: true });
+        return;
+      }
+
+      // Ensure .specify/specs/ exists
+      await fs.mkdir(specifySpecsDir, { recursive: true });
+
+      // Move each spec directory
+      for (const specName of rootSpecDirs) {
+        const sourcePath = path.join(rootSpecsDir, specName);
+        const destPath = path.join(specifySpecsDir, specName);
+
+        // Check if destination already exists
+        if (existingSpecs.includes(specName)) {
+          console.log(`[Move Specs] Skipping ${specName} - already exists in .specify/specs/`);
+          continue;
+        }
+
+        // Move the spec
+        await fs.rename(sourcePath, destPath);
+        console.log(`[Move Specs] Moved ${specName} to .specify/specs/`);
+      }
+
+      // Remove empty root specs/ directory
+      const remainingEntries = await fs.readdir(rootSpecsDir);
+      if (remainingEntries.length === 0) {
+        await fs.rm(rootSpecsDir, { recursive: true, force: true });
+        console.log('[Move Specs] Removed empty root specs/ directory');
+      }
+
+      console.log('[Move Specs] Migration complete');
+    } catch (error) {
+      console.error('[Move Specs] Error moving specs:', error);
+      // Don't throw - this is not critical, just log it
+    }
   }
 
   /**

@@ -77,7 +77,7 @@ export class SpecKitMigrator {
   private async hasJsonSpecs(): Promise<boolean> {
     try {
       const files = await fs.readdir(this.specifyPath);
-      return files.some(f => f.endsWith('.json') && f !== 'spec-schema.json');
+      return files.some((f) => f.endsWith('.json') && f !== 'spec-schema.json');
     } catch {
       return false;
     }
@@ -94,35 +94,35 @@ export class SpecKitMigrator {
         return {
           format: 'none',
           needsUpgrade: false,
-          details: 'No .specify folder found'
+          details: 'No .specify folder found',
         };
 
       case 'legacy-json':
         return {
           format: 'legacy-json',
           needsUpgrade: true,
-          details: 'Old JSON format detected. Upgrade to Spec Kit Markdown format?'
+          details: 'Old JSON format detected. Upgrade to Spec Kit Markdown format?',
         };
 
       case 'spec-kit':
         return {
           format: 'spec-kit',
           needsUpgrade: false,
-          details: 'Spec Kit format (up to date)'
+          details: 'Spec Kit format (up to date)',
         };
 
       case 'mixed':
         return {
           format: 'mixed',
           needsUpgrade: true,
-          details: 'Mixed formats detected. Migrate remaining JSON specs to Markdown?'
+          details: 'Mixed formats detected. Migrate remaining JSON specs to Markdown?',
         };
 
       default:
         return {
           format: 'unknown',
           needsUpgrade: false,
-          details: 'Unknown format'
+          details: 'Unknown format',
         };
     }
   }
@@ -143,7 +143,8 @@ export class SpecKitMigrator {
     const choice = await vscode.window.showWarningMessage(
       `Install/Upgrade to GitHub Spec Kit format?\n\nThis will:\n- Install spec-kit CLI using uvx\n- Create proper folder structure\n- Copy latest templates from spec-kit\n- Set up Claude commands\n- Keep original files as backup`,
       { modal: true },
-      'Upgrade', 'Cancel'
+      'Upgrade',
+      'Cancel'
     );
 
     if (choice !== 'Upgrade') {
@@ -154,7 +155,7 @@ export class SpecKitMigrator {
       {
         location: vscode.ProgressLocation.Notification,
         title: 'Installing Spec Kit...',
-        cancellable: false
+        cancellable: false,
       },
       async (progress) => {
         // Log version info
@@ -193,17 +194,16 @@ export class SpecKitMigrator {
       }
     );
 
-    vscode.window.showInformationMessage(
-      '✅ Spec Kit installed successfully!',
-      'View Constitution'
-    ).then(choice => {
-      if (choice === 'View Constitution') {
-        const constitutionPath = path.join(this.specifyPath, 'memory', 'constitution.md');
-        vscode.workspace.openTextDocument(constitutionPath).then(doc => {
-          vscode.window.showTextDocument(doc);
-        });
-      }
-    });
+    vscode.window
+      .showInformationMessage('✅ Spec Kit installed successfully!', 'View Constitution')
+      .then((choice) => {
+        if (choice === 'View Constitution') {
+          const constitutionPath = path.join(this.specifyPath, 'memory', 'constitution.md');
+          vscode.workspace.openTextDocument(constitutionPath).then((doc) => {
+            vscode.window.showTextDocument(doc);
+          });
+        }
+      });
   }
 
   /**
@@ -228,9 +228,14 @@ export class SpecKitMigrator {
       }
 
       // IMPORTANT: Backup existing constitution before running spec-kit init
-      const constitutionPath = path.join(this.workspacePath, '.specify', 'memory', 'constitution.md');
+      const constitutionPath = path.join(
+        this.workspacePath,
+        '.specify',
+        'memory',
+        'constitution.md'
+      );
       let existingConstitution: string | null = null;
-      
+
       try {
         existingConstitution = await fs.readFile(constitutionPath, 'utf-8');
         console.log('Backed up existing constitution for preservation');
@@ -252,8 +257,8 @@ export class SpecKitMigrator {
         console.log('Restored existing constitution after spec-kit init');
       }
 
-      // Move specs/ from root to .specify/specs/ (SpecGofer convention)
-      await this.moveSpecsToSpecifyFolder();
+      // Fix path references in commands/scripts: specs/ → .specify/specs/
+      await this.fixSpecPathReferences();
 
       console.log('Spec-kit CLI installed successfully');
     } catch (error: any) {
@@ -279,7 +284,8 @@ export class SpecKitMigrator {
     if (!skipConfirmation) {
       const choice = await vscode.window.showInformationMessage(
         'Update Spec Kit templates to latest version?',
-        'Update', 'Cancel'
+        'Update',
+        'Cancel'
       );
 
       if (choice !== 'Update') {
@@ -292,7 +298,7 @@ export class SpecKitMigrator {
       {
         location: vscode.ProgressLocation.Notification,
         title: 'Updating Spec Kit templates...',
-        cancellable: false
+        cancellable: false,
       },
       async (progress) => {
         const packageJson = require('../../package.json');
@@ -322,7 +328,9 @@ export class SpecKitMigrator {
       }
     );
 
-    vscode.window.showInformationMessage('✅ Templates updated and existing specs fixed successfully!');
+    vscode.window.showInformationMessage(
+      '✅ Templates updated and existing specs fixed successfully!'
+    );
   }
 
   /**
@@ -343,18 +351,17 @@ export class SpecKitMigrator {
 
       // Check if we have Claude commands in the extension bundle
       const bundledCommandsPath = path.join(extensionPath, 'resources', 'claude-commands');
-      // SpecGofer uses .specify/scripts/claude/commands/ (not .claude/commands/)
-      const commandsDir = path.join(this.specifyPath, 'scripts', 'claude', 'commands');
+      // Note: SpecKit installs to .claude/commands/, we keep them there
+      // but fix path references to use .specify/specs/ instead of specs/
+      const claudeDir = path.join(this.workspacePath, '.claude');
+      const commandsDir = path.join(claudeDir, 'commands');
 
       console.log('[setupClaudeCommands] Bundled commands path:', bundledCommandsPath);
       console.log('[setupClaudeCommands] Target commands dir:', commandsDir);
 
-      // Ensure .specify/scripts/claude/commands/ directory exists
+      // Ensure .claude/commands directory exists
       await fs.mkdir(commandsDir, { recursive: true });
       console.log('[setupClaudeCommands] Created directory:', commandsDir);
-
-      // Migrate old .claude/commands to new location if exists
-      await this.migrateClaudeCommands();
 
       try {
         // Try to copy from bundled resources first
@@ -375,16 +382,20 @@ export class SpecKitMigrator {
       } catch (error) {
         // If no bundled commands, try to get from GitHub or local spec-kit installation
         console.error('[setupClaudeCommands] Error reading bundled commands:', error);
-        console.log('[setupClaudeCommands] No bundled Claude commands found, checking for spec-kit installation');
+        console.log(
+          '[setupClaudeCommands] No bundled Claude commands found, checking for spec-kit installation'
+        );
 
-        // Check if spec-kit created the commands in .specify/scripts/claude/commands/
-        const specKitCommandsDir = path.join(this.specifyPath, 'scripts', 'claude', 'commands');
+        // Check if spec-kit created the commands in .claude/commands/
+        const specKitCommandsDir = path.join(this.workspacePath, '.claude', 'commands');
         try {
           const files = await fs.readdir(specKitCommandsDir);
-          const hasSpecKitCommands = files.some(f => f.startsWith('speckit.'));
+          const hasSpecKitCommands = files.some((f) => f.startsWith('speckit.'));
 
           if (!hasSpecKitCommands) {
-            console.warn('[setupClaudeCommands] No spec-kit Claude commands found after installation');
+            console.warn(
+              '[setupClaudeCommands] No spec-kit Claude commands found after installation'
+            );
           } else {
             console.log('[setupClaudeCommands] Found spec-kit commands from CLI installation');
           }
@@ -401,13 +412,7 @@ export class SpecKitMigrator {
    * Create Spec Kit folder structure manually (fallback)
    */
   private async createSpecKitStructureManually(): Promise<void> {
-    const folders = [
-      'memory',
-      'scripts/bash',
-      'scripts/powershell',
-      'specs',
-      'templates'
-    ];
+    const folders = ['memory', 'scripts/bash', 'scripts/powershell', 'specs', 'templates'];
 
     for (const folder of folders) {
       const folderPath = path.join(this.specifyPath, folder);
@@ -451,13 +456,7 @@ export class SpecKitMigrator {
   private async createSpecKitStructure(): Promise<void> {
     // The spec-kit CLI should have created the structure
     // Just ensure all directories exist
-    const folders = [
-      'memory',
-      'scripts/bash',
-      'scripts/powershell',
-      'specs',
-      'templates'
-    ];
+    const folders = ['memory', 'scripts/bash', 'scripts/powershell', 'specs', 'templates'];
 
     for (const folder of folders) {
       const folderPath = path.join(this.specifyPath, folder);
@@ -470,7 +469,7 @@ export class SpecKitMigrator {
    */
   private async migrateJsonSpecs(): Promise<void> {
     const files = await fs.readdir(this.specifyPath);
-    const jsonFiles = files.filter(f => f.endsWith('.json') && f !== 'spec-schema.json');
+    const jsonFiles = files.filter((f) => f.endsWith('.json') && f !== 'spec-schema.json');
 
     let specNumber = 1;
 
@@ -480,7 +479,8 @@ export class SpecKitMigrator {
       const spec = JSON.parse(content);
 
       // Generate spec ID
-      const specId = spec.id || `${specNumber.toString().padStart(3, '0')}-${this.slugify(spec.title)}`;
+      const specId =
+        spec.id || `${specNumber.toString().padStart(3, '0')}-${this.slugify(spec.title)}`;
 
       // Create spec directory
       const specDir = path.join(this.specifyPath, 'specs', specId);
@@ -513,7 +513,7 @@ export class SpecKitMigrator {
       status: spec.status || 'draft',
       created: now,
       updated: now,
-      author: 'migrated'
+      author: 'migrated',
     };
 
     const yamlStr = yaml.stringify(frontmatter);
@@ -1101,15 +1101,15 @@ T001 (Setup)
       const specKitSettings = {
         'files.associations': {
           '**/.specify/**/*.md': 'markdown',
-          '**/.claude/commands/*.md': 'markdown'
+          '**/.claude/commands/*.md': 'markdown',
         },
         'search.exclude': {
           '**/.specify/_backup/**': true,
-          '**/.specify/_archive/**': true
+          '**/.specify/_archive/**': true,
         },
         'files.exclude': {
-          '**/.specify/_backup/**': true
-        }
+          '**/.specify/_backup/**': true,
+        },
       };
 
       // Merge settings (don't overwrite existing)
@@ -1170,135 +1170,95 @@ See the extension documentation for more details.
   }
 
   /**
-   * Migrate .claude/commands to .specify/scripts/claude/commands
-   * SpecKit puts commands in .claude/commands/, but SpecGofer uses .specify/scripts/claude/commands/
+   * Fix path references in commands, scripts, and config files
+   * Changes specs/ → .specify/specs/ throughout the codebase
    */
-  private async migrateClaudeCommands(): Promise<void> {
-    const oldCommandsDir = path.join(this.workspacePath, '.claude', 'commands');
-    const newCommandsDir = path.join(this.specifyPath, 'scripts', 'claude', 'commands');
-
+  private async fixSpecPathReferences(): Promise<void> {
     try {
-      // Check if old commands directory exists
+      console.log('[Fix Paths] Searching for files with specs/ references...');
+
+      const filesToFix: string[] = [];
+
+      // Check .claude/commands/ for command files
+      const claudeCommandsDir = path.join(this.workspacePath, '.claude', 'commands');
       try {
-        await fs.access(oldCommandsDir);
-      } catch {
-        // Old directory doesn't exist - nothing to migrate
-        console.log('[Migrate Commands] No .claude/commands directory found');
-        return;
-      }
-
-      // Read old commands
-      const files = await fs.readdir(oldCommandsDir);
-      const commandFiles = files.filter(f => f.endsWith('.md'));
-
-      if (commandFiles.length === 0) {
-        console.log('[Migrate Commands] No command files to migrate');
-        return;
-      }
-
-      // Ensure new directory exists
-      await fs.mkdir(newCommandsDir, { recursive: true });
-
-      // Get existing files in new location
-      let existingFiles: string[] = [];
-      try {
-        existingFiles = await fs.readdir(newCommandsDir);
-      } catch {
-        // New directory is empty
-      }
-
-      // Move each command file
-      let movedCount = 0;
-      for (const file of commandFiles) {
-        const sourcePath = path.join(oldCommandsDir, file);
-        const destPath = path.join(newCommandsDir, file);
-
-        // Don't overwrite if file already exists in new location
-        if (existingFiles.includes(file)) {
-          console.log(`[Migrate Commands] Skipping ${file} - already exists in new location`);
-          continue;
+        const files = await fs.readdir(claudeCommandsDir);
+        for (const file of files) {
+          if (file.endsWith('.md')) {
+            filesToFix.push(path.join(claudeCommandsDir, file));
+          }
         }
-
-        // Copy the file (don't move, in case something still references it)
-        await fs.copyFile(sourcePath, destPath);
-        movedCount++;
-        console.log(`[Migrate Commands] Copied ${file} to .specify/scripts/claude/commands/`);
+      } catch {
+        // .claude/commands doesn't exist
       }
 
-      if (movedCount > 0) {
-        console.log(`[Migrate Commands] Migrated ${movedCount} command files`);
+      // Check .specify/scripts/ for bash scripts
+      const scriptsDir = path.join(this.specifyPath, 'scripts');
+      try {
+        const findScripts = async (dir: string) => {
+          const entries = await fs.readdir(dir, { withFileTypes: true });
+          for (const entry of entries) {
+            const fullPath = path.join(dir, entry.name);
+            if (entry.isDirectory()) {
+              await findScripts(fullPath);
+            } else if (entry.name.endsWith('.sh') || entry.name.endsWith('.md')) {
+              filesToFix.push(fullPath);
+            }
+          }
+        };
+        await findScripts(scriptsDir);
+      } catch {
+        // Scripts directory doesn't exist
+      }
+
+      // Check .vscode/settings.json and other config files
+      const configFiles = [
+        path.join(this.workspacePath, '.vscode', 'settings.json'),
+        path.join(this.workspacePath, '.copilot', 'config.json'),
+        path.join(this.workspacePath, '.github', 'copilot-instructions.md'),
+      ];
+      for (const configFile of configFiles) {
+        try {
+          await fs.access(configFile);
+          filesToFix.push(configFile);
+        } catch {
+          // File doesn't exist
+        }
+      }
+
+      // Now fix the path references in each file
+      let fixedCount = 0;
+      for (const filePath of filesToFix) {
+        try {
+          let content = await fs.readFile(filePath, 'utf-8');
+          const originalContent = content;
+
+          // Replace various forms of specs/ path references
+          content = content.replace(/(?<!\.specify\/)specs\//g, '.specify/specs/');
+          content = content.replace(
+            /\$\{workspaceFolder\}\/specs\//g,
+            '${workspaceFolder}/.specify/specs/'
+          );
+          content = content.replace(/\bspecs\/\b(?!.*\.specify)/g, '.specify/specs/');
+
+          if (content !== originalContent) {
+            await fs.writeFile(filePath, content);
+            fixedCount++;
+            console.log(`[Fix Paths] Updated: ${path.relative(this.workspacePath, filePath)}`);
+          }
+        } catch (error) {
+          console.error(`[Fix Paths] Error fixing ${filePath}:`, error);
+        }
+      }
+
+      if (fixedCount > 0) {
+        console.log(`[Fix Paths] Fixed path references in ${fixedCount} files`);
+      } else {
+        console.log('[Fix Paths] No files needed path updates');
       }
     } catch (error) {
-      console.error('[Migrate Commands] Error migrating commands:', error);
+      console.error('[Fix Paths] Error fixing path references:', error);
       // Don't throw - this is not critical
-    }
-  }
-
-  /**
-   * Move specs/ from root to .specify/specs/ (SpecGofer convention)
-   * GitHub spec-kit puts specs in root, but SpecGofer uses .specify/specs/
-   */
-  private async moveSpecsToSpecifyFolder(): Promise<void> {
-    const rootSpecsDir = path.join(this.workspacePath, 'specs');
-    const specifySpecsDir = path.join(this.specifyPath, 'specs');
-
-    try {
-      // Check if specs/ exists in root
-      const rootSpecsExists = await this.hasDirectory('../specs');
-      if (!rootSpecsExists) {
-        console.log('[Move Specs] No specs/ folder in root - nothing to move');
-        return;
-      }
-
-      // Check if .specify/specs/ already has content
-      let existingSpecs: string[] = [];
-      try {
-        const entries = await fs.readdir(specifySpecsDir, { withFileTypes: true });
-        existingSpecs = entries.filter(e => e.isDirectory()).map(e => e.name);
-      } catch {
-        // .specify/specs/ doesn't exist yet
-      }
-
-      // Read contents of root specs/
-      const rootEntries = await fs.readdir(rootSpecsDir, { withFileTypes: true });
-      const rootSpecDirs = rootEntries.filter(e => e.isDirectory()).map(e => e.name);
-
-      if (rootSpecDirs.length === 0) {
-        console.log('[Move Specs] Root specs/ is empty - removing');
-        await fs.rm(rootSpecsDir, { recursive: true, force: true });
-        return;
-      }
-
-      // Ensure .specify/specs/ exists
-      await fs.mkdir(specifySpecsDir, { recursive: true });
-
-      // Move each spec directory
-      for (const specName of rootSpecDirs) {
-        const sourcePath = path.join(rootSpecsDir, specName);
-        const destPath = path.join(specifySpecsDir, specName);
-
-        // Check if destination already exists
-        if (existingSpecs.includes(specName)) {
-          console.log(`[Move Specs] Skipping ${specName} - already exists in .specify/specs/`);
-          continue;
-        }
-
-        // Move the spec
-        await fs.rename(sourcePath, destPath);
-        console.log(`[Move Specs] Moved ${specName} to .specify/specs/`);
-      }
-
-      // Remove empty root specs/ directory
-      const remainingEntries = await fs.readdir(rootSpecsDir);
-      if (remainingEntries.length === 0) {
-        await fs.rm(rootSpecsDir, { recursive: true, force: true });
-        console.log('[Move Specs] Removed empty root specs/ directory');
-      }
-
-      console.log('[Move Specs] Migration complete');
-    } catch (error) {
-      console.error('[Move Specs] Error moving specs:', error);
-      // Don't throw - this is not critical, just log it
     }
   }
 
@@ -1311,7 +1271,7 @@ See the extension documentation for more details.
 
     try {
       const entries = await fs.readdir(specsDir, { withFileTypes: true });
-      const specDirs = entries.filter(e => e.isDirectory());
+      const specDirs = entries.filter((e) => e.isDirectory());
 
       for (const specDir of specDirs) {
         const specPath = path.join(specsDir, specDir.name);
@@ -1360,8 +1320,10 @@ assignee: "engineer-agent"
             console.log(`[Fix Specs] Adding checkbox task list to ${specDir.name}/tasks.md`);
 
             // Extract tasks from the content
-            const taskMatches = tasksContent.matchAll(/###\s+(T\d+)[^\n]*\n[^\n]*\n\*\*Status\*\*:\s*([^*\n]+)/g);
-            const tasks: Array<{id: string, completed: boolean}> = [];
+            const taskMatches = tasksContent.matchAll(
+              /###\s+(T\d+)[^\n]*\n[^\n]*\n\*\*Status\*\*:\s*([^*\n]+)/g
+            );
+            const tasks: Array<{ id: string; completed: boolean }> = [];
 
             for (const match of taskMatches) {
               const id = match[1];
@@ -1382,7 +1344,10 @@ assignee: "engineer-agent"
               // Insert after the first heading
               const headingMatch = tasksContent.match(/^(#[^\n]+\n)/);
               if (headingMatch) {
-                tasksContent = tasksContent.replace(headingMatch[0], headingMatch[0] + checkboxList);
+                tasksContent = tasksContent.replace(
+                  headingMatch[0],
+                  headingMatch[0] + checkboxList
+                );
                 await fs.writeFile(tasksFile, tasksContent);
               }
             }

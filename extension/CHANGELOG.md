@@ -2,6 +2,10 @@
 
 All notable changes to the SpecGofer extension will be documented in this file.
 
+## [2.0.3] - 2025-10-29
+
+Auto-release
+
 ## [2.0.2] - 2025-10-29
 
 Auto-release

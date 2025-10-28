@@ -1,8 +1,18 @@
+---
+id: "[###-feature-name]"
+title: "[FEATURE NAME]"
+status: "draft"
+created: "[DATE]"
+updated: "[DATE]"
+priority: "medium"
+assignee: "engineer-agent"
+---
+
 # Feature Specification: [FEATURE NAME]
 
-**Feature Branch**: `[###-feature-name]`  
-**Created**: [DATE]  
-**Status**: Draft  
+**Feature Branch**: `[###-feature-name]`
+**Created**: [DATE]
+**Status**: Draft
 **Input**: User description: "$ARGUMENTS"
 
 ## User Scenarios & Testing *(mandatory)*

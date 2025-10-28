@@ -397,6 +397,14 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
     })
   );
 
+  // Show task details command (from tree view task clicks)
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specGofer.showTaskDetails', async (task: any, spec: any) => {
+      const { showTaskDetailsWebview } = await import('./webviewHelpers');
+      showTaskDetailsWebview(context, task, spec);
+    })
+  );
+
   // Show section details command (from constitution tree view clicks)
   context.subscriptions.push(
     vscode.commands.registerCommand('specGofer.showSectionDetails', async (section: any, article: any) => {

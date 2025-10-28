@@ -387,6 +387,76 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
       }
     })
   );
+
+  // Tree view detail commands - must be global since tree views are global
+  // Show spec details command (from tree view clicks)
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specGofer.showSpecDetails', async (spec: any) => {
+      const { showSpecDetailsWebview } = await import('./webviewHelpers');
+      showSpecDetailsWebview(context, spec);
+    })
+  );
+
+  // Show section details command (from constitution tree view clicks)
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specGofer.showSectionDetails', async (section: any, article: any) => {
+      const { showSectionDetailsWebview } = await import('./webviewHelpers');
+      showSectionDetailsWebview(context, section, article);
+    })
+  );
+
+  // Show article details command (from constitution article clicks)
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specGofer.showArticleDetails', async (article: any) => {
+      const { showArticleDetailsWebview } = await import('./webviewHelpers');
+      showArticleDetailsWebview(context, article);
+    })
+  );
+
+  // Show memory document command (from memory tree view clicks)
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specGofer.showMemoryDocument', async (document: any) => {
+      const { showMemoryDocumentWebview } = await import('./webviewHelpers');
+      await showMemoryDocumentWebview(context, document);
+    })
+  );
+
+  // Show memory section command (from memory section clicks)
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specGofer.showMemorySection', async (section: any, document: any) => {
+      const { showMemorySectionWebview } = await import('./webviewHelpers');
+      await showMemorySectionWebview(context, section, document);
+    })
+  );
+
+  // Open With... context menu commands
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specGofer.openWithPreview', async (item: any) => {
+      const { openWithPreview } = await import('./webviewHelpers');
+      await openWithPreview(item);
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specGofer.openWithMarkSharp', async (item: any) => {
+      const { openWithMarkSharp } = await import('./webviewHelpers');
+      await openWithMarkSharp(item);
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specGofer.openWithMarkdownEditor', async (item: any) => {
+      const { openWithMarkdownEditor } = await import('./webviewHelpers');
+      await openWithMarkdownEditor(item);
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specGofer.openWithMarkdownWYSIWYG', async (item: any) => {
+      const { openWithMarkdownWYSIWYG } = await import('./webviewHelpers');
+      await openWithMarkdownWYSIWYG(item);
+    })
+  );
 }
 
 /**
@@ -634,74 +704,9 @@ How will success be measured?
     })
   );
 
-  // Show spec details command (from tree view clicks)
-  context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.showSpecDetails', async (spec: any) => {
-      const { showSpecDetailsWebview } = await import('./webviewHelpers');
-      showSpecDetailsWebview(context, spec);
-    })
-  );
-
-  // Show section details command (from constitution tree view clicks)
-  context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.showSectionDetails', async (section: any, article: any) => {
-      const { showSectionDetailsWebview } = await import('./webviewHelpers');
-      showSectionDetailsWebview(context, section, article);
-    })
-  );
-
-  // Show article details command (from constitution article clicks)
-  context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.showArticleDetails', async (article: any) => {
-      const { showArticleDetailsWebview } = await import('./webviewHelpers');
-      showArticleDetailsWebview(context, article);
-    })
-  );
-
-  // Show memory document command (from memory tree view clicks)
-  context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.showMemoryDocument', async (document: any) => {
-      const { showMemoryDocumentWebview } = await import('./webviewHelpers');
-      await showMemoryDocumentWebview(context, document);
-    })
-  );
-
-  // Show memory section command (from memory section clicks)
-  context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.showMemorySection', async (section: any, document: any) => {
-      const { showMemorySectionWebview } = await import('./webviewHelpers');
-      await showMemorySectionWebview(context, section, document);
-    })
-  );
-
-  // Open With... context menu commands
-  context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.openWithPreview', async (item: any) => {
-      const { openWithPreview } = await import('./webviewHelpers');
-      await openWithPreview(item);
-    })
-  );
-
-  context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.openWithMarkSharp', async (item: any) => {
-      const { openWithMarkSharp } = await import('./webviewHelpers');
-      await openWithMarkSharp(item);
-    })
-  );
-
-  context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.openWithMarkdownEditor', async (item: any) => {
-      const { openWithMarkdownEditor } = await import('./webviewHelpers');
-      await openWithMarkdownEditor(item);
-    })
-  );
-
-  context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.openWithMarkdownWYSIWYG', async (item: any) => {
-      const { openWithMarkdownWYSIWYG } = await import('./webviewHelpers');
-      await openWithMarkdownWYSIWYG(item);
-    })
-  );
+  // Note: Tree view detail commands (showSpecDetails, showMemoryDocument, etc.)
+  // are now registered globally in registerGlobalCommands() since tree views
+  // are registered globally and can be clicked before workspace initialization
 }
 
 export async function deactivate() {

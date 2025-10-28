@@ -58,7 +58,8 @@
       "Bash(awk:*)",
       "Bash(xargs cat:*)",
       "Bash(find:*)",
-      "Read(//Users/**)"
+      "Read(//Users/**)",
+      "Read(///**)"
     ],
     "deny": [],
     "ask": []

@@ -312,11 +312,15 @@ export class SpecKitMigrator {
         console.log('[SpecKit Update] Configuring VSCode settings...');
         await this.createVSCodeSettings();
 
+        progress.report({ message: 'Fixing existing specs and tasks...' });
+        console.log('[SpecKit Update] Fixing spec.md and tasks.md files...');
+        await this.fixExistingSpecs();
+
         console.log('[SpecKit Update] Update complete!');
       }
     );
 
-    vscode.window.showInformationMessage('✅ Templates updated successfully!');
+    vscode.window.showInformationMessage('✅ Templates updated and existing specs fixed successfully!');
   }
 
   /**
@@ -1158,6 +1162,102 @@ See the extension documentation for more details.
 `;
 
     await fs.writeFile(path.join(this.specifyPath, 'README.md'), readme);
+  }
+
+  /**
+   * Fix existing spec.md and tasks.md files to ensure proper format
+   * Adds YAML frontmatter to spec.md and checkbox task lists to tasks.md
+   */
+  private async fixExistingSpecs(): Promise<void> {
+    const specsDir = path.join(this.specifyPath, 'specs');
+
+    try {
+      const entries = await fs.readdir(specsDir, { withFileTypes: true });
+      const specDirs = entries.filter(e => e.isDirectory());
+
+      for (const specDir of specDirs) {
+        const specPath = path.join(specsDir, specDir.name);
+        const specFile = path.join(specPath, 'spec.md');
+        const tasksFile = path.join(specPath, 'tasks.md');
+
+        // Fix spec.md - add YAML frontmatter if missing
+        try {
+          let specContent = await fs.readFile(specFile, 'utf-8');
+
+          // Check if it already has YAML frontmatter
+          if (!specContent.startsWith('---\n')) {
+            console.log(`[Fix Specs] Adding YAML frontmatter to ${specDir.name}/spec.md`);
+
+            // Extract title from first heading
+            const titleMatch = specContent.match(/^#\s+(.+)$/m);
+            const title = titleMatch ? titleMatch[1] : specDir.name;
+
+            // Add frontmatter
+            const frontmatter = `---
+id: "${specDir.name}"
+title: "${title}"
+status: "in_progress"
+created: "${new Date().toISOString().split('T')[0]}"
+updated: "${new Date().toISOString().split('T')[0]}"
+priority: "medium"
+assignee: "engineer-agent"
+---
+
+`;
+            specContent = frontmatter + specContent;
+            await fs.writeFile(specFile, specContent);
+          }
+        } catch (error) {
+          console.log(`[Fix Specs] No spec.md found for ${specDir.name}`);
+        }
+
+        // Fix tasks.md - ensure it has checkbox task list
+        try {
+          let tasksContent = await fs.readFile(tasksFile, 'utf-8');
+
+          // Check if it has checkbox tasks at the top
+          const hasCheckboxes = /^-\s+\[[xX ]\]\s+T\d+/m.test(tasksContent);
+
+          if (!hasCheckboxes) {
+            console.log(`[Fix Specs] Adding checkbox task list to ${specDir.name}/tasks.md`);
+
+            // Extract tasks from the content
+            const taskMatches = tasksContent.matchAll(/###\s+(T\d+)[^\n]*\n[^\n]*\n\*\*Status\*\*:\s*([^*\n]+)/g);
+            const tasks: Array<{id: string, completed: boolean}> = [];
+
+            for (const match of taskMatches) {
+              const id = match[1];
+              const status = match[2].toLowerCase();
+              const completed = status.includes('complet') || status.includes('✅');
+              tasks.push({ id, completed });
+            }
+
+            // Create checkbox list
+            if (tasks.length > 0) {
+              let checkboxList = '\n## Task List\n\n';
+              for (const task of tasks) {
+                const checkbox = task.completed ? '[x]' : '[ ]';
+                checkboxList += `- ${checkbox} ${task.id}\n`;
+              }
+              checkboxList += '\n';
+
+              // Insert after the first heading
+              const headingMatch = tasksContent.match(/^(#[^\n]+\n)/);
+              if (headingMatch) {
+                tasksContent = tasksContent.replace(headingMatch[0], headingMatch[0] + checkboxList);
+                await fs.writeFile(tasksFile, tasksContent);
+              }
+            }
+          }
+        } catch (error) {
+          console.log(`[Fix Specs] No tasks.md found for ${specDir.name}`);
+        }
+      }
+
+      console.log('[Fix Specs] All existing specs have been reviewed and fixed');
+    } catch (error) {
+      console.error('[Fix Specs] Error fixing specs:', error);
+    }
   }
 
   /**

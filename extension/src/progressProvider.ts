@@ -11,10 +11,15 @@ class SpecItem extends vscode.TreeItem {
     super(label, collapsibleState);
 
     if (spec && !task) {
-      // This is a spec item
+      // This is a spec item - show Harvey ball icon with percentage at end
+      const total = spec.tasks.length;
+      const completed = spec.tasks.filter((t) => t.status === 'completed').length;
+      const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+      const harveyBall = this.getHarveyBall(percentage);
+
       this.tooltip = spec.description;
-      this.description = this.getSpecStatus(spec);
-      this.iconPath = new vscode.ThemeIcon(this.getSpecIcon(spec));
+      this.description = this.getSpecStatus(spec, percentage);
+      this.label = `${harveyBall} ${label}`; // Harvey ball at front
       this.contextValue = 'spec';
       // Add click command to show spec details
       this.command = {
@@ -23,10 +28,12 @@ class SpecItem extends vscode.TreeItem {
         arguments: [spec]
       };
     } else if (task) {
-      // This is a task item
+      // This is a task item - show Harvey ball icon
+      const harveyBall = this.getTaskHarveyBall(task);
+
       this.tooltip = task.description;
       this.description = this.getTaskDescription(task);
-      this.iconPath = new vscode.ThemeIcon(this.getTaskIcon(task));
+      this.label = `${harveyBall} ${label}`; // Harvey ball at front
       this.contextValue = 'task';
       // Add click command to show task details
       this.command = {
@@ -37,20 +44,13 @@ class SpecItem extends vscode.TreeItem {
     }
   }
 
-  private getSpecStatus(spec: Spec): string {
-    const total = spec.tasks.length;
-    const completed = spec.tasks.filter((t) => t.status === 'completed').length;
+  private getSpecStatus(spec: Spec, percentage: number): string {
     const failed = spec.tasks.filter((t) => t.status === 'failed').length;
     const inProgress = spec.tasks.filter((t) => t.status === 'in_progress').length;
     const testing = spec.tasks.filter((t) => t.status === 'testing').length;
     const blocked = spec.tasks.filter((t) => t.status === 'blocked').length;
 
     const parts: string[] = [];
-
-    // Show Harvey ball / percentage
-    const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
-    const harveyBall = this.getHarveyBall(percentage);
-    parts.push(`${harveyBall} ${percentage}%`);
 
     // Show active states
     if (inProgress > 0) {
@@ -66,6 +66,9 @@ class SpecItem extends vscode.TreeItem {
       parts.push(`${failed} failed`);
     }
 
+    // Add percentage at the end
+    parts.push(`${percentage}%`);
+
     return parts.join(' • ');
   }
 
@@ -78,19 +81,23 @@ class SpecItem extends vscode.TreeItem {
     return '●'; // Full circle
   }
 
-  private getSpecIcon(spec: Spec): string {
-    const allCompleted = spec.tasks.every((t) => t.status === 'completed');
-    const anyFailed = spec.tasks.some((t) => t.status === 'failed');
-    const anyInProgress = spec.tasks.some(
-      (t) => t.status === 'in_progress' || t.status === 'testing'
-    );
-    const anyBlocked = spec.tasks.some((t) => t.status === 'blocked');
-
-    if (allCompleted) return 'check';
-    if (anyFailed) return 'error';
-    if (anyBlocked) return 'lock';
-    if (anyInProgress) return 'sync~spin';
-    return 'circle-outline';
+  private getTaskHarveyBall(task: Task): string {
+    // Task Harvey balls based on status
+    switch (task.status) {
+      case 'completed':
+        return '●'; // Full circle
+      case 'in_progress':
+        return '◑'; // Half filled (in progress)
+      case 'testing':
+        return '◕'; // Three quarters (almost done)
+      case 'failed':
+        return '⊗'; // Circled X
+      case 'blocked':
+        return '⊘'; // Circled slash
+      case 'pending':
+      default:
+        return '○'; // Empty circle
+    }
   }
 
   private getTaskDescription(task: Task): string {
@@ -120,24 +127,6 @@ class SpecItem extends vscode.TreeItem {
     }
 
     return parts.join(' • ');
-  }
-
-  private getTaskIcon(task: Task): string {
-    switch (task.status) {
-      case 'completed':
-        return 'check';
-      case 'failed':
-        return 'error';
-      case 'in_progress':
-        return 'sync~spin';
-      case 'testing':
-        return 'beaker';
-      case 'blocked':
-        return 'lock';
-      case 'pending':
-      default:
-        return 'circle-outline';
-    }
   }
 }
 

@@ -1,9 +1,16 @@
+---
+id: "003-orchestrator-agents"
+title: "Autonomous Specification Execution System"
+status: "completed"
+created: "2025-10-21"
+updated: "2025-10-28"
+priority: "critical"
+assignee: "orchestrator-agent"
+---
+
 # Feature Specification: Autonomous Specification Execution System
 
 **Feature Branch**: `feature/003`
-**Created**: 2025-10-21
-**Updated**: 2025-10-27
-**Status**: In Progress
 **Input**: User description: "review the repo and the current spec.md in this feature and update it"
 
 ## Clarifications

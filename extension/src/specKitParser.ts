@@ -343,6 +343,26 @@ export class SpecKitParser {
         continue;
       }
 
+      // Match task line with T001 prefix (no #): - [ ] T001 Description
+      taskMatch = line.match(/^-\s+\[([xX ])\]\s+(T\d+)\s+(.+)$/);
+      if (taskMatch) {
+        // Save previous task if exists
+        if (currentTask && currentTask.id) {
+          tasks.push(this.completeTask(currentTask, taskIndex++));
+        }
+
+        const [, checkbox, taskId, description] = taskMatch;
+        currentTask = {
+          id: taskId,
+          description: description.trim(),
+          status: checkbox.toLowerCase() === 'x' ? 'completed' : 'pending',
+          dependencies: [],
+          parallel: false,
+          attempts: 0,
+        };
+        continue;
+      }
+
       // Match task line with #N prefix: - [ ] #1 Description  
       taskMatch = line.match(/^-\s+\[([x ])\]\s+#(\d+)\s+(.+)$/);
       if (taskMatch) {

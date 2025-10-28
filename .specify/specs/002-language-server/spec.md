@@ -1,8 +1,16 @@
+---
+id: "002-language-server"
+title: "Language Server - LSP + MCP Dual Protocol"
+status: "completed"
+created: "2025-10-21"
+updated: "2025-10-28"
+priority: "critical"
+assignee: "engineer-agent"
+---
+
 # Language Server - LSP + MCP Dual Protocol
 
 Feature Branch: `002-language-server`
-Created: 2025-10-21
-Status: completed
 Input: User description: "Implement dual-protocol server for LSP and MCP integration"
 
 ## Overview
@@ -201,7 +209,7 @@ Extension ← LSP Methods ← Language Server ← Spec Updates ← File System
 - [x] #T012 Add comprehensive error handling (deps: T011)
 - [x] #T013 Create integration tests for all tools (deps: T012)
 - [x] #T014 Add logging and debugging support (deps: T012)
-- [ ] #T015 Document MCP tool schemas (deps: T014)
+- [x] #T015 Document MCP tool schemas (deps: T014)
 
 ## Dependencies
 

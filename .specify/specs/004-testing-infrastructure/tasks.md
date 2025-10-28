@@ -1,5 +1,25 @@
 # Tasks - Testing & CI/CD Infrastructure
 
+## Task List
+
+- [x] T001 Playwright Test Framework Setup
+- [x] T001.5 Unit Test Framework & Implementation
+- [x] T002 VSCode Extension E2E Tests
+- [x] T003 Language Server E2E Tests
+- [x] T005 Integration E2E Tests
+- [x] T006 Test Fixtures & Mocks
+- [x] T007 Test Data Generation
+- [x] T008 GitHub Actions CI/CD Pipeline
+- [x] T009 Test Results Reporting
+- [x] T011 Code Coverage Requirements
+- [x] T012 Code Quality Checks
+- [x] T013 Pre-commit Hooks & Quality Gates
+- [x] T016 Test Documentation
+- [ ] T010 Release Automation Refinements
+- [ ] T014 Performance Benchmarks
+- [ ] T015 Load Testing
+- [ ] T017 Example Test Projects
+
 ## Phase 1: Test Framework Setup (✅ Completed)
 
 ### T001 (Framework) - Playwright Test Framework Setup

@@ -64,7 +64,11 @@
       "Bash(for branch in 001-vscode-extension 002-language-server 005-test-update)",
       "Bash(do)",
       "Bash(echo:*)",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(for spec in .specify/specs/*/spec.md)",
+      "Bash(do echo \"=== $spec ===\" head -10 \"$spec\")",
+      "Bash(do echo \"=== $spec ===\")",
+      "Bash(head:*)"
     ],
     "deny": [],
     "ask": []

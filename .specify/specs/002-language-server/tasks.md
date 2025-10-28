@@ -1,5 +1,25 @@
 # Tasks - Language Server
 
+## Task List
+
+- [x] T001 LSP/MCP Server Setup
+- [x] T002 Spec Kit Loader
+- [x] T003 MCP Tool: Get All Specs
+- [x] T004 MCP Tool: Get Next Task
+- [x] T005 MCP Tool: Execute Task
+- [x] T006 MCP Tool: Update Task Status
+- [x] T007 MCP Tool: Validate Code
+- [x] T008 MCP Tool: Run Tests
+- [x] T009 LSP Custom Method: Get Specs
+- [x] T010 LSP Custom Method: Execute Task
+- [x] T011 LSP Custom Method: Update Status
+- [x] T012 Security & Validation
+- [x] T013 Unit Tests
+- [x] T014 Error Handling
+- [x] T015 API Documentation
+- [x] T016 Caching Layer
+- [x] T017 Performance Optimization
+
 ## Phase 1: Core Server Implementation (✅ Completed)
 
 ### T001 (Server) - LSP/MCP Server Setup

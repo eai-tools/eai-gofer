@@ -8,7 +8,8 @@ import * as vscode from 'vscode';
 // Extension constants
 export const EXTENSION_NAME = 'specgofer';
 export const EXTENSION_DISPLAY_NAME = 'SpecGofer (Enterprise AI)';
-export const EXTENSION_VERSION = '1.3.4';
+// Read version from package.json to keep it in sync
+export const EXTENSION_VERSION = require('../../package.json').version;
 
 // File and folder constants
 export const SPECIFY_FOLDER = '.specify';

@@ -1,8 +1,17 @@
 {
-  "latest_version": "2.0.3",
+  "latest_version": "2.0.4",
   "repository": "eai-tools/specgofer",
-  "last_updated": "2025-10-28T23:10:57.555Z",
+  "last_updated": "2025-10-29T23:33:04.000Z",
   "releases": [
+    {
+      "version": "2.0.4",
+      "tag_name": "v2.0.4",
+      "published_at": "2025-10-29T23:33:04.000Z",
+      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-2.0.4.vsix",
+      "notes": "## Changes in v2.0.4\n\n### Bug Fixes\n- Fixed path reference updating during upgrade (content-based, no file moving)\n- Fixed missing `showTaskDetails` command registration that caused 'command not found' error when clicking tasks\n- Kept Claude commands in `.claude/commands/` per SpecGofer convention\n- Auto-fixes `specs/` references to `.specify/specs/` in upgrade process",
+      "prerelease": false,
+      "size_mb": 8.8
+    },
     {
       "version": "2.0.3",
       "tag_name": "v2.0.3",

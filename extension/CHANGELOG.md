@@ -2,6 +2,15 @@
 
 All notable changes to the SpecGofer extension will be documented in this file.
 
+## [2.0.4] - 2025-10-29
+
+### Bug Fixes
+- Fixed path reference updating during upgrade (content-based, no file moving)
+- Fixed missing `showTaskDetails` command registration that caused 'command not found' error when clicking tasks
+- Kept Claude commands in `.claude/commands/` per SpecGofer convention
+- Auto-fixes `specs/` references to `.specify/specs/` in upgrade process
+- Fixed version detection to read from package.json instead of hardcoded value
+
 ## [2.0.3] - 2025-10-29
 
 Auto-release

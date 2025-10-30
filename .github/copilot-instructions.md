@@ -75,7 +75,7 @@ When users ask "how do I use this?" or "how does this work?", guide them through
 # Step 1: Create specification
 /speckit.specify
 # User provides: "Build a feature that does X"
-# Output: .specify/specs/NNN-feature/spec.md
+# Output: .specify/.specify/specs/NNN-feature/spec.md
 
 # Step 2: Generate implementation plan
 /speckit.plan

@@ -1,12 +1,15 @@
 # Claude Code Interceptor
 
-This module provides different ways to intercept and communicate with Claude Code.
+This module provides different ways to intercept and communicate with Claude
+Code.
 
 ## Method 1: File-based Communication (Default)
 
-The simplest approach - Claude Code reads prompts from `.claude-input.txt` and writes responses to `.claude-output.txt`.
+The simplest approach - Claude Code reads prompts from `.claude-input.txt` and
+writes responses to `.claude-output.txt`.
 
 ### Setup
+
 1. The orchestrator writes prompts to `.claude-input.txt`
 2. You manually copy/paste from that file into Claude Code
 3. You copy Claude Code's response to `.claude-output.txt`
@@ -16,9 +19,11 @@ The simplest approach - Claude Code reads prompts from `.claude-input.txt` and w
 
 ## Method 2: WebSocket Communication
 
-For real-time bidirectional communication, a WebSocket server runs that Claude Code can connect to.
+For real-time bidirectional communication, a WebSocket server runs that Claude
+Code can connect to.
 
 ### Setup
+
 1. Start the orchestrator with WebSocket enabled
 2. Create a VSCode extension that hooks into Claude Code (see vscode-extension/)
 3. The extension forwards messages between Claude Code and the orchestrator
@@ -26,11 +31,13 @@ For real-time bidirectional communication, a WebSocket server runs that Claude C
 ## Method 3: VSCode Extension (Recommended for automation)
 
 Create a VSCode extension that:
+
 1. Monitors Claude Code's chat window
 2. Automatically sends responses to the orchestrator
 3. Can inject prompts into Claude Code programmatically
 
 ### Files needed:
+
 - `vscode-extension/` - Contains the VSCode extension code
 - See `vscode-extension/README.md` for setup instructions
 
@@ -39,6 +46,7 @@ Create a VSCode extension that:
 For immediate use without VSCode extension:
 
 1. Run the orchestrator:
+
    ```bash
    npm start
    ```

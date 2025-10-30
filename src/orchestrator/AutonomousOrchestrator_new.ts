@@ -23,12 +23,14 @@ export class AutonomousOrchestrator {
     logger.info({ event: 'orchestrator_started', context: {} });
 
     const specs = await this.specLoader.loadAllSpecs();
-    const allTasks = specs.flatMap(s => s.tasks);
+    const allTasks = specs.flatMap((s) => s.tasks);
     await this.taskQueue.buildQueue(allTasks);
 
     while (this.isRunning) {
       const task = this.taskQueue.getNextTask();
-      if (!task) {break;}
+      if (!task) {
+        break;
+      }
 
       await this.executeTask(task);
     }

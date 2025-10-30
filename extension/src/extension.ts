@@ -527,6 +527,27 @@ function registerCommands(
     })
   );
 
+  // Fix spec path references command (specs/ → .specify/specs/)
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specGofer.fixSpecPaths', async () => {
+      await vscode.window.withProgress(
+        {
+          location: vscode.ProgressLocation.Notification,
+          title: 'Fixing spec path references...',
+          cancellable: false,
+        },
+        async () => {
+          // Access the private method via reflection (TypeScript workaround)
+          await (migrator as any).fixSpecPathReferences();
+          vscode.window.showInformationMessage(
+            'Spec paths fixed! All scripts now use .specify/specs/ instead of specs/',
+            'OK'
+          );
+        }
+      );
+    })
+  );
+
   // Update templates command
   context.subscriptions.push(
     vscode.commands.registerCommand('specGofer.updateTemplates', async () => {

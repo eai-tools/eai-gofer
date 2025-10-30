@@ -21,12 +21,13 @@ export class QAEngine {
     // First, check if any QA rules match
     const ruleMatch = this.findMatchingRule(question);
     if (ruleMatch) {
-      const confidence = ruleMatch.confidence >= 80 ? 'high' : ruleMatch.confidence >= 60 ? 'medium' : 'low';
+      const confidence =
+        ruleMatch.confidence >= 80 ? 'high' : ruleMatch.confidence >= 60 ? 'medium' : 'low';
       return {
         answer: ruleMatch.answer,
         confidence,
         needsHuman: confidence === 'low',
-        source: 'qa-rule'
+        source: 'qa-rule',
       };
     }
 
@@ -36,9 +37,10 @@ export class QAEngine {
     const response = await this.anthropic.messages.create({
       model: 'claude-sonnet-4-5-20250929',
       max_tokens: 1024,
-      messages: [{
-        role: 'user',
-        content: `You are answering questions based ONLY on the following specifications.
+      messages: [
+        {
+          role: 'user',
+          content: `You are answering questions based ONLY on the following specifications.
 
 If the answer is clearly in the specs, provide it with HIGH confidence.
 If the answer can be inferred from the specs, provide it with MEDIUM confidence.
@@ -51,8 +53,9 @@ Question: ${question}
 
 Format your response as:
 CONFIDENCE: [HIGH|MEDIUM|LOW]
-ANSWER: [your answer or "NEEDS_HUMAN"]`
-      }]
+ANSWER: [your answer or "NEEDS_HUMAN"]`,
+        },
+      ],
     });
 
     const text = response.content[0].type === 'text' ? response.content[0].text : '';
@@ -67,7 +70,7 @@ ANSWER: [your answer or "NEEDS_HUMAN"]`
       answer: needsHuman ? null : answer,
       confidence: needsHuman ? 'none' : confidence,
       needsHuman,
-      source: 'claude-analysis'
+      source: 'claude-analysis',
     };
   }
 
@@ -83,7 +86,7 @@ ANSWER: [your answer or "NEEDS_HUMAN"]`
           return {
             pattern: rule.pattern,
             answer: rule.answer,
-            confidence: rule.confidence
+            confidence: rule.confidence,
           };
         }
       }
@@ -93,7 +96,9 @@ ANSWER: [your answer or "NEEDS_HUMAN"]`
   }
 
   private buildSpecContext(): string {
-    return this.specs.map(spec => `
+    return this.specs
+      .map(
+        (spec) => `
 ## ${spec.title} (${spec.id})
 
 Tasks:
@@ -104,7 +109,9 @@ ${spec.acceptanceCriteria.map((ac: AcceptanceCriterion) => `- ${ac.description}`
 
 QA Rules:
 ${spec.qaRules?.map((qa: QARule) => `Q: ${qa.pattern}\nA: ${qa.answer}`).join('\n') || 'None'}
-`).join('\n---\n');
+`
+      )
+      .join('\n---\n');
   }
 
   updateSpecs(specs: Spec[]): void {

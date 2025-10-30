@@ -17,7 +17,7 @@ async function main(): Promise<void> {
 
   const whatsappConfig = {
     enabled: process.env.WHATSAPP_ENABLED === 'true',
-    phoneNumber: process.env.WHATSAPP_PHONE_NUMBER || '' // Format: 1234567890@c.us
+    phoneNumber: process.env.WHATSAPP_PHONE_NUMBER || '', // Format: 1234567890@c.us
   };
 
   // Determine notification method
@@ -46,7 +46,9 @@ ${notificationStatus}
   let isShuttingDown = false;
 
   const shutdown = (): void => {
-    if (isShuttingDown) {return;}
+    if (isShuttingDown) {
+      return;
+    }
     isShuttingDown = true;
 
     process.stderr.write('\n\n🛑 Received shutdown signal...\n');
@@ -66,7 +68,7 @@ ${notificationStatus}
   await orchestrator.start();
 }
 
-main().catch(error => {
+main().catch((error) => {
   process.stderr.write(`❌ Fatal error: ${error}\n`);
   process.exit(1);
 });

@@ -35,13 +35,15 @@ export class TaskQueue {
   }
 
   private topologicalSort(tasks: Task[]): Task[] {
-    const taskMap = new Map(tasks.map(t => [t.id, t]));
+    const taskMap = new Map(tasks.map((t) => [t.id, t]));
     const visited = new Set<string>();
     const visiting = new Set<string>();
     const sorted: Task[] = [];
 
     const visit = (taskId: string): void => {
-      if (visited.has(taskId)) {return;}
+      if (visited.has(taskId)) {
+        return;
+      }
       if (visiting.has(taskId)) {
         throw new Error(`Circular dependency detected involving task ${taskId}`);
       }
@@ -68,8 +70,8 @@ export class TaskQueue {
   }
 
   private areDependenciesSatisfied(task: Task): boolean {
-    return task.dependencies.every(depId => {
-      const dep = this.queue.find(t => t.id === depId);
+    return task.dependencies.every((depId) => {
+      const dep = this.queue.find((t) => t.id === depId);
       return dep?.status === 'completed';
     });
   }

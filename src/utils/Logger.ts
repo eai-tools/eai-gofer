@@ -55,10 +55,7 @@ export const logger = winston.createLogger({
  *   context: { attempt: 1 }
  * });
  */
-export function logEvent(
-  level: 'info' | 'warn' | 'error',
-  entry: Partial<LogEntry>
-): void {
+export function logEvent(level: 'info' | 'warn' | 'error', entry: Partial<LogEntry>): void {
   const logData = {
     ...entry,
     level: level.toUpperCase(),

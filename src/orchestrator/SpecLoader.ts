@@ -45,7 +45,7 @@ export class SpecLoader {
       if (this.specDir.endsWith('/specs') || this.specDir.endsWith('/specs/')) {
         return this.loadSpecKitSpecs();
       }
-      
+
       // Fallback to legacy JSON format for backwards compatibility
       return this.loadLegacyJsonSpecs();
     } catch (error) {
@@ -98,7 +98,7 @@ export class SpecLoader {
     // Parse metadata lines
     for (let i = 1; i < lines.length; i++) {
       const line = lines[i].trim();
-      
+
       if (!line) {
         contentStartIndex = i + 1;
         continue;
@@ -128,7 +128,12 @@ export class SpecLoader {
         const statusValue = statusMatch[1].trim();
         const validStatuses = ['draft', 'in_progress', 'testing', 'completed', 'failed'];
         if (validStatuses.includes(statusValue)) {
-          metadata.status = statusValue as 'draft' | 'in_progress' | 'testing' | 'completed' | 'failed';
+          metadata.status = statusValue as
+            | 'draft'
+            | 'in_progress'
+            | 'testing'
+            | 'completed'
+            | 'failed';
         }
         continue;
       }
@@ -149,10 +154,10 @@ export class SpecLoader {
    */
   private async loadSpecKitSpec(specId: string): Promise<Spec | null> {
     const specPath = path.join(this.specDir, specId, 'spec.md');
-    
+
     try {
       const content = await fs.readFile(specPath, 'utf-8');
-      
+
       // Try YAML frontmatter first (legacy format)
       const yamlMatch = content.match(/^---\n([\s\S]*?)\n---/);
       let frontmatter: SpecMetadata = {};
@@ -175,9 +180,10 @@ export class SpecLoader {
         // Official GitHub Spec Kit format
         const { metadata, content: bodyContent } = this.parseSpecHeader(content);
         const validStatuses = ['draft', 'in_progress', 'testing', 'completed', 'failed'];
-        const statusValue = metadata.status && validStatuses.includes(metadata.status)
-          ? (metadata.status as 'draft' | 'in_progress' | 'testing' | 'completed' | 'failed')
-          : 'draft';
+        const statusValue =
+          metadata.status && validStatuses.includes(metadata.status)
+            ? (metadata.status as 'draft' | 'in_progress' | 'testing' | 'completed' | 'failed')
+            : 'draft';
 
         frontmatter = {
           id: metadata.branch || specId,
@@ -195,7 +201,9 @@ export class SpecLoader {
       return {
         id: frontmatter.id || specId,
         title: frontmatter.title || 'Untitled',
-        status: (frontmatter.status as 'draft' | 'in_progress' | 'testing' | 'completed' | 'failed') || 'draft',
+        status:
+          (frontmatter.status as 'draft' | 'in_progress' | 'testing' | 'completed' | 'failed') ||
+          'draft',
         created: frontmatter.created || now,
         updated: now,
         priority: 'medium' as const,
@@ -203,7 +211,7 @@ export class SpecLoader {
         description: markdownContent.split('\n').slice(0, 3).join('\n'),
         tasks: tasks,
         acceptanceCriteria: [],
-        qaRules: []
+        qaRules: [],
       };
     } catch (error) {
       console.error(`Failed to load spec ${specId}:`, error);
@@ -216,7 +224,7 @@ export class SpecLoader {
    */
   private async loadSpecKitTasks(specId: string): Promise<Task[]> {
     const tasksPath = path.join(this.specDir, specId, 'tasks.md');
-    
+
     try {
       const content = await fs.readFile(tasksPath, 'utf-8');
       const tasks: Task[] = [];
@@ -236,7 +244,7 @@ export class SpecLoader {
             status: (isCompleted ? 'completed' : 'pending') as TaskStatus,
             dependencies: [],
             deliveryPrompt: description,
-            attemptCount: 0
+            attemptCount: 0,
           });
         }
       }
@@ -254,7 +262,7 @@ export class SpecLoader {
   private async loadLegacyJsonSpecs(): Promise<Spec[]> {
     try {
       const files = await fs.readdir(this.specDir);
-      const specFiles = files.filter(f => f.endsWith('.json') && f !== 'spec-schema.json');
+      const specFiles = files.filter((f) => f.endsWith('.json') && f !== 'spec-schema.json');
 
       const specs = await Promise.all(
         specFiles.map(async (file) => {
@@ -277,7 +285,7 @@ export class SpecLoader {
       // Legacy JSON format - load from all specs
       try {
         const specs = await this.loadAllSpecs();
-        return specs.find(s => s.id === specId) || null;
+        return specs.find((s) => s.id === specId) || null;
       } catch (error) {
         console.error(`Error loading spec ${specId}:`, error);
         return null;
@@ -310,7 +318,7 @@ export class SpecLoader {
         if (endIndex !== -1) {
           // Update status in frontmatter
           const frontmatterLines = lines.slice(1, endIndex);
-          const updatedFrontmatter = frontmatterLines.map(line => {
+          const updatedFrontmatter = frontmatterLines.map((line) => {
             if (line.startsWith('status:')) {
               return `status: "${spec.status}"`;
             }
@@ -320,11 +328,7 @@ export class SpecLoader {
             return line;
           });
 
-          const newContent = [
-            '---',
-            ...updatedFrontmatter,
-            ...lines.slice(endIndex)
-          ].join('\n');
+          const newContent = ['---', ...updatedFrontmatter, ...lines.slice(endIndex)].join('\n');
 
           await fs.writeFile(specMdPath, newContent, 'utf-8');
         }
@@ -362,7 +366,11 @@ export class SpecLoader {
     }
   }
 
-  async updateTaskStatus(specId: string, taskId: string, status: Spec['tasks'][0]['status']): Promise<void> {
+  async updateTaskStatus(
+    specId: string,
+    taskId: string,
+    status: Spec['tasks'][0]['status']
+  ): Promise<void> {
     if (this.specDir.endsWith('/specs') || this.specDir.endsWith('/specs/')) {
       // For Spec Kit format, update the checkbox in tasks.md
       const spec = await this.loadSpec(specId);
@@ -370,7 +378,7 @@ export class SpecLoader {
         throw new Error(`Spec ${specId} not found`);
       }
 
-      const task = spec.tasks.find(t => t.id === taskId);
+      const task = spec.tasks.find((t) => t.id === taskId);
       if (!task) {
         throw new Error(`Task ${taskId} not found in spec ${specId}`);
       }
@@ -385,10 +393,14 @@ export class SpecLoader {
     } else {
       // Legacy JSON format
       const spec = await this.loadSpec(specId);
-      if (!spec) {throw new Error(`Spec ${specId} not found`);}
+      if (!spec) {
+        throw new Error(`Spec ${specId} not found`);
+      }
 
-      const task = spec.tasks.find(t => t.id === taskId);
-      if (!task) {throw new Error(`Task ${taskId} not found in spec ${specId}`);}
+      const task = spec.tasks.find((t) => t.id === taskId);
+      if (!task) {
+        throw new Error(`Task ${taskId} not found in spec ${specId}`);
+      }
 
       task.status = status;
       await this.saveSpec(spec);

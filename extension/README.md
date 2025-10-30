@@ -1,8 +1,11 @@
 # SpecGofer VSCode Extension
 
-**Transform any repository into a spec-driven development workspace with AI-powered automation.**
+**Transform any repository into a spec-driven development workspace with
+AI-powered automation.**
 
-SpecGofer is a VSCode extension that provides seamless integration with the spec-driven development system, enabling developers to manage specifications, track progress, and leverage AI assistance through Claude Code integration.
+SpecGofer is a VSCode extension that provides seamless integration with the
+spec-driven development system, enabling developers to manage specifications,
+track progress, and leverage AI assistance through Claude Code integration.
 
 ---
 
@@ -12,26 +15,33 @@ SpecGofer is a VSCode extension that provides seamless integration with the spec
 
 ### Core Functionality
 
-- **Auto-Detection**: Automatically activates when `.specify/` folder is detected
-- **Visual Progress Tracking**: Tree view panels showing specs and tasks with status indicators
-- **Constitution Management**: Display and navigate project principles and guidelines
-- **Language Server Integration**: Provides MCP tools for Claude Code AI assistance
+- **Auto-Detection**: Automatically activates when `.specify/` folder is
+  detected
+- **Visual Progress Tracking**: Tree view panels showing specs and tasks with
+  status indicators
+- **Constitution Management**: Display and navigate project principles and
+  guidelines
+- **Language Server Integration**: Provides MCP tools for Claude Code AI
+  assistance
 
 ### Smart Templates
 
-- **GitHub Integration**: Downloads latest Spec Kit templates from GitHub releases
+- **GitHub Integration**: Downloads latest Spec Kit templates from GitHub
+  releases
 - **Repository Initialization**: One-click setup of `.specify/` structure
 - **Template Updates**: Automatic checking and updating of Spec Kit templates
 
 ### Advanced Features
 
 - **Legacy Migration**: Converts old JSON specs to modern GitHub Spec Kit format
-- **Branch-Specific Specs**: Automatically reloads specs when switching Git branches
+- **Branch-Specific Specs**: Automatically reloads specs when switching Git
+  branches
 - **Real-time Updates**: File watching with automatic refresh of tree views
 
 ### MCP Tools for AI Assistants
 
-SpecGofer provides 6 Model Context Protocol (MCP) tools that AI assistants can invoke:
+SpecGofer provides 6 Model Context Protocol (MCP) tools that AI assistants can
+invoke:
 
 - **`specgofer_get_specs`** - Get all specifications and tasks
 - **`specgofer_get_next_task`** - Get next task based on dependencies
@@ -51,7 +61,8 @@ SpecGofer provides 6 Model Context Protocol (MCP) tools that AI assistants can i
 
 ### Manual Installation
 
-1. Download the latest `.vsix` file from [releases](https://github.com/eai-tools/specgofer/releases)
+1. Download the latest `.vsix` file from
+   [releases](https://github.com/eai-tools/specgofer/releases)
 2. Open VS Code
 3. Run command: `Extensions: Install from VSIX...`
 4. Select the downloaded `.vsix` file
@@ -90,9 +101,729 @@ The extension automatically configures Claude Code integration:
 2. The extension creates `.vscode/mcp.json` automatically
 3. Claude Code can now access MCP tools for spec management
 
+## 🤖 Autonomous Development with SpecGofer
+
+**SpecGofer autonomously drives Claude Code terminals to implement features end-to-end without manual intervention.**
+
+### How It Works
+
+Once you have a fully-specified feature (spec + plan + tasks), SpecGofer:
+
+1. **Spawns Claude Code Terminal**: Creates a terminal and sends `/speckit.implement` command
+2. **Monitors Continuously**: Watches Claude's output in real-time for progress, errors, and questions
+3. **Manages Errors**: Detects failures and retries up to 3 times with additional context
+4. **Handles Context Limits**: When Claude's conversation gets too long, spawns a fresh terminal with a summary
+5. **Routes Questions**: If Claude needs architectural decisions, notifies you via WhatsApp/VSCode
+6. **Runs Parallel Validation**: Optional tester agent validates code as engineer implements it
+7. **Reports Completion**: Notifies you when feature is 100% done with tests passing
+
+**You only get involved when:**
+
+- Architecture question needs a decision (Claude presents 2-3 options)
+- Unrecoverable error after 3 retry attempts
+- Feature is complete and ready for review
+
+### The Autonomous Workflow
+
+```text
+┌─────────────────────────────────────────────────────────────────────┐
+│ YOU                                                                  │
+│  1. Create feature spec with plan and tasks                         │
+│  2. Click "▶️ Start Autonomous Implementation" in SpecGofer sidebar │
+│  3. Go do something else                                            │
+└─────────────────────────────────────────────────────────────────────┘
+                                │
+                                ↓
+┌─────────────────────────────────────────────────────────────────────┐
+│ SPECGOFER (AUTONOMOUS)                                               │
+│                                                                      │
+│  ┌──────────────────────────────────────────────────────────────┐  │
+│  │ Autonomous Driver                                            │  │
+│  │  - Spawns Claude Code terminal                              │  │
+│  │  - Sends: /speckit.implement                                │  │
+│  │  - Monitors output continuously                             │  │
+│  └──────────────┬───────────────────────────────────────────────┘  │
+│                 │                                                   │
+│                 ↓                                                   │
+│  ┌─────────────────────────────────────────────────────────────┐  │
+│  │ Claude Code Terminal                                        │  │
+│  │  ✅ Task #T001: Setup module structure (2m 15s)            │  │
+│  │  ✅ Task #T002: Write JWT tests (3m 45s)                   │  │
+│  │  ✅ Task #T003: Implement JWT service (8m 30s)             │  │
+│  │  🤔 Architecture question detected...                       │  │
+│  └─────────────────────────────────────────────────────────────┘  │
+│                 │                                                   │
+│                 ↓                                                   │
+│  ┌─────────────────────────────────────────────────────────────┐  │
+│  │ Error Detection & Recovery                                  │  │
+│  │  - Test failed? Retry with error context                    │  │
+│  │  - Context full? Spawn new terminal with summary            │  │
+│  │  - Question? Route to you via WhatsApp                      │  │
+│  └─────────────────────────────────────────────────────────────┘  │
+│                 │                                                   │
+│                 ↓                                                   │
+│  ┌─────────────────────────────────────────────────────────────┐  │
+│  │ Progress Tracking                                           │  │
+│  │  - Updates tasks.md in real-time                            │  │
+│  │  - Shows status in sidebar: 12/45 tasks (26%)              │  │
+│  │  - Logs activity to Output panel                            │  │
+│  └─────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────┘
+                                │
+                                ↓
+┌─────────────────────────────────────────────────────────────────────┐
+│ NOTIFICATIONS (ONLY WHEN NEEDED)                                    │
+│                                                                      │
+│  📱 WhatsApp Message:                                               │
+│     "Claude needs your input on session storage approach:           │
+│      A) Redis (distributed) B) JWT-only (stateless)                │
+│      Recommend: A for enterprise apps"                              │
+│                                                                      │
+│  ✅ Feature Complete:                                               │
+│     "001-user-authentication is done!                               │
+│      23/23 tasks completed, 94% test coverage                       │
+│      Ready for review."                                             │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### Decision-Making Hierarchy
+
+SpecGofer instructs Claude Code to follow this decision tree:
+
+```text
+Question: "How should I implement X?"
+    │
+    ↓
+1. Check Constitution (.specify/memory/constitution.md)
+   - Explicit rule exists? → Follow it
+   - No rule? → Next step
+    │
+    ↓
+2. Check Existing Codebase
+   - Similar pattern exists? → Follow it
+   - No pattern? → Next step
+    │
+    ↓
+3. Research Latest Best Practices (from web)
+   - Clear answer for your tech stack? → Implement it
+   - Multiple valid approaches? → Next step
+    │
+    ↓
+4. Escalate to You
+   - SpecGofer detects question in Claude's output
+   - Extracts options and trade-offs
+   - Sends WhatsApp/VSCode notification
+   - Waits for your response
+   - Sends answer back to Claude
+   - Claude continues implementation
+```
+
+### Prerequisites
+
+Before starting autonomous development:
+
+- ✅ **SpecGofer Extension**: Installed and activated (`.specify/` folder
+  detected)
+- ✅ **Claude Code**: Integrated via MCP (`.vscode/mcp.json` auto-created)
+- ✅ **Constitution**: `.specify/memory/constitution.md` exists with your
+  principles
+- ✅ **Feature Spec**: Complete spec in
+  `.specify/specs/###-feature-name/spec.md`
+- ✅ **Implementation Plan**: `plan.md` generated (use slash commands if needed)
+- ✅ **Task Breakdown**: `tasks.md` with dependency-ordered tasks
+
+### Step-by-Step: Autonomous Feature Development
+
+#### 1. Create Your Feature Branch
+
+```bash
+git checkout -b feature/user-authentication
+```
+
+SpecGofer automatically detects branch-specific specs in:
+
+```text
+.specify/branches/feature/user-authentication/specs/
+```
+
+#### 2. Define Your Specification
+
+Create or edit your spec using SpecGofer commands:
+
+**Option A: From Template**
+
+```bash
+# In Claude Code or terminal
+cp .specify/templates/spec-template.md .specify/specs/001-user-authentication/spec.md
+```
+
+**Option B: Use Slash Commands** (if configured)
+
+```bash
+/speckit.specify "Add user authentication with OAuth2 and JWT tokens"
+```
+
+Your spec should include:
+
+- **User Scenarios**: Who needs this and why
+- **Requirements**: Functional (FR-###) and Non-Functional (NFR-###)
+- **Acceptance Criteria**: Testable conditions for completion
+- **Dependencies**: External systems or other specs
+
+#### 3. Generate Implementation Plan
+
+**Option A: Manual Planning**
+
+Create `plan.md` in your spec folder with:
+
+- Architecture decisions
+- Technology choices
+- Integration points
+- Test strategy
+
+**Option B: AI-Generated Plan**
+
+```bash
+# In Claude Code
+/speckit.plan
+```
+
+The AI will:
+
+- Analyze your spec
+- Research latest best practices for your stack
+- Check your constitution for architectural patterns
+- Generate a detailed technical plan
+- Ask clarifying questions if needed
+
+#### 4. Generate Task Breakdown
+
+Create executable tasks with dependencies:
+
+```bash
+# In Claude Code
+/speckit.tasks
+```
+
+This produces `tasks.md` with dependency-ordered tasks:
+
+```markdown
+## Tasks
+
+- [ ] #T001 Setup authentication module structure
+- [ ] #T002 Write tests for JWT token generation (deps: T001)
+- [ ] #T003 Implement JWT token service (deps: T002)
+- [ ] #T004 Write tests for OAuth2 integration (deps: T001)
+- [ ] #T005 Implement OAuth2 provider integration (deps: T004) ...
+```
+
+#### 5. Start Autonomous Implementation
+
+In Claude Code terminal, instruct the AI agent:
+
+```
+I have a fully specified feature branch ready. Please implement all tasks in
+.specify/specs/001-user-authentication/tasks.md following these rules:
+
+1. Use MCP tools to get tasks: specgofer_get_next_task
+2. Follow Test-Driven Development (tests BEFORE implementation)
+3. Validate against .specify/memory/constitution.md
+4. For architecture decisions:
+   - First check the constitution
+   - Then research latest [your-stack] best practices from the web
+   - If multiple valid approaches exist, ask me to choose
+5. Run real tests (unit + integration + E2E) before marking tasks complete
+6. Update task status via MCP tools after each task
+7. If blocked for >15 minutes, escalate to me with:
+   - What you're trying to do
+   - What you've tried
+   - 2-3 options to proceed
+
+Start with task #T001.
+```
+
+#### 6. Monitor Progress in Real-Time
+
+SpecGofer shows live progress in the sidebar:
+
+```text
+📋 Specifications
+  └── 001-user-authentication
+      ├── ✅ #T001 Setup authentication module
+      ├── 🔄 #T002 Write JWT tests (IN PROGRESS)
+      ├── ⏸️ #T003 Implement JWT service
+      └── ⏸️ #T004 Write OAuth2 tests
+```
+
+Click any task to see:
+
+- Task description and acceptance criteria
+- Dependencies and blocking tasks
+- Test results and validation status
+- Code changes made by the AI
+
+#### 7. AI Decision-Making Process
+
+The AI follows this decision tree for architecture questions:
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│ Question: "How should I implement X?"                       │
+└───────────────────────┬─────────────────────────────────────┘
+                        ↓
+    ┌───────────────────────────────────────┐
+    │ 1. Check Constitution                 │
+    │    - Is there a principle covering X? │
+    │    - Any explicit patterns/rules?     │
+    └───────────┬───────────────────────────┘
+                ↓
+         YES ────→ Follow Constitution
+
+         NO ─────→ ┌───────────────────────────────────┐
+                   │ 2. Check Existing Codebase        │
+                   │    - Similar implementations?     │
+                   │    - Established patterns?        │
+                   └────────┬──────────────────────────┘
+                            ↓
+                     YES ────→ Follow Existing Pattern
+
+                     NO ─────→ ┌─────────────────────────────────────┐
+                                │ 3. Research Latest Best Practices  │
+                                │    - Fetch docs for [tech-stack]   │
+                                │    - Check official guidelines     │
+                                └────────┬────────────────────────────┘
+                                         ↓
+                                  CLEAR ANSWER? ───→ Implement Best Practice
+
+                                  UNCLEAR? ─────→ ┌──────────────────────────────┐
+                                                   │ 4. Ask User for Decision    │
+                                                   │    - Present 2-3 options    │
+                                                   │    - Explain trade-offs     │
+                                                   │    - Recommend one approach │
+                                                   └─────────────────────────────┘
+```
+
+#### 8. AI Escalation Protocol
+
+The AI will pause and ask you when:
+
+**Architecture Ambiguity**
+
+```
+I need to decide between two approaches for user session storage:
+
+Option A: Redis for distributed sessions
+  ✅ Handles horizontal scaling
+  ✅ Fast in-memory performance
+  ❌ Requires additional infrastructure
+  ❌ More operational complexity
+
+Option B: JWT-only (stateless)
+  ✅ No server-side storage needed
+  ✅ Simpler architecture
+  ❌ Can't revoke tokens before expiry
+  ❌ Larger token payload
+
+Your constitution doesn't specify session strategy. Which approach
+should I use? (I recommend Option A for enterprise apps)
+```
+
+**Dependency Blocker**
+
+```
+I'm blocked on task #T008 "Integrate with payment API" because:
+- The payment service endpoint isn't specified in the spec
+- I found `/docs/payment-api.md` but it references a staging URL
+- Production URL isn't in the codebase
+
+Can you provide:
+1. Production payment API endpoint
+2. API credentials (as environment variables)
+3. Rate limits I should expect
+```
+
+**Test Failure Investigation**
+
+```
+Test failure on #T012 "OAuth2 callback handling":
+
+Expected: User redirected to /dashboard after OAuth login
+Actual: 404 error on /auth/callback
+
+I've tried:
+1. Verified route is registered in router.ts:89
+2. Checked middleware chain - all passing
+3. OAuth provider returning correct callback URL
+
+The constitution requires 100% test coverage for auth flows.
+Should I:
+A) Add debugging logs and re-run
+B) Check if there's a reverse proxy config issue
+C) Review the OAuth provider dashboard settings with you
+```
+
+#### 9. Continuous Validation
+
+Throughout implementation, the AI automatically:
+
+**Constitution Compliance**
+
+```typescript
+// AI calls: specgofer_validate_code
+✅ Test-driven development: Tests written first
+✅ TypeScript strict mode: No 'any' types used
+✅ Security: Input validation present
+✅ Performance: API response <500ms
+⚠️  Test coverage: 78% (need 80% per constitution)
+   → Writing additional edge case tests...
+```
+
+**Acceptance Criteria**
+
+```markdown
+Spec: 001-user-authentication
+
+Acceptance Criteria: ✅ AC1: Users can log in with email/password ✅ AC2: JWT
+tokens expire after 1 hour ✅ AC3: Refresh tokens last 30 days 🔄 AC4: Invalid
+tokens return 401 status (testing...) ⏸️ AC5: OAuth2 login with Google (next
+task)
+```
+
+**Test Execution**
+
+```bash
+# AI automatically runs after each implementation
+npm run test                          # Unit tests
+npm run test:integration              # Integration tests
+npx playwright test auth.spec.ts      # E2E tests
+
+# Results logged to task status
+```
+
+#### 10. Review Completed Work
+
+When all tasks are complete, review the AI's work:
+
+**Check Task Status Panel**
+
+```text
+📋 001-user-authentication
+   ✅ All 23 tasks completed
+   ✅ Test coverage: 94% (target: 80%)
+   ✅ Constitution compliance: PASS
+   ✅ All acceptance criteria met
+```
+
+**Run Final Validation**
+
+```bash
+# In Claude Code or terminal
+npm run lint          # Code quality
+npm run test          # All tests
+npm run build         # Production build
+```
+
+**Review AI's Implementation Notes**
+
+Each completed task includes:
+
+- Code changes made (file:line references)
+- Tests written and results
+- Architecture decisions and rationale
+- Any deviations from plan (with justification)
+
+#### 11. Merge Feature Branch
+
+If validation passes:
+
+```bash
+git add .
+git commit -m "feat: implement user authentication (AI-generated)
+
+Completed all tasks in spec 001-user-authentication:
+- OAuth2 integration (Google, GitHub)
+- JWT token service with refresh
+- Session management middleware
+- Rate limiting on auth endpoints
+- 94% test coverage (23/23 tasks)
+
+AI Agent: Claude Code via SpecGofer MCP
+Constitution compliance: VERIFIED
+Manual review: PASSED"
+
+git push origin feature/user-authentication
+```
+
+Then create a PR for human review of architecture and edge cases.
+
+### Advanced Configuration
+
+#### Custom Constitution Rules
+
+Add project-specific rules to `.specify/memory/constitution.md`:
+
+```markdown
+### VIII. Authentication Standards (Project-Specific)
+
+All authentication MUST use:
+
+- Argon2id for password hashing (not bcrypt)
+- JWT with RS256 (not HS256)
+- Refresh token rotation on every use
+- MFA required for admin accounts
+- Session duration: 1 hour (not configurable)
+```
+
+The AI will follow these rules for all auth-related tasks.
+
+#### WhatsApp Escalation (Optional)
+
+To enable WhatsApp notifications when AI needs decisions:
+
+1. Set up a webhook service (e.g., Twilio, WhatsApp Business API)
+2. Configure in your AI agent prompt:
+
+```
+When you need to escalate a question:
+1. First, try to resolve using constitution + research (15 min limit)
+2. If unresolved, POST to: https://your-webhook.com/notify
+   Body: { "question": "...", "options": [...], "urgency": "medium" }
+3. Wait for response before proceeding
+```
+
+#### Technology Stack Specification
+
+Help the AI make better decisions by documenting your stack in the constitution:
+
+```markdown
+### Technology Stack
+
+**Backend**: Node.js 20 + Express + TypeScript **Database**: PostgreSQL 15 +
+Drizzle ORM **Frontend**: React 18 + Next.js 14 + TailwindCSS **Testing**:
+Vitest + Playwright + Testing Library **Deployment**: Docker + AWS ECS +
+CloudFront CDN
+
+When researching best practices, always use documentation for these specific
+versions.
+```
+
+#### Quality Gates
+
+Customize test requirements in constitution:
+
+```markdown
+### Test Coverage Requirements
+
+- Critical paths (auth, payment, data loss): 100%
+- Business logic: 90%
+- UI components: 80%
+- Utility functions: 70%
+
+Integration tests required for:
+
+- All API endpoints
+- All database operations
+- All external service calls
+```
+
+### Troubleshooting Autonomous Development
+
+#### AI Not Following Constitution
+
+**Symptom**: AI implements code that violates principles
+
+**Solution**:
+
+```
+Stop. You violated the constitution at .specify/memory/constitution.md:
+
+Rule: "All passwords must use Argon2id hashing"
+Your code: Used bcrypt in src/auth/password.ts:45
+
+Please:
+1. Re-read the constitution section on Authentication Standards
+2. Fix the implementation to use Argon2id
+3. Update tests to verify correct hashing algorithm
+4. Re-validate with specgofer_validate_code
+```
+
+#### AI Makes Wrong Architecture Choices
+
+**Symptom**: AI picks suboptimal approach without asking
+
+**Solution**: Make your constitution more specific:
+
+```markdown
+### IX. Data Access Patterns
+
+When implementing database queries:
+
+1. Use Drizzle ORM query builder (REQUIRED)
+2. Never use raw SQL unless approved
+3. Always use transactions for multi-table writes
+4. Add database indexes for all foreign keys
+5. If query complexity >3 joins, ask for review
+```
+
+#### AI Stuck in Loop
+
+**Symptom**: AI repeatedly fails same task
+
+**Solution**:
+
+```
+You've attempted task #T015 three times with same failure.
+
+Per our escalation protocol, stop and explain:
+1. What's failing (with exact error message)
+2. What you've tried so far
+3. What you think the root cause is
+4. Three specific approaches you could try next
+
+I'll choose the best path forward.
+```
+
+#### Tests Keep Failing
+
+**Symptom**: AI writes code but tests never pass
+
+**Solution**:
+
+```
+I notice tests failing on the last 5 tasks. Let's debug:
+
+1. Run ONE test in isolation: npm run test:debug T015
+2. Show me the full error output
+3. Show me the test code
+4. Show me the implementation code
+5. Explain what you THINK is happening
+
+We'll fix the root issue before proceeding with more tasks.
+```
+
+### Best Practices for Autonomous Development
+
+1. **Start Small**: Test with 3-5 task specs before full features
+2. **Constitution First**: Spend time on a detailed constitution
+3. **Clear Acceptance Criteria**: Make requirements testable
+4. **Monitor First Run**: Watch the first autonomous session closely
+5. **Iterate on Prompts**: Refine your AI instructions based on results
+6. **Trust but Verify**: Review completed work before merging
+7. **Capture Patterns**: Add successful patterns to constitution
+8. **Update Templates**: Improve spec templates based on AI feedback
+
+### Example: Complete Autonomous Session
+
+**Input** (in Claude Code terminal):
+
+```
+Feature: .specify/specs/001-user-authentication
+Status: Fully specified with plan and tasks
+Target: Autonomous implementation
+
+Please implement all 23 tasks following:
+- Constitution at .specify/memory/constitution.md
+- TDD: tests before code
+- Research latest OAuth2 best practices if needed
+- Escalate architecture questions after 15min
+- Target: 90%+ test coverage
+
+Start now.
+```
+
+**AI Output** (autonomous execution):
+
+```
+Starting autonomous implementation of 001-user-authentication...
+
+✅ Task #T001: Setup authentication module structure (2m 15s)
+   - Created src/auth/ directory structure
+   - Added TypeScript types for User, Token, Session
+   - Tests: 12/12 passed | Coverage: 100%
+
+✅ Task #T002: Write JWT token service tests (3m 45s)
+   - TDD: Wrote 18 test cases first (all failing)
+   - Covered: generation, validation, expiry, refresh
+   - Tests: 0/18 passed (expected - implementation next)
+
+✅ Task #T003: Implement JWT token service (8m 30s)
+   - Used RS256 per constitution requirement
+   - Added refresh token rotation
+   - Tests: 18/18 passed | Coverage: 94%
+
+🤔 Task #T004: OAuth2 provider selection (ESCALATION)
+
+   The spec says "OAuth2 login" but doesn't specify providers.
+
+   Your constitution doesn't mandate specific OAuth2 providers.
+
+   Research shows most common for user auth:
+   A) Google + GitHub (simplest, 90% coverage)
+   B) Google + GitHub + Microsoft (enterprise-friendly)
+   C) Auth0 universal (supports 30+ providers)
+
+   Which should I implement? I recommend (A) for MVP.
+
+   [Waiting for user response...]
+```
+
+**User Response**:
+
+```
+Option A. Add Microsoft later if needed.
+```
+
+**AI Continues**:
+
+```
+✅ Task #T004: OAuth2 provider integration (12m 20s)
+   - Implemented Google OAuth2 client
+   - Implemented GitHub OAuth2 client
+   - Added provider factory pattern for extensibility
+   - Tests: 24/24 passed | Coverage: 89%
+
+✅ Task #T005: Write callback handler tests (4m 10s)
+   - TDD: 15 test cases for OAuth callbacks
+   - Covered: success, failure, state validation, CSRF
+   - Tests: 0/15 passed (implementation next)
+
+... [continues through all 23 tasks]
+
+✅ Task #T023: End-to-end authentication flow test (15m 45s)
+   - Playwright tests for complete user journeys
+   - Tested: signup, login, logout, token refresh, OAuth
+   - Tests: 8/8 passed | Coverage: 92%
+
+════════════════════════════════════════════════════════════
+ AUTONOMOUS IMPLEMENTATION COMPLETE
+════════════════════════════════════════════════════════════
+
+Summary:
+✅ All 23 tasks completed
+✅ Test coverage: 92% (target: 80%)
+✅ Constitution compliance: PASS
+✅ All acceptance criteria met
+✅ No blockers encountered
+⏱️  Total time: 2h 15m
+
+Final validation:
+✅ npm run lint - PASS
+✅ npm run test - 247/247 PASS
+✅ npm run build - SUCCESS
+✅ git status - 43 files changed (all in src/auth/)
+
+Ready for human review and PR creation.
+```
+
+This is the power of SpecGofer-driven autonomous development: fully-specified
+features become production-ready code with minimal human intervention.
+
 ## 📝 Markdown Viewing Options
 
-SpecGofer supports multiple ways to view and edit your specifications, constitution, and memory documents. By default, it uses VSCode's built-in markdown preview (read-only), but you can install WYSIWYG editors for a better editing experience.
+SpecGofer supports multiple ways to view and edit your specifications,
+constitution, and memory documents. By default, it uses VSCode's built-in
+markdown preview (read-only), but you can install WYSIWYG editors for a better
+editing experience.
 
 ### Available Viewers
 
@@ -104,26 +835,31 @@ SpecGofer supports multiple ways to view and edit your specifications, constitut
 
 #### Mark Sharp (Recommended for WYSIWYG)
 
-- **Install**: Search "Mark Sharp" in VSCode Extensions or install via Command Palette: `ext install JonathanYeung.mark-sharp`
+- **Install**: Search "Mark Sharp" in VSCode Extensions or install via Command
+  Palette: `ext install JonathanYeung.mark-sharp`
 - Fast WYSIWYG editor with live preview
 - Best for quick edits while seeing rendered output
-- **Note**: If the extension is not available, you may need to search for alternative markdown WYSIWYG editors in the marketplace
+- **Note**: If the extension is not available, you may need to search for
+  alternative markdown WYSIWYG editors in the marketplace
 
 #### Markdown Editor by zaaack
 
-- **Install**: [Markdown Editor Extension](https://marketplace.visualstudio.com/items?itemName=zaaack.markdown-editor)
+- **Install**:
+  [Markdown Editor Extension](https://marketplace.visualstudio.com/items?itemName=zaaack.markdown-editor)
 - Feature-rich WYSIWYG with formatting toolbar
 - Best for complex documents with tables and formatting
 
 #### Markdown WYSIWYG
 
-- **Install**: [Markdown WYSIWYG Extension](https://marketplace.visualstudio.com/items?itemName=adamerose.markdown-wysiwyg)
+- **Install**:
+  [Markdown WYSIWYG Extension](https://marketplace.visualstudio.com/items?itemName=adamerose.markdown-wysiwyg)
 - Simple WYSIWYG toggle
 - Best for basic editing with visual feedback
 
 ### How to Use
 
 **Set Default Viewer:**
+
 1. Open VSCode Settings (`Cmd+,` or `Ctrl+,`)
 2. Search for `specGofer.markdownViewer` or just `markdown viewer`
 3. In the "SpecGofer: Markdown Viewer" dropdown, choose your preferred viewer:
@@ -134,25 +870,27 @@ SpecGofer supports multiple ways to view and edit your specifications, constitut
 
 **Use Context Menu:**
 
-Right-click any item in the SpecGofer sidebar (Specifications, Constitution, or Memory) and choose:
+Right-click any item in the SpecGofer sidebar (Specifications, Constitution, or
+Memory) and choose:
 
 - **Open with Preview** - VSCode's built-in preview
 - **Open with Mark Sharp** - Mark Sharp WYSIWYG
 - **Open with Markdown Editor** - Markdown Editor
 - **Open with Markdown WYSIWYG** - Markdown WYSIWYG
 
-This allows you to choose different viewers for different documents without changing your default setting.
+This allows you to choose different viewers for different documents without
+changing your default setting.
 
 ## 📋 Commands
 
-| Command | Keyboard Shortcut | Description |
-|---------|------------------|-------------|
-| `SpecGofer: Initialize Repository` | `Ctrl+Shift+Alt+I` | Create `.specify/` structure with templates |
-| `SpecGofer: Refresh Progress` | `Ctrl+Shift+Alt+R` | Manually refresh spec and task views |
-| `SpecGofer: Upgrade to Spec Kit Format` | - | Convert legacy JSON specs to Spec Kit format |
-| `SpecGofer: Update Templates` | - | Download latest Spec Kit templates |
-| `SpecGofer: Show Progress Panel` | `Ctrl+Shift+Alt+P` | Open the progress tracking panel |
-| `SpecGofer: Check for Updates` | - | Check for extension and template updates |
+| Command                                 | Keyboard Shortcut  | Description                                  |
+| --------------------------------------- | ------------------ | -------------------------------------------- |
+| `SpecGofer: Initialize Repository`      | `Ctrl+Shift+Alt+I` | Create `.specify/` structure with templates  |
+| `SpecGofer: Refresh Progress`           | `Ctrl+Shift+Alt+R` | Manually refresh spec and task views         |
+| `SpecGofer: Upgrade to Spec Kit Format` | -                  | Convert legacy JSON specs to Spec Kit format |
+| `SpecGofer: Update Templates`           | -                  | Download latest Spec Kit templates           |
+| `SpecGofer: Show Progress Panel`        | `Ctrl+Shift+Alt+P` | Open the progress tracking panel             |
+| `SpecGofer: Check for Updates`          | -                  | Check for extension and template updates     |
 
 ## How It Works
 
@@ -196,15 +934,15 @@ Configure the extension through VS Code settings:
 
 ### Settings Reference
 
-| Setting | Default | Description |
-|---------|---------|-------------|
-| `specGofer.markdownViewer` | `"preview"` | Markdown viewer: "preview", "mark-sharp", "markdown-editor", or "markdown-wysiwyg" |
-| `specGofer.autoRefresh` | `true` | Auto-refresh panels on file changes |
-| `specGofer.showNotifications` | `true` | Show update and status notifications |
-| `specGofer.telemetryEnabled` | `false` | Enable anonymous usage analytics |
-| `specGofer.templateSource` | `"github"` | Template source: "github" or "bundled" |
-| `specGofer.updateCheckInterval` | `86400000` | Update check interval in milliseconds |
-| `specGofer.branchSpecificSpecs` | `true` | Reload specs when switching branches |
+| Setting                         | Default     | Description                                                                        |
+| ------------------------------- | ----------- | ---------------------------------------------------------------------------------- |
+| `specGofer.markdownViewer`      | `"preview"` | Markdown viewer: "preview", "mark-sharp", "markdown-editor", or "markdown-wysiwyg" |
+| `specGofer.autoRefresh`         | `true`      | Auto-refresh panels on file changes                                                |
+| `specGofer.showNotifications`   | `true`      | Show update and status notifications                                               |
+| `specGofer.telemetryEnabled`    | `false`     | Enable anonymous usage analytics                                                   |
+| `specGofer.templateSource`      | `"github"`  | Template source: "github" or "bundled"                                             |
+| `specGofer.updateCheckInterval` | `86400000`  | Update check interval in milliseconds                                              |
+| `specGofer.branchSpecificSpecs` | `true`      | Reload specs when switching branches                                               |
 
 ## 🔧 Troubleshooting
 
@@ -243,8 +981,10 @@ Configure the extension through VS Code settings:
 ### Getting Help
 
 1. **Check Logs**: View Output panel → "SpecGofer" channel
-2. **Report Issues**: [GitHub Issues](https://github.com/eai-tools/specgofer/issues)
-3. **Documentation**: [Full Documentation](https://github.com/eai-tools/specgofer/tree/main/docs)
+2. **Report Issues**:
+   [GitHub Issues](https://github.com/eai-tools/specgofer/issues)
+3. **Documentation**:
+   [Full Documentation](https://github.com/eai-tools/specgofer/tree/main/docs)
 
 ## 🏗️ Architecture
 
@@ -304,7 +1044,8 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
-**Enterprise AI Pty Ltd** - Transforming development with AI-powered specifications.
+**Enterprise AI Pty Ltd** - Transforming development with AI-powered
+specifications.
 
 ## System Architecture
 

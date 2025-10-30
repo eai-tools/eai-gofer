@@ -3,6 +3,7 @@
 Complete implementation for feature 003-orchestrator-agents.
 
 ## Components
+
 - SpecLoader: GitHub Spec Kit parser
 - TaskQueue: Dependency resolution
 - AutonomousOrchestrator: Main execution loop
@@ -14,6 +15,7 @@ Complete implementation for feature 003-orchestrator-agents.
 - DependencyResolver: Circular detection
 
 ## Usage
+
 ```typescript
 import { AutonomousOrchestrator } from './AutonomousOrchestrator.js';
 

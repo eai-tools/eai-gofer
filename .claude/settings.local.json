@@ -13,7 +13,13 @@
       "Bash(git commit:*)",
       "Bash(git restore:*)",
       "Bash(git checkout:*)",
-      "Bash(./release-auto.sh:*)"
+      "Bash(./release-auto.sh:*)",
+      "Bash(npm run format:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npx markdownlint:*)",
+      "Read(//Users/douglaswross/Code/eai/eai-front-demo/.specify/**)",
+      "Read(//Users/douglaswross/Code/eai/eai-front-demo/specs/**)",
+      "Read(//Users/douglaswross/Code/eai/eai-front-demo/**)"
     ],
     "deny": [],
     "ask": []

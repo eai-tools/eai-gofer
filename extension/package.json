@@ -89,6 +89,11 @@
         "icon": "$(cloud-download)"
       },
       {
+        "command": "specGofer.fixSpecPaths",
+        "title": "SpecGofer: Fix Spec Path References (specs/ → .specify/specs/)",
+        "icon": "$(wrench)"
+      },
+      {
         "command": "specGofer.openSpec",
         "title": "SpecGofer: Open Specification",
         "icon": "$(file-text)"

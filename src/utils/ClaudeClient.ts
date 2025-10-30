@@ -61,10 +61,7 @@ export class ClaudeClient {
    * @param maxTokens - Maximum tokens in response (default: 1024)
    * @returns The response text
    */
-  async sendMessage(
-    prompt: string,
-    maxTokens: number = 1024
-  ): Promise<string> {
+  async sendMessage(prompt: string, maxTokens: number = 1024): Promise<string> {
     return this.limiter(async () => {
       const startTime = Date.now();
 

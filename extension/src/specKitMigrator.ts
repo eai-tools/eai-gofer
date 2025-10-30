@@ -324,6 +324,10 @@ export class SpecKitMigrator {
         console.log('[SpecKit Update] Fixing spec.md and tasks.md files...');
         await this.fixExistingSpecs();
 
+        progress.report({ message: 'Fixing spec path references...' });
+        console.log('[SpecKit Update] Ensuring all scripts use .specify/specs/...');
+        await this.fixSpecPathReferences();
+
         console.log('[SpecKit Update] Update complete!');
       }
     );
@@ -1240,6 +1244,43 @@ See the extension documentation for more details.
             '${workspaceFolder}/.specify/specs/'
           );
           content = content.replace(/\bspecs\/\b(?!.*\.specify)/g, '.specify/specs/');
+
+          // Fix variable assignments: SPECS_DIR="$REPO_ROOT/specs" → SPECS_DIR="$REPO_ROOT/.specify/specs"
+          content = content.replace(
+            /SPECS_DIR="\$REPO_ROOT\/specs"/g,
+            'SPECS_DIR="$REPO_ROOT/.specify/specs"'
+          );
+          // Also fix without quotes
+          content = content.replace(
+            /SPECS_DIR=\$REPO_ROOT\/specs\b/g,
+            'SPECS_DIR=$REPO_ROOT/.specify/specs'
+          );
+
+          // Fix other variable patterns
+          content = content.replace(
+            /SPECS_DIR="\$\{REPO_ROOT\}\/specs"/g,
+            'SPECS_DIR="${REPO_ROOT}/.specify/specs"'
+          );
+          content = content.replace(
+            /specs_dir="\$repo_root\/specs"/g,
+            'specs_dir="$repo_root/.specify/specs"'
+          );
+
+          // Fix paths in find/cd/ls commands: "specs" at end of path
+          content = content.replace(
+            /"\$REPO_ROOT\/specs"/g,
+            '"$REPO_ROOT/.specify/specs"'
+          );
+          content = content.replace(
+            /'\$REPO_ROOT\/specs'/g,
+            "'$REPO_ROOT/.specify/specs'"
+          );
+
+          // Fix concatenated paths without variable: /path/to/specs → /path/to/.specify/specs
+          content = content.replace(
+            /(['"]\$[A-Z_]+)\/specs(['"])/g,
+            '$1/.specify/specs$2'
+          );
 
           if (content !== originalContent) {
             await fs.writeFile(filePath, content);

@@ -5,7 +5,11 @@ import type { ValidationResult } from '../types/index.js';
 export class EngineerAgent {
   constructor(private claudeClient: ClaudeClient) {}
 
-  async validate(taskDescription: string, code: string, constitution: string): Promise<ValidationResult> {
+  async validate(
+    taskDescription: string,
+    code: string,
+    constitution: string
+  ): Promise<ValidationResult> {
     const prompt = this.buildValidationPrompt(taskDescription, code, constitution);
     const response = await this.claudeClient.sendMessage(prompt);
     return this.parseValidationResponse(response);

@@ -93,7 +93,7 @@ export class ClaudeCodeInterceptor {
         // File doesn't exist yet
       }
 
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
 
     throw new Error('Response timeout');

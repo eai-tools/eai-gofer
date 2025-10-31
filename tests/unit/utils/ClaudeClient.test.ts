@@ -9,6 +9,8 @@
  * - Token usage calculation
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 describe('ClaudeClient', () => {
@@ -24,7 +26,7 @@ describe('ClaudeClient', () => {
   describe('Rate Limiting', () => {
     it('should limit concurrent requests to 60/min', async () => {
       const mockCreate = vi.fn().mockResolvedValue({
-        content: [{ text: 'response' }],
+        content: [{ type: 'text', text: 'response' }],
         usage: { input_tokens: 100, output_tokens: 50 },
       });
 
@@ -38,9 +40,9 @@ describe('ClaudeClient', () => {
       const client = new ClaudeClient('test-key');
 
       // Make multiple concurrent requests
-      const promises = Array(65).fill(null).map(() =>
-        client.sendMessage('test prompt')
-      );
+      const promises = Array(65)
+        .fill(null)
+        .map(() => client.sendMessage('test prompt'));
 
       await Promise.all(promises);
 
@@ -59,7 +61,7 @@ describe('ClaudeClient', () => {
           throw error;
         }
         return Promise.resolve({
-          content: [{ text: 'success' }],
+          content: [{ type: 'text', text: 'success' }],
           usage: { input_tokens: 100, output_tokens: 50 },
         });
       });
@@ -84,10 +86,11 @@ describe('ClaudeClient', () => {
       error.status = 429;
       error.headers = { 'retry-after': '2' };
 
-      const mockCreate = vi.fn()
+      const mockCreate = vi
+        .fn()
         .mockRejectedValueOnce(error)
         .mockResolvedValueOnce({
-          content: [{ text: 'success' }],
+          content: [{ type: 'text', text: 'success' }],
           usage: { input_tokens: 100, output_tokens: 50 },
         });
 
@@ -112,7 +115,7 @@ describe('ClaudeClient', () => {
   describe('Cost Tracking', () => {
     it('should calculate cost per request', async () => {
       const mockCreate = vi.fn().mockResolvedValue({
-        content: [{ text: 'response' }],
+        content: [{ type: 'text', text: 'response' }],
         usage: { input_tokens: 2000, output_tokens: 500 },
       });
 
@@ -136,7 +139,7 @@ describe('ClaudeClient', () => {
 
     it('should track cumulative costs', async () => {
       const mockCreate = vi.fn().mockResolvedValue({
-        content: [{ text: 'response' }],
+        content: [{ type: 'text', text: 'response' }],
         usage: { input_tokens: 1000, output_tokens: 300 },
       });
 
@@ -163,7 +166,7 @@ describe('ClaudeClient', () => {
   describe('Message Creation', () => {
     it('should send message with correct parameters', async () => {
       const mockCreate = vi.fn().mockResolvedValue({
-        content: [{ text: 'response' }],
+        content: [{ type: 'text', text: 'response' }],
         usage: { input_tokens: 100, output_tokens: 50 },
       });
 
@@ -187,7 +190,7 @@ describe('ClaudeClient', () => {
 
     it('should use correct model version', async () => {
       const mockCreate = vi.fn().mockResolvedValue({
-        content: [{ text: 'response' }],
+        content: [{ type: 'text', text: 'response' }],
         usage: { input_tokens: 100, output_tokens: 50 },
       });
 
@@ -211,7 +214,7 @@ describe('ClaudeClient', () => {
 
     it('should set max_tokens to 1024', async () => {
       const mockCreate = vi.fn().mockResolvedValue({
-        content: [{ text: 'response' }],
+        content: [{ type: 'text', text: 'response' }],
         usage: { input_tokens: 100, output_tokens: 50 },
       });
 
@@ -268,7 +271,7 @@ describe('ClaudeClient', () => {
   describe('Response Parsing', () => {
     it('should extract text from response', async () => {
       const mockCreate = vi.fn().mockResolvedValue({
-        content: [{ text: 'Expected response text' }],
+        content: [{ type: 'text', text: 'Expected response text' }],
         usage: { input_tokens: 100, output_tokens: 50 },
       });
 

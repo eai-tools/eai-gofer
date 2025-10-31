@@ -59,3 +59,7 @@ extension/.vscode-test/
 
 # Extension compiled output
 extension/out/
+
+# Autonomous driver state
+.specify/state/sessions/
+.specify/state/logs/

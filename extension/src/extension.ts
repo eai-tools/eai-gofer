@@ -8,6 +8,8 @@ import { BranchSpecManager } from './branchSpecManager';
 import { AutoUpdater } from './autoUpdater';
 import { SpecGoferLSPClient } from './lspClient';
 import { MCPConfigHelper } from './mcpConfig';
+import { MemoryManager } from './autonomous/MemoryManager';
+import { registerMemoryCommands } from './commands/memoryCommands';
 
 /**
  * SpecGofer Extension
@@ -26,15 +28,16 @@ let memoryProvider: MemoryProvider | undefined;
 let branchSpecManager: BranchSpecManager | undefined;
 let autoUpdater: AutoUpdater | undefined;
 let lspClient: SpecGoferLSPClient | undefined;
+let memoryManager: MemoryManager | undefined;
 
 export async function activate(context: vscode.ExtensionContext) {
   // Setup auto-updater (using GitHub Pages API for private repo)
   const packageJson = require('../package.json');
   console.log(`SpecGofer (Enterprise AI) v${packageJson.version} extension activated`);
   autoUpdater = new AutoUpdater(
-    'eai-tools/specgofer',  // GitHub repo
-    packageJson.version,    // Current version
-    'specgofer'             // Extension name for VSIX filename
+    'eai-tools/specgofer', // GitHub repo
+    packageJson.version, // Current version
+    'specgofer' // Extension name for VSIX filename
   );
 
   // Start checking for updates using GitHub Pages API
@@ -187,12 +190,14 @@ async function handleNoSpecKit(
   if (autoInit) {
     const choice = await vscode.window.showInformationMessage(
       'No SpecGofer structure found in this workspace. Initialize now?',
-      'Yes', 'No', 'Don\'t ask again'
+      'Yes',
+      'No',
+      "Don't ask again"
     );
 
     if (choice === 'Yes') {
       await vscode.commands.executeCommand('specGofer.initialize');
-    } else if (choice === 'Don\'t ask again') {
+    } else if (choice === "Don't ask again") {
       await config.update('autoInitialize', false, vscode.ConfigurationTarget.Global);
     }
   }
@@ -208,7 +213,9 @@ async function handleLegacyFormat(
   const choice = await vscode.window.showWarningMessage(
     '📦 Old .specify format detected (JSON)\n\nUpgrade to GitHub Spec Kit format (Markdown)?',
     { modal: false },
-    'Upgrade Now', 'Later', 'Learn More'
+    'Upgrade Now',
+    'Later',
+    'Learn More'
   );
 
   if (choice === 'Upgrade Now') {
@@ -222,10 +229,7 @@ async function handleLegacyFormat(
   }
 }
 
-async function handleSpecKitFormat(
-  context: vscode.ExtensionContext,
-  workspacePath: string
-) {
+async function handleSpecKitFormat(context: vscode.ExtensionContext, workspacePath: string) {
   console.log('Spec Kit format detected - ready to use');
 
   await initializeProgressProvider(context, workspacePath);
@@ -250,7 +254,8 @@ async function handleMixedFormat(
 
   const choice = await vscode.window.showWarningMessage(
     'Mixed .specify formats detected. Complete migration to Spec Kit?',
-    'Migrate', 'Later'
+    'Migrate',
+    'Later'
   );
 
   if (choice === 'Migrate') {
@@ -261,10 +266,7 @@ async function handleMixedFormat(
   }
 }
 
-async function initializeProgressProvider(
-  context: vscode.ExtensionContext,
-  workspacePath: string
-) {
+async function initializeProgressProvider(context: vscode.ExtensionContext, workspacePath: string) {
   // Initialize branch-aware spec manager
   branchSpecManager = new BranchSpecManager(workspacePath);
   await branchSpecManager.initializeBranchStructure();
@@ -311,7 +313,10 @@ async function handleBranchChange() {
       progressProvider.refresh();
     }
     const currentBranch = branchSpecManager.getBranch();
-    vscode.window.setStatusBarMessage(`$(git-branch) SpecGofer: Switched to ${currentBranch}`, 3000);
+    vscode.window.setStatusBarMessage(
+      `$(git-branch) SpecGofer: Switched to ${currentBranch}`,
+      3000
+    );
   }
 }
 
@@ -407,10 +412,13 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
 
   // Show section details command (from constitution tree view clicks)
   context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.showSectionDetails', async (section: any, article: any) => {
-      const { showSectionDetailsWebview } = await import('./webviewHelpers');
-      showSectionDetailsWebview(context, section, article);
-    })
+    vscode.commands.registerCommand(
+      'specGofer.showSectionDetails',
+      async (section: any, article: any) => {
+        const { showSectionDetailsWebview } = await import('./webviewHelpers');
+        showSectionDetailsWebview(context, section, article);
+      }
+    )
   );
 
   // Show article details command (from constitution article clicks)
@@ -431,10 +439,13 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
 
   // Show memory section command (from memory section clicks)
   context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.showMemorySection', async (section: any, document: any) => {
-      const { showMemorySectionWebview } = await import('./webviewHelpers');
-      await showMemorySectionWebview(context, section, document);
-    })
+    vscode.commands.registerCommand(
+      'specGofer.showMemorySection',
+      async (section: any, document: any) => {
+        const { showMemorySectionWebview } = await import('./webviewHelpers');
+        await showMemorySectionWebview(context, section, document);
+      }
+    )
   );
 
   // Open With... context menu commands
@@ -463,6 +474,35 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('specGofer.openWithMarkdownWYSIWYG', async (item: any) => {
       const { openWithMarkdownWYSIWYG } = await import('./webviewHelpers');
       await openWithMarkdownWYSIWYG(item);
+    })
+  );
+
+  // Autonomous execution commands
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specGofer.startAutonomous', async (spec: any) => {
+      const { startAutonomousExecution } = await import('./autonomousCommands');
+      await startAutonomousExecution(context, spec, progressProvider);
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specGofer.stopAutonomous', async () => {
+      const { stopAutonomousExecution } = await import('./autonomousCommands');
+      await stopAutonomousExecution();
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specGofer.pauseAutonomous', async () => {
+      const { pauseAutonomousExecution } = await import('./autonomousCommands');
+      await pauseAutonomousExecution();
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specGofer.resumeAutonomous', async () => {
+      const { resumeAutonomousExecution } = await import('./autonomousCommands');
+      await resumeAutonomousExecution();
     })
   );
 }
@@ -516,14 +556,16 @@ function registerCommands(
     vscode.commands.registerCommand('specGofer.checkVersion', async () => {
       const versionInfo = await migrator.getVersionInfo();
 
-      vscode.window.showInformationMessage(
-        `SpecGofer Status:\n\nFormat: ${versionInfo.format}\n${versionInfo.details}`,
-        versionInfo.needsUpgrade ? 'Upgrade' : 'OK'
-      ).then(choice => {
-        if (choice === 'Upgrade') {
-          vscode.commands.executeCommand('specGofer.upgrade');
-        }
-      });
+      vscode.window
+        .showInformationMessage(
+          `SpecGofer Status:\n\nFormat: ${versionInfo.format}\n${versionInfo.details}`,
+          versionInfo.needsUpgrade ? 'Upgrade' : 'OK'
+        )
+        .then((choice) => {
+          if (choice === 'Upgrade') {
+            vscode.commands.executeCommand('specGofer.upgrade');
+          }
+        });
     })
   );
 
@@ -609,7 +651,7 @@ function registerCommands(
             return 'Name must be lowercase with dashes only (a-z, 0-9, -)';
           }
           return null;
-        }
+        },
       });
 
       if (specName) {
@@ -623,12 +665,18 @@ function registerCommands(
           // Create spec template
           const specTemplate = `---
 id: "${specName.trim()}"
-title: "${specName.trim().replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}"
+title: "${specName
+            .trim()
+            .replace(/-/g, ' ')
+            .replace(/\b\w/g, (l) => l.toUpperCase())}"
 status: "draft"
 created: "${new Date().toISOString().split('T')[0]}"
 ---
 
-# ${specName.trim().replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+# ${specName
+            .trim()
+            .replace(/-/g, ' ')
+            .replace(/\b\w/g, (l) => l.toUpperCase())}
 
 ## Overview
 
@@ -711,7 +759,7 @@ How will success be measured?
             .map(([name]) => ({
               label: name,
               description: `Open ${name} specification`,
-              specId: name
+              specId: name,
             }));
 
           if (specItems.length === 0) {
@@ -720,7 +768,7 @@ How will success be measured?
           }
 
           const selected = await vscode.window.showQuickPick(specItems, {
-            placeHolder: 'Select a specification to open'
+            placeHolder: 'Select a specification to open',
           });
 
           if (selected) {
@@ -732,6 +780,11 @@ How will success be measured?
       }
     })
   );
+
+  // Initialize MemoryManager and register memory commands
+  memoryManager = new MemoryManager(context, workspacePath);
+  registerMemoryCommands(context, memoryManager);
+  console.log('[SpecGofer] Memory commands registered');
 
   // Note: Tree view detail commands (showSpecDetails, showMemoryDocument, etc.)
   // are now registered globally in registerGlobalCommands() since tree views

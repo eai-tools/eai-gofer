@@ -20,9 +20,30 @@ describe('TaskQueue', () => {
   describe('buildQueue()', () => {
     it('should sort tasks topologically by dependencies', async () => {
       const tasks: Task[] = [
-        { id: 'T003', specId: '001', description: 'Task 3', status: 'pending', dependencies: ['T001', 'T002'], attemptCount: 0 },
-        { id: 'T001', specId: '001', description: 'Task 1', status: 'pending', dependencies: [], attemptCount: 0 },
-        { id: 'T002', specId: '001', description: 'Task 2', status: 'pending', dependencies: ['T001'], attemptCount: 0 },
+        {
+          id: 'T003',
+          specId: '001',
+          description: 'Task 3',
+          status: 'pending',
+          dependencies: ['T001', 'T002'],
+          attemptCount: 0,
+        },
+        {
+          id: 'T001',
+          specId: '001',
+          description: 'Task 1',
+          status: 'pending',
+          dependencies: [],
+          attemptCount: 0,
+        },
+        {
+          id: 'T002',
+          specId: '001',
+          description: 'Task 2',
+          status: 'pending',
+          dependencies: ['T001'],
+          attemptCount: 0,
+        },
       ];
 
       const { TaskQueue } = await import('../../../src/orchestrator/TaskQueue');
@@ -37,8 +58,22 @@ describe('TaskQueue', () => {
 
     it('should handle tasks with no dependencies', async () => {
       const tasks: Task[] = [
-        { id: 'T001', specId: '001', description: 'Task 1', status: 'pending', dependencies: [], attemptCount: 0 },
-        { id: 'T002', specId: '001', description: 'Task 2', status: 'pending', dependencies: [], attemptCount: 0 },
+        {
+          id: 'T001',
+          specId: '001',
+          description: 'Task 1',
+          status: 'pending',
+          dependencies: [],
+          attemptCount: 0,
+        },
+        {
+          id: 'T002',
+          specId: '001',
+          description: 'Task 2',
+          status: 'pending',
+          dependencies: [],
+          attemptCount: 0,
+        },
       ];
 
       const { TaskQueue } = await import('../../../src/orchestrator/TaskQueue');
@@ -51,8 +86,22 @@ describe('TaskQueue', () => {
 
     it('should detect circular dependencies', async () => {
       const tasks: Task[] = [
-        { id: 'T001', specId: '001', description: 'Task 1', status: 'pending', dependencies: ['T002'], attemptCount: 0 },
-        { id: 'T002', specId: '001', description: 'Task 2', status: 'pending', dependencies: ['T001'], attemptCount: 0 },
+        {
+          id: 'T001',
+          specId: '001',
+          description: 'Task 1',
+          status: 'pending',
+          dependencies: ['T002'],
+          attemptCount: 0,
+        },
+        {
+          id: 'T002',
+          specId: '001',
+          description: 'Task 2',
+          status: 'pending',
+          dependencies: ['T001'],
+          attemptCount: 0,
+        },
       ];
 
       const mockLogError = vi.fn();
@@ -63,16 +112,51 @@ describe('TaskQueue', () => {
       const { TaskQueue } = await import('../../../src/orchestrator/TaskQueue');
       const queue = new TaskQueue();
 
-      await expect(queue.buildQueue(tasks)).rejects.toThrow('circular');
+      await expect(queue.buildQueue(tasks)).rejects.toThrow(/circular/i);
     });
 
     it('should handle complex dependency graphs', async () => {
       const tasks: Task[] = [
-        { id: 'T005', specId: '001', description: 'Task 5', status: 'pending', dependencies: ['T003', 'T004'], attemptCount: 0 },
-        { id: 'T003', specId: '001', description: 'Task 3', status: 'pending', dependencies: ['T001'], attemptCount: 0 },
-        { id: 'T004', specId: '001', description: 'Task 4', status: 'pending', dependencies: ['T002'], attemptCount: 0 },
-        { id: 'T001', specId: '001', description: 'Task 1', status: 'pending', dependencies: [], attemptCount: 0 },
-        { id: 'T002', specId: '001', description: 'Task 2', status: 'pending', dependencies: [], attemptCount: 0 },
+        {
+          id: 'T005',
+          specId: '001',
+          description: 'Task 5',
+          status: 'pending',
+          dependencies: ['T003', 'T004'],
+          attemptCount: 0,
+        },
+        {
+          id: 'T003',
+          specId: '001',
+          description: 'Task 3',
+          status: 'pending',
+          dependencies: ['T001'],
+          attemptCount: 0,
+        },
+        {
+          id: 'T004',
+          specId: '001',
+          description: 'Task 4',
+          status: 'pending',
+          dependencies: ['T002'],
+          attemptCount: 0,
+        },
+        {
+          id: 'T001',
+          specId: '001',
+          description: 'Task 1',
+          status: 'pending',
+          dependencies: [],
+          attemptCount: 0,
+        },
+        {
+          id: 'T002',
+          specId: '001',
+          description: 'Task 2',
+          status: 'pending',
+          dependencies: [],
+          attemptCount: 0,
+        },
       ];
 
       const { TaskQueue } = await import('../../../src/orchestrator/TaskQueue');
@@ -80,9 +164,9 @@ describe('TaskQueue', () => {
 
       const sorted = await queue.buildQueue(tasks);
 
-      const t5Index = sorted.findIndex(t => t.id === 'T005');
-      const t3Index = sorted.findIndex(t => t.id === 'T003');
-      const t4Index = sorted.findIndex(t => t.id === 'T004');
+      const t5Index = sorted.findIndex((t) => t.id === 'T005');
+      const t3Index = sorted.findIndex((t) => t.id === 'T003');
+      const t4Index = sorted.findIndex((t) => t.id === 'T004');
 
       expect(t5Index).toBeGreaterThan(t3Index);
       expect(t5Index).toBeGreaterThan(t4Index);
@@ -92,8 +176,22 @@ describe('TaskQueue', () => {
   describe('getNextTask()', () => {
     it('should return task with satisfied dependencies', async () => {
       const tasks: Task[] = [
-        { id: 'T001', specId: '001', description: 'Task 1', status: 'completed', dependencies: [], attemptCount: 0 },
-        { id: 'T002', specId: '001', description: 'Task 2', status: 'pending', dependencies: ['T001'], attemptCount: 0 },
+        {
+          id: 'T001',
+          specId: '001',
+          description: 'Task 1',
+          status: 'completed',
+          dependencies: [],
+          attemptCount: 0,
+        },
+        {
+          id: 'T002',
+          specId: '001',
+          description: 'Task 2',
+          status: 'pending',
+          dependencies: ['T001'],
+          attemptCount: 0,
+        },
       ];
 
       const { TaskQueue } = await import('../../../src/orchestrator/TaskQueue');
@@ -107,8 +205,22 @@ describe('TaskQueue', () => {
 
     it('should skip tasks with unsatisfied dependencies', async () => {
       const tasks: Task[] = [
-        { id: 'T001', specId: '001', description: 'Task 1', status: 'pending', dependencies: [], attemptCount: 0 },
-        { id: 'T002', specId: '001', description: 'Task 2', status: 'pending', dependencies: ['T001'], attemptCount: 0 },
+        {
+          id: 'T001',
+          specId: '001',
+          description: 'Task 1',
+          status: 'pending',
+          dependencies: [],
+          attemptCount: 0,
+        },
+        {
+          id: 'T002',
+          specId: '001',
+          description: 'Task 2',
+          status: 'pending',
+          dependencies: ['T001'],
+          attemptCount: 0,
+        },
       ];
 
       const { TaskQueue } = await import('../../../src/orchestrator/TaskQueue');
@@ -122,7 +234,14 @@ describe('TaskQueue', () => {
 
     it('should return null when no tasks available', async () => {
       const tasks: Task[] = [
-        { id: 'T001', specId: '001', description: 'Task 1', status: 'completed', dependencies: [], attemptCount: 0 },
+        {
+          id: 'T001',
+          specId: '001',
+          description: 'Task 1',
+          status: 'completed',
+          dependencies: [],
+          attemptCount: 0,
+        },
       ];
 
       const { TaskQueue } = await import('../../../src/orchestrator/TaskQueue');

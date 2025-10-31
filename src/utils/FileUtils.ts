@@ -12,7 +12,6 @@
  */
 
 import { promises as fs } from 'fs';
-import path from 'path';
 import { logger } from './Logger.js';
 
 /**
@@ -105,8 +104,9 @@ export class FileUtils {
           },
         });
       }
-    } catch (error: any) {
-      if (error.code === 'ENOENT') {
+    } catch (error: unknown) {
+      const err = error as { code?: string };
+      if (err.code === 'ENOENT') {
         // File doesn't exist yet, no conflict
         return;
       }

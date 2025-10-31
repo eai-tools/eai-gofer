@@ -67,7 +67,8 @@ frontmatter and parse Markdown task lists with dependencies.
 
 ## SpecGofer Autonomous Workflow (For Users)
 
-When users ask "how do I use this?" or "how does this work?", guide them through this workflow:
+When users ask "how do I use this?" or "how does this work?", guide them through
+this workflow:
 
 ### The Complete Autonomous Workflow
 
@@ -75,7 +76,7 @@ When users ask "how do I use this?" or "how does this work?", guide them through
 # Step 1: Create specification
 /speckit.specify
 # User provides: "Build a feature that does X"
-# Output: .specify/.specify/specs/NNN-feature/spec.md
+# Output: .specify/.specify/.specify/.specify/specs/NNN-feature/spec.md
 
 # Step 2: Generate implementation plan
 /speckit.plan
@@ -98,8 +99,9 @@ When users ask "how do I use this?" or "how does this work?", guide them through
 # - KEEP GOING until all tasks complete!
 ```
 
-**Key Point**: Users do NOT need to prompt for each task. `/speckit.implement` runs autonomously until done!
-Refer users to QUICKSTART.md for detailed walkthrough.
+**Key Point**: Users do NOT need to prompt for each task. `/speckit.implement`
+runs autonomously until done! Refer users to QUICKSTART.md for detailed
+walkthrough.
 
 ## Developer Workflows
 

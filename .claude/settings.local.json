@@ -6,7 +6,10 @@
       "Bash(qlmanage -t:*)",
       "Bash(python3:*)",
       "Bash(node convert-icon.js:*)",
-      "Bash(node extension/convert-icon.js:*)"
+      "Bash(node extension/convert-icon.js:*)",
+      "Bash(cat:*)",
+      "Bash(npm test:*)",
+      "Bash(npm run compile:*)"
     ],
     "deny": [],
     "ask": []

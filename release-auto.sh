@@ -223,13 +223,34 @@ fi
 # Test VSIX activation before releasing
 print_info "Running VSIX pre-flight tests..."
 if [ -f "./test-vsix.sh" ]; then
-    if ./test-vsix.sh "./specgofer-$NEW_VERSION.vsix" --test-activation; then
-        print_success "VSIX passed all pre-flight tests including activation"
+    ./test-vsix.sh "./specgofer-$NEW_VERSION.vsix" --test-activation
+    TEST_EXIT=$?
+
+    if [ $TEST_EXIT -eq 0 ]; then
+        # Check if we skipped activation testing due to VSCode terminal
+        if [ -n "$VSCODE_PID" ] || [ -n "$TERM_PROGRAM" ] && [ "$TERM_PROGRAM" = "vscode" ]; then
+            echo ""
+            print_warning "⚠️  ACTIVATION TEST WAS SKIPPED (running from VSCode terminal)"
+            echo ""
+            print_info "Before releasing, you should test activation from an external terminal:"
+            echo ""
+            echo "  # In Terminal.app or iTerm2:"
+            echo "  cd $PWD"
+            echo "  ./test-activation-helper.sh \"./specgofer-$NEW_VERSION.vsix\" \"$PWD\""
+            echo ""
+            read -p "Have you tested activation externally? (y/N): " -n 1 -r
+            echo
+            if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+                print_error "Activation not tested. Aborting release."
+                exit 1
+            fi
+            print_success "User confirmed activation test passed"
+        else
+            print_success "VSIX passed all pre-flight tests including activation"
+        fi
     else
         print_error "VSIX failed pre-flight tests!"
         print_error "Extension may fail to activate. Fix issues before releasing."
-        echo ""
-        print_warning "To skip activation testing (NOT RECOMMENDED), edit release-auto.sh"
         exit 1
     fi
 else

@@ -19,7 +19,8 @@
       "Bash(/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code --install-extension ./specgofer-3.0.5.vsix --force)",
       "Bash(npx:*)",
       "Bash(npm run compile:*)",
-      "Read(//tmp/**)"
+      "Read(//tmp/**)",
+      "Bash(npm test)"
     ],
     "deny": [],
     "ask": []

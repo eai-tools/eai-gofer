@@ -574,9 +574,9 @@ execution, verify auto-compaction at 80% threshold reduces usage to ~40%
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T169 [P] Create user documentation in docs/memory-learning-system.md
+- [x] T169 [P] Create user documentation in docs/memory-learning-system.md
       (usage guide, examples, troubleshooting)
-- [ ] T170 [P] Create example hint files for common patterns in
+- [x] T170 [P] Create example hint files for common patterns in
       .specify/hints/examples/
 - [x] T171 [P] Add logging for all major operations (memory save, hint load,
       dependency add, compaction trigger)
@@ -584,7 +584,7 @@ execution, verify auto-compaction at 80% threshold reduces usage to ~40%
       enabled)
 - [x] T173 Code cleanup: Remove unused imports, fix linting warnings across all
       new files
-- [ ] T174 Security review: Validate all file path inputs to prevent traversal
+- [x] T174 Security review: Validate all file path inputs to prevent traversal
       attacks
 - [ ] T175 Performance optimization: Profile memory search with 1000 entries,
       optimize if needed
@@ -593,9 +593,9 @@ execution, verify auto-compaction at 80% threshold reduces usage to ~40%
 - [x] T177 Run full test suite with coverage report, ensure >85% coverage
 - [ ] T178 Run quickstart.md validation: Verify all code examples compile and
       run
-- [ ] T179 Create migration guide from Feature 005 to Feature 001 in
+- [x] T179 Create migration guide from Feature 005 to Feature 001 in
       docs/migration.md
-- [ ] T180 Update CHANGELOG.md with feature summary and user-facing changes
+- [x] T180 Update CHANGELOG.md with feature summary and user-facing changes
 
 ---
 

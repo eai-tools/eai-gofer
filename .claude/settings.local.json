@@ -47,7 +47,9 @@
       "Bash(npm run test:unit:*)",
       "Bash(tee:*)",
       "Bash(awk:*)",
-      "Bash(cut:*)"
+      "Bash(cut:*)",
+      "Bash(if [ -d \"/Users/douglaswross/spec-driven-dev-system/.specify/specs/001-memory-learning-system/checklists\" ])",
+      "Bash(then ls -la \"/Users/douglaswross/spec-driven-dev-system/.specify/specs/001-memory-learning-system/checklists/\")"
     ],
     "deny": [],
     "ask": []

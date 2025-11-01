@@ -10,10 +10,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import * as fs from 'fs';
 import * as path from 'path';
 import { MemoryManager } from '../../extension/src/autonomous/MemoryManager';
 import type { Memory } from '../../extension/src/autonomous/memory';
+
+// Unmock fs for this integration test (needs real file system)
+vi.unmock('fs');
+vi.unmock('fs/promises');
+
+// Import fs after unmocking
+import * as fs from 'fs';
 
 // Mock VSCode extension context
 const mockGlobalState = new Map<string, unknown>();

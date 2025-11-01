@@ -9,6 +9,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
 import { type HintFile, type HintQuery, type HintLoadResult } from './hint';
+import { Logger } from '../utils/logger';
 
 /**
  * HintLoader discovers and loads hint files from the .specify/hints directory.
@@ -26,6 +27,7 @@ export class HintLoader {
   private hintCache: Map<string, HintFile> = new Map();
   private cacheValid: boolean = false;
   private watcher: any | undefined; // FileSystemWatcher, but avoid direct vscode dependency for tests
+  private readonly logger: Logger;
 
   /**
    * Creates a new HintLoader instance.
@@ -35,6 +37,8 @@ export class HintLoader {
   constructor(workspaceRoot: string) {
     this.workspaceRoot = workspaceRoot;
     this.hintsDir = path.join(workspaceRoot, '.specify', 'hints');
+    this.logger = Logger.for('HintLoader');
+    this.logger.debug('HintLoader initialized', { workspaceRoot, hintsDir: this.hintsDir });
   }
 
   /**
@@ -130,11 +134,16 @@ export class HintLoader {
   async discoverHints(): Promise<string[]> {
     // Return cached results if valid
     if (this.cacheValid && this.hintCache.size > 0) {
+      this.logger.debug('Using cached hints', { count: this.hintCache.size });
       return Array.from(this.hintCache.keys());
     }
 
+    this.logger.debug('Discovering hint files');
+    const startTime = Date.now();
+
     // Check if hints directory exists
     if (!fs.existsSync(this.hintsDir)) {
+      this.logger.info('Hints directory does not exist', { hintsDir: this.hintsDir });
       this.cacheValid = true;
       return [];
     }
@@ -164,11 +173,13 @@ export class HintLoader {
         const hint = await this.loadHintFile(hintPath);
         this.hintCache.set(hintPath, hint);
       } catch (error) {
-        console.warn(`Failed to load hint file ${hintPath}:`, error);
+        this.logger.warn(`Failed to load hint file ${hintPath}`, undefined, error as Error);
       }
     }
 
     this.cacheValid = true;
+    const duration = Date.now() - startTime;
+    this.logger.info('Hint discovery completed', { count: hintPaths.length, duration });
     return hintPaths;
   }
 

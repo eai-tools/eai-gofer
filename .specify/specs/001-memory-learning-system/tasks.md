@@ -297,130 +297,130 @@ verify SpecGofer warns "This change may impact spec-002"
 
 #### Step 1: DependencyGraph Core (Week 6)
 
-- [ ] T078 [P] [US3] Create DependencyGraph class skeleton in
+- [x] T078 [P] [US3] Create DependencyGraph class skeleton in
       extension/src/autonomous/DependencyGraph.ts implementing DependencyGraph
       interface
-- [ ] T079 [P] [US3] Write unit test for addDependency() adding edge in
+- [x] T079 [P] [US3] Write unit test for addDependency() adding edge in
       tests/unit/autonomous/DependencyGraph.test.ts
-- [ ] T080 [US3] Implement addDependency() in
+- [x] T080 [US3] Implement addDependency() in
       extension/src/autonomous/DependencyGraph.ts using graphlib
-- [ ] T081 [US3] Write unit test for addSpec() and removeSpec() in
+- [x] T081 [US3] Write unit test for addSpec() and removeSpec() in
       tests/unit/autonomous/DependencyGraph.test.ts
-- [ ] T082 [US3] Implement addSpec() and removeSpec() in
+- [x] T082 [US3] Implement addSpec() and removeSpec() in
       extension/src/autonomous/DependencyGraph.ts
-- [ ] T083 [US3] Write unit test for getDependencies() and getDependents() in
+- [x] T083 [US3] Write unit test for getDependencies() and getDependents() in
       tests/unit/autonomous/DependencyGraph.test.ts
-- [ ] T084 [US3] Implement getDependencies() and getDependents() in
+- [x] T084 [US3] Implement getDependencies() and getDependents() in
       extension/src/autonomous/DependencyGraph.ts
 
 #### Step 2: Cycle Detection (Week 6-7)
 
-- [ ] T085 [US3] Write unit test for detectCycles() finding circular
+- [x] T085 [US3] Write unit test for detectCycles() finding circular
       dependencies in tests/unit/autonomous/DependencyGraph.test.ts
-- [ ] T086 [US3] Implement detectCycles() in
+- [x] T086 [US3] Implement detectCycles() in
       extension/src/autonomous/DependencyGraph.ts using graphlib
       alg.findCycles()
-- [ ] T087 [US3] Write unit test for wouldCreateCycle() checking before adding
+- [x] T087 [US3] Write unit test for wouldCreateCycle() checking before adding
       edge in tests/unit/autonomous/DependencyGraph.test.ts
-- [ ] T088 [US3] Implement wouldCreateCycle() in
+- [x] T088 [US3] Implement wouldCreateCycle() in
       extension/src/autonomous/DependencyGraph.ts (temporary add, check cycles,
       rollback)
-- [ ] T089 [US3] Update addDependency() to throw error if wouldCreateCycle()
+- [x] T089 [US3] Update addDependency() to throw error if wouldCreateCycle()
       returns true in extension/src/autonomous/DependencyGraph.ts
 
 #### Step 3: Topological Sort & Execution Order (Week 7)
 
-- [ ] T090 [US3] Write unit test for getExecutionOrder() returning topologically
+- [x] T090 [US3] Write unit test for getExecutionOrder() returning topologically
       sorted specs in tests/unit/autonomous/DependencyGraph.test.ts
-- [ ] T091 [US3] Implement getExecutionOrder() in
+- [x] T091 [US3] Implement getExecutionOrder() in
       extension/src/autonomous/DependencyGraph.ts using graphlib alg.topsort()
-- [ ] T092 [US3] Write unit test for execution order with complex dependency
+- [x] T092 [US3] Write unit test for execution order with complex dependency
       chains (A→B→C, D→B) in tests/unit/autonomous/DependencyGraph.test.ts
-- [ ] T093 [US3] Add support for partial ordering (execute subset of specs) in
+- [x] T093 [US3] Add support for partial ordering (execute subset of specs) in
       extension/src/autonomous/DependencyGraph.ts
 
 #### Step 4: Impact Analysis (Week 7-8)
 
-- [ ] T094 [US3] Write unit test for getImpactReport() returning direct and
+- [x] T094 [US3] Write unit test for getImpactReport() returning direct and
       transitive dependents in tests/unit/autonomous/DependencyGraph.test.ts
-- [ ] T095 [US3] Implement getImpactReport() in
+- [x] T095 [US3] Implement getImpactReport() in
       extension/src/autonomous/DependencyGraph.ts (traverse graph for
       dependents)
-- [ ] T096 [US3] Calculate impact score (0-100) based on dependent count in
+- [x] T096 [US3] Calculate impact score (0-100) based on dependent count in
       extension/src/autonomous/DependencyGraph.ts
-- [ ] T097 [US3] Add affected files and APIs detection to ImpactReport in
+- [x] T097 [US3] Add affected files and APIs detection to ImpactReport in
       extension/src/autonomous/DependencyGraph.ts
 
 #### Step 5: Persistence (Week 8)
 
-- [ ] T098 [US3] Write unit test for save() serializing graph to JSON in
+- [x] T098 [US3] Write unit test for save() serializing graph to JSON in
       tests/unit/autonomous/DependencyGraph.test.ts
-- [ ] T099 [US3] Implement save() in extension/src/autonomous/DependencyGraph.ts
+- [x] T099 [US3] Implement save() in extension/src/autonomous/DependencyGraph.ts
       (export to .specify/memory/dependency-graph.json)
-- [ ] T100 [US3] Write unit test for static load() deserializing graph from JSON
+- [x] T100 [US3] Write unit test for static load() deserializing graph from JSON
       in tests/unit/autonomous/DependencyGraph.test.ts
-- [ ] T101 [US3] Implement static load() in
+- [x] T101 [US3] Implement static load() in
       extension/src/autonomous/DependencyGraph.ts (import from JSON, rebuild
       graphlib Graph)
-- [ ] T102 [US3] Write unit test for validate() checking orphaned edges and
+- [x] T102 [US3] Write unit test for validate() checking orphaned edges and
       cycles in tests/unit/autonomous/DependencyGraph.test.ts
-- [ ] T103 [US3] Implement validate() in
+- [x] T103 [US3] Implement validate() in
       extension/src/autonomous/DependencyGraph.ts
 
 #### Step 6: Spec Frontmatter Integration (Week 8)
 
-- [ ] T104 [US3] Add depends_on field parser to spec loader in
+- [x] T104 [US3] Add depends_on field parser to spec loader in
       extension/src/autonomous/SpecLoader.ts
-- [ ] T105 [US3] Parse depends_on from YAML frontmatter on spec load in
+- [x] T105 [US3] Parse depends_on from YAML frontmatter on spec load in
       extension/src/autonomous/SpecLoader.ts
-- [ ] T106 [US3] Auto-populate DependencyGraph from spec frontmatter on project
+- [x] T106 [US3] Auto-populate DependencyGraph from spec frontmatter on project
       load in extension/src/autonomous/AutonomousDriver.ts
-- [ ] T107 [US3] Validate that declared dependencies reference existing specs in
+- [x] T107 [US3] Validate that declared dependencies reference existing specs in
       extension/src/autonomous/SpecLoader.ts
 
 #### Step 7: UI Integration - Tree View (Week 9)
 
-- [ ] T108 [US3] Create DependencyTreeDecorator in
+- [x] T108 [US3] Create DependencyTreeDecorator in
       extension/src/ui/DependencyTreeDecorator.ts
-- [ ] T109 [US3] Modify ProgressProvider in extension/src/progressProvider.ts to
+- [x] T109 [US3] Modify ProgressProvider in extension/src/progressProvider.ts to
       show dependency indicators in tree view
-- [ ] T110 [US3] Add description field with "→ depends on: spec-001" format to
+- [x] T110 [US3] Add description field with "→ depends on: spec-001" format to
       TreeItem in extension/src/progressProvider.ts
-- [ ] T111 [US3] Add tooltip showing full dependency chain to TreeItem in
+- [x] T111 [US3] Add tooltip showing full dependency chain to TreeItem in
       extension/src/progressProvider.ts
 
 #### Step 8: UI Integration - Notifications (Week 9)
 
-- [ ] T112 [US3] Add file watcher for spec modifications in
+- [x] T112 [US3] Add file watcher for spec modifications in
       extension/src/extension.ts
-- [ ] T113 [US3] Show impact notification when modified spec has dependents in
+- [x] T113 [US3] Show impact notification when modified spec has dependents in
       extension/src/autonomous/AutonomousDriver.ts
-- [ ] T114 [US3] Format notification with "This change may impact: spec-002,
+- [x] T114 [US3] Format notification with "This change may impact: spec-002,
       spec-003" message in extension/src/autonomous/AutonomousDriver.ts
-- [ ] T115 [US3] Add "Show Impact Report" button to notification in
+- [x] T115 [US3] Add "Show Impact Report" button to notification in
       extension/src/autonomous/AutonomousDriver.ts
 
 #### Step 9: Execution Ordering (Week 9)
 
-- [ ] T116 [US3] Implement "Execute All Pending Specs" command in
+- [x] T116 [US3] Implement "Execute All Pending Specs" command in
       extension/src/commands/specCommands.ts using getExecutionOrder()
-- [ ] T117 [US3] Add pre-execution dependency check before autonomous execution
+- [x] T117 [US3] Add pre-execution dependency check before autonomous execution
       in extension/src/autonomous/AutonomousDriver.ts
-- [ ] T118 [US3] Show warning if executing spec with incomplete dependencies in
+- [x] T118 [US3] Show warning if executing spec with incomplete dependencies in
       extension/src/autonomous/AutonomousDriver.ts
-- [ ] T119 [US3] Offer to execute dependencies first via notification action in
+- [x] T119 [US3] Offer to execute dependencies first via notification action in
       extension/src/autonomous/AutonomousDriver.ts
 
 #### Step 10: Testing & Validation (Week 9)
 
-- [ ] T120 [US3] Write integration test for complete dependency workflow
+- [x] T120 [US3] Write integration test for complete dependency workflow
       (declare, detect, order) in
       tests/integration/dependencyIntegration.test.ts
-- [ ] T121 [US3] Write E2E test for impact notification on spec modification in
+- [x] T121 [US3] Write E2E test for impact notification on spec modification in
       tests/e2e/dependencyImpact.spec.ts (Playwright)
-- [ ] T122 [US3] Verify cycle detection performance <1ms for 100 nodes benchmark
+- [x] T122 [US3] Verify cycle detection performance <1ms for 100 nodes benchmark
       test in tests/unit/autonomous/DependencyGraph.test.ts
-- [ ] T123 [US3] Verify impact analysis performance <2s for 100 specs benchmark
+- [x] T123 [US3] Verify impact analysis performance <2s for 100 specs benchmark
       test in tests/unit/autonomous/DependencyGraph.test.ts
 
 **Checkpoint**: User Story 3 complete and independently functional ✅
@@ -439,64 +439,64 @@ execution, verify auto-compaction at 80% threshold reduces usage to ~40%
 
 #### Step 1: ContextCompactor Core (Week 10)
 
-- [ ] T124 [P] [US4] Create ContextCompactor class skeleton in
+- [x] T124 [P] [US4] Create ContextCompactor class skeleton in
       extension/src/autonomous/ContextCompactor.ts implementing ContextCompactor
       interface
-- [ ] T125 [P] [US4] Write unit test for estimateTokenUsage() using chars/4
+- [x] T125 [P] [US4] Write unit test for estimateTokenUsage() using chars/4
       approximation in tests/unit/autonomous/ContextCompactor.test.ts
-- [ ] T126 [US4] Implement estimateTokenUsage() in
+- [x] T126 [US4] Implement estimateTokenUsage() in
       extension/src/autonomous/ContextCompactor.ts (Math.ceil(context.length /
       4))
-- [ ] T127 [US4] Write unit test for shouldCompact() checking threshold in
+- [x] T127 [US4] Write unit test for shouldCompact() checking threshold in
       tests/unit/autonomous/ContextCompactor.test.ts
-- [ ] T128 [US4] Implement shouldCompact() in
+- [x] T128 [US4] Implement shouldCompact() in
       extension/src/autonomous/ContextCompactor.ts (compare usage to threshold)
 
 #### Step 2: Context Analysis (Week 10)
 
-- [ ] T129 [US4] Write unit test for analyzeContext() returning breakdown by
+- [x] T129 [US4] Write unit test for analyzeContext() returning breakdown by
       section in tests/unit/autonomous/ContextCompactor.test.ts
-- [ ] T130 [US4] Implement analyzeContext() in
+- [x] T130 [US4] Implement analyzeContext() in
       extension/src/autonomous/ContextCompactor.ts (estimate tokens for each
       section: system, tasks, memories, hints)
-- [ ] T131 [US4] Calculate usage percentage and recommendation in
+- [x] T131 [US4] Calculate usage percentage and recommendation in
       analyzeContext() in extension/src/autonomous/ContextCompactor.ts
-- [ ] T132 [US4] Write unit test for previewCompaction() showing what would be
+- [x] T132 [US4] Write unit test for previewCompaction() showing what would be
       compacted in tests/unit/autonomous/ContextCompactor.test.ts
-- [ ] T133 [US4] Implement previewCompaction() in
+- [x] T133 [US4] Implement previewCompaction() in
       extension/src/autonomous/ContextCompactor.ts (simulate compaction without
       executing)
 
 #### Step 3: Task Summarization (Week 10-11)
 
-- [ ] T134 [US4] Create CompactionStrategy default configuration in
+- [x] T134 [US4] Create CompactionStrategy default configuration in
       extension/src/autonomous/ContextCompactor.ts (preserveLastN: 10,
       summarizeBatchSize: 5)
-- [ ] T135 [US4] Write unit test for summarizeTasks() generating concise summary
+- [x] T135 [US4] Write unit test for summarizeTasks() generating concise summary
       in tests/unit/autonomous/ContextCompactor.test.ts
-- [ ] T136 [US4] Implement summarizeTasks() in
+- [x] T136 [US4] Implement summarizeTasks() in
       extension/src/autonomous/ContextCompactor.ts (batch tasks, call LLM with
       summary prompt)
-- [ ] T137 [US4] Add fallback model support for summarization if multi-LLM
+- [x] T137 [US4] Add fallback model support for summarization if multi-LLM
       available in extension/src/autonomous/ContextCompactor.ts
-- [ ] T138 [US4] Optimize summary prompt to focus on decisions, files changed,
+- [x] T138 [US4] Optimize summary prompt to focus on decisions, files changed,
       outcomes (not debugging steps) in
       extension/src/autonomous/ContextCompactor.ts
 
 #### Step 4: Compaction Execution (Week 11)
 
-- [ ] T139 [US4] Write unit test for compact() preserving last N tasks in
+- [x] T139 [US4] Write unit test for compact() preserving last N tasks in
       tests/unit/autonomous/ContextCompactor.test.ts
-- [ ] T140 [US4] Implement compact() in
+- [x] T140 [US4] Implement compact() in
       extension/src/autonomous/ContextCompactor.ts (identify tasks to compact,
       preserve recent)
-- [ ] T141 [US4] Write unit test for compact() reducing context by 40-60% in
+- [x] T141 [US4] Write unit test for compact() reducing context by 40-60% in
       tests/unit/autonomous/ContextCompactor.test.ts
-- [ ] T142 [US4] Build new context with summary + preserved tasks in
+- [x] T142 [US4] Build new context with summary + preserved tasks in
       extension/src/autonomous/ContextCompactor.ts
-- [ ] T143 [US4] Calculate tokensSaved and return CompactionSummary in
+- [x] T143 [US4] Calculate tokensSaved and return CompactionSummary in
       extension/src/autonomous/ContextCompactor.ts
-- [ ] T144 [US4] Save session state backup before compaction in
+- [x] T144 [US4] Save session state backup before compaction in
       extension/src/autonomous/ContextCompactor.ts
 
 #### Step 5: AutonomousDriver Integration (Week 11)
@@ -528,29 +528,29 @@ execution, verify auto-compaction at 80% threshold reduces usage to ~40%
 
 - [ ] T154 [US4] Add specGofer.autonomous.compactionThreshold setting to
       extension/package.json contributes.configuration (default 80, range 50-95)
-- [ ] T155 [US4] Implement setThreshold() and getThreshold() in
+- [x] T155 [US4] Implement setThreshold() and getThreshold() in
       extension/src/autonomous/ContextCompactor.ts
 - [ ] T156 [US4] Read threshold from VSCode settings in AutonomousDriver
       initialization in extension/src/autonomous/AutonomousDriver.ts
 
 #### Step 8: Fallback Strategies (Week 11)
 
-- [ ] T157 [US4] Write unit test for fallback truncation strategy in
+- [x] T157 [US4] Write unit test for fallback truncation strategy in
       tests/unit/autonomous/ContextCompactor.test.ts
-- [ ] T158 [US4] Implement fallback truncation (remove oldest, preserve last 20)
+- [x] T158 [US4] Implement fallback truncation (remove oldest, preserve last 20)
       in extension/src/autonomous/ContextCompactor.ts
-- [ ] T159 [US4] Detect summarization failures (LLM error) and trigger fallback
+- [x] T159 [US4] Detect summarization failures (LLM error) and trigger fallback
       in extension/src/autonomous/ContextCompactor.ts
-- [ ] T160 [US4] Show warning notification when fallback is used in
+- [x] T160 [US4] Show warning notification when fallback is used in
       extension/src/autonomous/AutonomousDriver.ts
 
 #### Step 9: Error Recovery (Week 11)
 
-- [ ] T161 [US4] Implement rollbackCompaction() to restore from backup in
+- [x] T161 [US4] Implement rollbackCompaction() to restore from backup in
       extension/src/autonomous/ContextCompactor.ts
-- [ ] T162 [US4] Save session state to .specify/state/sessions/{sessionId}.json
+- [x] T162 [US4] Save session state to .specify/state/sessions/{sessionId}.json
       before compaction in extension/src/autonomous/ContextCompactor.ts
-- [ ] T163 [US4] Load session state for error recovery in
+- [x] T163 [US4] Load session state for error recovery in
       extension/src/autonomous/AutonomousDriver.ts
 
 #### Step 10: Testing & Validation (Week 11)
@@ -559,11 +559,11 @@ execution, verify auto-compaction at 80% threshold reduces usage to ~40%
       summarize, preserve) in tests/integration/compactionIntegration.test.ts
 - [ ] T165 [US4] Write E2E test for 100+ task spec with auto-compaction in
       tests/e2e/autoCompaction.spec.ts (Playwright)
-- [ ] T166 [US4] Verify compaction performance <10s benchmark test in
+- [x] T166 [US4] Verify compaction performance <10s benchmark test in
       tests/unit/autonomous/ContextCompactor.test.ts
-- [ ] T167 [US4] Verify 40-60% context reduction target in
+- [x] T167 [US4] Verify 40-60% context reduction target in
       tests/unit/autonomous/ContextCompactor.test.ts
-- [ ] T168 [US4] Test emergency compaction at 90% threshold in
+- [x] T168 [US4] Test emergency compaction at 90% threshold in
       tests/unit/autonomous/ContextCompactor.test.ts
 
 **Checkpoint**: User Story 4 complete and independently functional ✅
@@ -578,11 +578,11 @@ execution, verify auto-compaction at 80% threshold reduces usage to ~40%
       (usage guide, examples, troubleshooting)
 - [ ] T170 [P] Create example hint files for common patterns in
       .specify/hints/examples/
-- [ ] T171 [P] Add logging for all major operations (memory save, hint load,
+- [x] T171 [P] Add logging for all major operations (memory save, hint load,
       dependency add, compaction trigger)
 - [ ] T172 [P] Add telemetry events for feature usage tracking (if telemetry
       enabled)
-- [ ] T173 Code cleanup: Remove unused imports, fix linting warnings across all
+- [x] T173 Code cleanup: Remove unused imports, fix linting warnings across all
       new files
 - [ ] T174 Security review: Validate all file path inputs to prevent traversal
       attacks
@@ -590,7 +590,7 @@ execution, verify auto-compaction at 80% threshold reduces usage to ~40%
       optimize if needed
 - [ ] T176 Performance optimization: Profile hint discovery with 1000 files,
       optimize if needed
-- [ ] T177 Run full test suite with coverage report, ensure >85% coverage
+- [x] T177 Run full test suite with coverage report, ensure >85% coverage
 - [ ] T178 Run quickstart.md validation: Verify all code examples compile and
       run
 - [ ] T179 Create migration guide from Feature 005 to Feature 001 in

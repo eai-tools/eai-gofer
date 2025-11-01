@@ -223,63 +223,54 @@ export class SpecKitMigrator {
     const execAsync = promisify(exec);
 
     try {
-      // Check if uvx is available
-      let hasUV = false;
-      try {
-        await execAsync('uvx --version');
-        hasUV = true;
-      } catch {
-        // Try uv instead
-        try {
-          await execAsync('uv --version');
-          hasUV = true;
-        } catch {
-          // UV not found - prompt user to install
-          const choice = await vscode.window.showInformationMessage(
-            'SpecGofer needs UV (Python package installer) to set up spec-kit templates with full functionality. Install automatically?',
-            { modal: true },
-            'Yes, Install UV',
-            'Skip for Now',
-            'Learn More'
-          );
+      // Check if UV is available
+      let uvCommand = await this.findUV();
 
-          if (choice === 'Learn More') {
-            vscode.env.openExternal(vscode.Uri.parse('https://docs.astral.sh/uv/'));
-            const retry = await vscode.window.showInformationMessage(
-              'UV is a fast Python package installer. Would you like to install it now?',
-              'Yes, Install UV',
-              'Skip for Now'
-            );
-            if (retry !== 'Yes, Install UV') {
-              throw new Error('User declined UV installation. Using fallback setup.');
-            }
-          } else if (choice !== 'Yes, Install UV') {
+      if (!uvCommand) {
+        // UV not found - prompt user to install
+        const choice = await vscode.window.showInformationMessage(
+          'SpecGofer needs UV (Python package installer) to set up spec-kit templates with full functionality. Install automatically?',
+          { modal: true },
+          'Yes, Install UV',
+          'Skip for Now',
+          'Learn More'
+        );
+
+        if (choice === 'Learn More') {
+          vscode.env.openExternal(vscode.Uri.parse('https://docs.astral.sh/uv/'));
+          const retry = await vscode.window.showInformationMessage(
+            'UV is a fast Python package installer. Would you like to install it now?',
+            'Yes, Install UV',
+            'Skip for Now'
+          );
+          if (retry !== 'Yes, Install UV') {
             throw new Error('User declined UV installation. Using fallback setup.');
           }
-
-          // Install UV automatically
-          await vscode.window.withProgress(
-            {
-              location: vscode.ProgressLocation.Notification,
-              title: 'Installing UV (Python package installer)...',
-              cancellable: false,
-            },
-            async () => {
-              try {
-                await this.installUV();
-                hasUV = true;
-                vscode.window.showInformationMessage(
-                  '✓ UV installed successfully! Continuing with spec-kit setup...'
-                );
-              } catch (error: any) {
-                throw new Error(`Failed to install UV: ${error.message}`);
-              }
-            }
-          );
+        } else if (choice !== 'Yes, Install UV') {
+          throw new Error('User declined UV installation. Using fallback setup.');
         }
+
+        // Install UV automatically
+        await vscode.window.withProgress(
+          {
+            location: vscode.ProgressLocation.Notification,
+            title: 'Installing UV (Python package installer)...',
+            cancellable: false,
+          },
+          async () => {
+            try {
+              uvCommand = await this.installUV();
+              vscode.window.showInformationMessage(
+                '✓ UV installed successfully! Continuing with spec-kit setup...'
+              );
+            } catch (error: any) {
+              throw new Error(`Failed to install UV: ${error.message}`);
+            }
+          }
+        );
       }
 
-      if (!hasUV) {
+      if (!uvCommand) {
         throw new Error('UV installation failed or was cancelled. Using fallback setup.');
       }
 
@@ -299,8 +290,14 @@ export class SpecKitMigrator {
         // No existing constitution - that's fine
       }
 
-      // Install spec-kit using uvx with --force to ensure we get latest templates
-      const command = `uvx --from git+https://github.com/github/spec-kit.git specify init --here --force --ai copilot --script sh`;
+      // Install spec-kit using detected UV command with --force to ensure we get latest templates
+      // Use uvx if available (detected as 'uvx' or ends with /uvx), otherwise use 'uv tool run'
+      const useUvx = uvCommand.includes('uvx');
+      const command = useUvx
+        ? `${uvCommand} --from git+https://github.com/github/spec-kit.git specify init --here --force --ai copilot --script sh`
+        : `${uvCommand} tool run --from git+https://github.com/github/spec-kit.git specify init --here --force --ai copilot --script sh`;
+
+      console.log(`Running spec-kit init with command: ${command}`);
 
       // Change to workspace directory and run command
       const options = { cwd: this.workspacePath };
@@ -537,9 +534,41 @@ export class SpecKitMigrator {
   }
 
   /**
-   * Install UV (Python package installer) automatically
+   * Find UV installation (checks common locations)
    */
-  private async installUV(): Promise<void> {
+  private async findUV(): Promise<string | null> {
+    const { exec } = require('child_process');
+    const { promisify } = require('util');
+    const execAsync = promisify(exec);
+    const os = require('os');
+    const homeDir = os.homedir();
+
+    const uvPaths = [
+      'uvx', // Prefer uvx if available
+      'uv', // Already in PATH
+      `${homeDir}/.cargo/bin/uvx`, // Default UV location with uvx
+      `${homeDir}/.cargo/bin/uv`, // Default UV location
+      `${homeDir}/.local/bin/uv`, // Alternative location
+    ];
+
+    for (const uvPath of uvPaths) {
+      try {
+        await execAsync(`${uvPath} --version`);
+        console.log(`Found UV at: ${uvPath}`);
+        return uvPath;
+      } catch {
+        // Try next path
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Install UV (Python package installer) automatically
+   * Returns the path to the UV command
+   */
+  private async installUV(): Promise<string> {
     const { exec } = require('child_process');
     const { promisify } = require('util');
     const execAsync = promisify(exec);
@@ -558,15 +587,18 @@ export class SpecKitMigrator {
         await execAsync(installCmd, { shell: '/bin/bash' });
       }
 
-      // Verify installation
-      try {
-        const { stdout } = await execAsync('uv --version');
-        const version = stdout.trim();
-        console.log('UV installed successfully:', version);
-        // Success message will be shown by the progress handler
-      } catch {
-        throw new Error('UV installation completed but uv command not found in PATH. Try restarting VSCode or install manually: https://docs.astral.sh/uv/');
+      // Find UV after installation
+      const uvPath = await this.findUV();
+      if (!uvPath) {
+        throw new Error(
+          'UV installed but not found. Please restart VSCode to refresh PATH, or add to your shell profile:\n' +
+          `  export PATH="$HOME/.cargo/bin:$PATH"`
+        );
       }
+
+      const { stdout } = await execAsync(`${uvPath} --version`);
+      console.log(`UV installed successfully: ${stdout.trim()}`);
+      return uvPath;
     } catch (error: any) {
       console.error('Failed to install UV:', error);
       throw new Error(`Installation failed: ${error.message}. You can install UV manually from https://docs.astral.sh/uv/`);

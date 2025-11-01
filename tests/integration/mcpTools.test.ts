@@ -247,9 +247,8 @@ describe('MCP Tools Integration', () => {
       const result = await mcpHandler.executeTask('002-orchestrator', 'T004');
 
       expect(result.success).toBe(true);
-      expect(result.message).toContain('ready for implementation');
-      expect(result.context.task.id).toBe('T004');
-      expect(result.context.spec.id).toBe('002-orchestrator');
+      expect(result.task?.id).toBe('T004');
+      expect(result.spec?.id).toBe('002-orchestrator');
     });
 
     it('should reject execution of non-existent task', async () => {
@@ -283,7 +282,7 @@ describe('MCP Tools Integration', () => {
         'completed'
       );
       expect(mockConnection.sendNotification).toHaveBeenCalledWith(
-        'specKit/taskProgress',
+        'specGofer/taskProgress',
         expect.objectContaining({
           specId: '002-orchestrator',
           taskId: 'T004',

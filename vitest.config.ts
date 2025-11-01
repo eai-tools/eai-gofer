@@ -7,14 +7,14 @@ export default defineConfig({
     environment: 'node',
     include: [
       'tests/**/*.test.ts',
-      'src/**/*.test.ts'
     ],
     exclude: [
       'tests/e2e/**',
       'node_modules/**',
       'dist/**',
       'extension/**',
-      'language-server/**'
+      'language-server/**',
+      'src/**/*.test.ts', // Exclude VSCode extension tests (use VSCode test runner)
     ],
     coverage: {
       provider: 'v8',

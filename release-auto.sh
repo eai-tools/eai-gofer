@@ -266,14 +266,22 @@ else
     print_warning "Linting had some issues, but continuing..."
 fi
 
-# Run tests (but don't fail the release if tests fail - just warn)
+# Run tests and capture exit code
 print_info "Running tests..."
-if npm test 2>&1 | tail -20; then
+npm test > /tmp/test-output.log 2>&1
+TEST_EXIT=$?
+
+# Show last 20 lines of test output
+tail -20 /tmp/test-output.log
+
+if [ $TEST_EXIT -eq 0 ]; then
     print_success "Tests passed"
 else
-    print_warning "Some tests failed, but continuing with release..."
+    print_error "Tests failed!"
     echo ""
-    print_warning "⚠️  You may want to fix these test failures in a follow-up patch release."
+    print_error "Cannot release with failing tests. Fix the tests and try again."
+    print_info "Full test output in: /tmp/test-output.log"
+    exit 1
 fi
 
 echo ""

@@ -53,6 +53,21 @@ vi.mock('vscode', () => {
       showInformationMessage: vi.fn(),
       onDidWriteTerminalData: vi.fn(() => ({ dispose: vi.fn() })),
     },
+    workspace: {
+      getConfiguration: vi.fn(() => ({
+        get: vi.fn(),
+        update: vi.fn(),
+      })),
+      workspaceFolders: [],
+      onDidChangeWorkspaceFolders: vi.fn(),
+      getWorkspaceFolder: vi.fn(),
+      asRelativePath: vi.fn((pathOrUri: any) => {
+        if (typeof pathOrUri === 'string') {
+          return pathOrUri;
+        }
+        return pathOrUri.fsPath || pathOrUri.path;
+      }),
+    },
     StatusBarAlignment: {
       Left: 1,
     },

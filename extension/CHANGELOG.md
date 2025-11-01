@@ -4,6 +4,8 @@ All notable changes to the SpecGofer extension will be documented in this file.
 
 ## [Unreleased]
 
+## [2.1.0] - 2025-11-01
+
 ### Added
 
 - **Memory & Learning System (Feature 001)**: Complete autonomous execution

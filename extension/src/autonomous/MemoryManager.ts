@@ -29,6 +29,7 @@ import {
 } from './validation';
 import { validateMemory, validateStoredMemories, formatValidationErrors } from './schemaValidator';
 import { Logger } from '../utils/logger';
+import { telemetry } from './telemetryIntegration';
 
 /**
  * Current schema version for StoredMemories.
@@ -82,6 +83,7 @@ export class MemoryManager implements IMemoryManager {
     const validation = this.validate(newMemory);
     if (!validation.valid) {
       this.logger.error('Memory validation failed', undefined, { errors: validation.errors });
+      telemetry.trackMemoryValidationError(validation.errors);
       throw new Error(`Memory validation failed: ${validation.errors.join(', ')}`);
     }
 
@@ -97,6 +99,10 @@ export class MemoryManager implements IMemoryManager {
       category: newMemory.category,
       scope: newMemory.scope,
     });
+
+    // Track memory creation
+    telemetry.trackMemorySaved(newMemory);
+
     return newMemory;
   }
 
@@ -146,6 +152,9 @@ export class MemoryManager implements IMemoryManager {
     const searchTime = Date.now() - startTime;
     this.logger.info('Memory search completed', { count: results.length, searchTime });
 
+    // Track memory search
+    telemetry.trackMemorySearch(query, results.length, searchTime);
+
     return {
       memories: results,
       count: results.length,
@@ -170,6 +179,7 @@ export class MemoryManager implements IMemoryManager {
       localMemories.splice(localIndex, 1);
       await this.saveLocalBatch(localMemories);
       this.logger.info('Memory deleted from local storage', { id });
+      telemetry.trackMemoryForgotten(id, 'local');
       return;
     }
 
@@ -181,6 +191,7 @@ export class MemoryManager implements IMemoryManager {
       globalMemories.splice(globalIndex, 1);
       await this.saveGlobalBatch(globalMemories);
       this.logger.info('Memory deleted from global storage', { id });
+      telemetry.trackMemoryForgotten(id, 'global');
       return;
     }
 

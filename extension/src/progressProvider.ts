@@ -1,12 +1,16 @@
 import * as vscode from 'vscode';
 import { SpecKitParser, Spec, Task, SpecStatus, TaskStatus } from './specKitParser';
+import { SpecLoader } from './autonomous/SpecLoader';
+import { DependencyGraph } from './autonomous/DependencyGraph';
 
 class SpecItem extends vscode.TreeItem {
   constructor(
     public readonly label: string,
     public readonly collapsibleState: vscode.TreeItemCollapsibleState,
     public readonly spec?: Spec,
-    public readonly task?: Task
+    public readonly task?: Task,
+    public readonly dependencies?: string[],
+    public readonly dependents?: string[]
   ) {
     super(label, collapsibleState);
 
@@ -17,15 +21,19 @@ class SpecItem extends vscode.TreeItem {
       const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
       const harveyBall = this.getHarveyBall(percentage);
 
-      this.tooltip = spec.description;
-      this.description = this.getSpecStatus(spec, percentage);
+      // T110: Add dependency info to description
+      this.description = this.getSpecStatusWithDeps(spec, percentage, dependencies);
+
+      // T111: Add full dependency chain to tooltip
+      this.tooltip = this.buildSpecTooltip(spec, dependencies, dependents);
+
       this.label = `${harveyBall} ${label}`; // Harvey ball at front
       this.contextValue = 'spec';
       // Add click command to show spec details
       this.command = {
         command: 'specGofer.showSpecDetails',
         title: 'Show Spec Details',
-        arguments: [spec]
+        arguments: [spec],
       };
     } else if (task) {
       // This is a task item - show Harvey ball icon
@@ -39,18 +47,26 @@ class SpecItem extends vscode.TreeItem {
       this.command = {
         command: 'specGofer.showTaskDetails',
         title: 'Show Task Details',
-        arguments: [task, spec]
+        arguments: [task, spec],
       };
     }
   }
 
-  private getSpecStatus(spec: Spec, percentage: number): string {
+  /**
+   * T110: Get spec status with dependency indicators
+   */
+  private getSpecStatusWithDeps(spec: Spec, percentage: number, dependencies?: string[]): string {
     const failed = spec.tasks.filter((t) => t.status === 'failed').length;
     const inProgress = spec.tasks.filter((t) => t.status === 'in_progress').length;
     const testing = spec.tasks.filter((t) => t.status === 'testing').length;
     const blocked = spec.tasks.filter((t) => t.status === 'blocked').length;
 
     const parts: string[] = [];
+
+    // Show dependency indicator first if present
+    if (dependencies && dependencies.length > 0) {
+      parts.push(`→ depends on: ${dependencies.join(', ')}`);
+    }
 
     // Show active states
     if (inProgress > 0) {
@@ -72,12 +88,52 @@ class SpecItem extends vscode.TreeItem {
     return parts.join(' • ');
   }
 
+  /**
+   * T111: Build tooltip with full dependency chain
+   */
+  private buildSpecTooltip(spec: Spec, dependencies?: string[], dependents?: string[]): string {
+    const parts: string[] = [];
+
+    // Add spec description
+    if (spec.description) {
+      parts.push(spec.description);
+      parts.push(''); // Empty line
+    }
+
+    // Add dependency information
+    if (dependencies && dependencies.length > 0) {
+      parts.push('Dependencies:');
+      dependencies.forEach((dep) => {
+        parts.push(`  → ${dep}`);
+      });
+      parts.push(''); // Empty line
+    }
+
+    // Add dependent information
+    if (dependents && dependents.length > 0) {
+      parts.push('Depended on by:');
+      dependents.forEach((dep) => {
+        parts.push(`  ← ${dep}`);
+      });
+    }
+
+    return parts.join('\n');
+  }
+
   private getHarveyBall(percentage: number): string {
     // Harvey ball representation using Unicode
-    if (percentage === 0) return '○'; // Empty circle
-    if (percentage <= 25) return '◔'; // Quarter filled
-    if (percentage <= 50) return '◑'; // Half filled
-    if (percentage <= 75) return '◕'; // Three quarters filled
+    if (percentage === 0) {
+      return '○'; // Empty circle
+    }
+    if (percentage <= 25) {
+      return '◔'; // Quarter filled
+    }
+    if (percentage <= 50) {
+      return '◑'; // Half filled
+    }
+    if (percentage <= 75) {
+      return '◕'; // Three quarters filled
+    }
     return '●'; // Full circle
   }
 
@@ -141,11 +197,17 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
   private specs: Spec[] = [];
   private loadError: string | null = null;
   private branchSpecManager: any;
+  private specLoader: SpecLoader;
+  private dependencyGraph: DependencyGraph;
+  private workspacePath: string;
 
   constructor(workspacePath: string, branchSpecManager?: any) {
     console.log(`[SpecGofer] ProgressProvider initialized for workspace: ${workspacePath}`);
+    this.workspacePath = workspacePath;
     this.branchSpecManager = branchSpecManager;
     this.parser = new SpecKitParser(workspacePath, branchSpecManager);
+    this.specLoader = new SpecLoader(workspacePath);
+    this.dependencyGraph = new DependencyGraph(workspacePath);
     this.loadSpecs();
   }
 
@@ -173,15 +235,12 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
     if (!element) {
       // Root level - show specs
       if (this.specs.length === 0) {
-        const noSpecsItem = new SpecItem(
-          'No specs found',
-          vscode.TreeItemCollapsibleState.None
-        );
+        const noSpecsItem = new SpecItem('No specs found', vscode.TreeItemCollapsibleState.None);
         noSpecsItem.iconPath = new vscode.ThemeIcon('info');
         noSpecsItem.tooltip = `Workspace: ${this.parser['workspacePath']}\n\nLooking for specs in: .specify/specs/\n\nClick "Initialize SpecGofer" to create the structure.`;
         noSpecsItem.command = {
           command: 'specGofer.initialize',
-          title: 'Initialize SpecGofer'
+          title: 'Initialize SpecGofer',
         };
         return [noSpecsItem];
       }
@@ -194,25 +253,25 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
         return aNum - bNum;
       });
 
-      return sortedSpecs.map(
-        (spec) =>
-          new SpecItem(
-            spec.title,
-            vscode.TreeItemCollapsibleState.Expanded,
-            spec,
-            undefined
-          )
-      );
+      // T108-T109: Add dependency information to tree items
+      return sortedSpecs.map((spec) => {
+        const dependencies = this.dependencyGraph.getDependencies(spec.id);
+        const dependents = this.dependencyGraph.getDependents(spec.id);
+
+        return new SpecItem(
+          spec.title,
+          vscode.TreeItemCollapsibleState.Expanded,
+          spec,
+          undefined,
+          dependencies,
+          dependents
+        );
+      });
     } else if (element.spec && !element.task) {
       // Spec level - show tasks
       return element.spec.tasks.map(
         (task) =>
-          new SpecItem(
-            task.description,
-            vscode.TreeItemCollapsibleState.None,
-            element.spec,
-            task
-          )
+          new SpecItem(task.description, vscode.TreeItemCollapsibleState.None, element.spec, task)
       );
     }
 
@@ -238,6 +297,9 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
       this.specs = await this.parser.loadAllSpecs();
       this.loadError = null;
       console.log(`[SpecGofer] Loaded ${this.specs.length} spec(s) from ${specifyPath}`);
+
+      // T106: Load dependency graph from spec frontmatter
+      await this.loadDependencyGraph();
 
       // Sort specs by status and completion
       this.specs.sort((a, b) => {
@@ -266,6 +328,77 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
       console.error('Error loading specs:', error);
       this.loadError = error instanceof Error ? error.message : 'Unknown error';
       this.specs = [];
+    }
+  }
+
+  /**
+   * T106: Load dependency graph from spec frontmatter
+   */
+  private async loadDependencyGraph(): Promise<void> {
+    try {
+      // Try to load existing graph from disk
+      const path = require('path');
+      const graphPath = path.join(
+        this.workspacePath,
+        '.specify',
+        'memory',
+        'dependency-graph.json'
+      );
+      const fs = require('fs').promises;
+
+      try {
+        await fs.access(graphPath);
+        this.dependencyGraph = await DependencyGraph.load(this.workspacePath);
+        console.log(`[SpecGofer] Loaded dependency graph from ${graphPath}`);
+      } catch {
+        // Graph doesn't exist, create new one
+        this.dependencyGraph = new DependencyGraph(this.workspacePath);
+        console.log('[SpecGofer] Created new dependency graph');
+      }
+
+      // Get all dependencies from spec frontmatter
+      const allDependencies = this.specLoader.getAllDependencies();
+
+      // Populate graph with specs and their dependencies
+      for (const [specId, dependencies] of allDependencies.entries()) {
+        // Add spec node if not exists
+        if (!this.dependencyGraph.getSpec(specId)) {
+          this.dependencyGraph.addSpec(specId);
+        }
+
+        // Add dependencies
+        for (const depId of dependencies) {
+          try {
+            // Validate dependency exists
+            if (!allDependencies.has(depId)) {
+              console.warn(`[SpecGofer] Spec ${specId} depends on non-existent spec ${depId}`);
+              continue;
+            }
+
+            // Add dependency edge (if not already present)
+            if (!this.dependencyGraph.hasDependency(specId, depId)) {
+              this.dependencyGraph.addDependency(specId, depId, 'required_by', {
+                reason: 'Declared in spec frontmatter',
+                addedAt: Date.now(),
+              });
+            }
+          } catch (error) {
+            if (error instanceof Error && error.message.includes('cycle')) {
+              console.warn(
+                `[SpecGofer] Cannot add dependency ${specId} -> ${depId}: would create cycle`
+              );
+            } else {
+              console.error(`[SpecGofer] Error adding dependency ${specId} -> ${depId}:`, error);
+            }
+          }
+        }
+      }
+
+      // Save updated graph
+      await this.dependencyGraph.save();
+      console.log('[SpecGofer] Dependency graph updated and saved');
+    } catch (error) {
+      console.error('[SpecGofer] Error loading dependency graph:', error);
     }
   }
 
@@ -315,10 +448,7 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
 
     for (const spec of this.specs) {
       for (const task of spec.tasks) {
-        if (
-          task.status === 'pending' &&
-          this.areDependenciesMet(spec, task)
-        ) {
+        if (task.status === 'pending' && this.areDependenciesMet(spec, task)) {
           available.push({ spec, task });
         }
       }
@@ -413,5 +543,19 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
   async updateSpecStatus(specId: string, status: SpecStatus): Promise<void> {
     await this.parser.updateSpecStatus(specId, status);
     this.refresh();
+  }
+
+  /**
+   * Get dependency graph for external use
+   */
+  getDependencyGraph(): DependencyGraph {
+    return this.dependencyGraph;
+  }
+
+  /**
+   * Get impact report for a spec
+   */
+  getImpactReport(specId: string): ReturnType<DependencyGraph['getImpactReport']> {
+    return this.dependencyGraph.getImpactReport(specId);
   }
 }

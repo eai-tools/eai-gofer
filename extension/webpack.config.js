@@ -15,7 +15,10 @@ module.exports = {
     'fsevents': 'commonjs fsevents'
   },
   resolve: {
-    extensions: ['.ts', '.js']
+    extensions: ['.ts', '.js'],
+    // Add support for ESM modules like uuid v13
+    mainFields: ['module', 'main'],
+    conditionNames: ['node', 'import', 'require', 'default']
   },
   module: {
     rules: [

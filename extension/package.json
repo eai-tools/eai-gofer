@@ -188,6 +188,11 @@
         "command": "specGofer.resumeAutonomous",
         "title": "SpecGofer: Resume Autonomous Execution",
         "icon": "$(debug-continue)"
+      },
+      {
+        "command": "specGofer.executeAllPendingSpecs",
+        "title": "SpecGofer: Execute All Pending Specs (Dependency Order)",
+        "icon": "$(run-all)"
       }
     ],
     "keybindings": [

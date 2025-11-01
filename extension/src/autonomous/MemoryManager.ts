@@ -28,6 +28,7 @@ import {
   ValidationError,
 } from './validation';
 import { validateMemory, validateStoredMemories, formatValidationErrors } from './schemaValidator';
+import { Logger } from '../utils/logger';
 
 /**
  * Current schema version for StoredMemories.
@@ -42,6 +43,7 @@ const SCHEMA_VERSION = 1;
 export class MemoryManager implements IMemoryManager {
   private readonly context: vscode.ExtensionContext;
   private readonly localMemoryPath: string;
+  private readonly logger: Logger;
 
   /**
    * Creates a new MemoryManager instance.
@@ -52,6 +54,11 @@ export class MemoryManager implements IMemoryManager {
   constructor(context: vscode.ExtensionContext, workspaceRoot: string) {
     this.context = context;
     this.localMemoryPath = path.join(workspaceRoot, '.specify', 'memory', 'local.json');
+    this.logger = Logger.for('MemoryManager');
+    this.logger.debug('MemoryManager initialized', {
+      workspaceRoot,
+      localMemoryPath: this.localMemoryPath,
+    });
   }
 
   /**
@@ -62,6 +69,8 @@ export class MemoryManager implements IMemoryManager {
    * @throws Error if validation fails or storage fails
    */
   async save(memory: Omit<Memory, 'id' | 'created'>): Promise<Memory> {
+    this.logger.debug('Saving new memory', { category: memory.category, scope: memory.scope });
+
     // Generate ID and timestamps
     const newMemory: Memory = {
       id: uuidv4(),
@@ -72,6 +81,7 @@ export class MemoryManager implements IMemoryManager {
     // Validate the complete memory
     const validation = this.validate(newMemory);
     if (!validation.valid) {
+      this.logger.error('Memory validation failed', undefined, { errors: validation.errors });
       throw new Error(`Memory validation failed: ${validation.errors.join(', ')}`);
     }
 
@@ -82,6 +92,11 @@ export class MemoryManager implements IMemoryManager {
       await this.saveGlobal(newMemory);
     }
 
+    this.logger.info('Memory saved successfully', {
+      id: newMemory.id,
+      category: newMemory.category,
+      scope: newMemory.scope,
+    });
     return newMemory;
   }
 
@@ -92,6 +107,7 @@ export class MemoryManager implements IMemoryManager {
    * @returns Search result with matching memories and metadata
    */
   async search(query: MemoryQuery): Promise<MemorySearchResult> {
+    this.logger.debug('Searching memories', { query });
     const startTime = Date.now();
 
     // Load memories from requested scope
@@ -128,6 +144,7 @@ export class MemoryManager implements IMemoryManager {
     }
 
     const searchTime = Date.now() - startTime;
+    this.logger.info('Memory search completed', { count: results.length, searchTime });
 
     return {
       memories: results,
@@ -143,6 +160,8 @@ export class MemoryManager implements IMemoryManager {
    * @throws Error if memory not found
    */
   async forget(id: string): Promise<void> {
+    this.logger.debug('Forgetting memory', { id });
+
     // Try local memories first
     const localMemories = await this.loadLocal();
     const localIndex = localMemories.findIndex((m) => m.id === id);
@@ -150,6 +169,7 @@ export class MemoryManager implements IMemoryManager {
     if (localIndex !== -1) {
       localMemories.splice(localIndex, 1);
       await this.saveLocalBatch(localMemories);
+      this.logger.info('Memory deleted from local storage', { id });
       return;
     }
 
@@ -160,9 +180,11 @@ export class MemoryManager implements IMemoryManager {
     if (globalIndex !== -1) {
       globalMemories.splice(globalIndex, 1);
       await this.saveGlobalBatch(globalMemories);
+      this.logger.info('Memory deleted from global storage', { id });
       return;
     }
 
+    this.logger.warn('Memory not found', undefined, new Error(`Memory not found: ${id}`));
     throw new Error(`Memory not found: ${id}`);
   }
 

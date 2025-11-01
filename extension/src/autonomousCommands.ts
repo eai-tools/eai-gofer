@@ -63,6 +63,14 @@ export async function startAutonomousExecution(
 
   const workspacePath = workspaceFolder.uri.fsPath;
 
+  // T117-T119: Pre-execution dependency check
+  const dependencyCheckResult = await checkDependenciesBeforeExecution(spec, progressProvider);
+
+  if (!dependencyCheckResult.canExecute) {
+    // User cancelled or chose to execute dependencies first
+    return;
+  }
+
   // Get configuration
   const config = vscode.workspace.getConfiguration('specGofer.autonomous');
   const options: DriverOptions = {
@@ -366,4 +374,161 @@ function handleCompletion(report: CompletionReport): void {
 
   // Clean up
   activeDriver = null;
+}
+
+// ============================================================================
+// T117-T119: Pre-execution Dependency Checks
+// ============================================================================
+
+/**
+ * Result of dependency check before execution.
+ */
+interface DependencyCheckResult {
+  /** Whether execution can proceed */
+  canExecute: boolean;
+
+  /** Incomplete dependencies (if any) */
+  incompleteDeps?: string[];
+}
+
+/**
+ * T117-T119: Check dependencies before starting autonomous execution.
+ *
+ * Validates that all dependencies of a spec are completed before execution.
+ * If incomplete dependencies exist:
+ * - Shows a warning notification
+ * - Offers to execute dependencies first
+ * - Allows user to proceed anyway or cancel
+ *
+ * @param spec - Spec to check
+ * @param progressProvider - ProgressProvider instance
+ * @returns Check result indicating if execution can proceed
+ */
+async function checkDependenciesBeforeExecution(
+  spec: any,
+  progressProvider: ProgressProvider
+): Promise<DependencyCheckResult> {
+  const dependencyGraph = progressProvider.getDependencyGraph();
+
+  // Get direct dependencies
+  const dependencies = dependencyGraph.getDependencies(spec.id);
+
+  if (dependencies.length === 0) {
+    // No dependencies, can execute immediately
+    return { canExecute: true };
+  }
+
+  // Check status of each dependency
+  const incompleteDeps: string[] = [];
+
+  for (const depId of dependencies) {
+    const depNode = dependencyGraph.getSpec(depId);
+
+    if (!depNode) {
+      // Dependency spec not found in graph
+      incompleteDeps.push(depId);
+      continue;
+    }
+
+    // Check if dependency is completed
+    if (depNode.status !== 'completed') {
+      incompleteDeps.push(depId);
+    }
+  }
+
+  // If all dependencies are completed, proceed
+  if (incompleteDeps.length === 0) {
+    return { canExecute: true };
+  }
+
+  // T118: Show warning if executing spec with incomplete dependencies
+  const depList = incompleteDeps.map((id) => `  • ${id}`).join('\n');
+  const message = `Spec "${spec.id}" has ${incompleteDeps.length} incomplete dependencies:\n\n${depList}\n\nExecuting this spec without completing its dependencies may cause issues.`;
+
+  // T119: Offer to execute dependencies first
+  const choice = await vscode.window.showWarningMessage(
+    message,
+    { modal: true },
+    'Execute Dependencies First',
+    'Proceed Anyway',
+    'Cancel'
+  );
+
+  if (choice === 'Execute Dependencies First') {
+    // Get execution order for dependencies
+    try {
+      const executionOrder = dependencyGraph.getExecutionOrder(incompleteDeps);
+
+      // Execute dependencies in order
+      let successCount = 0;
+      let failedCount = 0;
+
+      await vscode.window.withProgress(
+        {
+          location: vscode.ProgressLocation.Notification,
+          title: `Executing ${incompleteDeps.length} dependencies first`,
+          cancellable: false,
+        },
+        async (progress) => {
+          for (let i = 0; i < executionOrder.length; i++) {
+            const depId = executionOrder[i];
+            const depNode = dependencyGraph.getSpec(depId);
+
+            if (!depNode) {
+              continue;
+            }
+
+            progress.report({
+              message: `${i + 1}/${executionOrder.length}: ${depId}`,
+              increment: 100 / executionOrder.length,
+            });
+
+            try {
+              // Find the spec object for this dependency
+              const rootItems = await progressProvider.getChildren();
+              const depSpec = rootItems.find((item) => item.spec?.id === depId)?.spec;
+
+              if (depSpec) {
+                // Execute the dependency spec (recursive call)
+                await vscode.commands.executeCommand('specGofer.startAutonomous', depSpec);
+                successCount++;
+
+                // Update status to completed in graph
+                dependencyGraph.updateStatus(depId, 'completed');
+              }
+            } catch (error) {
+              failedCount++;
+              console.error(`[SpecGofer] Failed to execute dependency ${depId}:`, error);
+            }
+          }
+        }
+      );
+
+      // Show result
+      if (failedCount === 0) {
+        vscode.window.showInformationMessage(
+          `✓ Completed ${successCount} dependencies. Now executing ${spec.id}...`
+        );
+        return { canExecute: true };
+      } else {
+        const proceedChoice = await vscode.window.showWarningMessage(
+          `${successCount} dependencies succeeded, ${failedCount} failed. Proceed with ${spec.id}?`,
+          'Yes',
+          'No'
+        );
+        return { canExecute: proceedChoice === 'Yes', incompleteDeps };
+      }
+    } catch (error) {
+      vscode.window.showErrorMessage(
+        `Failed to execute dependencies: ${error instanceof Error ? error.message : String(error)}`
+      );
+      return { canExecute: false, incompleteDeps };
+    }
+  } else if (choice === 'Proceed Anyway') {
+    // User chose to proceed despite incomplete dependencies
+    return { canExecute: true, incompleteDeps };
+  } else {
+    // User cancelled
+    return { canExecute: false, incompleteDeps };
+  }
 }

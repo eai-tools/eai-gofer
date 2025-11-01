@@ -19,6 +19,7 @@ import type {
   CompactorConfig,
 } from './compaction';
 import { Logger } from '../utils/logger';
+import { telemetry } from './telemetryIntegration';
 
 /**
  * ContextCompactor - Manages context window by summarizing completed work
@@ -120,8 +121,12 @@ Summary:`;
   async shouldCompact(session: Session): Promise<boolean> {
     const tokens = this.estimateTokenUsage(session.context);
     const usagePercent = tokens / this.config.contextWindowSize;
+    const shouldTrigger = usagePercent >= this.threshold;
 
-    return usagePercent >= this.threshold;
+    // Track threshold check
+    telemetry.trackCompactionThreshold(usagePercent * 100, this.threshold * 100, shouldTrigger);
+
+    return shouldTrigger;
   }
 
   /**
@@ -148,6 +153,9 @@ Summary:`;
       const remaining = this.threshold * 100 - usagePercentage;
       reason = `Usage at ${usagePercentage.toFixed(1)}%, ${remaining.toFixed(1)}% below threshold`;
     }
+
+    // Track context analysis
+    telemetry.trackContextAnalysis(estimatedTokens, usagePercentage, shouldCompact);
 
     return {
       context: session.context,
@@ -316,6 +324,9 @@ Summary:`;
       duration,
     });
 
+    // Track compaction
+    telemetry.trackCompaction(summary);
+
     return summary;
   }
 
@@ -366,6 +377,7 @@ Summary:`;
     try {
       const backup = await this.loadSessionBackup(session.id);
       if (!backup) {
+        telemetry.trackCompactionRollback(session.id, false);
         return false;
       }
 
@@ -374,9 +386,11 @@ Summary:`;
       session.compactionHistory = backup.compactionHistory.slice(0, -1); // Remove last compaction
 
       console.log(`[ContextCompactor] Rolled back compaction for session ${session.id}`);
+      telemetry.trackCompactionRollback(session.id, true);
       return true;
     } catch (error) {
       console.error('[ContextCompactor] Rollback failed:', error);
+      telemetry.trackCompactionRollback(session.id, false);
       return false;
     }
   }
@@ -471,6 +485,8 @@ Summary:`;
     await fs.mkdir(backupDir, { recursive: true });
 
     const backupPath = path.join(backupDir, `${session.id}-${Date.now()}.json`);
+    const contextSize = session.context.length;
+
     await fs.writeFile(
       backupPath,
       JSON.stringify(
@@ -485,6 +501,9 @@ Summary:`;
       ),
       'utf-8'
     );
+
+    // Track backup
+    telemetry.trackSessionBackup(session.id, contextSize);
 
     // Clean up old backups (keep only maxBackups)
     const backups = await fs.readdir(backupDir);

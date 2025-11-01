@@ -580,18 +580,18 @@ execution, verify auto-compaction at 80% threshold reduces usage to ~40%
       .specify/hints/examples/
 - [x] T171 [P] Add logging for all major operations (memory save, hint load,
       dependency add, compaction trigger)
-- [ ] T172 [P] Add telemetry events for feature usage tracking (if telemetry
+- [x] T172 [P] Add telemetry events for feature usage tracking (if telemetry
       enabled)
 - [x] T173 Code cleanup: Remove unused imports, fix linting warnings across all
       new files
 - [x] T174 Security review: Validate all file path inputs to prevent traversal
       attacks
-- [ ] T175 Performance optimization: Profile memory search with 1000 entries,
+- [x] T175 Performance optimization: Profile memory search with 1000 entries,
       optimize if needed
-- [ ] T176 Performance optimization: Profile hint discovery with 1000 files,
+- [x] T176 Performance optimization: Profile hint discovery with 1000 files,
       optimize if needed
 - [x] T177 Run full test suite with coverage report, ensure >85% coverage
-- [ ] T178 Run quickstart.md validation: Verify all code examples compile and
+- [x] T178 Run quickstart.md validation: Verify all code examples compile and
       run
 - [x] T179 Create migration guide from Feature 005 to Feature 001 in
       docs/migration.md

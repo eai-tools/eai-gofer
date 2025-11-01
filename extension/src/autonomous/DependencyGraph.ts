@@ -24,6 +24,7 @@ import type {
   DependencyGraphValidation,
 } from './dependencies';
 import { Logger } from '../utils/logger';
+import { telemetry } from './telemetryIntegration';
 
 /**
  * DependencyGraph implementation using graphlib.
@@ -113,6 +114,7 @@ export class DependencyGraph implements IDependencyGraph {
         undefined,
         new Error(`Cannot add dependency from ${from} to ${to}: would create a cycle`)
       );
+      telemetry.trackCycleDetected(from, to);
       throw new Error(`Cannot add dependency from ${from} to ${to}: would create a cycle`);
     }
 
@@ -138,6 +140,9 @@ export class DependencyGraph implements IDependencyGraph {
 
     const key = `${from}->${to}`;
     this.dependencies.set(key, dependency);
+
+    // Track dependency addition
+    telemetry.trackDependencyAdded(from, to, type);
   }
 
   /**
@@ -264,6 +269,9 @@ export class DependencyGraph implements IDependencyGraph {
       order = order.filter((id) => specIds.includes(id));
     }
 
+    // Track operation
+    telemetry.trackDependencyOperation('getExecutionOrder', order.length);
+
     return order;
   }
 
@@ -292,6 +300,10 @@ export class DependencyGraph implements IDependencyGraph {
     // Based on number of dependents (more dependents = higher impact)
     const totalDependents = directDependents.length + transitiveDependents.length;
     const impactScore = Math.min(100, totalDependents * 10);
+
+    // Track operation
+    const totalImpactedSpecs = directDependents.length + transitiveDependents.length;
+    telemetry.trackDependencyOperation('getImpactedSpecs', totalImpactedSpecs);
 
     return {
       specId,
@@ -449,6 +461,9 @@ export class DependencyGraph implements IDependencyGraph {
 
     const valid = errors.length === 0 && cycles.length === 0;
 
+    // Track validation
+    telemetry.trackDependencyOperation('validate', nodes.length);
+
     return {
       valid,
       errors,
@@ -521,6 +536,11 @@ export class DependencyGraph implements IDependencyGraph {
 
     // Write file
     await fs.writeFile(savePath, json, 'utf-8');
+
+    // Track persistence
+    const nodeCount = this.graph.nodes().length;
+    const edgeCount = this.dependencies.size;
+    telemetry.trackDependencyGraphPersistence('save', nodeCount, edgeCount);
   }
 
   /**
@@ -539,6 +559,11 @@ export class DependencyGraph implements IDependencyGraph {
 
     const graph = new DependencyGraph(workspaceRoot);
     graph.import(data);
+
+    // Track persistence
+    const nodeCount = Object.keys(data.nodes).length;
+    const edgeCount = data.edges.length;
+    telemetry.trackDependencyGraphPersistence('load', nodeCount, edgeCount);
 
     return graph;
   }

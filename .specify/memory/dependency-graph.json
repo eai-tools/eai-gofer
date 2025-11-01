@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "lastModified": 1762027654219,
+  "nodes": {
+    "001-memory-learning-system": {
+      "specId": "001-memory-learning-system",
+      "status": "pending"
+    },
+    "002-language-server": {
+      "specId": "002-language-server",
+      "status": "pending"
+    },
+    "003-orchestrator-agents": {
+      "specId": "003-orchestrator-agents",
+      "status": "pending"
+    },
+    "004-testing-infrastructure": {
+      "specId": "004-testing-infrastructure",
+      "status": "pending"
+    },
+    "005-autonomous-claude-driver": {
+      "specId": "005-autonomous-claude-driver",
+      "status": "pending"
+    },
+    "006-test-feature": {
+      "specId": "006-test-feature",
+      "status": "pending"
+    },
+    "007-vscode-extension": {
+      "specId": "007-vscode-extension",
+      "status": "pending"
+    },
+    "feature-001": {
+      "specId": "feature-001",
+      "status": "pending"
+    }
+  },
+  "edges": []
+}

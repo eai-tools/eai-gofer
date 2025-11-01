@@ -557,7 +557,7 @@
     "fast-glob": "^3.3.2",
     "graphlib": "^2.1.8",
     "jszip": "^3.10.1",
-    "uuid": "^13.0.0",
+    "uuid": "^10.0.0",
     "vscode-languageclient": "^9.0.1"
   }
 }

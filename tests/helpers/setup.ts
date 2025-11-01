@@ -1,6 +1,6 @@
 /**
  * Test Setup and Global Mocks
- * 
+ *
  * This file runs before all tests to set up the test environment.
  */
 
@@ -30,6 +30,7 @@ vi.mock('twilio', () => ({
 }));
 
 // Mock VSCode API
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 (global as any).vscode = {
   window: {
     showInformationMessage: vi.fn(),
@@ -62,7 +63,11 @@ vi.mock('twilio', () => ({
     Expanded: 2,
   },
   Uri: {
-    file: (path: string) => ({ fsPath: path, scheme: 'file', path }),
+    file: (path: string): { fsPath: string; scheme: string; path: string } => ({
+      fsPath: path,
+      scheme: 'file',
+      path,
+    }),
   },
 };
 
@@ -94,6 +99,32 @@ vi.mock('child_process', () => ({
 
 vi.mock('util', () => ({
   promisify: vi.fn((fn) => fn),
+}));
+
+// Mock Logger from extension utils
+vi.mock('../../extension/src/utils/logger', () => ({
+  Logger: {
+    getInstance: vi.fn(() => ({
+      debug: vi.fn(),
+      info: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
+      exception: vi.fn(),
+    })),
+    for: vi.fn(() => ({
+      debug: vi.fn(),
+      info: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
+      exception: vi.fn(),
+    })),
+  },
+  LogLevel: {
+    debug: 0,
+    info: 1,
+    warn: 2,
+    error: 3,
+  },
 }));
 
 // Mock environment variables

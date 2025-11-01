@@ -79,6 +79,36 @@
         "icon": "$(refresh)"
       },
       {
+        "command": "specgofer.remember",
+        "title": "SpecGofer: Remember",
+        "icon": "$(bookmark)"
+      },
+      {
+        "command": "specgofer.searchMemory",
+        "title": "SpecGofer: Search Memory",
+        "icon": "$(search)"
+      },
+      {
+        "command": "specgofer.forgetMemory",
+        "title": "SpecGofer: Forget Memory",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "specgofer.clearMemory",
+        "title": "SpecGofer: Clear Memory",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "specgofer.viewMemories",
+        "title": "SpecGofer: View Memories",
+        "icon": "$(library)"
+      },
+      {
+        "command": "specgofer.createHintFile",
+        "title": "SpecGofer: Create Hint File",
+        "icon": "$(new-file)"
+      },
+      {
         "command": "specGofer.showConstitution",
         "title": "SpecGofer: Show Constitution Panel",
         "icon": "$(law)"
@@ -138,6 +168,31 @@
       {
         "command": "specGofer.openWithMarkdownWYSIWYG",
         "title": "Open with Markdown WYSIWYG"
+      },
+      {
+        "command": "specGofer.startAutonomous",
+        "title": "SpecGofer: Start Autonomous Implementation",
+        "icon": "$(play)"
+      },
+      {
+        "command": "specGofer.stopAutonomous",
+        "title": "SpecGofer: Stop Autonomous Execution",
+        "icon": "$(debug-stop)"
+      },
+      {
+        "command": "specGofer.pauseAutonomous",
+        "title": "SpecGofer: Pause Autonomous Execution",
+        "icon": "$(debug-pause)"
+      },
+      {
+        "command": "specGofer.resumeAutonomous",
+        "title": "SpecGofer: Resume Autonomous Execution",
+        "icon": "$(debug-continue)"
+      },
+      {
+        "command": "specGofer.executeAllPendingSpecs",
+        "title": "SpecGofer: Execute All Pending Specs (Dependency Order)",
+        "icon": "$(run-all)"
       }
     ],
     "keybindings": [
@@ -254,6 +309,31 @@
           "command": "specGofer.openWithMarkdownWYSIWYG",
           "when": "viewItem == spec || viewItem == constitution-article || viewItem == constitution-section || viewItem == memory-document || viewItem == memory-section",
           "group": "openwith@4"
+        },
+        {
+          "command": "specGofer.startAutonomous",
+          "when": "viewItem == spec",
+          "group": "inline@1"
+        },
+        {
+          "command": "specGofer.startAutonomous",
+          "when": "viewItem == spec",
+          "group": "autonomous@1"
+        },
+        {
+          "command": "specGofer.pauseAutonomous",
+          "when": "viewItem == spec",
+          "group": "autonomous@2"
+        },
+        {
+          "command": "specGofer.resumeAutonomous",
+          "when": "viewItem == spec",
+          "group": "autonomous@3"
+        },
+        {
+          "command": "specGofer.stopAutonomous",
+          "when": "viewItem == spec",
+          "group": "autonomous@4"
         }
       ],
       "explorer/context": [
@@ -360,6 +440,78 @@
           "default": "preview",
           "description": "Choose how to view markdown files when clicking tree view items",
           "markdownDescription": "Choose how to view markdown files when clicking tree view items.\n\n**Recommended WYSIWYG Extensions:**\n- [Mark Sharp](https://marketplace.visualstudio.com/items?itemName=JonathanYeung.mark-sharp) - Fast & modern\n- [Markdown Editor](https://marketplace.visualstudio.com/items?itemName=zaaack.markdown-editor) - Feature-rich\n- [Markdown WYSIWYG](https://marketplace.visualstudio.com/items?itemName=adamerose.markdown-wysiwyg) - Simple"
+        },
+        "specGofer.autonomous.showTerminals": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show Claude Code terminals during autonomous execution",
+          "markdownDescription": "Whether to show Claude Code terminals when SpecGofer runs autonomous implementation.\n\n- `true`: Terminals are visible (you can watch progress)\n- `false`: Terminals are hidden (cleaner UI)"
+        },
+        "specGofer.autonomous.notificationChannel": {
+          "type": "string",
+          "enum": [
+            "vscode",
+            "whatsapp",
+            "email"
+          ],
+          "enumDescriptions": [
+            "Show notifications in VSCode UI (default)",
+            "Send notifications via WhatsApp (requires phone number)",
+            "Send notifications via email (requires email address)"
+          ],
+          "default": "vscode",
+          "description": "How to receive notifications from autonomous execution",
+          "markdownDescription": "Choose how you want to receive notifications when SpecGofer needs your attention during autonomous execution.\n\n- `vscode`: Notification popups in VSCode (default)\n- `whatsapp`: Send messages to your phone (requires WhatsApp setup)\n- `email`: Send email notifications (requires email setup)"
+        },
+        "specGofer.autonomous.whatsappPhoneNumber": {
+          "type": "string",
+          "default": "",
+          "description": "WhatsApp phone number for notifications (format: +1234567890)",
+          "markdownDescription": "Your WhatsApp phone number for receiving notifications.\n\n**Format**: Include country code with +, e.g., `+1234567890`\n\n**Note**: Requires WhatsApp to be set up and running."
+        },
+        "specGofer.autonomous.emailAddress": {
+          "type": "string",
+          "default": "",
+          "description": "Email address for notifications",
+          "markdownDescription": "Your email address for receiving notifications from autonomous execution."
+        },
+        "specGofer.autonomous.maxRetries": {
+          "type": "number",
+          "default": 3,
+          "minimum": 1,
+          "maximum": 5,
+          "description": "Maximum number of retry attempts for errors (1-5)",
+          "markdownDescription": "How many times SpecGofer should retry when encountering recoverable errors.\n\n- **Default**: 3 retries with exponential backoff (10s, 30s, 60s)\n- **Minimum**: 1 (fail fast)\n- **Maximum**: 5 (very persistent)"
+        },
+        "specGofer.autonomous.tokenWarningThreshold": {
+          "type": "number",
+          "default": 150000,
+          "description": "Show warning when context reaches this many tokens",
+          "markdownDescription": "Token count threshold for context window warnings.\n\n**Default**: 150,000 tokens (75% of Claude's 200K context)\n\nSpecGofer will show a warning when approaching this limit."
+        },
+        "specGofer.autonomous.tokenActionThreshold": {
+          "type": "number",
+          "default": 180000,
+          "description": "Spawn new terminal when context reaches this many tokens",
+          "markdownDescription": "Token count threshold for spawning a new terminal with fresh context.\n\n**Default**: 180,000 tokens (90% of Claude's 200K context)\n\nSpecGofer will automatically create a new terminal with a context summary when this limit is reached."
+        },
+        "specGofer.autonomous.questionTimeout": {
+          "type": "number",
+          "default": 300000,
+          "description": "How long to wait for user response to questions (milliseconds)",
+          "markdownDescription": "How long SpecGofer should wait for your response when it asks a question.\n\n**Default**: 300,000 ms (5 minutes)\n\nAfter this timeout, execution will pause and you'll need to manually resume."
+        },
+        "specGofer.autonomous.runFinalValidation": {
+          "type": "boolean",
+          "default": true,
+          "description": "Run constitution validation check after implementation completes",
+          "markdownDescription": "Whether to run a final validation check against the project constitution after completing implementation.\n\n- `true`: Run validation (recommended)\n- `false`: Skip validation (faster, but may miss issues)"
+        },
+        "specGofer.autonomous.validateConstitution": {
+          "type": "boolean",
+          "default": true,
+          "description": "Validate implementation against constitution principles",
+          "markdownDescription": "Whether to validate implementation against the project's constitutional principles.\n\n- `true`: Ensure compliance with constitution (recommended)\n- `false`: Skip constitution validation"
         }
       }
     }
@@ -378,8 +530,11 @@
   },
   "devDependencies": {
     "@types/glob": "^8.1.0",
+    "@types/graphlib": "^2.1.12",
+    "@types/js-yaml": "^4.0.9",
     "@types/mocha": "^10.0.10",
     "@types/node": "^20.x",
+    "@types/uuid": "^10.0.0",
     "@types/vscode": "^1.85.0",
     "@typescript-eslint/eslint-plugin": "^6.15.0",
     "@typescript-eslint/parser": "^6.15.0",
@@ -396,8 +551,12 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.67.0",
     "@types/jszip": "^3.4.0",
+    "ajv": "^8.12.0",
     "chokidar": "^3.5.3",
+    "fast-glob": "^3.3.2",
+    "graphlib": "^2.1.8",
     "jszip": "^3.10.1",
+    "uuid": "^13.0.0",
     "vscode-languageclient": "^9.0.1"
   }
 }

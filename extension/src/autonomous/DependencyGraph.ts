@@ -23,6 +23,7 @@ import type {
   DependencyCycle,
   DependencyGraphValidation,
 } from './dependencies';
+import { Logger } from '../utils/logger';
 
 /**
  * DependencyGraph implementation using graphlib.
@@ -38,6 +39,7 @@ export class DependencyGraph implements IDependencyGraph {
   private readonly graph: Graph;
   private readonly workspaceRoot: string;
   private dependencies: Map<string, SpecDependency> = new Map();
+  private readonly logger: Logger;
 
   /**
    * Creates a new DependencyGraph instance.
@@ -47,6 +49,8 @@ export class DependencyGraph implements IDependencyGraph {
   constructor(workspaceRoot: string) {
     this.workspaceRoot = workspaceRoot;
     this.graph = new Graph({ directed: true });
+    this.logger = Logger.for('DependencyGraph');
+    this.logger.debug('DependencyGraph initialized', { workspaceRoot });
   }
 
   /**
@@ -100,8 +104,15 @@ export class DependencyGraph implements IDependencyGraph {
     type: 'required_by' | 'uses_api_from' | 'blocks',
     metadata?: SpecDependencyMetadata
   ): void {
+    this.logger.debug('Adding dependency', { from, to, type });
+
     // Check if this would create a cycle
     if (this.wouldCreateCycle(from, to)) {
+      this.logger.warn(
+        'Cycle detected, dependency not added',
+        undefined,
+        new Error(`Cannot add dependency from ${from} to ${to}: would create a cycle`)
+      );
       throw new Error(`Cannot add dependency from ${from} to ${to}: would create a cycle`);
     }
 

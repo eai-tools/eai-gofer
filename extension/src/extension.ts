@@ -10,6 +10,7 @@ import { SpecGoferLSPClient } from './lspClient';
 import { MCPConfigHelper } from './mcpConfig';
 import { MemoryManager } from './autonomous/MemoryManager';
 import { registerMemoryCommands } from './commands/memoryCommands';
+import { registerSpecCommands } from './commands/specCommands';
 
 /**
  * SpecGofer Extension
@@ -299,11 +300,123 @@ async function initializeProgressProvider(context: vscode.ExtensionContext, work
     }
   }
 
+  // T112: Watch for spec file modifications to show impact notifications
+  const specWatcher = vscode.workspace.createFileSystemWatcher(
+    new vscode.RelativePattern(workspacePath, '.specify/specs/**/spec.md')
+  );
+
+  specWatcher.onDidChange(async (uri) => {
+    await handleSpecModification(uri, workspacePath);
+  });
+
+  context.subscriptions.push(specWatcher);
+
   // Set context for when clause
   vscode.commands.executeCommand('setContext', 'specGoferInitialized', true);
 
   // Show the Spec Kit view
   vscode.commands.executeCommand('specGoferProgress.focus');
+}
+
+/**
+ * T113-T115: Handle spec file modifications and show impact notifications
+ */
+async function handleSpecModification(uri: vscode.Uri, workspacePath: string) {
+  if (!progressProvider) {
+    return;
+  }
+
+  try {
+    // Extract spec ID from file path
+    // Path format: .specify/specs/001-spec-name/spec.md
+    const pathParts = uri.fsPath.split(path.sep);
+    const specsIndex = pathParts.findIndex((p) => p === 'specs');
+    if (specsIndex === -1 || specsIndex >= pathParts.length - 2) {
+      return;
+    }
+
+    const specId = pathParts[specsIndex + 1];
+
+    // Get impact report for this spec
+    const graph = progressProvider.getDependencyGraph();
+    if (!graph.getSpec(specId)) {
+      // Spec not in graph yet, refresh to load it
+      progressProvider.refresh();
+      return;
+    }
+
+    const impactReport = graph.getImpactReport(specId);
+
+    // T113: Show notification if spec has dependents
+    if (impactReport.directDependents.length > 0 || impactReport.transitiveDependents.length > 0) {
+      const allDependents = [
+        ...impactReport.directDependents,
+        ...impactReport.transitiveDependents,
+      ];
+      const uniqueDependents = [...new Set(allDependents)];
+
+      // T114: Format notification message
+      const message = `This change may impact: ${uniqueDependents.slice(0, 3).join(', ')}${
+        uniqueDependents.length > 3 ? ` and ${uniqueDependents.length - 3} more` : ''
+      }`;
+
+      // T115: Add "Show Impact Report" button
+      const choice = await vscode.window.showInformationMessage(
+        message,
+        'Show Impact Report',
+        'Dismiss'
+      );
+
+      if (choice === 'Show Impact Report') {
+        await showImpactReport(specId, impactReport);
+      }
+    }
+  } catch (error) {
+    console.error('[SpecGofer] Error handling spec modification:', error);
+  }
+}
+
+/**
+ * Show detailed impact report in a webview or output channel
+ */
+async function showImpactReport(
+  specId: string,
+  report: {
+    specId: string;
+    directDependencies: string[];
+    directDependents: string[];
+    transitiveDependencies: string[];
+    transitiveDependents: string[];
+    impactScore: number;
+  }
+) {
+  const message = [
+    `Impact Analysis for ${specId}`,
+    '',
+    `Impact Score: ${report.impactScore}/100`,
+    '',
+    'Direct Dependencies:',
+    ...report.directDependencies.map((dep) => `  → ${dep}`),
+    '',
+    'Direct Dependents:',
+    ...report.directDependents.map((dep) => `  ← ${dep}`),
+    '',
+    'Transitive Dependencies:',
+    ...report.transitiveDependencies.map((dep) => `  → ${dep}`),
+    '',
+    'Transitive Dependents:',
+    ...report.transitiveDependents.map((dep) => `  ← ${dep}`),
+  ].join('\n');
+
+  const document = await vscode.workspace.openTextDocument({
+    content: message,
+    language: 'markdown',
+  });
+
+  await vscode.window.showTextDocument(document, {
+    preview: true,
+    viewColumn: vscode.ViewColumn.Beside,
+  });
 }
 
 async function handleBranchChange() {
@@ -785,6 +898,12 @@ How will success be measured?
   memoryManager = new MemoryManager(context, workspacePath);
   registerMemoryCommands(context, memoryManager);
   console.log('[SpecGofer] Memory commands registered');
+
+  // T116: Register spec execution commands
+  if (progressProvider) {
+    registerSpecCommands(context, progressProvider);
+    console.log('[SpecGofer] Spec execution commands registered');
+  }
 
   // Note: Tree view detail commands (showSpecDetails, showMemoryDocument, etc.)
   // are now registered globally in registerGlobalCommands() since tree views

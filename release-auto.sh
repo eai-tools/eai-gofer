@@ -190,6 +190,16 @@ rsync -av --delete ../language-server/ ./language-server/ \
     --exclude 'dist' \
     --exclude '.DS_Store'
 
+# Compile TypeScript before packaging
+print_info "Compiling TypeScript..."
+if npm run compile 2>&1; then
+    print_success "TypeScript compilation successful"
+else
+    print_error "Failed to compile TypeScript"
+    cd ..
+    exit 1
+fi
+
 # Run vsce package and capture both success and failure
 if npx @vscode/vsce package --out "specgofer-$NEW_VERSION.vsix" 2>&1; then
     print_success "VSIX package built successfully"

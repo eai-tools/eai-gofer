@@ -9,7 +9,10 @@
       "Bash(node extension/convert-icon.js:*)",
       "Bash(cat:*)",
       "Bash(npm test:*)",
-      "Bash(npm run compile:*)"
+      "Bash(npm run compile:*)",
+      "Bash(code --list-extensions:*)",
+      "Bash(git config:*)",
+      "Bash(./release-auto.sh:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,14 +1,17 @@
 # SpecGofer Development Guidelines for Claude
 
-This file contains specific guidelines for Claude when working on the SpecGofer project.
+This file contains specific guidelines for Claude when working on the SpecGofer
+project.
 
-**IMPORTANT**: For complete linting, formatting, and code quality guidelines, see [AGENTS.md](./AGENTS.md).
+**IMPORTANT**: For complete linting, formatting, and code quality guidelines,
+see [AGENTS.md](./AGENTS.md).
 
 ## Critical Rules
 
 ### 🚨 NEVER Manually Release - ALWAYS Use release-auto.sh
 
-**When the user asks you to create a release, cut a release, or bump the version:**
+**When the user asks you to create a release, cut a release, or bump the
+version:**
 
 ```bash
 # For bug fixes (2.0.4 -> 2.0.5)
@@ -52,14 +55,16 @@ This file contains specific guidelines for Claude when working on the SpecGofer 
 
 ### Version Detection
 
-The extension version is read from `extension/package.json` at runtime via `config.ts`:
+The extension version is read from `extension/package.json` at runtime via
+`config.ts`:
 
 ```typescript
 // extension/src/config.ts
 export const EXTENSION_VERSION = require('../../package.json').version;
 ```
 
-**NEVER hardcode the version** in config.ts or anywhere else. It must always read from package.json.
+**NEVER hardcode the version** in config.ts or anywhere else. It must always
+read from package.json.
 
 ## Project Structure
 
@@ -145,11 +150,13 @@ The script will:
 
 Users can upgrade via:
 
-1. **Auto-update check**: Extension checks GitHub Pages `releases.json` every 24 hours
+1. **Auto-update check**: Extension checks GitHub Pages `releases.json` every 24
+   hours
 2. **Manual check**: Command Palette → "SpecGofer: Check for Updates"
 3. **Manual install**: Download VSIX from GitHub releases or GitHub Pages
 
-The auto-updater reads from: `https://eai-tools.github.io/specgofer/releases.json`
+The auto-updater reads from:
+`https://eai-tools.github.io/specgofer/releases.json`
 
 ## Code Style Guidelines
 
@@ -195,7 +202,8 @@ SpecGofer uses `.specify/specs/` instead of SpecKit's default `specs/` location:
 
 The `specKitMigrator.ts` handles upgrades:
 
-- `fixSpecPathReferences()`: Updates path references from `specs/` to `.specify/specs/`
+- `fixSpecPathReferences()`: Updates path references from `specs/` to
+  `.specify/specs/`
 - `fixExistingSpecs()`: Adds YAML frontmatter and checkbox tasks
 - `installSpecKitCLI()`: Installs CLI tools and templates
 
@@ -207,22 +215,17 @@ The `specKitMigrator.ts` handles upgrades:
 
 ## Recent Changes
 
+- 001-memory-learning-system: Added TypeScript 5.3+ (existing SpecGofer
+  codebase)
+
 ### v2.0.4 (Latest)
 
 - Fixed path reference updating during upgrade (content-based, no file moving)
 - Fixed missing `showTaskDetails` command registration
-- Fixed version detection to read from package.json instead of hardcoding
-- Created release automation documentation
 
 ### v2.0.3
 
-- Improved upgrade process with auto-fix for existing specs
-- Fixed spec sorting in tree view
-
 ### v2.0.2
-
-- Auto-fix YAML frontmatter for existing specs during upgrade
-- Updated spec template with proper format
 
 ## Important Files to Know
 
@@ -242,4 +245,9 @@ The `specKitMigrator.ts` handles upgrades:
 
 ---
 
-**Remember**: The release automation script is there to prevent mistakes. Always use it for releases, no exceptions!
+**Remember**: The release automation script is there to prevent mistakes. Always
+use it for releases, no exceptions!
+
+## Active Technologies
+
+- TypeScript 5.3+ (existing SpecGofer codebase) (001-memory-learning-system)

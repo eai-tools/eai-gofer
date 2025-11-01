@@ -182,9 +182,17 @@ export class SpecKitMigrator {
         console.log('[SpecKit] Creating bash scripts...');
         await this.createBashScripts();
 
+        progress.report({ message: 'Creating Node.js scripts...' });
+        console.log('[SpecKit] Creating Node.js scripts...');
+        await this.createNodeScripts();
+
         progress.report({ message: 'Configuring VSCode settings...' });
         console.log('[SpecKit] Configuring VSCode settings...');
         await this.createVSCodeSettings();
+
+        progress.report({ message: 'Verifying Claude commands...' });
+        console.log('[SpecKit] Ensuring Claude commands are up to date...');
+        await this.fixClaudeCommands();
 
         progress.report({ message: 'Finalizing...' });
         console.log('[SpecKit] Creating README...');
@@ -316,6 +324,10 @@ export class SpecKitMigrator {
         console.log('[SpecKit Update] Creating bash scripts...');
         await this.createBashScripts();
 
+        progress.report({ message: 'Updating Node.js scripts...' });
+        console.log('[SpecKit Update] Creating Node.js scripts...');
+        await this.createNodeScripts();
+
         progress.report({ message: 'Updating VSCode settings...' });
         console.log('[SpecKit Update] Configuring VSCode settings...');
         await this.createVSCodeSettings();
@@ -327,6 +339,10 @@ export class SpecKitMigrator {
         progress.report({ message: 'Fixing spec path references...' });
         console.log('[SpecKit Update] Ensuring all scripts use .specify/specs/...');
         await this.fixSpecPathReferences();
+
+        progress.report({ message: 'Checking Claude commands format...' });
+        console.log('[SpecKit Update] Ensuring speckit.tasks includes issues generation...');
+        await this.fixClaudeCommands();
 
         console.log('[SpecKit Update] Update complete!');
       }
@@ -443,9 +459,17 @@ export class SpecKitMigrator {
     console.log('[SpecKit Fallback] Creating bash scripts...');
     await this.createBashScripts();
 
+    // Create Node.js scripts from bundled resources
+    console.log('[SpecKit Fallback] Creating Node.js scripts...');
+    await this.createNodeScripts();
+
     // Configure VSCode settings
     console.log('[SpecKit Fallback] Configuring VSCode settings...');
     await this.createVSCodeSettings();
+
+    // Verify Claude commands
+    console.log('[SpecKit Fallback] Ensuring Claude commands are up to date...');
+    await this.fixClaudeCommands();
 
     // Create README
     console.log('[SpecKit Fallback] Creating README...');
@@ -1019,6 +1043,117 @@ T001 (Setup)
 `;
 
     await fs.writeFile(path.join(templatesDir, 'tasks-template.md'), tasksTemplate);
+
+    // issues-template.md - GitHub issues generation template
+    const issuesTemplate = `---
+description: "GitHub issues template - ready to convert to actual GitHub issues"
+---
+
+# GitHub Issues: [FEATURE NAME]
+
+**Generated from**: tasks.md
+**Feature ID**: [###-feature-name]
+**Total Issues**: [COUNT]
+
+This file contains GitHub-ready issue definitions for each task. Each issue follows the Requirements Ticket template from enterpriseaigroup/Issues2025.
+
+---
+
+## Issue #1: [Task ID] - [Task Title]
+
+**Labels**: \`enhancement\`, \`phase-1-setup\`, \`[story-label]\`
+**Assignees**: @MikeNowosadko
+**Title**: [Feature]: [Task Description]
+
+### Screen described (Mike)
+
+[Description of the UI/functionality this task creates or modifies. If backend-only, describe the API/service behavior.]
+
+### Business Rationale
+
+**Problem**: [What problem does this task solve?]
+
+**Value**: [What value does completing this task provide?]
+
+**Impact**: [How does this contribute to the overall feature goal?]
+
+**Priority**: [P1/P2/P3] - [Reason for priority level]
+
+### Fields required (Mike)
+
+| Field | Type | Source | Validation |
+|-------|------|--------|------------|
+| [field-name] | [string/number/boolean/etc] | [where the data comes from] | [validation rules] |
+
+[If no fields: "N/A - This is a backend/infrastructure task"]
+
+### Acceptance Criteria
+
+- [ ] [Specific testable condition 1]
+- [ ] [Specific testable condition 2]
+- [ ] [Specific testable condition 3]
+
+### Data needed (Mike)
+
+[What data entities, sources, and APIs does this task require?]
+
+**Entities**: [Entity name and description]
+
+**Sources**: [System/API name and what data it provides]
+
+### Integrations Needed (Team)
+
+[External or internal systems this task must integrate with]
+
+[If no integrations: "N/A - Standalone implementation"]
+
+### Navigation (Mike)
+
+[How users reach this functionality, or how this code is accessed]
+
+### Blocks needed (Team)
+
+**New Components**: [List components to build]
+
+**Reusable Components**: [List components to reuse]
+
+### Definition of Ready
+
+- [ ] Mock up screen signed off (Mike)
+- [ ] Business Content (Mike)
+- [ ] Screen Understood by Dev team (Mike, Gareth & Team)
+- [ ] Requirements Documented: Data (Mike & Team)
+- [ ] Requirements Documented: Integrations (Mike & Team)
+- [ ] Requirements Documented: Navigation (Mike & Team)
+- [ ] Requirements Documented: Fields (Mike & Team)
+- [ ] Requirements Documented: Blocks (Mike & Team)
+- [ ] Dependencies Identified
+- [ ] AC Agreed
+- [ ] Identify if we can re-use components (Doug)
+- [ ] Effort is sized and prioritised
+
+### Definition of Done
+
+- [ ] Functional: Works as described in acceptance criteria
+- [ ] Documented: Architecture changes and implementation documented
+- [ ] Demonstrated: Can show it working
+- [ ] Stable: No critical bugs
+- [ ] Reviewed: PO confirmed
+
+**File Path**: \`[file-path-from-task]\`
+**Estimated Effort**: [S/M/L or hours]
+
+---
+
+## Notes
+
+- This template is auto-populated by: \`.specify/scripts/node/generate-issues.js\`
+- Run after creating tasks.md: \`node .specify/scripts/node/generate-issues.js <feature-dir>\`
+- All issues follow the enterprise Requirements Ticket template
+- See tasks.md for complete task definitions
+`;
+
+    await fs.writeFile(path.join(templatesDir, 'issues-template.md'), issuesTemplate);
   }
 
   /**
@@ -1071,6 +1206,61 @@ T001 (Setup)
       }
     } catch (error) {
       console.error('[createBashScripts] Failed to create bash scripts:', error);
+    }
+  }
+
+  /**
+   * Create Node.js scripts from bundled resources
+   */
+  private async createNodeScripts(): Promise<void> {
+    try {
+      console.log('[createNodeScripts] Starting...');
+
+      const extensionPath = vscode.extensions.getExtension('EnterpriseAI.specgofer')?.extensionPath;
+      if (!extensionPath) {
+        console.warn('[createNodeScripts] Could not find extension path for Node.js scripts');
+        return;
+      }
+
+      console.log('[createNodeScripts] Extension path:', extensionPath);
+
+      const bundledScriptsPath = path.join(extensionPath, 'resources', 'node-scripts');
+      const targetScriptsPath = path.join(this.specifyPath, 'scripts', 'node');
+
+      console.log('[createNodeScripts] Bundled scripts path:', bundledScriptsPath);
+      console.log('[createNodeScripts] Target scripts path:', targetScriptsPath);
+
+      // Ensure target directory exists
+      await fs.mkdir(targetScriptsPath, { recursive: true });
+      console.log('[createNodeScripts] Created directory:', targetScriptsPath);
+
+      try {
+        // Copy all .js files from bundled resources
+        const files = await fs.readdir(bundledScriptsPath);
+        console.log('[createNodeScripts] Found bundled files:', files.length);
+
+        let copiedCount = 0;
+        for (const file of files) {
+          if (file.endsWith('.js')) {
+            const source = path.join(bundledScriptsPath, file);
+            const target = path.join(targetScriptsPath, file);
+            await fs.copyFile(source, target);
+
+            // Make scripts executable
+            await fs.chmod(target, 0o755);
+            copiedCount++;
+            console.log('[createNodeScripts] Copied and made executable:', file);
+          }
+        }
+        console.log('[createNodeScripts] Successfully created', copiedCount, 'Node.js scripts');
+      } catch (error) {
+        console.error('[createNodeScripts] Error reading bundled scripts:', error);
+        console.warn(
+          '[createNodeScripts] No bundled Node.js scripts found, skipping script creation'
+        );
+      }
+    } catch (error) {
+      console.error('[createNodeScripts] Failed to create Node.js scripts:', error);
     }
   }
 
@@ -1267,20 +1457,11 @@ See the extension documentation for more details.
           );
 
           // Fix paths in find/cd/ls commands: "specs" at end of path
-          content = content.replace(
-            /"\$REPO_ROOT\/specs"/g,
-            '"$REPO_ROOT/.specify/specs"'
-          );
-          content = content.replace(
-            /'\$REPO_ROOT\/specs'/g,
-            "'$REPO_ROOT/.specify/specs'"
-          );
+          content = content.replace(/"\$REPO_ROOT\/specs"/g, '"$REPO_ROOT/.specify/specs"');
+          content = content.replace(/'\$REPO_ROOT\/specs'/g, "'$REPO_ROOT/.specify/specs'");
 
           // Fix concatenated paths without variable: /path/to/specs → /path/to/.specify/specs
-          content = content.replace(
-            /(['"]\$[A-Z_]+)\/specs(['"])/g,
-            '$1/.specify/specs$2'
-          );
+          content = content.replace(/(['"]\$[A-Z_]+)\/specs(['"])/g, '$1/.specify/specs$2');
 
           if (content !== originalContent) {
             await fs.writeFile(filePath, content);
@@ -1299,6 +1480,87 @@ See the extension documentation for more details.
       }
     } catch (error) {
       console.error('[Fix Paths] Error fixing path references:', error);
+      // Don't throw - this is not critical
+    }
+  }
+
+  /**
+   * Fix Claude commands to ensure they include latest features
+   * Checks speckit.tasks.md for issues.md generation step
+   */
+  private async fixClaudeCommands(): Promise<void> {
+    try {
+      console.log('[Fix Commands] Checking Claude commands for updates...');
+
+      const claudeCommandsDir = path.join(this.workspacePath, '.claude', 'commands');
+      const tasksCommandPath = path.join(claudeCommandsDir, 'speckit.tasks.md');
+
+      // Check if speckit.tasks.md exists
+      try {
+        await fs.access(tasksCommandPath);
+      } catch {
+        console.log('[Fix Commands] speckit.tasks.md not found, skipping check');
+        return;
+      }
+
+      let content = await fs.readFile(tasksCommandPath, 'utf-8');
+      const originalContent = content;
+      let needsUpdate = false;
+
+      // Check if it includes the issues.md generation step
+      if (!content.includes('generate-issues.js')) {
+        console.log('[Fix Commands] speckit.tasks.md is missing issues.md generation step');
+        needsUpdate = true;
+
+        // Find the "Report" section and add issues generation before it
+        const reportSectionRegex = /(\d+)\.\s+\*\*Report\*\*:/;
+        const reportMatch = content.match(reportSectionRegex);
+
+        if (reportMatch) {
+          const reportNumber = parseInt(reportMatch[1]);
+          const issuesNumber = reportNumber;
+          const newReportNumber = reportNumber + 1;
+
+          // Create the issues.md generation section
+          const issuesSection = `${issuesNumber}. **Generate issues.md**: After creating tasks.md, run the issues generator:
+
+   \`\`\`bash
+   node .specify/scripts/node/generate-issues.js "$FEATURE_DIR"
+   \`\`\`
+
+   This will create issues.md with GitHub-ready issue definitions for each task.
+
+${newReportNumber}. **Report**: Output path to generated tasks.md and issues.md with summary:
+   - Total task count
+   - Task count per user story
+   - Parallel opportunities identified
+   - Independent test criteria for each story
+   - Suggested MVP scope (typically just User Story 1)
+   - Format validation: Confirm ALL tasks follow the checklist format (checkbox, ID, labels, file paths)
+   - Issues.md confirmation: Number of GitHub issues generated`;
+
+          // Replace the old Report section
+          content = content.replace(
+            /\d+\.\s+\*\*Report\*\*:[^\n]*\n(?:   - [^\n]*\n)*/,
+            issuesSection
+          );
+
+          console.log('[Fix Commands] Added issues.md generation step to speckit.tasks.md');
+        } else {
+          console.warn('[Fix Commands] Could not find Report section to update');
+          needsUpdate = false;
+        }
+      }
+
+      // Write the updated content if changes were made
+      if (needsUpdate && content !== originalContent) {
+        await fs.writeFile(tasksCommandPath, content, 'utf-8');
+        console.log('[Fix Commands] Updated speckit.tasks.md with issues generation');
+      } else if (content.includes('generate-issues.js')) {
+        console.log('[Fix Commands] speckit.tasks.md already includes issues generation');
+      }
+    } catch (error) {
+      console.error('[Fix Commands] Error fixing Claude commands:', error);
       // Don't throw - this is not critical
     }
   }

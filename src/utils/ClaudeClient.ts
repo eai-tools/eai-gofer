@@ -106,10 +106,11 @@ export class ClaudeClient {
         }
 
         return '';
-      } catch (error: any) {
+      } catch (error: unknown) {
         // Handle rate limiting
-        if (error.status === 429) {
-          const retryAfter = parseInt(error.headers?.['retry-after'] || '5');
+        const err = error as { status?: number; headers?: Record<string, string> };
+        if (err.status === 429) {
+          const retryAfter = parseInt(err.headers?.['retry-after'] || '5');
 
           logger.warn({
             event: 'claude_rate_limit',

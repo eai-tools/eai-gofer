@@ -12,7 +12,13 @@
       "Bash(timeout 5 /Applications/Visual Studio Code.app/Contents/Resources/app/bin/code:*)",
       "Bash(echo:*)",
       "Bash(chmod:*)",
-      "Bash(./release-auto.sh:*)"
+      "Bash(./release-auto.sh:*)",
+      "Bash(pgrep:*)",
+      "Bash(osascript:*)",
+      "Bash(./test-activation-helper.sh:*)",
+      "Bash(/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code --install-extension ./specgofer-3.0.5.vsix --force)",
+      "Bash(npx:*)",
+      "Bash(npm run compile:*)"
     ],
     "deny": [],
     "ask": []

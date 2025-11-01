@@ -2,11 +2,23 @@
 
 # Helper script to test VSIX activation independently of VSCode
 # This script is designed to be run from a separate process, not from within VSCode
+# It MUST be run from a terminal OUTSIDE of VSCode (e.g., Terminal.app, iTerm, etc.)
 
 set -e
 
 VSIX_PATH="$1"
 WORKSPACE_PATH="$2"
+
+# Detect if running from VSCode integrated terminal
+if [ -n "$VSCODE_PID" ] || [ -n "$TERM_PROGRAM" ] && [ "$TERM_PROGRAM" = "vscode" ]; then
+    echo "ERROR: This script cannot run from VSCode's integrated terminal!"
+    echo "Please run this script from an external terminal (Terminal.app, iTerm, etc.)"
+    echo ""
+    echo "Usage from external terminal:"
+    echo "  cd $WORKSPACE_PATH"
+    echo "  ./test-activation-helper.sh \"$VSIX_PATH\" \"$WORKSPACE_PATH\""
+    exit 1
+fi
 
 # Colors
 RED='\033[0;31m'
@@ -36,34 +48,43 @@ else
     exit 1
 fi
 
-# Step 1: Close VSCode
-if pgrep -f "Visual Studio Code" > /dev/null; then
+# Step 1: Close VSCode if running
+# Check using osascript which is more reliable than pgrep
+IS_RUNNING=$(osascript -e 'tell application "System Events" to (name of processes) contains "Electron"' 2>/dev/null)
+
+if [ "$IS_RUNNING" = "true" ]; then
     print_info "Closing VSCode..."
     osascript -e 'quit app "Visual Studio Code"' 2>/dev/null || true
     sleep 3
 
     # Wait for VSCode to close
     WAIT_COUNT=0
-    while pgrep -f "Visual Studio Code" > /dev/null && [ $WAIT_COUNT -lt 15 ]; do
+    while [ "$(osascript -e 'tell application "System Events" to (name of processes) contains "Electron"' 2>/dev/null)" = "true" ] && [ $WAIT_COUNT -lt 15 ]; do
         print_info "Waiting for VSCode to close... ($WAIT_COUNT/15)"
         sleep 1
         WAIT_COUNT=$((WAIT_COUNT + 1))
     done
 
-    if pgrep -f "Visual Studio Code" > /dev/null; then
+    if [ "$(osascript -e 'tell application "System Events" to (name of processes) contains "Electron"' 2>/dev/null)" = "true" ]; then
         print_error "VSCode did not close after 15 seconds"
         exit 1
     fi
     print_success "VSCode closed"
+else
+    print_success "VSCode is not running"
 fi
 
 # Step 2: Install extension
 print_info "Installing extension..."
-if ! $CODE_BIN --install-extension "$VSIX_PATH" --force > /dev/null 2>&1; then
-    print_error "Failed to install extension"
+"$CODE_BIN" --install-extension "$VSIX_PATH" --force
+INSTALL_EXIT=$?
+
+if [ $INSTALL_EXIT -eq 0 ]; then
+    print_success "Extension installed"
+else
+    print_error "Failed to install extension (exit code: $INSTALL_EXIT)"
     exit 1
 fi
-print_success "Extension installed"
 
 # Step 3: Open VSCode and wait for activation
 print_info "Opening VSCode..."
@@ -92,7 +113,7 @@ print_info "Checking logs: $LOG_DIR/$LATEST_LOG"
 ACTIVATION_ERRORS=0
 ACTIVATION_SUCCESS=0
 
-for log in $EXTHOST_LOGS; do
+while IFS= read -r log; do
     if grep -q "Activating extension EnterpriseAI.specgofer failed" "$log"; then
         print_error "Extension activation FAILED!"
         echo ""
@@ -103,7 +124,7 @@ for log in $EXTHOST_LOGS; do
     if grep -q "ExtensionService#_doActivateExtension EnterpriseAI.specgofer" "$log"; then
         ACTIVATION_SUCCESS=1
     fi
-done
+done <<< "$EXTHOST_LOGS"
 
 if [ $ACTIVATION_ERRORS -eq 1 ]; then
     print_error "VSIX activation test FAILED"

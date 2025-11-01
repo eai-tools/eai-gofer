@@ -220,6 +220,22 @@ else
     exit 1
 fi
 
+# Test VSIX activation before releasing
+print_info "Running VSIX pre-flight tests..."
+if [ -f "./test-vsix.sh" ]; then
+    if ./test-vsix.sh "./specgofer-$NEW_VERSION.vsix" --test-activation; then
+        print_success "VSIX passed all pre-flight tests including activation"
+    else
+        print_error "VSIX failed pre-flight tests!"
+        print_error "Extension may fail to activate. Fix issues before releasing."
+        echo ""
+        print_warning "To skip activation testing (NOT RECOMMENDED), edit release-auto.sh"
+        exit 1
+    fi
+else
+    print_warning "test-vsix.sh not found, skipping automated tests"
+fi
+
 # Create releases directory and copy VSIX for GitHub Pages hosting
 print_info "Preparing GitHub Pages release assets..."
 mkdir -p docs/releases

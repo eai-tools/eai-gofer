@@ -1,18 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx @vscode/vsce:*)",
-      "Bash(ls:*)",
-      "Bash(qlmanage -t:*)",
-      "Bash(python3:*)",
-      "Bash(node convert-icon.js:*)",
-      "Bash(node extension/convert-icon.js:*)",
-      "Bash(cat:*)",
-      "Bash(npm test:*)",
-      "Bash(npm run compile:*)",
-      "Bash(code --list-extensions:*)",
-      "Bash(git config:*)",
-      "Bash(./release-auto.sh:*)"
+      "Bash(npm view:*)",
+      "Bash(npm install)",
+      "Bash(code --install-extension:*)",
+      "Bash(/Applications/Visual\\ Studio\\ Code.app/Contents/Resources/app/bin/code:*)",
+      "Bash(find:*)",
+      "Bash(node -e:*)",
+      "Bash(mv:*)"
     ],
     "deny": [],
     "ask": []

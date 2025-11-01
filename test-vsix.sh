@@ -127,23 +127,6 @@ if [ "$2" == "--test-activation" ]; then
         exit 1
     fi
 
-    # Detect if running from VSCode integrated terminal
-    if [ -n "$VSCODE_PID" ] || [ -n "$TERM_PROGRAM" ] && [ "$TERM_PROGRAM" = "vscode" ]; then
-        print_error "Cannot run activation test from VSCode's integrated terminal!"
-        print_error "VSCode would be closed, killing this script."
-        echo ""
-        print_info "To run the full activation test, execute this from an EXTERNAL terminal:"
-        echo ""
-        echo "  # Open Terminal.app or iTerm2, then run:"
-        ABS_VSIX_PATH=$(cd "$(dirname "$VSIX_PATH")" && pwd)/$(basename "$VSIX_PATH")
-        echo "  cd $PWD"
-        echo "  ./test-activation-helper.sh \"$ABS_VSIX_PATH\" \"$PWD\""
-        echo ""
-        print_warning "Skipping activation test. Structural checks passed."
-        print_warning "The VSIX is ready, but activation has NOT been tested."
-        exit 0
-    fi
-
     # Use helper script to test activation independently
     HELPER_SCRIPT="$(dirname "$0")/test-activation-helper.sh"
 
@@ -152,13 +135,12 @@ if [ "$2" == "--test-activation" ]; then
         exit 1
     fi
 
-    print_info "Launching independent activation test..."
-    print_warning "This will close and restart VSCode to test activation."
+    print_info "Testing activation (will close and restart VSCode)..."
 
     # Get absolute path to VSIX
     ABS_VSIX_PATH=$(cd "$(dirname "$VSIX_PATH")" && pwd)/$(basename "$VSIX_PATH")
 
-    # Run helper script and capture output
+    # Run helper script
     if bash "$HELPER_SCRIPT" "$ABS_VSIX_PATH" "$PWD"; then
         print_success "Activation test passed!"
     else

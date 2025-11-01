@@ -205,9 +205,11 @@ export class Logger {
    * Create a logger for a specific component
    */
   public static for(component: string): Logger {
+    // Ensure instance is created before accessing it
+    const instance = Logger.getInstance();
     const logger = new Logger(component);
-    logger.outputs = [...Logger.instance.outputs];
-    logger.minLevel = Logger.instance.minLevel;
+    logger.outputs = [...instance.outputs];
+    logger.minLevel = instance.minLevel;
     return logger;
   }
 

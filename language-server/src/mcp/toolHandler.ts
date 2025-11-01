@@ -68,6 +68,7 @@ interface ValidationIssue {
 interface ValidateCodeResponse {
   success?: boolean;
   isValid?: boolean;
+  files?: string[];
   issues?: ValidationIssue[];
   summary?: string;
   message?: string;
@@ -406,7 +407,6 @@ export class MCPToolHandler {
    * MCP Tool: specgofer_validate_code
    * Validate code against constitutional requirements
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async validateCode(files: string[]): Promise<ValidateCodeResponse> {
     try {
       // Placeholder for constitutional validation
@@ -415,6 +415,7 @@ export class MCPToolHandler {
       return {
         success: true,
         isValid: true,
+        files: files,
         message: 'Validation not yet implemented. Constitutional validation will be implemented in Phase 2.',
         issues: [],
       };

@@ -29,7 +29,64 @@ vi.mock('twilio', () => ({
   })),
 }));
 
-// Mock VSCode API
+// Mock VSCode module for imports
+vi.mock('vscode', () => ({
+  window: {
+    showInformationMessage: vi.fn(),
+    showErrorMessage: vi.fn(),
+    showWarningMessage: vi.fn(),
+    createOutputChannel: vi.fn(() => ({
+      appendLine: vi.fn(),
+      append: vi.fn(),
+      clear: vi.fn(),
+      show: vi.fn(),
+      dispose: vi.fn(),
+    })),
+  },
+  workspace: {
+    getConfiguration: vi.fn(() => ({
+      get: vi.fn(),
+      update: vi.fn(),
+    })),
+    workspaceFolders: [],
+    onDidChangeWorkspaceFolders: vi.fn(),
+    getWorkspaceFolder: vi.fn(),
+    asRelativePath: vi.fn((pathOrUri: any) => {
+      if (typeof pathOrUri === 'string') {
+        return pathOrUri;
+      }
+      return pathOrUri.fsPath || pathOrUri.path;
+    }),
+  },
+  extensions: {
+    getExtension: vi.fn(),
+  },
+  commands: {
+    registerCommand: vi.fn(),
+    executeCommand: vi.fn(),
+  },
+  TreeItem: class {},
+  TreeItemCollapsibleState: {
+    None: 0,
+    Collapsed: 1,
+    Expanded: 2,
+  },
+  Uri: {
+    file: (path: string): { fsPath: string; scheme: string; path: string} => ({
+      fsPath: path,
+      scheme: 'file',
+      path,
+    }),
+  },
+  ProgressLocation: {
+    Notification: 15,
+  },
+  env: {
+    openExternal: vi.fn(),
+  },
+}));
+
+// Also set as global for backward compatibility
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (global as any).vscode = {
   window: {
@@ -71,35 +128,9 @@ vi.mock('twilio', () => ({
   },
 };
 
-// Mock Node.js built-in modules
-vi.mock('fs', () => ({
-  promises: {
-    readdir: vi.fn(),
-    readFile: vi.fn(),
-    writeFile: vi.fn(),
-    mkdir: vi.fn(),
-    stat: vi.fn(),
-    access: vi.fn(),
-  },
-}));
-
-vi.mock('fs/promises', () => ({
-  readdir: vi.fn(),
-  readFile: vi.fn(),
-  writeFile: vi.fn(),
-  mkdir: vi.fn(),
-  stat: vi.fn(),
-  access: vi.fn(),
-}));
-
-vi.mock('child_process', () => ({
-  exec: vi.fn(),
-  spawn: vi.fn(),
-}));
-
-vi.mock('util', () => ({
-  promisify: vi.fn((fn) => fn),
-}));
+// DO NOT mock fs, fs/promises, child_process, or util globally
+// Integration tests need real file system access
+// Unit tests that need mocks should mock them individually
 
 // Mock Logger from extension utils
 vi.mock('../../extension/src/utils/logger', () => ({

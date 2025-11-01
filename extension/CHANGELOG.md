@@ -2,6 +2,12 @@
 
 All notable changes to the SpecGofer extension will be documented in this file.
 
+## [3.0.2] - 2025-11-01
+
+chore: pre-release changes
+
+Auto-committed changes before release v3.0.1
+
 ## [3.0.1] - 2025-11-01
 
 Fixed missing command registration - recompiled extension with telemetry integration

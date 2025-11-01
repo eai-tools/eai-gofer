@@ -7,7 +7,12 @@
       "Bash(/Applications/Visual\\ Studio\\ Code.app/Contents/Resources/app/bin/code:*)",
       "Bash(find:*)",
       "Bash(node -e:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(./test-vsix.sh:*)",
+      "Bash(timeout 5 /Applications/Visual Studio Code.app/Contents/Resources/app/bin/code:*)",
+      "Bash(echo:*)",
+      "Bash(chmod:*)",
+      "Bash(./release-auto.sh:*)"
     ],
     "deny": [],
     "ask": []

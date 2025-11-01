@@ -127,52 +127,27 @@ if [ "$2" == "--test-activation" ]; then
         exit 1
     fi
 
-    # Install extension
-    print_info "Installing extension..."
-    $CODE_BIN --install-extension "$VSIX_PATH" --force > /dev/null 2>&1
+    # Use helper script to test activation independently
+    # This allows the script to close and restart VSCode without killing itself
+    HELPER_SCRIPT="$(dirname "$0")/test-activation-helper.sh"
 
-    if [ $? -ne 0 ]; then
-        print_error "Failed to install extension"
+    if [ ! -f "$HELPER_SCRIPT" ]; then
+        print_error "Helper script not found: $HELPER_SCRIPT"
         exit 1
     fi
-    print_success "Extension installed"
 
-    # Wait for VSCode to process the installation
-    print_info "Waiting for VSCode to activate extension (10 seconds)..."
-    sleep 10
+    print_info "Launching independent activation test..."
+    print_warning "This will close and restart VSCode to test activation."
 
-    # Find most recent log directory
-    LOG_DIR="$HOME/Library/Application Support/Code/logs"
-    if [ ! -d "$LOG_DIR" ]; then
-        print_warning "VSCode logs directory not found. Cannot check activation."
-        print_warning "Manual testing required."
+    # Get absolute path to VSIX
+    ABS_VSIX_PATH=$(cd "$(dirname "$VSIX_PATH")" && pwd)/$(basename "$VSIX_PATH")
+
+    # Run helper script and capture output
+    if bash "$HELPER_SCRIPT" "$ABS_VSIX_PATH" "$PWD"; then
+        print_success "Activation test passed!"
     else
-        LATEST_LOG=$(ls -t "$LOG_DIR" | head -1)
-        EXTHOST_LOGS=$(find "$LOG_DIR/$LATEST_LOG" -name "exthost.log" 2>/dev/null)
-
-        if [ -z "$EXTHOST_LOGS" ]; then
-            print_warning "No extension host logs found. VSCode may not be running."
-            print_warning "Manual testing required."
-        else
-            # Check for activation errors in all exthost logs
-            ACTIVATION_ERRORS=0
-            for log in $EXTHOST_LOGS; do
-                if grep -q "Activating extension EnterpriseAI.specgofer failed" "$log"; then
-                    print_error "Extension activation failed! Check logs:"
-                    echo "$log"
-                    grep -A 5 "Activating extension EnterpriseAI.specgofer failed" "$log"
-                    ACTIVATION_ERRORS=1
-                fi
-            done
-
-            if [ $ACTIVATION_ERRORS -eq 0 ]; then
-                print_success "No activation errors found in logs"
-            else
-                print_error "Extension failed to activate!"
-                print_error "VSIX is NOT ready for release."
-                exit 1
-            fi
-        fi
+        print_error "Activation test FAILED!"
+        exit 1
     fi
 
     echo ""

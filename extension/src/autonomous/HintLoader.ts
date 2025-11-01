@@ -10,6 +10,7 @@ import * as path from 'path';
 import * as yaml from 'js-yaml';
 import { type HintFile, type HintQuery, type HintLoadResult } from './hint';
 import { Logger } from '../utils/logger';
+import { telemetry } from './telemetryIntegration';
 
 /**
  * HintLoader discovers and loads hint files from the .specify/hints directory.
@@ -172,14 +173,20 @@ export class HintLoader {
       try {
         const hint = await this.loadHintFile(hintPath);
         this.hintCache.set(hintPath, hint);
+        telemetry.trackHintLoaded(hintPath, true, false);
       } catch (error) {
         this.logger.warn(`Failed to load hint file ${hintPath}`, undefined, error as Error);
+        telemetry.trackHintLoadError(hintPath, (error as Error).message);
       }
     }
 
     this.cacheValid = true;
     const duration = Date.now() - startTime;
     this.logger.info('Hint discovery completed', { count: hintPaths.length, duration });
+
+    // Track hint discovery
+    telemetry.trackHintDiscovery(hintPaths.length, duration);
+
     return hintPaths;
   }
 
@@ -191,6 +198,7 @@ export class HintLoader {
   invalidateCache(): void {
     this.cacheValid = false;
     this.hintCache.clear();
+    telemetry.trackHintCacheInvalidated();
   }
 
   /**
@@ -265,6 +273,14 @@ export class HintLoader {
     // Merge hints
     const mergedContent = this.mergeHints(hints);
     const loadTime = Date.now() - startTime;
+
+    // Track context matching
+    const context = {
+      specId: query.affectedFiles?.[0],
+      taskId: undefined,
+      phase: undefined,
+    };
+    telemetry.trackHintContextMatch(context, hints.length);
 
     return {
       mergedContent,

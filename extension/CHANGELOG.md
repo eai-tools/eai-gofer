@@ -2,6 +2,10 @@
 
 All notable changes to the SpecGofer extension will be documented in this file.
 
+## [3.0.3] - 2025-11-02
+
+Fixed missing command registrations for refreshSpecs and updateNow
+
 ## [3.0.2] - 2025-11-01
 
 chore: pre-release changes

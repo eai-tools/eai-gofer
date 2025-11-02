@@ -17,6 +17,16 @@ print_success() { echo -e "${GREEN}✓${NC} $1"; }
 print_warning() { echo -e "${YELLOW}⚠${NC} $1"; }
 print_error() { echo -e "${RED}✗${NC} $1"; }
 
+# Determine code command path
+if command -v code &> /dev/null; then
+    CODE_CMD="code"
+elif [ -f "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code" ]; then
+    CODE_CMD="/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"
+else
+    print_error "VSCode CLI 'code' command not found"
+    exit 1
+fi
+
 # Function to test a command
 test_command() {
     local cmd="$1"
@@ -29,7 +39,7 @@ test_command() {
     TEMP_OUTPUT=$(mktemp)
 
     # Run command and capture result
-    if timeout 3 code --command "$cmd" > "$TEMP_OUTPUT" 2>&1; then
+    if timeout 3 "$CODE_CMD" --command "$cmd" > "$TEMP_OUTPUT" 2>&1; then
         if [ "$expect_fail" = "true" ]; then
             print_warning "  Command succeeded but was expected to fail gracefully"
             cat "$TEMP_OUTPUT"
@@ -75,11 +85,11 @@ test_command() {
 
 # Check if extension is installed
 print_info "Checking if SpecGofer extension is installed..."
-if code --list-extensions | grep -qi "specgofer"; then
+if "$CODE_CMD" --list-extensions | grep -qi "specgofer"; then
     print_success "SpecGofer extension is installed"
 else
     print_warning "SpecGofer extension not installed. Install it first with:"
-    echo "  code --install-extension ./specgofer-*.vsix"
+    echo "  $CODE_CMD --install-extension ./specgofer-*.vsix"
     exit 1
 fi
 

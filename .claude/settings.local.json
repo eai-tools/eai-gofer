@@ -37,7 +37,8 @@
       "Bash(else echo \"VSIX not found yet\")",
       "Bash(fi)",
       "Bash(code:*)",
-      "Bash(/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code --list-extensions)"
+      "Bash(/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code --list-extensions)",
+      "Bash(./test-commands.sh:*)"
     ],
     "deny": [],
     "ask": []

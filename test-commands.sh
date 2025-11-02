@@ -75,7 +75,7 @@ test_command() {
 
 # Check if extension is installed
 print_info "Checking if SpecGofer extension is installed..."
-if code --list-extensions | grep -q "eai-tools.specgofer"; then
+if code --list-extensions | grep -qi "specgofer"; then
     print_success "SpecGofer extension is installed"
 else
     print_warning "SpecGofer extension not installed. Install it first with:"

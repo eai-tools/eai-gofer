@@ -30,7 +30,8 @@
       "Bash(node:*)",
       "Bash(node test-autonomous-fix.js:*)",
       "Bash(node test-autonomous-fix.cjs:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,0 +1,329 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://specgofer.dev/schemas/test-result.schema.json",
+  "title": "TestResult",
+  "description": "Comprehensive test execution result for AI agent consumption",
+  "type": "object",
+  "required": ["id", "timestamp", "summary", "tests", "artifacts"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for this test execution"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of test completion"
+    },
+    "pipelineId": {
+      "type": "string",
+      "description": "Dagger pipeline that executed these tests"
+    },
+    "environment": {
+      "type": "object",
+      "description": "Execution environment details",
+      "properties": {
+        "nodeVersion": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "vscodeVersion": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "daggerVersion": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "platform": {
+          "type": "string",
+          "enum": ["linux", "darwin", "win32"]
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["total", "passed", "failed", "skipped", "duration"],
+      "properties": {
+        "total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "passed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "failed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "skipped": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "duration": {
+          "type": "number",
+          "description": "Total execution time in milliseconds",
+          "minimum": 0
+        },
+        "successRate": {
+          "type": "number",
+          "description": "Percentage of tests that passed",
+          "minimum": 0,
+          "maximum": 100
+        }
+      }
+    },
+    "tests": {
+      "type": "array",
+      "description": "Individual test case results",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "status", "duration"],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "description": "Test case name"
+          },
+          "suite": {
+            "type": "string",
+            "description": "Test suite this case belongs to"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["passed", "failed", "skipped", "timeout"]
+          },
+          "duration": {
+            "type": "number",
+            "description": "Test execution time in milliseconds",
+            "minimum": 0
+          },
+          "retries": {
+            "type": "integer",
+            "description": "Number of retry attempts",
+            "minimum": 0,
+            "default": 0
+          },
+          "error": {
+            "type": "object",
+            "description": "Error details if test failed",
+            "required": ["type", "message"],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "assertion",
+                  "syntax",
+                  "type",
+                  "timeout",
+                  "setup",
+                  "teardown",
+                  "dependency",
+                  "network",
+                  "permission"
+                ]
+              },
+              "message": {
+                "type": "string"
+              },
+              "stack": {
+                "type": "string",
+                "description": "Stack trace"
+              },
+              "expected": {
+                "description": "Expected value in assertion"
+              },
+              "actual": {
+                "description": "Actual value in assertion"
+              },
+              "suggestions": {
+                "type": "array",
+                "description": "AI-friendly remediation hints",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "documentation": {
+                "type": "array",
+                "description": "Links to relevant documentation",
+                "items": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              }
+            }
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Additional test metadata",
+            "properties": {
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "requirements": {
+                "type": "array",
+                "description": "Related requirement IDs",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "flaky": {
+                "type": "boolean",
+                "description": "Whether this test is known to be flaky"
+              }
+            }
+          }
+        }
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "description": "Code coverage metrics",
+      "properties": {
+        "line": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "branch": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "function": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "statement": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "threshold": {
+          "type": "object",
+          "description": "Required coverage thresholds",
+          "properties": {
+            "line": {
+              "type": "number"
+            },
+            "branch": {
+              "type": "number"
+            },
+            "function": {
+              "type": "number"
+            },
+            "statement": {
+              "type": "number"
+            }
+          }
+        },
+        "passed": {
+          "type": "boolean",
+          "description": "Whether coverage meets thresholds"
+        }
+      }
+    },
+    "artifacts": {
+      "type": "object",
+      "required": ["logs"],
+      "description": "Paths to test artifacts",
+      "properties": {
+        "logs": {
+          "type": "string",
+          "description": "Path to test execution logs"
+        },
+        "screenshots": {
+          "type": "array",
+          "description": "Paths to failure screenshots",
+          "items": {
+            "type": "string"
+          }
+        },
+        "videos": {
+          "type": "array",
+          "description": "Paths to test execution videos",
+          "items": {
+            "type": "string"
+          }
+        },
+        "reports": {
+          "type": "array",
+          "description": "Paths to generated reports (HTML, XML, etc.)",
+          "items": {
+            "type": "string"
+          }
+        },
+        "traces": {
+          "type": "array",
+          "description": "Paths to execution traces",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "performance": {
+      "type": "object",
+      "description": "Performance metrics",
+      "properties": {
+        "setupDuration": {
+          "type": "number",
+          "description": "Environment setup time in milliseconds"
+        },
+        "teardownDuration": {
+          "type": "number",
+          "description": "Cleanup time in milliseconds"
+        },
+        "avgTestDuration": {
+          "type": "number",
+          "description": "Average test duration in milliseconds"
+        },
+        "cacheHitRate": {
+          "type": "number",
+          "description": "Percentage of cache hits",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "parallelization": {
+          "type": "integer",
+          "description": "Number of parallel containers used"
+        }
+      }
+    },
+    "agentMetadata": {
+      "type": "object",
+      "description": "Metadata for AI agent consumption",
+      "properties": {
+        "confidence": {
+          "type": "number",
+          "description": "Confidence score 0-1",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "retryable": {
+          "type": "boolean",
+          "description": "Whether failures can be retried"
+        },
+        "nextSteps": {
+          "type": "array",
+          "description": "Suggested next actions",
+          "items": {
+            "type": "string"
+          }
+        },
+        "analysis": {
+          "type": "string",
+          "description": "AI-friendly analysis of results"
+        }
+      }
+    }
+  }
+}

@@ -20,7 +20,17 @@
       "Bash(npx:*)",
       "Bash(npm run compile:*)",
       "Read(//tmp/**)",
-      "Bash(npm test)"
+      "Bash(npm test)",
+      "Bash(.specify/scripts/bash/create-new-feature.sh:*)",
+      "Bash(git checkout:*)",
+      "Bash(.specify/scripts/bash/setup-plan.sh:*)",
+      "Bash(awk:*)",
+      "Bash(.specify/scripts/bash/update-agent-context.sh:*)",
+      "Bash(.specify/scripts/bash/check-prerequisites.sh:*)",
+      "Bash(node:*)",
+      "Bash(node test-autonomous-fix.js:*)",
+      "Bash(node test-autonomous-fix.cjs:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []

@@ -34,6 +34,24 @@ export async function startAutonomousExecution(
   spec: any,
   progressProvider: ProgressProvider | undefined
 ): Promise<void> {
+  // Validate spec parameter early
+  if (!spec) {
+    vscode.window.showErrorMessage('No spec provided to start autonomous execution');
+    return;
+  }
+
+  if (!spec.id || !spec.title) {
+    vscode.window.showErrorMessage('Invalid spec: missing required properties (id or title)');
+    return;
+  }
+
+  if (!spec.tasks || !Array.isArray(spec.tasks)) {
+    vscode.window.showErrorMessage(
+      `Invalid spec "${spec.id}": tasks property is missing or not an array`
+    );
+    return;
+  }
+
   // Check if already running
   if (activeDriver) {
     const response = await vscode.window.showWarningMessage(

@@ -1,124 +1,111 @@
-# Technical Plan: [Feature Name]
+# Implementation Plan: [FEATURE]
 
-## Technology Stack
+**Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
+**Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
 
-- **Language/Runtime**: [e.g., TypeScript/Node.js 20+]
-- **Framework**: [e.g., Express, React]
-- **Database**: [e.g., PostgreSQL, Redis]
-- **Testing**: [e.g., Jest, Playwright]
-- **Infrastructure**: [e.g., AWS, Docker]
+**Note**: This template is filled in by the `/speckit.plan` command. See
+`.specify/templates/commands/plan.md` for the execution workflow.
 
-## Architecture
+## Summary
 
-### System Architecture
-[Describe the overall system architecture, including high-level components and their interactions]
+[Extract from feature spec: primary requirement + technical approach from
+research]
 
-### Component Design
-[Detail the specific components that will be built or modified]
+## Technical Context
 
-### Data Flow
-[Explain how data moves through the system]
+<!--
+  ACTION REQUIRED: Replace the content in this section with the technical details
+  for the project. The structure here is presented in advisory capacity to guide
+  the iteration process.
+-->
 
-## API Design
+**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS
+CLARIFICATION]  
+**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]  
+**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]  
+**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]  
+**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
+**Project Type**: [single/web/mobile - determines source structure]  
+**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps
+or NEEDS CLARIFICATION]  
+**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory,
+offline-capable or NEEDS CLARIFICATION]  
+**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS
+CLARIFICATION]
 
-### Endpoints
-- **GET /api/[resource]**: [Description]
-  - Request: [Format]
-  - Response: [Format]
+## Constitution Check
 
-- **POST /api/[resource]**: [Description]
-  - Request: [Format]
-  - Response: [Format]
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-### Data Models
-```typescript
-interface [ModelName] {
-  id: string;
-  // other fields
-}
+[Gates determined based on constitution file]
+
+## Project Structure
+
+### Documentation (this feature)
+
+```text
+specs/[###-feature]/
+├── plan.md              # This file (/speckit.plan command output)
+├── research.md          # Phase 0 output (/speckit.plan command)
+├── data-model.md        # Phase 1 output (/speckit.plan command)
+├── quickstart.md        # Phase 1 output (/speckit.plan command)
+├── contracts/           # Phase 1 output (/speckit.plan command)
+└── tasks.md             # Phase 2 output (/speckit.tasks command - NOT created by /speckit.plan)
 ```
 
-## Implementation Strategy
+### Source Code (repository root)
 
-### Phase 1: [Foundation]
-- [ ] Set up project structure
-- [ ] Configure development environment
-- [ ] Set up testing framework
+<!--
+  ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
+  for this feature. Delete unused options and expand the chosen structure with
+  real paths (e.g., apps/admin, packages/something). The delivered plan must
+  not include Option labels.
+-->
 
-### Phase 2: [Core Features]
-- [ ] Implement [feature]
-- [ ] Add [capability]
+```text
+# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
+src/
+├── models/
+├── services/
+├── cli/
+└── lib/
 
-### Phase 3: [Polish]
-- [ ] Performance optimization
-- [ ] Error handling improvements
+tests/
+├── contract/
+├── integration/
+└── unit/
 
-## Security Considerations
+# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
+backend/
+├── src/
+│   ├── models/
+│   ├── services/
+│   └── api/
+└── tests/
 
-- **Authentication**: [Approach]
-- **Authorization**: [Strategy]
-- **Data Protection**: [Methods]
-- **Audit Logging**: [What will be logged]
+frontend/
+├── src/
+│   ├── components/
+│   ├── pages/
+│   └── services/
+└── tests/
 
-## Performance Requirements
+# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
+api/
+└── [same as backend above]
 
-- **Response Time**: [Target latency]
-- **Throughput**: [Requests per second]
-- **Concurrent Users**: [Expected load]
-- **Data Volume**: [Storage requirements]
+ios/ or android/
+└── [platform-specific structure: feature modules, UI flows, platform tests]
+```
 
-## Testing Strategy
+**Structure Decision**: [Document the selected structure and reference the real
+directories captured above]
 
-### Unit Tests
-- [What will be unit tested]
-- Coverage target: [percentage]
+## Complexity Tracking
 
-### Integration Tests
-- [Integration points to test]
+> **Fill ONLY if Constitution Check has violations that must be justified**
 
-### E2E Tests
-- [User flows to test]
-
-### Performance Tests
-- [Load testing scenarios]
-
-## Monitoring and Observability
-
-- **Metrics**: [What to measure]
-- **Logging**: [What to log]
-- **Alerting**: [Alert conditions]
-- **Dashboards**: [Key visualizations]
-
-## Migration Plan
-
-- [ ] Data migration strategy
-- [ ] Rollback plan
-- [ ] Feature flag configuration
-
-## Documentation Requirements
-
-- [ ] API documentation
-- [ ] Developer guide
-- [ ] User documentation
-- [ ] Runbook for operations
-
-## Dependencies
-
-### Libraries
-- [package-name]: [version] - [purpose]
-
-### Services
-- [service-name]: [purpose]
-
-### Infrastructure
-- [resource]: [specification]
-
-## Implementation Notes
-
-[Special considerations, gotchas, or important details for developers]
-
-## References
-
-- [Link to design documents]
-- [Link to related specifications]
-- [External documentation]
+| Violation                  | Why Needed         | Simpler Alternative Rejected Because |
+| -------------------------- | ------------------ | ------------------------------------ |
+| [e.g., 4th project]        | [current need]     | [why 3 projects insufficient]        |
+| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient]  |

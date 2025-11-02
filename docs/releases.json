@@ -1,8 +1,17 @@
 {
-  "latest_version": "3.0.9",
+  "latest_version": "3.0.13",
   "repository": "eai-tools/specgofer",
-  "last_updated": "2025-11-01T23:15:19.087Z",
+  "last_updated": "2025-11-02T03:56:37.469Z",
   "releases": [
+    {
+      "version": "3.0.13",
+      "tag_name": "v3.0.13",
+      "published_at": "2025-11-02T03:56:37.468Z",
+      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-3.0.13.vsix",
+      "notes": "chore: pre-release changes\n\nAuto-committed changes before release v3.0.12",
+      "prerelease": false,
+      "size_mb": 11.1
+    },
     {
       "version": "3.0.9",
       "tag_name": "v3.0.9",
@@ -81,15 +90,6 @@
       "published_at": "2025-10-30T06:17:33.967Z",
       "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-2.0.5.vsix",
       "notes": "chore: pre-release changes\n\nAuto-committed changes before release v2.0.4",
-      "prerelease": false,
-      "size_mb": 8.8
-    },
-    {
-      "version": "2.0.4",
-      "tag_name": "v2.0.4",
-      "published_at": "2025-10-29T23:33:04.000Z",
-      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-2.0.4.vsix",
-      "notes": "## Changes in v2.0.4\n\n### Bug Fixes\n- Fixed path reference updating during upgrade (content-based, no file moving)\n- Fixed missing `showTaskDetails` command registration that caused 'command not found' error when clicking tasks\n- Kept Claude commands in `.claude/commands/` per SpecGofer convention\n- Auto-fixes `specs/` references to `.specify/specs/` in upgrade process",
       "prerelease": false,
       "size_mb": 8.8
     }

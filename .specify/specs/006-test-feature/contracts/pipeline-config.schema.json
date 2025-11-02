@@ -1,0 +1,449 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://specgofer.dev/schemas/pipeline-config.schema.json",
+  "title": "DaggerPipelineConfiguration",
+  "description": "Configuration schema for Dagger test orchestration pipelines",
+  "type": "object",
+  "required": ["version", "name", "stages", "environments"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Configuration schema version",
+      "const": "1.0.0"
+    },
+    "name": {
+      "type": "string",
+      "description": "Pipeline name",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "minLength": 3,
+      "maxLength": 50
+    },
+    "description": {
+      "type": "string",
+      "description": "Pipeline purpose and scope"
+    },
+    "triggers": {
+      "type": "array",
+      "description": "Events that trigger this pipeline",
+      "items": {
+        "type": "object",
+        "required": ["type"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["manual", "commit", "pull_request", "schedule", "api"]
+          },
+          "branches": {
+            "type": "array",
+            "description": "Branch patterns for commit/PR triggers",
+            "items": {
+              "type": "string"
+            }
+          },
+          "schedule": {
+            "type": "string",
+            "description": "Cron expression for scheduled triggers",
+            "pattern": "^(@(annually|yearly|monthly|weekly|daily|hourly))|((\\*|\\?|\\d+((\\/|\\-){0,1}(\\d+))*)\\s*){5}$"
+          },
+          "conditions": {
+            "type": "object",
+            "description": "Additional trigger conditions",
+            "additionalProperties": true
+          }
+        }
+      }
+    },
+    "parameters": {
+      "type": "object",
+      "description": "Pipeline parameters",
+      "properties": {
+        "parallel": {
+          "type": "boolean",
+          "description": "Enable parallel stage execution",
+          "default": true
+        },
+        "maxConcurrency": {
+          "type": "integer",
+          "description": "Maximum parallel containers",
+          "minimum": 1,
+          "maximum": 20,
+          "default": 5
+        },
+        "timeout": {
+          "type": "integer",
+          "description": "Overall pipeline timeout in seconds",
+          "minimum": 60,
+          "maximum": 7200,
+          "default": 1200
+        },
+        "retryPolicy": {
+          "type": "object",
+          "properties": {
+            "maxAttempts": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5,
+              "default": 3
+            },
+            "backoffMultiplier": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 5,
+              "default": 2
+            },
+            "initialDelay": {
+              "type": "integer",
+              "description": "Initial retry delay in seconds",
+              "minimum": 1,
+              "maximum": 60,
+              "default": 10
+            },
+            "maxBackoff": {
+              "type": "integer",
+              "description": "Maximum retry delay in seconds",
+              "minimum": 10,
+              "maximum": 300,
+              "default": 60
+            }
+          }
+        },
+        "cache": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": true
+            },
+            "volumes": {
+              "type": "array",
+              "description": "Paths to cache between runs",
+              "items": {
+                "type": "string"
+              },
+              "default": ["node_modules", ".npm", ".pnpm-store", ".yarn"]
+            },
+            "ttl": {
+              "type": "integer",
+              "description": "Cache TTL in seconds",
+              "minimum": 3600,
+              "maximum": 604800,
+              "default": 86400
+            }
+          }
+        }
+      }
+    },
+    "environments": {
+      "type": "array",
+      "description": "Test environment configurations",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["name", "image"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Environment identifier"
+          },
+          "image": {
+            "type": "string",
+            "description": "Base Docker image"
+          },
+          "packages": {
+            "type": "array",
+            "description": "Additional packages to install",
+            "items": {
+              "type": "object",
+              "required": ["type", "name"],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "enum": ["apt", "npm", "pip", "apk"]
+                },
+                "name": {
+                  "type": "string"
+                },
+                "version": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "env": {
+            "type": "object",
+            "description": "Environment variables",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "display": {
+            "type": "object",
+            "description": "Display server configuration",
+            "properties": {
+              "enabled": {
+                "type": "boolean",
+                "default": false
+              },
+              "resolution": {
+                "type": "string",
+                "pattern": "^\\d+x\\d+x\\d+$",
+                "default": "1920x1080x24"
+              }
+            }
+          },
+          "resources": {
+            "type": "object",
+            "description": "Resource limits",
+            "properties": {
+              "cpu": {
+                "type": "number",
+                "description": "CPU cores",
+                "minimum": 0.5,
+                "maximum": 8
+              },
+              "memory": {
+                "type": "integer",
+                "description": "Memory in MB",
+                "minimum": 512,
+                "maximum": 16384
+              },
+              "disk": {
+                "type": "integer",
+                "description": "Disk space in GB",
+                "minimum": 1,
+                "maximum": 100
+              }
+            }
+          }
+        }
+      }
+    },
+    "stages": {
+      "type": "array",
+      "description": "Pipeline stages",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["name", "type", "tasks"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Stage identifier",
+            "pattern": "^[a-z][a-z0-9-]*$"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["setup", "test", "teardown", "report"]
+          },
+          "environment": {
+            "type": "string",
+            "description": "Environment name to use"
+          },
+          "dependencies": {
+            "type": "array",
+            "description": "Stage names that must complete first",
+            "items": {
+              "type": "string"
+            }
+          },
+          "parallel": {
+            "type": "boolean",
+            "description": "Run tasks in parallel within stage",
+            "default": false
+          },
+          "continueOnError": {
+            "type": "boolean",
+            "description": "Continue pipeline if stage fails",
+            "default": false
+          },
+          "timeout": {
+            "type": "integer",
+            "description": "Stage timeout in seconds",
+            "minimum": 10,
+            "maximum": 3600
+          },
+          "tasks": {
+            "type": "array",
+            "description": "Tasks to execute in this stage",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["name", "command"],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Task identifier"
+                },
+                "command": {
+                  "type": "string",
+                  "description": "Command to execute"
+                },
+                "workdir": {
+                  "type": "string",
+                  "description": "Working directory"
+                },
+                "env": {
+                  "type": "object",
+                  "description": "Task-specific environment variables",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                },
+                "retryable": {
+                  "type": "boolean",
+                  "description": "Whether task can be retried on failure",
+                  "default": true
+                },
+                "artifacts": {
+                  "type": "array",
+                  "description": "Artifacts to collect",
+                  "items": {
+                    "type": "object",
+                    "required": ["path", "type"],
+                    "properties": {
+                      "path": {
+                        "type": "string"
+                      },
+                      "type": {
+                        "type": "string",
+                        "enum": ["log", "report", "coverage", "screenshot", "video"]
+                      },
+                      "name": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "artifacts": {
+      "type": "object",
+      "description": "Global artifact configuration",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Base path for artifacts",
+          "default": "/artifacts"
+        },
+        "retention": {
+          "type": "object",
+          "description": "Artifact retention policies",
+          "properties": {
+            "default": {
+              "type": "integer",
+              "description": "Default retention in days",
+              "minimum": 1,
+              "maximum": 365,
+              "default": 30
+            },
+            "byType": {
+              "type": "object",
+              "description": "Type-specific retention",
+              "properties": {
+                "log": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 365
+                },
+                "report": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 365
+                },
+                "coverage": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 365
+                },
+                "screenshot": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 365
+                },
+                "video": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 365
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "notifications": {
+      "type": "object",
+      "description": "Notification configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "channels": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["type", "events"],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["email", "slack", "webhook", "github", "gitlab"]
+              },
+              "events": {
+                "type": "array",
+                "description": "Events to notify on",
+                "items": {
+                  "type": "string",
+                  "enum": ["start", "success", "failure", "timeout", "cancelled"]
+                }
+              },
+              "config": {
+                "type": "object",
+                "description": "Channel-specific configuration",
+                "additionalProperties": true
+              }
+            }
+          }
+        }
+      }
+    },
+    "testData": {
+      "type": "object",
+      "description": "Test data configuration",
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Path to test data directory",
+          "default": ".specify/test-data"
+        },
+        "datasets": {
+          "type": "array",
+          "description": "Test data sets to use",
+          "items": {
+            "type": "object",
+            "required": ["name", "version"],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "version": {
+                "type": "string",
+                "pattern": "^\\d+\\.\\d+\\.\\d+$"
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -236,6 +236,28 @@ else
     exit 1
 fi
 
+# Test all extension commands to ensure they don't throw undefined errors
+print_info "Testing all extension commands for runtime errors..."
+if [ -f "./test-commands.sh" ]; then
+    # Install the VSIX temporarily for testing
+    print_info "Installing VSIX for command testing..."
+    code --install-extension "./specgofer-$NEW_VERSION.vsix" --force > /dev/null 2>&1
+
+    # Wait for extension to load
+    sleep 2
+
+    # Run command tests
+    if ./test-commands.sh; then
+        print_success "All extension commands validated successfully"
+    else
+        print_error "Some extension commands have errors!"
+        print_error "Fix command registration/handling issues before releasing."
+        exit 1
+    fi
+else
+    print_warning "test-commands.sh not found, skipping command validation"
+fi
+
 # Create releases directory and copy VSIX for GitHub Pages hosting
 print_info "Preparing GitHub Pages release assets..."
 mkdir -p docs/releases

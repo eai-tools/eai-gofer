@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastModified": 1762038878246,
+  "lastModified": 1762053737394,
   "nodes": {
     "001-memory-learning-system": {
       "specId": "001-memory-learning-system",
@@ -32,6 +32,10 @@
     },
     "feature-001": {
       "specId": "feature-001",
+      "status": "pending"
+    },
+    "001-dagger-test-orchestration": {
+      "specId": "001-dagger-test-orchestration",
       "status": "pending"
     }
   },

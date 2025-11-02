@@ -31,7 +31,13 @@
       "Bash(node test-autonomous-fix.js:*)",
       "Bash(node test-autonomous-fix.cjs:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(if [ -f \"./specgofer-3.0.10.vsix\" ])",
+      "Bash(then echo \"✓ VSIX created\")",
+      "Bash(else echo \"VSIX not found yet\")",
+      "Bash(fi)",
+      "Bash(code:*)",
+      "Bash(/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code --list-extensions)"
     ],
     "deny": [],
     "ask": []

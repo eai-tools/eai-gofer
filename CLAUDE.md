@@ -215,13 +215,15 @@ The `specKitMigrator.ts` handles upgrades:
 
 ## Recent Changes
 
+- 006-test-feature: Added TypeScript 5.3+, Node.js 20.x LTS + Dagger SDK for
+  TypeScript, @vscode/test-electron, VSCode Extension API
+
 - 001-memory-learning-system: Added TypeScript 5.3+ (existing SpecGofer
   codebase)
 
 ### v2.0.4 (Latest)
 
 - Fixed path reference updating during upgrade (content-based, no file moving)
-- Fixed missing `showTaskDetails` command registration
 
 ### v2.0.3
 
@@ -249,5 +251,10 @@ The `specKitMigrator.ts` handles upgrades:
 use it for releases, no exceptions!
 
 ## Active Technologies
+
+- TypeScript 5.3+, Node.js 20.x LTS + Dagger SDK for TypeScript,
+  @vscode/test-electron, VSCode Extension API (006-test-feature)
+- File-based test data versioning in `.specify/test-data/`, Dagger cache for
+  artifacts (006-test-feature)
 
 - TypeScript 5.3+ (existing SpecGofer codebase) (001-memory-learning-system)

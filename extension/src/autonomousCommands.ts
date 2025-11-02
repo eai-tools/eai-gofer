@@ -40,8 +40,19 @@ export async function startAutonomousExecution(
     return;
   }
 
+  // Enhanced validation with better error reporting
   if (!spec.id || !spec.title) {
-    vscode.window.showErrorMessage('Invalid spec: missing required properties (id or title)');
+    console.error('Invalid spec object:', JSON.stringify(spec, null, 2));
+
+    // Try to provide more helpful error message
+    const missingFields = [];
+    if (!spec.id) missingFields.push('id');
+    if (!spec.title) missingFields.push('title');
+
+    vscode.window.showErrorMessage(
+      `Invalid spec: missing required properties (${missingFields.join(', ')}). ` +
+      `Received spec with keys: ${Object.keys(spec).join(', ')}`
+    );
     return;
   }
 

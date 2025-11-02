@@ -592,8 +592,17 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
 
   // Autonomous execution commands
   context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.startAutonomous', async (spec: any) => {
+    vscode.commands.registerCommand('specGofer.startAutonomous', async (item: any) => {
       const { startAutonomousExecution } = await import('./autonomousCommands');
+
+      // Handle both direct spec objects and TreeItem objects
+      let spec = item;
+
+      // If this is a TreeItem with a spec property, extract the spec
+      if (item && item.spec && item.label) {
+        spec = item.spec;
+      }
+
       await startAutonomousExecution(context, spec, progressProvider);
     })
   );

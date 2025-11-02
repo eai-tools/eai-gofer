@@ -1,14 +1,12 @@
 ---
-feature: User Login System
+feature: feature-001
 status: draft
 created: 2025-11-02
 updated: 2025-11-02
 author: migrated
 ---
 
-# User Login System
-
-## Feature Overview
+# Feature Overview
 
 Implement a secure user login system with email/password authentication
 

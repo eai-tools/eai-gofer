@@ -1,8 +1,17 @@
 {
-  "latest_version": "3.0.16",
+  "latest_version": "3.0.17",
   "repository": "eai-tools/specgofer",
-  "last_updated": "2025-11-02T05:58:52.533Z",
+  "last_updated": "2025-11-02T06:08:58.631Z",
   "releases": [
+    {
+      "version": "3.0.17",
+      "tag_name": "v3.0.17",
+      "published_at": "2025-11-02T06:08:58.631Z",
+      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-3.0.17.vsix",
+      "notes": "chore: pre-release changes\n\nAuto-committed changes before release v3.0.16",
+      "prerelease": false,
+      "size_mb": 11.1
+    },
     {
       "version": "3.0.16",
       "tag_name": "v3.0.16",
@@ -81,15 +90,6 @@
       "published_at": "2025-11-01T01:51:43.493Z",
       "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-3.0.2.vsix",
       "notes": "chore: pre-release changes\n\nAuto-committed changes before release v3.0.1",
-      "prerelease": false,
-      "size_mb": 11
-    },
-    {
-      "version": "3.0.1",
-      "tag_name": "v3.0.1",
-      "published_at": "2025-11-01T01:23:10.235Z",
-      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-3.0.1.vsix",
-      "notes": "Fixed missing command registration - recompiled extension with telemetry integration",
       "prerelease": false,
       "size_mb": 11
     }

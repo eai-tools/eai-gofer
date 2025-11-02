@@ -38,8 +38,29 @@ test_command() {
     # Create temp file for output
     TEMP_OUTPUT=$(mktemp)
 
-    # Run command and capture result
-    if timeout 3 "$CODE_CMD" --command "$cmd" > "$TEMP_OUTPUT" 2>&1; then
+    # Run command and capture result (with 3 second timeout using background process)
+    "$CODE_CMD" --command "$cmd" > "$TEMP_OUTPUT" 2>&1 &
+    CMD_PID=$!
+
+    # Wait up to 3 seconds for command to complete
+    for i in {1..30}; do
+        if ! kill -0 $CMD_PID 2>/dev/null; then
+            break
+        fi
+        sleep 0.1
+    done
+
+    # Kill if still running
+    if kill -0 $CMD_PID 2>/dev/null; then
+        kill $CMD_PID 2>/dev/null
+        wait $CMD_PID 2>/dev/null
+    fi
+
+    # Check exit status
+    wait $CMD_PID 2>/dev/null
+    CMD_EXIT=$?
+
+    if [ $CMD_EXIT -eq 0 ]; then
         if [ "$expect_fail" = "true" ]; then
             print_warning "  Command succeeded but was expected to fail gracefully"
             cat "$TEMP_OUTPUT"

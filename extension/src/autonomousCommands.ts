@@ -630,7 +630,11 @@ export async function launchClaudeCode(specId: string): Promise<void> {
     // Spawn Claude Code process with node-pty
     outputChannel.appendLine('   Starting Claude Code process with output capture...');
 
-    ptyProcess = pty.spawn('claude', [], {
+    // For autonomous mode, skip permissions to avoid waiting on prompts
+    const claudeArgs = autonomousMode ? ['--dangerously-skip-permissions'] : [];
+    outputChannel.appendLine(`   Claude args: ${claudeArgs.join(' ') || '(none)'}`);
+
+    ptyProcess = pty.spawn('claude', claudeArgs, {
       name: 'xterm-256color',
       cols: 120,
       rows: 30,
@@ -716,25 +720,30 @@ export async function launchClaudeCode(specId: string): Promise<void> {
     outputChannel.appendLine('      Claude Code needs 8-10 seconds to start its interactive mode');
     outputChannel.appendLine('      Will send /speckit.implement after 8 seconds...\n');
 
-    // Wait 8 seconds for Claude Code to fully initialize before sending any commands
-    setTimeout(async () => {
-      if (!ptyProcess) {
-        outputChannel?.appendLine('✗ PTY process was closed before command could be sent');
-        return;
+    // Wait for the actual ">" prompt before sending commands
+    let promptDetected = false;
+    const ptyRef = ptyProcess; // Capture reference for closure
+    const promptListener = ptyProcess.onData((data: string) => {
+      // Look for the ">" prompt character indicating Claude Code is ready
+      if (!promptDetected && ptyRef && data.includes('>')) {
+        promptDetected = true;
+        outputChannel?.appendLine('✓ Claude Code prompt detected, sending command...');
+
+        // METHOD 5 (WORKING): Write command first, then send \r separately with 500ms delay
+        // This is the only method that works reliably with Claude Code
+        ptyRef.write('/speckit.implement');
+        outputChannel?.appendLine('  → Typed command: /speckit.implement');
+
+        setTimeout(() => {
+          ptyRef.write('\r');
+          outputChannel?.appendLine('  → Sent Enter key (\\r) after 500ms delay');
+          outputChannel?.appendLine('\n✓ Command execution complete\n');
+        }, 500);
+
+        // Dispose the listener after sending command
+        setTimeout(() => promptListener.dispose(), 1000);
       }
-
-      outputChannel?.appendLine('→ Sending /speckit.implement command...');
-
-      // Send command directly to pty process
-      const implementCommand = '/speckit.implement\r';
-      ptyProcess.write(implementCommand);
-      outputChannel?.appendLine('  ✓ Command sent: /speckit.implement');
-
-      outputChannel?.appendLine('\n✓ Command execution attempted');
-      outputChannel?.appendLine(
-        '  Check the terminal to see if Claude Code processed the command\n'
-      );
-    }, 8000); // Wait 8 seconds for Claude Code to fully initialize
+    });
 
     outputChannel.appendLine('\n' + '='.repeat(80));
     outputChannel.appendLine('Terminal launched. Monitoring for command execution...');

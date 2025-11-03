@@ -28,6 +28,7 @@ export class ClaudeCodeAutonomousResponder {
   private readonly bufferSize = 100; // Keep last 100 lines
   private recentLines: Set<string> = new Set(); // Track recent unique lines
   private readonly dedupeWindow = 50; // Check last 50 lines for duplicates
+  private lineBuffer = ''; // Buffer for incomplete lines from pty chunks
 
   constructor(
     private apiKey: string,
@@ -40,18 +41,51 @@ export class ClaudeCodeAutonomousResponder {
   }
 
   /**
-   * Strip ANSI escape codes from string for comparison
+   * Strip ANSI escape codes and normalize spinner characters
    */
   private stripAnsi(str: string): string {
     // Remove ANSI escape codes: ESC[...m and similar patterns
-    return str.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '').trim();
+    let cleaned = str.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '');
+    // Remove ANSI cursor control: ESC[K (erase line), ESC[?25l/h (hide/show cursor), etc
+    cleaned = cleaned.replace(/\x1b\[[0-9;?]*[hlK]/g, '');
+    // Normalize spinner characters to a single character for deduplication
+    cleaned = cleaned.replace(/[✳✶✻✽✢·⏺]/g, '•');
+    return cleaned.trim();
+  }
+
+  /**
+   * Check if a line is likely a progress/spinner update
+   */
+  private isProgressLine(line: string): boolean {
+    const progressPatterns = [
+      /^[✳✶✻✽✢·]\s+(Propagating|Loading|Processing|Waiting)/,
+      /^⏺\s+Bash\(.+\)\s+⎿\s+(Waiting|Running)/,
+    ];
+    return progressPatterns.some((pattern) => pattern.test(line));
   }
 
   /**
    * Add line to terminal buffer for monitoring
-   * Implements deduplication to handle Claude Code's duplicate messages
+   * Implements deduplication and line buffering for pty chunks
    */
-  addTerminalOutput(line: string): void {
+  addTerminalOutput(chunk: string): void {
+    // Add chunk to line buffer
+    this.lineBuffer += chunk;
+
+    // Split on newlines, keeping incomplete line in buffer
+    const lines = this.lineBuffer.split(/\r\n|\r|\n/);
+    this.lineBuffer = lines.pop() || ''; // Keep last incomplete line
+
+    // Process complete lines
+    for (const line of lines) {
+      this.processLine(line);
+    }
+  }
+
+  /**
+   * Process a single complete line with deduplication
+   */
+  private processLine(line: string): void {
     // Skip empty lines
     if (!line || !line.trim()) {
       return;
@@ -63,6 +97,18 @@ export class ClaudeCodeAutonomousResponder {
     // Skip if this exact line was recently added (deduplication)
     if (this.recentLines.has(cleanLine)) {
       return;
+    }
+
+    // For progress/spinner lines, check if we have a similar one already
+    if (this.isProgressLine(line)) {
+      // Only keep the most recent spinner state
+      const basePattern = cleanLine.replace(/•\s+/, ''); // Remove normalized spinner
+      const hasSimilar = Array.from(this.recentLines).some((recent) =>
+        recent.includes(basePattern)
+      );
+      if (hasSimilar) {
+        return; // Skip this spinner update
+      }
     }
 
     // Add to buffer
@@ -375,10 +421,11 @@ Analyze the terminal output above to understand what Claude Code is asking. The 
   }
 
   /**
-   * Clear terminal buffer and deduplication tracking
+   * Clear terminal buffer, deduplication tracking, and line buffer
    */
   clearBuffer(): void {
     this.terminalBuffer = [];
     this.recentLines.clear();
+    this.lineBuffer = '';
   }
 }

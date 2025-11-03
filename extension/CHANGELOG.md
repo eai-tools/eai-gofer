@@ -4,9 +4,16 @@ All notable changes to the SpecGofer extension will be documented in this file.
 
 ## [3.0.34] - 2025-11-04
 
-chore: pre-release changes
+### Fixed
 
-Auto-committed changes before release v3.0.33
+- **Question detection when spinners appear after question text** - Changed from
+  `lastLineIsQuestion` (checking only the absolute last line) to
+  `recentLineHasQuestion` (checking any of the last 5 lines). This handles cases
+  where Claude Code shows spinners like "✳ Flibbertigibbeting…" after the
+  question text, which was preventing detection because the spinner became the
+  last line. Now all three patterns (multiple-choice, yes-no, list selection)
+  check if ANY recent line ends with `?`, not just the last line.
+  (ClaudeCodeAutonomousResponder.ts:191-239)
 
 ## [3.0.33] - 2025-11-04
 

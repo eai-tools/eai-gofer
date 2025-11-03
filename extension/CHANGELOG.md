@@ -10,18 +10,25 @@ Auto-committed changes before release v3.0.34
 
 ## [Unreleased]
 
-### Fixed
+### Changed
 
-- **Question detection with prompt on non-last line and split questions** -
-  Changed `hasPrompt` from only checking `promptLine` and `lastLine` to checking
-  ANY of the last 10 lines for `>` or `> ` prompt. This handles cases where
-  status lines or other output appear after the prompt (e.g., "⏵⏵ bypass
-  permissions on..."). Also changed `recentLineHasQuestion` from checking if
-  lines END with `?` to checking if they CONTAIN `?`, handling split question
-  text across multiple lines. Now detects questions where the `>` prompt appears
-  on line [3] with status text on line [4], and questions like "Please let me
-  know which approach you'd prefer, or if you have a specific feature you'd like
-  to work on." split across lines. (ClaudeCodeAutonomousResponder.ts:196-201)
+- **Simplified question detection with stability-based approach** - Completely
+  rewrote question detection to use a stability-based approach instead of
+  complex pattern matching. Now waits for buffer to be stable for 10 seconds,
+  then checks for: (1) question mark in recent lines, (2) `>` prompt present,
+  (3) optional spinner pattern like "✶ Enchanting… (esc to interrupt)". This is
+  much more reliable than trying to match all different question patterns.
+  (ClaudeCodeAutonomousResponder.ts:32-34, 135-221)
+
+- **Increased context window for Haiku** - Changed from 10,000 to 20,000
+  characters of terminal context sent to Claude 3.5 Haiku for answering
+  questions. Updated model identifier from 'claude-3-5-haiku-latest' to specific
+  version 'claude-3-5-haiku-20241022' for consistency.
+  (ClaudeCodeAutonomousResponder.ts:330, 352)
+
+- **Improved answer prompt** - Updated user prompt to explicitly say "Answer the
+  question directly with the best answer" based on constitution, specification,
+  plan, and tasks. (ClaudeCodeAutonomousResponder.ts:347)
 
 ## [3.0.34] - 2025-11-04
 

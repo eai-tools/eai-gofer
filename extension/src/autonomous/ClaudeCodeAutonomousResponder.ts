@@ -29,6 +29,9 @@ export class ClaudeCodeAutonomousResponder {
   private recentLines: Set<string> = new Set(); // Track recent unique lines
   private readonly dedupeWindow = 50; // Check last 50 lines for duplicates
   private lineBuffer = ''; // Buffer for incomplete lines from pty chunks
+  private lastBufferUpdateTime = 0; // Timestamp of last buffer content change
+  private lastBufferSnapshot = ''; // Last buffer content for stability detection
+  private readonly stabilityDelayMs = 10000; // 10 seconds stability required
 
   constructor(
     private apiKey: string,
@@ -128,146 +131,93 @@ export class ClaudeCodeAutonomousResponder {
         .map((l) => this.stripAnsi(l));
       this.recentLines = new Set(recentClean);
     }
+
+    // Update stability tracking
+    const currentSnapshot = this.terminalBuffer.slice(-10).join('\n');
+    if (currentSnapshot !== this.lastBufferSnapshot) {
+      this.lastBufferSnapshot = currentSnapshot;
+      this.lastBufferUpdateTime = Date.now();
+    }
   }
 
   /**
    * Check if recent terminal output contains a question waiting for input
-   * Handles multiple patterns to catch various Claude Code question styles
+   * New approach: Look for stable buffer with spinner, prompt, and question mark
    */
   detectQuestion(): { detected: boolean; question: string; context: string } {
     const fullContext = this.terminalBuffer.join('\n');
-    const last10k = fullContext.slice(-10000);
-    const lastLines = this.terminalBuffer.slice(-30); // Increased to see more context
+    const last20k = fullContext.slice(-20000); // Increased context for Haiku
+    const lastLines = this.terminalBuffer.slice(-10); // Check last 10 lines
     const recentText = lastLines.join('\n');
-
-    // Helper: Check if line is a decorative separator
-    const isSeparator = (line: string): boolean => {
-      return /^[─━═]+$/.test(line.trim());
-    };
-
-    // Helper: Find the actual prompt line (skip separators)
-    const findPromptLine = (): string => {
-      for (let i = lastLines.length - 1; i >= 0; i--) {
-        const line = lastLines[i];
-        if (!isSeparator(line) && line.trim().length > 0) {
-          return line;
-        }
-      }
-      return '';
-    };
-
-    const promptLine = findPromptLine();
-    const lastLine = lastLines[lastLines.length - 1] || '';
 
     // DEBUG LOGGING
     this.outputChannel.appendLine('\n🔍 QUESTION DETECTION DEBUG:');
     this.outputChannel.appendLine(`   Buffer size: ${this.terminalBuffer.length} lines`);
-    this.outputChannel.appendLine(`   Last 5 lines:`);
-    const last5 = lastLines.slice(-5);
-    last5.forEach((line, i) => {
-      const isSep = isSeparator(line);
-      this.outputChannel.appendLine(
-        `   [${i}] ${isSep ? '(SEPARATOR)' : line.substring(0, 80)}`
-      );
+    this.outputChannel.appendLine(`   Last 10 lines:`);
+    lastLines.forEach((line, i) => {
+      this.outputChannel.appendLine(`   [${i}] ${line.substring(0, 100)}`);
     });
-    this.outputChannel.appendLine(`   promptLine: "${promptLine.substring(0, 80)}"`);
-    this.outputChannel.appendLine(`   lastLine: "${lastLine.substring(0, 80)}"`);
-    this.outputChannel.appendLine(
-      `   hasQuestion: ${/\?/.test(recentText)} (found '?' in recent text)`
-    );
 
-    // Pattern 1: "(esc)" text input prompt
-    const hasEsc = promptLine.includes('(esc)') || lastLine.includes('(esc)');
-    this.outputChannel.appendLine(`   Pattern 1 (esc): ${hasEsc}`);
-    if (hasEsc) {
-      this.outputChannel.appendLine('   ✓ DETECTED: text-input\n');
-      return {
-        detected: true,
-        question: 'text-input',
-        context: last10k,
-      };
+    // Check 1: Does recent text have a question mark?
+    const hasQuestionMark = lastLines.some((line) => line.includes('?'));
+    this.outputChannel.appendLine(`   ✓ Check 1 - Has question mark: ${hasQuestionMark}`);
+
+    if (!hasQuestionMark) {
+      this.outputChannel.appendLine('   ✗ No question mark found\n');
+      return { detected: false, question: '', context: '' };
     }
 
-    // Pattern 2: Multiple choice with "> " prompt and numbered options
-    // Look for numbered lists (1. 2. etc.) in recent output
-    // Check if ANY of the last 10 lines contains '>' prompt (handles status lines after prompt)
-    // Check if ANY of the last 10 lines contains '?' (handles split questions and spinners)
-    const hasNumberedOptions = /^\s*\d+\.\s+/m.test(recentText);
-    const hasPrompt = lastLines.slice(-10).some((line) => {
+    // Check 2: Has buffer been stable for 10 seconds?
+    const now = Date.now();
+    const timeSinceLastUpdate = now - this.lastBufferUpdateTime;
+    const isStable = timeSinceLastUpdate >= this.stabilityDelayMs;
+    this.outputChannel.appendLine(
+      `   ✓ Check 2 - Buffer stable for ${timeSinceLastUpdate}ms (required: ${this.stabilityDelayMs}ms): ${isStable}`
+    );
+
+    if (!isStable) {
+      this.outputChannel.appendLine(
+        `   ✗ Buffer not stable yet (${timeSinceLastUpdate}ms / ${this.stabilityDelayMs}ms)\n`
+      );
+      return { detected: false, question: '', context: '' };
+    }
+
+    // Check 3: Is there a spinner line with pattern like "✶ Enchanting… (esc to interrupt)"?
+    const spinnerPatterns = [
+      /^[✳✶✻✽✢·⏺]\s+\w+ing…/i, // Matches "✶ Enchanting…", "✳ Flibbertigibbeting…", etc.
+      /^[✳✶✻✽✢·⏺]\s+\w+…/i, // Matches other spinner patterns
+    ];
+    const hasSpinner = lastLines.some((line) =>
+      spinnerPatterns.some((pattern) => pattern.test(line.trim()))
+    );
+    this.outputChannel.appendLine(`   ✓ Check 3 - Has spinner line: ${hasSpinner}`);
+
+    // Check 4: Is there a ">" prompt line?
+    const hasPrompt = lastLines.some((line) => {
       const trimmed = line.trim();
       return trimmed === '>' || trimmed.startsWith('> ');
     });
-    const hasQuestion = /\?/.test(recentText);
-    const recentLineHasQuestion = lastLines.slice(-10).some((line) => line.includes('?'));
-    this.outputChannel.appendLine(
-      `   Pattern 2 (multiple-choice): numbered=${hasNumberedOptions}, prompt=${hasPrompt}, question=${hasQuestion}, recentLineHasQuestion=${recentLineHasQuestion}`
-    );
+    this.outputChannel.appendLine(`   ✓ Check 4 - Has ">" prompt: ${hasPrompt}`);
 
-    if (hasNumberedOptions && (hasPrompt || recentLineHasQuestion) && hasQuestion) {
-      this.outputChannel.appendLine('   ✓ DETECTED: multiple-choice\n');
-      return {
-        detected: true,
-        question: 'multiple-choice',
-        context: last10k,
-      };
+    if (!hasPrompt) {
+      this.outputChannel.appendLine('   ✗ No ">" prompt found\n');
+      return { detected: false, question: '', context: '' };
     }
 
-    // Pattern 3: Yes/No questions with prompt
-    // Use the same hasPrompt and recentLineHasQuestion checks from Pattern 2
-    const hasYesNo = /\b(yes|no|y\/n)\b/i.test(recentText);
-    this.outputChannel.appendLine(
-      `   Pattern 3 (yes-no): yesno=${hasYesNo}, prompt=${hasPrompt}, question=${hasQuestion}, recentLineHasQuestion=${recentLineHasQuestion}`
-    );
-    if (hasYesNo && (hasPrompt || recentLineHasQuestion) && hasQuestion) {
-      this.outputChannel.appendLine('   ✓ DETECTED: yes-no\n');
-      return {
-        detected: true,
-        question: 'yes-no',
-        context: last10k,
-      };
+    // All checks passed - question detected!
+    if (hasSpinner) {
+      this.outputChannel.appendLine('   ✅ DETECTED: question with spinner (Claude Code waiting)\n');
+    } else {
+      this.outputChannel.appendLine(
+        '   ✅ DETECTED: question without spinner (stable with prompt)\n'
+      );
     }
 
-    // Pattern 4: List selection (bullet points or dashes)
-    // Use the same hasPrompt and recentLineHasQuestion checks from Pattern 2
-    const hasBulletList = /^\s*[-•]\s+/m.test(recentText);
-    this.outputChannel.appendLine(
-      `   Pattern 4 (list): bullet=${hasBulletList}, prompt=${hasPrompt}, question=${hasQuestion}, recentLineHasQuestion=${recentLineHasQuestion}`
-    );
-    if (hasBulletList && (hasPrompt || recentLineHasQuestion) && hasQuestion) {
-      this.outputChannel.appendLine('   ✓ DETECTED: list-selection\n');
-      return {
-        detected: true,
-        question: 'list-selection',
-        context: last10k,
-      };
-    }
-
-    // Pattern 5: Prompt waiting after question (check last 10 lines for ?)
-    const last10Lines = lastLines.slice(-10);
-    const hasRecentQuestion = last10Lines.some((line) => line.includes('?'));
-    const looksLikePrompt =
-      promptLine.trim() === '>' ||
-      promptLine.endsWith('> ') ||
-      lastLine.trim() === '>' ||
-      // Separator line followed by prompt pattern
-      (isSeparator(lastLine) &&
-        lastLines.length >= 2 &&
-        lastLines[lastLines.length - 2].trim() === '>');
-    this.outputChannel.appendLine(
-      `   Pattern 5 (general): recentQ=${hasRecentQuestion}, looksLikePrompt=${looksLikePrompt}`
-    );
-
-    if (hasRecentQuestion && looksLikePrompt) {
-      this.outputChannel.appendLine('   ✓ DETECTED: general-prompt\n');
-      return {
-        detected: true,
-        question: 'general-prompt',
-        context: last10k,
-      };
-    }
-
-    this.outputChannel.appendLine('   ✗ No question detected\n');
-    return { detected: false, question: '', context: '' };
+    return {
+      detected: true,
+      question: hasSpinner ? 'claude-waiting-with-spinner' : 'stable-prompt',
+      context: last20k,
+    };
   }
 
   /**
@@ -377,7 +327,7 @@ Example text input response: "Yes, proceed with creating the test file. The spec
 
 The goal is to keep implementation moving forward efficiently.`;
 
-      const userPrompt = `# Recent Terminal Output (last 10,000 characters):
+      const userPrompt = `# Recent Terminal Output (last 20,000 characters):
 ${context.terminalOutput}
 
 # Constitution:
@@ -394,12 +344,12 @@ ${fullContext.tasks || 'No tasks found'}
 
 ---
 
-Analyze the terminal output above to understand what Claude Code is asking. The last line shows "(esc)" which means Claude Code is waiting for a text response. Provide a clear, well-reasoned answer based on the specification, plan, and tasks. Explain your reasoning in 2-4 sentences.`;
+Analyze the terminal output above to understand what Claude Code is asking. Provide a clear, well-reasoned answer based on the constitution, specification, plan, and tasks. Answer the question directly with the best answer. Explain your reasoning in 2-4 sentences.`;
 
       this.outputChannel.appendLine('🤔 Asking Claude 3.5 Haiku for decision...');
 
       const response = await this.anthropic.messages.create({
-        model: 'claude-3-5-haiku-latest', // Using latest Haiku model
+        model: 'claude-3-5-haiku-20241022', // Claude 3.5 Haiku (latest version)
         max_tokens: 1024,
         system: systemPrompt,
         messages: [

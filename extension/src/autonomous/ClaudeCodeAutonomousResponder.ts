@@ -190,16 +190,16 @@ export class ClaudeCodeAutonomousResponder {
 
     // Pattern 2: Multiple choice with "> " prompt and numbered options
     // Look for numbered lists (1. 2. etc.) in recent output
-    // Also detect when the question text itself (ending with ?) is the last line
+    // Also detect when a recent line ends with ? (handles spinners after questions)
     const hasNumberedOptions = /^\s*\d+\.\s+/m.test(recentText);
     const hasPrompt = promptLine.trim() === '>' || promptLine.includes('> ') || lastLine.trim() === '>';
     const hasQuestion = /\?/.test(recentText);
-    const lastLineIsQuestion = lastLine.trim().endsWith('?');
+    const recentLineHasQuestion = lastLines.slice(-5).some((line) => line.trim().endsWith('?'));
     this.outputChannel.appendLine(
-      `   Pattern 2 (multiple-choice): numbered=${hasNumberedOptions}, prompt=${hasPrompt}, question=${hasQuestion}, lastLineIsQuestion=${lastLineIsQuestion}`
+      `   Pattern 2 (multiple-choice): numbered=${hasNumberedOptions}, prompt=${hasPrompt}, question=${hasQuestion}, recentLineHasQuestion=${recentLineHasQuestion}`
     );
 
-    if (hasNumberedOptions && (hasPrompt || lastLineIsQuestion) && hasQuestion) {
+    if (hasNumberedOptions && (hasPrompt || recentLineHasQuestion) && hasQuestion) {
       this.outputChannel.appendLine('   ✓ DETECTED: multiple-choice\n');
       return {
         detected: true,
@@ -209,12 +209,12 @@ export class ClaudeCodeAutonomousResponder {
     }
 
     // Pattern 3: Yes/No questions with prompt
-    // Also detect when the question text itself (ending with ?) is the last line
+    // Also detect when a recent line ends with ? (handles spinners after questions)
     const hasYesNo = /\b(yes|no|y\/n)\b/i.test(recentText);
     this.outputChannel.appendLine(
-      `   Pattern 3 (yes-no): yesno=${hasYesNo}, prompt=${hasPrompt}, question=${hasQuestion}, lastLineIsQuestion=${lastLineIsQuestion}`
+      `   Pattern 3 (yes-no): yesno=${hasYesNo}, prompt=${hasPrompt}, question=${hasQuestion}, recentLineHasQuestion=${recentLineHasQuestion}`
     );
-    if (hasYesNo && (hasPrompt || lastLineIsQuestion) && hasQuestion) {
+    if (hasYesNo && (hasPrompt || recentLineHasQuestion) && hasQuestion) {
       this.outputChannel.appendLine('   ✓ DETECTED: yes-no\n');
       return {
         detected: true,
@@ -224,12 +224,12 @@ export class ClaudeCodeAutonomousResponder {
     }
 
     // Pattern 4: List selection (bullet points or dashes)
-    // Also detect when the question text itself (ending with ?) is the last line
+    // Also detect when a recent line ends with ? (handles spinners after questions)
     const hasBulletList = /^\s*[-•]\s+/m.test(recentText);
     this.outputChannel.appendLine(
-      `   Pattern 4 (list): bullet=${hasBulletList}, prompt=${hasPrompt}, question=${hasQuestion}, lastLineIsQuestion=${lastLineIsQuestion}`
+      `   Pattern 4 (list): bullet=${hasBulletList}, prompt=${hasPrompt}, question=${hasQuestion}, recentLineHasQuestion=${recentLineHasQuestion}`
     );
-    if (hasBulletList && (hasPrompt || lastLineIsQuestion) && hasQuestion) {
+    if (hasBulletList && (hasPrompt || recentLineHasQuestion) && hasQuestion) {
       this.outputChannel.appendLine('   ✓ DETECTED: list-selection\n');
       return {
         detected: true,

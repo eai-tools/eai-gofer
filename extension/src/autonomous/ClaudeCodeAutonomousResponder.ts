@@ -26,6 +26,8 @@ export class ClaudeCodeAutonomousResponder {
   private isProcessing = false;
   private terminalBuffer: string[] = [];
   private readonly bufferSize = 100; // Keep last 100 lines
+  private recentLines: Set<string> = new Set(); // Track recent unique lines
+  private readonly dedupeWindow = 50; // Check last 50 lines for duplicates
 
   constructor(
     private apiKey: string,
@@ -38,12 +40,47 @@ export class ClaudeCodeAutonomousResponder {
   }
 
   /**
+   * Strip ANSI escape codes from string for comparison
+   */
+  private stripAnsi(str: string): string {
+    // Remove ANSI escape codes: ESC[...m and similar patterns
+    return str.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '').trim();
+  }
+
+  /**
    * Add line to terminal buffer for monitoring
+   * Implements deduplication to handle Claude Code's duplicate messages
    */
   addTerminalOutput(line: string): void {
+    // Skip empty lines
+    if (!line || !line.trim()) {
+      return;
+    }
+
+    // Strip ANSI codes for duplicate detection
+    const cleanLine = this.stripAnsi(line);
+
+    // Skip if this exact line was recently added (deduplication)
+    if (this.recentLines.has(cleanLine)) {
+      return;
+    }
+
+    // Add to buffer
     this.terminalBuffer.push(line);
     if (this.terminalBuffer.length > this.bufferSize) {
       this.terminalBuffer.shift();
+    }
+
+    // Track in dedupe window
+    this.recentLines.add(cleanLine);
+
+    // Keep dedupe set size reasonable (sliding window)
+    if (this.recentLines.size > this.dedupeWindow) {
+      // Remove oldest entries by clearing and rebuilding from recent buffer
+      const recentClean = this.terminalBuffer
+        .slice(-this.dedupeWindow)
+        .map((l) => this.stripAnsi(l));
+      this.recentLines = new Set(recentClean);
     }
   }
 
@@ -338,9 +375,10 @@ Analyze the terminal output above to understand what Claude Code is asking. The 
   }
 
   /**
-   * Clear terminal buffer
+   * Clear terminal buffer and deduplication tracking
    */
   clearBuffer(): void {
     this.terminalBuffer = [];
+    this.recentLines.clear();
   }
 }

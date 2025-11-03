@@ -4,9 +4,13 @@ All notable changes to the SpecGofer extension will be documented in this file.
 
 ## [3.0.29] - 2025-11-04
 
-chore: pre-release changes
+### Fixed
 
-Auto-committed changes before release v3.0.28
+- **Duplicate spinner output in Claude Code terminal** - Implemented missing
+  `setDimensions` callback in Pseudoterminal interface to enable proper ANSI
+  escape sequence handling. Spinners now correctly overwrite the same line
+  instead of creating hundreds of duplicate lines.
+  (autonomousCommands.ts:693-706)
 
 ## [3.0.28] - 2025-11-04
 

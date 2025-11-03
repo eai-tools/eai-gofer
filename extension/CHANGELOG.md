@@ -4,9 +4,16 @@ All notable changes to the SpecGofer extension will be documented in this file.
 
 ## [3.0.32] - 2025-11-04
 
-chore: pre-release changes
+### Fixed
 
-Auto-committed changes before release v3.0.31
+- **Question detection when question text is the last line** - Enhanced Pattern
+  2 (multiple-choice) detection to recognize questions where the question text
+  itself (ending with `?`) is the last line in the terminal buffer, rather than
+  requiring an explicit `>` prompt. This fixes detection for Claude Code
+  questions where numbered options are followed by question text like "Which
+  would you prefer?" without the `>` prompt being captured yet. Added
+  `lastLineIsQuestion` check and updated debug logging to show this status.
+  (ClaudeCodeAutonomousResponder.ts:191-209)
 
 ## [3.0.31] - 2025-11-04
 

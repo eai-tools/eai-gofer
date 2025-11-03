@@ -574,22 +574,41 @@ async function checkDependenciesBeforeExecution(
  * Launch Claude Code in integrated VSCode terminal
  */
 export async function launchClaudeCode(specId: string): Promise<void> {
+  console.log('[SpecGofer] launchClaudeCode called for:', specId);
+
+  // Create output channel FIRST - before any try/catch
+  // Use a simpler name without spaces to ensure it appears in dropdown
+  if (!outputChannel) {
+    console.log('[SpecGofer] Creating new output channel');
+    outputChannel = vscode.window.createOutputChannel('SpecGofer-ClaudeCode');
+    console.log('[SpecGofer] Output channel created:', outputChannel);
+  }
+
+  // Clear previous content and show (don't preserve focus so it's visible)
+  console.log('[SpecGofer] Clearing and showing output channel');
+  outputChannel.clear();
+  outputChannel.show(false); // Don't preserve focus - make it visible
+  outputChannel.appendLine('='.repeat(80));
+  outputChannel.appendLine(`SpecGofer Claude Code Launcher`);
+  outputChannel.appendLine(`Spec ID: ${specId}`);
+  outputChannel.appendLine(`Time: ${new Date().toISOString()}`);
+  outputChannel.appendLine('='.repeat(80));
+  console.log('[SpecGofer] Output channel content written');
+
   try {
-    // Set context to show stop button
+    outputChannel.appendLine('[1/6] Setting context for Claude Code running...');
     await vscode.commands.executeCommand('setContext', 'specgofer.claudeCodeRunning', true);
 
-    // Create terminal
+    outputChannel.appendLine('[2/6] Creating terminal...');
     claudeTerminal = vscode.window.createTerminal({
       name: `Claude Code: ${specId}`,
       hideFromUser: false,
     });
 
-    // Show terminal
-    claudeTerminal.show();
-
-    // Listen for terminal close events
+    outputChannel.appendLine('[3/6] Setting up terminal close listener...');
     const closeListener = vscode.window.onDidCloseTerminal(async (closedTerminal) => {
       if (closedTerminal === claudeTerminal) {
+        outputChannel?.appendLine(`\n[TERMINAL CLOSED] ${new Date().toISOString()}`);
         claudeTerminal = null;
         await vscode.commands.executeCommand('setContext', 'specgofer.claudeCodeRunning', false);
         if (terminalCloseListener) {
@@ -600,30 +619,88 @@ export async function launchClaudeCode(specId: string): Promise<void> {
     });
     terminalCloseListener = closeListener;
 
-    // Send claude command with the /speckit.implement
-    claudeTerminal.sendText('claude');
+    outputChannel.appendLine('[4/6] Showing terminal...');
+    claudeTerminal.show();
 
-    // Wait a moment for Claude to start, then send the command
-    setTimeout(() => {
-      if (claudeTerminal) {
-        claudeTerminal.sendText('/speckit.implement', true); // true = add newline (press Enter)
+    outputChannel.appendLine('[5/6] Launching Claude Code with "claude" command...');
+    claudeTerminal.sendText('claude', true); // Execute the 'claude' command
+
+    outputChannel.appendLine('[6/6] Waiting for Claude Code to fully initialize...');
+    outputChannel.appendLine('      Claude Code needs 8-10 seconds to start its interactive mode');
+    outputChannel.appendLine('      Will send /speckit.implement after 8 seconds...\n');
+
+    // Wait 8 seconds for Claude Code to fully initialize before sending any commands
+    // Claude Code shows its banner and then needs time to start its interactive prompt
+    setTimeout(async () => {
+      if (!claudeTerminal) {
+        outputChannel?.appendLine('✗ Terminal was closed before command could be sent');
+        return;
       }
-    }, 3000);
 
-    // Show success message
+      outputChannel?.appendLine('→ Sending /speckit.implement command...');
+      claudeTerminal.show(true); // Ensure terminal is focused
+
+      // Send the command without executing it first (no newline)
+      claudeTerminal.sendText('/speckit.implement', false);
+      outputChannel?.appendLine('  ✓ Command text typed: /speckit.implement');
+
+      // Wait a moment, then send Enter
+      setTimeout(async () => {
+        if (claudeTerminal) {
+          outputChannel?.appendLine('  → Sending Enter key to execute command...');
+
+          // Try using workbench command first (most reliable)
+          try {
+            await vscode.commands.executeCommand(
+              'workbench.action.terminal.sendSequence',
+              { text: '\x0D' } // Carriage return
+            );
+            outputChannel?.appendLine('  ✓ Enter key sent via workbench command');
+          } catch (err) {
+            // Fallback: use sendText
+            outputChannel?.appendLine(
+              `  ℹ Workbench command not available, using sendText fallback`
+            );
+            claudeTerminal.sendText('', true);
+            outputChannel?.appendLine('  ✓ Enter key sent via sendText');
+          }
+
+          outputChannel?.appendLine('\n✓ Command execution attempted');
+          outputChannel?.appendLine(
+            '  Check the terminal to see if Claude Code processed the command\n'
+          );
+        }
+      }, 1000);
+    }, 8000); // Wait 8 seconds for Claude Code to fully initialize
+
+    outputChannel.appendLine('\n' + '='.repeat(80));
+    outputChannel.appendLine('Terminal launched. Monitoring for command execution...');
+    outputChannel.appendLine('='.repeat(80) + '\n');
+
+    // Show success notification
     vscode.window
       .showInformationMessage(
-        `Claude Code started for "${specId}". Check the terminal for output.`,
-        'Show Terminal'
+        `Claude Code started for "${specId}". Check OUTPUT → "SpecGofer-ClaudeCode" for progress.`,
+        'Show Terminal',
+        'Show Output'
       )
       .then((selection) => {
         if (selection === 'Show Terminal' && claudeTerminal) {
           claudeTerminal.show();
+        } else if (selection === 'Show Output' && outputChannel) {
+          outputChannel.show();
         }
       });
   } catch (error) {
     await vscode.commands.executeCommand('setContext', 'specgofer.claudeCodeRunning', false);
     const errorMessage = error instanceof Error ? error.message : String(error);
+    outputChannel?.appendLine('\n' + '='.repeat(80));
+    outputChannel?.appendLine(`ERROR: ${errorMessage}`);
+    outputChannel?.appendLine('='.repeat(80) + '\n');
+    if (error instanceof Error && error.stack) {
+      outputChannel?.appendLine('Stack trace:');
+      outputChannel?.appendLine(error.stack);
+    }
     vscode.window.showErrorMessage(`Failed to start Claude Code: ${errorMessage}`);
   }
 }

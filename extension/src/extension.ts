@@ -32,6 +32,10 @@ let lspClient: SpecGoferLSPClient | undefined;
 let memoryManager: MemoryManager | undefined;
 
 export async function activate(context: vscode.ExtensionContext) {
+  // Reset Claude Code running context on startup (in case it was left true from a crash)
+  await vscode.commands.executeCommand('setContext', 'specgofer.claudeCodeRunning', false);
+  console.log('[SpecGofer] Reset claudeCodeRunning context to false');
+
   // Setup auto-updater (using GitHub Pages API for private repo)
   const packageJson = require('../package.json');
   console.log(`SpecGofer (Enterprise AI) v${packageJson.version} extension activated`);
@@ -593,22 +597,39 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
   // Claude Code Terminal commands
   context.subscriptions.push(
     vscode.commands.registerCommand('specgofer.startClaudeCode', async (item: any) => {
-      const { launchClaudeCode } = await import('./autonomousCommands');
+      try {
+        console.log('[SpecGofer] startClaudeCode command triggered');
+        console.log('[SpecGofer] Item received:', item);
 
-      // Handle both direct spec objects and TreeItem objects
-      let spec = item;
+        const { launchClaudeCode } = await import('./autonomousCommands');
+        console.log('[SpecGofer] autonomousCommands imported');
 
-      // If this is a TreeItem with a spec property, extract the spec
-      if (item && item.spec && item.label) {
-        spec = item.spec;
+        // Handle both direct spec objects and TreeItem objects
+        let spec = item;
+
+        // If this is a TreeItem with a spec property, extract the spec
+        if (item && item.spec && item.label) {
+          console.log('[SpecGofer] Extracting spec from TreeItem');
+          spec = item.spec;
+        }
+
+        console.log('[SpecGofer] Final spec:', spec);
+
+        if (!spec || !spec.id) {
+          console.error('[SpecGofer] Invalid spec - missing ID:', spec);
+          vscode.window.showErrorMessage('Invalid spec: missing ID');
+          return;
+        }
+
+        console.log('[SpecGofer] Calling launchClaudeCode with spec.id:', spec.id);
+        await launchClaudeCode(spec.id);
+        console.log('[SpecGofer] launchClaudeCode completed');
+      } catch (error) {
+        console.error('[SpecGofer] Error in startClaudeCode command:', error);
+        vscode.window.showErrorMessage(
+          `Failed to start Claude Code: ${error instanceof Error ? error.message : String(error)}`
+        );
       }
-
-      if (!spec || !spec.id) {
-        vscode.window.showErrorMessage('Invalid spec: missing ID');
-        return;
-      }
-
-      await launchClaudeCode(spec.id);
     })
   );
 

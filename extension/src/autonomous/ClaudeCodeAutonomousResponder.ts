@@ -317,9 +317,9 @@ Analyze the terminal output above to understand what Claude Code is asking. The 
 
       await this.delay(500);
 
-      // Press Enter to submit (use \n for newline)
-      ptyProcess.write('\n');
-      this.outputChannel.appendLine('   → Sent Enter key (\\n)');
+      // Press Enter to submit (use \r for carriage return - PTYs operate in raw mode)
+      ptyProcess.write('\r');
+      this.outputChannel.appendLine('   → Sent Enter key (\\r)');
 
       this.outputChannel.appendLine('   ✓ Response sent!\n');
     } catch (error) {

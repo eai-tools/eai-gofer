@@ -726,10 +726,10 @@ export async function launchClaudeCode(specId: string): Promise<void> {
       outputChannel?.appendLine('→ Sending /speckit.implement command...');
 
       // Send command directly to pty process
-      // Use \n (newline) instead of \r (carriage return) for proper execution
-      const implementCommand = '/speckit.implement\n';
+      // Use \r (carriage return) for Enter key - PTYs operate in raw mode
+      const implementCommand = '/speckit.implement\r';
       ptyProcess.write(implementCommand);
-      outputChannel?.appendLine('  ✓ Command sent with newline: /speckit.implement');
+      outputChannel?.appendLine('  ✓ Command sent with carriage return: /speckit.implement');
 
       outputChannel?.appendLine('\n✓ Command execution attempted');
       outputChannel?.appendLine(

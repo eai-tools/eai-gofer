@@ -59,11 +59,6 @@
         "icon": "$(refresh)"
       },
       {
-        "command": "specGofer.forceCleanup",
-        "title": "SpecGofer: Force Cleanup Hanging Operations",
-        "icon": "$(clear-all)"
-      },
-      {
         "command": "specGofer.checkForUpdates",
         "title": "SpecGofer: Check for Updates",
         "icon": "$(cloud-download)"
@@ -190,24 +185,9 @@
         "icon": "$(stop)"
       },
       {
-        "command": "specgofer.configureWhatsApp",
-        "title": "SpecGofer: Configure WhatsApp Integration",
-        "icon": "$(settings-gear)"
-      },
-      {
-        "command": "specgofer.testWhatsApp",
-        "title": "SpecGofer: Test WhatsApp Connection",
-        "icon": "$(pass)"
-      },
-      {
         "command": "specgofer.clearMemory",
         "title": "SpecGofer: Clear Memory Database",
         "icon": "$(trash)"
-      },
-      {
-        "command": "specgofer.viewEscalations",
-        "title": "SpecGofer: View Pending Escalations",
-        "icon": "$(list-unordered)"
       }
     ],
     "keybindings": [
@@ -334,16 +314,6 @@
           "command": "specgofer.stopClaudeCode",
           "when": "viewItem == spec && specgofer.claudeCodeRunning",
           "group": "inline@2"
-        },
-        {
-          "command": "specgofer.startClaudeCode",
-          "when": "viewItem == spec",
-          "group": "claudecode@1"
-        },
-        {
-          "command": "specgofer.stopClaudeCode",
-          "when": "viewItem == spec",
-          "group": "claudecode@2"
         }
       ],
       "explorer/context": [

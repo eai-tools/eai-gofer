@@ -4,9 +4,13 @@ All notable changes to the SpecGofer extension will be documented in this file.
 
 ## [3.0.31] - 2025-11-04
 
-chore: pre-release changes
+### Added
 
-Auto-committed changes before release v3.0.30
+- **Debug logging for question detection** - Added comprehensive diagnostic
+  logging to help troubleshoot why questions aren't being detected. Logs buffer
+  size, last 5 lines, promptLine/lastLine values, and pattern matching results.
+  Check SpecGofer output channel for debug information when questions appear in
+  Claude Code terminal. (ClaudeCodeAutonomousResponder.ts:162-261)
 
 ## [3.0.30] - 2025-11-04
 

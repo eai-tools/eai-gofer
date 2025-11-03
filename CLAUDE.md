@@ -66,6 +66,94 @@ export const EXTENSION_VERSION = require('../../package.json').version;
 **NEVER hardcode the version** in config.ts or anywhere else. It must always
 read from package.json.
 
+## SpecKit Slash Commands
+
+SpecGofer integrates with SpecKit slash commands to guide Claude Code through
+feature implementation. When launching Claude Code in a terminal, SpecGofer
+automatically sends the appropriate command based on the current state of the
+spec.
+
+### Available Commands
+
+Located in `.claude/commands/`, these slash commands control the feature
+development workflow:
+
+#### Planning Phase
+
+- **`/speckit.specify`** - Create or update feature specification from natural
+  language description
+- **`/speckit.plan`** - Generate implementation plan (plan.md, data-model.md,
+  contracts/, research.md)
+- **`/speckit.tasks`** - Generate task breakdown (tasks.md) from plan artifacts
+- **`/speckit.clarify`** - Identify underspecified areas and ask clarification
+  questions
+
+#### Implementation Phase
+
+- **`/speckit.implement`** - Execute tasks from tasks.md in dependency order
+  - Checks prerequisites with `check-prerequisites.sh`
+  - Validates checklists before starting
+  - Loads implementation context (tasks.md, plan.md, data-model.md, contracts/)
+  - Executes tasks phase-by-phase (Setup → Foundational → User Stories → Polish)
+  - Marks completed tasks as [X] in tasks.md
+  - Tracks progress and handles errors
+
+#### Quality Assurance
+
+- **`/speckit.analyze`** - Cross-artifact consistency analysis
+- **`/speckit.checklist`** - Generate custom checklist for feature
+- **`/speckit.constitution`** - Create/update project constitution
+
+### Workflow
+
+The typical SpecKit workflow follows this sequence:
+
+1. **Specification** → `/speckit.specify` creates spec.md with user stories
+2. **Planning** → `/speckit.plan` generates design artifacts
+3. **Task Breakdown** → `/speckit.tasks` creates executable task list
+4. **Implementation** → `/speckit.implement` executes the tasks
+5. **Validation** → `/speckit.analyze` checks consistency
+
+### Claude Code Terminal Integration
+
+When SpecGofer launches Claude Code via the Play button:
+
+1. **Detects current spec state** - checks which artifacts exist:
+   - spec.md only → needs planning
+   - spec.md + plan.md → needs tasks
+   - spec.md + plan.md + tasks.md → ready for implementation
+
+2. **Sends appropriate command**:
+   - If tasks.md exists → `/speckit.implement`
+   - If plan.md exists but no tasks.md → `/speckit.tasks`
+   - If only spec.md exists → `/speckit.plan`
+
+3. **Initial message format**:
+   ```typescript
+   // Automatically sent after 2 seconds
+   const implementCommand = `/speckit.implement\n`;
+   ptyProcess.write(implementCommand);
+   ```
+
+### Implementation Notes
+
+- The `/speckit.implement` command is **stateful** - it resumes from the last
+  completed task
+- Tasks are marked with checkboxes: `- [ ]` pending, `- [X]` completed
+- Each task has a unique ID (T001, T002...) and file path
+- Parallel tasks are marked with [P] and can run concurrently
+- User Story tasks are tagged with [US1], [US2] etc.
+
+### Example Task Format
+
+```markdown
+- [ ] T014 [US1] Implement node-pty integration in TerminalManager.ts
+- [x] T015 [US1] Add macOS Terminal.app detection (completed)
+- [ ] T016 [P] [US1] Create unit test for TerminalManager.ts
+```
+
+See `.claude/commands/speckit.*.md` for detailed command documentation.
+
 ## Project Structure
 
 This is a monorepo with three main packages:
@@ -215,6 +303,8 @@ The `specKitMigrator.ts` handles upgrades:
 
 ## Recent Changes
 
+- 001-claude-terminal-integration: Added TypeScript 5.3+, Node.js 20.x LTS
+
 - 006-test-feature: Added TypeScript 5.3+, Node.js 20.x LTS + Dagger SDK for
   TypeScript, @vscode/test-electron, VSCode Extension API
 
@@ -222,8 +312,6 @@ The `specKitMigrator.ts` handles upgrades:
   codebase)
 
 ### v2.0.4 (Latest)
-
-- Fixed path reference updating during upgrade (content-based, no file moving)
 
 ### v2.0.3
 
@@ -251,6 +339,9 @@ The `specKitMigrator.ts` handles upgrades:
 use it for releases, no exceptions!
 
 ## Active Technologies
+
+- File-based (.specify/memory/ for decisions, local buffer for terminal output)
+  (001-claude-terminal-integration)
 
 - TypeScript 5.3+, Node.js 20.x LTS + Dagger SDK for TypeScript,
   @vscode/test-electron, VSCode Extension API (006-test-feature)

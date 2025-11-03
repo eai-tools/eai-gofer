@@ -28,6 +28,7 @@ let logFilePath: string | null = null;
 
 // Claude Code terminal tracking
 let claudeTerminal: vscode.Terminal | null = null;
+let terminalCloseListener: vscode.Disposable | null = null;
 
 /**
  * Start autonomous execution for a spec
@@ -586,13 +587,26 @@ export async function launchClaudeCode(specId: string): Promise<void> {
     // Show terminal
     claudeTerminal.show();
 
+    // Listen for terminal close events
+    const closeListener = vscode.window.onDidCloseTerminal(async (closedTerminal) => {
+      if (closedTerminal === claudeTerminal) {
+        claudeTerminal = null;
+        await vscode.commands.executeCommand('setContext', 'specgofer.claudeCodeRunning', false);
+        if (terminalCloseListener) {
+          terminalCloseListener.dispose();
+          terminalCloseListener = null;
+        }
+      }
+    });
+    terminalCloseListener = closeListener;
+
     // Send claude command with the /speckit.implement
     claudeTerminal.sendText('claude');
 
     // Wait a moment for Claude to start, then send the command
     setTimeout(() => {
       if (claudeTerminal) {
-        claudeTerminal.sendText('/speckit.implement');
+        claudeTerminal.sendText('/speckit.implement', true); // true = add newline (press Enter)
       }
     }, 3000);
 
@@ -621,6 +635,10 @@ export async function stopClaudeCode(): Promise<void> {
   if (claudeTerminal) {
     claudeTerminal.dispose();
     claudeTerminal = null;
+  }
+  if (terminalCloseListener) {
+    terminalCloseListener.dispose();
+    terminalCloseListener = null;
   }
   await vscode.commands.executeCommand('setContext', 'specgofer.claudeCodeRunning', false);
   vscode.window.showInformationMessage('Claude Code stopped');

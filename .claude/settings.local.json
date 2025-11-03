@@ -46,7 +46,8 @@
       "Bash(cut:*)",
       "Bash(seq:*)",
       "Bash(git restore:*)",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []

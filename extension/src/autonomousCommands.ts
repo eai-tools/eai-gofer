@@ -690,6 +690,20 @@ export async function launchClaudeCode(specId: string): Promise<void> {
             ptyProcess.write(data);
           }
         },
+        setDimensions: (dimensions: vscode.TerminalDimensions) => {
+          // CRITICAL: Without this callback, ANSI escape sequences don't work properly!
+          // The terminal needs dimensions (cols/rows) to calculate cursor positions
+          // for sequences like \r (carriage return) and \x1b[2K (clear line).
+          // This enables spinners to overwrite the same line instead of creating new lines.
+          if (ptyProcess) {
+            ptyProcess.resize(dimensions.columns, dimensions.rows);
+            if (outputChannel) {
+              outputChannel.appendLine(
+                `   ℹ Terminal resized to ${dimensions.columns}x${dimensions.rows}`
+              );
+            }
+          }
+        },
       },
     };
 

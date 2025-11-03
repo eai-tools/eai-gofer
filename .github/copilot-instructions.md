@@ -76,7 +76,7 @@ this workflow:
 # Step 1: Create specification
 /speckit.specify
 # User provides: "Build a feature that does X"
-# Output: .specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/specs/NNN-feature/spec.md
+# Output: .specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/.specify/specs/NNN-feature/spec.md
 
 # Step 2: Generate implementation plan
 /speckit.plan

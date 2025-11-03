@@ -659,101 +659,11 @@ export async function launchClaudeCode(specId: string): Promise<void> {
     const writeEmitter = new vscode.EventEmitter<string>();
     const closeEmitter = new vscode.EventEmitter<number | void>();
 
-    // Terminal output filtering state (same logic as ClaudeCodeAutonomousResponder)
-    let terminalLineBuffer = '';
-    const terminalRecentLines = new Set<string>();
-    const terminalDedupeWindow = 50;
-
-    // Helper: Strip ANSI codes and normalize spinner characters
-    const stripAnsi = (str: string): string => {
-      let cleaned = str.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '');
-      cleaned = cleaned.replace(/\x1b\[[0-9;?]*[hlK]/g, '');
-      cleaned = cleaned.replace(/[✳✶✻✽✢·⏺]/g, '•');
-      return cleaned.trim();
-    };
-
-    // Track the current line being overwritten by carriage returns
-    let overwriteBuffer = '';
-    let lastOverwriteTime = 0;
-    const overwriteThrottle = 1000; // Only show overwrite updates every 1 second
-
-    // Forward pty output to terminal display WITH CARRIAGE RETURN HANDLING
+    // Forward pty output to terminal display - NO FILTERING
+    // Let xterm.js (VSCode's terminal engine) handle ANSI sequences naturally
+    // including ESC[2K (clear line) and \r (carriage return) for spinners
     ptyProcess.onData((data) => {
-      // Process data chunk by chunk
-      for (let i = 0; i < data.length; i++) {
-        const char = data[i];
-
-        if (char === '\r') {
-          // Carriage return - check if next char is \n
-          if (i + 1 < data.length && data[i + 1] === '\n') {
-            // \r\n - This is a real newline, flush overwrite buffer and current line
-            if (overwriteBuffer) {
-              const cleanOverwrite = stripAnsi(overwriteBuffer);
-              if (cleanOverwrite && !terminalRecentLines.has(cleanOverwrite)) {
-                writeEmitter.fire(overwriteBuffer);
-                terminalRecentLines.add(cleanOverwrite);
-              }
-              overwriteBuffer = '';
-            }
-            if (terminalLineBuffer) {
-              const cleanLine = stripAnsi(terminalLineBuffer);
-              if (cleanLine && !terminalRecentLines.has(cleanLine)) {
-                writeEmitter.fire(terminalLineBuffer);
-                terminalRecentLines.add(cleanLine);
-              }
-              terminalLineBuffer = '';
-            }
-            writeEmitter.fire('\r\n');
-            i++; // Skip the \n
-          } else {
-            // Just \r - This is an overwrite, save to overwrite buffer
-            if (terminalLineBuffer) {
-              const now = Date.now();
-              // Only show overwrite updates if throttle period has passed
-              if (now - lastOverwriteTime >= overwriteThrottle) {
-                const cleanLine = stripAnsi(terminalLineBuffer);
-                if (cleanLine && !terminalRecentLines.has(cleanLine)) {
-                  // Send with \r to overwrite previous line in terminal
-                  writeEmitter.fire('\r' + terminalLineBuffer);
-                  terminalRecentLines.add(cleanLine);
-                  lastOverwriteTime = now;
-                }
-              }
-              overwriteBuffer = terminalLineBuffer;
-              terminalLineBuffer = '';
-            }
-          }
-        } else if (char === '\n') {
-          // Newline without \r - flush buffers
-          if (overwriteBuffer) {
-            const cleanOverwrite = stripAnsi(overwriteBuffer);
-            if (cleanOverwrite && !terminalRecentLines.has(cleanOverwrite)) {
-              writeEmitter.fire(overwriteBuffer);
-              terminalRecentLines.add(cleanOverwrite);
-            }
-            overwriteBuffer = '';
-          }
-          if (terminalLineBuffer) {
-            const cleanLine = stripAnsi(terminalLineBuffer);
-            if (cleanLine && !terminalRecentLines.has(cleanLine)) {
-              writeEmitter.fire(terminalLineBuffer);
-              terminalRecentLines.add(cleanLine);
-            }
-            terminalLineBuffer = '';
-          }
-          writeEmitter.fire('\n');
-        } else {
-          // Regular character - add to line buffer
-          terminalLineBuffer += char;
-        }
-      }
-
-      // Keep dedupe set size reasonable (sliding window)
-      if (terminalRecentLines.size > terminalDedupeWindow) {
-        const recentArray = Array.from(terminalRecentLines);
-        terminalRecentLines.clear();
-        recentArray.slice(-terminalDedupeWindow).forEach((l) => terminalRecentLines.add(l));
-      }
+      writeEmitter.fire(data);
     });
 
     ptyProcess.onExit(({ exitCode }) => {

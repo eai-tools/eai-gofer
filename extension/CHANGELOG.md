@@ -4,9 +4,15 @@ All notable changes to the SpecGofer extension will be documented in this file.
 
 ## [3.0.30] - 2025-11-04
 
-chore: pre-release changes
+### Improved
 
-Auto-committed changes before release v3.0.29
+- **Question detection with decorative separators** - Enhanced autonomous
+  question detection to handle Claude Code questions that include decorative
+  separator lines (Unicode box-drawing characters like ─━═). Added helper
+  functions to skip separators and find actual prompts. Increased context window
+  from 20 to 30 lines for better question detection. Now supports 5 distinct
+  question types: text input, multiple choice, yes/no, list selection, and
+  general prompts. (ClaudeCodeAutonomousResponder.ts:137-226)
 
 ## [3.0.29] - 2025-11-04
 

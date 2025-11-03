@@ -590,10 +590,10 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
     })
   );
 
-  // Autonomous execution commands
+  // Claude Code Terminal commands
   context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.startAutonomous', async (item: any) => {
-      const { startAutonomousExecution } = await import('./autonomousCommands');
+    vscode.commands.registerCommand('specgofer.startClaudeCode', async (item: any) => {
+      const { launchClaudeCode } = await import('./autonomousCommands');
 
       // Handle both direct spec objects and TreeItem objects
       let spec = item;
@@ -603,28 +603,19 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
         spec = item.spec;
       }
 
-      await startAutonomousExecution(context, spec, progressProvider);
+      if (!spec || !spec.id) {
+        vscode.window.showErrorMessage('Invalid spec: missing ID');
+        return;
+      }
+
+      await launchClaudeCode(spec.id);
     })
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.stopAutonomous', async () => {
-      const { stopAutonomousExecution } = await import('./autonomousCommands');
-      await stopAutonomousExecution();
-    })
-  );
-
-  context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.pauseAutonomous', async () => {
-      const { pauseAutonomousExecution } = await import('./autonomousCommands');
-      await pauseAutonomousExecution();
-    })
-  );
-
-  context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.resumeAutonomous', async () => {
-      const { resumeAutonomousExecution } = await import('./autonomousCommands');
-      await resumeAutonomousExecution();
+    vscode.commands.registerCommand('specgofer.stopClaudeCode', async () => {
+      const { stopClaudeCode } = await import('./autonomousCommands');
+      await stopClaudeCode();
     })
   );
 }

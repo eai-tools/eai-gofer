@@ -672,78 +672,87 @@ export async function launchClaudeCode(specId: string): Promise<void> {
       return cleaned.trim();
     };
 
-    // Helper: Extract operation name from progress/spinner line
-    const extractOperation = (line: string): string | null => {
-      // Match: [spinner] Operation… (metadata)
-      // Examples: "✳ Pondering… (esc to interrupt · 8s · ↓ 88 tokens)"
-      //           "⏺ Bash(cmd) ⎿ Running…"
-      const match = line.match(/^[✳✶✻✽✢·⏺]\s+([A-Za-z]+)/);
-      return match ? match[1] : null;
-    };
+    // Track the current line being overwritten by carriage returns
+    let overwriteBuffer = '';
+    let lastOverwriteTime = 0;
+    const overwriteThrottle = 1000; // Only show overwrite updates every 1 second
 
-    // Track operations we're currently showing (operation name -> last shown time)
-    const activeOperations = new Map<string, number>();
-    const operationThrottle = 1000; // Only show updates every 1 second per operation
-
-    // Forward pty output to terminal display WITH AGGRESSIVE FILTERING
+    // Forward pty output to terminal display WITH CARRIAGE RETURN HANDLING
     ptyProcess.onData((data) => {
-      // Add to line buffer
-      terminalLineBuffer += data;
+      // Process data chunk by chunk
+      for (let i = 0; i < data.length; i++) {
+        const char = data[i];
 
-      // Split on newlines, keeping incomplete line in buffer
-      const lines = terminalLineBuffer.split(/\r\n|\r|\n/);
-      terminalLineBuffer = lines.pop() || '';
-
-      // Process complete lines with deduplication
-      for (const line of lines) {
-        // Skip empty lines
-        if (!line || !line.trim()) {
-          continue;
-        }
-
-        // Strip ANSI for duplicate detection
-        const cleanLine = stripAnsi(line);
-
-        // Skip exact duplicates
-        if (terminalRecentLines.has(cleanLine)) {
-          continue;
-        }
-
-        // Check if this is a progress/spinner line with changing metadata
-        const operation = extractOperation(line);
-        if (operation) {
-          // This is a progress line - throttle updates
-          const now = Date.now();
-          const lastShown = activeOperations.get(operation);
-
-          if (lastShown && now - lastShown < operationThrottle) {
-            // Skip this update, too soon since last one
-            continue;
-          }
-
-          // Show this update and record the time
-          activeOperations.set(operation, now);
-
-          // Clean up old operations (haven't seen in 5 seconds)
-          for (const [op, time] of activeOperations.entries()) {
-            if (now - time > 5000) {
-              activeOperations.delete(op);
+        if (char === '\r') {
+          // Carriage return - check if next char is \n
+          if (i + 1 < data.length && data[i + 1] === '\n') {
+            // \r\n - This is a real newline, flush overwrite buffer and current line
+            if (overwriteBuffer) {
+              const cleanOverwrite = stripAnsi(overwriteBuffer);
+              if (cleanOverwrite && !terminalRecentLines.has(cleanOverwrite)) {
+                writeEmitter.fire(overwriteBuffer);
+                terminalRecentLines.add(cleanOverwrite);
+              }
+              overwriteBuffer = '';
+            }
+            if (terminalLineBuffer) {
+              const cleanLine = stripAnsi(terminalLineBuffer);
+              if (cleanLine && !terminalRecentLines.has(cleanLine)) {
+                writeEmitter.fire(terminalLineBuffer);
+                terminalRecentLines.add(cleanLine);
+              }
+              terminalLineBuffer = '';
+            }
+            writeEmitter.fire('\r\n');
+            i++; // Skip the \n
+          } else {
+            // Just \r - This is an overwrite, save to overwrite buffer
+            if (terminalLineBuffer) {
+              const now = Date.now();
+              // Only show overwrite updates if throttle period has passed
+              if (now - lastOverwriteTime >= overwriteThrottle) {
+                const cleanLine = stripAnsi(terminalLineBuffer);
+                if (cleanLine && !terminalRecentLines.has(cleanLine)) {
+                  // Send with \r to overwrite previous line in terminal
+                  writeEmitter.fire('\r' + terminalLineBuffer);
+                  terminalRecentLines.add(cleanLine);
+                  lastOverwriteTime = now;
+                }
+              }
+              overwriteBuffer = terminalLineBuffer;
+              terminalLineBuffer = '';
             }
           }
+        } else if (char === '\n') {
+          // Newline without \r - flush buffers
+          if (overwriteBuffer) {
+            const cleanOverwrite = stripAnsi(overwriteBuffer);
+            if (cleanOverwrite && !terminalRecentLines.has(cleanOverwrite)) {
+              writeEmitter.fire(overwriteBuffer);
+              terminalRecentLines.add(cleanOverwrite);
+            }
+            overwriteBuffer = '';
+          }
+          if (terminalLineBuffer) {
+            const cleanLine = stripAnsi(terminalLineBuffer);
+            if (cleanLine && !terminalRecentLines.has(cleanLine)) {
+              writeEmitter.fire(terminalLineBuffer);
+              terminalRecentLines.add(cleanLine);
+            }
+            terminalLineBuffer = '';
+          }
+          writeEmitter.fire('\n');
+        } else {
+          // Regular character - add to line buffer
+          terminalLineBuffer += char;
         }
+      }
 
-        // Track this line
-        terminalRecentLines.add(cleanLine);
-
-        // Keep dedupe set size reasonable (sliding window)
-        if (terminalRecentLines.size > terminalDedupeWindow) {
-          const recentArray = Array.from(terminalRecentLines);
-          terminalRecentLines.clear();
-          recentArray.slice(-terminalDedupeWindow).forEach((l) => terminalRecentLines.add(l));
-        }
-
-        // Send filtered line to terminal display
-        writeEmitter.fire(line + '\r\n');
+      // Keep dedupe set size reasonable (sliding window)
+      if (terminalRecentLines.size > terminalDedupeWindow) {
+        const recentArray = Array.from(terminalRecentLines);
+        terminalRecentLines.clear();
+        recentArray.slice(-terminalDedupeWindow).forEach((l) => terminalRecentLines.add(l));
       }
     });
 

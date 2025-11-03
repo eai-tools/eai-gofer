@@ -659,9 +659,76 @@ export async function launchClaudeCode(specId: string): Promise<void> {
     const writeEmitter = new vscode.EventEmitter<string>();
     const closeEmitter = new vscode.EventEmitter<number | void>();
 
-    // Forward pty output to terminal display
+    // Terminal output filtering state (same logic as ClaudeCodeAutonomousResponder)
+    let terminalLineBuffer = '';
+    const terminalRecentLines = new Set<string>();
+    const terminalDedupeWindow = 50;
+
+    // Helper: Strip ANSI codes and normalize spinner characters
+    const stripAnsi = (str: string): string => {
+      let cleaned = str.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '');
+      cleaned = cleaned.replace(/\x1b\[[0-9;?]*[hlK]/g, '');
+      cleaned = cleaned.replace(/[✳✶✻✽✢·⏺]/g, '•');
+      return cleaned.trim();
+    };
+
+    // Helper: Check if line is progress/spinner update
+    const isProgressLine = (line: string): boolean => {
+      const progressPatterns = [
+        /^[✳✶✻✽✢·]\s+(Propagating|Loading|Processing|Waiting|Burrowing)/,
+        /^⏺\s+Bash\(.+\)\s+⎿\s+(Waiting|Running)/,
+      ];
+      return progressPatterns.some((pattern) => pattern.test(line));
+    };
+
+    // Forward pty output to terminal display WITH FILTERING
     ptyProcess.onData((data) => {
-      writeEmitter.fire(data);
+      // Add to line buffer
+      terminalLineBuffer += data;
+
+      // Split on newlines, keeping incomplete line in buffer
+      const lines = terminalLineBuffer.split(/\r\n|\r|\n/);
+      terminalLineBuffer = lines.pop() || '';
+
+      // Process complete lines with deduplication
+      for (const line of lines) {
+        // Skip empty lines
+        if (!line || !line.trim()) {
+          continue;
+        }
+
+        // Strip ANSI for duplicate detection
+        const cleanLine = stripAnsi(line);
+
+        // Skip exact duplicates
+        if (terminalRecentLines.has(cleanLine)) {
+          continue;
+        }
+
+        // For progress/spinner lines, skip similar ones
+        if (isProgressLine(line)) {
+          const basePattern = cleanLine.replace(/•\s+/, '');
+          const hasSimilar = Array.from(terminalRecentLines).some((recent) =>
+            recent.includes(basePattern)
+          );
+          if (hasSimilar) {
+            continue; // Skip this spinner update
+          }
+        }
+
+        // Track this line
+        terminalRecentLines.add(cleanLine);
+
+        // Keep dedupe set size reasonable (sliding window)
+        if (terminalRecentLines.size > terminalDedupeWindow) {
+          const recentArray = Array.from(terminalRecentLines);
+          terminalRecentLines.clear();
+          recentArray.slice(-terminalDedupeWindow).forEach((l) => terminalRecentLines.add(l));
+        }
+
+        // Send filtered line to terminal display
+        writeEmitter.fire(line + '\r\n');
+      }
     });
 
     ptyProcess.onExit(({ exitCode }) => {

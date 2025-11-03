@@ -2,6 +2,21 @@
 
 All notable changes to the SpecGofer extension will be documented in this file.
 
+## [Unreleased]
+
+### Fixed
+
+- **Question detection with prompt on non-last line and split questions** -
+  Changed `hasPrompt` from only checking `promptLine` and `lastLine` to checking
+  ANY of the last 10 lines for `>` or `> ` prompt. This handles cases where
+  status lines or other output appear after the prompt (e.g., "⏵⏵ bypass
+  permissions on..."). Also changed `recentLineHasQuestion` from checking if
+  lines END with `?` to checking if they CONTAIN `?`, handling split question
+  text across multiple lines. Now detects questions where the `>` prompt appears
+  on line [3] with status text on line [4], and questions like "Please let me
+  know which approach you'd prefer, or if you have a specific feature you'd like
+  to work on." split across lines. (ClaudeCodeAutonomousResponder.ts:196-201)
+
 ## [3.0.34] - 2025-11-04
 
 ### Fixed

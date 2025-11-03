@@ -722,25 +722,61 @@ export async function launchClaudeCode(specId: string): Promise<void> {
     // Wait for the actual ">" prompt before sending commands
     let promptDetected = false;
     const ptyRef = ptyProcess; // Capture reference for closure
+    const terminalRef = claudeTerminal; // Capture terminal for VSCode API methods
     const promptListener = ptyProcess.onData((data: string) => {
       // Look for the ">" prompt character indicating Claude Code is ready
       if (!promptDetected && ptyRef && data.includes('>')) {
         promptDetected = true;
-        outputChannel?.appendLine('✓ Claude Code prompt detected, sending command...');
+        outputChannel?.appendLine('✓ Claude Code prompt detected, trying multiple methods...\n');
 
-        // Send command directly to pty process
-        // Use \r (carriage return) for Enter key - PTYs operate in raw mode
-        const implementCommand = '/speckit.implement\r';
-        ptyRef.write(implementCommand);
-        outputChannel?.appendLine('  ✓ Command sent with carriage return: /speckit.implement');
+        // METHOD 1: VSCode sendSequence with \u000D (Unicode format)
+        outputChannel?.appendLine('  [Method 1] VSCode sendSequence with \\u000D');
+        vscode.commands
+          .executeCommand('workbench.action.terminal.sendSequence', {
+            text: '/speckit.implement\u000D',
+          })
+          .then(
+            () => outputChannel?.appendLine('    ✓ Sent via sendSequence'),
+            (err) => outputChannel?.appendLine(`    ✗ Failed: ${err}`)
+          );
 
-        outputChannel?.appendLine('\n✓ Command execution attempted');
+        // METHOD 2: pty.write with \r\n (both CR+LF)
+        setTimeout(() => {
+          outputChannel?.appendLine('  [Method 2] pty.write with \\r\\n');
+          ptyRef.write('/speckit.implement\r\n');
+          outputChannel?.appendLine('    ✓ Sent via pty.write (\\r\\n)');
+        }, 1000);
+
+        // METHOD 3: pty.write with just \n (LF only)
+        setTimeout(() => {
+          outputChannel?.appendLine('  [Method 3] pty.write with \\n only');
+          ptyRef.write('/speckit.implement\n');
+          outputChannel?.appendLine('    ✓ Sent via pty.write (\\n)');
+        }, 2000);
+
+        // METHOD 4: VSCode terminal.sendText with shouldExecute=true
+        setTimeout(() => {
+          outputChannel?.appendLine('  [Method 4] terminal.sendText with shouldExecute=true');
+          terminalRef.sendText('/speckit.implement', true);
+          outputChannel?.appendLine('    ✓ Sent via terminal.sendText(cmd, true)');
+        }, 3000);
+
+        // METHOD 5: Write command and Enter separately with delay
+        setTimeout(() => {
+          outputChannel?.appendLine('  [Method 5] Write command then \\r separately');
+          ptyRef.write('/speckit.implement');
+          setTimeout(() => {
+            ptyRef.write('\r');
+            outputChannel?.appendLine('    ✓ Sent command, then \\r with delay');
+          }, 500);
+        }, 4000);
+
         outputChannel?.appendLine(
-          '  Check the terminal to see if Claude Code processed the command\n'
+          '\n✓ All 5 methods attempted - check terminal to see which one worked!\n'
         );
 
-        // Dispose the listener after sending command
-        promptListener.dispose();
+        // Dispose the listener after sending commands
+        setTimeout(() => promptListener.dispose(), 6000);
       }
     });
 

@@ -137,43 +137,89 @@ export class ClaudeCodeAutonomousResponder {
   detectQuestion(): { detected: boolean; question: string; context: string } {
     const fullContext = this.terminalBuffer.join('\n');
     const last10k = fullContext.slice(-10000);
-    const lastLines = this.terminalBuffer.slice(-20);
-    const lastLine = lastLines[lastLines.length - 1] || '';
+    const lastLines = this.terminalBuffer.slice(-30); // Increased to see more context
     const recentText = lastLines.join('\n');
 
+    // Helper: Check if line is a decorative separator
+    const isSeparator = (line: string): boolean => {
+      return /^[─━═]+$/.test(line.trim());
+    };
+
+    // Helper: Find the actual prompt line (skip separators)
+    const findPromptLine = (): string => {
+      for (let i = lastLines.length - 1; i >= 0; i--) {
+        const line = lastLines[i];
+        if (!isSeparator(line) && line.trim().length > 0) {
+          return line;
+        }
+      }
+      return '';
+    };
+
+    const promptLine = findPromptLine();
+    const lastLine = lastLines[lastLines.length - 1] || '';
+
     // Pattern 1: "(esc)" text input prompt
-    if (lastLine.includes('(esc)')) {
-      return { detected: true, question: lastLine, context: last10k };
+    if (promptLine.includes('(esc)') || lastLine.includes('(esc)')) {
+      return {
+        detected: true,
+        question: 'text-input',
+        context: last10k,
+      };
     }
 
     // Pattern 2: Multiple choice with "> " prompt and numbered options
-    const hasNumberedOptions = /\d+\.\s+/.test(recentText);
-    const hasPrompt = lastLine.trim() === '>' || lastLine.includes('> ');
+    // Look for numbered lists (1. 2. etc.) in recent output
+    const hasNumberedOptions = /^\s*\d+\.\s+/m.test(recentText);
+    const hasPrompt = promptLine.trim() === '>' || promptLine.includes('> ') || lastLine.trim() === '>';
     const hasQuestion = /\?/.test(recentText);
 
     if (hasNumberedOptions && hasPrompt && hasQuestion) {
-      return { detected: true, question: lastLine, context: last10k };
+      return {
+        detected: true,
+        question: 'multiple-choice',
+        context: last10k,
+      };
     }
 
     // Pattern 3: Yes/No questions with prompt
     const hasYesNo = /\b(yes|no|y\/n)\b/i.test(recentText);
     if (hasYesNo && hasPrompt && hasQuestion) {
-      return { detected: true, question: lastLine, context: last10k };
+      return {
+        detected: true,
+        question: 'yes-no',
+        context: last10k,
+      };
     }
 
-    // Pattern 4: General question with input prompt (fallback)
-    // If we see a question mark in recent output and a prompt waiting
-    const hasRecentQuestion = recentText
-      .split('\n')
-      .slice(-5)
-      .some((line) => line.includes('?'));
+    // Pattern 4: List selection (bullet points or dashes)
+    const hasBulletList = /^\s*[-•]\s+/m.test(recentText);
+    if (hasBulletList && hasPrompt && hasQuestion) {
+      return {
+        detected: true,
+        question: 'list-selection',
+        context: last10k,
+      };
+    }
+
+    // Pattern 5: Prompt waiting after question (check last 10 lines for ?)
+    const last10Lines = lastLines.slice(-10);
+    const hasRecentQuestion = last10Lines.some((line) => line.includes('?'));
     const looksLikePrompt =
+      promptLine.trim() === '>' ||
+      promptLine.endsWith('> ') ||
       lastLine.trim() === '>' ||
-      lastLine.endsWith('> ') ||
-      (lastLine.includes('─') && lastLines[lastLines.length - 2]?.includes('?'));
+      // Separator line followed by prompt pattern
+      (isSeparator(lastLine) &&
+        lastLines.length >= 2 &&
+        lastLines[lastLines.length - 2].trim() === '>');
 
     if (hasRecentQuestion && looksLikePrompt) {
-      return { detected: true, question: lastLine, context: last10k };
+      return {
+        detected: true,
+        question: 'general-prompt',
+        context: last10k,
+      };
     }
 
     return { detected: false, question: '', context: '' };

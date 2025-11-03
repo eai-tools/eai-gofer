@@ -6,9 +6,9 @@
     {
       "version": "3.0.29",
       "tag_name": "v3.0.29",
-      "published_at": "2025-11-03T19:53:34.270Z",
+      "published_at": "2025-11-03T19:55:00.000Z",
       "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-3.0.29.vsix",
-      "notes": "chore: pre-release changes\n\nAuto-committed changes before release v3.0.28",
+      "notes": "Fix: Duplicate Spinner Output\n\nThis release fixes the duplicate spinner output issue in Claude Code terminal by implementing the missing setDimensions callback in the Pseudoterminal interface. Spinners now properly overwrite the same line instead of creating duplicate lines.",
       "prerelease": false,
       "size_mb": 15
     },

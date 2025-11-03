@@ -190,14 +190,16 @@ export class ClaudeCodeAutonomousResponder {
 
     // Pattern 2: Multiple choice with "> " prompt and numbered options
     // Look for numbered lists (1. 2. etc.) in recent output
+    // Also detect when the question text itself (ending with ?) is the last line
     const hasNumberedOptions = /^\s*\d+\.\s+/m.test(recentText);
     const hasPrompt = promptLine.trim() === '>' || promptLine.includes('> ') || lastLine.trim() === '>';
     const hasQuestion = /\?/.test(recentText);
+    const lastLineIsQuestion = lastLine.trim().endsWith('?');
     this.outputChannel.appendLine(
-      `   Pattern 2 (multiple-choice): numbered=${hasNumberedOptions}, prompt=${hasPrompt}, question=${hasQuestion}`
+      `   Pattern 2 (multiple-choice): numbered=${hasNumberedOptions}, prompt=${hasPrompt}, question=${hasQuestion}, lastLineIsQuestion=${lastLineIsQuestion}`
     );
 
-    if (hasNumberedOptions && hasPrompt && hasQuestion) {
+    if (hasNumberedOptions && (hasPrompt || lastLineIsQuestion) && hasQuestion) {
       this.outputChannel.appendLine('   ✓ DETECTED: multiple-choice\n');
       return {
         detected: true,

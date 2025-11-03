@@ -309,17 +309,18 @@ Analyze the terminal output above to understand what Claude Code is asking. The 
         this.outputChannel.appendLine('   → Numbered choice detected, skipping ESC');
       }
 
-      // Type the response
+      // TYPE 1: Type the response first (don't send \r yet!)
       ptyProcess.write(response);
       this.outputChannel.appendLine(
         `   → Typed: "${response.substring(0, 100)}${response.length > 100 ? '...' : ''}"`
       );
 
+      // DELAY: Wait 500ms before sending Enter key (critical for Claude Code)
       await this.delay(500);
 
-      // Press Enter to submit (use \r for carriage return - PTYs operate in raw mode)
+      // TYPE 2: Send Enter key separately - METHOD 5 (the only working method)
       ptyProcess.write('\r');
-      this.outputChannel.appendLine('   → Sent Enter key (\\r)');
+      this.outputChannel.appendLine('   → Sent Enter key (\\r) after 500ms delay');
 
       this.outputChannel.appendLine('   ✓ Response sent!\n');
     } catch (error) {

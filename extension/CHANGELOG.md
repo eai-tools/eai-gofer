@@ -2,6 +2,10 @@
 
 All notable changes to the SpecGofer extension will be documented in this file.
 
+## [3.0.18] - 2025-11-03
+
+autostuff
+
 ## [3.0.17] - 2025-11-02
 
 chore: pre-release changes

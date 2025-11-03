@@ -190,11 +190,15 @@ export class ClaudeCodeAutonomousResponder {
 
     // Pattern 2: Multiple choice with "> " prompt and numbered options
     // Look for numbered lists (1. 2. etc.) in recent output
-    // Also detect when a recent line ends with ? (handles spinners after questions)
+    // Check if ANY of the last 10 lines contains '>' prompt (handles status lines after prompt)
+    // Check if ANY of the last 10 lines contains '?' (handles split questions and spinners)
     const hasNumberedOptions = /^\s*\d+\.\s+/m.test(recentText);
-    const hasPrompt = promptLine.trim() === '>' || promptLine.includes('> ') || lastLine.trim() === '>';
+    const hasPrompt = lastLines.slice(-10).some((line) => {
+      const trimmed = line.trim();
+      return trimmed === '>' || trimmed.startsWith('> ');
+    });
     const hasQuestion = /\?/.test(recentText);
-    const recentLineHasQuestion = lastLines.slice(-5).some((line) => line.trim().endsWith('?'));
+    const recentLineHasQuestion = lastLines.slice(-10).some((line) => line.includes('?'));
     this.outputChannel.appendLine(
       `   Pattern 2 (multiple-choice): numbered=${hasNumberedOptions}, prompt=${hasPrompt}, question=${hasQuestion}, recentLineHasQuestion=${recentLineHasQuestion}`
     );
@@ -209,7 +213,7 @@ export class ClaudeCodeAutonomousResponder {
     }
 
     // Pattern 3: Yes/No questions with prompt
-    // Also detect when a recent line ends with ? (handles spinners after questions)
+    // Use the same hasPrompt and recentLineHasQuestion checks from Pattern 2
     const hasYesNo = /\b(yes|no|y\/n)\b/i.test(recentText);
     this.outputChannel.appendLine(
       `   Pattern 3 (yes-no): yesno=${hasYesNo}, prompt=${hasPrompt}, question=${hasQuestion}, recentLineHasQuestion=${recentLineHasQuestion}`
@@ -224,7 +228,7 @@ export class ClaudeCodeAutonomousResponder {
     }
 
     // Pattern 4: List selection (bullet points or dashes)
-    // Also detect when a recent line ends with ? (handles spinners after questions)
+    // Use the same hasPrompt and recentLineHasQuestion checks from Pattern 2
     const hasBulletList = /^\s*[-•]\s+/m.test(recentText);
     this.outputChannel.appendLine(
       `   Pattern 4 (list): bullet=${hasBulletList}, prompt=${hasPrompt}, question=${hasQuestion}, recentLineHasQuestion=${recentLineHasQuestion}`

@@ -8,7 +8,7 @@
       "tag_name": "v3.0.32",
       "published_at": "2025-11-03T23:19:31.433Z",
       "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-3.0.32.vsix",
-      "notes": "chore: pre-release changes\n\nAuto-committed changes before release v3.0.31",
+      "notes": "Fixed: Question Detection When Question Text Is Last Line\n\nEnhanced Pattern 2 (multiple-choice) detection to recognize questions where the question text itself (ending with '?') is the last line in the terminal buffer, rather than requiring an explicit '>' prompt. This fixes detection for Claude Code questions where numbered options are followed by question text like \"Which would you prefer?\" without the '>' prompt being captured yet. Added lastLineIsQuestion check and updated debug logging.",
       "prerelease": false,
       "size_mb": 15
     },

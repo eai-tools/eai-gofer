@@ -672,16 +672,20 @@ export async function launchClaudeCode(specId: string): Promise<void> {
       return cleaned.trim();
     };
 
-    // Helper: Check if line is progress/spinner update
-    const isProgressLine = (line: string): boolean => {
-      const progressPatterns = [
-        /^[✳✶✻✽✢·]\s+(Propagating|Loading|Processing|Waiting|Burrowing)/,
-        /^⏺\s+Bash\(.+\)\s+⎿\s+(Waiting|Running)/,
-      ];
-      return progressPatterns.some((pattern) => pattern.test(line));
+    // Helper: Extract operation name from progress/spinner line
+    const extractOperation = (line: string): string | null => {
+      // Match: [spinner] Operation… (metadata)
+      // Examples: "✳ Pondering… (esc to interrupt · 8s · ↓ 88 tokens)"
+      //           "⏺ Bash(cmd) ⎿ Running…"
+      const match = line.match(/^[✳✶✻✽✢·⏺]\s+([A-Za-z]+)/);
+      return match ? match[1] : null;
     };
 
-    // Forward pty output to terminal display WITH FILTERING
+    // Track operations we're currently showing (operation name -> last shown time)
+    const activeOperations = new Map<string, number>();
+    const operationThrottle = 1000; // Only show updates every 1 second per operation
+
+    // Forward pty output to terminal display WITH AGGRESSIVE FILTERING
     ptyProcess.onData((data) => {
       // Add to line buffer
       terminalLineBuffer += data;
@@ -705,14 +709,26 @@ export async function launchClaudeCode(specId: string): Promise<void> {
           continue;
         }
 
-        // For progress/spinner lines, skip similar ones
-        if (isProgressLine(line)) {
-          const basePattern = cleanLine.replace(/•\s+/, '');
-          const hasSimilar = Array.from(terminalRecentLines).some((recent) =>
-            recent.includes(basePattern)
-          );
-          if (hasSimilar) {
-            continue; // Skip this spinner update
+        // Check if this is a progress/spinner line with changing metadata
+        const operation = extractOperation(line);
+        if (operation) {
+          // This is a progress line - throttle updates
+          const now = Date.now();
+          const lastShown = activeOperations.get(operation);
+
+          if (lastShown && now - lastShown < operationThrottle) {
+            // Skip this update, too soon since last one
+            continue;
+          }
+
+          // Show this update and record the time
+          activeOperations.set(operation, now);
+
+          // Clean up old operations (haven't seen in 5 seconds)
+          for (const [op, time] of activeOperations.entries()) {
+            if (now - time > 5000) {
+              activeOperations.delete(op);
+            }
           }
         }
 

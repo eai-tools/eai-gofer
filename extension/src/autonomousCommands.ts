@@ -726,9 +726,10 @@ export async function launchClaudeCode(specId: string): Promise<void> {
       outputChannel?.appendLine('→ Sending /speckit.implement command...');
 
       // Send command directly to pty process
-      const implementCommand = '/speckit.implement\r';
+      // Use \n (newline) instead of \r (carriage return) for proper execution
+      const implementCommand = '/speckit.implement\n';
       ptyProcess.write(implementCommand);
-      outputChannel?.appendLine('  ✓ Command sent: /speckit.implement');
+      outputChannel?.appendLine('  ✓ Command sent with newline: /speckit.implement');
 
       outputChannel?.appendLine('\n✓ Command execution attempted');
       outputChannel?.appendLine(

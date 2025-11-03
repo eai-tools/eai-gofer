@@ -297,11 +297,17 @@ Analyze the terminal output above to understand what Claude Code is asking. The 
     try {
       this.outputChannel.appendLine('⌨️  Sending response to Claude Code...');
 
-      // Press ESC to enter text mode
-      ptyProcess.write('\x1B');
-      this.outputChannel.appendLine('   → Sent ESC key');
+      // Check if this is a numbered choice (just a digit) or text input
+      const isNumberedChoice = /^\d+$/.test(response.trim());
 
-      await this.delay(500);
+      if (!isNumberedChoice) {
+        // For text input, press ESC to enter text mode first
+        ptyProcess.write('\x1B');
+        this.outputChannel.appendLine('   → Sent ESC key (text input mode)');
+        await this.delay(500);
+      } else {
+        this.outputChannel.appendLine('   → Numbered choice detected, skipping ESC');
+      }
 
       // Type the response
       ptyProcess.write(response);
@@ -311,9 +317,9 @@ Analyze the terminal output above to understand what Claude Code is asking. The 
 
       await this.delay(500);
 
-      // Press Enter to submit
-      ptyProcess.write('\r');
-      this.outputChannel.appendLine('   → Sent Enter key');
+      // Press Enter to submit (use \n for newline)
+      ptyProcess.write('\n');
+      this.outputChannel.appendLine('   → Sent Enter key (\\n)');
 
       this.outputChannel.appendLine('   ✓ Response sent!\n');
     } catch (error) {

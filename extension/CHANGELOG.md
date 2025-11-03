@@ -4,9 +4,14 @@ All notable changes to the SpecGofer extension will be documented in this file.
 
 ## [3.0.33] - 2025-11-04
 
-chore: pre-release changes
+### Fixed
 
-Auto-committed changes before release v3.0.32
+- **Extended question detection fix to all patterns** - Applied the
+  `lastLineIsQuestion` fix to Pattern 3 (yes-no) and Pattern 4 (list selection)
+  in addition to Pattern 2 (multiple-choice). All three patterns now recognize
+  questions where the question text ending with `?` is the last line, without
+  requiring an explicit `>` prompt to be present.
+  (ClaudeCodeAutonomousResponder.ts:211-239)
 
 ## [3.0.32] - 2025-11-04
 

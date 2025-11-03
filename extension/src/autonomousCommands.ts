@@ -26,6 +26,9 @@ let activeDriver: AutonomousDriver | null = null;
 let outputChannel: vscode.OutputChannel | null = null;
 let logFilePath: string | null = null;
 
+// Claude Code terminal tracking
+let claudeTerminal: vscode.Terminal | null = null;
+
 /**
  * Start autonomous execution for a spec
  */
@@ -46,12 +49,16 @@ export async function startAutonomousExecution(
 
     // Try to provide more helpful error message
     const missingFields = [];
-    if (!spec.id) missingFields.push('id');
-    if (!spec.title) missingFields.push('title');
+    if (!spec.id) {
+      missingFields.push('id');
+    }
+    if (!spec.title) {
+      missingFields.push('title');
+    }
 
     vscode.window.showErrorMessage(
       `Invalid spec: missing required properties (${missingFields.join(', ')}). ` +
-      `Received spec with keys: ${Object.keys(spec).join(', ')}`
+        `Received spec with keys: ${Object.keys(spec).join(', ')}`
     );
     return;
   }
@@ -560,4 +567,61 @@ async function checkDependenciesBeforeExecution(
     // User cancelled
     return { canExecute: false, incompleteDeps };
   }
+}
+
+/**
+ * Launch Claude Code in integrated VSCode terminal
+ */
+export async function launchClaudeCode(specId: string): Promise<void> {
+  try {
+    // Set context to show stop button
+    await vscode.commands.executeCommand('setContext', 'specgofer.claudeCodeRunning', true);
+
+    // Create terminal
+    claudeTerminal = vscode.window.createTerminal({
+      name: `Claude Code: ${specId}`,
+      hideFromUser: false,
+    });
+
+    // Show terminal
+    claudeTerminal.show();
+
+    // Send claude command with the /speckit.implement
+    claudeTerminal.sendText('claude');
+
+    // Wait a moment for Claude to start, then send the command
+    setTimeout(() => {
+      if (claudeTerminal) {
+        claudeTerminal.sendText('/speckit.implement');
+      }
+    }, 3000);
+
+    // Show success message
+    vscode.window
+      .showInformationMessage(
+        `Claude Code started for "${specId}". Check the terminal for output.`,
+        'Show Terminal'
+      )
+      .then((selection) => {
+        if (selection === 'Show Terminal' && claudeTerminal) {
+          claudeTerminal.show();
+        }
+      });
+  } catch (error) {
+    await vscode.commands.executeCommand('setContext', 'specgofer.claudeCodeRunning', false);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    vscode.window.showErrorMessage(`Failed to start Claude Code: ${errorMessage}`);
+  }
+}
+
+/**
+ * Stop Claude Code terminal
+ */
+export async function stopClaudeCode(): Promise<void> {
+  if (claudeTerminal) {
+    claudeTerminal.dispose();
+    claudeTerminal = null;
+  }
+  await vscode.commands.executeCommand('setContext', 'specgofer.claudeCodeRunning', false);
+  vscode.window.showInformationMessage('Claude Code stopped');
 }

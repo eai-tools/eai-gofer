@@ -175,26 +175,6 @@
         "title": "Open with Markdown WYSIWYG"
       },
       {
-        "command": "specGofer.startAutonomous",
-        "title": "SpecGofer: Start Autonomous Implementation",
-        "icon": "$(play)"
-      },
-      {
-        "command": "specGofer.stopAutonomous",
-        "title": "SpecGofer: Stop Autonomous Execution",
-        "icon": "$(debug-stop)"
-      },
-      {
-        "command": "specGofer.pauseAutonomous",
-        "title": "SpecGofer: Pause Autonomous Execution",
-        "icon": "$(debug-pause)"
-      },
-      {
-        "command": "specGofer.resumeAutonomous",
-        "title": "SpecGofer: Resume Autonomous Execution",
-        "icon": "$(debug-continue)"
-      },
-      {
         "command": "specGofer.executeAllPendingSpecs",
         "title": "SpecGofer: Execute All Pending Specs (Dependency Order)",
         "icon": "$(run-all)"
@@ -344,36 +324,6 @@
           "command": "specGofer.openWithMarkdownWYSIWYG",
           "when": "viewItem == spec || viewItem == constitution-article || viewItem == constitution-section || viewItem == memory-document || viewItem == memory-section",
           "group": "openwith@4"
-        },
-        {
-          "command": "specGofer.startAutonomous",
-          "when": "viewItem == spec && !specGoferAutonomousRunning",
-          "group": "inline@1"
-        },
-        {
-          "command": "specGofer.stopAutonomous",
-          "when": "viewItem == spec && specGoferAutonomousRunning",
-          "group": "inline@1"
-        },
-        {
-          "command": "specGofer.startAutonomous",
-          "when": "viewItem == spec",
-          "group": "autonomous@1"
-        },
-        {
-          "command": "specGofer.pauseAutonomous",
-          "when": "viewItem == spec",
-          "group": "autonomous@2"
-        },
-        {
-          "command": "specGofer.resumeAutonomous",
-          "when": "viewItem == spec",
-          "group": "autonomous@3"
-        },
-        {
-          "command": "specGofer.stopAutonomous",
-          "when": "viewItem == spec",
-          "group": "autonomous@4"
         },
         {
           "command": "specgofer.startClaudeCode",

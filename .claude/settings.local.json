@@ -44,7 +44,9 @@
       "Bash(./.specify/scripts/bash/update-agent-context.sh:*)",
       "Bash(./.specify/scripts/bash/check-prerequisites.sh:*)",
       "Bash(cut:*)",
-      "Bash(seq:*)"
+      "Bash(seq:*)",
+      "Bash(git restore:*)",
+      "Bash(git reset:*)"
     ],
     "deny": [],
     "ask": []

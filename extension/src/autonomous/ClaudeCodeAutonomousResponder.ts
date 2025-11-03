@@ -159,8 +159,28 @@ export class ClaudeCodeAutonomousResponder {
     const promptLine = findPromptLine();
     const lastLine = lastLines[lastLines.length - 1] || '';
 
+    // DEBUG LOGGING
+    this.outputChannel.appendLine('\n🔍 QUESTION DETECTION DEBUG:');
+    this.outputChannel.appendLine(`   Buffer size: ${this.terminalBuffer.length} lines`);
+    this.outputChannel.appendLine(`   Last 5 lines:`);
+    const last5 = lastLines.slice(-5);
+    last5.forEach((line, i) => {
+      const isSep = isSeparator(line);
+      this.outputChannel.appendLine(
+        `   [${i}] ${isSep ? '(SEPARATOR)' : line.substring(0, 80)}`
+      );
+    });
+    this.outputChannel.appendLine(`   promptLine: "${promptLine.substring(0, 80)}"`);
+    this.outputChannel.appendLine(`   lastLine: "${lastLine.substring(0, 80)}"`);
+    this.outputChannel.appendLine(
+      `   hasQuestion: ${/\?/.test(recentText)} (found '?' in recent text)`
+    );
+
     // Pattern 1: "(esc)" text input prompt
-    if (promptLine.includes('(esc)') || lastLine.includes('(esc)')) {
+    const hasEsc = promptLine.includes('(esc)') || lastLine.includes('(esc)');
+    this.outputChannel.appendLine(`   Pattern 1 (esc): ${hasEsc}`);
+    if (hasEsc) {
+      this.outputChannel.appendLine('   ✓ DETECTED: text-input\n');
       return {
         detected: true,
         question: 'text-input',
@@ -173,8 +193,12 @@ export class ClaudeCodeAutonomousResponder {
     const hasNumberedOptions = /^\s*\d+\.\s+/m.test(recentText);
     const hasPrompt = promptLine.trim() === '>' || promptLine.includes('> ') || lastLine.trim() === '>';
     const hasQuestion = /\?/.test(recentText);
+    this.outputChannel.appendLine(
+      `   Pattern 2 (multiple-choice): numbered=${hasNumberedOptions}, prompt=${hasPrompt}, question=${hasQuestion}`
+    );
 
     if (hasNumberedOptions && hasPrompt && hasQuestion) {
+      this.outputChannel.appendLine('   ✓ DETECTED: multiple-choice\n');
       return {
         detected: true,
         question: 'multiple-choice',
@@ -184,7 +208,11 @@ export class ClaudeCodeAutonomousResponder {
 
     // Pattern 3: Yes/No questions with prompt
     const hasYesNo = /\b(yes|no|y\/n)\b/i.test(recentText);
+    this.outputChannel.appendLine(
+      `   Pattern 3 (yes-no): yesno=${hasYesNo}, prompt=${hasPrompt}, question=${hasQuestion}`
+    );
     if (hasYesNo && hasPrompt && hasQuestion) {
+      this.outputChannel.appendLine('   ✓ DETECTED: yes-no\n');
       return {
         detected: true,
         question: 'yes-no',
@@ -194,7 +222,11 @@ export class ClaudeCodeAutonomousResponder {
 
     // Pattern 4: List selection (bullet points or dashes)
     const hasBulletList = /^\s*[-•]\s+/m.test(recentText);
+    this.outputChannel.appendLine(
+      `   Pattern 4 (list): bullet=${hasBulletList}, prompt=${hasPrompt}, question=${hasQuestion}`
+    );
     if (hasBulletList && hasPrompt && hasQuestion) {
+      this.outputChannel.appendLine('   ✓ DETECTED: list-selection\n');
       return {
         detected: true,
         question: 'list-selection',
@@ -213,8 +245,12 @@ export class ClaudeCodeAutonomousResponder {
       (isSeparator(lastLine) &&
         lastLines.length >= 2 &&
         lastLines[lastLines.length - 2].trim() === '>');
+    this.outputChannel.appendLine(
+      `   Pattern 5 (general): recentQ=${hasRecentQuestion}, looksLikePrompt=${looksLikePrompt}`
+    );
 
     if (hasRecentQuestion && looksLikePrompt) {
+      this.outputChannel.appendLine('   ✓ DETECTED: general-prompt\n');
       return {
         detected: true,
         question: 'general-prompt',
@@ -222,6 +258,7 @@ export class ClaudeCodeAutonomousResponder {
       };
     }
 
+    this.outputChannel.appendLine('   ✗ No question detected\n');
     return { detected: false, question: '', context: '' };
   }
 

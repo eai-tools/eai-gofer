@@ -8,7 +8,7 @@
       "tag_name": "v3.0.34",
       "published_at": "2025-11-03T23:28:04.811Z",
       "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-3.0.34.vsix",
-      "notes": "chore: pre-release changes\n\nAuto-committed changes before release v3.0.33",
+      "notes": "Fixed: Question Detection When Spinners Appear After Question Text\n\nChanged from lastLineIsQuestion (checking only the absolute last line) to recentLineHasQuestion (checking any of the last 5 lines). This handles cases where Claude Code shows spinners like \"✳ Flibbertigibbeting…\" after the question text, which was preventing detection because the spinner became the last line. Now all three patterns (multiple-choice, yes-no, list selection) check if ANY recent line ends with '?', not just the last line.",
       "prerelease": false,
       "size_mb": 15
     },

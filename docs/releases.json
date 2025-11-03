@@ -1,8 +1,17 @@
 {
-  "latest_version": "3.0.29",
+  "latest_version": "3.0.30",
   "repository": "eai-tools/specgofer",
-  "last_updated": "2025-11-03T19:53:34.270Z",
+  "last_updated": "2025-11-03T20:04:35.492Z",
   "releases": [
+    {
+      "version": "3.0.30",
+      "tag_name": "v3.0.30",
+      "published_at": "2025-11-03T20:04:35.491Z",
+      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-3.0.30.vsix",
+      "notes": "chore: pre-release changes\n\nAuto-committed changes before release v3.0.29",
+      "prerelease": false,
+      "size_mb": 15
+    },
     {
       "version": "3.0.29",
       "tag_name": "v3.0.29",
@@ -81,15 +90,6 @@
       "published_at": "2025-11-03T11:35:05.144Z",
       "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-3.0.21.vsix",
       "notes": "chore: pre-release changes\n\nAuto-committed changes before release v3.0.20",
-      "prerelease": false,
-      "size_mb": 14.8
-    },
-    {
-      "version": "3.0.20",
-      "tag_name": "v3.0.20",
-      "published_at": "2025-11-03T11:25:14.535Z",
-      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-3.0.20.vsix",
-      "notes": "chore: pre-release changes\n\nAuto-committed changes before release v3.0.19",
       "prerelease": false,
       "size_mb": 14.8
     }

@@ -16,6 +16,7 @@ export class AutoUpdater {
   private currentVersion: string;
   private checkInterval: number = 24 * 60 * 60 * 1000; // 24 hours
   private extensionName: string;
+  private intervalId: NodeJS.Timeout | null = null;
 
   constructor(githubRepo: string, currentVersion: string, extensionName: string = 'specgofer') {
     this.githubRepo = githubRepo; // e.g., "eai-tools/specgofer"
@@ -30,10 +31,20 @@ export class AutoUpdater {
     // Check on startup
     this.checkForUpdates(context);
 
-    // Check every 24 hours
-    setInterval(() => {
+    // Check every 24 hours and store interval ID for cleanup
+    this.intervalId = setInterval(() => {
       this.checkForUpdates(context);
     }, this.checkInterval);
+
+    // Register disposal to prevent memory leaks
+    context.subscriptions.push({
+      dispose: () => {
+        if (this.intervalId) {
+          clearInterval(this.intervalId);
+          this.intervalId = null;
+        }
+      },
+    });
   }
 
   /**
@@ -63,44 +74,54 @@ export class AutoUpdater {
         hostname: 'eai-tools.github.io',
         path: '/specgofer/releases.json',
         headers: {
-          'userAgent': 'VSCode-Extension-Updater',
-          'accept': 'application/json'
-        }
+          userAgent: 'VSCode-Extension-Updater',
+          accept: 'application/json',
+        },
       };
 
-      https.get(options, (res) => {
-        let data = '';
+      https
+        .get(options, (res) => {
+          let data = '';
 
-        res.on('data', (chunk) => {
-          data += chunk;
-        });
+          res.on('data', (chunk) => {
+            data += chunk;
+          });
 
-        res.on('end', () => {
-          try {
-            // Log the response for debugging
-            console.log(`GitHub Pages API Response Status: ${res.statusCode}`);
-            console.log(`GitHub Pages API Response Data: ${data.substring(0, 500)}...`);
+          res.on('end', () => {
+            try {
+              // Log the response for debugging
+              console.log(`GitHub Pages API Response Status: ${res.statusCode}`);
+              console.log(`GitHub Pages API Response Data: ${data.substring(0, 500)}...`);
 
-            if (res.statusCode === 404) {
-              reject(new Error(`Release page not found. GitHub Pages may not be set up yet for ${this.githubRepo}.`));
-              return;
-            } else if (res.statusCode !== 200) {
-              reject(new Error(`GitHub Pages returned status ${res.statusCode}: ${data}`));
-              return;
+              if (res.statusCode === 404) {
+                reject(
+                  new Error(
+                    `Release page not found. GitHub Pages may not be set up yet for ${this.githubRepo}.`
+                  )
+                );
+                return;
+              } else if (res.statusCode !== 200) {
+                reject(new Error(`GitHub Pages returned status ${res.statusCode}: ${data}`));
+                return;
+              }
+
+              const releaseData = JSON.parse(data);
+              if (!releaseData || !releaseData.latest_version) {
+                reject(
+                  new Error(
+                    `Invalid release data received from GitHub Pages. Received: ${JSON.stringify(releaseData).substring(0, 200)}`
+                  )
+                );
+                return;
+              }
+
+              resolve(releaseData.latest_version);
+            } catch (error) {
+              reject(error);
             }
-
-            const releaseData = JSON.parse(data);
-            if (!releaseData || !releaseData.latest_version) {
-              reject(new Error(`Invalid release data received from GitHub Pages. Received: ${JSON.stringify(releaseData).substring(0, 200)}`));
-              return;
-            }
-            
-            resolve(releaseData.latest_version);
-          } catch (error) {
-            reject(error);
-          }
-        });
-      }).on('error', reject);
+          });
+        })
+        .on('error', reject);
     });
   }
 
@@ -130,31 +151,33 @@ export class AutoUpdater {
     return new Promise((resolve, reject) => {
       const file = require('fs').createWriteStream(destPath);
 
-      https.get(url, { headers: { 'userAgent': 'VSCode-Extension-Updater' } }, (response) => {
-        // Follow redirects
-        if (response.statusCode === 302 || response.statusCode === 301) {
-          const redirectUrl = response.headers.location;
-          if (redirectUrl) {
-            this.downloadFile(redirectUrl, destPath).then(resolve).catch(reject);
+      https
+        .get(url, { headers: { userAgent: 'VSCode-Extension-Updater' } }, (response) => {
+          // Follow redirects
+          if (response.statusCode === 302 || response.statusCode === 301) {
+            const redirectUrl = response.headers.location;
+            if (redirectUrl) {
+              this.downloadFile(redirectUrl, destPath).then(resolve).catch(reject);
+              return;
+            }
+          }
+
+          if (response.statusCode !== 200) {
+            reject(new Error(`Failed to download: HTTP ${response.statusCode}`));
             return;
           }
-        }
 
-        if (response.statusCode !== 200) {
-          reject(new Error(`Failed to download: HTTP ${response.statusCode}`));
-          return;
-        }
+          response.pipe(file);
 
-        response.pipe(file);
-
-        file.on('finish', () => {
-          file.close();
-          resolve();
+          file.on('finish', () => {
+            file.close();
+            resolve();
+          });
+        })
+        .on('error', (err) => {
+          require('fs').unlink(destPath, () => {});
+          reject(err);
         });
-      }).on('error', (err) => {
-        require('fs').unlink(destPath, () => {});
-        reject(err);
-      });
     });
   }
 
@@ -167,35 +190,37 @@ export class AutoUpdater {
         hostname: 'eai-tools.github.io',
         path: '/specgofer/releases.json',
         headers: {
-          'userAgent': 'VSCode-Extension-Updater',
-          'accept': 'application/json'
-        }
+          userAgent: 'VSCode-Extension-Updater',
+          accept: 'application/json',
+        },
       };
 
-      https.get(options, (res) => {
-        let data = '';
+      https
+        .get(options, (res) => {
+          let data = '';
 
-        res.on('data', (chunk) => {
-          data += chunk;
-        });
+          res.on('data', (chunk) => {
+            data += chunk;
+          });
 
-        res.on('end', () => {
-          try {
-            const releaseData = JSON.parse(data);
+          res.on('end', () => {
+            try {
+              const releaseData = JSON.parse(data);
 
-            // Find the specific version in releases array
-            const release = releaseData.releases?.find((r: any) => r.version === version);
+              // Find the specific version in releases array
+              const release = releaseData.releases?.find((r: any) => r.version === version);
 
-            if (release && release.download_url) {
-              resolve(release.download_url);
-            } else {
-              reject(new Error(`No download URL found for version ${version}`));
+              if (release && release.download_url) {
+                resolve(release.download_url);
+              } else {
+                reject(new Error(`No download URL found for version ${version}`));
+              }
+            } catch (error) {
+              reject(error);
             }
-          } catch (error) {
-            reject(error);
-          }
-        });
-      }).on('error', reject);
+          });
+        })
+        .on('error', reject);
     });
   }
 
@@ -206,44 +231,55 @@ export class AutoUpdater {
     try {
       // Check if the VSIX file exists
       await fs.access(vsixPath);
-      
+
       // Use VS Code's built-in extension installation
       const vsixUri = vscode.Uri.file(vsixPath);
       await vscode.commands.executeCommand('workbench.extensions.installExtension', vsixUri);
-      
+
       console.log('Extension installed successfully via VS Code API');
     } catch (error) {
       // Fallback: Try the CLI approach with better error handling
       console.log('VS Code API installation failed, trying CLI fallback...');
-      
+
       try {
         // Try to find the code command in common locations
         const possibleCodePaths = [
           'code',
           '/usr/local/bin/code',
           '/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code',
-          process.platform === 'win32' ? 'code.cmd' : 'code'
+          process.platform === 'win32' ? 'code.cmd' : 'code',
         ];
-        
+
         let codeCommand = null;
         for (const codePath of possibleCodePaths) {
           try {
-            await execAsync(`which "${codePath}" 2>/dev/null || command -v "${codePath}" 2>/dev/null`);
+            await execAsync(
+              `which "${codePath}" 2>/dev/null || command -v "${codePath}" 2>/dev/null`
+            );
             codeCommand = codePath;
             break;
           } catch {
             // Continue to next path
           }
         }
-        
-        if (!codeCommand) {
-          throw new Error('VS Code CLI command not found. Please install VS Code CLI or restart VS Code to complete the update.');
-        }
-        
-        // Install the extension using CLI
-        const { stdout, stderr } = await execAsync(`"${codeCommand}" --install-extension "${vsixPath}" --force`);
 
-        if (stderr && !stderr.includes('successfully installed') && !stderr.includes('Extension') && !stderr.includes('installed')) {
+        if (!codeCommand) {
+          throw new Error(
+            'VS Code CLI command not found. Please install VS Code CLI or restart VS Code to complete the update.'
+          );
+        }
+
+        // Install the extension using CLI
+        const { stdout, stderr } = await execAsync(
+          `"${codeCommand}" --install-extension "${vsixPath}" --force`
+        );
+
+        if (
+          stderr &&
+          !stderr.includes('successfully installed') &&
+          !stderr.includes('Extension') &&
+          !stderr.includes('installed')
+        ) {
           throw new Error(stderr);
         }
 
@@ -251,7 +287,7 @@ export class AutoUpdater {
       } catch (cliError) {
         // If both methods fail, provide clear instructions
         const errorMsg = cliError instanceof Error ? cliError.message : String(cliError);
-        
+
         if (errorMsg.includes('command not found') || errorMsg.includes('not found')) {
           throw new Error(`Cannot auto-install update. Please install manually:
 
@@ -267,7 +303,7 @@ Or install VS Code CLI: https://code.visualstudio.com/docs/editor/command-line`)
       }
     }
   }
-  
+
   /**
    * Extract version from VSIX path for error messages
    */
@@ -333,14 +369,16 @@ Or install VS Code CLI: https://code.visualstudio.com/docs/editor/command-line`)
       if (reloadChoice === 'Reload Now') {
         vscode.commands.executeCommand('workbench.action.reloadWindow');
       }
-
     } catch (error) {
       statusBarItem.dispose();
 
       const errorMessage = error instanceof Error ? error.message : String(error);
-      
+
       // Check if this is a CLI installation issue
-      if (errorMessage.includes('command not found') || errorMessage.includes('Cannot auto-install')) {
+      if (
+        errorMessage.includes('command not found') ||
+        errorMessage.includes('Cannot auto-install')
+      ) {
         const manualChoice = await vscode.window.showWarningMessage(
           `⚠️ Auto-update requires manual installation\n\nReason: ${errorMessage.split('\n')[0]}`,
           'Download & Install Manually',
@@ -351,7 +389,7 @@ Or install VS Code CLI: https://code.visualstudio.com/docs/editor/command-line`)
         if (manualChoice === 'Download & Install Manually') {
           // Open the GitHub Pages release page directly
           vscode.env.openExternal(vscode.Uri.parse('https://eai-tools.github.io/specgofer/'));
-          
+
           // Show installation instructions
           vscode.window.showInformationMessage(
             `📦 Manual Installation Steps:
@@ -364,7 +402,9 @@ Or install VS Code CLI: https://code.visualstudio.com/docs/editor/command-line`)
             'Got it'
           );
         } else if (manualChoice === 'Install VS Code CLI') {
-          vscode.env.openExternal(vscode.Uri.parse('https://code.visualstudio.com/docs/editor/command-line'));
+          vscode.env.openExternal(
+            vscode.Uri.parse('https://code.visualstudio.com/docs/editor/command-line')
+          );
         }
       } else {
         // Other errors - show generic fallback
@@ -399,16 +439,19 @@ Or install VS Code CLI: https://code.visualstudio.com/docs/editor/command-line`)
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      
+
       if (errorMessage.includes('not found') || errorMessage.includes('404')) {
-        vscode.window.showInformationMessage(
-          `� GitHub Pages release site not found.\n\nCurrent version: v${this.currentVersion}\n\nPlease check that GitHub Pages is enabled for the repository.\n\nSite URL: https://eai-tools.github.io/specgofer`,
-          'Open Release Site', 'OK'
-        ).then(choice => {
-          if (choice === 'Open Release Site') {
-            vscode.env.openExternal(vscode.Uri.parse('https://eai-tools.github.io/specgofer'));
-          }
-        });
+        vscode.window
+          .showInformationMessage(
+            `� GitHub Pages release site not found.\n\nCurrent version: v${this.currentVersion}\n\nPlease check that GitHub Pages is enabled for the repository.\n\nSite URL: https://eai-tools.github.io/specgofer`,
+            'Open Release Site',
+            'OK'
+          )
+          .then((choice) => {
+            if (choice === 'Open Release Site') {
+              vscode.env.openExternal(vscode.Uri.parse('https://eai-tools.github.io/specgofer'));
+            }
+          });
       } else if (errorMessage.includes('rate limit')) {
         vscode.window.showWarningMessage(
           `⏳ Too many requests.\n\nCurrent version: v${this.currentVersion}\n\nPlease try again later.`,

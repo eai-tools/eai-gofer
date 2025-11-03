@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
-import { AutonomousOrchestrator } from './orchestrator/AutonomousOrchestrator_new.js';
+// TODO: Restore when AutonomousOrchestrator is implemented
+// import { AutonomousOrchestrator } from './orchestrator/AutonomousOrchestrator.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -12,12 +13,13 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  const specDir = process.env.SPEC_DIR || '.specify/specs';
+  const specDir = process.env.SPEC_DIR || '.specify';
   const workspaceDir = process.env.WORKSPACE_DIR || process.cwd();
 
   const whatsappConfig = {
     enabled: process.env.WHATSAPP_ENABLED === 'true',
     phoneNumber: process.env.WHATSAPP_PHONE_NUMBER || '', // Format: 1234567890@c.us
+    sessionPath: '.wwebjs_auth',
   };
 
   // Determine notification method
@@ -36,36 +38,40 @@ async function main(): Promise<void> {
 
 📁 Spec directory: ${specDir}
 📁 Workspace: ${workspaceDir}
-🤖 Using Claude 3.7 Sonnet
+🤖 Using Claude 3.7 Sonnet (Direct API)
 ${notificationStatus}
 `);
 
-  const orchestrator = new AutonomousOrchestrator(specDir);
+  // TODO: Restore when AutonomousOrchestrator is implemented
+  process.stderr.write('⚠️  AutonomousOrchestrator not yet implemented\n');
+  process.stderr.write('This CLI will be functional once the orchestrator is complete.\n');
 
-  // Handle graceful shutdown
-  let isShuttingDown = false;
+  // const orchestrator = new AutonomousOrchestrator(specDir, apiKey, whatsappConfig, workspaceDir);
 
-  const shutdown = (): void => {
-    if (isShuttingDown) {
-      return;
-    }
-    isShuttingDown = true;
+  // // Handle graceful shutdown
+  // let isShuttingDown = false;
 
-    process.stderr.write('\n\n🛑 Received shutdown signal...\n');
-    orchestrator.stop();
+  // const shutdown = (): void => {
+  //   if (isShuttingDown) {
+  //     return;
+  //   }
+  //   isShuttingDown = true;
 
-    setTimeout(() => {
-      process.stderr.write('👋 Goodbye!\n');
-      process.exit(0);
-    }, 2000);
-  };
+  //   process.stderr.write('\n\n🛑 Received shutdown signal...\n');
+  //   orchestrator.stop();
 
-  process.on('SIGINT', shutdown);
-  process.on('SIGTERM', shutdown);
+  //   setTimeout(() => {
+  //     process.stderr.write('👋 Goodbye!\n');
+  //     process.exit(0);
+  //   }, 2000);
+  // };
 
-  // Start the autonomous execution
-  process.stdout.write('\n🚀 Starting autonomous orchestrator...\n\n');
-  await orchestrator.start();
+  // process.on('SIGINT', shutdown);
+  // process.on('SIGTERM', shutdown);
+
+  // // Start the autonomous execution
+  // process.stdout.write('\n🚀 Starting autonomous orchestrator...\n\n');
+  // await orchestrator.start();
 }
 
 main().catch((error) => {

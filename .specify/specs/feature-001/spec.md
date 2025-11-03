@@ -1,8 +1,8 @@
 ---
 feature: feature-001
 status: draft
-created: 2025-11-02
-updated: 2025-11-02
+created: 2025-11-03
+updated: 2025-11-03
 author: migrated
 ---
 
@@ -34,12 +34,11 @@ Implement a secure user login system with email/password authentication
 ## Clarifications
 
 ### Question 1: what should happen after successful login
-**Q:** what should happen after successful login
-**A:** User should be redirected to the dashboard with a valid JWT token stored
-**Confidence:** high
+
+**Q:** what should happen after successful login **A:** User should be
+redirected to the dashboard with a valid JWT token stored **Confidence:** high
 
 ### Question 2: what validation is needed for email
-**Q:** what validation is needed for email
-**A:** Email should be validated for proper format (user@domain.com)
-**Confidence:** medium
 
+**Q:** what validation is needed for email **A:** Email should be validated for
+proper format (user@domain.com) **Confidence:** medium

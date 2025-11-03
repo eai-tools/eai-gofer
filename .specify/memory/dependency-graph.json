@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastModified": 1762063540891,
+  "lastModified": 1762152128499,
   "nodes": {
     "001-memory-learning-system": {
       "specId": "001-memory-learning-system",
@@ -36,6 +36,10 @@
     },
     "001-dagger-test-orchestration": {
       "specId": "001-dagger-test-orchestration",
+      "status": "pending"
+    },
+    "001-claude-terminal-integration": {
+      "specId": "001-claude-terminal-integration",
       "status": "pending"
     }
   },

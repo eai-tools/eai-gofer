@@ -38,6 +38,84 @@ track progress, and leverage AI assistance through Claude Code integration.
   branches
 - **Real-time Updates**: File watching with automatic refresh of tree views
 
+### 🤖 Claude Code Terminal Integration (New!)
+
+SpecGofer now provides autonomous Claude Code execution with intelligent
+question handling:
+
+#### Features
+
+- **Automated Terminal Launch**: Launch Claude Code CLI directly from VSCode
+  with specs as context
+- **Real-time Output Monitoring**: Stream terminal output with <100ms latency
+- **Intelligent Question Detection**: Automatically detect questions from Claude
+  Code output
+- **Auto-Response System**: Validate and auto-respond to questions using Claude
+  Haiku API
+- **WhatsApp Escalation**: Escalate complex questions to your phone via Twilio
+  WhatsApp
+- **Learning from Decisions**: Remember your responses and reuse them for
+  similar questions
+- **Context Window Management**: Monitor and manage Claude's 200K token context
+  usage
+- **Performance Monitoring**: Track output latency and ensure <100ms P99
+  response times
+
+#### Commands
+
+- `SpecGofer: Start Claude Code Terminal` - Launch autonomous execution
+- `SpecGofer: Stop Claude Code Terminal` - Stop current session
+- `SpecGofer: Configure WhatsApp Integration` - Setup WhatsApp notifications
+- `SpecGofer: Test WhatsApp Connection` - Verify Twilio configuration
+- `SpecGofer: Clear Memory Database` - Reset learned decision patterns
+- `SpecGofer: View Pending Escalations` - See questions waiting for response
+
+#### Setup
+
+1. **Install Claude Code CLI**:
+
+   ```bash
+   npm install -g @anthropic-ai/claude
+   ```
+
+2. **Configure Anthropic API Key** (required):
+   - **Option 1 - VSCode Settings** (Recommended):
+     1. Open Settings (Cmd+, or Ctrl+,)
+     2. Search for "SpecGofer: Anthropic Api Key"
+     3. Enter your API key from
+        [Anthropic Console](https://console.anthropic.com/settings/keys)
+
+   - **Option 2 - Environment Variable**:
+     ```bash
+     export ANTHROPIC_API_KEY=sk-ant-your-api-key
+     ```
+
+3. **Configure WhatsApp Integration** (optional):
+   - Run `SpecGofer: Configure WhatsApp Integration` from Command Palette
+   - Or set environment variables:
+     ```bash
+     export TWILIO_ACCOUNT_SID=your-account-sid
+     export TWILIO_AUTH_TOKEN=your-auth-token
+     export TWILIO_WHATSAPP_FROM=whatsapp:+14155238886
+     export WHATSAPP_PHONE_NUMBER=whatsapp:+1234567890
+     ```
+
+4. **Launch**: Run `SpecGofer: Start Claude Code Terminal` from Command Palette
+
+#### How It Works
+
+1. **Terminal Launch**: SpecGofer launches Claude Code with your spec as context
+2. **Output Monitoring**: Captures all terminal output in real-time using
+   node-pty
+3. **Question Detection**: Pattern matching detects questions needing user input
+4. **Validation**: Claude Haiku validates questions against project constitution
+5. **Auto-Response**: High-confidence questions (≥80%) are answered
+   automatically
+6. **Escalation**: Low-confidence questions escalate to WhatsApp or VSCode
+   dialog
+7. **Learning**: Human responses are saved and reused for similar future
+   questions
+
 ### MCP Tools for AI Assistants
 
 SpecGofer provides 6 Model Context Protocol (MCP) tools that AI assistants can
@@ -103,19 +181,27 @@ The extension automatically configures Claude Code integration:
 
 ## 🤖 Autonomous Development with SpecGofer
 
-**SpecGofer autonomously drives Claude Code terminals to implement features end-to-end without manual intervention.**
+**SpecGofer autonomously drives Claude Code terminals to implement features
+end-to-end without manual intervention.**
 
 ### How It Works
 
 Once you have a fully-specified feature (spec + plan + tasks), SpecGofer:
 
-1. **Spawns Claude Code Terminal**: Creates a terminal and sends `/speckit.implement` command
-2. **Monitors Continuously**: Watches Claude's output in real-time for progress, errors, and questions
-3. **Manages Errors**: Detects failures and retries up to 3 times with additional context
-4. **Handles Context Limits**: When Claude's conversation gets too long, spawns a fresh terminal with a summary
-5. **Routes Questions**: If Claude needs architectural decisions, notifies you via WhatsApp/VSCode
-6. **Runs Parallel Validation**: Optional tester agent validates code as engineer implements it
-7. **Reports Completion**: Notifies you when feature is 100% done with tests passing
+1. **Spawns Claude Code Terminal**: Creates a terminal and sends
+   `/speckit.implement` command
+2. **Monitors Continuously**: Watches Claude's output in real-time for progress,
+   errors, and questions
+3. **Manages Errors**: Detects failures and retries up to 3 times with
+   additional context
+4. **Handles Context Limits**: When Claude's conversation gets too long, spawns
+   a fresh terminal with a summary
+5. **Routes Questions**: If Claude needs architectural decisions, notifies you
+   via WhatsApp/VSCode
+6. **Runs Parallel Validation**: Optional tester agent validates code as
+   engineer implements it
+7. **Reports Completion**: Notifies you when feature is 100% done with tests
+   passing
 
 **You only get involved when:**
 

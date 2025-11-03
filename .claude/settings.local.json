@@ -38,7 +38,13 @@
       "Bash(fi)",
       "Bash(code:*)",
       "Bash(/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code --list-extensions)",
-      "Bash(./test-commands.sh:*)"
+      "Bash(./test-commands.sh:*)",
+      "Bash(top:*)",
+      "Bash(./.specify/scripts/bash/setup-plan.sh:*)",
+      "Bash(./.specify/scripts/bash/update-agent-context.sh:*)",
+      "Bash(./.specify/scripts/bash/check-prerequisites.sh:*)",
+      "Bash(cut:*)",
+      "Bash(seq:*)"
     ],
     "deny": [],
     "ask": []

@@ -200,6 +200,14 @@ else
     exit 1
 fi
 
+# Rebuild node-pty for VSCode's Electron version
+print_info "Rebuilding node-pty for Electron 37 (MODULE_VERSION 136)..."
+if npx @electron/rebuild -f -w node-pty -v 37.6.0 2>&1; then
+    print_success "node-pty rebuilt successfully"
+else
+    print_warning "Failed to rebuild node-pty - VSIX may not work in VSCode"
+fi
+
 # Run vsce package and capture both success and failure
 if npx @vscode/vsce package --out "specgofer-$NEW_VERSION.vsix" 2>&1; then
     print_success "VSIX package built successfully"

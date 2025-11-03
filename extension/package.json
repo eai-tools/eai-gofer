@@ -59,6 +59,11 @@
         "icon": "$(refresh)"
       },
       {
+        "command": "specGofer.forceCleanup",
+        "title": "SpecGofer: Force Cleanup Hanging Operations",
+        "icon": "$(clear-all)"
+      },
+      {
         "command": "specGofer.checkForUpdates",
         "title": "SpecGofer: Check for Updates",
         "icon": "$(cloud-download)"
@@ -193,6 +198,36 @@
         "command": "specGofer.executeAllPendingSpecs",
         "title": "SpecGofer: Execute All Pending Specs (Dependency Order)",
         "icon": "$(run-all)"
+      },
+      {
+        "command": "specgofer.startClaudeCode",
+        "title": "SpecGofer: Start Claude Code Terminal",
+        "icon": "$(play)"
+      },
+      {
+        "command": "specgofer.stopClaudeCode",
+        "title": "SpecGofer: Stop Claude Code Terminal",
+        "icon": "$(stop)"
+      },
+      {
+        "command": "specgofer.configureWhatsApp",
+        "title": "SpecGofer: Configure WhatsApp Integration",
+        "icon": "$(settings-gear)"
+      },
+      {
+        "command": "specgofer.testWhatsApp",
+        "title": "SpecGofer: Test WhatsApp Connection",
+        "icon": "$(pass)"
+      },
+      {
+        "command": "specgofer.clearMemory",
+        "title": "SpecGofer: Clear Memory Database",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "specgofer.viewEscalations",
+        "title": "SpecGofer: View Pending Escalations",
+        "icon": "$(list-unordered)"
       }
     ],
     "keybindings": [
@@ -312,7 +347,12 @@
         },
         {
           "command": "specGofer.startAutonomous",
-          "when": "viewItem == spec",
+          "when": "viewItem == spec && !specGoferAutonomousRunning",
+          "group": "inline@1"
+        },
+        {
+          "command": "specGofer.stopAutonomous",
+          "when": "viewItem == spec && specGoferAutonomousRunning",
           "group": "inline@1"
         },
         {
@@ -334,6 +374,26 @@
           "command": "specGofer.stopAutonomous",
           "when": "viewItem == spec",
           "group": "autonomous@4"
+        },
+        {
+          "command": "specgofer.startClaudeCode",
+          "when": "viewItem == spec && !specgofer.claudeCodeRunning",
+          "group": "inline@2"
+        },
+        {
+          "command": "specgofer.stopClaudeCode",
+          "when": "viewItem == spec && specgofer.claudeCodeRunning",
+          "group": "inline@2"
+        },
+        {
+          "command": "specgofer.startClaudeCode",
+          "when": "viewItem == spec",
+          "group": "claudecode@1"
+        },
+        {
+          "command": "specgofer.stopClaudeCode",
+          "when": "viewItem == spec",
+          "group": "claudecode@2"
         }
       ],
       "explorer/context": [
@@ -517,7 +577,9 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run prepare-language-server && npm run package",
+    "postinstall": "npx @electron/rebuild -f -w node-pty -v 37.6.0 || echo 'Warning: Failed to rebuild node-pty'",
+    "rebuild-native": "npx @electron/rebuild -f -w node-pty -v 37.6.0",
+    "vscode:prepublish": "npm run prepare-language-server && npm run rebuild-native && npm run package",
     "prepare-language-server": "cd ../language-server && npm run build && cd ../extension && rm -rf language-server && cp -r ../language-server language-server && rm -rf language-server/src",
     "compile": "webpack",
     "watch": "webpack --watch",
@@ -529,6 +591,7 @@
     "test": "node ./out/test/runTest.js"
   },
   "devDependencies": {
+    "@electron/rebuild": "^3.7.2",
     "@types/glob": "^8.1.0",
     "@types/graphlib": "^2.1.12",
     "@types/js-yaml": "^4.0.9",
@@ -539,6 +602,7 @@
     "@typescript-eslint/eslint-plugin": "^6.15.0",
     "@typescript-eslint/parser": "^6.15.0",
     "@vscode/test-electron": "^2.5.2",
+    "electron-rebuild": "^3.2.9",
     "eslint": "^8.56.0",
     "glob": "^11.0.3",
     "mocha": "^11.7.4",
@@ -551,13 +615,21 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.67.0",
+    "@types/body-parser": "^1.19.6",
+    "@types/express": "^5.0.5",
     "@types/jszip": "^3.4.0",
     "ajv": "^8.12.0",
+    "body-parser": "^2.2.0",
     "chokidar": "^3.5.3",
+    "express": "^5.1.0",
     "fast-glob": "^3.3.2",
+    "fix-path": "^4.0.0",
     "graphlib": "^2.1.8",
     "jszip": "^3.10.1",
+    "node-pty": "^1.0.0",
+    "twilio": "^5.3.0",
     "uuid": "^10.0.0",
-    "vscode-languageclient": "^9.0.1"
+    "vscode-languageclient": "^9.0.1",
+    "ws": "^8.18.0"
   }
 }

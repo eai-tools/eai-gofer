@@ -6,7 +6,7 @@
  */
 
 import * as vscode from 'vscode';
-import type { ProgressProvider } from '../progressProvider';
+import { ProgressProvider } from '../progressProvider';
 import type { Spec } from '../specKitParser';
 
 /**
@@ -192,4 +192,61 @@ async function executeSpec(spec: Spec): Promise<void> {
   // T116: Basic execution - trigger autonomous execution command
   // This will be enhanced in T117-T119 with dependency checks
   await vscode.commands.executeCommand('specGofer.startAutonomous', spec);
+}
+
+/**
+ * Show spec picker for Claude Code Terminal Integration
+ *
+ * Displays a quick pick menu of all available specs and returns the selected one.
+ *
+ * @returns Selected spec object with id, or undefined if cancelled
+ */
+export async function showSpecPicker(): Promise<any | undefined> {
+  // Get workspace path
+  const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+  if (!workspaceFolder) {
+    vscode.window.showErrorMessage('No workspace folder open');
+    return undefined;
+  }
+
+  let workspacePath = workspaceFolder.uri.fsPath;
+
+  // Check if .specify/specs exists, if not check parent directory
+  const fs = require('fs');
+  const path = require('path');
+  const specsPath = path.join(workspacePath, '.specify', 'specs');
+
+  if (!fs.existsSync(specsPath)) {
+    // Try parent directory
+    const parentPath = path.dirname(workspacePath);
+    const parentSpecsPath = path.join(parentPath, '.specify', 'specs');
+
+    if (fs.existsSync(parentSpecsPath)) {
+      workspacePath = parentPath;
+    }
+  }
+
+  // Create progress provider to load specs
+  const progressProvider = new ProgressProvider(workspacePath);
+  const specs = await getAllSpecs(progressProvider);
+
+  if (specs.length === 0) {
+    vscode.window.showWarningMessage('No specs found in .specify/specs/');
+    return undefined;
+  }
+
+  const items = specs.map((spec) => ({
+    label: spec.title || spec.id,
+    description: spec.id,
+    detail: spec.description || '',
+    spec: spec,
+  }));
+
+  const selected = await vscode.window.showQuickPick(items, {
+    placeHolder: 'Select a specification to execute with Claude Code',
+    matchOnDescription: true,
+    matchOnDetail: true,
+  });
+
+  return selected?.spec;
 }

@@ -12,7 +12,8 @@ module.exports = {
   externals: {
     vscode: 'commonjs vscode',
     // Exclude native modules
-    'fsevents': 'commonjs fsevents'
+    'fsevents': 'commonjs fsevents',
+    'node-pty': 'commonjs node-pty'
   },
   resolve: {
     extensions: ['.ts', '.js'],

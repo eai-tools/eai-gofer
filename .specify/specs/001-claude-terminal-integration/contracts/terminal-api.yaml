@@ -1,0 +1,401 @@
+openapi: 3.0.3
+info:
+  title: Claude Code Terminal Integration API
+  description: Internal API for managing Claude Code terminal sessions with WhatsApp escalation
+  version: 1.0.0
+
+paths:
+  /api/terminal/sessions:
+    post:
+      summary: Start a new Claude Code terminal session
+      operationId: startTerminalSession
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - specId
+              properties:
+                specId:
+                  type: string
+                  description: Specification ID to execute
+                  example: '001-claude-terminal-integration'
+      responses:
+        '201':
+          description: Terminal session started successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TerminalSession'
+        '409':
+          description: Session already running or queued
+        '500':
+          description: Failed to start terminal
+
+    get:
+      summary: List all terminal sessions
+      operationId: listTerminalSessions
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [initializing, running, stopped, crashed]
+      responses:
+        '200':
+          description: List of terminal sessions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TerminalSession'
+
+  /api/terminal/sessions/{sessionId}:
+    get:
+      summary: Get terminal session details
+      operationId: getTerminalSession
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Terminal session details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TerminalSession'
+        '404':
+          description: Session not found
+
+    delete:
+      summary: Stop a terminal session
+      operationId: stopTerminalSession
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Session stopped successfully
+        '404':
+          description: Session not found
+
+  /api/terminal/sessions/{sessionId}/output:
+    get:
+      summary: Stream terminal output
+      operationId: streamTerminalOutput
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: lines
+          in: query
+          schema:
+            type: integer
+            default: 100
+            maximum: 10000
+      responses:
+        '200':
+          description: Terminal output stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                description: Server-sent events stream
+        '404':
+          description: Session not found
+
+  /api/terminal/sessions/{sessionId}/input:
+    post:
+      summary: Send input to terminal
+      operationId: sendTerminalInput
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - input
+              properties:
+                input:
+                  type: string
+                  description: Command or response to send
+                  example: 'yes'
+      responses:
+        '204':
+          description: Input sent successfully
+        '404':
+          description: Session not found
+
+  /api/escalations:
+    post:
+      summary: Create a new escalation
+      operationId: createEscalation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sessionId
+                - question
+                - reason
+              properties:
+                sessionId:
+                  type: string
+                  format: uuid
+                question:
+                  type: string
+                reason:
+                  type: string
+                  enum: [low_confidence, constitution_violation, error]
+                context:
+                  $ref: '#/components/schemas/EscalationContext'
+      responses:
+        '201':
+          description: Escalation created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Escalation'
+        '500':
+          description: Failed to create escalation
+
+  /api/escalations/{escalationId}:
+    get:
+      summary: Get escalation details
+      operationId: getEscalation
+      parameters:
+        - name: escalationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Escalation details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Escalation'
+        '404':
+          description: Escalation not found
+
+    patch:
+      summary: Respond to escalation
+      operationId: respondToEscalation
+      parameters:
+        - name: escalationId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - response
+                - channel
+              properties:
+                response:
+                  type: string
+                channel:
+                  type: string
+                  enum: [whatsapp, vscode]
+      responses:
+        '200':
+          description: Escalation response recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Escalation'
+        '404':
+          description: Escalation not found
+
+  /api/whatsapp/webhook:
+    post:
+      summary: Webhook for incoming WhatsApp messages
+      operationId: whatsappWebhook
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                Body:
+                  type: string
+                From:
+                  type: string
+                MessageSid:
+                  type: string
+      responses:
+        '200':
+          description: Message processed
+
+components:
+  schemas:
+    TerminalSession:
+      type: object
+      properties:
+        sessionId:
+          type: string
+          format: uuid
+        specId:
+          type: string
+        featureBranch:
+          type: string
+        status:
+          type: string
+          enum: [initializing, running, stopped, crashed]
+        pid:
+          type: integer
+          nullable: true
+        startedAt:
+          type: string
+          format: date-time
+        stoppedAt:
+          type: string
+          format: date-time
+          nullable: true
+        lastActivity:
+          type: string
+          format: date-time
+        outputBuffer:
+          type: array
+          items:
+            type: string
+          maxItems: 10000
+        tokenCount:
+          type: integer
+        currentCommand:
+          type: string
+          nullable: true
+        queuePosition:
+          type: integer
+
+    Escalation:
+      type: object
+      properties:
+        escalationId:
+          type: string
+          format: uuid
+        sessionId:
+          type: string
+          format: uuid
+        question:
+          type: string
+        detectedAt:
+          type: string
+          format: date-time
+        reason:
+          type: string
+          enum: [low_confidence, constitution_violation, error]
+        violationDetails:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [pending, responded, timeout, fallback]
+        responseChannel:
+          type: string
+          enum: [whatsapp, vscode]
+          nullable: true
+        humanResponse:
+          type: string
+          nullable: true
+        respondedAt:
+          type: string
+          format: date-time
+          nullable: true
+        responseTime:
+          type: integer
+          nullable: true
+        context:
+          $ref: '#/components/schemas/EscalationContext'
+
+    EscalationContext:
+      type: object
+      properties:
+        specId:
+          type: string
+        currentTask:
+          type: string
+        recentOutput:
+          type: array
+          items:
+            type: string
+          maxItems: 20
+        confidence:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+
+    Memory:
+      type: object
+      properties:
+        memoryId:
+          type: string
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        category:
+          type: string
+          enum: [decision_patterns]
+        pattern:
+          type: object
+          properties:
+            question:
+              type: string
+            response:
+              type: string
+            context:
+              type: object
+        scope:
+          type: string
+          enum: [spec, project, global]
+        confidence:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+        usageCount:
+          type: integer
+        lastUsed:
+          type: string
+          format: date-time
+          nullable: true
+        source:
+          type: string
+          enum: [human_escalation, manual_entry]
+        tags:
+          type: array
+          items:
+            type: string

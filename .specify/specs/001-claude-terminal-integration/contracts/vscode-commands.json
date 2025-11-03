@@ -1,0 +1,154 @@
+{
+  "title": "VSCode Extension Commands",
+  "description": "Commands exposed by the SpecGofer extension for Claude Code terminal integration",
+  "version": "1.0.0",
+  "commands": [
+    {
+      "command": "specgofer.startClaudeCode",
+      "title": "Start Claude Code Terminal",
+      "category": "SpecGofer",
+      "icon": "$(play)",
+      "enablement": "!specGoferAutonomousRunning && view == specGoferProgress",
+      "description": "Launch Claude Code in external terminal for the selected specification",
+      "parameters": [
+        {
+          "name": "specId",
+          "type": "string",
+          "required": true,
+          "description": "ID of the specification to execute"
+        }
+      ]
+    },
+    {
+      "command": "specgofer.stopClaudeCode",
+      "title": "Stop Claude Code Terminal",
+      "category": "SpecGofer",
+      "icon": "$(stop)",
+      "enablement": "specGoferAutonomousRunning",
+      "description": "Terminate the running Claude Code terminal session",
+      "parameters": []
+    },
+    {
+      "command": "specgofer.viewTerminalOutput",
+      "title": "View Terminal Output",
+      "category": "SpecGofer",
+      "icon": "$(output)",
+      "description": "Open the output channel showing Claude Code terminal activity",
+      "parameters": []
+    },
+    {
+      "command": "specgofer.configureWhatsApp",
+      "title": "Configure WhatsApp Escalation",
+      "category": "SpecGofer",
+      "icon": "$(settings)",
+      "description": "Set up WhatsApp phone number for escalations",
+      "parameters": [
+        {
+          "name": "phoneNumber",
+          "type": "string",
+          "required": true,
+          "pattern": "^\\+[1-9]\\d{1,14}$",
+          "description": "WhatsApp phone number in E.164 format"
+        }
+      ]
+    },
+    {
+      "command": "specgofer.testWhatsApp",
+      "title": "Test WhatsApp Connection",
+      "category": "SpecGofer",
+      "icon": "$(testing)",
+      "description": "Send a test message to verify WhatsApp configuration",
+      "parameters": []
+    },
+    {
+      "command": "specgofer.viewEscalations",
+      "title": "View Escalation History",
+      "category": "SpecGofer",
+      "icon": "$(history)",
+      "description": "Show recent escalations and their resolutions",
+      "parameters": [
+        {
+          "name": "days",
+          "type": "number",
+          "default": 7,
+          "description": "Number of days of history to show"
+        }
+      ]
+    },
+    {
+      "command": "specgofer.clearMemory",
+      "title": "Clear Decision Memory",
+      "category": "SpecGofer",
+      "icon": "$(trash)",
+      "description": "Clear learned patterns from escalations",
+      "parameters": [
+        {
+          "name": "scope",
+          "type": "string",
+          "enum": ["spec", "project", "all"],
+          "required": true,
+          "description": "Scope of memories to clear"
+        }
+      ]
+    }
+  ],
+  "contexts": [
+    {
+      "key": "specGoferAutonomousRunning",
+      "type": "boolean",
+      "description": "Whether a Claude Code terminal session is currently running"
+    },
+    {
+      "key": "specGoferWhatsAppConfigured",
+      "type": "boolean",
+      "description": "Whether WhatsApp escalation is configured"
+    },
+    {
+      "key": "specGoferQueueLength",
+      "type": "number",
+      "description": "Number of sessions queued for execution"
+    }
+  ],
+  "configuration": {
+    "title": "Claude Code Terminal Integration",
+    "properties": {
+      "specgofer.claudeCode.autoResponse": {
+        "type": "boolean",
+        "default": true,
+        "description": "Automatically respond to Claude Code questions when confident"
+      },
+      "specgofer.claudeCode.confidenceThreshold": {
+        "type": "number",
+        "default": 0.8,
+        "minimum": 0.5,
+        "maximum": 1.0,
+        "description": "Minimum confidence level for auto-responses"
+      },
+      "specgofer.claudeCode.escalationTimeout": {
+        "type": "number",
+        "default": 300,
+        "minimum": 60,
+        "maximum": 600,
+        "description": "Timeout in seconds for WhatsApp escalations"
+      },
+      "specgofer.claudeCode.whatsAppNumber": {
+        "type": "string",
+        "pattern": "^\\+[1-9]\\d{1,14}$",
+        "description": "WhatsApp phone number for escalations (E.164 format)"
+      },
+      "specgofer.claudeCode.bufferSize": {
+        "type": "number",
+        "default": 10000,
+        "minimum": 1000,
+        "maximum": 50000,
+        "description": "Maximum lines to keep in terminal output buffer"
+      },
+      "specgofer.claudeCode.memoryScope": {
+        "type": "string",
+        "enum": ["spec", "project", "global"],
+        "default": "project",
+        "description": "Default scope for learned patterns"
+      }
+    }
+  }
+}

@@ -29,12 +29,25 @@ export class OutputMonitor {
     authentication_failure: /Authentication failed|Unauthorized|401/i,
   };
 
-  // Question patterns (in priority order)
+  // Question patterns (in priority order) - FR-004
   private readonly QUESTION_PATTERNS = [
     { pattern: /Option\s+[A-Z]:/gi, confidence: 'high' as const },
-    { pattern: /Which\s+(approach|method|pattern)/i, confidence: 'high' as const },
-    { pattern: /Should\s+I\s+(use|implement|create)/i, confidence: 'medium' as const },
+    {
+      pattern: /Which\s+(approach|method|pattern|option|library|framework)/i,
+      confidence: 'high' as const,
+    },
+    { pattern: /Would\s+you\s+like\s+(me\s+)?to/i, confidence: 'high' as const },
+    { pattern: /Would\s+you\s+prefer/i, confidence: 'high' as const },
+    {
+      pattern: /Should\s+I\s+(use|implement|create|add|update|modify|delete)/i,
+      confidence: 'medium' as const,
+    },
+    { pattern: /Do\s+you\s+want\s+(me\s+)?to/i, confidence: 'high' as const },
+    { pattern: /Can\s+I\s+(proceed|continue)\s+with/i, confidence: 'medium' as const },
+    { pattern: /I'm\s+(not\s+sure|uncertain)\s+(how|whether|if)/i, confidence: 'high' as const },
     { pattern: /I'm\s+blocked\s+on/i, confidence: 'high' as const },
+    { pattern: /I\s+need\s+(your\s+)?guidance\s+on/i, confidence: 'high' as const },
+    { pattern: /Please\s+clarify/i, confidence: 'high' as const },
     { pattern: /\?$/m, confidence: 'low' as const },
   ];
 
@@ -123,6 +136,81 @@ export class OutputMonitor {
    * Detect questions needing user input
    */
   detectQuestion(output: string): Question | null {
+    // Filter out false positives BEFORE pattern matching
+
+    // Skip if this looks like an echoed user response (starts with ">")
+    if (output.trim().startsWith('>')) {
+      return null;
+    }
+
+    // Skip if this contains our own auto-response signature phrases
+    const autoResponseSignatures = [
+      /Yes, proceed\./i,
+      /No, do not proceed/i,
+      /The question is a simple/i,
+      /about making an edit to a file/i,
+    ];
+    if (autoResponseSignatures.some((sig) => sig.test(output))) {
+      return null;
+    }
+
+    // Skip if this is a "User rejected" or "User approved" message
+    if (/User (rejected|approved)/i.test(output)) {
+      return null;
+    }
+
+    // Skip if this is a "Thank you" response (Claude Code acknowledging our answer)
+    if (/^⏺?\s*Thank you/i.test(output)) {
+      return null;
+    }
+
+    // Skip code sections - these often contain question marks but aren't actual questions
+
+    // 1. Code blocks (markdown fenced code with ```)
+    if (/```[\s\S]*```/.test(output) || /^```/m.test(output)) {
+      return null;
+    }
+
+    // 2. Inline code (contains backticks)
+    if (/`[^`]+`/.test(output)) {
+      return null;
+    }
+
+    // 3. Tool use blocks (Claude Code's function calls)
+    if (/<(function_calls|invoke|parameter)/.test(output)) {
+      return null;
+    }
+
+    // 4. Code-like patterns - lines that look like code
+    const codePatterns = [
+      /^\s{4,}/, // Indented code (4+ spaces)
+      /^\t/, // Tab-indented code
+      /^(function|const|let|var|class|interface|type|export|import)\s+/m, // JS/TS keywords
+      /^(def|class|import|from)\s+/m, // Python keywords
+      /[a-zA-Z_]\w*\s*\([^)]*\)\s*[{:=>]/, // Function definitions/calls
+      /^\s*\/\//, // Single-line comments
+      /^\s*\/\*/, // Multi-line comments start
+      /^\s*\*/, // Comment continuation
+      /=>\s*{/, // Arrow functions
+      /\w+\.\w+\([^)]*\)/, // Method calls (foo.bar())
+    ];
+    if (codePatterns.some((pattern) => pattern.test(output))) {
+      return null;
+    }
+
+    // 5. File write operations (Write/Edit/Read tool results)
+    if (/^(Write|Edit|Read|Glob|Grep|Bash)\(/m.test(output)) {
+      return null;
+    }
+
+    // 6. Lines containing common code symbols (but not in natural language)
+    const codeSymbolDensity = (output.match(/[{}[\]();=><]/g) || []).length;
+    const outputLength = output.length;
+    if (outputLength > 0 && codeSymbolDensity / outputLength > 0.15) {
+      // More than 15% code symbols - probably code, not a question
+      return null;
+    }
+
     const matchedPatterns: string[] = [];
     let highestConfidence: 'high' | 'medium' | 'low' = 'low';
 
@@ -255,5 +343,118 @@ export class OutputMonitor {
       default:
         return 'needs_context';
     }
+  }
+
+  /**
+   * T071: Performance monitoring for output detection latency
+   *
+   * Tracks processing time for parseStream() to ensure <100ms latency.
+   * Success Criteria: SC-007 (<100ms output latency P99)
+   */
+  private latencyMetrics: Array<{ timestamp: number; latency: number }> = [];
+  private readonly MAX_LATENCY_SAMPLES = 1000; // Keep last 1000 samples
+  private readonly TARGET_LATENCY_MS = 100; // P99 target
+
+  /**
+   * Parse stream with latency tracking
+   *
+   * Wrapper around parseStream() that measures performance.
+   *
+   * @param output - Output string to parse
+   * @returns Parsed events and latency metrics
+   */
+  parseStreamWithMetrics(output: string): {
+    events: ParsedEvent[];
+    latencyMs: number;
+    meetsTarget: boolean;
+  } {
+    const startTime = performance.now();
+    const events = this.parseStream(output);
+    const endTime = performance.now();
+    const latencyMs = endTime - startTime;
+
+    // Record latency
+    this.latencyMetrics.push({
+      timestamp: Date.now(),
+      latency: latencyMs,
+    });
+
+    // Keep only recent samples
+    if (this.latencyMetrics.length > this.MAX_LATENCY_SAMPLES) {
+      this.latencyMetrics.shift();
+    }
+
+    return {
+      events,
+      latencyMs,
+      meetsTarget: latencyMs < this.TARGET_LATENCY_MS,
+    };
+  }
+
+  /**
+   * Get performance statistics
+   *
+   * @returns Latency statistics including P50, P95, P99
+   */
+  getPerformanceStats(): {
+    sampleCount: number;
+    avgLatencyMs: number;
+    p50LatencyMs: number;
+    p95LatencyMs: number;
+    p99LatencyMs: number;
+    targetMet: boolean;
+  } {
+    if (this.latencyMetrics.length === 0) {
+      return {
+        sampleCount: 0,
+        avgLatencyMs: 0,
+        p50LatencyMs: 0,
+        p95LatencyMs: 0,
+        p99LatencyMs: 0,
+        targetMet: true,
+      };
+    }
+
+    // Sort latencies
+    const sortedLatencies = this.latencyMetrics.map((m) => m.latency).sort((a, b) => a - b);
+
+    // Calculate percentiles
+    const p50Index = Math.floor(sortedLatencies.length * 0.5);
+    const p95Index = Math.floor(sortedLatencies.length * 0.95);
+    const p99Index = Math.floor(sortedLatencies.length * 0.99);
+
+    const p50 = sortedLatencies[p50Index];
+    const p95 = sortedLatencies[p95Index];
+    const p99 = sortedLatencies[p99Index];
+
+    // Calculate average
+    const sum = sortedLatencies.reduce((acc, val) => acc + val, 0);
+    const avg = sum / sortedLatencies.length;
+
+    return {
+      sampleCount: this.latencyMetrics.length,
+      avgLatencyMs: Number(avg.toFixed(2)),
+      p50LatencyMs: Number(p50.toFixed(2)),
+      p95LatencyMs: Number(p95.toFixed(2)),
+      p99LatencyMs: Number(p99.toFixed(2)),
+      targetMet: p99 < this.TARGET_LATENCY_MS,
+    };
+  }
+
+  /**
+   * Reset performance metrics
+   */
+  resetPerformanceMetrics(): void {
+    this.latencyMetrics = [];
+  }
+
+  /**
+   * Check if performance targets are being met
+   *
+   * @returns True if P99 latency is under 100ms
+   */
+  isPerformanceTargetMet(): boolean {
+    const stats = this.getPerformanceStats();
+    return stats.targetMet;
   }
 }

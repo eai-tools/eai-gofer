@@ -11,6 +11,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import * as pty from 'node-pty';
 import {
   AutonomousDriver,
   DriverOptions,
@@ -19,6 +20,10 @@ import {
   CompletionReport,
 } from './autonomous';
 import { MemoryManager } from './autonomous/MemoryManager';
+import {
+  ClaudeCodeAutonomousResponder,
+  QuestionContext,
+} from './autonomous/ClaudeCodeAutonomousResponder';
 import type { ProgressProvider } from './progressProvider';
 
 // Global driver instance (singleton)
@@ -29,6 +34,11 @@ let logFilePath: string | null = null;
 // Claude Code terminal tracking
 let claudeTerminal: vscode.Terminal | null = null;
 let terminalCloseListener: vscode.Disposable | null = null;
+
+// Autonomous responder
+let autonomousResponder: ClaudeCodeAutonomousResponder | null = null;
+let autonomousMonitoringInterval: NodeJS.Timeout | null = null;
+let ptyProcess: pty.IPty | null = null;
 
 /**
  * Start autonomous execution for a spec
@@ -599,11 +609,88 @@ export async function launchClaudeCode(specId: string): Promise<void> {
     outputChannel.appendLine('[1/6] Setting context for Claude Code running...');
     await vscode.commands.executeCommand('setContext', 'specgofer.claudeCodeRunning', true);
 
+    // Get workspace path
+    const workspacePath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '';
+    if (!workspacePath) {
+      throw new Error('No workspace folder found');
+    }
+
     outputChannel.appendLine('[2/6] Creating terminal...');
-    claudeTerminal = vscode.window.createTerminal({
-      name: `Claude Code: ${specId}`,
-      hideFromUser: false,
+
+    // Initialize autonomous responder first if enabled
+    const config = vscode.workspace.getConfiguration('specGofer');
+    const autonomousMode = config.get<boolean>('autonomousMode', true);
+    const apiKey = config.get<string>('anthropicApiKey', '');
+
+    if (autonomousMode && apiKey) {
+      autonomousResponder = new ClaudeCodeAutonomousResponder(apiKey, outputChannel);
+      outputChannel.appendLine('   ✓ Autonomous responder initialized');
+    }
+
+    // Spawn Claude Code process with node-pty
+    outputChannel.appendLine('   Starting Claude Code process with output capture...');
+
+    ptyProcess = pty.spawn('claude', [], {
+      name: 'xterm-256color',
+      cols: 120,
+      rows: 30,
+      cwd: workspacePath,
+      env: process.env as any,
     });
+
+    // Capture output and feed to autonomous responder
+    if (autonomousMode && apiKey && autonomousResponder) {
+      const responder = autonomousResponder; // Capture for closure
+      ptyProcess.onData((data) => {
+        responder.addTerminalOutput(data);
+      });
+      outputChannel.appendLine('   ✓ Output capture enabled');
+    }
+
+    ptyProcess.onExit(() => {
+      ptyProcess = null;
+    });
+
+    // Create event emitters for pty interface
+    const writeEmitter = new vscode.EventEmitter<string>();
+    const closeEmitter = new vscode.EventEmitter<number | void>();
+
+    // Forward pty output to terminal display
+    ptyProcess.onData((data) => {
+      writeEmitter.fire(data);
+    });
+
+    ptyProcess.onExit(({ exitCode }) => {
+      closeEmitter.fire(exitCode);
+    });
+
+    // Create terminal backed by the pty process using ExtensionTerminalOptions
+    // This gives us both good formatting AND output capture
+    const terminalOptions: vscode.ExtensionTerminalOptions = {
+      name: `Claude Code: ${specId}`,
+      pty: {
+        onDidWrite: writeEmitter.event,
+        onDidClose: closeEmitter.event,
+        open: () => {
+          // Pty already started, nothing to do
+        },
+        close: () => {
+          if (ptyProcess) {
+            ptyProcess.kill();
+          }
+        },
+        handleInput: (data: string) => {
+          if (ptyProcess) {
+            ptyProcess.write(data);
+          }
+        },
+      },
+    };
+
+    // Create the terminal
+    claudeTerminal = vscode.window.createTerminal(terminalOptions);
+
+    outputChannel.appendLine('   ✓ Terminal created with pty backend');
 
     outputChannel.appendLine('[3/6] Setting up terminal close listener...');
     const closeListener = vscode.window.onDidCloseTerminal(async (closedTerminal) => {
@@ -622,60 +709,55 @@ export async function launchClaudeCode(specId: string): Promise<void> {
     outputChannel.appendLine('[4/6] Showing terminal...');
     claudeTerminal.show();
 
-    outputChannel.appendLine('[5/6] Launching Claude Code with "claude" command...');
-    claudeTerminal.sendText('claude', true); // Execute the 'claude' command
+    outputChannel.appendLine('[5/6] Claude Code process already started via pty');
+    outputChannel.appendLine('      Terminal is capturing output for autonomous answering');
 
     outputChannel.appendLine('[6/6] Waiting for Claude Code to fully initialize...');
     outputChannel.appendLine('      Claude Code needs 8-10 seconds to start its interactive mode');
     outputChannel.appendLine('      Will send /speckit.implement after 8 seconds...\n');
 
     // Wait 8 seconds for Claude Code to fully initialize before sending any commands
-    // Claude Code shows its banner and then needs time to start its interactive prompt
     setTimeout(async () => {
-      if (!claudeTerminal) {
-        outputChannel?.appendLine('✗ Terminal was closed before command could be sent');
+      if (!ptyProcess) {
+        outputChannel?.appendLine('✗ PTY process was closed before command could be sent');
         return;
       }
 
       outputChannel?.appendLine('→ Sending /speckit.implement command...');
-      claudeTerminal.show(true); // Ensure terminal is focused
 
-      // Send the command without executing it first (no newline)
-      claudeTerminal.sendText('/speckit.implement', false);
-      outputChannel?.appendLine('  ✓ Command text typed: /speckit.implement');
+      // Send command directly to pty process
+      const implementCommand = '/speckit.implement\r';
+      ptyProcess.write(implementCommand);
+      outputChannel?.appendLine('  ✓ Command sent: /speckit.implement');
 
-      // Wait a moment, then send Enter
-      setTimeout(async () => {
-        if (claudeTerminal) {
-          outputChannel?.appendLine('  → Sending Enter key to execute command...');
-
-          // Try using workbench command first (most reliable)
-          try {
-            await vscode.commands.executeCommand(
-              'workbench.action.terminal.sendSequence',
-              { text: '\x0D' } // Carriage return
-            );
-            outputChannel?.appendLine('  ✓ Enter key sent via workbench command');
-          } catch (err) {
-            // Fallback: use sendText
-            outputChannel?.appendLine(
-              `  ℹ Workbench command not available, using sendText fallback`
-            );
-            claudeTerminal.sendText('', true);
-            outputChannel?.appendLine('  ✓ Enter key sent via sendText');
-          }
-
-          outputChannel?.appendLine('\n✓ Command execution attempted');
-          outputChannel?.appendLine(
-            '  Check the terminal to see if Claude Code processed the command\n'
-          );
-        }
-      }, 1000);
+      outputChannel?.appendLine('\n✓ Command execution attempted');
+      outputChannel?.appendLine(
+        '  Check the terminal to see if Claude Code processed the command\n'
+      );
     }, 8000); // Wait 8 seconds for Claude Code to fully initialize
 
     outputChannel.appendLine('\n' + '='.repeat(80));
     outputChannel.appendLine('Terminal launched. Monitoring for command execution...');
     outputChannel.appendLine('='.repeat(80) + '\n');
+
+    // Start autonomous question monitoring if enabled
+    if (autonomousMode && apiKey && autonomousResponder) {
+      outputChannel.appendLine('🤖 Autonomous mode ENABLED');
+      outputChannel.appendLine('   Claude Code questions will be answered automatically');
+      outputChannel.appendLine('   Using Claude 3.5 Haiku with full context');
+      outputChannel.appendLine('   Terminal output is being captured and monitored\n');
+
+      // Start monitoring after Claude Code initializes (after 10 seconds)
+      setTimeout(() => {
+        startAutonomousMonitoring(specId, workspacePath);
+      }, 10000);
+    } else if (autonomousMode && !apiKey) {
+      outputChannel.appendLine('⚠️  Autonomous mode enabled but no API key configured');
+      outputChannel.appendLine('   Set specGofer.anthropicApiKey in VS Code settings to enable\n');
+    } else {
+      outputChannel.appendLine('ℹ️  Autonomous mode disabled');
+      outputChannel.appendLine('   Questions will require manual input\n');
+    }
 
     // Show success notification
     vscode.window
@@ -706,9 +788,160 @@ export async function launchClaudeCode(specId: string): Promise<void> {
 }
 
 /**
+ * Start autonomous monitoring for questions
+ * Uses node-pty to spawn Claude Code process and capture output
+ */
+async function startAutonomousMonitoring(specId: string, workspacePath: string): Promise<void> {
+  if (!autonomousResponder || !claudeTerminal) {
+    return;
+  }
+
+  outputChannel?.appendLine('🔍 Starting autonomous question monitoring...');
+  outputChannel?.appendLine('   Watching for "(esc)" prompt in terminal output');
+  outputChannel?.appendLine('   Will send questions to Claude 3.5 Haiku with full context\n');
+
+  let escDetectedTime: number | null = null;
+  const ESC_WAIT_TIME = 5000; // Wait 5 seconds after detecting "(esc)"
+  let outputBuffer = '';
+
+  // Use shell integration to monitor command execution
+  const shellIntegrationListener = vscode.window.onDidChangeTerminalShellIntegration((e) => {
+    if (e.terminal !== claudeTerminal) {
+      return;
+    }
+
+    const shellIntegration = e.shellIntegration;
+    if (!shellIntegration) {
+      return;
+    }
+
+    outputChannel?.appendLine('   ✓ Shell integration activated');
+
+    // Listen for command execution
+    const executionListener = vscode.window.onDidEndTerminalShellExecution((event) => {
+      if (event.terminal !== claudeTerminal) {
+        return;
+      }
+
+      // Get the execution output if available
+      if (event.execution && typeof event.execution === 'object') {
+        const execution = event.execution as any;
+        if (execution.read && typeof execution.read === 'function') {
+          execution.read().then((stream: any) => {
+            if (stream) {
+              for (const data of stream) {
+                outputBuffer += data;
+                autonomousResponder?.addTerminalOutput(data);
+              }
+            }
+          });
+        }
+      }
+    });
+  });
+
+  // Also poll every 2 seconds to check terminal state
+  // This is a fallback in case shell integration output capture doesn't work
+  autonomousMonitoringInterval = setInterval(async () => {
+    if (!claudeTerminal || !autonomousResponder) {
+      stopAutonomousMonitoring();
+      return;
+    }
+
+    // Check for (esc) detection
+    const detection = autonomousResponder.detectQuestion();
+
+    if (detection.detected && !escDetectedTime) {
+      escDetectedTime = Date.now();
+      outputChannel?.appendLine(
+        `[${new Date().toLocaleTimeString()}] ⚠️  Detected "(esc)" prompt - waiting 5 seconds...`
+      );
+    }
+
+    // If we detected "(esc)" and 5 seconds have passed, respond
+    if (escDetectedTime && Date.now() - escDetectedTime >= ESC_WAIT_TIME) {
+      outputChannel?.appendLine(
+        `[${new Date().toLocaleTimeString()}] 5 seconds elapsed, sending autonomous response...`
+      );
+
+      const responded = await attemptQuestionResponse(specId, workspacePath);
+
+      // Reset detection
+      escDetectedTime = null;
+
+      if (!responded) {
+        outputChannel?.appendLine('   ⚠️  No response sent, will retry if prompt persists');
+      }
+    }
+  }, 2000);
+}
+
+/**
+ * Attempt to detect and respond to questions
+ * Returns true if we attempted a response
+ */
+async function attemptQuestionResponse(specId: string, workspacePath: string): Promise<boolean> {
+  if (!claudeTerminal || !autonomousResponder) {
+    return false;
+  }
+
+  try {
+    // Get the detection result with full context
+    const detection = autonomousResponder.detectQuestion();
+
+    if (!detection.detected) {
+      outputChannel?.appendLine('   No question detected, skipping response');
+      return false;
+    }
+
+    outputChannel?.appendLine('   Question detected, preparing context...');
+
+    // Build context for Claude API
+    const context: QuestionContext = {
+      specId,
+      question: detection.question,
+      terminalOutput: detection.context, // Last 10k characters
+    };
+
+    // Get Claude's decision with full context
+    const response = await autonomousResponder.getAutonomousResponse(workspacePath, context);
+
+    if (response && ptyProcess) {
+      // Send ESC + response + Enter directly to pty
+      await autonomousResponder.sendResponseToPty(ptyProcess, response);
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    outputChannel?.appendLine(
+      `   Error in autonomous response: ${error instanceof Error ? error.message : String(error)}`
+    );
+    return false;
+  }
+}
+
+/**
+ * Stop autonomous monitoring
+ */
+function stopAutonomousMonitoring(): void {
+  if (autonomousMonitoringInterval) {
+    clearInterval(autonomousMonitoringInterval);
+    autonomousMonitoringInterval = null;
+    outputChannel?.appendLine('🛑 Autonomous monitoring stopped\n');
+  }
+  if (autonomousResponder) {
+    autonomousResponder.clearBuffer();
+  }
+}
+
+/**
  * Stop Claude Code terminal
  */
 export async function stopClaudeCode(): Promise<void> {
+  // Stop autonomous monitoring first
+  stopAutonomousMonitoring();
+
   if (claudeTerminal) {
     claudeTerminal.dispose();
     claudeTerminal = null;
@@ -716,6 +949,9 @@ export async function stopClaudeCode(): Promise<void> {
   if (terminalCloseListener) {
     terminalCloseListener.dispose();
     terminalCloseListener = null;
+  }
+  if (autonomousResponder) {
+    autonomousResponder = null;
   }
   await vscode.commands.executeCommand('setContext', 'specgofer.claudeCodeRunning', false);
   vscode.window.showInformationMessage('Claude Code stopped');

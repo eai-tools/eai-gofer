@@ -48,7 +48,17 @@
       "Bash(git restore:*)",
       "Bash(git reset:*)",
       "Bash(git push:*)",
-      "Bash(git merge:*)"
+      "Bash(git merge:*)",
+      "Bash(rm:*)",
+      "Bash(for dir in */)",
+      "Bash(do specfile=\"$dirspec.md\" if [ -f \"$specfile\" ])",
+      "Bash(then echo \"=== $dir ===\" head -n 10 \"$specfile\")",
+      "Bash(do specfile=\"$dirspec.md\")",
+      "Bash(if [ -f \"$specfile\" ])",
+      "Bash(then echo \"=== $dir ===\")",
+      "Bash(head:*)",
+      "Bash(done)",
+      "Bash(npm run:*)"
     ],
     "deny": [],
     "ask": []

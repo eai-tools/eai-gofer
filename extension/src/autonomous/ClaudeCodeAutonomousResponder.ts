@@ -224,8 +224,11 @@ export class ClaudeCodeAutonomousResponder {
       /^[·∴]\s+(Thinking|Generating|Processing)/i, // Matches "∴ Thinking…", "· Generating…"
     ];
 
+    // CRITICAL FIX: Only check last 5 lines for ACTIVE spinner, not historical ones
+    // Old spinner lines get buried in the buffer but don't represent current state
+    const recentLines = lastLines.slice(-5); // Only check last 5 lines
     let spinnerLine: string | null = null;
-    const hasSpinner = lastLines.some((line) => {
+    const hasSpinner = recentLines.some((line) => {
       const cleanLine = this.stripAnsiOnly(line); // Strip ANSI codes before testing
       const matches = spinnerPatterns.some((pattern) => pattern.test(cleanLine));
       if (matches) {
@@ -239,9 +242,16 @@ export class ClaudeCodeAutonomousResponder {
       this.outputChannel.appendLine(`   ✓ Spinner line: "${spinnerLine}"`);
     }
 
+    this.writeLog(`\nChecking last ${recentLines.length} lines for ACTIVE spinner (not historical):`).catch(() => {});
+    recentLines.forEach((line, i) => {
+      const actualIndex = lastLines.length - recentLines.length + i;
+      this.writeLog(`  [${actualIndex}] ${this.stripAnsi(line).substring(0, 100)}`).catch(() => {});
+    });
     this.writeLog(`\nSpinner check: ${hasSpinner}`).catch(() => {});
     if (spinnerLine) {
       this.writeLog(`Spinner line found: "${spinnerLine}"`).catch(() => {});
+    } else {
+      this.writeLog(`No active spinner in last ${recentLines.length} lines`).catch(() => {});
     }
 
     if (hasSpinner) {

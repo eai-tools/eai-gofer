@@ -359,9 +359,6 @@ export class ClaudeCodeAutonomousResponder {
       const config = vscode.workspace.getConfiguration('specGofer.autonomous');
       const enableEngReview = config.get<boolean>('enableEngineeringReview', true);
       const enablePerfReview = config.get<boolean>('enablePerformanceReview', true);
-      const engReviewMin = config.get<number>('engineeringReviewMinCompletion', 40);
-      const engReviewMax = config.get<number>('engineeringReviewMaxCompletion', 80);
-      const perfReviewMin = config.get<number>('performanceReviewMinCompletion', 70);
 
       // Build dynamic response types based on settings
       let responseTypes = `1. ANSWER A QUESTION - If Claude Code is explicitly asking for input:
@@ -376,7 +373,7 @@ export class ClaudeCodeAutonomousResponder {
 
 3. CONTINUE IMPLEMENTATION - If Claude needs explicit direction to keep going:
    - Respond with: ACTION: CONTINUE_IMPLEMENT
-   - Use when: Completion < 70%, Claude might not know what to do next
+   - Use when: Claude might not know what to do next
    - Sends: /speckit.implement`;
 
       if (enableEngReview) {
@@ -384,8 +381,8 @@ export class ClaudeCodeAutonomousResponder {
 
 4. ENGINEERING REVIEW - If strategic checkpoint needed:
    - Respond with: ACTION: ENGINEERING_REVIEW
-   - Use when: Completion ${engReviewMin}-${engReviewMax}%, major milestone just reached, worth validating
-   - Sends: Prompt asking Claude to review implementation against specification`;
+   - Use when: Completion is enough or a major milestone just reached, worth validating
+   - Sends: Prompt asking Claude to review implementation against specification and latest best practices from an internet search of the technologies being used`;
       }
 
       if (enablePerfReview) {
@@ -393,91 +390,44 @@ export class ClaudeCodeAutonomousResponder {
 
 5. PERFORMANCE REVIEW - If architecture review needed:
    - Respond with: ACTION: PERFORMANCE_REVIEW
-   - Use when: Completion > ${perfReviewMin}%, core features done, worth checking performance
+   - Use when: Completion is enough, core features done, worth checking performance
    - Sends: Prompt asking Claude for performance and architecture analysis`;
       }
 
       // Determine Claude's work state from question field
       const isWorking = context.question.includes('WORKING');
 
-      // Check for custom Haiku system prompt in settings
-      const customSystemPrompt = config.get<string>('haikuSystemPrompt', '').trim();
+      // Build dynamic work state text
+      const workStateText = isWorking
+        ? `CLAUDE CODE CURRENT STATE: ACTIVELY WORKING (spinner present)
 
-      // Build prompt for Claude (use custom if provided, otherwise default)
-      const defaultSystemPrompt = `You are an autonomous development assistant managing Claude Code's feature implementation workflow.
-
-You have access to:
-- The project constitution (principles and standards)
-- The feature specification
-- The implementation plan
-- The task list
-- The recent terminal output from Claude Code
-- Latest best practices (you should consider current industry standards)
-
-Your job is to monitor Claude Code and decide whether to interrupt based on the situation.
-
-CLAUDE CODE CURRENT STATE: ${isWorking ? 'ACTIVELY WORKING (spinner present)' : 'IDLE (no spinner)'}
-
-${
-  isWorking
-    ? `
 CRITICAL: Claude is actively working right now. You should ONLY interrupt if:
-- Claude is going in the WRONG direction (deviating from spec, plan, or tasks)
+- Claude is going in the WRONG direction (deviating from constitution, spec, plan, latest best practices (from internet search) or tasks)
 - Claude is using outdated/deprecated approaches (violates best practices)
 - Claude is violating constitution principles
 - There's a clear mistake that needs immediate correction
 
-DO NOT interrupt if Claude is making correct progress, even if slowly.
-`
-    : `
+DO NOT interrupt if Claude is making correct progress, even if slowly.`
+        : `CLAUDE CODE CURRENT STATE: IDLE (no spinner)
+
 Claude has finished work and is idle. You can:
 - Answer questions if asked
 - Provide next direction if needed
-- Let Claude continue on its own if next steps are obvious
-`
-}
+- Let Claude continue on its own if next steps are obvious`;
 
-RESPONSE TYPES:
+      // Get system prompt from settings and replace variables
+      const systemPromptTemplate = config.get<string>(
+        'haikuSystemPrompt',
+        "You are an autonomous development assistant managing Claude Code's feature implementation workflow.\n\nYou have access to:\n- The project constitution (principles and standards)\n- The feature specification\n- The implementation plan\n- The task list\n- The recent terminal output from Claude Code\n- Latest best practices (you should consider current industry standards)\n\nYour job is to monitor Claude Code and decide whether to interrupt based on the situation.\n\n{WORK_STATE}\n\nRESPONSE TYPES:\n\n{RESPONSE_TYPES}\n\nDECISION PRINCIPLES:\n- If there's a question, answer it first (takes priority)\n- Otherwise, decide next action based on completion percentage\n- Keep work moving forward efficiently\n- Reviews are checkpoints, not blockers - use them strategically\n- Always align with constitution, spec, and plan\n\nThe goal is to autonomously drive feature completion with quality checks at appropriate milestones."
+      );
 
-${responseTypes}
+      const systemPrompt = systemPromptTemplate
+        .replace(/\{WORK_STATE\}/g, workStateText)
+        .replace(/\{RESPONSE_TYPES\}/g, responseTypes);
 
-DECISION PRINCIPLES:
-- If there's a question, answer it first (takes priority)
-- Otherwise, decide next action based on completion percentage
-- Keep work moving forward efficiently
-- Reviews are checkpoints, not blockers - use them strategically
-- Always align with constitution, spec, and plan
-
-The goal is to autonomously drive feature completion with quality checks at appropriate milestones.`;
-
-      // Use custom system prompt if provided, otherwise default
-      const systemPrompt = customSystemPrompt || defaultSystemPrompt;
-
-      // Check for custom user prompt template
-      const customUserPromptTemplate = config.get<string>('haikuUserPromptTemplate', '').trim();
-
-      const defaultUserPrompt = `# Recent Terminal Output (last 20,000 characters):
-${context.terminalOutput}
-
-# Constitution:
-${fullContext.constitution || 'No constitution found'}
-
-# Specification:
-${fullContext.spec || 'No specification found'}
-
-# Implementation Plan:
-${fullContext.plan || 'No plan found'}
-
-# Tasks:
-${fullContext.tasks || 'No tasks found'}
-
----
-
-ANALYZE THE TERMINAL AND DECIDE NEXT ACTION:
-
-${
-  isWorking
-    ? `
+      // Build detailed work state instructions
+      const workStateInstructions = isWorking
+        ? `
 **CLAUDE IS ACTIVELY WORKING - Monitor for Course Corrections Only**
 
 **Step 1: Review what Claude is currently doing**
@@ -498,7 +448,7 @@ ${
 
 **DEFAULT**: When in doubt, choose NO_INTERRUPT. Only interrupt if you're confident there's a problem.
 `
-    : `
+        : `
 **CLAUDE IS IDLE - Full Decision Making**
 
 **Step 1: Check for Questions**
@@ -531,40 +481,23 @@ If question found: Provide the answer (number only for multiple choice, clear te
 - **Claude on track + core done + worth checking performance**: ACTION: PERFORMANCE_REVIEW
 
 **DEFAULT**: Prefer NO_INTERRUPT when Claude is making good progress autonomously.
-`
-}
+`;
 
-**Your response must be ONE of:**
-- A direct answer (number or text)
-- ACTION: NO_INTERRUPT
-- ACTION: CONTINUE_IMPLEMENT
-- ACTION: ENGINEERING_REVIEW
-- ACTION: PERFORMANCE_REVIEW
+      // Get user prompt template from settings and replace all variables
+      const userPromptTemplate = config.get<string>(
+        'haikuUserPromptTemplate',
+        '# Recent Terminal Output (last 20,000 characters):\n{terminalOutput}\n\n# Constitution:\n{constitution}\n\n# Specification:\n{spec}\n\n# Implementation Plan:\n{plan}\n\n# Tasks:\n{tasks}\n\n---\n\nANALYZE THE TERMINAL AND DECIDE NEXT ACTION:\n\n{workState}\n\n**Your response must be ONE of:**\n- A direct answer (number or text)\n- ACTION: NO_INTERRUPT\n- ACTION: CONTINUE_IMPLEMENT\n- ACTION: ENGINEERING_REVIEW\n- ACTION: PERFORMANCE_REVIEW\n\nDecide NOW:'
+      );
 
-Decide NOW:`;
-
-      // Use custom user prompt template if provided, otherwise default
-      let userPrompt: string;
-      if (customUserPromptTemplate) {
-        // Replace variables in custom template
-        userPrompt = customUserPromptTemplate
-          .replace(/\{terminalOutput\}/g, context.terminalOutput)
-          .replace(/\{constitution\}/g, fullContext.constitution || 'No constitution found')
-          .replace(/\{spec\}/g, fullContext.spec || 'No specification found')
-          .replace(/\{plan\}/g, fullContext.plan || 'No plan found')
-          .replace(/\{tasks\}/g, fullContext.tasks || 'No tasks found')
-          .replace(/\{workState\}/g, isWorking ? 'WORKING' : 'IDLE');
-      } else {
-        userPrompt = defaultUserPrompt;
-      }
+      const userPrompt = userPromptTemplate
+        .replace(/\{terminalOutput\}/g, context.terminalOutput)
+        .replace(/\{constitution\}/g, fullContext.constitution || 'No constitution found')
+        .replace(/\{spec\}/g, fullContext.spec || 'No specification found')
+        .replace(/\{plan\}/g, fullContext.plan || 'No plan found')
+        .replace(/\{tasks\}/g, fullContext.tasks || 'No tasks found')
+        .replace(/\{workState\}/g, workStateInstructions);
 
       this.outputChannel.appendLine('🤔 Asking Claude 3.5 Haiku to analyze context...');
-      if (customSystemPrompt) {
-        this.outputChannel.appendLine('   ℹ️  Using custom Haiku system prompt from settings\n');
-      }
-      if (customUserPromptTemplate) {
-        this.outputChannel.appendLine('   ℹ️  Using custom user prompt template from settings\n');
-      }
 
       // Log full prompt details to file
       await this.writeLog('\n' + '='.repeat(80));

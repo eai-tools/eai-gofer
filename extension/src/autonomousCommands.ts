@@ -39,6 +39,7 @@ let terminalCloseListener: vscode.Disposable | null = null;
 let autonomousResponder: ClaudeCodeAutonomousResponder | null = null;
 let autonomousMonitoringInterval: NodeJS.Timeout | null = null;
 let ptyProcess: pty.IPty | null = null;
+let isAutonomousMonitoringPaused = false; // Track pause state
 
 /**
  * Start autonomous execution for a spec
@@ -605,6 +606,10 @@ export async function launchClaudeCode(specId: string): Promise<void> {
   outputChannel.appendLine('='.repeat(80));
   console.log('[SpecGofer] Output channel content written');
 
+  // Reset paused state when starting new Claude Code session
+  isAutonomousMonitoringPaused = false;
+  await vscode.commands.executeCommand('setContext', 'specgofer.autonomousMonitoringPaused', false);
+
   try {
     outputChannel.appendLine('[1/6] Setting context for Claude Code running...');
     await vscode.commands.executeCommand('setContext', 'specgofer.claudeCodeRunning', true);
@@ -867,28 +872,41 @@ async function startAutonomousMonitoring(specId: string, workspacePath: string):
     });
   });
 
-  // Also poll every 2 seconds to check terminal state
-  // This is a fallback in case shell integration output capture doesn't work
+  // Poll every 30 seconds to check terminal state and decide whether to interrupt
+  // This gives Claude Code time to work without constant interruptions
+  // During the 30 seconds, terminal output is continuously collected via addTerminalOutput()
   autonomousMonitoringInterval = setInterval(async () => {
     if (!claudeTerminal || !autonomousResponder) {
       stopAutonomousMonitoring();
       return;
     }
 
-    // Check for (esc) detection
+    // Skip if monitoring is paused
+    if (isAutonomousMonitoringPaused) {
+      outputChannel?.appendLine(
+        `[${new Date().toLocaleTimeString()}] ⏸️  Autonomous monitoring is paused, skipping check...`
+      );
+      return;
+    }
+
+    outputChannel?.appendLine(
+      `[${new Date().toLocaleTimeString()}] 🔍 30-second check: Analyzing terminal state...`
+    );
+
+    // Check terminal state (this reads all output collected in the last 30 seconds)
     const detection = autonomousResponder.detectQuestion();
 
     if (detection.detected && !escDetectedTime) {
       escDetectedTime = Date.now();
       outputChannel?.appendLine(
-        `[${new Date().toLocaleTimeString()}] ⚠️  Detected "(esc)" prompt - waiting 5 seconds...`
+        `[${new Date().toLocaleTimeString()}] ⚠️  Decided to analyze - waiting 5 seconds for stability...`
       );
     }
 
-    // If we detected "(esc)" and 5 seconds have passed, respond
+    // If we decided to check and 5 seconds have passed, ask Haiku to decide
     if (escDetectedTime && Date.now() - escDetectedTime >= ESC_WAIT_TIME) {
       outputChannel?.appendLine(
-        `[${new Date().toLocaleTimeString()}] 5 seconds elapsed, sending autonomous response...`
+        `[${new Date().toLocaleTimeString()}] ⏱️  5 seconds elapsed, asking Haiku to decide action...`
       );
 
       const responded = await attemptQuestionResponse(specId, workspacePath);
@@ -897,10 +915,12 @@ async function startAutonomousMonitoring(specId: string, workspacePath: string):
       escDetectedTime = null;
 
       if (!responded) {
-        outputChannel?.appendLine('   ⚠️  No response sent, will retry if prompt persists');
+        outputChannel?.appendLine(
+          '   ⚠️  No response sent (Haiku decided NO_INTERRUPT or no action needed)'
+        );
       }
     }
-  }, 2000);
+  }, 30000); // Changed from 2000ms (2 seconds) to 30000ms (30 seconds)
 }
 
 /**
@@ -963,7 +983,7 @@ function stopAutonomousMonitoring(): void {
 }
 
 /**
- * Pause Claude Code terminal by sending ESC
+ * Pause Claude Code terminal by sending ESC and pausing autonomous monitoring
  */
 export async function pauseClaudeCode(): Promise<void> {
   if (!ptyProcess) {
@@ -979,11 +999,52 @@ export async function pauseClaudeCode(): Promise<void> {
     // Send ESC character to the terminal (ASCII 27 / 0x1B)
     ptyProcess.write('\x1B');
     outputChannel.appendLine('[PAUSE] Sent ESC signal to Claude Code terminal');
-    vscode.window.showInformationMessage('Sent ESC to Claude Code (pause signal)');
+
+    // Pause autonomous monitoring
+    isAutonomousMonitoringPaused = true;
+    await vscode.commands.executeCommand(
+      'setContext',
+      'specgofer.autonomousMonitoringPaused',
+      true
+    );
+    outputChannel.appendLine('[PAUSE] Autonomous monitoring paused');
+
+    vscode.window.showInformationMessage('Claude Code paused (terminal + autonomous monitoring)');
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);
     outputChannel.appendLine(`[ERROR] Failed to send pause signal: ${errorMsg}`);
     vscode.window.showErrorMessage(`Failed to pause Claude Code: ${errorMsg}`);
+  }
+}
+
+/**
+ * Resume Claude Code autonomous monitoring
+ */
+export async function resumeClaudeCode(): Promise<void> {
+  if (!ptyProcess) {
+    vscode.window.showWarningMessage('No Claude Code terminal is currently running');
+    return;
+  }
+
+  if (!outputChannel) {
+    outputChannel = vscode.window.createOutputChannel('SpecGofer-ClaudeCode');
+  }
+
+  try {
+    // Resume autonomous monitoring
+    isAutonomousMonitoringPaused = false;
+    await vscode.commands.executeCommand(
+      'setContext',
+      'specgofer.autonomousMonitoringPaused',
+      false
+    );
+    outputChannel.appendLine('[RESUME] Autonomous monitoring resumed');
+
+    vscode.window.showInformationMessage('Claude Code autonomous monitoring resumed');
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    outputChannel.appendLine(`[ERROR] Failed to resume: ${errorMsg}`);
+    vscode.window.showErrorMessage(`Failed to resume Claude Code: ${errorMsg}`);
   }
 }
 
@@ -993,6 +1054,10 @@ export async function pauseClaudeCode(): Promise<void> {
 export async function stopClaudeCode(): Promise<void> {
   // Stop autonomous monitoring first
   stopAutonomousMonitoring();
+
+  // Reset paused state
+  isAutonomousMonitoringPaused = false;
+  await vscode.commands.executeCommand('setContext', 'specgofer.autonomousMonitoringPaused', false);
 
   if (claudeTerminal) {
     claudeTerminal.dispose();

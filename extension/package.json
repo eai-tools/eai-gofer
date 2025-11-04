@@ -190,6 +190,11 @@
         "icon": "$(debug-pause)"
       },
       {
+        "command": "specgofer.resumeClaudeCode",
+        "title": "SpecGofer: Resume Claude Code Autonomous Monitoring",
+        "icon": "$(play)"
+      },
+      {
         "command": "specgofer.clearMemory",
         "title": "SpecGofer: Clear Memory Database",
         "icon": "$(trash)"
@@ -317,7 +322,12 @@
         },
         {
           "command": "specgofer.pauseClaudeCode",
-          "when": "viewItem == spec && specgofer.claudeCodeRunning",
+          "when": "viewItem == spec && specgofer.claudeCodeRunning && !specgofer.autonomousMonitoringPaused",
+          "group": "inline@2"
+        },
+        {
+          "command": "specgofer.resumeClaudeCode",
+          "when": "viewItem == spec && specgofer.claudeCodeRunning && specgofer.autonomousMonitoringPaused",
           "group": "inline@2"
         },
         {

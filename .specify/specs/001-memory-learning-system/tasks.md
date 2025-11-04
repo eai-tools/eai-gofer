@@ -501,36 +501,36 @@ execution, verify auto-compaction at 80% threshold reduces usage to ~40%
 
 #### Step 5: AutonomousDriver Integration (Week 11)
 
-- [ ] T145 [US4] Add context monitoring in AutonomousDriver main execution loop
+- [x] T145 [US4] Add context monitoring in AutonomousDriver main execution loop
       in extension/src/autonomous/AutonomousDriver.ts
-- [ ] T146 [US4] Check shouldCompact() after each task completion in
+- [x] T146 [US4] Check shouldCompact() after each task completion in
       extension/src/autonomous/AutonomousDriver.ts
-- [ ] T147 [US4] Trigger compact() when threshold reached in
+- [x] T147 [US4] Trigger compact() when threshold reached in
       extension/src/autonomous/AutonomousDriver.ts
-- [ ] T148 [US4] Update session context with compacted result in
+- [x] T148 [US4] Update session context with compacted result in
       extension/src/autonomous/AutonomousDriver.ts
-- [ ] T149 [US4] Store CompactionSummary in session.compactionHistory in
+- [x] T149 [US4] Store CompactionSummary in session.compactionHistory in
       extension/src/autonomous/AutonomousDriver.ts
 
 #### Step 6: User Notifications (Week 11)
 
-- [ ] T150 [US4] Show notification when compaction occurs: "Context compacted: X
+- [x] T150 [US4] Show notification when compaction occurs: "Context compacted: X
       tasks summarized" in extension/src/autonomous/AutonomousDriver.ts
-- [ ] T151 [US4] Add "View Summary" button to notification in
+- [x] T151 [US4] Add "View Summary" button to notification in
       extension/src/autonomous/AutonomousDriver.ts
-- [ ] T152 [US4] Create CompactionSummaryPanel webview in
+- [x] T152 [US4] Create CompactionSummaryPanel webview in
       extension/src/ui/CompactionSummaryPanel.ts (show summary text, preserved
       tasks, tokens saved)
-- [ ] T153 [US4] Add command "SpecGofer: View Compaction History" to show all
+- [x] T153 [US4] Add command "SpecGofer: View Compaction History" to show all
       summaries for session in extension/src/commands/compactionCommands.ts
 
 #### Step 7: Configuration (Week 11)
 
-- [ ] T154 [US4] Add specGofer.autonomous.compactionThreshold setting to
+- [x] T154 [US4] Add specGofer.autonomous.compactionThreshold setting to
       extension/package.json contributes.configuration (default 80, range 50-95)
 - [x] T155 [US4] Implement setThreshold() and getThreshold() in
       extension/src/autonomous/ContextCompactor.ts
-- [ ] T156 [US4] Read threshold from VSCode settings in AutonomousDriver
+- [x] T156 [US4] Read threshold from VSCode settings in AutonomousDriver
       initialization in extension/src/autonomous/AutonomousDriver.ts
 
 #### Step 8: Fallback Strategies (Week 11)

@@ -45,13 +45,28 @@ if [ ! -f "extension/package.json" ]; then
     exit 1
 fi
 
-# Check if we're on main branch
+# Check if we're on main branch and auto-push to main if needed
 CURRENT_BRANCH=$(git branch --show-current)
 if [ "$CURRENT_BRANCH" != "main" ]; then
-    print_error "Must be on main branch to release. Current branch: $CURRENT_BRANCH"
+    print_info "Currently on branch: $CURRENT_BRANCH"
+    print_info "Will push to origin/main and release..."
     echo ""
-    print_info "Switch to main with: git checkout main"
-    exit 1
+
+    # Ensure working directory is clean
+    if ! git diff-index --quiet HEAD --; then
+        print_warning "Uncommitted changes detected. Committing first..."
+        git add -A
+        git commit -m "chore: pre-release commit from $CURRENT_BRANCH"
+        print_success "Changes committed"
+    fi
+
+    # Push current branch directly to origin/main (overwrite main on remote)
+    print_info "Pushing $CURRENT_BRANCH to origin/main..."
+    git push origin "$CURRENT_BRANCH:main" --force-with-lease
+
+    print_success "Pushed $CURRENT_BRANCH to origin/main"
+    print_info "Staying on $CURRENT_BRANCH locally"
+    echo ""
 fi
 
 # Check for uncommitted changes and auto-commit with AI-generated message
@@ -119,9 +134,13 @@ Auto-committed changes before release v${CURRENT_VER}"
     echo ""
 fi
 
-# Pull latest changes
-print_info "Pulling latest changes from origin/main..."
-git pull origin main
+# Pull latest changes (skip if we already pushed to origin/main)
+if [ "$CURRENT_BRANCH" = "main" ]; then
+    print_info "Pulling latest changes from origin/main..."
+    git pull origin main
+else
+    print_info "Skipping pull (already pushed $CURRENT_BRANCH to origin/main)"
+fi
 
 # Get current version
 CURRENT_VERSION=$(node -p "require('./extension/package.json').version")
@@ -334,7 +353,7 @@ print_success "Created tag v$NEW_VERSION"
 
 # Push to main branch
 print_info "Pushing changes to origin/main..."
-if git push --no-verify origin main; then
+if git push --no-verify origin HEAD:main; then
     print_success "Pushed commits to main"
 else
     print_error "Failed to push commits to main"

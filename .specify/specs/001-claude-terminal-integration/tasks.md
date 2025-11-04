@@ -2,7 +2,37 @@
 
 **Feature**: Claude Code Terminal Integration **Branch**:
 `001-claude-terminal-integration` **Generated**: 2025-11-03 **Last Updated**:
-2025-11-04
+2025-11-04 **Status**: MVP Complete + Proactive Decision-Making (v3.1.0)
+
+## 🎉 Latest Release: v3.1.0 (2025-11-04)
+
+**Major Feature**: **Proactive Autonomous Decision-Making**
+
+The autonomous responder has been transformed from purely reactive (answering
+questions) to proactive (deciding next actions when Claude Code is idle):
+
+**New Capabilities:**
+
+1. **CONTINUE_IMPLEMENT** - Automatically sends `/speckit.implement` when < 70%
+   complete
+2. **ENGINEERING_REVIEW** - Requests implementation review against spec when
+   40-80% complete
+3. **PERFORMANCE_REVIEW** - Requests architecture & performance analysis when >
+   70% complete
+4. **Question Answering** - Still answers explicit questions from Claude Code
+
+**Implementation:**
+
+- System prompt (lines 350-394 in `ClaudeCodeAutonomousResponder.ts`)
+- User prompt with completion-based decision logic (lines 396-440)
+- Action execution handlers (lines 474-531)
+- Haiku analyzes terminal state, constitution, spec, plan, and tasks to decide
+  next action
+
+**Impact**: SpecGofer now autonomously drives Claude Code to feature completion
+with strategic quality checkpoints, not just answering questions reactively.
+
+---
 
 ## Implementation Status Summary
 
@@ -18,8 +48,8 @@ originally planned:
   skipped)
 - **Phase 3**: Basic Claude Code Execution (90% complete - uses VSCode terminal
   instead of external Terminal.app)
-- **Phase 5 (Simplified)**: Autonomous question response using Claude 3.5 Haiku
-  (implemented differently than planned)
+- **Phase 5 (Enhanced)**: Autonomous question response + **Proactive
+  decision-making** using Claude 3.5 Haiku (implemented and released in v3.1.0)
 
 ### What's NOT Implemented ❌
 
@@ -408,21 +438,62 @@ parallel before implementation, following TDD principles per the constitution.
 - **User Story 4 Tasks**: 13 (3 tests, 10 implementation)
 - **Polish Tasks**: 8
 
-### Actual Implementation (as of 2025-11-04)
+### Actual Implementation (as of 2025-11-04 - v3.1.0)
 
 - **Completed Tasks**: 35 tasks (45%) - includes T013 (unit test), T026a (pause
-  button), T074 (README), T075 (error handling)
-- **Skipped/Deferred Tasks**: 42 tasks (54%)
+  button), T074 (README), T075 (error handling), plus **v3.1.0 proactive
+  decision-making feature**
+- **Skipped/Deferred Tasks**: 42 tasks (54%) - intentionally deferred (WhatsApp,
+  learning, git management)
 - **TODO Tasks**: 4 tests + 2 polish tasks (1%)
+- **Feature Status**: ✅ **MVP Complete + Proactive AI released (v3.1.0)**
 
-### What Works
+### Remaining Test Work
+
+**Unit Tests:**
+
+- T042: Unit test for autonomous response generation (started, needs refactoring
+  to match implementation)
+- T043: Unit test for context loading (started, needs refactoring to match
+  implementation)
+
+**Integration Tests:**
+
+- T012: Integration test for terminal lifecycle (not started)
+
+**E2E Tests:**
+
+- T072: E2E test for full autonomous flow (not started)
+
+**Performance & Polish:**
+
+- T071: Performance monitoring for <100ms output latency (not started)
+- T073: Telemetry for success metrics (not started)
+- T076: Ensure 80% test coverage across new components (current coverage <20%)
+
+**Test Infrastructure:** Tests/helpers/setup.ts includes comprehensive mocks for
+vscode, node-pty, Anthropic SDK. Test file created at
+`tests/unit/autonomous/ClaudeCodeAutonomousResponder.test.ts` but needs
+refactoring to match actual class constructor and method signatures.
+
+**Note:** The core feature is fully functional and released. Test work can be
+completed in follow-up iterations without blocking feature usage.
+
+### What Works (v3.1.0)
 
 ✅ Claude Code launches in VSCode terminal with PTY backend ✅ Terminal output
-is captured and monitored in real-time ✅ Questions are detected using simple
-spinner-based logic ✅ Claude 3.5 Haiku provides autonomous responses with full
-context ✅ Responses are automatically sent back to Claude Code ✅ Comprehensive
-logging to output channel ✅ Play/Pause/Stop button state management (pause
-sends ESC signal)
+is captured and monitored in real-time ✅ Spinner/idle state detection (Claude
+working vs. idle) ✅ Claude 3.5 Haiku provides autonomous responses with full
+context (constitution, spec, plan, tasks) ✅ **Proactive Decision-Making** -
+Haiku decides next action when Claude is idle:
+
+- CONTINUE_IMPLEMENT (< 70% complete)
+- ENGINEERING_REVIEW (40-80% complete)
+- PERFORMANCE_REVIEW (> 70% complete) ✅ Question answering for explicit Claude
+  Code questions ✅ Responses automatically sent back to Claude Code via PTY ✅
+  Comprehensive logging to output channel and debug log files ✅ Play/Pause/Stop
+  button state management (pause sends ESC signal) ✅ Released and deployed via
+  GitHub Pages (v3.1.0)
 
 ### What's Missing
 

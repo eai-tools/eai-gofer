@@ -57,6 +57,17 @@ export class ClaudeCodeAutonomousResponder {
   }
 
   /**
+   * Strip ONLY ANSI escape codes (keep spinner characters for pattern matching)
+   */
+  private stripAnsiOnly(str: string): string {
+    // Remove ANSI escape codes: ESC[...m and similar patterns
+    let cleaned = str.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '');
+    // Remove ANSI cursor control: ESC[K (erase line), ESC[?25l/h (hide/show cursor), etc
+    cleaned = cleaned.replace(/\x1b\[[0-9;?]*[hlK]/g, '');
+    return cleaned.trim();
+  }
+
+  /**
    * Check if a line is likely a progress/spinner update
    */
   private isProgressLine(line: string): boolean {
@@ -161,13 +172,25 @@ export class ClaudeCodeAutonomousResponder {
     // ONLY CHECK: Is there a spinner? If yes, Claude Code is still working - NOT ready!
     // Note: The ">" prompt is always present, even when working, so we don't check for it
     const spinnerPatterns = [
-      /^[✳✶✻✽✢·⏺]\s+\w+ing…/i, // Matches "✶ Enchanting…", "✳ Flibbertigibbeting…", etc.
-      /^[✳✶✻✽✢·⏺]\s+\w+…/i, // Matches other spinner patterns
+      /^[✳✶✻✽✢·⏺]\s+[\w-]+ing…/i, // Matches "✶ Enchanting…", "Fiddle-faddling…", etc.
+      /^[✳✶✻✽✢·⏺]\s+[\w-]+…/i, // Matches other spinner patterns (including hyphens)
+      /^[·∴]\s+(Thinking|Generating|Processing)/i, // Matches "∴ Thinking…", "· Generating…"
     ];
-    const hasSpinner = lastLines.some((line) =>
-      spinnerPatterns.some((pattern) => pattern.test(line.trim()))
-    );
+
+    let spinnerLine: string | null = null;
+    const hasSpinner = lastLines.some((line) => {
+      const cleanLine = this.stripAnsiOnly(line); // Strip ANSI codes before testing
+      const matches = spinnerPatterns.some((pattern) => pattern.test(cleanLine));
+      if (matches) {
+        spinnerLine = cleanLine.substring(0, 80); // Save for debug logging
+      }
+      return matches;
+    });
+
     this.outputChannel.appendLine(`   ✓ Check - Has spinner (still working): ${hasSpinner}`);
+    if (spinnerLine) {
+      this.outputChannel.appendLine(`   ✓ Spinner line: "${spinnerLine}"`);
+    }
 
     if (hasSpinner) {
       this.outputChannel.appendLine('   ✗ Spinner detected - Claude Code still working\n');
@@ -337,9 +360,10 @@ Remember: Only provide an answer if Claude Code is actively waiting for user inp
       const answer = response.content[0].type === 'text' ? response.content[0].text : null;
 
       if (answer) {
-        if (answer.trim() === 'NO_QUESTION') {
+        // Check if Haiku determined there's no question (response starts with NO_QUESTION)
+        if (answer.trim().startsWith('NO_QUESTION')) {
           this.outputChannel.appendLine('   ℹ Haiku determined: No question needs answering\n');
-          return null;
+          return null; // Don't send anything to terminal
         }
 
         this.outputChannel.appendLine('\n✓ Haiku provided answer:');

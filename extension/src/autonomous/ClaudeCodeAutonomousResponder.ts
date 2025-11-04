@@ -32,6 +32,7 @@ export class ClaudeCodeAutonomousResponder {
   private lastBufferUpdateTime = 0; // Timestamp of last buffer content change
   private lastBufferSnapshot = ''; // Last buffer content for stability detection
   private readonly stabilityDelayMs = 10000; // 10 seconds stability required
+  private logFilePath: string | null = null; // Path to detailed log file
 
   constructor(
     private apiKey: string,
@@ -40,6 +41,40 @@ export class ClaudeCodeAutonomousResponder {
     this.outputChannel = outputChannel;
     if (apiKey) {
       this.anthropic = new Anthropic({ apiKey });
+    }
+  }
+
+  /**
+   * Initialize log file for detailed debugging
+   */
+  async initializeLogFile(workspacePath: string): Promise<void> {
+    const logDir = path.join(workspacePath, '.specify', 'logs');
+    await fs.mkdir(logDir, { recursive: true });
+
+    const timestamp = new Date().toISOString().replace(/:/g, '-').split('.')[0];
+    this.logFilePath = path.join(logDir, `autonomous-responder-${timestamp}.log`);
+
+    await this.writeLog('='.repeat(80));
+    await this.writeLog('AUTONOMOUS RESPONDER DEBUG LOG');
+    await this.writeLog(`Started: ${new Date().toISOString()}`);
+    await this.writeLog('='.repeat(80) + '\n');
+  }
+
+  /**
+   * Write detailed log entry to file
+   */
+  private async writeLog(message: string): Promise<void> {
+    if (!this.logFilePath) {
+      return;
+    }
+
+    try {
+      const timestamp = new Date().toISOString();
+      const logEntry = `[${timestamp}] ${message}\n`;
+      await fs.appendFile(this.logFilePath, logEntry, 'utf-8');
+    } catch (error) {
+      // Silently fail to avoid disrupting operation
+      console.error('Failed to write log:', error);
     }
   }
 
@@ -131,6 +166,9 @@ export class ClaudeCodeAutonomousResponder {
       this.terminalBuffer.shift();
     }
 
+    // Log new terminal line
+    this.writeLog(`TERMINAL: ${cleanLine.substring(0, 200)}`).catch(() => {});
+
     // Track in dedupe window
     this.recentLines.add(cleanLine);
 
@@ -169,6 +207,15 @@ export class ClaudeCodeAutonomousResponder {
       this.outputChannel.appendLine(`   [${i}] ${line.substring(0, 100)}`);
     });
 
+    // Log to file with full buffer context
+    this.writeLog('\n' + '='.repeat(80)).catch(() => {});
+    this.writeLog('QUESTION DETECTION STARTED').catch(() => {});
+    this.writeLog(`Buffer size: ${this.terminalBuffer.length} lines`).catch(() => {});
+    this.writeLog('\nLast 30 lines of terminal buffer:').catch(() => {});
+    lastLines.forEach((line, i) => {
+      this.writeLog(`  [${i}] ${this.stripAnsi(line)}`).catch(() => {});
+    });
+
     // ONLY CHECK: Is there a spinner? If yes, Claude Code is still working - NOT ready!
     // Note: The ">" prompt is always present, even when working, so we don't check for it
     const spinnerPatterns = [
@@ -192,14 +239,24 @@ export class ClaudeCodeAutonomousResponder {
       this.outputChannel.appendLine(`   ✓ Spinner line: "${spinnerLine}"`);
     }
 
+    this.writeLog(`\nSpinner check: ${hasSpinner}`).catch(() => {});
+    if (spinnerLine) {
+      this.writeLog(`Spinner line found: "${spinnerLine}"`).catch(() => {});
+    }
+
     if (hasSpinner) {
       this.outputChannel.appendLine('   ✗ Spinner detected - Claude Code still working\n');
+      this.writeLog('DECISION: Spinner detected - NOT asking Haiku (Claude Code still working)').catch(() => {});
+      this.writeLog('='.repeat(80)).catch(() => {});
       return { detected: false, question: '', context: '' };
     }
 
     // No spinner - Claude Code is idle, will ask Haiku to analyze if there's a question
     this.outputChannel.appendLine('   ✅ PRE-CHECK PASSED: No spinner detected\n');
     this.outputChannel.appendLine('   → Will ask Haiku to analyze context for question\n');
+
+    this.writeLog('DECISION: No spinner - will ask Haiku to analyze for question').catch(() => {});
+    this.writeLog(`Context length for Haiku: ${last20k.length} characters`).catch(() => {});
 
     return {
       detected: true,
@@ -345,6 +402,17 @@ Remember: Only provide an answer if Claude Code is actively waiting for user inp
 
       this.outputChannel.appendLine('🤔 Asking Claude 3.5 Haiku to analyze context...');
 
+      // Log full prompt details to file
+      await this.writeLog('\n' + '='.repeat(80));
+      await this.writeLog('HAIKU API CALL STARTED');
+      await this.writeLog('='.repeat(80));
+      await this.writeLog('\n--- SYSTEM PROMPT ---');
+      await this.writeLog(systemPrompt);
+      await this.writeLog('\n--- USER PROMPT ---');
+      await this.writeLog(userPrompt);
+      await this.writeLog('\n' + '='.repeat(80));
+      await this.writeLog('Sending to Claude 3.5 Haiku (model: claude-3-5-haiku-20241022)...');
+
       const response = await this.anthropic.messages.create({
         model: 'claude-3-5-haiku-20241022', // Claude 3.5 Haiku (latest version)
         max_tokens: 1024,
@@ -359,10 +427,16 @@ Remember: Only provide an answer if Claude Code is actively waiting for user inp
 
       const answer = response.content[0].type === 'text' ? response.content[0].text : null;
 
+      // Log Haiku's response
+      await this.writeLog('\n--- HAIKU RESPONSE ---');
+      await this.writeLog(answer || '(null response)');
+      await this.writeLog('='.repeat(80) + '\n');
+
       if (answer) {
         // Check if Haiku determined there's no question (response starts with NO_QUESTION)
         if (answer.trim().startsWith('NO_QUESTION')) {
           this.outputChannel.appendLine('   ℹ Haiku determined: No question needs answering\n');
+          await this.writeLog('DECISION: Haiku says NO_QUESTION - not sending response to terminal');
           return null; // Don't send anything to terminal
         }
 
@@ -370,6 +444,9 @@ Remember: Only provide an answer if Claude Code is actively waiting for user inp
         this.outputChannel.appendLine('─'.repeat(80));
         this.outputChannel.appendLine(answer);
         this.outputChannel.appendLine('─'.repeat(80) + '\n');
+
+        await this.writeLog('DECISION: Haiku provided answer - will send to terminal');
+        await this.writeLog(`Answer to send: ${answer}`);
       }
 
       return answer;

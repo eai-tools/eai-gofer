@@ -624,7 +624,9 @@ export async function launchClaudeCode(specId: string): Promise<void> {
 
     if (autonomousMode && apiKey) {
       autonomousResponder = new ClaudeCodeAutonomousResponder(apiKey, outputChannel);
+      await autonomousResponder.initializeLogFile(workspacePath);
       outputChannel.appendLine('   ✓ Autonomous responder initialized');
+      outputChannel.appendLine('   ✓ Debug logging enabled (check .specify/logs/)');
     }
 
     // Spawn Claude Code process with node-pty

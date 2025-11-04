@@ -2,9 +2,23 @@
 # Test VSIX Installation Script
 set -e
 
-VSIX_FILE="/Users/douglaswross/Code/specgofer/specgofer-3.0.17.vsix"
+# If VSIX file passed as argument, use it; otherwise find the latest one
+if [ -n "$1" ]; then
+    VSIX_FILE="$1"
+else
+    # Find the most recent VSIX file in the current directory
+    VSIX_FILE=$(ls -t specgofer-*.vsix 2>/dev/null | head -1)
+    if [ -z "$VSIX_FILE" ]; then
+        echo "❌ No VSIX file found!"
+        exit 1
+    fi
+    VSIX_FILE="/Users/douglaswross/Code/specgofer/$VSIX_FILE"
+fi
 
-echo "🔧 Installing SpecGofer v3.0.17..."
+# Extract version from filename
+VERSION=$(basename "$VSIX_FILE" | sed 's/specgofer-\(.*\)\.vsix/\1/')
+
+echo "🔧 Installing SpecGofer v$VERSION..."
 
 # Find the code command
 if command -v code &> /dev/null; then

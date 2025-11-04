@@ -47,7 +47,8 @@
       "Bash(seq:*)",
       "Bash(git restore:*)",
       "Bash(git reset:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(git merge:*)"
     ],
     "deny": [],
     "ask": []

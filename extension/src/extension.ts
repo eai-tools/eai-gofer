@@ -646,6 +646,13 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
       await pauseClaudeCode();
     })
   );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specgofer.resumeClaudeCode', async () => {
+      const { resumeClaudeCode } = await import('./autonomousCommands');
+      await resumeClaudeCode();
+    })
+  );
 }
 
 /**

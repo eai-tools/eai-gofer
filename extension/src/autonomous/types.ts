@@ -2,6 +2,8 @@
  * Type definitions for the Autonomous Claude Code Driver
  */
 
+import type { CompactionSummary } from './compaction';
+
 // ============================================================================
 // Session Management
 // ============================================================================
@@ -41,6 +43,7 @@ export interface AutonomousSession {
   // Context management
   tokenCount: number;
   contextSwitches: number;
+  compactionHistory: CompactionSummary[]; // T149: Store CompactionSummary in session history
 
   // History
   events: SessionEvent[];

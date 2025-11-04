@@ -242,7 +242,9 @@ export class ClaudeCodeAutonomousResponder {
       this.outputChannel.appendLine(`   ✓ Spinner line: "${spinnerLine}"`);
     }
 
-    this.writeLog(`\nChecking last ${recentLines.length} lines for ACTIVE spinner (not historical):`).catch(() => {});
+    this.writeLog(
+      `\nChecking last ${recentLines.length} lines for ACTIVE spinner (not historical):`
+    ).catch(() => {});
     recentLines.forEach((line, i) => {
       const actualIndex = lastLines.length - recentLines.length + i;
       this.writeLog(`  [${actualIndex}] ${this.stripAnsi(line).substring(0, 100)}`).catch(() => {});
@@ -256,7 +258,9 @@ export class ClaudeCodeAutonomousResponder {
 
     if (hasSpinner) {
       this.outputChannel.appendLine('   ✗ Spinner detected - Claude Code still working\n');
-      this.writeLog('DECISION: Spinner detected - NOT asking Haiku (Claude Code still working)').catch(() => {});
+      this.writeLog(
+        'DECISION: Spinner detected - NOT asking Haiku (Claude Code still working)'
+      ).catch(() => {});
       this.writeLog('='.repeat(80)).catch(() => {});
       return { detected: false, question: '', context: '' };
     }
@@ -347,40 +351,51 @@ export class ClaudeCodeAutonomousResponder {
       const fullContext = await this.loadContext(workspacePath, context.specId);
 
       // Build prompt for Claude
-      const systemPrompt = `You are an autonomous development assistant helping answer questions during feature implementation.
+      const systemPrompt = `You are an autonomous development assistant managing Claude Code's feature implementation workflow.
 
 You have access to:
 - The project constitution (principles and standards)
 - The feature specification
 - The implementation plan
 - The task list
-- The recent terminal output showing Claude Code's question
+- The recent terminal output from Claude Code
 
-Your job is to analyze the question in context and provide the appropriate answer.
+Your job is to analyze the terminal state and decide the NEXT ACTION to keep development moving forward.
 
-QUESTION TYPES AND RESPONSES:
+IMPORTANT: You are only called when Claude Code is IDLE (no spinner/working indicator). This means Claude has either:
+- Asked a question that needs answering, OR
+- Finished work and is waiting for the next direction
 
-1. MULTIPLE CHOICE (numbered options like "1. Option A" "2. Option B"):
-   - Analyze which option best aligns with the spec, plan, and constitution
-   - Respond with ONLY the number of your choice (e.g., "1")
-   - DO NOT add explanation or reasoning, just the number
+RESPONSE TYPES:
 
-2. TEXT INPUT (questions with "(esc)" prompt):
-   - Provide a FULL, CLEAR answer (2-4 sentences)
-   - Explain your reasoning based on the spec and plan
-   - Be specific about WHY you're making this decision
+1. ANSWER A QUESTION - If Claude Code is explicitly asking for input:
+   - MULTIPLE CHOICE: Respond with ONLY the number (e.g., "1")
+   - TEXT INPUT: Provide a clear 2-4 sentence answer with newline at end
+   - Example: "1" or "Yes, proceed with the test file. This aligns with task T016."
+
+2. CONTINUE IMPLEMENTATION - If no question asked, Claude finished work, tasks remain:
+   - Respond with: ACTION: CONTINUE_IMPLEMENT
+   - Use when: Completion < 70%, clear next tasks exist
+   - Sends: /speckit.implement
+
+3. ENGINEERING REVIEW - If no question asked, significant work done:
+   - Respond with: ACTION: ENGINEERING_REVIEW
+   - Use when: Completion 40-80%, good checkpoint to validate vs spec
+   - Sends: Prompt asking Claude to review implementation against specification
+
+4. PERFORMANCE REVIEW - If no question asked, feature mostly complete:
+   - Respond with: ACTION: PERFORMANCE_REVIEW
+   - Use when: Completion > 70%, core functionality done
+   - Sends: Prompt asking Claude for performance and architecture analysis
 
 DECISION PRINCIPLES:
-- Always align with the constitution principles
-- Follow the specification requirements
-- Choose options that help progress through tasks efficiently
-- Default to proceeding with implementation unless it clearly contradicts the spec
-- Make reasonable decisions without over-engineering
+- If there's a question, answer it first (takes priority)
+- Otherwise, decide next action based on completion percentage
+- Keep work moving forward efficiently
+- Reviews are checkpoints, not blockers - use them strategically
+- Always align with constitution, spec, and plan
 
-Example multiple choice response: "1"
-Example text input response: "Yes, proceed with creating the test file. The spec requires comprehensive test coverage and this aligns with task T016."
-
-The goal is to keep implementation moving forward efficiently.`;
+The goal is to autonomously drive feature completion with quality checks at appropriate milestones.`;
 
       const userPrompt = `# Recent Terminal Output (last 20,000 characters):
 ${context.terminalOutput}
@@ -399,16 +414,34 @@ ${fullContext.tasks || 'No tasks found'}
 
 ---
 
-INSTRUCTIONS:
-1. First, analyze the terminal output to determine if Claude Code is asking a question that requires a response.
-2. If there IS a question requiring an answer:
-   - Provide a clear, well-reasoned answer based on the constitution, specification, plan, and tasks
-   - Answer directly with the best answer
-   - Explain your reasoning in 2-4 sentences
-3. If there is NO question requiring an answer (e.g., just informational output, or already answered):
-   - Respond with exactly: NO_QUESTION
+ANALYZE THE TERMINAL AND DECIDE NEXT ACTION:
 
-Remember: Only provide an answer if Claude Code is actively waiting for user input on a decision.`;
+**Step 1: Check for Questions**
+Look for:
+- Numbered options like "1. Option A  2. Option B"
+- Questions with "Which...", "Please either:", "Should I..."
+- Input prompts asking for decisions
+
+If question found: Provide the answer (number only for multiple choice, clear text for open questions)
+
+**Step 2: If No Question, Decide Next Action**
+Claude Code has finished work and is idle at ">". Analyze:
+- Terminal shows summary of completed work?
+- What % of tasks are complete? (look for "X of Y tasks" or completion percentage)
+- What phase is the feature in? (early dev, mid-implementation, or polish phase)
+
+Then decide:
+- **Completion < 70% with clear next tasks**: ACTION: CONTINUE_IMPLEMENT
+- **Completion 40-80% after major milestone**: ACTION: ENGINEERING_REVIEW
+- **Completion > 70% with core features done**: ACTION: PERFORMANCE_REVIEW
+
+**Your response must be ONE of:**
+- A direct answer (number or text)
+- ACTION: CONTINUE_IMPLEMENT
+- ACTION: ENGINEERING_REVIEW
+- ACTION: PERFORMANCE_REVIEW
+
+Decide NOW:`;
 
       this.outputChannel.appendLine('🤔 Asking Claude 3.5 Haiku to analyze context...');
 
@@ -443,20 +476,61 @@ Remember: Only provide an answer if Claude Code is actively waiting for user inp
       await this.writeLog('='.repeat(80) + '\n');
 
       if (answer) {
-        // Check if Haiku determined there's no question (response starts with NO_QUESTION)
-        if (answer.trim().startsWith('NO_QUESTION')) {
-          this.outputChannel.appendLine('   ℹ Haiku determined: No question needs answering\n');
-          await this.writeLog('DECISION: Haiku says NO_QUESTION - not sending response to terminal');
-          return null; // Don't send anything to terminal
+        const trimmedAnswer = answer.trim();
+
+        // Check for ACTION commands (no question, deciding next step)
+        if (trimmedAnswer.startsWith('ACTION: CONTINUE_IMPLEMENT')) {
+          this.outputChannel.appendLine('   🚀 Haiku decided: Continue implementation\n');
+          this.outputChannel.appendLine('   → Sending /speckit.implement command...\n');
+          await this.writeLog('DECISION: CONTINUE_IMPLEMENT - sending /speckit.implement');
+          return '/speckit.implement\n';
         }
 
+        if (trimmedAnswer.startsWith('ACTION: ENGINEERING_REVIEW')) {
+          this.outputChannel.appendLine('   🔍 Haiku decided: Engineering review needed\n');
+          this.outputChannel.appendLine(
+            '   → Requesting review of implementation vs specification...\n'
+          );
+          await this.writeLog('DECISION: ENGINEERING_REVIEW - requesting code review');
+          const reviewPrompt = `Please perform an engineering review of the work completed so far:
+
+1. Compare the implemented code against the original specification
+2. Identify any gaps or deviations from the spec
+3. Check if the implementation aligns with the constitution principles
+4. Verify that completed tasks match their requirements in tasks.md
+
+Provide a brief summary of findings and recommendations for next steps.`;
+          return reviewPrompt;
+        }
+
+        if (trimmedAnswer.startsWith('ACTION: PERFORMANCE_REVIEW')) {
+          this.outputChannel.appendLine('   ⚡ Haiku decided: Performance review needed\n');
+          this.outputChannel.appendLine(
+            '   → Requesting architecture and performance analysis...\n'
+          );
+          await this.writeLog('DECISION: PERFORMANCE_REVIEW - requesting performance analysis');
+          const perfPrompt = `Please perform a performance and architecture analysis of the implementation:
+
+1. Review the code against current best practices for each technology used
+2. Identify potential performance bottlenecks or optimization opportunities
+3. Check for architectural patterns that could be improved
+4. Verify proper error handling and edge case coverage
+5. Suggest any improvements for maintainability and scalability
+
+Provide specific, actionable recommendations.`;
+          return perfPrompt;
+        }
+
+        // Otherwise it's a direct answer to a question
         this.outputChannel.appendLine('\n✓ Haiku provided answer:');
         this.outputChannel.appendLine('─'.repeat(80));
         this.outputChannel.appendLine(answer);
         this.outputChannel.appendLine('─'.repeat(80) + '\n');
 
-        await this.writeLog('DECISION: Haiku provided answer - will send to terminal');
+        await this.writeLog('DECISION: Haiku provided direct answer - will send to terminal');
         await this.writeLog(`Answer to send: ${answer}`);
+
+        return answer + '\n'; // Add newline to submit the answer
       }
 
       return answer;

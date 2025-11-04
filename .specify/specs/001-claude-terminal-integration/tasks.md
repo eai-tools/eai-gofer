@@ -2,35 +2,51 @@
 
 **Feature**: Claude Code Terminal Integration **Branch**:
 `001-claude-terminal-integration` **Generated**: 2025-11-03 **Last Updated**:
-2025-11-04 **Status**: MVP Complete + Proactive Decision-Making (v3.1.0)
+2025-11-04 **Status**: Complete (v3.2.0)
 
-## 🎉 Latest Release: v3.1.0 (2025-11-04)
+## 🎉 Latest Release: v3.2.0 (2025-11-04)
 
-**Major Feature**: **Proactive Autonomous Decision-Making**
+**Major Feature**: **Real-time Monitoring with Selective Interruption & Fully
+Configurable Haiku Prompts**
 
-The autonomous responder has been transformed from purely reactive (answering
-questions) to proactive (deciding next actions when Claude Code is idle):
+Building on v3.1.0's proactive decision-making, v3.2.0 adds intelligent
+real-time monitoring:
 
 **New Capabilities:**
 
-1. **CONTINUE_IMPLEMENT** - Automatically sends `/speckit.implement` when < 70%
-   complete
-2. **ENGINEERING_REVIEW** - Requests implementation review against spec when
-   40-80% complete
-3. **PERFORMANCE_REVIEW** - Requests architecture & performance analysis when >
-   70% complete
-4. **Question Answering** - Still answers explicit questions from Claude Code
+1. **Real-time Monitoring** - Haiku continuously monitors Claude Code even
+   during active work (spinner present)
+2. **Selective Interruption** - Only interrupts when Claude goes wrong
+   direction, otherwise observes silently
+3. **NO_INTERRUPT Action** - New response type allowing Haiku to observe without
+   interfering
+4. **Fixed Spinner Detection** - Multi-word patterns, Next indicators, improved
+   reliability
+5. **Fully Configurable Prompts** - All Haiku decision-making customizable via
+   VSCode settings
+
+**New VSCode Settings:**
+
+- `specGofer.autonomous.enableEngineeringReview`
+- `specGofer.autonomous.enablePerformanceReview`
+- `specGofer.autonomous.engineeringReviewMinCompletion`
+- `specGofer.autonomous.engineeringReviewMaxCompletion`
+- `specGofer.autonomous.performanceReviewMinCompletion`
+- `specGofer.autonomous.engineeringReviewPrompt`
+- `specGofer.autonomous.performanceReviewPrompt`
+- `specGofer.autonomous.haikuSystemPrompt`
+- `specGofer.autonomous.haikuUserPromptTemplate`
 
 **Implementation:**
 
-- System prompt (lines 350-394 in `ClaudeCodeAutonomousResponder.ts`)
-- User prompt with completion-based decision logic (lines 396-440)
-- Action execution handlers (lines 474-531)
-- Haiku analyzes terminal state, constitution, spec, plan, and tasks to decide
-  next action
+- Enhanced spinner detection with multi-word patterns (lines 180-210 in
+  `ClaudeCodeAutonomousResponder.ts`)
+- NO_INTERRUPT action support (lines 474-531)
+- Configurable prompts loaded from VSCode settings (lines 350-440)
+- Real-time monitoring with selective interruption logic
 
-**Impact**: SpecGofer now autonomously drives Claude Code to feature completion
-with strategic quality checkpoints, not just answering questions reactively.
+**Impact**: SpecGofer now intelligently observes Claude Code in real-time, only
+intervening when necessary, with full control over decision-making prompts.
 
 ---
 
@@ -438,15 +454,15 @@ parallel before implementation, following TDD principles per the constitution.
 - **User Story 4 Tasks**: 13 (3 tests, 10 implementation)
 - **Polish Tasks**: 8
 
-### Actual Implementation (as of 2025-11-04 - v3.1.0)
+### Actual Implementation (as of 2025-11-04 - v3.2.0)
 
 - **Completed Tasks**: 35 tasks (45%) - includes T013 (unit test), T026a (pause
-  button), T074 (README), T075 (error handling), plus **v3.1.0 proactive
-  decision-making feature**
+  button), T074 (README), T075 (error handling), plus **v3.2.0 real-time
+  monitoring with selective interruption**
 - **Skipped/Deferred Tasks**: 42 tasks (54%) - intentionally deferred (WhatsApp,
   learning, git management)
 - **TODO Tasks**: 4 tests + 2 polish tasks (1%)
-- **Feature Status**: ✅ **MVP Complete + Proactive AI released (v3.1.0)**
+- **Feature Status**: ✅ **Complete - Real-time monitoring released (v3.2.0)**
 
 ### Remaining Test Work
 
@@ -479,13 +495,17 @@ refactoring to match actual class constructor and method signatures.
 **Note:** The core feature is fully functional and released. Test work can be
 completed in follow-up iterations without blocking feature usage.
 
-### What Works (v3.1.0)
+### What Works (v3.2.0)
 
 ✅ Claude Code launches in VSCode terminal with PTY backend ✅ Terminal output
-is captured and monitored in real-time ✅ Spinner/idle state detection (Claude
-working vs. idle) ✅ Claude 3.5 Haiku provides autonomous responses with full
-context (constitution, spec, plan, tasks) ✅ **Proactive Decision-Making** -
-Haiku decides next action when Claude is idle:
+is captured and monitored in real-time ✅ **Enhanced Spinner Detection** -
+Multi-word patterns, Next indicators ✅ Claude 3.5 Haiku provides autonomous
+responses with full context (constitution, spec, plan, tasks) ✅ **Real-time
+Monitoring** - Haiku continuously observes even during active work ✅
+**Selective Interruption** - Only intervenes when Claude goes wrong direction ✅
+**NO_INTERRUPT Action** - Haiku can observe without interfering ✅ **Fully
+Configurable Prompts** - All decision-making customizable via VSCode settings ✅
+**Proactive Decision-Making** - Haiku decides next action when Claude is idle:
 
 - CONTINUE_IMPLEMENT (< 70% complete)
 - ENGINEERING_REVIEW (40-80% complete)
@@ -493,7 +513,7 @@ Haiku decides next action when Claude is idle:
   Code questions ✅ Responses automatically sent back to Claude Code via PTY ✅
   Comprehensive logging to output channel and debug log files ✅ Play/Pause/Stop
   button state management (pause sends ESC signal) ✅ Released and deployed via
-  GitHub Pages (v3.1.0)
+  GitHub Pages (v3.2.0)
 
 ### What's Missing
 

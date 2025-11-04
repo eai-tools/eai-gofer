@@ -142,7 +142,7 @@ export class ClaudeCodeAutonomousResponder {
 
   /**
    * Check if recent terminal output contains a question waiting for input
-   * Simple approach: No spinner + prompt present = ask Haiku to analyze
+   * Simple approach: No spinner = Claude Code idle, ask Haiku to analyze
    */
   detectQuestion(): { detected: boolean; question: string; context: string } {
     const fullContext = this.terminalBuffer.join('\n');
@@ -158,7 +158,8 @@ export class ClaudeCodeAutonomousResponder {
       this.outputChannel.appendLine(`   [${i}] ${line.substring(0, 100)}`);
     });
 
-    // Check 1: Is there a spinner? If yes, Claude Code is still working - NOT ready!
+    // ONLY CHECK: Is there a spinner? If yes, Claude Code is still working - NOT ready!
+    // Note: The ">" prompt is always present, even when working, so we don't check for it
     const spinnerPatterns = [
       /^[✳✶✻✽✢·⏺]\s+\w+ing…/i, // Matches "✶ Enchanting…", "✳ Flibbertigibbeting…", etc.
       /^[✳✶✻✽✢·⏺]\s+\w+…/i, // Matches other spinner patterns
@@ -166,27 +167,15 @@ export class ClaudeCodeAutonomousResponder {
     const hasSpinner = lastLines.some((line) =>
       spinnerPatterns.some((pattern) => pattern.test(line.trim()))
     );
-    this.outputChannel.appendLine(`   ✓ Check 1 - Has spinner (still working): ${hasSpinner}`);
+    this.outputChannel.appendLine(`   ✓ Check - Has spinner (still working): ${hasSpinner}`);
 
     if (hasSpinner) {
       this.outputChannel.appendLine('   ✗ Spinner detected - Claude Code still working\n');
       return { detected: false, question: '', context: '' };
     }
 
-    // Check 2: Is there a ">" prompt line?
-    const hasPrompt = lastLines.some((line) => {
-      const trimmed = line.trim();
-      return trimmed === '>' || trimmed.startsWith('> ');
-    });
-    this.outputChannel.appendLine(`   ✓ Check 2 - Has ">" prompt: ${hasPrompt}`);
-
-    if (!hasPrompt) {
-      this.outputChannel.appendLine('   ✗ No ">" prompt found\n');
-      return { detected: false, question: '', context: '' };
-    }
-
-    // Checks passed - will ask Haiku to analyze if there's a question
-    this.outputChannel.appendLine('   ✅ PRE-CHECK PASSED: No spinner + prompt present\n');
+    // No spinner - Claude Code is idle, will ask Haiku to analyze if there's a question
+    this.outputChannel.appendLine('   ✅ PRE-CHECK PASSED: No spinner detected\n');
     this.outputChannel.appendLine('   → Will ask Haiku to analyze context for question\n');
 
     return {

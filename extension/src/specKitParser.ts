@@ -14,7 +14,7 @@ import * as path from 'path';
 import * as yaml from 'yaml';
 
 export interface Spec {
-  id: string;                    // "001-login-feature"
+  id: string; // "001-login-feature"
   title: string;
   description: string;
   status: SpecStatus;
@@ -23,18 +23,18 @@ export interface Spec {
   author?: string;
   tasks: Task[];
   plan?: TechnicalPlan;
-  dependencies: string[];        // Spec IDs this depends on
+  dependencies: string[]; // Spec IDs this depends on
 }
 
 export type SpecStatus = 'draft' | 'ready' | 'in_progress' | 'completed' | 'blocked';
 
 export interface Task {
-  id: string;                    // "T001", "T002", etc.
+  id: string; // "T001", "T002", etc.
   description: string;
   status: TaskStatus;
-  dependencies: string[];        // Task IDs this depends on
-  parallel: boolean;             // [P] marker = can run in parallel
-  estimated?: string;            // "2 hours", "1 day", etc.
+  dependencies: string[]; // Task IDs this depends on
+  parallel: boolean; // [P] marker = can run in parallel
+  estimated?: string; // "2 hours", "1 day", etc.
   attempts: number;
   error?: string;
   completedAt?: Date;
@@ -51,19 +51,29 @@ export interface TechnicalPlan {
 }
 
 export interface YAMLFrontmatter {
-  feature: string;
+  // Modern format (preferred)
+  id?: string;
+  title?: string;
   status: string;
   created: string;
   updated: string;
-  author?: string;
+  priority?: string;
+  assignee?: string;
   dependencies?: string[];
+
+  // Legacy format (for backward compatibility)
+  feature?: string;
+  author?: string;
 }
 
 /**
  * SpecKitParser - Parses GitHub Spec Kit format
  */
 export class SpecKitParser {
-  constructor(private workspacePath: string, private branchSpecManager?: any) {}
+  constructor(
+    private workspacePath: string,
+    private branchSpecManager?: any
+  ) {}
 
   /**
    * Load all specs from .specify/specs/ directory
@@ -80,9 +90,7 @@ export class SpecKitParser {
       const specsDir = path.join(this.workspacePath, '.specify', 'specs');
       try {
         const entries = await fs.readdir(specsDir, { withFileTypes: true });
-        specsDirs = entries
-          .filter((e) => e.isDirectory())
-          .map((e) => path.join(specsDir, e.name));
+        specsDirs = entries.filter((e) => e.isDirectory()).map((e) => path.join(specsDir, e.name));
       } catch (error) {
         console.error('Failed to read specs directory:', error);
         return [];
@@ -111,12 +119,16 @@ export class SpecKitParser {
   private validateSpecId(specId: string): void {
     // Check for path traversal attempts
     if (specId.includes('..') || specId.includes('/') || specId.includes('\\')) {
-      throw new Error(`Invalid spec ID: ${specId}. Spec IDs cannot contain path traversal characters.`);
+      throw new Error(
+        `Invalid spec ID: ${specId}. Spec IDs cannot contain path traversal characters.`
+      );
     }
 
     // Check for valid characters (alphanumeric, hyphens, underscores)
     if (!/^[a-zA-Z0-9_-]+$/.test(specId)) {
-      throw new Error(`Invalid spec ID: ${specId}. Spec IDs can only contain alphanumeric characters, hyphens, and underscores.`);
+      throw new Error(
+        `Invalid spec ID: ${specId}. Spec IDs can only contain alphanumeric characters, hyphens, and underscores.`
+      );
     }
 
     // Check length
@@ -173,12 +185,13 @@ export class SpecKitParser {
 
     return {
       id: specId,
-      title: frontmatter.feature || specId,
+      // Prefer modern format (title), fallback to legacy (feature), then specId
+      title: frontmatter.title || frontmatter.feature || specId,
       description: content,
       status: this.parseSpecStatus(frontmatter.status),
       created: new Date(frontmatter.created),
       updated: new Date(frontmatter.updated),
-      author: frontmatter.author,
+      author: frontmatter.author || frontmatter.assignee,
       tasks,
       plan,
       dependencies: frontmatter.dependencies || [],
@@ -187,7 +200,7 @@ export class SpecKitParser {
 
   /**
    * Parse header metadata from official GitHub Spec Kit format
-   * 
+   *
    * Example:
    * # Feature Specification: My Feature
    * Feature Branch: `001-my-feature`
@@ -210,7 +223,7 @@ export class SpecKitParser {
     // Parse metadata lines
     for (let i = 1; i < lines.length; i++) {
       const line = lines[i].trim();
-      
+
       if (!line) {
         contentStartIndex = i + 1;
         break;
@@ -260,7 +273,7 @@ export class SpecKitParser {
     if (!match) {
       // Try to parse as official GitHub Spec Kit format
       const { metadata, content: bodyContent } = this.parseSpecHeader(content);
-      
+
       // Convert to legacy format for compatibility
       const frontmatter: YAMLFrontmatter = {
         feature: metadata.title || 'Unknown Feature',
@@ -268,7 +281,7 @@ export class SpecKitParser {
         created: metadata.created || new Date().toISOString(),
         updated: metadata.created || new Date().toISOString(),
         author: undefined,
-        dependencies: []
+        dependencies: [],
       };
 
       return { frontmatter, content: bodyContent };
@@ -363,7 +376,7 @@ export class SpecKitParser {
         continue;
       }
 
-      // Match task line with #N prefix: - [ ] #1 Description  
+      // Match task line with #N prefix: - [ ] #1 Description
       taskMatch = line.match(/^-\s+\[([x ])\]\s+#(\d+)\s+(.+)$/);
       if (taskMatch) {
         // Save previous task if exists
@@ -448,7 +461,9 @@ export class SpecKitParser {
 
     // Tech Stack
     if (sections['Tech Stack'] || sections['Technology Stack']) {
-      plan.techStack = this.extractListItems(sections['Tech Stack'] || sections['Technology Stack']);
+      plan.techStack = this.extractListItems(
+        sections['Tech Stack'] || sections['Technology Stack']
+      );
     }
 
     // Architecture

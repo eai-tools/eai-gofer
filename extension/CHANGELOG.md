@@ -2,6 +2,12 @@
 
 All notable changes to the SpecGofer extension will be documented in this file.
 
+## [3.6.0] - 2025-11-05
+
+chore: pre-release changes
+
+Auto-committed changes before release v3.5.0
+
 ## [3.5.0] - 2025-11-05
 
 Add dual-mode monitoring: fast idle detection (10s) + comprehensive checks (60s) with question-focused prompts

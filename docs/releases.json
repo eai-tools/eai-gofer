@@ -1,8 +1,17 @@
 {
-  "latest_version": "3.0.42",
+  "latest_version": "3.1.0",
   "repository": "eai-tools/specgofer",
-  "last_updated": "2025-11-04T02:59:50.415Z",
+  "last_updated": "2025-11-04T05:02:51.438Z",
   "releases": [
+    {
+      "version": "3.1.0",
+      "tag_name": "v3.1.0",
+      "published_at": "2025-11-04T05:02:51.437Z",
+      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-3.1.0.vsix",
+      "notes": "Add proactive autonomous decision-making - Haiku now decides next actions (continue, engineering review, performance review)",
+      "prerelease": false,
+      "size_mb": 15
+    },
     {
       "version": "3.0.42",
       "tag_name": "v3.0.42",
@@ -81,15 +90,6 @@
       "published_at": "2025-11-03T23:28:04.811Z",
       "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-3.0.34.vsix",
       "notes": "Fixed: Question Detection When Spinners Appear After Question Text\n\nChanged from lastLineIsQuestion (checking only the absolute last line) to recentLineHasQuestion (checking any of the last 5 lines). This handles cases where Claude Code shows spinners like \"✳ Flibbertigibbeting…\" after the question text, which was preventing detection because the spinner became the last line. Now all three patterns (multiple-choice, yes-no, list selection) check if ANY recent line ends with '?', not just the last line.",
-      "prerelease": false,
-      "size_mb": 15
-    },
-    {
-      "version": "3.0.33",
-      "tag_name": "v3.0.33",
-      "published_at": "2025-11-03T23:24:11.896Z",
-      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-3.0.33.vsix",
-      "notes": "Fixed: Extended Question Detection to All Patterns\n\nApplied the lastLineIsQuestion fix to Pattern 3 (yes-no) and Pattern 4 (list selection) in addition to Pattern 2 (multiple-choice). All three patterns now recognize questions where the question text ending with '?' is the last line, without requiring an explicit '>' prompt to be present.",
       "prerelease": false,
       "size_mb": 15
     }

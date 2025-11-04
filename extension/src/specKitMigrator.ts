@@ -198,6 +198,10 @@ export class SpecKitMigrator {
         console.log('[SpecKit] Creating README...');
         await this.createReadme();
 
+        progress.report({ message: 'Updating .gitignore...' });
+        console.log('[SpecKit] Updating .gitignore with state files...');
+        await this.updateGitignore();
+
         console.log('[SpecKit] Installation complete!');
       }
     );
@@ -319,7 +323,8 @@ export class SpecKitMigrator {
       console.error('Failed to install spec-kit CLI:', error);
 
       // Determine if this was user cancellation or actual error
-      const isUserCancellation = error.message?.includes('User declined') || error.message?.includes('Using fallback');
+      const isUserCancellation =
+        error.message?.includes('User declined') || error.message?.includes('Using fallback');
 
       if (isUserCancellation) {
         vscode.window.showInformationMessage(
@@ -398,6 +403,10 @@ export class SpecKitMigrator {
         progress.report({ message: 'Checking Claude commands format...' });
         console.log('[SpecKit Update] Ensuring speckit.tasks includes issues generation...');
         await this.fixClaudeCommands();
+
+        progress.report({ message: 'Updating .gitignore...' });
+        console.log('[SpecKit Update] Updating .gitignore with state files...');
+        await this.updateGitignore();
 
         console.log('[SpecKit Update] Update complete!');
       }
@@ -530,6 +539,10 @@ export class SpecKitMigrator {
     console.log('[SpecKit Fallback] Creating README...');
     await this.createReadme();
 
+    // Update .gitignore
+    console.log('[SpecKit Fallback] Updating .gitignore...');
+    await this.updateGitignore();
+
     console.log('[SpecKit Fallback] Manual setup complete!');
   }
 
@@ -592,7 +605,7 @@ export class SpecKitMigrator {
       if (!uvPath) {
         throw new Error(
           'UV installed but not found. Please restart VSCode to refresh PATH, or add to your shell profile:\n' +
-          `  export PATH="$HOME/.cargo/bin:$PATH"`
+            `  export PATH="$HOME/.cargo/bin:$PATH"`
         );
       }
 
@@ -601,7 +614,9 @@ export class SpecKitMigrator {
       return uvPath;
     } catch (error: any) {
       console.error('Failed to install UV:', error);
-      throw new Error(`Installation failed: ${error.message}. You can install UV manually from https://docs.astral.sh/uv/`);
+      throw new Error(
+        `Installation failed: ${error.message}. You can install UV manually from https://docs.astral.sh/uv/`
+      );
     }
   }
 
@@ -1488,6 +1503,77 @@ See the extension documentation for more details.
 `;
 
     await fs.writeFile(path.join(this.specifyPath, 'README.md'), readme);
+  }
+
+  /**
+   * Update .gitignore to exclude SpecGofer state files
+   * Adds entries for dependency-graph.json and .branch-info.json
+   */
+  private async updateGitignore(): Promise<void> {
+    try {
+      console.log('[updateGitignore] Starting...');
+
+      const gitignorePath = path.join(this.workspacePath, '.gitignore');
+
+      // Entries to add
+      const entriesToAdd = [
+        '',
+        '# SpecGofer state files (auto-generated, should not be committed)',
+        '.specify/memory/dependency-graph.json',
+        '.specify/specs/*/.branch-info.json',
+      ];
+
+      // Read existing .gitignore or create empty content
+      let gitignoreContent = '';
+      try {
+        gitignoreContent = await fs.readFile(gitignorePath, 'utf-8');
+        console.log('[updateGitignore] Found existing .gitignore');
+      } catch {
+        console.log('[updateGitignore] No .gitignore found, creating new one');
+      }
+
+      // Check if entries already exist
+      const hasDependencyGraph = gitignoreContent.includes('dependency-graph.json');
+      const hasBranchInfo = gitignoreContent.includes('.branch-info.json');
+
+      if (hasDependencyGraph && hasBranchInfo) {
+        console.log('[updateGitignore] .gitignore already contains SpecGofer state file entries');
+        return;
+      }
+
+      // Add entries if they don't exist
+      let updatedContent = gitignoreContent;
+
+      if (!hasDependencyGraph || !hasBranchInfo) {
+        // Ensure file ends with newline before adding
+        if (updatedContent.length > 0 && !updatedContent.endsWith('\n')) {
+          updatedContent += '\n';
+        }
+
+        // Add section header if not already present
+        if (!updatedContent.includes('# SpecGofer state files')) {
+          updatedContent += entriesToAdd.join('\n') + '\n';
+          console.log('[updateGitignore] Added SpecGofer state file entries');
+        } else {
+          // Add individual missing entries
+          if (!hasDependencyGraph) {
+            updatedContent += '.specify/memory/dependency-graph.json\n';
+            console.log('[updateGitignore] Added dependency-graph.json entry');
+          }
+          if (!hasBranchInfo) {
+            updatedContent += '.specify/specs/*/.branch-info.json\n';
+            console.log('[updateGitignore] Added .branch-info.json entry');
+          }
+        }
+
+        // Write back to file
+        await fs.writeFile(gitignorePath, updatedContent);
+        console.log('[updateGitignore] Successfully updated .gitignore');
+      }
+    } catch (error) {
+      console.error('[updateGitignore] Failed to update .gitignore:', error);
+      // Don't throw - this is not critical
+    }
   }
 
   /**

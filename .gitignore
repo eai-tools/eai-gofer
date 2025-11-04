@@ -63,3 +63,7 @@ extension/out/
 # Autonomous driver state
 .specify/state/sessions/
 .specify/state/logs/
+
+# SpecGofer state files (auto-generated, should not be committed)
+.specify/memory/dependency-graph.json
+.specify/specs/*/.branch-info.json

@@ -509,6 +509,70 @@
           "default": true,
           "description": "Validate implementation against constitution principles",
           "markdownDescription": "Whether to validate implementation against the project's constitutional principles.\n\n- `true`: Ensure compliance with constitution (recommended)\n- `false`: Skip constitution validation"
+        },
+        "specGofer.autonomous.enableEngineeringReview": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable proactive engineering reviews during implementation",
+          "markdownDescription": "When enabled, Haiku will proactively request engineering reviews at strategic milestones (typically 40-80% completion).\n\n- `true`: Enable strategic reviews (recommended)\n- `false`: Disable reviews (faster, but may miss issues early)"
+        },
+        "specGofer.autonomous.enablePerformanceReview": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable proactive performance reviews during implementation",
+          "markdownDescription": "When enabled, Haiku will proactively request performance and architecture reviews near completion (typically >70% completion).\n\n- `true`: Enable performance reviews (recommended)\n- `false`: Disable reviews (faster, but may miss optimizations)"
+        },
+        "specGofer.autonomous.engineeringReviewMinCompletion": {
+          "type": "number",
+          "default": 40,
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Minimum completion % to trigger engineering review",
+          "markdownDescription": "Engineering reviews will only be triggered when completion is at least this percentage.\n\n**Default**: 40% (early enough to catch issues)\n\n**Range**: 0-100%"
+        },
+        "specGofer.autonomous.engineeringReviewMaxCompletion": {
+          "type": "number",
+          "default": 80,
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Maximum completion % to trigger engineering review",
+          "markdownDescription": "Engineering reviews will only be triggered when completion is below this percentage.\n\n**Default**: 80% (before polish phase)\n\n**Range**: 0-100%"
+        },
+        "specGofer.autonomous.performanceReviewMinCompletion": {
+          "type": "number",
+          "default": 70,
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Minimum completion % to trigger performance review",
+          "markdownDescription": "Performance reviews will only be triggered when completion is at least this percentage.\n\n**Default**: 70% (when core features are done)\n\n**Range**: 0-100%"
+        },
+        "specGofer.autonomous.engineeringReviewPrompt": {
+          "type": "string",
+          "default": "Please perform an engineering review of the work completed so far:\n\n1. Compare the implemented code against the original specification\n2. Identify any gaps or deviations from the spec\n3. Check if the implementation aligns with the constitution principles\n4. Verify that completed tasks match their requirements in tasks.md\n\nProvide a brief summary of findings and recommendations for next steps.",
+          "description": "Custom prompt for engineering reviews",
+          "markdownDescription": "The prompt sent to Claude Code when requesting an engineering review.\n\n**Default**: Asks Claude to compare implementation vs spec, identify gaps, check constitution alignment, and verify task completion.\n\n**Tip**: You can customize this to focus on specific aspects of your project (e.g., security, accessibility, API design).",
+          "editPresentation": "multilineText"
+        },
+        "specGofer.autonomous.performanceReviewPrompt": {
+          "type": "string",
+          "default": "Please perform a performance and architecture analysis of the implementation:\n\n1. Review the code against current best practices for each technology used\n2. Identify potential performance bottlenecks or optimization opportunities\n3. Check for architectural patterns that could be improved\n4. Verify proper error handling and edge case coverage\n5. Suggest any improvements for maintainability and scalability\n\nProvide specific, actionable recommendations.",
+          "description": "Custom prompt for performance reviews",
+          "markdownDescription": "The prompt sent to Claude Code when requesting a performance review.\n\n**Default**: Asks Claude to review best practices, identify bottlenecks, check architecture, verify error handling, and suggest improvements.\n\n**Tip**: You can customize this to focus on specific aspects (e.g., database queries, API performance, memory usage).",
+          "editPresentation": "multilineText"
+        },
+        "specGofer.autonomous.haikuSystemPrompt": {
+          "type": "string",
+          "default": "",
+          "description": "Custom system prompt for Haiku's decision-making (leave empty for default)",
+          "markdownDescription": "Advanced: Customize the system prompt that instructs Haiku on how to make decisions.\n\n**Default**: Uses built-in prompt that instructs Haiku to monitor Claude Code, evaluate against spec/plan/tasks/constitution, and decide when to interrupt.\n\n**Leave empty to use default**. Only customize if you want to change Haiku's decision-making behavior.\n\n**Warning**: Incorrect prompts may cause Haiku to make poor decisions.",
+          "editPresentation": "multilineText"
+        },
+        "specGofer.autonomous.haikuUserPromptTemplate": {
+          "type": "string",
+          "default": "",
+          "description": "Custom user prompt template for Haiku (leave empty for default)",
+          "markdownDescription": "Advanced: Customize the user prompt template that provides context to Haiku.\n\n**Default**: Includes terminal output, constitution, spec, plan, and tasks.\n\n**Available variables**: `{terminalOutput}`, `{constitution}`, `{spec}`, `{plan}`, `{tasks}`, `{workState}`\n\n**Leave empty to use default**. Only customize if you need different context formatting.\n\n**Warning**: Incorrect templates may cause Haiku to miss important context.",
+          "editPresentation": "multilineText"
         }
       }
     }

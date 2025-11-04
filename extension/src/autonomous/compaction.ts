@@ -73,7 +73,7 @@ export interface Session {
   specId: string;
 
   /** Current session status */
-  status: 'active' | 'paused' | 'completed' | 'failed';
+  status: 'active' | 'paused' | 'completed' | 'failed' | 'cancelled';
 
   /** Current task ID */
   currentTask: string | null;

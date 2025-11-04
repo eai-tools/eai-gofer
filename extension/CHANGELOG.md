@@ -22,24 +22,16 @@ Auto-committed changes before release v3.0.34
 
 ## [Unreleased]
 
-### Fixed
-
-- **Corrected spinner detection logic** - Fixed question detection to treat
-  spinner presence as a negative signal. When spinners like "✶ Enchanting…" or
-  "✳ Flibbertigibbeting…" are present, Claude Code is still working and NOT
-  ready for input, so detection now returns false immediately. Only detects
-  questions when buffer is stable (10s), has question mark, has `>` prompt, and
-  NO spinner is present. (ClaudeCodeAutonomousResponder.ts:185-219)
-
 ### Changed
 
-- **Simplified question detection with stability-based approach** - Completely
-  rewrote question detection to use a stability-based approach instead of
-  complex pattern matching. Now waits for buffer to be stable for 10 seconds,
-  then checks for: (1) question mark in recent lines, (2) buffer stable for 10s,
-  (3) NO spinner pattern (spinner means still working), (4) `>` prompt present.
-  This is much more reliable than trying to match all different question
-  patterns. (ClaudeCodeAutonomousResponder.ts:32-34, 135-221)
+- **Haiku-powered question analysis** - Completely rewrote question detection to
+  use a two-phase approach: (1) Pre-check: No spinner + `>` prompt present in
+  last 30 lines, (2) Haiku analysis: Ask Claude 3.5 Haiku to analyze the last
+  20k characters and determine if there's actually a question requiring an
+  answer. Haiku responds with either an answer or "NO_QUESTION". Removed
+  unreliable buffer stability checking. This approach is much simpler and more
+  accurate than pattern matching. (ClaudeCodeAutonomousResponder.ts:143-197,
+  306-362)
 
 - **Increased context window for Haiku** - Changed from 10,000 to 20,000
   characters of terminal context sent to Claude 3.5 Haiku for answering

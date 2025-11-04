@@ -107,8 +107,8 @@ describe('ClaudeClient', () => {
       await client.sendMessage('test');
       const duration = Date.now() - startTime;
 
-      // Should have waited at least 2 seconds
-      expect(duration).toBeGreaterThanOrEqual(2000);
+      // Should have waited at least 2 seconds (allowing 10ms tolerance for timing precision)
+      expect(duration).toBeGreaterThanOrEqual(1990);
     });
   });
 

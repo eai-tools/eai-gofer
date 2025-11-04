@@ -2,6 +2,10 @@
 
 All notable changes to the SpecGofer extension will be documented in this file.
 
+## [3.1.0] - 2025-11-04
+
+Add proactive autonomous decision-making - Haiku now decides next actions (continue, engineering review, performance review)
+
 ## [3.0.42] - 2025-11-04
 
 chore: pre-release changes

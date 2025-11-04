@@ -2,6 +2,10 @@
 
 All notable changes to the SpecGofer extension will be documented in this file.
 
+## [3.2.4] - 2025-11-05
+
+Reduce autonomous monitoring frequency and add pause/resume controls
+
 ## [3.2.3] - 2025-11-05
 
 reduce autonomous monitoring frequency and add pause/resume controls

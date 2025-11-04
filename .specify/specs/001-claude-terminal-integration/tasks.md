@@ -507,13 +507,14 @@ Monitoring** - Haiku continuously observes even during active work ✅
 Configurable Prompts** - All decision-making customizable via VSCode settings ✅
 **Proactive Decision-Making** - Haiku decides next action when Claude is idle:
 
-- CONTINUE_IMPLEMENT (< 70% complete)
-- ENGINEERING_REVIEW (40-80% complete)
-- PERFORMANCE_REVIEW (> 70% complete) ✅ Question answering for explicit Claude
-  Code questions ✅ Responses automatically sent back to Claude Code via PTY ✅
-  Comprehensive logging to output channel and debug log files ✅ Play/Pause/Stop
-  button state management (pause sends ESC signal) ✅ Released and deployed via
-  GitHub Pages (v3.2.0)
+- CONTINUE_IMPLEMENT
+- ENGINEERING_REVIEW
+- PERFORMANCE_REVIEW
+- TESTING_REVIEW
+- OTHER ✅ Question answering for explicit Claude Code questions ✅ Responses
+  automatically sent back to Claude Code via PTY ✅ Comprehensive logging to
+  output channel and debug log files ✅ Play/Pause/Stop button state management
+  (pause sends ESC signal) ✅ Released and deployed via GitHub Pages (v3.2.0)
 
 ### What's Missing
 

@@ -64,6 +64,7 @@ question handling:
 #### Commands
 
 - `SpecGofer: Start Claude Code Terminal` - Launch autonomous execution
+- `SpecGofer: Pause Claude Code Terminal` - Send ESC signal to pause execution
 - `SpecGofer: Stop Claude Code Terminal` - Stop current session
 - `SpecGofer: Configure WhatsApp Integration` - Setup WhatsApp notifications
 - `SpecGofer: Test WhatsApp Connection` - Verify Twilio configuration

@@ -963,6 +963,31 @@ function stopAutonomousMonitoring(): void {
 }
 
 /**
+ * Pause Claude Code terminal by sending ESC
+ */
+export async function pauseClaudeCode(): Promise<void> {
+  if (!ptyProcess) {
+    vscode.window.showWarningMessage('No Claude Code terminal is currently running');
+    return;
+  }
+
+  if (!outputChannel) {
+    outputChannel = vscode.window.createOutputChannel('SpecGofer-ClaudeCode');
+  }
+
+  try {
+    // Send ESC character to the terminal (ASCII 27 / 0x1B)
+    ptyProcess.write('\x1B');
+    outputChannel.appendLine('[PAUSE] Sent ESC signal to Claude Code terminal');
+    vscode.window.showInformationMessage('Sent ESC to Claude Code (pause signal)');
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    outputChannel.appendLine(`[ERROR] Failed to send pause signal: ${errorMsg}`);
+    vscode.window.showErrorMessage(`Failed to pause Claude Code: ${errorMsg}`);
+  }
+}
+
+/**
  * Stop Claude Code terminal
  */
 export async function stopClaudeCode(): Promise<void> {

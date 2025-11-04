@@ -2,6 +2,12 @@
 
 All notable changes to the SpecGofer extension will be documented in this file.
 
+## [3.0.42] - 2025-11-04
+
+chore: pre-release changes
+
+Auto-committed changes before release v3.0.41
+
 ## [3.0.41] - 2025-11-04
 
 chore: pre-release changes

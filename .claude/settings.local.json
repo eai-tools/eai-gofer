@@ -58,7 +58,8 @@
       "Bash(then echo \"=== $dir ===\")",
       "Bash(head:*)",
       "Bash(done)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(git log:*)"
     ],
     "deny": [],
     "ask": []

@@ -562,16 +562,16 @@
         },
         "specGofer.autonomous.haikuSystemPrompt": {
           "type": "string",
-          "default": "",
-          "description": "Custom system prompt for Haiku's decision-making (leave empty for default)",
-          "markdownDescription": "Advanced: Customize the system prompt that instructs Haiku on how to make decisions.\n\n**Default**: Uses built-in prompt that instructs Haiku to monitor Claude Code, evaluate against spec/plan/tasks/constitution, and decide when to interrupt.\n\n**Leave empty to use default**. Only customize if you want to change Haiku's decision-making behavior.\n\n**Warning**: Incorrect prompts may cause Haiku to make poor decisions.",
+          "default": "You are an autonomous development assistant managing Claude Code's feature implementation workflow.\n\nYou have access to:\n- The project constitution (principles and standards)\n- The feature specification\n- The implementation plan\n- The task list\n- The recent terminal output from Claude Code\n- Latest best practices (you should consider current industry standards)\n\nYour job is to monitor Claude Code and decide whether to interrupt based on the situation.\n\n{WORK_STATE}\n\nRESPONSE TYPES:\n\n{RESPONSE_TYPES}\n\nDECISION PRINCIPLES:\n- If there's a question, answer it first (takes priority)\n- Otherwise, decide next action based on completion percentage\n- Keep work moving forward efficiently\n- Reviews are checkpoints, not blockers - use them strategically\n- Always align with constitution, spec, and plan\n\nThe goal is to autonomously drive feature completion with quality checks at appropriate milestones.",
+          "description": "System prompt for Haiku's decision-making",
+          "markdownDescription": "The system prompt that instructs Haiku on how to make decisions.\n\n**Variables**: `{WORK_STATE}` (working vs idle state), `{RESPONSE_TYPES}` (available actions)\n\n**Tip**: You can customize this to change Haiku's decision-making behavior.\n\n**Warning**: Incorrect prompts may cause Haiku to make poor decisions.",
           "editPresentation": "multilineText"
         },
         "specGofer.autonomous.haikuUserPromptTemplate": {
           "type": "string",
-          "default": "",
-          "description": "Custom user prompt template for Haiku (leave empty for default)",
-          "markdownDescription": "Advanced: Customize the user prompt template that provides context to Haiku.\n\n**Default**: Includes terminal output, constitution, spec, plan, and tasks.\n\n**Available variables**: `{terminalOutput}`, `{constitution}`, `{spec}`, `{plan}`, `{tasks}`, `{workState}`\n\n**Leave empty to use default**. Only customize if you need different context formatting.\n\n**Warning**: Incorrect templates may cause Haiku to miss important context.",
+          "default": "# Recent Terminal Output (last 20,000 characters):\n{terminalOutput}\n\n# Constitution:\n{constitution}\n\n# Specification:\n{spec}\n\n# Implementation Plan:\n{plan}\n\n# Tasks:\n{tasks}\n\n---\n\nANALYZE THE TERMINAL AND DECIDE NEXT ACTION:\n\n{workState}\n\n**Your response must be ONE of:**\n- A direct answer (number or text)\n- ACTION: NO_INTERRUPT\n- ACTION: CONTINUE_IMPLEMENT\n- ACTION: ENGINEERING_REVIEW\n- ACTION: PERFORMANCE_REVIEW\n\nDecide NOW:",
+          "description": "User prompt template for Haiku with context",
+          "markdownDescription": "The user prompt template that provides context to Haiku.\n\n**Available variables**: `{terminalOutput}`, `{constitution}`, `{spec}`, `{plan}`, `{tasks}`, `{workState}`\n\n**Tip**: You can customize this to include different context or formatting.\n\n**Warning**: Incorrect templates may cause Haiku to miss important context.",
           "editPresentation": "multilineText"
         }
       }

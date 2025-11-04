@@ -142,47 +142,23 @@ export class ClaudeCodeAutonomousResponder {
 
   /**
    * Check if recent terminal output contains a question waiting for input
-   * New approach: Look for stable buffer with spinner, prompt, and question mark
+   * Simple approach: No spinner + prompt present = ask Haiku to analyze
    */
   detectQuestion(): { detected: boolean; question: string; context: string } {
     const fullContext = this.terminalBuffer.join('\n');
-    const last20k = fullContext.slice(-20000); // Increased context for Haiku
-    const lastLines = this.terminalBuffer.slice(-10); // Check last 10 lines
-    const recentText = lastLines.join('\n');
+    const last20k = fullContext.slice(-20000); // Context for Haiku
+    const lastLines = this.terminalBuffer.slice(-30); // Check last 30 lines
 
     // DEBUG LOGGING
     this.outputChannel.appendLine('\n🔍 QUESTION DETECTION DEBUG:');
     this.outputChannel.appendLine(`   Buffer size: ${this.terminalBuffer.length} lines`);
-    this.outputChannel.appendLine(`   Last 10 lines:`);
-    lastLines.forEach((line, i) => {
+    this.outputChannel.appendLine(`   Last 15 lines:`);
+    const last15 = lastLines.slice(-15);
+    last15.forEach((line, i) => {
       this.outputChannel.appendLine(`   [${i}] ${line.substring(0, 100)}`);
     });
 
-    // Check 1: Does recent text have a question mark?
-    const hasQuestionMark = lastLines.some((line) => line.includes('?'));
-    this.outputChannel.appendLine(`   ✓ Check 1 - Has question mark: ${hasQuestionMark}`);
-
-    if (!hasQuestionMark) {
-      this.outputChannel.appendLine('   ✗ No question mark found\n');
-      return { detected: false, question: '', context: '' };
-    }
-
-    // Check 2: Has buffer been stable for 10 seconds?
-    const now = Date.now();
-    const timeSinceLastUpdate = now - this.lastBufferUpdateTime;
-    const isStable = timeSinceLastUpdate >= this.stabilityDelayMs;
-    this.outputChannel.appendLine(
-      `   ✓ Check 2 - Buffer stable for ${timeSinceLastUpdate}ms (required: ${this.stabilityDelayMs}ms): ${isStable}`
-    );
-
-    if (!isStable) {
-      this.outputChannel.appendLine(
-        `   ✗ Buffer not stable yet (${timeSinceLastUpdate}ms / ${this.stabilityDelayMs}ms)\n`
-      );
-      return { detected: false, question: '', context: '' };
-    }
-
-    // Check 3: Is there a spinner line? If yes, Claude Code is still working - NOT ready for input!
+    // Check 1: Is there a spinner? If yes, Claude Code is still working - NOT ready!
     const spinnerPatterns = [
       /^[✳✶✻✽✢·⏺]\s+\w+ing…/i, // Matches "✶ Enchanting…", "✳ Flibbertigibbeting…", etc.
       /^[✳✶✻✽✢·⏺]\s+\w+…/i, // Matches other spinner patterns
@@ -190,31 +166,32 @@ export class ClaudeCodeAutonomousResponder {
     const hasSpinner = lastLines.some((line) =>
       spinnerPatterns.some((pattern) => pattern.test(line.trim()))
     );
-    this.outputChannel.appendLine(`   ✓ Check 3 - Has spinner (still working): ${hasSpinner}`);
+    this.outputChannel.appendLine(`   ✓ Check 1 - Has spinner (still working): ${hasSpinner}`);
 
     if (hasSpinner) {
-      this.outputChannel.appendLine('   ✗ Spinner detected - Claude Code still working, not ready for input\n');
+      this.outputChannel.appendLine('   ✗ Spinner detected - Claude Code still working\n');
       return { detected: false, question: '', context: '' };
     }
 
-    // Check 4: Is there a ">" prompt line?
+    // Check 2: Is there a ">" prompt line?
     const hasPrompt = lastLines.some((line) => {
       const trimmed = line.trim();
       return trimmed === '>' || trimmed.startsWith('> ');
     });
-    this.outputChannel.appendLine(`   ✓ Check 4 - Has ">" prompt: ${hasPrompt}`);
+    this.outputChannel.appendLine(`   ✓ Check 2 - Has ">" prompt: ${hasPrompt}`);
 
     if (!hasPrompt) {
       this.outputChannel.appendLine('   ✗ No ">" prompt found\n');
       return { detected: false, question: '', context: '' };
     }
 
-    // All checks passed - question detected!
-    this.outputChannel.appendLine('   ✅ DETECTED: stable question with prompt (ready for answer)\n');
+    // Checks passed - will ask Haiku to analyze if there's a question
+    this.outputChannel.appendLine('   ✅ PRE-CHECK PASSED: No spinner + prompt present\n');
+    this.outputChannel.appendLine('   → Will ask Haiku to analyze context for question\n');
 
     return {
       detected: true,
-      question: 'stable-prompt-ready',
+      question: 'haiku-will-analyze',
       context: last20k,
     };
   }
@@ -343,9 +320,18 @@ ${fullContext.tasks || 'No tasks found'}
 
 ---
 
-Analyze the terminal output above to understand what Claude Code is asking. Provide a clear, well-reasoned answer based on the constitution, specification, plan, and tasks. Answer the question directly with the best answer. Explain your reasoning in 2-4 sentences.`;
+INSTRUCTIONS:
+1. First, analyze the terminal output to determine if Claude Code is asking a question that requires a response.
+2. If there IS a question requiring an answer:
+   - Provide a clear, well-reasoned answer based on the constitution, specification, plan, and tasks
+   - Answer directly with the best answer
+   - Explain your reasoning in 2-4 sentences
+3. If there is NO question requiring an answer (e.g., just informational output, or already answered):
+   - Respond with exactly: NO_QUESTION
 
-      this.outputChannel.appendLine('🤔 Asking Claude 3.5 Haiku for decision...');
+Remember: Only provide an answer if Claude Code is actively waiting for user input on a decision.`;
+
+      this.outputChannel.appendLine('🤔 Asking Claude 3.5 Haiku to analyze context...');
 
       const response = await this.anthropic.messages.create({
         model: 'claude-3-5-haiku-20241022', // Claude 3.5 Haiku (latest version)
@@ -362,7 +348,12 @@ Analyze the terminal output above to understand what Claude Code is asking. Prov
       const answer = response.content[0].type === 'text' ? response.content[0].text : null;
 
       if (answer) {
-        this.outputChannel.appendLine('\n✓ Claude decided:');
+        if (answer.trim() === 'NO_QUESTION') {
+          this.outputChannel.appendLine('   ℹ Haiku determined: No question needs answering\n');
+          return null;
+        }
+
+        this.outputChannel.appendLine('\n✓ Haiku provided answer:');
         this.outputChannel.appendLine('─'.repeat(80));
         this.outputChannel.appendLine(answer);
         this.outputChannel.appendLine('─'.repeat(80) + '\n');

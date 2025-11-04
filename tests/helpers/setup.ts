@@ -51,7 +51,7 @@ vi.mock('vscode', () => ({
     workspaceFolders: [],
     onDidChangeWorkspaceFolders: vi.fn(),
     getWorkspaceFolder: vi.fn(),
-    asRelativePath: vi.fn((pathOrUri: any) => {
+    asRelativePath: vi.fn((pathOrUri: string | { fsPath?: string; path?: string }) => {
       if (typeof pathOrUri === 'string') {
         return pathOrUri;
       }
@@ -72,7 +72,7 @@ vi.mock('vscode', () => ({
     Expanded: 2,
   },
   Uri: {
-    file: (path: string): { fsPath: string; scheme: string; path: string} => ({
+    file: (path: string): { fsPath: string; scheme: string; path: string } => ({
       fsPath: path,
       scheme: 'file',
       path,
@@ -157,6 +157,30 @@ vi.mock('../../extension/src/utils/logger', () => ({
     error: 3,
   },
 }));
+
+// Mock node-pty (native module)
+vi.mock('node-pty', () => {
+  const mockPtyProcess = {
+    onData: vi.fn(() => {
+      // Store callback for later invocation if needed
+      return;
+    }),
+    onExit: vi.fn(() => {
+      // Store callback for later invocation if needed
+      return;
+    }),
+    write: vi.fn(),
+    kill: vi.fn(),
+    pid: 12345,
+  };
+
+  return {
+    default: {
+      spawn: vi.fn(() => mockPtyProcess),
+    },
+    spawn: vi.fn(() => mockPtyProcess),
+  };
+});
 
 // Mock environment variables
 process.env.ANTHROPIC_API_KEY = 'test-api-key';

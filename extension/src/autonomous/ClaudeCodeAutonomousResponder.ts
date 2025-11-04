@@ -219,9 +219,10 @@ export class ClaudeCodeAutonomousResponder {
     // ONLY CHECK: Is there a spinner? If yes, Claude Code is still working - NOT ready!
     // Note: The ">" prompt is always present, even when working, so we don't check for it
     const spinnerPatterns = [
-      /^[✳✶✻✽✢·⏺]\s+[\w-]+ing…/i, // Matches "✶ Enchanting…", "Fiddle-faddling…", etc.
-      /^[✳✶✻✽✢·⏺]\s+[\w-]+…/i, // Matches other spinner patterns (including hyphens)
+      /^[✳✶✻✽✢·⏺]\s+.+…/i, // Matches any spinner with text ending in ellipsis (including multi-word like "Verifying project setup…")
       /^[·∴]\s+(Thinking|Generating|Processing)/i, // Matches "∴ Thinking…", "· Generating…"
+      /^[⎿⌞└]\s+Next:/i, // Matches "⎿  Next: Complete Phase 1..." (Claude showing next action)
+      /\(esc to interrupt/i, // Matches "(esc to interrupt · ctrl+t to show todos · 13s · ↓ 1.1k tokens)" - strong indicator Claude is working
     ];
 
     // CRITICAL FIX: Only check last 5 lines for ACTIVE spinner, not historical ones
@@ -256,25 +257,29 @@ export class ClaudeCodeAutonomousResponder {
       this.writeLog(`No active spinner in last ${recentLines.length} lines`).catch(() => {});
     }
 
+    // NEW APPROACH: Always ask Haiku to monitor, even when spinner is present
+    // Haiku will decide whether to interrupt based on whether Claude is on track
+    const workState = hasSpinner ? 'WORKING' : 'IDLE';
+
     if (hasSpinner) {
-      this.outputChannel.appendLine('   ✗ Spinner detected - Claude Code still working\n');
-      this.writeLog(
-        'DECISION: Spinner detected - NOT asking Haiku (Claude Code still working)'
-      ).catch(() => {});
-      this.writeLog('='.repeat(80)).catch(() => {});
-      return { detected: false, question: '', context: '' };
+      this.outputChannel.appendLine('   🔄 Spinner detected - Claude Code is actively working\n');
+      this.outputChannel.appendLine(
+        '   → Will ask Haiku to monitor and interrupt ONLY if going wrong direction\n'
+      );
+      this.writeLog('STATUS: Spinner detected - Claude actively working').catch(() => {});
+    } else {
+      this.outputChannel.appendLine('   ✅ No spinner - Claude Code is idle\n');
+      this.outputChannel.appendLine(
+        '   → Will ask Haiku to evaluate situation and decide next action\n'
+      );
+      this.writeLog('STATUS: No spinner - Claude idle').catch(() => {});
     }
 
-    // No spinner - Claude Code is idle, will ask Haiku to analyze if there's a question
-    this.outputChannel.appendLine('   ✅ PRE-CHECK PASSED: No spinner detected\n');
-    this.outputChannel.appendLine('   → Will ask Haiku to analyze context for question\n');
-
-    this.writeLog('DECISION: No spinner - will ask Haiku to analyze for question').catch(() => {});
     this.writeLog(`Context length for Haiku: ${last20k.length} characters`).catch(() => {});
 
     return {
       detected: true,
-      question: 'haiku-will-analyze',
+      question: `haiku-monitor:${workState}`, // Pass work state to Haiku
       context: last20k,
     };
   }
@@ -350,8 +355,56 @@ export class ClaudeCodeAutonomousResponder {
       this.outputChannel.appendLine('📚 Loading context files...');
       const fullContext = await this.loadContext(workspacePath, context.specId);
 
-      // Build prompt for Claude
-      const systemPrompt = `You are an autonomous development assistant managing Claude Code's feature implementation workflow.
+      // Read configuration settings
+      const config = vscode.workspace.getConfiguration('specGofer.autonomous');
+      const enableEngReview = config.get<boolean>('enableEngineeringReview', true);
+      const enablePerfReview = config.get<boolean>('enablePerformanceReview', true);
+      const engReviewMin = config.get<number>('engineeringReviewMinCompletion', 40);
+      const engReviewMax = config.get<number>('engineeringReviewMaxCompletion', 80);
+      const perfReviewMin = config.get<number>('performanceReviewMinCompletion', 70);
+
+      // Build dynamic response types based on settings
+      let responseTypes = `1. ANSWER A QUESTION - If Claude Code is explicitly asking for input:
+   - MULTIPLE CHOICE: Respond with ONLY the number (e.g., "1")
+   - TEXT INPUT: Provide a clear 2-4 sentence answer with newline at end
+   - Example: "1" or "Yes, proceed with the test file. This aligns with task T016."
+
+2. NO INTERRUPT NEEDED - If Claude is on track and doesn't need guidance:
+   - Respond with: ACTION: NO_INTERRUPT
+   - Use when: Claude just finished work naturally, next steps are clear, Claude can decide on its own
+   - Sends: Nothing (let Claude continue without interruption)
+
+3. CONTINUE IMPLEMENTATION - If Claude needs explicit direction to keep going:
+   - Respond with: ACTION: CONTINUE_IMPLEMENT
+   - Use when: Completion < 70%, Claude might not know what to do next
+   - Sends: /speckit.implement`;
+
+      if (enableEngReview) {
+        responseTypes += `
+
+4. ENGINEERING REVIEW - If strategic checkpoint needed:
+   - Respond with: ACTION: ENGINEERING_REVIEW
+   - Use when: Completion ${engReviewMin}-${engReviewMax}%, major milestone just reached, worth validating
+   - Sends: Prompt asking Claude to review implementation against specification`;
+      }
+
+      if (enablePerfReview) {
+        responseTypes += `
+
+5. PERFORMANCE REVIEW - If architecture review needed:
+   - Respond with: ACTION: PERFORMANCE_REVIEW
+   - Use when: Completion > ${perfReviewMin}%, core features done, worth checking performance
+   - Sends: Prompt asking Claude for performance and architecture analysis`;
+      }
+
+      // Determine Claude's work state from question field
+      const isWorking = context.question.includes('WORKING');
+
+      // Check for custom Haiku system prompt in settings
+      const customSystemPrompt = config.get<string>('haikuSystemPrompt', '').trim();
+
+      // Build prompt for Claude (use custom if provided, otherwise default)
+      const defaultSystemPrompt = `You are an autonomous development assistant managing Claude Code's feature implementation workflow.
 
 You have access to:
 - The project constitution (principles and standards)
@@ -359,34 +412,34 @@ You have access to:
 - The implementation plan
 - The task list
 - The recent terminal output from Claude Code
+- Latest best practices (you should consider current industry standards)
 
-Your job is to analyze the terminal state and decide the NEXT ACTION to keep development moving forward.
+Your job is to monitor Claude Code and decide whether to interrupt based on the situation.
 
-IMPORTANT: You are only called when Claude Code is IDLE (no spinner/working indicator). This means Claude has either:
-- Asked a question that needs answering, OR
-- Finished work and is waiting for the next direction
+CLAUDE CODE CURRENT STATE: ${isWorking ? 'ACTIVELY WORKING (spinner present)' : 'IDLE (no spinner)'}
+
+${
+  isWorking
+    ? `
+CRITICAL: Claude is actively working right now. You should ONLY interrupt if:
+- Claude is going in the WRONG direction (deviating from spec, plan, or tasks)
+- Claude is using outdated/deprecated approaches (violates best practices)
+- Claude is violating constitution principles
+- There's a clear mistake that needs immediate correction
+
+DO NOT interrupt if Claude is making correct progress, even if slowly.
+`
+    : `
+Claude has finished work and is idle. You can:
+- Answer questions if asked
+- Provide next direction if needed
+- Let Claude continue on its own if next steps are obvious
+`
+}
 
 RESPONSE TYPES:
 
-1. ANSWER A QUESTION - If Claude Code is explicitly asking for input:
-   - MULTIPLE CHOICE: Respond with ONLY the number (e.g., "1")
-   - TEXT INPUT: Provide a clear 2-4 sentence answer with newline at end
-   - Example: "1" or "Yes, proceed with the test file. This aligns with task T016."
-
-2. CONTINUE IMPLEMENTATION - If no question asked, Claude finished work, tasks remain:
-   - Respond with: ACTION: CONTINUE_IMPLEMENT
-   - Use when: Completion < 70%, clear next tasks exist
-   - Sends: /speckit.implement
-
-3. ENGINEERING REVIEW - If no question asked, significant work done:
-   - Respond with: ACTION: ENGINEERING_REVIEW
-   - Use when: Completion 40-80%, good checkpoint to validate vs spec
-   - Sends: Prompt asking Claude to review implementation against specification
-
-4. PERFORMANCE REVIEW - If no question asked, feature mostly complete:
-   - Respond with: ACTION: PERFORMANCE_REVIEW
-   - Use when: Completion > 70%, core functionality done
-   - Sends: Prompt asking Claude for performance and architecture analysis
+${responseTypes}
 
 DECISION PRINCIPLES:
 - If there's a question, answer it first (takes priority)
@@ -397,7 +450,13 @@ DECISION PRINCIPLES:
 
 The goal is to autonomously drive feature completion with quality checks at appropriate milestones.`;
 
-      const userPrompt = `# Recent Terminal Output (last 20,000 characters):
+      // Use custom system prompt if provided, otherwise default
+      const systemPrompt = customSystemPrompt || defaultSystemPrompt;
+
+      // Check for custom user prompt template
+      const customUserPromptTemplate = config.get<string>('haikuUserPromptTemplate', '').trim();
+
+      const defaultUserPrompt = `# Recent Terminal Output (last 20,000 characters):
 ${context.terminalOutput}
 
 # Constitution:
@@ -416,6 +475,32 @@ ${fullContext.tasks || 'No tasks found'}
 
 ANALYZE THE TERMINAL AND DECIDE NEXT ACTION:
 
+${
+  isWorking
+    ? `
+**CLAUDE IS ACTIVELY WORKING - Monitor for Course Corrections Only**
+
+**Step 1: Review what Claude is currently doing**
+- Look at the terminal to see what Claude is working on
+- Check the "Next:" indicator or spinner text for current focus
+
+**Step 2: Evaluate if Claude is on the right track**
+- Does this align with the spec, plan, and current task?
+- Is Claude using best practices and modern approaches?
+- Is Claude following constitution principles?
+- Is there an obvious mistake or wrong direction?
+
+**Step 3: Decide whether to interrupt**
+- **Claude going WRONG direction**: Provide brief course correction (interrupt)
+- **Claude using deprecated/outdated approach**: Suggest better approach (interrupt)
+- **Claude violating constitution**: Provide correction (interrupt)
+- **Claude making correct progress**: ACTION: NO_INTERRUPT (don't interrupt, let it continue)
+
+**DEFAULT**: When in doubt, choose NO_INTERRUPT. Only interrupt if you're confident there's a problem.
+`
+    : `
+**CLAUDE IS IDLE - Full Decision Making**
+
 **Step 1: Check for Questions**
 Look for:
 - Numbered options like "1. Option A  2. Option B"
@@ -424,26 +509,62 @@ Look for:
 
 If question found: Provide the answer (number only for multiple choice, clear text for open questions)
 
-**Step 2: If No Question, Decide Next Action**
-Claude Code has finished work and is idle at ">". Analyze:
-- Terminal shows summary of completed work?
+**Step 2: If No Question, Evaluate Direction & Decide Next Action**
+
+**First, evaluate if Claude is on the right track:**
+- Review what Claude just completed in the terminal output
+- Check if it aligns with the spec, plan, and tasks
+- Verify it follows constitution principles and best practices
+- Assess: Is Claude making correct progress, or going the wrong direction?
+
+**Then decide next action based on:**
 - What % of tasks are complete? (look for "X of Y tasks" or completion percentage)
 - What phase is the feature in? (early dev, mid-implementation, or polish phase)
+- Is Claude on track or does it need correction?
 
-Then decide:
-- **Completion < 70% with clear next tasks**: ACTION: CONTINUE_IMPLEMENT
-- **Completion 40-80% after major milestone**: ACTION: ENGINEERING_REVIEW
-- **Completion > 70% with core features done**: ACTION: PERFORMANCE_REVIEW
+**Decision rules (prioritize NO_INTERRUPT when Claude is on track):**
+- **Explicit question asked**: Provide the answer
+- **Claude off track or needs correction**: Provide brief correction/guidance
+- **Claude on track + just finished task naturally + next steps obvious**: ACTION: NO_INTERRUPT (let Claude continue)
+- **Claude on track + might not know next step**: ACTION: CONTINUE_IMPLEMENT
+- **Claude on track + major milestone + worth validating**: ACTION: ENGINEERING_REVIEW
+- **Claude on track + core done + worth checking performance**: ACTION: PERFORMANCE_REVIEW
+
+**DEFAULT**: Prefer NO_INTERRUPT when Claude is making good progress autonomously.
+`
+}
 
 **Your response must be ONE of:**
 - A direct answer (number or text)
+- ACTION: NO_INTERRUPT
 - ACTION: CONTINUE_IMPLEMENT
 - ACTION: ENGINEERING_REVIEW
 - ACTION: PERFORMANCE_REVIEW
 
 Decide NOW:`;
 
+      // Use custom user prompt template if provided, otherwise default
+      let userPrompt: string;
+      if (customUserPromptTemplate) {
+        // Replace variables in custom template
+        userPrompt = customUserPromptTemplate
+          .replace(/\{terminalOutput\}/g, context.terminalOutput)
+          .replace(/\{constitution\}/g, fullContext.constitution || 'No constitution found')
+          .replace(/\{spec\}/g, fullContext.spec || 'No specification found')
+          .replace(/\{plan\}/g, fullContext.plan || 'No plan found')
+          .replace(/\{tasks\}/g, fullContext.tasks || 'No tasks found')
+          .replace(/\{workState\}/g, isWorking ? 'WORKING' : 'IDLE');
+      } else {
+        userPrompt = defaultUserPrompt;
+      }
+
       this.outputChannel.appendLine('🤔 Asking Claude 3.5 Haiku to analyze context...');
+      if (customSystemPrompt) {
+        this.outputChannel.appendLine('   ℹ️  Using custom Haiku system prompt from settings\n');
+      }
+      if (customUserPromptTemplate) {
+        this.outputChannel.appendLine('   ℹ️  Using custom user prompt template from settings\n');
+      }
 
       // Log full prompt details to file
       await this.writeLog('\n' + '='.repeat(80));
@@ -479,6 +600,15 @@ Decide NOW:`;
         const trimmedAnswer = answer.trim();
 
         // Check for ACTION commands (no question, deciding next step)
+        if (trimmedAnswer.startsWith('ACTION: NO_INTERRUPT')) {
+          this.outputChannel.appendLine('   ✓ Haiku decided: No interruption needed\n');
+          this.outputChannel.appendLine(
+            '   → Claude is on track, letting it continue naturally...\n'
+          );
+          await this.writeLog('DECISION: NO_INTERRUPT - Claude on track, not interrupting');
+          return null; // Don't send anything to terminal
+        }
+
         if (trimmedAnswer.startsWith('ACTION: CONTINUE_IMPLEMENT')) {
           this.outputChannel.appendLine('   🚀 Haiku decided: Continue implementation\n');
           this.outputChannel.appendLine('   → Sending /speckit.implement command...\n');
@@ -487,29 +617,66 @@ Decide NOW:`;
         }
 
         if (trimmedAnswer.startsWith('ACTION: ENGINEERING_REVIEW')) {
+          // Check if engineering review is enabled
+          const config = vscode.workspace.getConfiguration('specGofer.autonomous');
+          const enableEngReview = config.get<boolean>('enableEngineeringReview', true);
+
+          if (!enableEngReview) {
+            this.outputChannel.appendLine(
+              '   ⚠️  Engineering review disabled in settings, falling back to CONTINUE_IMPLEMENT\n'
+            );
+            await this.writeLog(
+              'DECISION: ENGINEERING_REVIEW requested but disabled - falling back to CONTINUE_IMPLEMENT'
+            );
+            return '/speckit.implement\n';
+          }
+
           this.outputChannel.appendLine('   🔍 Haiku decided: Engineering review needed\n');
           this.outputChannel.appendLine(
             '   → Requesting review of implementation vs specification...\n'
           );
           await this.writeLog('DECISION: ENGINEERING_REVIEW - requesting code review');
-          const reviewPrompt = `Please perform an engineering review of the work completed so far:
+
+          // Use custom prompt from settings
+          const reviewPrompt = config.get<string>(
+            'engineeringReviewPrompt',
+            `Please perform an engineering review of the work completed so far:
 
 1. Compare the implemented code against the original specification
 2. Identify any gaps or deviations from the spec
 3. Check if the implementation aligns with the constitution principles
 4. Verify that completed tasks match their requirements in tasks.md
 
-Provide a brief summary of findings and recommendations for next steps.`;
+Provide a brief summary of findings and recommendations for next steps.`
+          );
           return reviewPrompt;
         }
 
         if (trimmedAnswer.startsWith('ACTION: PERFORMANCE_REVIEW')) {
+          // Check if performance review is enabled
+          const config = vscode.workspace.getConfiguration('specGofer.autonomous');
+          const enablePerfReview = config.get<boolean>('enablePerformanceReview', true);
+
+          if (!enablePerfReview) {
+            this.outputChannel.appendLine(
+              '   ⚠️  Performance review disabled in settings, falling back to CONTINUE_IMPLEMENT\n'
+            );
+            await this.writeLog(
+              'DECISION: PERFORMANCE_REVIEW requested but disabled - falling back to CONTINUE_IMPLEMENT'
+            );
+            return '/speckit.implement\n';
+          }
+
           this.outputChannel.appendLine('   ⚡ Haiku decided: Performance review needed\n');
           this.outputChannel.appendLine(
             '   → Requesting architecture and performance analysis...\n'
           );
           await this.writeLog('DECISION: PERFORMANCE_REVIEW - requesting performance analysis');
-          const perfPrompt = `Please perform a performance and architecture analysis of the implementation:
+
+          // Use custom prompt from settings
+          const perfPrompt = config.get<string>(
+            'performanceReviewPrompt',
+            `Please perform a performance and architecture analysis of the implementation:
 
 1. Review the code against current best practices for each technology used
 2. Identify potential performance bottlenecks or optimization opportunities
@@ -517,7 +684,8 @@ Provide a brief summary of findings and recommendations for next steps.`;
 4. Verify proper error handling and edge case coverage
 5. Suggest any improvements for maintainability and scalability
 
-Provide specific, actionable recommendations.`;
+Provide specific, actionable recommendations.`
+          );
           return perfPrompt;
         }
 

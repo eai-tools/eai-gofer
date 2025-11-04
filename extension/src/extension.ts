@@ -940,6 +940,21 @@ How will success be measured?
     console.log('[SpecGofer] Spec execution commands registered');
   }
 
+  // T153: Register "SpecGofer: View Compaction History" command
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specgofer.viewCompactionHistory', async () => {
+      const { getActiveDriver } = await import('./autonomousCommands');
+      const driver = getActiveDriver();
+
+      if (driver) {
+        await driver.showCompactionHistory();
+      } else {
+        vscode.window.showInformationMessage('No active autonomous session');
+      }
+    })
+  );
+  console.log('[SpecGofer] Compaction history command registered');
+
   // Note: Tree view detail commands (showSpecDetails, showMemoryDocument, etc.)
   // are now registered globally in registerGlobalCommands() since tree views
   // are registered globally and can be clicked before workspace initialization

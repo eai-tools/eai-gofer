@@ -104,6 +104,11 @@
         "icon": "$(library)"
       },
       {
+        "command": "specgofer.viewCompactionHistory",
+        "title": "SpecGofer: View Compaction History",
+        "icon": "$(history)"
+      },
+      {
         "command": "specgofer.createHintFile",
         "title": "SpecGofer: Create Hint File",
         "icon": "$(new-file)"
@@ -501,6 +506,14 @@
           "default": 180000,
           "description": "Spawn new terminal when context reaches this many tokens",
           "markdownDescription": "Token count threshold for spawning a new terminal with fresh context.\n\n**Default**: 180,000 tokens (90% of Claude's 200K context)\n\nSpecGofer will automatically create a new terminal with a context summary when this limit is reached."
+        },
+        "specGofer.autonomous.compactionThreshold": {
+          "type": "number",
+          "default": 80,
+          "minimum": 50,
+          "maximum": 95,
+          "description": "Trigger context compaction at this percentage (50-95%)",
+          "markdownDescription": "Context window usage percentage that triggers automatic compaction.\n\n**Default**: 80% (160,000 tokens of 200K context)\n**Range**: 50-95%\n\nWhen context usage reaches this threshold, SpecGofer will automatically:\n1. Summarize completed tasks to free up space\n2. Preserve the last 10 tasks in full detail\n3. Reduce context by approximately 40-60%\n\n**Lower values** = more frequent compaction, smaller context\n**Higher values** = less frequent compaction, larger context"
         },
         "specGofer.autonomous.questionTimeout": {
           "type": "number",

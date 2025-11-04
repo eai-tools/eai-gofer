@@ -185,6 +185,11 @@
         "icon": "$(stop)"
       },
       {
+        "command": "specgofer.pauseClaudeCode",
+        "title": "SpecGofer: Pause Claude Code Terminal (Send ESC)",
+        "icon": "$(debug-pause)"
+      },
+      {
         "command": "specgofer.clearMemory",
         "title": "SpecGofer: Clear Memory Database",
         "icon": "$(trash)"
@@ -311,9 +316,14 @@
           "group": "inline@2"
         },
         {
-          "command": "specgofer.stopClaudeCode",
+          "command": "specgofer.pauseClaudeCode",
           "when": "viewItem == spec && specgofer.claudeCodeRunning",
           "group": "inline@2"
+        },
+        {
+          "command": "specgofer.stopClaudeCode",
+          "when": "viewItem == spec && specgofer.claudeCodeRunning",
+          "group": "inline@3"
         }
       ],
       "explorer/context": [

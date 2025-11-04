@@ -1,3 +1,13 @@
+---
+id: '006-dagger-test-orchestration'
+title: 'Dagger Test Orchestration for SpecGofer'
+status: 'draft'
+created: '2025-10-31'
+updated: '2025-11-05'
+priority: 'high'
+assignee: 'engineer-agent'
+---
+
 # Feature Specification: Dagger Test Orchestration for SpecGofer
 
 **Feature Branch**: `006-test-feature` **Created**: 2025-10-31 **Updated**:

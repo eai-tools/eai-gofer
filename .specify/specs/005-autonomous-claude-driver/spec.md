@@ -1,28 +1,34 @@
 ---
-id: 005
-title: Autonomous Claude Code Driver
-status: draft
-created: 2025-10-30
-updated: 2025-10-30
+id: '005-autonomous-claude-driver'
+title: 'Autonomous Claude Code Driver'
+status: 'draft'
+created: '2025-10-30'
+updated: '2025-11-05'
+priority: 'high'
+assignee: 'engineer-agent'
 ---
 
 # Autonomous Claude Code Driver
 
 ## Overview
 
-SpecGofer must autonomously drive Claude Code terminals to implement features end-to-end without manual intervention. The extension spawns, monitors, and manages Claude Code sessions, handles errors/timeouts, manages context window limits, and escalates questions to the user only when necessary.
+SpecGofer must autonomously drive Claude Code terminals to implement features
+end-to-end without manual intervention. The extension spawns, monitors, and
+manages Claude Code sessions, handles errors/timeouts, manages context window
+limits, and escalates questions to the user only when necessary.
 
 ## User Scenarios
 
 ### Primary User Flow
 
-**As a** developer with a fully-specified feature branch
-**I want** SpecGofer to autonomously implement the entire feature
-**So that** I can focus on architecture/design while AI handles implementation
+**As a** developer with a fully-specified feature branch **I want** SpecGofer to
+autonomously implement the entire feature **So that** I can focus on
+architecture/design while AI handles implementation
 
 **Workflow:**
 
-1. User creates feature spec with plan and tasks in `.specify/specs/###-feature/`
+1. User creates feature spec with plan and tasks in
+   `.specify/specs/###-feature/`
 2. User clicks "▶️ Start Autonomous Implementation" button in SpecGofer sidebar
 3. SpecGofer spawns Claude Code terminal and sends `/speckit.implement` command
 4. SpecGofer continuously monitors Claude's output for:
@@ -38,9 +44,9 @@ SpecGofer must autonomously drive Claude Code terminals to implement features en
 
 ### Engineer + Tester Parallel Execution
 
-**As a** developer implementing complex features
-**I want** SpecGofer to run engineer and tester agents in parallel
-**So that** code is validated continuously during implementation
+**As a** developer implementing complex features **I want** SpecGofer to run
+engineer and tester agents in parallel **So that** code is validated
+continuously during implementation
 
 **Workflow:**
 
@@ -58,9 +64,9 @@ SpecGofer must autonomously drive Claude Code terminals to implement features en
 
 ### Context Window Management
 
-**As a** SpecGofer instance managing long-running features
-**I want** to detect context window exhaustion and spawn fresh sessions
-**So that** Claude Code doesn't hit token limits mid-implementation
+**As a** SpecGofer instance managing long-running features **I want** to detect
+context window exhaustion and spawn fresh sessions **So that** Claude Code
+doesn't hit token limits mid-implementation
 
 **Detection Triggers:**
 
@@ -234,68 +240,51 @@ SpecGofer MUST:
 
 ### AC-001: Basic Autonomous Flow
 
-✅ GIVEN a spec with tasks.md exists
-✅ WHEN user clicks "▶️ Start Autonomous Implementation"
-✅ THEN SpecGofer spawns Claude Code terminal
-✅ AND sends `/speckit.implement` command
-✅ AND sidebar shows "IN PROGRESS" status
+✅ GIVEN a spec with tasks.md exists ✅ WHEN user clicks "▶️ Start Autonomous
+Implementation" ✅ THEN SpecGofer spawns Claude Code terminal ✅ AND sends
+`/speckit.implement` command ✅ AND sidebar shows "IN PROGRESS" status
 
 ### AC-002: Task Progress Tracking
 
-✅ GIVEN Claude Code is executing tasks
-✅ WHEN Claude completes a task (outputs `✅ Task #T005:`)
-✅ THEN SpecGofer marks task complete in `tasks.md`
-✅ AND updates sidebar tree view with ✅ icon
-✅ AND increments progress counter in status bar
+✅ GIVEN Claude Code is executing tasks ✅ WHEN Claude completes a task (outputs
+`✅ Task #T005:`) ✅ THEN SpecGofer marks task complete in `tasks.md` ✅ AND
+updates sidebar tree view with ✅ icon ✅ AND increments progress counter in
+status bar
 
 ### AC-003: Error Detection and Retry
 
-✅ GIVEN Claude encounters a TypeScript error
-✅ WHEN error appears in terminal output
-✅ THEN SpecGofer detects error within 5 seconds
-✅ AND sends error back to Claude with "Please fix"
-✅ AND retries up to 3 times
-✅ AND escalates to user if still failing
+✅ GIVEN Claude encounters a TypeScript error ✅ WHEN error appears in terminal
+output ✅ THEN SpecGofer detects error within 5 seconds ✅ AND sends error back
+to Claude with "Please fix" ✅ AND retries up to 3 times ✅ AND escalates to
+user if still failing
 
 ### AC-004: Question Escalation
 
-✅ GIVEN Claude asks "Option A or Option B?"
-✅ WHEN question detected in output
-✅ THEN SpecGofer extracts question + options
-✅ AND sends WhatsApp notification (if configured)
-✅ OR shows VSCode prompt (if no WhatsApp)
-✅ AND waits for user response
-✅ AND sends response back to Claude
+✅ GIVEN Claude asks "Option A or Option B?" ✅ WHEN question detected in output
+✅ THEN SpecGofer extracts question + options ✅ AND sends WhatsApp notification
+(if configured) ✅ OR shows VSCode prompt (if no WhatsApp) ✅ AND waits for user
+response ✅ AND sends response back to Claude
 
 ### AC-005: Context Window Handling
 
-✅ GIVEN Claude conversation reaches 180K tokens
-✅ WHEN SpecGofer detects token limit approaching
-✅ THEN SpecGofer generates context summary
-✅ AND spawns new Claude Code terminal
-✅ AND sends summary + remaining tasks
-✅ AND Claude continues without data loss
+✅ GIVEN Claude conversation reaches 180K tokens ✅ WHEN SpecGofer detects token
+limit approaching ✅ THEN SpecGofer generates context summary ✅ AND spawns new
+Claude Code terminal ✅ AND sends summary + remaining tasks ✅ AND Claude
+continues without data loss
 
 ### AC-006: Completion Validation
 
-✅ GIVEN all tasks are marked complete
-✅ WHEN SpecGofer detects `tasks.md` is 100% done
-✅ THEN SpecGofer runs final validation:
-✅ - `npm run lint` passes
-✅ - `npm run test` passes
-✅ - Constitution compliance check passes
-✅ AND notifies user "Feature complete!"
-✅ AND generates implementation report
+✅ GIVEN all tasks are marked complete ✅ WHEN SpecGofer detects `tasks.md` is
+100% done ✅ THEN SpecGofer runs final validation: ✅ - `npm run lint` passes
+✅ - `npm run test` passes ✅ - Constitution compliance check passes ✅ AND
+notifies user "Feature complete!" ✅ AND generates implementation report
 
 ### AC-007: Parallel Engineer + Tester
 
-✅ GIVEN autonomous mode starts with tester enabled
-✅ WHEN SpecGofer spawns terminals
-✅ THEN two terminals are created (Engineer + Tester)
-✅ AND Engineer executes implementation tasks
-✅ AND Tester validates each completed task
-✅ AND failures are sent back to Engineer
-✅ AND both agents' status shows in sidebar
+✅ GIVEN autonomous mode starts with tester enabled ✅ WHEN SpecGofer spawns
+terminals ✅ THEN two terminals are created (Engineer + Tester) ✅ AND Engineer
+executes implementation tasks ✅ AND Tester validates each completed task ✅ AND
+failures are sent back to Engineer ✅ AND both agents' status shows in sidebar
 
 ## Technical Design
 
@@ -320,16 +309,16 @@ extension/src/
 
 ```typescript
 class AutonomousDriver {
-  async start(specId: string, options: DriverOptions): Promise<void>
-  async stop(): Promise<void>
-  async pause(): Promise<void>
-  async resume(): Promise<void>
+  async start(specId: string, options: DriverOptions): Promise<void>;
+  async stop(): Promise<void>;
+  async pause(): Promise<void>;
+  async resume(): Promise<void>;
 
   // Hooks for monitoring
-  onProgress(callback: (update: ProgressUpdate) => void): void
-  onQuestion(callback: (q: Question) => Promise<string>): void
-  onError(callback: (error: DriverError) => void): void
-  onComplete(callback: (report: CompletionReport) => void): void
+  onProgress(callback: (update: ProgressUpdate) => void): void;
+  onQuestion(callback: (q: Question) => Promise<string>): void;
+  onError(callback: (error: DriverError) => void): void;
+  onComplete(callback: (report: CompletionReport) => void): void;
 }
 ```
 
@@ -337,14 +326,14 @@ class AutonomousDriver {
 
 ```typescript
 class TerminalManager {
-  async createTerminal(name: string): Promise<vscode.Terminal>
-  async sendCommand(terminalId: string, command: string): Promise<void>
-  async captureOutput(terminalId: string): AsyncIterator<string>
-  async closeTerminal(terminalId: string): Promise<void>
+  async createTerminal(name: string): Promise<vscode.Terminal>;
+  async sendCommand(terminalId: string, command: string): Promise<void>;
+  async captureOutput(terminalId: string): AsyncIterator<string>;
+  async closeTerminal(terminalId: string): Promise<void>;
 
   // Health monitoring
-  isAlive(terminalId: string): boolean
-  restartTerminal(terminalId: string): Promise<void>
+  isAlive(terminalId: string): boolean;
+  restartTerminal(terminalId: string): Promise<void>;
 }
 ```
 
@@ -352,13 +341,13 @@ class TerminalManager {
 
 ```typescript
 class OutputMonitor {
-  parseStream(output: string): ParsedEvent[]
+  parseStream(output: string): ParsedEvent[];
 
   // Pattern matchers
-  detectTaskCompletion(output: string): TaskUpdate | null
-  detectError(output: string): ErrorInfo | null
-  detectQuestion(output: string): Question | null
-  detectContextWarning(output: string): boolean
+  detectTaskCompletion(output: string): TaskUpdate | null;
+  detectError(output: string): ErrorInfo | null;
+  detectQuestion(output: string): Question | null;
+  detectContextWarning(output: string): boolean;
 }
 ```
 
@@ -401,13 +390,13 @@ class OutputMonitor {
 
 ## Risks and Mitigations
 
-| Risk | Impact | Likelihood | Mitigation |
-|------|--------|------------|------------|
-| Claude Code API changes | High | Low | Monitor VSCode API, add version checks |
-| Terminal output parsing fails | High | Medium | Fallback to file-based (.claude-output.txt) |
-| Context window estimation inaccurate | Medium | Medium | Use conservative thresholds (160K not 190K) |
-| User never responds to question | Medium | Low | 4-hour timeout, then pause with notification |
-| Infinite retry loop | Medium | Low | Hard limit: 3 retries then escalate |
+| Risk                                 | Impact | Likelihood | Mitigation                                   |
+| ------------------------------------ | ------ | ---------- | -------------------------------------------- |
+| Claude Code API changes              | High   | Low        | Monitor VSCode API, add version checks       |
+| Terminal output parsing fails        | High   | Medium     | Fallback to file-based (.claude-output.txt)  |
+| Context window estimation inaccurate | Medium | Medium     | Use conservative thresholds (160K not 190K)  |
+| User never responds to question      | Medium | Low        | 4-hour timeout, then pause with notification |
+| Infinite retry loop                  | Medium | Low        | Hard limit: 3 retries then escalate          |
 
 ## Open Questions
 
@@ -429,8 +418,13 @@ class OutputMonitor {
 
 ## Success Metrics
 
-- **Automation Rate**: % of tasks completed without human intervention (target: >80%)
-- **Error Recovery**: % of errors resolved via retry without escalation (target: >60%)
-- **Context Efficiency**: Avg tasks completed per Claude Code session before rollover (target: >20)
-- **Time to Completion**: Average time per task vs. manual implementation (target: 2-5x faster)
-- **User Satisfaction**: Net Promoter Score from autonomous feature users (target: >50)
+- **Automation Rate**: % of tasks completed without human intervention
+  (target: >80%)
+- **Error Recovery**: % of errors resolved via retry without escalation
+  (target: >60%)
+- **Context Efficiency**: Avg tasks completed per Claude Code session before
+  rollover (target: >20)
+- **Time to Completion**: Average time per task vs. manual implementation
+  (target: 2-5x faster)
+- **User Satisfaction**: Net Promoter Score from autonomous feature users
+  (target: >50)

@@ -672,18 +672,20 @@ export class SpecKitMigrator {
   }
 
   /**
-   * Convert JSON spec to Markdown with YAML frontmatter
+   * Convert JSON spec to Markdown with modern YAML frontmatter
    */
   private convertJsonToMarkdown(spec: any, specId: string): string {
     const now = new Date().toISOString().split('T')[0];
 
-    // YAML frontmatter
+    // Modern YAML frontmatter format
     const frontmatter = {
-      feature: specId,
+      id: specId,
+      title: spec.title || specId,
       status: spec.status || 'draft',
       created: now,
       updated: now,
-      author: 'migrated',
+      priority: spec.priority || 'medium',
+      assignee: 'engineer-agent',
     };
 
     const yamlStr = yaml.stringify(frontmatter);
@@ -792,78 +794,130 @@ For the complete constitution template, see the Spec Kit documentation.
   private async createTemplates(): Promise<void> {
     const templatesDir = path.join(this.specifyPath, 'templates');
 
-    // spec-template.md - proper spec-kit format
+    // spec-template.md - modern SpecGofer format
     const specTemplate = `---
-feature: "[feature-id]"
+id: "[###-feature-name]"
+title: "[Feature Title]"
 status: "draft"
 created: "[YYYY-MM-DD]"
 updated: "[YYYY-MM-DD]"
-author: "[author-name]"
+priority: "medium"
+assignee: "engineer-agent"
 ---
 
-# Feature Overview
+# [Feature Title]
 
-[Provide a high-level description of the feature, focusing on user value and business context. Explain what problem this feature solves and who will benefit from it.]
+**Feature Branch**: \`[###-feature-name]\`
+**Input**: User description: "$ARGUMENTS"
 
-## User Stories
+## User Scenarios & Testing *(mandatory)*
 
-- As a [user type], I want to [action] so that [benefit]
-- As a [user type], I want to [action] so that [benefit]
+<!--
+  IMPORTANT: User stories should be PRIORITIZED as user journeys ordered by importance.
+  Each user story/journey must be INDEPENDENTLY TESTABLE - meaning if you implement just ONE of them,
+  you should still have a viable MVP (Minimum Viable Product) that delivers value.
 
-## Functional Requirements
+  Assign priorities (P1, P2, P3, etc.) to each story, where P1 is the most critical.
+  Think of each story as a standalone slice of functionality that can be:
+  - Developed independently
+  - Tested independently
+  - Deployed independently
+  - Demonstrated to users independently
+-->
 
-1. **FR-001**: [Describe a specific, testable requirement]
-   - Acceptance: [How to verify this requirement is met]
+### User Story 1 - [Brief Title] (Priority: P1)
 
-2. **FR-002**: [Another requirement]
-   - Acceptance: [Verification criteria]
+[Describe this user journey in plain language]
 
-## Success Criteria
+**Why this priority**: [Explain the value and why it has this priority level]
 
-- [ ] [Measurable outcome that indicates feature success]
-- [ ] [Another measurable outcome]
-- [ ] [Performance or quality metric]
+**Independent Test**: [Describe how this can be tested independently - e.g., "Can be fully tested by [specific action] and delivers [specific value]"]
 
-## Key Entities
+**Acceptance Scenarios**:
 
-### [Entity Name]
-- **field1**: [type] - [description]
-- **field2**: [type] - [description]
-- **relationships**: [describe relationships to other entities]
+1. **Given** [initial state], **When** [action], **Then** [expected outcome]
+2. **Given** [initial state], **When** [action], **Then** [expected outcome]
 
-### [Another Entity]
-- **field1**: [type] - [description]
+---
 
-## Assumptions
+### User Story 2 - [Brief Title] (Priority: P2)
 
-- [State any assumptions about the environment, users, or system]
-- [Technical assumptions or constraints]
-- [Business rules or requirements that are taken as given]
+[Describe this user journey in plain language]
 
-## Out of Scope
+**Why this priority**: [Explain the value and why it has this priority level]
 
-- [Explicitly state what this feature will NOT do]
-- [Features or functionality to be addressed later]
+**Independent Test**: [Describe how this can be tested independently]
 
-## Risks and Mitigations
+**Acceptance Scenarios**:
 
-- **Risk**: [Potential issue]
-  - **Mitigation**: [How to address it]
+1. **Given** [initial state], **When** [action], **Then** [expected outcome]
 
-## Dependencies
+---
 
-### Internal
-- [Other features or components this depends on]
+### User Story 3 - [Brief Title] (Priority: P3)
 
-### External
-- [Third-party services, libraries, or systems]
+[Describe this user journey in plain language]
 
-## Clarifications
+**Why this priority**: [Explain the value and why it has this priority level]
 
-### Q1: [Question that arose during specification]
-**Q:** [The question]
-**A:** [The answer]
-**Confidence:** [High/Medium/Low]
+**Independent Test**: [Describe how this can be tested independently]
+
+**Acceptance Scenarios**:
+
+1. **Given** [initial state], **When** [action], **Then** [expected outcome]
+
+---
+
+[Add more user stories as needed, each with an assigned priority]
+
+### Edge Cases
+
+<!--
+  ACTION REQUIRED: The content in this section represents placeholders.
+  Fill them out with the right edge cases.
+-->
+
+- What happens when [boundary condition]?
+- How does system handle [error scenario]?
+
+## Requirements *(mandatory)*
+
+<!--
+  ACTION REQUIRED: The content in this section represents placeholders.
+  Fill them out with the right functional requirements.
+-->
+
+### Functional Requirements
+
+- **FR-001**: System MUST [specific capability, e.g., "allow users to create accounts"]
+- **FR-002**: System MUST [specific capability, e.g., "validate email addresses"]
+- **FR-003**: Users MUST be able to [key interaction, e.g., "reset their password"]
+- **FR-004**: System MUST [data requirement, e.g., "persist user preferences"]
+- **FR-005**: System MUST [behavior, e.g., "log all security events"]
+
+*Example of marking unclear requirements:*
+
+- **FR-006**: System MUST authenticate users via [NEEDS CLARIFICATION: auth method not specified - email/password, SSO, OAuth?]
+- **FR-007**: System MUST retain user data for [NEEDS CLARIFICATION: retention period not specified]
+
+### Key Entities *(include if feature involves data)*
+
+- **[Entity 1]**: [What it represents, key attributes without implementation]
+- **[Entity 2]**: [What it represents, relationships to other entities]
+
+## Success Criteria *(mandatory)*
+
+<!--
+  ACTION REQUIRED: Define measurable success criteria.
+  These must be technology-agnostic and measurable.
+-->
+
+### Measurable Outcomes
+
+- **SC-001**: [Measurable metric, e.g., "Users can complete account creation in under 2 minutes"]
+- **SC-002**: [Measurable metric, e.g., "System handles 1000 concurrent users without degradation"]
+- **SC-003**: [User satisfaction metric, e.g., "90% of users successfully complete primary task on first attempt"]
+- **SC-004**: [Business metric, e.g., "Reduce support tickets related to [X] by 50%"]
 `;
 
     await fs.writeFile(path.join(templatesDir, 'spec-template.md'), specTemplate);
@@ -1780,7 +1834,7 @@ ${newReportNumber}. **Report**: Output path to generated tasks.md and issues.md 
 
   /**
    * Fix existing spec.md and tasks.md files to ensure proper format
-   * Adds YAML frontmatter to spec.md and checkbox task lists to tasks.md
+   * Adds/updates YAML frontmatter to modern format and checkbox task lists
    */
   private async fixExistingSpecs(): Promise<void> {
     const specsDir = path.join(this.specifyPath, 'specs');
@@ -1794,35 +1848,137 @@ ${newReportNumber}. **Report**: Output path to generated tasks.md and issues.md 
         const specFile = path.join(specPath, 'spec.md');
         const tasksFile = path.join(specPath, 'tasks.md');
 
-        // Fix spec.md - add YAML frontmatter if missing
+        // Fix spec.md - add or update YAML frontmatter to modern format
         try {
           let specContent = await fs.readFile(specFile, 'utf-8');
+          let needsUpdate = false;
+          let title = specDir.name;
+          let status = 'draft';
+          let created = new Date().toISOString().split('T')[0];
+          let updated = new Date().toISOString().split('T')[0];
+          let priority = 'medium';
+          let assignee = 'engineer-agent';
 
-          // Check if it already has YAML frontmatter
-          if (!specContent.startsWith('---\n')) {
+          // Check if it has YAML frontmatter
+          const frontmatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/;
+          const frontmatterMatch = specContent.match(frontmatterRegex);
+
+          if (frontmatterMatch) {
+            // Has YAML frontmatter - check if it's in old format or needs updating
+            const existingYaml = frontmatterMatch[1];
+            const bodyContent = frontmatterMatch[2];
+
+            // Parse existing YAML
+            const existingData = yaml.parse(existingYaml);
+
+            // Check if using old format (feature: instead of id: and title:)
+            if (existingData.feature && (!existingData.id || !existingData.title)) {
+              console.log(
+                `[Fix Specs] Converting ${specDir.name}/spec.md from old 'feature:' format to modern 'id:'/'title:' format`
+              );
+              needsUpdate = true;
+
+              // Extract title from first heading in content
+              const titleMatch = bodyContent.match(/^#\s+(?:Feature Overview:\s*)?(.+)$/m);
+              title = titleMatch
+                ? titleMatch[1].replace('Feature Specification:', '').trim()
+                : existingData.feature;
+
+              // Preserve existing values
+              status = existingData.status || status;
+              created = existingData.created || created;
+              updated = new Date().toISOString().split('T')[0]; // Always update to today
+              priority = existingData.priority || priority;
+              assignee = existingData.assignee || assignee;
+
+              // Build new frontmatter with modern format
+              const newFrontmatter = `---
+id: "${specDir.name}"
+title: "${title}"
+status: "${status}"
+created: "${created}"
+updated: "${updated}"
+priority: "${priority}"
+assignee: "${assignee}"
+---
+
+`;
+              specContent = newFrontmatter + bodyContent;
+            } else if (existingData.id && existingData.title) {
+              // Already has modern format - just update the 'updated' date if it's old
+              const existingUpdated = existingData.updated || '';
+              const today = new Date().toISOString().split('T')[0];
+
+              if (existingUpdated !== today) {
+                console.log(`[Fix Specs] Updating timestamp in ${specDir.name}/spec.md`);
+                needsUpdate = true;
+
+                // Preserve all values but update the date
+                title = existingData.title;
+                status = existingData.status || status;
+                created = existingData.created || created;
+                updated = today;
+                priority = existingData.priority || priority;
+                assignee = existingData.assignee || assignee;
+
+                const newFrontmatter = `---
+id: "${specDir.name}"
+title: "${title}"
+status: "${status}"
+created: "${created}"
+updated: "${updated}"
+priority: "${priority}"
+assignee: "${assignee}"
+---
+
+`;
+                specContent = newFrontmatter + bodyContent;
+              }
+            }
+          } else {
+            // No YAML frontmatter - add it
             console.log(`[Fix Specs] Adding YAML frontmatter to ${specDir.name}/spec.md`);
+            needsUpdate = true;
 
-            // Extract title from first heading
-            const titleMatch = specContent.match(/^#\s+(.+)$/m);
-            const title = titleMatch ? titleMatch[1] : specDir.name;
+            // Extract title from first heading or inline metadata
+            const titleMatch = specContent.match(/^#\s+(?:Feature Specification:\s*)?(.+)$/m);
+            if (titleMatch) {
+              title = titleMatch[1].replace('Feature Specification:', '').trim();
+            }
 
-            // Add frontmatter
+            // Try to extract metadata from inline format (GitHub Spec Kit style)
+            const statusMatch = specContent.match(/\*\*Status\*\*:\s*(\w+)/i);
+            if (statusMatch) {
+              status = statusMatch[1].toLowerCase();
+            }
+
+            const createdMatch = specContent.match(/\*\*Created\*\*:\s*(\d{4}-\d{2}-\d{2})/i);
+            if (createdMatch) {
+              created = createdMatch[1];
+            }
+
+            // Build frontmatter
             const frontmatter = `---
 id: "${specDir.name}"
 title: "${title}"
-status: "in_progress"
-created: "${new Date().toISOString().split('T')[0]}"
-updated: "${new Date().toISOString().split('T')[0]}"
-priority: "medium"
-assignee: "engineer-agent"
+status: "${status}"
+created: "${created}"
+updated: "${updated}"
+priority: "${priority}"
+assignee: "${assignee}"
 ---
 
 `;
             specContent = frontmatter + specContent;
+          }
+
+          // Write updated content if needed
+          if (needsUpdate) {
             await fs.writeFile(specFile, specContent);
+            console.log(`[Fix Specs] Updated ${specDir.name}/spec.md`);
           }
         } catch (error) {
-          console.log(`[Fix Specs] No spec.md found for ${specDir.name}`);
+          console.log(`[Fix Specs] No spec.md found for ${specDir.name}:`, error);
         }
 
         // Fix tasks.md - ensure it has checkbox task list

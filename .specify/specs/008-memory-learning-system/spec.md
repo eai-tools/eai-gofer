@@ -1,3 +1,13 @@
+---
+id: '008-memory-learning-system'
+title: 'Memory and Learning System'
+status: 'draft'
+created: '2025-10-31'
+updated: '2025-11-05'
+priority: 'high'
+assignee: 'engineer-agent'
+---
+
 # Feature Specification: Memory and Learning System
 
 **Feature Branch**: `001-memory-learning-system` **Created**: 2025-10-31

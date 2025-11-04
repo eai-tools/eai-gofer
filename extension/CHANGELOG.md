@@ -2,6 +2,10 @@
 
 All notable changes to the SpecGofer extension will be documented in this file.
 
+## [3.2.1] - 2025-11-04
+
+Make default Haiku prompts visible in VSCode settings
+
 ## [3.2.0] - 2025-11-04
 
 Add real-time monitoring with selective interruption and fully configurable Haiku prompts

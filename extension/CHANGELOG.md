@@ -30,24 +30,13 @@ Auto-committed changes before release v3.0.34
 
 ### Changed
 
-- **Haiku-powered question analysis** - Completely rewrote question detection to
-  use a two-phase approach: (1) Pre-check: No spinner + `>` prompt present in
-  last 30 lines, (2) Haiku analysis: Ask Claude 3.5 Haiku to analyze the last
-  20k characters and determine if there's actually a question requiring an
-  answer. Haiku responds with either an answer or "NO_QUESTION". Removed
-  unreliable buffer stability checking. This approach is much simpler and more
-  accurate than pattern matching. (ClaudeCodeAutonomousResponder.ts:143-197,
-  306-362)
-
-- **Increased context window for Haiku** - Changed from 10,000 to 20,000
-  characters of terminal context sent to Claude 3.5 Haiku for answering
-  questions. Updated model identifier from 'claude-3-5-haiku-latest' to specific
-  version 'claude-3-5-haiku-20241022' for consistency.
-  (ClaudeCodeAutonomousResponder.ts:330, 352)
-
-- **Improved answer prompt** - Updated user prompt to explicitly say "Answer the
-  question directly with the best answer" based on constitution, specification,
-  plan, and tasks. (ClaudeCodeAutonomousResponder.ts:347)
+- **Simplified question detection to only check for spinner absence** - Removed
+  the `>` prompt check from question detection logic since the user revealed
+  that the prompt is always present (even when Claude Code is still working).
+  Now the ONLY check is: if no spinner is detected in the last 30 lines, Claude
+  Code is idle and we ask Haiku to analyze the context. This is much simpler and
+  more reliable than checking for prompts that are always present.
+  (ClaudeCodeAutonomousResponder.ts:145-180)
 
 ## [3.0.34] - 2025-11-04
 

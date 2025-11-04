@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastModified": 1762235384458,
+  "lastModified": 1762246962220,
   "nodes": {
     "001-memory-learning-system": {
       "specId": "001-memory-learning-system",
@@ -40,7 +40,7 @@
     },
     "001-claude-terminal-integration": {
       "specId": "001-claude-terminal-integration",
-      "status": "pending"
+      "status": "complete"
     }
   },
   "edges": []

@@ -182,7 +182,7 @@ export class ClaudeCodeAutonomousResponder {
       return { detected: false, question: '', context: '' };
     }
 
-    // Check 3: Is there a spinner line with pattern like "✶ Enchanting… (esc to interrupt)"?
+    // Check 3: Is there a spinner line? If yes, Claude Code is still working - NOT ready for input!
     const spinnerPatterns = [
       /^[✳✶✻✽✢·⏺]\s+\w+ing…/i, // Matches "✶ Enchanting…", "✳ Flibbertigibbeting…", etc.
       /^[✳✶✻✽✢·⏺]\s+\w+…/i, // Matches other spinner patterns
@@ -190,7 +190,12 @@ export class ClaudeCodeAutonomousResponder {
     const hasSpinner = lastLines.some((line) =>
       spinnerPatterns.some((pattern) => pattern.test(line.trim()))
     );
-    this.outputChannel.appendLine(`   ✓ Check 3 - Has spinner line: ${hasSpinner}`);
+    this.outputChannel.appendLine(`   ✓ Check 3 - Has spinner (still working): ${hasSpinner}`);
+
+    if (hasSpinner) {
+      this.outputChannel.appendLine('   ✗ Spinner detected - Claude Code still working, not ready for input\n');
+      return { detected: false, question: '', context: '' };
+    }
 
     // Check 4: Is there a ">" prompt line?
     const hasPrompt = lastLines.some((line) => {
@@ -205,17 +210,11 @@ export class ClaudeCodeAutonomousResponder {
     }
 
     // All checks passed - question detected!
-    if (hasSpinner) {
-      this.outputChannel.appendLine('   ✅ DETECTED: question with spinner (Claude Code waiting)\n');
-    } else {
-      this.outputChannel.appendLine(
-        '   ✅ DETECTED: question without spinner (stable with prompt)\n'
-      );
-    }
+    this.outputChannel.appendLine('   ✅ DETECTED: stable question with prompt (ready for answer)\n');
 
     return {
       detected: true,
-      question: hasSpinner ? 'claude-waiting-with-spinner' : 'stable-prompt',
+      question: 'stable-prompt-ready',
       context: last20k,
     };
   }

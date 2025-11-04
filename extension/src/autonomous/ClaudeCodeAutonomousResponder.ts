@@ -14,6 +14,7 @@ export interface QuestionContext {
   specId: string;
   question: string;
   terminalOutput: string; // Full terminal context (up to 10,000 chars)
+  checkType?: 'IDLE_DETECTION' | 'COMPREHENSIVE_CHECK'; // Type of monitoring check
   constitutionPath?: string;
   specPath?: string;
   planPath?: string;
@@ -397,23 +398,59 @@ export class ClaudeCodeAutonomousResponder {
       // Determine Claude's work state from question field
       const isWorking = context.question.includes('WORKING');
 
-      // Build dynamic work state text
-      const workStateText = isWorking
-        ? `CLAUDE CODE CURRENT STATE: ACTIVELY WORKING (spinner present)
+      // Determine check type (idle detection vs comprehensive check)
+      const isIdleDetection = context.checkType === 'IDLE_DETECTION';
 
-CRITICAL: Claude is actively working right now. You should ONLY interrupt if:
-- Claude is going in the WRONG direction (deviating from constitution, spec, plan, latest best practices (from internet search) or tasks)
-- Claude is using outdated/deprecated approaches (violates best practices)
+      // Build dynamic work state text based on check type
+      let workStateText: string;
+
+      if (isIdleDetection) {
+        // IDLE DETECTION mode: Focus on answering questions immediately
+        workStateText = `CLAUDE CODE CURRENT STATE: IDLE (no spinner detected)
+
+CRITICAL: This is an IDLE DETECTION check. Claude has stopped working and is waiting for input.
+
+YOUR PRIMARY JOB: Look for and ANSWER any question Claude is asking.
+
+Common question patterns:
+- "Which feature would you like me to implement? 1. ... 2. ..."
+- "Should I proceed with X?"
+- "Please choose: A) ... B) ..."
+- Any numbered or lettered choices
+
+If you see a question:
+- ANSWER IT DIRECTLY (just the number, letter, or brief text response)
+- DO NOT respond with "NO_INTERRUPT" or suggest the human should answer
+- DO NOT provide meta-analysis about whether to interrupt
+- Example answers: "1", "001-claude-terminal-integration", "Yes, proceed with the test file"
+
+If there's truly no question and Claude just finished naturally:
+- Respond with: ACTION: NO_INTERRUPT
+- This lets Claude continue on its own`;
+      } else {
+        // COMPREHENSIVE CHECK mode: Monitor progress and direction
+        workStateText = isWorking
+          ? `CLAUDE CODE CURRENT STATE: ACTIVELY WORKING (spinner present)
+
+CRITICAL: This is a COMPREHENSIVE CHECK (runs every 60 seconds). Claude is actively working.
+
+You should ONLY interrupt if:
+- Claude is going in the WRONG direction (deviating from constitution, spec, plan, or latest best practices)
+- Claude is using outdated/deprecated approaches
 - Claude is violating constitution principles
 - There's a clear mistake that needs immediate correction
 
-DO NOT interrupt if Claude is making correct progress, even if slowly.`
-        : `CLAUDE CODE CURRENT STATE: IDLE (no spinner)
+DO NOT interrupt if Claude is making correct progress, even if slowly.
+Default to: ACTION: NO_INTERRUPT`
+          : `CLAUDE CODE CURRENT STATE: IDLE (no spinner)
 
-Claude has finished work and is idle. You can:
+This is a COMPREHENSIVE CHECK (runs every 60 seconds). Claude has finished work and is idle.
+
+You can:
 - Answer questions if asked
-- Provide next direction if needed
-- Let Claude continue on its own if next steps are obvious`;
+- Provide next direction if needed (ACTION: CONTINUE_IMPLEMENT)
+- Let Claude continue on its own if next steps are obvious (ACTION: NO_INTERRUPT)`;
+      }
 
       // Get system prompt from settings and replace variables
       const systemPromptTemplate = config.get<string>(
@@ -425,10 +462,42 @@ Claude has finished work and is idle. You can:
         .replace(/\{WORK_STATE\}/g, workStateText)
         .replace(/\{RESPONSE_TYPES\}/g, responseTypes);
 
-      // Build detailed work state instructions
-      const workStateInstructions = isWorking
-        ? `
-**CLAUDE IS ACTIVELY WORKING - Monitor for Course Corrections Only**
+      // Build detailed work state instructions based on check type
+      let workStateInstructions: string;
+
+      if (isIdleDetection) {
+        // IDLE DETECTION mode: Laser focus on answering questions
+        workStateInstructions = `
+**IDLE DETECTION MODE - Answer Questions Immediately**
+
+**Your ONLY job is to look for a question and answer it.**
+
+**Step 1: Scan the terminal output for a question**
+Look for these patterns:
+- Numbered choices: "1. Option A  2. Option B" or "Which feature? 1. ... 2. ..."
+- Yes/no questions: "Should I proceed with X?"
+- Multiple choice: "Please choose: A) ... B) ..."
+- Feature selection: "Which feature would you like me to implement?"
+
+**Step 2: If you see a question, ANSWER IT DIRECTLY**
+- For numbered choices: Respond with ONLY the number (e.g., "1")
+- For feature selection: Respond with the feature ID (e.g., "001-claude-terminal-integration")
+- For yes/no: Respond with "Yes" or "No" plus brief context
+- DO NOT say "NO_INTERRUPT" or suggest the human should answer
+- DO NOT provide meta-analysis or rationale
+- Just answer the question directly and concisely
+
+**Step 3: If there's NO question**
+- Claude just finished working naturally
+- Respond with: ACTION: NO_INTERRUPT
+- This lets Claude continue on its own
+
+**CRITICAL**: This is NOT the time for meta-analysis. If you see a question, answer it. Period.
+`;
+      } else if (isWorking) {
+        // COMPREHENSIVE CHECK mode with WORKING state
+        workStateInstructions = `
+**COMPREHENSIVE CHECK - Monitor for Course Corrections Only**
 
 **Step 1: Review what Claude is currently doing**
 - Look at the terminal to see what Claude is working on
@@ -447,9 +516,11 @@ Claude has finished work and is idle. You can:
 - **Claude making correct progress**: ACTION: NO_INTERRUPT (don't interrupt, let it continue)
 
 **DEFAULT**: When in doubt, choose NO_INTERRUPT. Only interrupt if you're confident there's a problem.
-`
-        : `
-**CLAUDE IS IDLE - Full Decision Making**
+`;
+      } else {
+        // COMPREHENSIVE CHECK mode with IDLE state
+        workStateInstructions = `
+**COMPREHENSIVE CHECK - Idle State Decision Making**
 
 **Step 1: Check for Questions**
 Look for:
@@ -482,6 +553,7 @@ If question found: Provide the answer (number only for multiple choice, clear te
 
 **DEFAULT**: Prefer NO_INTERRUPT when Claude is making good progress autonomously.
 `;
+      }
 
       // Get user prompt template from settings and replace all variables
       const userPromptTemplate = config.get<string>(
@@ -532,24 +604,25 @@ If question found: Provide the answer (number only for multiple choice, clear te
       if (answer) {
         const trimmedAnswer = answer.trim();
 
-        // Check for ACTION commands (no question, deciding next step)
-        if (trimmedAnswer.startsWith('ACTION: NO_INTERRUPT')) {
+        // Check for ACTION commands anywhere in the response (not just at start)
+        // This handles cases where Haiku adds preambles like "After analyzing..."
+        if (trimmedAnswer.includes('ACTION: NO_INTERRUPT')) {
           this.outputChannel.appendLine('   ✓ Haiku decided: No interruption needed\n');
           this.outputChannel.appendLine(
             '   → Claude is on track, letting it continue naturally...\n'
           );
           await this.writeLog('DECISION: NO_INTERRUPT - Claude on track, not interrupting');
-          return null; // Don't send anything to terminal
+          return null; // Don't send anything to terminal - DO NOTHING
         }
 
-        if (trimmedAnswer.startsWith('ACTION: CONTINUE_IMPLEMENT')) {
+        if (trimmedAnswer.includes('ACTION: CONTINUE_IMPLEMENT')) {
           this.outputChannel.appendLine('   🚀 Haiku decided: Continue implementation\n');
           this.outputChannel.appendLine('   → Sending /speckit.implement command...\n');
           await this.writeLog('DECISION: CONTINUE_IMPLEMENT - sending /speckit.implement');
           return '/speckit.implement\n';
         }
 
-        if (trimmedAnswer.startsWith('ACTION: ENGINEERING_REVIEW')) {
+        if (trimmedAnswer.includes('ACTION: ENGINEERING_REVIEW')) {
           // Check if engineering review is enabled
           const config = vscode.workspace.getConfiguration('specGofer.autonomous');
           const enableEngReview = config.get<boolean>('enableEngineeringReview', true);
@@ -585,7 +658,7 @@ Provide a brief summary of findings and recommendations for next steps.`
           return reviewPrompt;
         }
 
-        if (trimmedAnswer.startsWith('ACTION: PERFORMANCE_REVIEW')) {
+        if (trimmedAnswer.includes('ACTION: PERFORMANCE_REVIEW')) {
           // Check if performance review is enabled
           const config = vscode.workspace.getConfiguration('specGofer.autonomous');
           const enablePerfReview = config.get<boolean>('enablePerformanceReview', true);

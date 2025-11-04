@@ -22,7 +22,9 @@ import { ProgressReporter } from './ProgressReporter';
 import { MemoryManager } from './MemoryManager';
 import { HintLoader } from './HintLoader';
 import { ContextBuilder } from './ContextBuilder';
+import { ContextCompactor } from './ContextCompactor';
 import type { Memory } from './memory';
+import type { CompactionSummary } from './compaction';
 import type {
   AutonomousSession,
   SessionStatus,
@@ -50,6 +52,7 @@ export class AutonomousDriver {
   private memoryManager: MemoryManager;
   private hintLoader: HintLoader;
   private contextBuilder: ContextBuilder;
+  private contextCompactor: ContextCompactor; // T145: Add ContextCompactor instance
 
   // Session state
   private currentSession: AutonomousSession | null = null;
@@ -84,6 +87,15 @@ export class AutonomousDriver {
     this.progressReporter = new ProgressReporter(workspacePath, progressProvider);
     this.hintLoader = new HintLoader(workspacePath);
     this.contextBuilder = new ContextBuilder(workspacePath, memoryManager, this.hintLoader);
+
+    // T156: Read threshold from VSCode settings and initialize ContextCompactor
+    const config = vscode.workspace.getConfiguration('specGofer.autonomous');
+    const threshold = config.get<number>('compactionThreshold', 80) / 100; // Convert percentage to decimal
+    this.contextCompactor = new ContextCompactor(workspacePath, {
+      threshold,
+      autoCompact: true,
+      enableBackup: true,
+    });
 
     // Setup file watcher for hint changes
     this.hintLoader.setupFileWatcher();
@@ -288,6 +300,7 @@ export class AutonomousDriver {
       failedTasks: [],
       tokenCount: 0,
       contextSwitches: 0,
+      compactionHistory: [], // Initialize empty compaction history
       events: [],
       errorHistory: [],
       questionHistory: [],
@@ -838,6 +851,432 @@ export class AutonomousDriver {
   private resetPatternTracking(): void {
     this.patternTracker.clear();
     this.suggestedPatterns.clear();
+  }
+
+  // ============================================================================
+  // Context Compaction Integration (T145-T149)
+  // ============================================================================
+
+  /**
+   * Monitor context usage and trigger compaction if needed.
+   * Should be called after each task completion.
+   *
+   * T146: Add context monitoring in AutonomousDriver main execution loop
+   * T147: Trigger compact() when threshold reached
+   * T148: Update session context with compacted result
+   * T149: Store CompactionSummary in session.compactionHistory
+   *
+   * @param currentContext - The current context string being used
+   */
+  async monitorAndCompactContext(currentContext: string): Promise<void> {
+    if (!this.currentSession) {
+      return;
+    }
+
+    try {
+      // Convert session to format expected by ContextCompactor
+      const session = {
+        id: this.currentSession.sessionId,
+        specId: this.currentSession.specId,
+        status: this.currentSession.status,
+        currentTask: this.currentSession.currentTask,
+        completedTasks: this.currentSession.completedTasks,
+        failedTasks: this.currentSession.failedTasks.map((f) => f.taskId),
+        context: currentContext,
+        compactionHistory: this.currentSession.compactionHistory,
+        startedAt: new Date(this.currentSession.startedAt).getTime(),
+        lastUpdatedAt: Date.now(),
+        completedAt: this.currentSession.completedAt
+          ? new Date(this.currentSession.completedAt).getTime()
+          : undefined,
+      };
+
+      // T146: Check if compaction is needed
+      const shouldCompact = await this.contextCompactor.shouldCompact(session);
+
+      if (shouldCompact) {
+        console.log('[AutonomousDriver] Context threshold reached, triggering compaction...');
+
+        // T147: Trigger compaction
+        const summary = await this.contextCompactor.compact(session);
+
+        // T149: Store CompactionSummary in session history
+        this.currentSession.compactionHistory.push(summary);
+
+        // T148: Update token count estimate
+        this.currentSession.tokenCount = this.contextCompactor.estimateTokenUsage(session.context);
+
+        // Save updated session
+        await this.progressReporter.saveSession(this.currentSession);
+
+        // T150-T151: Show notification to user
+        await this.showCompactionNotification(summary);
+
+        console.log(
+          `[AutonomousDriver] Context compacted: ${summary.tasksCompacted.length} tasks summarized, ` +
+            `${summary.tokensSaved} tokens saved`
+        );
+      }
+    } catch (error) {
+      console.error('[AutonomousDriver] Error during context compaction:', error);
+      // Don't fail the session if compaction fails
+      // T160: Show warning notification when fallback is used
+      if (error instanceof Error && error.message.includes('fallback')) {
+        vscode.window.showWarningMessage(
+          'Context compaction used fallback strategy due to summarization error. Some context may be truncated.'
+        );
+      }
+    }
+  }
+
+  /**
+   * Show notification when context is compacted.
+   *
+   * T150: Show notification when compaction occurs
+   * T151: Add "View Summary" button to notification
+   *
+   * @param summary - Compaction summary to display
+   */
+  private async showCompactionNotification(summary: CompactionSummary): Promise<void> {
+    const tasksCount = summary.tasksCompacted.length;
+    const tokensSaved = summary.tokensSaved;
+
+    const action = await vscode.window.showInformationMessage(
+      `Context compacted: ${tasksCount} tasks summarized, ~${tokensSaved} tokens saved`,
+      'View Summary',
+      'Dismiss'
+    );
+
+    if (action === 'View Summary') {
+      // T152: Show CompactionSummaryPanel (will be implemented)
+      await this.showCompactionSummary(summary);
+    }
+  }
+
+  /**
+   * Show compaction summary in a webview panel.
+   *
+   * T152: Create CompactionSummaryPanel webview
+   *
+   * @param summary - Compaction summary to display
+   */
+  private async showCompactionSummary(summary: CompactionSummary): Promise<void> {
+    const panel = vscode.window.createWebviewPanel(
+      'compactionSummary',
+      'Context Compaction Summary',
+      vscode.ViewColumn.Two,
+      {
+        enableScripts: false,
+        retainContextWhenHidden: true,
+      }
+    );
+
+    panel.webview.html = this.getCompactionSummaryHtml(summary);
+  }
+
+  /**
+   * Show full compaction history for the current session.
+   *
+   * T153: Add command "SpecGofer: View Compaction History"
+   */
+  async showCompactionHistory(): Promise<void> {
+    if (!this.currentSession) {
+      vscode.window.showInformationMessage('No active session');
+      return;
+    }
+
+    if (this.currentSession.compactionHistory.length === 0) {
+      vscode.window.showInformationMessage('No compaction has occurred yet in this session');
+      return;
+    }
+
+    const panel = vscode.window.createWebviewPanel(
+      'compactionHistory',
+      'Context Compaction History',
+      vscode.ViewColumn.Two,
+      {
+        enableScripts: false,
+        retainContextWhenHidden: true,
+      }
+    );
+
+    panel.webview.html = this.getCompactionHistoryHtml(this.currentSession.compactionHistory);
+  }
+
+  /**
+   * Generate HTML for full compaction history.
+   *
+   * @param history - Array of compaction summaries
+   * @returns HTML string
+   */
+  private getCompactionHistoryHtml(history: CompactionSummary[]): string {
+    const totalTokensSaved = history.reduce((sum, s) => sum + s.tokensSaved, 0);
+    const totalTasksCompacted = history.reduce((sum, s) => sum + s.tasksCompacted.length, 0);
+
+    const summariesHtml = history
+      .map(
+        (summary, index) => `
+      <div class="summary-item">
+        <div class="summary-header">
+          <h3>Compaction #${index + 1}</h3>
+          <span class="timestamp">${new Date(summary.compactedAt).toLocaleString()}</span>
+        </div>
+        <div class="summary-stats">
+          <span class="stat-pill">📦 ${summary.tasksCompacted.length} tasks</span>
+          <span class="stat-pill">💾 ${summary.tokensSaved.toLocaleString()} tokens saved</span>
+          <span class="stat-pill">📌 ${summary.preservedTasks.length} preserved</span>
+        </div>
+        <div class="summary-text">${this.escapeHtml(summary.summaryText)}</div>
+      </div>
+    `
+      )
+      .join('');
+
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Context Compaction History</title>
+    <style>
+        body {
+            font-family: var(--vscode-font-family);
+            color: var(--vscode-foreground);
+            background-color: var(--vscode-editor-background);
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: var(--vscode-textLink-foreground);
+            border-bottom: 2px solid var(--vscode-panel-border);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .overall-stats {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-box {
+            flex: 1;
+            padding: 15px;
+            background-color: var(--vscode-textCodeBlock-background);
+            border-radius: 5px;
+            border-left: 4px solid var(--vscode-textLink-activeForeground);
+        }
+        .stat-label {
+            font-size: 12px;
+            color: var(--vscode-descriptionForeground);
+            text-transform: uppercase;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--vscode-textLink-foreground);
+            margin-top: 5px;
+        }
+        .summary-item {
+            margin-bottom: 25px;
+            padding: 20px;
+            background-color: var(--vscode-editorWidget-background);
+            border: 1px solid var(--vscode-panel-border);
+            border-radius: 5px;
+        }
+        .summary-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .summary-header h3 {
+            margin: 0;
+            color: var(--vscode-textPreformat-foreground);
+        }
+        .timestamp {
+            font-size: 12px;
+            color: var(--vscode-descriptionForeground);
+        }
+        .summary-stats {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .stat-pill {
+            display: inline-block;
+            padding: 4px 10px;
+            background-color: var(--vscode-badge-background);
+            color: var(--vscode-badge-foreground);
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        .summary-text {
+            padding: 15px;
+            background-color: var(--vscode-textCodeBlock-background);
+            border-left: 3px solid var(--vscode-textLink-foreground);
+            border-radius: 3px;
+            white-space: pre-wrap;
+            font-family: var(--vscode-editor-font-family);
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <h1>📚 Context Compaction History</h1>
+
+    <div class="overall-stats">
+        <div class="stat-box">
+            <div class="stat-label">Total Compactions</div>
+            <div class="stat-value">${history.length}</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-label">Total Tasks Compacted</div>
+            <div class="stat-value">${totalTasksCompacted}</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-label">Total Tokens Saved</div>
+            <div class="stat-value">${totalTokensSaved.toLocaleString()}</div>
+        </div>
+    </div>
+
+    <h2>Compaction Events</h2>
+    ${summariesHtml}
+</body>
+</html>`;
+  }
+
+  /**
+   * Generate HTML for compaction summary webview.
+   *
+   * @param summary - Compaction summary
+   * @returns HTML string
+   */
+  private getCompactionSummaryHtml(summary: CompactionSummary): string {
+    const date = new Date(summary.compactedAt).toLocaleString();
+
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Context Compaction Summary</title>
+    <style>
+        body {
+            font-family: var(--vscode-font-family);
+            color: var(--vscode-foreground);
+            background-color: var(--vscode-editor-background);
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: var(--vscode-textLink-foreground);
+            border-bottom: 2px solid var(--vscode-panel-border);
+            padding-bottom: 10px;
+        }
+        .stat {
+            display: inline-block;
+            margin: 10px 20px 10px 0;
+            padding: 10px 15px;
+            background-color: var(--vscode-textCodeBlock-background);
+            border-radius: 5px;
+            border-left: 4px solid var(--vscode-textLink-activeForeground);
+        }
+        .stat-label {
+            font-size: 12px;
+            color: var(--vscode-descriptionForeground);
+            text-transform: uppercase;
+        }
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--vscode-textLink-foreground);
+        }
+        .section {
+            margin-top: 30px;
+        }
+        .section h2 {
+            color: var(--vscode-textPreformat-foreground);
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        .summary-text {
+            padding: 15px;
+            background-color: var(--vscode-textCodeBlock-background);
+            border-left: 3px solid var(--vscode-textLink-foreground);
+            border-radius: 3px;
+            white-space: pre-wrap;
+            font-family: var(--vscode-editor-font-family);
+        }
+        .task-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .task-chip {
+            display: inline-block;
+            padding: 4px 10px;
+            background-color: var(--vscode-badge-background);
+            color: var(--vscode-badge-foreground);
+            border-radius: 12px;
+            font-size: 12px;
+            font-family: monospace;
+        }
+        .info {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: var(--vscode-inputValidation-infoBackground);
+            border: 1px solid var(--vscode-inputValidation-infoBorder);
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>📦 Context Compaction Summary</h1>
+
+    <div class="stats">
+        <div class="stat">
+            <div class="stat-label">Tasks Compacted</div>
+            <div class="stat-value">${summary.tasksCompacted.length}</div>
+        </div>
+        <div class="stat">
+            <div class="stat-label">Tokens Saved</div>
+            <div class="stat-value">${summary.tokensSaved.toLocaleString()}</div>
+        </div>
+        <div class="stat">
+            <div class="stat-label">Tasks Preserved</div>
+            <div class="stat-value">${summary.preservedTasks.length}</div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Summary</h2>
+        <div class="summary-text">${this.escapeHtml(summary.summaryText)}</div>
+    </div>
+
+    <div class="section">
+        <h2>Compacted Tasks</h2>
+        <div class="task-list">
+            ${summary.tasksCompacted.map((taskId) => `<span class="task-chip">${this.escapeHtml(taskId)}</span>`).join('')}
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Preserved Tasks (Recent Work)</h2>
+        <div class="task-list">
+            ${summary.preservedTasks.map((taskId) => `<span class="task-chip">${this.escapeHtml(taskId)}</span>`).join('')}
+        </div>
+    </div>
+
+    <div class="info">
+        <strong>ℹ️ What is context compaction?</strong><br>
+        When the context window reaches ${Math.round((this.contextCompactor as any).threshold * 100)}% capacity,
+        SpecGofer automatically summarizes completed tasks to free up space for new work.
+        The last ${summary.preservedTasks.length} tasks are kept in full detail.
+        <br><br>
+        <strong>Compacted at:</strong> ${date}
+    </div>
+</body>
+</html>`;
   }
 
   /**

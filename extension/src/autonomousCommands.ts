@@ -37,9 +37,12 @@ let terminalCloseListener: vscode.Disposable | null = null;
 
 // Autonomous responder
 let autonomousResponder: ClaudeCodeAutonomousResponder | null = null;
-let autonomousMonitoringInterval: NodeJS.Timeout | null = null;
+let autonomousMonitoringInterval: NodeJS.Timeout | null = null; // Deprecated - kept for compatibility
+let idleDetectionInterval: NodeJS.Timeout | null = null; // Fast idle detection (5-10 seconds)
+let comprehensiveCheckInterval: NodeJS.Timeout | null = null; // Slow comprehensive check (60 seconds)
 let ptyProcess: pty.IPty | null = null;
 let isAutonomousMonitoringPaused = false; // Track pause state
+let lastIdleCheckTime = 0; // Track last idle check to avoid duplicate responses
 
 /**
  * Start autonomous execution for a spec
@@ -872,10 +875,50 @@ async function startAutonomousMonitoring(specId: string, workspacePath: string):
     });
   });
 
-  // Poll every 30 seconds to check terminal state and decide whether to interrupt
-  // This gives Claude Code time to work without constant interruptions
-  // During the 30 seconds, terminal output is continuously collected via addTerminalOutput()
-  autonomousMonitoringInterval = setInterval(async () => {
+  // DUAL-MODE MONITORING:
+  // 1. IDLE DETECTION - Check every 10 seconds for idle state (no spinner)
+  //    If idle detected, immediately ask Haiku to answer/decide
+  // 2. COMPREHENSIVE CHECK - Check every 60 seconds regardless of state
+  //    Even when working, check if Claude is going in the right direction
+
+  // Mode 1: Fast idle detection (10 seconds)
+  idleDetectionInterval = setInterval(async () => {
+    if (!claudeTerminal || !autonomousResponder) {
+      stopAutonomousMonitoring();
+      return;
+    }
+
+    // Skip if monitoring is paused
+    if (isAutonomousMonitoringPaused) {
+      return;
+    }
+
+    outputChannel?.appendLine(
+      `[${new Date().toLocaleTimeString()}] 🔍 Idle check: Checking if Claude Code is idle...`
+    );
+
+    const detection = autonomousResponder.detectQuestion();
+
+    // Only respond if IDLE (no spinner)
+    if (detection.detected && detection.question.includes('IDLE')) {
+      const now = Date.now();
+      // Prevent duplicate responses within 5 seconds
+      if (now - lastIdleCheckTime < 5000) {
+        outputChannel?.appendLine('   ⏭️  Skipping (responded recently)');
+        return;
+      }
+
+      lastIdleCheckTime = now;
+      outputChannel?.appendLine(
+        `[${new Date().toLocaleTimeString()}] ✅ Claude is IDLE - asking Haiku to respond immediately...`
+      );
+
+      await attemptQuestionResponse(specId, workspacePath, 'IDLE_DETECTION');
+    }
+  }, 10000); // Check every 10 seconds for idle
+
+  // Mode 2: Comprehensive check (60 seconds) - runs regardless of state
+  comprehensiveCheckInterval = setInterval(async () => {
     if (!claudeTerminal || !autonomousResponder) {
       stopAutonomousMonitoring();
       return;
@@ -890,44 +933,23 @@ async function startAutonomousMonitoring(specId: string, workspacePath: string):
     }
 
     outputChannel?.appendLine(
-      `[${new Date().toLocaleTimeString()}] 🔍 30-second check: Analyzing terminal state...`
+      `[${new Date().toLocaleTimeString()}] 🔍 60-second comprehensive check: Analyzing full context...`
     );
 
-    // Check terminal state (this reads all output collected in the last 30 seconds)
-    const detection = autonomousResponder.detectQuestion();
-
-    if (detection.detected && !escDetectedTime) {
-      escDetectedTime = Date.now();
-      outputChannel?.appendLine(
-        `[${new Date().toLocaleTimeString()}] ⚠️  Decided to analyze - waiting 5 seconds for stability...`
-      );
-    }
-
-    // If we decided to check and 5 seconds have passed, ask Haiku to decide
-    if (escDetectedTime && Date.now() - escDetectedTime >= ESC_WAIT_TIME) {
-      outputChannel?.appendLine(
-        `[${new Date().toLocaleTimeString()}] ⏱️  5 seconds elapsed, asking Haiku to decide action...`
-      );
-
-      const responded = await attemptQuestionResponse(specId, workspacePath);
-
-      // Reset detection
-      escDetectedTime = null;
-
-      if (!responded) {
-        outputChannel?.appendLine(
-          '   ⚠️  No response sent (Haiku decided NO_INTERRUPT or no action needed)'
-        );
-      }
-    }
-  }, 30000); // Changed from 2000ms (2 seconds) to 30000ms (30 seconds)
+    // Do comprehensive analysis regardless of idle/working state
+    await attemptQuestionResponse(specId, workspacePath, 'COMPREHENSIVE_CHECK');
+  }, 60000); // Comprehensive check every 60 seconds
 }
 
 /**
  * Attempt to detect and respond to questions
  * Returns true if we attempted a response
  */
-async function attemptQuestionResponse(specId: string, workspacePath: string): Promise<boolean> {
+async function attemptQuestionResponse(
+  specId: string,
+  workspacePath: string,
+  checkType: 'IDLE_DETECTION' | 'COMPREHENSIVE_CHECK'
+): Promise<boolean> {
   if (!claudeTerminal || !autonomousResponder) {
     return false;
   }
@@ -948,6 +970,7 @@ async function attemptQuestionResponse(specId: string, workspacePath: string): P
       specId,
       question: detection.question,
       terminalOutput: detection.context, // Last 10k characters
+      checkType, // Pass check type to the responder
     };
 
     // Get Claude's decision with full context
@@ -972,11 +995,24 @@ async function attemptQuestionResponse(specId: string, workspacePath: string): P
  * Stop autonomous monitoring
  */
 function stopAutonomousMonitoring(): void {
+  // Clear old interval (deprecated, for compatibility)
   if (autonomousMonitoringInterval) {
     clearInterval(autonomousMonitoringInterval);
     autonomousMonitoringInterval = null;
-    outputChannel?.appendLine('🛑 Autonomous monitoring stopped\n');
   }
+
+  // Clear dual-mode monitoring intervals
+  if (idleDetectionInterval) {
+    clearInterval(idleDetectionInterval);
+    idleDetectionInterval = null;
+  }
+  if (comprehensiveCheckInterval) {
+    clearInterval(comprehensiveCheckInterval);
+    comprehensiveCheckInterval = null;
+  }
+
+  outputChannel?.appendLine('🛑 Autonomous monitoring stopped\n');
+
   if (autonomousResponder) {
     autonomousResponder.clearBuffer();
   }
@@ -1072,4 +1108,14 @@ export async function stopClaudeCode(): Promise<void> {
   }
   await vscode.commands.executeCommand('setContext', 'specgofer.claudeCodeRunning', false);
   vscode.window.showInformationMessage('Claude Code stopped');
+}
+
+/**
+ * Get the active autonomous driver instance.
+ * Used for commands that need to access driver state (e.g., compaction history).
+ *
+ * @returns Active driver instance or null if no session is running
+ */
+export function getActiveDriver(): AutonomousDriver | null {
+  return activeDriver;
 }

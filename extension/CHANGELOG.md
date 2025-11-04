@@ -2,6 +2,10 @@
 
 All notable changes to the SpecGofer extension will be documented in this file.
 
+## [3.0.40] - 2025-11-04
+
+Unified version with release automation improvements and spinner detection fixes
+
 ## [3.0.39] - 2025-11-04
 
 chore: pre-release changes

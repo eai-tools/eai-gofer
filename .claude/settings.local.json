@@ -59,7 +59,12 @@
       "Bash(head:*)",
       "Bash(done)",
       "Bash(npm run:*)",
-      "Bash(git log:*)"
+      "Bash(git log:*)",
+      "Bash(for dir in .specify/specs/*/)",
+      "Bash(do spec=\"$dirspec.md\")",
+      "Bash(if [ -f \"$spec\" ])",
+      "Bash(while read dir)",
+      "Bash(do echo '=== $dir ===')"
     ],
     "deny": [],
     "ask": []

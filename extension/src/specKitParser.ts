@@ -357,6 +357,7 @@ export class SpecKitParser {
       }
 
       // Match task line with T001 prefix (no #): - [ ] T001 Description
+      // Also handles inline tags like [P] and [US1]: - [ ] T001 [P] [US1] Description
       taskMatch = line.match(/^-\s+\[([xX ])\]\s+(T\d+)\s+(.+)$/);
       if (taskMatch) {
         // Save previous task if exists
@@ -364,13 +365,21 @@ export class SpecKitParser {
           tasks.push(this.completeTask(currentTask, taskIndex++));
         }
 
-        const [, checkbox, taskId, description] = taskMatch;
+        const [, checkbox, taskId, fullDescription] = taskMatch;
+
+        // Extract inline tags ([P], [US1], etc.) and check for parallel marker
+        const hasParallelTag = fullDescription.includes('[P]');
+
+        // Remove inline tags from description for cleaner display
+        // Note: Don't include taskId here as getTaskDescription() adds it in the tree view
+        const cleanDescription = fullDescription.replace(/\[P\]\s*/g, '').replace(/\[US\d+\]\s*/g, '').trim();
+
         currentTask = {
           id: taskId,
-          description: description.trim(),
+          description: cleanDescription,
           status: checkbox.toLowerCase() === 'x' ? 'completed' : 'pending',
           dependencies: [],
-          parallel: false,
+          parallel: hasParallelTag,
           attempts: 0,
         };
         continue;

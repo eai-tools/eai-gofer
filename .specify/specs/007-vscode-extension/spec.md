@@ -1,9 +1,9 @@
 ---
-id: '001-vscode-extension'
+id: '007-vscode-extension'
 title: 'VSCode Extension - Core Infrastructure'
-status: 'in_progress'
+status: 'completed'
 created: '2025-10-21'
-updated: '2025-10-21'
+updated: '2025-11-05'
 priority: 'critical'
 assignee: 'engineer-agent'
 ---

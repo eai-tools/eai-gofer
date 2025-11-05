@@ -1,7 +1,7 @@
 ---
 id: '001-claude-terminal-integration'
 title: 'Claude Code Terminal Integration'
-status: 'completed'
+status: 'in_progress'
 created: '2025-11-03'
 updated: '2025-11-05'
 priority: 'critical'

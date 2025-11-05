@@ -258,8 +258,13 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
         const dependencies = this.dependencyGraph.getDependencies(spec.id);
         const dependents = this.dependencyGraph.getDependents(spec.id);
 
+        // Extract numeric prefix from ID (e.g., "001" from "001-vscode-extension")
+        // and combine with title for display (e.g., "001 - VSCode Extension")
+        const numericPrefix = spec.id.match(/^(\d+)-/)?.[1];
+        const displayLabel = numericPrefix ? `${numericPrefix} - ${spec.title}` : spec.title;
+
         return new SpecItem(
-          spec.title,
+          displayLabel,
           vscode.TreeItemCollapsibleState.Expanded,
           spec,
           undefined,

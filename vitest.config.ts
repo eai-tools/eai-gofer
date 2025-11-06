@@ -16,12 +16,18 @@ export default defineConfig({
       'language-server/**',
       'src/**/*.test.ts', // Exclude VSCode extension tests (use VSCode test runner)
     ],
+    reporters: ['default', 'json'],
+    outputFile: {
+      json: './test-results/vitest-results.json'
+    },
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html', 'lcov'],
+      reporter: ['text', 'json', 'html', 'lcov', 'json-summary'],
       reportsDirectory: './coverage',
       include: [
-        'src/**/*.ts'
+        'src/**/*.ts',
+        'extension/src/**/*.ts',
+        'language-server/src/**/*.ts'
       ],
       exclude: [
         'node_modules/',
@@ -32,20 +38,25 @@ export default defineConfig({
         '**/*.config.ts',
         '**/*.config.js',
         'src/types.ts',
-        'src/index.ts'
+        'src/index.ts',
+        'extension/src/test/**',
+        'language-server/src/test/**'
       ],
       all: true,
       skipFull: false,
+      perFile: true,
       thresholds: {
-        lines: 80,
-        functions: 80,
-        branches: 80,
-        statements: 80,
+        lines: 85,
+        functions: 85,
+        branches: 85,
+        statements: 85,
+        perFile: true
       },
     },
     setupFiles: ['./tests/helpers/setup.ts'],
     testTimeout: 30000,
     hookTimeout: 30000,
+    retry: 2
   },
   resolve: {
     alias: {

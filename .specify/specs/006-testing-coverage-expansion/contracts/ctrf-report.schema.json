@@ -1,0 +1,316 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://specgofer.com/schemas/ctrf-report.schema.json",
+  "title": "CTRF Test Report",
+  "description": "Common Test Report Format (CTRF) for SpecGofer test execution results",
+  "type": "object",
+  "required": ["reportFormat", "specVersion", "reportId", "timestamp", "results"],
+  "properties": {
+    "reportFormat": {
+      "type": "string",
+      "const": "CTRF",
+      "description": "Always 'CTRF' to identify format"
+    },
+    "specVersion": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "CTRF specification version (semantic versioning)"
+    },
+    "reportId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for this test run"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of report generation"
+    },
+    "results": {
+      "type": "object",
+      "required": ["summary", "tests"],
+      "properties": {
+        "summary": {
+          "type": "object",
+          "required": ["tests", "passed", "failed", "skipped", "flaky", "duration"],
+          "properties": {
+            "tests": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Total number of tests executed"
+            },
+            "passed": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of passed tests"
+            },
+            "failed": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of failed tests"
+            },
+            "skipped": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of skipped tests"
+            },
+            "flaky": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Number of flaky tests (passed after retry)"
+            },
+            "duration": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Total duration in milliseconds"
+            }
+          }
+        },
+        "tests": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/testCase"
+          },
+          "description": "Array of individual test cases"
+        }
+      }
+    },
+    "environment": {
+      "type": "object",
+      "properties": {
+        "platform": {
+          "type": "string",
+          "enum": ["darwin", "linux", "win32"],
+          "description": "Operating system platform"
+        },
+        "nodeVersion": {
+          "type": "string",
+          "description": "Node.js version (e.g., '20.11.0')"
+        },
+        "vscodeVersion": {
+          "type": "string",
+          "description": "VSCode version for E2E tests (e.g., '1.85.0')"
+        },
+        "ci": {
+          "type": "boolean",
+          "description": "True if running in CI environment"
+        },
+        "gitBranch": {
+          "type": "string",
+          "description": "Git branch name"
+        },
+        "gitCommit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{7,40}$",
+          "description": "Git commit SHA"
+        }
+      }
+    },
+    "insights": {
+      "type": "object",
+      "properties": {
+        "passRate": {
+          "$ref": "#/definitions/deltaMetric",
+          "description": "Test pass rate comparison"
+        },
+        "coverageRate": {
+          "$ref": "#/definitions/deltaMetric",
+          "description": "Code coverage comparison"
+        },
+        "slowestTests": {
+          "type": "array",
+          "maxItems": 10,
+          "items": {
+            "$ref": "#/definitions/testCase"
+          },
+          "description": "Top 10 slowest tests"
+        },
+        "flakyTests": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/testCase"
+          },
+          "description": "Tests that exhibited flaky behavior"
+        }
+      }
+    },
+    "baseline": {
+      "type": "object",
+      "properties": {
+        "reportId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Report ID of baseline run"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of baseline run"
+        },
+        "commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{7,40}$",
+          "description": "Git commit of baseline"
+        }
+      },
+      "description": "Reference to baseline report for delta calculation"
+    }
+  },
+  "definitions": {
+    "testCase": {
+      "type": "object",
+      "required": ["id", "name", "status", "duration"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique test case identifier"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Test case description"
+        },
+        "filePath": {
+          "type": "string",
+          "description": "Relative path to test file"
+        },
+        "lineNumber": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Line number where test is defined"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["passed", "failed", "skipped", "flaky"],
+          "description": "Test execution status"
+        },
+        "duration": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Test duration in milliseconds"
+        },
+        "retryAttempts": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of retry attempts (0 if passed on first try)"
+        },
+        "maxRetries": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Maximum retry limit configured"
+        },
+        "error": {
+          "type": "object",
+          "properties": {
+            "message": {
+              "type": "string",
+              "description": "Error message"
+            },
+            "stack": {
+              "type": "string",
+              "description": "Stack trace"
+            },
+            "name": {
+              "type": "string",
+              "description": "Error type (e.g., 'AssertionError')"
+            }
+          },
+          "description": "Error details if test failed"
+        },
+        "executionTrace": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Step-by-step execution log for failed tests"
+        },
+        "screenshot": {
+          "type": "string",
+          "description": "Path to screenshot for E2E test failures"
+        },
+        "memoryUsageMB": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Heap usage in megabytes during test"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Test tags (e.g., 'critical-path', 'auth')"
+        },
+        "retries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/retryAttempt"
+          },
+          "description": "Details of retry attempts"
+        }
+      }
+    },
+    "retryAttempt": {
+      "type": "object",
+      "required": ["attemptNumber", "status", "duration", "timestamp"],
+      "properties": {
+        "attemptNumber": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "1-indexed retry attempt number"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["passed", "failed"],
+          "description": "Status of this retry attempt"
+        },
+        "duration": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Duration of this attempt in milliseconds"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When this attempt occurred"
+        },
+        "error": {
+          "type": "object",
+          "properties": {
+            "message": {
+              "type": "string"
+            },
+            "stack": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            }
+          },
+          "description": "Error details for failed attempts"
+        }
+      }
+    },
+    "deltaMetric": {
+      "type": "object",
+      "required": ["current", "baseline", "change"],
+      "properties": {
+        "current": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Current metric value (percentage)"
+        },
+        "baseline": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Baseline metric value (percentage)"
+        },
+        "change": {
+          "type": "number",
+          "description": "Change in percentage points (positive or negative)"
+        }
+      }
+    }
+  }
+}

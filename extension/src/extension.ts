@@ -441,6 +441,40 @@ async function handleBranchChange() {
  * Register commands that work globally without requiring a workspace
  */
 function registerGlobalCommands(context: vscode.ExtensionContext) {
+  // Initialize/Create Spec Kit structure - MUST be global to work in new repos
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specGofer.initialize', async () => {
+      const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+      if (!workspaceFolder) {
+        vscode.window.showErrorMessage('Please open a folder or workspace first');
+        return;
+      }
+
+      const workspacePath = workspaceFolder.uri.fsPath;
+      const migrator = new SpecKitMigrator(workspacePath);
+      const exists = await migrator.exists();
+
+      if (exists) {
+        const versionInfo = await migrator.getVersionInfo();
+
+        if (versionInfo.needsUpgrade) {
+          // Legacy or mixed format - needs upgrade
+          await migrator.upgrade();
+        } else if (versionInfo.format === 'spec-kit') {
+          // Already spec-kit format - offer to update templates/scripts
+          await migrator.upgrade(); // This will call updateSpecKitTemplates()
+        } else {
+          vscode.window.showInformationMessage('SpecGofer already initialized!');
+        }
+      } else {
+        // Create from scratch
+        await migrator.upgrade(); // This also creates new structure
+      }
+
+      await initializeProgressProvider(context, workspacePath);
+    })
+  );
+
   // Show progress panel
   context.subscriptions.push(
     vscode.commands.registerCommand('specGofer.showProgress', () => {
@@ -663,31 +697,8 @@ function registerCommands(
   workspacePath: string,
   migrator: SpecKitMigrator
 ) {
-  // Initialize/Create Spec Kit structure
-  context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.initialize', async () => {
-      const exists = await migrator.exists();
-
-      if (exists) {
-        const versionInfo = await migrator.getVersionInfo();
-
-        if (versionInfo.needsUpgrade) {
-          // Legacy or mixed format - needs upgrade
-          await migrator.upgrade();
-        } else if (versionInfo.format === 'spec-kit') {
-          // Already spec-kit format - offer to update templates/scripts
-          await migrator.upgrade(); // This will call updateSpecKitTemplates()
-        } else {
-          vscode.window.showInformationMessage('SpecGofer already initialized!');
-        }
-      } else {
-        // Create from scratch
-        await migrator.upgrade(); // This also creates new structure
-      }
-
-      await initializeProgressProvider(context, workspacePath);
-    })
-  );
+  // Note: specGofer.initialize is now registered globally in registerGlobalCommands()
+  // to ensure it's available even in new/empty repositories
 
   // Upgrade existing .specify
   context.subscriptions.push(

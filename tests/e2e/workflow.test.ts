@@ -1,10 +1,12 @@
 import { test, expect } from '@playwright/test';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { promises as fsPromises } from 'fs';
+import { spawn, ChildProcess } from 'child_process';
 import { join } from 'path';
 
 /**
  * End-to-End Tests for SpecGofer System
- * 
+ *
  * Tests the complete workflow from spec creation to task completion
  * using file system operations and the autonomous orchestrator
  */
@@ -125,7 +127,7 @@ Test error recovery mechanisms.
     // Verify retry attempts were made
     const task1Status = await getTaskStatus('006-error-test', 'T001');
     const attempts = await getTaskAttempts('006-error-test', 'T001');
-    
+
     expect(attempts).toBeGreaterThan(1);
     expect(['failed', 'in_progress']).toContain(task1Status);
 
@@ -170,7 +172,7 @@ Test complex task dependencies.
     const orchestratorProcess = await startOrchestrator();
 
     // Wait for orchestrator to build task queue
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    await new Promise((resolve) => setTimeout(resolve, 5000));
 
     // Verify T001 starts first
     const firstTask = await getNextTask();
@@ -184,9 +186,9 @@ Test complex task dependencies.
     // Verify T005 doesn't start until both T001 and T003 are complete
     await waitForTaskCompletion('T002', 30000);
     await waitForTaskCompletion('T003', 30000);
-    
+
     const availableTasks = await getAvailableTasks();
-    expect(availableTasks.map(t => t.id)).toContain('T005');
+    expect(availableTasks.map((t) => t.id)).toContain('T005');
 
     orchestratorProcess.kill();
   });
@@ -289,88 +291,84 @@ created: "${new Date().toISOString()}"
 
 // Helper functions for E2E testing
 
-async function setupTestWorkspace() {
-  const fs = require('fs').promises;
-  
+async function setupTestWorkspace(): Promise<void> {
   // Create workspace structure
-  await fs.mkdir(join(SPEC_DIR, 'specs'), { recursive: true });
-  await fs.mkdir(join(SPEC_DIR, 'memory'), { recursive: true });
-  await fs.mkdir(join(WORKSPACE_PATH, 'src'), { recursive: true });
-  await fs.mkdir(join(WORKSPACE_PATH, 'tests'), { recursive: true });
-  
+  await fsPromises.mkdir(join(SPEC_DIR, 'specs'), { recursive: true });
+  await fsPromises.mkdir(join(SPEC_DIR, 'memory'), { recursive: true });
+  await fsPromises.mkdir(join(WORKSPACE_PATH, 'src'), { recursive: true });
+  await fsPromises.mkdir(join(WORKSPACE_PATH, 'tests'), { recursive: true });
+
   // Create package.json
   const packageJson = {
     name: 'specgofer-e2e-test',
     version: '1.0.0',
     scripts: {
       test: 'vitest',
-      build: 'tsc'
-    }
+      build: 'tsc',
+    },
   };
-  await fs.writeFile(join(WORKSPACE_PATH, 'package.json'), JSON.stringify(packageJson, null, 2));
+  await fsPromises.writeFile(
+    join(WORKSPACE_PATH, 'package.json'),
+    JSON.stringify(packageJson, null, 2)
+  );
 }
 
-async function cleanupTestWorkspace() {
-  const fs = require('fs').promises;
+async function cleanupTestWorkspace(): Promise<void> {
   try {
-    await fs.rmdir(WORKSPACE_PATH, { recursive: true });
-  } catch (error) {
+    await fsPromises.rm(WORKSPACE_PATH, { recursive: true });
+  } catch {
     // Ignore cleanup errors
   }
 }
 
-async function startOrchestrator() {
-  const { spawn } = require('child_process');
-  
-  const orchestratorProcess = spawn('node', [
-    join(__dirname, '../../dist/index.js')
-  ], {
+async function startOrchestrator(): Promise<ChildProcess> {
+  const orchestratorProcess = spawn('node', [join(__dirname, '../../dist/index.js')], {
     env: {
       ...process.env,
       WORKSPACE_DIR: WORKSPACE_PATH,
       SPEC_DIR: SPEC_DIR,
-      ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY || 'test-key'
+      ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY || 'test-key',
     },
-    detached: true
+    detached: true,
   });
 
   // Wait for startup
-  await new Promise(resolve => setTimeout(resolve, 5000));
-  
+  await new Promise((resolve) => setTimeout(resolve, 5000));
+
   return orchestratorProcess;
 }
 
-async function waitForTaskExecution(taskId: string, timeout: number) {
+async function waitForTaskExecution(taskId: string, timeout: number): Promise<void> {
   const startTime = Date.now();
-  
+
   while (Date.now() - startTime < timeout) {
     const status = await getTaskStatus('005-e2e-test', taskId);
     if (status !== 'pending') {
       return;
     }
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
   }
-  
+
   throw new Error(`Task ${taskId} execution timeout`);
 }
 
-async function waitForTaskCompletion(taskId: string, timeout: number) {
+async function waitForTaskCompletion(taskId: string, timeout: number): Promise<void> {
   const startTime = Date.now();
-  
+
   while (Date.now() - startTime < timeout) {
     const status = await getTaskStatus('005-e2e-test', taskId);
     if (status === 'completed') {
       return;
     }
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
   }
-  
+
   throw new Error(`Task ${taskId} completion timeout`);
 }
 
-async function waitForAllTasksComplete(taskIds: string[], timeout: number) {
+async function waitForAllTasksComplete(taskIds: string[], timeout: number): Promise<void> {
   const startTime = Date.now();
-  
+
   while (Date.now() - startTime < timeout) {
     const allComplete = await Promise.all(
       taskIds.map(async (taskId) => {
@@ -378,14 +376,14 @@ async function waitForAllTasksComplete(taskIds: string[], timeout: number) {
         return status === 'completed';
       })
     );
-    
+
     if (allComplete.every(Boolean)) {
       return;
     }
-    
-    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    await new Promise((resolve) => setTimeout(resolve, 2000));
   }
-  
+
   throw new Error('Tasks completion timeout');
 }
 
@@ -394,16 +392,22 @@ async function getTaskStatus(specId: string, taskId: string): Promise<string> {
   try {
     const specPath = join(SPEC_DIR, 'specs', specId, 'spec.md');
     const content = readFileSync(specPath, 'utf-8');
-    
+
     // Parse YAML frontmatter and markdown to get task status
     // This is a simplified version - full implementation would use the SpecKitParser
     if (content.includes(`#${taskId}`)) {
-      if (content.includes(`- [x] #${taskId}`)) return 'completed';
-      if (content.includes(`- [~] #${taskId}`)) return 'in_progress';
-      if (content.includes(`- [!] #${taskId}`)) return 'failed';
+      if (content.includes(`- [x] #${taskId}`)) {
+        return 'completed';
+      }
+      if (content.includes(`- [~] #${taskId}`)) {
+        return 'in_progress';
+      }
+      if (content.includes(`- [!] #${taskId}`)) {
+        return 'failed';
+      }
       return 'pending';
     }
-    
+
     return 'not_found';
   } catch (error) {
     return 'error';
@@ -414,7 +418,7 @@ async function getSpecStatus(specId: string): Promise<string> {
   try {
     const specPath = join(SPEC_DIR, 'specs', specId, 'spec.md');
     const content = readFileSync(specPath, 'utf-8');
-    
+
     const statusMatch = content.match(/status:\s*"([^"]+)"/);
     return statusMatch ? statusMatch[1] : 'unknown';
   } catch (error) {
@@ -433,8 +437,7 @@ async function getAvailableTasks(): Promise<Array<{ id: string; description: str
 }
 
 async function findImplementationFiles(): Promise<string[]> {
-  const fs = require('fs').promises;
-  const files = await fs.readdir(join(WORKSPACE_PATH, 'src'));
+  const files = await fsPromises.readdir(join(WORKSPACE_PATH, 'src'));
   return files.filter((f: string) => f.endsWith('.ts') || f.endsWith('.js'));
 }
 
@@ -448,13 +451,17 @@ async function runTestSuite(): Promise<{ passed: boolean; coverage: number }> {
   return { passed: true, coverage: 85 };
 }
 
-async function waitForTaskRetry(taskId: string, timeout: number) {
-  // Mock implementation
-  await new Promise(resolve => setTimeout(resolve, 1000));
+async function waitForTaskRetry(taskId: string, timeout: number): Promise<void> {
+  // Mock implementation - parameters reserved for future use
+  void taskId;
+  void timeout;
+  await new Promise((resolve) => setTimeout(resolve, 1000));
 }
 
 async function getTaskAttempts(specId: string, taskId: string): Promise<number> {
-  // Mock implementation
+  // Mock implementation - parameters reserved for future use
+  void specId;
+  void taskId;
   return 2;
 }
 
@@ -463,9 +470,9 @@ async function checkEscalationLogs(): Promise<string[]> {
   return ['Human escalation triggered for task T001'];
 }
 
-async function waitForFileContent(filePath: string, timeout: number) {
+async function waitForFileContent(filePath: string, timeout: number): Promise<void> {
   const startTime = Date.now();
-  
+
   while (Date.now() - startTime < timeout) {
     if (existsSync(filePath)) {
       const content = readFileSync(filePath, 'utf-8');
@@ -473,19 +480,28 @@ async function waitForFileContent(filePath: string, timeout: number) {
         return;
       }
     }
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
   }
-  
+
   throw new Error(`File content timeout: ${filePath}`);
 }
 
-async function getValidationResults(specId: string, taskId: string): Promise<any> {
-  // Mock implementation
+interface ValidationResult {
+  constitutionalCheck: boolean;
+  violations: string[];
+}
+
+async function getValidationResults(specId: string, taskId: string): Promise<ValidationResult> {
+  // Mock implementation - parameters reserved for future use
+  void specId;
+  void taskId;
   return { constitutionalCheck: true, violations: [] };
 }
 
 async function getGeneratedCode(specId: string, taskId: string): Promise<string> {
-  // Mock implementation
+  // Mock implementation - parameters reserved for future use
+  void specId;
+  void taskId;
   return `
 /**
  * Example generated function

@@ -303,12 +303,13 @@ The `specKitMigrator.ts` handles upgrades:
 
 ## Recent Changes
 
+- 006-testing-coverage-expansion: Added TypeScript 5.7.2, Node.js 20.x LTS
+
 - 001-claude-terminal-integration: Added TypeScript 5.3+, Node.js 20.x LTS
 
 - 006-test-feature: Added TypeScript 5.3+, Node.js 20.x LTS + Dagger SDK for
   TypeScript, @vscode/test-electron, VSCode Extension API
 
-- 001-memory-learning-system: Added TypeScript 5.3+ (existing SpecGofer
   codebase)
 
 ### v2.0.4 (Latest)
@@ -339,6 +340,10 @@ The `specKitMigrator.ts` handles upgrades:
 use it for releases, no exceptions!
 
 ## Active Technologies
+
+- TypeScript 5.7.2, Node.js 20.x LTS (006-testing-coverage-expansion)
+- File-based (specs in `.specify/specs/`, constitution in `.specify/memory/`,
+  test fixtures in temporary directories) (006-testing-coverage-expansion)
 
 - File-based (.specify/memory/ for decisions, local buffer for terminal output)
   (001-claude-terminal-integration)

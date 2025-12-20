@@ -5,9 +5,7 @@
     "sourceType": "module"
   },
   "plugins": ["@typescript-eslint"],
-  "extends": [
-    "eslint:recommended"
-  ],
+  "extends": ["eslint:recommended"],
   "rules": {
     "@typescript-eslint/no-unused-vars": "error",
     "@typescript-eslint/no-explicit-any": "error",
@@ -15,7 +13,26 @@
     "no-var": "error",
     "no-console": "warn",
     "eqeqeq": "error",
-    "curly": "error"
+    "curly": "error",
+    "no-restricted-imports": [
+      "error",
+      {
+        "patterns": [
+          {
+            "group": ["sinon", "sinon/*"],
+            "message": "Mocking frameworks are prohibited. Use real tests with real data."
+          },
+          {
+            "group": ["nock", "nock/*"],
+            "message": "HTTP mocking is prohibited. Use real tests with real data."
+          },
+          {
+            "group": ["mock-fs", "mock-fs/*"],
+            "message": "File system mocking is prohibited. Use real tests with real data."
+          }
+        ]
+      }
+    ]
   },
   "env": {
     "node": true,

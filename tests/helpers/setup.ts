@@ -30,61 +30,120 @@ vi.mock('twilio', () => ({
 }));
 
 // Mock VSCode module for imports
-vi.mock('vscode', () => ({
-  window: {
-    showInformationMessage: vi.fn(),
-    showErrorMessage: vi.fn(),
-    showWarningMessage: vi.fn(),
-    createOutputChannel: vi.fn(() => ({
-      appendLine: vi.fn(),
-      append: vi.fn(),
-      clear: vi.fn(),
-      show: vi.fn(),
-      dispose: vi.fn(),
-    })),
-  },
-  workspace: {
-    getConfiguration: vi.fn(() => ({
-      get: vi.fn(),
-      update: vi.fn(),
-    })),
-    workspaceFolders: [],
-    onDidChangeWorkspaceFolders: vi.fn(),
-    getWorkspaceFolder: vi.fn(),
-    asRelativePath: vi.fn((pathOrUri: string | { fsPath?: string; path?: string }) => {
-      if (typeof pathOrUri === 'string') {
-        return pathOrUri;
-      }
-      return pathOrUri.fsPath || pathOrUri.path;
-    }),
-  },
-  extensions: {
-    getExtension: vi.fn(),
-  },
-  commands: {
-    registerCommand: vi.fn(),
-    executeCommand: vi.fn(),
-  },
-  TreeItem: class {},
-  TreeItemCollapsibleState: {
-    None: 0,
-    Collapsed: 1,
-    Expanded: 2,
-  },
-  Uri: {
-    file: (path: string): { fsPath: string; scheme: string; path: string } => ({
-      fsPath: path,
-      scheme: 'file',
-      path,
-    }),
-  },
-  ProgressLocation: {
-    Notification: 15,
-  },
-  env: {
-    openExternal: vi.fn(),
-  },
-}));
+vi.mock('vscode', () => {
+  // Type for VSCode Uri-like object
+  interface MockUri {
+    fsPath: string;
+    scheme: string;
+    path: string;
+  }
+
+  type UriListener = (uri: MockUri) => void;
+
+  // File system watcher mock
+  class MockFileSystemWatcher {
+    private createListeners: UriListener[] = [];
+    private changeListeners: UriListener[] = [];
+    private deleteListeners: UriListener[] = [];
+
+    onDidCreate(listener: UriListener): { dispose: () => void } {
+      this.createListeners.push(listener);
+      return { dispose: vi.fn() };
+    }
+
+    onDidChange(listener: UriListener): { dispose: () => void } {
+      this.changeListeners.push(listener);
+      return { dispose: vi.fn() };
+    }
+
+    onDidDelete(listener: UriListener): { dispose: () => void } {
+      this.deleteListeners.push(listener);
+      return { dispose: vi.fn() };
+    }
+
+    dispose(): void {
+      this.createListeners = [];
+      this.changeListeners = [];
+      this.deleteListeners = [];
+    }
+
+    // Internal methods for testing
+    _triggerCreate(uri: MockUri): void {
+      this.createListeners.forEach((listener) => listener(uri));
+    }
+
+    _triggerChange(uri: MockUri): void {
+      this.changeListeners.forEach((listener) => listener(uri));
+    }
+
+    _triggerDelete(uri: MockUri): void {
+      this.deleteListeners.forEach((listener) => listener(uri));
+    }
+  }
+
+  return {
+    window: {
+      showInformationMessage: vi.fn(),
+      showErrorMessage: vi.fn(),
+      showWarningMessage: vi.fn(),
+      createOutputChannel: vi.fn(() => ({
+        appendLine: vi.fn(),
+        append: vi.fn(),
+        clear: vi.fn(),
+        show: vi.fn(),
+        dispose: vi.fn(),
+      })),
+    },
+    workspace: {
+      getConfiguration: vi.fn(() => ({
+        get: vi.fn(),
+        update: vi.fn(),
+      })),
+      workspaceFolders: [],
+      onDidChangeWorkspaceFolders: vi.fn(),
+      getWorkspaceFolder: vi.fn(),
+      asRelativePath: vi.fn((pathOrUri: string | { fsPath?: string; path?: string }) => {
+        if (typeof pathOrUri === 'string') {
+          return pathOrUri;
+        }
+        return pathOrUri.fsPath || pathOrUri.path;
+      }),
+      createFileSystemWatcher: vi.fn(() => new MockFileSystemWatcher()),
+    },
+    extensions: {
+      getExtension: vi.fn(),
+    },
+    commands: {
+      registerCommand: vi.fn(),
+      executeCommand: vi.fn(),
+    },
+    TreeItem: class {},
+    TreeItemCollapsibleState: {
+      None: 0,
+      Collapsed: 1,
+      Expanded: 2,
+    },
+    Uri: {
+      file: (path: string): { fsPath: string; scheme: string; path: string } => ({
+        fsPath: path,
+        scheme: 'file',
+        path,
+      }),
+    },
+    RelativePattern: class {
+      constructor(
+        public base: string,
+        public pattern: string
+      ) {}
+    },
+    ProgressLocation: {
+      Notification: 15,
+    },
+    env: {
+      openExternal: vi.fn(),
+    },
+  };
+});
 
 // Also set as global for backward compatibility
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

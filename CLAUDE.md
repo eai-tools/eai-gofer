@@ -66,6 +66,111 @@ export const EXTENSION_VERSION = require('../../package.json').version;
 **NEVER hardcode the version** in config.ts or anywhere else. It must always
 read from package.json.
 
+## Command Framework Overview
+
+SpecGofer uses a **dual workflow system** combining two complementary
+frameworks:
+
+1. **SpecKit Commands** (`/speckit.*`) - Structured feature development
+2. **Research-Plan-Implement (RPI) Commands** (`/1_*` - `/8_*`) -
+   Research-driven development
+
+### When to Use Which
+
+| Scenario                            | Use                          | Why                                  |
+| ----------------------------------- | ---------------------------- | ------------------------------------ |
+| New feature with clear requirements | SpecKit                      | Structured spec → plan → tasks flow  |
+| Exploring unfamiliar codebase       | RPI `/1_research_codebase`   | Parallel agents for fast exploration |
+| Need to understand existing code    | RPI `/1_research_codebase`   | Deep analysis with codebase-analyzer |
+| Resume work after break             | RPI `/6_resume_work`         | Session management                   |
+| Test-first development              | RPI `/8_define_test_cases`   | DSL-based test design                |
+| Feature implementation              | SpecKit `/speckit.implement` | Task tracking with checkboxes        |
+
+---
+
+## Research-Plan-Implement (RPI) Commands
+
+Located in `.claude/commands/`, these numbered commands provide research-driven
+development with persistent context storage.
+
+### Core Workflow Commands
+
+#### Research Phase
+
+- **`/1_research_codebase`** - Deep codebase exploration with parallel agents
+  - Spawns `codebase-locator`, `codebase-analyzer`, `codebase-pattern-finder`
+  - Saves findings to `thoughts/shared/research/NNN_topic.md`
+  - Builds organizational knowledge over time
+
+#### Planning Phase
+
+- **`/2_create_plan`** - Create detailed, phased implementation plan
+  - Interactive planning with user
+  - Saves to `thoughts/shared/plans/feature_name.md`
+  - Tracks progress with checkboxes
+
+#### Implementation Phase
+
+- **`/4_implement_plan`** - Execute plan systematically
+  - Reads from `thoughts/shared/plans/`
+  - Updates checkboxes as work progresses
+  - Integrates with TodoWrite
+
+#### Validation Phase
+
+- **`/3_validate_plan`** - Verify implementation matches plan
+  - Reviews git changes
+  - Runs automated checks
+  - Generates validation report
+
+### Session Management Commands
+
+- **`/5_save_progress`** - Save work session state
+  - Creates checkpoint in `thoughts/shared/sessions/`
+  - Commits meaningful work with WIP prefix
+  - Documents next steps for resumption
+
+- **`/6_resume_work`** - Resume from saved session
+  - Restores full context
+  - Continues from last checkpoint
+  - Works across Claude sessions
+
+### Specialized Commands
+
+- **`/7_research_cloud`** - Cloud infrastructure analysis (READ-ONLY)
+  - Analyzes Azure, AWS, GCP deployments
+  - Saves to `thoughts/shared/cloud/`
+
+- **`/8_define_test_cases`** - Design acceptance tests before implementation
+  - Uses DSL approach following codebase patterns
+  - Comment-first test specification
+  - Identifies reusable test utilities
+
+### Parallel Agents
+
+Located in `.claude/agents/`, these specialized agents run concurrently:
+
+| Agent                     | Role                     | Tools                |
+| ------------------------- | ------------------------ | -------------------- |
+| `codebase-locator`        | Finds WHERE code lives   | Grep, Glob, LS       |
+| `codebase-analyzer`       | Explains HOW code works  | Read, Grep, Glob, LS |
+| `codebase-pattern-finder` | Shows EXAMPLES to follow | Grep, Glob, Read, LS |
+
+### Persistent Context Storage
+
+```text
+thoughts/
+└── shared/
+    ├── research/     # Codebase research (accumulates over time)
+    ├── plans/        # Implementation plans (RPI workflow)
+    ├── sessions/     # Work session checkpoints
+    └── cloud/        # Cloud infrastructure analysis
+```
+
+See `thoughts/shared/README.md` for detailed documentation.
+
+---
+
 ## SpecKit Slash Commands
 
 SpecGofer integrates with SpecKit slash commands to guide Claude Code through
@@ -156,10 +261,10 @@ See `.claude/commands/speckit.*.md` for detailed command documentation.
 
 ## Project Structure
 
-This is a monorepo with three main packages:
+This is a monorepo with three main packages plus AI workflow infrastructure:
 
 ```text
-spec-driven-dev-system/
+specgofer/
 ├── extension/              # VSCode extension
 │   ├── src/               # Extension source code
 │   ├── package.json       # Extension manifest (version here!)
@@ -170,8 +275,28 @@ spec-driven-dev-system/
 ├── docs/                  # GitHub Pages content
 │   ├── releases/          # VSIX files for distribution
 │   └── releases.json      # Auto-updater version info
+├── .claude/               # Claude Code configuration
+│   ├── agents/            # Parallel AI agents (locator, analyzer, pattern-finder)
+│   └── commands/          # Slash commands (speckit.*, 1_* - 8_*)
+├── .specify/              # SpecKit feature development
+│   ├── specs/             # Feature specifications
+│   ├── templates/         # Document templates
+│   ├── scripts/           # Automation scripts
+│   └── memory/            # Constitution and decisions
+├── thoughts/              # RPI persistent context storage
+│   └── shared/
+│       ├── research/      # Codebase research documents
+│       ├── plans/         # Implementation plans
+│       ├── sessions/      # Work session checkpoints
+│       └── cloud/         # Cloud infrastructure analysis
+├── tests/                 # Test suite
+│   ├── unit/              # Unit tests (80%+ coverage target)
+│   ├── integration/       # Integration tests
+│   ├── e2e/               # End-to-end tests
+│   └── README.md          # Testing philosophy guide
 ├── package.json           # Root package (keep in sync)
 ├── AGENTS.md              # Complete AI agent guidelines
+├── CLAUDE.md              # This file - Claude Code instructions
 └── release-auto.sh        # Release automation script
 ```
 

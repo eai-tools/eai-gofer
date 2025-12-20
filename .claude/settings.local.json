@@ -64,7 +64,9 @@
       "Bash(do spec=\"$dirspec.md\")",
       "Bash(if [ -f \"$spec\" ])",
       "Bash(while read dir)",
-      "Bash(do echo '=== $dir ===')"
+      "Bash(do echo '=== $dir ===')",
+      "Bash(for branch in 001-claude-terminal-integration 002-language-server 005-autonomous-claude-driver 006-dagger-test-orchestration 007-vscode-extension 008-memory-learning-system)",
+      "Bash(do echo \"=== $branch ===\")"
     ],
     "deny": [],
     "ask": []

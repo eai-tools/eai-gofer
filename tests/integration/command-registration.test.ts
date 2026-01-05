@@ -89,6 +89,7 @@ describe('Command Registration Validation', () => {
   let extensionSource: string;
   let memoryCommandsSource: string;
   let specCommandsSource: string;
+  let councilCommandsSource: string;
 
   beforeAll(() => {
     // Read package.json
@@ -108,6 +109,12 @@ describe('Command Registration Validation', () => {
 
     const specCommandsPath = path.join(__dirname, '../../extension/src/commands/specCommands.ts');
     specCommandsSource = readFileSync(specCommandsPath, 'utf-8');
+
+    const councilCommandsPath = path.join(
+      __dirname,
+      '../../extension/src/commands/councilCommands.ts'
+    );
+    councilCommandsSource = readFileSync(councilCommandsPath, 'utf-8');
   });
 
   it('should have commands declared in package.json', () => {
@@ -130,7 +137,8 @@ describe('Command Registration Validation', () => {
       const isRegistered =
         registrationPattern.test(extensionSource) ||
         registrationPattern.test(memoryCommandsSource) ||
-        registrationPattern.test(specCommandsSource);
+        registrationPattern.test(specCommandsSource) ||
+        registrationPattern.test(councilCommandsSource);
 
       if (!isRegistered) {
         missingCommands.push(command);

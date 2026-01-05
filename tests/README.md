@@ -67,8 +67,33 @@ Component interaction tests with real dependencies:
 - File monitoring + spec loading
 - LSP/MCP communication
 - Multi-component flows
+- LLM provider API calls (with real keys)
 
 **Run:** `npm run test:integration`
+
+#### Running Real API Integration Tests
+
+For tests that call external LLM providers, set environment variables:
+
+```bash
+# Run all integration tests with API keys
+ANTHROPIC_API_KEY=sk-xxx \
+GOOGLE_API_KEY=AIza... \
+OPENAI_API_KEY=sk-... \
+npm run test:integration
+
+# Run only council provider tests
+ANTHROPIC_API_KEY=sk-xxx npm test -- tests/integration/council/
+
+# Run specific provider test
+ANTHROPIC_API_KEY=sk-xxx npm test -- tests/integration/council/providers.integration.test.ts
+
+# Run Claude API flow tests
+ANTHROPIC_API_KEY=sk-xxx npm test -- tests/integration/claude-api-flow.test.ts
+```
+
+**Note:** Tests without API keys will be conditionally skipped using
+`it.runIf()`. The tests log which providers are available at startup.
 
 ### E2E Tests (`tests/e2e/`)
 
@@ -80,6 +105,119 @@ Full user workflow tests with real VSCode:
 - Command execution
 
 **Run:** `npm run test:e2e`
+
+### VSCode Integration Tests (Extension Host)
+
+VSCode extension tests run inside a real VSCode instance (Extension Development
+Host). These require the extension to be compiled first.
+
+#### Prerequisites
+
+1. **Compile the extension:**
+
+   ```bash
+   cd extension && npm run compile
+   ```
+
+2. **Ensure dependencies are installed:**
+   ```bash
+   npm install
+   cd extension && npm install
+   ```
+
+#### Running VSCode Tests
+
+**Method 1: Using npm script**
+
+```bash
+# From project root
+npm run test:e2e
+
+# Or from extension directory
+cd extension && npm run test
+```
+
+**Method 2: Using @vscode/test-electron directly**
+
+```bash
+# The test runner downloads VSCode automatically
+node extension/out/test/runTest.js
+```
+
+**Method 3: From VSCode**
+
+1. Open the project in VSCode
+2. Press `F5` to launch Extension Development Host
+3. Open Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`)
+4. Run "Developer: Run Extension Tests"
+
+#### Test Structure
+
+VSCode tests use Mocha (not Vitest) and live in `extension/src/test/`:
+
+```
+extension/src/test/
+├── runTest.ts          # Test launcher (downloads VSCode)
+└── suite/
+    ├── index.ts        # Mocha test runner setup
+    └── extension.test.ts # Extension activation tests
+```
+
+#### Writing VSCode Tests
+
+```typescript
+// extension/src/test/suite/myFeature.test.ts
+import * as assert from 'assert';
+import * as vscode from 'vscode';
+
+suite('My Feature Test Suite', () => {
+  test('Extension should be present', () => {
+    const ext = vscode.extensions.getExtension('EnterpriseAI.specgofer');
+    assert.ok(ext, 'Extension should be installed');
+  });
+
+  test('Command should execute', async () => {
+    const result = await vscode.commands.executeCommand(
+      'specgofer.someCommand'
+    );
+    assert.ok(result);
+  });
+});
+```
+
+#### Debugging VSCode Tests
+
+1. Open `extension/src/test/runTest.ts`
+2. Add breakpoints where needed
+3. Use "Run and Debug" panel (`Cmd+Shift+D`)
+4. Select "Extension Tests" configuration
+5. Press F5
+
+#### Common Issues
+
+**Tests not running:**
+
+- Ensure extension is compiled: `cd extension && npm run compile`
+- Check that VSCode was downloaded: look in `.vscode-test/`
+
+**Extension not activating:**
+
+- Check activation events in `extension/package.json`
+- Verify extension ID matches: `EnterpriseAI.specgofer`
+
+**Import errors:**
+
+- VSCode tests can't import from `tests/` directory
+- Keep VSCode tests self-contained in `extension/src/test/`
+
+#### CI/CD Integration
+
+In GitHub Actions, VSCode tests run with xvfb for headless display:
+
+```yaml
+- name: Run VSCode Tests
+  run: xvfb-run -a npm run test:e2e
+```
 
 ### Performance Tests (`tests/performance/`)
 

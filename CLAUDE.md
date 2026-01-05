@@ -86,6 +86,55 @@ frameworks:
 | Test-first development              | RPI `/8_define_test_cases`   | DSL-based test design                |
 | Feature implementation              | SpecKit `/speckit.implement` | Task tracking with checkboxes        |
 
+### Automatic Framework Routing
+
+SpecGofer includes an intelligent triage system that automatically determines
+the correct starting point based on:
+
+1. **Existing Artifacts**: Detects spec.md, plan.md, tasks.md, research files,
+   and saved sessions
+2. **User Intent**: If no clear state exists, asks the user what they want to
+   accomplish
+
+#### Triage Command
+
+The `/0_business_scenario` command runs automatically when:
+
+- Claude Code is launched on a fresh workspace (no SpecKit or RPI artifacts)
+- The user explicitly invokes it to re-route their workflow
+
+#### Routing Logic
+
+```text
+                    ┌─────────────────────────┐
+                    │   0_business_scenario   │
+                    │   (triage interview)    │
+                    └───────────┬─────────────┘
+                                │
+            ┌───────────────────┼───────────────────┐
+            │                   │                   │
+            ▼                   ▼                   ▼
+    ┌───────────────┐   ┌───────────────┐   ┌───────────────┐
+    │  SpecKit Flow │   │   RPI Flow    │   │  Resume Flow  │
+    │               │   │               │   │               │
+    │ specify       │   │ 1_research    │   │ 6_resume_work │
+    │    ↓          │   │      ↓        │   │      ↓        │
+    │ plan          │   │ 2_create_plan │   │ (continues)   │
+    │    ↓          │   │      ↓        │   │               │
+    │ tasks         │   │ 4_implement   │   └───────────────┘
+    │    ↓          │   │      ↓        │
+    │ implement     │   │ 3_validate    │
+    └───────────────┘   └───────────────┘
+```
+
+| User Intent              | Routes To                                | Why                                  |
+| ------------------------ | ---------------------------------------- | ------------------------------------ |
+| New feature from scratch | SpecKit (`/speckit.specify`)             | Full spec → plan → tasks → implement |
+| Modify existing code     | RPI (`/1_research_codebase`)             | Research first, then plan changes    |
+| Fix a bug                | RPI (`/1_research_codebase`)             | Need to understand before fixing     |
+| Explore codebase         | RPI (`/1_research_codebase`)             | Pure research workflow               |
+| Resume previous work     | `/6_resume_work` or `/speckit.implement` | Based on saved state                 |
+
 ---
 
 ## Research-Plan-Implement (RPI) Commands
@@ -259,6 +308,112 @@ When SpecGofer launches Claude Code via the Play button:
 
 See `.claude/commands/speckit.*.md` for detailed command documentation.
 
+---
+
+## LLM Council Integration
+
+SpecGofer supports an optional LLM Council mode that enables multi-provider
+parallel execution for research and analysis workflows. When enabled, queries
+are dispatched to all configured LLM providers simultaneously, and a "Chairman"
+LLM synthesizes the diverse perspectives.
+
+### Configuration
+
+#### Provider API Keys
+
+Configure API keys in VSCode Settings (Settings > SpecGofer):
+
+- `specGofer.anthropicApiKey` - Anthropic (Claude) API key
+- `specGofer.googleApiKey` - Google (Gemini) API key
+- `specGofer.xaiApiKey` - xAI (Grok) API key
+- `specGofer.openaiApiKey` - OpenAI API key
+
+#### Council Configuration File
+
+Create `.specify/memory/council-config.yaml` to control council behavior:
+
+```yaml
+# Enable/disable council mode globally
+enabled: true
+
+# Minimum providers required (quorum)
+quorum: 2
+
+# Timeout per request in milliseconds
+timeout: 30000
+
+# Enable optional peer review stage
+peerReview: false
+
+# Stages where council mode is active
+stages:
+  speckit_plan: true # /speckit.plan Phase 0.5
+  speckit_analyze: true # /speckit.analyze
+  research_codebase: true # /1_research_codebase
+  validate_plan: true # /3_validate_plan
+
+# Provider configuration
+providers:
+  - providerId: anthropic
+    enabled: true
+    weight: 1.0
+  - providerId: google
+    enabled: true
+    weight: 1.0
+  - providerId: xai
+    enabled: true
+    weight: 1.0
+  - providerId: openai
+    enabled: true
+    weight: 1.0
+```
+
+### Council Commands
+
+- **`specGofer.showCouncilStatus`** - Display provider availability and usage
+  summary
+  - Shows which providers are configured and healthy
+  - Displays historical usage metrics and costs
+
+### Council Workflow Stages
+
+Council mode can be enabled for these workflow stages:
+
+| Stage               | Command                   | Council Benefits                          |
+| ------------------- | ------------------------- | ----------------------------------------- |
+| `speckit_plan`      | `/speckit.plan` Phase 0.5 | Multiple perspectives on research queries |
+| `speckit_analyze`   | `/speckit.analyze`        | Diverse detection of inconsistencies      |
+| `research_codebase` | `/1_research_codebase`    | Comprehensive codebase exploration        |
+| `validate_plan`     | `/3_validate_plan`        | Multi-reviewer validation                 |
+
+### How Council Mode Works
+
+1. **Dispatch**: Query sent to all enabled providers in parallel
+2. **Collect**: Responses gathered with timeout handling (quorum required)
+3. **Anonymize**: Responses labeled as Member A, B, C, D
+4. **Peer Review** (optional): Each provider reviews others' responses
+5. **Synthesize**: Chairman LLM combines insights into unified output
+6. **Log**: Usage metrics written to `.specify/logs/council-usage.jsonl`
+
+### Cost Visibility
+
+Council mode increases token usage proportionally to the number of providers.
+Usage is logged to `.specify/logs/council-usage.jsonl` with:
+
+- Per-session token counts and estimated costs
+- Provider breakdown
+- Stage breakdown
+- Duration metrics
+
+View usage summary via Command Palette > "SpecGofer: Show Council Status".
+
+### Key Files
+
+- `extension/src/council/` - Council module source code
+- `.specify/memory/council-config.yaml` - Per-project configuration
+- `.specify/logs/council-usage.jsonl` - Usage log (JSONL format)
+- `.specify/templates/council-config.yaml` - Default configuration template
+
 ## Project Structure
 
 This is a monorepo with three main packages plus AI workflow infrastructure:
@@ -428,11 +583,14 @@ The `specKitMigrator.ts` handles upgrades:
 
 ## Recent Changes
 
+- 009-llm-council-integration: Added TypeScript 5.7.2, Node.js 20.x LTS +
+  `@anthropic-ai/sdk` (existing), `@google/generative-ai`, `openai` (for xAI and
+  OpenAI)
+
 - 006-testing-coverage-expansion: Added TypeScript 5.7.2, Node.js 20.x LTS
 
 - 001-claude-terminal-integration: Added TypeScript 5.3+, Node.js 20.x LTS
 
-- 006-test-feature: Added TypeScript 5.3+, Node.js 20.x LTS + Dagger SDK for
   TypeScript, @vscode/test-electron, VSCode Extension API
 
   codebase)
@@ -465,6 +623,12 @@ The `specKitMigrator.ts` handles upgrades:
 use it for releases, no exceptions!
 
 ## Active Technologies
+
+- TypeScript 5.7.2, Node.js 20.x LTS + `@anthropic-ai/sdk` (existing),
+  `@google/generative-ai`, `openai` (for xAI and OpenAI)
+  (009-llm-council-integration)
+- File-based (`.specify/memory/council-config.yaml`,
+  `.specify/logs/council-usage.jsonl`) (009-llm-council-integration)
 
 - TypeScript 5.7.2, Node.js 20.x LTS (006-testing-coverage-expansion)
 - File-based (specs in `.specify/specs/`, constitution in `.specify/memory/`,

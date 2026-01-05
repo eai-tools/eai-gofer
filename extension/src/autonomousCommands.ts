@@ -10,6 +10,7 @@
 
 import * as vscode from 'vscode';
 import * as fs from 'fs/promises';
+import * as fsSync from 'fs';
 import * as path from 'path';
 import * as pty from 'node-pty';
 import {
@@ -585,6 +586,60 @@ async function checkDependenciesBeforeExecution(
 }
 
 /**
+ * Determine the initial command to send based on workspace state
+ * Checks for existing SpecKit and RPI artifacts to route to the appropriate workflow
+ */
+function determineInitialCommand(specId: string, workspacePath: string): string {
+  // Check SpecKit artifacts
+  const specDir = path.join(workspacePath, '.specify', 'specs', specId);
+  const hasSpec = fsSync.existsSync(path.join(specDir, 'spec.md'));
+  const hasPlan = fsSync.existsSync(path.join(specDir, 'plan.md'));
+  const hasTasks = fsSync.existsSync(path.join(specDir, 'tasks.md'));
+
+  // Check RPI artifacts
+  const researchDir = path.join(workspacePath, 'thoughts', 'shared', 'research');
+  const sessionsDir = path.join(workspacePath, 'thoughts', 'shared', 'sessions');
+  const plansDir = path.join(workspacePath, 'thoughts', 'shared', 'plans');
+
+  const hasResearch =
+    fsSync.existsSync(researchDir) &&
+    fsSync.readdirSync(researchDir).filter((f) => f.endsWith('.md')).length > 0;
+  const hasSavedSession =
+    fsSync.existsSync(sessionsDir) &&
+    fsSync.readdirSync(sessionsDir).filter((f) => f.endsWith('.md') && f !== '.gitkeep').length > 0;
+  const hasRpiPlan =
+    fsSync.existsSync(plansDir) &&
+    fsSync.readdirSync(plansDir).filter((f) => f.endsWith('.md')).length > 0;
+
+  // Decision tree
+
+  // 1. SpecKit artifacts exist - continue SpecKit flow
+  if (hasTasks) {
+    return '/speckit.implement';
+  }
+  if (hasPlan) {
+    return '/speckit.tasks';
+  }
+  if (hasSpec) {
+    return '/speckit.plan';
+  }
+
+  // 2. RPI artifacts exist - continue RPI flow
+  if (hasSavedSession) {
+    return '/6_resume_work';
+  }
+  if (hasRpiPlan) {
+    return '/4_implement_plan';
+  }
+  if (hasResearch) {
+    return '/2_create_plan';
+  }
+
+  // 3. Fresh state - start with triage
+  return '/0_business_scenario';
+}
+
+/**
  * Launch Claude Code in integrated VSCode terminal
  */
 export async function launchClaudeCode(specId: string): Promise<void> {
@@ -753,12 +808,16 @@ export async function launchClaudeCode(specId: string): Promise<void> {
       // Look for the ">" prompt character indicating Claude Code is ready
       if (!promptDetected && ptyRef && data.includes('>')) {
         promptDetected = true;
-        outputChannel?.appendLine('✓ Claude Code prompt detected, sending command...');
+        outputChannel?.appendLine('✓ Claude Code prompt detected, determining command...');
+
+        // Dynamically determine command based on workspace state
+        const initialCommand = determineInitialCommand(specId, workspacePath);
+        outputChannel?.appendLine(`   → State detection chose: ${initialCommand}`);
 
         // METHOD 5 (WORKING): Write command first, then send \r separately with 500ms delay
         // This is the only method that works reliably with Claude Code
-        ptyRef.write('/speckit.implement');
-        outputChannel?.appendLine('  → Typed command: /speckit.implement');
+        ptyRef.write(initialCommand);
+        outputChannel?.appendLine(`  → Typed command: ${initialCommand}`);
 
         setTimeout(() => {
           ptyRef.write('\r');

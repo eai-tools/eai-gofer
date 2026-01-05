@@ -61,7 +61,7 @@ export class ClaudeCodeBridge {
 
           // Call Claude API
           const response = await this.anthropic.messages.create({
-            model: 'claude-sonnet-4-20250514',
+            model: 'claude-opus-4-5-20251101',
             max_tokens: 8096,
             messages: this.conversationHistory,
             system: this.getSystemPrompt(),
@@ -165,11 +165,7 @@ Work autonomously but ask for help when needed.`;
    */
   async saveConversationHistory(): Promise<void> {
     const historyPath = path.join(this.workspacePath, '.claude-history.json');
-    await fs.writeFile(
-      historyPath,
-      JSON.stringify(this.conversationHistory, null, 2),
-      'utf-8'
-    );
+    await fs.writeFile(historyPath, JSON.stringify(this.conversationHistory, null, 2), 'utf-8');
     console.log('Saved conversation history to disk');
   }
 }

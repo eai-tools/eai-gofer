@@ -95,6 +95,30 @@ Then wait for the user's research query.
    - Present a concise summary of findings to the user
    - Include key file references for easy navigation
 
+## LLM Council Integration (Optional)
+
+When council mode is enabled in `.specify/memory/council-config.yaml` for stage
+`research_codebase`, each parallel sub-agent task can execute across ALL
+configured LLM providers simultaneously for more comprehensive research.
+
+**Council Workflow for Research**:
+
+1. Check `.specify/memory/council-config.yaml` for council enablement on
+   `research_codebase` stage
+2. If enabled, each sub-agent (codebase-locator, codebase-analyzer,
+   pattern-finder) queries all configured providers in parallel
+3. Collect and anonymize responses as Member A, B, C, D
+4. Chairman LLM synthesizes findings from all providers, noting areas of
+   consensus and divergent findings
+5. If peer review is enabled, providers evaluate each other's research quality
+6. Log usage metrics to `.specify/logs/council-usage.jsonl`
+
+**Benefits**: Different LLMs may find different patterns, connections, or
+interpret code differently, leading to more comprehensive research.
+
+**Note**: Council mode significantly increases token usage. Consider enabling
+only for complex research questions.
+
 ## Important notes:
 
 - Always use parallel Task agents to maximize efficiency

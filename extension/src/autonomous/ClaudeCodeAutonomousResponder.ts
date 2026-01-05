@@ -395,6 +395,22 @@ export class ClaudeCodeAutonomousResponder {
    - Sends: Prompt asking Claude for performance and architecture analysis`;
       }
 
+      // Add workflow routing actions
+      responseTypes += `
+
+6. WORKFLOW ROUTING - To transition between workflow phases:
+   SpecKit flow:
+   - ACTION: ROUTE_SPECKIT_SPECIFY - Start new specification
+   - ACTION: ROUTE_SPECKIT_PLAN - Move to planning phase
+   - ACTION: ROUTE_SPECKIT_TASKS - Generate tasks from plan
+   - ACTION: ROUTE_SPECKIT_IMPLEMENT - Begin implementation
+
+   RPI flow:
+   - ACTION: ROUTE_RPI_RESEARCH - Start codebase research
+   - ACTION: ROUTE_RPI_PLAN - Create implementation plan
+   - ACTION: ROUTE_RPI_IMPLEMENT - Execute the plan
+   - ACTION: ROUTE_RPI_RESUME - Resume saved session`;
+
       // Determine Claude's work state from question field
       const isWorking = context.question.includes('WORKING');
 
@@ -693,6 +709,56 @@ Provide a brief summary of findings and recommendations for next steps.`
 Provide specific, actionable recommendations.`
           );
           return perfPrompt;
+        }
+
+        // Workflow routing actions - SpecKit flow
+        if (trimmedAnswer.includes('ACTION: ROUTE_SPECKIT_SPECIFY')) {
+          this.outputChannel.appendLine('   📝 Routing to SpecKit: specify phase\n');
+          await this.writeLog('ROUTING: /speckit.specify');
+          return '/speckit.specify\n';
+        }
+
+        if (trimmedAnswer.includes('ACTION: ROUTE_SPECKIT_PLAN')) {
+          this.outputChannel.appendLine('   📋 Routing to SpecKit: plan phase\n');
+          await this.writeLog('ROUTING: /speckit.plan');
+          return '/speckit.plan\n';
+        }
+
+        if (trimmedAnswer.includes('ACTION: ROUTE_SPECKIT_TASKS')) {
+          this.outputChannel.appendLine('   📊 Routing to SpecKit: tasks phase\n');
+          await this.writeLog('ROUTING: /speckit.tasks');
+          return '/speckit.tasks\n';
+        }
+
+        if (trimmedAnswer.includes('ACTION: ROUTE_SPECKIT_IMPLEMENT')) {
+          this.outputChannel.appendLine('   🔨 Routing to SpecKit: implement phase\n');
+          await this.writeLog('ROUTING: /speckit.implement');
+          return '/speckit.implement\n';
+        }
+
+        // Workflow routing actions - RPI flow
+        if (trimmedAnswer.includes('ACTION: ROUTE_RPI_RESEARCH')) {
+          this.outputChannel.appendLine('   🔍 Routing to RPI: research phase\n');
+          await this.writeLog('ROUTING: /1_research_codebase');
+          return '/1_research_codebase\n';
+        }
+
+        if (trimmedAnswer.includes('ACTION: ROUTE_RPI_PLAN')) {
+          this.outputChannel.appendLine('   📋 Routing to RPI: create plan phase\n');
+          await this.writeLog('ROUTING: /2_create_plan');
+          return '/2_create_plan\n';
+        }
+
+        if (trimmedAnswer.includes('ACTION: ROUTE_RPI_IMPLEMENT')) {
+          this.outputChannel.appendLine('   🔨 Routing to RPI: implement plan phase\n');
+          await this.writeLog('ROUTING: /4_implement_plan');
+          return '/4_implement_plan\n';
+        }
+
+        if (trimmedAnswer.includes('ACTION: ROUTE_RPI_RESUME')) {
+          this.outputChannel.appendLine('   ▶️  Routing to RPI: resume work\n');
+          await this.writeLog('ROUTING: /6_resume_work');
+          return '/6_resume_work\n';
         }
 
         // Otherwise it's a direct answer to a question

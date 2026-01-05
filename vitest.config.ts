@@ -65,4 +65,9 @@ export default defineConfig({
       '@language-server': path.resolve(__dirname, './language-server/src'),
     },
   },
+  server: {
+    deps: {
+      inline: ['@anthropic-ai/sdk', '@google/generative-ai'],
+    },
+  },
 });

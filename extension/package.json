@@ -203,6 +203,11 @@
         "command": "specgofer.clearMemory",
         "title": "SpecGofer: Clear Memory Database",
         "icon": "$(trash)"
+      },
+      {
+        "command": "specGofer.showCouncilStatus",
+        "title": "SpecGofer: Show LLM Council Status",
+        "icon": "$(organization)"
       }
     ],
     "keybindings": [
@@ -397,6 +402,20 @@
           "description": "Anthropic API Key for Claude (get yours at https://console.anthropic.com/settings/keys)",
           "markdownDescription": "Your Anthropic API key for Claude. [Get one here](https://console.anthropic.com/settings/keys). This is stored securely in VSCode settings and never shared.",
           "order": 0
+        },
+        "specGofer.googleApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Google AI API Key for Gemini (get yours at https://aistudio.google.com/apikey)",
+          "markdownDescription": "Your Google AI API key for Gemini models. [Get one here](https://aistudio.google.com/apikey). Used by LLM Council feature for multi-provider execution.",
+          "order": 1
+        },
+        "specGofer.openaiApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "OpenAI API Key for GPT models (get yours at https://platform.openai.com/api-keys)",
+          "markdownDescription": "Your OpenAI API key for GPT models. [Get one here](https://platform.openai.com/api-keys). Used by LLM Council feature for multi-provider execution.",
+          "order": 2
         },
         "specGofer.autonomousMode": {
           "type": "boolean",
@@ -639,6 +658,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.67.0",
+    "@google/generative-ai": "^0.21.0",
     "@types/body-parser": "^1.19.6",
     "@types/express": "^5.0.5",
     "@types/jszip": "^3.4.0",
@@ -651,6 +671,7 @@
     "graphlib": "^2.1.8",
     "jszip": "^3.10.1",
     "node-pty": "^1.0.0",
+    "openai": "^4.104.0",
     "twilio": "^5.3.0",
     "uuid": "^10.0.0",
     "vscode-languageclient": "^9.0.1",

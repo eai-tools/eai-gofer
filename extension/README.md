@@ -37,6 +37,7 @@ track progress, and leverage AI assistance through Claude Code integration.
 - **Branch-Specific Specs**: Automatically reloads specs when switching Git
   branches
 - **Real-time Updates**: File watching with automatic refresh of tree views
+- **LLM Council Mode**: Multi-provider parallel execution for research workflows
 
 ### 🤖 Claude Code Terminal Integration (New!)
 
@@ -116,6 +117,62 @@ question handling:
    dialog
 7. **Learning**: Human responses are saved and reused for similar future
    questions
+
+### 🏛️ LLM Council Mode (New!)
+
+SpecGofer supports an optional multi-LLM council pattern that enables parallel
+execution across multiple AI providers for research and analysis workflows.
+
+#### Features
+
+- **Multi-Provider Execution**: Query Anthropic, Google, and OpenAI
+  simultaneously
+- **Anonymous Synthesis**: Responses labeled as Member A, B, C, D for unbiased
+  evaluation
+- **Chairman Synthesis**: Requesting LLM synthesizes diverse perspectives
+- **Optional Peer Review**: Each LLM can review and rank other providers'
+  responses
+- **Per-Stage Configuration**: Enable council mode for specific workflow stages
+- **Cost Visibility**: Track token usage and estimated costs per session
+
+#### Setup
+
+1. **Configure API Keys** in VSCode Settings (Settings > SpecGofer):
+   - `specGofer.anthropicApiKey` - Anthropic (Claude) API key (required)
+   - `specGofer.googleApiKey` - Google (Gemini) API key (optional)
+   - `specGofer.openaiApiKey` - OpenAI API key (optional)
+
+2. **Create Council Config** at `.specify/memory/council-config.yaml`:
+
+   ```yaml
+   enabled: true
+   quorum: 2
+   timeout: 30000
+   peerReview: false
+   stages:
+     speckit_plan: true
+     speckit_analyze: true
+     research_codebase: true
+     validate_plan: true
+   providers:
+     - providerId: anthropic
+       enabled: true
+     - providerId: google
+       enabled: true
+     - providerId: openai
+       enabled: true
+   ```
+
+3. **View Status**: Run `SpecGofer: Show Council Status` from Command Palette
+
+#### How It Works
+
+1. Query dispatched to all enabled providers in parallel
+2. Responses collected with timeout handling (quorum required)
+3. Responses anonymized as Member A, B, C, D
+4. Optional peer review stage (if enabled)
+5. Chairman LLM synthesizes unified output
+6. Usage logged to `.specify/logs/council-usage.jsonl`
 
 ### MCP Tools for AI Assistants
 

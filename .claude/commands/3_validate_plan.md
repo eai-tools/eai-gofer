@@ -101,6 +101,32 @@ Phase 3: [Name] - Partially implemented (see issues)
 4. **Think critically** - Question if implementation solves the problem
 5. **Consider maintenance** - Will this be maintainable?
 
+## LLM Council Integration (Optional)
+
+When council mode is enabled in `.specify/memory/council-config.yaml` for stage
+`validate_plan`, the validation process can leverage multiple LLM perspectives
+for more thorough review.
+
+**Council Workflow for Validation**:
+
+1. Check `.specify/memory/council-config.yaml` for council enablement on
+   `validate_plan` stage
+2. If enabled, dispatch validation research tasks to all configured LLM
+   providers in parallel
+3. Each provider independently reviews code changes, test coverage, and plan
+   adherence
+4. Collect and anonymize responses as Member A, B, C, D
+5. Chairman LLM synthesizes validation findings, highlighting:
+   - Areas where all providers agree on issues (high confidence)
+   - Divergent assessments that may need human judgment
+   - Unique catches from individual providers
+6. If peer review is enabled, providers critique each other's validation
+   thoroughness
+7. Log usage metrics to `.specify/logs/council-usage.jsonl`
+
+**Benefits**: Multiple reviewers can catch different types of issues, similar to
+having multiple code reviewers.
+
 ## Validation Checklist
 
 Always verify:

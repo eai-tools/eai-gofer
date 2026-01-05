@@ -11,6 +11,7 @@ import { MCPConfigHelper } from './mcpConfig';
 import { MemoryManager } from './autonomous/MemoryManager';
 import { registerMemoryCommands } from './commands/memoryCommands';
 import { registerSpecCommands } from './commands/specCommands';
+import { registerCouncilCommands } from './commands/councilCommands';
 
 /**
  * SpecGofer Extension
@@ -593,6 +594,9 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
       await openWithMarkdownWYSIWYG(item);
     })
   );
+
+  // LLM Council commands
+  registerCouncilCommands(context);
 
   // Claude Code Terminal commands
   context.subscriptions.push(

@@ -1,332 +1,513 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+/**
+ * EngineerAgent Unit Tests
+ *
+ * Tests for EngineerAgent prompt building and response parsing logic.
+ * Uses real test data (not mocks) per project testing philosophy.
+ *
+ * For integration tests with real API calls,
+ * see tests/integration/engineerAgent.integration.test.ts
+ */
+
+import { describe, it, expect, beforeEach } from 'vitest';
 import { EngineerAgent } from '../../src/agents/EngineerAgent.js';
 import { ClaudeClient } from '../../src/utils/ClaudeClient.js';
-import type { TestResult } from '../../src/types.js';
+import type { TestResult } from '../../src/types/index.js';
 
-// Mock Anthropic SDK
-const mockCreate = vi.fn();
-vi.mock('@anthropic-ai/sdk', () => {
-  return {
-    default: vi.fn().mockImplementation(() => ({
-      messages: {
-        create: mockCreate,
-      },
-    })),
-  };
-});
+// Helper to check if API key is available for integration tests
+const hasApiKey = (): boolean => {
+  const key = process.env.ANTHROPIC_API_KEY;
+  return key !== undefined && key.length > 0;
+};
 
-// Mock fs/promises
-vi.mock('fs/promises', () => ({
-  readFile: vi.fn(),
-}));
+describe('EngineerAgent', () => {
+  describe('Unit Tests (no API calls)', () => {
+    let engineerAgent: EngineerAgent;
+    let mockClaudeClient: ClaudeClient;
 
-// Skip this test suite - API has changed, tests need to be rewritten for new signature
-// Old signature: validate(taskDescription, code, testResult)
-// New signature: validate(taskDescription, code, constitution)
-// TODO: Rewrite tests to match current EngineerAgent implementation
-describe.skip('EngineerAgent', () => {
-  let engineerAgent: EngineerAgent;
-  let mockClaudeClient: ClaudeClient;
-  let mockTestResult: TestResult;
+    beforeEach(() => {
+      // Create a ClaudeClient with a dummy key for unit tests
+      // These tests don't make actual API calls
+      mockClaudeClient = new ClaudeClient('dummy-key-for-unit-tests');
+      engineerAgent = new EngineerAgent(mockClaudeClient);
+    });
 
-  beforeEach(() => {
-    vi.clearAllMocks();
-    mockClaudeClient = new ClaudeClient('test-api-key');
-    engineerAgent = new EngineerAgent(mockClaudeClient);
-
-    mockTestResult = {
-      passed: true,
-      failedTests: [],
-      summary: 'All tests passed',
-    };
-  });
-
-  describe('validate', () => {
-    const mockImplementation = `
-      export class TestClass {
-        constructor(private name: string) {}
-        
-        greet(): string {
-          return \`Hello, \${this.name}!\`;
+    describe('buildValidationPrompt', () => {
+      const sampleCode = `
+        export class Calculator {
+          add(a: number, b: number): number {
+            return a + b;
+          }
         }
-      }
-    `;
+      `;
 
-    it('should validate code successfully', async () => {
-      const mockResponse = {
-        content: [
-          {
-            type: 'text',
-            text: `VALID: true
+      const sampleConstitution = `
+        # Coding Standards
+        1. Use TypeScript strict mode
+        2. Add JSDoc comments to public methods
+        3. Handle edge cases
+      `;
 
-CONSTITUTIONAL_ISSUES:
+      it('should build prompt with task description, code, and constitution', () => {
+        const prompt = engineerAgent.buildValidationPrompt(
+          'Implement a calculator class',
+          sampleCode,
+          sampleConstitution
+        );
 
-TASK_ISSUES:
+        expect(prompt).toContain('Implement a calculator class');
+        expect(prompt).toContain('Calculator');
+        expect(prompt).toContain('Coding Standards');
+        expect(prompt).toContain('TypeScript strict mode');
+      });
 
-TECHNICAL_ISSUES:
+      it('should include test results when provided', () => {
+        const testResult: TestResult = {
+          id: 'test-123',
+          taskId: 'task-456',
+          timestamp: new Date().toISOString(),
+          testType: 'unit',
+          passed: false,
+          totalTests: 5,
+          passedTests: 3,
+          failedTests: 2,
+          skippedTests: 0,
+          duration: 1500,
+          failures: [
+            { testName: 'should add numbers', error: 'Expected 5, got 4' },
+            { testName: 'should handle negatives', error: 'Overflow error' },
+          ],
+        };
 
-SUGGESTIONS:
+        const prompt = engineerAgent.buildValidationPrompt(
+          'Implement calculator',
+          sampleCode,
+          sampleConstitution,
+          { testResult }
+        );
 
-ASSESSMENT:
-Code looks good and follows all requirements.`,
-          },
-        ],
-      };
+        expect(prompt).toContain('Test Results');
+        expect(prompt).toContain('Passed: false');
+        expect(prompt).toContain('Total Tests: 5');
+        expect(prompt).toContain('Passed Tests: 3');
+        expect(prompt).toContain('Failed Tests: 2');
+        expect(prompt).toContain('should add numbers');
+        expect(prompt).toContain('Expected 5, got 4');
+      });
 
-      // Mock constitution file
-      const fs = await import('fs/promises');
-      vi.mocked(fs.readFile).mockResolvedValue('# Constitution\nCode quality standards...');
+      it('should include validation instructions with JSON format', () => {
+        const prompt = engineerAgent.buildValidationPrompt(
+          'Test task',
+          'test code',
+          'test constitution'
+        );
 
-      mockCreate.mockResolvedValue(mockResponse);
+        expect(prompt).toContain('Validation Instructions');
+        expect(prompt).toContain('JSON');
+        expect(prompt).toContain('isValid');
+        expect(prompt).toContain('issues');
+        expect(prompt).toContain('suggestions');
+        expect(prompt).toContain('constitutionChecks');
+      });
 
-      const result = await engineerAgent.validate(
-        'Implement a greeting class',
-        mockImplementation,
-        mockTestResult
-      );
+      it('should include severity categories explanation', () => {
+        const prompt = engineerAgent.buildValidationPrompt(
+          'Test task',
+          'test code',
+          'test constitution'
+        );
 
-      expect(result.isValid).toBe(true);
-      expect(result.issues).toHaveLength(0);
-      expect(result.suggestions).toHaveLength(0);
+        expect(prompt).toContain('blocker');
+        expect(prompt).toContain('critical');
+        expect(prompt).toContain('major');
+        expect(prompt).toContain('minor');
+      });
+
+      it('should include issue categories explanation', () => {
+        const prompt = engineerAgent.buildValidationPrompt(
+          'Test task',
+          'test code',
+          'test constitution'
+        );
+
+        expect(prompt).toContain('functional');
+        expect(prompt).toContain('security');
+        expect(prompt).toContain('performance');
+        expect(prompt).toContain('quality');
+        expect(prompt).toContain('constitution');
+      });
     });
 
-    it('should identify validation issues', async () => {
-      const mockResponse = {
-        content: [
-          {
-            type: 'text',
-            text: `VALID: false
+    describe('parseValidationResponse', () => {
+      it('should parse valid JSON response', () => {
+        const jsonResponse = JSON.stringify({
+          isValid: true,
+          issues: [],
+          suggestions: ['Add unit tests'],
+          constitutionChecks: { 'TypeScript strict': true },
+          assessment: 'Code looks good',
+        });
 
-CONSTITUTIONAL_ISSUES:
-- Missing type annotations in several places
-- No error handling for user input
+        const result = engineerAgent.parseValidationResponse(jsonResponse);
 
-TASK_ISSUES:
-- Implementation doesn't match specification
+        expect(result.isValid).toBe(true);
+        expect(result.issues).toHaveLength(0);
+        expect(result.suggestions).toContain('Add unit tests');
+        expect(result.constitutionChecks['TypeScript strict']).toBe(true);
+      });
 
-TECHNICAL_ISSUES:
-- Performance could be improved
+      it('should parse JSON response with issues', () => {
+        const jsonResponse = JSON.stringify({
+          isValid: false,
+          issues: [
+            {
+              category: 'security',
+              severity: 'critical',
+              description: 'SQL injection vulnerability',
+              location: 'src/db.ts:42',
+            },
+            {
+              category: 'quality',
+              severity: 'minor',
+              description: 'Missing error handling',
+            },
+          ],
+          suggestions: ['Use parameterized queries', 'Add try-catch blocks'],
+          constitutionChecks: { 'Security first': false },
+        });
 
-SUGGESTIONS:
-- Add TypeScript types
-- Add try-catch blocks
-- Add input validation
+        const result = engineerAgent.parseValidationResponse(jsonResponse);
 
-ASSESSMENT:
-Code needs improvements to meet requirements.`,
+        expect(result.isValid).toBe(false);
+        expect(result.issues).toHaveLength(2);
+        expect(result.issues[0].category).toBe('security');
+        expect(result.issues[0].severity).toBe('critical');
+        expect(result.issues[0].description).toContain('SQL injection');
+        expect(result.issues[0].location).toBe('src/db.ts:42');
+        expect(result.suggestions).toHaveLength(2);
+      });
+
+      it('should parse JSON embedded in text', () => {
+        const response = `
+          Here is my analysis:
+
+          ${JSON.stringify({
+            isValid: true,
+            issues: [],
+            suggestions: [],
+            constitutionChecks: {},
+          })}
+
+          That's my assessment.
+        `;
+
+        const result = engineerAgent.parseValidationResponse(response);
+
+        expect(result.isValid).toBe(true);
+      });
+
+      it('should fall back to structured text parsing when JSON fails', () => {
+        const structuredResponse = `
+          VALID: false
+
+          CONSTITUTIONAL_ISSUES:
+          - Missing type annotations
+          - No error handling
+
+          TASK_ISSUES:
+          - Does not implement all requirements
+
+          TECHNICAL_ISSUES:
+          - Performance could be improved
+
+          SUGGESTIONS:
+          - Add TypeScript types
+          - Add try-catch blocks
+          - Optimize loops
+
+          ASSESSMENT:
+          Code needs work.
+        `;
+
+        const result = engineerAgent.parseValidationResponse(structuredResponse);
+
+        expect(result.isValid).toBe(false);
+        expect(result.issues.length).toBeGreaterThan(0);
+        expect(result.suggestions.length).toBeGreaterThan(0);
+      });
+
+      it('should extract constitutional issues from structured text', () => {
+        const response = `
+          VALID: false
+
+          CONSTITUTIONAL_ISSUES:
+          - Violates coding standards
+          - Missing documentation
+
+          TASK_ISSUES:
+
+          TECHNICAL_ISSUES:
+
+          SUGGESTIONS:
+
+          ASSESSMENT: Fix issues.
+        `;
+
+        const result = engineerAgent.parseValidationResponse(response);
+
+        expect(result.issues.some((i) => i.category === 'constitution')).toBe(true);
+        expect(result.issues.some((i) => i.description.includes('coding standards'))).toBe(true);
+      });
+
+      it('should extract task issues from structured text', () => {
+        const response = `
+          VALID: false
+
+          CONSTITUTIONAL_ISSUES:
+
+          TASK_ISSUES:
+          - Missing feature X
+          - Wrong behavior for Y
+
+          TECHNICAL_ISSUES:
+
+          SUGGESTIONS:
+
+          ASSESSMENT: Incomplete.
+        `;
+
+        const result = engineerAgent.parseValidationResponse(response);
+
+        expect(result.issues.some((i) => i.category === 'functional')).toBe(true);
+      });
+
+      it('should extract technical issues from structured text', () => {
+        const response = `
+          VALID: true
+
+          CONSTITUTIONAL_ISSUES:
+
+          TASK_ISSUES:
+
+          TECHNICAL_ISSUES:
+          - Could optimize memory usage
+          - Consider caching
+
+          SUGGESTIONS:
+
+          ASSESSMENT: Good but could be better.
+        `;
+
+        const result = engineerAgent.parseValidationResponse(response);
+
+        expect(result.issues.some((i) => i.category === 'quality')).toBe(true);
+      });
+
+      it('should handle response with no issues', () => {
+        const response = `
+          VALID: true
+
+          CONSTITUTIONAL_ISSUES:
+
+          TASK_ISSUES:
+
+          TECHNICAL_ISSUES:
+
+          SUGGESTIONS:
+
+          ASSESSMENT: Perfect implementation.
+        `;
+
+        const result = engineerAgent.parseValidationResponse(response);
+
+        expect(result.isValid).toBe(true);
+        expect(result.issues).toHaveLength(0);
+      });
+
+      it('should handle malformed response gracefully', () => {
+        const malformedResponse = 'This is not a valid response format at all.';
+
+        const result = engineerAgent.parseValidationResponse(malformedResponse);
+
+        expect(result).toBeDefined();
+        expect(result.isValid).toBe(false);
+      });
+
+      it('should include timestamp and ID in result', () => {
+        const response = JSON.stringify({
+          isValid: true,
+          issues: [],
+          suggestions: [],
+          constitutionChecks: {},
+        });
+
+        const result = engineerAgent.parseValidationResponse(response);
+
+        expect(result.id).toBeDefined();
+        expect(result.timestamp).toBeDefined();
+        expect(new Date(result.timestamp).getTime()).not.toBeNaN();
+      });
+
+      it('should set taskId from test result when provided', () => {
+        const response = JSON.stringify({
+          isValid: true,
+          issues: [],
+          suggestions: [],
+          constitutionChecks: {},
+        });
+
+        const result = engineerAgent.parseValidationResponse(response, {
+          testResult: {
+            id: 'test-id',
+            taskId: 'my-task-123',
+            timestamp: new Date().toISOString(),
+            testType: 'unit',
+            passed: true,
+            totalTests: 1,
+            passedTests: 1,
+            failedTests: 0,
+            skippedTests: 0,
+            duration: 100,
+            failures: [],
           },
-        ],
-      };
+        });
 
-      const fs = await import('fs/promises');
-      vi.mocked(fs.readFile).mockResolvedValue('# Constitution\nCode quality standards...');
+        expect(result.taskId).toBe('my-task-123');
+      });
 
-      mockCreate.mockResolvedValue(mockResponse);
+      it('should handle issues without optional fields', () => {
+        const response = JSON.stringify({
+          isValid: false,
+          issues: [
+            { description: 'Some issue without category or severity' },
+            { description: 'Another basic issue' },
+          ],
+          suggestions: [],
+          constitutionChecks: {},
+        });
 
-      const result = await engineerAgent.validate(
-        'Implement a greeting class',
-        mockImplementation,
-        mockTestResult
-      );
+        const result = engineerAgent.parseValidationResponse(response);
 
-      expect(result.isValid).toBe(false);
-      expect(result.issues).toHaveLength(4);
-      expect(result.suggestions).toHaveLength(3);
-      expect(result.issues[0]).toBe('Missing type annotations in several places');
+        expect(result.issues).toHaveLength(2);
+        // Should default to 'quality' category and 'minor' severity
+        expect(result.issues[0].category).toBe('quality');
+        expect(result.issues[0].severity).toBe('minor');
+      });
     });
 
-    it('should handle API errors gracefully', async () => {
-      const fs = await import('fs/promises');
-      vi.mocked(fs.readFile).mockResolvedValue('# Constitution\nCode quality standards...');
-
-      mockCreate.mockRejectedValue(new Error('API Error'));
-
-      const result = await engineerAgent.validate(
-        'Implement a greeting class',
-        mockImplementation,
-        mockTestResult
-      );
-
-      expect(result.isValid).toBe(false);
-      expect(result.issues).toContain('Engineer Agent encountered an error during validation');
-    });
-
-    it('should handle invalid response format', async () => {
-      const mockResponse = {
-        content: [
-          {
-            type: 'text',
-            text: 'Invalid response format without expected structure',
-          },
-        ],
-      };
-
-      const fs = await import('fs/promises');
-      vi.mocked(fs.readFile).mockResolvedValue('# Constitution\nCode quality standards...');
-
-      mockCreate.mockResolvedValue(mockResponse);
-
-      const result = await engineerAgent.validate(
-        'Implement a greeting class',
-        mockImplementation,
-        mockTestResult
-      );
-
-      expect(result.isValid).toBe(false);
-      expect(result.issues).toHaveLength(0);
-      expect(result.suggestions).toHaveLength(0);
-    });
-
-    it('should include test results in validation when provided', async () => {
-      const failedTestResult: TestResult = {
-        passed: false,
-        failedTests: ['Test case 1 failed', 'Test case 2 failed'],
-        summary: 'Tests failed',
-      };
-
-      const mockResponse = {
-        content: [
-          {
-            type: 'text',
-            text: `VALID: false
-
-CONSTITUTIONAL_ISSUES:
-
-TASK_ISSUES:
-- Code fails tests
-
-TECHNICAL_ISSUES:
-
-SUGGESTIONS:
-- Fix failing test cases
-
-ASSESSMENT:
-Code needs to pass tests.`,
-          },
-        ],
-      };
-
-      const fs = await import('fs/promises');
-      vi.mocked(fs.readFile).mockResolvedValue('# Constitution\nCode quality standards...');
-
-      mockCreate.mockResolvedValue(mockResponse);
-
-      await engineerAgent.validate('Test task', mockImplementation, failedTestResult);
-
-      // Verify that the test result was included in the API call
-      expect(mockCreate).toHaveBeenCalledWith(
-        expect.objectContaining({
-          messages: expect.arrayContaining([
-            expect.objectContaining({
-              content: expect.stringContaining('Test Results'),
-            }),
-          ]),
-        })
-      );
-    });
-
-    it('should validate against constitution principles', async () => {
-      const mockResponse = {
-        content: [
-          {
-            type: 'text',
-            text: `VALID: true
-
-CONSTITUTIONAL_ISSUES:
-
-TASK_ISSUES:
-
-TECHNICAL_ISSUES:
-
-SUGGESTIONS:
-
-ASSESSMENT:
-Code follows constitutional requirements.`,
-          },
-        ],
-      };
-
-      const fs = await import('fs/promises');
-      vi.mocked(fs.readFile).mockResolvedValue('# Constitution\nCode quality standards...');
-
-      mockCreate.mockResolvedValue(mockResponse);
-
-      await engineerAgent.validate('Test task', mockImplementation, mockTestResult);
-
-      // Verify constitution was included in validation prompt
-      expect(mockCreate).toHaveBeenCalledWith(
-        expect.objectContaining({
-          messages: expect.arrayContaining([
-            expect.objectContaining({
-              content: expect.stringContaining('Constitutional Requirements'),
-            }),
-          ]),
-        })
-      );
-    });
-
-    it('should handle missing constitution file gracefully', async () => {
-      const fs = await import('fs/promises');
-      vi.mocked(fs.readFile).mockRejectedValue(new Error('ENOENT: Constitution file not found'));
-
-      const mockResponse = {
-        content: [
-          {
-            type: 'text',
-            text: `VALID: true
-
-CONSTITUTIONAL_ISSUES:
-
-TASK_ISSUES:
-
-TECHNICAL_ISSUES:
-
-SUGGESTIONS:
-
-ASSESSMENT:
-Code looks good.`,
-          },
-        ],
-      };
-
-      mockCreate.mockResolvedValue(mockResponse);
-
-      const result = await engineerAgent.validate('Test task', mockImplementation, mockTestResult);
-
-      // Should still validate even without constitution
-      expect(result.isValid).toBe(true);
+    describe('constructor', () => {
+      it('should create instance with ClaudeClient', () => {
+        const client = new ClaudeClient('test-key');
+        const agent = new EngineerAgent(client);
+        expect(agent).toBeInstanceOf(EngineerAgent);
+      });
     });
   });
 
-  describe('configuration', () => {
-    it('should use correct Anthropic model and parameters', async () => {
-      const mockResponse = {
-        content: [
-          {
-            type: 'text',
-            text: `VALID: true
+  describe('Integration Tests (Real API Calls)', () => {
+    let engineerAgent: EngineerAgent;
 
-ASSESSMENT:
-Code is valid.`,
-          },
-        ],
-      };
-
-      const fs = await import('fs/promises');
-      vi.mocked(fs.readFile).mockResolvedValue('# Constitution\nCode quality standards...');
-
-      mockCreate.mockResolvedValue(mockResponse);
-
-      await engineerAgent.validate('Test task', 'test code', mockTestResult);
-
-      expect(mockCreate).toHaveBeenCalledWith(
-        expect.objectContaining({
-          model: expect.stringMatching(/claude-3/),
-          max_tokens: expect.any(Number),
-        })
-      );
+    beforeEach(() => {
+      if (hasApiKey()) {
+        const claudeClient = new ClaudeClient(process.env.ANTHROPIC_API_KEY!);
+        engineerAgent = new EngineerAgent(claudeClient);
+      }
     });
+
+    it.runIf(hasApiKey())(
+      'should validate simple code successfully',
+      async () => {
+        const code = `
+          export function add(a: number, b: number): number {
+            return a + b;
+          }
+        `;
+
+        const constitution = `
+          # Coding Standards
+          - Use TypeScript
+          - Functions should have return types
+        `;
+
+        const result = await engineerAgent.validate(
+          'Implement an add function',
+          code,
+          constitution
+        );
+
+        expect(result).toBeDefined();
+        expect(typeof result.isValid).toBe('boolean');
+        expect(result.id).toBeDefined();
+        expect(result.timestamp).toBeDefined();
+      },
+      { timeout: 30000 }
+    );
+
+    it.runIf(hasApiKey())(
+      'should detect issues in problematic code',
+      async () => {
+        const badCode = `
+          function process(data) {
+            eval(data);  // Security vulnerability
+            return data.toUpperCase();  // Missing null check
+          }
+        `;
+
+        const constitution = `
+          # Security Standards
+          - Never use eval()
+          - Always validate inputs
+        `;
+
+        const result = await engineerAgent.validate(
+          'Process user input safely',
+          badCode,
+          constitution
+        );
+
+        expect(result.isValid).toBe(false);
+        expect(result.issues.length).toBeGreaterThan(0);
+      },
+      { timeout: 30000 }
+    );
+
+    it.runIf(hasApiKey())(
+      'should perform quick validation',
+      async () => {
+        const code = `
+          export const greet = (name: string): string => \`Hello, \${name}!\`;
+        `;
+
+        const result = await engineerAgent.quickValidate('Create a greeting function', code);
+
+        expect(result).toBeDefined();
+        expect(typeof result.isValid).toBe('boolean');
+        expect(typeof result.summary).toBe('string');
+        expect(result.summary.length).toBeGreaterThan(0);
+      },
+      { timeout: 30000 }
+    );
+
+    it.runIf(hasApiKey())(
+      'should check specific principle compliance',
+      async () => {
+        const code = `
+          export function divide(a: number, b: number): number {
+            return a / b;
+          }
+        `;
+
+        const result = await engineerAgent.checkPrinciple(
+          code,
+          'Functions should handle edge cases like division by zero'
+        );
+
+        expect(result).toBeDefined();
+        expect(typeof result.compliant).toBe('boolean');
+        expect(typeof result.explanation).toBe('string');
+        // This code doesn't handle division by zero, so it should fail
+        expect(result.compliant).toBe(false);
+      },
+      { timeout: 30000 }
+    );
   });
 });

@@ -63,6 +63,8 @@ export const VIEWS = {
 // Configuration keys
 export const CONFIG_KEYS = {
   anthropicApiKey: 'specGofer.anthropicApiKey',
+  googleApiKey: 'specGofer.googleApiKey',
+  openaiApiKey: 'specGofer.openaiApiKey',
   autoInitialize: 'specGofer.autoInitialize',
   preferredAi: 'specGofer.preferredAI',
   autoUpdateCheck: 'specGofer.autoUpdateCheck',
@@ -124,16 +126,36 @@ export class ConfigManager {
   }
 
   /**
+   * Get Google AI API key (for Gemini)
+   */
+  public getGoogleApiKey(): string {
+    return this.config.get<string>(CONFIG_KEYS.googleApiKey.replace('specGofer.', ''), '') || '';
+  }
+
+  /**
+   * Get OpenAI API key (for GPT)
+   */
+  public getOpenaiApiKey(): string {
+    return this.config.get<string>(CONFIG_KEYS.openaiApiKey.replace('specGofer.', ''), '') || '';
+  }
+
+  /**
    * Get auto-initialize setting
    */
   public getAutoInitialize(): boolean {
-    return this.config.get<boolean>(CONFIG_KEYS.autoInitialize.replace('specGofer.', ''), DEFAULTS.autoInitialize);
+    return this.config.get<boolean>(
+      CONFIG_KEYS.autoInitialize.replace('specGofer.', ''),
+      DEFAULTS.autoInitialize
+    );
   }
 
   /**
    * Set auto-initialize setting
    */
-  public async setAutoInitialize(value: boolean, target: vscode.ConfigurationTarget = vscode.ConfigurationTarget.Global): Promise<void> {
+  public async setAutoInitialize(
+    value: boolean,
+    target: vscode.ConfigurationTarget = vscode.ConfigurationTarget.Global
+  ): Promise<void> {
     await this.config.update(CONFIG_KEYS.autoInitialize.replace('specGofer.', ''), value, target);
   }
 
@@ -141,43 +163,60 @@ export class ConfigManager {
    * Get preferred AI setting
    */
   public getPreferredAI(): string {
-    return this.config.get<string>(CONFIG_KEYS.preferredAi.replace('specGofer.', ''), DEFAULTS.preferredAi);
+    return this.config.get<string>(
+      CONFIG_KEYS.preferredAi.replace('specGofer.', ''),
+      DEFAULTS.preferredAi
+    );
   }
 
   /**
    * Get auto-update check setting
    */
   public getAutoUpdateCheck(): boolean {
-    return this.config.get<boolean>(CONFIG_KEYS.autoUpdateCheck.replace('specGofer.', ''), DEFAULTS.autoUpdateCheck);
+    return this.config.get<boolean>(
+      CONFIG_KEYS.autoUpdateCheck.replace('specGofer.', ''),
+      DEFAULTS.autoUpdateCheck
+    );
   }
 
   /**
    * Get telemetry enabled setting
    */
   public getTelemetryEnabled(): boolean {
-    return this.config.get<boolean>(CONFIG_KEYS.telemetryEnabled.replace('specGofer.', ''), DEFAULTS.telemetryEnabled);
+    return this.config.get<boolean>(
+      CONFIG_KEYS.telemetryEnabled.replace('specGofer.', ''),
+      DEFAULTS.telemetryEnabled
+    );
   }
 
   /**
    * Get update check interval
    */
   public getUpdateCheckInterval(): number {
-    return this.config.get<number>(CONFIG_KEYS.updateCheckInterval.replace('specGofer.', ''), DEFAULTS.updateCheckInterval);
+    return this.config.get<number>(
+      CONFIG_KEYS.updateCheckInterval.replace('specGofer.', ''),
+      DEFAULTS.updateCheckInterval
+    );
   }
 
   /**
    * Get performance mode
    */
   public getPerformanceMode(): 'fast' | 'balanced' | 'thorough' {
-    return this.config.get<'fast' | 'balanced' | 'thorough'>(CONFIG_KEYS.performanceMode.replace('specGofer.', ''), DEFAULTS.performanceMode as 'balanced');
+    return this.config.get<'fast' | 'balanced' | 'thorough'>(
+      CONFIG_KEYS.performanceMode.replace('specGofer.', ''),
+      DEFAULTS.performanceMode as 'balanced'
+    );
   }
 
   /**
    * Get all configuration as object
    */
-  public getAll(): Record<string, any> {
+  public getAll(): Record<string, unknown> {
     return {
       anthropicApiKey: this.getAnthropicApiKey(),
+      googleApiKey: this.getGoogleApiKey(),
+      openaiApiKey: this.getOpenaiApiKey(),
       autoInitialize: this.getAutoInitialize(),
       preferredAI: this.getPreferredAI(),
       autoUpdateCheck: this.getAutoUpdateCheck(),
@@ -193,7 +232,7 @@ export class ConfigManager {
  */
 export function getWorkspacePaths(workspacePath: string) {
   const path = require('path');
-  
+
   return {
     specify: path.join(workspacePath, SPECIFY_FOLDER),
     specs: path.join(workspacePath, SPECIFY_FOLDER, SPECS_FOLDER),

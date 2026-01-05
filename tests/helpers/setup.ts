@@ -2,23 +2,27 @@
  * Test Setup and Global Mocks
  *
  * This file runs before all tests to set up the test environment.
+ *
+ * For real API integration tests, set environment variables:
+ *   ANTHROPIC_API_KEY=sk-ant-...
+ *   GOOGLE_API_KEY=AIza...
+ *   OPENAI_API_KEY=sk-...
+ *
+ * You can either:
+ *   1. Add them to .env file in project root
+ *   2. Export them in your shell before running tests
+ *   3. Prefix the test command: ANTHROPIC_API_KEY=... npm test
  */
 
 import { vi } from 'vitest';
+import dotenv from 'dotenv';
 
-// Mock Anthropic SDK
-vi.mock('@anthropic-ai/sdk', () => ({
-  default: vi.fn(() => ({
-    messages: {
-      create: vi.fn(),
-    },
-  })),
-  Anthropic: vi.fn(() => ({
-    messages: {
-      create: vi.fn(),
-    },
-  })),
-}));
+// Load environment variables from .env file
+// This must happen before any other code runs
+dotenv.config();
+
+// Note: @anthropic-ai/sdk and @google/generative-ai are mocked in individual test files
+// because they need different mock responses per test. Global mocks here would conflict.
 
 // Mock Twilio
 vi.mock('twilio', () => ({
@@ -241,9 +245,26 @@ vi.mock('node-pty', () => {
   };
 });
 
-// Mock environment variables
-process.env.ANTHROPIC_API_KEY = 'test-api-key';
-process.env.TWILIO_ACCOUNT_SID = 'test-account-sid';
-process.env.TWILIO_AUTH_TOKEN = 'test-auth-token';
-process.env.TWILIO_PHONE_NUMBER = '+1234567890';
-process.env.YOUR_PHONE_NUMBER = '+0987654321';
+// Set fallback environment variables ONLY if not already set
+// This allows real API keys from .env or shell to take precedence
+if (!process.env.ANTHROPIC_API_KEY) {
+  process.env.ANTHROPIC_API_KEY = 'test-api-key';
+}
+if (!process.env.GOOGLE_API_KEY) {
+  process.env.GOOGLE_API_KEY = 'test-google-key';
+}
+if (!process.env.OPENAI_API_KEY) {
+  process.env.OPENAI_API_KEY = 'test-openai-key';
+}
+if (!process.env.TWILIO_ACCOUNT_SID) {
+  process.env.TWILIO_ACCOUNT_SID = 'test-account-sid';
+}
+if (!process.env.TWILIO_AUTH_TOKEN) {
+  process.env.TWILIO_AUTH_TOKEN = 'test-auth-token';
+}
+if (!process.env.TWILIO_PHONE_NUMBER) {
+  process.env.TWILIO_PHONE_NUMBER = '+1234567890';
+}
+if (!process.env.YOUR_PHONE_NUMBER) {
+  process.env.YOUR_PHONE_NUMBER = '+0987654321';
+}

@@ -67,7 +67,7 @@ export class ClaudeClient {
 
       try {
         const response = await this.client.messages.create({
-          model: 'claude-sonnet-4-5-20250929',
+          model: 'claude-opus-4-5-20251101',
           max_tokens: maxTokens,
           messages: [{ role: 'user', content: prompt }],
         });

@@ -9,6 +9,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import Anthropic from '@anthropic-ai/sdk';
+import { IPCStatus } from './IPC';
 
 export interface QuestionContext {
   specId: string;
@@ -34,15 +35,44 @@ export class ClaudeCodeAutonomousResponder {
   private lastBufferSnapshot = ''; // Last buffer content for stability detection
   private readonly stabilityDelayMs = 10000; // 10 seconds stability required
   private logFilePath: string | null = null; // Path to detailed log file
+  private ipcWatcher: vscode.FileSystemWatcher | null = null;
+  private workspaceRoot: string | undefined;
 
   constructor(
     private apiKey: string,
-    outputChannel: vscode.OutputChannel
+    outputChannel: vscode.OutputChannel,
+    workspaceRoot?: string
   ) {
     this.outputChannel = outputChannel;
+    this.workspaceRoot = workspaceRoot;
     if (apiKey) {
       this.anthropic = new Anthropic({ apiKey });
     }
+    if (workspaceRoot) {
+      this.startIPCListener(workspaceRoot);
+    }
+  }
+
+  private startIPCListener(root: string) {
+    const ipcPath = path.join(root, '.specify', 'ipc', 'status.json');
+    this.ipcWatcher = vscode.workspace.createFileSystemWatcher(ipcPath);
+
+    this.ipcWatcher.onDidChange(async (uri) => {
+      try {
+        const content = await fs.readFile(uri.fsPath, 'utf-8');
+        const status = JSON.parse(content) as IPCStatus;
+
+        if (status.state === 'awaiting_input') {
+          this.writeLog(
+            `IPC: Detected waiting state. Last output: ${status.last_output.substring(0, 50)}...`
+          );
+          this.terminalBuffer.push(status.last_output);
+          this.lastBufferUpdateTime = Date.now();
+        }
+      } catch (e) {
+        // Siltently fail if IPC read fails
+      }
+    });
   }
 
   /**

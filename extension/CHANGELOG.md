@@ -2,6 +2,10 @@
 
 All notable changes to the SpecGofer extension will be documented in this file.
 
+## [4.0.1] - 2026-01-07
+
+Add IPC status, ValidationService, TestHarnessGenerator, and hydrate command
+
 ## [4.0.0] - 2026-01-07
 
 LLM Council integration with multi-provider parallel execution, expanded test coverage, and business scenario triage

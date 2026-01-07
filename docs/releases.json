@@ -1,8 +1,17 @@
 {
-  "latest_version": "3.6.1",
+  "latest_version": "4.0.0",
   "repository": "eai-tools/specgofer",
-  "last_updated": "2025-11-05T02:42:55.562Z",
+  "last_updated": "2026-01-07T03:17:28.548Z",
   "releases": [
+    {
+      "version": "4.0.0",
+      "tag_name": "v4.0.0",
+      "published_at": "2026-01-07T03:17:28.547Z",
+      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-4.0.0.vsix",
+      "notes": "LLM Council integration with multi-provider parallel execution, expanded test coverage, and business scenario triage",
+      "prerelease": false,
+      "size_mb": 15.9
+    },
     {
       "version": "3.6.1",
       "tag_name": "v3.6.1",
@@ -81,15 +90,6 @@
       "published_at": "2025-11-04T02:43:59.341Z",
       "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-3.0.41.vsix",
       "notes": "chore: pre-release changes\n\nAuto-committed changes before release v3.0.40",
-      "prerelease": false,
-      "size_mb": 15
-    },
-    {
-      "version": "3.0.40",
-      "tag_name": "v3.0.40",
-      "published_at": "2025-11-04T01:47:23.379Z",
-      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-3.0.40.vsix",
-      "notes": "Unified version with release automation improvements and spinner detection fixes",
       "prerelease": false,
       "size_mb": 15
     }

@@ -2,6 +2,10 @@
 
 All notable changes to the SpecGofer extension will be documented in this file.
 
+## [4.0.0] - 2026-01-07
+
+LLM Council integration with multi-provider parallel execution, expanded test coverage, and business scenario triage
+
 ## [3.6.1] - 2025-11-05
 
 chore: pre-release changes

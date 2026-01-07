@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
-// TODO: Restore when AutonomousOrchestrator is implemented
-// import { AutonomousOrchestrator } from './orchestrator/AutonomousOrchestrator.js';
+import { AutonomousOrchestrator } from './orchestrator/AutonomousOrchestrator_new.js';
 import dotenv from 'dotenv';
+import * as path from 'path';
 
 dotenv.config();
 
@@ -13,7 +13,7 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  const specDir = process.env.SPEC_DIR || '.specify';
+  const specDir = process.env.SPEC_DIR || path.join(process.cwd(), '.specify');
   const workspaceDir = process.env.WORKSPACE_DIR || process.cwd();
 
   const whatsappConfig = {
@@ -42,39 +42,11 @@ async function main(): Promise<void> {
 ${notificationStatus}
 `);
 
-  // TODO: Restore when AutonomousOrchestrator is implemented
-  process.stderr.write('⚠️  AutonomousOrchestrator not yet implemented\n');
-  process.stderr.write('This CLI will be functional once the orchestrator is complete.\n');
-
-  // const orchestrator = new AutonomousOrchestrator(specDir, apiKey, whatsappConfig, workspaceDir);
-
-  // // Handle graceful shutdown
-  // let isShuttingDown = false;
-
-  // const shutdown = (): void => {
-  //   if (isShuttingDown) {
-  //     return;
-  //   }
-  //   isShuttingDown = true;
-
-  //   process.stderr.write('\n\n🛑 Received shutdown signal...\n');
-  //   orchestrator.stop();
-
-  //   setTimeout(() => {
-  //     process.stderr.write('👋 Goodbye!\n');
-  //     process.exit(0);
-  //   }, 2000);
-  // };
-
-  // process.on('SIGINT', shutdown);
-  // process.on('SIGTERM', shutdown);
-
-  // // Start the autonomous execution
-  // process.stdout.write('\n🚀 Starting autonomous orchestrator...\n\n');
-  // await orchestrator.start();
+  const orchestrator = new AutonomousOrchestrator(specDir);
+  await orchestrator.start();
 }
 
-main().catch((error) => {
-  process.stderr.write(`❌ Fatal error: ${error}\n`);
+main().catch((err) => {
+  console.error(err);
   process.exit(1);
 });

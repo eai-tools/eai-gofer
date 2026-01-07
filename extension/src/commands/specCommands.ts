@@ -6,6 +6,8 @@
  */
 
 import * as vscode from 'vscode';
+import * as path from 'path';
+import * as fs from 'fs/promises';
 import { ProgressProvider } from '../progressProvider';
 import type { Spec } from '../specKitParser';
 
@@ -25,6 +27,54 @@ export function registerSpecCommands(
       await executeAllPendingSpecsCommand(progressProvider);
     })
   );
+
+  // Hydrate Spec integration
+  context.subscriptions.push(
+    vscode.commands.registerCommand('specGofer.hydrateSpec', async (uri: vscode.Uri) => {
+      await hydrateSpecCommand(context, uri);
+    })
+  );
+}
+
+/**
+ * Hydrates a spec from existing code using RPI prompt.
+ */
+async function hydrateSpecCommand(
+  context: vscode.ExtensionContext,
+  uri?: vscode.Uri
+): Promise<void> {
+  const targetPath = uri ? uri.fsPath : vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+
+  if (!targetPath) {
+    vscode.window.showErrorMessage('No workspace or folder selected.');
+    return;
+  }
+
+  try {
+    const promptPath = path.join(
+      context.extensionPath,
+      'resources',
+      'claude-commands',
+      'speckit.hydrate.md'
+    );
+    const promptContent = await fs.readFile(promptPath, 'utf-8');
+
+    // Copy to clipboard
+    await vscode.env.clipboard.writeText(promptContent);
+
+    vscode.window
+      .showInformationMessage(
+        `Hydrate Prompt copied to clipboard! Run it in Claude Code to generate specs for: ${path.basename(targetPath)}`,
+        'Open Terminal'
+      )
+      .then((selection) => {
+        if (selection === 'Open Terminal') {
+          vscode.commands.executeCommand('workbench.action.terminal.toggleTerminal');
+        }
+      });
+  } catch (err) {
+    vscode.window.showErrorMessage(`Failed to load hydrate prompt: ${(err as Error).message}`);
+  }
 }
 
 /**

@@ -7,8 +7,11 @@
 
 import { Connection } from 'vscode-languageserver';
 import { SpecKitLoader, Spec, Task } from '../utils/specKitLoader';
+import { ValidationService } from '../utils/ValidationService';
+import { TestHarnessGenerator } from '../utils/TestHarnessGenerator';
 import Anthropic from '@anthropic-ai/sdk';
 import * as fs from 'fs/promises';
+import * as path from 'path';
 
 // Type definitions for MCP tool responses
 interface SpecSummary {
@@ -45,6 +48,7 @@ interface ExecuteTaskResponse {
   spec?: Spec;
   task?: Task;
   constitution?: string;
+  testHarnessPath?: string;
   error?: string;
   errorCode?: string;
 }
@@ -92,17 +96,21 @@ interface TestResult {
 export class MCPToolHandler {
   private specKitLoader: SpecKitLoader;
   private anthropic: Anthropic | null = null;
+  private validationService: ValidationService | null = null;
+  private testHarnessGenerator: TestHarnessGenerator;
 
   constructor(
     private workspacePath: string,
     private connection: Connection
   ) {
     this.specKitLoader = new SpecKitLoader(workspacePath);
+    this.testHarnessGenerator = new TestHarnessGenerator(workspacePath);
 
     // Initialize Anthropic client if API key is available
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (apiKey) {
       this.anthropic = new Anthropic({ apiKey });
+      this.validationService = new ValidationService(apiKey, workspacePath);
     }
   }
 
@@ -116,12 +124,12 @@ export class MCPToolHandler {
       type: 'SECURITY_VIOLATION',
       message,
       details,
-      workspacePath: this.workspacePath
+      workspacePath: this.workspacePath,
     };
-    
+
     // Send to stderr for proper logging (don't use console.log/warn in production)
     process.stderr.write(`🔒 Security Violation: ${JSON.stringify(logEntry)}\n`);
-    
+
     // Send notification to extension for monitoring
     this.connection.sendNotification('specGofer/securityViolation', logEntry);
   }
@@ -143,14 +151,20 @@ export class MCPToolHandler {
 
     // Check for reasonable length
     if (specId.length > 100) {
-      this.logSecurityViolation('SpecId exceeds maximum length', { specId: specId.substring(0, 50) + '...', length: specId.length });
+      this.logSecurityViolation('SpecId exceeds maximum length', {
+        specId: specId.substring(0, 50) + '...',
+        length: specId.length,
+      });
       return { valid: false, error: 'specId is too long (max 100 characters)' };
     }
 
     // Validate format (alphanumeric, hyphens, underscores only)
     if (!/^[a-zA-Z0-9_-]+$/.test(specId)) {
       this.logSecurityViolation('Invalid characters in specId', { specId });
-      return { valid: false, error: 'specId must contain only alphanumeric characters, hyphens, and underscores' };
+      return {
+        valid: false,
+        error: 'specId must contain only alphanumeric characters, hyphens, and underscores',
+      };
     }
 
     return { valid: true };
@@ -166,7 +180,10 @@ export class MCPToolHandler {
     }
 
     if (taskId.length > 20) {
-      this.logSecurityViolation('TaskId exceeds maximum length', { taskId: taskId.substring(0, 10) + '...', length: taskId.length });
+      this.logSecurityViolation('TaskId exceeds maximum length', {
+        taskId: taskId.substring(0, 10) + '...',
+        length: taskId.length,
+      });
       return { valid: false, error: 'taskId is too long (max 20 characters)' };
     }
 
@@ -343,12 +360,25 @@ export class MCPToolHandler {
         // Constitution is optional
       }
 
+      // Generate Test Harness (Phase 3 Improvement) - non-fatal if it fails
+      let testHarnessPath: string | undefined;
+      try {
+        testHarnessPath = await this.testHarnessGenerator.ensureTestHarness(
+          specId,
+          taskId,
+          task.description
+        );
+      } catch {
+        // Test harness generation is optional - don't fail the task
+      }
+
       // Return task context for Claude to implement
       return {
         success: true,
         spec,
         task,
         constitution: constitution ? constitution.substring(0, 2000) : undefined,
+        testHarnessPath,
       };
     } catch (error) {
       return {
@@ -362,7 +392,11 @@ export class MCPToolHandler {
    * MCP Tool: specgofer_update_task_status
    * Update the status of a task
    */
-  async updateTaskStatus(specId: string, taskId: string, status: string): Promise<UpdateTaskStatusResponse> {
+  async updateTaskStatus(
+    specId: string,
+    taskId: string,
+    status: string
+  ): Promise<UpdateTaskStatusResponse> {
     // Validate inputs
     const specValidation = this.validateSpecId(specId);
     if (!specValidation.valid) {
@@ -377,7 +411,11 @@ export class MCPToolHandler {
     // Validate status
     const validStatuses = ['pending', 'in_progress', 'completed', 'blocked', 'failed'];
     if (!validStatuses.includes(status)) {
-      return { success: false, error: `Invalid status. Must be one of: ${validStatuses.join(', ')}`, errorCode: 'INVALID_STATUS' };
+      return {
+        success: false,
+        error: `Invalid status. Must be one of: ${validStatuses.join(', ')}`,
+        errorCode: 'INVALID_STATUS',
+      };
     }
 
     try {
@@ -408,16 +446,66 @@ export class MCPToolHandler {
    * Validate code against constitutional requirements
    */
   async validateCode(files: string[]): Promise<ValidateCodeResponse> {
+    if (!this.validationService) {
+      return {
+        success: false,
+        error: 'Validation service not initialized (missing API key)',
+        issues: [],
+      };
+    }
+
     try {
-      // Placeholder for constitutional validation
-      // Full implementation will use ESLint, TypeScript compiler, coverage tools, etc.
+      const allIssues: ValidationIssue[] = [];
+      let allValid = true;
+
+      for (const file of files) {
+        // Handle both relative and absolute paths
+        const fullPath = path.isAbsolute(file) ? file : path.join(this.workspacePath, file);
+
+        // Use the Constitutional Council to validate
+        const result = await this.validationService.validateWithCouncil(fullPath, true);
+
+        if (!result.isValid) {
+          allValid = false;
+        }
+
+        // Map service issues to tool response issues
+        const mappedIssues: ValidationIssue[] = result.issues.map(
+          (i: {
+            severity?: string;
+            category?: string;
+            description?: string;
+            location?: string;
+          }) => {
+            // Attempt to parse line number from location (e.g. "L10" or "10:5")
+            let line: number | undefined;
+            if (i.location) {
+              const match = i.location.match(/(\d+)/);
+              if (match) {
+                line = parseInt(match[1]);
+              }
+            }
+
+            return {
+              file,
+              severity: i.severity === 'critical' ? 'error' : 'warning',
+              message: `[${i.category}] ${i.description}`,
+              line,
+            };
+          }
+        );
+
+        allIssues.push(...mappedIssues);
+      }
 
       return {
         success: true,
-        isValid: true,
+        isValid: allValid,
         files: files,
-        message: 'Validation not yet implemented. Constitutional validation will be implemented in Phase 2.',
-        issues: [],
+        message: allValid
+          ? 'All files approved by the Constitutional Council.'
+          : `Political deadlock: Council rejects changes with ${allIssues.filter((i) => i.severity === 'error').length} critical issues.`,
+        issues: allIssues,
       };
     } catch (error) {
       return {

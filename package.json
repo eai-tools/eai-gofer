@@ -1,6 +1,6 @@
 {
   "name": "specgofer",
-  "version": "4.0.1",
+  "version": "4.1.0",
   "description": "Enterprise AI Pty Ltd - Automated spec-driven development system with Claude Code integration",
   "author": "Enterprise AI Pty Ltd",
   "license": "SEE LICENSE IN LICENSE",

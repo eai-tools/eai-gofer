@@ -1607,7 +1607,8 @@ See the extension documentation for more details.
             /\$\{workspaceFolder\}\/specs\//g,
             '${workspaceFolder}/.specify/specs/'
           );
-          content = content.replace(/\bspecs\/\b(?!.*\.specify)/g, '.specify/specs/');
+          // Note: Line 1605 already handles specs/ → .specify/specs/ with proper lookbehind
+          // This redundant line was removed as it had a buggy lookahead that caused corruption
 
           // Fix variable assignments: SPECS_DIR="$REPO_ROOT/specs" → SPECS_DIR="$REPO_ROOT/.specify/specs"
           content = content.replace(

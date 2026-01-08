@@ -141,7 +141,7 @@ export class SpecKitMigrator {
     }
 
     const choice = await vscode.window.showWarningMessage(
-      `Install/Upgrade to GitHub Spec Kit format?\n\nThis will:\n- Install spec-kit CLI using uvx\n- Create proper folder structure\n- Copy latest templates from spec-kit\n- Set up Claude commands\n- Keep original files as backup`,
+      `Install/Upgrade to Spec Kit format?\n\nThis will:\n- Create proper folder structure\n- Install latest templates from SpecGofer\n- Set up Claude commands\n- Keep original files as backup`,
       { modal: true },
       'Upgrade',
       'Cancel'
@@ -162,8 +162,8 @@ export class SpecKitMigrator {
         const packageJson = require('../../package.json');
         console.log(`[SpecKit v${packageJson.version}] Starting initialization...`);
 
-        progress.report({ message: 'Installing spec-kit CLI...' });
-        console.log('[SpecKit] Starting CLI installation...');
+        progress.report({ message: 'Installing bundled resources...' });
+        console.log('[SpecKit] Installing bundled resources...');
         await this.installSpecKitCLI();
 
         progress.report({ message: 'Creating folder structure...' });
@@ -219,66 +219,14 @@ export class SpecKitMigrator {
   }
 
   /**
-   * Install spec-kit CLI using uvx
+   * Install spec-kit structure using bundled resources from this extension.
+   * This replaces the previous approach of pulling from external github/spec-kit repo.
    */
   private async installSpecKitCLI(): Promise<void> {
-    const { exec } = require('child_process');
-    const { promisify } = require('util');
-    const execAsync = promisify(exec);
-
     try {
-      // Check if UV is available
-      let uvCommand = await this.findUV();
+      console.log('[installSpecKitCLI] Using bundled resources from this extension...');
 
-      if (!uvCommand) {
-        // UV not found - prompt user to install
-        const choice = await vscode.window.showInformationMessage(
-          'SpecGofer needs UV (Python package installer) to set up spec-kit templates with full functionality. Install automatically?',
-          { modal: true },
-          'Yes, Install UV',
-          'Skip for Now',
-          'Learn More'
-        );
-
-        if (choice === 'Learn More') {
-          vscode.env.openExternal(vscode.Uri.parse('https://docs.astral.sh/uv/'));
-          const retry = await vscode.window.showInformationMessage(
-            'UV is a fast Python package installer. Would you like to install it now?',
-            'Yes, Install UV',
-            'Skip for Now'
-          );
-          if (retry !== 'Yes, Install UV') {
-            throw new Error('User declined UV installation. Using fallback setup.');
-          }
-        } else if (choice !== 'Yes, Install UV') {
-          throw new Error('User declined UV installation. Using fallback setup.');
-        }
-
-        // Install UV automatically
-        await vscode.window.withProgress(
-          {
-            location: vscode.ProgressLocation.Notification,
-            title: 'Installing UV (Python package installer)...',
-            cancellable: false,
-          },
-          async () => {
-            try {
-              uvCommand = await this.installUV();
-              vscode.window.showInformationMessage(
-                '✓ UV installed successfully! Continuing with spec-kit setup...'
-              );
-            } catch (error: any) {
-              throw new Error(`Failed to install UV: ${error.message}`);
-            }
-          }
-        );
-      }
-
-      if (!uvCommand) {
-        throw new Error('UV installation failed or was cancelled. Using fallback setup.');
-      }
-
-      // IMPORTANT: Backup existing constitution before running spec-kit init
+      // IMPORTANT: Backup existing constitution before creating structure
       const constitutionPath = path.join(
         this.workspacePath,
         '.specify',
@@ -289,57 +237,34 @@ export class SpecKitMigrator {
 
       try {
         existingConstitution = await fs.readFile(constitutionPath, 'utf-8');
-        console.log('Backed up existing constitution for preservation');
+        console.log('[installSpecKitCLI] Backed up existing constitution for preservation');
       } catch {
         // No existing constitution - that's fine
       }
 
-      // Install spec-kit using detected UV command with --force to ensure we get latest templates
-      // Use uvx if available (detected as 'uvx' or ends with /uvx), otherwise use 'uv tool run'
-      const useUvx = uvCommand.includes('uvx');
-      const command = useUvx
-        ? `${uvCommand} --from git+https://github.com/github/spec-kit.git specify init --here --force --ai copilot --script sh`
-        : `${uvCommand} tool run --from git+https://github.com/github/spec-kit.git specify init --here --force --ai copilot --script sh`;
+      // Create the folder structure manually using bundled resources
+      await this.createSpecKitStructureManually();
 
-      console.log(`Running spec-kit init with command: ${command}`);
-
-      // Change to workspace directory and run command
-      const options = { cwd: this.workspacePath };
-
-      await execAsync(command, options);
+      // Copy bundled templates
+      await this.copyBundledTemplates();
 
       // IMPORTANT: Restore existing constitution if it was backed up
       if (existingConstitution) {
         await fs.writeFile(constitutionPath, existingConstitution);
-        console.log('Restored existing constitution after spec-kit init');
+        console.log('[installSpecKitCLI] Restored existing constitution');
       }
 
       // Fix path references in commands/scripts: specs/ → .specify/specs/
       await this.fixSpecPathReferences();
 
-      console.log('Spec-kit CLI installed successfully');
+      console.log('[installSpecKitCLI] Bundled resources installed successfully');
       vscode.window.showInformationMessage('✓ Spec-kit templates installed successfully!');
     } catch (error: any) {
-      console.error('Failed to install spec-kit CLI:', error);
-
-      // Determine if this was user cancellation or actual error
-      const isUserCancellation =
-        error.message?.includes('User declined') || error.message?.includes('Using fallback');
-
-      if (isUserCancellation) {
-        vscode.window.showInformationMessage(
-          'Using basic template setup. You can install UV later for full spec-kit functionality.',
-          'OK'
-        );
-      } else {
-        vscode.window.showWarningMessage(
-          `Could not install spec-kit CLI (${error.message}). Using basic template setup instead.`,
-          'OK'
-        );
-      }
-
-      // Create basic structure manually
-      await this.createSpecKitStructureManually();
+      console.error('[installSpecKitCLI] Failed to install:', error);
+      vscode.window.showWarningMessage(
+        `Could not install spec-kit structure (${error.message}).`,
+        'OK'
+      );
     }
   }
 
@@ -372,9 +297,9 @@ export class SpecKitMigrator {
         const packageJson = require('../../package.json');
         console.log(`[SpecKit v${packageJson.version}] Updating existing installation...`);
 
-        progress.report({ message: 'Reinstalling spec-kit with latest templates...' });
-        console.log('[SpecKit Update] Starting CLI installation...');
-        await this.installSpecKitCLI();
+        progress.report({ message: 'Installing bundled templates...' });
+        console.log('[SpecKit Update] Copying bundled templates...');
+        await this.copyBundledTemplates();
 
         progress.report({ message: 'Updating Claude commands...' });
         console.log('[SpecKit Update] Setting up Claude commands...');
@@ -493,6 +418,63 @@ export class SpecKitMigrator {
   }
 
   /**
+   * Copy bundled templates from extension resources to .specify/templates/
+   * This ensures templates always come from this repo, not external sources.
+   */
+  private async copyBundledTemplates(): Promise<void> {
+    try {
+      console.log('[copyBundledTemplates] Starting...');
+
+      const extensionPath = vscode.extensions.getExtension('EnterpriseAI.specgofer')?.extensionPath;
+      if (!extensionPath) {
+        console.warn('[copyBundledTemplates] Could not find extension path for templates');
+        // Fall back to inline templates
+        await this.createTemplates();
+        return;
+      }
+
+      console.log('[copyBundledTemplates] Extension path:', extensionPath);
+
+      const bundledTemplatesPath = path.join(extensionPath, 'resources', 'templates');
+      const targetTemplatesPath = path.join(this.specifyPath, 'templates');
+
+      console.log('[copyBundledTemplates] Bundled templates path:', bundledTemplatesPath);
+      console.log('[copyBundledTemplates] Target templates path:', targetTemplatesPath);
+
+      // Ensure target directory exists
+      await fs.mkdir(targetTemplatesPath, { recursive: true });
+      console.log('[copyBundledTemplates] Created directory:', targetTemplatesPath);
+
+      try {
+        // Copy all template files from bundled resources
+        const files = await fs.readdir(bundledTemplatesPath);
+        console.log('[copyBundledTemplates] Found bundled files:', files.length);
+
+        let copiedCount = 0;
+        for (const file of files) {
+          if (file.endsWith('.md') || file.endsWith('.yaml')) {
+            const source = path.join(bundledTemplatesPath, file);
+            const target = path.join(targetTemplatesPath, file);
+            await fs.copyFile(source, target);
+            copiedCount++;
+            console.log('[copyBundledTemplates] Copied:', file);
+          }
+        }
+        console.log('[copyBundledTemplates] Successfully copied', copiedCount, 'template files');
+      } catch (error) {
+        console.error('[copyBundledTemplates] Error reading bundled templates:', error);
+        console.log('[copyBundledTemplates] Falling back to inline templates');
+        // Fall back to inline templates
+        await this.createTemplates();
+      }
+    } catch (error) {
+      console.error('[copyBundledTemplates] Failed to copy templates:', error);
+      // Fall back to inline templates
+      await this.createTemplates();
+    }
+  }
+
+  /**
    * Create Spec Kit folder structure manually (fallback)
    */
   private async createSpecKitStructureManually(): Promise<void> {
@@ -547,85 +529,10 @@ export class SpecKitMigrator {
   }
 
   /**
-   * Find UV installation (checks common locations)
-   */
-  private async findUV(): Promise<string | null> {
-    const { exec } = require('child_process');
-    const { promisify } = require('util');
-    const execAsync = promisify(exec);
-    const os = require('os');
-    const homeDir = os.homedir();
-
-    const uvPaths = [
-      'uvx', // Prefer uvx if available
-      'uv', // Already in PATH
-      `${homeDir}/.cargo/bin/uvx`, // Default UV location with uvx
-      `${homeDir}/.cargo/bin/uv`, // Default UV location
-      `${homeDir}/.local/bin/uv`, // Alternative location
-    ];
-
-    for (const uvPath of uvPaths) {
-      try {
-        await execAsync(`${uvPath} --version`);
-        console.log(`Found UV at: ${uvPath}`);
-        return uvPath;
-      } catch {
-        // Try next path
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * Install UV (Python package installer) automatically
-   * Returns the path to the UV command
-   */
-  private async installUV(): Promise<string> {
-    const { exec } = require('child_process');
-    const { promisify } = require('util');
-    const execAsync = promisify(exec);
-    const os = require('os');
-
-    const platform = os.platform();
-
-    try {
-      if (platform === 'win32') {
-        // Windows: Use PowerShell to download and run the installer
-        const installCmd = `powershell -c "irm https://astral.sh/uv/install.ps1 | iex"`;
-        await execAsync(installCmd);
-      } else {
-        // macOS/Linux: Use curl to download and run the installer
-        const installCmd = `curl -LsSf https://astral.sh/uv/install.sh | sh`;
-        await execAsync(installCmd, { shell: '/bin/bash' });
-      }
-
-      // Find UV after installation
-      const uvPath = await this.findUV();
-      if (!uvPath) {
-        throw new Error(
-          'UV installed but not found. Please restart VSCode to refresh PATH, or add to your shell profile:\n' +
-            `  export PATH="$HOME/.cargo/bin:$PATH"`
-        );
-      }
-
-      const { stdout } = await execAsync(`${uvPath} --version`);
-      console.log(`UV installed successfully: ${stdout.trim()}`);
-      return uvPath;
-    } catch (error: any) {
-      console.error('Failed to install UV:', error);
-      throw new Error(
-        `Installation failed: ${error.message}. You can install UV manually from https://docs.astral.sh/uv/`
-      );
-    }
-  }
-
-  /**
    * Create Spec Kit folder structure
    */
   private async createSpecKitStructure(): Promise<void> {
-    // The spec-kit CLI should have created the structure
-    // Just ensure all directories exist
+    // Ensure all spec-kit directories exist
     const folders = ['memory', 'scripts/bash', 'scripts/powershell', 'specs', 'templates'];
 
     for (const folder of folders) {

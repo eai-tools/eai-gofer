@@ -220,29 +220,6 @@ top N issues?" (Do NOT apply them automatically.)
 - **Report zero issues gracefully** (emit success report with coverage
   statistics)
 
-## LLM Council Integration (Optional)
-
-When council mode is enabled in `.specify/memory/council-config.yaml` for stage
-`speckit_analyze`, the detection passes in Step 4 can leverage multiple LLM
-perspectives for higher-quality analysis.
-
-**Council Workflow for Analysis**:
-
-1. Check `.specify/memory/council-config.yaml` for council enablement on
-   `speckit_analyze` stage
-2. If enabled, dispatch each detection pass (Duplication, Ambiguity,
-   Underspecification, etc.) to all configured LLM providers in parallel
-3. Collect and anonymize responses as Member A, B, C, D
-4. Chairman LLM synthesizes findings, prioritizing consensus issues and
-   highlighting areas of disagreement
-5. Log usage metrics to `.specify/logs/council-usage.jsonl`
-
-**Benefits**: Multiple LLM perspectives can catch different types of
-inconsistencies and reduce analysis blind spots.
-
-**Note**: Council mode increases token usage proportionally to the number of
-enabled providers.
-
 ## Context
 
 $ARGUMENTS

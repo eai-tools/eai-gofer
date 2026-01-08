@@ -59,28 +59,6 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 **Output**: research.md with all NEEDS CLARIFICATION resolved
 
-### Phase 0.5: LLM Council (Optional)
-
-**Condition**: Council mode enabled in `.specify/memory/council-config.yaml` for
-stage `speckit_plan`
-
-When council mode is active, the research agents from Phase 0 are executed
-across ALL configured LLM providers in parallel. The requesting LLM acts as
-"Chairman" and synthesizes diverse perspectives into unified research findings.
-
-**Council Workflow**:
-
-1. Check `.specify/memory/council-config.yaml` for council enablement
-2. If enabled, dispatch research queries to all configured providers (Anthropic,
-   Google, OpenAI)
-3. Collect and anonymize responses (Member A, B, C, D)
-4. Optionally run peer review stage (if `peer_review: true` in config)
-5. Synthesize council responses into unified `research.md`
-6. Log usage metrics to `.specify/logs/council-usage.jsonl`
-
-**Benefits**: Multiple LLM perspectives reduce bias and catch edge cases in
-research findings.
-
 ### Phase 1: Design & Contracts
 
 **Prerequisites:** `research.md` complete

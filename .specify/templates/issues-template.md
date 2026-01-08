@@ -1,26 +1,26 @@
 ---
-description: "GitHub issues template - ready to convert to actual GitHub issues"
+description: 'GitHub issues template - ready to convert to actual GitHub issues'
 ---
 
 # GitHub Issues: [FEATURE NAME]
 
-**Generated from**: tasks.md
-**Feature ID**: [###-feature-name]
-**Total Issues**: [COUNT]
+**Generated from**: tasks.md **Feature ID**: [###-feature-name] **Total
+Issues**: [COUNT]
 
-This file contains GitHub-ready issue definitions for each task. Each issue follows the Requirements Ticket template from enterpriseaigroup/Issues2025.
+This file contains GitHub-ready issue definitions for each task. Each issue
+follows the Requirements Ticket template from enterpriseaigroup/Issues2025.
 
 ---
 
 ## Issue #1: [Task ID] - [Task Title]
 
-**Labels**: `enhancement`, `phase-1-setup`, `[story-label]`
-**Assignees**: @MikeNowosadko
-**Title**: [Feature]: [Task Description]
+**Labels**: `enhancement`, `phase-1-setup`, `[story-label]` **Assignees**:
+@MikeNowosadko **Title**: [Feature]: [Task Description]
 
 ### Screen described (Mike)
 
-[Description of the UI/functionality this task creates or modifies. If backend-only, describe the API/service behavior.]
+[Description of the UI/functionality this task creates or modifies. If
+backend-only, describe the API/service behavior.]
 
 ### Business Rationale
 
@@ -34,8 +34,8 @@ This file contains GitHub-ready issue definitions for each task. Each issue foll
 
 ### Fields required (Mike)
 
-| Field | Type | Source | Validation |
-|-------|------|--------|------------|
+| Field        | Type                        | Source                      | Validation         |
+| ------------ | --------------------------- | --------------------------- | ------------------ |
 | [field-name] | [string/number/boolean/etc] | [where the data comes from] | [validation rules] |
 
 [If no fields: "N/A - This is a backend/infrastructure task"]
@@ -93,14 +93,14 @@ This file contains GitHub-ready issue definitions for each task. Each issue foll
 - [ ] Stable: No critical bugs
 - [ ] Reviewed: PO confirmed
 
-**File Path**: `[file-path-from-task]`
-**Estimated Effort**: [S/M/L or hours]
+**File Path**: `[file-path-from-task]` **Estimated Effort**: [S/M/L or hours]
 
 ---
 
 ## Notes
 
 - This template is auto-populated by: `.specify/scripts/node/generate-issues.js`
-- Run after creating tasks.md: `node .specify/scripts/node/generate-issues.js <feature-dir>`
+- Run after creating tasks.md:
+  `node .specify/scripts/node/generate-issues.js <feature-dir>`
 - All issues follow the enterprise Requirements Ticket template
 - See tasks.md for complete task definitions

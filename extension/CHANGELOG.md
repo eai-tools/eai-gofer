@@ -2,6 +2,10 @@
 
 All notable changes to the SpecGofer extension will be documented in this file.
 
+## [4.1.1] - 2026-01-08
+
+Fix buggy regex that corrupted copilot-instructions.md on upgrade
+
 ## [4.1.0] - 2026-01-08
 
 Replace external spec-kit CLI with bundled resources, add hydrate command

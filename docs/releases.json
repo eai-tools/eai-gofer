@@ -1,8 +1,17 @@
 {
-  "latest_version": "4.1.0",
+  "latest_version": "4.1.1",
   "repository": "eai-tools/specgofer",
-  "last_updated": "2026-01-08T02:35:43.762Z",
+  "last_updated": "2026-01-08T06:27:46.617Z",
   "releases": [
+    {
+      "version": "4.1.1",
+      "tag_name": "v4.1.1",
+      "published_at": "2026-01-08T06:27:46.617Z",
+      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-4.1.1.vsix",
+      "notes": "Fix buggy regex that corrupted copilot-instructions.md on upgrade",
+      "prerelease": false,
+      "size_mb": 15.9
+    },
     {
       "version": "4.1.0",
       "tag_name": "v4.1.0",
@@ -81,15 +90,6 @@
       "published_at": "2025-11-04T06:43:46.696Z",
       "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-3.2.0.vsix",
       "notes": "Add real-time monitoring with selective interruption and fully configurable Haiku prompts",
-      "prerelease": false,
-      "size_mb": 15
-    },
-    {
-      "version": "3.1.0",
-      "tag_name": "v3.1.0",
-      "published_at": "2025-11-04T05:02:51.437Z",
-      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-3.1.0.vsix",
-      "notes": "Add proactive autonomous decision-making - Haiku now decides next actions (continue, engineering review, performance review)",
       "prerelease": false,
       "size_mb": 15
     }

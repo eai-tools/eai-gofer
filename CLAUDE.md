@@ -96,19 +96,25 @@ the correct starting point based on:
 2. **User Intent**: If no clear state exists, asks the user what they want to
    accomplish
 
-#### Triage Command
+#### Master Orchestrator Command
 
-The `/0_business_scenario` command runs automatically when:
+The `/0_business_scenario` command is the **unified entry point** for all
+SpecGofer workflows. It:
 
-- Claude Code is launched on a fresh workspace (no SpecKit or RPI artifacts)
-- The user explicitly invokes it to re-route their workflow
+1. **Triages** what the user wants to accomplish
+2. **Routes** to the correct workflow (SpecKit or RPI)
+3. **Automatically chains** through ALL commands until the feature is fully
+   implemented
 
-#### Routing Logic
+**The user only needs to run `/0_business_scenario` once** - the orchestrator
+handles everything else automatically.
+
+#### Orchestration Flow
 
 ```text
                     ┌─────────────────────────┐
                     │   0_business_scenario   │
-                    │   (triage interview)    │
+                    │   (master orchestrator) │
                     └───────────┬─────────────┘
                                 │
             ┌───────────────────┼───────────────────┐
@@ -116,24 +122,27 @@ The `/0_business_scenario` command runs automatically when:
             ▼                   ▼                   ▼
     ┌───────────────┐   ┌───────────────┐   ┌───────────────┐
     │  SpecKit Flow │   │   RPI Flow    │   │  Resume Flow  │
+    │  (auto-chain) │   │  (auto-chain) │   │  (auto-chain) │
     │               │   │               │   │               │
-    │ specify       │   │ 1_research    │   │ 6_resume_work │
-    │    ↓          │   │      ↓        │   │      ↓        │
-    │ plan          │   │ 2_create_plan │   │ (continues)   │
-    │    ↓          │   │      ↓        │   │               │
-    │ tasks         │   │ 4_implement   │   └───────────────┘
-    │    ↓          │   │      ↓        │
-    │ implement     │   │ 3_validate    │
+    │ specify ──────│   │ 1_research ───│   │ 6_resume_work │
+    │    ↓ AUTO     │   │    ↓ AUTO     │   │      ↓        │
+    │ plan ─────────│   │ 2_create_plan │   │ (continues    │
+    │    ↓ AUTO     │   │    ↓ AUTO     │   │  pipeline)    │
+    │ tasks ────────│   │ 4_implement ──│   │               │
+    │    ↓ AUTO     │   │    ↓ AUTO     │   └───────────────┘
+    │ implement ────│   │ 3_validate ───│
+    │    ↓          │   │    ↓          │
+    │ [COMPLETE!]   │   │ [COMPLETE!]   │
     └───────────────┘   └───────────────┘
 ```
 
-| User Intent              | Routes To                                | Why                                  |
-| ------------------------ | ---------------------------------------- | ------------------------------------ |
-| New feature from scratch | SpecKit (`/speckit.specify`)             | Full spec → plan → tasks → implement |
-| Modify existing code     | RPI (`/1_research_codebase`)             | Research first, then plan changes    |
-| Fix a bug                | RPI (`/1_research_codebase`)             | Need to understand before fixing     |
-| Explore codebase         | RPI (`/1_research_codebase`)             | Pure research workflow               |
-| Resume previous work     | `/6_resume_work` or `/speckit.implement` | Based on saved state                 |
+| User Intent              | Routes To         | Auto-Chain Sequence                    |
+| ------------------------ | ----------------- | -------------------------------------- |
+| New feature from scratch | SpecKit Pipeline  | specify → plan → tasks → implement     |
+| Modify existing code     | RPI Pipeline      | research → plan → implement → validate |
+| Fix a bug                | RPI Pipeline      | research → plan → implement → validate |
+| Explore codebase         | RPI Research      | research → (ask to continue)           |
+| Resume previous work     | Detect & Continue | Resume from last checkpoint            |
 
 ---
 

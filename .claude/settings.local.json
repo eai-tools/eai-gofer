@@ -66,7 +66,10 @@
       "Bash(while read dir)",
       "Bash(do echo '=== $dir ===')",
       "Bash(for branch in 001-claude-terminal-integration 002-language-server 005-autonomous-claude-driver 006-dagger-test-orchestration 007-vscode-extension 008-memory-learning-system)",
-      "Bash(do echo \"=== $branch ===\")"
+      "Bash(do echo \"=== $branch ===\")",
+      "Bash(git -C /Users/douglaswross/Code/specgofer log --oneline --all -- \".claude/commands/0_business_scenario.md\")",
+      "Bash(ls:*)",
+      "Bash(unzip:*)"
     ],
     "deny": [],
     "ask": []

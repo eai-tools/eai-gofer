@@ -32,9 +32,47 @@ on feature context and requirements.
 - [ ] CHK005 Item with specific criteria
 - [ ] CHK006 Final item in this category
 
+## AI Slop Detection
+
+**Purpose**: Identify common AI-generated code quality issues that compromise
+production readiness.
+
+### Code Quality
+
+- [ ] SLOP001 No disabled tests (`it.skip`, `test.skip`, `@Ignore`, `@Disabled`)
+- [ ] SLOP002 No skipped assertions (empty `expect()`, `assert True` without
+      conditions)
+- [ ] SLOP003 No TODO/FIXME placeholders in new code (`// TODO: implement`,
+      `pass # TODO`)
+- [ ] SLOP004 No excessive code duplication (>5 similar blocks)
+- [ ] SLOP005 No copy-paste artifacts (adapted to local patterns, not verbatim)
+
+### Error Handling
+
+- [ ] SLOP006 No empty catch blocks (`catch (e) {}`, `except: pass`)
+- [ ] SLOP007 No generic error swallowing (catching all errors without logging)
+- [ ] SLOP008 Proper error propagation (errors re-thrown or handled
+      meaningfully)
+
+### Configuration & Security
+
+- [ ] SLOP009 No hardcoded secrets (API keys, passwords in code)
+- [ ] SLOP010 No magic numbers (unexplained numeric literals)
+- [ ] SLOP011 Config externalized (environment-specific values in config files)
+
+### Code Style & Conventions
+
+- [ ] SLOP012 Follows codebase conventions (matches patterns from research.md)
+- [ ] SLOP013 Consistent naming (follows project naming conventions)
+- [ ] SLOP014 No over-engineered abstractions (YAGNI principle)
+- [ ] SLOP015 No unnecessary comments on self-explanatory code
+
+---
+
 ## Notes
 
 - Check items off as completed: `[x]`
 - Add comments or findings inline
 - Link to relevant resources or documentation
 - Items are numbered sequentially for easy reference
+- AI Slop Detection items are SLOP-prefixed for filtering

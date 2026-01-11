@@ -11,6 +11,26 @@ Invoke this when:
 - Switching to another task/feature
 - End of work session
 - Before a break or context switch
+- Context window approaching limits (> 50%)
+- Before running `/compact`
+
+## Quick Save (Gofer Pipeline)
+
+For features using the unified Gofer pipeline (`.specify/specs/{feature}/`):
+
+```bash
+.specify/scripts/bash/save-checkpoint.sh --commit "Summary of work done"
+```
+
+This automatically:
+
+1. Captures git state and task progress
+2. Creates session handoff document at `{FEATURE_DIR}/session-handoff.md`
+3. Creates WIP commit (with --commit flag)
+
+The handoff document enables clean context breaks and session continuity.
+
+---
 
 ## Process
 
@@ -202,3 +222,42 @@ This command works with:
 - `/4_implement_plan` - Updates plan progress
 - `/6_resume_work` - Paired resume command
 - `/3_validate_plan` - Can validate partial progress
+- `/5_gofer_implement` - Gofer pipeline implementation stage
+
+---
+
+## Session Handoff Best Practices
+
+### When to Create a Handoff
+
+1. **Context > 50%**: Check with `check-context-health.sh`
+2. **Before compaction**: Save decisions before `/compact`
+3. **End of session**: Always handoff before closing
+4. **Before risky changes**: Checkpoint before major operations
+
+### What Makes a Good Handoff
+
+A good session handoff document includes:
+
+1. **Current State**: Exactly where work stopped
+2. **Key Decisions**: Critical context that must be preserved
+3. **Next Steps**: Clear, actionable items for resumption
+4. **Build Status**: Whether the code compiles/tests pass
+
+### Avoiding Recursive Summary Degradation
+
+Research shows recursive summaries degrade quality. To avoid:
+
+1. **Use handoff documents, not memory**: Write to files, not prompts
+2. **Include specific details**: File paths, line numbers, exact decisions
+3. **Reference artifacts**: Point to spec.md, plan.md, tasks.md
+4. **Verify on resume**: Re-read artifacts rather than relying on summary
+
+### Handoff Document Location
+
+| Workflow       | Location                                      |
+| -------------- | --------------------------------------------- |
+| Gofer Pipeline | `.specify/specs/{feature}/session-handoff.md` |
+| RPI Workflow   | `thoughts/shared/sessions/NNN_feature.md`     |
+
+Use `save-checkpoint.sh` for automatic detection and proper placement.

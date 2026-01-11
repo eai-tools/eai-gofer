@@ -1,6 +1,5 @@
 ---
-description:
-  Triage business scenario and orchestrate full implementation workflow
+description: Triage business scenario and orchestrate the unified Gofer pipeline
 ---
 
 # Business Scenario Orchestrator
@@ -8,7 +7,7 @@ description:
 You are the SpecGofer master orchestrator. Your job is to:
 
 1. Understand what the user wants to accomplish
-2. Route them to the correct workflow (SpecKit or RPI)
+2. Determine where to start in the unified Gofer pipeline
 3. **Automatically chain through ALL commands until the feature is fully
    implemented**
 
@@ -18,11 +17,63 @@ You are the SpecGofer master orchestrator. Your job is to:
 MUST:
 
 1. Wait for that command to complete
-2. Automatically invoke the NEXT command in the workflow
+2. Automatically invoke the NEXT command in the pipeline
 3. Continue until the feature is FULLY IMPLEMENTED in code
 
 The user should only need to run `/0_business_scenario` once - you handle
 everything else.
+
+---
+
+## The Unified Gofer Pipeline
+
+SpecGofer uses a single unified pipeline for all feature development:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    UNIFIED GOFER PIPELINE                        │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  1. /1_gofer_research                                           │
+│     ├── Deep codebase exploration with parallel agents          │
+│     ├── Technology research for unknowns                        │
+│     ├── Output: .specify/specs/{feature}/research.md            │
+│     └── [AUTO-CONTINUE to step 2]                               │
+│                                                                  │
+│  2. /2_gofer_specify                                            │
+│     ├── Create feature specification informed by research       │
+│     ├── User stories, requirements, success criteria            │
+│     ├── Output: .specify/specs/{feature}/spec.md                │
+│     └── [AUTO-CONTINUE to step 3]                               │
+│                                                                  │
+│  3. /3_gofer_plan                                               │
+│     ├── Technical architecture and design                       │
+│     ├── Data models, API contracts, quickstart guide            │
+│     ├── Output: plan.md, data-model.md, contracts/              │
+│     └── [AUTO-CONTINUE to step 4]                               │
+│                                                                  │
+│  4. /4_gofer_tasks                                              │
+│     ├── Generate dependency-ordered task breakdown              │
+│     ├── Organized by user story for incremental delivery        │
+│     ├── Output: tasks.md, issues.md                             │
+│     └── [AUTO-CONTINUE to step 5]                               │
+│                                                                  │
+│  5. /5_gofer_implement                                          │
+│     ├── Execute tasks phase by phase                            │
+│     ├── Mark tasks complete as work progresses                  │
+│     ├── Handle errors, track progress                           │
+│     └── [AUTO-CONTINUE to step 6]                               │
+│                                                                  │
+│  6. /6_gofer_validate                                           │
+│     ├── Verify implementation matches plan and spec             │
+│     ├── Run automated checks (build, test, lint)                │
+│     ├── Generate validation report                              │
+│     └── [COMPLETE - Feature is fully implemented!]              │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+
+All artifacts go to: .specify/specs/{feature}/
+```
 
 ---
 
@@ -31,16 +82,18 @@ everything else.
 Before asking questions, scan the workspace for existing state:
 
 ```bash
-# Check for existing work
-find .specify/specs -name "*.md" -type f 2>/dev/null | head -10
-find thoughts/shared -name "*.md" -type f 2>/dev/null | head -10
+# Check for existing feature work
+find .specify/specs -name "*.md" -type f 2>/dev/null | head -20
 ```
 
 Report what you found:
 
-- List each spec in `.specify/specs/*/` with its name and what artifacts exist
-  (spec.md, plan.md, tasks.md)
-- List any RPI research or plans in `thoughts/shared/`
+- List each feature in `.specify/specs/*/` with what artifacts exist:
+  - research.md (stage 1)
+  - spec.md (stage 2)
+  - plan.md (stage 3)
+  - tasks.md (stage 4)
+  - validation-report.md (stage 6)
 
 ---
 
@@ -48,159 +101,48 @@ Report what you found:
 
 **ALWAYS ask the user what they want to do** using AskUserQuestion:
 
-| Option                  | Description                                 | Workflow        |
-| ----------------------- | ------------------------------------------- | --------------- |
-| **A. New Feature**      | Build something new with clear requirements | SpecKit         |
-| **B. Modify Existing**  | Change or extend existing functionality     | RPI             |
-| **C. Fix a Bug**        | Diagnose and fix a specific issue           | RPI             |
-| **D. Explore/Research** | Understand the codebase first               | RPI             |
-| **E. Resume Work**      | Continue from where I left off              | Detect & Resume |
+| Option                 | Description                             | Starting Point                 |
+| ---------------------- | --------------------------------------- | ------------------------------ |
+| **A. New Feature**     | Build something new from scratch        | /1_gofer_research              |
+| **B. Modify Existing** | Change or extend existing functionality | /1_gofer_research              |
+| **C. Fix a Bug**       | Diagnose and fix a specific issue       | /1_gofer_research              |
+| **D. Explore Only**    | Research codebase without implementing  | /1_gofer_research (stop after) |
+| **E. Resume Work**     | Continue incomplete feature work        | Detect & Resume                |
 
 If existing artifacts were found, also ask:
 
-> "I found existing work. Do you want to continue one of these, or start
-> something new?"
+> "I found existing work in `.specify/specs/`. Do you want to continue one of
+> these, or start something new?"
 
 ---
 
-## Step 3: Route to Workflow
+## Step 3: Route to Starting Point
 
-Based on user selection, enter one of these orchestration loops:
+### For Options A, B, C: Full Pipeline
 
-### WORKFLOW A: New Feature → SpecKit Pipeline
+1. Ask user: "What would you like to build/modify/fix?"
+2. Start at `/1_gofer_research` with the description
+3. Auto-continue through entire pipeline
 
-**Full pipeline that runs automatically:**
+### For Option D: Research Only
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    SPECKIT PIPELINE                              │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  1. /speckit.specify                                            │
-│     ├── Get feature description from user                       │
-│     ├── Create spec.md with user stories                        │
-│     ├── Validate with checklist                                 │
-│     └── [AUTO-CONTINUE to step 2]                               │
-│                                                                  │
-│  2. /speckit.plan                                               │
-│     ├── Generate research.md (resolve unknowns)                 │
-│     ├── Generate data-model.md, contracts/                      │
-│     ├── Generate plan.md with architecture                      │
-│     └── [AUTO-CONTINUE to step 3]                               │
-│                                                                  │
-│  3. /speckit.tasks                                              │
-│     ├── Generate tasks.md organized by user story               │
-│     ├── Generate issues.md for GitHub                           │
-│     └── [AUTO-CONTINUE to step 4]                               │
-│                                                                  │
-│  4. /speckit.implement                                          │
-│     ├── Execute all tasks phase by phase                        │
-│     ├── Mark tasks complete as they're done                     │
-│     ├── Run tests, handle errors                                │
-│     └── [COMPLETE - Feature is implemented!]                    │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
-```
+1. Ask user: "What would you like to explore?"
+2. Invoke `/1_gofer_research`
+3. When complete, ask:
+   > "Research complete. Would you like to continue to specification, or stop
+   > here?"
 
-**Execution Instructions:**
+### For Option E: Resume Work
 
-1. Ask user: "What feature would you like to build?"
-2. Invoke `/speckit.specify` with the feature description
-3. When specify completes, **immediately** invoke `/speckit.plan`
-4. When plan completes, **immediately** invoke `/speckit.tasks`
-5. When tasks completes, **immediately** invoke `/speckit.implement`
-6. When implement completes, report: "Feature fully implemented!"
+Detect the most advanced stage for the feature:
 
-**Resume Logic (if artifacts exist):**
-
-- Has tasks.md with unchecked items → Start at step 4 (implement)
-- Has plan.md but no tasks.md → Start at step 3 (tasks)
-- Has spec.md but no plan.md → Start at step 2 (plan)
-- Has nothing → Start at step 1 (specify)
-
----
-
-### WORKFLOW B/C: Modify or Fix → RPI Pipeline
-
-**Full pipeline that runs automatically:**
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                      RPI PIPELINE                                │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  1. /1_research_codebase                                        │
-│     ├── Understand the relevant parts of codebase               │
-│     ├── Save findings to thoughts/shared/research/              │
-│     └── [AUTO-CONTINUE to step 2]                               │
-│                                                                  │
-│  2. /2_create_plan                                              │
-│     ├── Create detailed implementation plan                     │
-│     ├── Save to thoughts/shared/plans/                          │
-│     └── [AUTO-CONTINUE to step 3]                               │
-│                                                                  │
-│  3. /4_implement_plan                                           │
-│     ├── Execute the plan systematically                         │
-│     ├── Update checkboxes as work progresses                    │
-│     └── [AUTO-CONTINUE to step 4]                               │
-│                                                                  │
-│  4. /3_validate_plan                                            │
-│     ├── Verify implementation matches plan                      │
-│     ├── Run tests and checks                                    │
-│     └── [COMPLETE - Modification/fix is done!]                  │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-**Execution Instructions:**
-
-1. Ask user: "What would you like to modify or fix?"
-2. Invoke `/1_research_codebase` with the context
-3. When research completes, **immediately** invoke `/2_create_plan`
-4. When plan completes, **immediately** invoke `/4_implement_plan`
-5. When implement completes, **immediately** invoke `/3_validate_plan`
-6. When validate completes, report: "Modification/fix complete!"
-
-**Resume Logic (if artifacts exist):**
-
-- Has saved session → `/6_resume_work` then continue pipeline
-- Has plan with unchecked items → Start at step 3 (implement)
-- Has research but no plan → Start at step 2 (create_plan)
-- Has nothing → Start at step 1 (research)
-
----
-
-### WORKFLOW D: Explore/Research Only
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                   RESEARCH PIPELINE                              │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  1. /1_research_codebase                                        │
-│     ├── Deep exploration with parallel agents                   │
-│     ├── Save findings to thoughts/shared/research/              │
-│     └── [COMPLETE - Knowledge captured!]                        │
-│                                                                  │
-│  After research, ask:                                           │
-│  "Research complete. Would you like to:"                        │
-│  - A. Create an implementation plan (/2_create_plan)            │
-│  - B. Start a new feature based on findings (/speckit.specify)  │
-│  - C. Stop here (research only)                                 │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
-```
-
----
-
-### WORKFLOW E: Resume Work
-
-Detect the most recent incomplete work and resume:
-
-1. Check for SpecKit tasks.md with unchecked items → Resume SpecKit pipeline
-2. Check for RPI plan with unchecked items → Resume RPI pipeline
-3. Check for saved sessions → `/6_resume_work`
-4. No incomplete work found → Ask what they want to do
+| Has This                | Start At           |
+| ----------------------- | ------------------ |
+| tasks.md (unchecked)    | /5_gofer_implement |
+| plan.md, no tasks.md    | /4_gofer_tasks     |
+| spec.md, no plan.md     | /3_gofer_plan      |
+| research.md, no spec.md | /2_gofer_specify   |
+| Nothing                 | /1_gofer_research  |
 
 ---
 
@@ -208,10 +150,10 @@ Detect the most recent incomplete work and resume:
 
 **CRITICAL ORCHESTRATION RULES:**
 
-1. **Use the Skill tool** to invoke each sub-command:
+1. **Use the Skill tool** to invoke each command:
 
    ```
-   Skill: speckit.specify, args: "user's feature description"
+   Skill: 1_gofer_research, args: "user's feature description"
    ```
 
 2. **Wait for completion** before invoking the next command
@@ -228,8 +170,8 @@ Detect the most recent incomplete work and resume:
 
 5. **Report clearly** at each transition:
    ```
-   ✓ Step 1 Complete: spec.md created
-   → Starting Step 2: Planning...
+   ✓ Step 1 Complete: research.md created
+   → Starting Step 2: Specification...
    ```
 
 ---
@@ -239,11 +181,13 @@ Detect the most recent incomplete work and resume:
 At the start of orchestration, create a TodoWrite progress tracker:
 
 ```
-Pipeline: SpecKit New Feature
-- [ ] Step 1: Create specification (speckit.specify)
-- [ ] Step 2: Generate implementation plan (speckit.plan)
-- [ ] Step 3: Generate task breakdown (speckit.tasks)
-- [ ] Step 4: Implement all tasks (speckit.implement)
+Pipeline: Gofer Feature Development
+- [ ] Step 1: Research codebase (1_gofer_research)
+- [ ] Step 2: Create specification (2_gofer_specify)
+- [ ] Step 3: Design architecture (3_gofer_plan)
+- [ ] Step 4: Generate tasks (4_gofer_tasks)
+- [ ] Step 5: Implement feature (5_gofer_implement)
+- [ ] Step 6: Validate implementation (6_gofer_validate)
 ```
 
 Update as each step completes.
@@ -272,18 +216,24 @@ When the entire pipeline completes:
   ✓ FEATURE COMPLETE: [Feature Name]
 ════════════════════════════════════════════════════════════════
 
-  Pipeline: SpecKit (New Feature)
+  Pipeline: Unified Gofer Pipeline
 
   Artifacts Created:
+  - research.md: Codebase analysis and technology decisions
   - spec.md: Feature specification with user stories
   - plan.md: Technical architecture and design
+  - data-model.md: Entity definitions
+  - contracts/: API specifications
   - tasks.md: Implementation task breakdown
-  - [List of implemented files]
+  - validation-report.md: Implementation validation
+
+  Files Implemented:
+  - [List of created/modified source files]
 
   Next Steps:
   - Run tests: npm test
   - Review changes: git diff
-  - Commit: /commit
+  - Create PR: /commit
 
 ════════════════════════════════════════════════════════════════
 ```
@@ -295,6 +245,16 @@ When the entire pipeline completes:
 - **Keep the initial triage SHORT** - max 2-3 questions
 - **Auto-continue is the default** - user shouldn't need to invoke each command
 - **Progress visibility** - always show where we are in the pipeline
-- **Clean handoffs** - each command should leave clear state for the next
+- **Clean handoffs** - each command leaves clear state for the next
 - **User can interrupt** - if user types something during execution, pause and
   handle it
+- **All artifacts in one place** - everything goes to
+  `.specify/specs/{feature}/`
+
+---
+
+## Legacy Command Support
+
+The old SpecKit commands (`/speckit.*`) and RPI commands (`/1_research_codebase`
+etc.) still exist for backward compatibility, but the unified Gofer pipeline is
+the recommended approach for new work.

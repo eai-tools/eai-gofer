@@ -68,145 +68,77 @@ read from package.json.
 
 ## Command Framework Overview
 
-SpecGofer uses a **dual workflow system** combining two complementary
-frameworks:
+SpecGofer uses a **unified Gofer pipeline** that combines the best of structured
+feature development with research-driven approaches. All artifacts are stored in
+a single location: `.specify/specs/{feature}/`.
 
-1. **SpecKit Commands** (`/speckit.*`) - Structured feature development
-2. **Research-Plan-Implement (RPI) Commands** (`/1_*` - `/8_*`) -
-   Research-driven development
+### The Unified Gofer Pipeline
 
-### When to Use Which
+The recommended workflow is to run `/0_business_scenario` once and let it
+automatically chain through all stages:
 
-| Scenario                            | Use                          | Why                                  |
-| ----------------------------------- | ---------------------------- | ------------------------------------ |
-| New feature with clear requirements | SpecKit                      | Structured spec → plan → tasks flow  |
-| Exploring unfamiliar codebase       | RPI `/1_research_codebase`   | Parallel agents for fast exploration |
-| Need to understand existing code    | RPI `/1_research_codebase`   | Deep analysis with codebase-analyzer |
-| Resume work after break             | RPI `/6_resume_work`         | Session management                   |
-| Test-first development              | RPI `/8_define_test_cases`   | DSL-based test design                |
-| Feature implementation              | SpecKit `/speckit.implement` | Task tracking with checkboxes        |
+```text
+┌─────────────────────────────────────────────────────────────────┐
+│                    UNIFIED GOFER PIPELINE                        │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  1. /1_gofer_research    → research.md                          │
+│     Deep codebase exploration + technology research              │
+│                         ↓ AUTO                                   │
+│  2. /2_gofer_specify     → spec.md                              │
+│     Feature specification informed by research                   │
+│                         ↓ AUTO                                   │
+│  3. /3_gofer_plan        → plan.md, data-model.md, contracts/   │
+│     Technical architecture and design                            │
+│                         ↓ AUTO                                   │
+│  4. /4_gofer_tasks       → tasks.md, issues.md                  │
+│     Dependency-ordered task breakdown                            │
+│                         ↓ AUTO                                   │
+│  5. /5_gofer_implement   → [source code]                        │
+│     Execute tasks phase by phase                                 │
+│                         ↓ AUTO                                   │
+│  6. /6_gofer_validate    → validation-report.md                 │
+│     Verify implementation matches plan and spec                  │
+│                                                                  │
+│  All artifacts go to: .specify/specs/{feature}/                 │
+└─────────────────────────────────────────────────────────────────┘
+```
 
-### Automatic Framework Routing
+### Master Orchestrator
 
-SpecGofer includes an intelligent triage system that automatically determines
-the correct starting point based on:
-
-1. **Existing Artifacts**: Detects spec.md, plan.md, tasks.md, research files,
-   and saved sessions
-2. **User Intent**: If no clear state exists, asks the user what they want to
-   accomplish
-
-#### Master Orchestrator Command
-
-The `/0_business_scenario` command is the **unified entry point** for all
-SpecGofer workflows. It:
+The `/0_business_scenario` command is the **unified entry point**:
 
 1. **Triages** what the user wants to accomplish
-2. **Routes** to the correct workflow (SpecKit or RPI)
-3. **Automatically chains** through ALL commands until the feature is fully
-   implemented
+2. **Determines** where to start in the pipeline
+3. **Automatically chains** through ALL commands until complete
 
 **The user only needs to run `/0_business_scenario` once** - the orchestrator
 handles everything else automatically.
 
-#### Orchestration Flow
+| User Intent              | Starting Point    | Auto-Chain Sequence                                      |
+| ------------------------ | ----------------- | -------------------------------------------------------- |
+| New feature from scratch | /1_gofer_research | research → specify → plan → tasks → implement → validate |
+| Modify existing code     | /1_gofer_research | research → specify → plan → tasks → implement → validate |
+| Fix a bug                | /1_gofer_research | research → specify → plan → tasks → implement → validate |
+| Explore codebase only    | /1_gofer_research | research → (ask to continue)                             |
+| Resume previous work     | Detect & Continue | Resume from most advanced artifact                       |
 
-```text
-                    ┌─────────────────────────┐
-                    │   0_business_scenario   │
-                    │   (master orchestrator) │
-                    └───────────┬─────────────┘
-                                │
-            ┌───────────────────┼───────────────────┐
-            │                   │                   │
-            ▼                   ▼                   ▼
-    ┌───────────────┐   ┌───────────────┐   ┌───────────────┐
-    │  SpecKit Flow │   │   RPI Flow    │   │  Resume Flow  │
-    │  (auto-chain) │   │  (auto-chain) │   │  (auto-chain) │
-    │               │   │               │   │               │
-    │ specify ──────│   │ 1_research ───│   │ 6_resume_work │
-    │    ↓ AUTO     │   │    ↓ AUTO     │   │      ↓        │
-    │ plan ─────────│   │ 2_create_plan │   │ (continues    │
-    │    ↓ AUTO     │   │    ↓ AUTO     │   │  pipeline)    │
-    │ tasks ────────│   │ 4_implement ──│   │               │
-    │    ↓ AUTO     │   │    ↓ AUTO     │   └───────────────┘
-    │ implement ────│   │ 3_validate ───│
-    │    ↓          │   │    ↓          │
-    │ [COMPLETE!]   │   │ [COMPLETE!]   │
-    └───────────────┘   └───────────────┘
-```
+### Resume Logic
 
-| User Intent              | Routes To         | Auto-Chain Sequence                    |
-| ------------------------ | ----------------- | -------------------------------------- |
-| New feature from scratch | SpecKit Pipeline  | specify → plan → tasks → implement     |
-| Modify existing code     | RPI Pipeline      | research → plan → implement → validate |
-| Fix a bug                | RPI Pipeline      | research → plan → implement → validate |
-| Explore codebase         | RPI Research      | research → (ask to continue)           |
-| Resume previous work     | Detect & Continue | Resume from last checkpoint            |
+When resuming, the orchestrator detects the most advanced artifact and resumes:
 
----
-
-## Research-Plan-Implement (RPI) Commands
-
-Located in `.claude/commands/`, these numbered commands provide research-driven
-development with persistent context storage.
-
-### Core Workflow Commands
-
-#### Research Phase
-
-- **`/1_research_codebase`** - Deep codebase exploration with parallel agents
-  - Spawns `codebase-locator`, `codebase-analyzer`, `codebase-pattern-finder`
-  - Saves findings to `thoughts/shared/research/NNN_topic.md`
-  - Builds organizational knowledge over time
-
-#### Planning Phase
-
-- **`/2_create_plan`** - Create detailed, phased implementation plan
-  - Interactive planning with user
-  - Saves to `thoughts/shared/plans/feature_name.md`
-  - Tracks progress with checkboxes
-
-#### Implementation Phase
-
-- **`/4_implement_plan`** - Execute plan systematically
-  - Reads from `thoughts/shared/plans/`
-  - Updates checkboxes as work progresses
-  - Integrates with TodoWrite
-
-#### Validation Phase
-
-- **`/3_validate_plan`** - Verify implementation matches plan
-  - Reviews git changes
-  - Runs automated checks
-  - Generates validation report
-
-### Session Management Commands
-
-- **`/5_save_progress`** - Save work session state
-  - Creates checkpoint in `thoughts/shared/sessions/`
-  - Commits meaningful work with WIP prefix
-  - Documents next steps for resumption
-
-- **`/6_resume_work`** - Resume from saved session
-  - Restores full context
-  - Continues from last checkpoint
-  - Works across Claude sessions
-
-### Specialized Commands
-
-- **`/7_research_cloud`** - Cloud infrastructure analysis (READ-ONLY)
-  - Analyzes Azure, AWS, GCP deployments
-  - Saves to `thoughts/shared/cloud/`
-
-- **`/8_define_test_cases`** - Design acceptance tests before implementation
-  - Uses DSL approach following codebase patterns
-  - Comment-first test specification
-  - Identifies reusable test utilities
+| Has This                | Start At           |
+| ----------------------- | ------------------ |
+| tasks.md (unchecked)    | /5_gofer_implement |
+| plan.md, no tasks.md    | /4_gofer_tasks     |
+| spec.md, no plan.md     | /3_gofer_plan      |
+| research.md, no spec.md | /2_gofer_specify   |
+| Nothing                 | /1_gofer_research  |
 
 ### Parallel Agents
 
-Located in `.claude/agents/`, these specialized agents run concurrently:
+Located in `.claude/agents/`, these specialized agents run concurrently during
+research:
 
 | Agent                     | Role                     | Tools                |
 | ------------------------- | ------------------------ | -------------------- |
@@ -214,22 +146,52 @@ Located in `.claude/agents/`, these specialized agents run concurrently:
 | `codebase-analyzer`       | Explains HOW code works  | Read, Grep, Glob, LS |
 | `codebase-pattern-finder` | Shows EXAMPLES to follow | Grep, Glob, Read, LS |
 
-### Persistent Context Storage
+---
+
+## Legacy Commands (Backward Compatibility)
+
+The following commands still exist for backward compatibility but the unified
+Gofer pipeline is recommended for new work.
+
+### SpecKit Commands (`/speckit.*`)
+
+- `/speckit.specify` - Create feature specification
+- `/speckit.plan` - Generate implementation plan
+- `/speckit.tasks` - Generate task breakdown
+- `/speckit.implement` - Execute tasks
+- `/speckit.analyze` - Cross-artifact analysis
+- `/speckit.checklist` - Generate custom checklist
+- `/speckit.constitution` - Create/update constitution
+- `/speckit.clarify` - Ask clarification questions
+- `/speckit.hydrate` - Reverse-engineer spec from code
+
+### RPI Commands (`/1_*` - `/8_*`)
+
+- `/1_research_codebase` - Deep codebase exploration
+- `/2_create_plan` - Create implementation plan
+- `/3_validate_plan` - Verify implementation
+- `/4_implement_plan` - Execute plan
+- `/5_save_progress` - Save work session
+- `/6_resume_work` - Resume from checkpoint
+- `/7_research_cloud` - Cloud infrastructure analysis
+- `/8_define_test_cases` - Design acceptance tests
+
+### Legacy Context Storage
+
+The RPI commands use a separate storage location:
 
 ```text
 thoughts/
 └── shared/
-    ├── research/     # Codebase research (accumulates over time)
-    ├── plans/        # Implementation plans (RPI workflow)
+    ├── research/     # Codebase research
+    ├── plans/        # Implementation plans
     ├── sessions/     # Work session checkpoints
     └── cloud/        # Cloud infrastructure analysis
 ```
 
-See `thoughts/shared/README.md` for detailed documentation.
-
 ---
 
-## SpecKit Slash Commands
+## SpecKit Slash Commands (Legacy)
 
 SpecGofer integrates with SpecKit slash commands to guide Claude Code through
 feature implementation. When launching Claude Code in a terminal, SpecGofer

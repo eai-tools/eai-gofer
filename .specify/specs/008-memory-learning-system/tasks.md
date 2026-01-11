@@ -555,9 +555,9 @@ execution, verify auto-compaction at 80% threshold reduces usage to ~40%
 
 #### Step 10: Testing & Validation (Week 11)
 
-- [ ] T164 [US4] Write integration test for compaction workflow (trigger,
+- [x] T164 [US4] Write integration test for compaction workflow (trigger,
       summarize, preserve) in tests/integration/compactionIntegration.test.ts
-- [ ] T165 [US4] Write E2E test for 100+ task spec with auto-compaction in
+- [x] T165 [US4] Write E2E test for 100+ task spec with auto-compaction in
       tests/e2e/autoCompaction.spec.ts (Playwright)
 - [x] T166 [US4] Verify compaction performance <10s benchmark test in
       tests/unit/autonomous/ContextCompactor.test.ts

@@ -1,8 +1,17 @@
 {
-  "latest_version": "4.1.2",
+  "latest_version": "4.2.0",
   "repository": "eai-tools/specgofer",
-  "last_updated": "2026-01-11T00:26:24.430Z",
+  "last_updated": "2026-01-11T23:55:52.339Z",
   "releases": [
+    {
+      "version": "4.2.0",
+      "tag_name": "v4.2.0",
+      "published_at": "2026-01-11T23:55:52.339Z",
+      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-4.2.0.vsix",
+      "notes": "Complete context compaction protocol with integration and E2E tests",
+      "prerelease": false,
+      "size_mb": 16
+    },
     {
       "version": "4.1.2",
       "tag_name": "v4.1.2",
@@ -81,15 +90,6 @@
       "published_at": "2025-11-04T18:56:39.660Z",
       "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-3.2.4.vsix",
       "notes": "Reduce autonomous monitoring frequency and add pause/resume controls",
-      "prerelease": false,
-      "size_mb": 15
-    },
-    {
-      "version": "3.2.1",
-      "tag_name": "v3.2.1",
-      "published_at": "2025-11-04T09:37:29.815Z",
-      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-3.2.1.vsix",
-      "notes": "Make default Haiku prompts visible in VSCode settings",
       "prerelease": false,
       "size_mb": 15
     }

@@ -1,8 +1,17 @@
 {
-  "latest_version": "4.1.1",
+  "latest_version": "4.1.2",
   "repository": "eai-tools/specgofer",
-  "last_updated": "2026-01-08T06:27:46.617Z",
+  "last_updated": "2026-01-11T00:26:24.430Z",
   "releases": [
+    {
+      "version": "4.1.2",
+      "tag_name": "v4.1.2",
+      "published_at": "2026-01-11T00:26:24.429Z",
+      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-4.1.2.vsix",
+      "notes": "chore: pre-release changes\n\nAuto-committed changes before release v4.1.1",
+      "prerelease": false,
+      "size_mb": 16
+    },
     {
       "version": "4.1.1",
       "tag_name": "v4.1.1",
@@ -81,15 +90,6 @@
       "published_at": "2025-11-04T09:37:29.815Z",
       "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-3.2.1.vsix",
       "notes": "Make default Haiku prompts visible in VSCode settings",
-      "prerelease": false,
-      "size_mb": 15
-    },
-    {
-      "version": "3.2.0",
-      "tag_name": "v3.2.0",
-      "published_at": "2025-11-04T06:43:46.696Z",
-      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-3.2.0.vsix",
-      "notes": "Add real-time monitoring with selective interruption and fully configurable Haiku prompts",
       "prerelease": false,
       "size_mb": 15
     }

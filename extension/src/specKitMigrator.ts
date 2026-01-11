@@ -178,6 +178,10 @@ export class SpecKitMigrator {
         console.log('[SpecKit] Setting up Claude commands...');
         await this.setupClaudeCommands();
 
+        progress.report({ message: 'Setting up Claude agents...' });
+        console.log('[SpecKit] Setting up Claude agents...');
+        await this.setupClaudeAgents();
+
         progress.report({ message: 'Creating bash scripts...' });
         console.log('[SpecKit] Creating bash scripts...');
         await this.createBashScripts();
@@ -305,6 +309,10 @@ export class SpecKitMigrator {
         console.log('[SpecKit Update] Setting up Claude commands...');
         await this.setupClaudeCommands();
 
+        progress.report({ message: 'Updating Claude agents...' });
+        console.log('[SpecKit Update] Setting up Claude agents...');
+        await this.setupClaudeAgents();
+
         progress.report({ message: 'Updating bash scripts...' });
         console.log('[SpecKit Update] Creating bash scripts...');
         await this.createBashScripts();
@@ -349,8 +357,15 @@ export class SpecKitMigrator {
     try {
       console.log('[setupClaudeCommands] Starting...');
 
-      // Get the extension's bundled commands
-      const extensionPath = vscode.extensions.getExtension('EnterpriseAI.specgofer')?.extensionPath;
+      // Get the extension's bundled commands - try multiple methods
+      let extensionPath = vscode.extensions.getExtension('EnterpriseAI.specgofer')?.extensionPath;
+
+      // Fallback: derive from __dirname (dist/extension.js -> extension root)
+      if (!extensionPath) {
+        extensionPath = path.resolve(__dirname, '..');
+        console.log('[setupClaudeCommands] Using __dirname fallback:', extensionPath);
+      }
+
       if (!extensionPath) {
         console.warn('[setupClaudeCommands] Could not find extension path for Claude commands');
         return;
@@ -379,7 +394,8 @@ export class SpecKitMigrator {
 
         let copiedCount = 0;
         for (const file of files) {
-          if (file.startsWith('speckit.') && file.endsWith('.md')) {
+          // Copy all markdown command files (speckit.*, numbered commands like 0_, 1_, etc.)
+          if (file.endsWith('.md')) {
             const source = path.join(bundledCommandsPath, file);
             const target = path.join(commandsDir, file);
             await fs.copyFile(source, target);
@@ -414,6 +430,67 @@ export class SpecKitMigrator {
       }
     } catch (error) {
       console.error('[setupClaudeCommands] Failed to setup Claude commands:', error);
+    }
+  }
+
+  /**
+   * Setup Claude agents from bundled resources
+   * Deploys parallel agents (codebase-locator, codebase-analyzer, codebase-pattern-finder)
+   */
+  private async setupClaudeAgents(): Promise<void> {
+    try {
+      console.log('[setupClaudeAgents] Starting...');
+
+      // Get the extension's bundled agents - try multiple methods
+      let extensionPath = vscode.extensions.getExtension('EnterpriseAI.specgofer')?.extensionPath;
+
+      // Fallback: derive from __dirname (dist/extension.js -> extension root)
+      if (!extensionPath) {
+        extensionPath = path.resolve(__dirname, '..');
+        console.log('[setupClaudeAgents] Using __dirname fallback:', extensionPath);
+      }
+
+      if (!extensionPath) {
+        console.warn('[setupClaudeAgents] Could not find extension path for Claude agents');
+        return;
+      }
+
+      console.log('[setupClaudeAgents] Extension path:', extensionPath);
+
+      // Check if we have Claude agents in the extension bundle
+      const bundledAgentsPath = path.join(extensionPath, 'resources', 'claude-agents');
+      const claudeDir = path.join(this.workspacePath, '.claude');
+      const agentsDir = path.join(claudeDir, 'agents');
+
+      console.log('[setupClaudeAgents] Bundled agents path:', bundledAgentsPath);
+      console.log('[setupClaudeAgents] Target agents dir:', agentsDir);
+
+      // Ensure .claude/agents directory exists
+      await fs.mkdir(agentsDir, { recursive: true });
+      console.log('[setupClaudeAgents] Created directory:', agentsDir);
+
+      try {
+        // Copy from bundled resources
+        const files = await fs.readdir(bundledAgentsPath);
+        console.log('[setupClaudeAgents] Found bundled files:', files.length);
+
+        let copiedCount = 0;
+        for (const file of files) {
+          if (file.endsWith('.md')) {
+            const source = path.join(bundledAgentsPath, file);
+            const target = path.join(agentsDir, file);
+            await fs.copyFile(source, target);
+            copiedCount++;
+            console.log('[setupClaudeAgents] Copied:', file);
+          }
+        }
+        console.log('[setupClaudeAgents] Successfully copied', copiedCount, 'agent files');
+      } catch (error) {
+        console.error('[setupClaudeAgents] Error reading bundled agents:', error);
+        console.log('[setupClaudeAgents] No bundled Claude agents found');
+      }
+    } catch (error) {
+      console.error('[setupClaudeAgents] Failed to setup Claude agents:', error);
     }
   }
 

@@ -2,6 +2,12 @@
 
 All notable changes to the SpecGofer extension will be documented in this file.
 
+## [4.1.2] - 2026-01-11
+
+chore: pre-release changes
+
+Auto-committed changes before release v4.1.1
+
 ## [4.1.1] - 2026-01-08
 
 Fix buggy regex that corrupted copilot-instructions.md on upgrade

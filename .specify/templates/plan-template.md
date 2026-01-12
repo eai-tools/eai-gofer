@@ -1,10 +1,12 @@
 # Implementation Plan: [FEATURE]
 
 **Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
-**Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
+**Input**: Feature specification from
+`.specify/specs/[###-feature-name]/spec.md`
 
-**Note**: This template is filled in by the `/speckit.plan` command. See
-`.specify/templates/commands/plan.md` for the execution workflow.
+**Note**: This template is filled in by `/3_gofer_plan` (or legacy
+`/speckit.plan`). Recommended: Use `/0_business_scenario` to auto-chain the
+entire pipeline.
 
 ## Summary
 
@@ -44,13 +46,15 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 ### Documentation (this feature)
 
 ```text
-specs/[###-feature]/
-├── plan.md              # This file (/speckit.plan command output)
-├── research.md          # Phase 0 output (/speckit.plan command)
-├── data-model.md        # Phase 1 output (/speckit.plan command)
-├── quickstart.md        # Phase 1 output (/speckit.plan command)
-├── contracts/           # Phase 1 output (/speckit.plan command)
-└── tasks.md             # Phase 2 output (/speckit.tasks command - NOT created by /speckit.plan)
+.specify/specs/[###-feature]/
+├── spec.md              # Feature specification (/2_gofer_specify)
+├── research.md          # Codebase research (/1_gofer_research)
+├── plan.md              # This file (/3_gofer_plan)
+├── data-model.md        # Data model design (/3_gofer_plan)
+├── quickstart.md        # Quick start guide (/3_gofer_plan)
+├── contracts/           # API contracts (/3_gofer_plan)
+├── tasks.md             # Task breakdown (/4_gofer_tasks)
+└── issues.md            # GitHub issues (/4_gofer_tasks)
 ```
 
 ### Source Code (repository root)

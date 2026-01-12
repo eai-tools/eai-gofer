@@ -2,7 +2,8 @@
 
 **Enterprise AI Pty Ltd**
 
-Let AI assistants (Claude Code, GitHub Copilot) autonomously implement features from specifications using VSCode's native MCP (Model Context Protocol) support.
+Let AI assistants (Claude Code, GitHub Copilot) autonomously implement features
+from specifications using VSCode's native MCP (Model Context Protocol) support.
 
 ## Quick Start
 
@@ -49,13 +50,37 @@ Description of what to build
 
 ### 4. Let AI Implement It
 
-In Claude Code or GitHub Copilot:
+**Recommended: Use the Unified Gofer Pipeline**
+
+In Claude Code, run a single command that auto-chains through all stages:
 
 ```text
-@specgofer please implement the next task
+/0_business_scenario Add user authentication with OAuth2 and JWT
 ```
 
-AI will automatically:
+This automatically:
+
+1. **Research** → Explores codebase and technology patterns
+2. **Specify** → Creates spec.md from requirements
+3. **Plan** → Generates architecture and design
+4. **Tasks** → Breaks down into executable tasks
+5. **Implement** → Executes tasks phase by phase
+6. **Validate** → Verifies against spec and constitution
+
+**Or use individual pipeline stages:**
+
+| Stage     | Command              | Output                 |
+| --------- | -------------------- | ---------------------- |
+| Research  | `/1_gofer_research`  | research.md            |
+| Specify   | `/2_gofer_specify`   | spec.md                |
+| Plan      | `/3_gofer_plan`      | plan.md, data-model.md |
+| Tasks     | `/4_gofer_tasks`     | tasks.md               |
+| Implement | `/5_gofer_implement` | Source code            |
+| Validate  | `/6_gofer_validate`  | validation-report.md   |
+
+**Alternative: MCP Tools for AI Assistants**
+
+AI can also call MCP tools directly:
 
 1. Get next task via `specgofer_get_next_task`
 2. Implement the code
@@ -67,32 +92,39 @@ AI will automatically:
 
 SpecGofer provides **6 MCP tools** that AI assistants call directly:
 
-| Tool | Purpose |
-|------|---------|
-| `specgofer_get_specs` | List all specs and tasks |
-| `specgofer_get_next_task` | Get next task based on dependencies |
-| `specgofer_execute_task` | Mark task in-progress, get full context |
-| `specgofer_update_task_status` | Mark task completed/failed |
-| `specgofer_validate_code` | Check against project constitution |
-| `specgofer_run_tests` | Run Playwright tests |
+| Tool                           | Purpose                                 |
+| ------------------------------ | --------------------------------------- |
+| `specgofer_get_specs`          | List all specs and tasks                |
+| `specgofer_get_next_task`      | Get next task based on dependencies     |
+| `specgofer_execute_task`       | Mark task in-progress, get full context |
+| `specgofer_update_task_status` | Mark task completed/failed              |
+| `specgofer_validate_code`      | Check against project constitution      |
+| `specgofer_run_tests`          | Run Playwright tests                    |
 
 ## Spec Structure
 
 ```text
 .specify/
 ├── specs/
-│   ├── feature-001/
-│   │   └── spec.md          # Feature specification
-│   └── feature-002/
+│   ├── 001-feature-name/
+│   │   ├── spec.md           # Feature specification
+│   │   ├── research.md       # Codebase research
+│   │   ├── plan.md           # Implementation plan
+│   │   ├── tasks.md          # Task breakdown
+│   │   └── contracts/        # API contracts
+│   └── 002-another-feature/
 │       └── spec.md
-└── constitution/
-    ├── principles.md         # Project principles
-    └── architecture.md       # Architectural decisions
+├── memory/
+│   ├── constitution.md       # Project principles
+│   └── council-config.yaml   # LLM council configuration
+├── templates/                # Spec templates
+├── scripts/                  # Automation scripts
+└── logs/                     # Execution logs
 ```
 
 ## Constitution (Optional)
 
-Define principles AI should follow in `.specify/constitution/principles.md`:
+Define principles AI should follow in `.specify/memory/constitution.md`:
 
 ```markdown
 # Project Principles
@@ -122,7 +154,8 @@ Extension checks for updates and prompts to install automatically.
 
 ### Progress Tracking
 
-View all specs and tasks in the SpecGofer sidebar panel with real-time status updates.
+View all specs and tasks in the SpecGofer sidebar panel with real-time status
+updates.
 
 ### Task Dependencies
 
@@ -204,6 +237,7 @@ npm list @playwright/test
 SpecGofer consists of three main components:
 
 ### 1. VSCode Extension ([extension/](extension/))
+
 - **Purpose**: UI and integration layer
 - **Features**: Progress panel, constitution viewer, commands
 - **Technologies**: TypeScript, VSCode Extension API
@@ -214,6 +248,7 @@ SpecGofer consists of three main components:
   - `specKitParser.ts` - Spec file parser
 
 ### 2. Language Server ([language-server/](language-server/))
+
 - **Purpose**: LSP + MCP dual-protocol server
 - **Features**: 6 MCP tools for AI integration
 - **Technologies**: TypeScript, vscode-languageserver
@@ -223,6 +258,7 @@ SpecGofer consists of three main components:
   - `utils/specKitLoader.ts` - Spec loading and parsing
 
 ### 3. Orchestrator ([src/](src/))
+
 - **Purpose**: Autonomous execution engine
 - **Features**: Task coordination, agent management
 - **Technologies**: TypeScript, Anthropic SDK, Playwright
@@ -294,20 +330,10 @@ SpecGofer consists of three main components:
 4. **Orchestrator ↔ Agents**: Direct TypeScript function calls
 5. **Orchestrator ↔ External**: Anthropic API, Playwright, WhatsApp
 
-### Test Coverage
-
-Current test coverage: **36.15%** (target: 80%)
-
-| Component | Coverage | Status |
-|-----------|----------|--------|
-| EngineerAgent | 69.49% | 🟡 Good |
-| TestAgent | 84.53% | ✅ Excellent |
-| SpecLoader | 47.05% | 🟡 Fair |
-| Orchestrator | 37.18% | 🔴 Needs improvement |
-| ClaudeCodeInterceptor | 6.31% | 🔴 Low |
-| NotificationService | 2.89% | 🔴 Low |
+### Testing
 
 Run tests:
+
 ```bash
 npm test                    # All tests
 npm run test:coverage       # With coverage report
@@ -319,7 +345,8 @@ npm run test:e2e            # End-to-end tests
 ## More Information
 
 - **Full Documentation:** [docs/](docs/)
-- **AI Agent Guidelines:** [AGENTS.md](AGENTS.md) - Quality standards for AI-generated code
+- **AI Agent Guidelines:** [AGENTS.md](AGENTS.md) - Quality standards for
+  AI-generated code
 - **Testing Guide:** [docs/TESTING_GUIDE.md](docs/TESTING_GUIDE.md)
 - **Release Guide:** [docs/RELEASE_GUIDE.md](docs/RELEASE_GUIDE.md)
 - **GitHub:** <https://github.com/eai-tools/specgofer>

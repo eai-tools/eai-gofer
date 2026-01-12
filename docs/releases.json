@@ -1,8 +1,17 @@
 {
-  "latest_version": "4.2.2",
+  "latest_version": "4.2.3",
   "repository": "eai-tools/specgofer",
-  "last_updated": "2026-01-12T03:55:11.343Z",
+  "last_updated": "2026-01-12T04:29:32.686Z",
   "releases": [
+    {
+      "version": "4.2.3",
+      "tag_name": "v4.2.3",
+      "published_at": "2026-01-12T04:29:32.685Z",
+      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-4.2.3.vsix",
+      "notes": "Fixed bundled templates sync and README update during upgrades",
+      "prerelease": false,
+      "size_mb": 16
+    },
     {
       "version": "4.2.2",
       "tag_name": "v4.2.2",
@@ -81,15 +90,6 @@
       "published_at": "2025-11-05T02:42:55.562Z",
       "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-3.6.1.vsix",
       "notes": "chore: pre-release changes\n\nAuto-committed changes before release v3.6.0",
-      "prerelease": false,
-      "size_mb": 15
-    },
-    {
-      "version": "3.6.0",
-      "tag_name": "v3.6.0",
-      "published_at": "2025-11-04T22:05:28.132Z",
-      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-3.6.0.vsix",
-      "notes": "chore: pre-release changes\n\nAuto-committed changes before release v3.5.0",
       "prerelease": false,
       "size_mb": 15
     }

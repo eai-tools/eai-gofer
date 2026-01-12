@@ -1,8 +1,5 @@
 ---
 description: 'Task list template for feature implementation'
-status: draft
-approvedBy: null
-approvedAt: null
 ---
 
 # Tasks: [FEATURE NAME]
@@ -16,28 +13,6 @@ include them if explicitly requested in the feature specification.
 
 **Organization**: Tasks are grouped by user story to enable independent
 implementation and testing of each story.
-
----
-
-## Protected Files (Scope Boundaries)
-
-<!--
-  CRITICAL: These files are explicitly OUT OF SCOPE per spec.md.
-  Before modifying ANY file, check against this list.
-  If you need to modify a protected file, STOP and get user approval.
--->
-
-**The following files/patterns MUST NOT be modified:**
-
-| Protected Path                           | Reason   | From Spec |
-| ---------------------------------------- | -------- | --------- |
-| [Copy from spec.md Protected Boundaries] | [Reason] | spec.md   |
-
-**Scope Enforcement Rule**: Before EACH file modification:
-
-1. ✓ Check file is in planned scope (listed in tasks below)
-2. ✓ Check file is NOT in Protected Files list above
-3. ✗ If crossing boundary → STOP and ask user for approval
 
 ## Format: `[ID] [P?] [Story] Description`
 

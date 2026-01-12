@@ -1,260 +1,148 @@
 ---
-description: Triage business scenario and orchestrate the unified Gofer pipeline
+description: Triage business scenario and route to appropriate framework
 ---
 
-# Business Scenario Orchestrator
+# Business Scenario Triage
 
-You are the SpecGofer master orchestrator. Your job is to:
-
-1. Understand what the user wants to accomplish
-2. Determine where to start in the unified Gofer pipeline
-3. **Automatically chain through ALL commands until the feature is fully
-   implemented**
-
-## CRITICAL: Orchestration Behavior
-
-**This is NOT a one-shot triage command.** After invoking any sub-command, you
-MUST:
-
-1. Wait for that command to complete
-2. Automatically invoke the NEXT command in the pipeline
-3. Continue until the feature is FULLY IMPLEMENTED in code
-
-The user should only need to run `/0_business_scenario` once - you handle
-everything else.
-
----
-
-## The Unified Gofer Pipeline
-
-SpecGofer uses a single unified pipeline for all feature development:
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    UNIFIED GOFER PIPELINE                        │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  1. /1_gofer_research                                           │
-│     ├── Deep codebase exploration with parallel agents          │
-│     ├── Technology research for unknowns                        │
-│     ├── Output: .specify/specs/{feature}/research.md            │
-│     └── [AUTO-CONTINUE to step 2]                               │
-│                                                                  │
-│  2. /2_gofer_specify                                            │
-│     ├── Create feature specification informed by research       │
-│     ├── User stories, requirements, success criteria            │
-│     ├── Output: .specify/specs/{feature}/spec.md                │
-│     └── [AUTO-CONTINUE to step 3]                               │
-│                                                                  │
-│  3. /3_gofer_plan                                               │
-│     ├── Technical architecture and design                       │
-│     ├── Data models, API contracts, quickstart guide            │
-│     ├── Output: plan.md, data-model.md, contracts/              │
-│     └── [AUTO-CONTINUE to step 4]                               │
-│                                                                  │
-│  4. /4_gofer_tasks                                              │
-│     ├── Generate dependency-ordered task breakdown              │
-│     ├── Organized by user story for incremental delivery        │
-│     ├── Output: tasks.md, issues.md                             │
-│     └── [AUTO-CONTINUE to step 5]                               │
-│                                                                  │
-│  5. /5_gofer_implement                                          │
-│     ├── Execute tasks phase by phase                            │
-│     ├── Mark tasks complete as work progresses                  │
-│     ├── Handle errors, track progress                           │
-│     └── [AUTO-CONTINUE to step 6]                               │
-│                                                                  │
-│  6. /6_gofer_validate                                           │
-│     ├── Verify implementation matches plan and spec             │
-│     ├── Run automated checks (build, test, lint)                │
-│     ├── Generate validation report                              │
-│     └── [COMPLETE - Feature is fully implemented!]              │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
-
-All artifacts go to: .specify/specs/{feature}/
-```
-
----
+You are the SpecGofer orchestrator. Your job is to understand the user's
+business scenario and route them to the correct development workflow.
 
 ## Step 1: Quick Context Scan
 
 Before asking questions, scan the workspace for existing state:
 
-```bash
-# Check for existing feature work
-find .specify/specs -name "*.md" -type f 2>/dev/null | head -20
-```
+1. Check for SpecKit artifacts:
+   - `.specify/specs/*/spec.md` - existing specifications
+   - `.specify/specs/*/plan.md` - existing plans
+   - `.specify/specs/*/tasks.md` - existing tasks
 
-Report what you found:
+2. Check for RPI artifacts:
+   - `thoughts/shared/research/*.md` - research documents
+   - `thoughts/shared/plans/*.md` - implementation plans
+   - `thoughts/shared/sessions/*.md` - saved sessions
 
-- List each feature in `.specify/specs/*/` with what artifacts exist:
-  - research.md (stage 1)
-  - spec.md (stage 2)
-  - plan.md (stage 3)
-  - tasks.md (stage 4)
-  - validation-report.md (stage 6)
+3. Report what you found before proceeding.
 
----
+## Step 2: Determine Scenario
 
-## Step 2: Determine What User Wants
+**ALWAYS ask the user what they want to do** - even if artifacts exist. Existing
+artifacts might be for OTHER features, not what the user wants to work on now.
 
-**ALWAYS ask the user what they want to do** using AskUserQuestion:
+**"What would you like to accomplish today?"**
 
-| Option                 | Description                             | Starting Point                 |
-| ---------------------- | --------------------------------------- | ------------------------------ |
-| **A. New Feature**     | Build something new from scratch        | /1_gofer_research              |
-| **B. Modify Existing** | Change or extend existing functionality | /1_gofer_research              |
-| **C. Fix a Bug**       | Diagnose and fix a specific issue       | /1_gofer_research              |
-| **D. Explore Only**    | Research codebase without implementing  | /1_gofer_research (stop after) |
-| **E. Resume Work**     | Continue incomplete feature work        | Detect & Resume                |
+Present these options using the AskUserQuestion tool:
 
-If existing artifacts were found, also ask:
+| Option                  | Description                                              |
+| ----------------------- | -------------------------------------------------------- |
+| **A. New Feature**      | Build something new from scratch with clear requirements |
+| **B. Modify Existing**  | Change or extend existing functionality in the codebase  |
+| **C. Fix a Bug**        | Diagnose and fix a specific issue                        |
+| **D. Explore/Research** | Understand the codebase before making changes            |
+| **E. Resume Work**      | Continue from where I left off                           |
 
-> "I found existing work in `.specify/specs/`. Do you want to continue one of
-> these, or start something new?"
+### For Brownfields Codebases (Existing Code)
 
----
+If the context scan found existing artifacts, list them and ask:
 
-## Step 3: Route to Starting Point
+**"I found these existing features/work items:"**
 
-### For Options A, B, C: Full Pipeline
+- List each spec in `.specify/specs/*/` with its name and status
+- List any in-progress RPI research or plans
 
-1. Ask user: "What would you like to build/modify/fix?"
-2. Start at `/1_gofer_research` with the description
-3. Auto-continue through entire pipeline
+Then ask: **"Do you want to continue one of these, or start something new?"**
 
-### For Option D: Research Only
+## Step 3: Route to Framework
 
-1. Ask user: "What would you like to explore?"
-2. Invoke `/1_gofer_research`
-3. When complete, ask:
-   > "Research complete. Would you like to continue to specification, or stop
-   > here?"
+Based on user selection and detected state:
 
-### For Option E: Resume Work
+### Route A: New Feature → SpecKit Framework
 
-Detect the most advanced stage for the feature:
+If user selects "New Feature":
 
-| Has This                | Start At           |
-| ----------------------- | ------------------ |
-| tasks.md (unchecked)    | /5_gofer_implement |
-| plan.md, no tasks.md    | /4_gofer_tasks     |
-| spec.md, no plan.md     | /3_gofer_plan      |
-| research.md, no spec.md | /2_gofer_specify   |
-| Nothing                 | /1_gofer_research  |
+#### Case 1: Starting a NEW feature (brownfields or greenfields)
 
----
+1. Ask: **"What would you like to call this feature?"** (use AskUserQuestion
+   with text input)
+2. Create the spec directory: `.specify/specs/{feature-name}/`
+3. Invoke `/speckit.specify` to create the spec
 
-## Step 4: Execute the Pipeline
+#### Case 2: Continuing an existing in-progress feature
 
-**CRITICAL ORCHESTRATION RULES:**
+If user chose to continue an existing feature from the brownfields prompt:
 
-1. **Use the Skill tool** to invoke each command:
+1. **Has tasks.md** → Invoke `/speckit.implement`
+2. **Has plan.md but no tasks.md** → Invoke `/speckit.tasks`
+3. **Has spec.md but no plan.md** → Invoke `/speckit.plan`
 
-   ```
-   Skill: 1_gofer_research, args: "user's feature description"
-   ```
-
-2. **Wait for completion** before invoking the next command
-
-3. **Handle errors gracefully:**
-   - If a command fails, report the error clearly
-   - Ask user if they want to retry or skip
-   - Don't leave the pipeline in an unknown state
-
-4. **Track progress** using TodoWrite:
-   - Create a todo for each pipeline step
-   - Mark steps complete as they finish
-   - Show user the overall progress
-
-5. **Report clearly** at each transition:
-   ```
-   ✓ Step 1 Complete: research.md created
-   → Starting Step 2: Specification...
-   ```
-
----
-
-## Progress Tracking
-
-At the start of orchestration, create a TodoWrite progress tracker:
+Output:
 
 ```
-Pipeline: Gofer Feature Development
-- [ ] Step 1: Research codebase (1_gofer_research)
-- [ ] Step 2: Create specification (2_gofer_specify)
-- [ ] Step 3: Design architecture (3_gofer_plan)
-- [ ] Step 4: Generate tasks (4_gofer_tasks)
-- [ ] Step 5: Implement feature (5_gofer_implement)
-- [ ] Step 6: Validate implementation (6_gofer_validate)
+ROUTING: SPECKIT
+FEATURE: {feature-name}
+COMMAND: /speckit.[specify|plan|tasks|implement]
+REASON: [explanation]
 ```
 
-Update as each step completes.
+### Route B/C: Modify Existing or Fix Bug → RPI Framework
 
----
+If user selects "Modify Existing" or "Fix a Bug":
 
-## Error Recovery
+1. **Has saved session** → Invoke `/6_resume_work`
+2. **Has RPI plan** → Invoke `/4_implement_plan`
+3. **Has research but no plan** → Invoke `/2_create_plan`
+4. **No research** → Invoke `/1_research_codebase`
 
-If any step fails:
-
-1. **Report the error clearly** with context
-2. **Ask user what to do:**
-   - Retry the failed step
-   - Skip and continue (if possible)
-   - Stop and save progress
-3. **Never leave work in an inconsistent state**
-
----
-
-## Final Completion
-
-When the entire pipeline completes:
+Output:
 
 ```
-════════════════════════════════════════════════════════════════
-  ✓ FEATURE COMPLETE: [Feature Name]
-════════════════════════════════════════════════════════════════
-
-  Pipeline: Unified Gofer Pipeline
-
-  Artifacts Created:
-  - research.md: Codebase analysis and technology decisions
-  - spec.md: Feature specification with user stories
-  - plan.md: Technical architecture and design
-  - data-model.md: Entity definitions
-  - contracts/: API specifications
-  - tasks.md: Implementation task breakdown
-  - validation-report.md: Implementation validation
-
-  Files Implemented:
-  - [List of created/modified source files]
-
-  Next Steps:
-  - Run tests: npm test
-  - Review changes: git diff
-  - Create PR: /commit
-
-════════════════════════════════════════════════════════════════
+ROUTING: RPI
+COMMAND: /1_research_codebase
+REASON: [explanation]
 ```
 
----
+### Route D: Explore/Research → RPI Research
+
+Always start with `/1_research_codebase`.
+
+Output:
+
+```
+ROUTING: RPI
+COMMAND: /1_research_codebase
+REASON: User wants to explore the codebase first
+```
+
+### Route E: Resume Work
+
+Check for saved state in both frameworks:
+
+1. **SpecKit tasks with unchecked items** → `/speckit.implement`
+2. **RPI saved session** → `/6_resume_work`
+3. **RPI plan with unchecked items** → `/4_implement_plan`
+4. **No saved state** → Ask what they were working on
+
+## Step 4: Invoke the Routed Command
+
+After determining the route:
+
+1. Output the routing decision clearly
+2. Invoke the target command using the Skill tool
+3. Let that command take over the workflow
 
 ## Important Notes
 
-- **Keep the initial triage SHORT** - max 2-3 questions
-- **Auto-continue is the default** - user shouldn't need to invoke each command
-- **Progress visibility** - always show where we are in the pipeline
-- **Clean handoffs** - each command leaves clear state for the next
-- **User can interrupt** - if user types something during execution, pause and
-  handle it
-- **All artifacts in one place** - everything goes to
-  `.specify/specs/{feature}/`
+- Keep the interview SHORT - max 2-3 questions
+- **ALWAYS ask what the user wants to do** - don't assume existing artifacts are
+  relevant
+- For brownfields: Show existing features and let user choose to continue OR
+  start new
+- Document the routing decision for debugging
+- If user seems confused, default to research first (RPI)
 
----
+## Brownfields vs Greenfields
 
-## Legacy Command Support
-
-The old SpecKit commands (`/speckit.*`) and RPI commands (`/1_research_codebase`
-etc.) still exist for backward compatibility, but the unified Gofer pipeline is
-the recommended approach for new work.
+| Scenario                         | Detection                                   | Behavior                                 |
+| -------------------------------- | ------------------------------------------- | ---------------------------------------- |
+| **Greenfields** (empty codebase) | No `.specify/specs/`, no `thoughts/shared/` | Ask what they want, route directly       |
+| **Brownfields** (existing code)  | Has specs or RPI artifacts                  | List existing work, ask continue or new  |
+| **Mixed** (code but no specs)    | Has code but no `.specify/`                 | Treat as brownfields, may need RPI first |

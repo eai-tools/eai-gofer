@@ -221,26 +221,32 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
   }
 
   async getChildren(element?: SpecItem): Promise<SpecItem[]> {
-    // Check for load errors
-    if (this.loadError && !element) {
-      const errorItem = new SpecItem(
-        `Error: ${this.loadError}`,
-        vscode.TreeItemCollapsibleState.None
-      );
-      errorItem.iconPath = new vscode.ThemeIcon('error');
-      errorItem.tooltip = `Workspace: ${this.parser['workspacePath']}\n\nError: ${this.loadError}`;
-      return [errorItem];
-    }
-
     if (!element) {
-      // Root level - show specs
+      // Root level - check if .specify folder exists
+      // If no .specify folder, return empty array to show welcome view with Initialize button
+      if (this.loadError?.includes('.specify folder not found')) {
+        return []; // Shows welcome view with "Initialize SpecGofer" button
+      }
+
+      // Check for other load errors
+      if (this.loadError) {
+        const errorItem = new SpecItem(
+          `Error: ${this.loadError}`,
+          vscode.TreeItemCollapsibleState.None
+        );
+        errorItem.iconPath = new vscode.ThemeIcon('error');
+        errorItem.tooltip = `Workspace: ${this.parser['workspacePath']}\n\nError: ${this.loadError}`;
+        return [errorItem];
+      }
+
+      // .specify folder exists but no specs found
       if (this.specs.length === 0) {
         const noSpecsItem = new SpecItem('No specs found', vscode.TreeItemCollapsibleState.None);
         noSpecsItem.iconPath = new vscode.ThemeIcon('info');
-        noSpecsItem.tooltip = `Workspace: ${this.parser['workspacePath']}\n\nLooking for specs in: .specify/specs/\n\nClick "Initialize SpecGofer" to create the structure.`;
+        noSpecsItem.tooltip = `Workspace: ${this.parser['workspacePath']}\n\nLooking for specs in: .specify/specs/\n\nCreate a spec with: SpecGofer: Create New Spec`;
         noSpecsItem.command = {
-          command: 'specGofer.initialize',
-          title: 'Initialize SpecGofer',
+          command: 'specGofer.createSpec',
+          title: 'Create New Spec',
         };
         return [noSpecsItem];
       }

@@ -2,6 +2,10 @@
 
 All notable changes to the SpecGofer extension will be documented in this file.
 
+## [4.2.1] - 2026-01-12
+
+Show welcome view with Initialize button when no .specify folder
+
 ## [4.2.0] - 2026-01-12
 
 Complete context compaction protocol with integration and E2E tests

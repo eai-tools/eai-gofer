@@ -2,6 +2,10 @@
 
 All notable changes to the SpecGofer extension will be documented in this file.
 
+## [4.2.3] - 2026-01-12
+
+Fixed bundled templates sync and README update during upgrades
+
 ## [4.2.2] - 2026-01-12
 
 Updated templates and documentation for unified Gofer pipeline

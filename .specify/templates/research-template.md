@@ -6,6 +6,12 @@ status: complete
 codebase_type: '[greenfield | brownfield]'
 ---
 
+<!--
+  This template is filled in by /1_gofer_research (or legacy /1_research_codebase).
+  Recommended: Use /0_business_scenario to auto-chain the entire pipeline.
+  Location: .specify/specs/[###-feature-name]/research.md
+-->
+
 # Research: [Feature Name]
 
 ## Feature Summary

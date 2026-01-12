@@ -2,6 +2,10 @@
 
 All notable changes to the SpecGofer extension will be documented in this file.
 
+## [4.2.2] - 2026-01-12
+
+Updated templates and documentation for unified Gofer pipeline
+
 ## [4.2.1] - 2026-01-12
 
 Show welcome view with Initialize button when no .specify folder

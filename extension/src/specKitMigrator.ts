@@ -341,6 +341,10 @@ export class SpecKitMigrator {
         console.log('[SpecKit Update] Updating .gitignore with state files...');
         await this.updateGitignore();
 
+        progress.report({ message: 'Updating README...' });
+        console.log('[SpecKit Update] Updating .specify/README.md...');
+        await this.createReadme();
+
         console.log('[SpecKit Update] Update complete!');
       }
     );

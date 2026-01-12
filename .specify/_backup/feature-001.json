@@ -13,14 +13,19 @@
     {
       "id": "task-002",
       "description": "Implement authentication API endpoint",
-      "dependencies": ["task-001"],
+      "dependencies": [
+        "task-001"
+      ],
       "status": "pending",
       "deliveryPrompt": "Create a POST /api/auth/login endpoint that accepts email and password, validates credentials, and returns a JWT token."
     },
     {
       "id": "task-003",
       "description": "Connect UI to authentication API",
-      "dependencies": ["task-001", "task-002"],
+      "dependencies": [
+        "task-001",
+        "task-002"
+      ],
       "status": "pending",
       "deliveryPrompt": "Connect the login UI component to the authentication API. Handle loading states, error messages, and successful login redirects."
     }

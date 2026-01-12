@@ -2,6 +2,12 @@
 
 All notable changes to the SpecGofer extension will be documented in this file.
 
+## [4.2.4] - 2026-01-12
+
+chore: pre-release changes
+
+Auto-committed changes before release v4.2.3
+
 ## [4.2.3] - 2026-01-12
 
 Fixed bundled templates sync and README update during upgrades

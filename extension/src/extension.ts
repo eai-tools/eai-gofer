@@ -814,64 +814,127 @@ function registerCommands(
           // Create directory if it doesn't exist
           await vscode.workspace.fs.createDirectory(vscode.Uri.file(specsPath));
 
-          // Create spec template
-          const specTemplate = `---
-id: "${specName.trim()}"
-title: "${specName
+          // Create spec template following Gofer pipeline format
+          const specTitle = specName
             .trim()
             .replace(/-/g, ' ')
-            .replace(/\b\w/g, (l) => l.toUpperCase())}"
+            .replace(/\b\w/g, (l: string) => l.toUpperCase());
+          const specTemplate = `---
+id: "${specName.trim()}"
+title: "${specTitle}"
+status: "draft"
+created: "${new Date().toISOString().split('T')[0]}"
+priority: "P1"
+---
+
+# Feature Specification: ${specTitle}
+
+<!--
+  To generate a complete implementation, use the Gofer pipeline in Claude Code:
+  /0_business_scenario ${specTitle}
+
+  Or run individual stages:
+  /1_gofer_research  → Creates research.md
+  /2_gofer_specify   → Updates this spec.md
+  /3_gofer_plan      → Creates plan.md, data-model.md, contracts/
+  /4_gofer_tasks     → Creates tasks.md
+  /5_gofer_implement → Implements the code
+  /6_gofer_validate  → Validates implementation
+-->
+
+## User Scenarios & Testing
+
+### User Story 1 - [Brief Title] (Priority: P1)
+
+[Describe this user journey in plain language]
+
+**Why this priority**: [Explain the value and why it has this priority level]
+
+**Independent Test**: [Describe how this can be tested independently]
+
+**Acceptance Scenarios**:
+
+1. **Given** [initial state], **When** [action], **Then** [expected outcome]
+2. **Given** [initial state], **When** [action], **Then** [expected outcome]
+
+---
+
+### User Story 2 - [Brief Title] (Priority: P2)
+
+[Describe this user journey in plain language]
+
+**Why this priority**: [Explain the value]
+
+**Acceptance Scenarios**:
+
+1. **Given** [initial state], **When** [action], **Then** [expected outcome]
+
+---
+
+## Requirements
+
+### Functional Requirements
+
+- **FR-001**: System MUST [specific capability]
+- **FR-002**: System MUST [specific capability]
+- **FR-003**: Users MUST be able to [key interaction]
+
+### Non-Functional Requirements
+
+- **NFR-001**: Performance requirement
+- **NFR-002**: Security requirement
+
+## Success Criteria
+
+- **SC-001**: [Measurable metric]
+- **SC-002**: [Measurable metric]
+
+## Protected Boundaries
+
+Files/modules that should NOT be modified:
+- [List any protected files or areas]
+`;
+
+          await vscode.workspace.fs.writeFile(vscode.Uri.file(specFile), Buffer.from(specTemplate));
+
+          // Create initial tasks.md file
+          const tasksFile = path.join(specsPath, 'tasks.md');
+          const tasksTemplate = `---
+feature: "${specName.trim()}"
 status: "draft"
 created: "${new Date().toISOString().split('T')[0]}"
 ---
 
-# ${specName
-            .trim()
-            .replace(/-/g, ' ')
-            .replace(/\b\w/g, (l) => l.toUpperCase())}
+# Tasks: ${specTitle}
 
-## Overview
+<!--
+  Generate tasks automatically using Claude Code:
+  /4_gofer_tasks
 
-Brief description of the feature or requirement.
+  Or run the full pipeline:
+  /0_business_scenario ${specTitle}
+-->
 
-## Problem Statement
+## Phase 1: Setup
 
-What problem does this solve?
+- [ ] T001 [Setup] Create initial project structure
 
-## Solution
+## Phase 2: User Story 1 - [Title] (P1)
 
-How will this be implemented?
+- [ ] T002 [US1] Implement core functionality
+- [ ] T003 [US1] Add tests for user story 1
 
-## Acceptance Criteria
+## Phase 3: User Story 2 - [Title] (P2)
 
-### AC1: First Criterion
-- **Given** initial condition
-- **When** user performs action
-- **Then** expected outcome occurs
+- [ ] T004 [US2] Implement secondary functionality
+- [ ] T005 [US2] Add tests for user story 2
 
-## Tasks
+## Phase 4: Polish
 
-- [ ] #T001 First task (deps: none)
-- [ ] #T002 Second task (deps: T001)
-
-## Dependencies
-
-### Internal
-- List internal dependencies
-
-### External
-- List external dependencies
-
-## Test Strategy
-
-How will this be tested?
-
-## Success Metrics
-
-How will success be measured?
+- [ ] T006 [Polish] Documentation updates
+- [ ] T007 [Polish] Final review and cleanup
 `;
-
-          await vscode.workspace.fs.writeFile(vscode.Uri.file(specFile), Buffer.from(specTemplate));
+          await vscode.workspace.fs.writeFile(vscode.Uri.file(tasksFile), Buffer.from(tasksTemplate));
 
           // Open the new spec file
           const doc = await vscode.workspace.openTextDocument(specFile);
@@ -882,7 +945,7 @@ How will success be measured?
             progressProvider.refresh();
           }
 
-          vscode.window.showInformationMessage(`Created new specification: ${specName}`);
+          vscode.window.showInformationMessage(`Created new specification: ${specName} (with tasks.md)`);
         } catch (error) {
           vscode.window.showErrorMessage(`Failed to create specification: ${error}`);
         }

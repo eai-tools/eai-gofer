@@ -148,136 +148,68 @@ research:
 
 ---
 
-## Legacy Commands (Backward Compatibility)
+## Archived Legacy Commands
 
-The following commands still exist for backward compatibility but the unified
-Gofer pipeline is recommended for new work.
+The following legacy commands have been archived and are no longer in active
+use. They are preserved for reference at `.claude/commands/archive/`.
 
-### SpecKit Commands (`/speckit.*`)
+### Archived SpecKit Commands (`.claude/commands/archive/speckit/`)
 
-- `/speckit.specify` - Create feature specification
-- `/speckit.plan` - Generate implementation plan
-- `/speckit.tasks` - Generate task breakdown
-- `/speckit.implement` - Execute tasks
-- `/speckit.analyze` - Cross-artifact analysis
-- `/speckit.checklist` - Generate custom checklist
-- `/speckit.constitution` - Create/update constitution
-- `/speckit.clarify` - Ask clarification questions
-- `/speckit.hydrate` - Reverse-engineer spec from code
+- `speckit.specify.md` - Create feature specification
+- `speckit.plan.md` - Generate implementation plan
+- `speckit.tasks.md` - Generate task breakdown
+- `speckit.implement.md` - Execute tasks
+- `speckit.analyze.md` - Cross-artifact analysis
+- `speckit.checklist.md` - Generate custom checklist
+- `speckit.constitution.md` - Create/update constitution
+- `speckit.clarify.md` - Ask clarification questions
+- `speckit.hydrate.md` - Reverse-engineer spec from code
 
-### RPI Commands (`/1_*` - `/8_*`)
+### Archived RPI Commands (`.claude/commands/archive/rpi/`)
 
-- `/1_research_codebase` - Deep codebase exploration
-- `/2_create_plan` - Create implementation plan
-- `/3_validate_plan` - Verify implementation
-- `/4_implement_plan` - Execute plan
-- `/5_save_progress` - Save work session
-- `/6_resume_work` - Resume from checkpoint
-- `/7_research_cloud` - Cloud infrastructure analysis
-- `/8_define_test_cases` - Design acceptance tests
+- `1_research_codebase.md` - Deep codebase exploration
+- `2_create_plan.md` - Create implementation plan
+- `3_validate_plan.md` - Verify implementation
+- `4_implement_plan.md` - Execute plan
+- `5_save_progress.md` - Save work session
+- `6_resume_work.md` - Resume from checkpoint
+- `7_research_cloud.md` - Cloud infrastructure analysis
+- `8_define_test_cases.md` - Design acceptance tests
 
-### Legacy Context Storage
-
-The RPI commands use a separate storage location:
-
-```text
-thoughts/
-└── shared/
-    ├── research/     # Codebase research
-    ├── plans/        # Implementation plans
-    ├── sessions/     # Work session checkpoints
-    └── cloud/        # Cloud infrastructure analysis
-```
+**Note:** Use the unified Gofer pipeline (`/0_business_scenario` through
+`/6_gofer_validate`) for all new work. The archived commands are kept for
+reference only.
 
 ---
 
-## SpecKit Slash Commands (Legacy)
-
-SpecGofer integrates with SpecKit slash commands to guide Claude Code through
-feature implementation. When launching Claude Code in a terminal, SpecGofer
-automatically sends the appropriate command based on the current state of the
-spec.
-
-### Available Commands
-
-Located in `.claude/commands/`, these slash commands control the feature
-development workflow:
-
-#### Planning Phase
-
-- **`/speckit.specify`** - Create or update feature specification from natural
-  language description
-- **`/speckit.plan`** - Generate implementation plan (plan.md, data-model.md,
-  contracts/, research.md)
-- **`/speckit.tasks`** - Generate task breakdown (tasks.md) from plan artifacts
-- **`/speckit.clarify`** - Identify underspecified areas and ask clarification
-  questions
-
-#### Implementation Phase
-
-- **`/speckit.implement`** - Execute tasks from tasks.md in dependency order
-  - Checks prerequisites with `check-prerequisites.sh`
-  - Validates checklists before starting
-  - Loads implementation context (tasks.md, plan.md, data-model.md, contracts/)
-  - Executes tasks phase-by-phase (Setup → Foundational → User Stories → Polish)
-  - Marks completed tasks as [X] in tasks.md
-  - Tracks progress and handles errors
-
-#### Quality Assurance
-
-- **`/speckit.analyze`** - Cross-artifact consistency analysis
-- **`/speckit.checklist`** - Generate custom checklist for feature
-- **`/speckit.constitution`** - Create/update project constitution
-
-### Workflow
-
-The typical SpecKit workflow follows this sequence:
-
-1. **Specification** → `/speckit.specify` creates spec.md with user stories
-2. **Planning** → `/speckit.plan` generates design artifacts
-3. **Task Breakdown** → `/speckit.tasks` creates executable task list
-4. **Implementation** → `/speckit.implement` executes the tasks
-5. **Validation** → `/speckit.analyze` checks consistency
-
-### Claude Code Terminal Integration
+## Claude Code Terminal Integration
 
 When SpecGofer launches Claude Code via the Play button:
 
 1. **Detects current spec state** - checks which artifacts exist:
-   - spec.md only → needs planning
+   - spec.md only → needs research and planning
    - spec.md + plan.md → needs tasks
    - spec.md + plan.md + tasks.md → ready for implementation
 
-2. **Sends appropriate command**:
-   - If tasks.md exists → `/speckit.implement`
-   - If plan.md exists but no tasks.md → `/speckit.tasks`
-   - If only spec.md exists → `/speckit.plan`
+2. **Sends appropriate Gofer command**:
+   - If tasks.md exists → `/5_gofer_implement`
+   - If plan.md exists but no tasks.md → `/4_gofer_tasks`
+   - If only spec.md exists → `/3_gofer_plan`
 
-3. **Initial message format**:
-   ```typescript
-   // Automatically sent after 2 seconds
-   const implementCommand = `/speckit.implement\n`;
-   ptyProcess.write(implementCommand);
-   ```
+### Task Format
 
-### Implementation Notes
-
-- The `/speckit.implement` command is **stateful** - it resumes from the last
-  completed task
-- Tasks are marked with checkboxes: `- [ ]` pending, `- [X]` completed
-- Each task has a unique ID (T001, T002...) and file path
-- Parallel tasks are marked with [P] and can run concurrently
-- User Story tasks are tagged with [US1], [US2] etc.
-
-### Example Task Format
+Tasks are tracked in `tasks.md` with checkboxes:
 
 ```markdown
-- [ ] T014 [US1] Implement node-pty integration in TerminalManager.ts
-- [x] T015 [US1] Add macOS Terminal.app detection (completed)
-- [ ] T016 [P] [US1] Create unit test for TerminalManager.ts
+- [ ] T001 [Setup] Create initial project structure
+- [x] T002 [Setup] Configure dependencies (completed)
+- [ ] T003 [P] [US1] Implement user authentication
 ```
 
-See `.claude/commands/speckit.*.md` for detailed command documentation.
+- `- [ ]` = pending, `- [X]` = completed
+- Each task has a unique ID (T001, T002...)
+- `[P]` marks parallel tasks that can run concurrently
+- `[US1]`, `[US2]` tags link to user stories
 
 ---
 
@@ -318,10 +250,9 @@ peerReview: false
 
 # Stages where council mode is active
 stages:
-  speckit_plan: true # /speckit.plan Phase 0.5
-  speckit_analyze: true # /speckit.analyze
-  research_codebase: true # /1_research_codebase
-  validate_plan: true # /3_validate_plan
+  gofer_research: true # /1_gofer_research
+  gofer_plan: true # /3_gofer_plan
+  gofer_validate: true # /6_gofer_validate
 
 # Provider configuration
 providers:
@@ -350,12 +281,11 @@ providers:
 
 Council mode can be enabled for these workflow stages:
 
-| Stage               | Command                   | Council Benefits                          |
-| ------------------- | ------------------------- | ----------------------------------------- |
-| `speckit_plan`      | `/speckit.plan` Phase 0.5 | Multiple perspectives on research queries |
-| `speckit_analyze`   | `/speckit.analyze`        | Diverse detection of inconsistencies      |
-| `research_codebase` | `/1_research_codebase`    | Comprehensive codebase exploration        |
-| `validate_plan`     | `/3_validate_plan`        | Multi-reviewer validation                 |
+| Stage               | Command              | Council Benefits                          |
+| ------------------- | -------------------- | ----------------------------------------- |
+| `gofer_research`    | `/1_gofer_research`  | Comprehensive codebase exploration        |
+| `gofer_plan`        | `/3_gofer_plan`      | Multiple perspectives on architecture     |
+| `gofer_validate`    | `/6_gofer_validate`  | Multi-reviewer validation                 |
 
 ### How Council Mode Works
 
@@ -403,7 +333,8 @@ specgofer/
 │   └── releases.json      # Auto-updater version info
 ├── .claude/               # Claude Code configuration
 │   ├── agents/            # Parallel AI agents (locator, analyzer, pattern-finder)
-│   └── commands/          # Slash commands (speckit.*, 1_* - 8_*)
+│   └── commands/          # Gofer pipeline commands (0_business_scenario - 6_gofer_validate)
+│       └── archive/       # Archived legacy commands (speckit/, rpi/)
 ├── .specify/              # SpecKit feature development
 │   ├── specs/             # Feature specifications
 │   ├── templates/         # Document templates

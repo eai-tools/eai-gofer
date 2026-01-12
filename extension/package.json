@@ -278,7 +278,7 @@
     "viewsWelcome": [
       {
         "view": "specGoferProgress",
-        "contents": "No SpecGofer structure found in this workspace.\n[Initialize SpecGofer](command:specGofer.initialize)\nThis will create the .specify folder structure following GitHub Spec Kit standards."
+        "contents": "Welcome to SpecGofer!\n\nNo .specify folder found in this workspace.\n\n[Initialize SpecGofer](command:specGofer.initialize)\n\nThis creates the folder structure for feature specifications, plans, and tasks."
       }
     ],
     "menus": {

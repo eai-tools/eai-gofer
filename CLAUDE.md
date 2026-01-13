@@ -146,6 +146,194 @@ research:
 | `codebase-analyzer`       | Explains HOW code works  | Read, Grep, Glob, LS |
 | `codebase-pattern-finder` | Shows EXAMPLES to follow | Grep, Glob, Read, LS |
 
+### Auxiliary Gofer Commands
+
+Beyond the core 6-stage pipeline, SpecGofer provides auxiliary commands for
+specialized workflows:
+
+| Command              | Purpose                                    | Output                     |
+| -------------------- | ------------------------------------------ | -------------------------- |
+| `/7_gofer_save`      | Save session state for continuity          | session-handoff.md         |
+| `/8_gofer_resume`    | Resume from saved checkpoint               | Restores context           |
+| `/9_gofer_tests`     | Generate comprehensive test cases          | test-plan.md, test files   |
+| `/10_gofer_cloud`    | READ-ONLY cloud infrastructure analysis    | cloud-analysis.md          |
+| `/gofer_hydrate`     | Reverse-engineer spec from existing code   | spec.md (hydrated)         |
+| `/gofer_constitution`| Create/update project coding standards     | constitution.md            |
+
+#### Session Management (`/7_gofer_save`, `/8_gofer_resume`)
+
+These commands enable **context continuity** across sessions:
+
+```text
+Session 1: Working on feature...
+  → /7_gofer_save → Captures progress, decisions, blockers
+  → session-handoff.md created
+
+Session 2: New context window
+  → /8_gofer_resume → Loads handoff, restores state
+  → Continues seamlessly
+```
+
+**When to use:**
+- Context window approaching limits (>100k tokens)
+- Ending work session and returning later
+- Handing off to another agent or team member
+
+#### Test Generation (`/9_gofer_tests`)
+
+Generates test cases from specification artifacts:
+
+- Reads spec.md acceptance criteria
+- Creates test-plan.md with coverage matrix
+- Generates test file skeletons
+- Maps tests to user stories
+
+#### Cloud Analysis (`/10_gofer_cloud`)
+
+**READ-ONLY** cloud infrastructure inspection:
+
+- Azure, AWS, GCP support via CLI tools
+- Resource inventory and architecture mapping
+- Security analysis and compliance checks
+- Cost optimization recommendations
+
+**Safety**: Only executes `list`, `show`, `describe`, `get` operations. Never
+creates, modifies, or deletes cloud resources.
+
+#### Code Hydration (`/gofer_hydrate`)
+
+Reverse-engineers specifications from existing code:
+
+- Analyzes implementation to create spec.md
+- Maps test cases to acceptance criteria
+- Documents APIs and data models
+- Identifies gaps and technical debt
+
+**Use case**: Documenting legacy code, onboarding, pre-refactoring analysis.
+
+#### Constitution Management (`/gofer_constitution`)
+
+Manages project coding standards:
+
+- Defines principles, patterns, and conventions
+- Creates Architecture Decision Records (ADRs)
+- Ensures agent consistency across sessions
+- Validates implementation compliance
+
+---
+
+## Context Window Management
+
+Effective context management is critical for agentic coding. As context windows
+fill with tool outputs, conversation history, and code, LLM accuracy degrades.
+
+### Context Health Monitoring
+
+Run `.specify/scripts/bash/check-context-health.sh` to assess context status:
+
+```bash
+# Check current context health
+.specify/scripts/bash/check-context-health.sh
+
+# Get JSON output for automation
+.specify/scripts/bash/check-context-health.sh --json
+```
+
+**Thresholds**:
+| Status   | Token Usage | Action Required                           |
+| -------- | ----------- | ----------------------------------------- |
+| Healthy  | < 50%       | Continue normally                         |
+| Warning  | 50-70%      | Consider saving progress or compacting    |
+| Critical | > 70%       | Save session and start fresh context      |
+
+### Effective Context Lengths (2025-2026 Research)
+
+While models advertise large context windows, accuracy degrades significantly:
+
+| Model              | Advertised | Effective (High Accuracy) |
+| ------------------ | ---------- | ------------------------- |
+| Claude Sonnet 4    | 200k       | 60k-120k tokens           |
+| Claude Opus 4      | 200k       | 100k-150k tokens          |
+| Gemini 2.5 Pro     | 1M         | ~200k tokens              |
+| GPT-5              | 256k       | ~200k tokens              |
+
+**Rule of thumb**: Target 50-60% of advertised context for reliable operation.
+
+### Context Management Techniques
+
+#### 1. Sub-Agent Architecture (Recommended)
+
+Use specialized sub-agents with clean context windows:
+
+```text
+Main Agent (large context)
+  ├── Locator Agent (small, focused) → Returns file paths
+  ├── Analyzer Agent (small, focused) → Returns summaries
+  └── Pattern Agent (small, focused) → Returns examples
+```
+
+Each sub-agent returns condensed results (1,000-2,000 tokens) instead of raw
+tool outputs. This is how SpecGofer's parallel agents work.
+
+#### 2. Observation Masking
+
+Replace older tool outputs with placeholders:
+
+```text
+Before: [Full 5000-token file content]
+After: <observation_replaced reason="stale_file_read">path/to/file.ts</observation_replaced>
+```
+
+**Benefits**: 50%+ cost reduction, 2.6% better solve rates (per 2025 research).
+
+#### 3. Session Handoffs
+
+When context exceeds thresholds:
+
+1. Run `/7_gofer_save` to capture current state
+2. Start new session
+3. Run `/8_gofer_resume` to restore context
+4. Continue with fresh context window
+
+**What gets preserved**:
+- Current task progress and blockers
+- Key decisions and rationale
+- File modifications made
+- Remaining work items
+
+#### 4. Artifact-Based Memory
+
+Store important information outside context:
+
+| File                    | Purpose                          |
+| ----------------------- | -------------------------------- |
+| `constitution.md`       | Coding standards (always loaded) |
+| `research.md`           | Codebase findings                |
+| `session-handoff.md`    | Session state for continuity     |
+| `decisions/*.md`        | Architecture Decision Records    |
+
+### Anti-Patterns to Avoid
+
+1. **Reading entire files repeatedly** - Use targeted line ranges
+2. **Keeping old tool results** - They consume context without adding value
+3. **Verbose prompts** - Be concise; the agent understands context
+4. **Not using sub-agents** - Monolithic context degrades faster
+5. **Ignoring warning thresholds** - Context rot is gradual then sudden
+
+### Metrics and Monitoring
+
+Context usage is logged to `.specify/logs/context-usage.jsonl`:
+
+```json
+{
+  "timestamp": "2026-01-13T10:30:00Z",
+  "stage": "5_gofer_implement",
+  "tokens": 85000,
+  "status": "warning",
+  "action": "session_save_recommended"
+}
+```
+
 ---
 
 ## Archived Legacy Commands

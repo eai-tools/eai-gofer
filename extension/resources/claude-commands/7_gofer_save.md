@@ -24,8 +24,26 @@ You **MUST** consider the user input before proceeding (if not empty).
 - Switching to another task/feature
 - End of work session
 - Before a break or context switch
-- Context window approaching limits
+- **Context window approaching limits (>50% usage)**
+- **Context health check returns WARNING or CRITICAL**
 - Before risky operations
+
+### Context-Triggered Saves (2025-2026 Best Practice)
+
+Run context health check periodically during long sessions:
+
+```bash
+.specify/scripts/bash/check-context-health.sh --json
+```
+
+| Status   | Token Usage | Action                          |
+| -------- | ----------- | ------------------------------- |
+| Healthy  | < 50%       | Continue normally               |
+| Warning  | 50-70%      | Consider checkpoint, use sub-agents |
+| Critical | > 70%       | **Save immediately**, start new session |
+
+**Why this matters**: Research shows LLMs lose accuracy as context grows.
+Effective context for Claude is ~60-120k tokens, not the advertised 200k.
 
 ---
 
@@ -285,6 +303,38 @@ The markdown body ensures:
 
 ---
 
+## Context Management Best Practices (2025-2026 Research)
+
+### What to Preserve (High Value)
+
+- **Key decisions and rationale** - These are hard to reconstruct
+- **Blockers and workarounds** - Prevent repeated dead ends
+- **Exact file:line being edited** - Enables precise resumption
+- **Mental model context** - Insights not captured in artifacts
+
+### What to Summarize (Medium Value)
+
+- Tool outputs and exploration results
+- Code snippets that are in committed files
+- Error messages (keep only the key ones)
+
+### What to Omit (Low Value / High Cost)
+
+- Full file contents (can be re-read)
+- Repetitive conversation history
+- Superseded attempts or dead ends
+- Verbose tool outputs
+
+### Handoff Size Target
+
+Aim for session-checkpoint.md to be:
+- **< 2,000 tokens** for critical information
+- **< 5,000 tokens** total including context
+
+This ensures the resume session starts with clean context.
+
+---
+
 ## Integration
 
 This command works with:
@@ -293,3 +343,4 @@ This command works with:
 - `/5_gofer_implement` - Can resume implementation
 - `/6_gofer_validate` - Can validate partial progress
 - `/0_business_scenario` - Detects saved sessions
+- `check-context-health.sh` - Triggers save at thresholds

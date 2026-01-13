@@ -248,7 +248,71 @@ async function handleSpecKitFormat(context: vscode.ExtensionContext, workspacePa
     console.log('MCP configuration auto-created for Claude Code integration');
   }
 
+  // Check if templates need updating based on extension version
+  await checkForTemplateUpdates(workspacePath, context);
+
   vscode.window.setStatusBarMessage('$(notebook) SpecGofer - Enterprise AI ready', 3000);
+}
+
+/**
+ * Check if templates need updating when extension version is newer
+ */
+async function checkForTemplateUpdates(workspacePath: string, context: vscode.ExtensionContext) {
+  const fs = require('fs/promises');
+  const path = require('path');
+
+  const packageJson = require('../package.json');
+  const currentVersion = packageJson.version;
+  const versionFilePath = path.join(workspacePath, '.specify', '.specgofer-version');
+
+  try {
+    // Read stored version
+    let storedVersion = '0.0.0';
+    try {
+      storedVersion = (await fs.readFile(versionFilePath, 'utf8')).trim();
+    } catch {
+      // No version file yet - first time or pre-versioning install
+    }
+
+    // Compare versions
+    const isNewer = compareVersions(currentVersion, storedVersion) > 0;
+
+    if (isNewer && storedVersion !== '0.0.0') {
+      // Prompt user to upgrade templates
+      const choice = await vscode.window.showInformationMessage(
+        `SpecGofer v${currentVersion} has new templates and commands available (you have v${storedVersion} installed in .specify/).`,
+        'Upgrade Now',
+        'Later'
+      );
+
+      if (choice === 'Upgrade Now') {
+        const migrator = new SpecKitMigrator(workspacePath);
+        await migrator.upgrade();
+        // Update stored version after successful upgrade
+        await fs.writeFile(versionFilePath, currentVersion);
+        vscode.window.showInformationMessage(`✅ Templates upgraded to v${currentVersion}`);
+      }
+    } else if (storedVersion === '0.0.0') {
+      // First time tracking - just save current version
+      await fs.writeFile(versionFilePath, currentVersion);
+    }
+  } catch (error) {
+    console.error('[checkForTemplateUpdates] Error:', error);
+  }
+}
+
+/**
+ * Compare semantic versions. Returns: 1 if a > b, -1 if a < b, 0 if equal
+ */
+function compareVersions(a: string, b: string): number {
+  const aParts = a.split('.').map(Number);
+  const bParts = b.split('.').map(Number);
+
+  for (let i = 0; i < 3; i++) {
+    if (aParts[i] > bParts[i]) return 1;
+    if (aParts[i] < bParts[i]) return -1;
+  }
+  return 0;
 }
 
 async function handleMixedFormat(

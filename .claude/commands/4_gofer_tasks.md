@@ -261,6 +261,150 @@ Tasks marked [P] can run concurrently if they:
 
 ---
 
+## Step 4.5: Plan & Spec Coverage Validation (GAP-02 & GAP-03)
+
+**CRITICAL**: Before presenting tasks for approval, validate that tasks cover ALL
+plan phases AND ALL spec acceptance criteria. This prevents incomplete implementations.
+
+### 4.5.1 Plan Phase Coverage (GAP-02)
+
+Cross-reference tasks against plan.md phases:
+
+| Plan Phase | Task Count | Task IDs | Status |
+|------------|------------|----------|--------|
+| Phase 1: Setup | [N] | T001, T002... | COVERED/MISSING |
+| Phase 2: Foundational | [N] | T005, T006... | COVERED/MISSING |
+| Phase 3: Business Logic | [N] | T010... | COVERED/MISSING |
+| Phase 4: API Layer | [N] | T020... | COVERED/MISSING |
+| Phase 5: Polish | [N] | T050... | COVERED/MISSING |
+
+**Validation Rules**:
+1. Every plan phase MUST have at least one task
+2. Tasks MUST cover ALL items listed in each phase
+3. ERROR and HALT if any plan phase has NO tasks
+
+If validation fails:
+- ERROR: "Plan phase '[Phase X]' has no implementing tasks"
+- Add missing tasks before proceeding
+
+### 4.5.2 Plan Task Item Coverage
+
+For EACH task item listed in plan.md phases:
+
+| Plan Task Item | Implementing Task(s) | Status |
+|----------------|---------------------|--------|
+| "Create directory structure" | T001 | COVERED |
+| "Set up configuration files" | T002 | COVERED |
+| "Implement services for each user story" | T010, T011, T012 | COVERED |
+
+**Validation Rule**: Every plan task item MUST have a corresponding task in
+tasks.md.
+
+### 4.5.3 Acceptance Criteria Traceability (GAP-03)
+
+For EACH acceptance criterion in spec.md user stories:
+
+| User Story | Acceptance Criterion | Task(s) Implementing | Status |
+|------------|---------------------|---------------------|--------|
+| US1 | "User can login with email" | T012, T015 | COVERED |
+| US1 | "Error shown on invalid credentials" | T016 | COVERED |
+| US2 | "User can view dashboard" | T020, T021 | COVERED |
+
+**Validation Rules**:
+1. Every acceptance criterion MUST map to at least one task
+2. Tasks implementing criteria MUST be in the correct user story phase
+3. ERROR if any criterion has NO implementing task
+
+If validation fails:
+- ERROR: "Acceptance criterion '[AC text]' from [USx] has no implementing task"
+- Add task to implement the missing criterion
+
+### 4.5.4 File Structure Alignment
+
+Cross-reference task file paths against plan.md file structure:
+
+For each task with a file path:
+- [ ] Path exists in plan.md "File Structure" section OR
+- [ ] Path follows project structure conventions
+
+| Task | File Path | In Plan Structure? |
+|------|-----------|-------------------|
+| T010 | src/models/user.ts | Yes |
+| T012 | src/services/auth.ts | Yes |
+
+**If mismatch found**:
+- Either update task paths to match plan
+- Or update plan structure (requires re-approval of plan)
+
+### 4.5.5 Data Model Task Coverage
+
+If data-model.md exists, verify tasks implement all entities:
+
+| Entity | Implementing Task(s) | Fields Covered? |
+|--------|---------------------|-----------------|
+| User | T010 | Yes |
+| Session | T011 | Yes |
+
+**Validation Rule**: Every data model entity MUST have implementing task(s).
+
+### 4.5.6 API Contract Task Coverage
+
+If contracts/ exist, verify tasks implement all endpoints:
+
+| Endpoint | Contract File | Implementing Task(s) |
+|----------|--------------|---------------------|
+| POST /api/auth/login | contracts/api.md | T015 |
+| GET /api/users/:id | contracts/api.md | T020 |
+
+**Validation Rule**: Every API contract endpoint MUST have implementing task(s).
+
+### 4.5.7 Generate Traceability Artifact
+
+Write `{FEATURE_DIR}/traceability.md`:
+
+```markdown
+# Requirement Traceability: [Feature Name]
+
+Generated: [ISO timestamp]
+
+## Spec → Plan → Tasks Mapping
+
+### User Story Coverage
+| User Story | Priority | Plan Phase | Tasks | Acceptance Criteria Status |
+|------------|----------|------------|-------|---------------------------|
+| US1 | P1 | Phase 3 | T010-T015 | 5/5 covered |
+| US2 | P2 | Phase 4 | T020-T025 | 3/3 covered |
+
+### Acceptance Criteria Detail
+| ID | Criterion | Task(s) | Phase |
+|----|-----------|---------|-------|
+| US1-AC1 | User can login | T012 | Phase 3 |
+| US1-AC2 | Error on failure | T016 | Phase 3 |
+
+### Plan Phase Coverage
+| Phase | Task Count | Coverage |
+|-------|------------|----------|
+| Setup | 4 | 100% |
+| Foundational | 3 | 100% |
+| US1 (P1) | 6 | 100% |
+| US2 (P2) | 5 | 100% |
+| Polish | 4 | 100% |
+
+## Coverage Summary
+
+- Plan Phases: [N]/[N] covered (100%)
+- User Stories: [N]/[N] covered (100%)
+- Acceptance Criteria: [N]/[N] covered (100%)
+- Data Entities: [N]/[N] covered (100%)
+- API Endpoints: [N]/[N] covered (100%)
+
+**Status**: VALIDATION PASSED ✓
+```
+
+**Proceed to approval gate ONLY when ALL validations pass.**
+
+---
+
 ## Step 5: Generate GitHub Issues
 
 Run the issues generator:

@@ -43,14 +43,22 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Parallel execution examples per story
    - Implementation strategy section (MVP first, incremental delivery)
 
-5. **Report**: Output path to generated tasks.md and summary:
+5. **Generate issues.md**: After creating tasks.md, run the issues generator:
+
+   ```bash
+   node .specify/scripts/node/generate-issues.js "$FEATURE_DIR"
+   ```
+
+   This will create issues.md with GitHub-ready issue definitions for each task.
+
+6. **Report**: Output path to generated tasks.md and issues.md with summary:
    - Total task count
    - Task count per user story
    - Parallel opportunities identified
    - Independent test criteria for each story
    - Suggested MVP scope (typically just User Story 1)
    - Format validation: Confirm ALL tasks follow the checklist format (checkbox, ID, labels, file paths)
-
+   - Issues.md confirmation: Number of GitHub issues generated
 Context for task generation: $ARGUMENTS
 
 The tasks.md should be immediately executable - each task must be specific enough that an LLM can complete it without additional context.

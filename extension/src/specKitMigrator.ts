@@ -261,6 +261,12 @@ export class SpecKitMigrator {
       // Fix path references in commands/scripts: specs/ → .specify/specs/
       await this.fixSpecPathReferences();
 
+      // Save the extension version to track future upgrades
+      const packageJson = require('../../package.json');
+      const versionFilePath = path.join(this.specifyPath, '.specgofer-version');
+      await fs.writeFile(versionFilePath, packageJson.version);
+      console.log(`[installSpecKitCLI] Saved version ${packageJson.version}`);
+
       console.log('[installSpecKitCLI] Bundled resources installed successfully');
       vscode.window.showInformationMessage('✓ Spec-kit templates installed successfully!');
     } catch (error: any) {
@@ -346,6 +352,12 @@ export class SpecKitMigrator {
         await this.createReadme();
 
         console.log('[SpecKit Update] Update complete!');
+
+        // Save the extension version to track upgrades
+        progress.report({ message: 'Saving version info...' });
+        const versionFilePath = path.join(this.specifyPath, '.specgofer-version');
+        await fs.writeFile(versionFilePath, packageJson.version);
+        console.log(`[SpecKit Update] Saved version ${packageJson.version} to ${versionFilePath}`);
       }
     );
 

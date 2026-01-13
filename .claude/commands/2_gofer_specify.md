@@ -219,6 +219,78 @@ points.
 
 ---
 
+## Step 3.5: Research Integration Validation (GAP-04)
+
+**CRITICAL**: Before proceeding, validate that the specification incorporates ALL
+findings from research.md. This prevents research waste and missed constraints.
+
+### 3.5.1 Integration Points Coverage
+
+For EACH integration point identified in research.md:
+
+| Integration Point | Addressed In Spec? | Section | How Addressed |
+|-------------------|-------------------|---------|---------------|
+| [Point from research] | Yes/No | [FR-X or Dependencies] | [Explanation] |
+
+**Validation Rule**: ALL integration points MUST appear in spec (Dependencies,
+Functional Requirements, or Assumptions section).
+
+If any integration point is NOT addressed:
+- ERROR: "Integration point '[X]' from research not addressed in spec"
+- Add to appropriate section before proceeding
+
+### 3.5.2 Constraint Acknowledgment
+
+For EACH constraint from research.md "Constraints & Considerations":
+
+| Constraint | Acknowledged? | Section | How Addressed |
+|------------|--------------|---------|---------------|
+| [Constraint from research] | Yes/No | [Assumptions/NFR] | [Explanation] |
+
+**Validation Rule**: ALL constraints MUST be acknowledged in Assumptions or
+Non-Functional Requirements.
+
+If any constraint is NOT acknowledged:
+- ERROR: "Constraint '[X]' from research not acknowledged in spec"
+- Add to Assumptions or NFR section
+
+### 3.5.3 Technology Decision Alignment
+
+For EACH technology decision from research.md:
+
+| Decision | Relevant to Spec? | Reflected In | Notes |
+|----------|------------------|--------------|-------|
+| [Tech decision] | Yes/No | [Dependencies/Assumptions] | [If relevant] |
+
+**Validation Rule**: Technology decisions affecting requirements MUST be
+reflected in Dependencies or inform requirement scoping.
+
+### 3.5.4 Pattern Compliance
+
+Verify spec requirements align with existing codebase patterns from research:
+
+- [ ] Requirements don't contradict existing patterns
+- [ ] Integration approach aligns with codebase conventions
+- [ ] Dependencies reference correct existing components
+
+### 3.5.5 Generate Research Coverage Matrix
+
+Add to end of spec.md:
+
+```markdown
+## Research Traceability
+
+| Research Finding | Spec Section | Reference |
+|------------------|--------------|-----------|
+| [Integration Point 1] | Dependencies | Line X |
+| [Constraint 1] | Assumptions | Line Y |
+| [Tech Decision 1] | FR-001 | Line Z |
+```
+
+**Proceed only when ALL research findings are traced to spec sections.**
+
+---
+
 ## Step 4: Create Quality Checklist
 
 Generate `{FEATURE_DIR}/checklists/requirements.md`:

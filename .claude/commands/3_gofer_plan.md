@@ -365,6 +365,100 @@ src/ ├── [component]/ │ ├── [file].ts │ └── [file].test.ts
 
 ---
 
+## Step 5.5: Spec Coverage Validation (GAP-01)
+
+**CRITICAL**: Before completing plan.md, validate that the plan covers ALL user
+stories and requirements from spec.md. This prevents partial implementations.
+
+### 5.5.1 User Story Coverage Matrix
+
+For EACH user story in spec.md, verify plan coverage:
+
+| User Story | Priority | Plan Phase(s) | Components | Data Entities | APIs |
+|------------|----------|---------------|------------|---------------|------|
+| US1 | P1 | Phase 3 | [list from plan] | [from data-model] | [from contracts] |
+| US2 | P2 | Phase 3 | [list from plan] | [from data-model] | [from contracts] |
+
+**Validation Rules**:
+1. Every user story MUST have at least one plan phase covering it
+2. Every acceptance criterion MUST map to a plan component
+3. ERROR if any user story has NO plan coverage
+
+If validation fails:
+- ERROR: "User story '[USx]' has no implementation coverage in plan"
+- Add missing components/phases before proceeding
+
+### 5.5.2 Acceptance Criteria Mapping
+
+For EACH acceptance criterion in spec.md user stories:
+
+| User Story | Acceptance Criterion | Plan Component | Implementation Approach |
+|------------|---------------------|----------------|------------------------|
+| US1 | [AC1 text] | [Component from plan] | [How it will be implemented] |
+| US1 | [AC2 text] | [Component from plan] | [How it will be implemented] |
+
+**Validation Rule**: Every acceptance criterion MUST have a corresponding plan
+component. If not, add the missing component to the plan.
+
+### 5.5.3 Functional Requirement Coverage
+
+For EACH functional requirement (FR-XXX) in spec.md:
+
+| FR-ID | Plan Component | Phase | Implementation Approach |
+|-------|----------------|-------|------------------------|
+| FR-001 | [component] | Phase X | [how addressed] |
+| FR-002 | [component] | Phase X | [how addressed] |
+
+**Validation Rule**: Every FR MUST have plan coverage. ERROR if any FR is
+unaddressed.
+
+### 5.5.4 Data Model Completeness
+
+If spec.md defines Key Entities, verify data-model.md covers them:
+
+| Spec Entity | In data-model.md? | Fields Complete? |
+|-------------|-------------------|------------------|
+| [Entity 1] | Yes/No | Yes/No |
+
+**Validation Rule**: All Key Entities from spec MUST appear in data-model.md
+with appropriate fields.
+
+### 5.5.5 API Contract Completeness
+
+If spec.md implies API endpoints (from FRs or user stories):
+
+| Implied API | In contracts/? | Matches Requirement? |
+|-------------|----------------|---------------------|
+| [GET /resource] | Yes/No | Yes/No |
+
+**Validation Rule**: All implied APIs MUST have corresponding contracts.
+
+### 5.5.6 Generate Spec Coverage Report
+
+Add to end of plan.md:
+
+```markdown
+## Spec Traceability
+
+### User Story Coverage
+| Story | Status | Plan References |
+|-------|--------|-----------------|
+| US1 (P1) | COVERED | Phase 3, Components X, Y |
+| US2 (P2) | COVERED | Phase 4, Components Z |
+
+### Requirement Coverage
+| Requirement | Status | Plan Reference |
+|-------------|--------|----------------|
+| FR-001 | COVERED | Phase 3, Task group A |
+| FR-002 | COVERED | Phase 4, Task group B |
+
+Coverage: 100% of user stories, 100% of functional requirements
+```
+
+**Proceed only when ALL spec items are traced to plan components.**
+
+---
+
 ## Step 6: Create Quickstart Guide
 
 Write `{FEATURE_DIR}/quickstart.md`:

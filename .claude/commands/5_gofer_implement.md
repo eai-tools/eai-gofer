@@ -45,30 +45,43 @@ If missing, prompt user to run the prerequisite stage.
 
 Before starting implementation, assess context window health:
 
-1. **Check context usage**: Run `/stats` or equivalent
-2. **Evaluate threshold**:
-   - If < 50%: Proceed normally
-   - If 50-70%: Consider `/compact` before starting
-   - If > 70%: Start new session with handoff summary
+```bash
+.specify/scripts/bash/check-context-health.sh
+```
 
-3. **If compaction needed**:
-   - Document key decisions made so far
-   - Save current state to `{FEATURE_DIR}/session-handoff.md`
-   - Run `/compact` or start fresh session
-   - Resume from handoff summary
+**Evaluate thresholds (2025-2026 research-based)**:
 
-**Handoff Summary Format** (if needed):
+| Status   | Token Usage | Action                                        |
+| -------- | ----------- | --------------------------------------------- |
+| Healthy  | < 50%       | Proceed normally                              |
+| Warning  | 50-70%      | Use sub-agents, checkpoint every 5 tasks      |
+| Critical | > 70%       | Run `/7_gofer_save`, start new session        |
 
-```markdown
-# Session Handoff: [Feature Name]
+### Context Management Techniques
 
-## Completed: [stages/tasks done]
+During implementation, use these techniques to preserve context quality:
 
-## Current State: [where we are, files touched]
+1. **Sub-Agent Architecture** (Recommended)
+   - Use Task tool with specialized agents for exploration
+   - Each agent returns condensed results (1-2k tokens)
+   - Keeps main context focused on implementation
 
-## Next Steps: [what remains]
+2. **Observation Masking**
+   - Old file reads become stale quickly
+   - Re-read files only when actively editing
+   - Avoid keeping full file contents in context
 
-## Key Decisions: [critical context to preserve]
+3. **Periodic Checkpoints**
+   - Every 5 completed tasks, check context health
+   - If Warning status: Run `/7_gofer_save`
+   - This enables resumption with fresh context
+
+**If compaction needed**:
+
+```bash
+/7_gofer_save  # Creates comprehensive checkpoint
+# Start new Claude Code session
+/8_gofer_resume  # Restores state with clean context
 ```
 
 ---

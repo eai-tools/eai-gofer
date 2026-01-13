@@ -6,15 +6,23 @@
 # Options:
 #   --json              Output in JSON format
 #   --threshold N       Set warning threshold percentage (default: 50)
-#   --limit N           Set context limit in tokens (default: 200000)
+#   --limit N           Set context limit in tokens (default: 120000)
+#   --effective         Use effective context limit (default, 60% of advertised)
+#   --advertised        Use advertised context limit (200k for Claude)
 #   --help              Show this help message
 #
-# Context Estimation:
+# Context Estimation (2025-2026 Research):
 #   - Characters / 4 = approximate tokens (conservative estimate)
 #   - Counts: spec.md, plan.md, tasks.md, contracts/, research.md
 #   - Also counts recently modified source files
 #
-# Part of the SpecGofer context management system (Gap 1).
+# Effective Context Lengths (per 2025-2026 research):
+#   While LLMs advertise large context windows, accuracy degrades significantly:
+#   - Claude Sonnet 4: 200k advertised → 60-120k effective
+#   - Claude Opus 4: 200k advertised → 100-150k effective
+#   - Gemini 2.5 Pro: 1M advertised → ~200k effective
+#
+# Part of the SpecGofer context management system.
 
 set -e
 
@@ -33,7 +41,10 @@ NC='\033[0m' # No Color
 JSON_OUTPUT=false
 WARNING_THRESHOLD=50  # Warn at 50%
 CRITICAL_THRESHOLD=70 # Critical at 70%
-CONTEXT_LIMIT=200000  # Default Claude context (200K tokens)
+# Use EFFECTIVE context limit by default (2025-2026 research shows 60-120k effective for Claude)
+CONTEXT_LIMIT=120000  # Effective Claude context (120K tokens)
+ADVERTISED_LIMIT=200000  # Advertised Claude context (200K tokens)
+USE_EFFECTIVE=true
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -48,10 +59,21 @@ while [[ $# -gt 0 ]]; do
             ;;
         --limit)
             CONTEXT_LIMIT="$2"
+            USE_EFFECTIVE=false  # User specified custom limit
             shift 2
             ;;
+        --effective)
+            CONTEXT_LIMIT=120000
+            USE_EFFECTIVE=true
+            shift
+            ;;
+        --advertised)
+            CONTEXT_LIMIT=$ADVERTISED_LIMIT
+            USE_EFFECTIVE=false
+            shift
+            ;;
         --help)
-            head -20 "$0" | grep "^#" | sed 's/^# //' | sed 's/^#//'
+            head -25 "$0" | grep "^#" | sed 's/^# //' | sed 's/^#//'
             exit 0
             ;;
         *)
@@ -168,15 +190,19 @@ main() {
     # Determine status
     local status="healthy"
     local recommendation=""
+    local techniques=""
 
     if [[ $total_tokens -gt $critical_threshold_tokens ]]; then
         status="critical"
-        recommendation="Start new session with handoff summary. Context is at risk of overflow."
+        recommendation="Run /7_gofer_save immediately, then start new session with /8_gofer_resume."
+        techniques="observation_masking,session_handoff"
     elif [[ $total_tokens -gt $warning_threshold_tokens ]]; then
         status="warning"
-        recommendation="Consider running /compact before continuing. Save important decisions to session-handoff.md."
+        recommendation="Consider running /7_gofer_save to checkpoint progress. Use sub-agents for exploration."
+        techniques="sub_agents,artifact_memory"
     else
         recommendation="Context is healthy. Continue working normally."
+        techniques="normal"
     fi
 
     # Output
@@ -186,6 +212,7 @@ main() {
   "status": "$status",
   "totalTokens": $total_tokens,
   "contextLimit": $CONTEXT_LIMIT,
+  "effectiveLimit": $USE_EFFECTIVE,
   "usagePercent": $usage_percent,
   "breakdown": {
     "specArtifacts": $spec_tokens,
@@ -196,7 +223,8 @@ main() {
     "warning": $WARNING_THRESHOLD,
     "critical": $CRITICAL_THRESHOLD
   },
-  "recommendation": "$recommendation"
+  "recommendation": "$recommendation",
+  "suggestedTechniques": "$techniques"
 }
 EOF
     else
@@ -220,7 +248,13 @@ EOF
         esac
 
         echo ""
-        echo "  Context Usage: $total_tokens / $CONTEXT_LIMIT tokens ($usage_percent%)"
+        if $USE_EFFECTIVE; then
+            echo "  Context Usage: $total_tokens / $CONTEXT_LIMIT tokens ($usage_percent%)"
+            echo -e "  ${BLUE}Using effective context limit (research-based)${NC}"
+        else
+            echo "  Context Usage: $total_tokens / $CONTEXT_LIMIT tokens ($usage_percent%)"
+            echo -e "  ${YELLOW}Using advertised/custom context limit${NC}"
+        fi
         echo ""
 
         # Progress bar
@@ -261,11 +295,24 @@ EOF
         echo "    $recommendation"
         echo ""
 
-        if [[ $status == "warning" ]] || [[ $status == "critical" ]]; then
-            echo "  Actions to take:"
-            echo "    1. Run /compact to reduce context"
-            echo "    2. Or save state to {FEATURE_DIR}/session-handoff.md"
-            echo "    3. Start a new session with the handoff summary"
+        if [[ $status == "warning" ]]; then
+            echo "  Recommended Actions:"
+            echo "    1. Use sub-agents (Task tool) for codebase exploration"
+            echo "    2. Run /7_gofer_save to checkpoint your progress"
+            echo "    3. Store key decisions in research.md or constitution.md"
+            echo "    4. Avoid reading entire files - use targeted line ranges"
+            echo ""
+        elif [[ $status == "critical" ]]; then
+            echo "  Required Actions:"
+            echo -e "    ${RED}1. Run /7_gofer_save NOW to capture session state${NC}"
+            echo "    2. Start a new Claude Code session"
+            echo "    3. Run /8_gofer_resume to restore context"
+            echo "    4. Continue with fresh context window"
+            echo ""
+            echo "  Context Management Techniques (2025-2026 Research):"
+            echo "    - Observation masking: 50%+ cost reduction, 2.6% better performance"
+            echo "    - Session handoffs: Preserve progress across context boundaries"
+            echo "    - Sub-agent architecture: Condensed results (1-2k tokens vs raw output)"
             echo ""
         fi
 

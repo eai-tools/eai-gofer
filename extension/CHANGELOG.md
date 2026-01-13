@@ -2,6 +2,12 @@
 
 All notable changes to the SpecGofer extension will be documented in this file.
 
+## [4.2.6] - 2026-01-13
+
+chore: pre-release changes
+
+Auto-committed changes before release v4.2.5
+
 ## [4.2.5] - 2026-01-13
 
 Add missing bash scripts to bundle (check-context-health, log-stage, save-checkpoint, verify-task)

@@ -1,8 +1,17 @@
 {
-  "latest_version": "4.2.7",
+  "latest_version": "4.3.0",
   "repository": "eai-tools/specgofer",
-  "last_updated": "2026-01-13T02:53:31.238Z",
+  "last_updated": "2026-01-13T03:27:56.944Z",
   "releases": [
+    {
+      "version": "4.3.0",
+      "tag_name": "v4.3.0",
+      "published_at": "2026-01-13T03:27:56.944Z",
+      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-4.3.0.vsix",
+      "notes": "chore: pre-release changes\n\nAuto-committed changes before release v4.2.7",
+      "prerelease": false,
+      "size_mb": 16
+    },
     {
       "version": "4.2.7",
       "tag_name": "v4.2.7",
@@ -83,15 +92,6 @@
       "notes": "chore: pre-release changes\n\nAuto-committed changes before release v4.1.1",
       "prerelease": false,
       "size_mb": 16
-    },
-    {
-      "version": "4.1.1",
-      "tag_name": "v4.1.1",
-      "published_at": "2026-01-08T06:27:46.617Z",
-      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-4.1.1.vsix",
-      "notes": "Fix buggy regex that corrupted copilot-instructions.md on upgrade",
-      "prerelease": false,
-      "size_mb": 15.9
     }
   ]
 }

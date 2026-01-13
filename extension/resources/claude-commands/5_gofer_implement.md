@@ -1,0 +1,447 @@
+---
+description: Execute tasks from tasks.md to implement the feature
+---
+
+# Gofer Implement
+
+You are executing the implementation plan by processing all tasks from tasks.md.
+This is the **fifth stage** of the unified Gofer pipeline.
+
+## User Input
+
+```text
+$ARGUMENTS
+```
+
+You **MUST** consider the user input before proceeding (if not empty).
+
+## Prerequisites
+
+This command expects in `.specify/specs/{feature}/`:
+
+- `research.md` - Codebase analysis (from /1_gofer_research)
+- `spec.md` - Feature specification (from /2_gofer_specify)
+- `plan.md` - Implementation plan (from /3_gofer_plan)
+- `tasks.md` - Task breakdown (from /4_gofer_tasks)
+
+If missing, prompt user to run the prerequisite stage.
+
+---
+
+## Outline
+
+1. Context health check
+2. Load implementation context
+3. Load scope boundaries
+4. Check checklists status
+5. Verify project setup
+6. Execute tasks phase by phase (with feedback loops)
+7. Track progress and handle errors
+8. Output: Implemented feature code
+
+---
+
+## Step 1: Context Health Check
+
+Before starting implementation, assess context window health:
+
+1. **Check context usage**: Run `/stats` or equivalent
+2. **Evaluate threshold**:
+   - If < 50%: Proceed normally
+   - If 50-70%: Consider `/compact` before starting
+   - If > 70%: Start new session with handoff summary
+
+3. **If compaction needed**:
+   - Document key decisions made so far
+   - Save current state to `{FEATURE_DIR}/session-handoff.md`
+   - Run `/compact` or start fresh session
+   - Resume from handoff summary
+
+**Handoff Summary Format** (if needed):
+
+```markdown
+# Session Handoff: [Feature Name]
+
+## Completed: [stages/tasks done]
+
+## Current State: [where we are, files touched]
+
+## Next Steps: [what remains]
+
+## Key Decisions: [critical context to preserve]
+```
+
+---
+
+## Step 2: Load Context
+
+1. **Run setup script**:
+
+   ```bash
+   .specify/scripts/bash/check-prerequisites.sh --json --require-tasks --include-tasks
+   ```
+
+   Parse JSON for FEATURE_DIR and task list
+
+2. **Load implementation documents**:
+   - **Required**: tasks.md (task list and execution plan)
+   - **Required**: plan.md (tech stack, architecture, file structure)
+   - **Required**: spec.md (scope boundaries and protected files)
+   - **Optional**: data-model.md (entities and relationships)
+   - **Optional**: contracts/ (API specifications)
+   - **Optional**: research.md (technical decisions)
+   - **Optional**: quickstart.md (integration scenarios)
+
+---
+
+## Step 3: Load Scope Boundaries
+
+Extract protected boundaries from spec.md and tasks.md:
+
+1. **Read "Protected Boundaries" section from spec.md**
+2. **Read "Protected Files" section from tasks.md**
+3. **Build exclusion list**:
+
+   ```
+   PROTECTED_FILES:
+   - path/to/file1.ts (reason: backward compatibility)
+   - path/to/directory/ (reason: out of scope)
+   ```
+
+4. **Display to confirm**:
+
+   ```
+   ⚠️  SCOPE BOUNDARIES LOADED
+   The following files/patterns are PROTECTED and must NOT be modified:
+   - [list files]
+
+   If you need to modify these, STOP and ask for approval.
+   ```
+
+---
+
+## Step 4: Check Checklists Status
+
+If `{FEATURE_DIR}/checklists/` exists:
+
+1. **Scan all checklist files**
+2. **Count completion status** for each:
+   - Total items: `- [ ]` or `- [X]` or `- [x]`
+   - Completed: `- [X]` or `- [x]`
+   - Incomplete: `- [ ]`
+
+3. **Display status table**:
+
+   ```
+   | Checklist      | Total | Completed | Incomplete | Status |
+   |----------------|-------|-----------|------------|--------|
+   | requirements.md| 12    | 12        | 0          | ✓ PASS |
+   | ux.md          | 8     | 5         | 3          | ✗ FAIL |
+   ```
+
+4. **If any incomplete**:
+   - Display the table
+   - **STOP** and ask: "Some checklists are incomplete. Proceed anyway?
+     (yes/no)"
+   - Wait for user response
+
+5. **If all complete**: Proceed automatically
+
+---
+
+## Step 5: Project Setup Verification
+
+Create/verify ignore files based on project setup:
+
+### Detection Logic
+
+- Git repo? → verify `.gitignore`
+- Dockerfile exists? → verify `.dockerignore`
+- ESLint config? → verify `.eslintignore`
+- Prettier config? → verify `.prettierignore`
+
+### Common Patterns by Tech Stack
+
+Read tech stack from plan.md and ensure appropriate patterns:
+
+- **Node.js**: `node_modules/`, `dist/`, `build/`, `*.log`, `.env*`
+- **Python**: `__pycache__/`, `*.pyc`, `.venv/`, `dist/`
+- **TypeScript**: `node_modules/`, `dist/`, `*.js.map`, `.tsbuildinfo`
+- **Universal**: `.DS_Store`, `*.tmp`, `*.swp`, `.vscode/`, `.idea/`
+
+---
+
+## Step 6: Parse Tasks Structure
+
+Extract from tasks.md:
+
+1. **Task phases**: Setup, Foundational, User Stories, Polish
+2. **Dependencies**: Sequential vs parallel execution
+3. **Task details**: ID, description, file paths, [P] markers
+4. **Current progress**: Which tasks are already `[X]` completed
+5. **Protected files**: List from "Protected Files" section
+
+---
+
+## Step 7: Execute Implementation
+
+### Checkpoint Strategy
+
+Create checkpoints (git commits) at strategic points:
+
+| Checkpoint Point                 | Command                                                            |
+| -------------------------------- | ------------------------------------------------------------------ |
+| Before starting each phase       | `git add -A && git commit -m "WIP: checkpoint before Phase N"`     |
+| After completing each user story | `git add -A && git commit -m "feat: complete US1 - [description]"` |
+| Before any risky operation       | `git add -A && git commit -m "WIP: checkpoint before [operation]"` |
+
+**Risky operations requiring checkpoint**:
+
+- Modifying database schemas or migrations
+- Changing authentication/authorization logic
+- Modifying core infrastructure or shared utilities
+- Large refactoring (> 5 files)
+- Deleting or renaming significant code
+
+### Scope Enforcement
+
+**Before EACH file modification**:
+
+1. ✓ Check file path is in planned scope (listed in tasks.md)
+2. ✓ Check file is NOT in Protected Files list (from Step 3)
+3. If file is protected:
+
+   ```
+   ⚠️  SCOPE BOUNDARY VIOLATION
+   File: [path/to/file]
+   Reason: [from Protected Files list]
+
+   This file is marked as protected and must NOT be modified.
+   Options:
+   1. Find alternative approach that doesn't touch this file
+   2. STOP and ask user for explicit approval to cross boundary
+   ```
+
+### Execution Rules
+
+1. **Phase-by-phase**: Complete each phase before next
+2. **Respect dependencies**: Sequential tasks in order
+3. **Parallel tasks**: [P] marked tasks can run together
+4. **File coordination**: Same-file tasks run sequentially
+5. **Scope check**: Verify every file against protected list
+
+### Execution Order
+
+1. **Setup first**: Project structure, dependencies, config
+2. **Foundational next**: Shared components blocking user stories
+3. **User stories**: In priority order (P1, P2, P3...)
+4. **Polish last**: Documentation, optimization, final tests
+
+### For Each Task
+
+1. Read the task description and file path
+2. **SCOPE CHECK**: Verify file is not protected
+3. Load relevant context (data-model, contracts, research)
+4. Implement according to plan.md architecture
+5. Follow existing codebase patterns (from research.md)
+6. **RUN FEEDBACK LOOP** (see below)
+7. Mark task complete: Change `- [ ]` to `- [X]` in tasks.md
+8. Report progress
+
+### Feedback Loop (After EACH Task)
+
+**Immediately after completing each task, run verification**:
+
+```bash
+# 1. Run relevant tests (if test file exists for this component)
+npm test -- --grep "[component pattern]"  # or pytest -k "pattern"
+
+# 2. Run linter on modified files
+npm run lint -- [modified files]  # or ruff check [files]
+
+# 3. Run type check (TypeScript projects)
+npm run typecheck  # or tsc --noEmit
+```
+
+**Feedback Loop Rules**:
+
+- If tests fail → **FIX BEFORE** proceeding to next task
+- If lint errors → **FIX BEFORE** proceeding
+- If type errors → **FIX BEFORE** proceeding
+- **DO NOT** accumulate failures across tasks
+
+### After Each Phase
+
+Run full verification before proceeding:
+
+```bash
+# Full test suite
+npm test
+
+# Full build
+npm run build
+
+# Full lint
+npm run lint
+```
+
+**Phase Gate**: Do NOT proceed to next phase if build is broken.
+
+---
+
+## Step 8: Progress Tracking
+
+### After Each Task
+
+```
+✓ T001 Create directory structure - DONE
+→ T002 [P] Set up configuration files - IN PROGRESS
+```
+
+### After Each Phase
+
+```
+═══════════════════════════════════════
+  Phase 1: Setup - COMPLETE
+═══════════════════════════════════════
+  Tasks completed: 4/4
+  Files created:
+    - src/index.ts
+    - src/config.ts
+    - package.json
+    - tsconfig.json
+
+  → Starting Phase 2: Foundational
+═══════════════════════════════════════
+```
+
+---
+
+## Step 9: Error Handling
+
+### If Task Fails
+
+1. Report the error with context
+2. **For sequential tasks**: Halt execution
+3. **For parallel [P] tasks**: Continue others, report failed
+4. Provide debugging suggestions
+5. Ask user how to proceed:
+   - Retry the task
+   - Skip and continue
+   - Stop implementation
+
+### If Blocked
+
+1. Identify the blocker
+2. Check if it's a missing prerequisite
+3. Suggest running earlier stage if needed
+4. Document the issue in tasks.md
+
+### If Something Goes Wrong (Rollback)
+
+1. **STOP immediately** - don't make more changes
+2. **Assess damage**:
+   ```bash
+   git status
+   git diff
+   ```
+3. **Rollback options**:
+   - Single file: `git checkout HEAD -- <file>`
+   - All uncommitted: `git reset --hard HEAD`
+   - To last checkpoint: `git reset --hard <checkpoint-commit>`
+4. **Document** what went wrong in tasks.md
+5. **Retry** with modified approach
+
+---
+
+## Step 10: Completion Validation
+
+After all tasks complete:
+
+1. **Verify all tasks marked [X]**
+2. **Check implementation matches spec**
+3. **Run automated tests** if they exist
+4. **Validate against plan.md architecture**
+
+---
+
+## Step 11: Report and Continue
+
+After implementation complete:
+
+```
+════════════════════════════════════════════════════════════════
+  ✓ IMPLEMENTATION COMPLETE: [Feature Name]
+════════════════════════════════════════════════════════════════
+
+  Tasks: [N]/[N] completed
+
+  Phases completed:
+  - Phase 1: Setup ✓
+  - Phase 2: Foundational ✓
+  - Phase 3: US1 ✓
+  - Phase 4: US2 ✓
+  - Phase 5: Polish ✓
+
+  Files created/modified:
+  - src/models/user.ts (new)
+  - src/services/userService.ts (new)
+  - src/routes/users.ts (new)
+  - src/index.ts (modified)
+
+  Ready for next stage: /6_gofer_validate
+
+════════════════════════════════════════════════════════════════
+```
+
+If orchestrated by `/0_business_scenario`, the orchestrator will automatically
+invoke `/6_gofer_validate` next.
+
+---
+
+## Resumption Support
+
+If implementation was interrupted:
+
+1. Parse tasks.md for `- [X]` completed tasks
+2. Find first incomplete task `- [ ]`
+3. Resume from that task
+4. Report what was already done
+
+**Note**: Implementation is stateful - it resumes from the last completed task.
+
+---
+
+## LLM Council Integration (Optional)
+
+When council mode is enabled:
+
+1. Complex implementation decisions go to all providers
+2. Different approaches compared
+3. Chairman synthesizes best solution
+4. Usage logged to `.specify/logs/council-usage.jsonl`
+
+---
+
+## Observability Logging
+
+At stage completion, log metrics:
+
+```bash
+.specify/scripts/bash/log-stage.sh 5_implement --complete --tokens [N] --compactions [N]
+```
+
+Logs to: `.specify/logs/pipeline.jsonl`
+
+---
+
+## Key Rules
+
+- ALWAYS mark tasks complete in tasks.md as you finish them
+- Use absolute paths for all file operations
+- Follow existing codebase patterns from research.md
+- Follow architecture from plan.md
+- Report progress clearly after each task
+- Stop on errors for sequential tasks
+- Implementation must match specification
+- Log stage completion for observability tracking

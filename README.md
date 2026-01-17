@@ -78,6 +78,26 @@ This automatically:
 | Implement | `/5_gofer_implement` | Source code            |
 | Validate  | `/6_gofer_validate`  | validation-report.md   |
 
+### Unified Commands for Claude & Copilot
+
+**Both Claude Code and GitHub Copilot use identical command names!**
+
+| Command                | Purpose                                  |
+| ---------------------- | ---------------------------------------- |
+| `/0_business_scenario` | Main orchestrator - starts full pipeline |
+| `/1_gofer_research`    | Deep codebase and technology research    |
+| `/2_gofer_specify`     | Create feature specification             |
+| `/3_gofer_plan`        | Generate implementation plan             |
+| `/4_gofer_tasks`       | Create task breakdown                    |
+| `/5_gofer_implement`   | Execute tasks autonomously               |
+| `/6_gofer_validate`    | Validate implementation                  |
+| `/7_gofer_save`        | Save session checkpoint                  |
+| `/8_gofer_resume`      | Resume from checkpoint                   |
+| `/9_gofer_tests`       | Define acceptance tests                  |
+| `/10_gofer_cloud`      | Cloud infrastructure analysis            |
+| `/gofer_constitution`  | Project coding principles                |
+| `/gofer_hydrate`       | Reverse-engineer spec from code          |
+
 **Alternative: MCP Tools for AI Assistants**
 
 AI can also call MCP tools directly:
@@ -87,6 +107,26 @@ AI can also call MCP tools directly:
 3. Run tests via `specgofer_run_tests`
 4. Mark complete via `specgofer_update_task_status`
 5. Move to next task
+
+## GitHub Codespaces Support
+
+**✅ SpecGofer works seamlessly in GitHub Codespaces with automatic
+installation!**
+
+When you open this repository in a Codespace, the extension is automatically:
+
+- Downloaded from GitHub releases (or built from source as fallback)
+- Installed and activated
+- Ready to use immediately
+
+**No manual installation needed!** Just:
+
+1. Open in Codespace
+2. Wait for setup to complete
+3. Start using `/0_business_scenario` or other Gofer commands
+
+See [.devcontainer/EXTENSION_SETUP.md](.devcontainer/EXTENSION_SETUP.md) for
+technical details.
 
 ## How It Works
 

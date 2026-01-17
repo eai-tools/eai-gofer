@@ -2,6 +2,10 @@
 
 All notable changes to the SpecGofer extension will be documented in this file.
 
+## [4.4.0] - 2026-01-17
+
+Auto-release
+
 ## [4.3.2] - 2026-01-13
 
 chore: pre-release changes
@@ -34,7 +38,8 @@ Auto-committed changes before release v4.2.5
 
 ## [4.2.5] - 2026-01-13
 
-Add missing bash scripts to bundle (check-context-health, log-stage, save-checkpoint, verify-task)
+Add missing bash scripts to bundle (check-context-health, log-stage,
+save-checkpoint, verify-task)
 
 ## [4.2.4] - 2026-01-12
 
@@ -78,7 +83,8 @@ Add IPC status, ValidationService, TestHarnessGenerator, and hydrate command
 
 ## [4.0.0] - 2026-01-07
 
-LLM Council integration with multi-provider parallel execution, expanded test coverage, and business scenario triage
+LLM Council integration with multi-provider parallel execution, expanded test
+coverage, and business scenario triage
 
 ## [3.6.1] - 2025-11-05
 
@@ -94,7 +100,8 @@ Auto-committed changes before release v3.5.0
 
 ## [3.5.0] - 2025-11-05
 
-Add dual-mode monitoring: fast idle detection (10s) + comprehensive checks (60s) with question-focused prompts
+Add dual-mode monitoring: fast idle detection (10s) + comprehensive checks (60s)
+with question-focused prompts
 
 ## [3.4.0] - 2025-11-05
 

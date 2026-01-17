@@ -6,8 +6,44 @@
 
 SpecGofer is a **self-orchestrating development system** that uses AI agents to
 implement features from specifications. You're working with a sophisticated
-multi-layered architecture that eliminates manual workflows by coordinating
-Claude AI, Playwright testing, and autonomous validation.
+multi-layered architecture that eliminates manual workflows by coordinating AI
+assistants (Claude Code or GitHub Copilot), Playwright testing, and autonomous
+validation.
+
+## Dual AI Support (Claude Code & GitHub Copilot)
+
+SpecGofer works with **both Claude Code and GitHub Copilot** with **identical
+command names**:
+
+| Feature       | Claude Code             | GitHub Copilot                           |
+| ------------- | ----------------------- | ---------------------------------------- |
+| Commands      | `.claude/commands/*.md` | `.github/prompts/*.prompt.md`            |
+| Agents        | `.claude/agents/*.md`   | `.github/agents/*.agent.md`              |
+| Instructions  | `CLAUDE.md`             | `.github/copilot-instructions.md`        |
+| Path-specific | N/A                     | `.github/instructions/*.instructions.md` |
+| MCP Tools     | Via `.vscode/mcp.json`  | Via VS Code native support               |
+
+**Available Commands** (type `/` in Claude or Copilot Chat):
+
+### Main Pipeline
+
+- `/0_business_scenario` - Main orchestrator (research → specify → plan →
+  implement → validate)
+- `/1_gofer_research` - Deep codebase and technology research
+- `/2_gofer_specify` - Create feature specification from research
+- `/3_gofer_plan` - Generate technical implementation plan
+- `/4_gofer_tasks` - Create dependency-ordered task breakdown
+- `/5_gofer_implement` - Execute tasks autonomously
+- `/6_gofer_validate` - Validate implementation against spec
+
+### Auxiliary Commands
+
+- `/7_gofer_save` - Save session checkpoint for resumption
+- `/8_gofer_resume` - Resume work from saved checkpoint
+- `/9_gofer_tests` - Define acceptance tests using DSL approach
+- `/10_gofer_cloud` - READ-ONLY cloud infrastructure analysis
+- `/gofer_constitution` - Create/update project constitution
+- `/gofer_hydrate` - Reverse-engineer spec from existing code
 
 ## Architecture (Critical Understanding)
 
@@ -70,26 +106,43 @@ frontmatter and parse Markdown task lists with dependencies.
 When users ask "how do I use this?" or "how does this work?", guide them through
 this workflow:
 
+### Using with GitHub Copilot
+
+SpecGofer works with **both Claude Code and GitHub Copilot**. The prompts are
+available in `.github/prompts/` and work identically in both tools.
+
+**In VS Code with Copilot**, type `/` followed by the prompt name:
+
+```
+/0_business_scenario Add user authentication with OAuth2
+/1_gofer_research Create a REST API for blog posts
+/5_gofer_implement
+```
+
 ### The Complete Autonomous Workflow
 
 ```bash
+# Step 1: Start with the unified pipeline (recommended)
+/0_business_scenario Add user authentication with OAuth2
+# OR use individual commands:
+
 # Step 1: Create specification
-/speckit.specify
+/2_gofer_specify
 # User provides: "Build a feature that does X"
 # Output: .specify/specs/NNN-feature/spec.md
 
 # Step 2: Generate implementation plan
-/speckit.plan
+/3_gofer_plan
 # Output: plan.md, tasks.md with all tasks and dependencies
 
 # Step 3: (Optional) Clarify ambiguities
-/speckit.clarify
+# (Use conversation to clarify)
 
 # Step 4: (Optional) Validate consistency
-/speckit.analyze
+# (Use /6_gofer_validate)
 
 # Step 5: AUTONOMOUS IMPLEMENTATION
-/speckit.implement
+/5_gofer_implement
 # SpecGofer will autonomously:
 # - Read all tasks from tasks.md
 # - Implement each task in dependency order
@@ -99,7 +152,7 @@ this workflow:
 # - KEEP GOING until all tasks complete!
 ```
 
-**Key Point**: Users do NOT need to prompt for each task. `/speckit.implement`
+**Key Point**: Users do NOT need to prompt for each task. `/5_gofer_implement`
 runs autonomously until done! Refer users to QUICKSTART.md for detailed
 walkthrough.
 
@@ -245,8 +298,7 @@ Three separate `package.json` files:
 
 - **Method 1**: VSCode native MCP support (1.102+) → Reads tools from Language
   Server
-- **Method 2**: File-based (legacy) → `.claude-input.txt` ↔
-  `.claude-output.txt`
+- **Method 2**: File-based (legacy) → `.claude-input.txt` ↔ `.claude-output.txt`
 - **Config**: Auto-created `.vscode/mcp.json` by extension (`mcpConfig.ts`)
 
 ### GitHub Spec Kit Migration

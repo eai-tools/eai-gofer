@@ -182,6 +182,14 @@ export class SpecKitMigrator {
         console.log('[SpecKit] Setting up Claude agents...');
         await this.setupClaudeAgents();
 
+        progress.report({ message: 'Setting up GitHub Copilot prompts...' });
+        console.log('[SpecKit] Setting up GitHub Copilot prompts...');
+        await this.setupCopilotPrompts();
+
+        progress.report({ message: 'Setting up GitHub Copilot instructions...' });
+        console.log('[SpecKit] Setting up GitHub Copilot instructions...');
+        await this.setupCopilotInstructions();
+
         progress.report({ message: 'Creating bash scripts...' });
         console.log('[SpecKit] Creating bash scripts...');
         await this.createBashScripts();
@@ -318,6 +326,14 @@ export class SpecKitMigrator {
         progress.report({ message: 'Updating Claude agents...' });
         console.log('[SpecKit Update] Setting up Claude agents...');
         await this.setupClaudeAgents();
+
+        progress.report({ message: 'Updating GitHub Copilot prompts...' });
+        console.log('[SpecKit Update] Setting up GitHub Copilot prompts...');
+        await this.setupCopilotPrompts();
+
+        progress.report({ message: 'Updating GitHub Copilot instructions...' });
+        console.log('[SpecKit Update] Setting up GitHub Copilot instructions...');
+        await this.setupCopilotInstructions();
 
         progress.report({ message: 'Updating bash scripts...' });
         console.log('[SpecKit Update] Creating bash scripts...');
@@ -507,6 +523,149 @@ export class SpecKitMigrator {
       }
     } catch (error) {
       console.error('[setupClaudeAgents] Failed to setup Claude agents:', error);
+    }
+  }
+
+  /**
+   * Setup GitHub Copilot prompt files from .github/prompts/
+   * These are the Copilot equivalent of Claude commands
+   */
+  private async setupCopilotPrompts(): Promise<void> {
+    try {
+      console.log('[setupCopilotPrompts] Starting...');
+
+      const githubDir = path.join(this.workspacePath, '.github');
+      const promptsDir = path.join(githubDir, 'prompts');
+
+      // Ensure .github/prompts directory exists
+      await fs.mkdir(promptsDir, { recursive: true });
+      console.log('[setupCopilotPrompts] Created directory:', promptsDir);
+
+      // Clean up old speckit.* prompts (deprecated naming convention)
+      await this.cleanupOldCopilotPrompts(promptsDir);
+
+      // Copy prompt files from the repo's .github/prompts to workspace
+      // The extension bundles these from the repo during packaging
+      let extensionPath = vscode.extensions.getExtension('EnterpriseAI.specgofer')?.extensionPath;
+      if (!extensionPath) {
+        extensionPath = path.resolve(__dirname, '..');
+      }
+
+      // Check for bundled copilot prompts
+      const bundledPromptsPath = path.join(extensionPath, 'resources', 'copilot-prompts');
+      try {
+        const files = await fs.readdir(bundledPromptsPath);
+        let copiedCount = 0;
+        for (const file of files) {
+          if (file.endsWith('.prompt.md')) {
+            const source = path.join(bundledPromptsPath, file);
+            const target = path.join(promptsDir, file);
+            await fs.copyFile(source, target);
+            copiedCount++;
+            console.log('[setupCopilotPrompts] Copied:', file);
+          }
+        }
+        console.log('[setupCopilotPrompts] Successfully copied', copiedCount, 'prompt files');
+      } catch {
+        console.log('[setupCopilotPrompts] No bundled Copilot prompts found, skipping');
+      }
+    } catch (error) {
+      console.error('[setupCopilotPrompts] Failed to setup Copilot prompts:', error);
+    }
+  }
+
+  /**
+   * Clean up old speckit.* prompt files that use deprecated naming convention
+   * These should be replaced with the unified gofer_* naming
+   */
+  private async cleanupOldCopilotPrompts(promptsDir: string): Promise<void> {
+    try {
+      console.log('[cleanupOldCopilotPrompts] Checking for deprecated prompts...');
+
+      const deprecatedPatterns = [
+        'speckit.specify.prompt.md',
+        'speckit.plan.prompt.md',
+        'speckit.tasks.prompt.md',
+        'speckit.implement.prompt.md',
+        'speckit.analyze.prompt.md',
+        'speckit.clarify.prompt.md',
+        'speckit.constitution.prompt.md',
+        'speckit.checklist.prompt.md',
+        'speckit.taskstoissues.prompt.md',
+        'gofer.prompt.md', // Old unified gofer (replaced by 0_business_scenario)
+      ];
+
+      let deletedCount = 0;
+      for (const file of deprecatedPatterns) {
+        const filePath = path.join(promptsDir, file);
+        try {
+          await fs.unlink(filePath);
+          deletedCount++;
+          console.log('[cleanupOldCopilotPrompts] Deleted deprecated:', file);
+        } catch {
+          // File doesn't exist, that's fine
+        }
+      }
+
+      if (deletedCount > 0) {
+        console.log(
+          '[cleanupOldCopilotPrompts] Cleaned up',
+          deletedCount,
+          'deprecated prompt files'
+        );
+      } else {
+        console.log('[cleanupOldCopilotPrompts] No deprecated prompts found');
+      }
+    } catch (error) {
+      console.error('[cleanupOldCopilotPrompts] Error during cleanup:', error);
+    }
+  }
+
+  /**
+   * Setup GitHub Copilot path-specific instructions from .github/instructions/
+   * These provide context-aware coding guidelines
+   */
+  private async setupCopilotInstructions(): Promise<void> {
+    try {
+      console.log('[setupCopilotInstructions] Starting...');
+
+      const githubDir = path.join(this.workspacePath, '.github');
+      const instructionsDir = path.join(githubDir, 'instructions');
+
+      // Ensure .github/instructions directory exists
+      await fs.mkdir(instructionsDir, { recursive: true });
+      console.log('[setupCopilotInstructions] Created directory:', instructionsDir);
+
+      // Copy instructions files from the repo's .github/instructions to workspace
+      let extensionPath = vscode.extensions.getExtension('EnterpriseAI.specgofer')?.extensionPath;
+      if (!extensionPath) {
+        extensionPath = path.resolve(__dirname, '..');
+      }
+
+      // Check for bundled copilot instructions
+      const bundledInstructionsPath = path.join(extensionPath, 'resources', 'copilot-instructions');
+      try {
+        const files = await fs.readdir(bundledInstructionsPath);
+        let copiedCount = 0;
+        for (const file of files) {
+          if (file.endsWith('.instructions.md')) {
+            const source = path.join(bundledInstructionsPath, file);
+            const target = path.join(instructionsDir, file);
+            await fs.copyFile(source, target);
+            copiedCount++;
+            console.log('[setupCopilotInstructions] Copied:', file);
+          }
+        }
+        console.log(
+          '[setupCopilotInstructions] Successfully copied',
+          copiedCount,
+          'instruction files'
+        );
+      } catch {
+        console.log('[setupCopilotInstructions] No bundled Copilot instructions found, skipping');
+      }
+    } catch (error) {
+      console.error('[setupCopilotInstructions] Failed to setup Copilot instructions:', error);
     }
   }
 

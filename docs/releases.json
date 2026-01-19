@@ -1,8 +1,17 @@
 {
-  "latest_version": "4.5.0",
+  "latest_version": "4.6.0",
   "repository": "eai-tools/specgofer",
-  "last_updated": "2026-01-19T11:20:00.000Z",
+  "last_updated": "2026-01-19T11:50:48.592Z",
   "releases": [
+    {
+      "version": "4.6.0",
+      "tag_name": "v4.6.0",
+      "published_at": "2026-01-19T11:50:48.591Z",
+      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-4.6.0.vsix",
+      "notes": "Add Gofer Memory and Journey System - agentic memory with priority-based retention, interactive journey mapping, journey variant generation, multi-option sequence diagrams, and vertical slice delivery",
+      "prerelease": false,
+      "size_mb": 16.1
+    },
     {
       "version": "4.5.0",
       "tag_name": "v4.5.0",

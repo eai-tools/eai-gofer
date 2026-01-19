@@ -2,6 +2,10 @@
 
 All notable changes to the SpecGofer extension will be documented in this file.
 
+## [4.6.1] - 2026-01-20
+
+fix: auto-reload VS Code after extension update
+
 ## [4.6.0] - 2026-01-19
 
 Add Gofer Memory and Journey System - agentic memory with priority-based retention, interactive journey mapping, journey variant generation, multi-option sequence diagrams, and vertical slice delivery

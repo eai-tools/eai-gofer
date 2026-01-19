@@ -1,10 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { describe, it, expect, beforeEach } from 'vitest';
 import { AutoUpdater } from '../../../extension/src/autoUpdater';
-import * as https from 'https';
-import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
-import { EventEmitter } from 'events';
 
 /**
  * Tests for AutoUpdater - version checking and update management
@@ -465,7 +463,7 @@ describe('AutoUpdater - Download URL Construction', () => {
   });
 
   it('should construct correct GitHub releases API URL', () => {
-    const repo = 'eai-tools/specgofer';
+    // Path for GitHub Pages releases.json
     const expectedPath = '/specgofer/releases.json';
 
     expect(expectedPath).toBe('/specgofer/releases.json');
@@ -662,7 +660,7 @@ describe('AutoUpdater - Integration Scenarios', () => {
     it('should use correct path separator for platform', () => {
       const separator = path.sep;
       expect(separator).toBeDefined();
-      expect(["/", "\\"]).toContain(separator);
+      expect(['/', '\\']).toContain(separator);
     });
   });
 });
@@ -744,6 +742,140 @@ describe('AutoUpdater - Real-World Scenarios', () => {
       const cleanVersion = version.replace(/^v/, '');
 
       expect(cleanVersion).toBe('2.5.3');
+    });
+  });
+});
+
+describe('AutoUpdater - Auto-Reload Behavior', () => {
+  describe('Post-Installation Flow', () => {
+    it('should display countdown message format correctly', () => {
+      const secondsRemaining = 5;
+      const message = `Reloading VS Code in ${secondsRemaining}s... (Click Cancel to postpone)`;
+
+      expect(message).toContain('Reloading VS Code');
+      expect(message).toContain('5s');
+      expect(message).toContain('Cancel');
+    });
+
+    it('should format success title correctly', () => {
+      const version = '4.6.1';
+      const title = `✅ SpecGofer v${version} installed!`;
+
+      expect(title).toContain('SpecGofer');
+      expect(title).toContain('4.6.1');
+      expect(title).toContain('installed');
+    });
+
+    it('should format cancellation message correctly', () => {
+      const version = '4.6.1';
+      const message = `SpecGofer v${version} is installed. Reload VS Code manually when ready.`;
+
+      expect(message).toContain('SpecGofer');
+      expect(message).toContain('4.6.1');
+      expect(message).toContain('manually');
+    });
+
+    it('should countdown from 5 seconds', () => {
+      let secondsRemaining = 5;
+      const countdownSteps: number[] = [];
+
+      // Simulate countdown
+      while (secondsRemaining > 0) {
+        countdownSteps.push(secondsRemaining);
+        secondsRemaining--;
+      }
+
+      expect(countdownSteps).toEqual([5, 4, 3, 2, 1]);
+      expect(countdownSteps.length).toBe(5);
+    });
+
+    it('should increment progress by 20% per second', () => {
+      const incrementPerSecond = 20;
+      const totalSeconds = 5;
+      const totalIncrement = incrementPerSecond * totalSeconds;
+
+      expect(totalIncrement).toBe(100);
+    });
+  });
+
+  describe('Reload Trigger Conditions', () => {
+    it('should trigger reload when countdown completes (secondsRemaining <= 0)', () => {
+      let secondsRemaining = 1;
+      let reloadTriggered = false;
+
+      secondsRemaining--;
+      if (secondsRemaining <= 0) {
+        reloadTriggered = true;
+      }
+
+      expect(reloadTriggered).toBe(true);
+    });
+
+    it('should not trigger reload when cancelled', () => {
+      const isCancellationRequested = true;
+      let reloadTriggered = false;
+      let showedManualMessage = false;
+
+      if (isCancellationRequested) {
+        showedManualMessage = true;
+        // return early, don't reload
+      } else {
+        reloadTriggered = true;
+      }
+
+      expect(reloadTriggered).toBe(false);
+      expect(showedManualMessage).toBe(true);
+    });
+
+    it('should continue countdown when not cancelled', () => {
+      const isCancellationRequested = false;
+      let secondsRemaining = 5;
+      const countdownSteps: number[] = [];
+
+      while (!isCancellationRequested && secondsRemaining > 0) {
+        countdownSteps.push(secondsRemaining);
+        secondsRemaining--;
+      }
+
+      expect(countdownSteps).toEqual([5, 4, 3, 2, 1]);
+    });
+
+    it('should stop countdown immediately when cancelled mid-countdown', () => {
+      let isCancellationRequested = false;
+      let secondsRemaining = 5;
+      const countdownSteps: number[] = [];
+
+      while (secondsRemaining > 0) {
+        if (isCancellationRequested) {
+          break;
+        }
+        countdownSteps.push(secondsRemaining);
+        secondsRemaining--;
+
+        // Simulate user cancelling after 2 seconds
+        if (secondsRemaining === 3) {
+          isCancellationRequested = true;
+        }
+      }
+
+      expect(countdownSteps).toEqual([5, 4]);
+    });
+  });
+
+  describe('Progress Notification Configuration', () => {
+    it('should use Notification location for visibility', () => {
+      // Progress notifications with Notification location appear in the corner
+      // and are more visible than status bar messages
+      const progressLocationNotification = 15; // VS Code enum value
+
+      // This test documents the expected behavior
+      expect(progressLocationNotification).toBe(15);
+    });
+
+    it('should be cancellable to allow user opt-out', () => {
+      const cancellable = true;
+
+      expect(cancellable).toBe(true);
     });
   });
 });

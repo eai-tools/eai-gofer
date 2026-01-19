@@ -161,28 +161,46 @@ src/
 │   └── [file].test.ts
 ````
 
-## Implementation Phases
+## Implementation Phases (Vertical Slices)
 
-### Phase 1: Foundation
+**CRITICAL**: Each phase MUST be a vertical slice that:
 
-- Setup and infrastructure
-- Core types and interfaces
+- Includes frontend + backend + database changes (as applicable)
+- Can be deployed and tested independently
+- Builds on the previous iteration
+- Delivers visible, demonstrable value
 
-### Phase 2: Core Implementation
+### Phase 1: [Slice Name]
 
-- Main business logic
-- Data layer
+**Goal**: [What value this delivers]
 
-### Phase 3: Integration
+**Layers**:
 
-- Connect to existing systems
-- API endpoints
+- Data: [Schema/model changes]
+- Backend: [Service/API changes]
+- Frontend: [UI changes if applicable]
+- Tests: [Test coverage]
 
-### Phase 4: Testing & Polish
+**Tasks**:
 
-- Unit tests
-- Integration tests
-- Documentation
+- [ ] [Task 1]
+- [ ] [Task 2]
+
+**Verification**:
+
+- [ ] [How to verify this slice works]
+
+### Phase 2: [Slice Name]
+
+[Same structure - each phase is independently deployable]
+
+### Phase 3: [Slice Name]
+
+[Continue pattern...]
+
+**Note**: Avoid horizontal phases like "setup all databases first, then all
+APIs". Each phase should deliver end-to-end functionality for a specific feature
+slice.
 
 ## Dependencies
 

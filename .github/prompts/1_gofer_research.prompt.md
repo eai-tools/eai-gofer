@@ -80,6 +80,55 @@ Research any technology questions:
 
 ---
 
+## Step 3.5: Journey Variant Generation (New)
+
+If a base journey was confirmed in `/0_business_scenario`:
+
+1. **Generate a random count** between 10-50 variants
+2. **Distribute proportionally** across 10 industries:
+   - retail, healthcare, finance, education, hospitality
+   - logistics, manufacturing, legal, real_estate, entertainment
+
+3. **For each variant**:
+   - Adapt the base journey to the industry context
+   - Identify industry-specific innovations
+   - Document what can be learned from this industry
+
+4. **Save variants** to
+   `.specify/specs/{feature}/journeys/variants/{industry}-{number}.md`
+
+Example variant structure:
+
+````markdown
+---
+industry: healthcare
+variantNumber: 1
+baseJourney: base-journey.md
+---
+
+# Journey Variant: Healthcare Appointment Scheduling
+
+## Adaptations
+
+- [How journey changes for healthcare]
+
+## Innovations
+
+- [What healthcare does that we can learn from]
+
+## Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    Patient->>AI Agent: Request appointment
+    AI Agent->>Calendar: Check availability
+```
+````
+
+````
+
+---
+
 ## Step 4: Generate Research Document
 
 Write to `{FEATURE_DIR}/research.md`:
@@ -128,7 +177,7 @@ status: complete
 ## Next Steps
 
 Proceed to `/2_gofer_specify` to create the feature specification.
-```
+````
 
 ---
 

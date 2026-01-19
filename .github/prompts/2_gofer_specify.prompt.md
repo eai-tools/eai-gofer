@@ -76,6 +76,35 @@ From research.md, identify:
 4. **Generate Functional Requirements** - each must be testable
 5. **Define Success Criteria** - measurable outcomes
 6. **Identify Key Entities** (if data involved)
+7. **Generate Sequence Diagram Options** - 5 options spanning
+   efficiency→innovation
+
+---
+
+## Step 2.5: Sequence Diagram Options (New)
+
+Generate 5 implementation options with different trade-offs:
+
+| Option | Name       | Efficiency | Innovation | Complexity  |
+| ------ | ---------- | ---------- | ---------- | ----------- |
+| 1      | Minimal    | 95%        | 10%        | Low         |
+| 2      | Efficient  | 80%        | 30%        | Medium-Low  |
+| 3      | Standard   | 60%        | 50%        | Medium      |
+| 4      | Enhanced   | 40%        | 70%        | Medium-High |
+| 5      | Innovative | 20%        | 95%        | High        |
+
+For each option, generate:
+
+- **Mermaid sequence diagram** showing the flow
+- **Actor inventory** (who/what participates)
+- **Gen AI touchpoints** highlighted
+- **Effort estimate** (e.g., "1-2 days")
+- **Risks and trade-offs**
+
+Save to `.specify/specs/{feature}/sequence-diagrams/option-{N}-{name}.md`
+
+Present options to user for selection. Save selected option to
+`selected-option.md`
 
 ---
 

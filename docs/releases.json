@@ -1,97 +1,16 @@
 {
   "latest_version": "4.5.0",
   "repository": "eai-tools/specgofer",
-  "last_updated": "2026-01-17T05:29:23.358Z",
+  "last_updated": "2026-01-19T11:20:00.000Z",
   "releases": [
     {
       "version": "4.5.0",
       "tag_name": "v4.5.0",
       "published_at": "2026-01-17T05:29:23.358Z",
       "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-4.5.0.vsix",
-      "notes": "New release",
+      "notes": "Unified Claude and Copilot commands with identical naming",
       "prerelease": false,
-      "size_mb": 8.5
-    },
-    {
-      "version": "4.3.2",
-      "tag_name": "v4.3.2",
-      "published_at": "2026-01-13T08:22:16.327Z",
-      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-4.3.2.vsix",
-      "notes": "chore: pre-release changes\n\nAuto-committed changes before release v4.3.1",
-      "prerelease": false,
-      "size_mb": 16
-    },
-    {
-      "version": "4.3.1",
-      "tag_name": "v4.3.1",
-      "published_at": "2026-01-13T08:14:02.853Z",
-      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-4.3.1.vsix",
-      "notes": "chore: pre-release changes\n\nAuto-committed changes before release v4.3.0",
-      "prerelease": false,
-      "size_mb": 16
-    },
-    {
-      "version": "4.3.0",
-      "tag_name": "v4.3.0",
-      "published_at": "2026-01-13T03:27:56.944Z",
-      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-4.3.0.vsix",
-      "notes": "chore: pre-release changes\n\nAuto-committed changes before release v4.2.7",
-      "prerelease": false,
-      "size_mb": 16
-    },
-    {
-      "version": "4.2.7",
-      "tag_name": "v4.2.7",
-      "published_at": "2026-01-13T02:53:31.238Z",
-      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-4.2.7.vsix",
-      "notes": "chore: pre-release changes\n\nAuto-committed changes before release v4.2.6",
-      "prerelease": false,
-      "size_mb": 16
-    },
-    {
-      "version": "4.2.6",
-      "tag_name": "v4.2.6",
-      "published_at": "2026-01-13T02:44:25.182Z",
-      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-4.2.6.vsix",
-      "notes": "chore: pre-release changes\n\nAuto-committed changes before release v4.2.5",
-      "prerelease": false,
-      "size_mb": 16
-    },
-    {
-      "version": "4.2.5",
-      "tag_name": "v4.2.5",
-      "published_at": "2026-01-13T01:07:18.409Z",
-      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-4.2.5.vsix",
-      "notes": "Add missing bash scripts to bundle (check-context-health, log-stage, save-checkpoint, verify-task)",
-      "prerelease": false,
-      "size_mb": 16
-    },
-    {
-      "version": "4.2.4",
-      "tag_name": "v4.2.4",
-      "published_at": "2026-01-12T09:01:56.131Z",
-      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-4.2.4.vsix",
-      "notes": "chore: pre-release changes\n\nAuto-committed changes before release v4.2.3",
-      "prerelease": false,
-      "size_mb": 16
-    },
-    {
-      "version": "4.2.3",
-      "tag_name": "v4.2.3",
-      "published_at": "2026-01-12T04:29:32.685Z",
-      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-4.2.3.vsix",
-      "notes": "Fixed bundled templates sync and README update during upgrades",
-      "prerelease": false,
-      "size_mb": 16
-    },
-    {
-      "version": "4.2.2",
-      "tag_name": "v4.2.2",
-      "published_at": "2026-01-12T03:55:11.342Z",
-      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-4.2.2.vsix",
-      "notes": "Updated templates and documentation for unified Gofer pipeline",
-      "prerelease": false,
-      "size_mb": 16
+      "size_mb": 30.1
     }
   ]
 }

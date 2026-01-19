@@ -359,16 +359,49 @@ Or install VS Code CLI: https://code.visualstudio.com/docs/editor/command-line`)
 
       statusBarItem.dispose();
 
-      // Prompt to reload
-      const reloadChoice = await vscode.window.showInformationMessage(
-        `✅ SpecGofer v${version} has been installed! Reload VSCode to activate the update.`,
-        'Reload Now',
-        'Later'
-      );
+      // Auto-reload after successful installation with countdown
+      // Use withProgress for a more visible notification
+      await vscode.window.withProgress(
+        {
+          location: vscode.ProgressLocation.Notification,
+          title: `✅ SpecGofer v${version} installed!`,
+          cancellable: true,
+        },
+        async (progress, token) => {
+          return new Promise<void>((resolve) => {
+            let secondsRemaining = 5;
 
-      if (reloadChoice === 'Reload Now') {
-        vscode.commands.executeCommand('workbench.action.reloadWindow');
-      }
+            const updateProgress = (): void => {
+              progress.report({
+                message: `Reloading VS Code in ${secondsRemaining}s... (Click Cancel to postpone)`,
+                increment: 20,
+              });
+            };
+
+            updateProgress();
+
+            const interval = setInterval(() => {
+              if (token.isCancellationRequested) {
+                clearInterval(interval);
+                vscode.window.showInformationMessage(
+                  `SpecGofer v${version} is installed. Reload VS Code manually when ready.`
+                );
+                resolve();
+                return;
+              }
+
+              secondsRemaining--;
+              if (secondsRemaining <= 0) {
+                clearInterval(interval);
+                vscode.commands.executeCommand('workbench.action.reloadWindow');
+                resolve();
+              } else {
+                updateProgress();
+              }
+            }, 1000);
+          });
+        }
+      );
     } catch (error) {
       statusBarItem.dispose();
 

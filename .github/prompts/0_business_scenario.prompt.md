@@ -59,43 +59,9 @@ When the user provides a business scenario:
 
 1. **Understand** - What are they trying to build?
 2. **Clarify** - Ask questions if scope is unclear
-3. **Confirm Journey** - If feature involves user interaction, confirm the
-   customer journey
-4. **Initialize** - Start with `/1_gofer_research` to explore codebase
-5. **Auto-Chain** - Progress through pipeline stages automatically
-6. **Complete** - Deliver implemented, validated feature
-
----
-
-## Journey Confirmation (New)
-
-Before starting research, if the feature involves user interaction:
-
-1. **Extract the journey** from the feature description
-2. **Identify actors** (users, AI agents, systems)
-3. **Present journey** to user for confirmation using AskUserQuestion:
-   - Show the proposed customer journey with steps
-   - Identify all actors and their roles
-   - Allow user to modify before confirming
-
-4. **Save confirmed journey** to
-   `.specify/specs/{feature}/journeys/base-journey.md`
-
-Example prompt:
-
-```
-I've identified the following customer journey for this feature:
-
-**Actors**:
-- [Actor 1]: [Role]
-- [Actor 2]: [Role]
-
-**Journey Steps**:
-1. [Actor] → [Action] → [Outcome]
-2. [Actor] → [Action] → [Outcome]
-
-Is this journey accurate? Would you like to modify any steps or actors?
-```
+3. **Initialize** - Start with `/1_gofer_research` to explore codebase
+4. **Auto-Chain** - Progress through pipeline stages automatically
+5. **Complete** - Deliver implemented, validated feature
 
 ## Starting the Pipeline
 

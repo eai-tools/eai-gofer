@@ -4,8 +4,8 @@ description: Triage business scenario and orchestrate the unified Gofer pipeline
 
 # Gofer Orchestrator
 
-You are the Gofer orchestrator. Your job is to understand the user's
-business scenario and route them through the **unified Gofer pipeline**.
+You are the Gofer orchestrator. Your job is to understand the user's business
+scenario and route them through the **unified Gofer pipeline**.
 
 ## The Unified Gofer Pipeline
 
@@ -38,14 +38,14 @@ business scenario and route them through the **unified Gofer pipeline**.
 
 ## Auxiliary Gofer Commands
 
-| Command                | Purpose                                        |
-| ---------------------- | ---------------------------------------------- |
-| `/7_gofer_save`        | Save session checkpoint mid-implementation     |
-| `/8_gofer_resume`      | Resume work from saved checkpoint              |
-| `/9_gofer_tests`       | Define acceptance test cases using DSL         |
-| `/10_gofer_cloud`      | READ-ONLY cloud infrastructure analysis        |
-| `/gofer_hydrate`       | Reverse-engineer spec from existing code       |
-| `/gofer_constitution`  | Create/update project constitution             |
+| Command               | Purpose                                    |
+| --------------------- | ------------------------------------------ |
+| `/7_gofer_save`       | Save session checkpoint mid-implementation |
+| `/8_gofer_resume`     | Resume work from saved checkpoint          |
+| `/9_gofer_tests`      | Define acceptance test cases using DSL     |
+| `/10_gofer_cloud`     | READ-ONLY cloud infrastructure analysis    |
+| `/gofer_hydrate`      | Reverse-engineer spec from existing code   |
+| `/gofer_constitution` | Create/update project constitution         |
 
 ---
 
@@ -66,15 +66,15 @@ ls -la .specify/memory/constitution.md 2>/dev/null
 
 ### What to Look For
 
-| Artifact                     | Location                            | Indicates              |
-| ---------------------------- | ----------------------------------- | ---------------------- |
-| `spec.md`                    | `.specify/specs/{feature}/`         | Feature specified      |
-| `research.md`                | `.specify/specs/{feature}/`         | Research complete      |
-| `plan.md`                    | `.specify/specs/{feature}/`         | Planning complete      |
-| `tasks.md`                   | `.specify/specs/{feature}/`         | Ready for implement    |
-| `session-checkpoint.md`      | `.specify/specs/{feature}/`         | Work paused (resumable)|
-| `validation-report.md`       | `.specify/specs/{feature}/`         | Feature validated      |
-| `constitution.md`            | `.specify/memory/`                  | Project principles set |
+| Artifact                | Location                    | Indicates               |
+| ----------------------- | --------------------------- | ----------------------- |
+| `spec.md`               | `.specify/specs/{feature}/` | Feature specified       |
+| `research.md`           | `.specify/specs/{feature}/` | Research complete       |
+| `plan.md`               | `.specify/specs/{feature}/` | Planning complete       |
+| `tasks.md`              | `.specify/specs/{feature}/` | Ready for implement     |
+| `session-checkpoint.md` | `.specify/specs/{feature}/` | Work paused (resumable) |
+| `validation-report.md`  | `.specify/specs/{feature}/` | Feature validated       |
+| `constitution.md`       | `.specify/memory/`          | Project principles set  |
 
 Report what you found before proceeding.
 
@@ -111,6 +111,192 @@ Then ask: **"Do you want to continue one of these, or start something new?"**
 
 ---
 
+## Step 2.5: Consultative Discovery (For New Features, Modifications, Bug Fixes)
+
+When the user selects **A. New Feature**, **B. Modify Existing**, or **C. Fix a
+Bug**, conduct a consultative discovery interview BEFORE routing to the
+pipeline.
+
+**First, offer the option to skip:**
+
+| Option                      | Description                                                             |
+| --------------------------- | ----------------------------------------------------------------------- |
+| **Continue with Discovery** | Answer a few questions to ensure we build the right thing (Recommended) |
+| **Skip Discovery**          | I have clear requirements, go straight to implementation                |
+
+If user selects "Skip Discovery", proceed directly to Step 3.
+
+### Discovery Question 1: Problem Statement
+
+**"What problem are you trying to solve?"**
+
+**Recommended:** Based on initial context, suggest the most likely problem type.
+
+| Option | Description                             | Implications                          |
+| ------ | --------------------------------------- | ------------------------------------- |
+| A      | Users can't find what they need quickly | Focus on search/navigation UX         |
+| B      | Manual processes taking too much time   | Focus on automation/efficiency        |
+| C      | Data is siloed across systems           | Focus on integration/consolidation    |
+| D      | Quality/reliability issues              | Focus on testing/monitoring           |
+| E      | [Context-specific suggestion]           | [Based on user's initial description] |
+| Custom | Describe your specific problem          | We'll tailor the approach             |
+
+You can reply with the option letter, accept the recommendation by saying "yes",
+or provide your own answer.
+
+**Store response** in discovery context.
+
+### Discovery Question 2: Target Users
+
+**"Who are the primary users of this feature?"**
+
+**Recommended:** Suggest based on problem type selected.
+
+| Option | Description                | Implications                      |
+| ------ | -------------------------- | --------------------------------- |
+| A      | End customers (external)   | Focus on UX, onboarding, support  |
+| B      | Internal team members      | Focus on efficiency, integrations |
+| C      | Developers/technical users | Focus on APIs, documentation      |
+| D      | Business stakeholders      | Focus on reporting, dashboards    |
+| Custom | Describe your users        | We'll create appropriate personas |
+
+**Store response** in discovery context.
+
+### Discovery Question 3: Value Proposition
+
+**"What specific value should this deliver?"**
+
+**Recommended:** Suggest based on problem and user type.
+
+| Option | Description                               | Implications                         |
+| ------ | ----------------------------------------- | ------------------------------------ |
+| A      | Time savings (reduce X by Y%)             | Need baseline metrics, time tracking |
+| B      | Cost reduction (save $X/month)            | Need cost analysis, ROI tracking     |
+| C      | Quality improvement (reduce errors by Y%) | Need error tracking, quality metrics |
+| D      | User satisfaction (increase NPS by Y)     | Need feedback collection, surveys    |
+| Custom | Define your value metric                  | We'll build appropriate tracking     |
+
+**Store response** in discovery context.
+
+### Discovery Question 4: Success Metrics
+
+**"How will you measure success?"**
+
+Based on the value type selected, suggest relevant metrics:
+
+| Value Type     | Suggested Metrics                                |
+| -------------- | ------------------------------------------------ |
+| Time savings   | Task completion time, manual steps eliminated    |
+| Cost reduction | Monthly costs before/after, resource utilization |
+| Quality        | Error rate, defect count, test coverage          |
+| Satisfaction   | NPS score, support tickets, feature adoption     |
+
+Ask user to confirm or customize the metrics.
+
+### Optional: Competitive Research
+
+**"Would you like me to research how leading companies solve this problem?"**
+
+| Option | Description                                |
+| ------ | ------------------------------------------ |
+| Yes    | Research competitors and document insights |
+| Skip   | Continue without competitive analysis      |
+
+If user selects Yes, note for research phase. If skipped, mark "Competitive
+Analysis: Skipped".
+
+### Adaptive Depth
+
+If user responds with uncertainty signals ("I'm not sure", "what would you
+suggest?", "not certain"):
+
+- Offer to explore deeper: **"I notice you might want more clarity on this.
+  Would you like me to ask a few more questions to help narrow down the
+  approach?"**
+- If yes, ask context-appropriate follow-up questions
+- If no, proceed with best recommendation
+
+### Create Discovery Artifact
+
+After completing discovery questions, create
+`.specify/specs/{feature}/discovery.md`:
+
+```markdown
+---
+feature: '[Feature Name]'
+created: '[ISO timestamp]'
+discoveredBy: Claude + [User]
+status: complete
+---
+
+# Business Discovery: [Feature Name]
+
+## Problem Statement
+
+**Pain Point**: [From Question 1] **Current State**: [If mentioned] **Impact**:
+[If mentioned]
+
+## Target Users
+
+### Primary Users
+
+- **Persona**: [From Question 2]
+- **Technical Level**: [Inferred or asked]
+- **Key Needs**: [Captured from context]
+
+## Value Proposition
+
+**Primary Value**: [From Question 3] **Quantified Goal**: [From Question 4]
+
+## Success Metrics
+
+| Metric     | Target   | Measurement    |
+| ---------- | -------- | -------------- |
+| [Metric 1] | [Target] | [How measured] |
+
+## Competitive Analysis
+
+**Status**: [Researched / Skipped] [Insights if researched]
+
+## Discovery Decisions
+
+| Decision      | Choice   | Rationale |
+| ------------- | -------- | --------- |
+| Problem Focus | [Choice] | [Why]     |
+| User Target   | [Choice] | [Why]     |
+| Value Metric  | [Choice] | [Why]     |
+```
+
+### Store in Memory
+
+Create Memory entries for key discovery findings:
+
+```
+Category: 'discovery'
+Tags: ['#problem', '#feature-{id}']
+Content: 'Problem: [pain point]. Impact: [who affected].'
+
+Category: 'discovery'
+Tags: ['#users', '#personas', '#feature-{id}']
+Content: 'Primary users: [persona]. Technical level: [level]. Key needs: [needs].'
+
+Category: 'discovery'
+Tags: ['#value', '#metrics', '#feature-{id}']
+Content: 'Primary value: [benefit]. Success metric: [metric] target [goal].'
+```
+
+### Edge Cases
+
+- **Mid-flow abandonment**: If user cancels during discovery, save partial
+  discovery.md with `status: incomplete`
+- **Re-running discovery**: If discovery.md already exists, ask: "Discovery
+  already exists for this feature. Would you like to merge new insights or
+  replace it?"
+- **Web search failure**: If competitive research fails, continue without it and
+  note the failure
+
+---
+
 ## Step 3: Route to Gofer Command
 
 Based on user selection and detected state:
@@ -120,23 +306,23 @@ Based on user selection and detected state:
 All three scenarios use the same pipeline - the difference is in the research
 focus:
 
-| Scenario        | Research Focus                                           |
-| --------------- | -------------------------------------------------------- |
-| New Feature     | Technology research + codebase patterns                  |
-| Modify Existing | Understanding existing implementation + integration points|
-| Fix Bug         | Root cause analysis + affected code paths                |
+| Scenario        | Research Focus                                             |
+| --------------- | ---------------------------------------------------------- |
+| New Feature     | Technology research + codebase patterns                    |
+| Modify Existing | Understanding existing implementation + integration points |
+| Fix Bug         | Root cause analysis + affected code paths                  |
 
 #### Determine Starting Point
 
 Check existing artifacts for the feature:
 
-| Has This                | Missing This        | Start At              |
-| ----------------------- | ------------------- | --------------------- |
-| tasks.md (unchecked)    | -                   | `/5_gofer_implement`  |
-| plan.md                 | tasks.md            | `/4_gofer_tasks`      |
-| spec.md                 | plan.md             | `/3_gofer_plan`       |
-| research.md             | spec.md             | `/2_gofer_specify`    |
-| Nothing                 | Everything          | `/1_gofer_research`   |
+| Has This             | Missing This | Start At             |
+| -------------------- | ------------ | -------------------- |
+| tasks.md (unchecked) | -            | `/5_gofer_implement` |
+| plan.md              | tasks.md     | `/4_gofer_tasks`     |
+| spec.md              | plan.md      | `/3_gofer_plan`      |
+| research.md          | spec.md      | `/2_gofer_specify`   |
+| Nothing              | Everything   | `/1_gofer_research`  |
 
 #### For New Features
 
@@ -277,25 +463,25 @@ If context window is filling up:
 
 ### Core Pipeline (Auto-Chaining)
 
-| # | Command              | Output                   | Description                    |
-|---|----------------------|--------------------------|--------------------------------|
-| 1 | `/1_gofer_research`  | research.md              | Codebase + tech research       |
-| 2 | `/2_gofer_specify`   | spec.md                  | Feature specification          |
-| 3 | `/3_gofer_plan`      | plan.md, data-model.md   | Technical architecture         |
-| 4 | `/4_gofer_tasks`     | tasks.md                 | Task breakdown                 |
-| 5 | `/5_gofer_implement` | [source code]            | Implementation                 |
-| 6 | `/6_gofer_validate`  | validation-report.md     | Verification                   |
+| #   | Command              | Output                 | Description              |
+| --- | -------------------- | ---------------------- | ------------------------ |
+| 1   | `/1_gofer_research`  | research.md            | Codebase + tech research |
+| 2   | `/2_gofer_specify`   | spec.md                | Feature specification    |
+| 3   | `/3_gofer_plan`      | plan.md, data-model.md | Technical architecture   |
+| 4   | `/4_gofer_tasks`     | tasks.md               | Task breakdown           |
+| 5   | `/5_gofer_implement` | [source code]          | Implementation           |
+| 6   | `/6_gofer_validate`  | validation-report.md   | Verification             |
 
 ### Auxiliary Commands
 
-| Command                | Purpose                                    |
-| ---------------------- | ------------------------------------------ |
-| `/7_gofer_save`        | Save session checkpoint                    |
-| `/8_gofer_resume`      | Resume from checkpoint                     |
-| `/9_gofer_tests`       | Define test cases (DSL approach)           |
-| `/10_gofer_cloud`      | Cloud infrastructure analysis (READ-ONLY)  |
-| `/gofer_hydrate`       | Reverse-engineer spec from code            |
-| `/gofer_constitution`  | Project principles and standards           |
+| Command               | Purpose                                   |
+| --------------------- | ----------------------------------------- |
+| `/7_gofer_save`       | Save session checkpoint                   |
+| `/8_gofer_resume`     | Resume from checkpoint                    |
+| `/9_gofer_tests`      | Define test cases (DSL approach)          |
+| `/10_gofer_cloud`     | Cloud infrastructure analysis (READ-ONLY) |
+| `/gofer_hydrate`      | Reverse-engineer spec from code           |
+| `/gofer_constitution` | Project principles and standards          |
 
 ---
 

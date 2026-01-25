@@ -46,6 +46,37 @@ Research is typically the heaviest context stage - monitor usage.
 
 ---
 
+## Step 0.5: Load Discovery Context (If Available)
+
+Check if discovery.md exists for this feature:
+
+```bash
+ls -la .specify/specs/{feature}/discovery.md 2>/dev/null
+```
+
+If discovery.md exists:
+
+1. **Load the discovery findings** to inform research focus:
+   - Problem Statement → Focus research on solving this specific problem
+   - Target Users → Research UX patterns appropriate for these users
+   - Value Proposition → Research metrics and measurement approaches
+   - Competitive Analysis → If researched, focus on differentiation
+
+2. **Use discovery to guide agent prompts**:
+   - Codebase Locator: Focus on areas related to the discovered problem
+   - Codebase Analyzer: Analyze patterns relevant to target users
+   - Pattern Finder: Find examples that deliver similar value
+
+3. **Load discovery memories** via MemoryManager if available:
+   ```
+   Category: 'discovery'
+   Tags: ['#feature-{id}']
+   ```
+
+If no discovery.md exists, proceed with standard research flow.
+
+---
+
 ## Step 1: Get Feature Context
 
 If no feature description provided in $ARGUMENTS:

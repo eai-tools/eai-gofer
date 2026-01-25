@@ -1518,7 +1518,15 @@ This file contains GitHub-ready issue definitions for each task. Each issue foll
     try {
       console.log('[createBashScripts] Starting...');
 
-      const extensionPath = vscode.extensions.getExtension('EnterpriseAI.gofer')?.extensionPath;
+      // Get the extension's bundled scripts - try multiple methods
+      let extensionPath = vscode.extensions.getExtension('EnterpriseAI.gofer')?.extensionPath;
+
+      // Fallback: derive from __dirname (dist/extension.js -> extension root)
+      if (!extensionPath) {
+        extensionPath = path.resolve(__dirname, '..');
+        console.log('[createBashScripts] Using __dirname fallback:', extensionPath);
+      }
+
       if (!extensionPath) {
         console.warn('[createBashScripts] Could not find extension path for bash scripts');
         return;
@@ -1571,7 +1579,15 @@ This file contains GitHub-ready issue definitions for each task. Each issue foll
     try {
       console.log('[createNodeScripts] Starting...');
 
-      const extensionPath = vscode.extensions.getExtension('EnterpriseAI.gofer')?.extensionPath;
+      // Get the extension's bundled scripts - try multiple methods
+      let extensionPath = vscode.extensions.getExtension('EnterpriseAI.gofer')?.extensionPath;
+
+      // Fallback: derive from __dirname (dist/extension.js -> extension root)
+      if (!extensionPath) {
+        extensionPath = path.resolve(__dirname, '..');
+        console.log('[createNodeScripts] Using __dirname fallback:', extensionPath);
+      }
+
       if (!extensionPath) {
         console.warn('[createNodeScripts] Could not find extension path for Node.js scripts');
         return;

@@ -2,10 +2,10 @@
 
 **Feature 001** - Autonomous Execution Framework for Gofer
 
-The Memory & Learning System provides Gofer with persistent knowledge
-storage, contextual guidance, dependency tracking, and intelligent context
-management. This enables autonomous task execution with long-term memory and
-adaptive behavior.
+The Memory & Learning System provides Gofer with persistent knowledge storage,
+contextual guidance, dependency tracking, and intelligent context management.
+This enables autonomous task execution with long-term memory and adaptive
+behavior.
 
 ## Table of Contents
 
@@ -444,8 +444,8 @@ while (hasMoreTasks()) {
 
 The Memory & Learning System integrates with VSCode through commands:
 
-| Command                              | Description                            |
-| ------------------------------------ | -------------------------------------- |
+| Command                          | Description                            |
+| -------------------------------- | -------------------------------------- |
 | `Gofer: Initialize`              | Initialize .specify directory          |
 | `Gofer: View Memory`             | Browse stored memories                 |
 | `Gofer: Clear Session Memory`    | Clear session-scoped memories          |
@@ -694,6 +694,337 @@ vi.mock('../../extension/src/utils/logger', () => ({
    - Remove verbose logging from context
    - Summarize test output
    - Consolidate repeated information
+
+---
+
+## MCP Tools API Reference
+
+The Memory & Learning System exposes five MCP tools for AI assistants to manage
+context health during implementation sessions.
+
+### gofer_expand_observation
+
+Retrieves the full content of a previously masked observation.
+
+**Purpose**: When observation masking reduces context, AI assistants may need to
+re-read specific observations. This tool expands masked placeholders back to
+full content.
+
+**Parameters**: | Parameter | Type | Required | Description |
+|-----------|------|----------|-------------| | `observationId` | string | Yes |
+The ID of the masked observation (format: `obs-xxx`) |
+
+**Response**:
+
+```typescript
+{
+  success: boolean;
+  observation?: {
+    id: string;
+    type: 'file_read' | 'command_output' | 'api_response' | 'search_result' | 'test_output';
+    timestamp: number;
+    turnNumber: number;
+    tokenEstimate: number;
+    content: string;  // Full original content
+    metadata?: Record<string, unknown>;
+  };
+  error?: string;
+  errorCode?: 'INVALID_OBSERVATION_ID' | 'OBSERVATION_NOT_FOUND' | 'CACHE_ERROR';
+}
+```
+
+**Example**:
+
+```json
+// Request
+{ "observationId": "obs-123abc" }
+
+// Response
+{
+  "success": true,
+  "observation": {
+    "id": "obs-123abc",
+    "type": "file_read",
+    "timestamp": 1706200800000,
+    "turnNumber": 5,
+    "tokenEstimate": 1500,
+    "content": "// Full file content here..."
+  }
+}
+```
+
+**Error Codes**:
+
+- `INVALID_OBSERVATION_ID`: ID format invalid (must match `obs-[a-zA-Z0-9]+`)
+- `OBSERVATION_NOT_FOUND`: Observation not in cache
+- `CACHE_ERROR`: Cache file missing or corrupted
+
+---
+
+### gofer_get_context_health
+
+Returns the current context health status with detailed breakdown.
+
+**Purpose**: Monitor context window utilization to prevent accuracy degradation.
+AI assistants should check health periodically and trigger handoffs when
+critical.
+
+**Parameters**: | Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------| | `includeBreakdown` |
+boolean | No | `true` | Include token breakdown by category |
+
+**Response**:
+
+```typescript
+{
+  success: boolean;
+  health?: {
+    status: 'healthy' | 'warning' | 'critical';
+    utilizationPercent: number;  // 0-100
+    tokensUsed: number;
+    tokensLimit: number;
+    breakdown?: {
+      specArtifacts: number;   // spec.md, plan.md, tasks.md
+      memories: number;         // Loaded memories
+      hints: number;            // Contextual hints
+      observations: number;     // Tool outputs
+      systemFiles: number;      // Constitution, CLAUDE.md
+      conversation: number;     // Chat history
+    };
+    recommendations: string[];
+    timestamp: number;
+  };
+  error?: string;
+}
+```
+
+**Status Thresholds**: | Status | Utilization | Recommendation |
+|--------|-------------|----------------| | `healthy` | < 50% | Continue
+normally | | `warning` | 50-70% | Consider saving progress | | `critical` | >
+70% | Run `/7_gofer_save` immediately |
+
+**Example**:
+
+```json
+// Request
+{ "includeBreakdown": true }
+
+// Response
+{
+  "success": true,
+  "health": {
+    "status": "warning",
+    "utilizationPercent": 58.3,
+    "tokensUsed": 70000,
+    "tokensLimit": 120000,
+    "breakdown": {
+      "specArtifacts": 15000,
+      "memories": 5000,
+      "hints": 2000,
+      "observations": 40000,
+      "systemFiles": 3000,
+      "conversation": 5000
+    },
+    "recommendations": [
+      "Consider masking older observations to free up context"
+    ],
+    "timestamp": 1706200800000
+  }
+}
+```
+
+---
+
+### gofer_get_research_index
+
+Returns the index of available research chunks for a spec.
+
+**Purpose**: Before loading research content, AI assistants can inspect the
+index to select only relevant chunks, reducing context usage.
+
+**Parameters**: | Parameter | Type | Required | Description |
+|-----------|------|----------|-------------| | `specId` | string | Yes | The
+spec ID (e.g., `011-context-health`) |
+
+**Response**:
+
+```typescript
+{
+  success: boolean;
+  index?: {
+    sourceFile: string;     // Path to research.md
+    totalTokens: number;    // Total tokens if fully loaded
+    chunkCount: number;     // Number of chunks available
+    created: number;        // Index creation timestamp
+    chunks: Array<{
+      id: string;           // Chunk ID for loading
+      title: string;        // Section heading
+      tokens: number;       // Chunk token estimate
+      keywords: string[];   // Relevance keywords
+    }>;
+  };
+  error?: string;
+  errorCode?: 'INVALID_SPEC_ID' | 'SPEC_NOT_FOUND' | 'NO_RESEARCH_FILE' | 'INDEX_ERROR';
+}
+```
+
+**Example**:
+
+```json
+// Request
+{ "specId": "011-context-health" }
+
+// Response
+{
+  "success": true,
+  "index": {
+    "sourceFile": ".specify/specs/011-context-health/research.md",
+    "totalTokens": 12500,
+    "chunkCount": 8,
+    "created": 1706200800000,
+    "chunks": [
+      { "id": "chunk-001", "title": "Overview", "tokens": 800, "keywords": ["context", "health"] },
+      { "id": "chunk-002", "title": "Architecture", "tokens": 2000, "keywords": ["design", "components"] },
+      { "id": "chunk-003", "title": "Implementation", "tokens": 3500, "keywords": ["code", "typescript"] }
+    ]
+  }
+}
+```
+
+---
+
+### gofer_load_research_chunk
+
+Loads a specific chunk of a research document by ID.
+
+**Purpose**: Load only the research sections needed for the current task instead
+of the full document, reducing context usage by up to 80%.
+
+**Parameters**: | Parameter | Type | Required | Description |
+|-----------|------|----------|-------------| | `specId` | string | Yes | The
+spec ID | | `chunkId` | string | Yes | The chunk ID from the index |
+
+**Response**:
+
+```typescript
+{
+  success: boolean;
+  chunk?: {
+    id: string;
+    sectionTitle: string;
+    content: string;           // Full markdown content of the chunk
+    tokenEstimate: number;
+    relevanceKeywords: string[];
+    order: number;             // Position in document (0-indexed)
+  };
+  error?: string;
+  errorCode?: 'INVALID_SPEC_ID' | 'CHUNK_NOT_FOUND' | 'NO_RESEARCH_FILE';
+}
+```
+
+**Example**:
+
+```json
+// Request
+{ "specId": "011-context-health", "chunkId": "chunk-002" }
+
+// Response
+{
+  "success": true,
+  "chunk": {
+    "id": "chunk-002",
+    "sectionTitle": "Architecture",
+    "content": "## Architecture\n\nThe context health system consists of...",
+    "tokenEstimate": 2000,
+    "relevanceKeywords": ["design", "components", "monitor"],
+    "order": 1
+  }
+}
+```
+
+**Best Practices**:
+
+1. Call `gofer_get_research_index` first to see available chunks
+2. Load only chunks with relevant keywords for current task
+3. Prefer smaller chunks over larger ones when possible
+
+---
+
+### gofer_trigger_handoff
+
+Manually triggers a session handoff with context preservation.
+
+**Purpose**: When context reaches critical levels or work needs to continue in a
+new session, this tool creates a handoff document capturing current state.
+
+**Parameters**: | Parameter | Type | Required | Description |
+|-----------|------|----------|-------------| | `reason` | string | Yes | One
+of: `context_critical`, `manual_request`, `stage_complete`, `error_recovery` | |
+`currentTask` | string | No | ID of task in progress (e.g., `T042`) | | `notes`
+| string | No | Additional context for the next session |
+
+**Response**:
+
+```typescript
+{
+  success: boolean;
+  handoff?: {
+    file: string;              // Path to session-handoff.md
+    created: number;           // Timestamp
+    contextSnapshot: {
+      tokensUsed: number;
+      utilizationPercent: number;
+      completedTasks: string[];
+      currentTask?: string;
+      stage: string;           // Current Gofer stage
+    };
+    resumeCommand: string;     // Command to resume work
+  };
+  error?: string;
+  errorCode?: 'NO_ACTIVE_FEATURE';
+}
+```
+
+**Example**:
+
+```json
+// Request
+{
+  "reason": "context_critical",
+  "currentTask": "T045",
+  "notes": "Completed memory loading, need to implement fallback logic next"
+}
+
+// Response
+{
+  "success": true,
+  "handoff": {
+    "file": ".specify/specs/011-context-health/session-handoff.md",
+    "created": 1706200800000,
+    "contextSnapshot": {
+      "tokensUsed": 90000,
+      "utilizationPercent": 75,
+      "completedTasks": ["T043", "T044"],
+      "currentTask": "T045",
+      "stage": "implement"
+    },
+    "resumeCommand": "/8_gofer_resume --feature 011-context-health"
+  }
+}
+```
+
+**Handoff Reasons**: | Reason | When to Use | |--------|-------------| |
+`context_critical` | Utilization > 70%, accuracy at risk | | `manual_request` |
+User explicitly requests save | | `stage_complete` | Completed a major pipeline
+stage | | `error_recovery` | Recovering from errors/blockers |
+
+**What Gets Preserved**:
+
+- Completed task list with IDs
+- Current task in progress
+- Pipeline stage and context snapshot
+- Custom notes for continuation
+- Resume command for next session
 
 ---
 

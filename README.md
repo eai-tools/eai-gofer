@@ -110,8 +110,7 @@ AI can also call MCP tools directly:
 
 ## GitHub Codespaces Support
 
-**✅ Gofer works seamlessly in GitHub Codespaces with automatic
-installation!**
+**✅ Gofer works seamlessly in GitHub Codespaces with automatic installation!**
 
 When you open this repository in a Codespace, the extension is automatically:
 
@@ -208,6 +207,40 @@ Tasks execute in order based on dependencies:
 2. **FR-002**: Implement user model (depends on FR-001)
 3. **FR-003**: Create API endpoint (depends on FR-002)
 ```
+
+### Context Health Management
+
+Gofer automatically manages AI context window usage to maintain accuracy during
+long implementation sessions.
+
+**Key Features:**
+
+| Feature              | Description                                      |
+| -------------------- | ------------------------------------------------ |
+| Health Monitoring    | Real-time context utilization tracking           |
+| Observation Masking  | Auto-masks old tool outputs (50%+ reduction)     |
+| Stage Profiles       | Budget allocation per workflow stage             |
+| Memory-First Loading | Prioritizes memories over full research docs     |
+| Auto-Handoff         | Prompts session save at critical thresholds      |
+| Status Bar           | Live context health display with click-to-expand |
+
+**Thresholds:**
+
+- **Healthy** (< 50%) - Continue normally
+- **Warning** (50-70%) - Consider saving progress
+- **Critical** (> 70%) - Session handoff recommended
+
+**Configuration** (`.specify/memory/context-profiles.yaml`):
+
+```yaml
+implement:
+  researchBudget: 0.15 # 15% for research/hints
+  memoryBudget: 0.25 # 25% for memories
+  codeBudget: 0.40 # 40% for code context
+  observationWindow: 5 # Keep last 5 turns of observations
+```
+
+See [CLAUDE.md](CLAUDE.md) for detailed documentation.
 
 ## Commands
 

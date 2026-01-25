@@ -12,6 +12,7 @@
 import { TelemetryCollector } from '../utils/telemetry';
 import type { Memory } from './memory';
 import type { CompactionSummary } from './compaction';
+import type { GoferStage, StageContextProfile } from './StageContextProfile';
 
 /**
  * Memory & Learning System telemetry events
@@ -288,6 +289,107 @@ export class MemoryLearningTelemetry {
     this.telemetry.trackFeature('context.backup_created', {});
 
     this.telemetry.trackPerformance('context.backupSize', contextSize);
+  }
+
+  // ============================================================================
+  // Context Health Telemetry (T063-T066)
+  // ============================================================================
+
+  /**
+   * Track context health check events
+   * @see T063
+   */
+  static trackContextHealthCheck(stats: {
+    status: 'healthy' | 'warning' | 'critical';
+    utilizationPercent: number;
+    totalTokens: number;
+    recommendations: string[];
+    stage: GoferStage;
+  }): void {
+    this.telemetry.trackFeature('context.health_check', {
+      status: stats.status,
+      stage: stats.stage,
+      hasRecommendations: stats.recommendations.length > 0,
+      recommendationCount: stats.recommendations.length,
+    });
+
+    this.telemetry.trackPerformance('context.utilization', stats.utilizationPercent, {
+      status: stats.status,
+      totalTokens: stats.totalTokens,
+    });
+  }
+
+  /**
+   * Track observation masking events
+   * @see T064
+   */
+  static trackObservationMasked(stats: {
+    maskedCount: number;
+    tokensSaved: number;
+    types: string[];
+    currentTurn: number;
+    ageThreshold: number;
+  }): void {
+    this.telemetry.trackFeature('observation.masked', {
+      maskedCount: stats.maskedCount,
+      typeCount: stats.types.length,
+      currentTurn: stats.currentTurn,
+      ageThreshold: stats.ageThreshold,
+    });
+
+    this.telemetry.trackPerformance('observation.tokensSaved', stats.tokensSaved, {
+      maskedCount: stats.maskedCount,
+    });
+  }
+
+  /**
+   * Track stage profile switch events
+   * @see T065
+   */
+  static trackStageProfileSwitch(stats: {
+    fromStage: GoferStage;
+    toStage: GoferStage;
+    fromProfile: StageContextProfile;
+    toProfile: StageContextProfile;
+  }): void {
+    this.telemetry.trackFeature('stage.profile_switch', {
+      fromStage: stats.fromStage,
+      toStage: stats.toStage,
+      researchBudgetChange: stats.toProfile.researchBudget - stats.fromProfile.researchBudget,
+      memoryBudgetChange: stats.toProfile.memoryBudget - stats.fromProfile.memoryBudget,
+      codeBudgetChange: stats.toProfile.codeBudget - stats.fromProfile.codeBudget,
+      observationWindowChange:
+        stats.toProfile.observationWindow - stats.fromProfile.observationWindow,
+    });
+  }
+
+  /**
+   * Track memory-first loading hit rate
+   * @see T066
+   */
+  static trackMemoryFirstHit(stats: {
+    memoriesLoaded: number;
+    memoriesConsidered: number;
+    coveragePercent: number;
+    researchLoadedForGaps: boolean;
+    gapCount: number;
+    loadTime: number;
+  }): void {
+    this.telemetry.trackFeature('memory.first_hit', {
+      memoriesLoaded: stats.memoriesLoaded,
+      memoriesConsidered: stats.memoriesConsidered,
+      researchLoadedForGaps: stats.researchLoadedForGaps,
+      gapCount: stats.gapCount,
+    });
+
+    this.telemetry.trackPerformance('memory.coveragePercent', stats.coveragePercent, {
+      memoriesLoaded: stats.memoriesLoaded,
+      researchLoadedForGaps: stats.researchLoadedForGaps,
+    });
+
+    this.telemetry.trackPerformance('memory.loadTime', stats.loadTime, {
+      memoriesLoaded: stats.memoriesLoaded,
+    });
   }
 
   // ============================================================================

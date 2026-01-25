@@ -84,6 +84,52 @@ export interface MemoryQuery {
     start: number;
     end: number;
   };
+
+  /** Sort results by priority (default: false) */
+  sortByPriority?: boolean;
+
+  /** Include relevance scores in results (default: false) */
+  includeRelevanceScores?: boolean;
+
+  /** Task context for relevance scoring */
+  taskContext?: string;
+}
+
+/**
+ * Memory with calculated scores for ranking.
+ */
+export interface ScoredMemory extends Memory {
+  /** Calculated priority score (0-100) based on usage patterns */
+  priorityScore: number;
+
+  /** Relevance score against task context (0-100) */
+  relevanceScore?: number;
+
+  /** Combined score for ranking (priority * relevanceWeight + relevance) */
+  combinedScore: number;
+}
+
+/**
+ * Options for loading memories by priority.
+ */
+export interface LoadByPriorityOptions {
+  /** Maximum number of memories to return */
+  limit?: number;
+
+  /** Include task context for relevance scoring */
+  taskContext?: string;
+
+  /** Weight for priority score (0-1, default 0.4) */
+  priorityWeight?: number;
+
+  /** Weight for relevance score (0-1, default 0.6) */
+  relevanceWeight?: number;
+
+  /** Minimum combined score threshold (0-100) */
+  minScore?: number;
+
+  /** Scope filter */
+  scope?: 'local' | 'global' | 'both';
 }
 
 /**
@@ -98,6 +144,26 @@ export interface MemorySearchResult {
 
   /** Search execution time in milliseconds */
   searchTime: number;
+
+  /** Scored memories when sortByPriority or includeRelevanceScores is true */
+  scoredMemories?: ScoredMemory[];
+}
+
+/**
+ * Result of priority-based memory loading.
+ */
+export interface LoadByPriorityResult {
+  /** Scored and ranked memories */
+  memories: ScoredMemory[];
+
+  /** Total memories considered */
+  totalConsidered: number;
+
+  /** Load execution time in milliseconds */
+  loadTime: number;
+
+  /** Whether results were filtered by minScore */
+  filtered: boolean;
 }
 
 // ============================================================================
@@ -199,6 +265,41 @@ export interface MemoryManager {
       learnedFrom: string;
     }
   ): Memory;
+
+  /**
+   * Load memories sorted by priority with optional relevance scoring.
+   *
+   * Priority is calculated from usage patterns (usedCount, lastUsed, created).
+   * Relevance is calculated against optional task context.
+   *
+   * @param options - Loading options including limit, taskContext, weights
+   * @returns Scored and ranked memories
+   */
+  loadByPriority(options?: LoadByPriorityOptions): Promise<LoadByPriorityResult>;
+
+  /**
+   * Calculate priority score for a memory (0-100).
+   *
+   * Factors:
+   * - Usage frequency (usedCount): 40%
+   * - Recency (lastUsed): 35%
+   * - Age bonus (older memories that are still used): 25%
+   *
+   * @param memory - Memory to score
+   * @returns Priority score 0-100
+   */
+  calculatePriorityScore(memory: Memory): number;
+
+  /**
+   * Calculate relevance score of memory against task context (0-100).
+   *
+   * Uses keyword matching and semantic similarity.
+   *
+   * @param memory - Memory to score
+   * @param taskContext - Task description to match against
+   * @returns Relevance score 0-100
+   */
+  calculateRelevanceScore(memory: Memory, taskContext: string): number;
 }
 
 // ============================================================================

@@ -9,6 +9,7 @@ import { Connection } from 'vscode-languageserver';
 import { GoferLoader, Spec, Task } from '../utils/goferLoader';
 import { ValidationService } from '../utils/ValidationService';
 import { TestHarnessGenerator } from '../utils/TestHarnessGenerator';
+import { ResearchChunker } from '../utils/ResearchChunker';
 import Anthropic from '@anthropic-ai/sdk';
 import * as fs from 'fs/promises';
 import * as path from 'path';
@@ -93,11 +94,106 @@ interface TestResult {
   error?: string;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Context Health Enhancement Types (spec 011)
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface ObservationData {
+  id: string;
+  type: 'file_read' | 'command_output' | 'api_response' | 'search_result' | 'test_output';
+  timestamp: number;
+  turnNumber: number;
+  tokenEstimate: number;
+  content: string;
+  metadata?: Record<string, unknown>;
+}
+
+interface ExpandObservationResponse {
+  success: boolean;
+  observation?: ObservationData;
+  error?: string;
+  errorCode?: string;
+}
+
+interface ContextHealthResponse {
+  success: boolean;
+  health?: {
+    status: 'healthy' | 'warning' | 'critical';
+    utilizationPercent: number;
+    tokensUsed: number;
+    tokensLimit: number;
+    breakdown?: {
+      specArtifacts: number;
+      memories: number;
+      hints: number;
+      observations: number;
+      systemFiles: number;
+      conversation: number;
+    };
+    recommendations: string[];
+    timestamp: number;
+  };
+  error?: string;
+}
+
+interface ResearchChunkData {
+  id: string;
+  sectionTitle: string;
+  content: string;
+  tokenEstimate: number;
+  relevanceKeywords: string[];
+  order: number;
+}
+
+interface ResearchIndexResponse {
+  success: boolean;
+  index?: {
+    sourceFile: string;
+    totalTokens: number;
+    chunkCount: number;
+    created: number;
+    chunks: Array<{
+      id: string;
+      title: string;
+      tokens: number;
+      keywords: string[];
+    }>;
+  };
+  error?: string;
+  errorCode?: string;
+}
+
+interface LoadResearchChunkResponse {
+  success: boolean;
+  chunk?: ResearchChunkData;
+  error?: string;
+  errorCode?: string;
+}
+
+interface TriggerHandoffResponse {
+  success: boolean;
+  handoff?: {
+    file: string;
+    created: number;
+    contextSnapshot: {
+      tokensUsed: number;
+      utilizationPercent: number;
+      completedTasks: string[];
+      currentTask?: string;
+      stage: string;
+    };
+    resumeCommand: string;
+  };
+  error?: string;
+  errorCode?: string;
+}
+
 export class MCPToolHandler {
   private goferLoader: GoferLoader;
   private anthropic: Anthropic | null = null;
   private validationService: ValidationService | null = null;
   private testHarnessGenerator: TestHarnessGenerator;
+  private researchChunker: ResearchChunker;
 
   constructor(
     private workspacePath: string,
@@ -105,6 +201,7 @@ export class MCPToolHandler {
   ) {
     this.goferLoader = new GoferLoader(workspacePath);
     this.testHarnessGenerator = new TestHarnessGenerator(workspacePath);
+    this.researchChunker = new ResearchChunker(workspacePath);
 
     // Initialize Anthropic client if API key is available
     const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -534,6 +631,468 @@ export class MCPToolHandler {
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Context Health Enhancement Tools (spec 011)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Validate observation ID format (UUID v4)
+   */
+  private validateObservationId(observationId: string): { valid: boolean; error?: string } {
+    if (!observationId || typeof observationId !== 'string') {
+      return { valid: false, error: 'observationId must be a non-empty string' };
+    }
+
+    // UUID v4 format validation
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(observationId)) {
+      this.logSecurityViolation('Invalid observation ID format', { observationId });
+      return { valid: false, error: 'observationId must be a valid UUID v4' };
+    }
+
+    return { valid: true };
+  }
+
+  /**
+   * MCP Tool: gofer_expand_observation
+   * Retrieves the full content of a masked observation
+   */
+  async expandObservation(observationId: string): Promise<ExpandObservationResponse> {
+    try {
+      // Validate observation ID
+      const validation = this.validateObservationId(observationId);
+      if (!validation.valid) {
+        return {
+          success: false,
+          error: validation.error,
+          errorCode: 'INVALID_OBSERVATION_ID',
+        };
+      }
+
+      // Look up observation in cache
+      const cachePath = path.join(
+        this.workspacePath,
+        '.specify',
+        'memory',
+        'observation-cache',
+        'index.json'
+      );
+
+      try {
+        const cacheContent = await fs.readFile(cachePath, 'utf-8');
+        const cache = JSON.parse(cacheContent) as {
+          version: number;
+          observations: Array<{
+            id: string;
+            type: 'file_read' | 'command_output' | 'api_response' | 'search_result' | 'test_output';
+            timestamp: number;
+            turnNumber: number;
+            tokenEstimate: number;
+            originalContent: string;
+            metadata?: Record<string, unknown>;
+          }>;
+        };
+
+        const observation = cache.observations.find((o) => o.id === observationId);
+        if (!observation) {
+          return {
+            success: false,
+            error: 'Observation not found',
+            errorCode: 'OBSERVATION_NOT_FOUND',
+          };
+        }
+
+        return {
+          success: true,
+          observation: {
+            id: observation.id,
+            type: observation.type,
+            timestamp: observation.timestamp,
+            turnNumber: observation.turnNumber,
+            tokenEstimate: observation.tokenEstimate,
+            content: observation.originalContent,
+            metadata: observation.metadata,
+          },
+        };
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+          return {
+            success: false,
+            error: 'Observation cache not found',
+            errorCode: 'CACHE_ERROR',
+          };
+        }
+        throw error;
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        errorCode: 'CACHE_ERROR',
+      };
+    }
+  }
+
+  /**
+   * MCP Tool: gofer_get_context_health
+   * Returns the current context health status with breakdown
+   *
+   * Reads from extension-written state file first (Spec 012),
+   * falls back to file-based calculation if state is stale or missing.
+   */
+  async getContextHealth(includeBreakdown: boolean = true): Promise<ContextHealthResponse> {
+    try {
+      // Try to read real state from extension (Spec 012)
+      const stateFile = path.join(this.workspacePath, '.specify/memory/context-health-state.json');
+      try {
+        const stateContent = await fs.readFile(stateFile, 'utf-8');
+        const state = JSON.parse(stateContent);
+
+        // Check if state is fresh (within last 30 seconds)
+        if (Date.now() - state.timestamp < 30000) {
+          return {
+            success: true,
+            health: {
+              status: state.status,
+              utilizationPercent: Math.round(state.utilizationPercent * 10) / 10,
+              tokensUsed: state.tokensUsed,
+              tokensLimit: state.tokensLimit,
+              breakdown: includeBreakdown ? state.breakdown : undefined,
+              recommendations: state.recommendations || [],
+              timestamp: state.timestamp,
+            },
+          };
+        }
+      } catch {
+        // State file doesn't exist or is invalid, fall through to calculation
+      }
+
+      // Fallback: calculate from file sizes (similar to check-context-health.sh)
+      return this.calculateContextHealthFromFiles(includeBreakdown);
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+
+  /**
+   * Calculate context health from file sizes.
+   * Fallback when extension state is not available.
+   */
+  private async calculateContextHealthFromFiles(
+    includeBreakdown: boolean
+  ): Promise<ContextHealthResponse> {
+    const effectiveLimit = 120000;
+
+    // Calculate token estimates from files
+    const breakdown = {
+      specArtifacts: await this.estimateTokensFromGlob('.specify/specs/**/*.md'),
+      memories: await this.estimateTokensFromGlob('.specify/memory/**/*.md'),
+      hints: await this.estimateTokensFromFile('hints.md'),
+      observations: 0, // Cannot calculate without runtime state
+      systemFiles:
+        (await this.estimateTokensFromFile('CLAUDE.md')) +
+        (await this.estimateTokensFromFile('AGENTS.md')) +
+        (await this.estimateTokensFromFile('.specify/memory/constitution.md')),
+      conversation: 0, // Cannot calculate without runtime state
+    };
+
+    const tokensUsed = Object.values(breakdown).reduce((a, b) => a + b, 0);
+    const utilizationPercent = (tokensUsed / effectiveLimit) * 100;
+
+    let status: 'healthy' | 'warning' | 'critical' = 'healthy';
+    if (utilizationPercent >= 70) {
+      status = 'critical';
+    } else if (utilizationPercent >= 50) {
+      status = 'warning';
+    }
+
+    const recommendations: string[] = [];
+    if (status === 'warning') {
+      recommendations.push('Consider masking older observations to free up context');
+    }
+    if (status === 'critical') {
+      recommendations.push('Run /7_gofer_save immediately, then start new session');
+    }
+
+    return {
+      success: true,
+      health: {
+        status,
+        utilizationPercent: Math.round(utilizationPercent * 10) / 10,
+        tokensUsed,
+        tokensLimit: effectiveLimit,
+        breakdown: includeBreakdown ? breakdown : undefined,
+        recommendations,
+        timestamp: Date.now(),
+      },
+    };
+  }
+
+  /**
+   * Estimate tokens from a single file.
+   * Uses 4 chars = 1 token approximation.
+   */
+  private async estimateTokensFromFile(relativePath: string): Promise<number> {
+    try {
+      const fullPath = path.join(this.workspacePath, relativePath);
+      const stats = await fs.stat(fullPath);
+      return Math.ceil(stats.size / 4);
+    } catch {
+      return 0;
+    }
+  }
+
+  /**
+   * Estimate tokens from files matching a glob pattern.
+   * Uses 4 chars = 1 token approximation.
+   */
+  private async estimateTokensFromGlob(pattern: string): Promise<number> {
+    try {
+      const glob = await import('glob');
+      const files = await glob.glob(pattern, { cwd: this.workspacePath });
+      let totalTokens = 0;
+
+      for (const file of files) {
+        totalTokens += await this.estimateTokensFromFile(file);
+      }
+
+      return totalTokens;
+    } catch {
+      return 0;
+    }
+  }
+
+  /**
+   * MCP Tool: gofer_get_research_index
+   * Returns the index of available research chunks for a spec
+   */
+  async getResearchIndex(specId: string): Promise<ResearchIndexResponse> {
+    try {
+      // Validate spec ID
+      const validation = this.validateSpecId(specId);
+      if (!validation.valid) {
+        return {
+          success: false,
+          error: validation.error,
+          errorCode: 'INVALID_SPEC_ID',
+        };
+      }
+
+      // Check if spec exists
+      const specDir = path.join(this.workspacePath, '.specify', 'specs', specId);
+      const researchPath = path.join(specDir, 'research.md');
+
+      try {
+        await fs.access(specDir);
+      } catch {
+        return {
+          success: false,
+          error: 'Spec not found',
+          errorCode: 'SPEC_NOT_FOUND',
+        };
+      }
+
+      try {
+        await fs.access(researchPath);
+      } catch {
+        return {
+          success: false,
+          error: 'research.md not found',
+          errorCode: 'NO_RESEARCH_FILE',
+        };
+      }
+
+      // Use ResearchChunker to get/generate the index
+      const index = await this.researchChunker.getIndex(specId);
+
+      return {
+        success: true,
+        index: {
+          sourceFile: index.sourceFile,
+          totalTokens: index.totalTokens,
+          chunkCount: index.chunkCount,
+          created: index.created,
+          chunks: index.chunks,
+        },
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        errorCode: 'INDEX_ERROR',
+      };
+    }
+  }
+
+  /**
+   * MCP Tool: gofer_load_research_chunk
+   * Loads a specific chunk of a research document by ID
+   */
+  async loadResearchChunk(specId: string, chunkId: string): Promise<LoadResearchChunkResponse> {
+    try {
+      // Validate spec ID
+      const specValidation = this.validateSpecId(specId);
+      if (!specValidation.valid) {
+        return {
+          success: false,
+          error: specValidation.error,
+          errorCode: 'INVALID_SPEC_ID',
+        };
+      }
+
+      // Use ResearchChunker to get the chunk
+      const chunk = await this.researchChunker.getChunk(specId, chunkId);
+
+      if (!chunk) {
+        return {
+          success: false,
+          error: 'Chunk not found',
+          errorCode: 'CHUNK_NOT_FOUND',
+        };
+      }
+
+      return {
+        success: true,
+        chunk: {
+          id: chunk.id,
+          sectionTitle: chunk.sectionTitle,
+          content: chunk.content,
+          tokenEstimate: chunk.tokenEstimate,
+          relevanceKeywords: chunk.relevanceKeywords,
+          order: chunk.order,
+        },
+      };
+    } catch (error) {
+      // Handle specific errors
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+      if (errorMessage.includes('Research file not found')) {
+        return {
+          success: false,
+          error: 'research.md not found',
+          errorCode: 'NO_RESEARCH_FILE',
+        };
+      }
+
+      if (errorMessage.includes('Invalid spec ID')) {
+        return {
+          success: false,
+          error: errorMessage,
+          errorCode: 'INVALID_SPEC_ID',
+        };
+      }
+
+      return {
+        success: false,
+        error: errorMessage,
+        errorCode: 'CHUNK_NOT_FOUND',
+      };
+    }
+  }
+
+  /**
+   * MCP Tool: gofer_trigger_handoff
+   * Manually triggers a session handoff with context preservation
+   */
+  async triggerHandoff(
+    reason: 'context_critical' | 'manual_request' | 'stage_complete' | 'error_recovery',
+    currentTask?: string,
+    notes?: string
+  ): Promise<TriggerHandoffResponse> {
+    try {
+      // Get current spec context
+      const specs = await this.goferLoader.loadAllSpecs();
+      const activeSpec = specs.find((s) => s.status === 'in_progress' || s.status === 'ready');
+
+      if (!activeSpec) {
+        return {
+          success: false,
+          error: 'No active feature context to hand off',
+          errorCode: 'NO_ACTIVE_FEATURE',
+        };
+      }
+
+      // Create handoff document
+      const handoffPath = path.join(
+        this.workspacePath,
+        '.specify',
+        'specs',
+        activeSpec.id,
+        'session-handoff.md'
+      );
+
+      const completedTasks = activeSpec.tasks
+        .filter((t) => t.status === 'completed')
+        .map((t) => t.id);
+
+      const handoffContent = `---
+feature: ${activeSpec.id}
+created: ${new Date().toISOString()}
+reason: ${reason}
+current_task: ${currentTask || 'none'}
+---
+
+# Session Handoff: ${activeSpec.title}
+
+## Context Snapshot
+
+- **Timestamp**: ${new Date().toISOString()}
+- **Reason**: ${reason}
+- **Current Task**: ${currentTask || 'None specified'}
+
+## Progress
+
+### Completed Tasks (${completedTasks.length}/${activeSpec.tasks.length})
+
+${completedTasks.map((t) => `- [x] ${t}`).join('\n')}
+
+### Remaining Tasks
+
+${activeSpec.tasks
+  .filter((t) => t.status !== 'completed')
+  .map((t) => `- [ ] ${t.id}: ${t.description}`)
+  .join('\n')}
+
+## Notes
+
+${notes || 'No additional notes.'}
+
+## Resume Command
+
+\`\`\`
+/8_gofer_resume --feature ${activeSpec.id}
+\`\`\`
+`;
+
+      await fs.writeFile(handoffPath, handoffContent, 'utf-8');
+
+      return {
+        success: true,
+        handoff: {
+          file: handoffPath,
+          created: Date.now(),
+          contextSnapshot: {
+            tokensUsed: 0, // Will be filled by ContextHealthMonitor
+            utilizationPercent: 0,
+            completedTasks,
+            currentTask,
+            stage: 'implement', // Simplified - would detect actual stage
+          },
+          resumeCommand: `/8_gofer_resume --feature ${activeSpec.id}`,
+        },
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        errorCode: 'HANDOFF_ERROR',
       };
     }
   }

@@ -12,6 +12,11 @@ import { MemoryManager } from './autonomous/MemoryManager';
 import { registerMemoryCommands } from './commands/memoryCommands';
 import { registerSpecCommands } from './commands/specCommands';
 import { registerCouncilCommands } from './commands/councilCommands';
+// Context Health Monitoring (Spec 012)
+import { ContextHealthMonitor } from './autonomous/ContextHealthMonitor';
+import { AutoHandoffTrigger } from './autonomous/AutoHandoffTrigger';
+import { ContextUsageLogger } from './autonomous/ContextUsageLogger';
+import { ContextHealthStatusBar } from './ui/ContextHealthStatusBar';
 
 /**
  * Gofer Extension
@@ -31,6 +36,11 @@ let branchSpecManager: BranchSpecManager | undefined;
 let autoUpdater: AutoUpdater | undefined;
 let lspClient: GoferLSPClient | undefined;
 let memoryManager: MemoryManager | undefined;
+// Context Health Monitoring (Spec 012)
+let contextHealthMonitor: ContextHealthMonitor | undefined;
+let contextUsageLogger: ContextUsageLogger | undefined;
+let contextHealthStatusBar: ContextHealthStatusBar | undefined;
+let autoHandoffTrigger: AutoHandoffTrigger | undefined;
 
 export async function activate(context: vscode.ExtensionContext) {
   // Reset Claude Code running context on startup (in case it was left true from a crash)
@@ -109,9 +119,12 @@ function registerTreeViews(context: vscode.ExtensionContext) {
     vscode.window.registerTreeDataProvider('goferConstitution', constitutionProvider)
   );
 
-  context.subscriptions.push(
-    vscode.window.registerTreeDataProvider('goferMemory', memoryProvider)
-  );
+  context.subscriptions.push(vscode.window.registerTreeDataProvider('goferMemory', memoryProvider));
+
+  // Create context health status bar (Spec 012)
+  // Created early so command is available, connected to monitor later
+  contextHealthStatusBar = new ContextHealthStatusBar(context);
+  console.log('[Gofer] Context health status bar created');
 
   console.log('[Gofer] Tree views registered');
 }
@@ -251,7 +264,85 @@ async function handleGoferFormat(context: vscode.ExtensionContext, workspacePath
   // Check if templates need updating based on extension version
   await checkForTemplateUpdates(workspacePath, context);
 
+  // Initialize Context Health Monitoring (Spec 012)
+  initializeContextHealthMonitoring(workspacePath);
+
   vscode.window.setStatusBarMessage('$(notebook) Gofer - Enterprise AI ready', 3000);
+}
+
+/**
+ * Initialize context health monitoring components (Spec 012)
+ *
+ * Creates and wires together:
+ * - ContextUsageLogger (JSONL logging)
+ * - ContextHealthMonitor (health tracking)
+ * - AutoHandoffTrigger (critical threshold handling)
+ * - ContextHealthStatusBar (UI display)
+ */
+function initializeContextHealthMonitoring(workspacePath: string): void {
+  try {
+    // Create components
+    contextUsageLogger = new ContextUsageLogger(workspacePath);
+    contextHealthMonitor = new ContextHealthMonitor();
+    contextHealthMonitor.setWorkspaceRoot(workspacePath); // For state persistence (Spec 012)
+    autoHandoffTrigger = new AutoHandoffTrigger();
+
+    // Wire status bar to monitor
+    if (contextHealthStatusBar) {
+      contextHealthStatusBar.connect(contextHealthMonitor);
+      contextHealthStatusBar.show();
+    }
+
+    // Wire auto-handoff to monitor and logger
+    autoHandoffTrigger.connect(contextHealthMonitor);
+    autoHandoffTrigger.setUsageLogger(contextUsageLogger);
+
+    // Connect logger to monitor events for JSONL logging
+    contextHealthMonitor.on('healthy', (status) => {
+      contextUsageLogger?.logHealthCheck({
+        sessionId: status.sessionId || 'unknown',
+        stage: 'unknown',
+        status: status.status,
+        tokensUsed: status.tokensUsed,
+        tokensLimit: status.tokensLimit,
+        utilizationPercent: status.utilizationPercent,
+        breakdown: status.breakdown,
+      });
+    });
+
+    contextHealthMonitor.on('warning', (status) => {
+      contextUsageLogger?.logHealthCheck({
+        sessionId: status.sessionId || 'unknown',
+        stage: 'unknown',
+        status: status.status,
+        tokensUsed: status.tokensUsed,
+        tokensLimit: status.tokensLimit,
+        utilizationPercent: status.utilizationPercent,
+        breakdown: status.breakdown,
+        action: 'Consider saving progress',
+      });
+    });
+
+    contextHealthMonitor.on('critical', (status) => {
+      contextUsageLogger?.logHealthCheck({
+        sessionId: status.sessionId || 'unknown',
+        stage: 'unknown',
+        status: status.status,
+        tokensUsed: status.tokensUsed,
+        tokensLimit: status.tokensLimit,
+        utilizationPercent: status.utilizationPercent,
+        breakdown: status.breakdown,
+        action: 'Handoff recommended',
+      });
+    });
+
+    // Start monitoring (uses context provider when set)
+    contextHealthMonitor.startMonitoring();
+
+    console.log('[Gofer] Context health monitoring initialized');
+  } catch (error) {
+    console.error('[Gofer] Failed to initialize context health monitoring:', error);
+  }
 }
 
 /**
@@ -309,8 +400,12 @@ function compareVersions(a: string, b: string): number {
   const bParts = b.split('.').map(Number);
 
   for (let i = 0; i < 3; i++) {
-    if (aParts[i] > bParts[i]) return 1;
-    if (aParts[i] < bParts[i]) return -1;
+    if (aParts[i] > bParts[i]) {
+      return 1;
+    }
+    if (aParts[i] < bParts[i]) {
+      return -1;
+    }
   }
   return 0;
 }
@@ -495,10 +590,7 @@ async function handleBranchChange() {
       progressProvider.refresh();
     }
     const currentBranch = branchSpecManager.getBranch();
-    vscode.window.setStatusBarMessage(
-      `$(git-branch) Gofer: Switched to ${currentBranch}`,
-      3000
-    );
+    vscode.window.setStatusBarMessage(`$(git-branch) Gofer: Switched to ${currentBranch}`, 3000);
   }
 }
 
@@ -998,7 +1090,10 @@ created: "${new Date().toISOString().split('T')[0]}"
 - [ ] T006 [Polish] Documentation updates
 - [ ] T007 [Polish] Final review and cleanup
 `;
-          await vscode.workspace.fs.writeFile(vscode.Uri.file(tasksFile), Buffer.from(tasksTemplate));
+          await vscode.workspace.fs.writeFile(
+            vscode.Uri.file(tasksFile),
+            Buffer.from(tasksTemplate)
+          );
 
           // Open the new spec file
           const doc = await vscode.workspace.openTextDocument(specFile);
@@ -1009,7 +1104,9 @@ created: "${new Date().toISOString().split('T')[0]}"
             progressProvider.refresh();
           }
 
-          vscode.window.showInformationMessage(`Created new specification: ${specName} (with tasks.md)`);
+          vscode.window.showInformationMessage(
+            `Created new specification: ${specName} (with tasks.md)`
+          );
         } catch (error) {
           vscode.window.showErrorMessage(`Failed to create specification: ${error}`);
         }
@@ -1062,6 +1159,10 @@ created: "${new Date().toISOString().split('T')[0]}"
 
   // Initialize MemoryManager and register memory commands
   memoryManager = new MemoryManager(context, workspacePath);
+  // Wire usage logger to MemoryManager for context health tracking (Spec 012 T024)
+  if (contextUsageLogger) {
+    memoryManager.setUsageLogger(contextUsageLogger);
+  }
   registerMemoryCommands(context, memoryManager);
   console.log('[Gofer] Memory commands registered');
 
@@ -1093,6 +1194,20 @@ created: "${new Date().toISOString().split('T')[0]}"
 
 export async function deactivate() {
   console.log('Gofer extension deactivating...');
+
+  // Stop Context Health Monitoring (Spec 012)
+  if (contextHealthMonitor) {
+    contextHealthMonitor.dispose();
+    console.log('Context health monitor stopped');
+  }
+  if (autoHandoffTrigger) {
+    autoHandoffTrigger.dispose();
+    console.log('Auto-handoff trigger stopped');
+  }
+  if (contextHealthStatusBar) {
+    contextHealthStatusBar.dispose();
+    console.log('Context health status bar disposed');
+  }
 
   // Stop Language Server
   if (lspClient) {

@@ -6,6 +6,7 @@
  * - Load and merge hints from HintLoader
  * - Build constitution context
  * - Combine all context sources into single prompt
+ * - Enforce stage-specific context budgets
  *
  * Priority hierarchy:
  * 1. Task-specific context (from tasks.md)
@@ -14,13 +15,30 @@
  * 4. Global hints (priority 1)
  * 5. Relevant memories
  * 6. Constitution
+ *
+ * @see .specify/specs/011-context-health-recursive-memory/tasks.md T038-T041
  */
 
 import * as path from 'path';
 import * as fs from 'fs';
+import { EventEmitter } from 'events';
 import { HintLoader } from './HintLoader';
 import { MemoryManager } from './MemoryManager';
 import type { Memory } from './memory';
+import {
+  ObservationMasker,
+  type ObservationMaskerConfig,
+  type ObservationType,
+} from './ObservationMasker';
+import {
+  type GoferStage,
+  type StageContextProfile,
+  DEFAULT_PROFILES,
+  calculateBudgetSummary,
+} from './StageContextProfile';
+import { StageContextProfileLoader } from './StageContextProfileLoader';
+import { ResearchChunker, type ScoredChunk } from './ResearchChunker';
+import type { ContextUsageLogger } from './ContextUsageLogger';
 
 /**
  * Task information for context building
@@ -35,6 +53,127 @@ export interface TaskContext {
 }
 
 /**
+ * Configuration for ContextBuilder observation masking
+ */
+export interface ContextBuilderConfig {
+  /** Enable observation masking (default: true) */
+  enableMasking: boolean;
+  /** ObservationMasker configuration */
+  maskerConfig?: Partial<ObservationMaskerConfig>;
+  /** Enable stage-aware budget enforcement (default: true) */
+  enableBudgetEnforcement: boolean;
+  /** Context token limit (default: 120000) */
+  contextTokenLimit: number;
+  /** Emit warnings when budget exceeded (default: true) */
+  emitBudgetWarnings: boolean;
+  /** Enable memory-first loading (default: true) */
+  enableMemoryFirstLoading: boolean;
+  /** Maximum memories to load by priority (default: 10) */
+  memoryPriorityLimit: number;
+  /** Minimum memory coverage before loading research (default: 0.3) */
+  minMemoryCoverage: number;
+  /** Enable logging of loading decisions (default: true) */
+  logLoadingDecisions: boolean;
+  /** Enable chunked research loading (default: true) */
+  enableChunkedResearch: boolean;
+  /** Maximum research chunks to load (default: 5) */
+  researchChunkLimit: number;
+  /** Minimum relevance score for research chunks (default: 10) */
+  minChunkRelevance: number;
+}
+
+/**
+ * Budget usage tracking for a context build
+ */
+export interface BudgetUsage {
+  /** Current Gofer stage */
+  stage: GoferStage;
+  /** Active profile */
+  profile: StageContextProfile;
+  /** Token usage per category */
+  usage: {
+    research: number;
+    memory: number;
+    code: number;
+    conversation: number;
+    total: number;
+  };
+  /** Budget limits per category (in tokens) */
+  limits: {
+    research: number;
+    memory: number;
+    code: number;
+    conversation: number;
+  };
+  /** Categories that exceeded their budget */
+  exceededCategories: string[];
+  /** Whether total exceeds context limit */
+  totalExceeded: boolean;
+}
+
+/**
+ * Budget warning event data
+ */
+export interface BudgetWarningEvent {
+  /** Category that exceeded budget */
+  category: string;
+  /** Tokens used */
+  tokensUsed: number;
+  /** Budget limit */
+  budgetLimit: number;
+  /** Percentage over budget */
+  percentOver: number;
+  /** Current stage */
+  stage: GoferStage;
+}
+
+/**
+ * Statistics about masking operations
+ */
+export interface MaskingStats {
+  /** Number of observations masked */
+  maskedCount: number;
+  /** Tokens saved by masking */
+  tokensSaved: number;
+  /** Total observations tracked */
+  totalObservations: number;
+}
+
+/**
+ * Memory coverage tracking for memory-first loading
+ * @see T047, T048
+ */
+export interface MemoryCoverage {
+  /** Keywords covered by loaded memories */
+  coveredKeywords: string[];
+  /** Keywords not covered (gaps requiring research) */
+  uncoveredKeywords: string[];
+  /** Coverage percentage (0-100) */
+  coveragePercent: number;
+  /** Number of memories loaded */
+  memoriesLoaded: number;
+  /** Whether research was loaded for gaps */
+  researchLoadedForGaps: boolean;
+  /** Topics that triggered research loading */
+  researchTriggers: string[];
+}
+
+/**
+ * Loading decision log entry
+ * @see T047
+ */
+export interface LoadingDecision {
+  /** Source type */
+  source: 'memory' | 'research' | 'hints';
+  /** Decision made */
+  decision: 'loaded' | 'skipped';
+  /** Reason for decision */
+  reason: string;
+  /** Tokens loaded (if loaded) */
+  tokens?: number;
+}
+
+/**
  * Built context result
  */
 export interface BuiltContext {
@@ -44,27 +183,256 @@ export interface BuiltContext {
     hints?: string;
     memories?: string;
     taskContext?: string;
+    observations?: string;
+    research?: string;
+    code?: string;
   };
   loadTime: number;
   hintsLoadTime: number;
   memoriesLoadTime: number;
+  /** Masking statistics (present if masking enabled) */
+  maskingStats?: MaskingStats;
+  /** Current turn number */
+  turnNumber: number;
+  /** Budget usage (present if budget enforcement enabled) */
+  budgetUsage?: BudgetUsage;
+  /** Current stage */
+  stage: GoferStage;
+  /** Memory coverage tracking (present when memory-first loading enabled) */
+  memoryCoverage?: MemoryCoverage;
+  /** Loading decisions log */
+  loadingDecisions?: LoadingDecision[];
 }
 
-export class ContextBuilder {
+/**
+ * Default ContextBuilder configuration
+ */
+const DEFAULT_CONTEXT_BUILDER_CONFIG: ContextBuilderConfig = {
+  enableMasking: true,
+  enableBudgetEnforcement: true,
+  contextTokenLimit: 120000,
+  emitBudgetWarnings: true,
+  enableMemoryFirstLoading: true,
+  memoryPriorityLimit: 10,
+  minMemoryCoverage: 0.3,
+  logLoadingDecisions: true,
+  enableChunkedResearch: true,
+  researchChunkLimit: 5,
+  minChunkRelevance: 10,
+};
+
+export class ContextBuilder extends EventEmitter {
   private readonly workspaceRoot: string;
   private readonly hintLoader: HintLoader;
   private readonly memoryManager: MemoryManager;
+  private readonly observationMasker: ObservationMasker;
+  private readonly profileLoader: StageContextProfileLoader;
+  private readonly researchChunker: ResearchChunker;
+  private readonly config: ContextBuilderConfig;
+  private currentTurn: number = 0;
+  private currentStage: GoferStage = 'implement';
+  private currentProfile: StageContextProfile;
+  private usageLogger?: ContextUsageLogger;
 
-  constructor(workspaceRoot: string, memoryManager: MemoryManager, hintLoader?: HintLoader) {
+  constructor(
+    workspaceRoot: string,
+    memoryManager: MemoryManager,
+    hintLoader?: HintLoader,
+    observationMasker?: ObservationMasker,
+    config?: Partial<ContextBuilderConfig>,
+    profileLoader?: StageContextProfileLoader,
+    researchChunker?: ResearchChunker
+  ) {
+    super();
     this.workspaceRoot = workspaceRoot;
     this.memoryManager = memoryManager;
     this.hintLoader = hintLoader || new HintLoader(workspaceRoot);
+    this.config = { ...DEFAULT_CONTEXT_BUILDER_CONFIG, ...config };
+    this.observationMasker =
+      observationMasker || new ObservationMasker(workspaceRoot, this.config.maskerConfig);
+    this.profileLoader = profileLoader || new StageContextProfileLoader(workspaceRoot);
+    this.researchChunker = researchChunker || new ResearchChunker(workspaceRoot);
+    this.currentProfile = DEFAULT_PROFILES[this.currentStage];
+  }
+
+  /**
+   * Set the usage logger for context health tracking (Spec 012).
+   *
+   * @param logger - ContextUsageLogger instance
+   */
+  setUsageLogger(logger: ContextUsageLogger): void {
+    this.usageLogger = logger;
+  }
+
+  /**
+   * Set the current Gofer stage and load corresponding profile
+   *
+   * @param stage - New Gofer stage
+   * @returns Promise that resolves when profile is loaded
+   */
+  async setCurrentStage(stage: GoferStage): Promise<void> {
+    const previousStage = this.currentStage;
+    this.currentStage = stage;
+
+    // Load profile for new stage
+    this.currentProfile = await this.profileLoader.getProfile(stage);
+
+    // Update observation window in masker
+    this.observationMasker.updateConfig({
+      ageThresholdTurns: this.currentProfile.observationWindow,
+    });
+
+    // Emit stage change event
+    this.emit('stage-change', {
+      previousStage,
+      newStage: stage,
+      profile: this.currentProfile,
+    });
+  }
+
+  /**
+   * Get the current Gofer stage
+   */
+  getStage(): GoferStage {
+    return this.currentStage;
+  }
+
+  /**
+   * Get the current stage profile
+   */
+  getProfile(): StageContextProfile {
+    return this.currentProfile;
+  }
+
+  /**
+   * Estimate token count for a string (4 chars ≈ 1 token)
+   */
+  private estimateTokens(content: string): number {
+    return Math.ceil(content.length / 4);
+  }
+
+  /**
+   * Calculate budget usage for the current context build
+   *
+   * Maps context sections to budget categories:
+   * - research: hints (research docs loaded via hints)
+   * - memory: memories + constitution
+   * - code: code sections (future: inline code context)
+   * - conversation: taskContext + observations
+   *
+   * @param sections - Built context sections
+   * @returns BudgetUsage with usage, limits, and exceeded categories
+   */
+  private calculateBudgetUsage(sections: BuiltContext['sections']): BudgetUsage {
+    const profile = this.currentProfile;
+    const contextLimit = this.config.contextTokenLimit;
+
+    // Calculate token limits from budget fractions
+    const limits = {
+      research: Math.floor(contextLimit * profile.researchBudget),
+      memory: Math.floor(contextLimit * profile.memoryBudget),
+      code: Math.floor(contextLimit * profile.codeBudget),
+      conversation: Math.floor(
+        contextLimit * (1 - profile.researchBudget - profile.memoryBudget - profile.codeBudget)
+      ),
+    };
+
+    // Calculate actual token usage per category
+    const usage = {
+      research: this.estimateTokens(sections.hints || ''),
+      memory:
+        this.estimateTokens(sections.memories || '') +
+        this.estimateTokens(sections.constitution || ''),
+      code: this.estimateTokens(sections.code || ''),
+      conversation:
+        this.estimateTokens(sections.taskContext || '') +
+        this.estimateTokens(sections.observations || ''),
+      total: 0,
+    };
+    usage.total = usage.research + usage.memory + usage.code + usage.conversation;
+
+    // Determine which categories exceeded their budget
+    const exceededCategories: string[] = [];
+    if (usage.research > limits.research) {
+      exceededCategories.push('research');
+    }
+    if (usage.memory > limits.memory) {
+      exceededCategories.push('memory');
+    }
+    if (usage.code > limits.code) {
+      exceededCategories.push('code');
+    }
+    if (usage.conversation > limits.conversation) {
+      exceededCategories.push('conversation');
+    }
+
+    return {
+      stage: this.currentStage,
+      profile,
+      usage,
+      limits,
+      exceededCategories,
+      totalExceeded: usage.total > contextLimit,
+    };
+  }
+
+  /**
+   * Get the ObservationMasker instance for external access
+   */
+  getObservationMasker(): ObservationMasker {
+    return this.observationMasker;
+  }
+
+  /**
+   * Get the current turn number
+   */
+  getCurrentTurn(): number {
+    return this.currentTurn;
+  }
+
+  /**
+   * Increment the turn counter (call at start of each conversation turn)
+   */
+  incrementTurn(): number {
+    this.currentTurn++;
+    return this.currentTurn;
+  }
+
+  /**
+   * Track an observation (tool output) for potential masking
+   *
+   * @param type - Type of observation
+   * @param content - Original content
+   * @param metadata - Additional context (file path, command, etc.)
+   * @param summary - Brief summary for placeholder
+   * @returns Observation ID
+   */
+  trackObservation(
+    type: ObservationType,
+    content: string,
+    metadata?: Record<string, unknown>,
+    summary?: string
+  ): string {
+    return this.observationMasker.trackObservation({
+      timestamp: Date.now(),
+      turnNumber: this.currentTurn,
+      type,
+      originalContent: content,
+      metadata,
+      summary,
+    });
   }
 
   /**
    * Build complete context for a task
    *
-   * Merges all context sources in priority order:
+   * With memory-first loading enabled (default), the build order is:
+   * 1. Constitution
+   * 2. Memories (loaded by priority with relevance scoring)
+   * 3. Hints/Research (only for gaps not covered by memories)
+   * 4. Task-specific context
+   *
+   * Legacy order (when memory-first disabled):
    * 1. Constitution
    * 2. Hints (directory > project > global)
    * 3. Memories
@@ -76,6 +444,8 @@ export class ContextBuilder {
   async buildContext(task: TaskContext): Promise<BuiltContext> {
     const startTime = Date.now();
     const sections: BuiltContext['sections'] = {};
+    const loadingDecisions: LoadingDecision[] = [];
+    let memoryCoverage: MemoryCoverage | undefined;
 
     // 1. Load constitution
     const constitutionPath = path.join(this.workspaceRoot, '.specify', 'memory', 'constitution.md');
@@ -84,37 +454,173 @@ export class ContextBuilder {
       sections.constitution = fs.readFileSync(constitutionPath, 'utf-8');
     }
 
-    // 2. Load hints
-    const hintsStartTime = Date.now();
-    const hintResult = await this.hintLoader.loadForTask({
-      affectedFiles: task.affectedFiles || [],
-      declaredHints: task.declaredHints || [],
-      includeGlobal: true,
-      includeProject: true,
-    });
-    const hintsLoadTime = Date.now() - hintsStartTime;
-
-    if (hintResult.mergedContent) {
-      sections.hints = hintResult.mergedContent;
+    // 1.5 Load research chunks (T059-T061) - chunked loading for context reduction
+    if (this.config.enableChunkedResearch && task.specId) {
+      const researchResult = await this.loadResearchChunks(task.specId, task.description);
+      if (researchResult) {
+        sections.research = researchResult.content;
+        loadingDecisions.push({
+          source: 'research',
+          decision: 'loaded',
+          reason: `Loaded ${researchResult.chunksLoaded} research chunks (${researchResult.tokensLoaded} tokens)`,
+          tokens: researchResult.tokensLoaded,
+        });
+      }
     }
 
-    // 3. Load memories
+    // Extract task keywords for coverage tracking
+    const taskKeywords = this.extractKeywords(task.description);
+
+    // 2. Load memories (memory-first if enabled)
     const memoriesStartTime = Date.now();
-    const memories = await this.loadRelevantMemories(task);
+    let memories: Memory[] = [];
+
+    if (this.config.enableMemoryFirstLoading) {
+      // Use loadByPriority with task context for relevance scoring
+      const priorityResult = await this.memoryManager.loadByPriority({
+        limit: this.config.memoryPriorityLimit,
+        taskContext: task.description,
+        scope: 'both',
+      });
+      memories = priorityResult.memories;
+
+      loadingDecisions.push({
+        source: 'memory',
+        decision: 'loaded',
+        reason: `Loaded ${memories.length} memories by priority (${priorityResult.totalConsidered} considered)`,
+        tokens: memories.length > 0 ? this.estimateTokens(this.formatMemories(memories)) : 0,
+      });
+    } else {
+      // Legacy: load by simple relevance
+      memories = await this.loadRelevantMemories(task);
+    }
     const memoriesLoadTime = Date.now() - memoriesStartTime;
 
     if (memories.length > 0) {
       sections.memories = this.formatMemories(memories);
     }
 
-    // 4. Task-specific context
+    // 3. Calculate memory coverage (T048)
+    if (this.config.enableMemoryFirstLoading) {
+      memoryCoverage = this.calculateMemoryCoverage(taskKeywords, memories);
+    }
+
+    // 4. Load hints/research (lazy loading for gaps - T049)
+    const hintsStartTime = Date.now();
+    let hintsLoadTime = 0;
+
+    if (this.config.enableMemoryFirstLoading && memoryCoverage) {
+      // Lazy loading: only load research for gaps
+      if (memoryCoverage.coveragePercent < this.config.minMemoryCoverage * 100) {
+        // Coverage below threshold - load research for uncovered topics
+        const hintResult = await this.hintLoader.loadForTask({
+          affectedFiles: task.affectedFiles || [],
+          declaredHints: task.declaredHints || [],
+          includeGlobal: true,
+          includeProject: true,
+        });
+        hintsLoadTime = Date.now() - hintsStartTime;
+
+        if (hintResult.mergedContent) {
+          sections.hints = hintResult.mergedContent;
+          memoryCoverage.researchLoadedForGaps = true;
+          memoryCoverage.researchTriggers = memoryCoverage.uncoveredKeywords.slice(0, 5);
+
+          loadingDecisions.push({
+            source: 'research',
+            decision: 'loaded',
+            reason: `Coverage ${memoryCoverage.coveragePercent.toFixed(1)}% below threshold ${(this.config.minMemoryCoverage * 100).toFixed(1)}%`,
+            tokens: this.estimateTokens(hintResult.mergedContent),
+          });
+        }
+      } else {
+        // Coverage sufficient - skip research loading
+        loadingDecisions.push({
+          source: 'research',
+          decision: 'skipped',
+          reason: `Coverage ${memoryCoverage.coveragePercent.toFixed(1)}% meets threshold ${(this.config.minMemoryCoverage * 100).toFixed(1)}%`,
+        });
+        hintsLoadTime = Date.now() - hintsStartTime;
+      }
+    } else {
+      // Legacy: always load hints
+      const hintResult = await this.hintLoader.loadForTask({
+        affectedFiles: task.affectedFiles || [],
+        declaredHints: task.declaredHints || [],
+        includeGlobal: true,
+        includeProject: true,
+      });
+      hintsLoadTime = Date.now() - hintsStartTime;
+
+      if (hintResult.mergedContent) {
+        sections.hints = hintResult.mergedContent;
+      }
+    }
+
+    // 5. Task-specific context
     if (task.customContext) {
       sections.taskContext = task.customContext;
+    }
+
+    // 6. Apply observation masking (if enabled)
+    let maskingStats: MaskingStats | undefined;
+    if (this.config.enableMasking) {
+      const maskResult = this.observationMasker.maskOldObservations(this.currentTurn);
+      if (maskResult.maskedCount > 0) {
+        sections.observations = maskResult.maskedContent;
+      }
+      maskingStats = {
+        maskedCount: maskResult.maskedCount,
+        tokensSaved: maskResult.tokensSaved,
+        totalObservations: this.observationMasker.getAllObservations().length,
+      };
     }
 
     // Build full context
     const fullContext = this.mergeContextSections(sections);
     const loadTime = Date.now() - startTime;
+
+    // 7. Calculate budget usage (if budget enforcement enabled)
+    let budgetUsage: BudgetUsage | undefined;
+    if (this.config.enableBudgetEnforcement) {
+      budgetUsage = this.calculateBudgetUsage(sections);
+
+      // Emit warnings for exceeded categories
+      if (this.config.emitBudgetWarnings) {
+        for (const category of budgetUsage.exceededCategories) {
+          const usage = budgetUsage.usage[category as keyof typeof budgetUsage.usage];
+          const limit = budgetUsage.limits[category as keyof typeof budgetUsage.limits];
+          const percentOver = ((usage - limit) / limit) * 100;
+
+          this.emit('budget-warning', {
+            category,
+            tokensUsed: usage,
+            budgetLimit: limit,
+            percentOver,
+            stage: this.currentStage,
+          } as BudgetWarningEvent);
+        }
+      }
+    }
+
+    // Emit loading decision events for logging
+    if (this.config.logLoadingDecisions) {
+      for (const decision of loadingDecisions) {
+        this.emit('loading-decision', decision);
+
+        // Log to context usage logger (Spec 012 T023)
+        if (this.usageLogger) {
+          this.usageLogger.logLoadingDecision({
+            source: decision.source,
+            decision: decision.decision,
+            reason: decision.reason,
+            tokensLoaded: decision.tokens,
+            memoryCoveragePercent: memoryCoverage?.coveragePercent,
+            stage: this.currentStage,
+          });
+        }
+      }
+    }
 
     return {
       fullContext,
@@ -122,6 +628,80 @@ export class ContextBuilder {
       loadTime,
       hintsLoadTime,
       memoriesLoadTime,
+      maskingStats,
+      turnNumber: this.currentTurn,
+      budgetUsage,
+      stage: this.currentStage,
+      memoryCoverage,
+      loadingDecisions: this.config.logLoadingDecisions ? loadingDecisions : undefined,
+    };
+  }
+
+  /**
+   * Calculate memory coverage against task keywords
+   *
+   * Determines what percentage of task-relevant topics are covered
+   * by the loaded memories, identifying gaps that may need research.
+   *
+   * @param taskKeywords - Keywords extracted from task description
+   * @param memories - Loaded memories
+   * @returns Memory coverage metrics
+   * @see T048
+   */
+  private calculateMemoryCoverage(taskKeywords: string[], memories: Memory[]): MemoryCoverage {
+    if (taskKeywords.length === 0) {
+      return {
+        coveredKeywords: [],
+        uncoveredKeywords: [],
+        coveragePercent: 100, // No keywords to cover
+        memoriesLoaded: memories.length,
+        researchLoadedForGaps: false,
+        researchTriggers: [],
+      };
+    }
+
+    // Extract keywords from memories
+    const memoryKeywords = new Set<string>();
+    for (const memory of memories) {
+      // Add tags (normalized)
+      for (const tag of memory.tags) {
+        memoryKeywords.add(tag.toLowerCase().replace(/^#/, ''));
+      }
+      // Add category
+      memoryKeywords.add(memory.category.toLowerCase());
+      // Add content keywords
+      const contentKeywords = this.extractKeywords(memory.content);
+      for (const kw of contentKeywords) {
+        memoryKeywords.add(kw);
+      }
+    }
+
+    // Check coverage
+    const coveredKeywords: string[] = [];
+    const uncoveredKeywords: string[] = [];
+
+    for (const keyword of taskKeywords) {
+      // Check for exact match or partial match
+      const isMatched =
+        memoryKeywords.has(keyword) ||
+        Array.from(memoryKeywords).some((mk) => mk.includes(keyword) || keyword.includes(mk));
+
+      if (isMatched) {
+        coveredKeywords.push(keyword);
+      } else {
+        uncoveredKeywords.push(keyword);
+      }
+    }
+
+    const coveragePercent = (coveredKeywords.length / taskKeywords.length) * 100;
+
+    return {
+      coveredKeywords,
+      uncoveredKeywords,
+      coveragePercent,
+      memoriesLoaded: memories.length,
+      researchLoadedForGaps: false,
+      researchTriggers: [],
     };
   }
 
@@ -243,13 +823,70 @@ export class ContextBuilder {
   }
 
   /**
+   * Load relevant research chunks for a spec based on task description
+   *
+   * Uses semantic chunking to load only the most relevant portions
+   * of research.md, achieving ~60% context reduction vs full document.
+   *
+   * @param specId - Spec identifier
+   * @param taskDescription - Task description for relevance scoring
+   * @returns Formatted research content or undefined if no research exists
+   * @see T059-T061
+   */
+  private async loadResearchChunks(
+    specId: string,
+    taskDescription: string
+  ): Promise<{ content: string; tokensLoaded: number; chunksLoaded: number } | undefined> {
+    try {
+      // Load relevant chunks based on task context
+      const chunks = await this.researchChunker.loadChunksForTask(
+        specId,
+        taskDescription,
+        this.config.researchChunkLimit
+      );
+
+      // Filter by minimum relevance
+      const relevantChunks = chunks.filter(
+        (chunk) => chunk.relevanceScore >= this.config.minChunkRelevance
+      );
+
+      if (relevantChunks.length === 0) {
+        return undefined;
+      }
+
+      // Format chunks into markdown
+      const parts: string[] = ['# Research Context\n'];
+      parts.push(`_Loaded ${relevantChunks.length} relevant chunks from research.md_\n`);
+
+      let totalTokens = 0;
+      for (const chunk of relevantChunks) {
+        parts.push(`## ${chunk.sectionTitle}`);
+        parts.push(chunk.content);
+        parts.push('');
+        totalTokens += chunk.tokenEstimate;
+      }
+
+      return {
+        content: parts.join('\n'),
+        tokensLoaded: totalTokens,
+        chunksLoaded: relevantChunks.length,
+      };
+    } catch {
+      // Research file doesn't exist or error loading - not a failure case
+      return undefined;
+    }
+  }
+
+  /**
    * Merge context sections into single string
    *
    * Order:
    * 1. Constitution
-   * 2. Hints
-   * 3. Memories
-   * 4. Task context
+   * 2. Research (chunked)
+   * 3. Hints
+   * 4. Memories
+   * 5. Task context
+   * 6. Masked observations (placeholders)
    *
    * Each section separated by "---"
    *
@@ -264,6 +901,11 @@ export class ContextBuilder {
       parts.push(sections.constitution);
     }
 
+    if (sections.research) {
+      // Research is already formatted with header by loadResearchChunks
+      parts.push(sections.research);
+    }
+
     if (sections.hints) {
       parts.push('# Coding Hints\n');
       parts.push(sections.hints);
@@ -276,6 +918,13 @@ export class ContextBuilder {
     if (sections.taskContext) {
       parts.push('# Task Context\n');
       parts.push(sections.taskContext);
+    }
+
+    if (sections.observations) {
+      parts.push('# Masked Observations\n');
+      parts.push('_The following observations have been masked to save context. ');
+      parts.push('Use gofer_expand_observation to retrieve full content._\n\n');
+      parts.push(sections.observations);
     }
 
     return parts.join('\n\n---\n\n');

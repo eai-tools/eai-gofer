@@ -68,6 +68,70 @@ Before starting specification, assess context window health:
 
 3. **Load spec template**: `.specify/templates/spec-template.md`
 
+4. **Load discovery.md** (if exists) for auto-population:
+   ```bash
+   ls -la {FEATURE_DIR}/discovery.md 2>/dev/null
+   ```
+
+---
+
+## Step 1.5: Auto-Populate from Discovery (If Available)
+
+If discovery.md exists, pre-fill spec sections from discovery findings:
+
+### Discovery → Spec Mapping
+
+| Discovery Section    | Spec Section             | How to Use                           |
+| -------------------- | ------------------------ | ------------------------------------ |
+| Problem Statement    | Overview                 | Use pain point as feature motivation |
+| Target Users         | User Stories             | Use persona as "As a [user type]"    |
+| Value Proposition    | Success Criteria         | Convert to measurable metrics        |
+| Success Metrics      | Success Criteria         | Use directly as targets              |
+| Constraints          | Assumptions              | Include as spec assumptions          |
+| Competitive Analysis | Overview or Out of Scope | Inform differentiation               |
+
+### Pre-filled Content
+
+When discovery.md exists, start spec.md with:
+
+```markdown
+## Overview
+
+[Feature] addresses [Problem from discovery.md - Pain Point].
+
+**Target Users**: [From discovery.md - Target Users - Persona] **Primary
+Value**: [From discovery.md - Value Proposition - Primary Value]
+
+**Discovery Reference**: See `discovery.md` for full business context.
+**Research Reference**: See `research.md` for codebase analysis.
+```
+
+### User Story Generation from Discovery
+
+Generate user stories using discovery context:
+
+```markdown
+### US1: [Derived from Problem + Primary Value] (P1)
+
+**As a** [Target Users - Persona] **I want to** [Solve Problem - Pain Point]
+**So that** [Value Proposition - Primary Value]
+
+**Acceptance Criteria**:
+
+- [ ] [Derived from Success Metrics]
+```
+
+### Success Criteria from Discovery
+
+Convert discovery metrics to spec success criteria:
+
+| Discovery Metric        | Spec Success Criterion             |
+| ----------------------- | ---------------------------------- |
+| [Metric from discovery] | [Measurable target from discovery] |
+
+**Note**: If discovery.md doesn't exist, generate spec content from research.md
+and user input as before.
+
 ---
 
 ## Step 2: Create Specification
@@ -221,21 +285,23 @@ points.
 
 ## Step 3.5: Research Integration Validation (GAP-04)
 
-**CRITICAL**: Before proceeding, validate that the specification incorporates ALL
-findings from research.md. This prevents research waste and missed constraints.
+**CRITICAL**: Before proceeding, validate that the specification incorporates
+ALL findings from research.md. This prevents research waste and missed
+constraints.
 
 ### 3.5.1 Integration Points Coverage
 
 For EACH integration point identified in research.md:
 
-| Integration Point | Addressed In Spec? | Section | How Addressed |
-|-------------------|-------------------|---------|---------------|
-| [Point from research] | Yes/No | [FR-X or Dependencies] | [Explanation] |
+| Integration Point     | Addressed In Spec? | Section                | How Addressed |
+| --------------------- | ------------------ | ---------------------- | ------------- |
+| [Point from research] | Yes/No             | [FR-X or Dependencies] | [Explanation] |
 
 **Validation Rule**: ALL integration points MUST appear in spec (Dependencies,
 Functional Requirements, or Assumptions section).
 
 If any integration point is NOT addressed:
+
 - ERROR: "Integration point '[X]' from research not addressed in spec"
 - Add to appropriate section before proceeding
 
@@ -243,14 +309,15 @@ If any integration point is NOT addressed:
 
 For EACH constraint from research.md "Constraints & Considerations":
 
-| Constraint | Acknowledged? | Section | How Addressed |
-|------------|--------------|---------|---------------|
-| [Constraint from research] | Yes/No | [Assumptions/NFR] | [Explanation] |
+| Constraint                 | Acknowledged? | Section           | How Addressed |
+| -------------------------- | ------------- | ----------------- | ------------- |
+| [Constraint from research] | Yes/No        | [Assumptions/NFR] | [Explanation] |
 
 **Validation Rule**: ALL constraints MUST be acknowledged in Assumptions or
 Non-Functional Requirements.
 
 If any constraint is NOT acknowledged:
+
 - ERROR: "Constraint '[X]' from research not acknowledged in spec"
 - Add to Assumptions or NFR section
 
@@ -258,9 +325,9 @@ If any constraint is NOT acknowledged:
 
 For EACH technology decision from research.md:
 
-| Decision | Relevant to Spec? | Reflected In | Notes |
-|----------|------------------|--------------|-------|
-| [Tech decision] | Yes/No | [Dependencies/Assumptions] | [If relevant] |
+| Decision        | Relevant to Spec? | Reflected In               | Notes         |
+| --------------- | ----------------- | -------------------------- | ------------- |
+| [Tech decision] | Yes/No            | [Dependencies/Assumptions] | [If relevant] |
 
 **Validation Rule**: Technology decisions affecting requirements MUST be
 reflected in Dependencies or inform requirement scoping.
@@ -280,11 +347,11 @@ Add to end of spec.md:
 ```markdown
 ## Research Traceability
 
-| Research Finding | Spec Section | Reference |
-|------------------|--------------|-----------|
-| [Integration Point 1] | Dependencies | Line X |
-| [Constraint 1] | Assumptions | Line Y |
-| [Tech Decision 1] | FR-001 | Line Z |
+| Research Finding      | Spec Section | Reference |
+| --------------------- | ------------ | --------- |
+| [Integration Point 1] | Dependencies | Line X    |
+| [Constraint 1]        | Assumptions  | Line Y    |
+| [Tech Decision 1]     | FR-001       | Line Z    |
 ```
 
 **Proceed only when ALL research findings are traced to spec sections.**

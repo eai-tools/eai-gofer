@@ -95,7 +95,7 @@ export class GitHubApiClient {
       const response = await fetch(url, {
         headers: {
           accept: 'application/vnd.github.v3+json',
-          'User-Agent': 'SpecGofer-VSCode-Extension/1.3.4',
+          'User-Agent': 'Gofer-VSCode-Extension/1.3.4',
         },
       });
 
@@ -204,7 +204,7 @@ export class GitHubApiClient {
       
       const response = await fetch(downloadUrl, {
         headers: {
-          'User-Agent': 'SpecGofer-VSCode-Extension/1.3.4',
+          'User-Agent': 'Gofer-VSCode-Extension/1.3.4',
         },
       });
 

@@ -1,6 +1,6 @@
-# SpecGofer Releases
+# Gofer Releases
 
-This directory contains the GitHub Pages site for SpecGofer releases.
+This directory contains the GitHub Pages site for Gofer releases.
 
 ## Files
 
@@ -10,7 +10,7 @@ This directory contains the GitHub Pages site for SpecGofer releases.
 
 ## Setup GitHub Pages
 
-1. Go to repository settings: https://github.com/eai-tools/specgofer/settings/pages
+1. Go to repository settings: https://github.com/eai-tools/gofer/settings/pages
 2. Under "Source", select "Deploy from a branch"
 3. Choose "main" branch and "/docs" folder
 4. Save
@@ -19,8 +19,8 @@ The site will be available at: https://eai-tools.github.io/specgofer
 
 ## API Endpoints
 
-- `https://eai-tools.github.io/specgofer/releases.json` - JSON API for latest release info
-- `https://eai-tools.github.io/specgofer/` - Human-readable release page
+- `https://eai-tools.github.io/gofer/releases.json` - JSON API for latest release info
+- `https://eai-tools.github.io/gofer/` - Human-readable release page
 
 ## Updating Releases
 
@@ -35,6 +35,6 @@ When creating a new release:
 The VSCode extension can use this API instead of GitHub's private API:
 
 ```typescript
-// Instead of: api.github.com/repos/eai-tools/specgofer/releases/latest
-// Use: eai-tools.github.io/specgofer/releases.json
+// Instead of: api.github.com/repos/eai-tools/gofer/releases/latest
+// Use: eai-tools.github.io/gofer/releases.json
 ```

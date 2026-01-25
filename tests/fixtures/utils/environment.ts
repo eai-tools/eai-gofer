@@ -13,7 +13,7 @@ export interface TestEnvironmentConfig {
 export class TestEnvironment {
   private static config: TestEnvironmentConfig = {
     workspace: process.cwd(),
-    tempDir: '/tmp/specgofer-tests',
+    tempDir: '/tmp/gofer-tests',
     fixtures: 'tests/fixtures',
     timeout: 30000,
     cleanupAfterTest: true

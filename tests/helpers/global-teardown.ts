@@ -1,13 +1,13 @@
 import { FullConfig } from '@playwright/test';
 
 async function globalTeardown(config: FullConfig) {
-  console.log('🧹 Starting SpecGofer E2E Test Suite Global Teardown');
+  console.log('🧹 Starting Gofer E2E Test Suite Global Teardown');
 
   // Clean up test environment
   const fs = require('fs').promises;
   const workspaceDir = process.env.WORKSPACE_DIR;
 
-  if (workspaceDir && workspaceDir.includes('specgofer-e2e-test')) {
+  if (workspaceDir && workspaceDir.includes('gofer-e2e-test')) {
     try {
       await fs.rmdir(workspaceDir, { recursive: true });
       console.log('✅ Test workspace cleaned up');
@@ -22,7 +22,7 @@ async function globalTeardown(config: FullConfig) {
   try {
     const { exec } = require('child_process');
     await new Promise((resolve) => {
-      exec('pkill -f "specgofer-e2e"', () => {
+      exec('pkill -f "gofer-e2e"', () => {
         console.log('✅ Test processes cleaned up');
         resolve(undefined);
       });

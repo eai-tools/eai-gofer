@@ -5,11 +5,11 @@ suite('Extension Test Suite', () => {
   vscode.window.showInformationMessage('Start all tests.');
 
   test('Extension should be present', () => {
-    assert.ok(vscode.extensions.getExtension('EnterpriseAI.specgofer'));
+    assert.ok(vscode.extensions.getExtension('EnterpriseAI.gofer'));
   });
 
   test('Should activate successfully', async () => {
-    const extension = vscode.extensions.getExtension('EnterpriseAI.specgofer');
+    const extension = vscode.extensions.getExtension('EnterpriseAI.gofer');
     assert.ok(extension);
     
     // The extension should activate when needed

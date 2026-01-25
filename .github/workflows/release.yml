@@ -72,12 +72,12 @@ jobs:
         cp README.md CHANGELOG.md LICENSE release-assets/
         
         # Create archive
-        tar -czf specgofer-release.tar.gz release-assets/
+        tar -czf gofer-release.tar.gz release-assets/
         
     - name: Generate Release Notes
       id: release-notes
       run: |
-        echo "# SpecGofer Release ${{ github.ref_name || github.event.inputs.version }}" > release-notes.md
+        echo "# Gofer Release ${{ github.ref_name || github.event.inputs.version }}" > release-notes.md
         echo "" >> release-notes.md
         echo "## What's New" >> release-notes.md
         echo "" >> release-notes.md
@@ -89,7 +89,7 @@ jobs:
           git log --pretty=format:"- %s" $last_tag..HEAD >> release-notes.md
         else
           echo "### Initial Release" >> release-notes.md
-          echo "- First release of SpecGofer autonomous development system" >> release-notes.md
+          echo "- First release of Gofer autonomous development system" >> release-notes.md
         fi
         
         echo "" >> release-notes.md
@@ -100,7 +100,7 @@ jobs:
         echo "" >> release-notes.md
         echo "## Installation" >> release-notes.md
         echo "1. Download the VSCode extension (.vsix file)" >> release-notes.md
-        echo "2. Install in VSCode: \`code --install-extension specgofer-*.vsix\`" >> release-notes.md
+        echo "2. Install in VSCode: \`code --install-extension gofer-*.vsix\`" >> release-notes.md
         echo "3. Follow setup instructions in README.md" >> release-notes.md
         
     - name: Create GitHub Release
@@ -110,7 +110,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: ${{ github.ref_name || github.event.inputs.version }}
-        release_name: SpecGofer ${{ github.ref_name || github.event.inputs.version }}
+        release_name: Gofer ${{ github.ref_name || github.event.inputs.version }}
         body_path: release-notes.md
         draft: false
         prerelease: false
@@ -121,8 +121,8 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./specgofer-release.tar.gz
-        asset_name: specgofer-${{ github.ref_name || github.event.inputs.version }}.tar.gz
+        asset_path: ./gofer-release.tar.gz
+        asset_name: gofer-${{ github.ref_name || github.event.inputs.version }}.tar.gz
         asset_content_type: application/gzip
         
     - name: Upload VSCode Extension
@@ -131,6 +131,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./extension/specgofer-*.vsix
-        asset_name: specgofer-extension-${{ github.ref_name || github.event.inputs.version }}.vsix
+        asset_path: ./extension/gofer-*.vsix
+        asset_name: gofer-extension-${{ github.ref_name || github.event.inputs.version }}.vsix
         asset_content_type: application/octet-stream

@@ -4,7 +4,7 @@ applyTo: '**/*.ts,**/*.tsx'
 
 # TypeScript Development Instructions
 
-You are working on SpecGofer, a TypeScript project using:
+You are working on Gofer, a TypeScript project using:
 
 - TypeScript 5.7.2 with strict mode
 - Node.js 18+ (ES2022 modules)

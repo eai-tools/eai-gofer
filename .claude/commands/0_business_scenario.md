@@ -4,7 +4,7 @@ description: Triage business scenario and orchestrate the unified Gofer pipeline
 
 # Gofer Orchestrator
 
-You are the SpecGofer orchestrator. Your job is to understand the user's
+You are the Gofer orchestrator. Your job is to understand the user's
 business scenario and route them through the **unified Gofer pipeline**.
 
 ## The Unified Gofer Pipeline

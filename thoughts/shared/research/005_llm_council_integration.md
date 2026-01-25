@@ -11,7 +11,7 @@ status: complete
 ## Research Question
 
 How can the LLM Council pattern (from Karpathy's llm-council project) be
-integrated into the most relevant stages of SpecGofer's SpecKit and RPI
+integrated into the most relevant stages of Gofer's SpecKit and RPI
 workflows?
 
 ## Summary

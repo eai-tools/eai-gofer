@@ -17,7 +17,8 @@ import { ContextHealthMonitor } from './autonomous/ContextHealthMonitor';
 import { AutoHandoffTrigger } from './autonomous/AutoHandoffTrigger';
 import { ContextUsageLogger } from './autonomous/ContextUsageLogger';
 import { ContextHealthStatusBar } from './ui/ContextHealthStatusBar';
-import { stopClaudeCode } from './autonomousCommands';
+// Note: stopClaudeCode is imported dynamically in deactivate() to avoid
+// blocking extension activation if node-pty fails to load
 
 /**
  * Gofer Extension
@@ -1197,7 +1198,9 @@ export async function deactivate() {
   console.log('Gofer extension deactivating...');
 
   // Stop Claude Code terminals and autonomous monitoring
+  // Dynamic import to avoid blocking activation if node-pty fails
   try {
+    const { stopClaudeCode } = await import('./autonomousCommands');
     await stopClaudeCode();
     console.log('Claude Code stopped');
   } catch (error) {

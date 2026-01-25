@@ -1,15 +1,15 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { SpecKitParser, SpecStatus } from '../../../extension/src/specKitParser';
+import { GoferParser, SpecStatus } from '../../../extension/src/goferParser';
 import { createTestWorkspace, cleanupTestWorkspace, createTestSpec } from '../../helpers/workspace';
 import * as path from 'path';
 
-describe('SpecKitParser - Spec Validation', () => {
+describe('GoferParser - Spec Validation', () => {
   let workspace: string;
-  let parser: SpecKitParser;
+  let parser: GoferParser;
 
   beforeEach(async () => {
     workspace = await createTestWorkspace();
-    parser = new SpecKitParser(workspace);
+    parser = new GoferParser(workspace);
   });
 
   afterEach(async () => {
@@ -520,7 +520,7 @@ updated: 2025-01-15
       const fs = require('fs/promises');
       const updatedContent = await fs.readFile(tasksPath, 'utf-8');
       // Note: The current regex has a bug that removes the closing bracket
-      // TODO: Fix regex in specKitParser.ts:581
+      // TODO: Fix regex in goferParser.ts:581
       expect(updatedContent).toContain('- [x **T002**: Second task');
       expect(updatedContent).toContain('- [ ] **T001**: First task');
       expect(updatedContent).toContain('- [ ] **T003**: Third task');

@@ -10,7 +10,7 @@ status: complete
 
 ## Research Question
 
-How should SpecGofer implement a `0_business_scenario` command that:
+How should Gofer implement a `0_business_scenario` command that:
 
 1. Asks the user about their business scenario in Claude Code
 2. Decides between RPI (Research-Plan-Implement) vs SpecKit framework
@@ -107,7 +107,7 @@ description: Triage business scenario and route to appropriate framework
 
 # Business Scenario Triage
 
-You are the SpecGofer orchestrator. Your job is to understand the user's
+You are the Gofer orchestrator. Your job is to understand the user's
 business scenario and automatically drive them through the correct workflow.
 
 ## Step 1: Gather Context
@@ -303,7 +303,7 @@ async function determineInitialCommand(
    - Executes in Claude Code context with access to conversation
    - Can ask clarifying questions interactively
 
-2. **SpecGofer should handle routing**
+2. **Gofer should handle routing**
    - `autonomousCommands.ts` determines initial command
    - `ClaudeCodeAutonomousResponder.ts` monitors and chains commands
    - Haiku provides intelligent decision-making
@@ -343,7 +343,7 @@ async function determineInitialCommand(
    - Allow explicit `/0_business_scenario` re-run
    - Or detect "pivot" patterns in conversation
 
-4. **Integration with existing SpecGofer UI?**
+4. **Integration with existing Gofer UI?**
    - Could add a "New Business Scenario" button
    - Or auto-detect fresh workspace and prompt
 

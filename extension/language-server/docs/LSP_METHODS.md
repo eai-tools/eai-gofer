@@ -1,10 +1,10 @@
 # LSP Custom Methods Documentation
 
-This document describes the custom Language Server Protocol (LSP) methods provided by the SpecGofer Language Server for extension communication.
+This document describes the custom Language Server Protocol (LSP) methods provided by the Gofer Language Server for extension communication.
 
 ## Overview
 
-The SpecGofer Language Server extends the standard LSP with custom methods that enable the VSCode extension to interact with the specification system. These methods provide the same functionality as MCP tools but are designed for extension-to-server communication.
+The Gofer Language Server extends the standard LSP with custom methods that enable the VSCode extension to interact with the specification system. These methods provide the same functionality as MCP tools but are designed for extension-to-server communication.
 
 ## Custom LSP Methods
 
@@ -313,7 +313,7 @@ The extension communicates with the language server using these methods:
 
 ```typescript
 // Extension code example
-export class SpecGoferExtension {
+export class GoferExtension {
   private client: LanguageClient;
 
   async getSpecs(): Promise<Spec[]> {
@@ -357,11 +357,11 @@ To debug LSP communication:
    ```json
    {
      "typescript.preferences.includePackageJsonAutoImports": "off",
-     "specgofer.trace.server": "verbose"
+     "gofer.trace.server": "verbose"
    }
    ```
 
-2. **Check Output panel**: "SpecGofer Language Server"
+2. **Check Output panel**: "Gofer Language Server"
 
 3. **Server logs include**:
    - Request/response pairs

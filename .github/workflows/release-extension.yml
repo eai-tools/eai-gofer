@@ -97,7 +97,7 @@ jobs:
         name: Release v${{ steps.get_version.outputs.VERSION }}
         body_path: /tmp/release_notes.md
         files: |
-          extension/specgofer-${{ steps.get_version.outputs.VERSION }}.vsix
+          extension/gofer-${{ steps.get_version.outputs.VERSION }}.vsix
         prerelease: ${{ inputs.prerelease || false }}
         draft: false
       env:

@@ -2,16 +2,16 @@ import * as assert from 'assert';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import * as os from 'os';
-import { SpecKitParser, Spec, Task, SpecStatus, TaskStatus } from '../../specKitParser';
+import { GoferParser, Spec, Task, SpecStatus, TaskStatus } from '../../goferParser';
 
-suite('SpecKitParser Test Suite', () => {
+suite('GoferParser Test Suite', () => {
   let tempDir: string;
-  let parser: SpecKitParser;
+  let parser: GoferParser;
 
   suiteSetup(async () => {
     // Create temporary directory for tests
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'speckit-test-'));
-    parser = new SpecKitParser(tempDir);
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'gofer-test-'));
+    parser = new GoferParser(tempDir);
   });
 
   suiteTeardown(async () => {
@@ -224,8 +224,8 @@ created: "2025-10-22"
     });
 
     test('should handle empty specs directory gracefully', async () => {
-      const emptyTempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'empty-speckit-test-'));
-      const emptyParser = new SpecKitParser(emptyTempDir);
+      const emptyTempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'empty-gofer-test-'));
+      const emptyParser = new GoferParser(emptyTempDir);
 
       const specs = await emptyParser.loadAllSpecs();
       assert.strictEqual(specs.length, 0);

@@ -18,8 +18,8 @@ export class AutoUpdater {
   private extensionName: string;
   private intervalId: NodeJS.Timeout | null = null;
 
-  constructor(githubRepo: string, currentVersion: string, extensionName: string = 'specgofer') {
-    this.githubRepo = githubRepo; // e.g., "eai-tools/specgofer"
+  constructor(githubRepo: string, currentVersion: string, extensionName: string = 'gofer') {
+    this.githubRepo = githubRepo; // e.g., "eai-tools/gofer"
     this.currentVersion = currentVersion;
     this.extensionName = extensionName;
   }
@@ -72,7 +72,7 @@ export class AutoUpdater {
     return new Promise((resolve, reject) => {
       const options = {
         hostname: 'eai-tools.github.io',
-        path: '/specgofer/releases.json',
+        path: '/gofer/releases.json',
         headers: {
           userAgent: 'VSCode-Extension-Updater',
           accept: 'application/json',
@@ -188,7 +188,7 @@ export class AutoUpdater {
     return new Promise((resolve, reject) => {
       const options = {
         hostname: 'eai-tools.github.io',
-        path: '/specgofer/releases.json',
+        path: '/gofer/releases.json',
         headers: {
           userAgent: 'VSCode-Extension-Updater',
           accept: 'application/json',
@@ -291,7 +291,7 @@ export class AutoUpdater {
         if (errorMsg.includes('command not found') || errorMsg.includes('not found')) {
           throw new Error(`Cannot auto-install update. Please install manually:
 
-1. Download: https://eai-tools.github.io/specgofer/releases/specgofer-${this.getCurrentVersionFromPath(vsixPath)}.vsix
+1. Download: https://eai-tools.github.io/gofer/releases/gofer-${this.getCurrentVersionFromPath(vsixPath)}.vsix
 2. Open VS Code Command Palette (Cmd+Shift+P / Ctrl+Shift+P)
 3. Run "Extensions: Install from VSIX..."
 4. Select the downloaded file
@@ -317,7 +317,7 @@ Or install VS Code CLI: https://code.visualstudio.com/docs/editor/command-line`)
    */
   private async promptUpdate(newVersion: string): Promise<void> {
     const choice = await vscode.window.showInformationMessage(
-      `🎉 SpecGofer v${newVersion} is available! (Current: v${this.currentVersion})`,
+      `🎉 Gofer v${newVersion} is available! (Current: v${this.currentVersion})`,
       'Install Update',
       'View Release Notes',
       'Later'
@@ -364,7 +364,7 @@ Or install VS Code CLI: https://code.visualstudio.com/docs/editor/command-line`)
       await vscode.window.withProgress(
         {
           location: vscode.ProgressLocation.Notification,
-          title: `✅ SpecGofer v${version} installed!`,
+          title: `✅ Gofer v${version} installed!`,
           cancellable: true,
         },
         async (progress, token) => {
@@ -384,7 +384,7 @@ Or install VS Code CLI: https://code.visualstudio.com/docs/editor/command-line`)
               if (token.isCancellationRequested) {
                 clearInterval(interval);
                 vscode.window.showInformationMessage(
-                  `SpecGofer v${version} is installed. Reload VS Code manually when ready.`
+                  `Gofer v${version} is installed. Reload VS Code manually when ready.`
                 );
                 resolve();
                 return;
@@ -421,7 +421,7 @@ Or install VS Code CLI: https://code.visualstudio.com/docs/editor/command-line`)
 
         if (manualChoice === 'Download & Install Manually') {
           // Open the GitHub Pages release page directly
-          vscode.env.openExternal(vscode.Uri.parse('https://eai-tools.github.io/specgofer/'));
+          vscode.env.openExternal(vscode.Uri.parse('https://eai-tools.github.io/gofer/'));
 
           // Show installation instructions
           vscode.window.showInformationMessage(
@@ -448,7 +448,7 @@ Or install VS Code CLI: https://code.visualstudio.com/docs/editor/command-line`)
         );
 
         if (fallbackChoice === 'Download Manually') {
-          vscode.env.openExternal(vscode.Uri.parse('https://eai-tools.github.io/specgofer/'));
+          vscode.env.openExternal(vscode.Uri.parse('https://eai-tools.github.io/gofer/'));
         }
       }
     }
@@ -476,13 +476,13 @@ Or install VS Code CLI: https://code.visualstudio.com/docs/editor/command-line`)
       if (errorMessage.includes('not found') || errorMessage.includes('404')) {
         vscode.window
           .showInformationMessage(
-            `� GitHub Pages release site not found.\n\nCurrent version: v${this.currentVersion}\n\nPlease check that GitHub Pages is enabled for the repository.\n\nSite URL: https://eai-tools.github.io/specgofer`,
+            `� GitHub Pages release site not found.\n\nCurrent version: v${this.currentVersion}\n\nPlease check that GitHub Pages is enabled for the repository.\n\nSite URL: https://eai-tools.github.io/gofer`,
             'Open Release Site',
             'OK'
           )
           .then((choice) => {
             if (choice === 'Open Release Site') {
-              vscode.env.openExternal(vscode.Uri.parse('https://eai-tools.github.io/specgofer'));
+              vscode.env.openExternal(vscode.Uri.parse('https://eai-tools.github.io/gofer'));
             }
           });
       } else if (errorMessage.includes('rate limit')) {

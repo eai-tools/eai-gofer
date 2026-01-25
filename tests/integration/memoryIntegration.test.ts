@@ -203,7 +203,7 @@ describe('Memory Integration Tests', () => {
 
       // Verify globalState was updated
       expect(mockContext.globalState.update).toHaveBeenCalledWith(
-        'specgofer.memories',
+        'gofer.memories',
         expect.objectContaining({
           version: 1,
           memories: expect.arrayContaining([
@@ -216,7 +216,7 @@ describe('Memory Integration Tests', () => {
       );
 
       // Verify data is in mock
-      const storedData = mockGlobalState.get('specgofer.memories') as any;
+      const storedData = mockGlobalState.get('gofer.memories') as any;
       expect(storedData).toBeDefined();
       expect(storedData.memories).toHaveLength(1);
       expect(storedData.memories[0].id).toBe(saved.id);

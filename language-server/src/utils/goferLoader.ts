@@ -1,7 +1,7 @@
 /**
- * SpecKitLoader - Loads specifications from .specify/specs/ directory
+ * GoferLoader - Loads specifications from .specify/specs/ directory
  *
- * This is a simplified version of the extension's SpecKitParser
+ * This is a simplified version of the extension's GoferParser
  * for use in the Language Server
  */
 
@@ -47,7 +47,7 @@ export interface TechnicalPlan {
   risks: string[];
 }
 
-export class SpecKitLoader {
+export class GoferLoader {
   private cache: SpecCache;
 
   constructor(private workspacePath: string) {

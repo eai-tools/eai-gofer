@@ -1,8 +1,8 @@
 # 🔑 Setting Your Anthropic API Key in VSCode
 
-## For Users of SpecGofer Extension
+## For Users of Gofer Extension
 
-When you install SpecGofer in any repo, each person can set their own API key in **VSCode User Settings**. This is secure, per-user, and works across all repos!
+When you install Gofer in any repo, each person can set their own API key in **VSCode User Settings**. This is secure, per-user, and works across all repos!
 
 ## How to Set It Up
 
@@ -22,7 +22,7 @@ When you install SpecGofer in any repo, each person can set their own API key in
    - It auto-saves!
 
 4. **Done!** ✅
-   - Works in ALL repos where you use SpecGofer
+   - Works in ALL repos where you use Gofer
    - Stored securely in VSCode's settings
    - Never committed to git
 
@@ -61,11 +61,11 @@ source ~/.zshrc
 
 ## Priority Order
 
-SpecGofer checks for your API key in this order:
+Gofer checks for your API key in this order:
 
 1. **VSCode User Settings** (`specKit.anthropicApiKey`) ← **Recommended!**
 2. Environment Variable (`ANTHROPIC_API_KEY`)
-3. Workspace `.env` file (only for developing SpecGofer itself)
+3. Workspace `.env` file (only for developing Gofer itself)
 
 ## For Teams
 
@@ -75,7 +75,7 @@ SpecGofer checks for your API key in this order:
 - Never commit API keys to git
 
 ### Team Lead Should:
-- Tell team to install SpecGofer extension
+- Tell team to install Gofer extension
 - Share this guide
 - Verify everyone has their API key set up
 
@@ -100,8 +100,8 @@ SpecGofer checks for your API key in this order:
 After setting your key:
 
 1. Open any repo with `.specify/` folder
-2. SpecGofer extension activates
-3. Command Palette → `SpecGofer: Show Progress Panel`
+2. Gofer extension activates
+3. Command Palette → `Gofer: Show Progress Panel`
 4. MCP tools available to Claude Code / GitHub Copilot
 5. No more "API key required" messages!
 
@@ -120,8 +120,8 @@ After setting your key:
 
 ---
 
-**For SpecGofer Developers:**
+**For Gofer Developers:**
 
-If you're building SpecGofer itself, you also need a `.env` file in the project root for running the orchestrator locally. See the main README.
+If you're building Gofer itself, you also need a `.env` file in the project root for running the orchestrator locally. See the main README.
 
 © 2025 Enterprise AI Pty Ltd

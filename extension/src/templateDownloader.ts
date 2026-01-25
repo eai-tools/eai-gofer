@@ -241,7 +241,7 @@ export class TemplateDownloader {
       } else {
         // Create a basic manifest if none found
         manifest = {
-          name: 'GitHub Spec Kit Templates',
+          name: 'GitHub Gofer Templates',
           version: 'unknown',
           description: 'Templates downloaded from GitHub',
           templates: [],

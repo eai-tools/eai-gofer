@@ -98,7 +98,7 @@ description: Triage business scenario and route to appropriate framework
 
 # Business Scenario Triage
 
-You are the SpecGofer orchestrator. Your job is to understand the user's
+You are the Gofer orchestrator. Your job is to understand the user's
 business scenario and route them to the correct development workflow.
 
 ## Step 1: Quick Context Scan
@@ -537,7 +537,7 @@ logic.
 ````markdown
 ### Automatic Framework Routing
 
-SpecGofer includes an intelligent triage system that automatically determines
+Gofer includes an intelligent triage system that automatically determines
 the correct starting point based on:
 
 1. **Existing Artifacts**: Detects spec.md, plan.md, tasks.md, research files,
@@ -644,7 +644,7 @@ describe('determineInitialCommand', () => {
 ### Manual Testing Steps
 
 1. Create a fresh workspace with no artifacts
-2. Launch Claude Code via SpecGofer
+2. Launch Claude Code via Gofer
 3. Verify triage interview appears
 4. Select "New Feature" → verify SpecKit workflow starts
 5. Create a new workspace with existing spec.md

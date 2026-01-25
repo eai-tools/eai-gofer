@@ -2,11 +2,11 @@
  * Memory and Learning System - VSCode Commands
  *
  * Provides VSCode commands for memory management:
- * - SpecGofer: Remember - Save a new memory
- * - SpecGofer: Search Memory - Search existing memories
- * - SpecGofer: Forget Memory - Delete a memory
- * - SpecGofer: Clear Memory - Clear memories by scope
- * - SpecGofer: View Memories - Open memory panel
+ * - Gofer: Remember - Save a new memory
+ * - Gofer: Search Memory - Search existing memories
+ * - Gofer: Forget Memory - Delete a memory
+ * - Gofer: Clear Memory - Clear memories by scope
+ * - Gofer: View Memories - Open memory panel
  */
 
 import * as vscode from 'vscode';
@@ -24,51 +24,51 @@ export function registerMemoryCommands(
   context: vscode.ExtensionContext,
   memoryManager: MemoryManager
 ): void {
-  // Register "SpecGofer: Remember" command
+  // Register "Gofer: Remember" command
   context.subscriptions.push(
-    vscode.commands.registerCommand('specgofer.remember', async () => {
+    vscode.commands.registerCommand('gofer.remember', async () => {
       await rememberCommand(memoryManager);
     })
   );
 
-  // Register "SpecGofer: Search Memory" command
+  // Register "Gofer: Search Memory" command
   context.subscriptions.push(
-    vscode.commands.registerCommand('specgofer.searchMemory', async () => {
+    vscode.commands.registerCommand('gofer.searchMemory', async () => {
       await searchMemoryCommand(memoryManager);
     })
   );
 
-  // Register "SpecGofer: Forget Memory" command
+  // Register "Gofer: Forget Memory" command
   context.subscriptions.push(
-    vscode.commands.registerCommand('specgofer.forgetMemory', async () => {
+    vscode.commands.registerCommand('gofer.forgetMemory', async () => {
       await forgetMemoryCommand(memoryManager);
     })
   );
 
-  // Register "SpecGofer: Clear Memory" command
+  // Register "Gofer: Clear Memory" command
   context.subscriptions.push(
-    vscode.commands.registerCommand('specgofer.clearMemory', async () => {
+    vscode.commands.registerCommand('gofer.clearMemory', async () => {
       await clearMemoryCommand(memoryManager);
     })
   );
 
-  // Register "SpecGofer: View Memories" command
+  // Register "Gofer: View Memories" command
   context.subscriptions.push(
-    vscode.commands.registerCommand('specgofer.viewMemories', async () => {
+    vscode.commands.registerCommand('gofer.viewMemories', async () => {
       MemoryPanel.createOrShow(context.extensionUri, memoryManager);
     })
   );
 
-  // Register "SpecGofer: Create Hint File" command (T072)
+  // Register "Gofer: Create Hint File" command (T072)
   context.subscriptions.push(
-    vscode.commands.registerCommand('specgofer.createHintFile', async () => {
+    vscode.commands.registerCommand('gofer.createHintFile', async () => {
       await createHintFileCommand(context);
     })
   );
 }
 
 /**
- * "SpecGofer: Remember" command implementation.
+ * "Gofer: Remember" command implementation.
  * Prompts user for memory content, scope, category, and tags.
  *
  * @param memoryManager - MemoryManager instance
@@ -190,7 +190,7 @@ async function rememberCommand(memoryManager: MemoryManager): Promise<void> {
 }
 
 /**
- * "SpecGofer: Search Memory" command implementation.
+ * "Gofer: Search Memory" command implementation.
  * Prompts user for search query and displays results.
  *
  * @param memoryManager - MemoryManager instance
@@ -246,7 +246,7 @@ async function searchMemoryCommand(memoryManager: MemoryManager): Promise<void> 
 }
 
 /**
- * "SpecGofer: Forget Memory" command implementation.
+ * "Gofer: Forget Memory" command implementation.
  * Shows memory list and deletes selected memory.
  *
  * @param memoryManager - MemoryManager instance
@@ -294,7 +294,7 @@ async function forgetMemoryCommand(memoryManager: MemoryManager): Promise<void> 
 }
 
 /**
- * "SpecGofer: Clear Memory" command implementation.
+ * "Gofer: Clear Memory" command implementation.
  * Prompts for scope and clears memories.
  *
  * @param memoryManager - MemoryManager instance
@@ -475,7 +475,7 @@ function escapeHtml(text: string): string {
 // ============================================================================
 
 /**
- * "SpecGofer: Create Hint File" command implementation.
+ * "Gofer: Create Hint File" command implementation.
  * Prompts user for hint location and creates a hint file from template.
  *
  * @param context - VSCode extension context

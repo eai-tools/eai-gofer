@@ -1,7 +1,7 @@
 {
-  "name": "specgofer-language-server",
-  "version": "1.5.0",
-  "description": "SpecGofer Language Server with LSP and MCP support",
+  "name": "gofer-language-server",
+  "version": "0.0.8",
+  "description": "Gofer Language Server with LSP and MCP support",
   "main": "dist/server.js",
   "scripts": {
     "build": "tsc",

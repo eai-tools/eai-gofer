@@ -99,7 +99,7 @@ No more "uncommitted changes" errors! 🎉
                   │
                   ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ 4. Builds VSIX: specgofer-1.11.1.vsix (7.2 MB)             │
+│ 4. Builds VSIX: gofer-1.11.1.vsix (7.2 MB)             │
 │    Copies to: docs/releases/                                 │
 └─────────────────┬───────────────────────────────────────────┘
                   │
@@ -134,7 +134,7 @@ No more "uncommitted changes" errors! 🎉
                   ▼
 ┌─────────────────────────────────────────────────────────────┐
 │ 9. GitHub Pages deploys docs/ folder                        │
-│    Site: https://eai-tools.github.io/specgofer/            │
+│    Site: https://eai-tools.github.io/gofer/            │
 └─────────────────┬───────────────────────────────────────────┘
                   │
                   ▼
@@ -160,8 +160,8 @@ No more "uncommitted changes" errors! 🎉
 
 ### New Files Created
 
-- `specgofer-X.Y.Z.vsix` - In project root (local only)
-- `docs/releases/specgofer-X.Y.Z.vsix` - Deployed to GitHub Pages
+- `gofer-X.Y.Z.vsix` - In project root (local only)
+- `docs/releases/gofer-X.Y.Z.vsix` - Deployed to GitHub Pages
 
 ### Git Operations
 
@@ -173,7 +173,7 @@ No more "uncommitted changes" errors! 🎉
 
 ### Automatic Detection
 
-1. Extension checks `https://eai-tools.github.io/specgofer/releases.json`
+1. Extension checks `https://eai-tools.github.io/gofer/releases.json`
 2. Compares `latest_version` with installed version
 3. Shows notification if newer version available
 4. User clicks "Update" button
@@ -185,7 +185,7 @@ No more "uncommitted changes" errors! 🎉
 
 Users can also manually install from:
 
-- **GitHub Pages**: <https://eai-tools.github.io/specgofer/releases/specgofer-X.Y.Z.vsix>
+- **GitHub Pages**: <https://eai-tools.github.io/gofer/releases/gofer-X.Y.Z.vsix>
 - **Local file**: After running release script, VSIX is in project root
 
 ## Troubleshooting
@@ -236,10 +236,10 @@ cd ..
 **Verify deployment**:
 
 1. Check workflow:
-   <https://github.com/eai-tools/specgofer/actions/workflows/pages.yml>
+   <https://github.com/eai-tools/gofer/actions/workflows/pages.yml>
 2. Wait for green checkmark
 3. Manually test:
-   `curl https://eai-tools.github.io/specgofer/releases.json | jq .latest_version`
+   `curl https://eai-tools.github.io/gofer/releases.json | jq .latest_version`
 
 ### Problem: "Update button still shows old version"
 
@@ -253,7 +253,7 @@ cd ..
 
 ```bash
 # Force check after waiting
-RELEASES_URL="https://eai-tools.github.io/specgofer/releases.json"
+RELEASES_URL="https://eai-tools.github.io/gofer/releases.json"
 curl "${RELEASES_URL}?cachebust=$(date +%s)" | jq .latest_version
 
 # Should show your new version
@@ -281,7 +281,7 @@ This validates:
 
 ## Semantic Versioning Guide
 
-SpecGofer follows [Semantic Versioning 2.0.0](https://semver.org/):
+Gofer follows [Semantic Versioning 2.0.0](https://semver.org/):
 
 ### PATCH (x.y.Z) - Bug Fixes
 
@@ -378,14 +378,14 @@ cd ..
 ```bash
 cd extension
 npx @vscode/vsce package
-mv specgofer-X.Y.Z.vsix ../docs/releases/
+mv gofer-X.Y.Z.vsix ../docs/releases/
 cd ..
 ```
 
 ### 4. Update releases.json
 
 ```bash
-node docs/update-releases.js X.Y.Z "Release notes" "https://eai-tools.github.io/specgofer/releases/specgofer-X.Y.Z.vsix"
+node docs/update-releases.js X.Y.Z "Release notes" "https://eai-tools.github.io/gofer/releases/gofer-X.Y.Z.vsix"
 ```
 
 ### 5. Commit and Push
@@ -402,7 +402,7 @@ git push origin vX.Y.Z
 
 ```bash
 # Monitor at:
-# https://github.com/eai-tools/specgofer/actions/workflows/pages.yml
+# https://github.com/eai-tools/gofer/actions/workflows/pages.yml
 ```
 
 ## Support

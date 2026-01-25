@@ -13,7 +13,7 @@ describe('AutoUpdater - Version Comparison', () => {
   let updater: AutoUpdater;
 
   beforeEach(() => {
-    updater = new AutoUpdater('eai-tools/specgofer', '1.0.0', 'specgofer');
+    updater = new AutoUpdater('eai-tools/gofer', '1.0.0', 'gofer');
   });
 
   describe('isNewerVersion', () => {
@@ -112,43 +112,43 @@ describe('AutoUpdater - URL and Path Extraction', () => {
   let updater: AutoUpdater;
 
   beforeEach(() => {
-    updater = new AutoUpdater('eai-tools/specgofer', '1.0.0', 'specgofer');
+    updater = new AutoUpdater('eai-tools/gofer', '1.0.0', 'gofer');
   });
 
   describe('getCurrentVersionFromPath', () => {
     it('should extract version from standard VSIX path', () => {
-      const vsixPath = '/tmp/specgofer-2.5.3.vsix';
+      const vsixPath = '/tmp/gofer-2.5.3.vsix';
       const version = (updater as any).getCurrentVersionFromPath(vsixPath);
       expect(version).toBe('2.5.3');
     });
 
     it('should extract version from complex path', () => {
-      const vsixPath = '/Users/john/Downloads/extensions/specgofer-10.12.99.vsix';
+      const vsixPath = '/Users/john/Downloads/extensions/gofer-10.12.99.vsix';
       const version = (updater as any).getCurrentVersionFromPath(vsixPath);
       expect(version).toBe('10.12.99');
     });
 
     it('should return "latest" when no version found', () => {
-      const vsixPath = '/tmp/specgofer-unknown.vsix';
+      const vsixPath = '/tmp/gofer-unknown.vsix';
       const version = (updater as any).getCurrentVersionFromPath(vsixPath);
       expect(version).toBe('latest');
     });
 
     it('should extract first version if multiple present', () => {
-      const vsixPath = '/tmp/1.0.0/specgofer-2.5.3.vsix';
+      const vsixPath = '/tmp/1.0.0/gofer-2.5.3.vsix';
       const version = (updater as any).getCurrentVersionFromPath(vsixPath);
       // Should match first occurrence
       expect(version).toMatch(/\d+\.\d+\.\d+/);
     });
 
     it('should handle Windows-style paths', () => {
-      const vsixPath = 'C:\\Users\\John\\Downloads\\specgofer-3.2.1.vsix';
+      const vsixPath = 'C:\\Users\\John\\Downloads\\gofer-3.2.1.vsix';
       const version = (updater as any).getCurrentVersionFromPath(vsixPath);
       expect(version).toBe('3.2.1');
     });
 
     it('should handle paths with no extension', () => {
-      const vsixPath = '/tmp/specgofer-2.5.3';
+      const vsixPath = '/tmp/gofer-2.5.3';
       const version = (updater as any).getCurrentVersionFromPath(vsixPath);
       expect(version).toBe('2.5.3');
     });
@@ -157,33 +157,33 @@ describe('AutoUpdater - URL and Path Extraction', () => {
 
 describe('AutoUpdater - Constructor and Initialization', () => {
   it('should initialize with correct repository', () => {
-    const updater = new AutoUpdater('eai-tools/specgofer', '1.0.0', 'specgofer');
+    const updater = new AutoUpdater('eai-tools/gofer', '1.0.0', 'gofer');
     expect(updater).toBeDefined();
-    expect((updater as any).githubRepo).toBe('eai-tools/specgofer');
+    expect((updater as any).githubRepo).toBe('eai-tools/gofer');
   });
 
   it('should initialize with correct current version', () => {
-    const updater = new AutoUpdater('eai-tools/specgofer', '2.5.3', 'specgofer');
+    const updater = new AutoUpdater('eai-tools/gofer', '2.5.3', 'gofer');
     expect((updater as any).currentVersion).toBe('2.5.3');
   });
 
   it('should initialize with correct extension name', () => {
-    const updater = new AutoUpdater('eai-tools/specgofer', '1.0.0', 'specgofer');
-    expect((updater as any).extensionName).toBe('specgofer');
+    const updater = new AutoUpdater('eai-tools/gofer', '1.0.0', 'gofer');
+    expect((updater as any).extensionName).toBe('gofer');
   });
 
   it('should use default extension name if not provided', () => {
-    const updater = new AutoUpdater('eai-tools/specgofer', '1.0.0');
-    expect((updater as any).extensionName).toBe('specgofer');
+    const updater = new AutoUpdater('eai-tools/gofer', '1.0.0');
+    expect((updater as any).extensionName).toBe('gofer');
   });
 
   it('should initialize check interval to 24 hours', () => {
-    const updater = new AutoUpdater('eai-tools/specgofer', '1.0.0');
+    const updater = new AutoUpdater('eai-tools/gofer', '1.0.0');
     expect((updater as any).checkInterval).toBe(24 * 60 * 60 * 1000);
   });
 
   it('should initialize with null interval ID', () => {
-    const updater = new AutoUpdater('eai-tools/specgofer', '1.0.0');
+    const updater = new AutoUpdater('eai-tools/gofer', '1.0.0');
     expect((updater as any).intervalId).toBeNull();
   });
 });
@@ -196,12 +196,12 @@ describe('AutoUpdater - Release Data Parsing', () => {
         releases: [
           {
             version: '2.5.3',
-            download_url: 'https://eai-tools.github.io/specgofer/releases/specgofer-2.5.3.vsix',
+            download_url: 'https://eai-tools.github.io/gofer/releases/gofer-2.5.3.vsix',
             release_date: '2025-01-15',
           },
           {
             version: '2.5.2',
-            download_url: 'https://eai-tools.github.io/specgofer/releases/specgofer-2.5.2.vsix',
+            download_url: 'https://eai-tools.github.io/gofer/releases/gofer-2.5.2.vsix',
             release_date: '2025-01-10',
           },
         ],
@@ -218,7 +218,7 @@ describe('AutoUpdater - Release Data Parsing', () => {
         releases: [
           {
             version: '2.5.3',
-            download_url: 'https://eai-tools.github.io/specgofer/releases/specgofer-2.5.3.vsix',
+            download_url: 'https://eai-tools.github.io/gofer/releases/gofer-2.5.3.vsix',
             release_date: '2025-01-15',
           },
         ],
@@ -412,9 +412,9 @@ describe('AutoUpdater - Error Message Formatting', () => {
     it('should format update available message', () => {
       const currentVersion = '1.0.0';
       const newVersion = '2.5.3';
-      const message = `🎉 SpecGofer v${newVersion} is available! (Current: v${currentVersion})`;
+      const message = `🎉 Gofer v${newVersion} is available! (Current: v${currentVersion})`;
 
-      expect(message).toContain('SpecGofer');
+      expect(message).toContain('Gofer');
       expect(message).toContain('2.5.3');
       expect(message).toContain('1.0.0');
       expect(message).toContain('available');
@@ -430,7 +430,7 @@ describe('AutoUpdater - Error Message Formatting', () => {
 
     it('should format installation success message', () => {
       const version = '2.5.3';
-      const message = `✅ SpecGofer v${version} has been installed! Reload VSCode to activate the update.`;
+      const message = `✅ Gofer v${version} has been installed! Reload VSCode to activate the update.`;
 
       expect(message).toContain('installed');
       expect(message).toContain('2.5.3');
@@ -456,32 +456,32 @@ describe('AutoUpdater - Error Message Formatting', () => {
 describe('AutoUpdater - Download URL Construction', () => {
   it('should construct correct GitHub Pages download URL', () => {
     const version = '2.5.3';
-    const extensionName = 'specgofer';
-    const expectedUrl = `https://eai-tools.github.io/specgofer/releases/${extensionName}-${version}.vsix`;
+    const extensionName = 'gofer';
+    const expectedUrl = `https://eai-tools.github.io/gofer/releases/${extensionName}-${version}.vsix`;
 
-    expect(expectedUrl).toBe('https://eai-tools.github.io/specgofer/releases/specgofer-2.5.3.vsix');
+    expect(expectedUrl).toBe('https://eai-tools.github.io/gofer/releases/gofer-2.5.3.vsix');
   });
 
   it('should construct correct GitHub releases API URL', () => {
     // Path for GitHub Pages releases.json
-    const expectedPath = '/specgofer/releases.json';
+    const expectedPath = '/gofer/releases.json';
 
-    expect(expectedPath).toBe('/specgofer/releases.json');
+    expect(expectedPath).toBe('/gofer/releases.json');
   });
 
   it('should construct correct GitHub release notes URL', () => {
-    const repo = 'eai-tools/specgofer';
+    const repo = 'eai-tools/gofer';
     const url = `https://github.com/${repo}/releases/latest`;
 
-    expect(url).toBe('https://github.com/eai-tools/specgofer/releases/latest');
+    expect(url).toBe('https://github.com/eai-tools/gofer/releases/latest');
   });
 
   it('should construct correct GitHub Pages base URL', () => {
     const hostname = 'eai-tools.github.io';
-    const path = '/specgofer/releases.json';
+    const path = '/gofer/releases.json';
     const fullUrl = `https://${hostname}${path}`;
 
-    expect(fullUrl).toBe('https://eai-tools.github.io/specgofer/releases.json');
+    expect(fullUrl).toBe('https://eai-tools.github.io/gofer/releases.json');
   });
 });
 
@@ -501,12 +501,12 @@ describe('AutoUpdater - File System Operations', () => {
       const vsixPath = path.join(tempDir, `${extensionName}-${version}.vsix`);
 
       expect(vsixPath).toContain(tempDir);
-      expect(vsixPath).toContain('specgofer-2.5.3.vsix');
+      expect(vsixPath).toContain('gofer-2.5.3.vsix');
     });
 
     it('should handle temp directory with trailing slash', () => {
       const tempDir = os.tmpdir();
-      const vsixFileName = 'specgofer-2.5.3.vsix';
+      const vsixFileName = 'gofer-2.5.3.vsix';
       const vsixPath = path.join(tempDir, vsixFileName);
 
       expect(vsixPath).not.toContain('//');
@@ -515,19 +515,19 @@ describe('AutoUpdater - File System Operations', () => {
 
   describe('VSIX Filename Construction', () => {
     it('should construct correct VSIX filename', () => {
-      const extensionName = 'specgofer';
+      const extensionName = 'gofer';
       const version = '2.5.3';
       const filename = `${extensionName}-${version}.vsix`;
 
-      expect(filename).toBe('specgofer-2.5.3.vsix');
+      expect(filename).toBe('gofer-2.5.3.vsix');
     });
 
     it('should handle version with leading v', () => {
-      const extensionName = 'specgofer';
+      const extensionName = 'gofer';
       const version = 'v2.5.3'.replace(/^v/, '');
       const filename = `${extensionName}-${version}.vsix`;
 
-      expect(filename).toBe('specgofer-2.5.3.vsix');
+      expect(filename).toBe('gofer-2.5.3.vsix');
     });
 
     it('should handle custom extension names', () => {
@@ -593,7 +593,7 @@ describe('AutoUpdater - CLI Command Detection', () => {
     });
 
     it('should detect installation stderr that is not an error', () => {
-      const stderr = 'Extension specgofer was successfully installed.';
+      const stderr = 'Extension gofer was successfully installed.';
       const isSuccess =
         stderr.includes('successfully installed') ||
         stderr.includes('Extension') ||
@@ -607,21 +607,21 @@ describe('AutoUpdater - CLI Command Detection', () => {
 describe('AutoUpdater - Integration Scenarios', () => {
   describe('Update Flow Paths', () => {
     it('should determine no update needed when versions match', () => {
-      const updater = new AutoUpdater('eai-tools/specgofer', '2.5.3');
+      const updater = new AutoUpdater('eai-tools/gofer', '2.5.3');
       const isNewer = (updater as any).isNewerVersion('2.5.3', '2.5.3');
 
       expect(isNewer).toBe(false);
     });
 
     it('should determine update needed when newer version available', () => {
-      const updater = new AutoUpdater('eai-tools/specgofer', '2.5.2');
+      const updater = new AutoUpdater('eai-tools/gofer', '2.5.2');
       const isNewer = (updater as any).isNewerVersion('2.5.3', '2.5.2');
 
       expect(isNewer).toBe(true);
     });
 
     it('should skip update when current version is newer (dev build)', () => {
-      const updater = new AutoUpdater('eai-tools/specgofer', '3.0.0-dev');
+      const updater = new AutoUpdater('eai-tools/gofer', '3.0.0-dev');
       // In real scenario, would need to strip -dev suffix
       const current = '3.0.0';
       const latest = '2.5.3';
@@ -651,9 +651,9 @@ describe('AutoUpdater - Integration Scenarios', () => {
   describe('Cross-Platform Paths', () => {
     it('should construct valid paths on current platform', () => {
       const tempDir = os.tmpdir();
-      const vsixPath = path.join(tempDir, 'specgofer-2.5.3.vsix');
+      const vsixPath = path.join(tempDir, 'gofer-2.5.3.vsix');
 
-      expect(vsixPath).toContain('specgofer-2.5.3.vsix');
+      expect(vsixPath).toContain('gofer-2.5.3.vsix');
       expect(path.isAbsolute(vsixPath)).toBe(true);
     });
 
@@ -667,7 +667,7 @@ describe('AutoUpdater - Integration Scenarios', () => {
 
 describe('AutoUpdater - Periodic Check Management', () => {
   it('should set check interval to 24 hours by default', () => {
-    const updater = new AutoUpdater('eai-tools/specgofer', '1.0.0');
+    const updater = new AutoUpdater('eai-tools/gofer', '1.0.0');
     const interval = (updater as any).checkInterval;
 
     expect(interval).toBe(24 * 60 * 60 * 1000);
@@ -675,7 +675,7 @@ describe('AutoUpdater - Periodic Check Management', () => {
   });
 
   it('should initialize with no active interval', () => {
-    const updater = new AutoUpdater('eai-tools/specgofer', '1.0.0');
+    const updater = new AutoUpdater('eai-tools/gofer', '1.0.0');
     const intervalId = (updater as any).intervalId;
 
     expect(intervalId).toBeNull();
@@ -692,28 +692,28 @@ describe('AutoUpdater - Periodic Check Management', () => {
 describe('AutoUpdater - Real-World Scenarios', () => {
   describe('Common Update Scenarios', () => {
     it('should handle fresh installation (v1.0.0 to v2.5.3)', () => {
-      const updater = new AutoUpdater('eai-tools/specgofer', '1.0.0');
+      const updater = new AutoUpdater('eai-tools/gofer', '1.0.0');
       const isNewer = (updater as any).isNewerVersion('2.5.3', '1.0.0');
 
       expect(isNewer).toBe(true);
     });
 
     it('should handle minor version update (v2.5.2 to v2.5.3)', () => {
-      const updater = new AutoUpdater('eai-tools/specgofer', '2.5.2');
+      const updater = new AutoUpdater('eai-tools/gofer', '2.5.2');
       const isNewer = (updater as any).isNewerVersion('2.5.3', '2.5.2');
 
       expect(isNewer).toBe(true);
     });
 
     it('should handle major version update (v2.5.3 to v3.0.0)', () => {
-      const updater = new AutoUpdater('eai-tools/specgofer', '2.5.3');
+      const updater = new AutoUpdater('eai-tools/gofer', '2.5.3');
       const isNewer = (updater as any).isNewerVersion('3.0.0', '2.5.3');
 
       expect(isNewer).toBe(true);
     });
 
     it('should handle already up-to-date (v2.5.3 to v2.5.3)', () => {
-      const updater = new AutoUpdater('eai-tools/specgofer', '2.5.3');
+      const updater = new AutoUpdater('eai-tools/gofer', '2.5.3');
       const isNewer = (updater as any).isNewerVersion('2.5.3', '2.5.3');
 
       expect(isNewer).toBe(false);
@@ -759,18 +759,18 @@ describe('AutoUpdater - Auto-Reload Behavior', () => {
 
     it('should format success title correctly', () => {
       const version = '4.6.1';
-      const title = `✅ SpecGofer v${version} installed!`;
+      const title = `✅ Gofer v${version} installed!`;
 
-      expect(title).toContain('SpecGofer');
+      expect(title).toContain('Gofer');
       expect(title).toContain('4.6.1');
       expect(title).toContain('installed');
     });
 
     it('should format cancellation message correctly', () => {
       const version = '4.6.1';
-      const message = `SpecGofer v${version} is installed. Reload VS Code manually when ready.`;
+      const message = `Gofer v${version} is installed. Reload VS Code manually when ready.`;
 
-      expect(message).toContain('SpecGofer');
+      expect(message).toContain('Gofer');
       expect(message).toContain('4.6.1');
       expect(message).toContain('manually');
     });

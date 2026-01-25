@@ -17,12 +17,12 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
  * E2E Test Suite for Memory Persistence
  *
  * These tests simulate a complete user workflow:
- * 1. User opens VSCode with SpecGofer extension
- * 2. User executes "SpecGofer: Remember" command
+ * 1. User opens VSCode with Gofer extension
+ * 2. User executes "Gofer: Remember" command
  * 3. User fills out memory details (content, scope, category, tags)
  * 4. Memory is saved to storage
  * 5. User restarts VSCode (simulated)
- * 6. User verifies memory is still available via "SpecGofer: Search Memory"
+ * 6. User verifies memory is still available via "Gofer: Search Memory"
  */
 describe('Memory E2E Tests', () => {
   // NOTE: These tests require VSCode Extension Test framework
@@ -31,7 +31,7 @@ describe('Memory E2E Tests', () => {
   describe('Remember Command Workflow', () => {
     it('should complete full Remember workflow with local scope', async () => {
       // Test steps:
-      // 1. Execute command: "SpecGofer: Remember"
+      // 1. Execute command: "Gofer: Remember"
       // 2. Input content: "Use Vitest for all unit tests"
       // 3. Select scope: "Local (this project only)"
       // 4. Input category: "testing"
@@ -58,7 +58,7 @@ describe('Memory E2E Tests', () => {
 
     it('should complete full Remember workflow with global scope', async () => {
       // Test steps:
-      // 1. Execute command: "SpecGofer: Remember"
+      // 1. Execute command: "Gofer: Remember"
       // 2. Input content: "Always use TypeScript strict mode"
       // 3. Select scope: "Global (all projects)"
       // 4. Input category: "typescript"
@@ -76,7 +76,7 @@ describe('Memory E2E Tests', () => {
     it('should find memories by keyword', async () => {
       // Test steps:
       // 1. Save test memory: "Use RESTful conventions for APIs"
-      // 2. Execute command: "SpecGofer: Search Memory"
+      // 2. Execute command: "Gofer: Search Memory"
       // 3. Input keyword: "RESTful"
       // 4. Verify memory appears in quick pick
       // 5. Select memory
@@ -89,7 +89,7 @@ describe('Memory E2E Tests', () => {
     it('should show empty state when no memories exist', async () => {
       // Test steps:
       // 1. Clear all memories
-      // 2. Execute command: "SpecGofer: Search Memory"
+      // 2. Execute command: "Gofer: Search Memory"
       // 3. Input any keyword
       // 4. Verify "No memories found" notification appears
 
@@ -102,7 +102,7 @@ describe('Memory E2E Tests', () => {
     it('should open memory panel with all memories', async () => {
       // Test steps:
       // 1. Save multiple test memories (local and global)
-      // 2. Execute command: "SpecGofer: View Memories"
+      // 2. Execute command: "Gofer: View Memories"
       // 3. Verify webview panel opens
       // 4. Verify all memories are displayed
       // 5. Verify search filter works
@@ -130,7 +130,7 @@ describe('Memory E2E Tests', () => {
     it('should delete selected memory', async () => {
       // Test steps:
       // 1. Save test memory
-      // 2. Execute command: "SpecGofer: Forget Memory"
+      // 2. Execute command: "Gofer: Forget Memory"
       // 3. Select memory from list
       // 4. Confirm deletion
       // 5. Verify success notification
@@ -145,7 +145,7 @@ describe('Memory E2E Tests', () => {
     it('should clear local memories only', async () => {
       // Test steps:
       // 1. Save local and global memories
-      // 2. Execute command: "SpecGofer: Clear Memory"
+      // 2. Execute command: "Gofer: Clear Memory"
       // 3. Select "Local (this project only)"
       // 4. Confirm deletion
       // 5. Verify local memories cleared
@@ -158,7 +158,7 @@ describe('Memory E2E Tests', () => {
     it('should clear all memories', async () => {
       // Test steps:
       // 1. Save local and global memories
-      // 2. Execute command: "SpecGofer: Clear Memory"
+      // 2. Execute command: "Gofer: Clear Memory"
       // 3. Select "All memories"
       // 4. Confirm deletion
       // 5. Verify all memories cleared

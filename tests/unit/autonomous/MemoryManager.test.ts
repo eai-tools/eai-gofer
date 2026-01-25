@@ -340,7 +340,7 @@ describe('MemoryManager', () => {
       await memoryManager.save(memoryInput);
 
       expect(mockContext.globalState.update).toHaveBeenCalledWith(
-        'specgofer.memories',
+        'gofer.memories',
         expect.objectContaining({
           version: 1,
           memories: expect.arrayContaining([

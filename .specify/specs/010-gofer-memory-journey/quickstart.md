@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- VSCode with SpecGofer extension installed (v4.5.0+)
+- VSCode with Gofer extension installed (v4.5.0+)
 - Claude Code CLI configured
 - Node.js 20.x LTS
 - TypeScript 5.7.2+
@@ -24,7 +24,7 @@
 
 3. **Verify extension is updated**:
    - Open VSCode Command Palette
-   - Run "SpecGofer: Check for Updates"
+   - Run "Gofer: Check for Updates"
 
 ## Testing the Feature
 

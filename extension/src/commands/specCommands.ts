@@ -9,7 +9,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import { ProgressProvider } from '../progressProvider';
-import type { Spec } from '../specKitParser';
+import type { Spec } from '../goferParser';
 
 /**
  * Registers all spec execution commands.
@@ -23,14 +23,14 @@ export function registerSpecCommands(
 ): void {
   // T116: Register "Execute All Pending Specs" command
   context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.executeAllPendingSpecs', async () => {
+    vscode.commands.registerCommand('gofer.executeAllPendingSpecs', async () => {
       await executeAllPendingSpecsCommand(progressProvider);
     })
   );
 
   // Hydrate Spec integration
   context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.hydrateSpec', async (uri: vscode.Uri) => {
+    vscode.commands.registerCommand('gofer.hydrateSpec', async (uri: vscode.Uri) => {
       await hydrateSpecCommand(context, uri);
     })
   );
@@ -184,7 +184,7 @@ async function executeAllPendingSpecsCommand(progressProvider: ProgressProvider)
           } catch (error) {
             failedCount++;
             failedSpecs.push(spec.id);
-            console.error(`[SpecGofer] Failed to execute spec ${spec.id}:`, error);
+            console.error(`[Gofer] Failed to execute spec ${spec.id}:`, error);
           }
         }
       }
@@ -241,7 +241,7 @@ async function getAllSpecs(progressProvider: ProgressProvider): Promise<Spec[]> 
 async function executeSpec(spec: Spec): Promise<void> {
   // T116: Basic execution - trigger autonomous execution command
   // This will be enhanced in T117-T119 with dependency checks
-  await vscode.commands.executeCommand('specGofer.startAutonomous', spec);
+  await vscode.commands.executeCommand('gofer.startAutonomous', spec);
 }
 
 /**

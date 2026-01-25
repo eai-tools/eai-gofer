@@ -1,10 +1,10 @@
-# SpecGofer Language Server
+# Gofer Language Server
 
 A dual-protocol server implementing both Language Server Protocol (LSP) and Model Context Protocol (MCP) for spec-driven development with AI coding agents.
 
 ## Overview
 
-The SpecGofer Language Server serves as the bridge between the VSCode extension and AI coding agents (Claude Code, GitHub Copilot). It provides:
+The Gofer Language Server serves as the bridge between the VSCode extension and AI coding agents (Claude Code, GitHub Copilot). It provides:
 
 - **LSP Communication**: Custom methods for extension-to-server communication
 - **MCP Tools**: 6 tools that AI agents can invoke to interact with specifications
@@ -20,7 +20,7 @@ language-server/
 │   ├── mcp/
 │   │   └── toolHandler.ts        # MCP tool implementations
 │   └── utils/
-│       └── specKitLoader.ts      # Spec loading and parsing
+│       └── goferLoader.ts      # Spec loading and parsing
 ├── dist/                          # Compiled JavaScript
 ├── package.json
 └── tsconfig.json
@@ -221,7 +221,7 @@ Enable console logging in the VSCode extension output panel:
 
 1. Open VSCode
 2. View → Output
-3. Select "SpecGofer Language Server" from dropdown
+3. Select "Gofer Language Server" from dropdown
 4. Watch real-time logs
 
 ## Contributing

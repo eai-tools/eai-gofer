@@ -1,7 +1,6 @@
 {
   "recommendations": [
-    "anthropic.claude-code",
-    "enterpriseai.specgofer"
+    "anthropic.claude-code"
   ],
   "unwantedRecommendations": [
     "openai.chatgpt"

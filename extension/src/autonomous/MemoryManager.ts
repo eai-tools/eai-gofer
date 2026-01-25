@@ -18,6 +18,9 @@ import {
   type MemorySearchResult,
   type ValidationResult,
   type MemoryManager as IMemoryManager,
+  type ScoredMemory,
+  type LoadByPriorityOptions,
+  type LoadByPriorityResult,
 } from './memory';
 import {
   isValidUUID,
@@ -30,6 +33,7 @@ import {
 import { validateMemory, validateStoredMemories, formatValidationErrors } from './schemaValidator';
 import { Logger } from '../utils/logger';
 import { telemetry } from './telemetryIntegration';
+import type { ContextUsageLogger } from './ContextUsageLogger';
 
 /**
  * Current schema version for StoredMemories.
@@ -45,6 +49,7 @@ export class MemoryManager implements IMemoryManager {
   private readonly context: vscode.ExtensionContext;
   private readonly localMemoryPath: string;
   private readonly logger: Logger;
+  private usageLogger?: ContextUsageLogger;
 
   /**
    * Creates a new MemoryManager instance.
@@ -60,6 +65,15 @@ export class MemoryManager implements IMemoryManager {
       workspaceRoot,
       localMemoryPath: this.localMemoryPath,
     });
+  }
+
+  /**
+   * Set the usage logger for context health tracking (Spec 012).
+   *
+   * @param logger - ContextUsageLogger instance
+   */
+  setUsageLogger(logger: ContextUsageLogger): void {
+    this.usageLogger = logger;
   }
 
   /**
@@ -102,6 +116,17 @@ export class MemoryManager implements IMemoryManager {
 
     // Track memory creation
     telemetry.trackMemorySaved(newMemory);
+
+    // Log to context usage logger (Spec 012)
+    if (this.usageLogger) {
+      const estimatedTokens = Math.ceil(newMemory.content.length / 4);
+      this.usageLogger.logMemorySave({
+        memoryId: newMemory.id,
+        category: newMemory.category,
+        tokenEstimate: estimatedTokens,
+        scope: newMemory.scope,
+      });
+    }
 
     return newMemory;
   }
@@ -149,16 +174,59 @@ export class MemoryManager implements IMemoryManager {
       );
     }
 
+    // Calculate scores and sort by priority if requested
+    let scoredMemories: ScoredMemory[] | undefined;
+    if (query.sortByPriority || query.includeRelevanceScores) {
+      scoredMemories = results.map((m) => {
+        const priorityScore = this.calculatePriorityScore(m);
+        const relevanceScore = query.taskContext
+          ? this.calculateRelevanceScore(m, query.taskContext)
+          : undefined;
+        const combinedScore =
+          relevanceScore !== undefined ? priorityScore * 0.4 + relevanceScore * 0.6 : priorityScore;
+
+        return {
+          ...m,
+          priorityScore,
+          relevanceScore,
+          combinedScore,
+        };
+      });
+
+      // Sort by combined score descending
+      scoredMemories.sort((a, b) => b.combinedScore - a.combinedScore);
+
+      // Update results to match sorted order
+      results = scoredMemories.map((sm) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { priorityScore, relevanceScore, combinedScore, ...memory } = sm;
+        return memory;
+      });
+    }
+
     const searchTime = Date.now() - startTime;
     this.logger.info('Memory search completed', { count: results.length, searchTime });
 
     // Track memory search
     telemetry.trackMemorySearch(query, results.length, searchTime);
 
+    // Log to context usage logger (Spec 012)
+    if (this.usageLogger) {
+      const totalTokens = results.reduce((sum, m) => sum + Math.ceil(m.content.length / 4), 0);
+      this.usageLogger.logMemorySearch({
+        queryKeywords: query.keywords,
+        queryCategory: query.category,
+        resultCount: results.length,
+        totalTokensReturned: totalTokens,
+        searchTimeMs: searchTime,
+      });
+    }
+
     return {
       memories: results,
       count: results.length,
       searchTime,
+      scoredMemories,
     };
   }
 
@@ -230,6 +298,7 @@ export class MemoryManager implements IMemoryManager {
    * @returns Array of Memory objects
    */
   async load(scope: 'local' | 'global' | 'both' = 'both'): Promise<Memory[]> {
+    const startTime = Date.now();
     const memories: Memory[] = [];
 
     if (scope === 'local' || scope === 'both') {
@@ -238,6 +307,18 @@ export class MemoryManager implements IMemoryManager {
 
     if (scope === 'global' || scope === 'both') {
       memories.push(...(await this.loadGlobal()));
+    }
+
+    // Log to context usage logger (Spec 012)
+    if (this.usageLogger) {
+      const loadTimeMs = Date.now() - startTime;
+      const totalTokens = memories.reduce((sum, m) => sum + Math.ceil(m.content.length / 4), 0);
+      this.usageLogger.logMemoryLoad({
+        scope,
+        memoriesLoaded: memories.length,
+        totalTokensLoaded: totalTokens,
+        loadTimeMs,
+      });
     }
 
     return memories;
@@ -386,9 +467,286 @@ export class MemoryManager implements IMemoryManager {
     };
   }
 
+  /**
+   * Load memories sorted by priority with optional relevance scoring.
+   *
+   * Priority is calculated from usage patterns (usedCount, lastUsed, created).
+   * Relevance is calculated against optional task context.
+   *
+   * @param options - Loading options including limit, taskContext, weights
+   * @returns Scored and ranked memories
+   */
+  async loadByPriority(options: LoadByPriorityOptions = {}): Promise<LoadByPriorityResult> {
+    const startTime = Date.now();
+    const {
+      limit = 10,
+      taskContext,
+      priorityWeight = 0.4,
+      relevanceWeight = 0.6,
+      minScore = 0,
+      scope = 'both',
+    } = options;
+
+    this.logger.debug('Loading memories by priority', { limit, hasTaskContext: !!taskContext });
+
+    // Load all memories from requested scope
+    const memories = await this.load(scope);
+    const totalConsidered = memories.length;
+
+    // Calculate scores for each memory
+    let scoredMemories: ScoredMemory[] = memories.map((m) => {
+      const priorityScore = this.calculatePriorityScore(m);
+      const relevanceScore = taskContext ? this.calculateRelevanceScore(m, taskContext) : 0;
+
+      // Combined score with configurable weights
+      const combinedScore = taskContext
+        ? priorityScore * priorityWeight + relevanceScore * relevanceWeight
+        : priorityScore;
+
+      return {
+        ...m,
+        priorityScore,
+        relevanceScore: taskContext ? relevanceScore : undefined,
+        combinedScore,
+      };
+    });
+
+    // Sort by combined score descending
+    scoredMemories.sort((a, b) => b.combinedScore - a.combinedScore);
+
+    // Filter by minimum score if specified
+    const filtered = minScore > 0;
+    if (filtered) {
+      scoredMemories = scoredMemories.filter((m) => m.combinedScore >= minScore);
+    }
+
+    // Apply limit
+    scoredMemories = scoredMemories.slice(0, limit);
+
+    const loadTime = Date.now() - startTime;
+    this.logger.info('Loaded memories by priority', {
+      returned: scoredMemories.length,
+      totalConsidered,
+      loadTime,
+    });
+
+    return {
+      memories: scoredMemories,
+      totalConsidered,
+      loadTime,
+      filtered,
+    };
+  }
+
+  /**
+   * Calculate priority score for a memory (0-100).
+   *
+   * Factors:
+   * - Usage frequency (usedCount): 40% - more uses = higher priority
+   * - Recency (lastUsed): 35% - recently used = higher priority
+   * - Age bonus (older memories that are still used): 25%
+   *
+   * @param memory - Memory to score
+   * @returns Priority score 0-100
+   */
+  calculatePriorityScore(memory: Memory): number {
+    const now = Date.now();
+
+    // Usage frequency score (0-100)
+    // Uses logarithmic scale: usedCount of 10 = ~60, 50 = ~85, 100 = ~100
+    const usageScore = Math.min(100, Math.log10(memory.usedCount + 1) * 50);
+
+    // Recency score (0-100)
+    // Full score if used within last day, decays over 30 days
+    const daysSinceLastUsed = (now - memory.lastUsed) / (24 * 60 * 60 * 1000);
+    const recencyScore = Math.max(0, 100 - (daysSinceLastUsed / 30) * 100);
+
+    // Age bonus score (0-100)
+    // Older memories that are still actively used get a bonus
+    // Full bonus at 90+ days old with usage, scaled by usedCount
+    const daysOld = (now - memory.created) / (24 * 60 * 60 * 1000);
+    const ageBonus =
+      memory.usedCount > 0
+        ? Math.min(100, (daysOld / 90) * 100 * Math.min(1, memory.usedCount / 5))
+        : 0;
+
+    // Combined weighted score
+    const score = usageScore * 0.4 + recencyScore * 0.35 + ageBonus * 0.25;
+
+    return Math.round(Math.max(0, Math.min(100, score)));
+  }
+
+  /**
+   * Calculate relevance score of memory against task context (0-100).
+   *
+   * Uses keyword matching with TF-IDF-like weighting.
+   *
+   * @param memory - Memory to score
+   * @param taskContext - Task description to match against
+   * @returns Relevance score 0-100
+   */
+  calculateRelevanceScore(memory: Memory, taskContext: string): number {
+    if (!taskContext || taskContext.trim().length === 0) {
+      return 0;
+    }
+
+    // Extract keywords from task context (stopwords removed)
+    const taskKeywords = this.extractKeywords(taskContext);
+    if (taskKeywords.length === 0) {
+      return 0;
+    }
+
+    // Combine memory content, category, and tags for matching
+    const memoryText =
+      `${memory.content} ${memory.category} ${memory.tags.join(' ')}`.toLowerCase();
+    const memoryKeywords = this.extractKeywords(memoryText);
+
+    // Calculate keyword overlap
+    let matchCount = 0;
+    let weightedMatchScore = 0;
+
+    for (const taskKeyword of taskKeywords) {
+      if (memoryKeywords.includes(taskKeyword)) {
+        matchCount++;
+        // Longer keywords are more significant
+        weightedMatchScore += Math.min(1, taskKeyword.length / 6);
+      } else {
+        // Partial match bonus (prefix matching)
+        const partialMatch = memoryKeywords.find(
+          (mk) => mk.startsWith(taskKeyword) || taskKeyword.startsWith(mk)
+        );
+        if (partialMatch) {
+          matchCount += 0.5;
+          weightedMatchScore += 0.3;
+        }
+      }
+    }
+
+    // Calculate base score from match ratio
+    const matchRatio = matchCount / taskKeywords.length;
+    const baseScore = matchRatio * 70; // Max 70 from keyword matching
+
+    // Bonus for weighted matches
+    const weightBonus = Math.min(30, weightedMatchScore * 10);
+
+    // Category match bonus
+    const categoryBonus = taskContext.toLowerCase().includes(memory.category.toLowerCase())
+      ? 10
+      : 0;
+
+    const score = baseScore + weightBonus + categoryBonus;
+
+    return Math.round(Math.max(0, Math.min(100, score)));
+  }
+
   // ============================================================================
   // Private Methods
   // ============================================================================
+
+  /**
+   * Extract keywords from text for relevance scoring.
+   *
+   * Removes stopwords, normalizes case, and filters short words.
+   *
+   * @param text - Text to extract keywords from
+   * @returns Array of lowercase keywords
+   */
+  private extractKeywords(text: string): string[] {
+    const stopwords = new Set([
+      'the',
+      'a',
+      'an',
+      'and',
+      'or',
+      'but',
+      'in',
+      'on',
+      'at',
+      'to',
+      'for',
+      'of',
+      'with',
+      'by',
+      'from',
+      'as',
+      'is',
+      'was',
+      'be',
+      'been',
+      'are',
+      'have',
+      'has',
+      'had',
+      'do',
+      'does',
+      'did',
+      'will',
+      'would',
+      'could',
+      'should',
+      'may',
+      'might',
+      'must',
+      'can',
+      'this',
+      'that',
+      'these',
+      'those',
+      'it',
+      'its',
+      'i',
+      'we',
+      'you',
+      'they',
+      'he',
+      'she',
+      'them',
+      'their',
+      'our',
+      'your',
+      'my',
+      'me',
+      'us',
+      'him',
+      'her',
+      'who',
+      'what',
+      'which',
+      'when',
+      'where',
+      'why',
+      'how',
+      'all',
+      'each',
+      'every',
+      'both',
+      'few',
+      'more',
+      'most',
+      'other',
+      'some',
+      'such',
+      'no',
+      'not',
+      'only',
+      'same',
+      'so',
+      'than',
+      'too',
+      'very',
+      'just',
+      'also',
+      'now',
+      'here',
+    ]);
+
+    return text
+      .toLowerCase()
+      .replace(/[^\w\s#-]/g, ' ') // Keep alphanumeric, spaces, #, -
+      .split(/\s+/)
+      .filter((word) => word.length > 2 && !stopwords.has(word))
+      .filter((word, index, self) => self.indexOf(word) === index); // Deduplicate
+  }
 
   /**
    * Load local memories from file.

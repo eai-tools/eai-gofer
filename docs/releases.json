@@ -1,8 +1,17 @@
 {
-  "latest_version": "4.6.1",
+  "latest_version": "0.0.9",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-01-19T21:20:47.855Z",
+  "last_updated": "2026-01-25T08:14:23.805Z",
   "releases": [
+    {
+      "version": "0.0.9",
+      "tag_name": "v0.0.9",
+      "published_at": "2026-01-25T08:14:23.805Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-0.0.9.vsix",
+      "notes": "Context health monitoring and integration",
+      "prerelease": false,
+      "size_mb": 8.5
+    },
     {
       "version": "4.6.1",
       "tag_name": "v4.6.1",

@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.0.0] - 2026-01-26
+
+First major release: Consultative business discovery, memory leak fixes, script upgrade improvements
+
 ## [0.0.9] - 2026-01-25
 
 Context health monitoring and integration

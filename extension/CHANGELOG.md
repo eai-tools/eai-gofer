@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [0.0.9] - 2026-01-25
+
+Context health monitoring and integration
+
 ## [4.6.1] - 2026-01-20
 
 fix: auto-reload VS Code after extension update

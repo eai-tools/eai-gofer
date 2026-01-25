@@ -2,6 +2,12 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.0.1] - 2026-01-26
+
+chore: pre-release changes
+
+Auto-committed changes before release v1.0.0
+
 ## [1.0.0] - 2026-01-26
 
 First major release: Consultative business discovery, memory leak fixes, script upgrade improvements

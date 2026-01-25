@@ -294,7 +294,7 @@ export class TelemetryCollector {
    * Get or create anonymous user ID
    */
   private async getOrCreateUserId(context: vscode.ExtensionContext): Promise<string> {
-    const storageKey = 'specgofer.telemetry.userId';
+    const storageKey = 'gofer.telemetry.userId';
     let userId = context.globalState.get<string>(storageKey);
     
     if (!userId) {

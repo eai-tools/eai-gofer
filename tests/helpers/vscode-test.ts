@@ -96,10 +96,10 @@ export async function waitForExtensionActivation(timeout: number = 5000): Promis
 }
 
 /**
- * Gets a reference to the SpecGofer extension
+ * Gets a reference to the Gofer extension
  * Must be called from within a VSCode test context
  */
-export async function getSpecGoferExtension(): Promise<any> {
+export async function getGoferExtension(): Promise<any> {
   // This will be implemented in integration tests with access to vscode.extensions API
   // Return type will be the extension's API
   return null;

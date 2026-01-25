@@ -1,10 +1,10 @@
-# SpecGofer - AI Coding Agent Instructions
+# Gofer - AI Coding Agent Instructions
 
 **Enterprise AI Pty Ltd** - Automated Spec-Driven Development System
 
 ## Project Overview
 
-SpecGofer is a **self-orchestrating development system** that uses AI agents to
+Gofer is a **self-orchestrating development system** that uses AI agents to
 implement features from specifications. You're working with a sophisticated
 multi-layered architecture that eliminates manual workflows by coordinating AI
 assistants (Claude Code or GitHub Copilot), Playwright testing, and autonomous
@@ -12,7 +12,7 @@ validation.
 
 ## Dual AI Support (Claude Code & GitHub Copilot)
 
-SpecGofer works with **both Claude Code and GitHub Copilot** with **identical
+Gofer works with **both Claude Code and GitHub Copilot** with **identical
 command names**:
 
 | Feature       | Claude Code             | GitHub Copilot                           |
@@ -47,7 +47,7 @@ command names**:
 
 ## Architecture (Critical Understanding)
 
-SpecGofer consists of **three main components** that work together:
+Gofer consists of **three main components** that work together:
 
 ### 1. **VSCode Extension** (`/extension/`)
 
@@ -63,7 +63,7 @@ SpecGofer consists of **three main components** that work together:
 - **Exposes 6 MCP tools** for Claude Code to orchestrate tasks
 - **Loads specs** from `.specify/specs/` using GitHub Spec Kit format
 - **Entry point**: `language-server/src/server.ts`
-- **Key files**: `mcp/toolHandler.ts`, `utils/specKitLoader.ts`
+- **Key files**: `mcp/toolHandler.ts`, `utils/goferLoader.ts`
 
 ### 3. **Orchestrator Process** (`/src/`)
 
@@ -98,17 +98,17 @@ created: "2025-10-20"
 - [ ] #T002 Another task (deps: T001)
 ```
 
-**Key Pattern**: The extension uses `specKitParser.ts` to extract YAML
+**Key Pattern**: The extension uses `goferParser.ts` to extract YAML
 frontmatter and parse Markdown task lists with dependencies.
 
-## SpecGofer Autonomous Workflow (For Users)
+## Gofer Autonomous Workflow (For Users)
 
 When users ask "how do I use this?" or "how does this work?", guide them through
 this workflow:
 
 ### Using with GitHub Copilot
 
-SpecGofer works with **both Claude Code and GitHub Copilot**. The prompts are
+Gofer works with **both Claude Code and GitHub Copilot**. The prompts are
 available in `.github/prompts/` and work identically in both tools.
 
 **In VS Code with Copilot**, type `/` followed by the prompt name:
@@ -143,7 +143,7 @@ available in `.github/prompts/` and work identically in both tools.
 
 # Step 5: AUTONOMOUS IMPLEMENTATION
 /5_gofer_implement
-# SpecGofer will autonomously:
+# Gofer will autonomously:
 # - Read all tasks from tasks.md
 # - Implement each task in dependency order
 # - Run tests after each implementation
@@ -306,7 +306,7 @@ Three separate `package.json` files:
 Extension detects legacy JSON format and offers upgrade:
 
 ```typescript
-// specKitMigrator.ts pattern
+// goferMigrator.ts pattern
 const versionInfo = await migrator.getVersionInfo();
 if (versionInfo.format === 'legacy-json') {
   await migrator.migrateToSpecKit();
@@ -355,7 +355,7 @@ await notificationService.sendSMS('Task failed, needs review');
 
 ### Adding a Specification
 
-1. Use extension: `SpecGofer: Initialize Repository`
+1. Use extension: `Gofer: Initialize Repository`
 2. Create in `.specify/specs/###-name/spec.md`
 3. Follow GitHub Spec Kit format (YAML frontmatter + Markdown)
 4. Extension auto-detects and shows in progress panel
@@ -373,10 +373,10 @@ validation - Engineer agent enforces ❌ **Don't** commit `.claude-input.txt` /
 
 ```bash
 # Extension commands (Cmd+Shift+P)
-SpecGofer: Initialize Repository      # Create .specify/ structure
-SpecGofer: Show Progress Panel        # View task status
-SpecGofer: Upgrade to Spec Kit Format # Migrate legacy JSON
-SpecGofer: Check for Updates          # Auto-update extension
+Gofer: Initialize Repository      # Create .specify/ structure
+Gofer: Show Progress Panel        # View task status
+Gofer: Upgrade to Spec Kit Format # Migrate legacy JSON
+Gofer: Check for Updates          # Auto-update extension
 
 # NPM scripts (root)
 npm run build    # Compile TypeScript to dist/
@@ -408,7 +408,7 @@ WORKSPACE_DIR=/path/to/project   # Auto-detected
 1. **Extension not activating?** Check for `.specify/` folder in workspace root
 2. **MCP tools not showing?** Verify VSCode 1.102+, check `.vscode/mcp.json`
    exists
-3. **Language Server errors?** Check Output → SpecGofer Language Server channel
+3. **Language Server errors?** Check Output → Gofer Language Server channel
 4. **Tests failing?** Ensure Playwright installed: `npx playwright install`
 5. **Build errors?** Check all three `package.json` are `npm install`'ed
 
@@ -422,7 +422,7 @@ changes:
 3. **Always** validate against constitution
 4. **Always** use the MCP tools to coordinate work
 
-The goal: **You write specs, SpecGofer builds them autonomously.**
+The goal: **You write specs, Gofer builds them autonomously.**
 
 ---
 

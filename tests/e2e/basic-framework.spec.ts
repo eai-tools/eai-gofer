@@ -4,7 +4,7 @@ import { test, expect } from '@playwright/test';
  * Basic E2E Test - Verification that Playwright E2E framework is working
  */
 
-test.describe('SpecGofer E2E Framework', () => {
+test.describe('Gofer E2E Framework', () => {
   test('E2E test framework is operational', async () => {
     // Basic functionality test
     expect(true).toBe(true);
@@ -24,7 +24,7 @@ test.describe('SpecGofer E2E Framework', () => {
     const { tmpdir } = await import('os');
     
     // Create temporary file for testing
-    const testFile = join(tmpdir(), 'specgofer-e2e-test.txt');
+    const testFile = join(tmpdir(), 'gofer-e2e-test.txt');
     const testContent = 'E2E framework test';
     
     await fs.writeFile(testFile, testContent);

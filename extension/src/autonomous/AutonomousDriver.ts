@@ -89,7 +89,7 @@ export class AutonomousDriver {
     this.contextBuilder = new ContextBuilder(workspacePath, memoryManager, this.hintLoader);
 
     // T156: Read threshold from VSCode settings and initialize ContextCompactor
-    const config = vscode.workspace.getConfiguration('specGofer.autonomous');
+    const config = vscode.workspace.getConfiguration('gofer.autonomous');
     const threshold = config.get<number>('compactionThreshold', 80) / 100; // Convert percentage to decimal
     this.contextCompactor = new ContextCompactor(workspacePath, {
       threshold,
@@ -312,7 +312,7 @@ export class AutonomousDriver {
    * Spawn terminal for given role
    */
   private async spawnTerminal(role: TerminalRole): Promise<TerminalState> {
-    const terminalName = `SpecGofer: ${role === 'engineer' ? 'Engineer' : 'Tester'}`;
+    const terminalName = `Gofer: ${role === 'engineer' ? 'Engineer' : 'Tester'}`;
     const terminal = await this.terminalManager.createTerminal(terminalName);
 
     const terminalState: TerminalState = {
@@ -977,7 +977,7 @@ export class AutonomousDriver {
   /**
    * Show full compaction history for the current session.
    *
-   * T153: Add command "SpecGofer: View Compaction History"
+   * T153: Add command "Gofer: View Compaction History"
    */
   async showCompactionHistory(): Promise<void> {
     if (!this.currentSession) {
@@ -1270,7 +1270,7 @@ export class AutonomousDriver {
     <div class="info">
         <strong>ℹ️ What is context compaction?</strong><br>
         When the context window reaches ${Math.round((this.contextCompactor as any).threshold * 100)}% capacity,
-        SpecGofer automatically summarizes completed tasks to free up space for new work.
+        Gofer automatically summarizes completed tasks to free up space for new work.
         The last ${summary.preservedTasks.length} tasks are kept in full detail.
         <br><br>
         <strong>Compacted at:</strong> ${date}

@@ -149,7 +149,7 @@ describe.skip('Terminal Lifecycle Integration (T012)', () => {
 
       await launchClaudeCode('001-test-spec');
 
-      expect(vscode.window.createOutputChannel).toHaveBeenCalledWith('SpecGofer-ClaudeCode');
+      expect(vscode.window.createOutputChannel).toHaveBeenCalledWith('Gofer-ClaudeCode');
       expect(mockOutputChannel.clear).toHaveBeenCalled();
       expect(mockOutputChannel.show).toHaveBeenCalled();
     });

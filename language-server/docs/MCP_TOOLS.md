@@ -1,10 +1,10 @@
 # MCP Tools Documentation
 
-This document describes the Model Context Protocol (MCP) tools provided by the SpecGofer Language Server for integration with Claude Code and GitHub Copilot.
+This document describes the Model Context Protocol (MCP) tools provided by the Gofer Language Server for integration with Claude Code and GitHub Copilot.
 
 ## Overview
 
-The SpecGofer Language Server exposes 6 MCP tools that enable Claude Code to interact with the specification system. These tools provide full CRUD operations for specifications and tasks, as well as code validation and testing capabilities.
+The Gofer Language Server exposes 6 MCP tools that enable Claude Code to interact with the specification system. These tools provide full CRUD operations for specifications and tasks, as well as code validation and testing capabilities.
 
 ## Tool Definitions
 
@@ -246,7 +246,7 @@ Common error codes:
 
 ## Integration with Claude Code
 
-These MCP tools are automatically available in Claude Code when the SpecGofer extension is installed and the workspace contains a `.specify` folder.
+These MCP tools are automatically available in Claude Code when the Gofer extension is installed and the workspace contains a `.specify` folder.
 
 ### Workflow Example
 
@@ -306,9 +306,9 @@ Enable debug logging in VSCode settings:
 
 ```json
 {
-  "specgofer.debug": true,
-  "specgofer.logLevel": "debug"
+  "gofer.debug": true,
+  "gofer.logLevel": "debug"
 }
 ```
 
-Check the "SpecGofer Language Server" output channel for detailed logs.
+Check the "Gofer Language Server" output channel for detailed logs.

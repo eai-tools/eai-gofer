@@ -5,7 +5,7 @@
 This document provides comprehensive guidance on implementing structured
 interfaces for AI agent test execution, focusing on JSON Schema patterns,
 progress streaming, and error handling strategies. Research is based on the
-SpecGofer codebase, industry best practices, and Claude MCP specifications.
+Gofer codebase, industry best practices, and Claude MCP specifications.
 
 ---
 
@@ -108,7 +108,7 @@ export interface TestResultSchema {
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://specgofer.dev/schemas/test-result-v1.json",
+  "$id": "https://gofer.dev/schemas/test-result-v1.json",
   "title": "AI Agent Test Result Schema",
   "description": "Structured test output for AI agent consumption",
 
@@ -647,7 +647,7 @@ export interface ProgressUpdate {
 
 ### 3.1 3-Level Retry Strategy with Exponential Backoff
 
-The SpecGofer implementation uses a sophisticated 3-level retry system:
+The Gofer implementation uses a sophisticated 3-level retry system:
 
 ```typescript
 /**
@@ -1027,7 +1027,7 @@ export const runTestsTool: Tool = {
     properties: {
       result: {
         type: 'object',
-        $ref: 'https://specgofer.dev/schemas/test-result-v1.json',
+        $ref: 'https://gofer.dev/schemas/test-result-v1.json',
       },
       streamUrl: {
         type: 'string',
@@ -1057,7 +1057,7 @@ export const runTestsTool: Tool = {
       status: 'queued',
       executionId,
       streamUrl: streaming
-        ? `https://api.specgofer.dev/tests/stream/${executionId}`
+        ? `https://api.gofer.dev/tests/stream/${executionId}`
         : undefined,
     };
 
@@ -1096,7 +1096,7 @@ export const getTestResultsTool: Tool = {
     type: 'object',
     properties: {
       result: {
-        $ref: 'https://specgofer.dev/schemas/test-result-v1.json',
+        $ref: 'https://gofer.dev/schemas/test-result-v1.json',
       },
       found: { type: 'boolean' },
       cached: { type: 'boolean' },
@@ -1198,7 +1198,7 @@ export class MCPToolErrorHandler {
 
 ---
 
-## 5. Implementation Checklist for SpecGofer
+## 5. Implementation Checklist for Gofer
 
 ### Phase 1: JSON Schema Implementation
 
@@ -1255,7 +1255,7 @@ export class MCPToolErrorHandler {
 
 ## 7. References & Related Files
 
-**SpecGofer Implementation Examples:**
+**Gofer Implementation Examples:**
 
 - `/extension/src/autonomous/ProgressReporter.ts` - Status bar and session
   persistence (100ms, 200ms, 50ms latencies)
@@ -1294,6 +1294,6 @@ Designing test execution interfaces for AI agents requires:
 5. **Performance Budgets**: <5s error detection, <50ms UI updates maintain
    responsiveness
 
-The SpecGofer codebase already implements most of these patterns. Following this
+The Gofer codebase already implements most of these patterns. Following this
 research summary will ensure robust, agent-friendly test execution interfaces
 that work seamlessly with Claude and other AI tools.

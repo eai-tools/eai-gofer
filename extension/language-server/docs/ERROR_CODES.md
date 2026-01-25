@@ -1,10 +1,10 @@
 # Error Codes Documentation
 
-This document describes the error codes used by the SpecGofer Language Server for consistent error handling and debugging.
+This document describes the error codes used by the Gofer Language Server for consistent error handling and debugging.
 
 ## Overview
 
-The SpecGofer Language Server uses structured error codes to categorize different types of failures. Each error includes a code, message, and optional data for debugging.
+The Gofer Language Server uses structured error codes to categorize different types of failures. Each error includes a code, message, and optional data for debugging.
 
 ## Error Structure
 
@@ -679,7 +679,7 @@ try {
 
 // Good error handling
 try {
-  const spec = await specKitLoader.loadSpec(specId);
+  const spec = await goferLoader.loadSpec(specId);
   if (!spec) {
     throw new NotFoundError(`Specification: ${specId}`);
   }

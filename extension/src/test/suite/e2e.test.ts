@@ -63,7 +63,7 @@ suite('E2E GitHub API Tests', () => {
       }
     });
 
-    test('should fetch latest SpecGofer release', async function() {
+    test('should fetch latest Gofer release', async function() {
       if (process.env.CI || process.env.SKIP_NETWORK_TESTS) {
         this.skip();
         return;
@@ -256,7 +256,7 @@ suite('E2E GitHub API Tests', () => {
 
       // Execute the initialize command
       try {
-        await vscode.commands.executeCommand('specGofer.initialize');
+        await vscode.commands.executeCommand('gofer.initialize');
         
         // Verify the command completed (no exception thrown)
         assert.ok(true, 'Initialize command should execute without errors');
@@ -281,7 +281,7 @@ suite('E2E GitHub API Tests', () => {
       }
 
       try {
-        await vscode.commands.executeCommand('specGofer.updateTemplates');
+        await vscode.commands.executeCommand('gofer.updateTemplates');
         assert.ok(true, 'Update templates command should execute');
       } catch (error) {
         console.warn('Update templates command failed in test environment:', error);
@@ -295,7 +295,7 @@ suite('E2E GitHub API Tests', () => {
       }
 
       try {
-        await vscode.commands.executeCommand('specGofer.checkForUpdates');
+        await vscode.commands.executeCommand('gofer.checkForUpdates');
         assert.ok(true, 'Check for updates command should execute');
       } catch (error) {
         console.warn('Check for updates command failed in test environment:', error);

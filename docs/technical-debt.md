@@ -7,7 +7,7 @@ requirements.
 
 Constitution requires files to be < 300 lines. The following files violate this:
 
-### 1. extension/src/specKitMigrator.ts (26,795 bytes, ~670 lines estimated)
+### 1. extension/src/goferMigrator.ts (26,795 bytes, ~670 lines estimated)
 
 **Current Purpose**: Migrates legacy JSON specs to GitHub Spec Kit format
 
@@ -17,7 +17,7 @@ Split into:
 
 ```
 extension/src/migration/
-├── SpecKitMigrator.ts          # Main orchestrator (< 100 lines)
+├── GoferMigrator.ts          # Main orchestrator (< 100 lines)
 ├── LegacyFormatParser.ts       # Parse legacy JSON (< 150 lines)
 ├── SpecKitFormatter.ts         # Format to Spec Kit (< 150 lines)
 ├── TaskDependencyMapper.ts     # Map task dependencies (< 100 lines)
@@ -133,7 +133,7 @@ Current: 36.15% | Target: 80%
 
 ### Phase 2: File Size Refactoring (Recommended Next)
 
-**Week 1-2**: specKitMigrator.ts refactoring
+**Week 1-2**: goferMigrator.ts refactoring
 
 1. Create new migration/ directory
 2. Extract LegacyFormatParser

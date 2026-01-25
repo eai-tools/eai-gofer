@@ -6,7 +6,7 @@ import * as yaml from 'yaml';
 /**
  * Detects .specify folder format and handles migration/upgrade
  */
-export class SpecKitMigrator {
+export class GoferMigrator {
   private workspacePath: string;
   private specifyPath: string;
 
@@ -41,15 +41,15 @@ export class SpecKitMigrator {
     const hasTemplates = await this.hasDirectory('templates');
     const hasJsonSpecs = await this.hasJsonSpecs();
 
-    // Spec Kit format has specs/, memory/, templates/
-    const isSpecKit = hasSpecs && hasMemory && hasTemplates;
+    // Gofer format has specs/, memory/, templates/
+    const isGofer = hasSpecs && hasMemory && hasTemplates;
 
     // Legacy format has JSON files in root
     const isLegacy = hasJsonSpecs && !hasSpecs;
 
-    if (isSpecKit && hasJsonSpecs) {
+    if (isGofer && hasJsonSpecs) {
       return 'mixed'; // Has both formats
-    } else if (isSpecKit) {
+    } else if (isGofer) {
       return 'spec-kit';
     } else if (isLegacy) {
       return 'legacy-json';
@@ -101,14 +101,14 @@ export class SpecKitMigrator {
         return {
           format: 'legacy-json',
           needsUpgrade: true,
-          details: 'Old JSON format detected. Upgrade to Spec Kit Markdown format?',
+          details: 'Old JSON format detected. Upgrade to Gofer Markdown format?',
         };
 
       case 'spec-kit':
         return {
           format: 'spec-kit',
           needsUpgrade: false,
-          details: 'Spec Kit format (up to date)',
+          details: 'Gofer format (up to date)',
         };
 
       case 'mixed':
@@ -128,7 +128,7 @@ export class SpecKitMigrator {
   }
 
   /**
-   * Upgrade .specify folder to Spec Kit format
+   * Upgrade .specify folder to Gofer format
    */
   async upgrade(): Promise<void> {
     const format = await this.detectFormat();
@@ -136,12 +136,12 @@ export class SpecKitMigrator {
     if (format === 'spec-kit') {
       // Even if already in spec-kit format, check if templates need updating
       // Skip confirmation when called from Initialize command - user already initiated action
-      await this.updateSpecKitTemplates(true);
+      await this.updateGoferTemplates(true);
       return;
     }
 
     const choice = await vscode.window.showWarningMessage(
-      `Install/Upgrade to Spec Kit format?\n\nThis will:\n- Create proper folder structure\n- Install latest templates from SpecGofer\n- Set up Claude commands\n- Keep original files as backup`,
+      `Install/Upgrade to Gofer format?\n\nThis will:\n- Create proper folder structure\n- Install latest templates from Gofer\n- Set up Claude commands\n- Keep original files as backup`,
       { modal: true },
       'Upgrade',
       'Cancel'
@@ -154,72 +154,72 @@ export class SpecKitMigrator {
     await vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
-        title: 'Installing Spec Kit...',
+        title: 'Installing Gofer...',
         cancellable: false,
       },
       async (progress) => {
         // Log version info
         const packageJson = require('../../package.json');
-        console.log(`[SpecKit v${packageJson.version}] Starting initialization...`);
+        console.log(`[Gofer v${packageJson.version}] Starting initialization...`);
 
         progress.report({ message: 'Installing bundled resources...' });
-        console.log('[SpecKit] Installing bundled resources...');
-        await this.installSpecKitCLI();
+        console.log('[Gofer] Installing bundled resources...');
+        await this.installGoferCLI();
 
         progress.report({ message: 'Creating folder structure...' });
-        console.log('[SpecKit] Creating folder structure...');
-        await this.createSpecKitStructure();
+        console.log('[Gofer] Creating folder structure...');
+        await this.createGoferStructure();
 
         progress.report({ message: 'Migrating specifications...' });
-        console.log('[SpecKit] Migrating specifications...');
+        console.log('[Gofer] Migrating specifications...');
         await this.migrateJsonSpecs();
 
         progress.report({ message: 'Setting up Claude commands...' });
-        console.log('[SpecKit] Setting up Claude commands...');
+        console.log('[Gofer] Setting up Claude commands...');
         await this.setupClaudeCommands();
 
         progress.report({ message: 'Setting up Claude agents...' });
-        console.log('[SpecKit] Setting up Claude agents...');
+        console.log('[Gofer] Setting up Claude agents...');
         await this.setupClaudeAgents();
 
         progress.report({ message: 'Setting up GitHub Copilot prompts...' });
-        console.log('[SpecKit] Setting up GitHub Copilot prompts...');
+        console.log('[Gofer] Setting up GitHub Copilot prompts...');
         await this.setupCopilotPrompts();
 
         progress.report({ message: 'Setting up GitHub Copilot instructions...' });
-        console.log('[SpecKit] Setting up GitHub Copilot instructions...');
+        console.log('[Gofer] Setting up GitHub Copilot instructions...');
         await this.setupCopilotInstructions();
 
         progress.report({ message: 'Creating bash scripts...' });
-        console.log('[SpecKit] Creating bash scripts...');
+        console.log('[Gofer] Creating bash scripts...');
         await this.createBashScripts();
 
         progress.report({ message: 'Creating Node.js scripts...' });
-        console.log('[SpecKit] Creating Node.js scripts...');
+        console.log('[Gofer] Creating Node.js scripts...');
         await this.createNodeScripts();
 
         progress.report({ message: 'Configuring VSCode settings...' });
-        console.log('[SpecKit] Configuring VSCode settings...');
+        console.log('[Gofer] Configuring VSCode settings...');
         await this.createVSCodeSettings();
 
         progress.report({ message: 'Verifying Claude commands...' });
-        console.log('[SpecKit] Ensuring Claude commands are up to date...');
+        console.log('[Gofer] Ensuring Claude commands are up to date...');
         await this.fixClaudeCommands();
 
         progress.report({ message: 'Finalizing...' });
-        console.log('[SpecKit] Creating README...');
+        console.log('[Gofer] Creating README...');
         await this.createReadme();
 
         progress.report({ message: 'Updating .gitignore...' });
-        console.log('[SpecKit] Updating .gitignore with state files...');
+        console.log('[Gofer] Updating .gitignore with state files...');
         await this.updateGitignore();
 
-        console.log('[SpecKit] Installation complete!');
+        console.log('[Gofer] Installation complete!');
       }
     );
 
     vscode.window
-      .showInformationMessage('✅ Spec Kit installed successfully!', 'View Constitution')
+      .showInformationMessage('✅ Gofer installed successfully!', 'View Constitution')
       .then((choice) => {
         if (choice === 'View Constitution') {
           const constitutionPath = path.join(this.specifyPath, 'memory', 'constitution.md');
@@ -234,9 +234,9 @@ export class SpecKitMigrator {
    * Install spec-kit structure using bundled resources from this extension.
    * This replaces the previous approach of pulling from external github/spec-kit repo.
    */
-  private async installSpecKitCLI(): Promise<void> {
+  private async installGoferCLI(): Promise<void> {
     try {
-      console.log('[installSpecKitCLI] Using bundled resources from this extension...');
+      console.log('[installGoferCLI] Using bundled resources from this extension...');
 
       // IMPORTANT: Backup existing constitution before creating structure
       const constitutionPath = path.join(
@@ -249,13 +249,13 @@ export class SpecKitMigrator {
 
       try {
         existingConstitution = await fs.readFile(constitutionPath, 'utf-8');
-        console.log('[installSpecKitCLI] Backed up existing constitution for preservation');
+        console.log('[installGoferCLI] Backed up existing constitution for preservation');
       } catch {
         // No existing constitution - that's fine
       }
 
       // Create the folder structure manually using bundled resources
-      await this.createSpecKitStructureManually();
+      await this.createGoferStructureManually();
 
       // Copy bundled templates
       await this.copyBundledTemplates();
@@ -263,7 +263,7 @@ export class SpecKitMigrator {
       // IMPORTANT: Restore existing constitution if it was backed up
       if (existingConstitution) {
         await fs.writeFile(constitutionPath, existingConstitution);
-        console.log('[installSpecKitCLI] Restored existing constitution');
+        console.log('[installGoferCLI] Restored existing constitution');
       }
 
       // Fix path references in commands/scripts: specs/ → .specify/specs/
@@ -271,14 +271,14 @@ export class SpecKitMigrator {
 
       // Save the extension version to track future upgrades
       const packageJson = require('../../package.json');
-      const versionFilePath = path.join(this.specifyPath, '.specgofer-version');
+      const versionFilePath = path.join(this.specifyPath, '.gofer-version');
       await fs.writeFile(versionFilePath, packageJson.version);
-      console.log(`[installSpecKitCLI] Saved version ${packageJson.version}`);
+      console.log(`[installGoferCLI] Saved version ${packageJson.version}`);
 
-      console.log('[installSpecKitCLI] Bundled resources installed successfully');
+      console.log('[installGoferCLI] Bundled resources installed successfully');
       vscode.window.showInformationMessage('✓ Spec-kit templates installed successfully!');
     } catch (error: any) {
-      console.error('[installSpecKitCLI] Failed to install:', error);
+      console.error('[installGoferCLI] Failed to install:', error);
       vscode.window.showWarningMessage(
         `Could not install spec-kit structure (${error.message}).`,
         'OK'
@@ -289,18 +289,18 @@ export class SpecKitMigrator {
   /**
    * Update spec-kit templates for existing installation
    */
-  private async updateSpecKitTemplates(skipConfirmation: boolean = false): Promise<void> {
-    console.log('[updateSpecKitTemplates] Starting... skipConfirmation:', skipConfirmation);
+  private async updateGoferTemplates(skipConfirmation: boolean = false): Promise<void> {
+    console.log('[updateGoferTemplates] Starting... skipConfirmation:', skipConfirmation);
 
     if (!skipConfirmation) {
       const choice = await vscode.window.showInformationMessage(
-        'Update Spec Kit templates to latest version?',
+        'Update Gofer templates to latest version?',
         'Update',
         'Cancel'
       );
 
       if (choice !== 'Update') {
-        console.log('[updateSpecKitTemplates] User cancelled update');
+        console.log('[updateGoferTemplates] User cancelled update');
         return;
       }
     }
@@ -308,72 +308,72 @@ export class SpecKitMigrator {
     await vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
-        title: 'Updating Spec Kit templates...',
+        title: 'Updating Gofer templates...',
         cancellable: false,
       },
       async (progress) => {
         const packageJson = require('../../package.json');
-        console.log(`[SpecKit v${packageJson.version}] Updating existing installation...`);
+        console.log(`[Gofer v${packageJson.version}] Updating existing installation...`);
 
         progress.report({ message: 'Installing bundled templates...' });
-        console.log('[SpecKit Update] Copying bundled templates...');
+        console.log('[Gofer Update] Copying bundled templates...');
         await this.copyBundledTemplates();
 
         progress.report({ message: 'Updating Claude commands...' });
-        console.log('[SpecKit Update] Setting up Claude commands...');
+        console.log('[Gofer Update] Setting up Claude commands...');
         await this.setupClaudeCommands();
 
         progress.report({ message: 'Updating Claude agents...' });
-        console.log('[SpecKit Update] Setting up Claude agents...');
+        console.log('[Gofer Update] Setting up Claude agents...');
         await this.setupClaudeAgents();
 
         progress.report({ message: 'Updating GitHub Copilot prompts...' });
-        console.log('[SpecKit Update] Setting up GitHub Copilot prompts...');
+        console.log('[Gofer Update] Setting up GitHub Copilot prompts...');
         await this.setupCopilotPrompts();
 
         progress.report({ message: 'Updating GitHub Copilot instructions...' });
-        console.log('[SpecKit Update] Setting up GitHub Copilot instructions...');
+        console.log('[Gofer Update] Setting up GitHub Copilot instructions...');
         await this.setupCopilotInstructions();
 
         progress.report({ message: 'Updating bash scripts...' });
-        console.log('[SpecKit Update] Creating bash scripts...');
+        console.log('[Gofer Update] Creating bash scripts...');
         await this.createBashScripts();
 
         progress.report({ message: 'Updating Node.js scripts...' });
-        console.log('[SpecKit Update] Creating Node.js scripts...');
+        console.log('[Gofer Update] Creating Node.js scripts...');
         await this.createNodeScripts();
 
         progress.report({ message: 'Updating VSCode settings...' });
-        console.log('[SpecKit Update] Configuring VSCode settings...');
+        console.log('[Gofer Update] Configuring VSCode settings...');
         await this.createVSCodeSettings();
 
         progress.report({ message: 'Fixing existing specs and tasks...' });
-        console.log('[SpecKit Update] Fixing spec.md and tasks.md files...');
+        console.log('[Gofer Update] Fixing spec.md and tasks.md files...');
         await this.fixExistingSpecs();
 
         progress.report({ message: 'Fixing spec path references...' });
-        console.log('[SpecKit Update] Ensuring all scripts use .specify/specs/...');
+        console.log('[Gofer Update] Ensuring all scripts use .specify/specs/...');
         await this.fixSpecPathReferences();
 
         progress.report({ message: 'Checking Claude commands format...' });
-        console.log('[SpecKit Update] Ensuring speckit.tasks includes issues generation...');
+        console.log('[Gofer Update] Ensuring speckit.tasks includes issues generation...');
         await this.fixClaudeCommands();
 
         progress.report({ message: 'Updating .gitignore...' });
-        console.log('[SpecKit Update] Updating .gitignore with state files...');
+        console.log('[Gofer Update] Updating .gitignore with state files...');
         await this.updateGitignore();
 
         progress.report({ message: 'Updating README...' });
-        console.log('[SpecKit Update] Updating .specify/README.md...');
+        console.log('[Gofer Update] Updating .specify/README.md...');
         await this.createReadme();
 
-        console.log('[SpecKit Update] Update complete!');
+        console.log('[Gofer Update] Update complete!');
 
         // Save the extension version to track upgrades
         progress.report({ message: 'Saving version info...' });
-        const versionFilePath = path.join(this.specifyPath, '.specgofer-version');
+        const versionFilePath = path.join(this.specifyPath, '.gofer-version');
         await fs.writeFile(versionFilePath, packageJson.version);
-        console.log(`[SpecKit Update] Saved version ${packageJson.version} to ${versionFilePath}`);
+        console.log(`[Gofer Update] Saved version ${packageJson.version} to ${versionFilePath}`);
       }
     );
 
@@ -390,7 +390,7 @@ export class SpecKitMigrator {
       console.log('[setupClaudeCommands] Starting...');
 
       // Get the extension's bundled commands - try multiple methods
-      let extensionPath = vscode.extensions.getExtension('EnterpriseAI.specgofer')?.extensionPath;
+      let extensionPath = vscode.extensions.getExtension('EnterpriseAI.gofer')?.extensionPath;
 
       // Fallback: derive from __dirname (dist/extension.js -> extension root)
       if (!extensionPath) {
@@ -407,7 +407,7 @@ export class SpecKitMigrator {
 
       // Check if we have Claude commands in the extension bundle
       const bundledCommandsPath = path.join(extensionPath, 'resources', 'claude-commands');
-      // Note: SpecKit installs to .claude/commands/, we keep them there
+      // Note: Gofer installs to .claude/commands/, we keep them there
       // but fix path references to use .specify/specs/ instead of specs/
       const claudeDir = path.join(this.workspacePath, '.claude');
       const commandsDir = path.join(claudeDir, 'commands');
@@ -444,9 +444,9 @@ export class SpecKitMigrator {
         );
 
         // Check if spec-kit created the commands in .claude/commands/
-        const specKitCommandsDir = path.join(this.workspacePath, '.claude', 'commands');
+        const goferCommandsDir = path.join(this.workspacePath, '.claude', 'commands');
         try {
-          const files = await fs.readdir(specKitCommandsDir);
+          const files = await fs.readdir(goferCommandsDir);
           const hasSpecKitCommands = files.some((f) => f.startsWith('speckit.'));
 
           if (!hasSpecKitCommands) {
@@ -474,7 +474,7 @@ export class SpecKitMigrator {
       console.log('[setupClaudeAgents] Starting...');
 
       // Get the extension's bundled agents - try multiple methods
-      let extensionPath = vscode.extensions.getExtension('EnterpriseAI.specgofer')?.extensionPath;
+      let extensionPath = vscode.extensions.getExtension('EnterpriseAI.gofer')?.extensionPath;
 
       // Fallback: derive from __dirname (dist/extension.js -> extension root)
       if (!extensionPath) {
@@ -546,7 +546,7 @@ export class SpecKitMigrator {
 
       // Copy prompt files from the repo's .github/prompts to workspace
       // The extension bundles these from the repo during packaging
-      let extensionPath = vscode.extensions.getExtension('EnterpriseAI.specgofer')?.extensionPath;
+      let extensionPath = vscode.extensions.getExtension('EnterpriseAI.gofer')?.extensionPath;
       if (!extensionPath) {
         extensionPath = path.resolve(__dirname, '..');
       }
@@ -637,7 +637,7 @@ export class SpecKitMigrator {
       console.log('[setupCopilotInstructions] Created directory:', instructionsDir);
 
       // Copy instructions files from the repo's .github/instructions to workspace
-      let extensionPath = vscode.extensions.getExtension('EnterpriseAI.specgofer')?.extensionPath;
+      let extensionPath = vscode.extensions.getExtension('EnterpriseAI.gofer')?.extensionPath;
       if (!extensionPath) {
         extensionPath = path.resolve(__dirname, '..');
       }
@@ -677,7 +677,7 @@ export class SpecKitMigrator {
     try {
       console.log('[copyBundledTemplates] Starting...');
 
-      const extensionPath = vscode.extensions.getExtension('EnterpriseAI.specgofer')?.extensionPath;
+      const extensionPath = vscode.extensions.getExtension('EnterpriseAI.gofer')?.extensionPath;
       if (!extensionPath) {
         console.warn('[copyBundledTemplates] Could not find extension path for templates');
         // Fall back to inline templates
@@ -727,9 +727,9 @@ export class SpecKitMigrator {
   }
 
   /**
-   * Create Spec Kit folder structure manually (fallback)
+   * Create Gofer folder structure manually (fallback)
    */
-  private async createSpecKitStructureManually(): Promise<void> {
+  private async createGoferStructureManually(): Promise<void> {
     const folders = ['memory', 'scripts/bash', 'scripts/powershell', 'specs', 'templates'];
 
     for (const folder of folders) {
@@ -746,44 +746,44 @@ export class SpecKitMigrator {
     }
 
     // Create proper templates from spec-kit format
-    console.log('[SpecKit Fallback] Creating templates...');
+    console.log('[Gofer Fallback] Creating templates...');
     await this.createTemplates();
 
     // Setup Claude commands from bundled resources
-    console.log('[SpecKit Fallback] Setting up Claude commands...');
+    console.log('[Gofer Fallback] Setting up Claude commands...');
     await this.setupClaudeCommands();
 
     // Create bash scripts from bundled resources
-    console.log('[SpecKit Fallback] Creating bash scripts...');
+    console.log('[Gofer Fallback] Creating bash scripts...');
     await this.createBashScripts();
 
     // Create Node.js scripts from bundled resources
-    console.log('[SpecKit Fallback] Creating Node.js scripts...');
+    console.log('[Gofer Fallback] Creating Node.js scripts...');
     await this.createNodeScripts();
 
     // Configure VSCode settings
-    console.log('[SpecKit Fallback] Configuring VSCode settings...');
+    console.log('[Gofer Fallback] Configuring VSCode settings...');
     await this.createVSCodeSettings();
 
     // Verify Claude commands
-    console.log('[SpecKit Fallback] Ensuring Claude commands are up to date...');
+    console.log('[Gofer Fallback] Ensuring Claude commands are up to date...');
     await this.fixClaudeCommands();
 
     // Create README
-    console.log('[SpecKit Fallback] Creating README...');
+    console.log('[Gofer Fallback] Creating README...');
     await this.createReadme();
 
     // Update .gitignore
-    console.log('[SpecKit Fallback] Updating .gitignore...');
+    console.log('[Gofer Fallback] Updating .gitignore...');
     await this.updateGitignore();
 
-    console.log('[SpecKit Fallback] Manual setup complete!');
+    console.log('[Gofer Fallback] Manual setup complete!');
   }
 
   /**
-   * Create Spec Kit folder structure
+   * Create Gofer folder structure
    */
-  private async createSpecKitStructure(): Promise<void> {
+  private async createGoferStructure(): Promise<void> {
     // Ensure all spec-kit directories exist
     const folders = ['memory', 'scripts/bash', 'scripts/powershell', 'specs', 'templates'];
 
@@ -941,7 +941,7 @@ All code must:
 - All features must be accessible
 - Error messages must be helpful
 
-For the complete constitution template, see the Spec Kit documentation.
+For the complete constitution template, see the Gofer documentation.
 `;
       await fs.writeFile(constitutionPath, minimalConstitution);
     }
@@ -953,7 +953,7 @@ For the complete constitution template, see the Spec Kit documentation.
   private async createTemplates(): Promise<void> {
     const templatesDir = path.join(this.specifyPath, 'templates');
 
-    // spec-template.md - modern SpecGofer format
+    // spec-template.md - modern Gofer format
     const specTemplate = `---
 id: "[###-feature-name]"
 title: "[Feature Title]"
@@ -1518,7 +1518,7 @@ This file contains GitHub-ready issue definitions for each task. Each issue foll
     try {
       console.log('[createBashScripts] Starting...');
 
-      const extensionPath = vscode.extensions.getExtension('EnterpriseAI.specgofer')?.extensionPath;
+      const extensionPath = vscode.extensions.getExtension('EnterpriseAI.gofer')?.extensionPath;
       if (!extensionPath) {
         console.warn('[createBashScripts] Could not find extension path for bash scripts');
         return;
@@ -1571,7 +1571,7 @@ This file contains GitHub-ready issue definitions for each task. Each issue foll
     try {
       console.log('[createNodeScripts] Starting...');
 
-      const extensionPath = vscode.extensions.getExtension('EnterpriseAI.specgofer')?.extensionPath;
+      const extensionPath = vscode.extensions.getExtension('EnterpriseAI.gofer')?.extensionPath;
       if (!extensionPath) {
         console.warn('[createNodeScripts] Could not find extension path for Node.js scripts');
         return;
@@ -1620,7 +1620,7 @@ This file contains GitHub-ready issue definitions for each task. Each issue foll
   }
 
   /**
-   * Create or update VSCode settings.json for Spec Kit
+   * Create or update VSCode settings.json for Gofer
    */
   private async createVSCodeSettings(): Promise<void> {
     try {
@@ -1646,8 +1646,8 @@ This file contains GitHub-ready issue definitions for each task. Each issue foll
         console.log('[createVSCodeSettings] No existing settings found, creating new');
       }
 
-      // Add Spec Kit specific settings
-      const specKitSettings = {
+      // Add Gofer specific settings
+      const goferSettings = {
         'files.associations': {
           '**/.specify/**/*.md': 'markdown',
           '**/.claude/commands/*.md': 'markdown',
@@ -1662,7 +1662,7 @@ This file contains GitHub-ready issue definitions for each task. Each issue foll
       };
 
       // Merge settings (don't overwrite existing)
-      for (const [key, value] of Object.entries(specKitSettings)) {
+      for (const [key, value] of Object.entries(goferSettings)) {
         if (!settings[key]) {
           settings[key] = value;
           console.log('[createVSCodeSettings] Added setting:', key);
@@ -1685,7 +1685,7 @@ This file contains GitHub-ready issue definitions for each task. Each issue foll
    * Create README in .specify folder
    */
   private async createReadme(): Promise<void> {
-    const readme = `# SpecGofer - Specification Directory
+    const readme = `# Gofer - Specification Directory
 
 This folder contains all project specifications for AI-driven feature development.
 
@@ -1702,7 +1702,7 @@ This folder contains all project specifications for AI-driven feature developmen
 ### Using VSCode Extension
 
 1. Open Command Palette (\`Cmd/Ctrl+Shift+P\`)
-2. Run: **"SpecGofer: Create New Specification"**
+2. Run: **"Gofer: Create New Specification"**
 3. Follow the prompts to create your feature spec
 
 ### Using Claude Code (Recommended)
@@ -1746,16 +1746,16 @@ AI agents validate code against the constitution before implementation.
 
 ## Learn More
 
-- **Full Documentation**: https://github.com/eai-tools/specgofer
+- **Full Documentation**: https://github.com/eai-tools/gofer
 - **AI Agent Guidelines**: See AGENTS.md in your project root
-- **SpecGofer Extension**: View specs and progress in VSCode sidebar
+- **Gofer Extension**: View specs and progress in VSCode sidebar
 `;
 
     await fs.writeFile(path.join(this.specifyPath, 'README.md'), readme);
   }
 
   /**
-   * Update .gitignore to exclude SpecGofer state files
+   * Update .gitignore to exclude Gofer state files
    * Adds entries for dependency-graph.json and .branch-info.json
    */
   private async updateGitignore(): Promise<void> {
@@ -1767,7 +1767,7 @@ AI agents validate code against the constitution before implementation.
       // Entries to add
       const entriesToAdd = [
         '',
-        '# SpecGofer state files (auto-generated, should not be committed)',
+        '# Gofer state files (auto-generated, should not be committed)',
         '.specify/memory/dependency-graph.json',
         '.specify/specs/*/.branch-info.json',
       ];
@@ -1786,7 +1786,7 @@ AI agents validate code against the constitution before implementation.
       const hasBranchInfo = gitignoreContent.includes('.branch-info.json');
 
       if (hasDependencyGraph && hasBranchInfo) {
-        console.log('[updateGitignore] .gitignore already contains SpecGofer state file entries');
+        console.log('[updateGitignore] .gitignore already contains Gofer state file entries');
         return;
       }
 
@@ -1800,9 +1800,9 @@ AI agents validate code against the constitution before implementation.
         }
 
         // Add section header if not already present
-        if (!updatedContent.includes('# SpecGofer state files')) {
+        if (!updatedContent.includes('# Gofer state files')) {
           updatedContent += entriesToAdd.join('\n') + '\n';
-          console.log('[updateGitignore] Added SpecGofer state file entries');
+          console.log('[updateGitignore] Added Gofer state file entries');
         } else {
           // Add individual missing entries
           if (!hasDependencyGraph) {
@@ -2142,7 +2142,7 @@ assignee: "${assignee}"
               title = titleMatch[1].replace('Feature Specification:', '').trim();
             }
 
-            // Try to extract metadata from inline format (GitHub Spec Kit style)
+            // Try to extract metadata from inline format (GitHub Gofer style)
             const statusMatch = specContent.match(/\*\*Status\*\*:\s*(\w+)/i);
             if (statusMatch) {
               status = statusMatch[1].toLowerCase();

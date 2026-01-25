@@ -67,7 +67,7 @@ describe('councilCommands', () => {
 
       // Should show warning message
       expect(vscode.window.showWarningMessage).toHaveBeenCalledWith(
-        'LLM Council: No providers configured. Add API keys in Settings > SpecGofer.',
+        'LLM Council: No providers configured. Add API keys in Settings > Gofer.',
         'Open Settings'
       );
     });
@@ -114,7 +114,7 @@ describe('councilCommands', () => {
 
       // Should show warning since provider validation failed
       expect(vscode.window.showWarningMessage).toHaveBeenCalledWith(
-        'LLM Council: No providers configured. Add API keys in Settings > SpecGofer.',
+        'LLM Council: No providers configured. Add API keys in Settings > Gofer.',
         'Open Settings'
       );
     });
@@ -258,7 +258,7 @@ describe('councilCommands', () => {
       registerCouncilCommands(mockContext);
 
       expect(vscode.commands.registerCommand).toHaveBeenCalledWith(
-        'specGofer.showCouncilStatus',
+        'gofer.showCouncilStatus',
         showProviderStatus
       );
       expect(mockContext.subscriptions.push).toHaveBeenCalled();

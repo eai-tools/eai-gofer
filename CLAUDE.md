@@ -1,6 +1,6 @@
-# SpecGofer Development Guidelines for Claude
+# Gofer Development Guidelines for Claude
 
-This file contains specific guidelines for Claude when working on the SpecGofer
+This file contains specific guidelines for Claude when working on the Gofer
 project.
 
 **IMPORTANT**: For complete linting, formatting, and code quality guidelines,
@@ -68,7 +68,7 @@ read from package.json.
 
 ## Command Framework Overview
 
-SpecGofer uses a **unified Gofer pipeline** that combines the best of structured
+Gofer uses a **unified Gofer pipeline** that combines the best of structured
 feature development with research-driven approaches. All artifacts are stored in
 a single location: `.specify/specs/{feature}/`.
 
@@ -148,7 +148,7 @@ research:
 
 ### Auxiliary Gofer Commands
 
-Beyond the core 6-stage pipeline, SpecGofer provides auxiliary commands for
+Beyond the core 6-stage pipeline, Gofer provides auxiliary commands for
 specialized workflows:
 
 | Command              | Purpose                                    | Output                     |
@@ -273,7 +273,7 @@ Main Agent (large context)
 ```
 
 Each sub-agent returns condensed results (1,000-2,000 tokens) instead of raw
-tool outputs. This is how SpecGofer's parallel agents work.
+tool outputs. This is how Gofer's parallel agents work.
 
 #### 2. Observation Masking
 
@@ -372,7 +372,7 @@ reference only.
 
 ## Claude Code Terminal Integration
 
-When SpecGofer launches Claude Code via the Play button:
+When Gofer launches Claude Code via the Play button:
 
 1. **Detects current spec state** - checks which artifacts exist:
    - spec.md only → needs research and planning
@@ -403,7 +403,7 @@ Tasks are tracked in `tasks.md` with checkboxes:
 
 ## LLM Council Integration
 
-SpecGofer supports an optional LLM Council mode that enables multi-provider
+Gofer supports an optional LLM Council mode that enables multi-provider
 parallel execution for research and analysis workflows. When enabled, queries
 are dispatched to all configured LLM providers simultaneously, and a "Chairman"
 LLM synthesizes the diverse perspectives.
@@ -412,12 +412,12 @@ LLM synthesizes the diverse perspectives.
 
 #### Provider API Keys
 
-Configure API keys in VSCode Settings (Settings > SpecGofer):
+Configure API keys in VSCode Settings (Settings > Gofer):
 
-- `specGofer.anthropicApiKey` - Anthropic (Claude) API key
-- `specGofer.googleApiKey` - Google (Gemini) API key
-- `specGofer.xaiApiKey` - xAI (Grok) API key
-- `specGofer.openaiApiKey` - OpenAI API key
+- `gofer.anthropicApiKey` - Anthropic (Claude) API key
+- `gofer.googleApiKey` - Google (Gemini) API key
+- `gofer.xaiApiKey` - xAI (Grok) API key
+- `gofer.openaiApiKey` - OpenAI API key
 
 #### Council Configuration File
 
@@ -460,7 +460,7 @@ providers:
 
 ### Council Commands
 
-- **`specGofer.showCouncilStatus`** - Display provider availability and usage
+- **`gofer.showCouncilStatus`** - Display provider availability and usage
   summary
   - Shows which providers are configured and healthy
   - Displays historical usage metrics and costs
@@ -494,7 +494,7 @@ Usage is logged to `.specify/logs/council-usage.jsonl` with:
 - Stage breakdown
 - Duration metrics
 
-View usage summary via Command Palette > "SpecGofer: Show Council Status".
+View usage summary via Command Palette > "Gofer: Show Council Status".
 
 ### Key Files
 
@@ -508,7 +508,7 @@ View usage summary via Command Palette > "SpecGofer: Show Council Status".
 This is a monorepo with three main packages plus AI workflow infrastructure:
 
 ```text
-specgofer/
+gofer/
 ├── extension/              # VSCode extension
 │   ├── src/               # Extension source code
 │   ├── package.json       # Extension manifest (version here!)
@@ -523,7 +523,7 @@ specgofer/
 │   ├── agents/            # Parallel AI agents (locator, analyzer, pattern-finder)
 │   └── commands/          # Gofer pipeline commands (0_business_scenario - 6_gofer_validate)
 │       └── archive/       # Archived legacy commands (speckit/, rpi/)
-├── .specify/              # SpecKit feature development
+├── .specify/              # Gofer feature development
 │   ├── specs/             # Feature specifications
 │   ├── templates/         # Document templates
 │   ├── scripts/           # Automation scripts
@@ -610,11 +610,11 @@ Users can upgrade via:
 
 1. **Auto-update check**: Extension checks GitHub Pages `releases.json` every 24
    hours
-2. **Manual check**: Command Palette → "SpecGofer: Check for Updates"
+2. **Manual check**: Command Palette → "Gofer: Check for Updates"
 3. **Manual install**: Download VSIX from GitHub releases or GitHub Pages
 
 The auto-updater reads from:
-`https://eai-tools.github.io/specgofer/releases.json`
+`https://eai-tools.github.io/gofer/releases.json`
 
 ## Code Style Guidelines
 
@@ -645,11 +645,11 @@ npm test -- --coverage
 npm test -- path/to/test.test.ts
 ```
 
-## SpecGofer-Specific Conventions
+## Gofer-Specific Conventions
 
 ### Path Conventions
 
-SpecGofer uses `.specify/specs/` instead of SpecKit's default `specs/` location:
+Gofer uses `.specify/specs/` instead of the default `specs/` location:
 
 - Specs: `.specify/specs/`
 - Templates: `.specify/templates/`
@@ -658,16 +658,16 @@ SpecGofer uses `.specify/specs/` instead of SpecKit's default `specs/` location:
 
 ### Upgrade Process
 
-The `specKitMigrator.ts` handles upgrades:
+The `goferMigrator.ts` handles upgrades:
 
 - `fixSpecPathReferences()`: Updates path references from `specs/` to
   `.specify/specs/`
 - `fixExistingSpecs()`: Adds YAML frontmatter and checkbox tasks
-- `installSpecKitCLI()`: Installs CLI tools and templates
+- `installGoferCLI()`: Installs CLI tools and templates
 
 ### Commands vs Scripts
 
-- Claude commands: Stay in `.claude/commands/` (SpecGofer convention)
+- Claude commands: Stay in `.claude/commands/` (Gofer convention)
 - Bash scripts: In `.specify/scripts/bash/`
 - During upgrade: Fix path references in content, don't move files
 
@@ -694,7 +694,7 @@ The `specKitMigrator.ts` handles upgrades:
 ## Important Files to Know
 
 - `extension/src/config.ts`: Extension configuration and version
-- `extension/src/specKitMigrator.ts`: Handles upgrades and migrations
+- `extension/src/goferMigrator.ts`: Handles upgrades and migrations
 - `extension/src/autoUpdater.ts`: Auto-update checking logic
 - `extension/src/progressProvider.ts`: Tree view provider for specs
 - `docs/releases.json`: Version info for auto-updater
@@ -732,4 +732,4 @@ use it for releases, no exceptions!
 - File-based test data versioning in `.specify/test-data/`, Dagger cache for
   artifacts (006-test-feature)
 
-- TypeScript 5.3+ (existing SpecGofer codebase) (001-memory-learning-system)
+- TypeScript 5.3+ (existing Gofer codebase) (001-memory-learning-system)

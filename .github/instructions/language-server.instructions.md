@@ -4,7 +4,7 @@ applyTo: 'language-server/**/*'
 
 # Language Server Development Instructions
 
-You are working on the SpecGofer Language Server.
+You are working on the Gofer Language Server.
 
 ## Architecture
 
@@ -17,7 +17,7 @@ The Language Server provides dual protocol support:
 
 - **Server Entry**: `language-server/src/server.ts`
 - **MCP Tools**: `language-server/src/mcp/toolHandler.ts`
-- **Spec Loader**: `language-server/src/utils/specKitLoader.ts`
+- **Spec Loader**: `language-server/src/utils/goferLoader.ts`
 
 ## MCP Tools (6 Total)
 

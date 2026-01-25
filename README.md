@@ -1,4 +1,4 @@
-# SpecGofer - Spec-Driven Development for AI
+# Gofer - Spec-Driven Development for AI
 
 **Enterprise AI Pty Ltd**
 
@@ -12,13 +12,13 @@ from specifications using VSCode's native MCP (Model Context Protocol) support.
 ```bash
 # From GitHub Releases
 gh release download --repo eai-tools/specgofer --pattern "*.vsix"
-code --install-extension specgofer-*.vsix
+code --install-extension gofer-*.vsix
 ```
 
 ### 2. Initialize Your Project
 
 1. Open Command Palette (`Cmd/Ctrl+Shift+P`)
-2. Run: **"SpecGofer: Initialize Repository"**
+2. Run: **"Gofer: Initialize Repository"**
 
 This creates `.specify/` folder with GitHub Spec Kit format.
 
@@ -110,7 +110,7 @@ AI can also call MCP tools directly:
 
 ## GitHub Codespaces Support
 
-**✅ SpecGofer works seamlessly in GitHub Codespaces with automatic
+**✅ Gofer works seamlessly in GitHub Codespaces with automatic
 installation!**
 
 When you open this repository in a Codespace, the extension is automatically:
@@ -130,7 +130,7 @@ technical details.
 
 ## How It Works
 
-SpecGofer provides **6 MCP tools** that AI assistants call directly:
+Gofer provides **6 MCP tools** that AI assistants call directly:
 
 | Tool                           | Purpose                                 |
 | ------------------------------ | --------------------------------------- |
@@ -186,7 +186,7 @@ AI can validate code against these using `specgofer_validate_code`.
 
 ### Branch-Aware Specs
 
-SpecGofer detects your Git branch and shows branch-specific specs automatically.
+Gofer detects your Git branch and shows branch-specific specs automatically.
 
 ### Auto-Updates
 
@@ -194,7 +194,7 @@ Extension checks for updates and prompts to install automatically.
 
 ### Progress Tracking
 
-View all specs and tasks in the SpecGofer sidebar panel with real-time status
+View all specs and tasks in the Gofer sidebar panel with real-time status
 updates.
 
 ### Task Dependencies
@@ -211,10 +211,10 @@ Tasks execute in order based on dependencies:
 
 ## Commands
 
-- `SpecGofer: Initialize Repository` - Create .specify structure
-- `SpecGofer: Upgrade to Spec Kit Format` - Migrate from legacy JSON
-- `SpecGofer: Refresh Specifications` - Reload specs from disk
-- `SpecGofer: Update Now` - Check for and install updates
+- `Gofer: Initialize Repository` - Create .specify structure
+- `Gofer: Upgrade to Spec Kit Format` - Migrate from legacy JSON
+- `Gofer: Refresh Specifications` - Reload specs from disk
+- `Gofer: Update Now` - Check for and install updates
 
 ## Configuration
 
@@ -222,9 +222,9 @@ VSCode Settings (`Cmd/Ctrl+,`):
 
 ```json
 {
-  "specKit.autoInitialize": true,
-  "specKit.preferredAI": "claude",
-  "specKit.autoValidate": true
+  "gofer.autoInitialize": true,
+  "gofer.preferredAI": "claude",
+  "gofer.autoValidate": true
 }
 ```
 
@@ -238,7 +238,7 @@ VSCode Settings (`Cmd/Ctrl+,`):
 ls .vscode/mcp.json
 ```
 
-If missing, run: `SpecGofer: Initialize Repository`
+If missing, run: `Gofer: Initialize Repository`
 
 Then reload VSCode: `Developer: Reload Window`
 
@@ -274,7 +274,7 @@ npm list @playwright/test
 
 ## Architecture
 
-SpecGofer consists of three main components:
+Gofer consists of three main components:
 
 ### 1. VSCode Extension ([extension/](extension/))
 
@@ -285,7 +285,7 @@ SpecGofer consists of three main components:
   - `extension.ts` - Main entry point
   - `progressProvider.ts` - Spec tree view
   - `constitutionProvider.ts` - Constitution tree view
-  - `specKitParser.ts` - Spec file parser
+  - `goferParser.ts` - Spec file parser
 
 ### 2. Language Server ([language-server/](language-server/))
 
@@ -295,7 +295,7 @@ SpecGofer consists of three main components:
 - **Key Files**:
   - `server.ts` - LSP + MCP server implementation
   - `mcp/toolHandler.ts` - MCP tool implementations
-  - `utils/specKitLoader.ts` - Spec loading and parsing
+  - `utils/goferLoader.ts` - Spec loading and parsing
 
 ### 3. Orchestrator ([src/](src/))
 
@@ -314,7 +314,7 @@ SpecGofer consists of three main components:
 ┌─────────────────────────────────────────────────────────────────┐
 │                         VSCode                                   │
 │  ┌────────────────┐                    ┌────────────────────┐   │
-│  │  SpecGofer     │◄──────LSP─────────►│  Language Server   │   │
+│  │  Gofer     │◄──────LSP─────────►│  Language Server   │   │
 │  │  Extension     │                    │  (LSP + MCP)       │   │
 │  └────────────────┘                    └────────────────────┘   │
 │         │                                        ▲               │

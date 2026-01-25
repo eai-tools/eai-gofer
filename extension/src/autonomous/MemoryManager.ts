@@ -425,7 +425,7 @@ export class MemoryManager implements IMemoryManager {
    * @returns Array of global Memory objects
    */
   private async loadGlobal(): Promise<Memory[]> {
-    const stored = this.context.globalState.get<StoredMemories>('specgofer.memories');
+    const stored = this.context.globalState.get<StoredMemories>('gofer.memories');
 
     if (!stored) {
       return [];
@@ -493,6 +493,6 @@ export class MemoryManager implements IMemoryManager {
       memories,
     };
 
-    await this.context.globalState.update('specgofer.memories', stored);
+    await this.context.globalState.update('gofer.memories', stored);
   }
 }

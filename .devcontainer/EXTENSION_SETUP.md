@@ -1,8 +1,8 @@
-# SpecGofer Extension Auto-Installation Setup
+# Gofer Extension Auto-Installation Setup
 
 ## ✅ What's Been Configured
 
-The devcontainer has been configured to **automatically install** the SpecGofer
+The devcontainer has been configured to **automatically install** the Gofer
 extension every time the codespace starts, with robust error handling and
 fallback mechanisms.
 
@@ -22,7 +22,7 @@ The extension is automatically installed when:
    start to install extension:
    - First tries to fetch latest version from `releases.json`
    - Downloads VSIX from GitHub Pages:
-     `https://eai-tools.github.io/specgofer/releases/specgofer-{version}.vsix`
+     `https://eai-tools.github.io/gofer/releases/gofer-{version}.vsix`
    - **Fallback**: If download fails, builds extension from local source
 3. **Installs extension** using `code --install-extension --force`
 
@@ -46,14 +46,14 @@ code --list-extensions | grep specgofer
 
 You should also see in the terminal during startup:
 
-- "🔌 Installing SpecGofer extension..."
+- "🔌 Installing Gofer extension..."
 - "Downloading version X.X.X..."
-- "✅ SpecGofer extension vX.X.X installed from GitHub releases!"
+- "✅ Gofer extension vX.X.X installed from GitHub releases!"
 
 The extension will appear in:
 
 - Extensions sidebar (Ctrl/Cmd+Shift+X)
-- Command palette (F1 → search for "SpecGofer")
+- Command palette (F1 → search for "Gofer")
 
 ## 🔄 Automatic Updates
 
@@ -71,11 +71,11 @@ If the automatic installation fails, you can manually install:
 
 ```bash
 # Get latest version
-LATEST=$(curl -s https://eai-tools.github.io/specgofer/releases.json | grep -o '"latest_version": "[^"]*"' | cut -d'"' -f4)
+LATEST=$(curl -s https://eai-tools.github.io/gofer/releases.json | grep -o '"latest_version": "[^"]*"' | cut -d'"' -f4)
 
 # Download and install
-curl -L -o /tmp/specgofer.vsix "https://eai-tools.github.io/specgofer/releases/specgofer-${LATEST}.vsix"
-code --install-extension /tmp/specgofer.vsix
+curl -L -o /tmp/gofer.vsix "https://eai-tools.github.io/gofer/releases/gofer-${LATEST}.vsix"
+code --install-extension /tmp/gofer.vsix
 ```
 
 ## 📝 Troubleshooting
@@ -84,7 +84,7 @@ code --install-extension /tmp/specgofer.vsix
 
 - Check the terminal output for errors during setup
 - Verify releases.json is accessible:
-  `curl -s https://eai-tools.github.io/specgofer/releases.json`
+  `curl -s https://eai-tools.github.io/gofer/releases.json`
 - Try rebuilding: F1 → "Codespaces: Rebuild Container"
 
 **Want a specific version?**

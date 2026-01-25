@@ -2,14 +2,14 @@
 
 ## Overview
 
-SpecGofer now supports **two-way WhatsApp communication**! You can:
+Gofer now supports **two-way WhatsApp communication**! You can:
 
 1. ✅ **Receive notifications** when tasks fail or need help
-2. ✅ **Send commands** to control SpecGofer
-3. ✅ **Answer questions** when SpecGofer gets stuck
+2. ✅ **Send commands** to control Gofer
+3. ✅ **Answer questions** when Gofer gets stuck
 4. ✅ **Provide guidance** to help fix issues
 
-All while your laptop is running and SpecGofer is active!
+All while your laptop is running and Gofer is active!
 
 ## Commands You Can Send
 
@@ -18,7 +18,7 @@ All while your laptop is running and SpecGofer is active!
 You: status
 ```
 ```
-SpecGofer: 📊 Status
+Gofer: 📊 Status
 🎯 Current Task: T011
 📝 Create comprehensive Extension tests
 🔄 Status: in_progress
@@ -26,17 +26,17 @@ SpecGofer: 📊 Status
 ```
 
 ### Control Commands
-- `stop` - Pause SpecGofer
+- `stop` - Pause Gofer
 - `skip` - Skip current task and move to next
 - `retry` - Reset current task and try again from scratch
 - `help` - Show available commands
 
 ### Provide Guidance
-When SpecGofer asks for help, you can:
+When Gofer asks for help, you can:
 
 **Option 1:** Choose from options
 ```
-SpecGofer: What should I do?
+Gofer: What should I do?
 Options:
 1. Skip task
 2. Retry
@@ -47,12 +47,12 @@ You: 2
 
 **Option 2:** Give specific guidance
 ```
-SpecGofer: Task failed validation...
+Gofer: Task failed validation...
 
 You: fix: Split the large function into smaller helpers and add proper TypeScript types
 ```
 
-SpecGofer will incorporate your guidance and retry!
+Gofer will incorporate your guidance and retry!
 
 ## How It Works
 
@@ -63,13 +63,13 @@ SpecGofer will incorporate your guidance and retry!
    WHATSAPP_PHONE_NUMBER=61412345678@c.us
    ```
 
-2. Start SpecGofer → Scan QR code with phone
+2. Start Gofer → Scan QR code with phone
 
 3. Done! Session persists (no more QR codes)
 
 ### During Execution
 
-**SpecGofer runs autonomously:**
+**Gofer runs autonomously:**
 - Gets next task
 - Implements with Claude
 - Validates against constitution
@@ -91,16 +91,16 @@ SpecGofer will incorporate your guidance and retry!
 ## Example Conversation
 
 ```
-[10:00 AM] SpecGofer: ▶️ Starting task T011...
+[10:00 AM] Gofer: ▶️ Starting task T011...
 
 [10:15 AM] You: status
 
-[10:15 AM] SpecGofer: 📊 Status
+[10:15 AM] Gofer: 📊 Status
 🎯 Current Task: T011
 📝 Create Extension tests
 🔄 In progress, attempt 1/3
 
-[10:30 AM] SpecGofer: ❌ Validation failed
+[10:30 AM] Gofer: ❌ Validation failed
 Issues:
 - Type 'any' not allowed
 - Function exceeds 300 lines
@@ -112,10 +112,10 @@ What should I do?
 
 [10:31 AM] You: fix: Break down the test into smaller test functions, one per component. Use proper mocking types.
 
-[10:31 AM] SpecGofer: ✅ Guidance noted!
+[10:31 AM] Gofer: ✅ Guidance noted!
 Will incorporate into next attempt.
 
-[10:45 AM] SpecGofer: ✅ Task T011 completed!
+[10:45 AM] Gofer: ✅ Task T011 completed!
 Moving to T012...
 ```
 
@@ -145,7 +145,7 @@ Moving to T012...
 ## Limitations
 
 - Laptop must be running
-- SpecGofer process must be active
+- Gofer process must be active
 - Internet connection required
 - WhatsApp account must be linked
 
@@ -160,6 +160,6 @@ Moving to T012...
 
 **This is the future of AI development!** 🚀
 
-You write specs, SpecGofer builds autonomously, you guide via WhatsApp when needed!
+You write specs, Gofer builds autonomously, you guide via WhatsApp when needed!
 
 © 2025 Enterprise AI Pty Ltd

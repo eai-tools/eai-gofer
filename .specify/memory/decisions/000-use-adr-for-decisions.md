@@ -10,7 +10,7 @@ feature: project-wide
 
 ## Context
 
-As SpecGofer evolves, design decisions are made during feature implementation.
+As Gofer evolves, design decisions are made during feature implementation.
 Without a systematic way to record these decisions:
 
 - Future contributors don't understand why things are built a certain way

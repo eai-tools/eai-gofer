@@ -4,8 +4,8 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { ProgressProvider } from '../../progressProvider.js';
 import { ConstitutionProvider } from '../../constitutionProvider.js';
-import { SpecKitParser } from '../../specKitParser.js';
-import { SpecKitMigrator } from '../../specKitMigrator.js';
+import { GoferParser } from '../../goferParser.js';
+import { GoferMigrator } from '../../goferMigrator.js';
 
 /**
  * Performance Tests for Large Repository Scenarios
@@ -98,7 +98,7 @@ ${Array.from({ length: 10 }, (_, j) =>
 
       // Test parser performance
       const parseStartTime = Date.now();
-      const parser = new SpecKitParser(performanceTestDir);
+      const parser = new GoferParser(performanceTestDir);
       
       const allSpecs = await parser.loadAllSpecs();
 
@@ -345,7 +345,7 @@ ${i > 10 ? `- Complex dependency on: complex-deps-${(i - 5).toString().padStart(
 
       // Test dependency parsing performance
       const dependencyStartTime = Date.now();
-      const parser = new SpecKitParser(performanceTestDir);
+      const parser = new GoferParser(performanceTestDir);
       
       const specsWithDeps = await parser.loadAllSpecs();
 
@@ -415,7 +415,7 @@ ${i > 10 ? `- Complex dependency on: complex-deps-${(i - 5).toString().padStart(
 
       // Test migration performance
       const migrationStartTime = Date.now();
-      const migrator = new SpecKitMigrator(legacyDir);
+      const migrator = new GoferMigrator(legacyDir);
       
       const exists = await migrator.exists();
       assert.ok(exists, 'Legacy structure should be detected');
@@ -490,7 +490,7 @@ ${Array.from({ length: 30 }, (_, k) => `- [ ] #T${i}${j}${k.toString().padStart(
         }
 
         // Parse specs to simulate workload
-        const parser = new SpecKitParser(tempDir);
+        const parser = new GoferParser(tempDir);
         const provider = new ProgressProvider(path.join(tempDir, '.specify'));
         
         const specs = await provider.getChildren();
@@ -559,7 +559,7 @@ ${Array.from({ length: 10 }, (_, j) => `- [ ] #T${i}${j.toString().padStart(2, '
 
       // Test concurrent parsing
       const concurrentStartTime = Date.now();
-      const parser = new SpecKitParser(performanceTestDir);
+      const parser = new GoferParser(performanceTestDir);
       
       // Load all specs concurrently using the parser's built-in method
       const results = await parser.loadAllSpecs();

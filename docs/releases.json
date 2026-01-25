@@ -1,13 +1,13 @@
 {
   "latest_version": "4.6.1",
-  "repository": "eai-tools/specgofer",
+  "repository": "eai-tools/gofer",
   "last_updated": "2026-01-19T21:20:47.855Z",
   "releases": [
     {
       "version": "4.6.1",
       "tag_name": "v4.6.1",
       "published_at": "2026-01-19T21:20:47.855Z",
-      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-4.6.1.vsix",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-4.6.1.vsix",
       "notes": "fix: auto-reload VS Code after extension update",
       "prerelease": false,
       "size_mb": 16.1
@@ -16,7 +16,7 @@
       "version": "4.6.0",
       "tag_name": "v4.6.0",
       "published_at": "2026-01-19T11:50:48.591Z",
-      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-4.6.0.vsix",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-4.6.0.vsix",
       "notes": "Add Gofer Memory and Journey System - agentic memory with priority-based retention, interactive journey mapping, journey variant generation, multi-option sequence diagrams, and vertical slice delivery",
       "prerelease": false,
       "size_mb": 16.1
@@ -25,7 +25,7 @@
       "version": "4.5.0",
       "tag_name": "v4.5.0",
       "published_at": "2026-01-17T05:29:23.358Z",
-      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-4.5.0.vsix",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-4.5.0.vsix",
       "notes": "Unified Claude and Copilot commands with identical naming",
       "prerelease": false,
       "size_mb": 30.1

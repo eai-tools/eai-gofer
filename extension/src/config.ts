@@ -6,8 +6,8 @@ import * as vscode from 'vscode';
  */
 
 // Extension constants
-export const EXTENSION_NAME = 'specgofer';
-export const EXTENSION_DISPLAY_NAME = 'SpecGofer (Enterprise AI)';
+export const EXTENSION_NAME = 'gofer';
+export const EXTENSION_DISPLAY_NAME = 'Gofer (Enterprise AI)';
 // Read version from package.json to keep it in sync
 export const EXTENSION_VERSION = require('../../package.json').version;
 
@@ -25,52 +25,52 @@ export const GITHUB_REPO = 'spec-kit-templates';
 export const GITHUB_API_BASE = 'https://api.github.com';
 
 // Language Server constants
-export const LSP_SERVER_NAME = 'SpecGofer Language Server';
-export const LSP_SERVER_ID = 'specgofer-lsp';
+export const LSP_SERVER_NAME = 'Gofer Language Server';
+export const LSP_SERVER_ID = 'gofer-lsp';
 export const LSP_SERVER_EXECUTABLE = 'node';
 
 // MCP Tool names
 export const MCP_TOOLS = {
-  getSpecs: 'specgofer_get_specs',
-  getNextTask: 'specgofer_get_next_task',
-  executeTask: 'specgofer_execute_task',
-  updateTaskStatus: 'specgofer_update_task_status',
-  validateCode: 'specgofer_validate_code',
-  runTests: 'specgofer_run_tests',
+  getSpecs: 'gofer_get_specs',
+  getNextTask: 'gofer_get_next_task',
+  executeTask: 'gofer_execute_task',
+  updateTaskStatus: 'gofer_update_task_status',
+  validateCode: 'gofer_validate_code',
+  runTests: 'gofer_run_tests',
 } as const;
 
 // Commands
 export const COMMANDS = {
-  initialize: 'specGofer.initialize',
-  upgrade: 'specGofer.upgrade',
-  checkVersion: 'specGofer.checkVersion',
-  refreshSpecs: 'specGofer.refreshSpecs',
-  refreshConstitution: 'specGofer.refreshConstitution',
-  showProgress: 'specGofer.showProgress',
-  showConstitution: 'specGofer.showConstitution',
-  checkForUpdates: 'specGofer.checkForUpdates',
-  updateNow: 'specGofer.updateNow',
+  initialize: 'gofer.initialize',
+  upgrade: 'gofer.upgrade',
+  checkVersion: 'gofer.checkVersion',
+  refreshSpecs: 'gofer.refreshSpecs',
+  refreshConstitution: 'gofer.refreshConstitution',
+  showProgress: 'gofer.showProgress',
+  showConstitution: 'gofer.showConstitution',
+  checkForUpdates: 'gofer.checkForUpdates',
+  updateNow: 'gofer.updateNow',
 } as const;
 
 // View IDs
 export const VIEWS = {
-  progress: 'specGoferProgress',
-  constitution: 'specGoferConstitution',
-  memory: 'specGoferMemory',
-  container: 'spec-kit',
+  progress: 'goferProgress',
+  constitution: 'goferConstitution',
+  memory: 'goferMemory',
+  container: 'gofer',
 } as const;
 
 // Configuration keys
 export const CONFIG_KEYS = {
-  anthropicApiKey: 'specGofer.anthropicApiKey',
-  googleApiKey: 'specGofer.googleApiKey',
-  openaiApiKey: 'specGofer.openaiApiKey',
-  autoInitialize: 'specGofer.autoInitialize',
-  preferredAi: 'specGofer.preferredAI',
-  autoUpdateCheck: 'specGofer.autoUpdateCheck',
-  telemetryEnabled: 'specGofer.telemetryEnabled',
-  updateCheckInterval: 'specGofer.updateCheckInterval',
-  performanceMode: 'specGofer.performanceMode',
+  anthropicApiKey: 'gofer.anthropicApiKey',
+  googleApiKey: 'gofer.googleApiKey',
+  openaiApiKey: 'gofer.openaiApiKey',
+  autoInitialize: 'gofer.autoInitialize',
+  preferredAi: 'gofer.preferredAI',
+  autoUpdateCheck: 'gofer.autoUpdateCheck',
+  telemetryEnabled: 'gofer.telemetryEnabled',
+  updateCheckInterval: 'gofer.updateCheckInterval',
+  performanceMode: 'gofer.performanceMode',
 } as const;
 
 // Default values
@@ -101,7 +101,7 @@ export class ConfigManager {
   private config: vscode.WorkspaceConfiguration;
 
   private constructor() {
-    this.config = vscode.workspace.getConfiguration('specGofer');
+    this.config = vscode.workspace.getConfiguration('gofer');
   }
 
   public static getInstance(): ConfigManager {
@@ -115,28 +115,28 @@ export class ConfigManager {
    * Refresh configuration (call when settings change)
    */
   public refresh(): void {
-    this.config = vscode.workspace.getConfiguration('specGofer');
+    this.config = vscode.workspace.getConfiguration('gofer');
   }
 
   /**
    * Get Anthropic API key
    */
   public getAnthropicApiKey(): string {
-    return this.config.get<string>(CONFIG_KEYS.anthropicApiKey.replace('specGofer.', ''), '') || '';
+    return this.config.get<string>(CONFIG_KEYS.anthropicApiKey.replace('gofer.', ''), '') || '';
   }
 
   /**
    * Get Google AI API key (for Gemini)
    */
   public getGoogleApiKey(): string {
-    return this.config.get<string>(CONFIG_KEYS.googleApiKey.replace('specGofer.', ''), '') || '';
+    return this.config.get<string>(CONFIG_KEYS.googleApiKey.replace('gofer.', ''), '') || '';
   }
 
   /**
    * Get OpenAI API key (for GPT)
    */
   public getOpenaiApiKey(): string {
-    return this.config.get<string>(CONFIG_KEYS.openaiApiKey.replace('specGofer.', ''), '') || '';
+    return this.config.get<string>(CONFIG_KEYS.openaiApiKey.replace('gofer.', ''), '') || '';
   }
 
   /**
@@ -144,7 +144,7 @@ export class ConfigManager {
    */
   public getAutoInitialize(): boolean {
     return this.config.get<boolean>(
-      CONFIG_KEYS.autoInitialize.replace('specGofer.', ''),
+      CONFIG_KEYS.autoInitialize.replace('gofer.', ''),
       DEFAULTS.autoInitialize
     );
   }
@@ -156,7 +156,7 @@ export class ConfigManager {
     value: boolean,
     target: vscode.ConfigurationTarget = vscode.ConfigurationTarget.Global
   ): Promise<void> {
-    await this.config.update(CONFIG_KEYS.autoInitialize.replace('specGofer.', ''), value, target);
+    await this.config.update(CONFIG_KEYS.autoInitialize.replace('gofer.', ''), value, target);
   }
 
   /**
@@ -164,7 +164,7 @@ export class ConfigManager {
    */
   public getPreferredAI(): string {
     return this.config.get<string>(
-      CONFIG_KEYS.preferredAi.replace('specGofer.', ''),
+      CONFIG_KEYS.preferredAi.replace('gofer.', ''),
       DEFAULTS.preferredAi
     );
   }
@@ -174,7 +174,7 @@ export class ConfigManager {
    */
   public getAutoUpdateCheck(): boolean {
     return this.config.get<boolean>(
-      CONFIG_KEYS.autoUpdateCheck.replace('specGofer.', ''),
+      CONFIG_KEYS.autoUpdateCheck.replace('gofer.', ''),
       DEFAULTS.autoUpdateCheck
     );
   }
@@ -184,7 +184,7 @@ export class ConfigManager {
    */
   public getTelemetryEnabled(): boolean {
     return this.config.get<boolean>(
-      CONFIG_KEYS.telemetryEnabled.replace('specGofer.', ''),
+      CONFIG_KEYS.telemetryEnabled.replace('gofer.', ''),
       DEFAULTS.telemetryEnabled
     );
   }
@@ -194,7 +194,7 @@ export class ConfigManager {
    */
   public getUpdateCheckInterval(): number {
     return this.config.get<number>(
-      CONFIG_KEYS.updateCheckInterval.replace('specGofer.', ''),
+      CONFIG_KEYS.updateCheckInterval.replace('gofer.', ''),
       DEFAULTS.updateCheckInterval
     );
   }
@@ -204,7 +204,7 @@ export class ConfigManager {
    */
   public getPerformanceMode(): 'fast' | 'balanced' | 'thorough' {
     return this.config.get<'fast' | 'balanced' | 'thorough'>(
-      CONFIG_KEYS.performanceMode.replace('specGofer.', ''),
+      CONFIG_KEYS.performanceMode.replace('gofer.', ''),
       DEFAULTS.performanceMode as 'balanced'
     );
   }

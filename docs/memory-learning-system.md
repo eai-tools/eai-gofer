@@ -1,8 +1,8 @@
 # Memory & Learning System
 
-**Feature 001** - Autonomous Execution Framework for SpecGofer
+**Feature 001** - Autonomous Execution Framework for Gofer
 
-The Memory & Learning System provides SpecGofer with persistent knowledge
+The Memory & Learning System provides Gofer with persistent knowledge
 storage, contextual guidance, dependency tracking, and intelligent context
 management. This enables autonomous task execution with long-term memory and
 adaptive behavior.
@@ -245,7 +245,7 @@ const success = await compactor.rollbackCompaction(session);
 
 ### Installation
 
-The Memory & Learning System is included in SpecGofer v2.1.0+. No additional
+The Memory & Learning System is included in Gofer v2.1.0+. No additional
 installation required.
 
 ### Directory Structure
@@ -269,10 +269,10 @@ After initialization, your workspace will have:
 
 ### Quick Start
 
-1. **Initialize SpecGofer** (if not already done):
+1. **Initialize Gofer** (if not already done):
 
    ```
-   Cmd+Shift+P → SpecGofer: Initialize
+   Cmd+Shift+P → Gofer: Initialize
    ```
 
 2. **Create your first hint file**:
@@ -446,18 +446,18 @@ The Memory & Learning System integrates with VSCode through commands:
 
 | Command                              | Description                            |
 | ------------------------------------ | -------------------------------------- |
-| `SpecGofer: Initialize`              | Initialize .specify directory          |
-| `SpecGofer: View Memory`             | Browse stored memories                 |
-| `SpecGofer: Clear Session Memory`    | Clear session-scoped memories          |
-| `SpecGofer: View Dependencies`       | Visualize dependency graph             |
-| `SpecGofer: Validate Dependencies`   | Check for cycles and integrity issues  |
-| `SpecGofer: Show Context Analysis`   | View current context usage breakdown   |
-| `SpecGofer: Compact Context Now`     | Manually trigger context compaction    |
-| `SpecGofer: Restore Last Compaction` | Rollback last compaction operation     |
-| `SpecGofer: Reload Hints`            | Invalidate cache and reload hint files |
-| `SpecGofer: Create Hint Template`    | Generate new hint file from template   |
-| `SpecGofer: Check for Updates`       | Check for extension updates            |
-| `SpecGofer: View Documentation`      | Open this documentation                |
+| `Gofer: Initialize`              | Initialize .specify directory          |
+| `Gofer: View Memory`             | Browse stored memories                 |
+| `Gofer: Clear Session Memory`    | Clear session-scoped memories          |
+| `Gofer: View Dependencies`       | Visualize dependency graph             |
+| `Gofer: Validate Dependencies`   | Check for cycles and integrity issues  |
+| `Gofer: Show Context Analysis`   | View current context usage breakdown   |
+| `Gofer: Compact Context Now`     | Manually trigger context compaction    |
+| `Gofer: Restore Last Compaction` | Rollback last compaction operation     |
+| `Gofer: Reload Hints`            | Invalidate cache and reload hint files |
+| `Gofer: Create Hint Template`    | Generate new hint file from template   |
+| `Gofer: Check for Updates`       | Check for extension updates            |
+| `Gofer: View Documentation`      | Open this documentation                |
 
 ## Configuration
 
@@ -560,7 +560,7 @@ vi.mock('../../extension/src/utils/logger', () => ({
 1. Validate YAML syntax: `npx js-yaml .specify/hints/your-file.yaml`
 2. Ensure files are in `.specify/hints/` directory
 3. Check file permissions (must be readable)
-4. Reload hints: `Cmd+Shift+P → SpecGofer: Reload Hints`
+4. Reload hints: `Cmd+Shift+P → Gofer: Reload Hints`
 
 ### Issue: Dependency cycle detected
 
@@ -568,10 +568,10 @@ vi.mock('../../extension/src/utils/logger', () => ({
 
 **Solution**:
 
-1. View dependency graph: `Cmd+Shift+P → SpecGofer: View Dependencies`
+1. View dependency graph: `Cmd+Shift+P → Gofer: View Dependencies`
 2. Identify the cycle in the visualization
 3. Remove or reorder dependencies to break the cycle
-4. Validate: `Cmd+Shift+P → SpecGofer: Validate Dependencies`
+4. Validate: `Cmd+Shift+P → Gofer: Validate Dependencies`
 
 ### Issue: Context compaction not triggering
 
@@ -579,9 +579,9 @@ vi.mock('../../extension/src/utils/logger', () => ({
 
 **Solution**:
 
-1. Check usage: `Cmd+Shift+P → SpecGofer: Show Context Analysis`
+1. Check usage: `Cmd+Shift+P → Gofer: Show Context Analysis`
 2. Lower threshold if needed (default 80%)
-3. Manually trigger: `Cmd+Shift+P → SpecGofer: Compact Context Now`
+3. Manually trigger: `Cmd+Shift+P → Gofer: Compact Context Now`
 4. Check config: Ensure `autoCompact: true`
 
 ### Issue: Memories not persisting
@@ -603,7 +603,7 @@ vi.mock('../../extension/src/utils/logger', () => ({
 
 1. Reduce hint file count (consolidate similar hints)
 2. Use cache (enabled by default)
-3. Reload cache: `Cmd+Shift+P → SpecGofer: Reload Hints`
+3. Reload cache: `Cmd+Shift+P → Gofer: Reload Hints`
 4. Profile: Set log level to DEBUG and check discovery times
 
 ## Best Practices
@@ -709,10 +709,10 @@ vi.mock('../../extension/src/utils/logger', () => ({
 
 ## Support
 
-- Report issues: [GitHub Issues](https://github.com/eai-tools/specgofer/issues)
+- Report issues: [GitHub Issues](https://github.com/eai-tools/gofer/issues)
 - Ask questions:
-  [GitHub Discussions](https://github.com/eai-tools/specgofer/discussions)
-- Email: support@specgofer.com
+  [GitHub Discussions](https://github.com/eai-tools/gofer/discussions)
+- Email: support@gofer.com
 
 ---
 

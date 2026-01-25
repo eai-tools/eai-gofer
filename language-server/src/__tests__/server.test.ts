@@ -32,9 +32,9 @@ vi.mock('../mcp/toolHandler', () => ({
   }))
 }));
 
-// Mock SpecKitLoader
-vi.mock('../utils/specKitLoader', () => ({
-  SpecKitLoader: vi.fn().mockImplementation(() => ({
+// Mock GoferLoader
+vi.mock('../utils/goferLoader', () => ({
+  GoferLoader: vi.fn().mockImplementation(() => ({
     loadAllSpecs: vi.fn(),
     loadSpec: vi.fn(),
     updateTaskStatus: vi.fn()
@@ -132,21 +132,21 @@ describe('Language Server', () => {
       await import('../server');
     });
 
-    it('should register specKit/getSpecs method', () => {
+    it('should register gofer/getSpecs method', () => {
       const requestCalls = mockConnection.onRequest.mock.calls;
-      const hasGetSpecs = requestCalls.some(call => call[0] === 'specGofer/getSpecs');
+      const hasGetSpecs = requestCalls.some(call => call[0] === 'gofer/getSpecs');
       expect(hasGetSpecs).toBe(true);
     });
 
-    it('should register specKit/executeTask method', () => {
+    it('should register gofer/executeTask method', () => {
       const requestCalls = mockConnection.onRequest.mock.calls;
-      const hasExecuteTask = requestCalls.some(call => call[0] === 'specGofer/executeTask');
+      const hasExecuteTask = requestCalls.some(call => call[0] === 'gofer/executeTask');
       expect(hasExecuteTask).toBe(true);
     });
 
-    it('should register specKit/updateTaskStatus method', () => {
+    it('should register gofer/updateTaskStatus method', () => {
       const requestCalls = mockConnection.onRequest.mock.calls;
-      const hasUpdateTaskStatus = requestCalls.some(call => call[0] === 'specGofer/updateTaskStatus');
+      const hasUpdateTaskStatus = requestCalls.some(call => call[0] === 'gofer/updateTaskStatus');
       expect(hasUpdateTaskStatus).toBe(true);
     });
   });
@@ -170,7 +170,7 @@ describe('Language Server', () => {
 
       if (toolsCallHandler) {
         const params = {
-          name: 'specgofer_get_specs',
+          name: 'gofer_get_specs',
           arguments: {}
         };
 

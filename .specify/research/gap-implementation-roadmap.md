@@ -1,7 +1,7 @@
 # Gap Implementation Roadmap
 
 **Date**: January 2026 **Purpose**: Map the 10 identified gaps to specific
-implementation locations in the SpecGofer codebase
+implementation locations in the Gofer codebase
 
 ---
 
@@ -9,7 +9,7 @@ implementation locations in the SpecGofer codebase
 
 This document provides a detailed implementation guide for addressing the 10
 gaps identified in the
-[SpecGofer Gap Analysis](./specgofer-gap-analysis-jan-2026.md). Each gap is
+[Gofer Gap Analysis](./gofer-gap-analysis-jan-2026.md). Each gap is
 mapped to:
 
 - **Files to modify** (existing commands, scripts, templates)

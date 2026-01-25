@@ -6,7 +6,7 @@
  */
 
 import { Connection } from 'vscode-languageserver';
-import { SpecKitLoader, Spec, Task } from '../utils/specKitLoader';
+import { GoferLoader, Spec, Task } from '../utils/goferLoader';
 import { ValidationService } from '../utils/ValidationService';
 import { TestHarnessGenerator } from '../utils/TestHarnessGenerator';
 import Anthropic from '@anthropic-ai/sdk';
@@ -94,7 +94,7 @@ interface TestResult {
 }
 
 export class MCPToolHandler {
-  private specKitLoader: SpecKitLoader;
+  private goferLoader: GoferLoader;
   private anthropic: Anthropic | null = null;
   private validationService: ValidationService | null = null;
   private testHarnessGenerator: TestHarnessGenerator;
@@ -103,7 +103,7 @@ export class MCPToolHandler {
     private workspacePath: string,
     private connection: Connection
   ) {
-    this.specKitLoader = new SpecKitLoader(workspacePath);
+    this.goferLoader = new GoferLoader(workspacePath);
     this.testHarnessGenerator = new TestHarnessGenerator(workspacePath);
 
     // Initialize Anthropic client if API key is available
@@ -131,7 +131,7 @@ export class MCPToolHandler {
     process.stderr.write(`🔒 Security Violation: ${JSON.stringify(logEntry)}\n`);
 
     // Send notification to extension for monitoring
-    this.connection.sendNotification('specGofer/securityViolation', logEntry);
+    this.connection.sendNotification('gofer/securityViolation', logEntry);
   }
 
   /**
@@ -197,12 +197,12 @@ export class MCPToolHandler {
   }
 
   /**
-   * MCP Tool: specgofer_get_specs
+   * MCP Tool: gofer_get_specs
    * Returns all specifications
    */
   async getSpecs(): Promise<GetSpecsResponse> {
     try {
-      const specs = await this.specKitLoader.loadAllSpecs();
+      const specs = await this.goferLoader.loadAllSpecs();
 
       return {
         success: true,
@@ -230,12 +230,12 @@ export class MCPToolHandler {
   }
 
   /**
-   * MCP Tool: specgofer_get_next_task
+   * MCP Tool: gofer_get_next_task
    * Returns the next available task to work on
    */
   async getNextTask(): Promise<GetNextTaskResponse> {
     try {
-      const specs = await this.specKitLoader.loadAllSpecs();
+      const specs = await this.goferLoader.loadAllSpecs();
 
       // Find first in_progress task
       for (const spec of specs) {
@@ -308,7 +308,7 @@ export class MCPToolHandler {
   }
 
   /**
-   * MCP Tool: specgofer_execute_task
+   * MCP Tool: gofer_execute_task
    * Execute a specific task (returns task context for Claude to implement)
    */
   async executeTask(specId: string, taskId: string): Promise<ExecuteTaskResponse> {
@@ -324,7 +324,7 @@ export class MCPToolHandler {
     }
 
     try {
-      const spec = await this.specKitLoader.loadSpec(specId);
+      const spec = await this.goferLoader.loadSpec(specId);
 
       if (!spec) {
         return {
@@ -389,7 +389,7 @@ export class MCPToolHandler {
   }
 
   /**
-   * MCP Tool: specgofer_update_task_status
+   * MCP Tool: gofer_update_task_status
    * Update the status of a task
    */
   async updateTaskStatus(
@@ -419,10 +419,10 @@ export class MCPToolHandler {
     }
 
     try {
-      await this.specKitLoader.updateTaskStatus(specId, taskId, status);
+      await this.goferLoader.updateTaskStatus(specId, taskId, status);
 
       // Notify extension via LSP
-      this.connection.sendNotification('specGofer/taskProgress', {
+      this.connection.sendNotification('gofer/taskProgress', {
         specId,
         taskId,
         status,
@@ -442,7 +442,7 @@ export class MCPToolHandler {
   }
 
   /**
-   * MCP Tool: specgofer_validate_code
+   * MCP Tool: gofer_validate_code
    * Validate code against constitutional requirements
    */
   async validateCode(files: string[]): Promise<ValidateCodeResponse> {
@@ -516,7 +516,7 @@ export class MCPToolHandler {
   }
 
   /**
-   * MCP Tool: specgofer_run_tests
+   * MCP Tool: gofer_run_tests
    * Run tests for a specification
    */
   async runTests(specId: string): Promise<TestResult> {

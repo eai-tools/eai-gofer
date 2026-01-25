@@ -1,11 +1,11 @@
-# SpecGofer Testing Guide
+# Gofer Testing Guide
 
 This document describes the testing philosophy, infrastructure, and best
-practices for SpecGofer.
+practices for Gofer.
 
 ## Testing Philosophy: Real Tests with Real Data
 
-SpecGofer follows a strict **"Real Tests with Real Data"** philosophy. This
+Gofer follows a strict **"Real Tests with Real Data"** philosophy. This
 means:
 
 ### What We Do
@@ -178,7 +178,7 @@ suite('My Feature Test Suite', () => {
 
   test('Command should execute', async () => {
     const result = await vscode.commands.executeCommand(
-      'specgofer.someCommand'
+      'gofer.someCommand'
     );
     assert.ok(result);
   });

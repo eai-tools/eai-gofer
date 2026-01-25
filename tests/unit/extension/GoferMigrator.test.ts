@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { SpecKitMigrator } from '../../../extension/src/specKitMigrator';
+import { GoferMigrator } from '../../../extension/src/goferMigrator';
 import { cleanupTestWorkspace } from '../../helpers/workspace';
 import * as path from 'path';
 import * as fs from 'fs/promises';
@@ -11,17 +11,17 @@ import * as os from 'os';
  * (Unlike createTestWorkspace which creates full spec-kit structure)
  */
 async function createBareWorkspace(): Promise<string> {
-  const tmpDir = fsSync.mkdtempSync(path.join(os.tmpdir(), 'specgofer-test-'));
+  const tmpDir = fsSync.mkdtempSync(path.join(os.tmpdir(), 'gofer-test-'));
   return tmpDir;
 }
 
-describe('SpecKitMigrator', () => {
+describe('GoferMigrator', () => {
   let workspace: string;
-  let migrator: SpecKitMigrator;
+  let migrator: GoferMigrator;
 
   beforeEach(async () => {
     workspace = await createBareWorkspace();
-    migrator = new SpecKitMigrator(workspace);
+    migrator = new GoferMigrator(workspace);
   });
 
   afterEach(async () => {
@@ -372,7 +372,7 @@ cd specs/001-feature
     });
 
     it('should detect legacy project needing upgrade', async () => {
-      // Simulate old SpecGofer project
+      // Simulate old Gofer project
       await fs.mkdir(path.join(workspace, '.specify'), { recursive: true });
       await fs.writeFile(
         path.join(workspace, '.specify/feature-login.json'),

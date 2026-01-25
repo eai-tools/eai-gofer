@@ -1,12 +1,12 @@
-# SpecGofer Documentation
+# Gofer Documentation
 
-Welcome to the SpecGofer documentation. This directory contains guides for using, testing, and releasing SpecGofer.
+Welcome to the Gofer documentation. This directory contains guides for using, testing, and releasing Gofer.
 
 ## Active Documentation
 
 ### [Testing Guide](TESTING_GUIDE.md)
 
-Complete guide for testing the SpecGofer extension including:
+Complete guide for testing the Gofer extension including:
 
 - Installing the extension
 - Verifying MCP configuration

@@ -17,6 +17,7 @@ import { ContextHealthMonitor } from './autonomous/ContextHealthMonitor';
 import { AutoHandoffTrigger } from './autonomous/AutoHandoffTrigger';
 import { ContextUsageLogger } from './autonomous/ContextUsageLogger';
 import { ContextHealthStatusBar } from './ui/ContextHealthStatusBar';
+import { stopClaudeCode } from './autonomousCommands';
 
 /**
  * Gofer Extension
@@ -1195,23 +1196,71 @@ created: "${new Date().toISOString().split('T')[0]}"
 export async function deactivate() {
   console.log('Gofer extension deactivating...');
 
+  // Stop Claude Code terminals and autonomous monitoring
+  try {
+    await stopClaudeCode();
+    console.log('Claude Code stopped');
+  } catch (error) {
+    console.error('Error stopping Claude Code:', error);
+  }
+
   // Stop Context Health Monitoring (Spec 012)
   if (contextHealthMonitor) {
     contextHealthMonitor.dispose();
+    contextHealthMonitor = undefined;
     console.log('Context health monitor stopped');
   }
   if (autoHandoffTrigger) {
     autoHandoffTrigger.dispose();
+    autoHandoffTrigger = undefined;
     console.log('Auto-handoff trigger stopped');
   }
   if (contextHealthStatusBar) {
     contextHealthStatusBar.dispose();
+    contextHealthStatusBar = undefined;
     console.log('Context health status bar disposed');
+  }
+  if (contextUsageLogger) {
+    contextUsageLogger = undefined;
+    console.log('Context usage logger cleared');
+  }
+
+  // Clear tree view providers (allows garbage collection)
+  if (progressProvider) {
+    progressProvider = undefined;
+    console.log('Progress provider cleared');
+  }
+  if (constitutionProvider) {
+    constitutionProvider = undefined;
+    console.log('Constitution provider cleared');
+  }
+  if (memoryProvider) {
+    memoryProvider = undefined;
+    console.log('Memory provider cleared');
+  }
+
+  // Clear branch spec manager
+  if (branchSpecManager) {
+    branchSpecManager = undefined;
+    console.log('Branch spec manager cleared');
+  }
+
+  // Clear memory manager
+  if (memoryManager) {
+    memoryManager = undefined;
+    console.log('Memory manager cleared');
+  }
+
+  // Clear auto updater
+  if (autoUpdater) {
+    autoUpdater = undefined;
+    console.log('Auto updater cleared');
   }
 
   // Stop Language Server
   if (lspClient) {
     await lspClient.stop();
+    lspClient = undefined;
     console.log('Language Server stopped');
   }
 

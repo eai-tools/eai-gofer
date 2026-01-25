@@ -1097,11 +1097,7 @@ export async function pauseClaudeCode(): Promise<void> {
 
     // Pause autonomous monitoring
     isAutonomousMonitoringPaused = true;
-    await vscode.commands.executeCommand(
-      'setContext',
-      'gofer.autonomousMonitoringPaused',
-      true
-    );
+    await vscode.commands.executeCommand('setContext', 'gofer.autonomousMonitoringPaused', true);
     outputChannel.appendLine('[PAUSE] Autonomous monitoring paused');
 
     vscode.window.showInformationMessage('Claude Code paused (terminal + autonomous monitoring)');
@@ -1128,11 +1124,7 @@ export async function resumeClaudeCode(): Promise<void> {
   try {
     // Resume autonomous monitoring
     isAutonomousMonitoringPaused = false;
-    await vscode.commands.executeCommand(
-      'setContext',
-      'gofer.autonomousMonitoringPaused',
-      false
-    );
+    await vscode.commands.executeCommand('setContext', 'gofer.autonomousMonitoringPaused', false);
     outputChannel.appendLine('[RESUME] Autonomous monitoring resumed');
 
     vscode.window.showInformationMessage('Claude Code autonomous monitoring resumed');
@@ -1154,6 +1146,16 @@ export async function stopClaudeCode(): Promise<void> {
   isAutonomousMonitoringPaused = false;
   await vscode.commands.executeCommand('setContext', 'gofer.autonomousMonitoringPaused', false);
 
+  // Kill pty process to release resources
+  if (ptyProcess) {
+    try {
+      ptyProcess.kill();
+    } catch {
+      // Process may already be dead
+    }
+    ptyProcess = null;
+  }
+
   if (claudeTerminal) {
     claudeTerminal.dispose();
     claudeTerminal = null;
@@ -1165,6 +1167,21 @@ export async function stopClaudeCode(): Promise<void> {
   if (autonomousResponder) {
     autonomousResponder = null;
   }
+
+  // Clear active driver
+  if (activeDriver) {
+    activeDriver = null;
+  }
+
+  // Dispose output channel to free resources
+  if (outputChannel) {
+    outputChannel.dispose();
+    outputChannel = null;
+  }
+
+  // Clear log file path
+  logFilePath = null;
+
   await vscode.commands.executeCommand('setContext', 'gofer.claudeCodeRunning', false);
   vscode.window.showInformationMessage('Claude Code stopped');
 }

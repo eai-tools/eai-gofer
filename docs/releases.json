@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.0.1",
+  "latest_version": "1.0.2",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-01-25T23:52:26.678Z",
+  "last_updated": "2026-01-26T01:40:03.060Z",
   "releases": [
+    {
+      "version": "1.0.2",
+      "tag_name": "v1.0.2",
+      "published_at": "2026-01-26T01:40:03.060Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.0.2.vsix",
+      "notes": "chore: pre-release changes\n\nAuto-committed changes before release v1.0.1",
+      "prerelease": false,
+      "size_mb": 8.5
+    },
     {
       "version": "1.0.1",
       "tag_name": "v1.0.1",

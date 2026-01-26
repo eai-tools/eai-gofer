@@ -1,7 +1,6 @@
 # Gofer - Specification Directory
 
-This folder contains all project specifications for AI-driven feature
-development.
+This folder contains all project specifications for AI-driven feature development.
 
 ## Structure
 
@@ -28,7 +27,6 @@ Run the unified Gofer pipeline with a single command:
 ```
 
 This automatically chains through all stages:
-
 1. **Research** → Explores codebase and technology
 2. **Specify** → Creates spec.md from requirements
 3. **Plan** → Generates architecture and design
@@ -38,21 +36,20 @@ This automatically chains through all stages:
 
 ## Unified Gofer Pipeline
 
-| Stage        | Command              | Output                             |
-| ------------ | -------------------- | ---------------------------------- |
-| 1. Research  | `/1_gofer_research`  | research.md                        |
-| 2. Specify   | `/2_gofer_specify`   | spec.md                            |
-| 3. Plan      | `/3_gofer_plan`      | plan.md, data-model.md, contracts/ |
-| 4. Tasks     | `/4_gofer_tasks`     | tasks.md, issues.md                |
-| 5. Implement | `/5_gofer_implement` | Source code                        |
-| 6. Validate  | `/6_gofer_validate`  | validation-report.md               |
+| Stage | Command | Output |
+|-------|---------|--------|
+| 1. Research | `/1_gofer_research` | research.md |
+| 2. Specify | `/2_gofer_specify` | spec.md |
+| 3. Plan | `/3_gofer_plan` | plan.md, data-model.md, contracts/ |
+| 4. Tasks | `/4_gofer_tasks` | tasks.md, issues.md |
+| 5. Implement | `/5_gofer_implement` | Source code |
+| 6. Validate | `/6_gofer_validate` | validation-report.md |
 
 All artifacts are stored in: `.specify/specs/{feature}/`
 
 ## Constitution
 
 Define your project principles in `memory/constitution.md`:
-
 - Coding standards and patterns
 - Technology choices
 - Security requirements

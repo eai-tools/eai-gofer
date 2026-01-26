@@ -64,12 +64,18 @@ export class OpenAIProvider extends BaseLLMProvider {
 
       messages.push({ role: 'user', content: request.prompt });
 
+      // GPT-5.2+ models use max_completion_tokens instead of max_tokens
+      const isGpt5 = this.model.startsWith('gpt-5');
+      const tokenParam = isGpt5
+        ? { max_completion_tokens: request.maxTokens }
+        : { max_tokens: request.maxTokens };
+
       const response = await this.client.chat.completions.create({
         model: this.model,
-        max_tokens: request.maxTokens,
         temperature: request.temperature,
         messages,
-      });
+        ...tokenParam,
+      } as OpenAI.ChatCompletionCreateParamsNonStreaming);
 
       // Update rate limit tracking
       this.updateRateLimit();
@@ -96,11 +102,15 @@ export class OpenAIProvider extends BaseLLMProvider {
    */
   async healthCheck(): Promise<boolean> {
     try {
+      // GPT-5.2+ models use max_completion_tokens instead of max_tokens
+      const isGpt5 = this.model.startsWith('gpt-5');
+      const tokenParam = isGpt5 ? { max_completion_tokens: 10 } : { max_tokens: 10 };
+
       await this.client.chat.completions.create({
         model: this.model,
-        max_tokens: 10,
         messages: [{ role: 'user', content: 'Hello' }],
-      });
+        ...tokenParam,
+      } as OpenAI.ChatCompletionCreateParamsNonStreaming);
 
       this.markAvailable();
       return true;

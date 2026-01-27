@@ -128,6 +128,102 @@ export class GoferMigrator {
   }
 
   /**
+   * Check if critical bundled resources are missing and need to be synced.
+   * This handles the case where someone opens the repo on a new machine
+   * (e.g., Codespaces) and the bundled resources weren't committed to git.
+   */
+  async checkMissingResources(): Promise<{
+    hasMissingResources: boolean;
+    missing: string[];
+  }> {
+    const missing: string[] = [];
+
+    // Critical paths that should exist if Gofer is properly initialized
+    const criticalPaths = [
+      { path: path.join(this.workspacePath, '.claude', 'commands'), name: 'Claude commands' },
+      { path: path.join(this.workspacePath, '.claude', 'agents'), name: 'Claude agents' },
+      { path: path.join(this.specifyPath, 'scripts', 'bash'), name: 'Bash scripts' },
+      { path: path.join(this.specifyPath, 'templates'), name: 'Templates' },
+    ];
+
+    for (const item of criticalPaths) {
+      try {
+        const files = await fs.readdir(item.path);
+        // Check if directory exists but is empty or has very few files
+        if (files.length === 0) {
+          missing.push(item.name);
+        }
+      } catch {
+        // Directory doesn't exist
+        missing.push(item.name);
+      }
+    }
+
+    return {
+      hasMissingResources: missing.length > 0,
+      missing,
+    };
+  }
+
+  /**
+   * Sync missing bundled resources without full upgrade.
+   * This is lighter than a full upgrade and just copies missing files.
+   */
+  async syncMissingResources(): Promise<void> {
+    console.log('[syncMissingResources] Checking for missing resources...');
+
+    const { hasMissingResources, missing } = await this.checkMissingResources();
+
+    if (!hasMissingResources) {
+      console.log('[syncMissingResources] All critical resources present');
+      return;
+    }
+
+    console.log('[syncMissingResources] Missing resources:', missing);
+
+    await vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: 'Syncing Gofer resources...',
+        cancellable: false,
+      },
+      async (progress) => {
+        const packageJson = require('../../package.json');
+        console.log(`[Gofer v${packageJson.version}] Syncing missing resources...`);
+
+        if (missing.includes('Claude commands')) {
+          progress.report({ message: 'Syncing Claude commands...' });
+          await this.setupClaudeCommands();
+        }
+
+        if (missing.includes('Claude agents')) {
+          progress.report({ message: 'Syncing Claude agents...' });
+          await this.setupClaudeAgents();
+        }
+
+        if (missing.includes('Bash scripts')) {
+          progress.report({ message: 'Syncing bash scripts...' });
+          await this.createBashScripts();
+        }
+
+        if (missing.includes('Templates')) {
+          progress.report({ message: 'Syncing templates...' });
+          await this.copyBundledTemplates();
+        }
+
+        // Update version file after sync
+        const versionFilePath = path.join(this.specifyPath, '.gofer-version');
+        await fs.writeFile(versionFilePath, packageJson.version);
+        console.log(`[syncMissingResources] Updated version to ${packageJson.version}`);
+
+        console.log('[syncMissingResources] Sync complete');
+      }
+    );
+
+    vscode.window.showInformationMessage(`✅ Gofer resources synced: ${missing.join(', ')}`);
+  }
+
+  /**
    * Upgrade .specify folder to Gofer format
    */
   async upgrade(): Promise<void> {
@@ -677,7 +773,15 @@ export class GoferMigrator {
     try {
       console.log('[copyBundledTemplates] Starting...');
 
-      const extensionPath = vscode.extensions.getExtension('EnterpriseAI.gofer')?.extensionPath;
+      // Get the extension's bundled templates - try multiple methods
+      let extensionPath = vscode.extensions.getExtension('EnterpriseAI.gofer')?.extensionPath;
+
+      // Fallback: derive from __dirname (dist/extension.js -> extension root)
+      if (!extensionPath) {
+        extensionPath = path.resolve(__dirname, '..');
+        console.log('[copyBundledTemplates] Using __dirname fallback:', extensionPath);
+      }
+
       if (!extensionPath) {
         console.warn('[copyBundledTemplates] Could not find extension path for templates');
         // Fall back to inline templates

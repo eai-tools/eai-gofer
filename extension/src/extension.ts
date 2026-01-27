@@ -266,6 +266,11 @@ async function handleGoferFormat(context: vscode.ExtensionContext, workspacePath
   // Check if templates need updating based on extension version
   await checkForTemplateUpdates(workspacePath, context);
 
+  // Check for and sync missing bundled resources (e.g., on Codespaces or new machines)
+  // This handles the case where .specify/ exists but bundled resources weren't committed
+  const migrator = new GoferMigrator(workspacePath);
+  await migrator.syncMissingResources();
+
   // Initialize Context Health Monitoring (Spec 012)
   initializeContextHealthMonitoring(workspacePath);
 

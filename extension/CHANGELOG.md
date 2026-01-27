@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.0.3] - 2026-01-27
+
+Fix: Sync missing bundled resources on Codespaces/new machines
+
 ## [1.0.2] - 2026-01-26
 
 chore: pre-release changes

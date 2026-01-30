@@ -104,7 +104,9 @@ export class GoferLoader {
       id: specId,
       title: typeof frontmatter.feature === 'string' ? frontmatter.feature : specId,
       description: content,
-      status: this.parseSpecStatus(typeof frontmatter.status === 'string' ? frontmatter.status : 'draft'),
+      status: this.parseSpecStatus(
+        typeof frontmatter.status === 'string' ? frontmatter.status : 'draft'
+      ),
       created: new Date(typeof frontmatter.created === 'string' ? frontmatter.created : Date.now()),
       updated: new Date(typeof frontmatter.updated === 'string' ? frontmatter.updated : Date.now()),
       author: typeof frontmatter.author === 'string' ? frontmatter.author : undefined,
@@ -119,7 +121,7 @@ export class GoferLoader {
   }
 
   /**
-   * Parse header metadata from official GitHub Spec Kit format
+   * Parse header metadata from official GitHub Gofer format
    */
   private parseSpecHeader(content: string): { metadata: Record<string, string>; content: string } {
     const lines = content.split('\n');
@@ -136,7 +138,7 @@ export class GoferLoader {
     // Parse metadata lines
     for (let i = 1; i < lines.length; i++) {
       const line = lines[i].trim();
-      
+
       if (!line) {
         contentStartIndex = i + 1;
         break;
@@ -176,14 +178,17 @@ export class GoferLoader {
     return { metadata, content: bodyContent };
   }
 
-  private parseFrontmatter(content: string): { frontmatter: Record<string, unknown>; content: string } {
+  private parseFrontmatter(content: string): {
+    frontmatter: Record<string, unknown>;
+    content: string;
+  } {
     const frontmatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/;
     const match = content.match(frontmatterRegex);
 
     if (!match) {
-      // Try to parse as official GitHub Spec Kit format
+      // Try to parse as official GitHub Gofer format
       const { metadata, content: bodyContent } = this.parseSpecHeader(content);
-      
+
       // Convert to legacy format for compatibility
       const frontmatter = {
         id: metadata.branch || 'unknown',
@@ -192,7 +197,7 @@ export class GoferLoader {
         created: metadata.created || new Date().toISOString(),
         updated: metadata.created || new Date().toISOString(),
         author: undefined,
-        dependencies: []
+        dependencies: [],
       };
 
       return { frontmatter, content: bodyContent };

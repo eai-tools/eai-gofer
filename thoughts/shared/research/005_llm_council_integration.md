@@ -1,18 +1,17 @@
 ---
 date: 2025-12-30T12:00:00Z
 researcher: Claude
-topic: 'LLM Council Integration for SpecKit and RPI Workflows'
+topic: 'LLM Council Integration for Gofer and RPI Workflows'
 tags: [research, llm-council, speckit, rpi, multi-llm, decision-making]
 status: complete
 ---
 
-# Research: LLM Council Integration for SpecKit and RPI Workflows
+# Research: LLM Council Integration for Gofer and RPI Workflows
 
 ## Research Question
 
 How can the LLM Council pattern (from Karpathy's llm-council project) be
-integrated into the most relevant stages of Gofer's SpecKit and RPI
-workflows?
+integrated into the most relevant stages of Gofer's Gofer and RPI workflows?
 
 ## Summary
 
@@ -22,9 +21,9 @@ The LLM Council pattern implements a **three-stage decision-making framework**:
 2. **Peer Review** - LLMs anonymously rank each other's responses
 3. **Final Synthesis** - A "Chairman" LLM synthesizes all responses and reviews
 
-This pattern maps excellently to several stages in both SpecKit and RPI
-workflows where **quality matters more than speed** and **multiple perspectives
-improve outcomes**.
+This pattern maps excellently to several stages in both Gofer and RPI workflows
+where **quality matters more than speed** and **multiple perspectives improve
+outcomes**.
 
 ## The LLM Council Pattern
 
@@ -74,7 +73,7 @@ improve outcomes**.
 
 ## Integration Points Analysis
 
-### SpecKit Workflow Integration Points
+### Gofer Workflow Integration Points
 
 | Stage          | Command              | Council Benefit                         | Priority |
 | -------------- | -------------------- | --------------------------------------- | -------- |
@@ -365,7 +364,7 @@ recommended # /speckit.analyze, /3_validate_plan research: optional #
 
 ## Integration Mapping
 
-| LLM Council Stage | SpecKit Equivalent           | RPI Equivalent              |
+| LLM Council Stage | Gofer Equivalent             | RPI Equivalent              |
 | ----------------- | ---------------------------- | --------------------------- |
 | First Opinions    | Parallel Task agents         | Parallel codebase-\* agents |
 | Peer Review       | NEW: Cross-validation agents | NEW: Finding validation     |

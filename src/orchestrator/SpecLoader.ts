@@ -41,9 +41,9 @@ export class SpecLoader {
 
   async loadAllSpecs(): Promise<Spec[]> {
     try {
-      // Check if it's the new Spec Kit format (.specify/specs/)
+      // Check if it's the new Gofer format (.specify/specs/)
       if (this.specDir.endsWith('/specs') || this.specDir.endsWith('/specs/')) {
-        return this.loadSpecKitSpecs();
+        return this.loadGoferSpecs();
       }
 
       // Fallback to legacy JSON format for backwards compatibility
@@ -55,9 +55,9 @@ export class SpecLoader {
   }
 
   /**
-   * Load specs from GitHub Spec Kit format (.specify/specs/)
+   * Load specs from Gofer format (.specify/specs/)
    */
-  private async loadSpecKitSpecs(): Promise<Spec[]> {
+  private async loadGoferSpecs(): Promise<Spec[]> {
     try {
       const entries = await fs.readdir(this.specDir, { withFileTypes: true });
       const specDirs = entries.filter((e) => e.isDirectory());
@@ -65,7 +65,7 @@ export class SpecLoader {
       const specs = await Promise.all(
         specDirs.map(async (dir) => {
           try {
-            return await this.loadSpecKitSpec(dir.name);
+            return await this.loadGoferSpec(dir.name);
           } catch (error) {
             console.error(`Failed to load spec ${dir.name}:`, error);
             return null;
@@ -75,13 +75,13 @@ export class SpecLoader {
 
       return specs.filter((s): s is Spec => s !== null);
     } catch (error) {
-      console.error('Error loading Spec Kit specs:', error);
+      console.error('Error loading Gofer specs:', error);
       return [];
     }
   }
 
   /**
-   * Parse header metadata from official GitHub Spec Kit format
+   * Parse header metadata from official Gofer format
    */
   private parseSpecHeader(content: string): ParsedSpec {
     const lines = content.split('\n');
@@ -150,9 +150,9 @@ export class SpecLoader {
   }
 
   /**
-   * Load a single spec from Spec Kit format
+   * Load a single spec from Gofer format
    */
-  private async loadSpecKitSpec(specId: string): Promise<Spec | null> {
+  private async loadGoferSpec(specId: string): Promise<Spec | null> {
     const specPath = path.join(this.specDir, specId, 'spec.md');
 
     try {
@@ -177,7 +177,7 @@ export class SpecLoader {
           }
         }
       } else {
-        // Official GitHub Spec Kit format
+        // Official GitHub Gofer format
         const { metadata, content: bodyContent } = this.parseSpecHeader(content);
         const validStatuses = ['draft', 'in_progress', 'testing', 'completed', 'failed'];
         const statusValue =
@@ -195,7 +195,7 @@ export class SpecLoader {
       }
 
       // Load tasks if they exist
-      const tasks = await this.loadSpecKitTasks(specId);
+      const tasks = await this.loadGoferTasks(specId);
 
       const now = new Date().toISOString();
       return {
@@ -222,7 +222,7 @@ export class SpecLoader {
   /**
    * Load tasks from tasks.md file
    */
-  private async loadSpecKitTasks(specId: string): Promise<Task[]> {
+  private async loadGoferTasks(specId: string): Promise<Task[]> {
     const tasksPath = path.join(this.specDir, specId, 'tasks.md');
 
     try {
@@ -280,7 +280,7 @@ export class SpecLoader {
 
   async loadSpec(specId: string): Promise<Spec | null> {
     if (this.specDir.endsWith('/specs') || this.specDir.endsWith('/specs/')) {
-      return this.loadSpecKitSpec(specId);
+      return this.loadGoferSpec(specId);
     } else {
       // Legacy JSON format - load from all specs
       try {
@@ -295,8 +295,8 @@ export class SpecLoader {
 
   async saveSpec(spec: Spec): Promise<void> {
     if (this.specDir.endsWith('/specs') || this.specDir.endsWith('/specs/')) {
-      // For Spec Kit format, save to spec.md (frontmatter) and tasks.md
-      await this.saveSpecKitSpec(spec);
+      // For Gofer format, save to spec.md (frontmatter) and tasks.md
+      await this.saveGoferSpec(spec);
     } else {
       // Legacy JSON format
       const filePath = path.join(this.specDir, `${spec.id}.json`);
@@ -304,7 +304,7 @@ export class SpecLoader {
     }
   }
 
-  private async saveSpecKitSpec(spec: Spec): Promise<void> {
+  private async saveGoferSpec(spec: Spec): Promise<void> {
     const specPath = path.join(this.specDir, spec.id);
     const specMdPath = path.join(specPath, 'spec.md');
 
@@ -372,7 +372,7 @@ export class SpecLoader {
     status: Spec['tasks'][0]['status']
   ): Promise<void> {
     if (this.specDir.endsWith('/specs') || this.specDir.endsWith('/specs/')) {
-      // For Spec Kit format, update the checkbox in tasks.md
+      // For Gofer format, update the checkbox in tasks.md
       const spec = await this.loadSpec(specId);
       if (!spec) {
         throw new Error(`Spec ${specId} not found`);

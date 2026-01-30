@@ -316,16 +316,26 @@ describe('ContextHealthMonitor', () => {
       expect(changeHandler.mock.calls[0][1]).toBe('warning');
     });
 
-    it('should emit handoff-recommended when entering critical', () => {
+    it('should emit handoff-recommended when entering critical with real data', () => {
       const handoffHandler = vi.fn();
       monitor.on('handoff-recommended', handoffHandler);
 
       // Start healthy
-      monitor.analyzeContext({ breakdown: { conversation: 10000 } });
+      monitor.analyzeContext({ breakdown: { conversation: 10000 }, dataSource: 'real' });
       // Transition to critical
-      monitor.analyzeContext({ breakdown: { conversation: 100000 } });
+      monitor.analyzeContext({ breakdown: { conversation: 100000 }, dataSource: 'real' });
 
       expect(handoffHandler).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not emit handoff-recommended for estimated data', () => {
+      const handoffHandler = vi.fn();
+      monitor.on('handoff-recommended', handoffHandler);
+
+      monitor.analyzeContext({ breakdown: { conversation: 10000 } });
+      monitor.analyzeContext({ breakdown: { conversation: 100000 }, dataSource: 'estimated' });
+
+      expect(handoffHandler).not.toHaveBeenCalled();
     });
 
     it('should not emit handoff-recommended if autoHandoffEnabled is false', () => {
@@ -335,8 +345,8 @@ describe('ContextHealthMonitor', () => {
       const handoffHandler = vi.fn();
       customMonitor.on('handoff-recommended', handoffHandler);
 
-      customMonitor.analyzeContext({ breakdown: { conversation: 10000 } });
-      customMonitor.analyzeContext({ breakdown: { conversation: 100000 } });
+      customMonitor.analyzeContext({ breakdown: { conversation: 10000 }, dataSource: 'real' });
+      customMonitor.analyzeContext({ breakdown: { conversation: 100000 }, dataSource: 'real' });
 
       expect(handoffHandler).not.toHaveBeenCalled();
       customMonitor.dispose();
@@ -549,6 +559,87 @@ describe('ContextHealthMonitor', () => {
   // ─────────────────────────────────────────────────────────────────────────────
   // Dispose Tests
   // ─────────────────────────────────────────────────────────────────────────────
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // T025: Dynamic Context Limits (Spec 014 Phase 3)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  describe('dynamic context limits (T025)', () => {
+    it('should update effective context limit via setEffectiveContextLimit', () => {
+      monitor.setEffectiveContextLimit(200000);
+      const config = monitor.getConfig();
+      expect(config.effectiveContextLimit).toBe(200000);
+    });
+
+    it('should not update limit with zero or negative value', () => {
+      const originalLimit = monitor.getConfig().effectiveContextLimit;
+      monitor.setEffectiveContextLimit(0);
+      expect(monitor.getConfig().effectiveContextLimit).toBe(originalLimit);
+
+      monitor.setEffectiveContextLimit(-1);
+      expect(monitor.getConfig().effectiveContextLimit).toBe(originalLimit);
+    });
+
+    it('should not update when limit is same as current', () => {
+      const original = monitor.getConfig().effectiveContextLimit;
+      monitor.setEffectiveContextLimit(original);
+      // Should be a no-op
+      expect(monitor.getConfig().effectiveContextLimit).toBe(original);
+    });
+
+    it('should affect utilization calculation after limit change', () => {
+      // With default 120k limit, 60k tokens = 50% utilization
+      const statusBefore = monitor.analyzeContext({
+        breakdown: { conversation: 60000 },
+      });
+      expect(statusBefore.utilizationPercent).toBe(50);
+
+      // Change to 200k limit — same 60k tokens = 30% utilization
+      monitor.setEffectiveContextLimit(200000);
+      const statusAfter = monitor.analyzeContext({
+        breakdown: { conversation: 60000 },
+      });
+      expect(statusAfter.utilizationPercent).toBe(30);
+    });
+
+    it('should update health status when limit changes', () => {
+      // 85k out of 120k = 70.8% = critical
+      const criticalStatus = monitor.analyzeContext({
+        breakdown: { conversation: 85000 },
+      });
+      expect(criticalStatus.status).toBe('critical');
+
+      // Change limit to 200k — 85k out of 200k = 42.5% = healthy
+      monitor.setEffectiveContextLimit(200000);
+      const healthyStatus = monitor.analyzeContext({
+        breakdown: { conversation: 85000 },
+      });
+      expect(healthyStatus.status).toBe('healthy');
+    });
+
+    it('should auto-update limit from enhanced analysis in checkHealth', () => {
+      monitor.setContextProvider(
+        () =>
+          ({
+            breakdown: { conversation: 90000 },
+            modelContextLimit: 200000,
+          }) as ContextAnalysisInput & { modelContextLimit: number }
+      );
+
+      monitor.checkHealth();
+      expect(monitor.getConfig().effectiveContextLimit).toBe(200000);
+    });
+
+    it('should produce Opus utilization against 200k limit', () => {
+      monitor.setEffectiveContextLimit(200000);
+      const status = monitor.analyzeContext({
+        breakdown: { conversation: 100000 },
+      });
+      // 100k / 200k = 50%
+      expect(status.utilizationPercent).toBe(50);
+      expect(status.tokensLimit).toBe(200000);
+    });
+  });
 
   describe('dispose', () => {
     it('should stop monitoring on dispose', () => {

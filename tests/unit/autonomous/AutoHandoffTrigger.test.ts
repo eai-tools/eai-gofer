@@ -73,6 +73,7 @@ describe('AutoHandoffTrigger', () => {
     recommendations: ['Context is nearly full. Save your progress now.'],
     timestamp: Date.now(),
     sessionId: 'test-session',
+    dataSource: 'real',
   });
 
   const createWarningStatus = (): ContextHealthStatus => ({
@@ -91,6 +92,7 @@ describe('AutoHandoffTrigger', () => {
     recommendations: ['Consider saving progress soon.'],
     timestamp: Date.now(),
     sessionId: 'test-session',
+    dataSource: 'real',
   });
 
   beforeEach(() => {
@@ -162,6 +164,7 @@ describe('AutoHandoffTrigger', () => {
       // Emit critical event
       monitor.analyzeContext({
         breakdown: { conversation: 100000 },
+        dataSource: 'real',
       });
 
       // Allow async handler to run
@@ -503,6 +506,7 @@ describe('AutoHandoffTrigger', () => {
       // Set up context provider that returns critical status
       monitor.setContextProvider(() => ({
         breakdown: { conversation: 100000 },
+        dataSource: 'real',
       }));
 
       // Create a custom trigger that we DON'T connect to events

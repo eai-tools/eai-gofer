@@ -434,6 +434,29 @@
           "default": "ask",
           "description": "Preferred AI tool when sending tasks (ask, claude, copilot)"
         },
+        "gofer.claudeCodeMode": {
+          "type": "string",
+          "enum": [
+            "standard",
+            "yolo",
+            "custom"
+          ],
+          "enumDescriptions": [
+            "Standard mode — Claude Code asks for permission before executing tools",
+            "Yolo mode — Skip all permission prompts (--dangerously-skip-permissions)",
+            "Custom — Use the command specified in gofer.claudeCodeCommand"
+          ],
+          "default": "standard",
+          "description": "How to launch Claude Code from the status bar",
+          "markdownDescription": "Controls how Claude Code is launched from the status bar.\n\n- **Standard**: `claude` — asks for permission before tools\n- **Yolo**: `claude --dangerously-skip-permissions` — skips all prompts\n- **Custom**: Uses the command from `gofer.claudeCodeCommand`",
+          "order": 3
+        },
+        "gofer.claudeCodeCommand": {
+          "type": "string",
+          "default": "claude",
+          "description": "Custom command to launch Claude Code (only used when mode is 'custom')",
+          "markdownDescription": "Custom command used when `gofer.claudeCodeMode` is set to `custom`.\n\nExamples:\n- `claude-skip` (shell alias)\n- `/usr/local/bin/claude --flag` (full path with flags)"
+        },
         "gofer.claudeTerminalName": {
           "type": "string",
           "default": "Claude",

@@ -453,7 +453,7 @@ Click the status bar to view detailed breakdown:
 The following legacy commands have been archived and are no longer in active
 use. They are preserved for reference at `.claude/commands/archive/`.
 
-### Archived SpecKit Commands (`.claude/commands/archive/speckit/`)
+### Archived Gofer Commands (`.claude/commands/archive/speckit/`)
 
 - `speckit.specify.md` - Create feature specification
 - `speckit.plan.md` - Generate implementation plan

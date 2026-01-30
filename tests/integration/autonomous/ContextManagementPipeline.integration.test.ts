@@ -407,6 +407,7 @@ Node.js, TypeScript, Vitest for testing.
           observations: 25000,
           conversation: 10000,
         },
+        dataSource: 'real',
       });
 
       // Total = 100000 tokens, which is ~83% of 120000

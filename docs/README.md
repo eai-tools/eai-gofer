@@ -1,6 +1,7 @@
 # Gofer Documentation
 
-Welcome to the Gofer documentation. This directory contains guides for using, testing, and releasing Gofer.
+Welcome to the Gofer documentation. This directory contains guides for using,
+testing, and releasing Gofer.
 
 ## Active Documentation
 
@@ -25,14 +26,16 @@ Instructions for maintainers on how to:
 
 ## Archive
 
-The [archive/](archive/) folder contains historical documentation from previous development sessions:
+The [archive/](archive/) folder contains historical documentation from previous
+development sessions:
 
 - **Implementation summaries** - Session notes and progress reports
 - **Architecture research** - Research documents on LSP/MCP integration
-- **Migration guides** - Legacy JSON to Spec Kit format migration
+- **Migration guides** - Legacy JSON to Gofer format migration
 - **Outdated guides** - Setup and quick reference docs superseded by main README
 
-These are kept for historical reference but may not reflect the current implementation.
+These are kept for historical reference but may not reflect the current
+implementation.
 
 ## Main Documentation
 

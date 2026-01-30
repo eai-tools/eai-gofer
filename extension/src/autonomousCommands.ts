@@ -21,11 +21,36 @@ import {
   CompletionReport,
 } from './autonomous';
 import { MemoryManager } from './autonomous/MemoryManager';
+import { ContextBuilder } from './autonomous/ContextBuilder';
 import {
   ClaudeCodeAutonomousResponder,
   QuestionContext,
 } from './autonomous/ClaudeCodeAutonomousResponder';
 import type { ProgressProvider } from './progressProvider';
+
+// Shared singleton instances (set from extension.ts)
+let sharedMemoryManager: MemoryManager | undefined;
+let sharedContextBuilder: ContextBuilder | undefined;
+
+/** Set the shared MemoryManager instance */
+export function setSharedMemoryManager(mm: MemoryManager): void {
+  sharedMemoryManager = mm;
+}
+
+/** Set the shared ContextBuilder instance */
+export function setSharedContextBuilder(cb: ContextBuilder): void {
+  sharedContextBuilder = cb;
+}
+
+/** Get the shared MemoryManager (for testing) */
+export function getSharedMemoryManager(): MemoryManager | undefined {
+  return sharedMemoryManager;
+}
+
+/** Get the shared ContextBuilder (for testing) */
+export function getSharedContextBuilder(): ContextBuilder | undefined {
+  return sharedContextBuilder;
+}
 
 // Global driver instance (singleton)
 let activeDriver: AutonomousDriver | null = null;
@@ -154,8 +179,8 @@ export async function startAutonomousExecution(
   const dateStr = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
   logFilePath = path.join(logsDir, `autonomous-${dateStr}.log`);
 
-  // Create memory manager instance
-  const memoryManager = new MemoryManager(context, workspacePath);
+  // Use shared MemoryManager instance (set from extension.ts) or create fallback
+  const memoryManager = sharedMemoryManager ?? new MemoryManager(context, workspacePath);
 
   // Create driver instance
   activeDriver = new AutonomousDriver(workspacePath, progressProvider, memoryManager, options);
@@ -692,6 +717,31 @@ export async function launchClaudeCode(specId: string): Promise<void> {
       outputChannel.appendLine('   ✓ Debug logging enabled (check .specify/logs/)');
     }
 
+    // Build enriched context before spawning (Spec 013 Phase 4 — T030-T032)
+    if (sharedContextBuilder) {
+      try {
+        const { ContextBridgeWriter } = await import('./autonomous/ContextBridgeWriter');
+        const bridgeWriter = new ContextBridgeWriter(sharedContextBuilder, workspacePath);
+        const taskContext = { taskId: 'T001', specId, description: `Execute spec ${specId}` };
+
+        // 500ms timeout to avoid delaying launch (T031)
+        await Promise.race([
+          bridgeWriter.writeEnrichedContext(taskContext),
+          new Promise<void>((_, reject) =>
+            setTimeout(() => reject(new Error('Context build timeout')), 500)
+          ),
+        ]);
+        outputChannel.appendLine('   ✓ Enriched context written to bridge file');
+      } catch (error) {
+        // Non-fatal: launch proceeds without enrichment (T032)
+        console.warn(
+          '[Gofer] Context enrichment skipped:',
+          error instanceof Error ? error.message : error
+        );
+        outputChannel.appendLine('   ⚠ Context enrichment skipped (non-fatal)');
+      }
+    }
+
     // Spawn Claude Code process with node-pty
     outputChannel.appendLine('   Starting Claude Code process with output capture...');
 
@@ -714,6 +764,26 @@ export async function launchClaudeCode(specId: string): Promise<void> {
         responder.addTerminalOutput(data);
       });
       outputChannel.appendLine('   ✓ Output capture enabled');
+    }
+
+    // Observation tracking: buffer terminal output and track as observations (Spec 013 T036-T037)
+    if (sharedContextBuilder) {
+      let observationBuffer = '';
+      const contextBuilder = sharedContextBuilder; // Capture for closure
+      ptyProcess.onData((data) => {
+        observationBuffer += data;
+        if (observationBuffer.length >= 2000) {
+          contextBuilder.trackObservation(
+            'command_output',
+            observationBuffer,
+            { source: 'claude-code-terminal', specId },
+            `Terminal output chunk (${observationBuffer.length} chars)`
+          );
+          contextBuilder.incrementTurn();
+          observationBuffer = '';
+        }
+      });
+      outputChannel.appendLine('   ✓ Observation tracking enabled');
     }
 
     ptyProcess.onExit(() => {

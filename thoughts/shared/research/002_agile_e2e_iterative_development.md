@@ -30,8 +30,8 @@ How can Gofer be enhanced to:
 
 ## Summary
 
-Gofer has a robust foundation with the SpecKit workflow (`/speckit.*`) and
-RPI framework (`/1_*` - `/8_*`), but lacks explicit iterative e2e development
+Gofer has a robust foundation with the Gofer workflow (`/speckit.*`) and RPI
+framework (`/1_*` - `/8_*`), but lacks explicit iterative e2e development
 phases. The current workflow generates complete specs upfront rather than
 incrementally delivering value through skateboard → bicycle → motorbike → car
 iterations. This research identifies specific enhancements to templates,
@@ -57,7 +57,7 @@ iteration phase.
 
 ### 1. Current Workflow Analysis
 
-#### SpecKit Workflow Flow
+#### Gofer Workflow Flow
 
 ```
 /speckit.specify → spec.md (all user stories upfront)

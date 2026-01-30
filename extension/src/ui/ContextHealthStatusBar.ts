@@ -190,6 +190,10 @@ export class ContextHealthStatusBar implements vscode.Disposable {
 
   /**
    * Manually updates the status bar with new health status.
+   * Supports three display modes:
+   * - Real data: "Context: 54% (Opus)" with health colors
+   * - No session: "Context: No session" in neutral color
+   * - Estimated/no data: "Context: N%" or "Context: --"
    *
    * @param status - Context health status or null for no data
    */
@@ -204,10 +208,31 @@ export class ContextHealthStatusBar implements vscode.Disposable {
       return;
     }
 
+    // T026/T027: Check dataSource from enhanced analysis
+    const dataSource = status.dataSource;
+    const model = status.model;
+
+    // T027: No-session or estimated-only display mode
+    if (dataSource !== 'real') {
+      this.statusBarItem.text = '$(pulse) Context: --';
+      this.statusBarItem.color = new vscode.ThemeColor('disabledForeground');
+      this.statusBarItem.backgroundColor = undefined;
+      this.statusBarItem.tooltip =
+        'No active Claude Code session detected.\nStart Claude Code to see real context usage.';
+      return;
+    }
+
     const icon = STATUS_ICONS[status.status];
     const percent = Math.round(status.utilizationPercent);
 
-    this.statusBarItem.text = `${icon} Context: ${percent}%`;
+    // T026: Real data mode — show model name
+    if (dataSource === 'real' && model) {
+      const shortModel = this.getShortModelName(model);
+      this.statusBarItem.text = `${icon} Context: ${percent}% (${shortModel})`;
+    } else {
+      this.statusBarItem.text = `${icon} Context: ${percent}%`;
+    }
+
     this.statusBarItem.color = STATUS_COLORS[status.status];
     this.statusBarItem.backgroundColor = STATUS_BACKGROUNDS[status.status];
     this.statusBarItem.tooltip = this.buildTooltip(status);
@@ -215,7 +240,37 @@ export class ContextHealthStatusBar implements vscode.Disposable {
     this.logger.debug('Status bar updated', {
       status: status.status,
       percent,
+      dataSource,
     });
+  }
+
+  /**
+   * Returns a short, human-readable model name for display.
+   * e.g., "claude-opus-4-5-20251101" → "Opus 4.5"
+   */
+  private getShortModelName(modelId: string): string {
+    if (modelId.includes('opus-4-5') || modelId.includes('opus-4.5')) {
+      return 'Opus 4.5';
+    }
+    if (modelId.includes('opus-4')) {
+      return 'Opus 4';
+    }
+    if (modelId.includes('opus')) {
+      return 'Opus';
+    }
+    if (modelId.includes('sonnet-4-5') || modelId.includes('sonnet-4.5')) {
+      return 'Sonnet 4.5';
+    }
+    if (modelId.includes('sonnet-4')) {
+      return 'Sonnet 4';
+    }
+    if (modelId.includes('sonnet')) {
+      return 'Sonnet';
+    }
+    if (modelId.includes('haiku')) {
+      return 'Haiku';
+    }
+    return modelId.split('-').slice(0, 2).join(' ');
   }
 
   /**
@@ -225,15 +280,27 @@ export class ContextHealthStatusBar implements vscode.Disposable {
    * @returns Tooltip string
    */
   private buildTooltip(status: ContextHealthStatus): string {
-    const lines = [
-      `Context Health: ${status.status.toUpperCase()}`,
-      `Usage: ${status.tokensUsed.toLocaleString()} / ${status.tokensLimit.toLocaleString()} tokens (${Math.round(status.utilizationPercent)}%)`,
-      '',
-      'Click for detailed breakdown',
-    ];
+    const lines: string[] = [];
+
+    if (status.dataSource === 'real') {
+      lines.push(
+        `Last API call: ${status.tokensUsed.toLocaleString()} / ${status.tokensLimit.toLocaleString()} tokens`,
+        `Point-in-time snapshot from hook data`
+      );
+      if (status.utilizationPercent > 50) {
+        lines.push('Note: Accuracy may degrade above ~100K tokens');
+      }
+    } else {
+      lines.push(
+        `Context Health: ${status.status.toUpperCase()}`,
+        `Usage: ${status.tokensUsed.toLocaleString()} / ${status.tokensLimit.toLocaleString()} tokens (${Math.round(status.utilizationPercent)}%)`
+      );
+    }
+
+    lines.push('', 'Click for details');
 
     if (status.recommendations.length > 0 && status.status !== 'healthy') {
-      lines.splice(2, 0, '', `Tip: ${status.recommendations[0]}`);
+      lines.splice(lines.length - 2, 0, `Tip: ${status.recommendations[0]}`);
     }
 
     return lines.join('\n');
@@ -249,6 +316,38 @@ export class ContextHealthStatusBar implements vscode.Disposable {
     }
 
     const status = this.currentStatus;
+
+    // No real session: show a simple message, not a full breakdown
+    if (status.dataSource !== 'real') {
+      const config = vscode.workspace.getConfiguration('gofer');
+      const mode = config.get<string>('claudeCodeMode', 'standard');
+      const modeLabel = mode === 'yolo' ? 'Yolo' : mode === 'custom' ? 'Custom' : 'Standard';
+      const items: Array<vscode.QuickPickItem & { action?: string }> = [
+        {
+          label: '$(info) No active Claude Code session',
+          detail: 'Start a Claude Code session to see real context usage from API token data.',
+        },
+        {
+          label: `$(play) Start Claude Code (${modeLabel})`,
+          description: mode === 'yolo' ? 'Skips permission prompts' : 'Open a terminal and launch',
+          action: 'startClaude',
+        },
+        {
+          label: '$(refresh) Refresh Status',
+          description: 'Check for an active session now',
+          action: 'refresh',
+        },
+      ];
+      const selected = await vscode.window.showQuickPick(items, {
+        title: 'Context Health',
+        placeHolder: 'No session detected',
+      });
+      if (selected?.action) {
+        await this.handleQuickPickAction(selected.action);
+      }
+      return;
+    }
+
     const items = this.buildQuickPickItems(status);
 
     const selected = await vscode.window.showQuickPick(items, {
@@ -285,16 +384,58 @@ export class ContextHealthStatusBar implements vscode.Disposable {
       detail: `${Math.round(status.utilizationPercent)}% context utilization`,
     });
 
-    // Breakdown section
-    items.push({
-      label: '$(list-flat) Token Breakdown',
-      kind: vscode.QuickPickItemKind.Separator,
-    });
+    // T028: Session info section (when real data available)
+    if (status.dataSource === 'real') {
+      items.push({
+        label: '$(server) Session Info',
+        kind: vscode.QuickPickItemKind.Separator,
+      });
 
-    const breakdown = status.breakdown;
-    const total = status.tokensUsed || 1; // Avoid division by zero
+      if (status.model) {
+        items.push({
+          label: `$(rocket) Model: ${this.getShortModelName(status.model)}`,
+          description: status.model,
+        });
+      }
 
-    items.push(...this.buildBreakdownItems(breakdown, total));
+      if (status.sessionId) {
+        items.push({
+          label: `$(key) Session: ${status.sessionId.substring(0, 8)}...`,
+          description: status.sessionId,
+        });
+      }
+
+      if (typeof status.sessionAge === 'number') {
+        const ageMinutes = Math.round(status.sessionAge / 60000);
+        const ageDisplay =
+          ageMinutes < 60
+            ? `${ageMinutes}m`
+            : `${Math.floor(ageMinutes / 60)}h ${ageMinutes % 60}m`;
+        items.push({
+          label: `$(clock) Session Age: ${ageDisplay}`,
+        });
+      }
+
+      if (typeof status.apiCallCount === 'number') {
+        items.push({
+          label: `$(symbol-event) API Calls: ${status.apiCallCount.toLocaleString()}`,
+        });
+      }
+    }
+
+    // Breakdown section — only show when we have per-category data (not real data
+    // where everything is lumped into "conversation")
+    if (status.dataSource !== 'real') {
+      items.push({
+        label: '$(list-flat) Token Breakdown',
+        kind: vscode.QuickPickItemKind.Separator,
+      });
+
+      const breakdown = status.breakdown;
+      const total = status.tokensUsed || 1;
+
+      items.push(...this.buildBreakdownItems(breakdown, total));
+    }
 
     // Observation Masking section (T069)
     if (this.maskingStats) {
@@ -535,7 +676,53 @@ export class ContextHealthStatusBar implements vscode.Disposable {
       case 'history':
         await this.showStatusHistory();
         break;
+
+      case 'startClaude':
+        await this.launchClaudeCodeTerminal();
+        break;
     }
+  }
+
+  /**
+   * Launch Claude Code in a new terminal using the configured command.
+   * Ensures hooks are installed before launching.
+   */
+  private async launchClaudeCodeTerminal(): Promise<void> {
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    if (!workspaceFolder) {
+      vscode.window.showWarningMessage('No workspace folder open.');
+      return;
+    }
+
+    // Ensure hooks are installed before launching
+    try {
+      const { GoferMigrator } = await import('../goferMigrator');
+      const migrator = new GoferMigrator(workspaceFolder.uri.fsPath);
+      await migrator.installHooksConfig();
+    } catch (error) {
+      console.warn('[ContextHealthStatusBar] Failed to install hooks before launch:', error);
+    }
+
+    const config = vscode.workspace.getConfiguration('gofer');
+    const mode = config.get<string>('claudeCodeMode', 'standard');
+    let claudeCmd: string;
+    switch (mode) {
+      case 'yolo':
+        claudeCmd = 'claude --dangerously-skip-permissions';
+        break;
+      case 'custom':
+        claudeCmd = config.get<string>('claudeCodeCommand', 'claude');
+        break;
+      default:
+        claudeCmd = 'claude';
+    }
+
+    const terminal = vscode.window.createTerminal({
+      name: 'Claude Code',
+      cwd: workspaceFolder.uri,
+    });
+    terminal.show();
+    terminal.sendText(claudeCmd);
   }
 
   /**

@@ -9,7 +9,7 @@ Constitution requires files to be < 300 lines. The following files violate this:
 
 ### 1. extension/src/goferMigrator.ts (26,795 bytes, ~670 lines estimated)
 
-**Current Purpose**: Migrates legacy JSON specs to GitHub Spec Kit format
+**Current Purpose**: Migrates legacy JSON specs to GitHub Gofer format
 
 **Recommended Refactoring**:
 
@@ -19,7 +19,7 @@ Split into:
 extension/src/migration/
 ├── GoferMigrator.ts          # Main orchestrator (< 100 lines)
 ├── LegacyFormatParser.ts       # Parse legacy JSON (< 150 lines)
-├── SpecKitFormatter.ts         # Format to Spec Kit (< 150 lines)
+├── GoferFormatter.ts         # Format to Gofer (< 150 lines)
 ├── TaskDependencyMapper.ts     # Map task dependencies (< 100 lines)
 └── MigrationBackup.ts          # Backup logic (< 100 lines)
 ```
@@ -37,7 +37,7 @@ extension/src/migration/
 
 ### 2. extension/src/templateDownloader.ts (17,503 bytes, ~437 lines estimated)
 
-**Current Purpose**: Downloads Spec Kit templates from GitHub releases
+**Current Purpose**: Downloads Gofer templates from GitHub releases
 
 **Recommended Refactoring**:
 
@@ -137,7 +137,7 @@ Current: 36.15% | Target: 80%
 
 1. Create new migration/ directory
 2. Extract LegacyFormatParser
-3. Extract SpecKitFormatter
+3. Extract GoferFormatter
 4. Extract TaskDependencyMapper
 5. Extract MigrationBackup
 6. Update imports in extension.ts

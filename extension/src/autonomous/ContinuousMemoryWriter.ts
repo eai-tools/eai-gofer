@@ -1,0 +1,254 @@
+/**
+ * ContinuousMemoryWriter
+ *
+ * Automatically persists pipeline decisions and progress to the memory system.
+ * Listens to ContextBuilder events (budget-warning, loading-decision) and
+ * records stage transitions and task completions as memories.
+ *
+ * Rate limited to max 10 auto-saves per pipeline stage to prevent noise.
+ *
+ * Spec 014 Phase 5 (T030-T037)
+ */
+
+import type { EventEmitter } from 'events';
+
+/** Interface for the MemoryManager save method */
+interface MemoryManagerLike {
+  save(memory: {
+    category: string;
+    tags: string[];
+    scope: 'local' | 'global';
+    content: string;
+    lastUsed: number;
+    usedCount: number;
+    learnedFrom: string;
+  }): Promise<unknown>;
+}
+
+/** Rate limit per stage */
+const MAX_SAVES_PER_STAGE = 10;
+
+export class ContinuousMemoryWriter {
+  private memoryManager: MemoryManagerLike;
+  private stageSaveCounts: Map<string, number> = new Map();
+  private currentStage: string = 'unknown';
+  private connectedBuilder: EventEmitter | null = null;
+
+  constructor(memoryManager: MemoryManagerLike) {
+    this.memoryManager = memoryManager;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // ContextBuilder Connection (T031)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Connects to a ContextBuilder instance and listens to its events.
+   * Listens to `budget-warning` and `loading-decision` events.
+   *
+   * @param builder - EventEmitter (ContextBuilder instance)
+   */
+  connectToContextBuilder(builder: EventEmitter): void {
+    this.connectedBuilder = builder;
+
+    builder.on(
+      'budget-warning',
+      (event: {
+        category: string;
+        tokensUsed: number;
+        budgetLimit: number;
+        percentOver: number;
+        stage: string;
+      }) => {
+        this.recordAutoDecision(
+          `Budget warning: ${event.category} at ${event.tokensUsed} tokens (limit: ${event.budgetLimit}, ${event.percentOver.toFixed(0)}% over)`,
+          event.stage || this.currentStage,
+          'budget_warning'
+        );
+      }
+    );
+
+    builder.on(
+      'loading-decision',
+      (event: { source: string; decision: string; reason: string; tokens?: number }) => {
+        const tokenInfo = event.tokens ? ` (${event.tokens} tokens)` : '';
+        this.recordAutoDecision(
+          `Loading decision: ${event.source} ${event.decision} — ${event.reason}${tokenInfo}`,
+          this.currentStage,
+          'loading_decision'
+        );
+      }
+    );
+  }
+
+  /**
+   * Disconnects from the ContextBuilder.
+   */
+  disconnectFromContextBuilder(): void {
+    if (this.connectedBuilder) {
+      this.connectedBuilder.removeAllListeners('budget-warning');
+      this.connectedBuilder.removeAllListeners('loading-decision');
+      this.connectedBuilder = null;
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Stage Transitions (T032)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Records a pipeline stage transition as a memory.
+   *
+   * @param fromStage - Previous stage name
+   * @param toStage - New stage name
+   * @param specId - The spec being worked on
+   */
+  async recordStageTransition(fromStage: string, toStage: string, specId: string): Promise<void> {
+    this.currentStage = toStage;
+
+    if (this.isRateLimited(toStage)) {
+      return;
+    }
+
+    // Increment count before async save to prevent race conditions
+    // when multiple events fire synchronously
+    this.incrementSaveCount(toStage);
+
+    await this.saveMemory({
+      category: 'pipeline_stage',
+      content: `Stage transition: ${fromStage} → ${toStage} for spec ${specId}`,
+      tags: ['#auto', `#stage-${toStage}`, `#spec-${specId}`],
+      specId,
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Task Completions (T033)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Records a task completion as a memory.
+   *
+   * @param taskId - Task identifier (e.g., "T001")
+   * @param specId - The spec being worked on
+   * @param description - Description of what was completed
+   */
+  async recordTaskCompletion(taskId: string, specId: string, description: string): Promise<void> {
+    if (this.isRateLimited(this.currentStage)) {
+      return;
+    }
+
+    this.incrementSaveCount(this.currentStage);
+
+    await this.saveMemory({
+      category: 'task_completion',
+      content: `Task ${taskId} completed: ${description}`,
+      tags: ['#auto', `#stage-${this.currentStage}`, `#spec-${specId}`, `#task-${taskId}`],
+      specId,
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Auto Decisions (from ContextBuilder events)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Records an automatic decision from ContextBuilder events.
+   */
+  private async recordAutoDecision(
+    content: string,
+    stage: string,
+    subCategory: string
+  ): Promise<void> {
+    if (this.isRateLimited(stage)) {
+      return;
+    }
+
+    this.incrementSaveCount(stage);
+
+    await this.saveMemory({
+      category: 'auto_decision',
+      content: `[${subCategory}] ${content}`,
+      tags: ['#auto', `#stage-${stage}`, `#${subCategory}`],
+      specId: 'system',
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Rate Limiting (T034)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Checks if the current stage has hit its rate limit.
+   *
+   * @param stage - Stage name to check
+   * @returns true if rate limited
+   */
+  private isRateLimited(stage: string): boolean {
+    const count = this.stageSaveCounts.get(stage) || 0;
+    return count >= MAX_SAVES_PER_STAGE;
+  }
+
+  /**
+   * Increments the save count for a stage.
+   */
+  private incrementSaveCount(stage: string): void {
+    const count = this.stageSaveCounts.get(stage) || 0;
+    this.stageSaveCounts.set(stage, count + 1);
+  }
+
+  /**
+   * Returns the current save count for a stage (for testing).
+   */
+  getSaveCount(stage: string): number {
+    return this.stageSaveCounts.get(stage) || 0;
+  }
+
+  /**
+   * Resets rate limit counters (e.g., when starting a new pipeline run).
+   */
+  resetRateLimits(): void {
+    this.stageSaveCounts.clear();
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Memory Persistence (T035)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Saves a memory with standard auto-save metadata.
+   * All auto-saved memories are tagged with #auto and stage/spec tags.
+   */
+  private async saveMemory(opts: {
+    category: string;
+    content: string;
+    tags: string[];
+    specId: string;
+  }): Promise<void> {
+    try {
+      await this.memoryManager.save({
+        category: opts.category,
+        tags: opts.tags,
+        scope: 'local',
+        content: opts.content,
+        lastUsed: Date.now(),
+        usedCount: 0,
+        learnedFrom: opts.specId,
+      });
+    } catch {
+      // Silently ignore save failures — memory persistence is best-effort
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Disposal
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Disconnects from builders and clears state.
+   */
+  dispose(): void {
+    this.disconnectFromContextBuilder();
+    this.stageSaveCounts.clear();
+  }
+}

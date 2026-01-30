@@ -4,14 +4,14 @@
 
 Implement a `0_business_scenario` command that acts as an intelligent triage
 router, interviewing the user about their request and automatically driving
-Claude Code through the appropriate workflow (SpecKit or RPI framework).
+Claude Code through the appropriate workflow (Gofer or RPI framework).
 
 ## Current State Analysis
 
 ### What Exists Now
 
 1. **16 commands** in `.claude/commands/`:
-   - SpecKit: `/speckit.specify`, `/speckit.plan`, `/speckit.tasks`,
+   - Gofer: `/speckit.specify`, `/speckit.plan`, `/speckit.tasks`,
      `/speckit.implement`, `/speckit.analyze`, `/speckit.clarify`,
      `/speckit.checklist`, `/speckit.constitution`
    - RPI: `/1_research_codebase` through `/8_define_test_cases`
@@ -33,7 +33,7 @@ Claude Code through the appropriate workflow (SpecKit or RPI framework).
 
 - Must follow existing command file structure (YAML frontmatter + markdown)
 - Must integrate with autonomous responder's Haiku-based decision system
-- Must support resuming work from existing state (SpecKit or RPI artifacts)
+- Must support resuming work from existing state (Gofer or RPI artifacts)
 - Should minimize friction (3-5 questions max during interview)
 
 ## Desired End State
@@ -44,7 +44,7 @@ When Claude Code is launched:
    existing artifacts
 2. **If fresh state** (no artifacts), starts with `/0_business_scenario` which
    interviews the user
-3. **Triage decision** routes to either SpecKit or RPI framework
+3. **Triage decision** routes to either Gofer or RPI framework
 4. **Workflow chaining** automatically invokes the next command when each phase
    completes
 5. **Resume support** continues from last checkpoint in either framework
@@ -52,7 +52,7 @@ When Claude Code is launched:
 ### Verification Criteria
 
 - [ ] Fresh workspace → `/0_business_scenario` is invoked
-- [ ] User selects "new feature" → SpecKit workflow begins
+- [ ] User selects "new feature" → Gofer workflow begins
 - [ ] User selects "modify existing" → RPI workflow begins
 - [ ] Existing spec.md → `/speckit.plan` or `/speckit.implement` invoked
 - [ ] Existing research files → `/2_create_plan` invoked
@@ -98,14 +98,14 @@ description: Triage business scenario and route to appropriate framework
 
 # Business Scenario Triage
 
-You are the Gofer orchestrator. Your job is to understand the user's
-business scenario and route them to the correct development workflow.
+You are the Gofer orchestrator. Your job is to understand the user's business
+scenario and route them to the correct development workflow.
 
 ## Step 1: Quick Context Scan
 
 Before asking questions, scan the workspace for existing state:
 
-1. Check for SpecKit artifacts:
+1. Check for Gofer artifacts:
    - `.specify/specs/*/spec.md` - existing specifications
    - `.specify/specs/*/plan.md` - existing plans
    - `.specify/specs/*/tasks.md` - existing tasks
@@ -137,7 +137,7 @@ Present these options using the AskUserQuestion tool:
 
 Based on user selection and detected state:
 
-### Route A: New Feature → SpecKit Framework
+### Route A: New Feature → Gofer Framework
 
 If user selects "New Feature" or has existing spec artifacts:
 
@@ -186,7 +186,7 @@ codebase first
 
 Check for saved state in both frameworks:
 
-1. **SpecKit tasks with unchecked items** → `/speckit.implement`
+1. **Gofer tasks with unchecked items** → `/speckit.implement`
 2. **RPI saved session** → `/6_resume_work`
 3. **RPI plan with unchecked items** → `/4_implement_plan`
 4. **No saved state** → Ask what they were working on
@@ -250,7 +250,7 @@ async function determineInitialCommand(
   specId: string,
   workspacePath: string
 ): Promise<string> {
-  // Check SpecKit artifacts
+  // Check Gofer artifacts
   const specDir = path.join(workspacePath, '.specify', 'specs', specId);
   const hasSpec = fs.existsSync(path.join(specDir, 'spec.md'));
   const hasPlan = fs.existsSync(path.join(specDir, 'plan.md'));
@@ -283,7 +283,7 @@ async function determineInitialCommand(
 
   // Decision tree
 
-  // 1. SpecKit artifacts exist - continue SpecKit flow
+  // 1. Gofer artifacts exist - continue Gofer flow
   if (hasTasks) {
     return '/speckit.implement';
   }
@@ -419,27 +419,27 @@ next workflow phase.
 **Add after line 696** (after PERFORMANCE_REVIEW handling):
 
 ```typescript
-// Workflow routing actions - SpecKit flow
+// Workflow routing actions - Gofer flow
 if (trimmedAnswer.includes('ACTION: ROUTE_SPECKIT_SPECIFY')) {
-  this.outputChannel.appendLine('   📝 Routing to SpecKit: specify phase\n');
+  this.outputChannel.appendLine('   📝 Routing to Gofer: specify phase\n');
   await this.writeLog('ROUTING: /speckit.specify');
   return '/speckit.specify\n';
 }
 
 if (trimmedAnswer.includes('ACTION: ROUTE_SPECKIT_PLAN')) {
-  this.outputChannel.appendLine('   📋 Routing to SpecKit: plan phase\n');
+  this.outputChannel.appendLine('   📋 Routing to Gofer: plan phase\n');
   await this.writeLog('ROUTING: /speckit.plan');
   return '/speckit.plan\n';
 }
 
 if (trimmedAnswer.includes('ACTION: ROUTE_SPECKIT_TASKS')) {
-  this.outputChannel.appendLine('   📊 Routing to SpecKit: tasks phase\n');
+  this.outputChannel.appendLine('   📊 Routing to Gofer: tasks phase\n');
   await this.writeLog('ROUTING: /speckit.tasks');
   return '/speckit.tasks\n';
 }
 
 if (trimmedAnswer.includes('ACTION: ROUTE_SPECKIT_IMPLEMENT')) {
-  this.outputChannel.appendLine('   🔨 Routing to SpecKit: implement phase\n');
+  this.outputChannel.appendLine('   🔨 Routing to Gofer: implement phase\n');
   await this.writeLog('ROUTING: /speckit.implement');
   return '/speckit.implement\n';
 }
@@ -492,10 +492,10 @@ const responseTypes = `
 5. **ACTION: PERFORMANCE_REVIEW** - Request performance/architecture analysis
 
 6. **Workflow routing actions** (for transitioning between phases):
-   - ACTION: ROUTE_SPECKIT_SPECIFY - Start new SpecKit specification
-   - ACTION: ROUTE_SPECKIT_PLAN - Move to SpecKit planning phase
-   - ACTION: ROUTE_SPECKIT_TASKS - Move to SpecKit task generation
-   - ACTION: ROUTE_SPECKIT_IMPLEMENT - Move to SpecKit implementation
+   - ACTION: ROUTE_SPECKIT_SPECIFY - Start new Gofer specification
+   - ACTION: ROUTE_SPECKIT_PLAN - Move to Gofer planning phase
+   - ACTION: ROUTE_SPECKIT_TASKS - Move to Gofer task generation
+   - ACTION: ROUTE_SPECKIT_IMPLEMENT - Move to Gofer implementation
    - ACTION: ROUTE_RPI_RESEARCH - Start RPI research phase
    - ACTION: ROUTE_RPI_PLAN - Move to RPI planning phase
    - ACTION: ROUTE_RPI_IMPLEMENT - Move to RPI implementation
@@ -537,8 +537,8 @@ logic.
 ````markdown
 ### Automatic Framework Routing
 
-Gofer includes an intelligent triage system that automatically determines
-the correct starting point based on:
+Gofer includes an intelligent triage system that automatically determines the
+correct starting point based on:
 
 1. **Existing Artifacts**: Detects spec.md, plan.md, tasks.md, research files,
    and saved sessions
@@ -549,7 +549,7 @@ the correct starting point based on:
 
 The `/0_business_scenario` command runs automatically when:
 
-- Claude Code is launched on a fresh workspace (no SpecKit or RPI artifacts)
+- Claude Code is launched on a fresh workspace (no Gofer or RPI artifacts)
 - The user explicitly invokes it to re-route their workflow
 
 #### Routing Logic
@@ -564,7 +564,7 @@ The `/0_business_scenario` command runs automatically when:
             │                   │                   │
             ▼                   ▼                   ▼
     ┌───────────────┐   ┌───────────────┐   ┌───────────────┐
-    │  SpecKit Flow │   │   RPI Flow    │   │  Resume Flow  │
+    │  Gofer Flow │   │   RPI Flow    │   │  Resume Flow  │
     │               │   │               │   │               │
     │ specify       │   │ 1_research    │   │ 6_resume_work │
     │    ↓          │   │      ↓        │   │      ↓        │
@@ -579,7 +579,7 @@ The `/0_business_scenario` command runs automatically when:
 
 | User Intent              | Routes To                                | Why                                       |
 | ------------------------ | ---------------------------------------- | ----------------------------------------- |
-| New feature from scratch | SpecKit (`/speckit.specify`)             | Full spec → plan → tasks → implement flow |
+| New feature from scratch | Gofer (`/speckit.specify`)               | Full spec → plan → tasks → implement flow |
 | Modify existing code     | RPI (`/1_research_codebase`)             | Research first, then plan changes         |
 | Fix a bug                | RPI (`/1_research_codebase`)             | Need to understand before fixing          |
 | Explore codebase         | RPI (`/1_research_codebase`)             | Pure research workflow                    |
@@ -639,14 +639,14 @@ describe('determineInitialCommand', () => {
 
 1. Launch Claude Code on fresh workspace → verify `/0_business_scenario` sent
 2. Complete triage interview → verify routing command sent
-3. Complete SpecKit phase → verify next phase command sent
+3. Complete Gofer phase → verify next phase command sent
 
 ### Manual Testing Steps
 
 1. Create a fresh workspace with no artifacts
 2. Launch Claude Code via Gofer
 3. Verify triage interview appears
-4. Select "New Feature" → verify SpecKit workflow starts
+4. Select "New Feature" → verify Gofer workflow starts
 5. Create a new workspace with existing spec.md
 6. Launch Claude Code → verify `/speckit.plan` is sent (not triage)
 

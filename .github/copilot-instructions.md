@@ -45,6 +45,55 @@ command names**:
 - `/gofer_constitution` - Create/update project constitution
 - `/gofer_hydrate` - Reverse-engineer spec from existing code
 
+## Quick Start - Suggested Actions
+
+When users ask "what can I do?" or need guidance, suggest these common
+workflows:
+
+### For New Features
+
+```
+/0_business_scenario Add user authentication with OAuth2
+```
+
+This runs the complete pipeline: research → specify → plan → implement →
+validate
+
+### For Existing Code
+
+```
+/1_gofer_research Analyze the authentication system
+/2_gofer_specify Create spec for password reset feature
+/3_gofer_plan Generate implementation plan
+```
+
+### For Implementation
+
+```
+/5_gofer_implement
+```
+
+Autonomously implements all tasks in dependency order with testing and
+validation
+
+### For Research & Analysis
+
+```
+/1_gofer_research How does the payment processing work?
+/10_gofer_cloud Analyze our AWS infrastructure
+```
+
+### For Project Setup
+
+```
+/gofer_constitution Create project principles and standards
+Gofer: Initialize Repository (Command Palette)
+```
+
+**Tip**: Most users want `/0_business_scenario` for end-to-end feature
+development or `/1_gofer_research` + `/2_gofer_specify` + `/5_gofer_implement`
+for step-by-step control.
+
 ## Architecture (Critical Understanding)
 
 Gofer consists of **three main components** that work together:
@@ -52,7 +101,7 @@ Gofer consists of **three main components** that work together:
 ### 1. **VSCode Extension** (`/extension/`)
 
 - **Auto-detects** `.specify/` folders in any repo
-- **Manages** GitHub Spec Kit format specifications
+- **Manages** Gofer format specifications
 - **Launches** Language Server with LSP + MCP protocols
 - **Auto-creates** `.vscode/mcp.json` for Claude Code integration
 - **Entry point**: `extension/src/extension.ts` → activates on workspace open
@@ -61,7 +110,7 @@ Gofer consists of **three main components** that work together:
 
 - **Dual protocol**: Combines LSP (VSCode ↔ Extension) + MCP (Claude ↔ Tools)
 - **Exposes 6 MCP tools** for Claude Code to orchestrate tasks
-- **Loads specs** from `.specify/specs/` using GitHub Spec Kit format
+- **Loads specs** from `.specify/specs/` using Gofer format
 - **Entry point**: `language-server/src/server.ts`
 - **Key files**: `mcp/toolHandler.ts`, `utils/goferLoader.ts`
 
@@ -76,7 +125,7 @@ Gofer consists of **three main components** that work together:
 **Critical Flow**: Extension → Language Server (MCP tools) → Claude Code →
 Orchestrator → Engineer/Test Agents
 
-## Specification Format (GitHub Spec Kit)
+## Specification Format (Gofer)
 
 All specs in `.specify/specs/###-feature-name/`:
 
@@ -98,8 +147,8 @@ created: "2025-10-20"
 - [ ] #T002 Another task (deps: T001)
 ```
 
-**Key Pattern**: The extension uses `goferParser.ts` to extract YAML
-frontmatter and parse Markdown task lists with dependencies.
+**Key Pattern**: The extension uses `goferParser.ts` to extract YAML frontmatter
+and parse Markdown task lists with dependencies.
 
 ## Gofer Autonomous Workflow (For Users)
 
@@ -298,10 +347,11 @@ Three separate `package.json` files:
 
 - **Method 1**: VSCode native MCP support (1.102+) → Reads tools from Language
   Server
-- **Method 2**: File-based (legacy) → `.claude-input.txt` ↔ `.claude-output.txt`
+- **Method 2**: File-based (legacy) → `.claude-input.txt` ↔
+  `.claude-output.txt`
 - **Config**: Auto-created `.vscode/mcp.json` by extension (`mcpConfig.ts`)
 
-### GitHub Spec Kit Migration
+### Gofer Format Migration
 
 Extension detects legacy JSON format and offers upgrade:
 
@@ -309,7 +359,7 @@ Extension detects legacy JSON format and offers upgrade:
 // goferMigrator.ts pattern
 const versionInfo = await migrator.getVersionInfo();
 if (versionInfo.format === 'legacy-json') {
-  await migrator.migrateToSpecKit();
+  await migrator.migrateToGofer();
 }
 ```
 
@@ -357,7 +407,7 @@ await notificationService.sendSMS('Task failed, needs review');
 
 1. Use extension: `Gofer: Initialize Repository`
 2. Create in `.specify/specs/###-name/spec.md`
-3. Follow GitHub Spec Kit format (YAML frontmatter + Markdown)
+3. Follow Gofer format (YAML frontmatter + Markdown)
 4. Extension auto-detects and shows in progress panel
 
 ## Anti-Patterns (Avoid These)
@@ -375,7 +425,7 @@ validation - Engineer agent enforces ❌ **Don't** commit `.claude-input.txt` /
 # Extension commands (Cmd+Shift+P)
 Gofer: Initialize Repository      # Create .specify/ structure
 Gofer: Show Progress Panel        # View task status
-Gofer: Upgrade to Spec Kit Format # Migrate legacy JSON
+Gofer: Upgrade to Gofer Format # Migrate legacy JSON
 Gofer: Check for Updates          # Auto-update extension
 
 # NPM scripts (root)

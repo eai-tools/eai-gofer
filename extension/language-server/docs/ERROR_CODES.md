@@ -1,17 +1,17 @@
 # Error Codes Documentation
 
-This document describes the error codes used by the Gofer Language Server for consistent error handling and debugging.
+This document describes the error codes used by the Gofer Language Server for
+consistent error handling and debugging.
 
 ## Overview
 
-The Gofer Language Server uses structured error codes to categorize different types of failures. Each error includes a code, message, and optional data for debugging.
+The Gofer Language Server uses structured error codes to categorize different
+types of failures. Each error includes a code, message, and optional data for
+debugging.
 
 ## Error Structure
 
 ```typescript
-
-
-
 interface ServerError {
   code: string;
   message: string;
@@ -19,10 +19,7 @@ interface ServerError {
   data?: unknown;
   timestamp?: string;
 }
-
 ```
-
-
 
 ## Error Categories
 
@@ -42,9 +39,6 @@ interface ServerError {
 - **Example**:
 
   ```json
-
-
-
   {
     "code": "INIT_ERROR",
     "message": "Failed to initialize server components",
@@ -56,8 +50,6 @@ interface ServerError {
   }
   ```
 
-
-
 #### NOT_INITIALIZED (1002)
 
 - **Description**: Server components not properly initialized
@@ -66,23 +58,18 @@ interface ServerError {
 
 - **Common Causes**:
   - MCP tool handler not created
-  - SpecKit loader not initialized
+  - Gofer loader not initialized
   - Missing workspace folder
 
 - **Example**:
 
   ```json
-
-
-
   {
     "code": "NOT_INITIALIZED",
-    "message": "SpecKit loader not initialized",
+    "message": "Gofer loader not initialized",
     "statusCode": 503
   }
   ```
-
-
 
 ### 2. Validation Errors (2000-2099)
 
@@ -100,9 +87,6 @@ interface ServerError {
 - **Example**:
 
   ```json
-
-
-
   {
     "code": "VALIDATION_ERROR",
     "message": "specId and taskId are required",
@@ -114,34 +98,35 @@ interface ServerError {
   }
   ```
 
-
-
 #### INVALID_STATUS (2002)
 
 - **Description**: Task status value is invalid
 
 - **Status Code**: 400
 
-- **Valid Values**: `pending`, `in_progress`, `testing`, `completed`, `failed`, `blocked`
+- **Valid Values**: `pending`, `in_progress`, `testing`, `completed`, `failed`,
+  `blocked`
 
 - **Example**:
 
   ```json
-
-
-
   {
     "code": "INVALID_STATUS",
     "message": "Invalid status: 'invalid'. Valid statuses: pending, in_progress, testing, completed, failed, blocked",
     "statusCode": 400,
     "data": {
       "provided": "invalid",
-      "valid": ["pending", "in_progress", "testing", "completed", "failed", "blocked"]
+      "valid": [
+        "pending",
+        "in_progress",
+        "testing",
+        "completed",
+        "failed",
+        "blocked"
+      ]
     }
   }
   ```
-
-
 
 #### INVALID_SPEC_ID (2003)
 
@@ -154,9 +139,6 @@ interface ServerError {
 - **Example**:
 
   ```json
-
-
-
   {
     "code": "INVALID_SPEC_ID",
     "message": "Invalid specification ID format: 'invalid-spec'",
@@ -169,8 +151,6 @@ interface ServerError {
   }
   ```
 
-
-
 #### INVALID_TASK_ID (2004)
 
 - **Description**: Task ID format is invalid
@@ -182,9 +162,6 @@ interface ServerError {
 - **Example**:
 
   ```json
-
-
-
   {
     "code": "INVALID_TASK_ID",
     "message": "Invalid task ID format: 'TASK1'",
@@ -196,8 +173,6 @@ interface ServerError {
     }
   }
   ```
-
-
 
 ### 3. Not Found Errors (3000-3099)
 
@@ -212,9 +187,6 @@ interface ServerError {
 - **Example**:
 
   ```json
-
-
-
   {
     "code": "NOT_FOUND",
     "message": "Resource not found: Specification: 001-missing-spec",
@@ -227,8 +199,6 @@ interface ServerError {
   }
   ```
 
-
-
 #### SPEC_NOT_FOUND (3002)
 
 - **Description**: Specification not found
@@ -238,9 +208,6 @@ interface ServerError {
 - **Example**:
 
   ```json
-
-
-
   {
     "code": "SPEC_NOT_FOUND",
     "message": "Specification not found: 001-missing-spec",
@@ -252,8 +219,6 @@ interface ServerError {
   }
   ```
 
-
-
 #### TASK_NOT_FOUND (3003)
 
 - **Description**: Task not found in specification
@@ -263,9 +228,6 @@ interface ServerError {
 - **Example**:
 
   ```json
-
-
-
   {
     "code": "TASK_NOT_FOUND",
     "message": "Task not found: T999 in spec 001-login-feature",
@@ -277,8 +239,6 @@ interface ServerError {
     }
   }
   ```
-
-
 
 ### 4. File System Errors (4000-4099)
 
@@ -297,9 +257,6 @@ interface ServerError {
 - **Example**:
 
   ```json
-
-
-
   {
     "code": "FILE_ERROR",
     "message": "Failed to read specification file",
@@ -312,8 +269,6 @@ interface ServerError {
     }
   }
   ```
-
-
 
 #### FILE_PARSE_ERROR (4002)
 
@@ -329,9 +284,6 @@ interface ServerError {
 - **Example**:
 
   ```json
-
-
-
   {
     "code": "FILE_PARSE_ERROR",
     "message": "Failed to parse YAML frontmatter in specification",
@@ -345,8 +297,6 @@ interface ServerError {
   }
   ```
 
-
-
 #### FILE_WRITE_ERROR (4003)
 
 - **Description**: Failed to write to file
@@ -356,9 +306,6 @@ interface ServerError {
 - **Example**:
 
   ```json
-
-
-
   {
     "code": "FILE_WRITE_ERROR",
     "message": "Failed to update task status in specification file",
@@ -370,8 +317,6 @@ interface ServerError {
     }
   }
   ```
-
-
 
 ### 5. API Errors (5000-5099)
 
@@ -386,9 +331,6 @@ interface ServerError {
 - **Example**:
 
   ```json
-
-
-
   {
     "code": "API_ERROR",
     "message": "Anthropic API request failed",
@@ -402,8 +344,6 @@ interface ServerError {
   }
   ```
 
-
-
 #### API_TIMEOUT (5002)
 
 - **Description**: API request timed out
@@ -413,9 +353,6 @@ interface ServerError {
 - **Example**:
 
   ```json
-
-
-
   {
     "code": "API_TIMEOUT",
     "message": "API request timed out after 30000ms",
@@ -428,8 +365,6 @@ interface ServerError {
   }
   ```
 
-
-
 #### API_AUTH_ERROR (5003)
 
 - **Description**: API authentication failed
@@ -439,9 +374,6 @@ interface ServerError {
 - **Example**:
 
   ```json
-
-
-
   {
     "code": "API_AUTH_ERROR",
     "message": "Invalid API key for Anthropic",
@@ -453,8 +385,6 @@ interface ServerError {
     }
   }
   ```
-
-
 
 ### 6. Test Errors (6000-6099)
 
@@ -472,9 +402,6 @@ interface ServerError {
 - **Example**:
 
   ```json
-
-
-
   {
     "code": "TEST_ERROR",
     "message": "Failed to execute Playwright tests",
@@ -488,8 +415,6 @@ interface ServerError {
   }
   ```
 
-
-
 #### TEST_TIMEOUT (6002)
 
 - **Description**: Test execution timed out
@@ -499,9 +424,6 @@ interface ServerError {
 - **Example**:
 
   ```json
-
-
-
   {
     "code": "TEST_TIMEOUT",
     "message": "Test execution timed out after 300000ms",
@@ -513,8 +435,6 @@ interface ServerError {
     }
   }
   ```
-
-
 
 ### 7. Security Errors (7000-7099)
 
@@ -532,9 +452,6 @@ interface ServerError {
 - **Example**:
 
   ```json
-
-
-
   {
     "code": "SECURITY_VIOLATION",
     "message": "Path traversal detected in specification ID",
@@ -550,8 +467,6 @@ interface ServerError {
   }
   ```
 
-
-
 #### RATE_LIMIT_EXCEEDED (7002)
 
 - **Description**: Rate limit exceeded
@@ -561,9 +476,6 @@ interface ServerError {
 - **Example**:
 
   ```json
-
-
-
   {
     "code": "RATE_LIMIT_EXCEEDED",
     "message": "Rate limit exceeded: 100 requests per minute",
@@ -577,8 +489,6 @@ interface ServerError {
   }
   ```
 
-
-
 ### 8. Internal Errors (8000-8999)
 
 #### INTERNAL_ERROR (8001)
@@ -590,9 +500,6 @@ interface ServerError {
 - **Example**:
 
   ```json
-
-
-
   {
     "code": "INTERNAL_ERROR",
     "message": "Internal server error in mcp-tools-call: TypeError: Cannot read property 'id' of undefined",
@@ -604,8 +511,6 @@ interface ServerError {
   }
   ```
 
-
-
 #### UNKNOWN_ERROR (8002)
 
 - **Description**: Unknown error occurred
@@ -615,9 +520,6 @@ interface ServerError {
 - **Example**:
 
   ```json
-
-
-
   {
     "code": "UNKNOWN_ERROR",
     "message": "Unknown error in lsp-get-specs",
@@ -628,23 +530,20 @@ interface ServerError {
   }
   ```
 
-
-
 ## Error Handling Best Practices
 
 ### For Clients
 
-1. **Check Error Codes**: Always check the `code` field for specific error handling
+1. **Check Error Codes**: Always check the `code` field for specific error
+   handling
 2. **Graceful Degradation**: Provide fallbacks for non-critical errors
-3. **User-Friendly Messages**: Convert technical errors to user-friendly messages
+3. **User-Friendly Messages**: Convert technical errors to user-friendly
+   messages
 4. **Logging**: Log full error details for debugging
 
 ```typescript
-
-
-
 try {
-  const result = await connection.sendRequest('specKit/getSpecs', {});
+  const result = await connection.sendRequest('gofer/getSpecs', {});
   if (!result.success) {
     switch (result.code) {
       case 'NOT_INITIALIZED':
@@ -661,10 +560,7 @@ try {
 } catch (error) {
   console.error('Request failed:', error);
 }
-
 ```
-
-
 
 ### For Server Development
 
@@ -674,9 +570,6 @@ try {
 4. **Consistent Formatting**: Use the same error structure across all handlers
 
 ```typescript
-
-
-
 // Good error handling
 try {
   const spec = await goferLoader.loadSpec(specId);
@@ -684,28 +577,28 @@ try {
     throw new NotFoundError(`Specification: ${specId}`);
   }
 } catch (error) {
-  logger.error('Failed to load specification', error, { specId, operation: 'loadSpec' });
-  
+  logger.error('Failed to load specification', error, {
+    specId,
+    operation: 'loadSpec',
+  });
+
   if (error instanceof NotFoundError) {
     return {
       success: false,
       code: 'SPEC_NOT_FOUND',
       message: error.message,
-      data: { specId, searchPath: '.specify/specs/' }
+      data: { specId, searchPath: '.specify/specs/' },
     };
   }
-  
+
   return {
     success: false,
     code: 'INTERNAL_ERROR',
     message: `Internal error: ${error.message}`,
-    data: { operation: 'loadSpec', specId }
+    data: { operation: 'loadSpec', specId },
   };
 }
-
 ```
-
-
 
 ## Error Monitoring
 
@@ -717,15 +610,14 @@ All errors are logged with structured data:
 
 
 
-[ERROR] MCP tool specgofer_get_specs failed Error: {"message":"SpecKit loader not initialized","code":"NOT_INITIALIZED","statusCode":503} Data: {}
+[ERROR] MCP tool specgofer_get_specs failed Error: {"message":"Gofer loader not initialized","code":"NOT_INITIALIZED","statusCode":503} Data: {}
 
 ```
-
-
 
 ### Metrics
 
 Track error rates by code:
+
 - `server.errors.total` - Total error count
 - `server.errors.by_code` - Errors grouped by code
 - `server.errors.by_operation` - Errors grouped by operation
@@ -733,6 +625,7 @@ Track error rates by code:
 ### Alerting
 
 Set up alerts for critical errors:
+
 - `INIT_ERROR` - Server failing to start
 - `SECURITY_VIOLATION` - Potential security threats
 - `API_AUTH_ERROR` - Authentication issues
@@ -742,22 +635,26 @@ Set up alerts for critical errors:
 
 ### Common Error Scenarios
 
-#### "SpecKit loader not initialized"
+#### "Gofer loader not initialized"
+
 1. Check workspace folder is set
 2. Verify `.specify` directory exists
 3. Restart language server
 
 #### "Specification not found"
+
 1. Check specification ID format
 2. Verify file exists in `.specify/specs/`
 3. Check file permissions
 
 #### "API request failed"
+
 1. Verify API keys are set
 2. Check network connectivity
 3. Review rate limits
 
 #### "Test execution failed"
+
 1. Check test framework installation
 2. Verify test files exist
 3. Review test configuration

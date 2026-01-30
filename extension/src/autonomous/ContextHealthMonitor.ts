@@ -63,6 +63,15 @@ export interface ContextHealthStatus {
   timestamp: number;
   /** Associated session ID */
   sessionId?: string;
+  // Spec 014: Real context monitoring fields (additive)
+  /** Data source: 'real' (JSONL session), 'estimated' (filesystem), 'none' */
+  dataSource?: 'real' | 'estimated' | 'none';
+  /** Model ID from active session */
+  model?: string;
+  /** Session age in milliseconds */
+  sessionAge?: number;
+  /** Number of API calls in session */
+  apiCallCount?: number;
 }
 
 /**
@@ -104,6 +113,17 @@ export interface ContextAnalysisInput {
   sessionId?: string;
   /** Current Gofer stage (for stage-specific recommendations) */
   stage?: string;
+  // Spec 014: Real context monitoring fields (additive)
+  /** Data source for this analysis */
+  dataSource?: 'real' | 'estimated' | 'none';
+  /** Model context window size when real data available */
+  modelContextLimit?: number;
+  /** Model ID from active session */
+  model?: string;
+  /** Session age in milliseconds */
+  sessionAge?: number;
+  /** Number of API calls in session */
+  apiCallCount?: number;
 }
 
 /**
@@ -243,6 +263,11 @@ export class ContextHealthMonitor extends EventEmitter {
       recommendations,
       timestamp: Date.now(),
       sessionId: input.sessionId,
+      // Spec 014: pass through real context monitoring fields
+      dataSource: input.dataSource,
+      model: input.model,
+      sessionAge: input.sessionAge,
+      apiCallCount: input.apiCallCount,
     };
 
     // Track status history
@@ -377,7 +402,7 @@ export class ContextHealthMonitor extends EventEmitter {
    * @param status - Current context health status
    */
   private emitStatusEvents(status: ContextHealthStatus): void {
-    // Emit status-specific event
+    // Always emit status-specific event so UI (status bar) stays updated
     this.emit(status.status, status);
 
     // Check for status change
@@ -389,8 +414,14 @@ export class ContextHealthMonitor extends EventEmitter {
         utilizationPercent: status.utilizationPercent,
       });
 
-      // Emit handoff-recommended if transitioning to critical
-      if (status.status === 'critical' && this.config.autoHandoffEnabled) {
+      // Only emit handoff-recommended for real session data.
+      // Filesystem estimates ('estimated'/'none') are not real context
+      // window usage and should not trigger handoff notifications.
+      if (
+        status.status === 'critical' &&
+        this.config.autoHandoffEnabled &&
+        status.dataSource === 'real'
+      ) {
         this.emit('handoff-recommended', status);
         this.logger.warn('Handoff recommended due to critical context usage', {
           utilizationPercent: status.utilizationPercent,
@@ -405,6 +436,22 @@ export class ContextHealthMonitor extends EventEmitter {
   // ─────────────────────────────────────────────────────────────────────────────
   // Periodic Monitoring (T019)
   // ─────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Sets the effective context limit dynamically.
+   * Used when real session data reveals the active model's context window.
+   *
+   * @param limit - New context limit in tokens
+   */
+  setEffectiveContextLimit(limit: number): void {
+    if (limit > 0 && limit !== this.config.effectiveContextLimit) {
+      this.logger.info('Effective context limit updated', {
+        previous: this.config.effectiveContextLimit,
+        new: limit,
+      });
+      this.config.effectiveContextLimit = limit;
+    }
+  }
 
   /**
    * Sets the context provider function for periodic monitoring.
@@ -447,6 +494,8 @@ export class ContextHealthMonitor extends EventEmitter {
 
   /**
    * Performs a single health check using the context provider.
+   * If the provider returns a model-based context limit, updates
+   * the effective limit before calculating utilization.
    *
    * @returns ContextHealthStatus or null if no provider set
    */
@@ -458,6 +507,12 @@ export class ContextHealthMonitor extends EventEmitter {
 
     try {
       const input = this.contextProvider();
+
+      // T023: If analysis includes model-based limit, update before calculating
+      if (typeof input.modelContextLimit === 'number' && input.modelContextLimit > 0) {
+        this.setEffectiveContextLimit(input.modelContextLimit);
+      }
+
       return this.analyzeContext(input);
     } catch (error) {
       this.logger.error('Error during health check', error as Error);
@@ -554,7 +609,8 @@ export class ContextHealthMonitor extends EventEmitter {
       await fs.promises.mkdir(stateDir, { recursive: true });
 
       // Write state atomically (write to temp, then rename)
-      const state = {
+      // T024: Include dataSource, model, sessionId, sessionAge for MCP tool consumption
+      const state: Record<string, unknown> = {
         timestamp: status.timestamp,
         status: status.status,
         utilizationPercent: status.utilizationPercent,
@@ -563,6 +619,10 @@ export class ContextHealthMonitor extends EventEmitter {
         breakdown: status.breakdown,
         recommendations: status.recommendations,
         sessionId: status.sessionId,
+        // Spec 014 additive fields
+        dataSource: status.dataSource,
+        model: status.model,
+        sessionAge: status.sessionAge,
       };
 
       const tempFile = stateFile + '.tmp';

@@ -20,7 +20,8 @@ Auto-committed changes before release v1.0.0
 
 ## [1.0.0] - 2026-01-26
 
-First major release: Consultative business discovery, memory leak fixes, script upgrade improvements
+First major release: Consultative business discovery, memory leak fixes, script
+upgrade improvements
 
 ## [0.0.9] - 2026-01-25
 
@@ -32,7 +33,9 @@ fix: auto-reload VS Code after extension update
 
 ## [4.6.0] - 2026-01-19
 
-Add Gofer Memory and Journey System - agentic memory with priority-based retention, interactive journey mapping, journey variant generation, multi-option sequence diagrams, and vertical slice delivery
+Add Gofer Memory and Journey System - agentic memory with priority-based
+retention, interactive journey mapping, journey variant generation, multi-option
+sequence diagrams, and vertical slice delivery
 
 ## [4.5.0] - 2026-01-17
 
@@ -111,7 +114,7 @@ Fix buggy regex that corrupted copilot-instructions.md on upgrade
 
 ## [4.1.0] - 2026-01-08
 
-Replace external spec-kit CLI with bundled resources, add hydrate command
+Replace external gofer CLI with bundled resources, add hydrate command
 
 ## [4.0.1] - 2026-01-07
 
@@ -647,7 +650,7 @@ Auto-committed changes before release v1.12.8
 
 ## [1.12.8] - 2025-10-26
 
-Fix Initialize command to always trigger update flow for spec-kit format
+Fix Initialize command to always trigger update flow for gofer format
 
 ## [1.12.7] - 2025-10-26
 
@@ -669,12 +672,12 @@ Auto-committed changes before release v1.12.4
 
 ## [1.12.4] - 2025-10-26
 
-Complete SpecKit setup: bash scripts, Claude commands, VSCode settings + debug
+Complete Gofer setup: bash scripts, Claude commands, VSCode settings + debug
 logging
 
 ## [1.12.3] - 2025-10-26
 
-Fix fallback setup when spec-kit CLI fails + improve release automation
+Fix fallback setup when gofer CLI fails + improve release automation
 
 ## [1.11.0] - 2025-10-25
 
@@ -836,7 +839,7 @@ Auto-release
 
 ### Fixed
 
-- Task parser regex now supports multiple GitHub Spec Kit task formats
+- Task parser regex now supports multiple GitHub Gofer task formats
 - MCP configuration path resolution works correctly in packaged VSIX
 - Input validation prevents path traversal attacks
 - Extension context properly passed to MCP config helper
@@ -857,14 +860,14 @@ Auto-release
 
 ### Added
 
-- GitHub Spec Kit format support
+- GitHub Gofer format support
 - GoferParser for YAML frontmatter and Markdown task lists
 - Progress tree view with spec and task display
 - Auto-updater with periodic update checks
 
 ### Changed
 
-- Migrated from legacy JSON format to GitHub Spec Kit Markdown format
+- Migrated from legacy JSON format to GitHub Gofer Markdown format
 
 ## [1.0.0] - 2025-10-19
 

@@ -52,6 +52,37 @@ interface ExecuteTaskResponse {
   testHarnessPath?: string;
   error?: string;
   errorCode?: string;
+  // Additive fields from enriched context bridge (Spec 013 Phase 3)
+  memories?: string;
+  hints?: string;
+  researchChunks?: string;
+  memoryCoverage?: {
+    coveragePercent: number;
+    memoriesLoaded: number;
+    researchLoadedForGaps: boolean;
+  };
+}
+
+/** Shape of the enriched context bridge file */
+interface EnrichedContextBridge {
+  timestamp: number;
+  specId: string;
+  taskId: string;
+  sections: {
+    constitution?: string;
+    hints?: string;
+    memories?: string;
+    research?: string;
+  };
+  memoryCoverage?: {
+    coveredKeywords: string[];
+    uncoveredKeywords: string[];
+    coveragePercent: number;
+    memoriesLoaded: number;
+    researchLoadedForGaps: boolean;
+    researchTriggers: string[];
+  };
+  budgetUsage?: Record<string, unknown>;
 }
 
 interface UpdateTaskStatusResponse {
@@ -132,6 +163,10 @@ interface ContextHealthResponse {
     };
     recommendations: string[];
     timestamp: number;
+    // Real context monitoring fields (Spec 014 T042)
+    dataSource?: 'real' | 'estimated' | 'none';
+    model?: string;
+    sessionId?: string;
   };
   error?: string;
 }
@@ -393,6 +428,33 @@ export class MCPToolHandler {
     }
   }
 
+  /**
+   * Read enriched context from bridge file with 60-second freshness check.
+   * Returns null if file doesn't exist, is stale, or can't be read.
+   */
+  private async readEnrichedContext(): Promise<EnrichedContextBridge | null> {
+    try {
+      const bridgePath = path.join(
+        this.workspacePath,
+        '.specify',
+        'memory',
+        'enriched-context.json'
+      );
+      const content = await fs.readFile(bridgePath, 'utf-8');
+      const bridge: EnrichedContextBridge = JSON.parse(content);
+
+      // Freshness check: ignore data older than 60 seconds
+      if (Date.now() - bridge.timestamp > 60000) {
+        return null;
+      }
+
+      return bridge;
+    } catch {
+      // File doesn't exist or can't be parsed — graceful fallback
+      return null;
+    }
+  }
+
   private areDependenciesMet(spec: Spec, task: Task): boolean {
     if (task.dependencies.length === 0) {
       return true;
@@ -469,14 +531,35 @@ export class MCPToolHandler {
         // Test harness generation is optional - don't fail the task
       }
 
-      // Return task context for Claude to implement
-      return {
+      // Try to read enriched context from bridge file (Spec 013 Phase 3)
+      const enriched = await this.readEnrichedContext();
+
+      // Build response with enriched data if available
+      const response: ExecuteTaskResponse = {
         success: true,
         spec,
         task,
-        constitution: constitution ? constitution.substring(0, 2000) : undefined,
+        constitution:
+          enriched?.sections.constitution ||
+          (constitution ? constitution.substring(0, 2000) : undefined),
         testHarnessPath,
       };
+
+      // Add enriched fields if bridge data is fresh (T025, T026)
+      if (enriched) {
+        response.memories = enriched.sections.memories;
+        response.hints = enriched.sections.hints;
+        response.researchChunks = enriched.sections.research;
+        if (enriched.memoryCoverage) {
+          response.memoryCoverage = {
+            coveragePercent: enriched.memoryCoverage.coveragePercent,
+            memoriesLoaded: enriched.memoryCoverage.memoriesLoaded,
+            researchLoadedForGaps: enriched.memoryCoverage.researchLoadedForGaps,
+          };
+        }
+      }
+
+      return response;
     } catch (error) {
       return {
         success: false,
@@ -764,6 +847,10 @@ export class MCPToolHandler {
               breakdown: includeBreakdown ? state.breakdown : undefined,
               recommendations: state.recommendations || [],
               timestamp: state.timestamp,
+              // Real context monitoring fields (Spec 014 T042)
+              dataSource: state.dataSource,
+              model: state.model,
+              sessionId: state.sessionId,
             },
           };
         }

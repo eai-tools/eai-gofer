@@ -46,7 +46,7 @@ suite('GoferMigrator Test Suite', () => {
       await createGoferStructure();
 
       const format = await migrator.detectFormat();
-      assert.strictEqual(format, 'spec-kit');
+      assert.strictEqual(format, 'gofer');
     });
 
     test('should detect mixed format', async () => {
@@ -82,7 +82,7 @@ suite('GoferMigrator Test Suite', () => {
 
       const versionInfo = await migrator.getVersionInfo();
 
-      assert.strictEqual(versionInfo.format, 'spec-kit');
+      assert.strictEqual(versionInfo.format, 'gofer');
       assert.strictEqual(versionInfo.needsUpgrade, false);
       assert.ok(versionInfo.details.includes('GitHub Gofer'));
     });
@@ -112,7 +112,7 @@ suite('GoferMigrator Test Suite', () => {
 
       // Verify migration completed
       format = await migrator.detectFormat();
-      assert.strictEqual(format, 'spec-kit');
+      assert.strictEqual(format, 'gofer');
 
       // Check that Gofer structure exists
       const specsDir = path.join(tempDir, '.specify', 'specs');
@@ -155,7 +155,7 @@ suite('GoferMigrator Test Suite', () => {
 
       // Check that original JSON files exist in backup
       const backupFiles = await fs.readdir(backupDir);
-      const hasJsonBackup = backupFiles.some(file => file.endsWith('.json'));
+      const hasJsonBackup = backupFiles.some((file) => file.endsWith('.json'));
       assert.ok(hasJsonBackup);
     });
 
@@ -169,7 +169,7 @@ suite('GoferMigrator Test Suite', () => {
 
       // Should create basic Gofer structure
       const format = await migrator.detectFormat();
-      assert.strictEqual(format, 'spec-kit');
+      assert.strictEqual(format, 'gofer');
     });
   });
 
@@ -213,13 +213,10 @@ suite('GoferMigrator Test Suite', () => {
     const legacySpec = {
       id: '001-test',
       title: 'Test Spec',
-      status: 'draft'
+      status: 'draft',
     };
 
-    await fs.writeFile(
-      path.join(specifyDir, '001-test.json'),
-      JSON.stringify(legacySpec, null, 2)
-    );
+    await fs.writeFile(path.join(specifyDir, '001-test.json'), JSON.stringify(legacySpec, null, 2));
 
     await fs.writeFile(
       path.join(specifyDir, 'config.json'),
@@ -242,15 +239,15 @@ suite('GoferMigrator Test Suite', () => {
           id: 'T001',
           description: 'Create basic structure',
           status: 'pending',
-          dependencies: []
+          dependencies: [],
         },
         {
           id: 'T002',
           description: 'Add functionality',
           status: 'pending',
-          dependencies: ['T001']
-        }
-      ]
+          dependencies: ['T001'],
+        },
+      ],
     };
 
     await fs.writeFile(
@@ -273,24 +270,18 @@ suite('GoferMigrator Test Suite', () => {
 All code must have tests.
 `;
 
-    await fs.writeFile(
-      path.join(specifyDir, 'memory', 'constitution.md'),
-      constitution
-    );
+    await fs.writeFile(path.join(specifyDir, 'memory', 'constitution.md'), constitution);
   }
 
   async function createLegacyJsonFiles(): Promise<void> {
     const specifyDir = path.join(tempDir, '.specify');
-    
+
     const legacyFile = {
       id: 'legacy-item',
-      title: 'Legacy Item'
+      title: 'Legacy Item',
     };
 
-    await fs.writeFile(
-      path.join(specifyDir, 'legacy.json'),
-      JSON.stringify(legacyFile, null, 2)
-    );
+    await fs.writeFile(path.join(specifyDir, 'legacy.json'), JSON.stringify(legacyFile, null, 2));
   }
 
   async function directoryExists(dirPath: string): Promise<boolean> {

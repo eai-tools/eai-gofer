@@ -13,7 +13,7 @@ status: complete
 How should Gofer implement a `0_business_scenario` command that:
 
 1. Asks the user about their business scenario in Claude Code
-2. Decides between RPI (Research-Plan-Implement) vs SpecKit framework
+2. Decides between RPI (Research-Plan-Implement) vs Gofer framework
 3. Automatically drives Claude Code through the chosen framework sequence
 4. Detects Claude Code state and progress to continue from where it left off
 
@@ -21,7 +21,7 @@ How should Gofer implement a `0_business_scenario` command that:
 
 The codebase has strong foundations for this feature:
 
-- **16 existing commands** split between RPI (`/1_*` - `/8_*`) and SpecKit
+- **16 existing commands** split between RPI (`/1_*` - `/8_*`) and Gofer
   (`/speckit.*`)
 - **Autonomous responder** (`ClaudeCodeAutonomousResponder.ts`) already monitors
   Claude Code and makes intelligent decisions using Claude Haiku
@@ -42,7 +42,7 @@ router** that interviews the user and orchestrates the appropriate framework.
 - **Location**: `.claude/commands/`
 - **RPI Commands**: `/1_research_codebase` through `/8_define_test_cases`
   (numbered sequence)
-- **SpecKit Commands**: `/speckit.specify`, `/speckit.plan`, `/speckit.tasks`,
+- **Gofer Commands**: `/speckit.specify`, `/speckit.plan`, `/speckit.tasks`,
   `/speckit.implement`, etc.
 
 #### Claude Code Terminal Integration
@@ -72,20 +72,20 @@ outputChannel?.appendLine('  → Typed command: /speckit.implement');
 
 From `CLAUDE.md` (lines 69-88):
 
-| Scenario                            | Use                          | Why                                  |
-| ----------------------------------- | ---------------------------- | ------------------------------------ |
-| New feature with clear requirements | SpecKit                      | Structured spec → plan → tasks flow  |
-| Exploring unfamiliar codebase       | RPI `/1_research_codebase`   | Parallel agents for fast exploration |
-| Need to understand existing code    | RPI `/1_research_codebase`   | Deep analysis with codebase-analyzer |
-| Resume work after break             | RPI `/6_resume_work`         | Session management                   |
-| Test-first development              | RPI `/8_define_test_cases`   | DSL-based test design                |
-| Feature implementation              | SpecKit `/speckit.implement` | Task tracking with checkboxes        |
+| Scenario                            | Use                        | Why                                  |
+| ----------------------------------- | -------------------------- | ------------------------------------ |
+| New feature with clear requirements | Gofer                      | Structured spec → plan → tasks flow  |
+| Exploring unfamiliar codebase       | RPI `/1_research_codebase` | Parallel agents for fast exploration |
+| Need to understand existing code    | RPI `/1_research_codebase` | Deep analysis with codebase-analyzer |
+| Resume work after break             | RPI `/6_resume_work`       | Session management                   |
+| Test-first development              | RPI `/8_define_test_cases` | DSL-based test design                |
+| Feature implementation              | Gofer `/speckit.implement` | Task tracking with checkboxes        |
 
 **Key insight**:
 
 - **RPI** = Working with existing code, research needed, resumable sessions
-- **SpecKit** = New functionality, clear requirements, full
-  spec-to-implementation flow
+- **Gofer** = New functionality, clear requirements, full spec-to-implementation
+  flow
 
 ### Proposed Design: `0_business_scenario` Command
 
@@ -107,8 +107,8 @@ description: Triage business scenario and route to appropriate framework
 
 # Business Scenario Triage
 
-You are the Gofer orchestrator. Your job is to understand the user's
-business scenario and automatically drive them through the correct workflow.
+You are the Gofer orchestrator. Your job is to understand the user's business
+scenario and automatically drive them through the correct workflow.
 
 ## Step 1: Gather Context
 
@@ -136,9 +136,9 @@ Ask the user a focused set of questions:
 
 Check for existing artifacts:
 
-- `.specify/specs/*/spec.md` - SpecKit specs
-- `.specify/specs/*/plan.md` - SpecKit plans
-- `.specify/specs/*/tasks.md` - SpecKit tasks
+- `.specify/specs/*/spec.md` - Gofer specs
+- `.specify/specs/*/plan.md` - Gofer plans
+- `.specify/specs/*/tasks.md` - Gofer tasks
 - `thoughts/shared/research/*.md` - RPI research
 - `thoughts/shared/plans/*.md` - RPI plans
 - `thoughts/shared/sessions/*.md` - RPI saved sessions
@@ -147,7 +147,7 @@ Check for existing artifacts:
 
 Based on responses and state, call the appropriate command sequence:
 
-### Route to SpecKit (NEW functionality)
+### Route to Gofer (NEW functionality)
 
 If: New feature + clear requirements + no existing RPI context Then:
 `/speckit.specify` → `/speckit.plan` → `/speckit.tasks` → `/speckit.implement`
@@ -161,7 +161,7 @@ If: Modifying existing code OR unfamiliar with codebase OR resuming work Then:
 
 If: Saved session exists Then: `/6_resume_work`
 
-If: SpecKit tasks exist but incomplete Then: `/speckit.implement`
+If: Gofer tasks exist but incomplete Then: `/speckit.implement`
 
 ## Step 4: Drive Completion
 
@@ -243,7 +243,7 @@ async function determineInitialCommand(
     return '/0_business_scenario';
   }
 
-  // Existing SpecKit artifacts - continue flow
+  // Existing Gofer artifacts - continue flow
   if (hasTasks) return '/speckit.implement';
   if (hasPlan) return '/speckit.tasks';
   if (hasSpec) return '/speckit.plan';
@@ -271,7 +271,7 @@ async function determineInitialCommand(
             │                   │                   │
             ▼                   ▼                   ▼
     ┌───────────────┐   ┌───────────────┐   ┌───────────────┐
-    │  SpecKit Flow │   │   RPI Flow    │   │  Resume Flow  │
+    │  Gofer Flow │   │   RPI Flow    │   │  Resume Flow  │
     │               │   │               │   │               │
     │ specify       │   │ 1_research    │   │ 6_resume_work │
     │    ↓          │   │      ↓        │   │      ↓        │
@@ -309,7 +309,7 @@ async function determineInitialCommand(
    - Haiku provides intelligent decision-making
 
 3. **State is persistent across sessions**
-   - SpecKit: `.specify/specs/[feature]/`
+   - Gofer: `.specify/specs/[feature]/`
    - RPI: `thoughts/shared/`
    - Both support resume workflows
 

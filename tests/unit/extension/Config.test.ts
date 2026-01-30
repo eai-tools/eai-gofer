@@ -70,7 +70,7 @@ describe('Config - Constants', () => {
     });
 
     it('should have correct GitHub repo', () => {
-      expect(GITHUB_REPO).toBe('spec-kit-templates');
+      expect(GITHUB_REPO).toBe('gofer-templates');
     });
 
     it('should have GitHub API base URL', () => {
@@ -107,7 +107,7 @@ describe('Config - Constants', () => {
     });
 
     it('should have all commands prefixed with gofer.', () => {
-      Object.values(COMMANDS).forEach(cmd => {
+      Object.values(COMMANDS).forEach((cmd) => {
         expect(cmd).toMatch(/^gofer\./);
       });
     });
@@ -134,7 +134,7 @@ describe('Config - Constants', () => {
     });
 
     it('should have all config keys prefixed with gofer.', () => {
-      Object.values(CONFIG_KEYS).forEach(key => {
+      Object.values(CONFIG_KEYS).forEach((key) => {
         expect(key).toMatch(/^gofer\./);
       });
     });
@@ -348,7 +348,9 @@ describe('Config - Validation Helpers', () => {
     });
 
     it('should return false for files with constitution.md in name but not ending', () => {
-      expect(VALIDATION.isConstitutionFile('/project/.specify/memory/constitution.md.backup')).toBe(false);
+      expect(VALIDATION.isConstitutionFile('/project/.specify/memory/constitution.md.backup')).toBe(
+        false
+      );
     });
   });
 });
@@ -391,7 +393,7 @@ describe('Config - Integration Scenarios', () => {
   });
 
   it('should have all MCP tool names prefixed with gofer_', () => {
-    Object.values(MCP_TOOLS).forEach(tool => {
+    Object.values(MCP_TOOLS).forEach((tool) => {
       expect(tool).toMatch(/^gofer_/);
     });
   });

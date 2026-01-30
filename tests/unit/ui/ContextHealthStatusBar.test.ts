@@ -170,6 +170,7 @@ describe('ContextHealthStatusBar', () => {
         },
         recommendations: ['Context usage is healthy.'],
         timestamp: Date.now(),
+        dataSource: 'real' as const,
       };
 
       statusBar.updateDisplay(status);
@@ -194,6 +195,7 @@ describe('ContextHealthStatusBar', () => {
         },
         recommendations: ['Consider reducing context.'],
         timestamp: Date.now(),
+        dataSource: 'real' as const,
       };
 
       statusBar.updateDisplay(status);
@@ -218,6 +220,7 @@ describe('ContextHealthStatusBar', () => {
         },
         recommendations: ['Immediate action recommended.'],
         timestamp: Date.now(),
+        dataSource: 'real' as const,
       };
 
       statusBar.updateDisplay(status);
@@ -242,6 +245,7 @@ describe('ContextHealthStatusBar', () => {
         },
         recommendations: [],
         timestamp: Date.now(),
+        dataSource: 'real' as const,
       };
 
       statusBar.updateDisplay(healthyStatus);
@@ -285,6 +289,7 @@ describe('ContextHealthStatusBar', () => {
         },
         recommendations: [],
         timestamp: Date.now(),
+        dataSource: 'real' as const,
       };
 
       statusBar.updateDisplay(warningStatus);
@@ -315,6 +320,7 @@ describe('ContextHealthStatusBar', () => {
         },
         recommendations: [],
         timestamp: Date.now(),
+        dataSource: 'real' as const,
       };
 
       statusBar.updateDisplay(status);
@@ -345,11 +351,12 @@ describe('ContextHealthStatusBar', () => {
         },
         recommendations: ['Consider reducing context.'],
         timestamp: Date.now(),
+        dataSource: 'real' as const,
       };
 
       statusBar.updateDisplay(status);
 
-      expect(mockStatusBarItem.tooltip).toContain('WARNING');
+      // Real data tooltip shows "Last API call: X / Y tokens"
       expect(mockStatusBarItem.tooltip).toContain('66,000');
       expect(mockStatusBarItem.tooltip).toContain('120,000');
     });
@@ -370,6 +377,7 @@ describe('ContextHealthStatusBar', () => {
         },
         recommendations: ['Consider saving progress.'],
         timestamp: Date.now(),
+        dataSource: 'real' as const,
       };
 
       statusBar.updateDisplay(status);
@@ -411,6 +419,7 @@ describe('ContextHealthStatusBar', () => {
         },
         recommendations: ['Context is healthy.'],
         timestamp: Date.now(),
+        dataSource: 'real' as const,
       };
 
       statusBar.updateDisplay(status);
@@ -423,7 +432,7 @@ describe('ContextHealthStatusBar', () => {
       expect(vscode.window.showQuickPick).toHaveBeenCalled();
     });
 
-    it('should include breakdown categories in QuickPick', async () => {
+    it('should show session info (not breakdown) for real data in QuickPick', async () => {
       const status: ContextHealthStatus = {
         status: 'warning',
         utilizationPercent: 60,
@@ -439,6 +448,9 @@ describe('ContextHealthStatusBar', () => {
         },
         recommendations: ['Consider reducing context.'],
         timestamp: Date.now(),
+        dataSource: 'real' as const,
+        model: 'claude-opus-4-5-20251101',
+        sessionId: 'test-session-123',
       };
 
       statusBar.updateDisplay(status);
@@ -447,15 +459,14 @@ describe('ContextHealthStatusBar', () => {
       const commandHandler = registerCommandMock.mock.calls[0][1] as () => Promise<void>;
       await commandHandler();
 
-      // Check that QuickPick was called with items containing breakdown
       const quickPickMock = vi.mocked(vscode.window.showQuickPick);
       const quickPickCall = quickPickMock.mock.calls[0];
       const items = quickPickCall[0] as Array<{ label: string }>;
 
       const labels = items.map((item) => item.label);
-      expect(labels.some((l) => l.includes('Conversation'))).toBe(true);
-      expect(labels.some((l) => l.includes('Observations'))).toBe(true);
-      expect(labels.some((l) => l.includes('Memories'))).toBe(true);
+      // Real data shows session info, not token breakdown
+      expect(labels.some((l) => l.includes('Session Info'))).toBe(true);
+      expect(labels.some((l) => l.includes('Token Breakdown'))).toBe(false);
     });
   });
 
@@ -481,6 +492,18 @@ describe('ContextHealthStatusBar', () => {
         breakdown: { conversation: 30000 },
       });
 
+      // Without dataSource 'real', shows as no-session
+      expect(mockStatusBarItem.text).toContain('Context: --');
+    });
+
+    it('should update display with real data when monitor emits healthy event', () => {
+      statusBar.connect(monitor);
+
+      monitor.analyzeContext({
+        breakdown: { conversation: 30000 },
+        dataSource: 'real',
+      });
+
       expect(mockStatusBarItem.text).toContain('$(check)');
       expect(mockStatusBarItem.text).toContain('25%');
     });
@@ -490,6 +513,7 @@ describe('ContextHealthStatusBar', () => {
 
       monitor.analyzeContext({
         breakdown: { conversation: 70000 },
+        dataSource: 'real',
       });
 
       expect(mockStatusBarItem.text).toContain('$(warning)');
@@ -500,6 +524,7 @@ describe('ContextHealthStatusBar', () => {
 
       monitor.analyzeContext({
         breakdown: { conversation: 100000 },
+        dataSource: 'real',
       });
 
       expect(mockStatusBarItem.text).toContain('$(error)');
@@ -509,6 +534,7 @@ describe('ContextHealthStatusBar', () => {
       // Analyze before connecting
       monitor.analyzeContext({
         breakdown: { conversation: 60000 },
+        dataSource: 'real',
       });
 
       statusBar.connect(monitor);
@@ -561,6 +587,7 @@ describe('ContextHealthStatusBar', () => {
         },
         recommendations: [],
         timestamp: Date.now(),
+        dataSource: 'real' as const,
       };
 
       statusBar.updateDisplay(status);
@@ -607,6 +634,7 @@ describe('ContextHealthStatusBar', () => {
         },
         recommendations: [],
         timestamp: Date.now(),
+        dataSource: 'real' as const,
       };
 
       statusBar.updateDisplay(status);
@@ -642,6 +670,7 @@ describe('ContextHealthStatusBar', () => {
         },
         recommendations: [],
         timestamp: Date.now(),
+        dataSource: 'real' as const,
       };
 
       statusBar.updateDisplay(status);
@@ -675,6 +704,7 @@ describe('ContextHealthStatusBar', () => {
         },
         recommendations: [],
         timestamp: Date.now(),
+        dataSource: 'real' as const,
       };
 
       statusBar.updateDisplay(status);
@@ -708,6 +738,7 @@ describe('ContextHealthStatusBar', () => {
         },
         recommendations: [],
         timestamp: Date.now(),
+        dataSource: 'real' as const,
       };
 
       statusBar.updateDisplay(status);
@@ -747,6 +778,7 @@ describe('ContextHealthStatusBar', () => {
         },
         recommendations: [],
         timestamp: Date.now(),
+        dataSource: 'real' as const,
       };
 
       statusBar.updateDisplay(status);
@@ -786,6 +818,7 @@ describe('ContextHealthStatusBar', () => {
         },
         recommendations: [],
         timestamp: Date.now(),
+        dataSource: 'real' as const,
       };
 
       statusBar.updateDisplay(status);
@@ -867,6 +900,7 @@ describe('ContextHealthStatusBar', () => {
         },
         recommendations: [],
         timestamp: Date.now(),
+        dataSource: 'real' as const,
       };
 
       statusBar.updateDisplay(status);
@@ -901,6 +935,7 @@ describe('ContextHealthStatusBar', () => {
         },
         recommendations: [],
         timestamp: Date.now(),
+        dataSource: 'real' as const,
       };
 
       statusBar.updateDisplay(status);
@@ -937,6 +972,7 @@ describe('ContextHealthStatusBar', () => {
         },
         recommendations: [],
         timestamp: Date.now(),
+        dataSource: 'real' as const,
       };
 
       statusBar.updateDisplay(status);
@@ -986,6 +1022,7 @@ describe('ContextHealthStatusBar', () => {
         },
         recommendations: [],
         timestamp: Date.now(),
+        dataSource: 'real' as const,
       };
 
       statusBar.updateDisplay(status);
@@ -1026,6 +1063,7 @@ describe('ContextHealthStatusBar', () => {
         },
         recommendations: [],
         timestamp: Date.now(),
+        dataSource: 'real' as const,
       };
 
       statusBar.updateDisplay(status);
@@ -1073,6 +1111,7 @@ describe('ContextHealthStatusBar', () => {
           },
           recommendations: [],
           timestamp: Date.now(),
+          dataSource: 'real' as const,
         };
 
         statusBar.updateDisplay(status);
@@ -1120,6 +1159,9 @@ describe('ContextHealthStatusBar', () => {
         },
         recommendations: ['Consider saving progress.'],
         timestamp: Date.now(),
+        dataSource: 'real' as const,
+        model: 'claude-opus-4-5-20251101',
+        sessionId: 'test-session-123',
       };
 
       const maskingStats: MaskingStatistics = {
@@ -1163,9 +1205,10 @@ describe('ContextHealthStatusBar', () => {
       const items = quickPickCall[0] as Array<{ label: string }>;
       const labels = items.map((item) => item.label);
 
-      // All sections should be present
+      // All sections should be present (Token Breakdown is hidden for real data)
       expect(labels.some((l) => l.includes('Summary'))).toBe(true);
-      expect(labels.some((l) => l.includes('Token Breakdown'))).toBe(true);
+      expect(labels.some((l) => l.includes('Session Info'))).toBe(true);
+      expect(labels.some((l) => l.includes('Token Breakdown'))).toBe(false);
       expect(labels.some((l) => l.includes('Observation Masking'))).toBe(true);
       expect(labels.some((l) => l.includes('Stage Profile'))).toBe(true);
       expect(labels.some((l) => l.includes('Recommendations'))).toBe(true);
@@ -1188,6 +1231,7 @@ describe('ContextHealthStatusBar', () => {
         },
         recommendations: [],
         timestamp: Date.now(),
+        dataSource: 'real' as const,
       };
 
       statusBar.updateDisplay(status);
@@ -1221,6 +1265,7 @@ describe('ContextHealthStatusBar', () => {
         },
         recommendations: [],
         timestamp: Date.now(),
+        dataSource: 'real' as const,
       };
 
       statusBar.updateDisplay(status);
@@ -1236,6 +1281,168 @@ describe('ContextHealthStatusBar', () => {
       const labels = items.map((item) => item.label);
 
       expect(labels.some((l) => l.includes('Stage Profile'))).toBe(false);
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // T029: Real/No-Session Display Mode Tests (Spec 014 Phase 4)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  describe('real data display mode (T026)', () => {
+    it('should show model name for real data', () => {
+      const status = {
+        status: 'healthy' as const,
+        utilizationPercent: 54,
+        tokensUsed: 108000,
+        tokensLimit: 200000,
+        breakdown: {
+          specArtifacts: 0,
+          memories: 0,
+          hints: 0,
+          observations: 0,
+          systemFiles: 0,
+          conversation: 108000,
+        },
+        recommendations: [],
+        timestamp: Date.now(),
+        dataSource: 'real',
+        model: 'claude-opus-4-5-20251101',
+        sessionId: 'test-session',
+      } as ContextHealthStatus & Record<string, unknown>;
+
+      statusBar.updateDisplay(status);
+
+      expect(mockStatusBarItem.text).toContain('54%');
+      expect(mockStatusBarItem.text).toContain('Opus 4.5');
+    });
+
+    it('should show Sonnet for sonnet models', () => {
+      const status = {
+        status: 'healthy' as const,
+        utilizationPercent: 30,
+        tokensUsed: 60000,
+        tokensLimit: 200000,
+        breakdown: {
+          specArtifacts: 0,
+          memories: 0,
+          hints: 0,
+          observations: 0,
+          systemFiles: 0,
+          conversation: 60000,
+        },
+        recommendations: [],
+        timestamp: Date.now(),
+        dataSource: 'real',
+        model: 'claude-sonnet-4-20250514',
+        sessionId: 'test-session',
+      } as ContextHealthStatus & Record<string, unknown>;
+
+      statusBar.updateDisplay(status);
+
+      expect(mockStatusBarItem.text).toContain('Sonnet 4');
+    });
+  });
+
+  describe('no-session display mode (T027)', () => {
+    it('should show "No session" when dataSource is none', () => {
+      const status = {
+        status: 'healthy' as const,
+        utilizationPercent: 0,
+        tokensUsed: 0,
+        tokensLimit: 200000,
+        breakdown: {
+          specArtifacts: 0,
+          memories: 0,
+          hints: 0,
+          observations: 0,
+          systemFiles: 0,
+          conversation: 0,
+        },
+        recommendations: [],
+        timestamp: Date.now(),
+        dataSource: 'none',
+      } as ContextHealthStatus & Record<string, unknown>;
+
+      statusBar.updateDisplay(status);
+
+      expect(mockStatusBarItem.text).toContain('Context: --');
+    });
+
+    it('should use dim color for no-session mode', () => {
+      const status = {
+        status: 'healthy' as const,
+        utilizationPercent: 0,
+        tokensUsed: 0,
+        tokensLimit: 200000,
+        breakdown: {
+          specArtifacts: 0,
+          memories: 0,
+          hints: 0,
+          observations: 0,
+          systemFiles: 0,
+          conversation: 0,
+        },
+        recommendations: [],
+        timestamp: Date.now(),
+        dataSource: 'none',
+      } as ContextHealthStatus & Record<string, unknown>;
+
+      statusBar.updateDisplay(status);
+
+      expect(mockStatusBarItem.color).toBeDefined();
+      expect(mockStatusBarItem.backgroundColor).toBeUndefined();
+    });
+
+    it('should show helpful tooltip for no-session mode', () => {
+      const status = {
+        status: 'healthy' as const,
+        utilizationPercent: 0,
+        tokensUsed: 0,
+        tokensLimit: 200000,
+        breakdown: {
+          specArtifacts: 0,
+          memories: 0,
+          hints: 0,
+          observations: 0,
+          systemFiles: 0,
+          conversation: 0,
+        },
+        recommendations: [],
+        timestamp: Date.now(),
+        dataSource: 'none',
+      } as ContextHealthStatus & Record<string, unknown>;
+
+      statusBar.updateDisplay(status);
+
+      expect(mockStatusBarItem.tooltip).toContain('No active Claude Code session');
+    });
+  });
+
+  describe('estimated fallback display (T026)', () => {
+    it('should show "Context: --" for estimated data (no real session)', () => {
+      const status = {
+        status: 'warning' as const,
+        utilizationPercent: 65,
+        tokensUsed: 78000,
+        tokensLimit: 120000,
+        breakdown: {
+          specArtifacts: 50000,
+          memories: 20000,
+          hints: 5000,
+          observations: 3000,
+          systemFiles: 0,
+          conversation: 0,
+        },
+        recommendations: ['Context at 65%. Consider reducing context soon.'],
+        timestamp: Date.now(),
+        dataSource: 'estimated',
+      } as ContextHealthStatus & Record<string, unknown>;
+
+      statusBar.updateDisplay(status);
+
+      // Estimated data shows as no session (filesystem estimates aren't real context usage)
+      expect(mockStatusBarItem.text).toContain('Context: --');
+      expect(mockStatusBarItem.tooltip).toContain('No active Claude Code session');
     });
   });
 });

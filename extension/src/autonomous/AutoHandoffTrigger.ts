@@ -172,6 +172,11 @@ export class AutoHandoffTrigger implements vscode.Disposable {
    * @param status - Critical health status
    */
   private async handleCriticalStatus(status: ContextHealthStatus): Promise<void> {
+    // Only notify for real session data — filesystem estimates are not context usage
+    if (status.dataSource !== 'real') {
+      return;
+    }
+
     this.logger.info('Critical health status detected', {
       utilization: status.utilizationPercent,
       tokensUsed: status.tokensUsed,
@@ -186,6 +191,11 @@ export class AutoHandoffTrigger implements vscode.Disposable {
    * @param status - Health status with handoff recommendation
    */
   private async handleHandoffRecommended(status: ContextHealthStatus): Promise<void> {
+    // Only notify for real session data
+    if (status.dataSource !== 'real') {
+      return;
+    }
+
     this.logger.info('Handoff recommended', {
       utilization: status.utilizationPercent,
       recommendations: status.recommendations,
@@ -200,6 +210,11 @@ export class AutoHandoffTrigger implements vscode.Disposable {
    * @param status - Warning health status
    */
   private async handleWarningStatus(status: ContextHealthStatus): Promise<void> {
+    // Only notify for real session data
+    if (status.dataSource !== 'real') {
+      return;
+    }
+
     this.logger.debug('Warning health status detected', {
       utilization: status.utilizationPercent,
     });

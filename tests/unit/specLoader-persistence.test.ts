@@ -24,7 +24,7 @@ describe.skip('SpecLoader - Task Persistence', () => {
   });
 
   describe('updateTaskStatus', () => {
-    it('should update task status in Spec Kit format', async () => {
+    it('should update task status in Gofer format', async () => {
       // Create a test spec
       const specPath = path.join(testSpecDir, 'test-spec-001', 'spec.md');
       const tasksPath = path.join(testSpecDir, 'test-spec-001', 'tasks.md');
@@ -105,7 +105,7 @@ Test description.`;
     });
   });
 
-  describe('saveSpecKitSpec', () => {
+  describe('saveGoferSpec', () => {
     it('should update spec frontmatter status', async () => {
       const specPath = path.join(testSpecDir, 'test-spec-001', 'spec.md');
 

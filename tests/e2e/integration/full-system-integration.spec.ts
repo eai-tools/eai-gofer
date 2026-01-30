@@ -9,10 +9,10 @@ const __dirname = dirname(__filename);
 
 /**
  * E2E Tests for Extension-Server-Orchestrator Integration
- * 
+ *
  * Tests the full integration between:
  * - VSCode Extension
- * - Language Server 
+ * - Language Server
  * - Orchestrator Process
  * - MCP coordination
  */
@@ -29,7 +29,7 @@ test.describe('Integration E2E', () => {
   });
 
   test('extension can load and parse spec kit format', async () => {
-    // Create test spec in GitHub Spec Kit format
+    // Create test spec in GitHub Gofer format
     const specContent = `---
 id: "integration-test"
 title: "Integration Test Spec"
@@ -55,40 +55,40 @@ This tests the integration between components.
       specContent
     );
 
-    // Test SpecKitParser from extension
-    const { SpecKitParser } = await import('../../../extension/src/specKitParser.js');
-    const parser = new SpecKitParser(join(TEST_WORKSPACE, '.specify'));
-    
+    // Test GoferParser from extension
+    const { GoferParser } = await import('../../../extension/src/specKitParser.js');
+    const parser = new GoferParser(join(TEST_WORKSPACE, '.specify'));
+
     const specs = await parser.loadAllSpecs();
     expect(specs).toHaveLength(1);
-    
+
     const spec = specs[0];
     expect(spec.id).toBe('integration-test');
     expect(spec.title).toBe('Integration Test Spec');
     expect(spec.status).toBe('draft');
     expect(spec.tasks).toHaveLength(3);
-    
+
     // Verify task dependencies
-    const t001 = spec.tasks.find(t => t.id === 'T001');
-    const t002 = spec.tasks.find(t => t.id === 'T002');
-    const t003 = spec.tasks.find(t => t.id === 'T003');
-    
+    const t001 = spec.tasks.find((t) => t.id === 'T001');
+    const t002 = spec.tasks.find((t) => t.id === 'T002');
+    const t003 = spec.tasks.find((t) => t.id === 'T003');
+
     expect(t001?.dependencies).toEqual([]);
     expect(t002?.dependencies).toEqual(['T001']);
     expect(t003?.dependencies).toEqual(['T002']);
   });
 
-  test('language server can load same specs via SpecKitLoader', async () => {
+  test('language server can load same specs via GoferLoader', async () => {
     // Create test spec
     await createIntegrationTestSpec();
 
-    // Test SpecKitLoader from language server
-    const { SpecKitLoader } = await import('../../../language-server/src/utils/specKitLoader.js');
-    const loader = new SpecKitLoader(join(TEST_WORKSPACE, '.specify'));
-    
+    // Test GoferLoader from language server
+    const { GoferLoader } = await import('../../../language-server/src/utils/specKitLoader.js');
+    const loader = new GoferLoader(join(TEST_WORKSPACE, '.specify'));
+
     const specs = await loader.loadAllSpecs();
     expect(specs).toHaveLength(1);
-    
+
     const spec = specs[0];
     expect(spec.id).toBe('integration-test');
     expect(spec.title).toBe('Integration Test Spec');
@@ -99,27 +99,27 @@ This tests the integration between components.
     await createIntegrationTestSpec();
 
     // Load from extension
-    const { SpecKitParser } = await import('../../../extension/src/specKitParser.js');
-    const parser = new SpecKitParser(join(TEST_WORKSPACE, '.specify'));
+    const { GoferParser } = await import('../../../extension/src/specKitParser.js');
+    const parser = new GoferParser(join(TEST_WORKSPACE, '.specify'));
     const extensionSpecs = await parser.loadAllSpecs();
 
     // Load from language server
-    const { SpecKitLoader } = await import('../../../language-server/src/utils/specKitLoader.js');
-    const loader = new SpecKitLoader(join(TEST_WORKSPACE, '.specify'));
+    const { GoferLoader } = await import('../../../language-server/src/utils/specKitLoader.js');
+    const loader = new GoferLoader(join(TEST_WORKSPACE, '.specify'));
     const serverSpecs = await loader.loadAllSpecs();
 
     // Compare results
     expect(extensionSpecs).toHaveLength(serverSpecs.length);
-    
+
     for (let i = 0; i < extensionSpecs.length; i++) {
       const extSpec = extensionSpecs[i];
       const srvSpec = serverSpecs[i];
-      
+
       expect(extSpec.id).toBe(srvSpec.id);
       expect(extSpec.title).toBe(srvSpec.title);
       expect(extSpec.status).toBe(srvSpec.status);
       expect(extSpec.tasks.length).toBe(srvSpec.tasks.length);
-      
+
       // Compare tasks
       for (let j = 0; j < extSpec.tasks.length; j++) {
         expect(extSpec.tasks[j].id).toBe(srvSpec.tasks[j].id);
@@ -130,20 +130,20 @@ This tests the integration between components.
     }
   });
 
-  test('MCP tool handler can access specs loaded by SpecKitLoader', async () => {
+  test('MCP tool handler can access specs loaded by GoferLoader', async () => {
     await createIntegrationTestSpec();
 
     const { MCPToolHandler } = await import('../../../language-server/src/mcp/toolHandler.js');
-    const mockConnection = {} as any;
+    const mockConnection = {} as unknown;
     const handler = new MCPToolHandler(TEST_WORKSPACE, mockConnection);
 
     // Test getting specs
     const result = await handler.getSpecs();
-    
+
     expect(result.success).toBe(true);
     expect(Array.isArray(result.data)).toBe(true);
     expect(result.data.length).toBeGreaterThan(0);
-    
+
     const spec = result.data[0];
     expect(spec.id).toBe('integration-test');
     expect(spec.title).toBe('Integration Test Spec');
@@ -153,14 +153,14 @@ This tests the integration between components.
     await createIntegrationTestSpec();
 
     const { MCPToolHandler } = await import('../../../language-server/src/mcp/toolHandler.js');
-    const mockConnection = {} as any;
+    const mockConnection = {} as unknown;
     const handler = new MCPToolHandler(TEST_WORKSPACE, mockConnection);
 
     // Test getting next task
     const result = await handler.getNextTask();
-    
+
     expect(result.success).toBe(true);
-    
+
     if (result.data) {
       // Should return T001 since it has no dependencies
       expect(result.data.id).toBe('T001');
@@ -174,7 +174,7 @@ This tests the integration between components.
     await createIntegrationTestSpec();
 
     const { MCPToolHandler } = await import('../../../language-server/src/mcp/toolHandler.js');
-    const mockConnection = {} as any;
+    const mockConnection = {} as unknown;
     const handler = new MCPToolHandler(TEST_WORKSPACE, mockConnection);
 
     // First, get next task (should be T001)
@@ -194,7 +194,7 @@ This tests the integration between components.
     await createComplexDependencySpec();
 
     const { MCPToolHandler } = await import('../../../language-server/src/mcp/toolHandler.js');
-    const mockConnection = {} as any;
+    const mockConnection = {} as unknown;
     const handler = new MCPToolHandler(TEST_WORKSPACE, mockConnection);
 
     // Get next task - should be one with no dependencies
@@ -247,14 +247,14 @@ This tests the integration between components.
     // Test constitution loading from extension
     const { ConstitutionProvider } = await import('../../../extension/src/constitutionProvider.js');
     const provider = new ConstitutionProvider(TEST_WORKSPACE);
-    
+
     const children = await provider.getChildren();
     expect(children.length).toBeGreaterThan(0);
-    
+
     // Should have version info and articles
-    const hasVersionInfo = children.some(item => item.label.includes('Version'));
-    const hasArticles = children.some(item => item.label.includes('Article'));
-    
+    const hasVersionInfo = children.some((item) => item.label.includes('Version'));
+    const hasArticles = children.some((item) => item.label.includes('Article'));
+
     expect(hasVersionInfo || hasArticles).toBe(true);
   });
 
@@ -263,14 +263,19 @@ This tests the integration between components.
     const { FileMonitor } = await import('../../../extension/src/fileMonitor.js');
     const { ClaudeCodeBridge } = await import('../../../extension/src/claudeCodeBridge.js');
     const { ProgressProvider } = await import('../../../extension/src/progressProvider.js');
-    
+
     // Create mock objects with proper constructor parameters
-    const mockContext = { workspaceState: { get: () => undefined, update: () => Promise.resolve() } } as any;
+    const mockContext = {
+      workspaceState: {
+        get: (): undefined => undefined,
+        update: (): Promise<void> => Promise.resolve(),
+      },
+    } as unknown;
     const bridge = new ClaudeCodeBridge(TEST_WORKSPACE, 'test-api-key', mockContext);
     const progress = new ProgressProvider(join(TEST_WORKSPACE, '.specify'));
-    
+
     const monitor = new FileMonitor(TEST_WORKSPACE, bridge, progress);
-    
+
     expect(monitor).toBeDefined();
     expect(typeof monitor.start).toBe('function');
     expect(typeof monitor.stop).toBe('function');
@@ -279,31 +284,31 @@ This tests the integration between components.
   test('end-to-end workflow simulation', async () => {
     // Create a complete test environment
     await createIntegrationTestSpec();
-    
+
     // 1. Extension loads specs
-    const { SpecKitParser } = await import('../../../extension/src/specKitParser.js');
-    const parser = new SpecKitParser(join(TEST_WORKSPACE, '.specify'));
+    const { GoferParser } = await import('../../../extension/src/specKitParser.js');
+    const parser = new GoferParser(join(TEST_WORKSPACE, '.specify'));
     const specs = await parser.loadAllSpecs();
     expect(specs.length).toBeGreaterThan(0);
-    
+
     // 2. Language server provides MCP tools
     const { MCPToolHandler } = await import('../../../language-server/src/mcp/toolHandler.js');
-    const mockConnection = {} as any;
+    const mockConnection = {} as unknown;
     const handler = new MCPToolHandler(TEST_WORKSPACE, mockConnection);
-    
+
     // 3. Get next task via MCP
     const nextTask = await handler.getNextTask();
     expect(nextTask.success).toBe(true);
     expect(nextTask.data?.id).toBe('T001');
-    
+
     // 4. Execute task (simulate)
     const executeResult = await handler.executeTask('integration-test', 'T001');
     expect(executeResult.success).toBe(true);
-    
+
     // 5. Update task status
     const updateResult = await handler.updateTaskStatus('integration-test', 'T001', 'completed');
     expect(updateResult.success).toBe(true);
-    
+
     // 6. Verify next task is now available
     const nextTask2 = await handler.getNextTask();
     expect(nextTask2.data?.id).toBe('T002');
@@ -334,10 +339,7 @@ This tests the integration between components.
 `;
 
   await fs.mkdir(join(TEST_WORKSPACE, '.specify/specs/integration-test'), { recursive: true });
-  await fs.writeFile(
-    join(TEST_WORKSPACE, '.specify/specs/integration-test/spec.md'),
-    specContent
-  );
+  await fs.writeFile(join(TEST_WORKSPACE, '.specify/specs/integration-test/spec.md'), specContent);
 }
 
 /**
@@ -365,10 +367,7 @@ Tests complex task dependency resolution.
 `;
 
   await fs.mkdir(join(TEST_WORKSPACE, '.specify/specs/complex-deps'), { recursive: true });
-  await fs.writeFile(
-    join(TEST_WORKSPACE, '.specify/specs/complex-deps/spec.md'),
-    specContent
-  );
+  await fs.writeFile(join(TEST_WORKSPACE, '.specify/specs/complex-deps/spec.md'), specContent);
 }
 
 /**
@@ -380,17 +379,21 @@ async function setupTestWorkspace(): Promise<void> {
   await fs.mkdir(join(TEST_WORKSPACE, '.specify/specs'), { recursive: true });
   await fs.mkdir(join(TEST_WORKSPACE, '.specify/memory'), { recursive: true });
   await fs.mkdir(join(TEST_WORKSPACE, '.specify/scripts'), { recursive: true });
-  
+
   // Create basic package.json
   await fs.writeFile(
     join(TEST_WORKSPACE, 'package.json'),
-    JSON.stringify({
-      name: 'test-workspace',
-      version: '1.0.0',
-      scripts: {
-        test: 'vitest'
-      }
-    }, null, 2)
+    JSON.stringify(
+      {
+        name: 'test-workspace',
+        version: '1.0.0',
+        scripts: {
+          test: 'vitest',
+        },
+      },
+      null,
+      2
+    )
   );
 }
 

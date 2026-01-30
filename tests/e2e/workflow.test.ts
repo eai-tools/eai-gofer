@@ -394,7 +394,7 @@ async function getTaskStatus(specId: string, taskId: string): Promise<string> {
     const content = readFileSync(specPath, 'utf-8');
 
     // Parse YAML frontmatter and markdown to get task status
-    // This is a simplified version - full implementation would use the SpecKitParser
+    // This is a simplified version - full implementation would use the GoferParser
     if (content.includes(`#${taskId}`)) {
       if (content.includes(`- [x] #${taskId}`)) {
         return 'completed';

@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { SpecLoader } from '../../src/orchestrator/SpecLoader.js';
 import * as fs from 'fs/promises';
-import * as path from 'path';
 
 // Mock fs module
 vi.mock('fs/promises');
@@ -16,12 +15,12 @@ describe('SpecLoader', () => {
   });
 
   describe('loadAllSpecs', () => {
-    it('should load SpecKit format specs successfully', async () => {
+    it('should load Gofer format specs successfully', async () => {
       // Mock directory entries with isDirectory method (for withFileTypes: true)
       const mockDirEntries = [
         { name: '001-test-spec', isDirectory: () => true },
         { name: '002-another-spec', isDirectory: () => true },
-        { name: 'file.txt', isDirectory: () => false }
+        { name: 'file.txt', isDirectory: () => false },
       ];
 
       const mockSpecContent = `---
@@ -45,13 +44,16 @@ This is a test specification for the system.
 `;
 
       // Mock fs.readdir with withFileTypes
-      vi.mocked(fs.readdir).mockResolvedValue(mockDirEntries as any);
-      
+      vi.mocked(fs.readdir).mockResolvedValue(
+        mockDirEntries as unknown as Awaited<ReturnType<typeof fs.readdir>>
+      );
+
       // Mock fs.readFile for spec and tasks files
-      vi.mocked(fs.readFile).mockImplementation(async (filePath: any) => {
-        if (filePath.includes('spec.md')) {
+      vi.mocked(fs.readFile).mockImplementation(async (filePath) => {
+        const fp = String(filePath);
+        if (fp.includes('spec.md')) {
           return mockSpecContent;
-        } else if (filePath.includes('tasks.md')) {
+        } else if (fp.includes('tasks.md')) {
           return mockTasksContent;
         }
         throw new Error('File not found');
@@ -66,9 +68,7 @@ This is a test specification for the system.
     });
 
     it('should handle specs with tasks', async () => {
-      const mockDirEntries = [
-        { name: '001-task-spec', isDirectory: () => true }
-      ];
+      const mockDirEntries = [{ name: '001-task-spec', isDirectory: () => true }];
 
       const mockSpecContent = `---
 id: "001-task-spec"
@@ -89,11 +89,14 @@ This spec has tasks.
 - [ ] #T003 Add tests (deps: T002)
 `;
 
-      vi.mocked(fs.readdir).mockResolvedValue(mockDirEntries as any);
-      vi.mocked(fs.readFile).mockImplementation(async (filePath: any) => {
-        if (filePath.includes('spec.md')) {
+      vi.mocked(fs.readdir).mockResolvedValue(
+        mockDirEntries as unknown as Awaited<ReturnType<typeof fs.readdir>>
+      );
+      vi.mocked(fs.readFile).mockImplementation(async (filePath) => {
+        const fp = String(filePath);
+        if (fp.includes('spec.md')) {
           return mockSpecContent;
-        } else if (filePath.includes('tasks.md')) {
+        } else if (fp.includes('tasks.md')) {
           return mockTasksContent;
         }
         throw new Error('File not found');
@@ -120,7 +123,7 @@ This spec has tasks.
       const mockDirEntries = [
         { name: '001-valid-spec', isDirectory: () => true },
         { name: 'invalid-spec', isDirectory: () => true },
-        { name: '002-another-valid', isDirectory: () => true }
+        { name: '002-another-valid', isDirectory: () => true },
       ];
 
       const mockSpecContent = `---
@@ -133,14 +136,17 @@ created: "2025-10-21"
 # Valid Specification
 `;
 
-      vi.mocked(fs.readdir).mockResolvedValue(mockDirEntries as any);
-      vi.mocked(fs.readFile).mockImplementation(async (filePath: any) => {
-        if (filePath.includes('001-valid-spec')) {
+      vi.mocked(fs.readdir).mockResolvedValue(
+        mockDirEntries as unknown as Awaited<ReturnType<typeof fs.readdir>>
+      );
+      vi.mocked(fs.readFile).mockImplementation(async (filePath) => {
+        const fp = String(filePath);
+        if (fp.includes('001-valid-spec')) {
           return mockSpecContent.replace('001-valid-spec', '001-valid-spec');
-        } else if (filePath.includes('002-another-valid')) {
+        } else if (fp.includes('002-another-valid')) {
           return mockSpecContent.replace('001-valid-spec', '002-another-valid');
-        } else if (filePath.includes('tasks.md')) {
-          return '# Tasks\n';  // Empty tasks
+        } else if (fp.includes('tasks.md')) {
+          return '# Tasks\n'; // Empty tasks
         }
         throw new Error('ENOENT: File not found');
       });
@@ -148,7 +154,7 @@ created: "2025-10-21"
       const specs = await specLoader.loadAllSpecs();
 
       expect(specs).toHaveLength(2);
-      expect(specs.map(s => s.id)).toEqual(['001-valid-spec', '002-another-valid']);
+      expect(specs.map((s) => s.id)).toEqual(['001-valid-spec', '002-another-valid']);
     });
   });
 
@@ -166,13 +172,13 @@ created: "2025-10-21"
 This is a test specification.
 `;
 
-      // This test validates that YAML parsing works via the loadSpecKitSpec method
+      // This test validates that YAML parsing works via the loadGoferSpec method
       // The actual parseSpecHeader method is for a different format
       expect(specContent).toContain('id: "001-test-feature"');
       expect(specContent).toContain('title: "Test Feature"');
     });
 
-    it('should handle GitHub Spec Kit header format', () => {
+    it('should handle GitHub Gofer header format', () => {
       const specContent = `# Feature Specification: Minimal Spec
 
 Status: draft
@@ -200,9 +206,7 @@ Basic spec with minimal metadata.
     });
 
     it('should handle corrupted spec files', async () => {
-      const mockDirEntries = [
-        { name: '001-corrupted', isDirectory: () => true }
-      ];
+      const mockDirEntries = [{ name: '001-corrupted', isDirectory: () => true }];
 
       const corruptedSpecContent = `---
 invalid yaml: [
@@ -212,11 +216,14 @@ missing closing bracket
 # Corrupted Spec
 `;
 
-      vi.mocked(fs.readdir).mockResolvedValue(mockDirEntries as any);
-      vi.mocked(fs.readFile).mockImplementation(async (filePath: any) => {
-        if (filePath.includes('spec.md')) {
+      vi.mocked(fs.readdir).mockResolvedValue(
+        mockDirEntries as unknown as Awaited<ReturnType<typeof fs.readdir>>
+      );
+      vi.mocked(fs.readFile).mockImplementation(async (filePath) => {
+        const fp = String(filePath);
+        if (fp.includes('spec.md')) {
           return corruptedSpecContent;
-        } else if (filePath.includes('tasks.md')) {
+        } else if (fp.includes('tasks.md')) {
           return '# Tasks\n';
         }
         throw new Error('File not found');
@@ -225,14 +232,12 @@ missing closing bracket
       const specs = await specLoader.loadAllSpecs();
 
       // Should handle corrupted specs gracefully
-      expect(specs).toHaveLength(1);  // It will still create a spec with defaults
+      expect(specs).toHaveLength(1); // It will still create a spec with defaults
       expect(specs[0].id).toBe('001-corrupted');
     });
 
     it('should handle missing tasks.md files', async () => {
-      const mockDirEntries = [
-        { name: '001-no-tasks', isDirectory: () => true }
-      ];
+      const mockDirEntries = [{ name: '001-no-tasks', isDirectory: () => true }];
 
       const mockSpecContent = `---
 id: "001-no-tasks"
@@ -243,11 +248,14 @@ status: "draft"
 # Spec Without Tasks
 `;
 
-      vi.mocked(fs.readdir).mockResolvedValue(mockDirEntries as any);
-      vi.mocked(fs.readFile).mockImplementation(async (filePath: any) => {
-        if (filePath.includes('spec.md')) {
+      vi.mocked(fs.readdir).mockResolvedValue(
+        mockDirEntries as unknown as Awaited<ReturnType<typeof fs.readdir>>
+      );
+      vi.mocked(fs.readFile).mockImplementation(async (filePath) => {
+        const fp = String(filePath);
+        if (fp.includes('spec.md')) {
           return mockSpecContent;
-        } else if (filePath.includes('tasks.md')) {
+        } else if (fp.includes('tasks.md')) {
           throw new Error('ENOENT: File not found');
         }
         throw new Error('File not found');

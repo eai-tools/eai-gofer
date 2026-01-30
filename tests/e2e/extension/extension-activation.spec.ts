@@ -9,7 +9,7 @@ const __dirname = dirname(__filename);
 
 /**
  * E2E Tests for VSCode Extension
- * 
+ *
  * Tests the VSCode extension functionality including:
  * - Extension activation and registration
  * - Command execution
@@ -17,7 +17,6 @@ const __dirname = dirname(__filename);
  * - File watching and updates
  */
 
-const EXTENSION_PATH = join(__dirname, '../../../extension');
 const TEST_WORKSPACE = join(__dirname, '../../fixtures/test-workspace');
 
 test.describe('VSCode Extension E2E', () => {
@@ -31,10 +30,10 @@ test.describe('VSCode Extension E2E', () => {
     await cleanupTestWorkspace();
   });
 
-  test('extension activates and registers commands', async ({ page }) => {
+  test('extension activates and registers commands', async () => {
     // This test would need VSCode automation framework
     // For now, we'll test the core logic that doesn't require VSCode UI
-    
+
     // Test extension main export
     const extensionModule = await import('../../../extension/src/extension.js');
     expect(extensionModule.activate).toBeDefined();
@@ -60,15 +59,12 @@ Test spec for tree view.
 - [ ] #T002 Second task (deps: T001)
 `;
 
-    await fs.writeFile(
-      join(TEST_WORKSPACE, '.specify/specs/test-spec/spec.md'),
-      specContent
-    );
+    await fs.writeFile(join(TEST_WORKSPACE, '.specify/specs/test-spec/spec.md'), specContent);
 
-    // Test SpecKitParser directly
-    const { SpecKitParser } = await import('../../../extension/src/specKitParser.js');
-    const parser = new SpecKitParser(join(TEST_WORKSPACE, '.specify'));
-    
+    // Test GoferParser directly
+    const { GoferParser } = await import('../../../extension/src/specKitParser.js');
+    const parser = new GoferParser(join(TEST_WORKSPACE, '.specify'));
+
     const specs = await parser.loadAllSpecs();
     expect(specs).toHaveLength(1);
     expect(specs[0].id).toBe('test-spec');
@@ -96,7 +92,7 @@ Test spec for tree view.
     // Test ConstitutionProvider directly
     const { ConstitutionProvider } = await import('../../../extension/src/constitutionProvider.js');
     const provider = new ConstitutionProvider(TEST_WORKSPACE);
-    
+
     // Test that provider loads without errors
     const children = await provider.getChildren();
     expect(Array.isArray(children)).toBe(true);
@@ -105,31 +101,14 @@ Test spec for tree view.
 
   test('file monitor can be instantiated', async () => {
     const { FileMonitor } = await import('../../../extension/src/fileMonitor.js');
-    const { ClaudeCodeBridge } = await import('../../../extension/src/claudeCodeBridge.js');
-    const { ProgressProvider } = await import('../../../extension/src/progressProvider.js');
-    
-    // Create mock dependencies
-    const mockBridge = {} as ClaudeCodeBridge;
-    const mockProgress = {} as ProgressProvider;
-    
-    const monitor = new FileMonitor(TEST_WORKSPACE, mockBridge, mockProgress);
-    expect(monitor).toBeDefined();
-    
-    // Test basic functionality
-    expect(typeof monitor.start).toBe('function');
-    expect(typeof monitor.stop).toBe('function');
-  });
 
-  test('file monitor can be instantiated', async () => {
-    const { FileMonitor } = await import('../../../extension/src/fileMonitor.js');
-    
-    // Create mock dependencies - use any type for testing
-    const mockBridge = {} as any;
-    const mockProgress = {} as any;
-    
+    // Create mock dependencies
+    const mockBridge = {} as unknown;
+    const mockProgress = {} as unknown;
+
     const monitor = new FileMonitor(TEST_WORKSPACE, mockBridge, mockProgress);
     expect(monitor).toBeDefined();
-    
+
     // Test basic functionality
     expect(typeof monitor.start).toBe('function');
     expect(typeof monitor.stop).toBe('function');
@@ -137,10 +116,10 @@ Test spec for tree view.
 
   test('branch spec manager can be instantiated', async () => {
     const { BranchSpecManager } = await import('../../../extension/src/branchSpecManager.js');
-    
+
     const manager = new BranchSpecManager(TEST_WORKSPACE);
     expect(manager).toBeDefined();
-    
+
     // Test public methods exist
     expect(typeof manager.initializeBranchStructure).toBe('function');
     expect(typeof manager.getAllSpecPaths).toBe('function');
@@ -149,35 +128,35 @@ Test spec for tree view.
 
   test('auto updater can be instantiated with required parameters', async () => {
     const { AutoUpdater } = await import('../../../extension/src/autoUpdater.js');
-    
+
     const updater = new AutoUpdater('test/repo', '1.0.0', 'test-extension');
     expect(updater).toBeDefined();
-    
+
     // Test that methods exist
     expect(typeof updater.startPeriodicChecks).toBe('function');
   });
 
   test('MCP config helper creates proper VSCode configuration', async () => {
     const { MCPConfigHelper } = await import('../../../extension/src/mcpConfig.js');
-    
+
     // Create mock extension context
     const mockContext = {
-      asAbsolutePath: (relativePath: string) => join(TEST_WORKSPACE, relativePath)
-    } as any;
-    
+      asAbsolutePath: (relativePath: string): string => join(TEST_WORKSPACE, relativePath),
+    } as unknown;
+
     const config = new MCPConfigHelper(TEST_WORKSPACE, mockContext);
     expect(config).toBeDefined();
-    
+
     // Test that the main method exists
     expect(typeof config.createOrUpdateConfig).toBe('function');
   });
 
   test('orchestrator process can be instantiated with required parameters', async () => {
     const { OrchestratorProcess } = await import('../../../extension/src/orchestratorProcess.js');
-    
+
     const orchestrator = new OrchestratorProcess(TEST_WORKSPACE, 'test-api-key');
     expect(orchestrator).toBeDefined();
-    
+
     // Test basic functionality exists
     expect(typeof orchestrator.start).toBe('function');
     expect(typeof orchestrator.stop).toBe('function');
@@ -194,17 +173,21 @@ async function setupTestWorkspace(): Promise<void> {
   await fs.mkdir(join(TEST_WORKSPACE, '.specify/specs'), { recursive: true });
   await fs.mkdir(join(TEST_WORKSPACE, '.specify/memory'), { recursive: true });
   await fs.mkdir(join(TEST_WORKSPACE, '.specify/scripts'), { recursive: true });
-  
+
   // Create basic package.json
   await fs.writeFile(
     join(TEST_WORKSPACE, 'package.json'),
-    JSON.stringify({
-      name: 'test-workspace',
-      version: '1.0.0',
-      scripts: {
-        test: 'vitest'
-      }
-    }, null, 2)
+    JSON.stringify(
+      {
+        name: 'test-workspace',
+        version: '1.0.0',
+        scripts: {
+          test: 'vitest',
+        },
+      },
+      null,
+      2
+    )
   );
 }
 

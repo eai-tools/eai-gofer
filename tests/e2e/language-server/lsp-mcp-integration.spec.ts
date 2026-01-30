@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { join } from 'path';
 import { promises as fs } from 'fs';
-import { spawn, ChildProcess } from 'child_process';
+import { ChildProcess } from 'child_process';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
@@ -10,7 +10,7 @@ const __dirname = dirname(__filename);
 
 /**
  * E2E Tests for Language Server
- * 
+ *
  * Tests the Language Server functionality including:
  * - LSP connection and protocol
  * - MCP tool exposure
@@ -18,9 +18,7 @@ const __dirname = dirname(__filename);
  * - Tool execution
  */
 
-const LANGUAGE_SERVER_PATH = join(__dirname, '../../../language-server/src/server.ts');
 const TEST_WORKSPACE = join(__dirname, '../../fixtures/test-workspace');
-const SERVER_PORT = 3333;
 
 test.describe('Language Server E2E', () => {
   let serverProcess: ChildProcess | undefined;
@@ -36,7 +34,7 @@ test.describe('Language Server E2E', () => {
       serverProcess.kill();
       serverProcess = undefined;
     }
-    
+
     // Cleanup test workspace
     await cleanupTestWorkspace();
   });
@@ -45,7 +43,7 @@ test.describe('Language Server E2E', () => {
     // Test that the server module can be imported
     const serverModule = await import('../../../language-server/src/server.js');
     expect(serverModule).toBeDefined();
-    
+
     // Test basic server functionality without actually starting LSP
     // (Full LSP testing would require a proper LSP client)
     expect(typeof serverModule).toBe('object');
@@ -54,13 +52,13 @@ test.describe('Language Server E2E', () => {
   test('MCP tools are properly accessible', async () => {
     // Test MCP tool handler
     const { MCPToolHandler } = await import('../../../language-server/src/mcp/toolHandler.js');
-    
+
     // Mock connection object
-    const mockConnection = {} as any;
-    
+    const mockConnection = {} as unknown;
+
     const handler = new MCPToolHandler(TEST_WORKSPACE, mockConnection);
     expect(handler).toBeDefined();
-    
+
     // Test that expected methods exist
     expect(typeof handler.getSpecs).toBe('function');
     expect(typeof handler.getNextTask).toBe('function');
@@ -89,17 +87,14 @@ Test spec for language server.
 - [ ] #T002 Second task (deps: T001)
 `;
 
-    await fs.writeFile(
-      join(TEST_WORKSPACE, '.specify/specs/test-spec/spec.md'),
-      specContent
-    );
+    await fs.writeFile(join(TEST_WORKSPACE, '.specify/specs/test-spec/spec.md'), specContent);
 
-    // Test SpecKitLoader
-    const { SpecKitLoader } = await import('../../../language-server/src/utils/specKitLoader.js');
-    
-    const loader = new SpecKitLoader(join(TEST_WORKSPACE, '.specify'));
+    // Test GoferLoader
+    const { GoferLoader } = await import('../../../language-server/src/utils/specKitLoader.js');
+
+    const loader = new GoferLoader(join(TEST_WORKSPACE, '.specify'));
     const specs = await loader.loadAllSpecs();
-    
+
     expect(specs).toHaveLength(1);
     expect(specs[0].id).toBe('test-spec');
     expect(specs[0].title).toBe('Test Specification');
@@ -109,14 +104,14 @@ Test spec for language server.
   test('MCP tool execution - get specs', async () => {
     // Create test specs
     await createTestSpecs();
-    
+
     const { MCPToolHandler } = await import('../../../language-server/src/mcp/toolHandler.js');
-    const mockConnection = {} as any;
+    const mockConnection = {} as unknown;
     const handler = new MCPToolHandler(TEST_WORKSPACE, mockConnection);
-    
+
     // Test get_specs method
     const result = await handler.getSpecs();
-    
+
     expect(result).toBeDefined();
     expect(result.success).toBe(true);
     expect(Array.isArray(result.data)).toBe(true);
@@ -126,17 +121,17 @@ Test spec for language server.
   test('MCP tool execution - get next task', async () => {
     // Create test specs with tasks
     await createTestSpecs();
-    
+
     const { MCPToolHandler } = await import('../../../language-server/src/mcp/toolHandler.js');
-    const mockConnection = {} as any;
+    const mockConnection = {} as unknown;
     const handler = new MCPToolHandler(TEST_WORKSPACE, mockConnection);
-    
+
     // Test get_next_task method
     const result = await handler.getNextTask();
-    
+
     expect(result).toBeDefined();
     expect(result.success).toBe(true);
-    
+
     if (result.data) {
       expect(result.data).toHaveProperty('id');
       expect(result.data).toHaveProperty('title');
@@ -147,26 +142,26 @@ Test spec for language server.
   test('MCP tool execution - update task status', async () => {
     // Create test specs
     await createTestSpecs();
-    
+
     const { MCPToolHandler } = await import('../../../language-server/src/mcp/toolHandler.js');
-    const mockConnection = {} as any;
+    const mockConnection = {} as unknown;
     const handler = new MCPToolHandler(TEST_WORKSPACE, mockConnection);
-    
+
     // Test update_task_status method
     const result = await handler.updateTaskStatus('test-spec', 'T001', 'in_progress');
-    
+
     expect(result).toBeDefined();
     expect(result.success).toBe(true);
   });
 
   test('MCP tool execution - validate code', async () => {
     const { MCPToolHandler } = await import('../../../language-server/src/mcp/toolHandler.js');
-    const mockConnection = {} as any;
+    const mockConnection = {} as unknown;
     const handler = new MCPToolHandler(TEST_WORKSPACE, mockConnection);
-    
+
     // Test validate_code method
     const result = await handler.validateCode(['test.ts']);
-    
+
     expect(result).toBeDefined();
     expect(result.success).toBe(true);
     expect(result.data).toHaveProperty('isValid');
@@ -174,12 +169,12 @@ Test spec for language server.
 
   test('MCP tool execution - run tests', async () => {
     const { MCPToolHandler } = await import('../../../language-server/src/mcp/toolHandler.js');
-    const mockConnection = {} as any;
+    const mockConnection = {} as unknown;
     const handler = new MCPToolHandler(TEST_WORKSPACE, mockConnection);
-    
+
     // Test run_tests method
     const result = await handler.runTests('test-spec');
-    
+
     expect(result).toBeDefined();
     expect(result.success).toBe(true);
     expect(result.data).toHaveProperty('passed');
@@ -189,12 +184,12 @@ Test spec for language server.
 
   test('error handling for invalid parameters', async () => {
     const { MCPToolHandler } = await import('../../../language-server/src/mcp/toolHandler.js');
-    const mockConnection = {} as any;
+    const mockConnection = {} as unknown;
     const handler = new MCPToolHandler(TEST_WORKSPACE, mockConnection);
-    
+
     // Test invalid spec ID
     const result = await handler.updateTaskStatus('', 'T001', 'in_progress');
-    
+
     expect(result).toBeDefined();
     expect(result.success).toBe(false);
     expect(result.error).toContain('specId must be a non-empty string');
@@ -202,12 +197,12 @@ Test spec for language server.
 
   test('error handling for non-existent specs', async () => {
     const { MCPToolHandler } = await import('../../../language-server/src/mcp/toolHandler.js');
-    const mockConnection = {} as any;
+    const mockConnection = {} as unknown;
     const handler = new MCPToolHandler(TEST_WORKSPACE, mockConnection);
-    
+
     // Test non-existent spec
     const result = await handler.updateTaskStatus('non-existent-spec', 'T001', 'in_progress');
-    
+
     expect(result).toBeDefined();
     expect(result.success).toBe(false);
     expect(result.error).toBeDefined();
@@ -255,16 +250,10 @@ Another test spec.
 
   await fs.mkdir(join(TEST_WORKSPACE, '.specify/specs/test-spec'), { recursive: true });
   await fs.mkdir(join(TEST_WORKSPACE, '.specify/specs/another-spec'), { recursive: true });
-  
-  await fs.writeFile(
-    join(TEST_WORKSPACE, '.specify/specs/test-spec/spec.md'),
-    spec1Content
-  );
-  
-  await fs.writeFile(
-    join(TEST_WORKSPACE, '.specify/specs/another-spec/spec.md'),
-    spec2Content
-  );
+
+  await fs.writeFile(join(TEST_WORKSPACE, '.specify/specs/test-spec/spec.md'), spec1Content);
+
+  await fs.writeFile(join(TEST_WORKSPACE, '.specify/specs/another-spec/spec.md'), spec2Content);
 }
 
 /**
@@ -276,19 +265,23 @@ async function setupTestWorkspace(): Promise<void> {
   await fs.mkdir(join(TEST_WORKSPACE, '.specify/specs'), { recursive: true });
   await fs.mkdir(join(TEST_WORKSPACE, '.specify/memory'), { recursive: true });
   await fs.mkdir(join(TEST_WORKSPACE, '.specify/scripts'), { recursive: true });
-  
+
   // Create basic package.json
   await fs.writeFile(
     join(TEST_WORKSPACE, 'package.json'),
-    JSON.stringify({
-      name: 'test-workspace',
-      version: '1.0.0',
-      scripts: {
-        test: 'vitest'
-      }
-    }, null, 2)
+    JSON.stringify(
+      {
+        name: 'test-workspace',
+        version: '1.0.0',
+        scripts: {
+          test: 'vitest',
+        },
+      },
+      null,
+      2
+    )
   );
-  
+
   // Create constitution
   await fs.writeFile(
     join(TEST_WORKSPACE, '.specify/memory/constitution.md'),

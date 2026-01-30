@@ -43,7 +43,7 @@ test.describe('Gofer Brownfield Improvements', () => {
     expect(fs.existsSync(promptPath)).toBe(true);
 
     const content = fs.readFileSync(promptPath, 'utf-8');
-    expect(content).toContain('Reverse-engineer a SpecKit specification');
+    expect(content).toContain('Reverse-engineer a Gofer specification');
   });
 
   test('Phase 3: Real World Test Harness Generation', async () => {

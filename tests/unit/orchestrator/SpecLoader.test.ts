@@ -3,10 +3,10 @@
  * Tasks: T024
  *
  * Tests verify:
- * - loadAllSpecs() with GitHub Spec Kit parsing
+ * - loadAllSpecs() with GitHub Gofer parsing
  * - parseSpecHeader() for different metadata formats
  * - loadSpec() for single spec loading
- * - loadSpecKitTasks() task parsing
+ * - loadGoferTasks() task parsing
  * - Error handling
  *
  * Following "Real Tests with Real Data" philosophy:
@@ -75,7 +75,7 @@ Feature B description
       expect(specs.map((s) => s.id)).toContain('feature-b');
     });
 
-    it('should parse GitHub Spec Kit format without YAML frontmatter', async () => {
+    it('should parse GitHub Gofer format without YAML frontmatter', async () => {
       await createTestSpec(
         workspace,
         '001-test-feature',
@@ -295,7 +295,7 @@ Created: 2025-01-15
     });
   });
 
-  describe('loadSpecKitTasks() - Task Parsing', () => {
+  describe('loadGoferTasks() - Task Parsing', () => {
     it('should parse tasks with x (lowercase) as completed', async () => {
       await createTestSpec(workspace, '001-tasks', '# Tasks Test\nStatus: draft');
 

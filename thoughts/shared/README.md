@@ -43,7 +43,7 @@ thoughts/
 - Cloud infrastructure analysis (read-only)
 - Documents existing deployments
 
-## Relationship to SpecKit
+## Relationship to Gofer
 
 This `thoughts/` directory complements the `.specify/` directory:
 

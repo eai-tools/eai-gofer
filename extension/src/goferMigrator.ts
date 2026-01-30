@@ -30,7 +30,7 @@ export class GoferMigrator {
   /**
    * Detect the format of .specify folder
    */
-  async detectFormat(): Promise<'none' | 'legacy-json' | 'spec-kit' | 'mixed'> {
+  async detectFormat(): Promise<'none' | 'legacy-json' | 'gofer' | 'mixed'> {
     const exists = await this.exists();
     if (!exists) {
       return 'none';
@@ -50,7 +50,7 @@ export class GoferMigrator {
     if (isGofer && hasJsonSpecs) {
       return 'mixed'; // Has both formats
     } else if (isGofer) {
-      return 'spec-kit';
+      return 'gofer';
     } else if (isLegacy) {
       return 'legacy-json';
     } else {
@@ -104,9 +104,9 @@ export class GoferMigrator {
           details: 'Old JSON format detected. Upgrade to Gofer Markdown format?',
         };
 
-      case 'spec-kit':
+      case 'gofer':
         return {
-          format: 'spec-kit',
+          format: 'gofer',
           needsUpgrade: false,
           details: 'Gofer format (up to date)',
         };
@@ -143,6 +143,10 @@ export class GoferMigrator {
       { path: path.join(this.workspacePath, '.claude', 'commands'), name: 'Claude commands' },
       { path: path.join(this.workspacePath, '.claude', 'agents'), name: 'Claude agents' },
       { path: path.join(this.specifyPath, 'scripts', 'bash'), name: 'Bash scripts' },
+      {
+        path: path.join(this.specifyPath, 'scripts', 'hooks', 'post-tool-use.mjs'),
+        name: 'Hook scripts',
+      },
       { path: path.join(this.specifyPath, 'templates'), name: 'Templates' },
     ];
 
@@ -206,6 +210,11 @@ export class GoferMigrator {
           await this.createBashScripts();
         }
 
+        if (missing.includes('Hook scripts')) {
+          progress.report({ message: 'Syncing hook scripts...' });
+          await this.installHooksConfig();
+        }
+
         if (missing.includes('Templates')) {
           progress.report({ message: 'Syncing templates...' });
           await this.copyBundledTemplates();
@@ -229,8 +238,8 @@ export class GoferMigrator {
   async upgrade(): Promise<void> {
     const format = await this.detectFormat();
 
-    if (format === 'spec-kit') {
-      // Even if already in spec-kit format, check if templates need updating
+    if (format === 'gofer') {
+      // Even if already in gofer format, check if templates need updating
       // Skip confirmation when called from Initialize command - user already initiated action
       await this.updateGoferTemplates(true);
       return;
@@ -310,6 +319,10 @@ export class GoferMigrator {
         console.log('[Gofer] Updating .gitignore with state files...');
         await this.updateGitignore();
 
+        progress.report({ message: 'Installing hooks config...' });
+        console.log('[Gofer] Installing Claude Code hooks...');
+        await this.installHooksConfig();
+
         console.log('[Gofer] Installation complete!');
       }
     );
@@ -327,8 +340,8 @@ export class GoferMigrator {
   }
 
   /**
-   * Install spec-kit structure using bundled resources from this extension.
-   * This replaces the previous approach of pulling from external github/spec-kit repo.
+   * Install gofer structure using bundled resources from this extension.
+   * This replaces the previous approach of pulling from external repositories.
    */
   private async installGoferCLI(): Promise<void> {
     try {
@@ -372,18 +385,18 @@ export class GoferMigrator {
       console.log(`[installGoferCLI] Saved version ${packageJson.version}`);
 
       console.log('[installGoferCLI] Bundled resources installed successfully');
-      vscode.window.showInformationMessage('✓ Spec-kit templates installed successfully!');
+      vscode.window.showInformationMessage('✓ Gofer templates installed successfully!');
     } catch (error: any) {
       console.error('[installGoferCLI] Failed to install:', error);
       vscode.window.showWarningMessage(
-        `Could not install spec-kit structure (${error.message}).`,
+        `Could not install Gofer structure (${error.message}).`,
         'OK'
       );
     }
   }
 
   /**
-   * Update spec-kit templates for existing installation
+   * Update gofer templates for existing installation
    */
   private async updateGoferTemplates(skipConfirmation: boolean = false): Promise<void> {
     console.log('[updateGoferTemplates] Starting... skipConfirmation:', skipConfirmation);
@@ -459,6 +472,10 @@ export class GoferMigrator {
         console.log('[Gofer Update] Updating .gitignore with state files...');
         await this.updateGitignore();
 
+        progress.report({ message: 'Installing hooks config...' });
+        console.log('[Gofer Update] Installing Claude Code hooks...');
+        await this.installHooksConfig();
+
         progress.report({ message: 'Updating README...' });
         console.log('[Gofer Update] Updating .specify/README.md...');
         await this.createReadme();
@@ -479,7 +496,7 @@ export class GoferMigrator {
   }
 
   /**
-   * Setup Claude commands from spec-kit
+   * Setup Claude commands from gofer
    */
   private async setupClaudeCommands(): Promise<void> {
     try {
@@ -533,24 +550,22 @@ export class GoferMigrator {
         }
         console.log('[setupClaudeCommands] Successfully copied', copiedCount, 'command files');
       } catch (error) {
-        // If no bundled commands, try to get from GitHub or local spec-kit installation
+        // If no bundled commands, try to get from GitHub or local gofer installation
         console.error('[setupClaudeCommands] Error reading bundled commands:', error);
         console.log(
-          '[setupClaudeCommands] No bundled Claude commands found, checking for spec-kit installation'
+          '[setupClaudeCommands] No bundled Claude commands found, checking for gofer installation'
         );
 
-        // Check if spec-kit created the commands in .claude/commands/
+        // Check if gofer created the commands in .claude/commands/
         const goferCommandsDir = path.join(this.workspacePath, '.claude', 'commands');
         try {
           const files = await fs.readdir(goferCommandsDir);
-          const hasSpecKitCommands = files.some((f) => f.startsWith('speckit.'));
+          const hasGoferCommands = files.some((f) => f.startsWith('speckit.'));
 
-          if (!hasSpecKitCommands) {
-            console.warn(
-              '[setupClaudeCommands] No spec-kit Claude commands found after installation'
-            );
+          if (!hasGoferCommands) {
+            console.warn('[setupClaudeCommands] No gofer Claude commands found after installation');
           } else {
-            console.log('[setupClaudeCommands] Found spec-kit commands from CLI installation');
+            console.log('[setupClaudeCommands] Found gofer commands from CLI installation');
           }
         } catch {
           console.warn('[setupClaudeCommands] Claude commands directory not found');
@@ -849,7 +864,7 @@ export class GoferMigrator {
       await this.createConstitution();
     }
 
-    // Create proper templates from spec-kit format
+    // Create proper templates from gofer format
     console.log('[Gofer Fallback] Creating templates...');
     await this.createTemplates();
 
@@ -888,7 +903,7 @@ export class GoferMigrator {
    * Create Gofer folder structure
    */
   private async createGoferStructure(): Promise<void> {
-    // Ensure all spec-kit directories exist
+    // Ensure all gofer directories exist
     const folders = ['memory', 'scripts/bash', 'scripts/powershell', 'specs', 'templates'];
 
     for (const folder of folders) {
@@ -1052,7 +1067,7 @@ For the complete constitution template, see the Gofer documentation.
   }
 
   /**
-   * Create template files with proper spec-kit format
+   * Create template files with proper gofer format
    */
   private async createTemplates(): Promise<void> {
     const templatesDir = path.join(this.specifyPath, 'templates');
@@ -1185,7 +1200,7 @@ assignee: "engineer-agent"
 
     await fs.writeFile(path.join(templatesDir, 'spec-template.md'), specTemplate);
 
-    // plan-template.md - proper spec-kit format
+    // plan-template.md - proper gofer format
     const planTemplate = `# Technical Plan: [Feature Name]
 
 ## Technology Stack
@@ -1314,7 +1329,7 @@ interface [ModelName] {
 
     await fs.writeFile(path.join(templatesDir, 'plan-template.md'), planTemplate);
 
-    // tasks-template.md - proper spec-kit format
+    // tasks-template.md - proper gofer format
     const tasksTemplate = `# Task Breakdown: [Feature Name]
 
 ## Overview
@@ -1875,8 +1890,8 @@ AI agents validate code against the constitution before implementation.
   }
 
   /**
-   * Update .gitignore to exclude Gofer state files
-   * Adds entries for dependency-graph.json and .branch-info.json
+   * Update .gitignore to exclude Gofer runtime files.
+   * Adds entries for hooks directory, memory files, and state files.
    */
   private async updateGitignore(): Promise<void> {
     try {
@@ -1884,10 +1899,10 @@ AI agents validate code against the constitution before implementation.
 
       const gitignorePath = path.join(this.workspacePath, '.gitignore');
 
-      // Entries to add
-      const entriesToAdd = [
-        '',
-        '# Gofer state files (auto-generated, should not be committed)',
+      // All entries that should be gitignored
+      const requiredEntries = [
+        '.specify/hooks/',
+        '.specify/memory/local.json',
         '.specify/memory/dependency-graph.json',
         '.specify/specs/*/.branch-info.json',
       ];
@@ -1901,47 +1916,175 @@ AI agents validate code against the constitution before implementation.
         console.log('[updateGitignore] No .gitignore found, creating new one');
       }
 
-      // Check if entries already exist
-      const hasDependencyGraph = gitignoreContent.includes('dependency-graph.json');
-      const hasBranchInfo = gitignoreContent.includes('.branch-info.json');
+      // Find which entries are missing
+      const missingEntries = requiredEntries.filter((entry) => !gitignoreContent.includes(entry));
 
-      if (hasDependencyGraph && hasBranchInfo) {
-        console.log('[updateGitignore] .gitignore already contains Gofer state file entries');
+      if (missingEntries.length === 0) {
+        console.log('[updateGitignore] .gitignore already contains all Gofer runtime entries');
         return;
       }
 
-      // Add entries if they don't exist
       let updatedContent = gitignoreContent;
 
-      if (!hasDependencyGraph || !hasBranchInfo) {
-        // Ensure file ends with newline before adding
-        if (updatedContent.length > 0 && !updatedContent.endsWith('\n')) {
-          updatedContent += '\n';
-        }
-
-        // Add section header if not already present
-        if (!updatedContent.includes('# Gofer state files')) {
-          updatedContent += entriesToAdd.join('\n') + '\n';
-          console.log('[updateGitignore] Added Gofer state file entries');
-        } else {
-          // Add individual missing entries
-          if (!hasDependencyGraph) {
-            updatedContent += '.specify/memory/dependency-graph.json\n';
-            console.log('[updateGitignore] Added dependency-graph.json entry');
-          }
-          if (!hasBranchInfo) {
-            updatedContent += '.specify/specs/*/.branch-info.json\n';
-            console.log('[updateGitignore] Added .branch-info.json entry');
-          }
-        }
-
-        // Write back to file
-        await fs.writeFile(gitignorePath, updatedContent);
-        console.log('[updateGitignore] Successfully updated .gitignore');
+      // Ensure file ends with newline before adding
+      if (updatedContent.length > 0 && !updatedContent.endsWith('\n')) {
+        updatedContent += '\n';
       }
+
+      // Check if any Gofer section header exists
+      const hasOldHeader = updatedContent.includes('# Gofer state files');
+      const hasNewHeader = updatedContent.includes('# Gofer runtime files');
+
+      if (!hasOldHeader && !hasNewHeader) {
+        // No existing section — add full block
+        updatedContent += '\n# Gofer runtime files (auto-generated, should not be committed)\n';
+        for (const entry of missingEntries) {
+          updatedContent += entry + '\n';
+        }
+        console.log(
+          `[updateGitignore] Added Gofer runtime section with ${missingEntries.length} entries`
+        );
+      } else {
+        // Section exists — add individual missing entries
+        for (const entry of missingEntries) {
+          updatedContent += entry + '\n';
+          console.log(`[updateGitignore] Added missing entry: ${entry}`);
+        }
+      }
+
+      // Write back to file
+      await fs.writeFile(gitignorePath, updatedContent);
+      console.log('[updateGitignore] Successfully updated .gitignore');
     } catch (error) {
       console.error('[updateGitignore] Failed to update .gitignore:', error);
       // Don't throw - this is not critical
+    }
+  }
+
+  /**
+   * Install Claude Code hooks configuration.
+   * Creates or merges hooks into .claude/settings.json so that
+   * hook scripts in .specify/scripts/hooks/ are called automatically.
+   */
+  async installHooksConfig(): Promise<void> {
+    try {
+      console.log('[installHooksConfig] Starting...');
+
+      const claudeDir = path.join(this.workspacePath, '.claude');
+      const settingsPath = path.join(claudeDir, 'settings.json');
+
+      // Ensure .claude directory exists
+      await fs.mkdir(claudeDir, { recursive: true });
+
+      // Define hooks config (no timeout field — Claude Code uses its own default)
+      const hooksConfig: Record<string, unknown[]> = {
+        UserPromptSubmit: [
+          {
+            hooks: [
+              {
+                type: 'command',
+                command: 'node "$CLAUDE_PROJECT_DIR/.specify/scripts/hooks/user-prompt-submit.mjs"',
+              },
+            ],
+          },
+        ],
+        PostToolUse: [
+          {
+            matcher: '',
+            hooks: [
+              {
+                type: 'command',
+                command: 'node "$CLAUDE_PROJECT_DIR/.specify/scripts/hooks/post-tool-use.mjs"',
+              },
+            ],
+          },
+        ],
+        Stop: [
+          {
+            hooks: [
+              {
+                type: 'command',
+                command: 'node "$CLAUDE_PROJECT_DIR/.specify/scripts/hooks/agent-stop.mjs"',
+              },
+            ],
+          },
+        ],
+      };
+
+      // Read existing settings or start with empty object
+      let settings: Record<string, unknown> = {};
+      try {
+        const existing = await fs.readFile(settingsPath, 'utf-8');
+        settings = JSON.parse(existing);
+        console.log('[installHooksConfig] Loaded existing settings.json');
+      } catch {
+        console.log('[installHooksConfig] No existing settings.json, creating new');
+      }
+
+      // Always overwrite hooks to ensure latest format
+      const existingHooks = (settings.hooks as Record<string, unknown>) || {};
+
+      for (const [hookName, hookConfig] of Object.entries(hooksConfig)) {
+        existingHooks[hookName] = hookConfig;
+        console.log(`[installHooksConfig] Set ${hookName} hook`);
+      }
+
+      settings.hooks = existingHooks;
+      await fs.writeFile(settingsPath, JSON.stringify(settings, null, 2) + '\n');
+      console.log('[installHooksConfig] Successfully wrote .claude/settings.json');
+
+      // Ensure hook scripts directory exists
+      const hooksScriptDir = path.join(this.specifyPath, 'scripts', 'hooks');
+      await fs.mkdir(hooksScriptDir, { recursive: true });
+
+      // Copy hook scripts from bundled resources
+      await this.copyHookScripts();
+    } catch (error) {
+      console.error('[installHooksConfig] Failed:', error);
+      // Non-critical — don't throw
+    }
+  }
+
+  /**
+   * Copy hook scripts from bundled extension resources to .specify/scripts/hooks/
+   */
+  private async copyHookScripts(): Promise<void> {
+    try {
+      let extensionPath = vscode.extensions.getExtension('EnterpriseAI.gofer')?.extensionPath;
+      if (!extensionPath) {
+        extensionPath = path.resolve(__dirname, '..');
+        console.log('[copyHookScripts] Using __dirname fallback:', extensionPath);
+      }
+
+      const bundledHooksPath = path.join(extensionPath, 'resources', 'hook-scripts');
+      const targetHooksPath = path.join(this.specifyPath, 'scripts', 'hooks');
+      console.log('[copyHookScripts] Source:', bundledHooksPath);
+      console.log('[copyHookScripts] Target:', targetHooksPath);
+
+      await fs.mkdir(targetHooksPath, { recursive: true });
+
+      try {
+        const files = await fs.readdir(bundledHooksPath);
+        let copiedCount = 0;
+        for (const file of files) {
+          if (file.endsWith('.mjs')) {
+            const source = path.join(bundledHooksPath, file);
+            const target = path.join(targetHooksPath, file);
+            await fs.copyFile(source, target);
+            copiedCount++;
+            console.log('[copyHookScripts] Copied:', file);
+          }
+        }
+        console.log('[copyHookScripts] Successfully copied', copiedCount, 'hook scripts');
+      } catch (readErr) {
+        console.log(
+          '[copyHookScripts] No bundled hook scripts found at',
+          bundledHooksPath,
+          readErr
+        );
+      }
+    } catch (error) {
+      console.error('[copyHookScripts] Failed:', error);
     }
   }
 

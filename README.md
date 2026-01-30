@@ -20,7 +20,7 @@ code --install-extension gofer-*.vsix
 1. Open Command Palette (`Cmd/Ctrl+Shift+P`)
 2. Run: **"Gofer: Initialize Repository"**
 
-This creates `.specify/` folder with GitHub Spec Kit format.
+This creates `.specify/` folder with GitHub Gofer format.
 
 ### 3. Create a Specification
 
@@ -245,7 +245,7 @@ See [CLAUDE.md](CLAUDE.md) for detailed documentation.
 ## Commands
 
 - `Gofer: Initialize Repository` - Create .specify structure
-- `Gofer: Upgrade to Spec Kit Format` - Migrate from legacy JSON
+- `Gofer: Upgrade to Gofer Format` - Migrate from legacy JSON
 - `Gofer: Refresh Specifications` - Reload specs from disk
 - `Gofer: Update Now` - Check for and install updates
 

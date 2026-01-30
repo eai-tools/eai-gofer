@@ -21,7 +21,7 @@ export const MCP_CONFIG_FILE = '.vscode/mcp.json';
 
 // GitHub constants
 export const GITHUB_OWNER = 'eai-tools';
-export const GITHUB_REPO = 'spec-kit-templates';
+export const GITHUB_REPO = 'gofer-templates';
 export const GITHUB_API_BASE = 'https://api.github.com';
 
 // Language Server constants
@@ -65,6 +65,8 @@ export const CONFIG_KEYS = {
   anthropicApiKey: 'gofer.anthropicApiKey',
   googleApiKey: 'gofer.googleApiKey',
   openaiApiKey: 'gofer.openaiApiKey',
+  claudeCodeMode: 'gofer.claudeCodeMode',
+  claudeCodeCommand: 'gofer.claudeCodeCommand',
   autoInitialize: 'gofer.autoInitialize',
   preferredAi: 'gofer.preferredAI',
   autoUpdateCheck: 'gofer.autoUpdateCheck',
@@ -75,6 +77,8 @@ export const CONFIG_KEYS = {
 
 // Default values
 export const DEFAULTS = {
+  claudeCodeMode: 'standard' as const,
+  claudeCodeCommand: 'claude',
   autoInitialize: false,
   preferredAi: 'claude',
   autoUpdateCheck: true,
@@ -137,6 +141,35 @@ export class ConfigManager {
    */
   public getOpenaiApiKey(): string {
     return this.config.get<string>(CONFIG_KEYS.openaiApiKey.replace('gofer.', ''), '') || '';
+  }
+
+  /**
+   * Get Claude Code launch mode
+   */
+  public getClaudeCodeMode(): 'standard' | 'yolo' | 'custom' {
+    return this.config.get<'standard' | 'yolo' | 'custom'>(
+      CONFIG_KEYS.claudeCodeMode.replace('gofer.', ''),
+      DEFAULTS.claudeCodeMode
+    );
+  }
+
+  /**
+   * Get the resolved Claude Code command based on mode setting
+   */
+  public getClaudeCodeCommand(): string {
+    const mode = this.getClaudeCodeMode();
+    switch (mode) {
+      case 'yolo':
+        return 'claude --dangerously-skip-permissions';
+      case 'custom':
+        return this.config.get<string>(
+          CONFIG_KEYS.claudeCodeCommand.replace('gofer.', ''),
+          DEFAULTS.claudeCodeCommand
+        );
+      case 'standard':
+      default:
+        return 'claude';
+    }
   }
 
   /**

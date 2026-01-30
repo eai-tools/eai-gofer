@@ -9,6 +9,7 @@ import { AutoUpdater } from './autoUpdater';
 import { GoferLSPClient } from './lspClient';
 import { MCPConfigHelper } from './mcpConfig';
 import { MemoryManager } from './autonomous/MemoryManager';
+import { ContextBuilder } from './autonomous/ContextBuilder';
 import { registerMemoryCommands } from './commands/memoryCommands';
 import { registerSpecCommands } from './commands/specCommands';
 import { registerCouncilCommands } from './commands/councilCommands';
@@ -16,7 +17,15 @@ import { registerCouncilCommands } from './commands/councilCommands';
 import { ContextHealthMonitor } from './autonomous/ContextHealthMonitor';
 import { AutoHandoffTrigger } from './autonomous/AutoHandoffTrigger';
 import { ContextUsageLogger } from './autonomous/ContextUsageLogger';
+import { WorkspaceContextProvider } from './autonomous/WorkspaceContextProvider';
+import { ResearchChunker } from './autonomous/ResearchChunker';
 import { ContextHealthStatusBar } from './ui/ContextHealthStatusBar';
+// Real Context Monitoring (Spec 014)
+import { ClaudeSessionReader } from './autonomous/ClaudeSessionReader';
+import { ContinuousMemoryWriter } from './autonomous/ContinuousMemoryWriter';
+// Hook-based monitoring
+import { HookBridgeWatcher } from './autonomous/HookBridgeWatcher';
+import { GoferActivityStatusBar } from './ui/GoferActivityStatusBar';
 // Note: stopClaudeCode is imported dynamically in deactivate() to avoid
 // blocking extension activation if node-pty fails to load
 
@@ -43,6 +52,11 @@ let contextHealthMonitor: ContextHealthMonitor | undefined;
 let contextUsageLogger: ContextUsageLogger | undefined;
 let contextHealthStatusBar: ContextHealthStatusBar | undefined;
 let autoHandoffTrigger: AutoHandoffTrigger | undefined;
+// Real Context Monitoring (Spec 014)
+let continuousMemoryWriter: ContinuousMemoryWriter | undefined;
+// Hook-based monitoring
+let hookBridgeWatcher: HookBridgeWatcher | undefined;
+let goferActivityStatusBar: GoferActivityStatusBar | undefined;
 
 export async function activate(context: vscode.ExtensionContext) {
   // Reset Claude Code running context on startup (in case it was left true from a crash)
@@ -185,7 +199,7 @@ async function initializeForWorkspace(context: vscode.ExtensionContext) {
       await handleLegacyFormat(context, workspacePath, migrator);
       break;
 
-    case 'spec-kit':
+    case 'gofer':
       await handleGoferFormat(context, workspacePath);
       break;
 
@@ -243,7 +257,7 @@ async function handleLegacyFormat(
     await migrator.upgrade();
     await handleGoferFormat(context, workspacePath);
   } else if (choice === 'Learn More') {
-    vscode.env.openExternal(vscode.Uri.parse('https://github.com/github/spec-kit'));
+    vscode.env.openExternal(vscode.Uri.parse('https://github.com/github/gofer'));
   } else {
     // Use legacy format for now
     await initializeProgressProvider(context, workspacePath);
@@ -304,6 +318,52 @@ function initializeContextHealthMonitoring(workspacePath: string): void {
     autoHandoffTrigger.connect(contextHealthMonitor);
     autoHandoffTrigger.setUsageLogger(contextUsageLogger);
 
+    // Wire real context provider for token estimation (Spec 013 Phase 2)
+    const contextProvider = new WorkspaceContextProvider(workspacePath);
+
+    // Wire ClaudeSessionReader for real JSONL session data (Spec 014 T038)
+    const sessionReader = new ClaudeSessionReader(workspacePath);
+    contextProvider.setSessionReader(sessionReader);
+
+    // Wire HookBridgeWatcher for event-driven context data (Priority 1)
+    hookBridgeWatcher = new HookBridgeWatcher(workspacePath);
+    contextProvider.setHookBridgeWatcher(hookBridgeWatcher);
+    hookBridgeWatcher.start();
+
+    // Create GoferActivityStatusBar driven by hook bridge
+    goferActivityStatusBar = new GoferActivityStatusBar(hookBridgeWatcher);
+    goferActivityStatusBar.show();
+
+    // On bridge update, trigger immediate health check
+    hookBridgeWatcher.on('bridge-update', () => {
+      contextHealthMonitor?.checkHealth();
+    });
+
+    // On session start from hooks, slow polling (hooks handle real-time updates)
+    hookBridgeWatcher.on('session-start', () => {
+      contextHealthMonitor?.startMonitoring(60000);
+      console.log('[Gofer] Hooks active — polling slowed to 60s');
+    });
+
+    // On stale bridge, speed up polling as fallback
+    hookBridgeWatcher.on('session-stale', () => {
+      contextHealthMonitor?.startMonitoring(10000);
+      console.log('[Gofer] Hook bridge stale — polling restored to 10s');
+    });
+
+    contextHealthMonitor.setContextProvider(() => contextProvider.getContextAnalysis());
+
+    // Run initial health check and start periodic monitoring
+    // Use 10s interval when active session detected, 30s otherwise (Spec 014 T040)
+    contextHealthMonitor.checkHealth();
+    const hookDataAvailable = hookBridgeWatcher.isHookDataAvailable();
+    const activeSession = sessionReader.findActiveSession();
+    const pollingInterval = hookDataAvailable ? 60000 : activeSession ? 10000 : 30000;
+    contextHealthMonitor.startMonitoring(pollingInterval);
+    console.log(
+      `[Gofer] Context monitoring polling at ${pollingInterval / 1000}s (hooks: ${hookDataAvailable}, session: ${activeSession ? 'active' : 'inactive'})`
+    );
+
     // Connect logger to monitor events for JSONL logging
     contextHealthMonitor.on('healthy', (status) => {
       contextUsageLogger?.logHealthCheck({
@@ -343,8 +403,7 @@ function initializeContextHealthMonitoring(workspacePath: string): void {
       });
     });
 
-    // Start monitoring (uses context provider when set)
-    contextHealthMonitor.startMonitoring();
+    // Note: startMonitoring() already called above with 30s interval
 
     console.log('[Gofer] Context health monitoring initialized');
   } catch (error) {
@@ -823,6 +882,26 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
 }
 
 /**
+ * Extract spec ID from a file URI within .specify/specs/{specId}/
+ * (Spec 013 T042)
+ */
+function extractSpecId(uri: vscode.Uri): string | null {
+  const fsPath = uri.fsPath;
+  const specsIdx = fsPath.indexOf('.specify/specs/');
+  if (specsIdx === -1) {
+    return null;
+  }
+
+  const afterSpecs = fsPath.substring(specsIdx + '.specify/specs/'.length);
+  const slashIdx = afterSpecs.indexOf('/');
+  if (slashIdx === -1) {
+    return null;
+  }
+
+  return afterSpecs.substring(0, slashIdx);
+}
+
+/**
  * Register commands that require a workspace
  */
 function registerCommands(
@@ -841,8 +920,8 @@ function registerCommands(
         if (versionInfo.needsUpgrade) {
           // Legacy or mixed format - needs upgrade
           await migrator.upgrade();
-        } else if (versionInfo.format === 'spec-kit') {
-          // Already spec-kit format - offer to update templates/scripts
+        } else if (versionInfo.format === 'gofer') {
+          // Already gofer format - offer to update templates/scripts
           await migrator.upgrade(); // This will call updateGoferTemplates()
         } else {
           vscode.window.showInformationMessage('Gofer already initialized!');
@@ -1173,6 +1252,23 @@ created: "${new Date().toISOString().split('T')[0]}"
   registerMemoryCommands(context, memoryManager);
   console.log('[Gofer] Memory commands registered');
 
+  // Create shared ContextBuilder and wire to autonomousCommands (Spec 013 Phase 6)
+  const sharedContextBuilder = new ContextBuilder(workspacePath, memoryManager);
+  import('./autonomousCommands')
+    .then(({ setSharedMemoryManager, setSharedContextBuilder }) => {
+      setSharedMemoryManager(memoryManager!);
+      setSharedContextBuilder(sharedContextBuilder);
+      console.log('[Gofer] Shared MemoryManager and ContextBuilder wired to autonomousCommands');
+    })
+    .catch((error) => {
+      console.warn('[Gofer] Failed to wire shared instances to autonomousCommands:', error);
+    });
+
+  // Wire ContinuousMemoryWriter to auto-persist pipeline decisions (Spec 014 T039)
+  continuousMemoryWriter = new ContinuousMemoryWriter(memoryManager);
+  continuousMemoryWriter.connectToContextBuilder(sharedContextBuilder);
+  console.log('[Gofer] ContinuousMemoryWriter wired to shared ContextBuilder');
+
   // T116: Register spec execution commands
   if (progressProvider) {
     registerSpecCommands(context, progressProvider);
@@ -1193,6 +1289,32 @@ created: "${new Date().toISOString().split('T')[0]}"
     })
   );
   console.log('[Gofer] Compaction history command registered');
+
+  // Research index watcher: auto-generate research.index.json on change (Spec 013 T039-T043)
+  try {
+    const researchChunker = new ResearchChunker(workspacePath);
+    const researchPattern = new vscode.RelativePattern(
+      workspacePath,
+      '.specify/specs/*/research.md'
+    );
+    const researchWatcher = vscode.workspace.createFileSystemWatcher(researchPattern);
+
+    const handleResearchChange = (uri: vscode.Uri): void => {
+      const specId = extractSpecId(uri);
+      if (specId) {
+        researchChunker.indexResearchFile(specId).catch((error) => {
+          console.warn(`[Gofer] Failed to index research for ${specId}:`, error);
+        });
+      }
+    };
+
+    researchWatcher.onDidCreate(handleResearchChange);
+    researchWatcher.onDidChange(handleResearchChange);
+    context.subscriptions.push(researchWatcher);
+    console.log('[Gofer] Research index watcher registered');
+  } catch (error) {
+    console.warn('[Gofer] Failed to set up research watcher:', error);
+  }
 
   // Note: Tree view detail commands (showSpecDetails, showMemoryDocument, etc.)
   // are now registered globally in registerGlobalCommands() since tree views
@@ -1227,6 +1349,21 @@ export async function deactivate() {
     contextHealthStatusBar.dispose();
     contextHealthStatusBar = undefined;
     console.log('Context health status bar disposed');
+  }
+  if (continuousMemoryWriter) {
+    continuousMemoryWriter.dispose();
+    continuousMemoryWriter = undefined;
+    console.log('ContinuousMemoryWriter disposed');
+  }
+  if (hookBridgeWatcher) {
+    hookBridgeWatcher.dispose();
+    hookBridgeWatcher = undefined;
+    console.log('HookBridgeWatcher disposed');
+  }
+  if (goferActivityStatusBar) {
+    goferActivityStatusBar.dispose();
+    goferActivityStatusBar = undefined;
+    console.log('GoferActivityStatusBar disposed');
   }
   if (contextUsageLogger) {
     contextUsageLogger = undefined;

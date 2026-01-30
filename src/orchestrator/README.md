@@ -4,7 +4,7 @@ Complete implementation for feature 003-orchestrator-agents.
 
 ## Components
 
-- SpecLoader: GitHub Spec Kit parser
+- SpecLoader: GitHub Gofer parser
 - TaskQueue: Dependency resolution
 - AutonomousOrchestrator: Main execution loop
 - EngineerAgent: Code validation

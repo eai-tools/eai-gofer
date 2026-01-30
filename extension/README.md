@@ -26,14 +26,13 @@ track progress, and leverage AI assistance through Claude Code integration.
 
 ### Smart Templates
 
-- **GitHub Integration**: Downloads latest Spec Kit templates from GitHub
-  releases
+- **GitHub Integration**: Downloads latest Gofer templates from GitHub releases
 - **Repository Initialization**: One-click setup of `.specify/` structure
-- **Template Updates**: Automatic checking and updating of Spec Kit templates
+- **Template Updates**: Automatic checking and updating of Gofer templates
 
 ### Advanced Features
 
-- **Legacy Migration**: Converts old JSON specs to modern GitHub Spec Kit format
+- **Legacy Migration**: Converts old JSON specs to modern GitHub Gofer format
 - **Branch-Specific Specs**: Automatically reloads specs when switching Git
   branches
 - **Real-time Updates**: File watching with automatic refresh of tree views
@@ -41,8 +40,8 @@ track progress, and leverage AI assistance through Claude Code integration.
 
 ### 🤖 Claude Code Terminal Integration (New!)
 
-Gofer now provides autonomous Claude Code execution with intelligent
-question handling:
+Gofer now provides autonomous Claude Code execution with intelligent question
+handling:
 
 #### Features
 
@@ -366,8 +365,7 @@ Question: "How should I implement X?"
 
 Before starting autonomous development:
 
-- ✅ **Gofer Extension**: Installed and activated (`.specify/` folder
-  detected)
+- ✅ **Gofer Extension**: Installed and activated (`.specify/` folder detected)
 - ✅ **Claude Code**: Integrated via MCP (`.vscode/mcp.json` auto-created)
 - ✅ **Constitution**: `.specify/memory/constitution.md` exists with your
   principles
@@ -964,10 +962,10 @@ features become production-ready code with minimal human intervention.
 
 ## 📝 Markdown Viewing Options
 
-Gofer supports multiple ways to view and edit your specifications,
-constitution, and memory documents. By default, it uses VSCode's built-in
-markdown preview (read-only), but you can install WYSIWYG editors for a better
-editing experience.
+Gofer supports multiple ways to view and edit your specifications, constitution,
+and memory documents. By default, it uses VSCode's built-in markdown preview
+(read-only), but you can install WYSIWYG editors for a better editing
+experience.
 
 ### Available Viewers
 
@@ -1027,14 +1025,14 @@ changing your default setting.
 
 ## 📋 Commands
 
-| Command                                 | Keyboard Shortcut  | Description                                  |
-| --------------------------------------- | ------------------ | -------------------------------------------- |
-| `Gofer: Initialize Repository`      | `Ctrl+Shift+Alt+I` | Create `.specify/` structure with templates  |
-| `Gofer: Refresh Progress`           | `Ctrl+Shift+Alt+R` | Manually refresh spec and task views         |
-| `Gofer: Upgrade to Spec Kit Format` | -                  | Convert legacy JSON specs to Spec Kit format |
-| `Gofer: Update Templates`           | -                  | Download latest Spec Kit templates           |
-| `Gofer: Show Progress Panel`        | `Ctrl+Shift+Alt+P` | Open the progress tracking panel             |
-| `Gofer: Check for Updates`          | -                  | Check for extension and template updates     |
+| Command                          | Keyboard Shortcut  | Description                                 |
+| -------------------------------- | ------------------ | ------------------------------------------- |
+| `Gofer: Initialize Repository`   | `Ctrl+Shift+Alt+I` | Create `.specify/` structure with templates |
+| `Gofer: Refresh Progress`        | `Ctrl+Shift+Alt+R` | Manually refresh spec and task views        |
+| `Gofer: Upgrade to Gofer Format` | -                  | Convert legacy JSON specs to Gofer format   |
+| `Gofer: Update Templates`        | -                  | Download latest Gofer templates             |
+| `Gofer: Show Progress Panel`     | `Ctrl+Shift+Alt+P` | Open the progress tracking panel            |
+| `Gofer: Check for Updates`       | -                  | Check for extension and template updates    |
 
 ## How It Works
 
@@ -1078,8 +1076,8 @@ Configure the extension through VS Code settings:
 
 ### Settings Reference
 
-| Setting                         | Default     | Description                                                                        |
-| ------------------------------- | ----------- | ---------------------------------------------------------------------------------- |
+| Setting                     | Default     | Description                                                                        |
+| --------------------------- | ----------- | ---------------------------------------------------------------------------------- |
 | `gofer.markdownViewer`      | `"preview"` | Markdown viewer: "preview", "mark-sharp", "markdown-editor", or "markdown-wysiwyg" |
 | `gofer.autoRefresh`         | `true`      | Auto-refresh panels on file changes                                                |
 | `gofer.showNotifications`   | `true`      | Show update and status notifications                                               |
@@ -1101,7 +1099,7 @@ Configure the extension through VS Code settings:
 #### Progress panel empty
 
 - Verify specs exist in `.specify/specs/`
-- Check spec files use valid GitHub Spec Kit format
+- Check spec files use valid GitHub Gofer format
 - Run "Gofer: Refresh Progress" command
 
 #### Language Server not starting
@@ -1125,8 +1123,7 @@ Configure the extension through VS Code settings:
 ### Getting Help
 
 1. **Check Logs**: View Output panel → "Gofer" channel
-2. **Report Issues**:
-   [GitHub Issues](https://github.com/eai-tools/gofer/issues)
+2. **Report Issues**: [GitHub Issues](https://github.com/eai-tools/gofer/issues)
 3. **Documentation**:
    [Full Documentation](https://github.com/eai-tools/gofer/tree/main/docs)
 
@@ -1182,7 +1179,7 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
-- Built on [GitHub Spec Kit](https://github.com/github/spec-kit) format
+- Built on Gofer specification format
 - Inspired by spec-driven development principles
 - Powered by Claude AI through MCP integration
 
@@ -1197,7 +1194,7 @@ specifications.
 
 Gofer runs a Language Server that:
 
-- Parses GitHub Spec Kit Markdown files
+- Parses GitHub Gofer Markdown files
 - Manages spec and task state
 - Exposes MCP tools via experimental capabilities
 - Provides real-time updates to VSCode UI

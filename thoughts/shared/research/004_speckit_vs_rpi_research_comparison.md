@@ -1,27 +1,27 @@
 ---
 date: 2025-12-30T04:00:00Z
 researcher: Claude
-topic: 'SpecKit vs RPI Research Capabilities Comparison and Enhancement'
+topic: 'Gofer vs RPI Research Capabilities Comparison and Enhancement'
 tags: [research, speckit, rpi, parallel-agents, codebase-exploration]
 status: complete
 ---
 
-# Research: SpecKit vs RPI Research Capabilities
+# Research: Gofer vs RPI Research Capabilities
 
 ## Research Question
 
-Does the SpecKit framework do as much research and as good research as the RPI
-version? What is different and how can we improve the SpecKit path for research?
+Does the Gofer framework do as much research and as good research as the RPI
+version? What is different and how can we improve the Gofer path for research?
 
 ## Summary
 
-**Finding**: SpecKit's research was significantly weaker than RPI's.
+**Finding**: Gofer's research was significantly weaker than RPI's.
 
 - **RPI**: Uses 3 specialized parallel agents (locator, analyzer,
   pattern-finder) for systematic codebase exploration with file:line references
-- **SpecKit (before)**: Simple task dispatch only for "unknowns" - no systematic
+- **Gofer (before)**: Simple task dispatch only for "unknowns" - no systematic
   codebase exploration
-- **SpecKit (after)**: Now enhanced with the same parallel agent approach as RPI
+- **Gofer (after)**: Now enhanced with the same parallel agent approach as RPI
 
 **Enhancement Applied**: Added "Phase 0: Codebase Exploration" to
 `/speckit.plan` that uses the same 3 parallel agents as RPI's
@@ -47,7 +47,7 @@ version? What is different and how can we improve the SpecKit path for research?
    - Entry points, dependencies, error handling
    - Security and performance considerations
 
-### SpecKit Research (Before Enhancement)
+### Gofer Research (Before Enhancement)
 
 **Weaknesses**:
 
@@ -60,7 +60,7 @@ version? What is different and how can we improve the SpecKit path for research?
 
 ### Comparison Table
 
-| Capability             | RPI                     | SpecKit (Before)   | SpecKit (After)         |
+| Capability             | RPI                     | Gofer (Before)     | Gofer (After)           |
 | ---------------------- | ----------------------- | ------------------ | ----------------------- |
 | Parallel agents        | 3                       | 0                  | 3                       |
 | File location          | codebase-locator        | None               | codebase-locator        |
@@ -83,7 +83,7 @@ version? What is different and how can we improve the SpecKit path for research?
 - `.claude/agents/codebase-analyzer.md` - Code analysis specialist
 - `.claude/agents/codebase-pattern-finder.md` - Pattern finding specialist
 
-### SpecKit Command (Enhanced)
+### Gofer Command (Enhanced)
 
 - `.claude/commands/speckit.plan.md:32-78` - New Phase 0: Codebase Exploration
 - `.claude/commands/speckit.plan.md:80-101` - Phase 0.5: Technology Research
@@ -98,9 +98,9 @@ version? What is different and how can we improve the SpecKit path for research?
 3. **Coverage**: Systematic exploration catches more relevant code
 4. **Quality**: File:line references make findings actionable
 
-### The Gap in SpecKit
+### The Gap in Gofer
 
-SpecKit's original design assumed:
+Gofer's original design assumed:
 
 - The spec.md fully defines what to build
 - Research is only needed for "unknowns"
@@ -130,7 +130,7 @@ Phase 0.5: Technology Research (original behavior)
 
 ## Open Questions
 
-1. **Should SpecKit save research to `thoughts/shared/research/` like RPI?**
+1. **Should Gofer save research to `thoughts/shared/research/` like RPI?**
    - Currently saves to feature's `research.md`
    - Could cross-reference with shared research
 
@@ -151,5 +151,5 @@ Phase 0.5: Technology Research (original behavior)
 - `.claude/commands/speckit.plan.md` - Added Phase 0 codebase exploration with
   parallel agents
 
-**Before**: SpecKit research was reactive and shallow **After**: SpecKit
-research matches RPI's depth with parallel agent exploration
+**Before**: Gofer research was reactive and shallow **After**: Gofer research
+matches RPI's depth with parallel agent exploration

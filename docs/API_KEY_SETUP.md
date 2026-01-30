@@ -2,7 +2,8 @@
 
 ## For Users of Gofer Extension
 
-When you install Gofer in any repo, each person can set their own API key in **VSCode User Settings**. This is secure, per-user, and works across all repos!
+When you install Gofer in any repo, each person can set their own API key in
+**VSCode User Settings**. This is secure, per-user, and works across all repos!
 
 ## How to Set It Up
 
@@ -14,7 +15,7 @@ When you install Gofer in any repo, each person can set their own API key in **V
 
 2. **Search for "anthropic"**
    - Type `anthropic` in the search box
-   - You'll see: **SpecKit: Anthropic Api Key**
+   - You'll see: **Gofer: Anthropic Api Key**
 
 3. **Paste Your Key**
    - Click in the text field
@@ -47,6 +48,7 @@ export ANTHROPIC_API_KEY="sk-ant-api03-your-key-here"
 ```
 
 Then reload:
+
 ```bash
 source ~/.zshrc
 ```
@@ -70,11 +72,13 @@ Gofer checks for your API key in this order:
 ## For Teams
 
 ### Each Developer Should:
+
 - Set their own API key in their VSCode User Settings
 - Never share their API key
 - Never commit API keys to git
 
 ### Team Lead Should:
+
 - Tell team to install Gofer extension
 - Share this guide
 - Verify everyone has their API key set up
@@ -82,15 +86,18 @@ Gofer checks for your API key in this order:
 ## Troubleshooting
 
 **"API key required" message?**
+
 - Check VSCode Settings → search "anthropic"
 - Ensure key starts with `sk-ant-`
 - Reload VSCode window after setting
 
 **Using multiple machines?**
+
 - Need to set the key on each machine
 - Use Settings Sync to sync across machines automatically!
 
 **Settings Sync?**
+
 - VSCode Settings Sync includes extension settings
 - Your API key syncs to your other machines
 - Still secure (encrypted by Microsoft)
@@ -108,12 +115,14 @@ After setting your key:
 ## Security Notes
 
 ✅ **Safe:**
+
 - Stored in VSCode User Settings (encrypted)
 - Never in source code
 - Never in git
 - Private to your machine
 
 ❌ **Never:**
+
 - Commit API keys to git
 - Share your key with others
 - Put in workspace `.env` for team projects
@@ -122,6 +131,7 @@ After setting your key:
 
 **For Gofer Developers:**
 
-If you're building Gofer itself, you also need a `.env` file in the project root for running the orchestrator locally. See the main README.
+If you're building Gofer itself, you also need a `.env` file in the project root
+for running the orchestrator locally. See the main README.
 
 © 2025 Enterprise AI Pty Ltd

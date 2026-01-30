@@ -26,6 +26,13 @@ export type {
   ContextAnalysisInput,
 } from './ContextHealthMonitor';
 export { AutoHandoffTrigger } from './AutoHandoffTrigger';
+export { WorkspaceContextProvider } from './WorkspaceContextProvider';
+export { ContextBridgeWriter } from './ContextBridgeWriter';
+export { ClaudeSessionReader } from './ClaudeSessionReader';
+export type { SessionInfo, SessionUsage } from './ClaudeSessionReader';
+export { ContinuousMemoryWriter } from './ContinuousMemoryWriter';
+export { HookBridgeWatcher } from './HookBridgeWatcher';
+export type { BridgeData } from './HookBridgeWatcher';
 export { ContextUsageLogger } from './ContextUsageLogger';
 export type {
   ContextUsageLogEntry,

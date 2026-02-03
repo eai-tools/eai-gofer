@@ -220,7 +220,7 @@ class QualityDashboard {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SpecGofer Quality Dashboard</title>
+    <title>Gofer Quality Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { font-family: system-ui, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
@@ -243,7 +243,7 @@ class QualityDashboard {
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎯 SpecGofer Quality Dashboard</h1>
+            <h1>🎯 Gofer Quality Dashboard</h1>
             <p><strong>Generated:</strong> ${metrics.timestamp}</p>
             ${metrics.commit ? `<p><strong>Commit:</strong> ${metrics.commit} on ${metrics.branch}</p>` : ''}
         </div>

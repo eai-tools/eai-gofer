@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Extension Command Tester
-# Tests all SpecGofer VSCode extension commands to ensure they don't throw errors
+# Tests all Gofer VSCode extension commands to ensure they don't throw errors
 
 set -e
 
@@ -105,11 +105,11 @@ test_command() {
 }
 
 # Check if extension is installed
-print_info "Checking if SpecGofer extension is installed..."
+print_info "Checking if Gofer extension is installed..."
 if "$CODE_CMD" --list-extensions | grep -qi "gofer"; then
-    print_success "SpecGofer extension is installed"
+    print_success "Gofer extension is installed"
 else
-    print_warning "SpecGofer extension not installed. Install it first with:"
+    print_warning "Gofer extension not installed. Install it first with:"
     echo "  $CODE_CMD --install-extension ./gofer-*.vsix"
     exit 1
 fi

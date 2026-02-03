@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "🚀 Setting up SpecGofer development environment..."
+echo "🚀 Setting up Gofer development environment..."
 
 # Install uv package manager
 echo "📦 Installing uv..."

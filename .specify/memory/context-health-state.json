@@ -1,0 +1,22 @@
+{
+  "timestamp": 1770150779872,
+  "status": "warning",
+  "utilizationPercent": 55.85,
+  "tokensUsed": 111699,
+  "tokensLimit": 200000,
+  "breakdown": {
+    "specArtifacts": 0,
+    "memories": 0,
+    "hints": 0,
+    "observations": 0,
+    "systemFiles": 0,
+    "conversation": 111699
+  },
+  "recommendations": [
+    "Context at 56%. Consider reducing context soon.",
+    "Long conversation history. Consider starting a new session with /8_gofer_resume."
+  ],
+  "sessionId": "b4290bd3-4f81-4ff0-a343-bbc10b89265b",
+  "dataSource": "real",
+  "model": "claude-opus-4-5-20251101"
+}

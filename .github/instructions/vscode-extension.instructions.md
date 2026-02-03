@@ -11,8 +11,7 @@ You are working on the Gofer VSCode extension.
 - **Extension entry**: `extension/src/extension.ts`
 - **LSP Client**: `extension/src/lspClient.ts` - Connects to Language Server
 - **MCP Config**: `extension/src/mcpConfig.ts` - Creates `.vscode/mcp.json`
-- **Spec Parser**: `extension/src/goferParser.ts` - Parses GitHub Spec Kit
-  format
+- **Spec Parser**: `extension/src/goferParser.ts` - Parses GitHub Gofer format
 
 ## VSCode APIs to Use
 

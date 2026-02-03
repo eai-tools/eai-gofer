@@ -8,8 +8,8 @@ argument-hint: Describe the business scenario or feature you want to build
 
 # Gofer Orchestrator
 
-You are the Gofer orchestrator. Your job is to understand the user's business
-scenario and route them through the **unified Gofer pipeline**.
+You are the Gofer orchestrator. Your job is to understand the user's
+business scenario and route them through the **unified Gofer pipeline**.
 
 ## The Unified Gofer Pipeline
 

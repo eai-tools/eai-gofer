@@ -387,7 +387,7 @@ export class ClaudeCodeAutonomousResponder {
       const fullContext = await this.loadContext(workspacePath, context.specId);
 
       // Read configuration settings
-      const config = vscode.workspace.getConfiguration('specGofer.autonomous');
+      const config = vscode.workspace.getConfiguration('eaiGofer.autonomous');
       const enableEngReview = config.get<boolean>('enableEngineeringReview', true);
       const enablePerfReview = config.get<boolean>('enablePerformanceReview', true);
 
@@ -429,7 +429,7 @@ export class ClaudeCodeAutonomousResponder {
       responseTypes += `
 
 6. WORKFLOW ROUTING - To transition between workflow phases:
-   SpecKit flow:
+   Gofer flow:
    - ACTION: ROUTE_SPECKIT_SPECIFY - Start new specification
    - ACTION: ROUTE_SPECKIT_PLAN - Move to planning phase
    - ACTION: ROUTE_SPECKIT_TASKS - Generate tasks from plan
@@ -670,7 +670,7 @@ If question found: Provide the answer (number only for multiple choice, clear te
 
         if (trimmedAnswer.includes('ACTION: ENGINEERING_REVIEW')) {
           // Check if engineering review is enabled
-          const config = vscode.workspace.getConfiguration('specGofer.autonomous');
+          const config = vscode.workspace.getConfiguration('eaiGofer.autonomous');
           const enableEngReview = config.get<boolean>('enableEngineeringReview', true);
 
           if (!enableEngReview) {
@@ -706,7 +706,7 @@ Provide a brief summary of findings and recommendations for next steps.`
 
         if (trimmedAnswer.includes('ACTION: PERFORMANCE_REVIEW')) {
           // Check if performance review is enabled
-          const config = vscode.workspace.getConfiguration('specGofer.autonomous');
+          const config = vscode.workspace.getConfiguration('eaiGofer.autonomous');
           const enablePerfReview = config.get<boolean>('enablePerformanceReview', true);
 
           if (!enablePerfReview) {
@@ -741,27 +741,27 @@ Provide specific, actionable recommendations.`
           return perfPrompt;
         }
 
-        // Workflow routing actions - SpecKit flow
+        // Workflow routing actions - Gofer flow
         if (trimmedAnswer.includes('ACTION: ROUTE_SPECKIT_SPECIFY')) {
-          this.outputChannel.appendLine('   📝 Routing to SpecKit: specify phase\n');
+          this.outputChannel.appendLine('   📝 Routing to Gofer: specify phase\n');
           await this.writeLog('ROUTING: /speckit.specify');
           return '/speckit.specify\n';
         }
 
         if (trimmedAnswer.includes('ACTION: ROUTE_SPECKIT_PLAN')) {
-          this.outputChannel.appendLine('   📋 Routing to SpecKit: plan phase\n');
+          this.outputChannel.appendLine('   📋 Routing to Gofer: plan phase\n');
           await this.writeLog('ROUTING: /speckit.plan');
           return '/speckit.plan\n';
         }
 
         if (trimmedAnswer.includes('ACTION: ROUTE_SPECKIT_TASKS')) {
-          this.outputChannel.appendLine('   📊 Routing to SpecKit: tasks phase\n');
+          this.outputChannel.appendLine('   📊 Routing to Gofer: tasks phase\n');
           await this.writeLog('ROUTING: /speckit.tasks');
           return '/speckit.tasks\n';
         }
 
         if (trimmedAnswer.includes('ACTION: ROUTE_SPECKIT_IMPLEMENT')) {
-          this.outputChannel.appendLine('   🔨 Routing to SpecKit: implement phase\n');
+          this.outputChannel.appendLine('   🔨 Routing to Gofer: implement phase\n');
           await this.writeLog('ROUTING: /speckit.implement');
           return '/speckit.implement\n';
         }

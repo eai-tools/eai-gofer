@@ -2,11 +2,11 @@
  * Memory and Learning System - VSCode Commands
  *
  * Provides VSCode commands for memory management:
- * - SpecGofer: Remember - Save a new memory
- * - SpecGofer: Search Memory - Search existing memories
- * - SpecGofer: Forget Memory - Delete a memory
- * - SpecGofer: Clear Memory - Clear memories by scope
- * - SpecGofer: View Memories - Open memory panel
+ * - EAI-GOFER: Remember - Save a new memory
+ * - EAI-GOFER: Search Memory - Search existing memories
+ * - EAI-GOFER: Forget Memory - Delete a memory
+ * - EAI-GOFER: Clear Memory - Clear memories by scope
+ * - EAI-GOFER: View Memories - Open memory panel
  */
 
 import * as vscode from 'vscode';
@@ -24,42 +24,42 @@ export function registerMemoryCommands(
   context: vscode.ExtensionContext,
   memoryManager: MemoryManager
 ): void {
-  // Register "SpecGofer: Remember" command
+  // Register "EAI-GOFER: Remember" command
   context.subscriptions.push(
     vscode.commands.registerCommand('specgofer.remember', async () => {
       await rememberCommand(memoryManager);
     })
   );
 
-  // Register "SpecGofer: Search Memory" command
+  // Register "EAI-GOFER: Search Memory" command
   context.subscriptions.push(
     vscode.commands.registerCommand('specgofer.searchMemory', async () => {
       await searchMemoryCommand(memoryManager);
     })
   );
 
-  // Register "SpecGofer: Forget Memory" command
+  // Register "EAI-GOFER: Forget Memory" command
   context.subscriptions.push(
     vscode.commands.registerCommand('specgofer.forgetMemory', async () => {
       await forgetMemoryCommand(memoryManager);
     })
   );
 
-  // Register "SpecGofer: Clear Memory" command
+  // Register "EAI-GOFER: Clear Memory" command
   context.subscriptions.push(
     vscode.commands.registerCommand('specgofer.clearMemory', async () => {
       await clearMemoryCommand(memoryManager);
     })
   );
 
-  // Register "SpecGofer: View Memories" command
+  // Register "EAI-GOFER: View Memories" command
   context.subscriptions.push(
     vscode.commands.registerCommand('specgofer.viewMemories', async () => {
       MemoryPanel.createOrShow(context.extensionUri, memoryManager);
     })
   );
 
-  // Register "SpecGofer: Create Hint File" command (T072)
+  // Register "EAI-GOFER: Create Hint File" command (T072)
   context.subscriptions.push(
     vscode.commands.registerCommand('specgofer.createHintFile', async () => {
       await createHintFileCommand(context);
@@ -68,7 +68,7 @@ export function registerMemoryCommands(
 }
 
 /**
- * "SpecGofer: Remember" command implementation.
+ * "EAI-GOFER: Remember" command implementation.
  * Prompts user for memory content, scope, category, and tags.
  *
  * @param memoryManager - MemoryManager instance
@@ -190,7 +190,7 @@ async function rememberCommand(memoryManager: MemoryManager): Promise<void> {
 }
 
 /**
- * "SpecGofer: Search Memory" command implementation.
+ * "EAI-GOFER: Search Memory" command implementation.
  * Prompts user for search query and displays results.
  *
  * @param memoryManager - MemoryManager instance
@@ -246,7 +246,7 @@ async function searchMemoryCommand(memoryManager: MemoryManager): Promise<void> 
 }
 
 /**
- * "SpecGofer: Forget Memory" command implementation.
+ * "EAI-GOFER: Forget Memory" command implementation.
  * Shows memory list and deletes selected memory.
  *
  * @param memoryManager - MemoryManager instance
@@ -294,7 +294,7 @@ async function forgetMemoryCommand(memoryManager: MemoryManager): Promise<void> 
 }
 
 /**
- * "SpecGofer: Clear Memory" command implementation.
+ * "EAI-GOFER: Clear Memory" command implementation.
  * Prompts for scope and clears memories.
  *
  * @param memoryManager - MemoryManager instance
@@ -475,7 +475,7 @@ function escapeHtml(text: string): string {
 // ============================================================================
 
 /**
- * "SpecGofer: Create Hint File" command implementation.
+ * "EAI-GOFER: Create Hint File" command implementation.
  * Prompts user for hint location and creates a hint file from template.
  *
  * @param context - VSCode extension context

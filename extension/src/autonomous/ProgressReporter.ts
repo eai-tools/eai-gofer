@@ -114,7 +114,7 @@ export class ProgressReporter {
       icon = '$(pass)';
     }
 
-    this.statusBarItem.text = `${icon} SpecGofer: ${progressText} ${percentText} | ${taskText}`;
+    this.statusBarItem.text = `${icon} EAI-GOFER: ${progressText} ${percentText} | ${taskText}`;
 
     // Build tooltip with detailed info
     const tooltipParts: string[] = [];

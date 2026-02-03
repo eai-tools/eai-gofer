@@ -1,15 +1,15 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { MCPToolHandler } from '../../language-server/src/mcp/toolHandler.js';
-import { SpecKitLoader } from '../../language-server/src/utils/specKitLoader.js';
+import { GoferLoader } from '../../language-server/src/utils/goferLoader.js';
 
 // Mock the dependencies
-vi.mock('../../language-server/src/utils/specKitLoader.js');
+vi.mock('../../language-server/src/utils/goferLoader.js');
 vi.mock('@anthropic-ai/sdk');
 vi.mock('vscode-languageserver');
 
 describe('MCP Tools Integration', () => {
   let mcpHandler: MCPToolHandler;
-  let mockSpecKitLoader: InstanceType<typeof SpecKitLoader>;
+  let mockGoferLoader: InstanceType<typeof GoferLoader>;
   let mockConnection: { sendNotification: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
@@ -20,14 +20,14 @@ describe('MCP Tools Integration', () => {
       sendNotification: vi.fn(),
     };
 
-    // Setup mock SpecKitLoader
-    mockSpecKitLoader = {
+    // Setup mock GoferLoader
+    mockGoferLoader = {
       loadAllSpecs: vi.fn(),
       loadSpec: vi.fn(),
       updateTaskStatus: vi.fn(),
     };
 
-    vi.mocked(SpecKitLoader).mockImplementation(() => mockSpecKitLoader);
+    vi.mocked(GoferLoader).mockImplementation(() => mockGoferLoader);
 
     mcpHandler = new MCPToolHandler('/test/workspace', mockConnection);
   });
@@ -91,7 +91,7 @@ describe('MCP Tools Integration', () => {
 
   describe('getSpecs tool', () => {
     it('should return all specifications', async () => {
-      mockSpecKitLoader.loadAllSpecs.mockResolvedValue(mockSpecs);
+      mockGoferLoader.loadAllSpecs.mockResolvedValue(mockSpecs);
 
       const result = await mcpHandler.getSpecs();
 
@@ -143,11 +143,11 @@ describe('MCP Tools Integration', () => {
           },
         ],
       });
-      expect(mockSpecKitLoader.loadAllSpecs).toHaveBeenCalled();
+      expect(mockGoferLoader.loadAllSpecs).toHaveBeenCalled();
     });
 
     it('should handle empty specs directory', async () => {
-      mockSpecKitLoader.loadAllSpecs.mockResolvedValue([]);
+      mockGoferLoader.loadAllSpecs.mockResolvedValue([]);
 
       const result = await mcpHandler.getSpecs();
 
@@ -159,7 +159,7 @@ describe('MCP Tools Integration', () => {
     });
 
     it('should handle loading errors gracefully', async () => {
-      mockSpecKitLoader.loadAllSpecs.mockRejectedValue(new Error('Directory not found'));
+      mockGoferLoader.loadAllSpecs.mockRejectedValue(new Error('Directory not found'));
 
       const result = await mcpHandler.getSpecs();
 
@@ -170,7 +170,7 @@ describe('MCP Tools Integration', () => {
 
   describe('getNextTask tool', () => {
     beforeEach(() => {
-      mockSpecKitLoader.loadAllSpecs.mockResolvedValue(mockSpecs);
+      mockGoferLoader.loadAllSpecs.mockResolvedValue(mockSpecs);
     });
 
     it('should return next available task', async () => {
@@ -188,7 +188,7 @@ describe('MCP Tools Integration', () => {
         tasks: spec.tasks.map((task) => ({ ...task, status: 'completed' })),
       }));
 
-      mockSpecKitLoader.loadAllSpecs.mockResolvedValue(completedSpecs);
+      mockGoferLoader.loadAllSpecs.mockResolvedValue(completedSpecs);
 
       const result = await mcpHandler.getNextTask();
 
@@ -228,7 +228,7 @@ describe('MCP Tools Integration', () => {
         },
       ];
 
-      mockSpecKitLoader.loadAllSpecs.mockResolvedValue(specsWithDeps);
+      mockGoferLoader.loadAllSpecs.mockResolvedValue(specsWithDeps);
 
       const result = await mcpHandler.getNextTask();
 
@@ -240,7 +240,7 @@ describe('MCP Tools Integration', () => {
   describe('executeTask tool', () => {
     beforeEach(() => {
       const mockSpec = mockSpecs[1]; // spec with T004 task
-      mockSpecKitLoader.loadSpec.mockResolvedValue(mockSpec);
+      mockGoferLoader.loadSpec.mockResolvedValue(mockSpec);
     });
 
     it('should return task context for execution', async () => {
@@ -268,7 +268,7 @@ describe('MCP Tools Integration', () => {
 
   describe('updateTaskStatus tool', () => {
     beforeEach(() => {
-      mockSpecKitLoader.updateTaskStatus.mockResolvedValue(undefined);
+      mockGoferLoader.updateTaskStatus.mockResolvedValue(undefined);
     });
 
     it('should update task status successfully', async () => {
@@ -276,7 +276,7 @@ describe('MCP Tools Integration', () => {
 
       expect(result.success).toBe(true);
       expect(result.message).toContain('updated to completed');
-      expect(mockSpecKitLoader.updateTaskStatus).toHaveBeenCalledWith(
+      expect(mockGoferLoader.updateTaskStatus).toHaveBeenCalledWith(
         '002-orchestrator',
         'T004',
         'completed'
@@ -332,8 +332,8 @@ describe('MCP Tools Integration', () => {
   });
 
   describe('error handling', () => {
-    it('should handle SpecKitLoader errors', async () => {
-      mockSpecKitLoader.loadAllSpecs.mockRejectedValue(new Error('File system error'));
+    it('should handle GoferLoader errors', async () => {
+      mockGoferLoader.loadAllSpecs.mockRejectedValue(new Error('File system error'));
 
       const result = await mcpHandler.getSpecs();
 
@@ -349,7 +349,7 @@ describe('MCP Tools Integration', () => {
     });
 
     it('should handle connection notification errors gracefully', async () => {
-      mockSpecKitLoader.updateTaskStatus.mockResolvedValue(undefined);
+      mockGoferLoader.updateTaskStatus.mockResolvedValue(undefined);
       mockConnection.sendNotification.mockImplementation(() => {
         throw new Error('Connection error');
       });
@@ -364,9 +364,9 @@ describe('MCP Tools Integration', () => {
 
   describe('integration workflow', () => {
     it('should support complete task workflow', async () => {
-      mockSpecKitLoader.loadAllSpecs.mockResolvedValue(mockSpecs);
-      mockSpecKitLoader.loadSpec.mockResolvedValue(mockSpecs[1]);
-      mockSpecKitLoader.updateTaskStatus.mockResolvedValue(undefined);
+      mockGoferLoader.loadAllSpecs.mockResolvedValue(mockSpecs);
+      mockGoferLoader.loadSpec.mockResolvedValue(mockSpecs[1]);
+      mockGoferLoader.updateTaskStatus.mockResolvedValue(undefined);
 
       // 1. Get all specs
       const specsResult = await mcpHandler.getSpecs();

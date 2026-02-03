@@ -170,7 +170,7 @@ export class SpecGoferLSPClient {
       );
 
       // Trigger UI refresh
-      vscode.commands.executeCommand('specGofer.refreshSpecs');
+      vscode.commands.executeCommand('eaiGofer.refreshSpecs');
     });
   }
 

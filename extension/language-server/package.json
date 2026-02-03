@@ -1,7 +1,7 @@
 {
-  "name": "specgofer-language-server",
+  "name": "eai-gofer-language-server",
   "version": "1.5.0",
-  "description": "SpecGofer Language Server with LSP and MCP support",
+  "description": "EAI-GOFER Language Server with LSP and MCP support",
   "main": "dist/server.js",
   "scripts": {
     "build": "tsc",
@@ -13,7 +13,7 @@
     "language-server",
     "mcp",
     "model-context-protocol",
-    "spec-driven-development"
+    "gofer"
   ],
   "author": "Enterprise AI Pty Ltd",
   "license": "PROPRIETARY",

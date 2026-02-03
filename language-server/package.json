@@ -1,6 +1,6 @@
 {
   "name": "gofer-language-server",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Gofer Language Server with LSP and MCP support",
   "main": "dist/server.js",
   "scripts": {

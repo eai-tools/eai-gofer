@@ -640,13 +640,13 @@ function determineInitialCommand(specId: string, workspacePath: string): string 
 
   // 1. Gofer artifacts exist - continue Gofer flow
   if (hasTasks) {
-    return '/speckit.implement';
+    return '/5_gofer_implement';
   }
   if (hasPlan) {
-    return '/speckit.tasks';
+    return '/4_gofer_tasks';
   }
   if (hasSpec) {
-    return '/speckit.plan';
+    return '/3_gofer_plan';
   }
 
   // 2. RPI artifacts exist - continue RPI flow
@@ -857,6 +857,31 @@ export async function launchClaudeCode(specId: string): Promise<void> {
           terminalCloseListener.dispose();
           terminalCloseListener = null;
         }
+
+        // Run memory consolidation at session end (non-blocking)
+        if (sharedMemoryManager) {
+          sharedMemoryManager
+            .consolidate()
+            .then((result) => {
+              outputChannel?.appendLine(
+                `[Memory] Consolidation: merged=${result.merged}, compacted=${result.compacted}, ` +
+                  `stale=${result.flaggedStale}, decayed=${result.decayed}, archived=${result.archived}`
+              );
+            })
+            .catch((err) => {
+              console.warn('[Gofer] Post-session consolidation failed:', err);
+            });
+        }
+
+        // Save knowledge graph at session end (non-blocking)
+        if (sharedContextBuilder) {
+          const graph = sharedContextBuilder.getKnowledgeGraph();
+          if (graph) {
+            graph.save().catch((err) => {
+              console.warn('[Gofer] KnowledgeGraph save failed:', err);
+            });
+          }
+        }
       }
     });
     terminalCloseListener = closeListener;
@@ -869,7 +894,7 @@ export async function launchClaudeCode(specId: string): Promise<void> {
 
     outputChannel.appendLine('[6/6] Waiting for Claude Code to fully initialize...');
     outputChannel.appendLine('      Claude Code needs 8-10 seconds to start its interactive mode');
-    outputChannel.appendLine('      Will send /speckit.implement after 8 seconds...\n');
+    outputChannel.appendLine('      Will send /5_gofer_implement after 8 seconds...\n');
 
     // Wait for the actual ">" prompt before sending commands
     let promptDetected = false;

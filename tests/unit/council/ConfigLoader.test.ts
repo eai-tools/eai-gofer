@@ -64,8 +64,8 @@ council:
       enabled: true
       model: gpt-5.2
   stages:
-    speckit_plan: council
-    speckit_analyze: council
+    gofer_plan: council
+    gofer_analyze: council
     research_codebase: single
     validate_plan: council
     implement: single
@@ -82,7 +82,7 @@ council:
       expect(config.minQuorum).toBe(3);
       expect(config.timeout).toBe(45000);
       expect(config.providers).toHaveLength(3);
-      expect(config.stages.speckit_plan).toBe('council');
+      expect(config.stages.gofer_plan).toBe('council');
       expect(config.stages.research_codebase).toBe('single');
     });
 
@@ -184,15 +184,15 @@ council:
       const yaml = `
 council:
   stages:
-    speckit_plan: council
-    speckit_analyze: single
+    gofer_plan: council
+    gofer_analyze: single
     custom_stage: council
 `;
 
       const config = parseYamlConfig(yaml);
 
-      expect(config.stages.speckit_plan).toBe('council');
-      expect(config.stages.speckit_analyze).toBe('single');
+      expect(config.stages.gofer_plan).toBe('council');
+      expect(config.stages.gofer_analyze).toBe('single');
       expect(config.stages.custom_stage).toBe('council');
     });
 
@@ -307,8 +307,8 @@ council:
       const config: CouncilConfig = {
         ...DEFAULT_COUNCIL_CONFIG,
         stages: {
-          speckit_plan: 'council',
-          speckit_analyze: 'invalid' as never,
+          gofer_plan: 'council',
+          gofer_analyze: 'invalid' as never,
           research_codebase: 'single',
           validate_plan: 'council',
           implement: 'single',
@@ -317,7 +317,7 @@ council:
 
       const validated = validateConfig(config);
 
-      expect(validated.stages.speckit_analyze).toBe('single'); // Invalid should default to 'single'
+      expect(validated.stages.gofer_analyze).toBe('single'); // Invalid should default to 'single'
     });
   });
 
@@ -336,7 +336,7 @@ council:
 council:
   enabled: true
   stages:
-    speckit_plan: council
+    gofer_plan: council
 `;
 
       vi.mocked(fs.existsSync).mockReturnValue(true);
@@ -345,7 +345,7 @@ council:
       const loader = new ConfigLoader(mockWorkspacePath);
       await loader.loadConfig();
 
-      expect(loader.shouldUseCouncil('speckit_plan')).toBe(true);
+      expect(loader.shouldUseCouncil('gofer_plan')).toBe(true);
     });
 
     it('should return false when stage is configured for single', async () => {
@@ -370,7 +370,7 @@ council:
 council:
   enabled: false
   stages:
-    speckit_plan: council
+    gofer_plan: council
 `;
 
       vi.mocked(fs.existsSync).mockReturnValue(true);
@@ -379,7 +379,7 @@ council:
       const loader = new ConfigLoader(mockWorkspacePath);
       await loader.loadConfig();
 
-      expect(loader.shouldUseCouncil('speckit_plan')).toBe(false);
+      expect(loader.shouldUseCouncil('gofer_plan')).toBe(false);
     });
 
     it('should return false for unknown stages', async () => {

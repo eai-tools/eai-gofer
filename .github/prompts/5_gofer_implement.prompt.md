@@ -2,6 +2,7 @@
 name: 5_gofer_implement
 description: Execute tasks from tasks.md to implement the feature
 agent: agent
+tools: ['search/codebase', 'terminal', 'editFile', 'runCommand']
 argument-hint: The feature to implement (or continue from tasks)
 ---
 

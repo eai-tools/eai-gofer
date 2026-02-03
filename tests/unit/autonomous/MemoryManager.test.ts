@@ -31,7 +31,6 @@ const mockContext = {
 describe('MemoryManager', () => {
   let memoryManager: MemoryManager;
   const testWorkspaceRoot = path.join(__dirname, 'test-workspace');
-  const localMemoryPath = path.join(testWorkspaceRoot, '.specify', 'memory', 'local.json');
 
   beforeEach(() => {
     // Clean up test workspace
@@ -222,7 +221,7 @@ describe('MemoryManager', () => {
   });
 
   describe('save() - local scope', () => {
-    it('should create a new local memory with generated ID and timestamp', async () => {
+    it('should create a new local memory with generated hash ID and timestamp', async () => {
       const memoryInput = {
         category: 'preferences',
         tags: ['#testing'],
@@ -235,15 +234,14 @@ describe('MemoryManager', () => {
 
       const saved = await memoryManager.save(memoryInput);
 
-      expect(saved.id).toMatch(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
-      );
+      // JSONL storage generates hash-based IDs (8 hex chars from SHA-256)
+      expect(saved.id).toMatch(/^[0-9a-f]{8}$/);
       expect(saved.created).toBeGreaterThan(0);
       expect(saved.category).toBe('preferences');
       expect(saved.content).toBe('Always use Vitest for tests');
     });
 
-    it('should save local memory to .specify/memory/local.json', async () => {
+    it('should save local memory to JSONL file', async () => {
       const memoryInput = {
         category: 'preferences',
         tags: ['#testing'],
@@ -256,14 +254,16 @@ describe('MemoryManager', () => {
 
       await memoryManager.save(memoryInput);
 
-      expect(fs.existsSync(localMemoryPath)).toBe(true);
-      const data = JSON.parse(fs.readFileSync(localMemoryPath, 'utf-8'));
-      expect(data.version).toBe(1);
-      expect(data.memories).toHaveLength(1);
-      expect(data.memories[0].content).toBe('Always use Vitest for tests');
+      // JSONL backend writes to memories.jsonl (not local.json)
+      const jsonlPath = path.join(testWorkspaceRoot, '.specify', 'memory', 'memories.jsonl');
+      expect(fs.existsSync(jsonlPath)).toBe(true);
+      const lines = fs.readFileSync(jsonlPath, 'utf-8').trim().split('\n');
+      expect(lines.length).toBeGreaterThanOrEqual(1);
+      const parsed = JSON.parse(lines[lines.length - 1]);
+      expect(parsed.content).toBe('Always use Vitest for tests');
     });
 
-    it('should append to existing local memories', async () => {
+    it('should append to existing local memories in JSONL', async () => {
       const memory1 = {
         category: 'test1',
         tags: [],
@@ -287,8 +287,10 @@ describe('MemoryManager', () => {
       await memoryManager.save(memory1);
       await memoryManager.save(memory2);
 
-      const data = JSON.parse(fs.readFileSync(localMemoryPath, 'utf-8'));
-      expect(data.memories).toHaveLength(2);
+      // JSONL should have 2 lines
+      const jsonlPath = path.join(testWorkspaceRoot, '.specify', 'memory', 'memories.jsonl');
+      const lines = fs.readFileSync(jsonlPath, 'utf-8').trim().split('\n');
+      expect(lines.length).toBe(2);
     });
 
     it('should reject invalid memory', async () => {

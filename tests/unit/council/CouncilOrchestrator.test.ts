@@ -72,8 +72,8 @@ describe('CouncilOrchestrator', () => {
       { providerId: 'openai', enabled: true },
     ],
     stages: {
-      speckit_plan: 'council',
-      speckit_analyze: 'council',
+      gofer_plan: 'council',
+      gofer_analyze: 'council',
       research_codebase: 'single',
       validate_plan: 'council',
       implement: 'single',
@@ -172,7 +172,7 @@ describe('CouncilOrchestrator', () => {
   describe('dispatch', () => {
     const defaultOptions: DispatchOptions = {
       agentType: 'codebase-analyzer' as AgentType,
-      stage: 'speckit_plan',
+      stage: 'gofer_plan',
       request: {
         prompt: 'Analyze the codebase',
         maxTokens: 4000,
@@ -246,7 +246,7 @@ describe('CouncilOrchestrator', () => {
       expect(result.session).toBeDefined();
       expect(result.session?.id).toBeDefined();
       expect(result.session?.agentType).toBe('codebase-analyzer');
-      expect(result.session?.stage).toBe('speckit_plan');
+      expect(result.session?.stage).toBe('gofer_plan');
     });
 
     it('should call progress callback during execution', async () => {
@@ -290,7 +290,7 @@ describe('CouncilOrchestrator', () => {
 
       const options: DispatchOptions = {
         agentType: 'codebase-analyzer' as AgentType,
-        stage: 'speckit_plan',
+        stage: 'gofer_plan',
         request: {
           prompt: 'Analyze the codebase',
           maxTokens: 4000,
@@ -320,7 +320,7 @@ describe('CouncilOrchestrator', () => {
 
       const options: DispatchOptions = {
         agentType: 'codebase-analyzer' as AgentType,
-        stage: 'speckit_plan',
+        stage: 'gofer_plan',
         request: {
           prompt: 'Analyze the codebase',
           maxTokens: 4000,
@@ -422,15 +422,15 @@ describe('CouncilOrchestrator', () => {
 
   describe('shouldUseCouncil', () => {
     it('should delegate to config loader', async () => {
-      await orchestrator.shouldUseCouncil('speckit_plan');
+      await orchestrator.shouldUseCouncil('gofer_plan');
 
-      expect(mockConfigLoader.shouldUseCouncil).toHaveBeenCalledWith('speckit_plan');
+      expect(mockConfigLoader.shouldUseCouncil).toHaveBeenCalledWith('gofer_plan');
     });
 
     it('should return true for council stages', async () => {
       mockConfigLoader.shouldUseCouncil.mockReturnValue(true);
 
-      const result = await orchestrator.shouldUseCouncil('speckit_plan');
+      const result = await orchestrator.shouldUseCouncil('gofer_plan');
 
       expect(result).toBe(true);
     });

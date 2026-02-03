@@ -5,7 +5,7 @@
 `.specify/specs/[###-feature-name]/spec.md`
 
 **Note**: This template is filled in by `/3_gofer_plan` (or legacy
-`/speckit.plan`). Recommended: Use `/0_business_scenario` to auto-chain the
+`/3_gofer_plan`). Recommended: Use `/0_business_scenario` to auto-chain the
 entire pipeline.
 
 ## Summary

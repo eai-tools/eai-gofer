@@ -3,6 +3,7 @@ name: 3_gofer_plan
 description:
   Generate technical implementation plan with architecture and contracts
 agent: agent
+tools: ['search/codebase', 'terminal', 'editFile']
 argument-hint: The feature to plan (or continue from specification)
 ---
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Validation Script - Uses Engineer Agent to validate SpecGofer implementation
+ * Validation Script - Uses Engineer Agent to validate Gofer implementation
  * against constitution and specifications
  */
 
@@ -24,7 +24,7 @@ if (!API_KEY) {
 }
 
 async function validateImplementation() {
-  console.log('🔍 SpecGofer Implementation Validation\n');
+  console.log('🔍 Gofer Implementation Validation\n');
   console.log('=' .repeat(60));
   
   const engineerAgent = new EngineerAgent(API_KEY);

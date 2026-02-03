@@ -1,14 +1,14 @@
 # Example: Logging Pattern Hint
 #
 # This hint provides guidance on structured logging.
-# Specific to SpecGofer's Logger utility.
+# Specific to Gofer's Logger utility.
 
 context:
   applies_to: ['*']
   priority: 7
 
 guidance: |
-  **Logging Best Practices with SpecGofer Logger**
+  **Logging Best Practices with Gofer Logger**
 
   1. Use component-specific loggers:
      - Use `Logger.for('ComponentName')` pattern
@@ -209,7 +209,7 @@ resources:
     url: 'https://nodejs.org/en/docs/guides/diagnostics/logging/'
 
 metadata:
-  author: 'SpecGofer Team'
+  author: 'Gofer Team'
   created: '2025-11-01'
   last_updated: '2025-11-01'
   version: '1.0.0'

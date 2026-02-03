@@ -1,4 +1,4 @@
-name: SpecGofer CI/CD Pipeline
+name: Gofer CI/CD Pipeline
 
 on:
   push:
@@ -315,7 +315,7 @@ jobs:
         tag_name: ${{ steps.get_version.outputs.VERSION }}
         name: Release ${{ steps.get_version.outputs.VERSION }}
         body: |
-          ## SpecGofer Release ${{ steps.get_version.outputs.VERSION }}
+          ## Gofer Release ${{ steps.get_version.outputs.VERSION }}
 
           ### New Features
           - Autonomous development workflow
@@ -345,13 +345,13 @@ jobs:
           curl -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
           -H 'Content-Type: application/json' \
           -d '{
-            "text": "🚨 SpecGofer CI/CD Pipeline Failed!",
+            "text": "🚨 Gofer CI/CD Pipeline Failed!",
             "blocks": [
               {
                 "type": "section",
                 "text": {
                   "type": "mrkdwn",
-                  "text": "*SpecGofer CI/CD Pipeline Failed!*\n\n*Branch:* ${{ github.ref }}\n*Commit:* ${{ github.sha }}\n*Author:* ${{ github.actor }}\n\nPlease check the GitHub Actions logs for details."
+                  "text": "*Gofer CI/CD Pipeline Failed!*\n\n*Branch:* ${{ github.ref }}\n*Commit:* ${{ github.sha }}\n*Author:* ${{ github.actor }}\n\nPlease check the GitHub Actions logs for details."
                 }
               }
             ]
@@ -365,6 +365,6 @@ jobs:
           curl -X POST "https://api.twilio.com/2010-04-01/Accounts/${{ secrets.TWILIO_ACCOUNT_SID }}/Messages.json" \
           --data-urlencode "From=${{ secrets.TWILIO_PHONE_NUMBER }}" \
           --data-urlencode "To=${{ secrets.YOUR_PHONE_NUMBER }}" \
-          --data-urlencode "Body=🚨 SpecGofer CI/CD failed on ${{ github.ref }}. Check GitHub Actions." \
+          --data-urlencode "Body=🚨 Gofer CI/CD failed on ${{ github.ref }}. Check GitHub Actions." \
           -u "${{ secrets.TWILIO_ACCOUNT_SID }}:${{ secrets.TWILIO_AUTH_TOKEN }}"
         fi

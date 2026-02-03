@@ -130,7 +130,7 @@ ${testStatus}
 - ${{ needs.pr-validation.result == 'success' && '✅ Build: Successful' || '❌ Build: Failed' }}
 - ${{ needs.pr-validation.result == 'success' && '✅ TypeScript: No errors' || '❌ TypeScript: Errors found' }}
 
-Automated by SpecGofer CI/CD Pipeline`;
+Automated by Gofer CI/CD Pipeline`;
 
           github.rest.issues.createComment({
             issue_number: context.issue.number,

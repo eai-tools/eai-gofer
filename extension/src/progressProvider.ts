@@ -210,17 +210,34 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
     this.specLoader = new SpecLoader(workspacePath);
     this.dependencyGraph = new DependencyGraph(workspacePath);
     // Start loading and fire change event when done
-    this.loadSpecs().then(() => {
-      this._onDidChangeTreeData.fire();
-    });
+    this.loadSpecs()
+      .then(() => {
+        console.log(`[Gofer] loadSpecs completed, isLoading=${this.isLoading}, error=${this.loadError}, specs=${this.specs.length}`);
+        this._onDidChangeTreeData.fire();
+      })
+      .catch((error) => {
+        console.error('[Gofer] Unexpected error in loadSpecs:', error);
+        this.isLoading = false;
+        this.loadError = error instanceof Error ? error.message : 'Unknown error';
+        this._onDidChangeTreeData.fire();
+      });
   }
 
   refresh(): void {
+    console.log('[Gofer] refresh() called');
     this.isLoading = true;
     this._onDidChangeTreeData.fire();  // Show loading state immediately
-    this.loadSpecs().then(() => {
-      this._onDidChangeTreeData.fire();  // Update with results
-    });
+    this.loadSpecs()
+      .then(() => {
+        console.log(`[Gofer] refresh loadSpecs completed, error=${this.loadError}`);
+        this._onDidChangeTreeData.fire();  // Update with results
+      })
+      .catch((error) => {
+        console.error('[Gofer] Unexpected error in refresh loadSpecs:', error);
+        this.isLoading = false;
+        this.loadError = error instanceof Error ? error.message : 'Unknown error';
+        this._onDidChangeTreeData.fire();
+      });
   }
 
   getTreeItem(element: SpecItem): vscode.TreeItem {

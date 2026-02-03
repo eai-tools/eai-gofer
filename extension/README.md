@@ -178,12 +178,12 @@ execution across multiple AI providers for research and analysis workflows.
 Gofer provides 6 Model Context Protocol (MCP) tools that AI assistants can
 invoke:
 
-- **`specgofer_get_specs`** - Get all specifications and tasks
-- **`specgofer_get_next_task`** - Get next task based on dependencies
-- **`specgofer_execute_task`** - Mark task in-progress, get full context
-- **`specgofer_update_task_status`** - Update task completion status
-- **`specgofer_validate_code`** - Validate code against project constitution
-- **`specgofer_run_tests`** - Run Playwright tests for acceptance criteria
+- **`gofer_get_specs`** - Get all specifications and tasks
+- **`gofer_get_next_task`** - Get next task based on dependencies
+- **`gofer_execute_task`** - Mark task in-progress, get full context
+- **`gofer_update_task_status`** - Update task completion status
+- **`gofer_validate_code`** - Validate code against project constitution
+- **`gofer_run_tests`** - Run Playwright tests for acceptance criteria
 
 ## 📦 Installation
 
@@ -467,7 +467,7 @@ In Claude Code terminal, instruct the AI agent:
 I have a fully specified feature branch ready. Please implement all tasks in
 .specify/specs/001-user-authentication/tasks.md following these rules:
 
-1. Use MCP tools to get tasks: specgofer_get_next_task
+1. Use MCP tools to get tasks: gofer_get_next_task
 2. Follow Test-Driven Development (tests BEFORE implementation)
 3. Validate against .specify/memory/constitution.md
 4. For architecture decisions:
@@ -611,7 +611,7 @@ Throughout implementation, the AI automatically:
 **Constitution Compliance**
 
 ```typescript
-// AI calls: specgofer_validate_code
+// AI calls: gofer_validate_code
 ✅ Test-driven development: Tests written first
 ✅ TypeScript strict mode: No 'any' types used
 ✅ Security: Input validation present
@@ -786,7 +786,7 @@ Please:
 1. Re-read the constitution section on Authentication Standards
 2. Fix the implementation to use Argon2id
 3. Update tests to verify correct hashing algorithm
-4. Re-validate with specgofer_validate_code
+4. Re-validate with gofer_validate_code
 ```
 
 #### AI Makes Wrong Architecture Choices
@@ -1230,7 +1230,7 @@ Gofer detects Git branch and shows branch-specific specs:
 
 ## Support
 
-- **Documentation:** <https://github.com/eai-tools/specgofer>
+- **Documentation:** <https://github.com/eai-tools/gofer>
 - **Issues:** <https://github.com/eai-tools/gofer/issues>
 - **Discussions:** <https://github.com/eai-tools/gofer/discussions>
 

@@ -21,14 +21,14 @@ The Language Server provides dual protocol support:
 
 ## MCP Tools (6 Total)
 
-| Tool                           | Purpose                             |
-| ------------------------------ | ----------------------------------- |
-| `specgofer_get_specs`          | List all specs and tasks            |
-| `specgofer_get_next_task`      | Get next task based on dependencies |
-| `specgofer_execute_task`       | Mark task in-progress, get context  |
-| `specgofer_update_task_status` | Mark task completed/failed          |
-| `specgofer_validate_code`      | Check against constitution          |
-| `specgofer_run_tests`          | Execute Playwright tests            |
+| Tool                       | Purpose                             |
+| -------------------------- | ----------------------------------- |
+| `gofer_get_specs`          | List all specs and tasks            |
+| `gofer_get_next_task`      | Get next task based on dependencies |
+| `gofer_execute_task`       | Mark task in-progress, get context  |
+| `gofer_update_task_status` | Mark task completed/failed          |
+| `gofer_validate_code`      | Check against constitution          |
+| `gofer_run_tests`          | Execute Playwright tests            |
 
 ## Adding New MCP Tools
 

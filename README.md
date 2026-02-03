@@ -11,7 +11,7 @@ from specifications using VSCode's native MCP (Model Context Protocol) support.
 
 ```bash
 # From GitHub Releases
-gh release download --repo eai-tools/specgofer --pattern "*.vsix"
+gh release download --repo eai-tools/gofer --pattern "*.vsix"
 code --install-extension gofer-*.vsix
 ```
 
@@ -102,10 +102,10 @@ This automatically:
 
 AI can also call MCP tools directly:
 
-1. Get next task via `specgofer_get_next_task`
+1. Get next task via `gofer_get_next_task`
 2. Implement the code
-3. Run tests via `specgofer_run_tests`
-4. Mark complete via `specgofer_update_task_status`
+3. Run tests via `gofer_run_tests`
+4. Mark complete via `gofer_update_task_status`
 5. Move to next task
 
 ## GitHub Codespaces Support
@@ -131,14 +131,14 @@ technical details.
 
 Gofer provides **6 MCP tools** that AI assistants call directly:
 
-| Tool                           | Purpose                                 |
-| ------------------------------ | --------------------------------------- |
-| `specgofer_get_specs`          | List all specs and tasks                |
-| `specgofer_get_next_task`      | Get next task based on dependencies     |
-| `specgofer_execute_task`       | Mark task in-progress, get full context |
-| `specgofer_update_task_status` | Mark task completed/failed              |
-| `specgofer_validate_code`      | Check against project constitution      |
-| `specgofer_run_tests`          | Run Playwright tests                    |
+| Tool                       | Purpose                                 |
+| -------------------------- | --------------------------------------- |
+| `gofer_get_specs`          | List all specs and tasks                |
+| `gofer_get_next_task`      | Get next task based on dependencies     |
+| `gofer_execute_task`       | Mark task in-progress, get full context |
+| `gofer_update_task_status` | Mark task completed/failed              |
+| `gofer_validate_code`      | Check against project constitution      |
+| `gofer_run_tests`          | Run Playwright tests                    |
 
 ## Spec Structure
 
@@ -179,7 +179,7 @@ Define principles AI should follow in `.specify/memory/constitution.md`:
 - Use parameterized queries
 ```
 
-AI can validate code against these using `specgofer_validate_code`.
+AI can validate code against these using `gofer_validate_code`.
 
 ## Features
 
@@ -296,7 +296,7 @@ npm list @playwright/test
 ## Example Workflow
 
 1. **Create spec** - Write `auth-001/spec.md` with 3 requirements
-2. **Ask AI** - `@specgofer implement all tasks from auth-001`
+2. **Ask AI** - `@gofer implement all tasks from auth-001`
 3. **AI implements autonomously:**
    - Gets FR-001 (no dependencies)
    - Implements code
@@ -422,7 +422,7 @@ npm run test:e2e            # End-to-end tests
   AI-generated code
 - **Testing Guide:** [docs/TESTING_GUIDE.md](docs/TESTING_GUIDE.md)
 - **Release Guide:** [docs/RELEASE_GUIDE.md](docs/RELEASE_GUIDE.md)
-- **GitHub:** <https://github.com/eai-tools/specgofer>
+- **GitHub:** <https://github.com/eai-tools/gofer>
 
 ## License
 

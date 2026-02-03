@@ -5,8 +5,7 @@ practices for Gofer.
 
 ## Testing Philosophy: Real Tests with Real Data
 
-Gofer follows a strict **"Real Tests with Real Data"** philosophy. This
-means:
+Gofer follows a strict **"Real Tests with Real Data"** philosophy. This means:
 
 ### What We Do
 
@@ -172,14 +171,12 @@ import * as vscode from 'vscode';
 
 suite('My Feature Test Suite', () => {
   test('Extension should be present', () => {
-    const ext = vscode.extensions.getExtension('EnterpriseAI.specgofer');
+    const ext = vscode.extensions.getExtension('EnterpriseAI.gofer');
     assert.ok(ext, 'Extension should be installed');
   });
 
   test('Command should execute', async () => {
-    const result = await vscode.commands.executeCommand(
-      'gofer.someCommand'
-    );
+    const result = await vscode.commands.executeCommand('gofer.someCommand');
     assert.ok(result);
   });
 });
@@ -203,7 +200,7 @@ suite('My Feature Test Suite', () => {
 **Extension not activating:**
 
 - Check activation events in `extension/package.json`
-- Verify extension ID matches: `EnterpriseAI.specgofer`
+- Verify extension ID matches: `EnterpriseAI.gofer`
 
 **Import errors:**
 

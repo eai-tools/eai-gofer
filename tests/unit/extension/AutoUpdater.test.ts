@@ -496,7 +496,7 @@ describe('AutoUpdater - File System Operations', () => {
 
     it('should construct VSIX path in temp directory', () => {
       const tempDir = os.tmpdir();
-      const extensionName = 'specgofer';
+      const extensionName = 'gofer';
       const version = '2.5.3';
       const vsixPath = path.join(tempDir, `${extensionName}-${version}.vsix`);
 

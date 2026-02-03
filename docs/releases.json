@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.1.1",
+  "latest_version": "1.1.2",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-02-03T13:02:42.426Z",
+  "last_updated": "2026-02-03T13:24:15.469Z",
   "releases": [
+    {
+      "version": "1.1.2",
+      "tag_name": "v1.1.2",
+      "published_at": "2026-02-03T13:24:15.469Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.1.2.vsix",
+      "notes": "chore: pre-release changes\n\nAuto-committed changes before release v1.1.1",
+      "prerelease": false,
+      "size_mb": 15.4
+    },
     {
       "version": "1.1.1",
       "tag_name": "v1.1.1",
@@ -83,15 +92,6 @@
       "notes": "Add Gofer Memory and Journey System - agentic memory with priority-based retention, interactive journey mapping, journey variant generation, multi-option sequence diagrams, and vertical slice delivery",
       "prerelease": false,
       "size_mb": 16.1
-    },
-    {
-      "version": "4.5.0",
-      "tag_name": "v4.5.0",
-      "published_at": "2026-01-17T05:29:23.358Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-4.5.0.vsix",
-      "notes": "Unified Claude and Copilot commands with identical naming",
-      "prerelease": false,
-      "size_mb": 30.1
     }
   ]
 }

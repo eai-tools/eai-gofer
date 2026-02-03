@@ -22,7 +22,7 @@
 #   - Claude Opus 4: 200k advertised → 100-150k effective
 #   - Gemini 2.5 Pro: 1M advertised → ~200k effective
 #
-# Part of the SpecGofer context management system.
+# Part of the Gofer context management system.
 
 set -e
 

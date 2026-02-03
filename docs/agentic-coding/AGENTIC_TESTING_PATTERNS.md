@@ -196,7 +196,7 @@ export interface TestExecutionMessage {
 
 ### 3-Level Retry Strategy
 
-SpecGofer uses a sophisticated 3-level retry system with increasing context:
+Gofer uses a sophisticated 3-level retry system with increasing context:
 
 ```text
 Level 1 (10s wait): Send error message only
@@ -302,7 +302,7 @@ export class ExponentialBackoffRetry {
 
 ### Core Principles
 
-SpecGofer follows a strict **"Real Tests with Real Data"** philosophy:
+Gofer follows a strict **"Real Tests with Real Data"** philosophy:
 
 #### What We Do
 

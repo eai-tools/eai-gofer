@@ -73,3 +73,4 @@ extension/out/
 
 # Gofer hooks runtime state (ephemeral, session-specific)
 .specify/hooks/
+.specify/memory/local.json

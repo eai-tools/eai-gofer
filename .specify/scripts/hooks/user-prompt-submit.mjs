@@ -18,11 +18,10 @@ import { join, dirname } from 'path';
 
 const PROJECT_DIR = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 const MEMORY_PATH = join(PROJECT_DIR, '.specify', 'memory', 'local.json');
-const JSONL_PATH = join(PROJECT_DIR, '.specify', 'memory', 'memories.jsonl');
 const BRIDGE_PATH = join(PROJECT_DIR, '.specify', 'hooks', 'context-bridge.json');
 const DEBUG_LOG = join(PROJECT_DIR, '.specify', 'hooks', 'hook-debug.log');
-const MAX_MEMORIES = 7; // Increased from 5 to include typed variety
-const MAX_CONTEXT_CHARS = 4000; // ~1000 tokens (increased for typed context)
+const MAX_MEMORIES = 5;
+const MAX_CONTEXT_CHARS = 3000; // ~750 tokens
 
 function debug(msg) {
   try {
@@ -40,38 +39,11 @@ function readStdin() {
   }
 }
 
-/**
- * Load memories from JSONL (primary) with fallback to local.json (legacy).
- * JSONL format: one JSON object per line, last-writer-wins for duplicate IDs.
- */
 function loadMemories() {
-  // Try JSONL first (new backend)
-  try {
-    const raw = readFileSync(JSONL_PATH, 'utf-8');
-    const lines = raw.split('\n').filter(l => l.trim().length > 0);
-    const index = new Map();
-    for (const line of lines) {
-      try {
-        const record = JSON.parse(line);
-        if (!record.id) continue;
-        if (record._deleted) {
-          index.delete(record.id);
-        } else {
-          index.set(record.id, record);
-        }
-      } catch { /* skip invalid lines */ }
-    }
-    const memories = Array.from(index.values());
-    if (memories.length > 0) {
-      debug(`Loaded ${memories.length} memories from JSONL`);
-      return memories;
-    }
-  } catch { /* JSONL doesn't exist, try legacy */ }
-
-  // Fallback to local.json
   try {
     const raw = readFileSync(MEMORY_PATH, 'utf-8');
     const data = JSON.parse(raw);
+    // Support both array format and { memories: [...] } format
     if (Array.isArray(data)) return data;
     if (data.memories && Array.isArray(data.memories)) return data.memories;
     return [];
@@ -80,7 +52,7 @@ function loadMemories() {
   }
 }
 
-function scoreMemory(memory, promptWords, promptText) {
+function scoreMemory(memory, promptWords) {
   const text = (memory.content || memory.text || memory.summary || '').toLowerCase();
   const tags = (memory.tags || []).map(t => t.toLowerCase());
   let score = 0;
@@ -90,28 +62,9 @@ function scoreMemory(memory, promptWords, promptText) {
     if (tags.some(t => t.includes(word))) score += 2;
   }
 
-  // Boost by priority index if available
-  const priority = memory.priorityIndex || memory.priority || 0;
+  // Boost by priority if available
+  const priority = memory.priority || 0;
   score += priority * 0.5;
-
-  // Type-aware scoring: boost procedural memories for implementation prompts
-  const memType = memory.type || '';
-  const lowerPrompt = (promptText || '').toLowerCase();
-  const isImplementTask = /implement|build|create|add|fix|update|write|code/.test(lowerPrompt);
-  const isResearchTask = /research|analyze|explain|understand|what|how|why/.test(lowerPrompt);
-
-  if (isImplementTask && memType === 'procedural') score += 3;
-  if (isImplementTask && memType === 'decision') score += 2;
-  if (isResearchTask && memType === 'semantic') score += 3;
-  if (isResearchTask && memType === 'episodic') score += 2;
-
-  // Boost by confidence
-  if (memory.confidence) {
-    score += (memory.confidence / 100) * 1.5;
-  }
-
-  // Penalize stale memories
-  if (memory.stale) score -= 2;
 
   return score;
 }
@@ -128,20 +81,11 @@ function selectRelevantMemories(memories, prompt) {
   if (!promptWords.length) return memories.slice(0, MAX_MEMORIES);
 
   const scored = memories
-    .map(m => ({ memory: m, score: scoreMemory(m, promptWords, prompt) }))
-    .filter(s => s.score > 0) // Only include memories with positive relevance
+    .map(m => ({ memory: m, score: scoreMemory(m, promptWords) }))
     .sort((a, b) => b.score - a.score);
 
   return scored.slice(0, MAX_MEMORIES).map(s => s.memory);
 }
-
-const TYPE_LABELS = {
-  procedural: 'How-To',
-  semantic: 'Knowledge',
-  episodic: 'Experience',
-  decision: 'Decision',
-  prospective: 'TODO',
-};
 
 function formatMemoriesForContext(memories) {
   if (!memories.length) return '';
@@ -153,9 +97,7 @@ function formatMemoriesForContext(memories) {
     const text = m.content || m.text || m.summary || '';
     if (!text) continue;
 
-    const typeLabel = TYPE_LABELS[m.type] || 'Memory';
-    const staleFlag = m.stale ? ' [stale]' : '';
-    const line = `- [${typeLabel}]${staleFlag} ${text}`;
+    const line = `- ${text}`;
     if (totalChars + line.length > MAX_CONTEXT_CHARS) break;
     lines.push(line);
     totalChars += line.length;

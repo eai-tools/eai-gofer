@@ -30,6 +30,7 @@ export class BranchSpecManager {
       const branch = execSync('git rev-parse --abbrev-ref HEAD', {
         cwd: this.workspacePath,
         encoding: 'utf-8',
+        timeout: 5000, // 5 second timeout to prevent hanging
       }).trim();
       return branch;
     } catch (error) {
@@ -47,6 +48,7 @@ export class BranchSpecManager {
       const remoteBranch = execSync('git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null || echo ""', {
         cwd: this.workspacePath,
         encoding: 'utf-8',
+        timeout: 5000, // 5 second timeout to prevent hanging
       }).trim();
 
       if (remoteBranch) {
@@ -57,6 +59,7 @@ export class BranchSpecManager {
       const branches = execSync('git branch -a', {
         cwd: this.workspacePath,
         encoding: 'utf-8',
+        timeout: 5000, // 5 second timeout to prevent hanging
       }).trim();
 
       if (branches.includes('main')) {

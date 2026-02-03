@@ -124,7 +124,11 @@ export async function activate(context: vscode.ExtensionContext) {
   }
 
   console.log(`[Gofer] Workspace detected: ${workspaceFolder.uri.fsPath}`);
-  await initializeForWorkspace(context);
+
+  // Initialize workspace in background (non-blocking) to prevent activation timeout
+  initializeForWorkspace(context).catch((error) => {
+    console.warn('[Gofer] Workspace initialization failed (non-critical):', error);
+  });
 
   // Listen for workspace changes to reinitialize
   vscode.workspace.onDidChangeWorkspaceFolders(async () => {
@@ -285,30 +289,40 @@ async function handleLegacyFormat(
 }
 
 async function handleGoferFormat(context: vscode.ExtensionContext, workspacePath: string) {
-  console.log('Gofer format detected - ready to use');
+  console.log('[Gofer] Gofer format detected - starting initialization...');
 
+  console.log('[Gofer] Calling initializeProgressProvider...');
   await initializeProgressProvider(context, workspacePath);
+  console.log('[Gofer] initializeProgressProvider completed');
 
   // Auto-setup MCP configuration for Claude Code integration
+  console.log('[Gofer] Setting up MCP configuration...');
   const mcpConfigHelper = new MCPConfigHelper(workspacePath, context);
   const created = await mcpConfigHelper.autoSetup();
 
   if (created) {
-    console.log('MCP configuration auto-created for Claude Code integration');
+    console.log('[Gofer] MCP configuration auto-created for Claude Code integration');
   }
 
   // Check if templates need updating based on extension version
+  console.log('[Gofer] Checking for template updates...');
   await checkForTemplateUpdates(workspacePath, context);
+  console.log('[Gofer] Template check completed');
 
   // Check for and sync missing bundled resources (e.g., on Codespaces or new machines)
   // This handles the case where .specify/ exists but bundled resources weren't committed
+  console.log('[Gofer] Syncing missing resources...');
   const migrator = new GoferMigrator(workspacePath);
   await migrator.syncMissingResources();
+  console.log('[Gofer] Resource sync completed');
 
-  // Initialize Context Health Monitoring (Spec 012)
+  // Initialize Context Health Monitoring (Spec 012) - non-blocking
+  console.log('[Gofer] Initializing context health monitoring...');
   initializeContextHealthMonitoring(workspacePath);
+  console.log('[Gofer] Context health monitoring initialized');
 
   vscode.window.setStatusBarMessage('$(notebook) Gofer - Enterprise AI ready', 3000);
+  console.log('[Gofer] Workspace initialization completed successfully');
 }
 
 /**
@@ -529,9 +543,23 @@ async function handleMixedFormat(
 }
 
 async function initializeProgressProvider(context: vscode.ExtensionContext, workspacePath: string) {
-  // Initialize branch-aware spec manager
-  branchSpecManager = new BranchSpecManager(workspacePath);
-  await branchSpecManager.initializeBranchStructure();
+  // Initialize branch-aware spec manager with timeout protection
+  try {
+    console.log('[Gofer] Initializing BranchSpecManager...');
+    branchSpecManager = new BranchSpecManager(workspacePath);
+
+    // Add timeout to prevent hanging on git operations
+    const initPromise = branchSpecManager.initializeBranchStructure();
+    const timeoutPromise = new Promise<void>((_, reject) => {
+      setTimeout(() => reject(new Error('BranchSpecManager init timed out')), 10000);
+    });
+
+    await Promise.race([initPromise, timeoutPromise]);
+    console.log('[Gofer] BranchSpecManager initialized successfully');
+  } catch (error) {
+    console.warn('[Gofer] BranchSpecManager initialization failed (continuing without it):', error);
+    branchSpecManager = undefined;
+  }
 
   // The providers are already registered - just refresh them with new data
   // They will pick up the new branchSpecManager and workspacePath

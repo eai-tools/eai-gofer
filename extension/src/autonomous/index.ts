@@ -31,6 +31,15 @@ export { ContextBridgeWriter } from './ContextBridgeWriter';
 export { ClaudeSessionReader } from './ClaudeSessionReader';
 export type { SessionInfo, SessionUsage } from './ClaudeSessionReader';
 export { ContinuousMemoryWriter } from './ContinuousMemoryWriter';
+export { MemoryHookManager } from './MemoryHookManager';
+export type {
+  ToolCallContext,
+  TaskCompletionContext,
+  ErrorRecoveryContext,
+  UserClarificationContext,
+  ToolCallMemories,
+  HookResult,
+} from './MemoryHookManager';
 export { HookBridgeWatcher } from './HookBridgeWatcher';
 export type { BridgeData } from './HookBridgeWatcher';
 export { ContextUsageLogger } from './ContextUsageLogger';

@@ -22,15 +22,21 @@ import {
 } from './autonomous';
 import { MemoryManager } from './autonomous/MemoryManager';
 import { ContextBuilder } from './autonomous/ContextBuilder';
+import { MemoryHookManager } from './autonomous/MemoryHookManager';
 import {
   ClaudeCodeAutonomousResponder,
   QuestionContext,
 } from './autonomous/ClaudeCodeAutonomousResponder';
 import type { ProgressProvider } from './progressProvider';
+import type { EnrichedContextBridge } from './autonomous/ContextBridgeWriter';
 
 // Shared singleton instances (set from extension.ts)
 let sharedMemoryManager: MemoryManager | undefined;
 let sharedContextBuilder: ContextBuilder | undefined;
+let sharedMemoryHookManager: MemoryHookManager | undefined;
+
+// Cached enriched context from bridge file (for memory injection)
+let cachedEnrichedContext: EnrichedContextBridge | undefined;
 
 /** Set the shared MemoryManager instance */
 export function setSharedMemoryManager(mm: MemoryManager): void {
@@ -42,6 +48,11 @@ export function setSharedContextBuilder(cb: ContextBuilder): void {
   sharedContextBuilder = cb;
 }
 
+/** Set the shared MemoryHookManager instance (Spec 010) */
+export function setSharedMemoryHookManager(mhm: MemoryHookManager): void {
+  sharedMemoryHookManager = mhm;
+}
+
 /** Get the shared MemoryManager (for testing) */
 export function getSharedMemoryManager(): MemoryManager | undefined {
   return sharedMemoryManager;
@@ -50,6 +61,64 @@ export function getSharedMemoryManager(): MemoryManager | undefined {
 /** Get the shared ContextBuilder (for testing) */
 export function getSharedContextBuilder(): ContextBuilder | undefined {
   return sharedContextBuilder;
+}
+
+/** Get the shared MemoryHookManager (for testing/integration) */
+export function getSharedMemoryHookManager(): MemoryHookManager | undefined {
+  return sharedMemoryHookManager;
+}
+
+/**
+ * Format a compact memory injection string for Claude Code.
+ * Extracts key memories and formats them as a brief context preamble.
+ * Max ~2000 chars to avoid overwhelming the prompt.
+ */
+function formatMemoryInjection(bridge: EnrichedContextBridge): string {
+  const parts: string[] = [];
+
+  // Add key memories (most important)
+  if (bridge.sections.memories && bridge.sections.memories.trim()) {
+    // Extract first ~1500 chars of memories
+    const memoriesSection = bridge.sections.memories.substring(0, 1500);
+    parts.push(`<memory_context>\n${memoriesSection}\n</memory_context>`);
+  }
+
+  // Add hints if space allows
+  if (bridge.sections.hints && bridge.sections.hints.trim() && parts.join('').length < 1500) {
+    const hintsSection = bridge.sections.hints.substring(0, 500);
+    parts.push(`<hints>\n${hintsSection}\n</hints>`);
+  }
+
+  if (parts.length === 0) {
+    return '';
+  }
+
+  return parts.join('\n\n');
+}
+
+/**
+ * Read the enriched context bridge file.
+ * Returns undefined if file doesn't exist or is stale (>60s).
+ */
+async function readEnrichedContextBridge(
+  workspacePath: string
+): Promise<EnrichedContextBridge | undefined> {
+  const bridgePath = path.join(workspacePath, '.specify', 'memory', 'enriched-context.json');
+
+  try {
+    const content = await fs.readFile(bridgePath, 'utf-8');
+    const bridge = JSON.parse(content) as EnrichedContextBridge;
+
+    // Check freshness (60 second threshold)
+    const age = Date.now() - bridge.timestamp;
+    if (age > 60000) {
+      return undefined; // Stale
+    }
+
+    return bridge;
+  } catch {
+    return undefined; // File doesn't exist or parse error
+  }
 }
 
 // Global driver instance (singleton)
@@ -718,6 +787,8 @@ export async function launchClaudeCode(specId: string): Promise<void> {
     }
 
     // Build enriched context before spawning (Spec 013 Phase 4 — T030-T032)
+    // Also cache the bridge data for memory injection into the terminal prompt
+    cachedEnrichedContext = undefined;
     if (sharedContextBuilder) {
       try {
         const { ContextBridgeWriter } = await import('./autonomous/ContextBridgeWriter');
@@ -732,6 +803,17 @@ export async function launchClaudeCode(specId: string): Promise<void> {
           ),
         ]);
         outputChannel.appendLine('   ✓ Enriched context written to bridge file');
+
+        // Read back the bridge file for memory injection (memory-system-integration-sweep)
+        cachedEnrichedContext = await readEnrichedContextBridge(workspacePath);
+        if (cachedEnrichedContext) {
+          const memoryInjection = formatMemoryInjection(cachedEnrichedContext);
+          if (memoryInjection) {
+            outputChannel.appendLine(
+              `   ✓ Memory context loaded (${memoryInjection.length} chars for injection)`
+            );
+          }
+        }
       } catch (error) {
         // Non-fatal: launch proceeds without enrichment (T032)
         console.warn(
@@ -909,10 +991,23 @@ export async function launchClaudeCode(specId: string): Promise<void> {
         const initialCommand = determineInitialCommand(specId, workspacePath);
         outputChannel?.appendLine(`   → State detection chose: ${initialCommand}`);
 
+        // Build the full command with memory injection (memory-system-integration-sweep)
+        // If we have cached enriched context, prepend memory context to the command
+        let fullCommand = initialCommand;
+        if (cachedEnrichedContext) {
+          const memoryInjection = formatMemoryInjection(cachedEnrichedContext);
+          if (memoryInjection) {
+            // Inject memories as context before the command
+            // Format: "Context from previous sessions:\n<memories>\n...\n</memories>\n\nNow execute: /5_gofer_implement"
+            fullCommand = `Context from previous sessions:\n${memoryInjection}\n\nNow execute: ${initialCommand}`;
+            outputChannel?.appendLine(`   → Memory context injected (${memoryInjection.length} chars)`);
+          }
+        }
+
         // METHOD 5 (WORKING): Write command first, then send \r separately with 500ms delay
         // This is the only method that works reliably with Claude Code
-        ptyRef.write(initialCommand);
-        outputChannel?.appendLine(`  → Typed command: ${initialCommand}`);
+        ptyRef.write(fullCommand);
+        outputChannel?.appendLine(`  → Typed command: ${fullCommand.substring(0, 100)}${fullCommand.length > 100 ? '...' : ''}`);
 
         setTimeout(() => {
           ptyRef.write('\r');

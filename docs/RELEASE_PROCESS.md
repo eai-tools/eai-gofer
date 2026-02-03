@@ -185,7 +185,8 @@ No more "uncommitted changes" errors! 🎉
 
 Users can also manually install from:
 
-- **GitHub Pages**: <https://eai-tools.github.io/gofer/releases/gofer-X.Y.Z.vsix>
+- **GitHub Pages**:
+  <https://eai-tools.github.io/gofer/releases/gofer-X.Y.Z.vsix>
 - **Local file**: After running release script, VSIX is in project root
 
 ## Troubleshooting
@@ -259,8 +260,8 @@ curl "${RELEASES_URL}?cachebust=$(date +%s)" | jq .latest_version
 # Should show your new version
 ```
 
-In the extension, click "Check for Updates" again after GitHub Pages
-deployment completes.
+In the extension, click "Check for Updates" again after GitHub Pages deployment
+completes.
 
 ## Testing Before Release
 
@@ -329,7 +330,7 @@ The release process integrates with GitHub Actions:
 ### GitHub Pages Configuration
 
 - **Source**: `main` branch, `/docs` folder
-- **Custom domain**: eai-tools.github.io/specgofer
+- **Custom domain**: eai-tools.github.io/gofer
 - **Deployment**: Automatic on push to `docs/**`
 
 ## Security Considerations

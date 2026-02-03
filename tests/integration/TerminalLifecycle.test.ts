@@ -162,7 +162,7 @@ describe.skip('Terminal Lifecycle Integration (T012)', () => {
 
       expect(vscode.commands.executeCommand).toHaveBeenCalledWith(
         'setContext',
-        'specgofer.claudeCodeRunning',
+        'gofer.claudeCodeRunning',
         true
       );
     });
@@ -180,7 +180,7 @@ describe.skip('Terminal Lifecycle Integration (T012)', () => {
       // Should still set context to false on error
       expect(vscode.commands.executeCommand).toHaveBeenCalledWith(
         'setContext',
-        'specgofer.claudeCodeRunning',
+        'gofer.claudeCodeRunning',
         false
       );
     });
@@ -262,7 +262,7 @@ describe.skip('Terminal Lifecycle Integration (T012)', () => {
 
       expect(vscode.commands.executeCommand).toHaveBeenCalledWith(
         'setContext',
-        'specgofer.claudeCodeRunning',
+        'gofer.claudeCodeRunning',
         false
       );
     });

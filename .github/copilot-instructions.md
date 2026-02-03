@@ -298,14 +298,14 @@ The engineer agent **automatically checks** against these principles.
 
 ### 3. **MCP Tool Naming Convention**
 
-All MCP tools follow `specgofer_<action>` pattern:
+All MCP tools follow `gofer_<action>` pattern:
 
-- `specgofer_get_specs` - List all specs
-- `specgofer_get_next_task` - Get next available task
-- `specgofer_execute_task` - Start task execution
-- `specgofer_update_task_status` - Update status
-- `specgofer_validate_code` - Check against constitution
-- `specgofer_run_tests` - Execute Playwright tests
+- `gofer_get_specs` - List all specs
+- `gofer_get_next_task` - Get next available task
+- `gofer_execute_task` - Start task execution
+- `gofer_update_task_status` - Update status
+- `gofer_validate_code` - Check against constitution
+- `gofer_run_tests` - Execute Playwright tests
 
 See `language-server/src/mcp/toolHandler.ts` for implementations.
 

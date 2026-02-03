@@ -825,12 +825,12 @@ Auto-release
 - **LSP + MCP Integration**: Full Language Server Protocol integration with
   Model Context Protocol support
 - **6 MCP Tools** for Claude Code integration:
-  - `specgofer_get_specs` - Get all specifications
-  - `specgofer_get_next_task` - Get next available task
-  - `specgofer_execute_task` - Execute a specific task
-  - `specgofer_update_task_status` - Update task status
-  - `specgofer_validate_code` - Validate against constitution
-  - `specgofer_run_tests` - Run tests for a spec
+  - `gofer_get_specs` - Get all specifications
+  - `gofer_get_next_task` - Get next available task
+  - `gofer_execute_task` - Execute a specific task
+  - `gofer_update_task_status` - Update task status
+  - `gofer_validate_code` - Validate against constitution
+  - `gofer_run_tests` - Run tests for a spec
 - **Auto MCP Configuration**: Automatically creates `.vscode/mcp.json` for
   Claude Code
 - **Input Validation**: Security hardening with path traversal protection
@@ -899,7 +899,7 @@ To upgrade from version 1.1.0 or earlier:
 4. **Test with Claude Code**: Install Claude Code extension and test MCP tools
    with:
    ```
-   @specgofer specgofer_get_specs
+   @gofer gofer_get_specs
    ```
 
 ## Breaking Changes

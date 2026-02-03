@@ -221,11 +221,11 @@ describe('Config - Workspace Paths', () => {
   });
 
   it('should handle workspace paths with spaces', () => {
-    const workspacePath = '/Users/John Doe/My Projects/specgofer';
+    const workspacePath = '/Users/John Doe/My Projects/gofer';
     const paths = getWorkspacePaths(workspacePath);
 
-    expect(paths.specify).toBe('/Users/John Doe/My Projects/specgofer/.specify');
-    expect(paths.specs).toBe('/Users/John Doe/My Projects/specgofer/.specify/specs');
+    expect(paths.specify).toBe('/Users/John Doe/My Projects/gofer/.specify');
+    expect(paths.specs).toBe('/Users/John Doe/My Projects/gofer/.specify/specs');
   });
 
   it('should handle workspace paths with special characters', () => {

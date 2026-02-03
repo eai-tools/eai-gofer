@@ -99,7 +99,7 @@ describe.skip('Autonomous Commands - Play/Stop Button State Management', () => {
       // Verify setContext was called with true
       expect(mockExecuteCommand).toHaveBeenCalledWith(
         'setContext',
-        'specgofer.claudeCodeRunning',
+        'gofer.claudeCodeRunning',
         true
       );
     });
@@ -161,7 +161,7 @@ describe.skip('Autonomous Commands - Play/Stop Button State Management', () => {
 
       expect(mockExecuteCommand).toHaveBeenCalledWith(
         'setContext',
-        'specgofer.claudeCodeRunning',
+        'gofer.claudeCodeRunning',
         false
       );
     });
@@ -184,7 +184,7 @@ describe.skip('Autonomous Commands - Play/Stop Button State Management', () => {
       await stopClaudeCode();
       expect(mockExecuteCommand).toHaveBeenCalledWith(
         'setContext',
-        'specgofer.claudeCodeRunning',
+        'gofer.claudeCodeRunning',
         false
       );
 
@@ -194,7 +194,7 @@ describe.skip('Autonomous Commands - Play/Stop Button State Management', () => {
       await launchClaudeCode('test-spec');
       expect(mockExecuteCommand).toHaveBeenCalledWith(
         'setContext',
-        'specgofer.claudeCodeRunning',
+        'gofer.claudeCodeRunning',
         true
       );
     });
@@ -204,7 +204,7 @@ describe.skip('Autonomous Commands - Play/Stop Button State Management', () => {
       await launchClaudeCode('test-spec');
       expect(mockExecuteCommand).toHaveBeenCalledWith(
         'setContext',
-        'specgofer.claudeCodeRunning',
+        'gofer.claudeCodeRunning',
         true
       );
 
@@ -214,7 +214,7 @@ describe.skip('Autonomous Commands - Play/Stop Button State Management', () => {
       await stopClaudeCode();
       expect(mockExecuteCommand).toHaveBeenCalledWith(
         'setContext',
-        'specgofer.claudeCodeRunning',
+        'gofer.claudeCodeRunning',
         false
       );
     });
@@ -224,7 +224,7 @@ describe.skip('Autonomous Commands - Play/Stop Button State Management', () => {
       await launchClaudeCode('spec-1');
       expect(mockExecuteCommand).toHaveBeenCalledWith(
         'setContext',
-        'specgofer.claudeCodeRunning',
+        'gofer.claudeCodeRunning',
         true
       );
 
@@ -232,7 +232,7 @@ describe.skip('Autonomous Commands - Play/Stop Button State Management', () => {
       await stopClaudeCode();
       expect(mockExecuteCommand).toHaveBeenCalledWith(
         'setContext',
-        'specgofer.claudeCodeRunning',
+        'gofer.claudeCodeRunning',
         false
       );
 
@@ -240,7 +240,7 @@ describe.skip('Autonomous Commands - Play/Stop Button State Management', () => {
       await launchClaudeCode('spec-2');
       expect(mockExecuteCommand).toHaveBeenCalledWith(
         'setContext',
-        'specgofer.claudeCodeRunning',
+        'gofer.claudeCodeRunning',
         true
       );
     });
@@ -260,7 +260,7 @@ describe.skip('Autonomous Commands - Play/Stop Button State Management', () => {
       // Context should be set back to false on error
       expect(mockExecuteCommand).toHaveBeenCalledWith(
         'setContext',
-        'specgofer.claudeCodeRunning',
+        'gofer.claudeCodeRunning',
         false
       );
 

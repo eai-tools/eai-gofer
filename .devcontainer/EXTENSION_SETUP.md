@@ -40,8 +40,8 @@ After the codespace starts, verify installation:
 
 ```bash
 # Check if extension is installed
-code --list-extensions | grep specgofer
-# Should output: enterpriseai.specgofer
+code --list-extensions | grep gofer
+# Should output: enterpriseai.gofer
 ```
 
 You should also see in the terminal during startup:

@@ -288,7 +288,7 @@ package_extension() {
     
     # Get the generated VSIX name
     PACKAGE_VERSION=$(node -p "require('./package.json').version")
-    VSIX_NAME="specgofer-${PACKAGE_VERSION}.vsix"
+    VSIX_NAME="gofer-${PACKAGE_VERSION}.vsix"
     
     # Move to output directory if different
     if [ "$OUTPUT_DIR" != "$EXTENSION_DIR" ]; then

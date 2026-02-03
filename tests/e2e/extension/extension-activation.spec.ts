@@ -62,7 +62,7 @@ Test spec for tree view.
     await fs.writeFile(join(TEST_WORKSPACE, '.specify/specs/test-spec/spec.md'), specContent);
 
     // Test GoferParser directly
-    const { GoferParser } = await import('../../../extension/src/specKitParser.js');
+    const { GoferParser } = await import('../../../extension/src/goferParser.js');
     const parser = new GoferParser(join(TEST_WORKSPACE, '.specify'));
 
     const specs = await parser.loadAllSpecs();

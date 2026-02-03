@@ -41,10 +41,10 @@ describe('TerminalManager', () => {
       const vscode = await import('vscode');
       vi.mocked(vscode.window.createTerminal).mockReturnValue(mockTerminal);
 
-      const terminal = await terminalManager.createTerminal('SpecGofer: Engineer');
+      const terminal = await terminalManager.createTerminal('Gofer: Engineer');
 
       expect(vscode.window.createTerminal).toHaveBeenCalledWith({
-        name: 'SpecGofer: Engineer',
+        name: 'Gofer: Engineer',
         hideFromUser: false,
       });
       expect(terminal).toBeDefined();
@@ -56,7 +56,7 @@ describe('TerminalManager', () => {
       vi.mocked(vscode.window.createTerminal).mockReturnValue(mockTerminal);
 
       const startTime = Date.now();
-      await terminalManager.createTerminal('SpecGofer: Test');
+      await terminalManager.createTerminal('Gofer: Test');
       const duration = Date.now() - startTime;
 
       expect(duration).toBeLessThan(500);
@@ -66,9 +66,9 @@ describe('TerminalManager', () => {
       const vscode = await import('vscode');
       vi.mocked(vscode.window.createTerminal).mockReturnValue(mockTerminal);
 
-      const terminal = await terminalManager.createTerminal('SpecGofer: Engineer');
+      const terminal = await terminalManager.createTerminal('Gofer: Engineer');
 
-      expect(terminal.terminalName).toBe('SpecGofer: Engineer');
+      expect(terminal.terminalName).toBe('Gofer: Engineer');
       expect(terminal.isAlive).toBe(true);
       expect(terminal.createdAt).toBeDefined();
     });
@@ -242,7 +242,7 @@ describe('TerminalManager', () => {
       const vscode = await import('vscode');
       vi.mocked(vscode.window.createTerminal).mockReturnValue(mockTerminal);
 
-      const terminal = await terminalManager.createTerminal('SpecGofer: Engineer');
+      const terminal = await terminalManager.createTerminal('Gofer: Engineer');
       const oldTerminalId = terminal.terminalId;
 
       const newTerminal = await terminalManager.restartTerminal(oldTerminalId);

@@ -278,7 +278,7 @@ Once you have a fully-specified feature (spec + plan + tasks), Gofer:
                                 │
                                 ↓
 ┌─────────────────────────────────────────────────────────────────────┐
-│ SPECGOFER (AUTONOMOUS)                                               │
+│ GOFER (AUTONOMOUS)                                               │
 │                                                                      │
 │  ┌──────────────────────────────────────────────────────────────┐  │
 │  │ Autonomous Driver                                            │  │

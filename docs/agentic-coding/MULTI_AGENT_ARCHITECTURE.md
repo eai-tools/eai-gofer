@@ -2,7 +2,7 @@
 
 **Enterprise AI Pty Ltd - Sub-Agents and LLM Council Patterns**
 
-*Last Updated: January 2026*
+_Last Updated: January 2026_
 
 ---
 
@@ -44,7 +44,8 @@ Each sub-agent:
 
 ### Benefits
 
-1. **Context Efficiency**: Sub-agents don't pollute main context with tool outputs
+1. **Context Efficiency**: Sub-agents don't pollute main context with tool
+   outputs
 2. **Parallel Execution**: Multiple sub-agents can run simultaneously
 3. **Specialization**: Each agent is optimized for its task
 4. **Cost Reduction**: Smaller contexts = cheaper API calls
@@ -65,11 +66,13 @@ Each sub-agent:
 ## Located: [Search Query]
 
 ### Files Found
+
 - `src/auth/UserService.ts` - User authentication logic
 - `src/auth/TokenManager.ts` - JWT token handling
 - `src/api/authRoutes.ts` - Auth API endpoints
 
 ### Related Directories
+
 - `src/auth/` - All authentication code
 - `tests/auth/` - Auth test files
 ```
@@ -86,19 +89,23 @@ Each sub-agent:
 ## Analysis: [Component Name]
 
 ### Overview
+
 High-level description of component's role.
 
 ### Core Logic Flow
+
 1. Request enters at `handler.ts:12`
 2. Validation in `validator.ts:34`
 3. Business logic in `service.ts:56`
 4. Data persisted via `repository.ts:78`
 
 ### Key Functions
+
 - `processData()` (service.ts:56) - Transforms input
 - `validateInput()` (validator.ts:34) - Validates data
 
 ### Dependencies
+
 - External: axios, lodash
 - Internal: config, logger
 ```
@@ -111,10 +118,11 @@ High-level description of component's role.
 
 **Output Format**:
 
-```markdown
+````markdown
 ## Pattern: [Pattern Name]
 
 ### Example 1: UserService.ts
+
 Location: src/services/UserService.ts:45-78
 
 ```typescript
@@ -126,15 +134,19 @@ export class UserService {
   }
 }
 ```
+````
 
 ### Example 2: ProductService.ts
+
 [Similar pattern in different context]
 
 ### Pattern Summary
+
 - Always validate input first
 - Use repository for persistence
 - Return typed promises
-```
+
+````
 
 ---
 
@@ -158,7 +170,7 @@ async function research(query: string): Promise<ResearchResult> {
     patterns,     // ~1-2k tokens
   };
 }
-```
+````
 
 ### Context Preservation
 
@@ -239,11 +251,11 @@ The LLM Council pattern implements **multi-provider consensus** through:
 
 ### Low Value (Skip Council)
 
-| Stage          | Why Not                            |
-| -------------- | ---------------------------------- |
-| Implementation | Execution doesn't need debate      |
-| Task breakdown | Structured task, less subjective   |
-| Simple queries | Overhead not worth it              |
+| Stage          | Why Not                          |
+| -------------- | -------------------------------- |
+| Implementation | Execution doesn't need debate    |
+| Task breakdown | Structured task, less subjective |
+| Simple queries | Overhead not worth it            |
 
 ---
 
@@ -289,9 +301,9 @@ providers:
 
 Configure in VSCode Settings:
 
-- `specGofer.anthropicApiKey` - Anthropic (Claude)
-- `specGofer.googleApiKey` - Google (Gemini)
-- `specGofer.openaiApiKey` - OpenAI
+- `gofer.anthropicApiKey` - Anthropic (Claude)
+- `gofer.googleApiKey` - Google (Gemini)
+- `gofer.openaiApiKey` - OpenAI
 
 ---
 
@@ -301,21 +313,21 @@ Configure in VSCode Settings:
 
 ```typescript
 async function dispatchToCouncil(query: string): Promise<Response[]> {
-  const enabledProviders = config.providers.filter(p => p.enabled);
+  const enabledProviders = config.providers.filter((p) => p.enabled);
 
   const responses = await Promise.allSettled(
-    enabledProviders.map(provider =>
+    enabledProviders.map((provider) =>
       callProvider(provider.providerId, query, config.timeout)
     )
   );
 
   // Require quorum
-  const successful = responses.filter(r => r.status === 'fulfilled');
+  const successful = responses.filter((r) => r.status === 'fulfilled');
   if (successful.length < config.quorum) {
     throw new Error(`Quorum not met: ${successful.length}/${config.quorum}`);
   }
 
-  return successful.map(r => r.value);
+  return successful.map((r) => r.value);
 }
 ```
 
@@ -351,7 +363,7 @@ You are the Chairman synthesizing responses from multiple AI council members.
 ${query}
 
 ## Council Responses
-${anonymizedResponses.map(r => `### ${r.label}\n${r.content}`).join('\n\n')}
+${anonymizedResponses.map((r) => `### ${r.label}\n${r.content}`).join('\n\n')}
 
 ${peerReviews ? `## Peer Reviews\n${formatPeerReviews(peerReviews)}` : ''}
 

@@ -35,7 +35,7 @@ When you install Gofer in any repo, each person can set their own API key in
 
 ```json
 {
-  "specKit.anthropicApiKey": "OPENAI_API_KEY_REDACTED"
+  "gofer.anthropicApiKey": "OPENAI_API_KEY_REDACTED"
 }
 ```
 
@@ -65,7 +65,7 @@ source ~/.zshrc
 
 Gofer checks for your API key in this order:
 
-1. **VSCode User Settings** (`specKit.anthropicApiKey`) ← **Recommended!**
+1. **VSCode User Settings** (`gofer.anthropicApiKey`) ← **Recommended!**
 2. Environment Variable (`ANTHROPIC_API_KEY`)
 3. Workspace `.env` file (only for developing Gofer itself)
 

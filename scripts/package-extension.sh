@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# SpecGofer Extension Packaging Script
+# Gofer Extension Packaging Script
 # Builds and packages the VSCode extension for distribution
 
 set -e  # Exit on any error
@@ -29,7 +29,7 @@ VERSION=""
 # Help function
 show_help() {
     cat << EOF
-SpecGofer Extension Packaging Script
+Gofer Extension Packaging Script
 
 Usage: $0 [OPTIONS]
 
@@ -357,7 +357,7 @@ show_installation_instructions() {
 
 # Main execution
 main() {
-    echo -e "${GREEN}SpecGofer Extension Packaging${NC}"
+    echo -e "${GREEN}Gofer Extension Packaging${NC}"
     echo "========================================="
     echo
     

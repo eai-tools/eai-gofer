@@ -10,7 +10,7 @@
 #
 # If TASK_ID is omitted, verifies all modified files since last commit.
 #
-# Part of the SpecGofer feedback loop system (Gap 7).
+# Part of the Gofer feedback loop system (Gap 7).
 
 set -e
 

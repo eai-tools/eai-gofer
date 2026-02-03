@@ -112,7 +112,7 @@ TEMP_FILE=$(mktemp)
 cat > "$TEMP_FILE" << EOF
 # Changelog
 
-All notable changes to the SpecGofer extension will be documented in this file.
+All notable changes to the Gofer extension will be documented in this file.
 
 ## [$NEW_VERSION] - $CURRENT_DATE
 

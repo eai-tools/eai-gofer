@@ -18,7 +18,7 @@ fi
 # Extract version from filename
 VERSION=$(basename "$VSIX_FILE" | sed 's/gofer-\(.*\)\.vsix/\1/')
 
-echo "🔧 Installing SpecGofer v$VERSION..."
+echo "🔧 Installing Gofer v$VERSION..."
 
 # Find the code command
 if command -v code &> /dev/null; then
@@ -39,4 +39,4 @@ echo "✅ Installation complete!"
 echo ""
 echo "🔄 Please reload VSCode:"
 echo "   Cmd+Shift+P → 'Developer: Reload Window'"
-echo "   Then try: 'SpecGofer: Start Claude Code Terminal'"
+echo "   Then try: 'Gofer: Start Claude Code Terminal'"

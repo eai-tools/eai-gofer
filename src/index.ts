@@ -31,7 +31,7 @@ async function main(): Promise<void> {
   process.stdout.write(`
 ╔═══════════════════════════════════════════════════════════╗
 ║                                                           ║
-║         🚀 SpecGofer Autonomous Mode 🚀                   ║
+║         🚀 Gofer Autonomous Mode 🚀                   ║
 ║         Spec-Driven Development on Autopilot              ║
 ║                                                           ║
 ╚═══════════════════════════════════════════════════════════╝

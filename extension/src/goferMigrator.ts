@@ -337,22 +337,7 @@ export class GoferMigrator {
             vscode.window.showTextDocument(doc);
           });
         }
-      );
-
-      vscode.window
-        .showInformationMessage('✅ Gofer installed successfully!', 'View Constitution')
-        .then((choice) => {
-          if (choice === 'View Constitution') {
-            const constitutionPath = path.join(this.specifyPath, 'memory', 'constitution.md');
-            vscode.workspace.openTextDocument(constitutionPath).then((doc) => {
-              vscode.window.showTextDocument(doc);
-            });
-          }
-        });
-    } finally {
-      // Always reset upgrade flag when done
-      setUpgradeState(false);
-    }
+      });
   }
 
   /**

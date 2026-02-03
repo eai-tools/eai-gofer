@@ -96,15 +96,14 @@ export async function activate(context: vscode.ExtensionContext) {
   // Start checking for updates using GitHub Pages API
   autoUpdater.startPeriodicChecks(context);
 
-  // Start Language Server
+  // Start Language Server (non-blocking - extension works without it)
   lspClient = new GoferLSPClient(context);
-  try {
-    await lspClient.start();
-    console.log('Language Server started successfully');
-  } catch (error) {
-    console.error('Failed to start Language Server:', error);
-    vscode.window.showErrorMessage(`Gofer Language Server failed to start: ${error}`);
-  }
+  lspClient.start().then(() => {
+    console.log('[Gofer] Language Server started successfully');
+  }).catch((error) => {
+    console.warn('[Gofer] Language Server failed to start (non-critical):', error);
+    // LSP is optional - extension works without it
+  });
 
   // Register tree views IMMEDIATELY (even if empty) so VSCode can find them
   // This must happen before any commands that reference these views

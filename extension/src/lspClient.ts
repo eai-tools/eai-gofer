@@ -108,16 +108,26 @@ export class GoferLSPClient {
       clientOptions
     );
 
-    // Start the client (also starts the server)
+    // Start the client (also starts the server) with timeout
     try {
-      await this.client.start();
+      const startPromise = this.client.start();
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Language Server start timed out after 10 seconds')), 10000);
+      });
+
+      await Promise.race([startPromise, timeoutPromise]);
       this.outputChannel.appendLine('Gofer Language Server started successfully');
 
       // Register notification handlers
       this.registerNotificationHandlers();
     } catch (error) {
       this.outputChannel.appendLine(`Failed to start Language Server: ${error}`);
-      vscode.window.showErrorMessage(`Gofer Language Server failed to start: ${error}`);
+      // Don't show error popup for timeouts - extension can work without LSP
+      if (error instanceof Error && error.message.includes('timed out')) {
+        this.outputChannel.appendLine('Continuing without Language Server (non-critical)');
+      } else {
+        vscode.window.showErrorMessage(`Gofer Language Server failed to start: ${error}`);
+      }
     }
   }
 

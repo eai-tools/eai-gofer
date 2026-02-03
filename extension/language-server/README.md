@@ -1,14 +1,17 @@
-# SpecGofer Language Server
+# Gofer Language Server
 
-A dual-protocol server implementing both Language Server Protocol (LSP) and Model Context Protocol (MCP) for spec-driven development with AI coding agents.
+A dual-protocol server implementing both Language Server Protocol (LSP) and
+Model Context Protocol (MCP) for spec-driven development with AI coding agents.
 
 ## Overview
 
-The SpecGofer Language Server serves as the bridge between the VSCode extension and AI coding agents (Claude Code, GitHub Copilot). It provides:
+The Gofer Language Server serves as the bridge between the VSCode extension and
+AI coding agents (Claude Code, GitHub Copilot). It provides:
 
 - **LSP Communication**: Custom methods for extension-to-server communication
-- **MCP Tools**: 6 tools that AI agents can invoke to interact with specifications
-- **Spec Kit Integration**: Loads and parses GitHub Spec Kit format specifications
+- **MCP Tools**: 6 tools that AI agents can invoke to interact with
+  specifications
+- **Gofer Integration**: Loads and parses GitHub Gofer format specifications
 - **Real-time Updates**: Notifies extension when task status changes
 
 ## Architecture
@@ -20,7 +23,7 @@ language-server/
 │   ├── mcp/
 │   │   └── toolHandler.ts        # MCP tool implementations
 │   └── utils/
-│       └── specKitLoader.ts      # Spec loading and parsing
+│       └── goferLoader.ts      # Spec loading and parsing
 ├── dist/                          # Compiled JavaScript
 ├── package.json
 └── tsconfig.json
@@ -31,11 +34,13 @@ language-server/
 The server exposes 6 MCP tools for AI agents:
 
 ### 1. `specgofer_get_specs`
+
 Get all specifications from `.specify/specs/`
 
 **Parameters**: None
 
 **Returns**:
+
 ```typescript
 {
   specs: Array<{
@@ -53,11 +58,13 @@ Get all specifications from `.specify/specs/`
 ```
 
 ### 2. `specgofer_get_next_task`
+
 Get the next available task to work on (respects dependencies)
 
 **Parameters**: None
 
 **Returns**:
+
 ```typescript
 {
   specId: string;
@@ -68,13 +75,16 @@ Get the next available task to work on (respects dependencies)
 ```
 
 ### 3. `specgofer_execute_task`
+
 Get full context for executing a specific task
 
 **Parameters**:
+
 - `specId` (string): Specification ID (e.g., "001-login-feature")
 - `taskId` (string): Task ID (e.g., "T001")
 
 **Returns**:
+
 ```typescript
 {
   spec: {
@@ -94,14 +104,18 @@ Get full context for executing a specific task
 ```
 
 ### 4. `specgofer_update_task_status`
+
 Update task status in spec file
 
 **Parameters**:
+
 - `specId` (string): Specification ID
 - `taskId` (string): Task ID
-- `status` (string): One of: `pending`, `in_progress`, `testing`, `completed`, `failed`, `blocked`
+- `status` (string): One of: `pending`, `in_progress`, `testing`, `completed`,
+  `failed`, `blocked`
 
 **Returns**:
+
 ```typescript
 {
   success: boolean;
@@ -109,12 +123,15 @@ Update task status in spec file
 ```
 
 ### 5. `specgofer_validate_code`
+
 Validate code against constitutional requirements
 
 **Parameters**:
+
 - `files` (string[]): Array of file paths to validate
 
 **Returns**:
+
 ```typescript
 {
   isValid: boolean;
@@ -124,12 +141,15 @@ Validate code against constitutional requirements
 ```
 
 ### 6. `specgofer_run_tests`
+
 Run Playwright tests for a specification
 
 **Parameters**:
+
 - `specId` (string): Specification ID
 
 **Returns**:
+
 ```typescript
 {
   passed: boolean;
@@ -142,13 +162,16 @@ Run Playwright tests for a specification
 
 The server also provides custom LSP methods for the VSCode extension:
 
-### `specKit/getSpecs`
+### `gofer/getSpecs`
+
 Returns all specifications (similar to MCP tool but via LSP)
 
-### `specKit/executeTask`
+### `gofer/executeTask`
+
 Execute a task (called by extension UI)
 
-### `specKit/updateTaskStatus`
+### `gofer/updateTaskStatus`
+
 Update task status and notify extension
 
 ## Setup
@@ -163,7 +186,8 @@ npm run build
 
 ### Usage
 
-The server is automatically launched by the VSCode extension. It can also be started manually:
+The server is automatically launched by the VSCode extension. It can also be
+started manually:
 
 ```bash
 node dist/server.js --stdio
@@ -172,6 +196,7 @@ node dist/server.js --stdio
 ### Configuration
 
 The server requires:
+
 - Workspace root path (provided during LSP initialization)
 - `.specify/specs/` directory in workspace
 
@@ -203,13 +228,15 @@ npm run test:integration
 The server implements security measures:
 
 - **Input Validation**: All spec IDs and task IDs are validated for format
-- **Path Traversal Prevention**: File paths are validated to prevent `../` attacks
+- **Path Traversal Prevention**: File paths are validated to prevent `../`
+  attacks
 - **Length Limits**: Response sizes are limited to prevent DoS
 - **Error Sanitization**: System paths are not exposed in error messages
 
 ## Performance
 
 Performance targets:
+
 - Server startup: <1s
 - Spec loading: <500ms for 100+ specs
 - Tool response time: <100ms
@@ -221,7 +248,7 @@ Enable console logging in the VSCode extension output panel:
 
 1. Open VSCode
 2. View → Output
-3. Select "SpecGofer Language Server" from dropdown
+3. Select "Gofer Language Server" from dropdown
 4. Watch real-time logs
 
 ## Contributing

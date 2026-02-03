@@ -34,7 +34,7 @@ class ConstitutionItem extends vscode.TreeItem {
       this.tooltip = `Article ${article.number}: ${article.title}`;
       // Add click command to show article details
       this.command = {
-        command: 'eaiGofer.showArticleDetails',
+        command: 'gofer.showArticleDetails',
         title: 'Show Article Details',
         arguments: [article]
       };
@@ -46,7 +46,7 @@ class ConstitutionItem extends vscode.TreeItem {
       this.description = section.number;
       // Add click command to show section details
       this.command = {
-        command: 'eaiGofer.showSectionDetails',
+        command: 'gofer.showSectionDetails',
         title: 'Show Section Details',
         arguments: [section, article]
       };
@@ -68,7 +68,7 @@ export class ConstitutionProvider implements vscode.TreeDataProvider<Constitutio
   private lastUpdated: string = '';
 
   constructor(workspacePath: string) {
-    console.log(`[EAI-GOFER] ConstitutionProvider initialized for workspace: ${workspacePath}`);
+    console.log(`[Gofer] ConstitutionProvider initialized for workspace: ${workspacePath}`);
     this.constitutionPath = path.join(workspacePath, '.specify', 'memory', 'constitution.md');
     this.loadConstitution();
   }
@@ -163,14 +163,14 @@ export class ConstitutionProvider implements vscode.TreeDataProvider<Constitutio
       } catch (error) {
         this.loadError = `Constitution file not found at ${this.constitutionPath}`;
         this.articles = [];
-        console.log(`[EAI-GOFER] Constitution not found at ${this.constitutionPath}`);
+        console.log(`[Gofer] Constitution not found at ${this.constitutionPath}`);
         return;
       }
 
       const content = await fs.readFile(this.constitutionPath, 'utf-8');
       this.parseConstitution(content);
       this.loadError = null;
-      console.log(`[EAI-GOFER] Loaded constitution with ${this.articles.length} article(s) from ${this.constitutionPath}`);
+      console.log(`[Gofer] Loaded constitution with ${this.articles.length} article(s) from ${this.constitutionPath}`);
     } catch (error) {
       console.error('Error loading constitution:', error);
       this.loadError = error instanceof Error ? error.message : 'Unknown error';
@@ -296,7 +296,7 @@ export class ConstitutionProvider implements vscode.TreeDataProvider<Constitutio
       this.articles.push(currentArticle);
     }
 
-    console.log(`[EAI-GOFER] Parsed constitution: ${this.articles.length} articles with ${this.articles.reduce((sum, a) => sum + a.sections.length, 0)} total sections`);
+    console.log(`[Gofer] Parsed constitution: ${this.articles.length} articles with ${this.articles.reduce((sum, a) => sum + a.sections.length, 0)} total sections`);
   }
 
   private romanToNumber(roman: string): number {

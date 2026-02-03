@@ -1,7 +1,7 @@
 /**
  * Test Fixtures - Sample Specifications
- * 
- * These are sample specs used for testing the SpecKit loader and parser.
+ *
+ * These are sample specs used for testing the Gofer loader and parser.
  */
 
 export const validSpecMarkdown = `---
@@ -115,7 +115,7 @@ export const constitutionSample = `# Project Constitution
 - Playwright for E2E tests
 `;
 
-export const createMockSpec = (overrides = {}) => ({
+export const createMockSpec = (overrides = {}): Record<string, unknown> => ({
   id: 'mock-001',
   title: 'Mock Specification',
   status: 'in_progress',

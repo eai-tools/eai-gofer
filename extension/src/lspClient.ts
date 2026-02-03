@@ -1,5 +1,5 @@
 /**
- * LSP Client for SpecGofer Language Server
+ * LSP Client for Gofer Language Server
  *
  * Manages connection to the Language Server and provides methods
  * for communication
@@ -14,12 +14,12 @@ import {
   TransportKind,
 } from 'vscode-languageclient/node';
 
-export class SpecGoferLSPClient {
+export class GoferLSPClient {
   private client: LanguageClient | undefined;
   private outputChannel: vscode.OutputChannel;
 
   constructor(private context: vscode.ExtensionContext) {
-    this.outputChannel = vscode.window.createOutputChannel('SpecGofer Language Server');
+    this.outputChannel = vscode.window.createOutputChannel('Gofer Language Server');
   }
 
   async start(): Promise<void> {
@@ -59,7 +59,7 @@ export class SpecGoferLSPClient {
       }
 
       vscode.window.showErrorMessage(
-        'SpecGofer Language Server not found. Check Output panel (SpecGofer Language Server) for details.'
+        'Gofer Language Server not found. Check Output panel (Gofer Language Server) for details.'
       );
       this.outputChannel.show();
       return;
@@ -94,7 +94,7 @@ export class SpecGoferLSPClient {
       ],
       synchronize: {
         // Synchronize configuration changes
-        configurationSection: 'specGofer',
+        configurationSection: 'gofer',
         fileEvents: vscode.workspace.createFileSystemWatcher('**/.specify/**/*'),
       },
       outputChannel: this.outputChannel,
@@ -102,8 +102,8 @@ export class SpecGoferLSPClient {
 
     // Create the language client
     this.client = new LanguageClient(
-      'specGoferLanguageServer',
-      'SpecGofer Language Server',
+      'goferLanguageServer',
+      'Gofer Language Server',
       serverOptions,
       clientOptions
     );
@@ -111,20 +111,20 @@ export class SpecGoferLSPClient {
     // Start the client (also starts the server)
     try {
       await this.client.start();
-      this.outputChannel.appendLine('SpecGofer Language Server started successfully');
+      this.outputChannel.appendLine('Gofer Language Server started successfully');
 
       // Register notification handlers
       this.registerNotificationHandlers();
     } catch (error) {
       this.outputChannel.appendLine(`Failed to start Language Server: ${error}`);
-      vscode.window.showErrorMessage(`SpecGofer Language Server failed to start: ${error}`);
+      vscode.window.showErrorMessage(`Gofer Language Server failed to start: ${error}`);
     }
   }
 
   async stop(): Promise<void> {
     if (this.client) {
       await this.client.stop();
-      this.outputChannel.appendLine('SpecGofer Language Server stopped');
+      this.outputChannel.appendLine('Gofer Language Server stopped');
     }
   }
 
@@ -164,13 +164,13 @@ export class SpecGoferLSPClient {
     }
 
     // Handle task progress notifications
-    this.client.onNotification('specGofer/taskProgress', (params: any) => {
+    this.client.onNotification('gofer/taskProgress', (params: any) => {
       this.outputChannel.appendLine(
         `Task progress: ${params.specId}/${params.taskId} → ${params.status}`
       );
 
       // Trigger UI refresh
-      vscode.commands.executeCommand('eaiGofer.refreshSpecs');
+      vscode.commands.executeCommand('gofer.refreshSpecs');
     });
   }
 
@@ -179,13 +179,13 @@ export class SpecGoferLSPClient {
    */
 
   async getSpecs(): Promise<any> {
-    return this.sendRequest('specGofer/getSpecs', {
+    return this.sendRequest('gofer/getSpecs', {
       workspaceRoot: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath,
     });
   }
 
   async executeTask(specId: string, taskId: string, context?: any): Promise<any> {
-    return this.sendRequest('specGofer/executeTask', {
+    return this.sendRequest('gofer/executeTask', {
       specId,
       taskId,
       context,
@@ -193,7 +193,7 @@ export class SpecGoferLSPClient {
   }
 
   async updateTaskStatus(specId: string, taskId: string, status: string): Promise<any> {
-    return this.sendRequest('specGofer/updateTaskStatus', {
+    return this.sendRequest('gofer/updateTaskStatus', {
       specId,
       taskId,
       status,

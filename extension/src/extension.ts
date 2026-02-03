@@ -6,15 +6,31 @@ import { ConstitutionProvider } from './constitutionProvider';
 import { MemoryProvider } from './memoryProvider';
 import { BranchSpecManager } from './branchSpecManager';
 import { AutoUpdater } from './autoUpdater';
-import { SpecGoferLSPClient } from './lspClient';
+import { GoferLSPClient } from './lspClient';
 import { MCPConfigHelper } from './mcpConfig';
 import { MemoryManager } from './autonomous/MemoryManager';
+import { ContextBuilder } from './autonomous/ContextBuilder';
 import { registerMemoryCommands } from './commands/memoryCommands';
 import { registerSpecCommands } from './commands/specCommands';
 import { registerCouncilCommands } from './commands/councilCommands';
+// Context Health Monitoring (Spec 012)
+import { ContextHealthMonitor } from './autonomous/ContextHealthMonitor';
+import { AutoHandoffTrigger } from './autonomous/AutoHandoffTrigger';
+import { ContextUsageLogger } from './autonomous/ContextUsageLogger';
+import { WorkspaceContextProvider } from './autonomous/WorkspaceContextProvider';
+import { ResearchChunker } from './autonomous/ResearchChunker';
+import { ContextHealthStatusBar } from './ui/ContextHealthStatusBar';
+// Real Context Monitoring (Spec 014)
+import { ClaudeSessionReader } from './autonomous/ClaudeSessionReader';
+import { ContinuousMemoryWriter } from './autonomous/ContinuousMemoryWriter';
+// Hook-based monitoring
+import { HookBridgeWatcher } from './autonomous/HookBridgeWatcher';
+import { GoferActivityStatusBar } from './ui/GoferActivityStatusBar';
+// Note: stopClaudeCode is imported dynamically in deactivate() to avoid
+// blocking extension activation if node-pty fails to load
 
 /**
- * SpecGofer Extension
+ * Gofer Extension
  *
  * © 2025 Enterprise AI Pty Ltd
  *
@@ -29,8 +45,18 @@ let constitutionProvider: ConstitutionProvider | undefined;
 let memoryProvider: MemoryProvider | undefined;
 let branchSpecManager: BranchSpecManager | undefined;
 let autoUpdater: AutoUpdater | undefined;
-let lspClient: SpecGoferLSPClient | undefined;
+let lspClient: GoferLSPClient | undefined;
 let memoryManager: MemoryManager | undefined;
+// Context Health Monitoring (Spec 012)
+let contextHealthMonitor: ContextHealthMonitor | undefined;
+let contextUsageLogger: ContextUsageLogger | undefined;
+let contextHealthStatusBar: ContextHealthStatusBar | undefined;
+let autoHandoffTrigger: AutoHandoffTrigger | undefined;
+// Real Context Monitoring (Spec 014)
+let continuousMemoryWriter: ContinuousMemoryWriter | undefined;
+// Hook-based monitoring
+let hookBridgeWatcher: HookBridgeWatcher | undefined;
+let goferActivityStatusBar: GoferActivityStatusBar | undefined;
 
 // Flag to prevent file watcher refreshes during upgrade
 let isUpgrading = false;
@@ -51,29 +77,29 @@ export function isUpgradeInProgress(): boolean {
 
 export async function activate(context: vscode.ExtensionContext) {
   // Reset Claude Code running context on startup (in case it was left true from a crash)
-  await vscode.commands.executeCommand('setContext', 'specgofer.claudeCodeRunning', false);
-  console.log('[EAI-GOFER] Reset claudeCodeRunning context to false');
+  await vscode.commands.executeCommand('setContext', 'gofer.claudeCodeRunning', false);
+  console.log('[Gofer] Reset claudeCodeRunning context to false');
 
   // Setup auto-updater (using GitHub Pages API for private repo)
   const packageJson = require('../package.json');
-  console.log(`SpecGofer (Enterprise AI) v${packageJson.version} extension activated`);
+  console.log(`Gofer (Enterprise AI) v${packageJson.version} extension activated`);
   autoUpdater = new AutoUpdater(
-    'eai-tools/specgofer', // GitHub repo
+    'eai-tools/gofer', // GitHub repo
     packageJson.version, // Current version
-    'specgofer' // Extension name for VSIX filename
+    'gofer' // Extension name for VSIX filename
   );
 
   // Start checking for updates using GitHub Pages API
   autoUpdater.startPeriodicChecks(context);
 
   // Start Language Server
-  lspClient = new SpecGoferLSPClient(context);
+  lspClient = new GoferLSPClient(context);
   try {
     await lspClient.start();
     console.log('Language Server started successfully');
   } catch (error) {
     console.error('Failed to start Language Server:', error);
-    vscode.window.showErrorMessage(`SpecGofer Language Server failed to start: ${error}`);
+    vscode.window.showErrorMessage(`Gofer Language Server failed to start: ${error}`);
   }
 
   // Register tree views IMMEDIATELY (even if empty) so VSCode can find them
@@ -86,7 +112,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
   if (!workspaceFolder) {
-    console.log('[EAI-GOFER] No workspace folder open, waiting...');
+    console.log('[Gofer] No workspace folder open, waiting...');
     // No workspace open yet, wait for one
     vscode.workspace.onDidChangeWorkspaceFolders(async () => {
       await reinitializeExtension(context);
@@ -94,7 +120,7 @@ export async function activate(context: vscode.ExtensionContext) {
     return;
   }
 
-  console.log(`[EAI-GOFER] Workspace detected: ${workspaceFolder.uri.fsPath}`);
+  console.log(`[Gofer] Workspace detected: ${workspaceFolder.uri.fsPath}`);
   await initializeForWorkspace(context);
 
   // Listen for workspace changes to reinitialize
@@ -119,22 +145,25 @@ function registerTreeViews(context: vscode.ExtensionContext) {
 
   // Register tree data providers - MUST happen before commands are registered
   context.subscriptions.push(
-    vscode.window.registerTreeDataProvider('eaiGoferProgress', progressProvider)
+    vscode.window.registerTreeDataProvider('goferProgress', progressProvider)
   );
 
   context.subscriptions.push(
-    vscode.window.registerTreeDataProvider('eaiGoferConstitution', constitutionProvider)
+    vscode.window.registerTreeDataProvider('goferConstitution', constitutionProvider)
   );
 
-  context.subscriptions.push(
-    vscode.window.registerTreeDataProvider('eaiGoferMemory', memoryProvider)
-  );
+  context.subscriptions.push(vscode.window.registerTreeDataProvider('goferMemory', memoryProvider));
 
-  console.log('[EAI-GOFER] Tree views registered');
+  // Create context health status bar (Spec 012)
+  // Created early so command is available, connected to monitor later
+  contextHealthStatusBar = new ContextHealthStatusBar(context);
+  console.log('[Gofer] Context health status bar created');
+
+  console.log('[Gofer] Tree views registered');
 }
 
 async function reinitializeExtension(context: vscode.ExtensionContext) {
-  console.log('[EAI-GOFER] Workspace changed, reinitializing...');
+  console.log('[Gofer] Workspace changed, reinitializing...');
 
   // Refresh the providers with new workspace data
   const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
@@ -207,19 +236,19 @@ async function handleNoGofer(
 ) {
   console.log('No .specify folder found');
 
-  const config = vscode.workspace.getConfiguration('specGofer');
+  const config = vscode.workspace.getConfiguration('gofer');
   const autoInit = config.get<boolean>('autoInitialize', false);
 
   if (autoInit) {
     const choice = await vscode.window.showInformationMessage(
-      'No SpecGofer structure found in this workspace. Initialize now?',
+      'No Gofer structure found in this workspace. Initialize now?',
       'Yes',
       'No',
       "Don't ask again"
     );
 
     if (choice === 'Yes') {
-      await vscode.commands.executeCommand('eaiGofer.initialize');
+      await vscode.commands.executeCommand('gofer.initialize');
     } else if (choice === "Don't ask again") {
       await config.update('autoInitialize', false, vscode.ConfigurationTarget.Global);
     }
@@ -268,7 +297,135 @@ async function handleGoferFormat(context: vscode.ExtensionContext, workspacePath
   // Check if templates need updating based on extension version
   await checkForTemplateUpdates(workspacePath, context);
 
-  vscode.window.setStatusBarMessage('$(notebook) EAI-GOFER - Enterprise AI ready', 3000);
+  // Check for and sync missing bundled resources (e.g., on Codespaces or new machines)
+  // This handles the case where .specify/ exists but bundled resources weren't committed
+  const migrator = new GoferMigrator(workspacePath);
+  await migrator.syncMissingResources();
+
+  // Initialize Context Health Monitoring (Spec 012)
+  initializeContextHealthMonitoring(workspacePath);
+
+  vscode.window.setStatusBarMessage('$(notebook) Gofer - Enterprise AI ready', 3000);
+}
+
+/**
+ * Initialize context health monitoring components (Spec 012)
+ *
+ * Creates and wires together:
+ * - ContextUsageLogger (JSONL logging)
+ * - ContextHealthMonitor (health tracking)
+ * - AutoHandoffTrigger (critical threshold handling)
+ * - ContextHealthStatusBar (UI display)
+ */
+function initializeContextHealthMonitoring(workspacePath: string): void {
+  try {
+    // Create components
+    contextUsageLogger = new ContextUsageLogger(workspacePath);
+    contextHealthMonitor = new ContextHealthMonitor();
+    contextHealthMonitor.setWorkspaceRoot(workspacePath); // For state persistence (Spec 012)
+    autoHandoffTrigger = new AutoHandoffTrigger();
+
+    // Wire status bar to monitor
+    if (contextHealthStatusBar) {
+      contextHealthStatusBar.connect(contextHealthMonitor);
+      contextHealthStatusBar.show();
+    }
+
+    // Wire auto-handoff to monitor and logger
+    autoHandoffTrigger.connect(contextHealthMonitor);
+    autoHandoffTrigger.setUsageLogger(contextUsageLogger);
+
+    // Wire real context provider for token estimation (Spec 013 Phase 2)
+    const contextProvider = new WorkspaceContextProvider(workspacePath);
+
+    // Wire ClaudeSessionReader for real JSONL session data (Spec 014 T038)
+    const sessionReader = new ClaudeSessionReader(workspacePath);
+    contextProvider.setSessionReader(sessionReader);
+
+    // Wire HookBridgeWatcher for event-driven context data (Priority 1)
+    hookBridgeWatcher = new HookBridgeWatcher(workspacePath);
+    contextProvider.setHookBridgeWatcher(hookBridgeWatcher);
+    hookBridgeWatcher.start();
+
+    // Create GoferActivityStatusBar driven by hook bridge
+    goferActivityStatusBar = new GoferActivityStatusBar(hookBridgeWatcher);
+    goferActivityStatusBar.show();
+
+    // On bridge update, trigger immediate health check
+    hookBridgeWatcher.on('bridge-update', () => {
+      contextHealthMonitor?.checkHealth();
+    });
+
+    // On session start from hooks, slow polling (hooks handle real-time updates)
+    hookBridgeWatcher.on('session-start', () => {
+      contextHealthMonitor?.startMonitoring(60000);
+      console.log('[Gofer] Hooks active — polling slowed to 60s');
+    });
+
+    // On stale bridge, speed up polling as fallback
+    hookBridgeWatcher.on('session-stale', () => {
+      contextHealthMonitor?.startMonitoring(10000);
+      console.log('[Gofer] Hook bridge stale — polling restored to 10s');
+    });
+
+    contextHealthMonitor.setContextProvider(() => contextProvider.getContextAnalysis());
+
+    // Run initial health check and start periodic monitoring
+    // Use 10s interval when active session detected, 30s otherwise (Spec 014 T040)
+    contextHealthMonitor.checkHealth();
+    const hookDataAvailable = hookBridgeWatcher.isHookDataAvailable();
+    const activeSession = sessionReader.findActiveSession();
+    const pollingInterval = hookDataAvailable ? 60000 : activeSession ? 10000 : 30000;
+    contextHealthMonitor.startMonitoring(pollingInterval);
+    console.log(
+      `[Gofer] Context monitoring polling at ${pollingInterval / 1000}s (hooks: ${hookDataAvailable}, session: ${activeSession ? 'active' : 'inactive'})`
+    );
+
+    // Connect logger to monitor events for JSONL logging
+    contextHealthMonitor.on('healthy', (status) => {
+      contextUsageLogger?.logHealthCheck({
+        sessionId: status.sessionId || 'unknown',
+        stage: 'unknown',
+        status: status.status,
+        tokensUsed: status.tokensUsed,
+        tokensLimit: status.tokensLimit,
+        utilizationPercent: status.utilizationPercent,
+        breakdown: status.breakdown,
+      });
+    });
+
+    contextHealthMonitor.on('warning', (status) => {
+      contextUsageLogger?.logHealthCheck({
+        sessionId: status.sessionId || 'unknown',
+        stage: 'unknown',
+        status: status.status,
+        tokensUsed: status.tokensUsed,
+        tokensLimit: status.tokensLimit,
+        utilizationPercent: status.utilizationPercent,
+        breakdown: status.breakdown,
+        action: 'Consider saving progress',
+      });
+    });
+
+    contextHealthMonitor.on('critical', (status) => {
+      contextUsageLogger?.logHealthCheck({
+        sessionId: status.sessionId || 'unknown',
+        stage: 'unknown',
+        status: status.status,
+        tokensUsed: status.tokensUsed,
+        tokensLimit: status.tokensLimit,
+        utilizationPercent: status.utilizationPercent,
+        breakdown: status.breakdown,
+        action: 'Handoff recommended',
+      });
+    });
+
+    // Note: startMonitoring() already called above with 30s interval
+
+    console.log('[Gofer] Context health monitoring initialized');
+  } catch (error) {
+    console.error('[Gofer] Failed to initialize context health monitoring:', error);
+  }
 }
 
 /**
@@ -280,7 +437,7 @@ async function checkForTemplateUpdates(workspacePath: string, context: vscode.Ex
 
   const packageJson = require('../package.json');
   const currentVersion = packageJson.version;
-  const versionFilePath = path.join(workspacePath, '.specify', '.specgofer-version');
+  const versionFilePath = path.join(workspacePath, '.specify', '.gofer-version');
 
   try {
     // Read stored version
@@ -297,7 +454,7 @@ async function checkForTemplateUpdates(workspacePath: string, context: vscode.Ex
     if (isNewer && storedVersion !== '0.0.0') {
       // Prompt user to upgrade templates
       const choice = await vscode.window.showInformationMessage(
-        `SpecGofer v${currentVersion} has new templates and commands available (you have v${storedVersion} installed in .specify/).`,
+        `Gofer v${currentVersion} has new templates and commands available (you have v${storedVersion} installed in .specify/).`,
         'Upgrade Now',
         'Later'
       );
@@ -337,8 +494,12 @@ function compareVersions(a: string, b: string): number {
   const bParts = b.split('.').map(Number);
 
   for (let i = 0; i < 3; i++) {
-    if (aParts[i] > bParts[i]) return 1;
-    if (aParts[i] < bParts[i]) return -1;
+    if (aParts[i] > bParts[i]) {
+      return 1;
+    }
+    if (aParts[i] < bParts[i]) {
+      return -1;
+    }
   }
   return 0;
 }
@@ -409,10 +570,10 @@ async function initializeProgressProvider(context: vscode.ExtensionContext, work
   context.subscriptions.push(specWatcher);
 
   // Set context for when clause
-  vscode.commands.executeCommand('setContext', 'eaiGoferInitialized', true);
+  vscode.commands.executeCommand('setContext', 'goferInitialized', true);
 
   // Show the Gofer view
-  vscode.commands.executeCommand('eaiGoferProgress.focus');
+  vscode.commands.executeCommand('goferProgress.focus');
 }
 
 /**
@@ -475,7 +636,7 @@ async function handleSpecModification(uri: vscode.Uri, workspacePath: string) {
       }
     }
   } catch (error) {
-    console.error('[EAI-GOFER] Error handling spec modification:', error);
+    console.error('[Gofer] Error handling spec modification:', error);
   }
 }
 
@@ -529,10 +690,7 @@ async function handleBranchChange() {
       progressProvider.refresh();
     }
     const currentBranch = branchSpecManager.getBranch();
-    vscode.window.setStatusBarMessage(
-      `$(git-branch) SpecGofer: Switched to ${currentBranch}`,
-      3000
-    );
+    vscode.window.setStatusBarMessage(`$(git-branch) Gofer: Switched to ${currentBranch}`, 3000);
   }
 }
 
@@ -542,21 +700,21 @@ async function handleBranchChange() {
 function registerGlobalCommands(context: vscode.ExtensionContext) {
   // Show progress panel
   context.subscriptions.push(
-    vscode.commands.registerCommand('eaiGofer.showProgress', () => {
-      vscode.commands.executeCommand('eaiGoferProgress.focus');
+    vscode.commands.registerCommand('gofer.showProgress', () => {
+      vscode.commands.executeCommand('goferProgress.focus');
     })
   );
 
   // Show constitution panel
   context.subscriptions.push(
-    vscode.commands.registerCommand('eaiGofer.showConstitution', () => {
-      vscode.commands.executeCommand('eaiGoferConstitution.focus');
+    vscode.commands.registerCommand('gofer.showConstitution', () => {
+      vscode.commands.executeCommand('goferConstitution.focus');
     })
   );
 
   // Manual update check
   context.subscriptions.push(
-    vscode.commands.registerCommand('eaiGofer.checkForUpdates', async () => {
+    vscode.commands.registerCommand('gofer.checkForUpdates', async () => {
       if (autoUpdater) {
         await autoUpdater.manualCheck();
       } else {
@@ -567,7 +725,7 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
 
   // Update now command
   context.subscriptions.push(
-    vscode.commands.registerCommand('eaiGofer.updateNow', async () => {
+    vscode.commands.registerCommand('gofer.updateNow', async () => {
       if (autoUpdater) {
         await autoUpdater.manualCheck();
       } else {
@@ -578,33 +736,33 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
 
   // Refresh specs
   context.subscriptions.push(
-    vscode.commands.registerCommand('eaiGofer.refreshSpecs', () => {
+    vscode.commands.registerCommand('gofer.refreshSpecs', () => {
       if (progressProvider) {
         progressProvider.refresh();
       } else {
-        vscode.window.showWarningMessage('No workspace with SpecGofer initialized');
+        vscode.window.showWarningMessage('No workspace with Gofer initialized');
       }
     })
   );
 
   // Refresh constitution
   context.subscriptions.push(
-    vscode.commands.registerCommand('eaiGofer.refreshConstitution', () => {
+    vscode.commands.registerCommand('gofer.refreshConstitution', () => {
       if (constitutionProvider) {
         constitutionProvider.refresh();
       } else {
-        vscode.window.showWarningMessage('No workspace with SpecGofer initialized');
+        vscode.window.showWarningMessage('No workspace with Gofer initialized');
       }
     })
   );
 
   // Refresh memory
   context.subscriptions.push(
-    vscode.commands.registerCommand('eaiGofer.refreshMemory', () => {
+    vscode.commands.registerCommand('gofer.refreshMemory', () => {
       if (memoryProvider) {
         memoryProvider.refresh();
       } else {
-        vscode.window.showWarningMessage('No workspace with SpecGofer initialized');
+        vscode.window.showWarningMessage('No workspace with Gofer initialized');
       }
     })
   );
@@ -612,7 +770,7 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
   // Tree view detail commands - must be global since tree views are global
   // Show spec details command (from tree view clicks)
   context.subscriptions.push(
-    vscode.commands.registerCommand('eaiGofer.showSpecDetails', async (spec: any) => {
+    vscode.commands.registerCommand('gofer.showSpecDetails', async (spec: any) => {
       const { showSpecDetailsWebview } = await import('./webviewHelpers');
       showSpecDetailsWebview(context, spec);
     })
@@ -620,7 +778,7 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
 
   // Show task details command (from tree view task clicks)
   context.subscriptions.push(
-    vscode.commands.registerCommand('eaiGofer.showTaskDetails', async (task: any, spec: any) => {
+    vscode.commands.registerCommand('gofer.showTaskDetails', async (task: any, spec: any) => {
       const { showTaskDetailsWebview } = await import('./webviewHelpers');
       showTaskDetailsWebview(context, task, spec);
     })
@@ -629,7 +787,7 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
   // Show section details command (from constitution tree view clicks)
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      'eaiGofer.showSectionDetails',
+      'gofer.showSectionDetails',
       async (section: any, article: any) => {
         const { showSectionDetailsWebview } = await import('./webviewHelpers');
         showSectionDetailsWebview(context, section, article);
@@ -639,7 +797,7 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
 
   // Show article details command (from constitution article clicks)
   context.subscriptions.push(
-    vscode.commands.registerCommand('eaiGofer.showArticleDetails', async (article: any) => {
+    vscode.commands.registerCommand('gofer.showArticleDetails', async (article: any) => {
       const { showArticleDetailsWebview } = await import('./webviewHelpers');
       showArticleDetailsWebview(context, article);
     })
@@ -647,7 +805,7 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
 
   // Show memory document command (from memory tree view clicks)
   context.subscriptions.push(
-    vscode.commands.registerCommand('eaiGofer.showMemoryDocument', async (document: any) => {
+    vscode.commands.registerCommand('gofer.showMemoryDocument', async (document: any) => {
       const { showMemoryDocumentWebview } = await import('./webviewHelpers');
       await showMemoryDocumentWebview(context, document);
     })
@@ -656,7 +814,7 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
   // Show memory section command (from memory section clicks)
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      'eaiGofer.showMemorySection',
+      'gofer.showMemorySection',
       async (section: any, document: any) => {
         const { showMemorySectionWebview } = await import('./webviewHelpers');
         await showMemorySectionWebview(context, section, document);
@@ -666,28 +824,28 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
 
   // Open With... context menu commands
   context.subscriptions.push(
-    vscode.commands.registerCommand('eaiGofer.openWithPreview', async (item: any) => {
+    vscode.commands.registerCommand('gofer.openWithPreview', async (item: any) => {
       const { openWithPreview } = await import('./webviewHelpers');
       await openWithPreview(item);
     })
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand('eaiGofer.openWithMarkSharp', async (item: any) => {
+    vscode.commands.registerCommand('gofer.openWithMarkSharp', async (item: any) => {
       const { openWithMarkSharp } = await import('./webviewHelpers');
       await openWithMarkSharp(item);
     })
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand('eaiGofer.openWithMarkdownEditor', async (item: any) => {
+    vscode.commands.registerCommand('gofer.openWithMarkdownEditor', async (item: any) => {
       const { openWithMarkdownEditor } = await import('./webviewHelpers');
       await openWithMarkdownEditor(item);
     })
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand('eaiGofer.openWithMarkdownWYSIWYG', async (item: any) => {
+    vscode.commands.registerCommand('gofer.openWithMarkdownWYSIWYG', async (item: any) => {
       const { openWithMarkdownWYSIWYG } = await import('./webviewHelpers');
       await openWithMarkdownWYSIWYG(item);
     })
@@ -698,36 +856,36 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
 
   // Claude Code Terminal commands
   context.subscriptions.push(
-    vscode.commands.registerCommand('specgofer.startClaudeCode', async (item: any) => {
+    vscode.commands.registerCommand('gofer.startClaudeCode', async (item: any) => {
       try {
-        console.log('[EAI-GOFER] startClaudeCode command triggered');
-        console.log('[EAI-GOFER] Item received:', item);
+        console.log('[Gofer] startClaudeCode command triggered');
+        console.log('[Gofer] Item received:', item);
 
         const { launchClaudeCode } = await import('./autonomousCommands');
-        console.log('[EAI-GOFER] autonomousCommands imported');
+        console.log('[Gofer] autonomousCommands imported');
 
         // Handle both direct spec objects and TreeItem objects
         let spec = item;
 
         // If this is a TreeItem with a spec property, extract the spec
         if (item && item.spec && item.label) {
-          console.log('[EAI-GOFER] Extracting spec from TreeItem');
+          console.log('[Gofer] Extracting spec from TreeItem');
           spec = item.spec;
         }
 
-        console.log('[EAI-GOFER] Final spec:', spec);
+        console.log('[Gofer] Final spec:', spec);
 
         if (!spec || !spec.id) {
-          console.error('[EAI-GOFER] Invalid spec - missing ID:', spec);
+          console.error('[Gofer] Invalid spec - missing ID:', spec);
           vscode.window.showErrorMessage('Invalid spec: missing ID');
           return;
         }
 
-        console.log('[EAI-GOFER] Calling launchClaudeCode with spec.id:', spec.id);
+        console.log('[Gofer] Calling launchClaudeCode with spec.id:', spec.id);
         await launchClaudeCode(spec.id);
-        console.log('[EAI-GOFER] launchClaudeCode completed');
+        console.log('[Gofer] launchClaudeCode completed');
       } catch (error) {
-        console.error('[EAI-GOFER] Error in startClaudeCode command:', error);
+        console.error('[Gofer] Error in startClaudeCode command:', error);
         vscode.window.showErrorMessage(
           `Failed to start Claude Code: ${error instanceof Error ? error.message : String(error)}`
         );
@@ -736,25 +894,45 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand('specgofer.stopClaudeCode', async () => {
+    vscode.commands.registerCommand('gofer.stopClaudeCode', async () => {
       const { stopClaudeCode } = await import('./autonomousCommands');
       await stopClaudeCode();
     })
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand('specgofer.pauseClaudeCode', async () => {
+    vscode.commands.registerCommand('gofer.pauseClaudeCode', async () => {
       const { pauseClaudeCode } = await import('./autonomousCommands');
       await pauseClaudeCode();
     })
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand('specgofer.resumeClaudeCode', async () => {
+    vscode.commands.registerCommand('gofer.resumeClaudeCode', async () => {
       const { resumeClaudeCode } = await import('./autonomousCommands');
       await resumeClaudeCode();
     })
   );
+}
+
+/**
+ * Extract spec ID from a file URI within .specify/specs/{specId}/
+ * (Spec 013 T042)
+ */
+function extractSpecId(uri: vscode.Uri): string | null {
+  const fsPath = uri.fsPath;
+  const specsIdx = fsPath.indexOf('.specify/specs/');
+  if (specsIdx === -1) {
+    return null;
+  }
+
+  const afterSpecs = fsPath.substring(specsIdx + '.specify/specs/'.length);
+  const slashIdx = afterSpecs.indexOf('/');
+  if (slashIdx === -1) {
+    return null;
+  }
+
+  return afterSpecs.substring(0, slashIdx);
 }
 
 /**
@@ -767,7 +945,7 @@ function registerCommands(
 ) {
   // Initialize/Create Gofer structure
   context.subscriptions.push(
-    vscode.commands.registerCommand('eaiGofer.initialize', async () => {
+    vscode.commands.registerCommand('gofer.initialize', async () => {
       const exists = await migrator.exists();
 
       if (exists) {
@@ -780,7 +958,7 @@ function registerCommands(
           // Already gofer format - offer to update templates/scripts
           await migrator.upgrade(); // This will call updateGoferTemplates()
         } else {
-          vscode.window.showInformationMessage('SpecGofer already initialized!');
+          vscode.window.showInformationMessage('Gofer already initialized!');
         }
       } else {
         // Create from scratch
@@ -793,7 +971,7 @@ function registerCommands(
 
   // Upgrade existing .specify
   context.subscriptions.push(
-    vscode.commands.registerCommand('eaiGofer.upgrade', async () => {
+    vscode.commands.registerCommand('gofer.upgrade', async () => {
       await migrator.upgrade();
       if (progressProvider) {
         progressProvider.refresh();
@@ -803,17 +981,17 @@ function registerCommands(
 
   // Show version info
   context.subscriptions.push(
-    vscode.commands.registerCommand('eaiGofer.checkVersion', async () => {
+    vscode.commands.registerCommand('gofer.checkVersion', async () => {
       const versionInfo = await migrator.getVersionInfo();
 
       vscode.window
         .showInformationMessage(
-          `SpecGofer Status:\n\nFormat: ${versionInfo.format}\n${versionInfo.details}`,
+          `Gofer Status:\n\nFormat: ${versionInfo.format}\n${versionInfo.details}`,
           versionInfo.needsUpgrade ? 'Upgrade' : 'OK'
         )
         .then((choice) => {
           if (choice === 'Upgrade') {
-            vscode.commands.executeCommand('eaiGofer.upgrade');
+            vscode.commands.executeCommand('gofer.upgrade');
           }
         });
     })
@@ -821,7 +999,7 @@ function registerCommands(
 
   // Fix spec path references command (specs/ → .specify/specs/)
   context.subscriptions.push(
-    vscode.commands.registerCommand('eaiGofer.fixSpecPaths', async () => {
+    vscode.commands.registerCommand('gofer.fixSpecPaths', async () => {
       await vscode.window.withProgress(
         {
           location: vscode.ProgressLocation.Notification,
@@ -842,7 +1020,7 @@ function registerCommands(
 
   // Update templates command
   context.subscriptions.push(
-    vscode.commands.registerCommand('eaiGofer.updateTemplates', async () => {
+    vscode.commands.registerCommand('gofer.updateTemplates', async () => {
       const workspacePath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
       if (!workspacePath) {
         vscode.window.showErrorMessage('No workspace folder open');
@@ -889,7 +1067,7 @@ function registerCommands(
 
   // Create new specification command
   context.subscriptions.push(
-    vscode.commands.registerCommand('eaiGofer.createSpec', async (uri?: vscode.Uri) => {
+    vscode.commands.registerCommand('gofer.createSpec', async (uri?: vscode.Uri) => {
       const specName = await vscode.window.showInputBox({
         prompt: 'Enter specification name (e.g., "user-authentication")',
         placeHolder: 'my-feature',
@@ -1032,7 +1210,10 @@ created: "${new Date().toISOString().split('T')[0]}"
 - [ ] T006 [Polish] Documentation updates
 - [ ] T007 [Polish] Final review and cleanup
 `;
-          await vscode.workspace.fs.writeFile(vscode.Uri.file(tasksFile), Buffer.from(tasksTemplate));
+          await vscode.workspace.fs.writeFile(
+            vscode.Uri.file(tasksFile),
+            Buffer.from(tasksTemplate)
+          );
 
           // Open the new spec file
           const doc = await vscode.workspace.openTextDocument(specFile);
@@ -1043,7 +1224,9 @@ created: "${new Date().toISOString().split('T')[0]}"
             progressProvider.refresh();
           }
 
-          vscode.window.showInformationMessage(`Created new specification: ${specName} (with tasks.md)`);
+          vscode.window.showInformationMessage(
+            `Created new specification: ${specName} (with tasks.md)`
+          );
         } catch (error) {
           vscode.window.showErrorMessage(`Failed to create specification: ${error}`);
         }
@@ -1053,7 +1236,7 @@ created: "${new Date().toISOString().split('T')[0]}"
 
   // Open specification command
   context.subscriptions.push(
-    vscode.commands.registerCommand('eaiGofer.openSpec', async (specId?: string) => {
+    vscode.commands.registerCommand('gofer.openSpec', async (specId?: string) => {
       if (specId) {
         const specFile = path.join(workspacePath, '.specify', 'specs', specId, 'spec.md');
         try {
@@ -1085,7 +1268,7 @@ created: "${new Date().toISOString().split('T')[0]}"
           });
 
           if (selected) {
-            vscode.commands.executeCommand('eaiGofer.openSpec', selected.specId);
+            vscode.commands.executeCommand('gofer.openSpec', selected.specId);
           }
         } catch (error) {
           vscode.window.showErrorMessage(`Failed to list specifications: ${error}`);
@@ -1096,18 +1279,39 @@ created: "${new Date().toISOString().split('T')[0]}"
 
   // Initialize MemoryManager and register memory commands
   memoryManager = new MemoryManager(context, workspacePath);
+  // Wire usage logger to MemoryManager for context health tracking (Spec 012 T024)
+  if (contextUsageLogger) {
+    memoryManager.setUsageLogger(contextUsageLogger);
+  }
   registerMemoryCommands(context, memoryManager);
-  console.log('[EAI-GOFER] Memory commands registered');
+  console.log('[Gofer] Memory commands registered');
+
+  // Create shared ContextBuilder and wire to autonomousCommands (Spec 013 Phase 6)
+  const sharedContextBuilder = new ContextBuilder(workspacePath, memoryManager);
+  import('./autonomousCommands')
+    .then(({ setSharedMemoryManager, setSharedContextBuilder }) => {
+      setSharedMemoryManager(memoryManager!);
+      setSharedContextBuilder(sharedContextBuilder);
+      console.log('[Gofer] Shared MemoryManager and ContextBuilder wired to autonomousCommands');
+    })
+    .catch((error) => {
+      console.warn('[Gofer] Failed to wire shared instances to autonomousCommands:', error);
+    });
+
+  // Wire ContinuousMemoryWriter to auto-persist pipeline decisions (Spec 014 T039)
+  continuousMemoryWriter = new ContinuousMemoryWriter(memoryManager);
+  continuousMemoryWriter.connectToContextBuilder(sharedContextBuilder);
+  console.log('[Gofer] ContinuousMemoryWriter wired to shared ContextBuilder');
 
   // T116: Register spec execution commands
   if (progressProvider) {
     registerSpecCommands(context, progressProvider);
-    console.log('[EAI-GOFER] Spec execution commands registered');
+    console.log('[Gofer] Spec execution commands registered');
   }
 
-  // T153: Register "SpecGofer: View Compaction History" command
+  // T153: Register "Gofer: View Compaction History" command
   context.subscriptions.push(
-    vscode.commands.registerCommand('specgofer.viewCompactionHistory', async () => {
+    vscode.commands.registerCommand('gofer.viewCompactionHistory', async () => {
       const { getActiveDriver } = await import('./autonomousCommands');
       const driver = getActiveDriver();
 
@@ -1118,7 +1322,33 @@ created: "${new Date().toISOString().split('T')[0]}"
       }
     })
   );
-  console.log('[EAI-GOFER] Compaction history command registered');
+  console.log('[Gofer] Compaction history command registered');
+
+  // Research index watcher: auto-generate research.index.json on change (Spec 013 T039-T043)
+  try {
+    const researchChunker = new ResearchChunker(workspacePath);
+    const researchPattern = new vscode.RelativePattern(
+      workspacePath,
+      '.specify/specs/*/research.md'
+    );
+    const researchWatcher = vscode.workspace.createFileSystemWatcher(researchPattern);
+
+    const handleResearchChange = (uri: vscode.Uri): void => {
+      const specId = extractSpecId(uri);
+      if (specId) {
+        researchChunker.indexResearchFile(specId).catch((error) => {
+          console.warn(`[Gofer] Failed to index research for ${specId}:`, error);
+        });
+      }
+    };
+
+    researchWatcher.onDidCreate(handleResearchChange);
+    researchWatcher.onDidChange(handleResearchChange);
+    context.subscriptions.push(researchWatcher);
+    console.log('[Gofer] Research index watcher registered');
+  } catch (error) {
+    console.warn('[Gofer] Failed to set up research watcher:', error);
+  }
 
   // Note: Tree view detail commands (showSpecDetails, showMemoryDocument, etc.)
   // are now registered globally in registerGlobalCommands() since tree views
@@ -1126,13 +1356,92 @@ created: "${new Date().toISOString().split('T')[0]}"
 }
 
 export async function deactivate() {
-  console.log('SpecGofer extension deactivating...');
+  console.log('Gofer extension deactivating...');
+
+  // Stop Claude Code terminals and autonomous monitoring
+  // Dynamic import to avoid blocking activation if node-pty fails
+  try {
+    const { stopClaudeCode } = await import('./autonomousCommands');
+    await stopClaudeCode();
+    console.log('Claude Code stopped');
+  } catch (error) {
+    console.error('Error stopping Claude Code:', error);
+  }
+
+  // Stop Context Health Monitoring (Spec 012)
+  if (contextHealthMonitor) {
+    contextHealthMonitor.dispose();
+    contextHealthMonitor = undefined;
+    console.log('Context health monitor stopped');
+  }
+  if (autoHandoffTrigger) {
+    autoHandoffTrigger.dispose();
+    autoHandoffTrigger = undefined;
+    console.log('Auto-handoff trigger stopped');
+  }
+  if (contextHealthStatusBar) {
+    contextHealthStatusBar.dispose();
+    contextHealthStatusBar = undefined;
+    console.log('Context health status bar disposed');
+  }
+  if (continuousMemoryWriter) {
+    continuousMemoryWriter.dispose();
+    continuousMemoryWriter = undefined;
+    console.log('ContinuousMemoryWriter disposed');
+  }
+  if (hookBridgeWatcher) {
+    hookBridgeWatcher.dispose();
+    hookBridgeWatcher = undefined;
+    console.log('HookBridgeWatcher disposed');
+  }
+  if (goferActivityStatusBar) {
+    goferActivityStatusBar.dispose();
+    goferActivityStatusBar = undefined;
+    console.log('GoferActivityStatusBar disposed');
+  }
+  if (contextUsageLogger) {
+    contextUsageLogger = undefined;
+    console.log('Context usage logger cleared');
+  }
+
+  // Clear tree view providers (allows garbage collection)
+  if (progressProvider) {
+    progressProvider = undefined;
+    console.log('Progress provider cleared');
+  }
+  if (constitutionProvider) {
+    constitutionProvider = undefined;
+    console.log('Constitution provider cleared');
+  }
+  if (memoryProvider) {
+    memoryProvider = undefined;
+    console.log('Memory provider cleared');
+  }
+
+  // Clear branch spec manager
+  if (branchSpecManager) {
+    branchSpecManager = undefined;
+    console.log('Branch spec manager cleared');
+  }
+
+  // Clear memory manager
+  if (memoryManager) {
+    memoryManager = undefined;
+    console.log('Memory manager cleared');
+  }
+
+  // Clear auto updater
+  if (autoUpdater) {
+    autoUpdater = undefined;
+    console.log('Auto updater cleared');
+  }
 
   // Stop Language Server
   if (lspClient) {
     await lspClient.stop();
+    lspClient = undefined;
     console.log('Language Server stopped');
   }
 
-  console.log('SpecGofer extension deactivated');
+  console.log('Gofer extension deactivated');
 }

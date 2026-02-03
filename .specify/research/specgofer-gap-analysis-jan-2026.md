@@ -1,4 +1,4 @@
-# SpecGofer Gap Analysis Against 2025-2026 Best Practices
+# Gofer Gap Analysis Against 2025-2026 Best Practices
 
 **Date**: January 2026 **Based On**: Agentic Coding Best Practices Research
 (120+ sources)
@@ -7,16 +7,16 @@
 
 ## Overview
 
-This document analyzes the current SpecGofer Gofer pipeline against the latest
+This document analyzes the current Gofer Gofer pipeline against the latest
 best practices from October 2025 - January 2026 research.
 
 ---
 
 ## Current Pipeline Assessment
 
-### What SpecGofer Does Well
+### What Gofer Does Well
 
-| Best Practice               | SpecGofer Implementation                   | Status    |
+| Best Practice               | Gofer Implementation                   | Status    |
 | --------------------------- | ------------------------------------------ | --------- |
 | **Spec-Driven Development** | Full spec → plan → tasks → implement flow  | ✅ Strong |
 | **Research-First Approach** | `/1_gofer_research` comes before specify   | ✅ Strong |
@@ -41,7 +41,7 @@ Research shows:
 - "Context Rot" degrades performance even within limits
 - Most agents don't track or manage context proactively
 
-### Current SpecGofer State
+### Current Gofer State
 
 - ❌ No context monitoring between stages
 - ❌ No automatic compaction triggers
@@ -88,7 +88,7 @@ Research shows:
 - Handoff between sessions needs explicit summaries
 - "Recursive summaries" degrade quality
 
-### Current SpecGofer State
+### Current Gofer State
 
 - ✅ Artifacts persist between sessions (spec.md, plan.md, etc.)
 - ❌ No explicit session handoff guidance
@@ -147,7 +147,7 @@ Research shows:
 - Agents need explicit boundaries they cannot cross
 - "What must NOT change" is as important as "what to change"
 
-### Current SpecGofer State
+### Current Gofer State
 
 - ✅ Spec defines scope
 - ❌ No explicit "must NOT change" boundaries
@@ -208,7 +208,7 @@ Research shows:
 - Code churn (code deleted within 2 weeks) is a key indicator
 - Tests that disable assertions are common
 
-### Current SpecGofer State
+### Current Gofer State
 
 - ✅ Validation stage checks tests pass
 - ❌ No duplicate code detection
@@ -261,7 +261,7 @@ Research shows:
 - Memory should have "decay" - outdated info removed
 - Too much detail in memory degrades performance
 
-### Current SpecGofer State
+### Current Gofer State
 
 - ✅ CLAUDE.md exists
 - ✅ Research artifacts created
@@ -321,7 +321,7 @@ Research shows:
 - STRATUS pattern (NeurIPS 2025) shows undo-and-retry is effective
 - Checkpoints before risky operations are essential
 
-### Current SpecGofer State
+### Current Gofer State
 
 - ✅ Git provides some rollback capability
 - ❌ No explicit checkpoint system
@@ -376,7 +376,7 @@ Research shows:
 - Test → error → correction is essential
 - Build verification should be continuous
 
-### Current SpecGofer State
+### Current Gofer State
 
 - ✅ Validation stage runs tests
 - ❌ No continuous feedback during implementation
@@ -427,7 +427,7 @@ Research shows:
 - Need to track: tokens, costs, quality, decisions
 - Logging prompts and responses enables debugging
 
-### Current SpecGofer State
+### Current Gofer State
 
 - ✅ LLM Council logs usage to `.specify/logs/council-usage.jsonl`
 - ❌ No general token tracking
@@ -481,7 +481,7 @@ Research shows:
 - Need to document legacy constraints explicitly
 - Small, focused tasks have higher success rates
 
-### Current SpecGofer State
+### Current Gofer State
 
 - ✅ Research stage explores codebase first
 - ✅ Pattern-finder identifies existing patterns
@@ -543,7 +543,7 @@ Research shows:
 - Plans should be auditable and reviewable
 - Agents should not execute without approved plans
 
-### Current SpecGofer State
+### Current Gofer State
 
 - ✅ Plan stage creates plan.md
 - ✅ Tasks stage creates tasks.md
@@ -608,7 +608,7 @@ Research shows:
 
 ## Summary
 
-The current SpecGofer pipeline is strong on:
+The current Gofer pipeline is strong on:
 
 - Spec-driven development structure
 - Research-first approach

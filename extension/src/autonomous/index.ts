@@ -1,7 +1,7 @@
 /**
  * Autonomous Claude Code Driver
  *
- * This module enables EAI-GOFER to autonomously drive Claude Code terminals,
+ * This module enables Gofer to autonomously drive Claude Code terminals,
  * monitor execution, handle errors, manage context windows, and escalate
  * questions to users.
  *
@@ -14,6 +14,37 @@ export { OutputMonitor } from './OutputMonitor';
 export { ErrorRecovery } from './ErrorRecovery';
 export { ProgressReporter } from './ProgressReporter';
 export { AutonomousDriver } from './AutonomousDriver';
+
+// Context Health Monitoring (Spec 011/012)
+export { ContextHealthMonitor } from './ContextHealthMonitor';
+export type {
+  ContextHealthStatus,
+  ContextHealthConfig,
+  ContextHealthEvents,
+  HealthStatus,
+  TokenBreakdown,
+  ContextAnalysisInput,
+} from './ContextHealthMonitor';
+export { AutoHandoffTrigger } from './AutoHandoffTrigger';
+export { WorkspaceContextProvider } from './WorkspaceContextProvider';
+export { ContextBridgeWriter } from './ContextBridgeWriter';
+export { ClaudeSessionReader } from './ClaudeSessionReader';
+export type { SessionInfo, SessionUsage } from './ClaudeSessionReader';
+export { ContinuousMemoryWriter } from './ContinuousMemoryWriter';
+export { HookBridgeWatcher } from './HookBridgeWatcher';
+export type { BridgeData } from './HookBridgeWatcher';
+export { ContextUsageLogger } from './ContextUsageLogger';
+export type {
+  ContextUsageLogEntry,
+  ContextUsageLoggerConfig,
+  HealthCheckLogInput,
+  MaskingEventLogInput,
+  StageTransitionLogInput,
+  MemorySaveLogInput,
+  MemorySearchLogInput,
+  MemoryLoadLogInput,
+  LoadingDecisionLogInput,
+} from './ContextUsageLogger';
 
 // Not yet implemented - will be added in later phases
 // export { ContextManager } from './ContextManager';

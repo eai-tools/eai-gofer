@@ -472,11 +472,11 @@ All code must pass:
       // Create .gitignore entries
       const gitignorePath = path.join(workspacePath, '.gitignore');
       const gitignoreEntries = [
-        '# SpecGofer temp files',
+        '# Gofer temp files',
         '.claude-input.txt',
         '.claude-output.txt',
         '',
-        '# SpecGofer cache',
+        '# Gofer cache',
         '.specify/.cache/',
         '.specify/_backup/',
         '',

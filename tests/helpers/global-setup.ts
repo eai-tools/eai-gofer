@@ -1,12 +1,12 @@
 import { chromium, FullConfig } from '@playwright/test';
 
 async function globalSetup(config: FullConfig) {
-  console.log('🚀 Starting SpecGofer E2E Test Suite Global Setup');
+  console.log('🚀 Starting Gofer E2E Test Suite Global Setup');
 
   // Setup test environment
   process.env.NODE_ENV = 'test';
-  process.env.WORKSPACE_DIR = '/tmp/specgofer-e2e-test';
-  process.env.SPEC_DIR = '/tmp/specgofer-e2e-test/.specify';
+  process.env.WORKSPACE_DIR = '/tmp/gofer-e2e-test';
+  process.env.SPEC_DIR = '/tmp/gofer-e2e-test/.specify';
 
   // Ensure test workspace exists
   const fs = require('fs').promises;
@@ -29,7 +29,7 @@ async function globalSetup(config: FullConfig) {
 
   // Create basic package.json for test workspace
   const packageJson = {
-    name: 'specgofer-e2e-test',
+    name: 'gofer-e2e-test',
     version: '1.0.0',
     private: true,
     scripts: {
@@ -82,7 +82,7 @@ async function globalSetup(config: FullConfig) {
   }
 
   // Create constitution file for constitutional validation tests
-  const constitutionContent = `# SpecGofer Development Constitution
+  const constitutionContent = `# Gofer Development Constitution
 
 ## Code Quality Standards
 - **No \`any\` types** in TypeScript - Use proper typing always
@@ -127,7 +127,7 @@ async function globalSetup(config: FullConfig) {
 - **Code examples** - Practical usage demonstrations
 
 ---
-*This constitution is enforced automatically by the SpecGofer autonomous development system.*
+*This constitution is enforced automatically by the Gofer autonomous development system.*
 `;
 
   try {

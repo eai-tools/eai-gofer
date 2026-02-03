@@ -10,7 +10,7 @@
 council:
   # Global enable/disable for council mode
   # When false, all stages use single-provider mode
-  enabled: false
+  enabled: true
 
   # Enable optional peer review stage where each AI evaluates others' responses
   # Requires at least 3 enabled providers
@@ -26,19 +26,19 @@ council:
 
   # Provider configuration
   # API keys are stored in VSCode settings:
-  #   - specGofer.anthropicApiKey
-  #   - specGofer.googleApiKey
-  #   - specGofer.openaiApiKey
+  #   - gofer.anthropicApiKey
+  #   - gofer.googleApiKey
+  #   - gofer.openaiApiKey
   providers:
     anthropic:
       enabled: true
-      model: claude-opus-4-5-20251101
+      model: claude-opus-4-5-20251101 # Latest Claude Opus 4.5
     google:
-      enabled: false
-      model: gemini-3-flash-preview
+      enabled: true
+      model: gemini-2.5-flash # Stable Gemini 2.5 (gemini-3-flash-preview often overloaded)
     openai:
-      enabled: false
-      model: gpt-5.2
+      enabled: true
+      model: gpt-5.2 # GPT-5.2 (requires max_completion_tokens)
 
   # Per-stage council mode configuration
   # Options: 'council' (multi-provider) or 'single' (primary provider only)

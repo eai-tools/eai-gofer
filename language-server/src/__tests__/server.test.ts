@@ -134,19 +134,19 @@ describe('Language Server', () => {
 
     it('should register gofer/getSpecs method', () => {
       const requestCalls = mockConnection.onRequest.mock.calls;
-      const hasGetSpecs = requestCalls.some(call => call[0] === 'eaiGofer/getSpecs');
+      const hasGetSpecs = requestCalls.some(call => call[0] === 'gofer/getSpecs');
       expect(hasGetSpecs).toBe(true);
     });
 
     it('should register gofer/executeTask method', () => {
       const requestCalls = mockConnection.onRequest.mock.calls;
-      const hasExecuteTask = requestCalls.some(call => call[0] === 'eaiGofer/executeTask');
+      const hasExecuteTask = requestCalls.some(call => call[0] === 'gofer/executeTask');
       expect(hasExecuteTask).toBe(true);
     });
 
     it('should register gofer/updateTaskStatus method', () => {
       const requestCalls = mockConnection.onRequest.mock.calls;
-      const hasUpdateTaskStatus = requestCalls.some(call => call[0] === 'eaiGofer/updateTaskStatus');
+      const hasUpdateTaskStatus = requestCalls.some(call => call[0] === 'gofer/updateTaskStatus');
       expect(hasUpdateTaskStatus).toBe(true);
     });
   });
@@ -170,7 +170,7 @@ describe('Language Server', () => {
 
       if (toolsCallHandler) {
         const params = {
-          name: 'eaigofer_get_specs',
+          name: 'gofer_get_specs',
           arguments: {}
         };
 

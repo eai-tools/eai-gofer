@@ -159,8 +159,10 @@ export class TerminalManager {
     }
 
     if (state) {
-      state.isAlive = false;
-      state.closedAt = new Date().toISOString();
+      // Clear outputBuffer to free memory (can be up to 10k lines)
+      state.outputBuffer = [];
+      // Remove from map to allow garbage collection
+      this.terminals.delete(terminalId);
     }
   }
 

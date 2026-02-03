@@ -61,7 +61,7 @@ export async function showProviderStatus(): Promise<void> {
   outputChannel.appendLine('Provider Details:');
   statusLines.forEach((line) => outputChannel.appendLine(`  ${line}`));
   outputChannel.appendLine(
-    '\nTo configure providers, go to Settings > EAI-GOFER and add your API keys.'
+    '\nTo configure providers, go to Settings > Gofer and add your API keys.'
   );
 
   // Add usage summary if workspace is available
@@ -95,12 +95,12 @@ export async function showProviderStatus(): Promise<void> {
   } else {
     vscode.window
       .showWarningMessage(
-        'LLM Council: No providers configured. Add API keys in Settings > EAI-GOFER.',
+        'LLM Council: No providers configured. Add API keys in Settings > Gofer.',
         'Open Settings'
       )
       .then((selection) => {
         if (selection === 'Open Settings') {
-          vscode.commands.executeCommand('workbench.action.openSettings', 'specGofer');
+          vscode.commands.executeCommand('workbench.action.openSettings', 'gofer');
         }
       });
   }
@@ -147,6 +147,6 @@ export async function checkAllProviderHealth(): Promise<{
  */
 export function registerCouncilCommands(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
-    vscode.commands.registerCommand('eaiGofer.showCouncilStatus', showProviderStatus)
+    vscode.commands.registerCommand('gofer.showCouncilStatus', showProviderStatus)
   );
 }

@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.1.4",
+  "latest_version": "1.1.5",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-02-03T13:35:56.933Z",
+  "last_updated": "2026-02-03T20:34:03.370Z",
   "releases": [
+    {
+      "version": "1.1.5",
+      "tag_name": "v1.1.5",
+      "published_at": "2026-02-03T20:34:03.369Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.1.5.vsix",
+      "notes": "chore: pre-release changes\n\nAuto-committed changes before release v1.1.4",
+      "prerelease": false,
+      "size_mb": 15.4
+    },
     {
       "version": "1.1.4",
       "tag_name": "v1.1.4",
@@ -81,15 +90,6 @@
       "published_at": "2026-01-25T23:44:50.935Z",
       "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.0.0.vsix",
       "notes": "First major release: Consultative business discovery, memory leak fixes, script upgrade improvements",
-      "prerelease": false,
-      "size_mb": 8.5
-    },
-    {
-      "version": "0.0.9",
-      "tag_name": "v0.0.9",
-      "published_at": "2026-01-25T08:14:23.805Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-0.0.9.vsix",
-      "notes": "Context health monitoring and integration",
       "prerelease": false,
       "size_mb": 8.5
     }

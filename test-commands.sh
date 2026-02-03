@@ -120,44 +120,44 @@ echo ""
 FAILED_COMMANDS=()
 
 # Core initialization commands
-test_command "specGofer.initialize" "Initialize Spec Kit structure" "true" || FAILED_COMMANDS+=("specGofer.initialize")
-test_command "specGofer.upgrade" "Upgrade to latest version" "true" || FAILED_COMMANDS+=("specGofer.upgrade")
+test_command "gofer.initialize" "Initialize Spec Kit structure" "true" || FAILED_COMMANDS+=("gofer.initialize")
+test_command "gofer.upgrade" "Upgrade to latest version" "true" || FAILED_COMMANDS+=("gofer.upgrade")
 
 # Spec management commands
-test_command "specGofer.createSpec" "Create new spec" "true" || FAILED_COMMANDS+=("specGofer.createSpec")
-test_command "specGofer.generatePlan" "Generate plan for spec" "true" || FAILED_COMMANDS+=("specGofer.generatePlan")
-test_command "specGofer.generateTasks" "Generate tasks from spec" "true" || FAILED_COMMANDS+=("specGofer.generateTasks")
-test_command "specGofer.executeTasks" "Execute spec tasks" "true" || FAILED_COMMANDS+=("specGofer.executeTasks")
-test_command "specGofer.validateSpec" "Validate spec structure" "true" || FAILED_COMMANDS+=("specGofer.validateSpec")
-test_command "specGofer.checkDependencies" "Check spec dependencies" "true" || FAILED_COMMANDS+=("specGofer.checkDependencies")
+test_command "gofer.createSpec" "Create new spec" "true" || FAILED_COMMANDS+=("gofer.createSpec")
+test_command "gofer.generatePlan" "Generate plan for spec" "true" || FAILED_COMMANDS+=("gofer.generatePlan")
+test_command "gofer.generateTasks" "Generate tasks from spec" "true" || FAILED_COMMANDS+=("gofer.generateTasks")
+test_command "gofer.executeTasks" "Execute spec tasks" "true" || FAILED_COMMANDS+=("gofer.executeTasks")
+test_command "gofer.validateSpec" "Validate spec structure" "true" || FAILED_COMMANDS+=("gofer.validateSpec")
+test_command "gofer.checkDependencies" "Check spec dependencies" "true" || FAILED_COMMANDS+=("gofer.checkDependencies")
 
 # Autonomous execution commands
-test_command "specGofer.startAutonomous" "Start autonomous execution" "true" || FAILED_COMMANDS+=("specGofer.startAutonomous")
-test_command "specGofer.stopAutonomous" "Stop autonomous execution" "true" || FAILED_COMMANDS+=("specGofer.stopAutonomous")
-test_command "specGofer.pauseAutonomous" "Pause autonomous execution" "true" || FAILED_COMMANDS+=("specGofer.pauseAutonomous")
-test_command "specGofer.resumeAutonomous" "Resume autonomous execution" "true" || FAILED_COMMANDS+=("specGofer.resumeAutonomous")
+test_command "gofer.startAutonomous" "Start autonomous execution" "true" || FAILED_COMMANDS+=("gofer.startAutonomous")
+test_command "gofer.stopAutonomous" "Stop autonomous execution" "true" || FAILED_COMMANDS+=("gofer.stopAutonomous")
+test_command "gofer.pauseAutonomous" "Pause autonomous execution" "true" || FAILED_COMMANDS+=("gofer.pauseAutonomous")
+test_command "gofer.resumeAutonomous" "Resume autonomous execution" "true" || FAILED_COMMANDS+=("gofer.resumeAutonomous")
 
 # View commands
-test_command "specGofer.refreshProgress" "Refresh progress view" "true" || FAILED_COMMANDS+=("specGofer.refreshProgress")
-test_command "specGofer.showTaskDetails" "Show task details" "true" || FAILED_COMMANDS+=("specGofer.showTaskDetails")
-test_command "specGofer.markTaskComplete" "Mark task as complete" "true" || FAILED_COMMANDS+=("specGofer.markTaskComplete")
-test_command "specGofer.openSpecFile" "Open spec file" "true" || FAILED_COMMANDS+=("specGofer.openSpecFile")
-test_command "specGofer.openPlanFile" "Open plan file" "true" || FAILED_COMMANDS+=("specGofer.openPlanFile")
-test_command "specGofer.openTasksFile" "Open tasks file" "true" || FAILED_COMMANDS+=("specGofer.openTasksFile")
+test_command "gofer.refreshProgress" "Refresh progress view" "true" || FAILED_COMMANDS+=("gofer.refreshProgress")
+test_command "gofer.showTaskDetails" "Show task details" "true" || FAILED_COMMANDS+=("gofer.showTaskDetails")
+test_command "gofer.markTaskComplete" "Mark task as complete" "true" || FAILED_COMMANDS+=("gofer.markTaskComplete")
+test_command "gofer.openSpecFile" "Open spec file" "true" || FAILED_COMMANDS+=("gofer.openSpecFile")
+test_command "gofer.openPlanFile" "Open plan file" "true" || FAILED_COMMANDS+=("gofer.openPlanFile")
+test_command "gofer.openTasksFile" "Open tasks file" "true" || FAILED_COMMANDS+=("gofer.openTasksFile")
 
 # Constitution commands
-test_command "specGofer.editConstitution" "Edit constitution" "true" || FAILED_COMMANDS+=("specGofer.editConstitution")
-test_command "specGofer.validateConstitution" "Validate constitution" "true" || FAILED_COMMANDS+=("specGofer.validateConstitution")
+test_command "gofer.editConstitution" "Edit constitution" "true" || FAILED_COMMANDS+=("gofer.editConstitution")
+test_command "gofer.validateConstitution" "Validate constitution" "true" || FAILED_COMMANDS+=("gofer.validateConstitution")
 
 # Memory commands
-test_command "specGofer.openMemoryFile" "Open memory file" "true" || FAILED_COMMANDS+=("specGofer.openMemoryFile")
-test_command "specGofer.clearMemory" "Clear memory" "true" || FAILED_COMMANDS+=("specGofer.clearMemory")
-test_command "specGofer.exportMemory" "Export memory" "true" || FAILED_COMMANDS+=("specGofer.exportMemory")
+test_command "gofer.openMemoryFile" "Open memory file" "true" || FAILED_COMMANDS+=("gofer.openMemoryFile")
+test_command "gofer.clearMemory" "Clear memory" "true" || FAILED_COMMANDS+=("gofer.clearMemory")
+test_command "gofer.exportMemory" "Export memory" "true" || FAILED_COMMANDS+=("gofer.exportMemory")
 
 # Utility commands
-test_command "specGofer.checkForUpdates" "Check for updates" || FAILED_COMMANDS+=("specGofer.checkForUpdates")
-test_command "specGofer.openDocumentation" "Open documentation" || FAILED_COMMANDS+=("specGofer.openDocumentation")
-test_command "specGofer.showWelcome" "Show welcome message" || FAILED_COMMANDS+=("specGofer.showWelcome")
+test_command "gofer.checkForUpdates" "Check for updates" || FAILED_COMMANDS+=("gofer.checkForUpdates")
+test_command "gofer.openDocumentation" "Open documentation" || FAILED_COMMANDS+=("gofer.openDocumentation")
+test_command "gofer.showWelcome" "Show welcome message" || FAILED_COMMANDS+=("gofer.showWelcome")
 
 echo ""
 print_info "Command test summary:"

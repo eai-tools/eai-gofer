@@ -56,7 +56,7 @@ This tests the integration between components.
     );
 
     // Test GoferParser from extension
-    const { GoferParser } = await import('../../../extension/src/specKitParser.js');
+    const { GoferParser } = await import('../../../extension/src/goferParser.js');
     const parser = new GoferParser(join(TEST_WORKSPACE, '.specify'));
 
     const specs = await parser.loadAllSpecs();
@@ -83,7 +83,7 @@ This tests the integration between components.
     await createIntegrationTestSpec();
 
     // Test GoferLoader from language server
-    const { GoferLoader } = await import('../../../language-server/src/utils/specKitLoader.js');
+    const { GoferLoader } = await import('../../../language-server/src/utils/goferLoader.js');
     const loader = new GoferLoader(join(TEST_WORKSPACE, '.specify'));
 
     const specs = await loader.loadAllSpecs();
@@ -99,12 +99,12 @@ This tests the integration between components.
     await createIntegrationTestSpec();
 
     // Load from extension
-    const { GoferParser } = await import('../../../extension/src/specKitParser.js');
+    const { GoferParser } = await import('../../../extension/src/goferParser.js');
     const parser = new GoferParser(join(TEST_WORKSPACE, '.specify'));
     const extensionSpecs = await parser.loadAllSpecs();
 
     // Load from language server
-    const { GoferLoader } = await import('../../../language-server/src/utils/specKitLoader.js');
+    const { GoferLoader } = await import('../../../language-server/src/utils/goferLoader.js');
     const loader = new GoferLoader(join(TEST_WORKSPACE, '.specify'));
     const serverSpecs = await loader.loadAllSpecs();
 
@@ -286,7 +286,7 @@ This tests the integration between components.
     await createIntegrationTestSpec();
 
     // 1. Extension loads specs
-    const { GoferParser } = await import('../../../extension/src/specKitParser.js');
+    const { GoferParser } = await import('../../../extension/src/goferParser.js');
     const parser = new GoferParser(join(TEST_WORKSPACE, '.specify'));
     const specs = await parser.loadAllSpecs();
     expect(specs.length).toBeGreaterThan(0);

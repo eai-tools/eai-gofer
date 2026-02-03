@@ -61,7 +61,7 @@ export async function runVSCodeTests(options: VSCodeTestOptions = {}): Promise<n
         ...process.env,
         ...extensionTestsEnv,
         // Ensure test mode is enabled
-        SPECGOFER_TEST_MODE: 'true',
+        GOFER_TEST_MODE: 'true',
       },
     });
 
@@ -91,7 +91,7 @@ export async function waitForExtensionActivation(timeout: number = 5000): Promis
   while (Date.now() - startTime < timeout) {
     // Check if extension is activated
     // This will be implemented in actual integration tests with access to vscode API
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
   }
 }
 
@@ -99,7 +99,7 @@ export async function waitForExtensionActivation(timeout: number = 5000): Promis
  * Gets a reference to the Gofer extension
  * Must be called from within a VSCode test context
  */
-export async function getGoferExtension(): Promise<any> {
+export async function getGoferExtension(): Promise<unknown> {
   // This will be implemented in integration tests with access to vscode.extensions API
   // Return type will be the extension's API
   return null;

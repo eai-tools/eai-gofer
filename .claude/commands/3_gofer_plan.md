@@ -72,6 +72,17 @@ Planning loads research.md, spec.md, and constitution.md - monitor context.
 
 3. **Load plan template**: `.specify/templates/plan-template.md`
 
+4. **Load sequence diagram option** (if exists):
+   ```bash
+   ls -la {FEATURE_DIR}/sequence-diagrams/selected-option.md 2>/dev/null
+   ```
+
+   If selected-option.md exists:
+   - Load the selected implementation option
+   - Extract: option number, efficiency/innovation scores, complexity target
+   - Note Gen AI touchpoints for integration planning
+   - Use effort estimate to calibrate phase planning
+
 ---
 
 ## Step 2: Technical Context Analysis
@@ -253,6 +264,32 @@ created: [ISO date]
 
 - [Existing module to use]
 - [Library to integrate]
+
+## Selected Implementation Approach
+
+{If selected-option.md exists, include this section:}
+
+This plan implements **Option {N}: {Name}** as selected during specification.
+
+| Metric | Value |
+|--------|-------|
+| Efficiency Score | {score}% |
+| Innovation Score | {score}% |
+| Complexity Target | {low/medium/high} |
+| Estimated Effort | {from option} |
+
+### Gen AI Touchpoints
+
+{List Gen AI integration points from selected option, or "None" for Minimal option}
+
+- **{Touchpoint 1}**: {Implementation approach}
+- **{Touchpoint 2}**: {Implementation approach}
+
+### Approach Rationale
+
+{Brief explanation of why this option was selected and how it shapes the plan}
+
+---
 
 ## Constitution Check
 

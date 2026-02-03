@@ -98,12 +98,15 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Start Language Server (non-blocking - extension works without it)
   lspClient = new GoferLSPClient(context);
-  lspClient.start().then(() => {
-    console.log('[Gofer] Language Server started successfully');
-  }).catch((error) => {
-    console.warn('[Gofer] Language Server failed to start (non-critical):', error);
-    // LSP is optional - extension works without it
-  });
+  lspClient
+    .start()
+    .then(() => {
+      console.log('[Gofer] Language Server started successfully');
+    })
+    .catch((error) => {
+      console.warn('[Gofer] Language Server failed to start (non-critical):', error);
+      // LSP is optional - extension works without it
+    });
 
   // Register tree views IMMEDIATELY (even if empty) so VSCode can find them
   // This must happen before any commands that reference these views
@@ -1348,6 +1351,12 @@ created: "${new Date().toISOString().split('T')[0]}"
   continuousMemoryWriter = new ContinuousMemoryWriter(memoryManager);
   continuousMemoryWriter.connectToContextBuilder(sharedContextBuilder);
   console.log('[Gofer] ContinuousMemoryWriter wired to shared ContextBuilder');
+
+  // Wire ContextBuilder to AutoHandoffTrigger for context reseed functionality
+  if (autoHandoffTrigger) {
+    autoHandoffTrigger.setContextBuilder(sharedContextBuilder);
+    console.log('[Gofer] ContextBuilder wired to AutoHandoffTrigger for reseed');
+  }
 
   // Initialize MemoryHookManager for automatic memory operations (Spec 010 T025)
   memoryHookManager = new MemoryHookManager(memoryManager);

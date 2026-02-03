@@ -407,6 +407,161 @@ export interface MemoryManager {
 }
 
 // ============================================================================
+// Journey Mapping Types (Spec 010 FR-013 through FR-020)
+// ============================================================================
+
+/** Actor type in a customer journey */
+export type ActorType = 'user' | 'ai_agent' | 'system' | 'external_service';
+
+/** Actor in a customer journey */
+export interface JourneyActor {
+  /** Unique actor identifier (e.g., "user", "auth-service") */
+  id: string;
+  /** Display name */
+  name: string;
+  /** Actor type classification */
+  type: ActorType;
+  /** Description of the actor's role */
+  role: string;
+}
+
+/** A step in the customer journey */
+export interface JourneyStep {
+  /** Step number (1-indexed) */
+  stepNumber: number;
+  /** Actor performing this step */
+  actorId: string;
+  /** Description of the action */
+  action: string;
+  /** Expected outcome */
+  outcome?: string;
+  /** Notes or considerations */
+  notes?: string;
+}
+
+/** A touchpoint in the journey (interaction point) */
+export interface JourneyTouchpoint {
+  /** Touchpoint identifier */
+  id: string;
+  /** Type of touchpoint */
+  type: 'ui' | 'api' | 'notification' | 'document' | 'other';
+  /** Description */
+  description: string;
+  /** Which actors interact at this touchpoint */
+  actorIds: string[];
+  /** Associated step numbers */
+  stepNumbers: number[];
+}
+
+/**
+ * Customer/user journey representation.
+ *
+ * @see FR-013 through FR-016
+ */
+export interface Journey {
+  /** Journey identifier (kebab-case) */
+  id: string;
+  /** Journey name */
+  name: string;
+  /** Feature this journey belongs to */
+  featureId: string;
+  /** Brief description */
+  description: string;
+  /** Actors involved in the journey */
+  actors: JourneyActor[];
+  /** Steps in the journey (ordered) */
+  steps: JourneyStep[];
+  /** Touchpoints (interaction points) */
+  touchpoints: JourneyTouchpoint[];
+  /** Mermaid diagram (if generated) */
+  mermaidDiagram?: string;
+  /** Creation timestamp */
+  created: number;
+  /** Last modified timestamp */
+  modified: number;
+  /** Status of the journey */
+  status: 'draft' | 'confirmed' | 'revised';
+}
+
+/** Industry type for variant generation */
+export type Industry =
+  | 'retail'
+  | 'healthcare'
+  | 'finance'
+  | 'education'
+  | 'hospitality'
+  | 'logistics'
+  | 'manufacturing'
+  | 'legal'
+  | 'real_estate'
+  | 'entertainment';
+
+/**
+ * Industry-adapted journey variant.
+ *
+ * @see FR-017 through FR-020
+ */
+export interface JourneyVariant {
+  /** Variant identifier */
+  id: string;
+  /** Reference to base journey */
+  baseJourneyId: string;
+  /** Industry this variant applies to */
+  industry: Industry;
+  /** Variant number within the industry */
+  variantNumber: number;
+  /** Adaptations made for this industry */
+  adaptations: string[];
+  /** Innovation insights from this industry */
+  innovations: string[];
+  /** Modified Mermaid diagram */
+  mermaidDiagram?: string;
+  /** Creation timestamp */
+  created: number;
+}
+
+// ============================================================================
+// Sequence Diagram Types (Spec 010 FR-021 through FR-025)
+// ============================================================================
+
+/** Option number for sequence diagram */
+export type SequenceOptionNumber = 1 | 2 | 3 | 4 | 5;
+
+/**
+ * Implementation option with trade-off scores.
+ *
+ * @see FR-021 through FR-025
+ */
+export interface SequenceDiagramOption {
+  /** Option number (1-5) */
+  optionNumber: SequenceOptionNumber;
+  /** Option name (e.g., "Minimal", "Efficient", "Standard", "Enhanced", "Innovative") */
+  name: string;
+  /** Feature this option belongs to */
+  featureId: string;
+  /** Mermaid sequence diagram */
+  mermaidDiagram: string;
+  /** Actors/systems in the diagram */
+  actors: string[];
+  /** Points where Gen AI could be integrated */
+  genAiTouchpoints: string[];
+  /** Efficiency score (0-100, higher = more efficient) */
+  efficiencyScore: number;
+  /** Complexity score (0-100, higher = more complex) */
+  complexityScore: number;
+  /** Innovation score (0-100, higher = more innovative) */
+  innovationScore: number;
+  /** Estimated effort (e.g., "1-2 days", "1 week") */
+  estimatedEffort: string;
+  /** Identified risks */
+  risks: string[];
+  /** Creation timestamp */
+  created: number;
+  /** Whether this option was selected */
+  selected?: boolean;
+}
+
+// ============================================================================
 // Events
 // ============================================================================
 

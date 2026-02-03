@@ -335,6 +335,123 @@ Before modifying existing code:
 
 ---
 
+## Step 6.5: Journey Variant Generation (Optional)
+
+**If a base journey exists** at `.specify/specs/{feature}/journeys/base-journey.md`:
+
+Generate industry variants to discover innovative approaches from other domains.
+
+### Generate Variant Count
+
+Pick a random number between 10-50:
+
+```bash
+VARIANT_COUNT=$((RANDOM % 41 + 10))
+echo "Generating $VARIANT_COUNT industry variants"
+```
+
+### Load Industry Templates
+
+Read `.specify/templates/journey/industry-variants.yaml` for industry-specific patterns.
+
+### Generate Variants
+
+For each variant, create a file at:
+`.specify/specs/{feature}/journeys/variants/{industry}-{number}.md`
+
+Example: `healthcare-1.md`, `retail-2.md`, `finance-1.md`
+
+**Distribute proportionally across 10 industries:**
+
+- retail, healthcare, finance, education, hospitality
+- logistics, manufacturing, legal, real_estate, entertainment
+
+**Each variant should include:**
+
+```markdown
+---
+id: {feature}-{industry}-{number}
+baseJourneyId: {feature}-journey
+industry: {industry}
+variantNumber: {number}
+created: {ISO-timestamp}
+---
+
+# Journey Variant: {Industry} #{number}
+
+## Base Journey Reference
+
+Based on: [base-journey.md](../base-journey.md)
+
+## Industry Context
+
+{Description of how this industry typically handles similar journeys}
+
+## Adaptations
+
+{How the base journey is adapted for this industry}
+
+1. **Step N adapted**: {How step N changes in this industry}
+2. **Actor change**: {Different actors in this industry context}
+
+## Innovation Insights
+
+Key innovations from {industry} that could apply to your feature:
+
+1. **{Innovation 1}**: {Description and how it could be applied}
+2. **{Innovation 2}**: {Description and how it could be applied}
+
+## Modified Diagram
+
+```mermaid
+sequenceDiagram
+    {Industry-specific sequence diagram}
+```
+
+## Potential Application
+
+How these insights could enhance your feature:
+
+- {Specific suggestion 1}
+- {Specific suggestion 2}
+```
+
+### Document Innovation Summary
+
+Add an "Innovation Insights" section to `research.md`:
+
+```markdown
+## Innovation Insights (from Industry Variants)
+
+Generated {N} journey variants across 10 industries.
+
+### Top Innovations to Consider
+
+| Industry | Innovation | Application Potential |
+|----------|------------|----------------------|
+| Healthcare | AI symptom checker | Could add AI-powered input validation |
+| Finance | Real-time fraud detection | Could add anomaly detection |
+| Retail | Personalized recommendations | Could add user-specific suggestions |
+
+### Variant Summary
+
+| Industry | Count | Key Patterns |
+|----------|-------|--------------|
+| Retail | 5 | Cart recovery, recommendations |
+| Healthcare | 4 | Patient portal, telehealth |
+| ... | ... | ... |
+```
+
+### Skip Conditions
+
+Skip variant generation if:
+
+1. No base journey exists (user skipped journey mapping)
+2. Feature is purely technical (no user-facing journey)
+3. Context window is at Warning level (>50%)
+
+---
+
 ## Step 7: Observability Logging
 
 At stage completion, log metrics:

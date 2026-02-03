@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "memories": [
+    {
+      "id": "016565cd-326b-4cf6-9737-1dfb360bb3cf",
+      "category": "pattern",
+      "tags": [
+        "#auto-learned",
+        "#pattern",
+        "#session-4b38e529"
+      ],
+      "scope": "local",
+      "content": "com/getzep/graphiti) demonstrates the architecture:\n\n1. **Episodes** → timestamped interactions decomposed into entities and relationships",
+      "created": 1769750111813,
+      "lastUsed": 1769750111813,
+      "usedCount": 0,
+      "learnedFrom": "session:4b38e529-8d24-434a-b0ea-35a7f95044cb"
+    }
+  ]
+}

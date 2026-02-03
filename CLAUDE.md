@@ -82,14 +82,17 @@ automatically chain through all stages:
 │                    UNIFIED GOFER PIPELINE                        │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                  │
-│  1. /1_gofer_research    → research.md                          │
-│     Deep codebase exploration + technology research              │
+│  0. /0_business_scenario → journeys/base-journey.md (optional)  │
+│     Triage + Interactive journey confirmation                    │
 │                         ↓ AUTO                                   │
-│  2. /2_gofer_specify     → spec.md                              │
-│     Feature specification informed by research                   │
+│  1. /1_gofer_research    → research.md, journeys/variants/      │
+│     Deep codebase exploration + industry variant generation      │
+│                         ↓ AUTO                                   │
+│  2. /2_gofer_specify     → spec.md, sequence-diagrams/          │
+│     Feature spec + 5 implementation options (efficiency→innov)   │
 │                         ↓ AUTO                                   │
 │  3. /3_gofer_plan        → plan.md, data-model.md, contracts/   │
-│     Technical architecture and design                            │
+│     Technical architecture (uses selected option)                │
 │                         ↓ AUTO                                   │
 │  4. /4_gofer_tasks       → tasks.md, issues.md                  │
 │     Dependency-ordered task breakdown                            │
@@ -145,6 +148,60 @@ research:
 | `codebase-locator`        | Finds WHERE code lives   | Grep, Glob, LS       |
 | `codebase-analyzer`       | Explains HOW code works  | Read, Grep, Glob, LS |
 | `codebase-pattern-finder` | Shows EXAMPLES to follow | Grep, Glob, Read, LS |
+
+### Journey Mapping and Sequence Diagrams
+
+The pipeline includes optional customer journey mapping and implementation option
+generation to ensure feature alignment with business value.
+
+#### Journey Confirmation (`/0_business_scenario`)
+
+During initial triage, the orchestrator can extract and confirm the customer
+journey:
+
+1. **Extract journey** from feature description (actors, steps, touchpoints)
+2. **Confirm via AskUserQuestion** - User validates or modifies
+3. **Save to** `journeys/base-journey.md` with Mermaid diagram
+
+**Artifacts:**
+- `journeys/base-journey.md` - Confirmed customer journey with actors and flow
+
+#### Industry Variants (`/1_gofer_research`)
+
+If a base journey exists, generates 10-50 industry variants to discover
+innovations from other domains:
+
+**Industries covered:**
+- Retail, Healthcare, Finance, Education, Hospitality
+- Logistics, Manufacturing, Legal, Real Estate, Entertainment
+
+**Artifacts:**
+- `journeys/variants/{industry}-{N}.md` - Industry-specific adaptations
+- Innovation insights section in `research.md`
+
+#### Sequence Diagram Options (`/2_gofer_specify`)
+
+Generates 5 implementation options spanning the efficiency→innovation spectrum:
+
+| Option | Name | Efficiency | Innovation | Complexity | Gen AI |
+|--------|------|------------|------------|------------|--------|
+| 1 | Minimal | 95% | 10% | Low | None |
+| 2 | Efficient | 80% | 30% | Low-Medium | Optional validation |
+| 3 | Standard | 60% | 50% | Medium | Suggestions, smart defaults |
+| 4 | Enhanced | 40% | 70% | Medium-High | Recommendations, NLP |
+| 5 | Innovative | 20% | 95% | High | Autonomous agents, multi-modal |
+
+**User selects preferred option** via AskUserQuestion. The selected option guides
+the technical architecture in `/3_gofer_plan`.
+
+**Artifacts:**
+- `sequence-diagrams/option-{N}-{name}.md` - All 5 options with Mermaid diagrams
+- `sequence-diagrams/selected-option.md` - User's chosen approach
+
+**Templates:**
+- `.specify/templates/journey/base-journey.md` - Journey document template
+- `.specify/templates/journey/industry-variants.yaml` - Industry definitions
+- `.specify/templates/sequence-diagrams/option-spectrum.yaml` - Option definitions
 
 ### Auxiliary Gofer Commands
 

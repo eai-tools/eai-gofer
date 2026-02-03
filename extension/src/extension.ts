@@ -23,6 +23,7 @@ import { ContextHealthStatusBar } from './ui/ContextHealthStatusBar';
 // Real Context Monitoring (Spec 014)
 import { ClaudeSessionReader } from './autonomous/ClaudeSessionReader';
 import { ContinuousMemoryWriter } from './autonomous/ContinuousMemoryWriter';
+import { MemoryHookManager } from './autonomous/MemoryHookManager';
 import { KnowledgeGraph } from './autonomous/KnowledgeGraph';
 // Hook-based monitoring
 import { HookBridgeWatcher } from './autonomous/HookBridgeWatcher';
@@ -55,6 +56,8 @@ let contextHealthStatusBar: ContextHealthStatusBar | undefined;
 let autoHandoffTrigger: AutoHandoffTrigger | undefined;
 // Real Context Monitoring (Spec 014)
 let continuousMemoryWriter: ContinuousMemoryWriter | undefined;
+// Memory Operation Hooks (Spec 010)
+let memoryHookManager: MemoryHookManager | undefined;
 // Hook-based monitoring
 let hookBridgeWatcher: HookBridgeWatcher | undefined;
 let goferActivityStatusBar: GoferActivityStatusBar | undefined;
@@ -1318,6 +1321,22 @@ created: "${new Date().toISOString().split('T')[0]}"
   continuousMemoryWriter = new ContinuousMemoryWriter(memoryManager);
   continuousMemoryWriter.connectToContextBuilder(sharedContextBuilder);
   console.log('[Gofer] ContinuousMemoryWriter wired to shared ContextBuilder');
+
+  // Initialize MemoryHookManager for automatic memory operations (Spec 010 T025)
+  memoryHookManager = new MemoryHookManager(memoryManager);
+  console.log('[Gofer] MemoryHookManager initialized');
+
+  // Export MemoryHookManager for use by autonomous commands
+  import('./autonomousCommands')
+    .then(({ setSharedMemoryHookManager }) => {
+      if (setSharedMemoryHookManager) {
+        setSharedMemoryHookManager(memoryHookManager!);
+        console.log('[Gofer] MemoryHookManager wired to autonomousCommands');
+      }
+    })
+    .catch(() => {
+      // autonomousCommands may not have the setter yet
+    });
 
   // T116: Register spec execution commands
   if (progressProvider) {

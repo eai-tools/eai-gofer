@@ -201,7 +201,7 @@ export class TemplateDownloader {
         },
         filter: (fileName) => {
           // Only extract template-related files
-          return fileName.includes('templates/') || fileName.includes('spec-kit/') || fileName === 'manifest.json';
+          return fileName.includes('templates/') || fileName.includes('gofer/') || fileName === 'manifest.json';
         },
       });
       
@@ -241,7 +241,7 @@ export class TemplateDownloader {
       } else {
         // Create a basic manifest if none found
         manifest = {
-          name: 'GitHub Spec Kit Templates',
+          name: 'GitHub Gofer Templates',
           version: 'unknown',
           description: 'Templates downloaded from GitHub',
           templates: [],
@@ -272,7 +272,7 @@ export class TemplateDownloader {
             description: `Template: ${templateName}`,
             path: templateName,
             type: 'spec',
-            tags: ['github', 'spec-kit'],
+            tags: ['github', 'gofer'],
           });
         }
       }

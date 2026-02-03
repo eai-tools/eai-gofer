@@ -60,7 +60,7 @@ export interface HintMetadata {
 
 /**
  * Minimal Task interface for hint loading.
- * (Full Task interface defined elsewhere in SpecGofer)
+ * (Full Task interface defined elsewhere in EAI-GOFER)
  */
 export interface Task {
   /** Task identifier (e.g., "T001") */
@@ -75,7 +75,7 @@ export interface Task {
 
 /**
  * Minimal Spec interface for hint loading.
- * (Full Spec interface defined elsewhere in SpecGofer)
+ * (Full Spec interface defined elsewhere in EAI-GOFER)
  */
 export interface Spec {
   /** Spec identifier (e.g., "005-authentication") */

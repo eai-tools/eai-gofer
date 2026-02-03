@@ -1,5 +1,5 @@
 /**
- * SpecGofer Language Server
+ * EAI-GOFER Language Server
  *
  * Provides both:
  * 1. Language Server Protocol (LSP) for extension communication
@@ -20,7 +20,7 @@ import {
 } from 'vscode-languageserver/node';
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { SpecKitLoader } from './utils/specKitLoader';
+import { GoferLoader } from './utils/goferLoader';
 import { MCPToolHandler } from './mcp/toolHandler';
 
 // Error types for better error handling
@@ -104,8 +104,8 @@ let hasConfigurationCapability = false;
 let hasWorkspaceFolderCapability = false;
 let workspacePath: string | undefined;
 
-// Initialize SpecKit loader and MCP tool handler
-let specKitLoader: SpecKitLoader | undefined;
+// Initialize Gofer loader and MCP tool handler
+let goferLoader: GoferLoader | undefined;
 let mcpToolHandler: MCPToolHandler | undefined;
 
 // Async error wrapper
@@ -130,7 +130,7 @@ async function withErrorHandling<T>(
 
 connection.onInitialize(async (params: InitializeParams): Promise<InitializeResult> => {
   return withErrorHandling('server-initialization', async () => {
-    logger.logServerEvent('Initializing SpecGofer Language Server', {
+    logger.logServerEvent('Initializing EAI-GOFER Language Server', {
       processId: params.processId,
       workspaceFolders: params.workspaceFolders?.map(f => f.uri)
     });
@@ -151,12 +151,12 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
       logger.info(`Workspace path: ${workspacePath}`);
 
       try {
-        // Initialize SpecKit loader
-        specKitLoader = new SpecKitLoader(workspacePath);
+        // Initialize Gofer loader
+        goferLoader = new GoferLoader(workspacePath);
         mcpToolHandler = new MCPToolHandler(workspacePath, connection);
-        logger.info('SpecKit loader and MCP tool handler initialized successfully');
+        logger.info('Gofer loader and MCP tool handler initialized successfully');
       } catch (error) {
-        logger.error('Failed to initialize SpecKit components', error);
+        logger.error('Failed to initialize Gofer components', error);
         throw new ServerError('Failed to initialize server components', 'INIT_ERROR');
       }
     } else {
@@ -176,7 +176,7 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
           // MCP tools exposed to Claude Code / GitHub Copilot
           tools: [
             {
-              name: 'specgofer_get_specs',
+              name: 'eaigofer_get_specs',
               description: 'Get all specifications from the .specify folder',
               parameters: {
                 type: 'object',
@@ -185,7 +185,7 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
               },
             },
             {
-              name: 'specgofer_get_next_task',
+              name: 'eaigofer_get_next_task',
               description: 'Get the next available task to work on',
               parameters: {
                 type: 'object',
@@ -194,7 +194,7 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
               },
             },
             {
-              name: 'specgofer_execute_task',
+              name: 'eaigofer_execute_task',
               description: 'Execute a specific task from a specification',
               parameters: {
                 type: 'object',
@@ -212,7 +212,7 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
               },
             },
             {
-              name: 'specgofer_update_task_status',
+              name: 'eaigofer_update_task_status',
               description: 'Update the status of a task',
               parameters: {
                 type: 'object',
@@ -235,7 +235,7 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
               },
             },
             {
-              name: 'specgofer_validate_code',
+              name: 'eaigofer_validate_code',
               description: 'Validate code against constitutional requirements',
               parameters: {
                 type: 'object',
@@ -250,7 +250,7 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
               },
             },
             {
-              name: 'specgofer_run_tests',
+              name: 'eaigofer_run_tests',
               description: 'Run tests for a specification',
               parameters: {
                 type: 'object',
@@ -297,7 +297,7 @@ connection.onInitialized(() => {
       });
     }
 
-    logger.info('SpecGofer Language Server initialized successfully');
+    logger.info('EAI-GOFER Language Server initialized successfully');
   } catch (error) {
     logger.error('Error during server initialization', error);
   }
@@ -308,20 +308,20 @@ connection.onInitialized(() => {
 // ============================================================================
 
 /**
- * LSP Custom Method: specKit/getSpecs
+ * LSP Custom Method: gofer/getSpecs
  * Returns all specifications from .specify/specs/
  */
-connection.onRequest('specGofer/getSpecs', async (): Promise<{
+connection.onRequest('eaiGofer/getSpecs', async (): Promise<{
   success: boolean;
   specs?: unknown[];
   error?: string;
 }> => {
   return withErrorHandling('lsp-get-specs', async () => {
-    if (!specKitLoader) {
-      throw new ServerError('SpecKit loader not initialized', 'NOT_INITIALIZED');
+    if (!goferLoader) {
+      throw new ServerError('Gofer loader not initialized', 'NOT_INITIALIZED');
     }
 
-    const specs = await specKitLoader.loadAllSpecs();
+    const specs = await goferLoader.loadAllSpecs();
     logger.debug(`Retrieved ${specs.length} specifications`);
     
     return {
@@ -338,11 +338,11 @@ connection.onRequest('specGofer/getSpecs', async (): Promise<{
 });
 
 /**
- * LSP Custom Method: specKit/executeTask
+ * LSP Custom Method: gofer/executeTask
  * Returns full context for a specific task
  */
 connection.onRequest(
-  'specGofer/executeTask',
+  'eaiGofer/executeTask',
     async (params: { specId: string; taskId: string; context?: unknown }): Promise<{
     success: boolean;
     task?: unknown;
@@ -350,15 +350,15 @@ connection.onRequest(
     error?: string;
   }> => {
     return withErrorHandling('lsp-execute-task', async () => {
-      if (!specKitLoader) {
-        throw new ServerError('SpecKit loader not initialized', 'NOT_INITIALIZED');
+      if (!goferLoader) {
+        throw new ServerError('Gofer loader not initialized', 'NOT_INITIALIZED');
       }
 
       if (!params.specId || !params.taskId) {
         throw new ValidationError('specId and taskId are required');
       }
 
-      const spec = await specKitLoader.loadSpec(params.specId);
+      const spec = await goferLoader.loadSpec(params.specId);
       if (!spec) {
         throw new NotFoundError(`Specification: ${params.specId}`);
       }
@@ -386,18 +386,18 @@ connection.onRequest(
 );
 
 /**
- * LSP Custom Method: specKit/updateTaskStatus
+ * LSP Custom Method: gofer/updateTaskStatus
  * Updates task status in specification file
  */
 connection.onRequest(
-  'specGofer/updateTaskStatus',
+  'eaiGofer/updateTaskStatus',
   async (params: { specId: string; taskId: string; status: string }): Promise<{
     success: boolean;
     error?: string;
   }> => {
     return withErrorHandling('lsp-update-task-status', async () => {
-      if (!specKitLoader) {
-        throw new ServerError('SpecKit loader not initialized', 'NOT_INITIALIZED');
+      if (!goferLoader) {
+        throw new ServerError('Gofer loader not initialized', 'NOT_INITIALIZED');
       }
 
       if (!params.specId || !params.taskId || !params.status) {
@@ -409,11 +409,11 @@ connection.onRequest(
         throw new ValidationError(`Invalid status: ${params.status}. Valid statuses: ${validStatuses.join(', ')}`);
       }
 
-      await specKitLoader.updateTaskStatus(params.specId, params.taskId, params.status);
+      await goferLoader.updateTaskStatus(params.specId, params.taskId, params.status);
       logger.info(`Updated task ${params.taskId} in spec ${params.specId} to status: ${params.status}`);
 
       // Notify extension of progress
-      connection.sendNotification('specGofer/taskProgress', {
+      connection.sendNotification('eaiGofer/taskProgress', {
         specId: params.specId,
         taskId: params.taskId,
         status: params.status,
@@ -434,7 +434,7 @@ connection.onRequest(
 );
 
 /**
- * LSP Custom Method: specKit/executeTask
+ * LSP Custom Method: gofer/executeTask
  * Execute a task (called by extension, not MCP)
  */
 // Note: Duplicate handler was removed - using improved version above with proper validation
@@ -458,22 +458,22 @@ connection.onRequest('tools/call', async (params: { name: string; arguments: Rec
 
     let result;
     switch (name) {
-      case 'specgofer_get_specs':
+      case 'eaigofer_get_specs':
         result = await mcpToolHandler.getSpecs();
         break;
 
-      case 'specgofer_get_next_task':
+      case 'eaigofer_get_next_task':
         result = await mcpToolHandler.getNextTask();
         break;
 
-      case 'specgofer_execute_task':
+      case 'eaigofer_execute_task':
         result = await mcpToolHandler.executeTask(
           args.specId as string, 
           args.taskId as string
         );
         break;
 
-      case 'specgofer_update_task_status':
+      case 'eaigofer_update_task_status':
         result = await mcpToolHandler.updateTaskStatus(
           args.specId as string, 
           args.taskId as string, 
@@ -481,11 +481,11 @@ connection.onRequest('tools/call', async (params: { name: string; arguments: Rec
         );
         break;
 
-      case 'specgofer_validate_code':
+      case 'eaigofer_validate_code':
         result = await mcpToolHandler.validateCode(args.files as string[]);
         break;
 
-      case 'specgofer_run_tests':
+      case 'eaigofer_run_tests':
         result = await mcpToolHandler.runTests(args.specId as string);
         break;
 
@@ -537,4 +537,4 @@ documents.listen(connection);
 // Listen on the connection
 connection.listen();
 
-logger.info('SpecGofer Language Server started');
+logger.info('EAI-GOFER Language Server started');

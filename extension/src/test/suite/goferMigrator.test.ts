@@ -2,11 +2,11 @@ import * as assert from 'assert';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import * as os from 'os';
-import { SpecKitMigrator } from '../../specKitMigrator';
+import { GoferMigrator } from '../../goferMigrator';
 
-suite('SpecKitMigrator Test Suite', () => {
+suite('GoferMigrator Test Suite', () => {
   let tempDir: string;
-  let migrator: SpecKitMigrator;
+  let migrator: GoferMigrator;
 
   suiteSetup(async () => {
     // Create temporary directory for tests
@@ -20,7 +20,7 @@ suite('SpecKitMigrator Test Suite', () => {
 
   setup(async () => {
     // Create fresh migrator for each test
-    migrator = new SpecKitMigrator(tempDir);
+    migrator = new GoferMigrator(tempDir);
   });
 
   suite('Format Detection', () => {
@@ -42,15 +42,15 @@ suite('SpecKitMigrator Test Suite', () => {
       assert.strictEqual(format, 'legacy-json');
     });
 
-    test('should detect Spec Kit format', async () => {
-      await createSpecKitStructure();
+    test('should detect Gofer format', async () => {
+      await createGoferStructure();
 
       const format = await migrator.detectFormat();
-      assert.strictEqual(format, 'spec-kit');
+      assert.strictEqual(format, 'gofer');
     });
 
     test('should detect mixed format', async () => {
-      await createSpecKitStructure();
+      await createGoferStructure();
       await createLegacyJsonFiles();
 
       const format = await migrator.detectFormat();
@@ -77,18 +77,18 @@ suite('SpecKitMigrator Test Suite', () => {
       assert.ok(versionInfo.details.includes('Legacy JSON'));
     });
 
-    test('should provide version info for current Spec Kit format', async () => {
-      await createSpecKitStructure();
+    test('should provide version info for current Gofer format', async () => {
+      await createGoferStructure();
 
       const versionInfo = await migrator.getVersionInfo();
 
-      assert.strictEqual(versionInfo.format, 'spec-kit');
+      assert.strictEqual(versionInfo.format, 'gofer');
       assert.strictEqual(versionInfo.needsUpgrade, false);
-      assert.ok(versionInfo.details.includes('GitHub Spec Kit'));
+      assert.ok(versionInfo.details.includes('GitHub Gofer'));
     });
 
     test('should indicate upgrade needed for mixed format', async () => {
-      await createSpecKitStructure();
+      await createGoferStructure();
       await createLegacyJsonFiles();
 
       const versionInfo = await migrator.getVersionInfo();
@@ -100,7 +100,7 @@ suite('SpecKitMigrator Test Suite', () => {
   });
 
   suite('Migration Process', () => {
-    test('should migrate legacy JSON to Spec Kit format', async () => {
+    test('should migrate legacy JSON to Gofer format', async () => {
       await createLegacyJsonStructure();
 
       // Verify initial state
@@ -112,9 +112,9 @@ suite('SpecKitMigrator Test Suite', () => {
 
       // Verify migration completed
       format = await migrator.detectFormat();
-      assert.strictEqual(format, 'spec-kit');
+      assert.strictEqual(format, 'gofer');
 
-      // Check that Spec Kit structure exists
+      // Check that Gofer structure exists
       const specsDir = path.join(tempDir, '.specify', 'specs');
       const memoryDir = path.join(tempDir, '.specify', 'memory');
       const templatesDir = path.join(tempDir, '.specify', 'templates');
@@ -167,15 +167,15 @@ suite('SpecKitMigrator Test Suite', () => {
       // Perform migration
       await migrator.upgrade();
 
-      // Should create basic Spec Kit structure
+      // Should create basic Gofer structure
       const format = await migrator.detectFormat();
-      assert.strictEqual(format, 'spec-kit');
+      assert.strictEqual(format, 'gofer');
     });
   });
 
   suite('Error Handling', () => {
     test('should handle migration of already migrated folder gracefully', async () => {
-      await createSpecKitStructure();
+      await createGoferStructure();
 
       // Try to upgrade already migrated folder
       try {
@@ -259,7 +259,7 @@ suite('SpecKitMigrator Test Suite', () => {
     );
   }
 
-  async function createSpecKitStructure(): Promise<void> {
+  async function createGoferStructure(): Promise<void> {
     const specifyDir = path.join(tempDir, '.specify');
     await fs.mkdir(path.join(specifyDir, 'specs'), { recursive: true });
     await fs.mkdir(path.join(specifyDir, 'memory'), { recursive: true });

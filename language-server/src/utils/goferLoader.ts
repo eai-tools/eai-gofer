@@ -1,7 +1,7 @@
 /**
- * SpecKitLoader - Loads specifications from .specify/specs/ directory
+ * GoferLoader - Loads specifications from .specify/specs/ directory
  *
- * This is a simplified version of the extension's SpecKitParser
+ * This is a simplified version of the extension's GoferParser
  * for use in the Language Server
  */
 
@@ -47,7 +47,7 @@ export interface TechnicalPlan {
   risks: string[];
 }
 
-export class SpecKitLoader {
+export class GoferLoader {
   private cache: SpecCache;
 
   constructor(private workspacePath: string) {
@@ -119,7 +119,7 @@ export class SpecKitLoader {
   }
 
   /**
-   * Parse header metadata from official GitHub Spec Kit format
+   * Parse header metadata from official GitHub Gofer format
    */
   private parseSpecHeader(content: string): { metadata: Record<string, string>; content: string } {
     const lines = content.split('\n');
@@ -181,7 +181,7 @@ export class SpecKitLoader {
     const match = content.match(frontmatterRegex);
 
     if (!match) {
-      // Try to parse as official GitHub Spec Kit format
+      // Try to parse as official GitHub Gofer format
       const { metadata, content: bodyContent } = this.parseSpecHeader(content);
       
       // Convert to legacy format for compatibility

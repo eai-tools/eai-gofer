@@ -1,16 +1,16 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { SpecKitParser, YAMLFrontmatter, Spec, SpecStatus } from '../../../extension/src/specKitParser';
+import { GoferParser, YAMLFrontmatter, Spec, SpecStatus } from '../../../extension/src/goferParser';
 import { createTestWorkspace, cleanupTestWorkspace, createTestSpec } from '../../helpers/workspace';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 
-describe('SpecKitParser - YAML Frontmatter Extraction', () => {
+describe('GoferParser - YAML Frontmatter Extraction', () => {
   let workspace: string;
-  let parser: SpecKitParser;
+  let parser: GoferParser;
 
   beforeEach(async () => {
     workspace = await createTestWorkspace();
-    parser = new SpecKitParser(workspace);
+    parser = new GoferParser(workspace);
   });
 
   afterEach(async () => {
@@ -68,7 +68,7 @@ updated: 2025-01-15
 
       for (const status of statuses) {
         const testWorkspace = await createTestWorkspace();
-        const testParser = new SpecKitParser(testWorkspace);
+        const testParser = new GoferParser(testWorkspace);
 
         const specContent = `---
 title: Test Feature

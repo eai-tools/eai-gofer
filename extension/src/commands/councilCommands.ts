@@ -61,7 +61,7 @@ export async function showProviderStatus(): Promise<void> {
   outputChannel.appendLine('Provider Details:');
   statusLines.forEach((line) => outputChannel.appendLine(`  ${line}`));
   outputChannel.appendLine(
-    '\nTo configure providers, go to Settings > SpecGofer and add your API keys.'
+    '\nTo configure providers, go to Settings > EAI-GOFER and add your API keys.'
   );
 
   // Add usage summary if workspace is available
@@ -95,7 +95,7 @@ export async function showProviderStatus(): Promise<void> {
   } else {
     vscode.window
       .showWarningMessage(
-        'LLM Council: No providers configured. Add API keys in Settings > SpecGofer.',
+        'LLM Council: No providers configured. Add API keys in Settings > EAI-GOFER.',
         'Open Settings'
       )
       .then((selection) => {
@@ -147,6 +147,6 @@ export async function checkAllProviderHealth(): Promise<{
  */
 export function registerCouncilCommands(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.showCouncilStatus', showProviderStatus)
+    vscode.commands.registerCommand('eaiGofer.showCouncilStatus', showProviderStatus)
   );
 }

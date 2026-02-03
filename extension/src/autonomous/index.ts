@@ -1,7 +1,7 @@
 /**
  * Autonomous Claude Code Driver
  *
- * This module enables SpecGofer to autonomously drive Claude Code terminals,
+ * This module enables EAI-GOFER to autonomously drive Claude Code terminals,
  * monitor execution, handle errors, manage context windows, and escalate
  * questions to users.
  *

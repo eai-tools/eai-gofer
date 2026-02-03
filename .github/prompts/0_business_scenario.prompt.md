@@ -2,7 +2,6 @@
 name: 0_business_scenario
 description: Triage business scenario and orchestrate the unified Gofer pipeline
 agent: agent
-tools: ['search/codebase', 'terminal', 'editFile', 'runCommand']
 argument-hint: Describe the business scenario or feature you want to build
 ---
 

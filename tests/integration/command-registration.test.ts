@@ -154,12 +154,12 @@ describe('Command Registration Validation', () => {
 
   it('should have all critical navigation commands registered', () => {
     const criticalCommands = [
-      'specGofer.refreshSpecs',
-      'specGofer.refreshConstitution',
-      'specGofer.refreshMemory',
-      'specGofer.showProgress',
-      'specGofer.showConstitution',
-      'specGofer.initialize',
+      'eaiGofer.refreshSpecs',
+      'eaiGofer.refreshConstitution',
+      'eaiGofer.refreshMemory',
+      'eaiGofer.showProgress',
+      'eaiGofer.showConstitution',
+      'eaiGofer.initialize',
     ];
 
     const missingCommands: string[] = [];
@@ -180,12 +180,12 @@ describe('Command Registration Validation', () => {
 
   it('should register all tree view commands', () => {
     const treeViewCommands = [
-      'specGofer.showSpecDetails',
-      'specGofer.showTaskDetails',
-      'specGofer.showSectionDetails',
-      'specGofer.showArticleDetails',
-      'specGofer.showMemoryDocument',
-      'specGofer.showMemorySection',
+      'eaiGofer.showSpecDetails',
+      'eaiGofer.showTaskDetails',
+      'eaiGofer.showSectionDetails',
+      'eaiGofer.showArticleDetails',
+      'eaiGofer.showMemoryDocument',
+      'eaiGofer.showMemorySection',
     ];
 
     const missingCommands: string[] = [];
@@ -207,10 +207,10 @@ describe('Command Registration Validation', () => {
   it.skip('should register all autonomous execution commands', () => {
     // TODO: Re-enable when autonomous execution feature is implemented
     const autonomousCommands = [
-      'specGofer.startAutonomous',
-      'specGofer.stopAutonomous',
-      'specGofer.pauseAutonomous',
-      'specGofer.resumeAutonomous',
+      'eaiGofer.startAutonomous',
+      'eaiGofer.stopAutonomous',
+      'eaiGofer.pauseAutonomous',
+      'eaiGofer.resumeAutonomous',
     ];
 
     const missingCommands: string[] = [];
@@ -230,7 +230,7 @@ describe('Command Registration Validation', () => {
   });
 
   it('should register all memory commands', () => {
-    const memoryCommands = ['specGofer.refreshMemory', 'specGofer.showMemoryDocument'];
+    const memoryCommands = ['eaiGofer.refreshMemory', 'eaiGofer.showMemoryDocument'];
 
     const missingCommands: string[] = [];
 
@@ -332,29 +332,29 @@ describe('Command Registration Validation', () => {
     const views = packageJson.contributes.views['spec-kit'];
     expect(views).toContainEqual(
       expect.objectContaining({
-        id: 'specGoferProgress',
+        id: 'eaiGoferProgress',
       })
     );
     expect(views).toContainEqual(
       expect.objectContaining({
-        id: 'specGoferConstitution',
+        id: 'eaiGoferConstitution',
       })
     );
     expect(views).toContainEqual(
       expect.objectContaining({
-        id: 'specGoferMemory',
+        id: 'eaiGoferMemory',
       })
     );
   });
 
   it('should register tree data providers for all views', () => {
-    expect(extensionSource).toContain("registerTreeDataProvider('specGoferProgress'");
-    expect(extensionSource).toContain("registerTreeDataProvider('specGoferConstitution'");
-    expect(extensionSource).toContain("registerTreeDataProvider('specGoferMemory'");
+    expect(extensionSource).toContain("registerTreeDataProvider('eaiGoferProgress'");
+    expect(extensionSource).toContain("registerTreeDataProvider('eaiGoferConstitution'");
+    expect(extensionSource).toContain("registerTreeDataProvider('eaiGoferMemory'");
   });
 
   it('should have update commands registered', () => {
-    const updateCommands = ['specGofer.checkForUpdates', 'specGofer.updateNow'];
+    const updateCommands = ['eaiGofer.checkForUpdates', 'eaiGofer.updateNow'];
 
     const missingCommands: string[] = [];
 
@@ -373,7 +373,7 @@ describe('Command Registration Validation', () => {
   });
 
   it('should have spec creation and management commands registered', () => {
-    const specCommands = ['specGofer.createSpec', 'specGofer.openSpec'];
+    const specCommands = ['eaiGofer.createSpec', 'eaiGofer.openSpec'];
 
     const missingCommands: string[] = [];
 
@@ -393,10 +393,10 @@ describe('Command Registration Validation', () => {
 
   it('should have Open With commands registered', () => {
     const openWithCommands = [
-      'specGofer.openWithPreview',
-      'specGofer.openWithMarkSharp',
-      'specGofer.openWithMarkdownEditor',
-      'specGofer.openWithMarkdownWYSIWYG',
+      'eaiGofer.openWithPreview',
+      'eaiGofer.openWithMarkSharp',
+      'eaiGofer.openWithMarkdownEditor',
+      'eaiGofer.openWithMarkdownWYSIWYG',
     ];
 
     const missingCommands: string[] = [];
@@ -425,7 +425,7 @@ describe('Package.json Validation', () => {
   });
 
   it('should have required metadata', () => {
-    expect(packageJson.name).toBe('specgofer');
+    expect(packageJson.name).toBe('eai-gofer');
     expect(packageJson.displayName).toBeDefined();
     expect(packageJson.description).toBeDefined();
     expect(packageJson.version).toBeDefined();
@@ -469,20 +469,20 @@ describe('Package.json Validation', () => {
     // Should have refresh commands in view/title for each view
     const progressRefresh = viewTitleMenus.find(
       (menu) =>
-        menu.command === 'specGofer.refreshSpecs' && menu.when === 'view == specGoferProgress'
+        menu.command === 'eaiGofer.refreshSpecs' && menu.when === 'view == eaiGoferProgress'
     );
     expect(progressRefresh).toBeDefined();
 
     const constitutionRefresh = viewTitleMenus.find(
       (menu) =>
-        menu.command === 'specGofer.refreshConstitution' &&
-        menu.when === 'view == specGoferConstitution'
+        menu.command === 'eaiGofer.refreshConstitution' &&
+        menu.when === 'view == eaiGoferConstitution'
     );
     expect(constitutionRefresh).toBeDefined();
 
     const memoryRefresh = viewTitleMenus.find(
       (menu) =>
-        menu.command === 'specGofer.refreshMemory' && menu.when === 'view == specGoferMemory'
+        menu.command === 'eaiGofer.refreshMemory' && menu.when === 'view == eaiGoferMemory'
     );
     expect(memoryRefresh).toBeDefined();
   });
@@ -492,10 +492,10 @@ describe('Package.json Validation', () => {
     expect(keybindings).toBeDefined();
 
     // Check for important keybindings
-    const initializeKeybinding = keybindings.find((kb) => kb.command === 'specGofer.initialize');
+    const initializeKeybinding = keybindings.find((kb) => kb.command === 'eaiGofer.initialize');
     expect(initializeKeybinding).toBeDefined();
 
-    const refreshKeybinding = keybindings.find((kb) => kb.command === 'specGofer.refreshSpecs');
+    const refreshKeybinding = keybindings.find((kb) => kb.command === 'eaiGofer.refreshSpecs');
     expect(refreshKeybinding).toBeDefined();
   });
 });

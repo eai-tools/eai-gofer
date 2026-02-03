@@ -3,7 +3,6 @@ name: 8_gofer_resume
 description:
   Resume work from saved session checkpoint with full context restoration
 agent: agent
-tools: ['search/codebase', 'terminal', 'editFile']
 argument-hint: Optional feature name to resume (or auto-detect)
 ---
 

@@ -6,8 +6,8 @@ import * as vscode from 'vscode';
  */
 
 // Extension constants
-export const EXTENSION_NAME = 'specgofer';
-export const EXTENSION_DISPLAY_NAME = 'SpecGofer (Enterprise AI)';
+export const EXTENSION_NAME = 'eai-gofer';
+export const EXTENSION_DISPLAY_NAME = 'EAI-GOFER (Enterprise AI)';
 // Read version from package.json to keep it in sync
 export const EXTENSION_VERSION = require('../../package.json').version;
 
@@ -21,56 +21,56 @@ export const MCP_CONFIG_FILE = '.vscode/mcp.json';
 
 // GitHub constants
 export const GITHUB_OWNER = 'eai-tools';
-export const GITHUB_REPO = 'spec-kit-templates';
+export const GITHUB_REPO = 'gofer-templates';
 export const GITHUB_API_BASE = 'https://api.github.com';
 
 // Language Server constants
-export const LSP_SERVER_NAME = 'SpecGofer Language Server';
-export const LSP_SERVER_ID = 'specgofer-lsp';
+export const LSP_SERVER_NAME = 'EAI-GOFER Language Server';
+export const LSP_SERVER_ID = 'eai-gofer-lsp';
 export const LSP_SERVER_EXECUTABLE = 'node';
 
 // MCP Tool names
 export const MCP_TOOLS = {
-  getSpecs: 'specgofer_get_specs',
-  getNextTask: 'specgofer_get_next_task',
-  executeTask: 'specgofer_execute_task',
-  updateTaskStatus: 'specgofer_update_task_status',
-  validateCode: 'specgofer_validate_code',
-  runTests: 'specgofer_run_tests',
+  getSpecs: 'eaigofer_get_specs',
+  getNextTask: 'eaigofer_get_next_task',
+  executeTask: 'eaigofer_execute_task',
+  updateTaskStatus: 'eaigofer_update_task_status',
+  validateCode: 'eaigofer_validate_code',
+  runTests: 'eaigofer_run_tests',
 } as const;
 
 // Commands
 export const COMMANDS = {
-  initialize: 'specGofer.initialize',
-  upgrade: 'specGofer.upgrade',
-  checkVersion: 'specGofer.checkVersion',
-  refreshSpecs: 'specGofer.refreshSpecs',
-  refreshConstitution: 'specGofer.refreshConstitution',
-  showProgress: 'specGofer.showProgress',
-  showConstitution: 'specGofer.showConstitution',
-  checkForUpdates: 'specGofer.checkForUpdates',
-  updateNow: 'specGofer.updateNow',
+  initialize: 'eaiGofer.initialize',
+  upgrade: 'eaiGofer.upgrade',
+  checkVersion: 'eaiGofer.checkVersion',
+  refreshSpecs: 'eaiGofer.refreshSpecs',
+  refreshConstitution: 'eaiGofer.refreshConstitution',
+  showProgress: 'eaiGofer.showProgress',
+  showConstitution: 'eaiGofer.showConstitution',
+  checkForUpdates: 'eaiGofer.checkForUpdates',
+  updateNow: 'eaiGofer.updateNow',
 } as const;
 
 // View IDs
 export const VIEWS = {
-  progress: 'specGoferProgress',
-  constitution: 'specGoferConstitution',
-  memory: 'specGoferMemory',
-  container: 'spec-kit',
+  progress: 'eaiGoferProgress',
+  constitution: 'eaiGoferConstitution',
+  memory: 'eaiGoferMemory',
+  container: 'gofer',
 } as const;
 
 // Configuration keys
 export const CONFIG_KEYS = {
-  anthropicApiKey: 'specGofer.anthropicApiKey',
-  googleApiKey: 'specGofer.googleApiKey',
-  openaiApiKey: 'specGofer.openaiApiKey',
-  autoInitialize: 'specGofer.autoInitialize',
-  preferredAi: 'specGofer.preferredAI',
-  autoUpdateCheck: 'specGofer.autoUpdateCheck',
-  telemetryEnabled: 'specGofer.telemetryEnabled',
-  updateCheckInterval: 'specGofer.updateCheckInterval',
-  performanceMode: 'specGofer.performanceMode',
+  anthropicApiKey: 'eaiGofer.anthropicApiKey',
+  googleApiKey: 'eaiGofer.googleApiKey',
+  openaiApiKey: 'eaiGofer.openaiApiKey',
+  autoInitialize: 'eaiGofer.autoInitialize',
+  preferredAi: 'eaiGofer.preferredAI',
+  autoUpdateCheck: 'eaiGofer.autoUpdateCheck',
+  telemetryEnabled: 'eaiGofer.telemetryEnabled',
+  updateCheckInterval: 'eaiGofer.updateCheckInterval',
+  performanceMode: 'eaiGofer.performanceMode',
 } as const;
 
 // Default values
@@ -101,7 +101,7 @@ export class ConfigManager {
   private config: vscode.WorkspaceConfiguration;
 
   private constructor() {
-    this.config = vscode.workspace.getConfiguration('specGofer');
+    this.config = vscode.workspace.getConfiguration('eaiGofer');
   }
 
   public static getInstance(): ConfigManager {
@@ -115,28 +115,28 @@ export class ConfigManager {
    * Refresh configuration (call when settings change)
    */
   public refresh(): void {
-    this.config = vscode.workspace.getConfiguration('specGofer');
+    this.config = vscode.workspace.getConfiguration('eaiGofer');
   }
 
   /**
    * Get Anthropic API key
    */
   public getAnthropicApiKey(): string {
-    return this.config.get<string>(CONFIG_KEYS.anthropicApiKey.replace('specGofer.', ''), '') || '';
+    return this.config.get<string>(CONFIG_KEYS.anthropicApiKey.replace('eaiGofer.', ''), '') || '';
   }
 
   /**
    * Get Google AI API key (for Gemini)
    */
   public getGoogleApiKey(): string {
-    return this.config.get<string>(CONFIG_KEYS.googleApiKey.replace('specGofer.', ''), '') || '';
+    return this.config.get<string>(CONFIG_KEYS.googleApiKey.replace('eaiGofer.', ''), '') || '';
   }
 
   /**
    * Get OpenAI API key (for GPT)
    */
   public getOpenaiApiKey(): string {
-    return this.config.get<string>(CONFIG_KEYS.openaiApiKey.replace('specGofer.', ''), '') || '';
+    return this.config.get<string>(CONFIG_KEYS.openaiApiKey.replace('eaiGofer.', ''), '') || '';
   }
 
   /**
@@ -144,7 +144,7 @@ export class ConfigManager {
    */
   public getAutoInitialize(): boolean {
     return this.config.get<boolean>(
-      CONFIG_KEYS.autoInitialize.replace('specGofer.', ''),
+      CONFIG_KEYS.autoInitialize.replace('eaiGofer.', ''),
       DEFAULTS.autoInitialize
     );
   }
@@ -156,7 +156,7 @@ export class ConfigManager {
     value: boolean,
     target: vscode.ConfigurationTarget = vscode.ConfigurationTarget.Global
   ): Promise<void> {
-    await this.config.update(CONFIG_KEYS.autoInitialize.replace('specGofer.', ''), value, target);
+    await this.config.update(CONFIG_KEYS.autoInitialize.replace('eaiGofer.', ''), value, target);
   }
 
   /**
@@ -164,7 +164,7 @@ export class ConfigManager {
    */
   public getPreferredAI(): string {
     return this.config.get<string>(
-      CONFIG_KEYS.preferredAi.replace('specGofer.', ''),
+      CONFIG_KEYS.preferredAi.replace('eaiGofer.', ''),
       DEFAULTS.preferredAi
     );
   }
@@ -174,7 +174,7 @@ export class ConfigManager {
    */
   public getAutoUpdateCheck(): boolean {
     return this.config.get<boolean>(
-      CONFIG_KEYS.autoUpdateCheck.replace('specGofer.', ''),
+      CONFIG_KEYS.autoUpdateCheck.replace('eaiGofer.', ''),
       DEFAULTS.autoUpdateCheck
     );
   }
@@ -184,7 +184,7 @@ export class ConfigManager {
    */
   public getTelemetryEnabled(): boolean {
     return this.config.get<boolean>(
-      CONFIG_KEYS.telemetryEnabled.replace('specGofer.', ''),
+      CONFIG_KEYS.telemetryEnabled.replace('eaiGofer.', ''),
       DEFAULTS.telemetryEnabled
     );
   }
@@ -194,7 +194,7 @@ export class ConfigManager {
    */
   public getUpdateCheckInterval(): number {
     return this.config.get<number>(
-      CONFIG_KEYS.updateCheckInterval.replace('specGofer.', ''),
+      CONFIG_KEYS.updateCheckInterval.replace('eaiGofer.', ''),
       DEFAULTS.updateCheckInterval
     );
   }
@@ -204,7 +204,7 @@ export class ConfigManager {
    */
   public getPerformanceMode(): 'fast' | 'balanced' | 'thorough' {
     return this.config.get<'fast' | 'balanced' | 'thorough'>(
-      CONFIG_KEYS.performanceMode.replace('specGofer.', ''),
+      CONFIG_KEYS.performanceMode.replace('eaiGofer.', ''),
       DEFAULTS.performanceMode as 'balanced'
     );
   }

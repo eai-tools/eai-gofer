@@ -2,7 +2,7 @@
  * MCP Configuration Helper
  *
  * Creates .vscode/mcp.json for VSCode's native MCP support (1.102+)
- * This allows Claude Code and GitHub Copilot to discover SpecGofer's MCP tools
+ * This allows Claude Code and GitHub Copilot to discover EAI-GOFER's MCP tools
  */
 
 import * as vscode from 'vscode';
@@ -16,7 +16,7 @@ export class MCPConfigHelper {
   ) {}
 
   /**
-   * Create or update .vscode/mcp.json with SpecGofer MCP server configuration
+   * Create or update .vscode/mcp.json with EAI-GOFER MCP server configuration
    */
   async createOrUpdateConfig(): Promise<void> {
     const vscodeDir = path.join(this.workspacePath, '.vscode');
@@ -35,7 +35,7 @@ export class MCPConfigHelper {
     );
 
     // Get API key from VSCode settings or environment variable
-    const config = vscode.workspace.getConfiguration('specGofer');
+    const config = vscode.workspace.getConfiguration('eaiGofer');
     const apiKey = config.get<string>('anthropicApiKey') || '${env:ANTHROPIC_API_KEY}';
 
     // MCP configuration
@@ -48,7 +48,7 @@ export class MCPConfigHelper {
             env: {
               ANTHROPIC_API_KEY: apiKey,
             },
-            description: 'SpecGofer - Spec-driven development orchestrator',
+            description: 'EAI-GOFER - Spec-driven development orchestrator',
           },
         },
       },
@@ -134,7 +134,7 @@ export class MCPConfigHelper {
 
     if (!status.configured) {
       const choice = await vscode.window.showInformationMessage(
-        '🤖 SpecGofer MCP Tools Available!\n\n' +
+        '🤖 EAI-GOFER MCP Tools Available!\n\n' +
           'Configure MCP to enable Claude Code and GitHub Copilot integration?',
         { modal: false },
         'Configure Now',
@@ -146,7 +146,7 @@ export class MCPConfigHelper {
         await this.createOrUpdateConfig();
 
         // Check if API key is set in settings or environment
-        const config = vscode.workspace.getConfiguration('specGofer');
+        const config = vscode.workspace.getConfiguration('eaiGofer');
         const settingsApiKey = config.get<string>('anthropicApiKey');
         const hasApiKey = !!settingsApiKey || !!process.env.ANTHROPIC_API_KEY;
 
@@ -160,11 +160,11 @@ export class MCPConfigHelper {
           );
 
           if (settingChoice === 'Open Settings') {
-            vscode.commands.executeCommand('workbench.action.openSettings', 'specGofer.anthropicApiKey');
+            vscode.commands.executeCommand('workbench.action.openSettings', 'eaiGofer.anthropicApiKey');
           }
         } else {
           vscode.window.showInformationMessage(
-            '✅ MCP configured! Reload VSCode to activate SpecGofer MCP tools.',
+            '✅ MCP configured! Reload VSCode to activate EAI-GOFER MCP tools.',
             'Reload Now'
           ).then((choice) => {
             if (choice === 'Reload Now') {

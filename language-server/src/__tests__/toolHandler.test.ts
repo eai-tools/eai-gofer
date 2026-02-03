@@ -4,11 +4,11 @@
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { MCPToolHandler } from '../mcp/toolHandler';
-import { SpecKitLoader } from '../utils/specKitLoader';
+import { GoferLoader } from '../utils/goferLoader';
 import { Connection } from 'vscode-languageserver';
 
 // Mock dependencies
-vi.mock('../utils/specKitLoader');
+vi.mock('../utils/goferLoader');
 vi.mock('vscode-languageserver');
 
 // Mock Anthropic SDK
@@ -23,7 +23,7 @@ vi.mock('@anthropic-ai/sdk', () => ({
 describe('MCPToolHandler', () => {
   let toolHandler: MCPToolHandler;
   let mockConnection: Connection;
-  let mockSpecKitLoader: SpecKitLoader;
+  let mockGoferLoader: GoferLoader;
 
   beforeEach(() => {
     // Reset all mocks
@@ -34,13 +34,13 @@ describe('MCPToolHandler', () => {
       sendNotification: vi.fn(),
       onNotification: vi.fn(),
       onRequest: vi.fn()
-    } as any;
+    } as unknown as typeof mockConnection;
 
     // Create tool handler
     toolHandler = new MCPToolHandler('/test/workspace', mockConnection);
     
-    // Get the mocked SpecKitLoader instance
-    mockSpecKitLoader = (toolHandler as any).specKitLoader;
+    // Get the mocked GoferLoader instance
+    mockGoferLoader = (toolHandler as unknown as { goferLoader: typeof mockGoferLoader }).goferLoader;
   });
 
   afterEach(() => {
@@ -102,7 +102,7 @@ describe('MCPToolHandler', () => {
           expect.stringContaining('Security Violation')
         );
         expect(mockConnection.sendNotification).toHaveBeenCalledWith(
-          'specGofer/securityViolation',
+          'eaiGofer/securityViolation',
           expect.objectContaining({
             type: 'SECURITY_VIOLATION',
             message: 'Path traversal attempt in specId'
@@ -184,7 +184,7 @@ describe('MCPToolHandler', () => {
           }
         ];
 
-        mockSpecKitLoader.loadAllSpecs = vi.fn().mockResolvedValue(mockSpecs);
+        mockGoferLoader.loadAllSpecs = vi.fn().mockResolvedValue(mockSpecs);
 
         const result = await toolHandler.getSpecs();
 
@@ -201,7 +201,7 @@ describe('MCPToolHandler', () => {
       });
 
       it('should handle empty specs directory', async () => {
-        mockSpecKitLoader.loadAllSpecs = vi.fn().mockResolvedValue([]);
+        mockGoferLoader.loadAllSpecs = vi.fn().mockResolvedValue([]);
 
         const result = await toolHandler.getSpecs();
 
@@ -211,7 +211,7 @@ describe('MCPToolHandler', () => {
       });
 
       it('should handle loading errors', async () => {
-        mockSpecKitLoader.loadAllSpecs = vi.fn().mockRejectedValue(new Error('File system error'));
+        mockGoferLoader.loadAllSpecs = vi.fn().mockRejectedValue(new Error('File system error'));
 
         const result = await toolHandler.getSpecs();
 
@@ -234,7 +234,7 @@ describe('MCPToolHandler', () => {
           }
         ];
 
-        mockSpecKitLoader.loadAllSpecs = vi.fn().mockResolvedValue(mockSpecs);
+        mockGoferLoader.loadAllSpecs = vi.fn().mockResolvedValue(mockSpecs);
 
         const result = await toolHandler.getNextTask();
 
@@ -262,7 +262,7 @@ describe('MCPToolHandler', () => {
           }
         ];
 
-        mockSpecKitLoader.loadAllSpecs = vi.fn().mockResolvedValue(mockSpecs);
+        mockGoferLoader.loadAllSpecs = vi.fn().mockResolvedValue(mockSpecs);
 
         const result = await toolHandler.getNextTask();
 
@@ -284,7 +284,7 @@ describe('MCPToolHandler', () => {
           ]
         };
 
-        mockSpecKitLoader.loadSpec = vi.fn().mockResolvedValue(mockSpec);
+        mockGoferLoader.loadSpec = vi.fn().mockResolvedValue(mockSpec);
 
         const result = await toolHandler.executeTask('001-test-spec', 'T001');
 
@@ -300,7 +300,7 @@ describe('MCPToolHandler', () => {
       });
 
       it('should handle non-existent spec', async () => {
-        mockSpecKitLoader.loadSpec = vi.fn().mockResolvedValue(null);
+        mockGoferLoader.loadSpec = vi.fn().mockResolvedValue(null);
 
         const result = await toolHandler.executeTask('non-existent-spec', 'T001');
 
@@ -315,7 +315,7 @@ describe('MCPToolHandler', () => {
           tasks: []
         };
 
-        mockSpecKitLoader.loadSpec = vi.fn().mockResolvedValue(mockSpec);
+        mockGoferLoader.loadSpec = vi.fn().mockResolvedValue(mockSpec);
 
         const result = await toolHandler.executeTask('001-test-spec', 'T999');
 
@@ -326,8 +326,8 @@ describe('MCPToolHandler', () => {
   });
 
   describe('Error Handling', () => {
-    it('should handle SpecKitLoader errors gracefully', async () => {
-      mockSpecKitLoader.loadAllSpecs = vi.fn().mockRejectedValue(new Error('Network error'));
+    it('should handle GoferLoader errors gracefully', async () => {
+      mockGoferLoader.loadAllSpecs = vi.fn().mockRejectedValue(new Error('Network error'));
 
       const result = await toolHandler.getSpecs();
 
@@ -336,7 +336,7 @@ describe('MCPToolHandler', () => {
     });
 
     it('should handle invalid JSON gracefully', async () => {
-      mockSpecKitLoader.updateTaskStatus = vi.fn().mockRejectedValue(new Error('Invalid JSON'));
+      mockGoferLoader.updateTaskStatus = vi.fn().mockRejectedValue(new Error('Invalid JSON'));
 
       const result = await toolHandler.updateTaskStatus('001-test-spec', 'T001', 'completed');
 

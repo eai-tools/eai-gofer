@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { SpecKitMigrator } from '../../../extension/src/specKitMigrator';
+import { GoferMigrator } from '../../../extension/src/goferMigrator';
 import { cleanupTestWorkspace } from '../../helpers/workspace';
 import * as path from 'path';
 import * as fs from 'fs/promises';
@@ -15,13 +15,13 @@ async function createBareWorkspace(): Promise<string> {
   return tmpDir;
 }
 
-describe('SpecKitMigrator', () => {
+describe('GoferMigrator', () => {
   let workspace: string;
-  let migrator: SpecKitMigrator;
+  let migrator: GoferMigrator;
 
   beforeEach(async () => {
     workspace = await createBareWorkspace();
-    migrator = new SpecKitMigrator(workspace);
+    migrator = new GoferMigrator(workspace);
   });
 
   afterEach(async () => {

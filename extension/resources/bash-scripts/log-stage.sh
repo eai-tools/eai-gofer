@@ -19,7 +19,7 @@
 #   - .specify/logs/pipeline.jsonl (stage metrics)
 #   - .specify/logs/quality-metrics.jsonl (quality data)
 #
-# Part of the SpecGofer observability system (Gap 8).
+# Part of the Gofer observability system (Gap 8).
 
 set -e
 

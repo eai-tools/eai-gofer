@@ -13,7 +13,7 @@
 #   - Git checkpoint (if --commit)
 #   - Session handoff document in {FEATURE_DIR}/session-handoff.md
 #
-# Part of the SpecGofer session management system (Gap 2).
+# Part of the Gofer session management system (Gap 2).
 
 set -e
 

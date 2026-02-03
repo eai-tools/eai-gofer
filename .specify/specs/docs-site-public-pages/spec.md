@@ -348,6 +348,6 @@ documented outcome is achieved.
 | Astro with base: '/gofer'                | FR-012             | Tech Decision  |
 | docs/ as Astro project directory         | FR-002             | Tech Decision  |
 | public/ folder for release assets        | FR-002             | Tech Decision  |
-| specgofer naming bugs                    | Out of Scope       | Known Issues   |
+| gofer naming bugs                        | Out of Scope       | Known Issues   |
 | Content collections for docs             | FR-009             | Recommendation |
 | .nojekyll file required                  | FR-011             | Recommendation |

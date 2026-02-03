@@ -1,14 +1,18 @@
 # MCP Tools Documentation
 
-This document describes the Model Context Protocol (MCP) tools provided by the Gofer Language Server for integration with Claude Code and GitHub Copilot.
+This document describes the Model Context Protocol (MCP) tools provided by the
+Gofer Language Server for integration with Claude Code and GitHub Copilot.
 
 ## Overview
 
-The Gofer Language Server exposes 6 MCP tools that enable Claude Code to interact with the specification system. These tools provide full CRUD operations for specifications and tasks, as well as code validation and testing capabilities.
+The Gofer Language Server exposes 6 MCP tools that enable Claude Code to
+interact with the specification system. These tools provide full CRUD operations
+for specifications and tasks, as well as code validation and testing
+capabilities.
 
 ## Tool Definitions
 
-### 1. specgofer_get_specs
+### 1. gofer_get_specs
 
 **Description**: Get all specifications from the .specify folder
 
@@ -38,13 +42,14 @@ The Gofer Language Server exposes 6 MCP tools that enable Claude Code to interac
 
 ```typescript
 // Claude Code can call this via MCP
-const specs = await tools.call('specgofer_get_specs', {});
+const specs = await tools.call('gofer_get_specs', {});
 console.log(`Found ${specs.specs.length} specifications`);
 ```
 
-### 2. specgofer_get_next_task
+### 2. gofer_get_next_task
 
-**Description**: Get the next available task to work on based on dependencies and status
+**Description**: Get the next available task to work on based on dependencies
+and status
 
 **Parameters**: None
 
@@ -69,15 +74,16 @@ console.log(`Found ${specs.specs.length} specifications`);
 
 ```typescript
 // Get next task to work on
-const nextTask = await tools.call('specgofer_get_next_task', {});
+const nextTask = await tools.call('gofer_get_next_task', {});
 if (nextTask.task) {
   console.log(`Working on: ${nextTask.task.description}`);
 }
 ```
 
-### 3. specgofer_execute_task
+### 3. gofer_execute_task
 
-**Description**: Execute a specific task from a specification and get full context
+**Description**: Execute a specific task from a specification and get full
+context
 
 **Parameters**:
 
@@ -105,16 +111,16 @@ if (nextTask.task) {
 
 ```typescript
 // Execute specific task
-const taskContext = await tools.call('specgofer_execute_task', {
+const taskContext = await tools.call('gofer_execute_task', {
   specId: '001-login-feature',
-  taskId: 'T001'
+  taskId: 'T001',
 });
 
 console.log(`Task: ${taskContext.task.description}`);
 console.log(`Delivery Prompt: ${taskContext.task.deliveryPrompt}`);
 ```
 
-### 4. specgofer_update_task_status
+### 4. gofer_update_task_status
 
 **Description**: Update the status of a task in the specification file
 
@@ -122,7 +128,8 @@ console.log(`Delivery Prompt: ${taskContext.task.deliveryPrompt}`);
 
 - `specId` (string): The specification ID
 - `taskId` (string): The task ID
-- `status` (string): New status - one of: `pending`, `in_progress`, `testing`, `completed`, `failed`, `blocked`
+- `status` (string): New status - one of: `pending`, `in_progress`, `testing`,
+  `completed`, `failed`, `blocked`
 
 **Returns**:
 
@@ -136,10 +143,10 @@ console.log(`Delivery Prompt: ${taskContext.task.deliveryPrompt}`);
 
 ```typescript
 // Mark task as completed
-const result = await tools.call('specgofer_update_task_status', {
+const result = await tools.call('gofer_update_task_status', {
   specId: '001-login-feature',
   taskId: 'T001',
-  status: 'completed'
+  status: 'completed',
 });
 
 if (result.success) {
@@ -147,9 +154,10 @@ if (result.success) {
 }
 ```
 
-### 5. specgofer_validate_code
+### 5. gofer_validate_code
 
-**Description**: Validate code against constitutional requirements using Claude API
+**Description**: Validate code against constitutional requirements using Claude
+API
 
 **Parameters**:
 
@@ -174,8 +182,8 @@ if (result.success) {
 
 ```typescript
 // Validate implementation against constitution
-const validation = await tools.call('specgofer_validate_code', {
-  files: ['src/auth/login.ts', 'src/auth/validation.ts']
+const validation = await tools.call('gofer_validate_code', {
+  files: ['src/auth/login.ts', 'src/auth/validation.ts'],
 });
 
 if (!validation.isValid) {
@@ -184,7 +192,7 @@ if (!validation.isValid) {
 }
 ```
 
-### 6. specgofer_run_tests
+### 6. gofer_run_tests
 
 **Description**: Run Playwright tests for a specification
 
@@ -211,15 +219,17 @@ if (!validation.isValid) {
 
 ```typescript
 // Run tests for specification
-const testResults = await tools.call('specgofer_run_tests', {
-  specId: '001-login-feature'
+const testResults = await tools.call('gofer_run_tests', {
+  specId: '001-login-feature',
 });
 
 if (testResults.testsPassed) {
   console.log(`All ${testResults.totalTests} tests passed!`);
 } else {
-  console.log(`${testResults.failedTests} tests failed:`, 
-              testResults.failedTestNames);
+  console.log(
+    `${testResults.failedTests} tests failed:`,
+    testResults.failedTestNames
+  );
 }
 ```
 
@@ -246,42 +256,43 @@ Common error codes:
 
 ## Integration with Claude Code
 
-These MCP tools are automatically available in Claude Code when the Gofer extension is installed and the workspace contains a `.specify` folder.
+These MCP tools are automatically available in Claude Code when the Gofer
+extension is installed and the workspace contains a `.specify` folder.
 
 ### Workflow Example
 
 ```typescript
 // 1. Get available specs
-const specs = await tools.call('specgofer_get_specs', {});
+const specs = await tools.call('gofer_get_specs', {});
 
 // 2. Get next task to work on
-const nextTask = await tools.call('specgofer_get_next_task', {});
+const nextTask = await tools.call('gofer_get_next_task', {});
 
 // 3. Execute the task
-const taskContext = await tools.call('specgofer_execute_task', {
+const taskContext = await tools.call('gofer_execute_task', {
   specId: nextTask.task.specId,
-  taskId: nextTask.task.id
+  taskId: nextTask.task.id,
 });
 
 // 4. Implement the feature (Claude writes code)
 // ... implementation work ...
 
 // 5. Validate the implementation
-const validation = await tools.call('specgofer_validate_code', {
-  files: ['src/newFeature.ts']
+const validation = await tools.call('gofer_validate_code', {
+  files: ['src/newFeature.ts'],
 });
 
 // 6. Run tests
-const testResults = await tools.call('specgofer_run_tests', {
-  specId: taskContext.spec.id
+const testResults = await tools.call('gofer_run_tests', {
+  specId: taskContext.spec.id,
 });
 
 // 7. Update task status
 if (testResults.testsPassed && validation.isValid) {
-  await tools.call('specgofer_update_task_status', {
+  await tools.call('gofer_update_task_status', {
     specId: taskContext.spec.id,
     taskId: taskContext.task.id,
-    status: 'completed'
+    status: 'completed',
   });
 }
 ```

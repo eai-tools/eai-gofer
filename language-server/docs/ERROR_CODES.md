@@ -610,7 +610,7 @@ All errors are logged with structured data:
 
 
 
-[ERROR] MCP tool specgofer_get_specs failed Error: {"message":"Gofer loader not initialized","code":"NOT_INITIALIZED","statusCode":503} Data: {}
+[ERROR] MCP tool gofer_get_specs failed Error: {"message":"Gofer loader not initialized","code":"NOT_INITIALIZED","statusCode":503} Data: {}
 
 ```
 

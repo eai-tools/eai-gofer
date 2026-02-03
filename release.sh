@@ -138,12 +138,12 @@ read -p "Press Enter after editing CHANGELOG.md to continue..."
 # Build the VSIX package
 print_info "Building VSIX package..."
 cd extension
-npx @vscode/vsce package --out "specgofer-$NEW_VERSION.vsix"
+npx @vscode/vsce package --out "gofer-$NEW_VERSION.vsix"
 cd ..
-print_success "Built specgofer-$NEW_VERSION.vsix"
+print_success "Built gofer-$NEW_VERSION.vsix"
 
 # Move VSIX to root
-mv "extension/specgofer-$NEW_VERSION.vsix" "./specgofer-$NEW_VERSION.vsix"
+mv "extension/gofer-$NEW_VERSION.vsix" "./gofer-$NEW_VERSION.vsix"
 
 # Commit changes
 print_info "Committing changes..."
@@ -190,10 +190,10 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     echo "  - Upload the VSIX file"
     echo ""
     print_info "Monitor the workflow at:"
-    echo "  https://github.com/eai-tools/specgofer/actions"
+    echo "  https://github.com/eai-tools/gofer/actions"
     echo ""
     print_info "Local VSIX available at:"
-    echo "  ./specgofer-$NEW_VERSION.vsix"
+    echo "  ./gofer-$NEW_VERSION.vsix"
 else
     print_warning "Push cancelled"
     echo ""

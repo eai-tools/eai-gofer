@@ -1,6 +1,7 @@
 # Extension Distribution Guide
 
-This document explains how to build, package, and distribute the Gofer VSCode extension.
+This document explains how to build, package, and distribute the Gofer VSCode
+extension.
 
 ## 🚀 Quick Start
 
@@ -41,6 +42,7 @@ The `scripts/package-extension.sh` script provides comprehensive packaging:
 ```
 
 **What the script does:**
+
 1. ✅ Checks dependencies (Node.js, npm, vsce)
 2. 🧹 Optionally cleans previous builds
 3. 📦 Installs all dependencies
@@ -84,8 +86,9 @@ git push origin v1.2.3
 ```
 
 **What happens:**
+
 1. 🔨 Builds and tests extension
-2. 📦 Packages VSIX file  
+2. 📦 Packages VSIX file
 3. 🎯 Creates GitHub release
 4. 🚀 Publishes to VS Code Marketplace
 5. 📢 Publishes to Open VSX Registry
@@ -93,6 +96,7 @@ git push origin v1.2.3
 #### 2. Manual Release (Development)
 
 Use GitHub's "Actions" tab:
+
 1. Go to "Release Extension" workflow
 2. Click "Run workflow"
 3. Enter version number (e.g., `1.2.3`)
@@ -157,10 +161,11 @@ vsce publish --packagePath dist/gofer-1.2.3.vsix
    - Generate Personal Access Token (PAT)
 
 2. **Environment Setup**
+
    ```bash
    # Store PAT securely
    export VSCE_PAT="your-marketplace-token"
-   
+
    # For Open VSX Registry
    export OVSX_PAT="your-ovsx-token"
    ```
@@ -171,7 +176,7 @@ vsce publish --packagePath dist/gofer-1.2.3.vsix
 # Publish to VS Code Marketplace
 vsce publish --packagePath dist/gofer-1.2.3.vsix
 
-# Publish to Open VSX Registry  
+# Publish to Open VSX Registry
 npx ovsx publish dist/gofer-1.2.3.vsix
 
 # Publish pre-release
@@ -181,6 +186,7 @@ vsce publish --pre-release --packagePath dist/gofer-1.2.3-beta.vsix
 ### Marketplace Settings
 
 The `extension/package.json` contains marketplace metadata:
+
 - **Publisher**: `EnterpriseAI`
 - **Categories**: `AI`, `Testing`, `Other`
 - **Keywords**: `spec-driven`, `claude`, `copilot`, `ai`
@@ -207,6 +213,7 @@ code --install-extension dist/gofer-*.vsix
 ### CI Testing
 
 The GitHub Actions workflow runs:
+
 - ✅ Unit tests
 - ✅ Integration tests
 - ✅ E2E tests (with `SKIP_NETWORK_TESTS=true`)
@@ -254,6 +261,7 @@ code --install-extension dist/gofer-1.2.3-beta.1.vsix
 ### Common Issues
 
 **VSCE packaging fails**
+
 ```bash
 # Clear cache and reinstall
 rm -rf node_modules package-lock.json
@@ -262,16 +270,19 @@ npm run prepare-language-server
 ```
 
 **GitHub Actions fails**
+
 - Check if secrets `VSCE_PAT` and `OVSX_PAT` are set
 - Verify Node.js version compatibility
 - Check for test failures in CI
 
 **Marketplace publishing fails**
+
 - Verify publisher account permissions
 - Check PAT token validity
 - Ensure unique version number
 
 **Extension doesn't activate**
+
 - Check activation events in `package.json`
 - Verify Language Server is bundled correctly
 - Check VS Code version compatibility
@@ -303,7 +314,8 @@ node -e "console.log(JSON.stringify(require('./extension/package.json'), null, 2
 
 ### Download Statistics
 
-- **VS Code Marketplace**: https://marketplace.visualstudio.com/items?itemName=EnterpriseAI.specgofer
+- **VS Code Marketplace**:
+  https://marketplace.visualstudio.com/items?itemName=EnterpriseAI.gofer
 - **GitHub Releases**: https://github.com/eai-tools/gofer/releases
 
 ### User Feedback
@@ -320,6 +332,7 @@ node -e "console.log(JSON.stringify(require('./extension/package.json'), null, 2
 - **Pre-release** (x.y.z-beta.N): Testing versions
 
 **Example progression:**
+
 ```
 1.0.0 → 1.0.1 → 1.1.0 → 1.1.1 → 2.0.0-beta.1 → 2.0.0
 ```
@@ -327,6 +340,7 @@ node -e "console.log(JSON.stringify(require('./extension/package.json'), null, 2
 ## 🚀 Automation
 
 The repository provides:
+
 - **GitHub Actions** for automated CI/CD
 - **Package script** for local development
 - **Release workflow** for consistent publishing

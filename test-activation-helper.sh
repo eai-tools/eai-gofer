@@ -114,14 +114,14 @@ ACTIVATION_ERRORS=0
 ACTIVATION_SUCCESS=0
 
 while IFS= read -r log; do
-    if grep -q "Activating extension EnterpriseAI.specgofer failed" "$log"; then
+    if grep -q "Activating extension EnterpriseAI.gofer failed" "$log"; then
         print_error "Extension activation FAILED!"
         echo ""
-        grep -A 10 "Activating extension EnterpriseAI.specgofer failed" "$log"
+        grep -A 10 "Activating extension EnterpriseAI.gofer failed" "$log"
         ACTIVATION_ERRORS=1
     fi
 
-    if grep -q "ExtensionService#_doActivateExtension EnterpriseAI.specgofer" "$log"; then
+    if grep -q "ExtensionService#_doActivateExtension EnterpriseAI.gofer" "$log"; then
         ACTIVATION_SUCCESS=1
     fi
 done <<< "$EXTHOST_LOGS"

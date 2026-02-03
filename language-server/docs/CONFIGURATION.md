@@ -4,16 +4,15 @@ This document describes the configuration options for the Gofer Language Server.
 
 ## Overview
 
-The Gofer Language Server can be configured through VSCode settings, workspace settings, or environment variables. Configuration changes are applied dynamically without requiring a server restart.
+The Gofer Language Server can be configured through VSCode settings, workspace
+settings, or environment variables. Configuration changes are applied
+dynamically without requiring a server restart.
 
 ## VSCode Settings
 
 ### Basic Settings
 
 ```json
-
-
-
 {
   "gofer.debug": false,
   "gofer.logLevel": "info",
@@ -21,17 +20,11 @@ The Gofer Language Server can be configured through VSCode settings, workspace s
   "gofer.cacheEnabled": true,
   "gofer.maxCacheSize": 100
 }
-
 ```
-
-
 
 ### Advanced Settings
 
 ```json
-
-
-
 {
   "gofer.server.path": "./language-server/dist/server.js",
   "gofer.server.options": {
@@ -40,10 +33,7 @@ The Gofer Language Server can be configured through VSCode settings, workspace s
   "gofer.trace.server": "off",
   "gofer.experimental.features": []
 }
-
 ```
-
-
 
 ## Configuration Options
 
@@ -77,7 +67,8 @@ The Gofer Language Server can be configured through VSCode settings, workspace s
 
 - **Default**: `".specify"`
 
-- **Description**: Directory containing specifications (relative to workspace root)
+- **Description**: Directory containing specifications (relative to workspace
+  root)
 
 - **Example**: `"specs"`, `"features"`
 
@@ -136,16 +127,11 @@ The Gofer Language Server can be configured through VSCode settings, workspace s
 - **Example**:
 
   ```json
-
-
-
   {
     "execArgv": ["--max-old-space-size=4096"],
     "cwd": "./custom-directory"
   }
   ```
-
-
 
 #### `gofer.trace.server`
 
@@ -214,9 +200,6 @@ The Gofer Language Server can be configured through VSCode settings, workspace s
 - **Example**:
 
   ```json
-
-
-
   [
     {
       "rule": "task-id-format",
@@ -225,8 +208,6 @@ The Gofer Language Server can be configured through VSCode settings, workspace s
     }
   ]
   ```
-
-
 
 ### Performance Settings
 
@@ -275,8 +256,6 @@ ANTHROPIC_API_KEY=sk-ant-api-key-here
 
 ```
 
-
-
 ### Optional Variables
 
 ```bash
@@ -303,16 +282,11 @@ SPECGOFER_SERVER_PORT=3000
 
 ```
 
-
-
 ## Workspace Configuration
 
 Create `.vscode/settings.json` in your workspace:
 
 ```json
-
-
-
 {
   "gofer.debug": true,
   "gofer.logLevel": "debug",
@@ -321,19 +295,13 @@ Create `.vscode/settings.json` in your workspace:
   "gofer.mcp.enabled": true,
   "gofer.trace.server": "verbose"
 }
-
 ```
-
-
 
 ## Configuration Profiles
 
 ### Development Profile
 
 ```json
-
-
-
 {
   "gofer.debug": true,
   "gofer.logLevel": "debug",
@@ -342,17 +310,11 @@ Create `.vscode/settings.json` in your workspace:
   "gofer.performance.watchFiles": true,
   "gofer.cacheEnabled": false
 }
-
 ```
-
-
 
 ### Production Profile
 
 ```json
-
-
-
 {
   "gofer.debug": false,
   "gofer.logLevel": "warn",
@@ -362,17 +324,11 @@ Create `.vscode/settings.json` in your workspace:
   "gofer.cacheEnabled": true,
   "gofer.maxCacheSize": 200
 }
-
 ```
-
-
 
 ### Performance Optimized
 
 ```json
-
-
-
 {
   "gofer.cacheEnabled": true,
   "gofer.maxCacheSize": 500,
@@ -381,33 +337,24 @@ Create `.vscode/settings.json` in your workspace:
   "gofer.validation.enabled": false,
   "gofer.trace.server": "off"
 }
-
 ```
-
-
 
 ## Dynamic Configuration
 
 Configuration can be changed at runtime:
 
 ```typescript
-
-
-
 // Update configuration via LSP
-await connection.workspace.getConfiguration('specgofer');
+await connection.workspace.getConfiguration('gofer');
 await connection.sendNotification('workspace/didChangeConfiguration', {
   settings: {
-    specgofer: {
+    gofer: {
       debug: true,
-      logLevel: 'debug'
-    }
-  }
+      logLevel: 'debug',
+    },
+  },
 });
-
 ```
-
-
 
 ## Configuration Validation
 
@@ -416,34 +363,22 @@ The server validates configuration on startup and change:
 ### Valid Configuration
 
 ```json
-
-
-
 {
   "gofer.logLevel": "debug",
   "gofer.maxCacheSize": 100,
   "gofer.specDirectory": ".specify"
 }
-
 ```
-
-
 
 ### Invalid Configuration (will use defaults)
 
 ```json
-
-
-
 {
   "gofer.logLevel": "invalid-level",
   "gofer.maxCacheSize": "not-a-number",
   "gofer.specDirectory": 123
 }
-
 ```
-
-
 
 ## Troubleshooting Configuration
 
@@ -451,7 +386,7 @@ The server validates configuration on startup and change:
 
 1. Open VSCode Command Palette (`Cmd+Shift+P`)
 2. Run "Preferences: Open Settings (JSON)"
-3. Search for "specgofer"
+3. Search for "gofer"
 
 ### Debug Configuration Issues
 
@@ -492,16 +427,10 @@ To reset to defaults:
 **Solution**: Check server path configuration:
 
 ```json
-
-
-
 {
   "gofer.server.path": "./language-server/dist/server.js"
 }
-
 ```
-
-
 
 #### No Specifications Found
 
@@ -510,16 +439,10 @@ To reset to defaults:
 **Solution**: Verify spec directory configuration:
 
 ```json
-
-
-
 {
   "gofer.specDirectory": ".specify"
 }
-
 ```
-
-
 
 #### Poor Performance
 
@@ -528,18 +451,12 @@ To reset to defaults:
 **Solution**: Optimize performance settings:
 
 ```json
-
-
-
 {
   "gofer.cacheEnabled": true,
   "gofer.maxCacheSize": 200,
   "gofer.performance.debounceMs": 1000
 }
-
 ```
-
-
 
 #### MCP Tools Not Available
 
@@ -548,16 +465,10 @@ To reset to defaults:
 **Solution**: Enable MCP integration:
 
 ```json
-
-
-
 {
   "gofer.mcp.enabled": true
 }
-
 ```
-
-
 
 ## Migration Guide
 
@@ -582,8 +493,6 @@ To reset to defaults:
 
 ```
 
-
-
 ### Breaking Changes
 
 - `gofer.specsDir` → `gofer.specDirectory`
@@ -595,9 +504,6 @@ To reset to defaults:
 Full JSON schema for validation:
 
 ```json
-
-
-
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
@@ -620,5 +526,4 @@ Full JSON schema for validation:
     }
   }
 }
-
 ```

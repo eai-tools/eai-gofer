@@ -49,13 +49,13 @@ describe('Foundation Integration Tests', () => {
       vi.mocked(vscode.window.createTerminal).mockReturnValue(mockTerminal);
 
       // 1. Spawn terminal
-      const terminal = await terminalManager.createTerminal('SpecGofer: Integration Test');
+      const terminal = await terminalManager.createTerminal('Gofer: Integration Test');
 
       expect(terminal).toBeDefined();
       expect(terminal.terminalId).toBeDefined();
       expect(terminal.isAlive).toBe(true);
       expect(vscode.window.createTerminal).toHaveBeenCalledWith({
-        name: 'SpecGofer: Integration Test',
+        name: 'Gofer: Integration Test',
         hideFromUser: false,
       });
 

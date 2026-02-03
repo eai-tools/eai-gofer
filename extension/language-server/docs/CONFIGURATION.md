@@ -263,22 +263,22 @@ ANTHROPIC_API_KEY=sk-ant-api-key-here
 
 
 # Override workspace directory
-SPECGOFER_WORKSPACE=/path/to/workspace
+GOFER_WORKSPACE=/path/to/workspace
 
 # Override specification directory
-SPECGOFER_SPEC_DIR=.specify
+GOFER_SPEC_DIR=.specify
 
 # Override log level
-SPECGOFER_LOG_LEVEL=debug
+GOFER_LOG_LEVEL=debug
 
 # Disable caching
-SPECGOFER_CACHE_ENABLED=false
+GOFER_CACHE_ENABLED=false
 
 # Custom cache size
-SPECGOFER_MAX_CACHE_SIZE=50
+GOFER_MAX_CACHE_SIZE=50
 
 # Custom server port (for debugging)
-SPECGOFER_SERVER_PORT=3000
+GOFER_SERVER_PORT=3000
 
 ```
 

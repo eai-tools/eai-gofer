@@ -2,7 +2,6 @@
 name: 4_gofer_tasks
 description: Generate actionable task breakdown from implementation plan
 agent: agent
-tools: ['search/codebase', 'terminal', 'editFile']
 argument-hint: The feature to break into tasks (or continue from plan)
 ---
 

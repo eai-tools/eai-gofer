@@ -9,7 +9,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { watch, FSWatcher } from 'chokidar';
 
-// Spec interface (compatible with SpecKitLoader)
+// Spec interface (compatible with GoferLoader)
 interface Spec {
   id: string;
   title: string;

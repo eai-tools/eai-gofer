@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { SpecKitMigrator } from './specKitMigrator';
+import { GoferMigrator } from './goferMigrator';
 import { ProgressProvider } from './progressProvider';
 import { ConstitutionProvider } from './constitutionProvider';
 import { MemoryProvider } from './memoryProvider';
@@ -32,10 +32,27 @@ let autoUpdater: AutoUpdater | undefined;
 let lspClient: SpecGoferLSPClient | undefined;
 let memoryManager: MemoryManager | undefined;
 
+// Flag to prevent file watcher refreshes during upgrade
+let isUpgrading = false;
+
+/**
+ * Set the upgrade state (exported for use by goferMigrator)
+ */
+export function setUpgradeState(state: boolean): void {
+  isUpgrading = state;
+}
+
+/**
+ * Check if an upgrade is in progress
+ */
+export function isUpgradeInProgress(): boolean {
+  return isUpgrading;
+}
+
 export async function activate(context: vscode.ExtensionContext) {
   // Reset Claude Code running context on startup (in case it was left true from a crash)
   await vscode.commands.executeCommand('setContext', 'specgofer.claudeCodeRunning', false);
-  console.log('[SpecGofer] Reset claudeCodeRunning context to false');
+  console.log('[EAI-GOFER] Reset claudeCodeRunning context to false');
 
   // Setup auto-updater (using GitHub Pages API for private repo)
   const packageJson = require('../package.json');
@@ -69,7 +86,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
   if (!workspaceFolder) {
-    console.log('[SpecGofer] No workspace folder open, waiting...');
+    console.log('[EAI-GOFER] No workspace folder open, waiting...');
     // No workspace open yet, wait for one
     vscode.workspace.onDidChangeWorkspaceFolders(async () => {
       await reinitializeExtension(context);
@@ -77,7 +94,7 @@ export async function activate(context: vscode.ExtensionContext) {
     return;
   }
 
-  console.log(`[SpecGofer] Workspace detected: ${workspaceFolder.uri.fsPath}`);
+  console.log(`[EAI-GOFER] Workspace detected: ${workspaceFolder.uri.fsPath}`);
   await initializeForWorkspace(context);
 
   // Listen for workspace changes to reinitialize
@@ -102,22 +119,22 @@ function registerTreeViews(context: vscode.ExtensionContext) {
 
   // Register tree data providers - MUST happen before commands are registered
   context.subscriptions.push(
-    vscode.window.registerTreeDataProvider('specGoferProgress', progressProvider)
+    vscode.window.registerTreeDataProvider('eaiGoferProgress', progressProvider)
   );
 
   context.subscriptions.push(
-    vscode.window.registerTreeDataProvider('specGoferConstitution', constitutionProvider)
+    vscode.window.registerTreeDataProvider('eaiGoferConstitution', constitutionProvider)
   );
 
   context.subscriptions.push(
-    vscode.window.registerTreeDataProvider('specGoferMemory', memoryProvider)
+    vscode.window.registerTreeDataProvider('eaiGoferMemory', memoryProvider)
   );
 
-  console.log('[SpecGofer] Tree views registered');
+  console.log('[EAI-GOFER] Tree views registered');
 }
 
 async function reinitializeExtension(context: vscode.ExtensionContext) {
-  console.log('[SpecGofer] Workspace changed, reinitializing...');
+  console.log('[EAI-GOFER] Workspace changed, reinitializing...');
 
   // Refresh the providers with new workspace data
   const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
@@ -153,25 +170,25 @@ async function initializeForWorkspace(context: vscode.ExtensionContext) {
   }
 
   const workspacePath = workspaceFolder.uri.fsPath;
-  const migrator = new SpecKitMigrator(workspacePath);
+  const migrator = new GoferMigrator(workspacePath);
 
   // Check if .specify exists and what format it's in
   const versionInfo = await migrator.getVersionInfo();
 
-  console.log('Spec Kit format detected:', versionInfo.format);
+  console.log('Gofer format detected:', versionInfo.format);
 
   // Handle different scenarios
   switch (versionInfo.format) {
     case 'none':
-      await handleNoSpecKit(context, workspacePath, migrator);
+      await handleNoGofer(context, workspacePath, migrator);
       break;
 
     case 'legacy-json':
       await handleLegacyFormat(context, workspacePath, migrator);
       break;
 
-    case 'spec-kit':
-      await handleSpecKitFormat(context, workspacePath);
+    case 'gofer':
+      await handleGoferFormat(context, workspacePath);
       break;
 
     case 'mixed':
@@ -183,10 +200,10 @@ async function initializeForWorkspace(context: vscode.ExtensionContext) {
   registerCommands(context, workspacePath, migrator);
 }
 
-async function handleNoSpecKit(
+async function handleNoGofer(
   context: vscode.ExtensionContext,
   workspacePath: string,
-  migrator: SpecKitMigrator
+  migrator: GoferMigrator
 ) {
   console.log('No .specify folder found');
 
@@ -202,7 +219,7 @@ async function handleNoSpecKit(
     );
 
     if (choice === 'Yes') {
-      await vscode.commands.executeCommand('specGofer.initialize');
+      await vscode.commands.executeCommand('eaiGofer.initialize');
     } else if (choice === "Don't ask again") {
       await config.update('autoInitialize', false, vscode.ConfigurationTarget.Global);
     }
@@ -212,12 +229,12 @@ async function handleNoSpecKit(
 async function handleLegacyFormat(
   context: vscode.ExtensionContext,
   workspacePath: string,
-  migrator: SpecKitMigrator
+  migrator: GoferMigrator
 ) {
   console.log('Legacy JSON format detected');
 
   const choice = await vscode.window.showWarningMessage(
-    '📦 Old .specify format detected (JSON)\n\nUpgrade to GitHub Spec Kit format (Markdown)?',
+    '📦 Old .specify format detected (JSON)\n\nUpgrade to GitHub Gofer format (Markdown)?',
     { modal: false },
     'Upgrade Now',
     'Later',
@@ -226,17 +243,17 @@ async function handleLegacyFormat(
 
   if (choice === 'Upgrade Now') {
     await migrator.upgrade();
-    await handleSpecKitFormat(context, workspacePath);
+    await handleGoferFormat(context, workspacePath);
   } else if (choice === 'Learn More') {
-    vscode.env.openExternal(vscode.Uri.parse('https://github.com/github/spec-kit'));
+    vscode.env.openExternal(vscode.Uri.parse('https://github.com/github/gofer'));
   } else {
     // Use legacy format for now
     await initializeProgressProvider(context, workspacePath);
   }
 }
 
-async function handleSpecKitFormat(context: vscode.ExtensionContext, workspacePath: string) {
-  console.log('Spec Kit format detected - ready to use');
+async function handleGoferFormat(context: vscode.ExtensionContext, workspacePath: string) {
+  console.log('Gofer format detected - ready to use');
 
   await initializeProgressProvider(context, workspacePath);
 
@@ -251,7 +268,7 @@ async function handleSpecKitFormat(context: vscode.ExtensionContext, workspacePa
   // Check if templates need updating based on extension version
   await checkForTemplateUpdates(workspacePath, context);
 
-  vscode.window.setStatusBarMessage('$(notebook) SpecGofer - Enterprise AI ready', 3000);
+  vscode.window.setStatusBarMessage('$(notebook) EAI-GOFER - Enterprise AI ready', 3000);
 }
 
 /**
@@ -286,11 +303,22 @@ async function checkForTemplateUpdates(workspacePath: string, context: vscode.Ex
       );
 
       if (choice === 'Upgrade Now') {
-        const migrator = new SpecKitMigrator(workspacePath);
+        const migrator = new GoferMigrator(workspacePath);
         await migrator.upgrade();
         // Update stored version after successful upgrade
         await fs.writeFile(versionFilePath, currentVersion);
         vscode.window.showInformationMessage(`✅ Templates upgraded to v${currentVersion}`);
+        
+        // Refresh providers after upgrade completes
+        if (progressProvider) {
+          progressProvider.refresh();
+        }
+        if (constitutionProvider) {
+          constitutionProvider.refresh();
+        }
+        if (memoryProvider) {
+          memoryProvider.refresh();
+        }
       }
     } else if (storedVersion === '0.0.0') {
       // First time tracking - just save current version
@@ -318,19 +346,19 @@ function compareVersions(a: string, b: string): number {
 async function handleMixedFormat(
   context: vscode.ExtensionContext,
   workspacePath: string,
-  migrator: SpecKitMigrator
+  migrator: GoferMigrator
 ) {
   console.log('Mixed format detected');
 
   const choice = await vscode.window.showWarningMessage(
-    'Mixed .specify formats detected. Complete migration to Spec Kit?',
+    'Mixed .specify formats detected. Complete migration to Gofer?',
     'Migrate',
     'Later'
   );
 
   if (choice === 'Migrate') {
     await migrator.upgrade();
-    await handleSpecKitFormat(context, workspacePath);
+    await handleGoferFormat(context, workspacePath);
   } else {
     await initializeProgressProvider(context, workspacePath);
   }
@@ -381,16 +409,22 @@ async function initializeProgressProvider(context: vscode.ExtensionContext, work
   context.subscriptions.push(specWatcher);
 
   // Set context for when clause
-  vscode.commands.executeCommand('setContext', 'specGoferInitialized', true);
+  vscode.commands.executeCommand('setContext', 'eaiGoferInitialized', true);
 
-  // Show the Spec Kit view
-  vscode.commands.executeCommand('specGoferProgress.focus');
+  // Show the Gofer view
+  vscode.commands.executeCommand('eaiGoferProgress.focus');
 }
 
 /**
  * T113-T115: Handle spec file modifications and show impact notifications
  */
 async function handleSpecModification(uri: vscode.Uri, workspacePath: string) {
+  // Skip refresh during upgrade to prevent file watcher loops
+  if (isUpgrading) {
+    console.log('[EAI-GOFER] Skipping spec modification handling during upgrade');
+    return;
+  }
+
   if (!progressProvider) {
     return;
   }
@@ -441,7 +475,7 @@ async function handleSpecModification(uri: vscode.Uri, workspacePath: string) {
       }
     }
   } catch (error) {
-    console.error('[SpecGofer] Error handling spec modification:', error);
+    console.error('[EAI-GOFER] Error handling spec modification:', error);
   }
 }
 
@@ -508,21 +542,21 @@ async function handleBranchChange() {
 function registerGlobalCommands(context: vscode.ExtensionContext) {
   // Show progress panel
   context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.showProgress', () => {
-      vscode.commands.executeCommand('specGoferProgress.focus');
+    vscode.commands.registerCommand('eaiGofer.showProgress', () => {
+      vscode.commands.executeCommand('eaiGoferProgress.focus');
     })
   );
 
   // Show constitution panel
   context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.showConstitution', () => {
-      vscode.commands.executeCommand('specGoferConstitution.focus');
+    vscode.commands.registerCommand('eaiGofer.showConstitution', () => {
+      vscode.commands.executeCommand('eaiGoferConstitution.focus');
     })
   );
 
   // Manual update check
   context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.checkForUpdates', async () => {
+    vscode.commands.registerCommand('eaiGofer.checkForUpdates', async () => {
       if (autoUpdater) {
         await autoUpdater.manualCheck();
       } else {
@@ -533,7 +567,7 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
 
   // Update now command
   context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.updateNow', async () => {
+    vscode.commands.registerCommand('eaiGofer.updateNow', async () => {
       if (autoUpdater) {
         await autoUpdater.manualCheck();
       } else {
@@ -544,7 +578,7 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
 
   // Refresh specs
   context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.refreshSpecs', () => {
+    vscode.commands.registerCommand('eaiGofer.refreshSpecs', () => {
       if (progressProvider) {
         progressProvider.refresh();
       } else {
@@ -555,7 +589,7 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
 
   // Refresh constitution
   context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.refreshConstitution', () => {
+    vscode.commands.registerCommand('eaiGofer.refreshConstitution', () => {
       if (constitutionProvider) {
         constitutionProvider.refresh();
       } else {
@@ -566,7 +600,7 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
 
   // Refresh memory
   context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.refreshMemory', () => {
+    vscode.commands.registerCommand('eaiGofer.refreshMemory', () => {
       if (memoryProvider) {
         memoryProvider.refresh();
       } else {
@@ -578,7 +612,7 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
   // Tree view detail commands - must be global since tree views are global
   // Show spec details command (from tree view clicks)
   context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.showSpecDetails', async (spec: any) => {
+    vscode.commands.registerCommand('eaiGofer.showSpecDetails', async (spec: any) => {
       const { showSpecDetailsWebview } = await import('./webviewHelpers');
       showSpecDetailsWebview(context, spec);
     })
@@ -586,7 +620,7 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
 
   // Show task details command (from tree view task clicks)
   context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.showTaskDetails', async (task: any, spec: any) => {
+    vscode.commands.registerCommand('eaiGofer.showTaskDetails', async (task: any, spec: any) => {
       const { showTaskDetailsWebview } = await import('./webviewHelpers');
       showTaskDetailsWebview(context, task, spec);
     })
@@ -595,7 +629,7 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
   // Show section details command (from constitution tree view clicks)
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      'specGofer.showSectionDetails',
+      'eaiGofer.showSectionDetails',
       async (section: any, article: any) => {
         const { showSectionDetailsWebview } = await import('./webviewHelpers');
         showSectionDetailsWebview(context, section, article);
@@ -605,7 +639,7 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
 
   // Show article details command (from constitution article clicks)
   context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.showArticleDetails', async (article: any) => {
+    vscode.commands.registerCommand('eaiGofer.showArticleDetails', async (article: any) => {
       const { showArticleDetailsWebview } = await import('./webviewHelpers');
       showArticleDetailsWebview(context, article);
     })
@@ -613,7 +647,7 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
 
   // Show memory document command (from memory tree view clicks)
   context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.showMemoryDocument', async (document: any) => {
+    vscode.commands.registerCommand('eaiGofer.showMemoryDocument', async (document: any) => {
       const { showMemoryDocumentWebview } = await import('./webviewHelpers');
       await showMemoryDocumentWebview(context, document);
     })
@@ -622,7 +656,7 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
   // Show memory section command (from memory section clicks)
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      'specGofer.showMemorySection',
+      'eaiGofer.showMemorySection',
       async (section: any, document: any) => {
         const { showMemorySectionWebview } = await import('./webviewHelpers');
         await showMemorySectionWebview(context, section, document);
@@ -632,28 +666,28 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
 
   // Open With... context menu commands
   context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.openWithPreview', async (item: any) => {
+    vscode.commands.registerCommand('eaiGofer.openWithPreview', async (item: any) => {
       const { openWithPreview } = await import('./webviewHelpers');
       await openWithPreview(item);
     })
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.openWithMarkSharp', async (item: any) => {
+    vscode.commands.registerCommand('eaiGofer.openWithMarkSharp', async (item: any) => {
       const { openWithMarkSharp } = await import('./webviewHelpers');
       await openWithMarkSharp(item);
     })
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.openWithMarkdownEditor', async (item: any) => {
+    vscode.commands.registerCommand('eaiGofer.openWithMarkdownEditor', async (item: any) => {
       const { openWithMarkdownEditor } = await import('./webviewHelpers');
       await openWithMarkdownEditor(item);
     })
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.openWithMarkdownWYSIWYG', async (item: any) => {
+    vscode.commands.registerCommand('eaiGofer.openWithMarkdownWYSIWYG', async (item: any) => {
       const { openWithMarkdownWYSIWYG } = await import('./webviewHelpers');
       await openWithMarkdownWYSIWYG(item);
     })
@@ -666,34 +700,34 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand('specgofer.startClaudeCode', async (item: any) => {
       try {
-        console.log('[SpecGofer] startClaudeCode command triggered');
-        console.log('[SpecGofer] Item received:', item);
+        console.log('[EAI-GOFER] startClaudeCode command triggered');
+        console.log('[EAI-GOFER] Item received:', item);
 
         const { launchClaudeCode } = await import('./autonomousCommands');
-        console.log('[SpecGofer] autonomousCommands imported');
+        console.log('[EAI-GOFER] autonomousCommands imported');
 
         // Handle both direct spec objects and TreeItem objects
         let spec = item;
 
         // If this is a TreeItem with a spec property, extract the spec
         if (item && item.spec && item.label) {
-          console.log('[SpecGofer] Extracting spec from TreeItem');
+          console.log('[EAI-GOFER] Extracting spec from TreeItem');
           spec = item.spec;
         }
 
-        console.log('[SpecGofer] Final spec:', spec);
+        console.log('[EAI-GOFER] Final spec:', spec);
 
         if (!spec || !spec.id) {
-          console.error('[SpecGofer] Invalid spec - missing ID:', spec);
+          console.error('[EAI-GOFER] Invalid spec - missing ID:', spec);
           vscode.window.showErrorMessage('Invalid spec: missing ID');
           return;
         }
 
-        console.log('[SpecGofer] Calling launchClaudeCode with spec.id:', spec.id);
+        console.log('[EAI-GOFER] Calling launchClaudeCode with spec.id:', spec.id);
         await launchClaudeCode(spec.id);
-        console.log('[SpecGofer] launchClaudeCode completed');
+        console.log('[EAI-GOFER] launchClaudeCode completed');
       } catch (error) {
-        console.error('[SpecGofer] Error in startClaudeCode command:', error);
+        console.error('[EAI-GOFER] Error in startClaudeCode command:', error);
         vscode.window.showErrorMessage(
           `Failed to start Claude Code: ${error instanceof Error ? error.message : String(error)}`
         );
@@ -729,11 +763,11 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
 function registerCommands(
   context: vscode.ExtensionContext,
   workspacePath: string,
-  migrator: SpecKitMigrator
+  migrator: GoferMigrator
 ) {
-  // Initialize/Create Spec Kit structure
+  // Initialize/Create Gofer structure
   context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.initialize', async () => {
+    vscode.commands.registerCommand('eaiGofer.initialize', async () => {
       const exists = await migrator.exists();
 
       if (exists) {
@@ -742,9 +776,9 @@ function registerCommands(
         if (versionInfo.needsUpgrade) {
           // Legacy or mixed format - needs upgrade
           await migrator.upgrade();
-        } else if (versionInfo.format === 'spec-kit') {
-          // Already spec-kit format - offer to update templates/scripts
-          await migrator.upgrade(); // This will call updateSpecKitTemplates()
+        } else if (versionInfo.format === 'gofer') {
+          // Already gofer format - offer to update templates/scripts
+          await migrator.upgrade(); // This will call updateGoferTemplates()
         } else {
           vscode.window.showInformationMessage('SpecGofer already initialized!');
         }
@@ -759,7 +793,7 @@ function registerCommands(
 
   // Upgrade existing .specify
   context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.upgrade', async () => {
+    vscode.commands.registerCommand('eaiGofer.upgrade', async () => {
       await migrator.upgrade();
       if (progressProvider) {
         progressProvider.refresh();
@@ -769,7 +803,7 @@ function registerCommands(
 
   // Show version info
   context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.checkVersion', async () => {
+    vscode.commands.registerCommand('eaiGofer.checkVersion', async () => {
       const versionInfo = await migrator.getVersionInfo();
 
       vscode.window
@@ -779,7 +813,7 @@ function registerCommands(
         )
         .then((choice) => {
           if (choice === 'Upgrade') {
-            vscode.commands.executeCommand('specGofer.upgrade');
+            vscode.commands.executeCommand('eaiGofer.upgrade');
           }
         });
     })
@@ -787,7 +821,7 @@ function registerCommands(
 
   // Fix spec path references command (specs/ → .specify/specs/)
   context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.fixSpecPaths', async () => {
+    vscode.commands.registerCommand('eaiGofer.fixSpecPaths', async () => {
       await vscode.window.withProgress(
         {
           location: vscode.ProgressLocation.Notification,
@@ -808,7 +842,7 @@ function registerCommands(
 
   // Update templates command
   context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.updateTemplates', async () => {
+    vscode.commands.registerCommand('eaiGofer.updateTemplates', async () => {
       const workspacePath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
       if (!workspacePath) {
         vscode.window.showErrorMessage('No workspace folder open');
@@ -818,7 +852,7 @@ function registerCommands(
       await vscode.window.withProgress(
         {
           location: vscode.ProgressLocation.Notification,
-          title: 'Updating Spec Kit Templates',
+          title: 'Updating Gofer Templates',
           cancellable: false,
         },
         async (progress) => {
@@ -855,7 +889,7 @@ function registerCommands(
 
   // Create new specification command
   context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.createSpec', async (uri?: vscode.Uri) => {
+    vscode.commands.registerCommand('eaiGofer.createSpec', async (uri?: vscode.Uri) => {
       const specName = await vscode.window.showInputBox({
         prompt: 'Enter specification name (e.g., "user-authentication")',
         placeHolder: 'my-feature',
@@ -1019,7 +1053,7 @@ created: "${new Date().toISOString().split('T')[0]}"
 
   // Open specification command
   context.subscriptions.push(
-    vscode.commands.registerCommand('specGofer.openSpec', async (specId?: string) => {
+    vscode.commands.registerCommand('eaiGofer.openSpec', async (specId?: string) => {
       if (specId) {
         const specFile = path.join(workspacePath, '.specify', 'specs', specId, 'spec.md');
         try {
@@ -1051,7 +1085,7 @@ created: "${new Date().toISOString().split('T')[0]}"
           });
 
           if (selected) {
-            vscode.commands.executeCommand('specGofer.openSpec', selected.specId);
+            vscode.commands.executeCommand('eaiGofer.openSpec', selected.specId);
           }
         } catch (error) {
           vscode.window.showErrorMessage(`Failed to list specifications: ${error}`);
@@ -1063,12 +1097,12 @@ created: "${new Date().toISOString().split('T')[0]}"
   // Initialize MemoryManager and register memory commands
   memoryManager = new MemoryManager(context, workspacePath);
   registerMemoryCommands(context, memoryManager);
-  console.log('[SpecGofer] Memory commands registered');
+  console.log('[EAI-GOFER] Memory commands registered');
 
   // T116: Register spec execution commands
   if (progressProvider) {
     registerSpecCommands(context, progressProvider);
-    console.log('[SpecGofer] Spec execution commands registered');
+    console.log('[EAI-GOFER] Spec execution commands registered');
   }
 
   // T153: Register "SpecGofer: View Compaction History" command
@@ -1084,7 +1118,7 @@ created: "${new Date().toISOString().split('T')[0]}"
       }
     })
   );
-  console.log('[SpecGofer] Compaction history command registered');
+  console.log('[EAI-GOFER] Compaction history command registered');
 
   // Note: Tree view detail commands (showSpecDetails, showMemoryDocument, etc.)
   // are now registered globally in registerGlobalCommands() since tree views

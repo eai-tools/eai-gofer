@@ -2,7 +2,6 @@
 name: 7_gofer_save
 description: Save session progress with comprehensive checkpoint for resumption
 agent: agent
-tools: ['terminal', 'editFile']
 argument-hint: Optional notes about what to remember
 ---
 

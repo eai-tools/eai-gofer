@@ -1,21 +1,21 @@
 /**
- * Unit tests for SpecKitLoader
+ * Unit tests for GoferLoader
  */
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { SpecKitLoader } from '../specKitLoader';
+import { GoferLoader } from '../goferLoader';
 import * as fs from 'fs/promises';
 
 // Mock fs/promises
 vi.mock('fs/promises');
 
-describe('SpecKitLoader', (): void => {
-  let specKitLoader: SpecKitLoader;
+describe('GoferLoader', (): void => {
+  let goferLoader: GoferLoader;
   const mockWorkspacePath = '/test/workspace';
 
   beforeEach((): void => {
     vi.clearAllMocks();
-    specKitLoader = new SpecKitLoader(mockWorkspacePath);
+    goferLoader = new GoferLoader(mockWorkspacePath);
   });
 
   afterEach((): void => {
@@ -50,7 +50,7 @@ This is a test specification.
       vi.mocked(fs.readdir).mockResolvedValue(mockDirents as unknown as Awaited<ReturnType<typeof fs.readdir>>);
       vi.mocked(fs.readFile).mockResolvedValue(mockSpecContent);
 
-      const specs = await specKitLoader.loadAllSpecs();
+      const specs = await goferLoader.loadAllSpecs();
 
       expect(specs).toHaveLength(2);
       expect(specs[0]).toMatchObject({
@@ -76,7 +76,7 @@ This is a test specification.
     it('should handle empty specs directory', async (): Promise<void> => {
       vi.mocked(fs.readdir).mockResolvedValue([]);
 
-      const specs = await specKitLoader.loadAllSpecs();
+      const specs = await goferLoader.loadAllSpecs();
 
       expect(specs).toHaveLength(0);
     });
@@ -84,7 +84,7 @@ This is a test specification.
     it('should handle missing specs directory', async (): Promise<void> => {
       vi.mocked(fs.readdir).mockRejectedValue(new Error('ENOENT: no such file or directory'));
 
-      await expect(specKitLoader.loadAllSpecs()).rejects.toThrow('ENOENT');
+      await expect(goferLoader.loadAllSpecs()).rejects.toThrow('ENOENT');
     });
 
     it('should skip invalid spec files', async (): Promise<void> => {
@@ -106,7 +106,7 @@ status: "draft"
         .mockResolvedValueOnce(mockValidContent)
         .mockRejectedValueOnce(new Error('File not found'));
 
-      const specs = await specKitLoader.loadAllSpecs();
+      const specs = await goferLoader.loadAllSpecs();
 
       expect(specs).toHaveLength(1);
       expect(specs[0].id).toBe('001-valid-spec');
@@ -129,7 +129,7 @@ status: "in_progress"
 
       vi.mocked(fs.readFile).mockResolvedValue(mockSpecContent);
 
-      const spec = await specKitLoader.loadSpec('001-test-spec');
+      const spec = await goferLoader.loadSpec('001-test-spec');
 
       expect(spec).toBeDefined();
       expect(spec!.id).toBe('001-test-spec');
@@ -140,7 +140,7 @@ status: "in_progress"
     it('should return null for non-existent spec', async (): Promise<void> => {
       vi.mocked(fs.readFile).mockRejectedValue(new Error('ENOENT: no such file or directory'));
 
-      const spec = await specKitLoader.loadSpec('non-existent-spec');
+      const spec = await goferLoader.loadSpec('non-existent-spec');
 
       expect(spec).toBeNull();
     });
@@ -154,7 +154,7 @@ invalid: yaml: content: [
 
       vi.mocked(fs.readFile).mockResolvedValue(mockSpecContent);
 
-      const spec = await specKitLoader.loadSpec('001-test-spec');
+      const spec = await goferLoader.loadSpec('001-test-spec');
 
       // Should still parse with default values
       expect(spec).toBeDefined();
@@ -194,7 +194,7 @@ status: "in_progress"
       vi.mocked(fs.readFile).mockResolvedValue(mockSpecContent);
       vi.mocked(fs.writeFile).mockResolvedValue(undefined);
 
-      await specKitLoader.updateTaskStatus('001-test-spec', 'T001', 'completed');
+      await goferLoader.updateTaskStatus('001-test-spec', 'T001', 'completed');
 
       expect(fs.writeFile).toHaveBeenCalledWith(
         expect.stringContaining('001-test-spec/spec.md'),
@@ -218,7 +218,7 @@ title: "Test Specification"
       vi.mocked(fs.readFile).mockResolvedValue(mockSpecContent);
 
       await expect(
-        specKitLoader.updateTaskStatus('001-test-spec', 'T999', 'completed')
+        goferLoader.updateTaskStatus('001-test-spec', 'T999', 'completed')
       ).rejects.toThrow('Task T999 not found');
     });
 
@@ -238,7 +238,7 @@ title: "Test Specification"
       vi.mocked(fs.writeFile).mockRejectedValue(new Error('Permission denied'));
 
       await expect(
-        specKitLoader.updateTaskStatus('001-test-spec', 'T001', 'completed')
+        goferLoader.updateTaskStatus('001-test-spec', 'T001', 'completed')
       ).rejects.toThrow('Permission denied');
     });
   });
@@ -265,7 +265,7 @@ This is the description.
 - [ ] #T003 Third task [P] (deps: none)`;
 
       // Use the private parseSpec method through type assertion
-      const spec = (specKitLoader as unknown as { parseSpec: (id: string, content: string) => unknown }).parseSpec('001-test-spec', specContent);
+      const spec = (goferLoader as unknown as { parseSpec: (id: string, content: string) => unknown }).parseSpec('001-test-spec', specContent);
 
       expect(spec).toMatchObject({
         id: '001-test-spec',
@@ -307,7 +307,7 @@ This is a simple spec without frontmatter.
 
 - [ ] #T001 Simple task`;
 
-      const spec = (specKitLoader as unknown as { parseSpec: (id: string, content: string) => unknown }).parseSpec('001-test-spec', specContent);
+      const spec = (goferLoader as unknown as { parseSpec: (id: string, content: string) => unknown }).parseSpec('001-test-spec', specContent);
 
       expect(spec).toMatchObject({
         id: '001-test-spec',
@@ -329,7 +329,7 @@ This is a simple spec without frontmatter.
 - [ ] #T005 Parallel task [P]
 - [ ] #T006 Parallel with deps [P] (deps: T004)`;
 
-      const spec = (specKitLoader as unknown as { parseSpec: (id: string, content: string) => unknown }).parseSpec('001-test-spec', specContent);
+      const spec = (goferLoader as unknown as { parseSpec: (id: string, content: string) => unknown }).parseSpec('001-test-spec', specContent);
 
       expect(spec.tasks).toHaveLength(6);
       expect(spec.tasks.map((t): string => t.id)).toEqual(['T001', 'T002', 'T003', 'T004', 'T005', 'T006']);
@@ -351,7 +351,7 @@ This is a simple spec without frontmatter.
         return Promise.resolve('---\nid: "test"\n---\n# Test');
       });
 
-      await specKitLoader.loadSpec(specId);
+      await goferLoader.loadSpec(specId);
 
       expect(capturedPath).toContain('.specify/specs/001-test-spec/spec.md');
       expect(capturedPath).toContain(mockWorkspacePath);

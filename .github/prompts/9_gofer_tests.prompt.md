@@ -1,10 +1,7 @@
 ---
 name: 9_gofer_tests
-description:
-  Define acceptance test cases using DSL approach before or during
-  implementation
+description: Define acceptance test cases using DSL approach before or during implementation
 agent: agent
-tools: ['search/codebase', 'terminal', 'editFile']
 argument-hint: The feature to define tests for
 ---
 

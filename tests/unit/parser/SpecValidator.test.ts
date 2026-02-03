@@ -1,15 +1,15 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { SpecKitParser, SpecStatus } from '../../../extension/src/specKitParser';
+import { GoferParser, SpecStatus } from '../../../extension/src/goferParser';
 import { createTestWorkspace, cleanupTestWorkspace, createTestSpec } from '../../helpers/workspace';
 import * as path from 'path';
 
-describe('SpecKitParser - Spec Validation', () => {
+describe('GoferParser - Spec Validation', () => {
   let workspace: string;
-  let parser: SpecKitParser;
+  let parser: GoferParser;
 
   beforeEach(async () => {
     workspace = await createTestWorkspace();
-    parser = new SpecKitParser(workspace);
+    parser = new GoferParser(workspace);
   });
 
   afterEach(async () => {

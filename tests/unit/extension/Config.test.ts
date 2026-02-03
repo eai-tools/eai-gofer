@@ -25,11 +25,11 @@ import {
 describe('Config - Constants', () => {
   describe('Extension Constants', () => {
     it('should have correct extension name', () => {
-      expect(EXTENSION_NAME).toBe('specgofer');
+      expect(EXTENSION_NAME).toBe('eai-gofer');
     });
 
     it('should have correct display name', () => {
-      expect(EXTENSION_DISPLAY_NAME).toBe('SpecGofer (Enterprise AI)');
+      expect(EXTENSION_DISPLAY_NAME).toBe('EAI-GOFER (Enterprise AI)');
     });
 
     it('should have a valid version string', () => {
@@ -70,7 +70,7 @@ describe('Config - Constants', () => {
     });
 
     it('should have correct GitHub repo', () => {
-      expect(GITHUB_REPO).toBe('spec-kit-templates');
+      expect(GITHUB_REPO).toBe('gofer-templates');
     });
 
     it('should have GitHub API base URL', () => {
@@ -80,12 +80,12 @@ describe('Config - Constants', () => {
 
   describe('MCP Tool Names', () => {
     it('should define all MCP tools', () => {
-      expect(MCP_TOOLS.getSpecs).toBe('specgofer_get_specs');
-      expect(MCP_TOOLS.getNextTask).toBe('specgofer_get_next_task');
-      expect(MCP_TOOLS.executeTask).toBe('specgofer_execute_task');
-      expect(MCP_TOOLS.updateTaskStatus).toBe('specgofer_update_task_status');
-      expect(MCP_TOOLS.validateCode).toBe('specgofer_validate_code');
-      expect(MCP_TOOLS.runTests).toBe('specgofer_run_tests');
+      expect(MCP_TOOLS.getSpecs).toBe('eaigofer_get_specs');
+      expect(MCP_TOOLS.getNextTask).toBe('eaigofer_get_next_task');
+      expect(MCP_TOOLS.executeTask).toBe('eaigofer_execute_task');
+      expect(MCP_TOOLS.updateTaskStatus).toBe('eaigofer_update_task_status');
+      expect(MCP_TOOLS.validateCode).toBe('eaigofer_validate_code');
+      expect(MCP_TOOLS.runTests).toBe('eaigofer_run_tests');
     });
 
     it('should have 6 MCP tools', () => {
@@ -95,47 +95,47 @@ describe('Config - Constants', () => {
 
   describe('Command IDs', () => {
     it('should define all command IDs', () => {
-      expect(COMMANDS.initialize).toBe('specGofer.initialize');
-      expect(COMMANDS.upgrade).toBe('specGofer.upgrade');
-      expect(COMMANDS.checkVersion).toBe('specGofer.checkVersion');
-      expect(COMMANDS.refreshSpecs).toBe('specGofer.refreshSpecs');
-      expect(COMMANDS.refreshConstitution).toBe('specGofer.refreshConstitution');
-      expect(COMMANDS.showProgress).toBe('specGofer.showProgress');
-      expect(COMMANDS.showConstitution).toBe('specGofer.showConstitution');
-      expect(COMMANDS.checkForUpdates).toBe('specGofer.checkForUpdates');
-      expect(COMMANDS.updateNow).toBe('specGofer.updateNow');
+      expect(COMMANDS.initialize).toBe('eaiGofer.initialize');
+      expect(COMMANDS.upgrade).toBe('eaiGofer.upgrade');
+      expect(COMMANDS.checkVersion).toBe('eaiGofer.checkVersion');
+      expect(COMMANDS.refreshSpecs).toBe('eaiGofer.refreshSpecs');
+      expect(COMMANDS.refreshConstitution).toBe('eaiGofer.refreshConstitution');
+      expect(COMMANDS.showProgress).toBe('eaiGofer.showProgress');
+      expect(COMMANDS.showConstitution).toBe('eaiGofer.showConstitution');
+      expect(COMMANDS.checkForUpdates).toBe('eaiGofer.checkForUpdates');
+      expect(COMMANDS.updateNow).toBe('eaiGofer.updateNow');
     });
 
-    it('should have all commands prefixed with specGofer.', () => {
+    it('should have all commands prefixed with eaiGofer.', () => {
       Object.values(COMMANDS).forEach(cmd => {
-        expect(cmd).toMatch(/^specGofer\./);
+        expect(cmd).toMatch(/^eaiGofer\./);
       });
     });
   });
 
   describe('View IDs', () => {
     it('should define all view IDs', () => {
-      expect(VIEWS.progress).toBe('specGoferProgress');
-      expect(VIEWS.constitution).toBe('specGoferConstitution');
-      expect(VIEWS.memory).toBe('specGoferMemory');
-      expect(VIEWS.container).toBe('spec-kit');
+      expect(VIEWS.progress).toBe('eaiGoferProgress');
+      expect(VIEWS.constitution).toBe('eaiGoferConstitution');
+      expect(VIEWS.memory).toBe('eaiGoferMemory');
+      expect(VIEWS.container).toBe('gofer');
     });
   });
 
   describe('Config Keys', () => {
     it('should define all configuration keys', () => {
-      expect(CONFIG_KEYS.anthropicApiKey).toBe('specGofer.anthropicApiKey');
-      expect(CONFIG_KEYS.autoInitialize).toBe('specGofer.autoInitialize');
-      expect(CONFIG_KEYS.preferredAi).toBe('specGofer.preferredAI');
-      expect(CONFIG_KEYS.autoUpdateCheck).toBe('specGofer.autoUpdateCheck');
-      expect(CONFIG_KEYS.telemetryEnabled).toBe('specGofer.telemetryEnabled');
-      expect(CONFIG_KEYS.updateCheckInterval).toBe('specGofer.updateCheckInterval');
-      expect(CONFIG_KEYS.performanceMode).toBe('specGofer.performanceMode');
+      expect(CONFIG_KEYS.anthropicApiKey).toBe('eaiGofer.anthropicApiKey');
+      expect(CONFIG_KEYS.autoInitialize).toBe('eaiGofer.autoInitialize');
+      expect(CONFIG_KEYS.preferredAi).toBe('eaiGofer.preferredAI');
+      expect(CONFIG_KEYS.autoUpdateCheck).toBe('eaiGofer.autoUpdateCheck');
+      expect(CONFIG_KEYS.telemetryEnabled).toBe('eaiGofer.telemetryEnabled');
+      expect(CONFIG_KEYS.updateCheckInterval).toBe('eaiGofer.updateCheckInterval');
+      expect(CONFIG_KEYS.performanceMode).toBe('eaiGofer.performanceMode');
     });
 
-    it('should have all config keys prefixed with specGofer.', () => {
+    it('should have all config keys prefixed with eaiGofer.', () => {
       Object.values(CONFIG_KEYS).forEach(key => {
-        expect(key).toMatch(/^specGofer\./);
+        expect(key).toMatch(/^eaiGofer\./);
       });
     });
   });
@@ -390,9 +390,9 @@ describe('Config - Integration Scenarios', () => {
     expect(uniqueNames.size).toBe(toolNames.length);
   });
 
-  it('should have all MCP tool names prefixed with specgofer_', () => {
+  it('should have all MCP tool names prefixed with eaigofer_', () => {
     Object.values(MCP_TOOLS).forEach(tool => {
-      expect(tool).toMatch(/^specgofer_/);
+      expect(tool).toMatch(/^eaigofer_/);
     });
   });
 });

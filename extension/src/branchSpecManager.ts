@@ -73,7 +73,7 @@ export class BranchSpecManager {
 
   /**
    * Get the effective .specify path for current branch
-   * Always returns .specify since we use the Spec Kit format
+   * Always returns .specify since we use the Gofer format
    */
   getSpecifyPath(): string {
     return path.join(this.workspacePath, '.specify');
@@ -147,7 +147,7 @@ export class BranchSpecManager {
 
   /**
    * Get all specs for current branch
-   * Since we use Spec Kit format, all specs are in .specify/specs/
+   * Since we use Gofer format, all specs are in .specify/specs/
    */
   async getAllSpecPaths(): Promise<string[]> {
     const specs: string[] = [];

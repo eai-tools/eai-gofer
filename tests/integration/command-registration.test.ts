@@ -270,10 +270,10 @@ describe('Command Registration Validation', () => {
 
   it('should have all commands in both registerGlobalCommands and registerCommands', () => {
     const globalCommandsSection = extensionSource.match(
-      /function registerGlobalCommands\([^)]*\)\s*\{([\s\S]*?)^}/m
+      /function registerGlobalCommands\([^)]*\)[^{]*\{([\s\S]*?)^}/m
     );
     const workspaceCommandsSection = extensionSource.match(
-      /function registerCommands\([^)]*\)\s*\{([\s\S]*?)^}/m
+      /(?:async\s+)?function registerCommands\([\s\S]*?\)[^{]*\{([\s\S]*?)^}/m
     );
 
     expect(globalCommandsSection).toBeTruthy();

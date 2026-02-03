@@ -21,10 +21,10 @@ const releasesPath = path.join(__dirname, 'releases.json');
 const releases = JSON.parse(fs.readFileSync(releasesPath, 'utf8'));
 
 // Determine download URL - use custom URL if provided, otherwise default to GitHub Pages
-const downloadUrl = customDownloadUrl || `https://eai-tools.github.io/specgofer/releases/specgofer-${version}.vsix`;
+const downloadUrl = customDownloadUrl || `https://eai-tools.github.io/gofer/releases/gofer-${version}.vsix`;
 
 // Calculate actual file size if the VSIX exists in docs/releases/
-const vsixPath = path.join(__dirname, 'releases', `specgofer-${version}.vsix`);
+const vsixPath = path.join(__dirname, 'releases', `gofer-${version}.vsix`);
 let fileSize = 8.5; // Default approximate size
 if (fs.existsSync(vsixPath)) {
   const stats = fs.statSync(vsixPath);
@@ -60,4 +60,4 @@ fs.writeFileSync(releasesPath, JSON.stringify(releases, null, 2));
 
 console.log(`✅ Updated releases.json with version ${version}`);
 console.log(`📦 Release URL: ${newRelease.download_url}`);
-console.log(`📄 Site URL: https://eai-tools.github.io/specgofer`);
+console.log(`📄 Site URL: https://eai-tools.github.io/gofer`);

@@ -733,11 +733,11 @@ Create v1.4.2 with all fixes applied
 
 ## [1.4.1] - 2025-10-22
 
-Added speckit internal delivery
+Added Gofer internal delivery
 
 ## [1.4.0] - 2025-10-22
 
-Added speckit internal delivery
+Added Gofer internal delivery
 
 ## [1.3.4] - 2025-10-21
 

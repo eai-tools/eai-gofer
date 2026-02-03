@@ -2,9 +2,11 @@
  * Memory and Learning System - MemoryManager Implementation
  *
  * Provides CRUD operations and search functionality for persistent memories.
- * Handles storage to both local files (.specify/memory/local.json) and VSCode globalState.
+ * Local memories use JSONL append-only storage via MemoryStorage backend.
+ * Global memories use VSCode globalState.
  *
  * @see contracts/memory.ts for interface definitions
+ * @see MemoryStorage.ts for JSONL backend
  */
 
 import * as vscode from 'vscode';
@@ -13,6 +15,7 @@ import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import {
   type Memory,
+  type MemoryType,
   type StoredMemories,
   type MemoryQuery,
   type MemorySearchResult,
@@ -34,6 +37,8 @@ import { validateMemory, validateStoredMemories, formatValidationErrors } from '
 import { Logger } from '../utils/logger';
 import { telemetry } from './telemetryIntegration';
 import type { ContextUsageLogger } from './ContextUsageLogger';
+import { MemoryStorage } from './MemoryStorage';
+import { MemoryConsolidator, type ConsolidationResult } from './MemoryConsolidator';
 
 /**
  * Current schema version for StoredMemories.
@@ -48,8 +53,16 @@ const SCHEMA_VERSION = 1;
 export class MemoryManager implements IMemoryManager {
   private readonly context: vscode.ExtensionContext;
   private readonly localMemoryPath: string;
+  private readonly workspaceRoot: string;
   private readonly logger: Logger;
   private usageLogger?: ContextUsageLogger;
+
+  /** JSONL-based storage backend (replaces local.json full-rewrite) */
+  private readonly storage: MemoryStorage;
+  /** Memory lifecycle consolidator */
+  private readonly consolidator: MemoryConsolidator;
+  /** Whether JSONL storage has been initialized */
+  private storageInitialized = false;
 
   /**
    * Creates a new MemoryManager instance.
@@ -59,12 +72,61 @@ export class MemoryManager implements IMemoryManager {
    */
   constructor(context: vscode.ExtensionContext, workspaceRoot: string) {
     this.context = context;
+    this.workspaceRoot = workspaceRoot;
     this.localMemoryPath = path.join(workspaceRoot, '.specify', 'memory', 'local.json');
+    this.storage = new MemoryStorage(workspaceRoot);
+    this.consolidator = new MemoryConsolidator(this.storage, workspaceRoot);
     this.logger = Logger.for('MemoryManager');
     this.logger.debug('MemoryManager initialized', {
       workspaceRoot,
       localMemoryPath: this.localMemoryPath,
     });
+  }
+
+  /**
+   * Initialize the JSONL storage backend.
+   * Migrates from legacy local.json if needed.
+   * Call this once after construction.
+   */
+  async initializeStorage(): Promise<void> {
+    if (this.storageInitialized) {
+      return;
+    }
+    try {
+      await this.storage.initialize();
+      this.storageInitialized = true;
+      this.logger.info('JSONL storage initialized', {
+        memoryCount: this.storage.count(),
+      });
+    } catch (error) {
+      this.logger.error(
+        'Failed to initialize JSONL storage, falling back to legacy',
+        error instanceof Error ? error : undefined
+      );
+    }
+  }
+
+  /**
+   * Run memory consolidation (dedup, compact, stale detection, decay, archive).
+   * Call at session end or periodically.
+   */
+  async consolidate(): Promise<ConsolidationResult> {
+    await this.ensureStorageReady();
+    return this.consolidator.consolidate();
+  }
+
+  /**
+   * Get the underlying MemoryStorage for direct access (e.g., from hooks).
+   */
+  getStorage(): MemoryStorage {
+    return this.storage;
+  }
+
+  /** Ensure JSONL storage is ready before operations */
+  private async ensureStorageReady(): Promise<void> {
+    if (!this.storageInitialized) {
+      await this.initializeStorage();
+    }
   }
 
   /**
@@ -86,14 +148,51 @@ export class MemoryManager implements IMemoryManager {
   async save(memory: Omit<Memory, 'id' | 'created'>): Promise<Memory> {
     this.logger.debug('Saving new memory', { category: memory.category, scope: memory.scope });
 
-    // Generate ID and timestamps
+    // For local scope: use JSONL storage backend
+    if (memory.scope === 'local') {
+      await this.ensureStorageReady();
+
+      // Validate content fields before saving (skip id validation - JSONL generates hash IDs)
+      const contentValidation = this.validateContent(memory);
+      if (!contentValidation.valid) {
+        this.logger.error('Memory validation failed', undefined, {
+          errors: contentValidation.errors,
+        });
+        telemetry.trackMemoryValidationError(contentValidation.errors);
+        throw new Error(`Memory validation failed: ${contentValidation.errors.join(', ')}`);
+      }
+
+      // Delegate to JSONL storage (generates hash-based ID)
+      const newMemory = await this.storage.append(memory);
+
+      this.logger.info('Memory saved to JSONL', {
+        id: newMemory.id,
+        category: newMemory.category,
+        type: newMemory.type,
+      });
+
+      telemetry.trackMemorySaved(newMemory);
+
+      if (this.usageLogger) {
+        const estimatedTokens = Math.ceil(newMemory.content.length / 4);
+        this.usageLogger.logMemorySave({
+          memoryId: newMemory.id,
+          category: newMemory.category,
+          tokenEstimate: estimatedTokens,
+          scope: newMemory.scope,
+        });
+      }
+
+      return newMemory;
+    }
+
+    // For global scope: keep using VSCode globalState
     const newMemory: Memory = {
       id: uuidv4(),
       created: Date.now(),
       ...memory,
     };
 
-    // Validate the complete memory
     const validation = this.validate(newMemory);
     if (!validation.valid) {
       this.logger.error('Memory validation failed', undefined, { errors: validation.errors });
@@ -101,23 +200,15 @@ export class MemoryManager implements IMemoryManager {
       throw new Error(`Memory validation failed: ${validation.errors.join(', ')}`);
     }
 
-    // Save to appropriate storage based on scope
-    if (newMemory.scope === 'local') {
-      await this.saveLocal(newMemory);
-    } else {
-      await this.saveGlobal(newMemory);
-    }
+    await this.saveGlobal(newMemory);
 
-    this.logger.info('Memory saved successfully', {
+    this.logger.info('Memory saved to globalState', {
       id: newMemory.id,
       category: newMemory.category,
-      scope: newMemory.scope,
     });
 
-    // Track memory creation
     telemetry.trackMemorySaved(newMemory);
 
-    // Log to context usage logger (Spec 012)
     if (this.usageLogger) {
       const estimatedTokens = Math.ceil(newMemory.content.length / 4);
       this.usageLogger.logMemorySave({
@@ -141,37 +232,45 @@ export class MemoryManager implements IMemoryManager {
     this.logger.debug('Searching memories', { query });
     const startTime = Date.now();
 
-    // Load memories from requested scope
     const scope = query.scope || 'both';
-    const memories = await this.load(scope);
 
-    // Apply filters
-    let results = memories;
-
-    // Keyword filter (case-insensitive, matches content + category)
-    if (query.keywords) {
-      const keywords = query.keywords.toLowerCase();
-      results = results.filter(
-        (m) =>
-          m.content.toLowerCase().includes(keywords) || m.category.toLowerCase().includes(keywords)
-      );
+    // Use JSONL storage index for local memories (fast in-memory query)
+    let results: Memory[] = [];
+    if (scope === 'local' || scope === 'both') {
+      await this.ensureStorageReady();
+      results.push(...this.storage.query(query));
     }
-
-    // Category filter (exact match)
-    if (query.category) {
-      results = results.filter((m) => m.category === query.category);
-    }
-
-    // Tags filter (OR logic: match any tag)
-    if (query.tags && query.tags.length > 0) {
-      results = results.filter((m) => query.tags!.some((tag) => m.tags.includes(tag)));
-    }
-
-    // Date range filter
-    if (query.dateRange) {
-      results = results.filter(
-        (m) => m.created >= query.dateRange!.start && m.created <= query.dateRange!.end
-      );
+    if (scope === 'global' || scope === 'both') {
+      // Global memories: load and filter in-memory (legacy path)
+      let globalMemories = await this.loadGlobal();
+      if (query.keywords) {
+        const keywords = query.keywords.toLowerCase();
+        globalMemories = globalMemories.filter(
+          (m) =>
+            m.content.toLowerCase().includes(keywords) ||
+            m.category.toLowerCase().includes(keywords)
+        );
+      }
+      if (query.category) {
+        globalMemories = globalMemories.filter((m) => m.category === query.category);
+      }
+      if (query.tags && query.tags.length > 0) {
+        globalMemories = globalMemories.filter((m) =>
+          query.tags!.some((tag) => m.tags.includes(tag))
+        );
+      }
+      if (query.type) {
+        globalMemories = globalMemories.filter((m) => m.type === query.type);
+      }
+      if (query.dateRange) {
+        globalMemories = globalMemories.filter(
+          (m) => m.created >= query.dateRange!.start && m.created <= query.dateRange!.end
+        );
+      }
+      if (query.excludeStale) {
+        globalMemories = globalMemories.filter((m) => !m.stale);
+      }
+      results.push(...globalMemories);
     }
 
     // Calculate scores and sort by priority if requested
@@ -239,19 +338,16 @@ export class MemoryManager implements IMemoryManager {
   async forget(id: string): Promise<void> {
     this.logger.debug('Forgetting memory', { id });
 
-    // Try local memories first
-    const localMemories = await this.loadLocal();
-    const localIndex = localMemories.findIndex((m) => m.id === id);
-
-    if (localIndex !== -1) {
-      localMemories.splice(localIndex, 1);
-      await this.saveLocalBatch(localMemories);
-      this.logger.info('Memory deleted from local storage', { id });
+    // Try JSONL storage first (local memories)
+    await this.ensureStorageReady();
+    const removed = await this.storage.remove(id);
+    if (removed) {
+      this.logger.info('Memory deleted from JSONL storage', { id });
       telemetry.trackMemoryForgotten(id, 'local');
       return;
     }
 
-    // Try global memories
+    // Try global memories (VSCode globalState)
     const globalMemories = await this.loadGlobal();
     const globalIndex = globalMemories.findIndex((m) => m.id === id);
 
@@ -277,9 +373,12 @@ export class MemoryManager implements IMemoryManager {
     let count = 0;
 
     if (scope === 'local' || scope === 'all') {
-      const localMemories = await this.loadLocal();
-      count += localMemories.length;
-      await this.saveLocalBatch([]);
+      await this.ensureStorageReady();
+      const allLocal = this.storage.getAll('local');
+      for (const mem of allLocal) {
+        await this.storage.remove(mem.id);
+      }
+      count += allLocal.length;
     }
 
     if (scope === 'global' || scope === 'all') {
@@ -302,7 +401,8 @@ export class MemoryManager implements IMemoryManager {
     const memories: Memory[] = [];
 
     if (scope === 'local' || scope === 'both') {
-      memories.push(...(await this.loadLocal()));
+      await this.ensureStorageReady();
+      memories.push(...this.storage.getAll('local'));
     }
 
     if (scope === 'global' || scope === 'both') {
@@ -331,18 +431,19 @@ export class MemoryManager implements IMemoryManager {
    * @param id - UUID of memory to update
    */
   async recordUsage(id: string): Promise<void> {
-    // Try local memories first
-    const localMemories = await this.loadLocal();
-    const localMemory = localMemories.find((m) => m.id === id);
+    // Try JSONL storage first (local memories)
+    await this.ensureStorageReady();
+    const localMemory = this.storage.get(id);
 
     if (localMemory) {
-      localMemory.usedCount++;
-      localMemory.lastUsed = Date.now();
-      await this.saveLocalBatch(localMemories);
+      await this.storage.update(id, {
+        usedCount: (localMemory.usedCount ?? 0) + 1,
+        lastUsed: Date.now(),
+      });
       return;
     }
 
-    // Try global memories
+    // Try global memories (VSCode globalState)
     const globalMemories = await this.loadGlobal();
     const globalMemory = globalMemories.find((m) => m.id === id);
 
@@ -436,6 +537,52 @@ export class MemoryManager implements IMemoryManager {
       valid: errors.length === 0,
       errors,
     };
+  }
+
+  /**
+   * Validate content fields of a memory (without id validation).
+   * Used for pre-save validation when the storage backend will generate the ID.
+   */
+  private validateContent(memory: Omit<Memory, 'id' | 'created'>): ValidationResult {
+    const errors: string[] = [];
+
+    if (memory.category === undefined) {
+      errors.push('Category is required');
+    } else {
+      if (!isValidLength(memory.category, 1, 100)) {
+        errors.push('Category must be 1-100 characters');
+      }
+      if (memory.category && !isValidCategory(memory.category)) {
+        errors.push('Invalid category format (must be alphanumeric with - or _)');
+      }
+    }
+
+    if (memory.tags) {
+      if (!Array.isArray(memory.tags)) {
+        errors.push('Tags must be an array');
+      } else {
+        if (memory.tags.length > 20) {
+          errors.push('Maximum 20 tags allowed');
+        }
+        for (const tag of memory.tags) {
+          if (!isValidTag(tag)) {
+            errors.push(`Invalid tag format: ${tag}`);
+          }
+        }
+      }
+    }
+
+    if (memory.scope && memory.scope !== 'local' && memory.scope !== 'global') {
+      errors.push('Scope must be "local" or "global"');
+    }
+
+    if (memory.content === undefined) {
+      errors.push('Content is required');
+    } else if (!isValidLength(memory.content, 1, 10000)) {
+      errors.push('Content must be 1-10,000 characters');
+    }
+
+    return { valid: errors.length === 0, errors };
   }
 
   /**

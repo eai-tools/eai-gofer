@@ -23,6 +23,7 @@ import { ContextHealthStatusBar } from './ui/ContextHealthStatusBar';
 // Real Context Monitoring (Spec 014)
 import { ClaudeSessionReader } from './autonomous/ClaudeSessionReader';
 import { ContinuousMemoryWriter } from './autonomous/ContinuousMemoryWriter';
+import { KnowledgeGraph } from './autonomous/KnowledgeGraph';
 // Hook-based monitoring
 import { HookBridgeWatcher } from './autonomous/HookBridgeWatcher';
 import { GoferActivityStatusBar } from './ui/GoferActivityStatusBar';
@@ -226,7 +227,7 @@ async function initializeForWorkspace(context: vscode.ExtensionContext) {
   }
 
   // Register commands (always available)
-  registerCommands(context, workspacePath, migrator);
+  await registerCommands(context, workspacePath, migrator);
 }
 
 async function handleNoGofer(
@@ -465,7 +466,7 @@ async function checkForTemplateUpdates(workspacePath: string, context: vscode.Ex
         // Update stored version after successful upgrade
         await fs.writeFile(versionFilePath, currentVersion);
         vscode.window.showInformationMessage(`✅ Templates upgraded to v${currentVersion}`);
-        
+
         // Refresh providers after upgrade completes
         if (progressProvider) {
           progressProvider.refresh();
@@ -938,11 +939,11 @@ function extractSpecId(uri: vscode.Uri): string | null {
 /**
  * Register commands that require a workspace
  */
-function registerCommands(
+async function registerCommands(
   context: vscode.ExtensionContext,
   workspacePath: string,
   migrator: GoferMigrator
-) {
+): Promise<void> {
   // Initialize/Create Gofer structure
   context.subscriptions.push(
     vscode.commands.registerCommand('gofer.initialize', async () => {
@@ -1279,15 +1280,30 @@ created: "${new Date().toISOString().split('T')[0]}"
 
   // Initialize MemoryManager and register memory commands
   memoryManager = new MemoryManager(context, workspacePath);
+  // Initialize JSONL storage backend (migrates from legacy local.json if needed)
+  await memoryManager.initializeStorage();
   // Wire usage logger to MemoryManager for context health tracking (Spec 012 T024)
   if (contextUsageLogger) {
     memoryManager.setUsageLogger(contextUsageLogger);
   }
   registerMemoryCommands(context, memoryManager);
-  console.log('[Gofer] Memory commands registered');
+  console.log('[Gofer] Memory commands registered (JSONL backend)');
 
   // Create shared ContextBuilder and wire to autonomousCommands (Spec 013 Phase 6)
   const sharedContextBuilder = new ContextBuilder(workspacePath, memoryManager);
+
+  // Initialize KnowledgeGraph and wire to ContextBuilder
+  const knowledgeGraph = new KnowledgeGraph(workspacePath);
+  knowledgeGraph
+    .initialize()
+    .then(() => {
+      sharedContextBuilder.setKnowledgeGraph(knowledgeGraph);
+      console.log('[Gofer] KnowledgeGraph initialized and wired to ContextBuilder');
+    })
+    .catch((error) => {
+      console.warn('[Gofer] KnowledgeGraph init failed (non-fatal):', error);
+    });
+
   import('./autonomousCommands')
     .then(({ setSharedMemoryManager, setSharedContextBuilder }) => {
       setSharedMemoryManager(memoryManager!);

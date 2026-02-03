@@ -20,7 +20,7 @@ describe('MemoryManager Performance (T175)', () => {
 
   beforeEach(async () => {
     // Create temporary workspace
-    workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'specgofer-perf-'));
+    workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'gofer-perf-'));
 
     // Mock extension context
     context = {
@@ -92,7 +92,7 @@ describe('HintLoader Performance (T176)', () => {
 
   beforeEach(async () => {
     // Create temporary workspace with hint files
-    workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'specgofer-hints-'));
+    workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'gofer-hints-'));
     hintsDir = path.join(workspaceRoot, '.specify', 'hints');
     fs.mkdirSync(hintsDir, { recursive: true });
 

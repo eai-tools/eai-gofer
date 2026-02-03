@@ -42,7 +42,7 @@ describe('Memory E2E Tests', () => {
 
       // Implementation would use @vscode/test-electron:
       /*
-      await vscode.commands.executeCommand('specgofer.remember');
+      await vscode.commands.executeCommand('gofer.remember');
       await enterText('Use Vitest for all unit tests');
       await selectQuickPickItem('Local (this project only)');
       await enterText('testing');

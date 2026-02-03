@@ -6,7 +6,7 @@
   "license": "SEE LICENSE IN LICENSE",
   "repository": {
     "type": "git",
-    "url": "https://github.com/eai-tools/specgofer"
+    "url": "https://github.com/eai-tools/gofer"
   },
   "main": "dist/index.js",
   "type": "module",

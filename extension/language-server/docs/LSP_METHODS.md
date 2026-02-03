@@ -300,7 +300,7 @@ The server accepts configuration changes via LSP:
 
 ```json
 {
-  "specgofer": {
+  "gofer": {
     "debug": false,
     "logLevel": "info",
     "specDirectory": ".specify",

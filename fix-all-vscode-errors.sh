@@ -164,7 +164,7 @@ done
 echo "💾 Resetting workspace storage..."
 
 # Find and reset the current workspace storage
-WORKSPACE_PATH="/Users/douglaswross/Code/specgofer"
+WORKSPACE_PATH="/Users/douglaswross/Code/gofer"
 WORKSPACE_HASH=$(echo -n "$WORKSPACE_PATH" | shasum -a 1 | cut -d' ' -f1)
 
 if [ -d ~/Library/Application\ Support/Code/User/workspaceStorage/*"$WORKSPACE_HASH"* ]; then

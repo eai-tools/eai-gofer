@@ -106,12 +106,11 @@ From `extension/package.json` and `README.md`:
 
 ### Known Issues Found During Research
 
-1. **`specgofer` naming bug**: `docs/update-releases.js` lines 24, 27, 63 still
-   reference old `specgofer` name. Fallback URL and VSIX size calculation
-   broken.
-2. **`docs/index.html` line 243**: JS fallback fetch uses old `specgofer` URL.
-3. **`.devcontainer/install-extension.sh`**: Uses old `specgofer` URLs.
-4. **`test-release.sh` line 78**: Uses old `specgofer` URLs.
+1. **`gofer` naming bug**: `docs/update-releases.js` lines 24, 27, 63 still
+   reference old `gofer` name. Fallback URL and VSIX size calculation broken.
+2. **`docs/index.html` line 243**: JS fallback fetch uses old `gofer` URL.
+3. **`.devcontainer/install-extension.sh`**: Uses old `gofer` URLs.
+4. **`test-release.sh` line 78**: Uses old `gofer` URLs.
 
 ## Technology Decisions
 
@@ -246,8 +245,8 @@ From `extension/package.json` and `README.md`:
    (via Astro's `fetch` in frontmatter) to render a clean download page with
    version history.
 
-5. **Fix the `specgofer` naming bugs** in `docs/update-releases.js` and other
-   files as a prerequisite cleanup task.
+5. **Fix the `gofer` naming bugs** in `docs/update-releases.js` and other files
+   as a prerequisite cleanup task.
 
 6. **Add `.nojekyll` file** to prevent GitHub Pages from processing with Jekyll
    (Astro outputs files with underscores that Jekyll would ignore).

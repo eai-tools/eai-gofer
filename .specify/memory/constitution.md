@@ -51,58 +51,73 @@ Tests MUST be written before implementation in all cases:
 - Write acceptance tests first based on spec requirements
 - Ensure tests FAIL before implementation begins
 - Implement minimum code to make tests pass (Red-Green-Refactor)
-- Integration tests required for all MCP tools, LSP methods, and agent coordination
-- Contract tests mandatory for VSCode extension API, Language Server Protocol, and Model Context Protocol boundaries
+- Integration tests required for all MCP tools, LSP methods, and agent
+  coordination
+- Contract tests mandatory for VSCode extension API, Language Server Protocol,
+  and Model Context Protocol boundaries
 
-**Rationale**: TDD ensures correctness, prevents regressions, and validates that specifications are implementable. The autonomous agent system depends on reliable tests to validate its own work.
+**Rationale**: TDD ensures correctness, prevents regressions, and validates that
+specifications are implementable. The autonomous agent system depends on
+reliable tests to validate its own work.
 
 ### II. MCP-First Architecture
 
 All AI assistant integration MUST use Model Context Protocol (MCP):
 
-- Expose functionality through well-defined MCP tools (naming: `specgofer_<action>`)
-- Tools must be stateless, idempotent where possible, and return structured results
-- File-based integration (`.claude-input.txt`/`.claude-output.txt`) is legacy only
+- Expose functionality through well-defined MCP tools (naming: `gofer_<action>`)
+- Tools must be stateless, idempotent where possible, and return structured
+  results
+- File-based integration (`.claude-input.txt`/`.claude-output.txt`) is legacy
+  only
 - Tools respond in <100ms for sync operations, <1s for async operations
 - Each tool must validate inputs against schema before execution
 
-**Rationale**: MCP provides a standardized, maintainable interface for AI assistants. Native VSCode MCP support eliminates custom integration code.
+**Rationale**: MCP provides a standardized, maintainable interface for AI
+assistants. Native VSCode MCP support eliminates custom integration code.
 
 ### III. Spec Kit Format Compliance
 
 All specifications MUST follow GitHub Spec Kit format:
 
 - YAML frontmatter with id, title, status, dates
-- Markdown body with structured sections (User Scenarios, Requirements, Entities)
-- Task lists with dependency tracking: `- [ ] #T001 Description (deps: T002, T003)`
+- Markdown body with structured sections (User Scenarios, Requirements,
+  Entities)
+- Task lists with dependency tracking:
+  `- [ ] #T001 Description (deps: T002, T003)`
 - Constitution validation before implementation
 - Migration tools provided for legacy JSON format
 
-**Rationale**: Standardized format enables automated parsing, validation, and coordination across multiple AI coding agents.
+**Rationale**: Standardized format enables automated parsing, validation, and
+coordination across multiple AI coding agents.
 
 ### IV. Strict TypeScript & Code Quality
 
 All code must meet quality standards without exception:
 
-- TypeScript strict mode enabled (`noImplicitAny: true`, `strictNullChecks: true`)
+- TypeScript strict mode enabled (`noImplicitAny: true`,
+  `strictNullChecks: true`)
 - No `any` types - use proper types or `unknown` with type guards
 - Functions ≤300 lines, files ≤500 lines - decompose if exceeded
 - Cyclomatic complexity ≤10 per function
 - ES modules with `.js` extensions in imports (Node.js ESM compatibility)
 
-**Rationale**: Strict typing catches errors at compile time. Size limits enforce Single Responsibility Principle. Quality gates prevent technical debt.
+**Rationale**: Strict typing catches errors at compile time. Size limits enforce
+Single Responsibility Principle. Quality gates prevent technical debt.
 
 ### V. Security by Default
 
 Security principles are non-negotiable at every layer:
 
-- **Authentication**: bcrypt/argon2 for passwords, JWT expiry <1 hour with refresh rotation
-- **Input Validation**: Validate and sanitize all user input, path traversal prevention
+- **Authentication**: bcrypt/argon2 for passwords, JWT expiry <1 hour with
+  refresh rotation
+- **Input Validation**: Validate and sanitize all user input, path traversal
+  prevention
 - **Secrets**: Environment variables only, never committed to Git
 - **HTTPS**: All production traffic encrypted, HSTS enabled
 - **API Security**: Rate limiting (100 req/min), CSRF tokens on mutations
 
-**Rationale**: Autonomous systems must be secure by design. Security vulnerabilities in orchestration could enable arbitrary code execution.
+**Rationale**: Autonomous systems must be secure by design. Security
+vulnerabilities in orchestration could enable arbitrary code execution.
 
 ### VI. Performance Requirements
 
@@ -114,7 +129,8 @@ All components must meet performance benchmarks:
 - **API**: Backend p95 <500ms, p99 <1000ms
 - **UI**: First Contentful Paint <1.5s, Time to Interactive <3.5s
 
-**Rationale**: Slow tools disrupt developer flow. Performance is a feature, especially for autonomous agents making rapid tool calls.
+**Rationale**: Slow tools disrupt developer flow. Performance is a feature,
+especially for autonomous agents making rapid tool calls.
 
 ### VII. 80% Test Coverage Minimum
 
@@ -126,7 +142,8 @@ All new code must achieve 80% coverage across all metrics:
 - Critical paths (auth, orchestration, task execution) require 100% coverage
 - Coverage gates enforced in CI/CD pipeline
 
-**Rationale**: High coverage provides confidence in autonomous operation. Test-driven development naturally achieves these thresholds.
+**Rationale**: High coverage provides confidence in autonomous operation.
+Test-driven development naturally achieves these thresholds.
 
 ## Architecture Standards
 
@@ -136,7 +153,8 @@ Gofer consists of three coordinated components:
 
 **VSCode Extension** (`/extension/`):
 
-- Entry point: `extension/src/extension.ts` (auto-activates on `.specify/` detection)
+- Entry point: `extension/src/extension.ts` (auto-activates on `.specify/`
+  detection)
 - Manages UI (tree views, commands, progress panels)
 - Launches Language Server as child process
 - Auto-creates `.vscode/mcp.json` for Claude Code integration
@@ -144,7 +162,8 @@ Gofer consists of three coordinated components:
 **Language Server** (`/language-server/`):
 
 - Dual protocol: LSP (extension ↔ server) + MCP (Claude ↔ tools)
-- Exposes 6 MCP tools: `get_specs`, `get_next_task`, `execute_task`, `update_task_status`, `validate_code`, `run_tests`
+- Exposes 6 MCP tools: `get_specs`, `get_next_task`, `execute_task`,
+  `update_task_status`, `validate_code`, `run_tests`
 - Loads specs from `.specify/specs/` using GitHub Spec Kit parser
 - Stateless design, all state in filesystem
 
@@ -184,13 +203,13 @@ Gofer consists of three coordinated components:
 
 ### Task Execution Flow
 
-1. AI reads specs via `specgofer_get_specs` MCP tool
-2. Gets next available task via `specgofer_get_next_task` (checks dependencies)
-3. Marks task in-progress via `specgofer_execute_task`
+1. AI reads specs via `gofer_get_specs` MCP tool
+2. Gets next available task via `gofer_get_next_task` (checks dependencies)
+3. Marks task in-progress via `gofer_execute_task`
 4. Implements code following TDD (tests first, then implementation)
-5. Validates against constitution via `specgofer_validate_code`
-6. Runs tests via `specgofer_run_tests` (Playwright + unit tests)
-7. Updates status via `specgofer_update_task_status` (completed/failed)
+5. Validates against constitution via `gofer_validate_code`
+6. Runs tests via `gofer_run_tests` (Playwright + unit tests)
+7. Updates status via `gofer_update_task_status` (completed/failed)
 8. Repeats - autonomous agents implement entire specs
 
 ### Status Progression
@@ -228,7 +247,7 @@ Constitution changes require:
 ### Compliance Enforcement
 
 - EngineerAgent validates all code against these principles before completion
-- MCP tool `specgofer_validate_code` programmatically checks compliance
+- MCP tool `gofer_validate_code` programmatically checks compliance
 - CI/CD pipeline enforces coverage thresholds and linting rules
 - Extension warnings appear when specs don't follow GitHub Spec Kit format
 
@@ -238,11 +257,13 @@ In conflicts between this document and other practices:
 
 - Constitution wins - always
 - If constitution blocks legitimate work, amend the constitution first
-- Complexity violations require architectural approval with documented justification
+- Complexity violations require architectural approval with documented
+  justification
 
 ### Guidance Documents
 
-- **Runtime Development**: See `.github/copilot-instructions.md` for AI assistant patterns
+- **Runtime Development**: See `.github/copilot-instructions.md` for AI
+  assistant patterns
 - **Testing**: See `docs/TESTING_GUIDE.md` for E2E and integration test setup
 - **Spec Kit**: See `.specify/templates/` for specification and task templates
 

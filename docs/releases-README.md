@@ -15,11 +15,12 @@ This directory contains the GitHub Pages site for Gofer releases.
 3. Choose "main" branch and "/docs" folder
 4. Save
 
-The site will be available at: https://eai-tools.github.io/specgofer
+The site will be available at: https://eai-tools.github.io/gofer
 
 ## API Endpoints
 
-- `https://eai-tools.github.io/gofer/releases.json` - JSON API for latest release info
+- `https://eai-tools.github.io/gofer/releases.json` - JSON API for latest
+  release info
 - `https://eai-tools.github.io/gofer/` - Human-readable release page
 
 ## Updating Releases

@@ -2,7 +2,7 @@
 
 **Enterprise AI Pty Ltd - Test Execution Design for AI Agents**
 
-*Last Updated: January 2026*
+_Last Updated: January 2026_
 
 ---
 
@@ -29,44 +29,44 @@ outputs lead to parsing failures and wasted tokens re-requesting information.
  */
 export interface TestResultSchema {
   // Identification & Metadata
-  id: string;                    // UUID v4 for traceability
-  taskId: string;                // Reference to executing task
-  sessionId: string;             // Trace back to session
-  timestamp: string;             // ISO 8601 execution time
-  duration: number;              // Execution time in milliseconds
+  id: string; // UUID v4 for traceability
+  taskId: string; // Reference to executing task
+  sessionId: string; // Trace back to session
+  timestamp: string; // ISO 8601 execution time
+  duration: number; // Execution time in milliseconds
 
   // Test Identification
   testType: 'unit' | 'integration' | 'e2e' | 'contract' | 'performance';
-  testFramework: string;         // 'vitest', 'jest', 'playwright', etc.
-  testFile: string;              // Path to test file
+  testFramework: string; // 'vitest', 'jest', 'playwright', etc.
+  testFile: string; // Path to test file
 
   // Aggregated Results
   summary: {
-    passed: boolean;             // Overall pass/fail
-    total: number;               // Total tests run
-    passed_count: number;        // Tests passed
-    failed_count: number;        // Tests failed
-    skipped_count: number;       // Tests skipped
-    pass_rate: number;           // Percentage 0-100
+    passed: boolean; // Overall pass/fail
+    total: number; // Total tests run
+    passed_count: number; // Tests passed
+    failed_count: number; // Tests failed
+    skipped_count: number; // Tests skipped
+    pass_rate: number; // Percentage 0-100
   };
 
   // Individual Test Details
   tests: Array<{
-    name: string;                // Full test name
+    name: string; // Full test name
     status: 'passed' | 'failed' | 'skipped' | 'pending';
-    duration: number;            // ms
-    errorMessage?: string;       // Error if failed
-    errorStack?: string;         // Full stack trace
+    duration: number; // ms
+    errorMessage?: string; // Error if failed
+    errorStack?: string; // Full stack trace
   }>;
 
   // Structured Error Information
   failures?: Array<{
     testName: string;
-    errorType: string;           // 'AssertionError', 'TimeoutError', etc.
+    errorType: string; // 'AssertionError', 'TimeoutError', etc.
     errorMessage: string;
     stackTrace: string;
     affectedFiles: string[];
-    suggestion?: string;         // AI-provided recovery suggestion
+    suggestion?: string; // AI-provided recovery suggestion
   }>;
 
   // Environment Context
@@ -84,7 +84,7 @@ export interface TestResultSchema {
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://specgofer.dev/schemas/test-result-v1.json",
+  "$id": "https://gofer.dev/schemas/test-result-v1.json",
   "title": "AI Agent Test Result Schema",
   "type": "object",
   "required": ["id", "taskId", "timestamp", "testType", "summary"],
@@ -161,7 +161,7 @@ export interface TestProgressEvent {
 res.writeHead(200, {
   'Content-Type': 'text/event-stream',
   'Cache-Control': 'no-cache',
-  'Connection': 'keep-alive',
+  Connection: 'keep-alive',
   'X-Accel-Buffering': 'no',
 });
 
@@ -211,9 +211,9 @@ After 3 failures: Escalate to human
 ```typescript
 export class ErrorRecoveryWithRetry {
   private RETRY_DELAYS = {
-    level1: 10000,  // 10 seconds
-    level2: 30000,  // 30 seconds
-    level3: 60000,  // 60 seconds
+    level1: 10000, // 10 seconds
+    level2: 30000, // 30 seconds
+    level3: 60000, // 60 seconds
   };
 
   async retryWithStrategy(
@@ -228,7 +228,9 @@ export class ErrorRecoveryWithRetry {
 
     for (let i = 0; i < strategies.length; i++) {
       if (i > 0) {
-        await this.sleep(this.RETRY_DELAYS[`level${i}` as keyof typeof this.RETRY_DELAYS]);
+        await this.sleep(
+          this.RETRY_DELAYS[`level${i}` as keyof typeof this.RETRY_DELAYS]
+        );
       }
 
       const success = await retryCallback(strategies[i], i + 1);
@@ -246,15 +248,15 @@ export class ErrorRecoveryWithRetry {
 
 ### Error Classification Matrix
 
-| Error Type             | Severity       | Retry Strategy       |
-| ---------------------- | -------------- | -------------------- |
-| syntax_error           | Recoverable    | Auto-fix, 3 retries  |
-| type_error             | Recoverable    | Add types, 3 retries |
-| test_failure           | Recoverable    | Analyze & fix        |
-| linting_error          | Recoverable    | Auto-fix             |
-| runtime_error          | Needs context  | Add file context     |
-| dependency_missing     | Fatal          | Escalate immediately |
-| authentication_failure | Fatal          | Escalate immediately |
+| Error Type             | Severity      | Retry Strategy       |
+| ---------------------- | ------------- | -------------------- |
+| syntax_error           | Recoverable   | Auto-fix, 3 retries  |
+| type_error             | Recoverable   | Add types, 3 retries |
+| test_failure           | Recoverable   | Analyze & fix        |
+| linting_error          | Recoverable   | Auto-fix             |
+| runtime_error          | Needs context | Add file context     |
+| dependency_missing     | Fatal         | Escalate immediately |
+| authentication_failure | Fatal         | Escalate immediately |
 
 ### Error Detection Patterns
 
@@ -281,9 +283,9 @@ For network failures and rate limits, use exponential backoff:
  * Formula: delay = min(maxDelay, baseDelay * 2^attempt + random jitter)
  */
 export class ExponentialBackoffRetry {
-  private baseDelay = 100;       // milliseconds
-  private maxDelay = 30000;      // 30 seconds max
-  private jitterFactor = 0.1;    // 10% jitter
+  private baseDelay = 100; // milliseconds
+  private maxDelay = 30000; // 30 seconds max
+  private jitterFactor = 0.1; // 10% jitter
 
   calculateDelay(attemptNumber: number): number {
     let delay = this.baseDelay * Math.pow(2, attemptNumber);
@@ -371,13 +373,13 @@ npm run test:e2e
 
 ## 7. Performance Requirements
 
-| Requirement               | Target   | Validation              |
-| ------------------------- | -------- | ----------------------- |
-| Error Detection Latency   | < 5s     | ErrorDetector tests     |
-| Task Status Update        | < 100ms  | ProgressReporter tests  |
-| Session State Persistence | < 200ms  | ProgressReporter tests  |
-| Progress Event Streaming  | < 50ms   | SSE endpoint tests      |
-| Test Result Validation    | < 100ms  | Schema validation tests |
+| Requirement               | Target  | Validation              |
+| ------------------------- | ------- | ----------------------- |
+| Error Detection Latency   | < 5s    | ErrorDetector tests     |
+| Task Status Update        | < 100ms | ProgressReporter tests  |
+| Session State Persistence | < 200ms | ProgressReporter tests  |
+| Progress Event Streaming  | < 50ms  | SSE endpoint tests      |
+| Test Result Validation    | < 100ms | Schema validation tests |
 
 ---
 
@@ -421,12 +423,12 @@ export const runTestsTool = {
 
 ```typescript
 export interface ToolError {
-  code: string;           // 'TIMEOUT', 'INVALID_INPUT', etc.
-  message: string;        // Human-readable
+  code: string; // 'TIMEOUT', 'INVALID_INPUT', etc.
+  message: string; // Human-readable
   details: {
     retryable: boolean;
-    retryAfter?: number;  // Milliseconds
-    suggestion?: string;  // Recovery hint for AI
+    retryAfter?: number; // Milliseconds
+    suggestion?: string; // Recovery hint for AI
   };
 }
 ```

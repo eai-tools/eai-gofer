@@ -12,7 +12,7 @@
   "license": "SEE LICENSE IN LICENSE",
   "repository": {
     "type": "git",
-    "url": "https://github.com/eai-tools/specgofer"
+    "url": "https://github.com/eai-tools/gofer"
   },
   "engines": {
     "vscode": "^1.85.0"

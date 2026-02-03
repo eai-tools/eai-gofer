@@ -2,9 +2,9 @@
 
 **Version**: 2.1.0 **Feature**: 001-memory-learning-system **Date**: 2025-11-01
 
-This guide helps you migrate to Gofer's new Memory & Learning System
-(Feature 001), which introduces persistent memory, contextual hints, dependency
-tracking, and intelligent context management.
+This guide helps you migrate to Gofer's new Memory & Learning System (Feature
+001), which introduces persistent memory, contextual hints, dependency tracking,
+and intelligent context management.
 
 ## Table of Contents
 
@@ -478,7 +478,7 @@ async function executeTask(task: Task): Promise<void> {
 
 ```bash
 # Verify version
-code --list-extensions --show-versions | grep specgofer
+code --list-extensions --show-versions | grep gofer
 
 # Verify directory structure
 ls -la .specify/
@@ -531,7 +531,7 @@ If you encounter issues, you can safely roll back:
 curl -LO https://github.com/eai-tools/gofer/releases/download/v2.0.6/gofer-2.0.6.vsix
 
 # Uninstall v2.1.0
-code --uninstall-extension eai-tools.specgofer
+code --uninstall-extension eai-tools.gofer
 
 # Install v2.0.6
 code --install-extension gofer-2.0.6.vsix

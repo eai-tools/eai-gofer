@@ -212,7 +212,7 @@ cd specs/001-feature
 
       const settingsContent = JSON.stringify(
         {
-          'specgofer.specsPath': '${workspaceFolder}/specs/',
+          'gofer.specsPath': '${workspaceFolder}/specs/',
         },
         null,
         2

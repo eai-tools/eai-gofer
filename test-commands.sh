@@ -106,11 +106,11 @@ test_command() {
 
 # Check if extension is installed
 print_info "Checking if SpecGofer extension is installed..."
-if "$CODE_CMD" --list-extensions | grep -qi "specgofer"; then
+if "$CODE_CMD" --list-extensions | grep -qi "gofer"; then
     print_success "SpecGofer extension is installed"
 else
     print_warning "SpecGofer extension not installed. Install it first with:"
-    echo "  $CODE_CMD --install-extension ./specgofer-*.vsix"
+    echo "  $CODE_CMD --install-extension ./gofer-*.vsix"
     exit 1
 fi
 

@@ -33,7 +33,7 @@ language-server/
 
 The server exposes 6 MCP tools for AI agents:
 
-### 1. `specgofer_get_specs`
+### 1. `gofer_get_specs`
 
 Get all specifications from `.specify/specs/`
 
@@ -57,7 +57,7 @@ Get all specifications from `.specify/specs/`
 }
 ```
 
-### 2. `specgofer_get_next_task`
+### 2. `gofer_get_next_task`
 
 Get the next available task to work on (respects dependencies)
 
@@ -74,7 +74,7 @@ Get the next available task to work on (respects dependencies)
 } | null
 ```
 
-### 3. `specgofer_execute_task`
+### 3. `gofer_execute_task`
 
 Get full context for executing a specific task
 
@@ -103,7 +103,7 @@ Get full context for executing a specific task
 }
 ```
 
-### 4. `specgofer_update_task_status`
+### 4. `gofer_update_task_status`
 
 Update task status in spec file
 
@@ -122,7 +122,7 @@ Update task status in spec file
 }
 ```
 
-### 5. `specgofer_validate_code`
+### 5. `gofer_validate_code`
 
 Validate code against constitutional requirements
 
@@ -140,7 +140,7 @@ Validate code against constitutional requirements
 }
 ```
 
-### 6. `specgofer_run_tests`
+### 6. `gofer_run_tests`
 
 Run Playwright tests for a specification
 

@@ -44,7 +44,102 @@ export interface Memory {
 
   /** Source: spec-id (e.g., "005-auth") or "user_interaction" */
   learnedFrom: string;
+
+  /** Memory type for cognitive classification */
+  type?: MemoryType;
+
+  /** Structured source provenance */
+  source?: MemorySource;
+
+  /** Code citations with change detection */
+  citations?: Citation[];
+
+  /** Confidence level 0-100 */
+  confidence?: number;
+
+  /** Priority index (higher = surfaced first, incremented on use/update) */
+  priorityIndex?: number;
+
+  /** Whether cited files have changed since creation */
+  stale?: boolean;
+
+  /** ID of original memory if this is a semantic compaction */
+  compactedFrom?: string;
+
+  /** Agent that created this memory (for multi-agent provenance) */
+  agentId?: string;
 }
+
+// ============================================================================
+// Memory Types
+// ============================================================================
+
+/** Cognitive memory type classification */
+export type MemoryType = 'episodic' | 'semantic' | 'procedural' | 'prospective' | 'decision';
+
+/** Source provenance for a memory */
+export interface MemorySource {
+  specId?: string;
+  taskId?: string;
+  files?: string[];
+  sessionId?: string;
+  agentId?: string;
+}
+
+/** Code citation with change detection */
+export interface Citation {
+  file: string;
+  line?: number;
+  snippet?: string;
+  hash?: string;
+}
+
+/**
+ * Episodic memory — what happened during a session.
+ * Records session outcomes, approaches tried, and temporal context.
+ */
+export interface EpisodicMemory extends Memory {
+  type: 'episodic';
+  /** Session outcome */
+  sessionOutcome?: 'success' | 'partial' | 'failed' | 'abandoned';
+  /** What approach was tried */
+  approach?: string;
+  /** Session duration in seconds */
+  duration?: number;
+  /** Number of turns the task took */
+  turnsUsed?: number;
+}
+
+/**
+ * Procedural memory — how to do things.
+ * Patterns, templates, and step-by-step procedures that worked.
+ */
+export interface ProceduralMemory extends Memory {
+  type: 'procedural';
+  /** Step-by-step procedure */
+  steps?: string[];
+  /** Conditions when this pattern applies */
+  applicableWhen?: string;
+  /** File glob patterns this applies to */
+  filePatterns?: string[];
+}
+
+/**
+ * Prospective memory — what needs to happen next.
+ * Deferred TODOs, follow-ups, technical debt items.
+ */
+export interface ProspectiveMemory extends Memory {
+  type: 'prospective';
+  /** When to surface this memory */
+  triggerCondition?: string;
+  /** Optional deadline (Unix ms) */
+  deadline?: number;
+  /** Whether this TODO has been completed */
+  resolved?: boolean;
+}
+
+/** Union type of all typed memories */
+export type TypedMemory = EpisodicMemory | ProceduralMemory | ProspectiveMemory | Memory;
 
 /**
  * Storage format for persisted memories.
@@ -79,6 +174,9 @@ export interface MemoryQuery {
   /** Scope filter: local, global, or both */
   scope?: 'local' | 'global' | 'both';
 
+  /** Filter by memory type */
+  type?: MemoryType;
+
   /** Date range filter (Unix milliseconds) */
   dateRange?: {
     start: number;
@@ -93,6 +191,12 @@ export interface MemoryQuery {
 
   /** Task context for relevance scoring */
   taskContext?: string;
+
+  /** Filter by agent ID (for multi-agent provenance) */
+  agentId?: string;
+
+  /** Exclude stale memories */
+  excludeStale?: boolean;
 }
 
 /**

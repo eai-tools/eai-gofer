@@ -16,6 +16,7 @@ import { join, dirname } from 'path';
 
 const PROJECT_DIR = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 const BRIDGE_PATH = join(PROJECT_DIR, '.specify', 'hooks', 'context-bridge.json');
+const OBSERVATION_LOG = join(PROJECT_DIR, '.specify', 'memory', 'observations.jsonl');
 const DEBUG_LOG = join(PROJECT_DIR, '.specify', 'hooks', 'hook-debug.log');
 const TAIL_BYTES = 20 * 1024; // Read last 20KB of transcript
 
@@ -114,6 +115,40 @@ function readExistingBridge() {
   }
 }
 
+/**
+ * Map Claude Code tool names to observation types for the ObservationMasker.
+ */
+function classifyObservationType(toolName) {
+  if (!toolName) return 'command_output';
+  const name = toolName.toLowerCase();
+  if (name.includes('read') || name.includes('glob') || name.includes('cat')) return 'file_read';
+  if (name.includes('bash') || name.includes('exec') || name.includes('shell')) return 'command_output';
+  if (name.includes('search') || name.includes('grep') || name.includes('find')) return 'search_result';
+  if (name.includes('test')) return 'test_output';
+  if (name.includes('fetch') || name.includes('api') || name.includes('web')) return 'api_response';
+  return 'command_output';
+}
+
+/**
+ * Append an observation record to observations.jsonl.
+ * The extension's ObservationMasker can read this to track tool outputs.
+ */
+function trackObservation(toolName, sessionId, timestamp) {
+  try {
+    mkdirSync(dirname(OBSERVATION_LOG), { recursive: true });
+    const record = {
+      toolName,
+      type: classifyObservationType(toolName),
+      sessionId: sessionId || '',
+      timestamp,
+    };
+    appendFileSync(OBSERVATION_LOG, JSON.stringify(record) + '\n', 'utf-8');
+    debug(`Observation tracked: tool=${toolName}, type=${record.type}`);
+  } catch (err) {
+    debug(`Observation tracking error: ${err.message}`);
+  }
+}
+
 // Main
 debug(`Hook fired. PROJECT_DIR=${PROJECT_DIR}`);
 
@@ -164,3 +199,6 @@ const bridge = {
 };
 
 writeBridge(bridge);
+
+// Track observation for ObservationMasker (T022)
+trackObservation(toolName, sessionId, now);

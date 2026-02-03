@@ -2,6 +2,7 @@
 name: gofer_hydrate
 description: Reverse-engineer specification from existing code (Hydration)
 agent: agent
+tools: ['search/codebase', 'terminal', 'editFile']
 argument-hint: The code or feature to reverse-engineer into a specification
 ---
 

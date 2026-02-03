@@ -448,40 +448,6 @@ Click the status bar to view detailed breakdown:
 
 ---
 
-## Archived Legacy Commands
-
-The following legacy commands have been archived and are no longer in active
-use. They are preserved for reference at `.claude/commands/archive/`.
-
-### Archived Gofer Commands (`.claude/commands/archive/speckit/`)
-
-- `speckit.specify.md` - Create feature specification
-- `speckit.plan.md` - Generate implementation plan
-- `speckit.tasks.md` - Generate task breakdown
-- `speckit.implement.md` - Execute tasks
-- `speckit.analyze.md` - Cross-artifact analysis
-- `speckit.checklist.md` - Generate custom checklist
-- `speckit.constitution.md` - Create/update constitution
-- `speckit.clarify.md` - Ask clarification questions
-- `speckit.hydrate.md` - Reverse-engineer spec from code
-
-### Archived RPI Commands (`.claude/commands/archive/rpi/`)
-
-- `1_research_codebase.md` - Deep codebase exploration
-- `2_create_plan.md` - Create implementation plan
-- `3_validate_plan.md` - Verify implementation
-- `4_implement_plan.md` - Execute plan
-- `5_save_progress.md` - Save work session
-- `6_resume_work.md` - Resume from checkpoint
-- `7_research_cloud.md` - Cloud infrastructure analysis
-- `8_define_test_cases.md` - Design acceptance tests
-
-**Note:** Use the unified Gofer pipeline (`/0_business_scenario` through
-`/6_gofer_validate`) for all new work. The archived commands are kept for
-reference only.
-
----
-
 ## Claude Code Terminal Integration
 
 When Gofer launches Claude Code via the Play button:
@@ -634,7 +600,6 @@ gofer/
 ├── .claude/               # Claude Code configuration
 │   ├── agents/            # Parallel AI agents (locator, analyzer, pattern-finder)
 │   └── commands/          # Gofer pipeline commands (0_business_scenario - 6_gofer_validate)
-│       └── archive/       # Archived legacy commands (speckit/, rpi/)
 ├── .specify/              # Gofer feature development
 │   ├── specs/             # Feature specifications
 │   ├── templates/         # Document templates

@@ -44,7 +44,7 @@ will be persisted programmatically using the memory system.
 
 #### Pattern 1: Sequential Question Flow with Recommendations
 
-Found in: `.claude/commands/archive/speckit/speckit.clarify.md:95-129`
+Found in: `.claude/commands/commands/0_business_scenario.md:95-129`
 
 ```markdown
 4. Sequential questioning loop (interactive):
@@ -68,7 +68,7 @@ recommendations and acceptance shortcuts.
 
 #### Pattern 2: Options with Implications Table
 
-Found in: `.claude/commands/archive/speckit/speckit.specify.md:139-146`
+Found in: `.claude/commands/commands/2_gofer_specify.md:139-146`
 
 ```markdown
 **What we need to know**: [Specific question]
@@ -87,7 +87,7 @@ choices.
 
 #### Pattern 3: Ambiguity Taxonomy for Coverage
 
-Found in: `.claude/commands/archive/speckit/speckit.clarify.md:28-79`
+Found in: `.claude/commands/commands/0_business_scenario.md:28-79`
 
 ```markdown
 Perform a structured ambiguity & coverage scan using this taxonomy:

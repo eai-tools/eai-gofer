@@ -80,9 +80,9 @@ describe('TerminalManager', () => {
       vi.mocked(vscode.window.createTerminal).mockReturnValue(mockTerminal);
 
       const terminal = await terminalManager.createTerminal('Test');
-      await terminalManager.sendCommand(terminal.terminalId, '/speckit.implement');
+      await terminalManager.sendCommand(terminal.terminalId, '/5_gofer_implement');
 
-      expect(mockTerminal.sendText).toHaveBeenCalledWith('/speckit.implement');
+      expect(mockTerminal.sendText).toHaveBeenCalledWith('/5_gofer_implement');
     });
 
     it('should track current command in terminal state', async () => {
@@ -262,7 +262,7 @@ describe('TerminalManager', () => {
       vi.mocked(vscode.window.createTerminal).mockReturnValue(mockTerminal);
 
       const terminal = await terminalManager.createTerminal('Test');
-      await terminalManager.sendCommand(terminal.terminalId, '/speckit.implement');
+      await terminalManager.sendCommand(terminal.terminalId, '/5_gofer_implement');
 
       // Clear mock call history
       mockTerminal.sendText.mockClear();
@@ -270,7 +270,7 @@ describe('TerminalManager', () => {
       await terminalManager.restartTerminal(terminal.terminalId);
 
       // Should have resent the last command
-      expect(mockTerminal.sendText).toHaveBeenCalledWith('/speckit.implement');
+      expect(mockTerminal.sendText).toHaveBeenCalledWith('/5_gofer_implement');
     });
 
     it('should throw error when restarting non-existent terminal', async () => {

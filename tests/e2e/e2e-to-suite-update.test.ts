@@ -38,7 +38,7 @@ test.describe('Gofer Brownfield Improvements', () => {
       'extension',
       'resources',
       'claude-commands',
-      'speckit.hydrate.md'
+      'gofer_hydrate.md'
     );
     expect(fs.existsSync(promptPath)).toBe(true);
 

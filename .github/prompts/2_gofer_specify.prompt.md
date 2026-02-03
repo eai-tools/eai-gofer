@@ -2,6 +2,7 @@
 name: 2_gofer_specify
 description: Create feature specification informed by codebase research
 agent: agent
+tools: ['search/codebase', 'terminal', 'editFile']
 argument-hint: The feature to specify (or continue from research)
 ---
 

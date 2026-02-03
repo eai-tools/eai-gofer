@@ -10,7 +10,7 @@ description: 'Task list template for feature implementation'
 research.md, data-model.md, contracts/
 
 **Note**: This template is filled in by `/4_gofer_tasks` (or legacy
-`/speckit.tasks`). Recommended: Use `/0_business_scenario` to auto-chain the
+`/4_gofer_tasks`). Recommended: Use `/0_business_scenario` to auto-chain the
 entire pipeline.
 
 **Tests**: The examples below include test tasks. Tests are OPTIONAL - only
@@ -36,7 +36,7 @@ implementation and testing of each story.
   ============================================================================
   IMPORTANT: The tasks below are SAMPLE TASKS for illustration purposes only.
 
-  The /4_gofer_tasks command (or legacy /speckit.tasks) MUST replace these
+  The /4_gofer_tasks command (or legacy /4_gofer_tasks) MUST replace these
   with actual tasks based on:
   - User stories from spec.md (with their priorities P1, P2, P3...)
   - Feature requirements from plan.md

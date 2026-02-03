@@ -405,7 +405,7 @@ export class ClaudeCodeAutonomousResponder {
 3. CONTINUE IMPLEMENTATION - If Claude needs explicit direction to keep going:
    - Respond with: ACTION: CONTINUE_IMPLEMENT
    - Use when: Claude might not know what to do next
-   - Sends: /speckit.implement`;
+   - Sends: /5_gofer_implement`;
 
       if (enableEngReview) {
         responseTypes += `
@@ -430,16 +430,16 @@ export class ClaudeCodeAutonomousResponder {
 
 6. WORKFLOW ROUTING - To transition between workflow phases:
    Gofer flow:
-   - ACTION: ROUTE_SPECKIT_SPECIFY - Start new specification
-   - ACTION: ROUTE_SPECKIT_PLAN - Move to planning phase
-   - ACTION: ROUTE_SPECKIT_TASKS - Generate tasks from plan
-   - ACTION: ROUTE_SPECKIT_IMPLEMENT - Begin implementation
+   - ACTION: ROUTE_GOFER_SPECIFY - Start new specification
+   - ACTION: ROUTE_GOFER_PLAN - Move to planning phase
+   - ACTION: ROUTE_GOFER_TASKS - Generate tasks from plan
+   - ACTION: ROUTE_GOFER_IMPLEMENT - Begin implementation
 
    RPI flow:
-   - ACTION: ROUTE_RPI_RESEARCH - Start codebase research
-   - ACTION: ROUTE_RPI_PLAN - Create implementation plan
-   - ACTION: ROUTE_RPI_IMPLEMENT - Execute the plan
-   - ACTION: ROUTE_RPI_RESUME - Resume saved session`;
+   - ACTION: ROUTE_GOFER_RESEARCH - Start codebase research
+   - ACTION: ROUTE_GOFER_PLAN - Create implementation plan
+   - ACTION: ROUTE_GOFER_IMPLEMENT - Execute the plan
+   - ACTION: ROUTE_GOFER_RESUME - Resume saved session`;
 
       // Determine Claude's work state from question field
       const isWorking = context.question.includes('WORKING');
@@ -663,9 +663,9 @@ If question found: Provide the answer (number only for multiple choice, clear te
 
         if (trimmedAnswer.includes('ACTION: CONTINUE_IMPLEMENT')) {
           this.outputChannel.appendLine('   🚀 Haiku decided: Continue implementation\n');
-          this.outputChannel.appendLine('   → Sending /speckit.implement command...\n');
-          await this.writeLog('DECISION: CONTINUE_IMPLEMENT - sending /speckit.implement');
-          return '/speckit.implement\n';
+          this.outputChannel.appendLine('   → Sending /5_gofer_implement command...\n');
+          await this.writeLog('DECISION: CONTINUE_IMPLEMENT - sending /5_gofer_implement');
+          return '/5_gofer_implement\n';
         }
 
         if (trimmedAnswer.includes('ACTION: ENGINEERING_REVIEW')) {
@@ -680,7 +680,7 @@ If question found: Provide the answer (number only for multiple choice, clear te
             await this.writeLog(
               'DECISION: ENGINEERING_REVIEW requested but disabled - falling back to CONTINUE_IMPLEMENT'
             );
-            return '/speckit.implement\n';
+            return '/5_gofer_implement\n';
           }
 
           this.outputChannel.appendLine('   🔍 Haiku decided: Engineering review needed\n');
@@ -716,7 +716,7 @@ Provide a brief summary of findings and recommendations for next steps.`
             await this.writeLog(
               'DECISION: PERFORMANCE_REVIEW requested but disabled - falling back to CONTINUE_IMPLEMENT'
             );
-            return '/speckit.implement\n';
+            return '/5_gofer_implement\n';
           }
 
           this.outputChannel.appendLine('   ⚡ Haiku decided: Performance review needed\n');
@@ -742,50 +742,50 @@ Provide specific, actionable recommendations.`
         }
 
         // Workflow routing actions - Gofer flow
-        if (trimmedAnswer.includes('ACTION: ROUTE_SPECKIT_SPECIFY')) {
+        if (trimmedAnswer.includes('ACTION: ROUTE_GOFER_SPECIFY')) {
           this.outputChannel.appendLine('   📝 Routing to Gofer: specify phase\n');
-          await this.writeLog('ROUTING: /speckit.specify');
-          return '/speckit.specify\n';
+          await this.writeLog('ROUTING: /2_gofer_specify');
+          return '/2_gofer_specify\n';
         }
 
-        if (trimmedAnswer.includes('ACTION: ROUTE_SPECKIT_PLAN')) {
+        if (trimmedAnswer.includes('ACTION: ROUTE_GOFER_PLAN')) {
           this.outputChannel.appendLine('   📋 Routing to Gofer: plan phase\n');
-          await this.writeLog('ROUTING: /speckit.plan');
-          return '/speckit.plan\n';
+          await this.writeLog('ROUTING: /3_gofer_plan');
+          return '/3_gofer_plan\n';
         }
 
-        if (trimmedAnswer.includes('ACTION: ROUTE_SPECKIT_TASKS')) {
+        if (trimmedAnswer.includes('ACTION: ROUTE_GOFER_TASKS')) {
           this.outputChannel.appendLine('   📊 Routing to Gofer: tasks phase\n');
-          await this.writeLog('ROUTING: /speckit.tasks');
-          return '/speckit.tasks\n';
+          await this.writeLog('ROUTING: /4_gofer_tasks');
+          return '/4_gofer_tasks\n';
         }
 
-        if (trimmedAnswer.includes('ACTION: ROUTE_SPECKIT_IMPLEMENT')) {
+        if (trimmedAnswer.includes('ACTION: ROUTE_GOFER_IMPLEMENT')) {
           this.outputChannel.appendLine('   🔨 Routing to Gofer: implement phase\n');
-          await this.writeLog('ROUTING: /speckit.implement');
-          return '/speckit.implement\n';
+          await this.writeLog('ROUTING: /5_gofer_implement');
+          return '/5_gofer_implement\n';
         }
 
         // Workflow routing actions - RPI flow
-        if (trimmedAnswer.includes('ACTION: ROUTE_RPI_RESEARCH')) {
+        if (trimmedAnswer.includes('ACTION: ROUTE_GOFER_RESEARCH')) {
           this.outputChannel.appendLine('   🔍 Routing to RPI: research phase\n');
           await this.writeLog('ROUTING: /1_research_codebase');
           return '/1_research_codebase\n';
         }
 
-        if (trimmedAnswer.includes('ACTION: ROUTE_RPI_PLAN')) {
+        if (trimmedAnswer.includes('ACTION: ROUTE_GOFER_PLAN')) {
           this.outputChannel.appendLine('   📋 Routing to RPI: create plan phase\n');
           await this.writeLog('ROUTING: /2_create_plan');
           return '/2_create_plan\n';
         }
 
-        if (trimmedAnswer.includes('ACTION: ROUTE_RPI_IMPLEMENT')) {
+        if (trimmedAnswer.includes('ACTION: ROUTE_GOFER_IMPLEMENT')) {
           this.outputChannel.appendLine('   🔨 Routing to RPI: implement plan phase\n');
           await this.writeLog('ROUTING: /4_implement_plan');
           return '/4_implement_plan\n';
         }
 
-        if (trimmedAnswer.includes('ACTION: ROUTE_RPI_RESUME')) {
+        if (trimmedAnswer.includes('ACTION: ROUTE_GOFER_RESUME')) {
           this.outputChannel.appendLine('   ▶️  Routing to RPI: resume work\n');
           await this.writeLog('ROUTING: /6_resume_work');
           return '/6_resume_work\n';

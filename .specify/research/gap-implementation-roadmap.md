@@ -8,9 +8,8 @@ implementation locations in the Gofer codebase
 ## Overview
 
 This document provides a detailed implementation guide for addressing the 10
-gaps identified in the
-[Gofer Gap Analysis](./gofer-gap-analysis-jan-2026.md). Each gap is
-mapped to:
+gaps identified in the [Gofer Gap Analysis](./gofer-gap-analysis-jan-2026.md).
+Each gap is mapped to:
 
 - **Files to modify** (existing commands, scripts, templates)
 - **Files to create** (new scripts, templates)
@@ -236,7 +235,7 @@ generic handlers).
 | File                  | Section to Add                         |
 | --------------------- | -------------------------------------- |
 | `6_gofer_validate.md` | Add "AI Slop Detection" in Step 3      |
-| `speckit.analyze.md`  | Add slop detection to Detection Passes |
+| `6_gofer_validate.md` | Add slop detection to Detection Passes |
 
 #### AI Slop Detection (for `6_gofer_validate.md`)
 

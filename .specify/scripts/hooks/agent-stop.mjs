@@ -21,6 +21,7 @@ import { randomUUID } from 'crypto';
 const PROJECT_DIR = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 const BRIDGE_PATH = join(PROJECT_DIR, '.specify', 'hooks', 'context-bridge.json');
 const MEMORY_PATH = join(PROJECT_DIR, '.specify', 'memory', 'local.json');
+const JSONL_PATH = join(PROJECT_DIR, '.specify', 'memory', 'memories.jsonl');
 const DEBUG_LOG = join(PROJECT_DIR, '.specify', 'hooks', 'hook-debug.log');
 const TAIL_BYTES = 50 * 1024; // 50KB to capture enough conversation
 
@@ -207,9 +208,24 @@ function extractLearnings(messages, sessionId) {
   return learnings.slice(0, MAX_NEW_MEMORIES_PER_TURN);
 }
 
+/**
+ * Map extraction category to cognitive memory type.
+ */
+function classifyMemoryType(category) {
+  switch (category) {
+    case 'decision': return 'decision';
+    case 'preference': return 'procedural';
+    case 'error_resolution': return 'episodic';
+    case 'file_knowledge': return 'semantic';
+    case 'pattern': return 'procedural';
+    default: return 'semantic';
+  }
+}
+
 function makeMemory(content, category, tags, sessionId, now) {
   return {
     id: randomUUID(),
+    type: classifyMemoryType(category),
     category,
     tags,
     scope: 'local',
@@ -218,6 +234,12 @@ function makeMemory(content, category, tags, sessionId, now) {
     lastUsed: now,
     usedCount: 0,
     learnedFrom: `session:${sessionId || 'unknown'}`,
+    source: {
+      sessionId: sessionId || undefined,
+      agentId: 'agent-stop-hook',
+    },
+    confidence: 70, // Auto-extracted memories start at 70% confidence
+    priorityIndex: category === 'decision' ? 3 : category === 'preference' ? 4 : 1,
   };
 }
 
@@ -446,7 +468,23 @@ function pruneMemories(memories, maxCount) {
 }
 
 /**
- * Write memories to local.json using StoredMemories format.
+ * Write memories as JSONL append (new JSONL backend).
+ * Also updates local.json for backward compatibility.
+ */
+function writeMemoriesJsonl(newMemories) {
+  try {
+    mkdirSync(dirname(JSONL_PATH), { recursive: true });
+    // Append new memories as JSONL lines
+    const lines = newMemories.map(m => JSON.stringify(m)).join('\n') + '\n';
+    appendFileSync(JSONL_PATH, lines, 'utf-8');
+    debug(`JSONL append: ${newMemories.length} memories written to memories.jsonl`);
+  } catch (err) {
+    debug(`JSONL write error: ${err.message}`);
+  }
+}
+
+/**
+ * Write memories to local.json using StoredMemories format (legacy compat).
  * Atomic write with tmp file + rename.
  */
 function writeMemories(memories) {
@@ -459,7 +497,7 @@ function writeMemories(memories) {
     const tmpPath = MEMORY_PATH + '.tmp';
     writeFileSync(tmpPath, JSON.stringify(data, null, 2));
     renameSync(tmpPath, MEMORY_PATH);
-    debug(`Memories written: count=${memories.length}`);
+    debug(`Memories written to local.json: count=${memories.length}`);
   } catch (err) {
     debug(`Memory write error: ${err.message}`);
   }
@@ -541,9 +579,13 @@ try {
       debug(`After dedup: ${deduped.length} new, ${existingMemories.length} existing`);
 
       if (deduped.length > 0) {
+        // Primary: append to JSONL (new backend)
+        writeMemoriesJsonl(deduped);
+
+        // Secondary: also write to local.json for backward compatibility
         const merged = pruneMemories([...existingMemories, ...deduped], MAX_TOTAL_MEMORIES);
         writeMemories(merged);
-        debug(`Memories saved: ${merged.length} total (${deduped.length} new)`);
+        debug(`Memories saved: JSONL=${deduped.length} new, local.json=${merged.length} total`);
       } else if (existingMemories.length > 0) {
         // Still write back to persist any lastUsed/usedCount updates from dedup
         writeMemories(existingMemories);

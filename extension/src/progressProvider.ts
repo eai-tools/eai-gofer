@@ -200,6 +200,7 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
   private specLoader: SpecLoader;
   private dependencyGraph: DependencyGraph;
   private workspacePath: string;
+  private isLoading: boolean = true;  // Start in loading state
 
   constructor(workspacePath: string, branchSpecManager?: any) {
     console.log(`[Gofer] ProgressProvider initialized for workspace: ${workspacePath}`);
@@ -208,12 +209,18 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
     this.parser = new GoferParser(workspacePath, branchSpecManager);
     this.specLoader = new SpecLoader(workspacePath);
     this.dependencyGraph = new DependencyGraph(workspacePath);
-    this.loadSpecs();
+    // Start loading and fire change event when done
+    this.loadSpecs().then(() => {
+      this._onDidChangeTreeData.fire();
+    });
   }
 
   refresh(): void {
-    this.loadSpecs();
-    this._onDidChangeTreeData.fire();
+    this.isLoading = true;
+    this._onDidChangeTreeData.fire();  // Show loading state immediately
+    this.loadSpecs().then(() => {
+      this._onDidChangeTreeData.fire();  // Update with results
+    });
   }
 
   getTreeItem(element: SpecItem): vscode.TreeItem {
@@ -222,7 +229,15 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
 
   async getChildren(element?: SpecItem): Promise<SpecItem[]> {
     if (!element) {
-      // Root level - check if .specify folder exists
+      // Root level - show loading state if still loading
+      if (this.isLoading) {
+        const loadingItem = new SpecItem('Loading specs...', vscode.TreeItemCollapsibleState.None);
+        loadingItem.iconPath = new vscode.ThemeIcon('sync~spin');
+        loadingItem.tooltip = `Loading specifications from ${this.workspacePath}`;
+        return [loadingItem];
+      }
+
+      // Check if .specify folder exists
       // If no .specify folder, return empty array to show welcome view with Initialize button
       if (this.loadError?.includes('.specify folder not found')) {
         return []; // Shows welcome view with "Initialize Gofer" button
@@ -290,6 +305,13 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
   }
 
   private async loadSpecs(): Promise<void> {
+    this.isLoading = true;
+
+    // Add timeout to prevent indefinite hanging
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('Loading specs timed out after 10 seconds')), 10000);
+    });
+
     try {
       // Check if .specify exists in this workspace
       const fs = require('fs').promises;
@@ -301,11 +323,15 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
       } catch (error) {
         this.loadError = `.specify folder not found in this workspace`;
         this.specs = [];
+        this.isLoading = false;
         console.log(`[Gofer] .specify folder not found at ${specifyPath}`);
         return;
       }
 
-      this.specs = await this.parser.loadAllSpecs();
+      this.specs = await Promise.race([
+        this.parser.loadAllSpecs(),
+        timeoutPromise,
+      ]);
       this.loadError = null;
       console.log(`[Gofer] Loaded ${this.specs.length} spec(s) from ${specifyPath}`);
 
@@ -335,10 +361,12 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
         const bCompleted = b.tasks.filter((t) => t.status === 'completed').length / b.tasks.length;
         return bCompleted - aCompleted;
       });
+      this.isLoading = false;
     } catch (error) {
       console.error('Error loading specs:', error);
       this.loadError = error instanceof Error ? error.message : 'Unknown error';
       this.specs = [];
+      this.isLoading = false;
     }
   }
 

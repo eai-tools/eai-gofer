@@ -361,11 +361,13 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
     });
 
     try {
-      // Check if .specify exists in this workspace
+      // Check if .specify and .specify/specs exist in this workspace
       const fs = require('fs').promises;
       const path = require('path');
       const specifyPath = path.join(this.workspacePath, '.specify');
+      const specsPath = path.join(specifyPath, 'specs');
 
+      // Check .specify folder exists
       try {
         await fs.access(specifyPath);
       } catch (error) {
@@ -375,14 +377,38 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
           this.specs = [];
           this.isLoading = false;
           console.log(`[Gofer] .specify folder not found at ${specifyPath} (sequence ${currentSequence})`);
-        } else {
-          console.log(`[Gofer] Ignoring stale load result (sequence ${currentSequence}, current ${this.loadSequence})`);
         }
         return;
       }
 
+      // Check .specify/specs folder exists
+      try {
+        await fs.access(specsPath);
+      } catch (error) {
+        // .specify exists but no specs folder - this is fine, show empty state
+        if (currentSequence === this.loadSequence) {
+          this.loadError = null;  // Not an error, just empty
+          this.specs = [];
+          this.isLoading = false;
+          console.log(`[Gofer] No specs folder at ${specsPath} (sequence ${currentSequence})`);
+        }
+        return;
+      }
+
+      // Wrap ALL async operations in the timeout (including dependency graph)
+      const loadAllWithDeps = async (): Promise<Spec[]> => {
+        const specs = await this.parser.loadAllSpecs();
+        // Load dependency graph (non-critical, catch errors)
+        try {
+          await this.loadDependencyGraph();
+        } catch (depError) {
+          console.warn(`[Gofer] Failed to load dependency graph:`, depError);
+        }
+        return specs;
+      };
+
       const loadedSpecs = await Promise.race([
-        this.parser.loadAllSpecs(),
+        loadAllWithDeps(),
         timeoutPromise,
       ]);
 
@@ -395,9 +421,6 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
       this.specs = loadedSpecs;
       this.loadError = null;
       console.log(`[Gofer] Loaded ${this.specs.length} spec(s) from ${specifyPath} (sequence ${currentSequence})`);
-
-      // T106: Load dependency graph from spec frontmatter
-      await this.loadDependencyGraph();
 
       // Sort specs by status and completion
       this.specs.sort((a, b) => {

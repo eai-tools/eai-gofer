@@ -250,7 +250,7 @@ export class SpecLoader {
       }
 
       return tasks;
-    } catch (error) {
+    } catch (_error) {
       // Tasks file is optional
       return [];
     }

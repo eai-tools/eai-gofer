@@ -93,23 +93,43 @@ export class GoferParser {
         });
         specsDirs = await Promise.race([getPathsPromise, timeoutPromise]);
       } else {
-        // Fallback to simple .specify/specs
+        // Fallback to simple .specify/specs with timeout protection
         console.log('[GoferParser] Reading specs directory directly...');
         const specsDir = path.join(this.workspacePath, '.specify', 'specs');
-        const entries = await fs.readdir(specsDir, { withFileTypes: true });
+
+        // Timeout for directory reading (2 seconds)
+        const readdirPromise = fs.readdir(specsDir, { withFileTypes: true });
+        const readdirTimeout = new Promise<never>((_, reject) => {
+          setTimeout(() => reject(new Error('readdir timed out')), 2000);
+        });
+        const entries = await Promise.race([readdirPromise, readdirTimeout]);
         specsDirs = entries.filter((e) => e.isDirectory()).map((e) => path.join(specsDir, e.name));
       }
       console.log(`[GoferParser] Found ${specsDirs.length} spec directories`);
+
+      // Early return if no specs
+      if (specsDirs.length === 0) {
+        console.log('[GoferParser] No spec directories found, returning empty');
+        return [];
+      }
     } catch (error) {
       console.error('[GoferParser] Failed to get specs directories:', error);
       return [];
     }
 
+    // Load specs with per-spec timeout (1 second each)
     const specs = await Promise.all(
       specsDirs.map(async (specPath) => {
         try {
           const specId = path.basename(specPath);
-          return await this.loadSpecFromPath(specId, specPath);
+          const loadPromise = this.loadSpecFromPath(specId, specPath);
+          const loadTimeout = new Promise<null>((resolve) => {
+            setTimeout(() => {
+              console.warn(`[GoferParser] Spec ${specId} load timed out`);
+              resolve(null);
+            }, 1000);
+          });
+          return await Promise.race([loadPromise, loadTimeout]);
         } catch (error) {
           console.error(`[GoferParser] Failed to load spec ${specPath}:`, error);
           return null;
@@ -381,7 +401,10 @@ export class GoferParser {
 
         // Remove inline tags from description for cleaner display
         // Note: Don't include taskId here as getTaskDescription() adds it in the tree view
-        const cleanDescription = fullDescription.replace(/\[P\]\s*/g, '').replace(/\[US\d+\]\s*/g, '').trim();
+        const cleanDescription = fullDescription
+          .replace(/\[P\]\s*/g, '')
+          .replace(/\[US\d+\]\s*/g, '')
+          .trim();
 
         currentTask = {
           id: taskId,

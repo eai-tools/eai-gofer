@@ -90,7 +90,7 @@ Test spec for language server.
     await fs.writeFile(join(TEST_WORKSPACE, '.specify/specs/test-spec/spec.md'), specContent);
 
     // Test GoferLoader
-    const { GoferLoader } = await import('../../../language-server/src/utils/specKitLoader.js');
+    const { GoferLoader } = await import('../../../language-server/src/utils/goferLoader.js');
 
     const loader = new GoferLoader(join(TEST_WORKSPACE, '.specify'));
     const specs = await loader.loadAllSpecs();

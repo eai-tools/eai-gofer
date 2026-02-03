@@ -69,7 +69,8 @@
       "Bash(do echo \"=== $branch ===\")",
       "Bash(git -C /Users/douglaswross/Code/gofer log --oneline --all -- \".claude/commands/0_business_scenario.md\")",
       "Bash(ls:*)",
-      "Bash(unzip:*)"
+      "Bash(unzip:*)",
+      "Bash(.specify/scripts/bash/check-context-health.sh:*)"
     ],
     "deny": [],
     "ask": []

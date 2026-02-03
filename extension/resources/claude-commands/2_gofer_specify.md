@@ -413,6 +413,150 @@ Items marked incomplete require spec updates before `/3_gofer_plan`
 
 ---
 
+## Step 5.5: Sequence Diagram Option Generation (Optional)
+
+**If a base journey exists** at `{FEATURE_DIR}/journeys/base-journey.md`:
+
+Generate 5 implementation options spanning the efficiency→innovation spectrum.
+
+### Load Option Templates
+
+Read `.specify/templates/sequence-diagrams/option-spectrum.yaml` for option definitions:
+
+- Option 1: Minimal (95% efficiency, 10% innovation)
+- Option 2: Efficient (80% efficiency, 30% innovation)
+- Option 3: Standard (60% efficiency, 50% innovation)
+- Option 4: Enhanced (40% efficiency, 70% innovation)
+- Option 5: Innovative (20% efficiency, 95% innovation)
+
+### Generate 5 Options
+
+For each option (1-5), create a sequence diagram file at:
+`{FEATURE_DIR}/sequence-diagrams/option-{N}-{name}.md`
+
+**Each option file should include:**
+
+```markdown
+---
+id: {feature}-option-{N}
+optionNumber: {N}
+name: {Option Name}
+efficiencyScore: {from template}
+innovationScore: {from template}
+complexityTarget: {from template}
+estimatedEffort: {from template}
+created: {ISO-timestamp}
+---
+
+# Sequence Diagram Option {N}: {Name}
+
+## Overview
+
+{Description from option-spectrum.yaml adapted to this feature}
+
+## Characteristics
+
+{List characteristics from template, adapted to feature context}
+
+## Actors
+
+| Actor | Role | System/Human |
+|-------|------|--------------|
+| {Actor 1} | {Role in this option} | {Type} |
+
+## Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant User
+    participant System
+    {Additional participants based on option complexity}
+
+    Note over User: Option {N} - {Name}
+
+    {Interactions appropriate to this option's complexity level}
+
+    {Gen AI touchpoints if applicable - highlighted in rect}
+```
+
+## Gen AI Touchpoints
+
+{List from template, or "None for this option" for Minimal}
+
+- **{Touchpoint 1}**: {How it applies to this feature}
+
+## Scores
+
+| Metric | Score |
+|--------|-------|
+| Efficiency | {score}% |
+| Innovation | {score}% |
+| Complexity | {low/medium/high} |
+
+## Estimated Effort
+
+{From template}
+
+## Risks
+
+{List risks from template, adapted to feature}
+
+## Trade-offs
+
+{Explain what you gain and lose with this option}
+```
+
+### Present Options for Selection
+
+After generating all 5 options, present them to the user via **AskUserQuestion**:
+
+```
+Question: "Which implementation option best fits your needs?"
+Header: "Option"
+Options:
+  1. "Option 1: Minimal" - "Fast delivery, basic functionality, no AI features"
+  2. "Option 2: Efficient" - "Good balance of speed and quality, minimal AI"
+  3. "Option 3: Standard (Recommended)" - "Full features, moderate AI integration"
+  4. "Option 4: Enhanced" - "Rich features, significant AI assistance"
+  5. "Option 5: Innovative" - "Cutting-edge, heavy AI/ML, longer timeline"
+```
+
+### Save Selection
+
+After user selects an option:
+
+1. **Copy selected option** to `{FEATURE_DIR}/sequence-diagrams/selected-option.md`
+2. **Add selection metadata** to the file header:
+   ```yaml
+   selected: true
+   selectedAt: {ISO-timestamp}
+   selectedBy: user
+   ```
+3. **Reference in spec.md** - Add section:
+   ```markdown
+   ## Selected Implementation Approach
+
+   **Option {N}: {Name}** was selected as the implementation approach.
+
+   - Efficiency Score: {score}%
+   - Innovation Score: {score}%
+   - Estimated Effort: {effort}
+
+   See `sequence-diagrams/selected-option.md` for full details.
+   ```
+
+### Skip Conditions
+
+Skip sequence diagram generation if:
+
+1. No base journey exists (user skipped journey mapping)
+2. Feature is purely technical infrastructure (no user-facing interactions)
+3. Context window is at Warning level (>50%)
+4. User explicitly opts out during journey confirmation
+
+---
+
 ## Step 6: Report and Continue
 
 After spec.md is complete:
@@ -426,6 +570,10 @@ Summary:
 - [N] Success Criteria
 
 Checklist: {FEATURE_DIR}/checklists/requirements.md
+
+{If sequence diagrams generated:}
+Sequence Diagrams: {FEATURE_DIR}/sequence-diagrams/
+Selected Option: Option {N} - {Name}
 
 Ready for next stage: /3_gofer_plan
 ```

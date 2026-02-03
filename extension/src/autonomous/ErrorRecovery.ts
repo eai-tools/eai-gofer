@@ -7,6 +7,8 @@
  * - Level 3: Send error + files + constitution rules
  *
  * After 3 failed attempts, escalates to user.
+ *
+ * Integrates with MemoryHookManager to store error recovery patterns.
  */
 
 import type {
@@ -17,6 +19,7 @@ import type {
   ErrorSeverity,
   ErrorEscalation,
 } from './types';
+import type { MemoryHookManager, ErrorRecoveryContext } from './MemoryHookManager';
 
 export class ErrorRecovery {
   // Retry delays in milliseconds (exponential backoff)
@@ -26,6 +29,9 @@ export class ErrorRecovery {
     level3: 60000, // 60 seconds
   };
 
+  /** Optional memory hook manager for storing error recovery patterns */
+  private memoryHookManager?: MemoryHookManager;
+
   /**
    * Constructor with optional retry delays (for testing)
    */
@@ -33,6 +39,13 @@ export class ErrorRecovery {
     if (retryDelays) {
       this.RETRY_DELAYS = retryDelays;
     }
+  }
+
+  /**
+   * Set the memory hook manager for error recovery pattern storage.
+   */
+  setMemoryHookManager(manager: MemoryHookManager): void {
+    this.memoryHookManager = manager;
   }
 
   // Error patterns for detection
@@ -177,6 +190,25 @@ export class ErrorRecovery {
 
         if (success) {
           error.recovered = true;
+
+          // Store error recovery pattern as memory (FR-011)
+          if (this.memoryHookManager) {
+            const recoveryContext: ErrorRecoveryContext = {
+              errorType: error.errorType,
+              errorMessage: error.errorMessage,
+              stackTrace: error.stackTrace ?? undefined,
+              recoverySteps: error.retryAttempts.map(
+                (a) => `Attempt ${a.attemptNumber}: ${a.strategy} - ${a.result}`
+              ),
+              whatWorked: `Strategy "${strategy}" resolved the error`,
+              affectedFiles: error.affectedFiles,
+            };
+            // Fire and forget - don't block on memory save
+            this.memoryHookManager.onErrorRecovery(recoveryContext).catch(() => {
+              // Ignore memory save failures
+            });
+          }
+
           return error;
         }
       } catch (err) {

@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document outlines the code quality standards and automated quality gates for the SpecGofer project.
+This document outlines the code quality standards and automated quality gates for the Gofer project.
 
 ## Quality Gates
 

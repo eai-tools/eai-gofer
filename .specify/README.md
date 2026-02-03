@@ -1,4 +1,4 @@
-# SpecGofer - Specification Directory
+# Gofer - Specification Directory
 
 This folder contains all project specifications for AI-driven feature development.
 
@@ -15,7 +15,7 @@ This folder contains all project specifications for AI-driven feature developmen
 ### Using VSCode Extension
 
 1. Open Command Palette (`Cmd/Ctrl+Shift+P`)
-2. Run: **"SpecGofer: Create New Specification"**
+2. Run: **"Gofer: Create New Specification"**
 3. Follow the prompts to create your feature spec
 
 ### Using Claude Code (Recommended)
@@ -59,6 +59,6 @@ AI agents validate code against the constitution before implementation.
 
 ## Learn More
 
-- **Full Documentation**: https://github.com/eai-tools/specgofer
+- **Full Documentation**: https://github.com/eai-tools/gofer
 - **AI Agent Guidelines**: See AGENTS.md in your project root
-- **SpecGofer Extension**: View specs and progress in VSCode sidebar
+- **Gofer Extension**: View specs and progress in VSCode sidebar

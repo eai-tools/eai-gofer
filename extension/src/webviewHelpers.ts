@@ -5,7 +5,7 @@ import * as path from 'path';
  * Open a markdown file with the user's preferred viewer
  */
 async function openMarkdownFile(uri: vscode.Uri): Promise<void> {
-  const config = vscode.workspace.getConfiguration('specGofer');
+  const config = vscode.workspace.getConfiguration('gofer');
   const viewer = config.get<string>('markdownViewer', 'preview');
 
   await openMarkdownFileWith(uri, viewer);

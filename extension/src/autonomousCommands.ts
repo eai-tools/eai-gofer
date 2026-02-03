@@ -2,10 +2,10 @@
  * Autonomous Execution Command Handlers
  *
  * Implements VSCode commands for autonomous execution:
- * - eaiGofer.startAutonomous
- * - eaiGofer.stopAutonomous
- * - eaiGofer.pauseAutonomous
- * - eaiGofer.resumeAutonomous
+ * - gofer.startAutonomous
+ * - gofer.stopAutonomous
+ * - gofer.pauseAutonomous
+ * - gofer.resumeAutonomous
  */
 
 import * as vscode from 'vscode';
@@ -21,11 +21,36 @@ import {
   CompletionReport,
 } from './autonomous';
 import { MemoryManager } from './autonomous/MemoryManager';
+import { ContextBuilder } from './autonomous/ContextBuilder';
 import {
   ClaudeCodeAutonomousResponder,
   QuestionContext,
 } from './autonomous/ClaudeCodeAutonomousResponder';
 import type { ProgressProvider } from './progressProvider';
+
+// Shared singleton instances (set from extension.ts)
+let sharedMemoryManager: MemoryManager | undefined;
+let sharedContextBuilder: ContextBuilder | undefined;
+
+/** Set the shared MemoryManager instance */
+export function setSharedMemoryManager(mm: MemoryManager): void {
+  sharedMemoryManager = mm;
+}
+
+/** Set the shared ContextBuilder instance */
+export function setSharedContextBuilder(cb: ContextBuilder): void {
+  sharedContextBuilder = cb;
+}
+
+/** Get the shared MemoryManager (for testing) */
+export function getSharedMemoryManager(): MemoryManager | undefined {
+  return sharedMemoryManager;
+}
+
+/** Get the shared ContextBuilder (for testing) */
+export function getSharedContextBuilder(): ContextBuilder | undefined {
+  return sharedContextBuilder;
+}
 
 // Global driver instance (singleton)
 let activeDriver: AutonomousDriver | null = null;
@@ -124,7 +149,7 @@ export async function startAutonomousExecution(
   }
 
   // Get configuration
-  const config = vscode.workspace.getConfiguration('eaiGofer.autonomous');
+  const config = vscode.workspace.getConfiguration('gofer.autonomous');
   const options: DriverOptions = {
     enableParallelTester: false, // User Story 2 feature
     showTerminals: config.get('showTerminals', true),
@@ -144,7 +169,7 @@ export async function startAutonomousExecution(
 
   // Create output channel
   if (!outputChannel) {
-    outputChannel = vscode.window.createOutputChannel('EAI-GOFER Autonomous');
+    outputChannel = vscode.window.createOutputChannel('Gofer Autonomous');
   }
   outputChannel.show();
 
@@ -154,8 +179,8 @@ export async function startAutonomousExecution(
   const dateStr = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
   logFilePath = path.join(logsDir, `autonomous-${dateStr}.log`);
 
-  // Create memory manager instance
-  const memoryManager = new MemoryManager(context, workspacePath);
+  // Use shared MemoryManager instance (set from extension.ts) or create fallback
+  const memoryManager = sharedMemoryManager ?? new MemoryManager(context, workspacePath);
 
   // Create driver instance
   activeDriver = new AutonomousDriver(workspacePath, progressProvider, memoryManager, options);
@@ -185,7 +210,7 @@ export async function startAutonomousExecution(
     await vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
-        title: `EAI-GOFER: Starting ${spec.title}...`,
+        title: `Gofer: Starting ${spec.title}...`,
         cancellable: false,
       },
       async () => {
@@ -357,7 +382,7 @@ function handleError(error: DriverError): void {
 
   // Show notification
   vscode.window
-    .showErrorMessage(`EAI-GOFER Autonomous: ${error.message}`, 'View Logs')
+    .showErrorMessage(`Gofer Autonomous: ${error.message}`, 'View Logs')
     .then((selection) => {
       if (selection === 'View Logs' && outputChannel) {
         outputChannel.show();
@@ -542,7 +567,7 @@ async function checkDependenciesBeforeExecution(
 
               if (depSpec) {
                 // Execute the dependency spec (recursive call)
-                await vscode.commands.executeCommand('eaiGofer.startAutonomous', depSpec);
+                await vscode.commands.executeCommand('gofer.startAutonomous', depSpec);
                 successCount++;
 
                 // Update status to completed in graph
@@ -550,7 +575,7 @@ async function checkDependenciesBeforeExecution(
               }
             } catch (error) {
               failedCount++;
-              console.error(`[EAI-GOFER] Failed to execute dependency ${depId}:`, error);
+              console.error(`[Gofer] Failed to execute dependency ${depId}:`, error);
             }
           }
         }
@@ -643,34 +668,34 @@ function determineInitialCommand(specId: string, workspacePath: string): string 
  * Launch Claude Code in integrated VSCode terminal
  */
 export async function launchClaudeCode(specId: string): Promise<void> {
-  console.log('[EAI-GOFER] launchClaudeCode called for:', specId);
+  console.log('[Gofer] launchClaudeCode called for:', specId);
 
   // Create output channel FIRST - before any try/catch
   // Use a simpler name without spaces to ensure it appears in dropdown
   if (!outputChannel) {
-    console.log('[EAI-GOFER] Creating new output channel');
-    outputChannel = vscode.window.createOutputChannel('EAI-GOFER-ClaudeCode');
-    console.log('[EAI-GOFER] Output channel created:', outputChannel);
+    console.log('[Gofer] Creating new output channel');
+    outputChannel = vscode.window.createOutputChannel('Gofer-ClaudeCode');
+    console.log('[Gofer] Output channel created:', outputChannel);
   }
 
   // Clear previous content and show (don't preserve focus so it's visible)
-  console.log('[EAI-GOFER] Clearing and showing output channel');
+  console.log('[Gofer] Clearing and showing output channel');
   outputChannel.clear();
   outputChannel.show(false); // Don't preserve focus - make it visible
   outputChannel.appendLine('='.repeat(80));
-  outputChannel.appendLine(`EAI-GOFER Claude Code Launcher`);
+  outputChannel.appendLine(`Gofer Claude Code Launcher`);
   outputChannel.appendLine(`Spec ID: ${specId}`);
   outputChannel.appendLine(`Time: ${new Date().toISOString()}`);
   outputChannel.appendLine('='.repeat(80));
-  console.log('[EAI-GOFER] Output channel content written');
+  console.log('[Gofer] Output channel content written');
 
   // Reset paused state when starting new Claude Code session
   isAutonomousMonitoringPaused = false;
-  await vscode.commands.executeCommand('setContext', 'eaigofer.autonomousMonitoringPaused', false);
+  await vscode.commands.executeCommand('setContext', 'gofer.autonomousMonitoringPaused', false);
 
   try {
     outputChannel.appendLine('[1/6] Setting context for Claude Code running...');
-    await vscode.commands.executeCommand('setContext', 'eaigofer.claudeCodeRunning', true);
+    await vscode.commands.executeCommand('setContext', 'gofer.claudeCodeRunning', true);
 
     // Get workspace path
     const workspacePath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '';
@@ -681,7 +706,7 @@ export async function launchClaudeCode(specId: string): Promise<void> {
     outputChannel.appendLine('[2/6] Creating terminal...');
 
     // Initialize autonomous responder first if enabled
-    const config = vscode.workspace.getConfiguration('eaiGofer');
+    const config = vscode.workspace.getConfiguration('gofer');
     const autonomousMode = config.get<boolean>('autonomousMode', true);
     const apiKey = config.get<string>('anthropicApiKey', '');
 
@@ -690,6 +715,31 @@ export async function launchClaudeCode(specId: string): Promise<void> {
       await autonomousResponder.initializeLogFile(workspacePath);
       outputChannel.appendLine('   ✓ Autonomous responder initialized');
       outputChannel.appendLine('   ✓ Debug logging enabled (check .specify/logs/)');
+    }
+
+    // Build enriched context before spawning (Spec 013 Phase 4 — T030-T032)
+    if (sharedContextBuilder) {
+      try {
+        const { ContextBridgeWriter } = await import('./autonomous/ContextBridgeWriter');
+        const bridgeWriter = new ContextBridgeWriter(sharedContextBuilder, workspacePath);
+        const taskContext = { taskId: 'T001', specId, description: `Execute spec ${specId}` };
+
+        // 500ms timeout to avoid delaying launch (T031)
+        await Promise.race([
+          bridgeWriter.writeEnrichedContext(taskContext),
+          new Promise<void>((_, reject) =>
+            setTimeout(() => reject(new Error('Context build timeout')), 500)
+          ),
+        ]);
+        outputChannel.appendLine('   ✓ Enriched context written to bridge file');
+      } catch (error) {
+        // Non-fatal: launch proceeds without enrichment (T032)
+        console.warn(
+          '[Gofer] Context enrichment skipped:',
+          error instanceof Error ? error.message : error
+        );
+        outputChannel.appendLine('   ⚠ Context enrichment skipped (non-fatal)');
+      }
     }
 
     // Spawn Claude Code process with node-pty
@@ -714,6 +764,26 @@ export async function launchClaudeCode(specId: string): Promise<void> {
         responder.addTerminalOutput(data);
       });
       outputChannel.appendLine('   ✓ Output capture enabled');
+    }
+
+    // Observation tracking: buffer terminal output and track as observations (Spec 013 T036-T037)
+    if (sharedContextBuilder) {
+      let observationBuffer = '';
+      const contextBuilder = sharedContextBuilder; // Capture for closure
+      ptyProcess.onData((data) => {
+        observationBuffer += data;
+        if (observationBuffer.length >= 2000) {
+          contextBuilder.trackObservation(
+            'command_output',
+            observationBuffer,
+            { source: 'claude-code-terminal', specId },
+            `Terminal output chunk (${observationBuffer.length} chars)`
+          );
+          contextBuilder.incrementTurn();
+          observationBuffer = '';
+        }
+      });
+      outputChannel.appendLine('   ✓ Observation tracking enabled');
     }
 
     ptyProcess.onExit(() => {
@@ -782,7 +852,7 @@ export async function launchClaudeCode(specId: string): Promise<void> {
       if (closedTerminal === claudeTerminal) {
         outputChannel?.appendLine(`\n[TERMINAL CLOSED] ${new Date().toISOString()}`);
         claudeTerminal = null;
-        await vscode.commands.executeCommand('setContext', 'eaigofer.claudeCodeRunning', false);
+        await vscode.commands.executeCommand('setContext', 'gofer.claudeCodeRunning', false);
         if (terminalCloseListener) {
           terminalCloseListener.dispose();
           terminalCloseListener = null;
@@ -847,7 +917,7 @@ export async function launchClaudeCode(specId: string): Promise<void> {
       }, 10000);
     } else if (autonomousMode && !apiKey) {
       outputChannel.appendLine('⚠️  Autonomous mode enabled but no API key configured');
-      outputChannel.appendLine('   Set eaiGofer.anthropicApiKey in VS Code settings to enable\n');
+      outputChannel.appendLine('   Set gofer.anthropicApiKey in VS Code settings to enable\n');
     } else {
       outputChannel.appendLine('ℹ️  Autonomous mode disabled');
       outputChannel.appendLine('   Questions will require manual input\n');
@@ -856,7 +926,7 @@ export async function launchClaudeCode(specId: string): Promise<void> {
     // Show success notification
     vscode.window
       .showInformationMessage(
-        `Claude Code started for "${specId}". Check OUTPUT → "EAI-GOFER-ClaudeCode" for progress.`,
+        `Claude Code started for "${specId}". Check OUTPUT → "Gofer-ClaudeCode" for progress.`,
         'Show Terminal',
         'Show Output'
       )
@@ -868,7 +938,7 @@ export async function launchClaudeCode(specId: string): Promise<void> {
         }
       });
   } catch (error) {
-    await vscode.commands.executeCommand('setContext', 'eaigofer.claudeCodeRunning', false);
+    await vscode.commands.executeCommand('setContext', 'gofer.claudeCodeRunning', false);
     const errorMessage = error instanceof Error ? error.message : String(error);
     outputChannel?.appendLine('\n' + '='.repeat(80));
     outputChannel?.appendLine(`ERROR: ${errorMessage}`);
@@ -1087,7 +1157,7 @@ export async function pauseClaudeCode(): Promise<void> {
   }
 
   if (!outputChannel) {
-    outputChannel = vscode.window.createOutputChannel('EAI-GOFER-ClaudeCode');
+    outputChannel = vscode.window.createOutputChannel('Gofer-ClaudeCode');
   }
 
   try {
@@ -1097,11 +1167,7 @@ export async function pauseClaudeCode(): Promise<void> {
 
     // Pause autonomous monitoring
     isAutonomousMonitoringPaused = true;
-    await vscode.commands.executeCommand(
-      'setContext',
-      'eaigofer.autonomousMonitoringPaused',
-      true
-    );
+    await vscode.commands.executeCommand('setContext', 'gofer.autonomousMonitoringPaused', true);
     outputChannel.appendLine('[PAUSE] Autonomous monitoring paused');
 
     vscode.window.showInformationMessage('Claude Code paused (terminal + autonomous monitoring)');
@@ -1122,17 +1188,13 @@ export async function resumeClaudeCode(): Promise<void> {
   }
 
   if (!outputChannel) {
-    outputChannel = vscode.window.createOutputChannel('EAI-GOFER-ClaudeCode');
+    outputChannel = vscode.window.createOutputChannel('Gofer-ClaudeCode');
   }
 
   try {
     // Resume autonomous monitoring
     isAutonomousMonitoringPaused = false;
-    await vscode.commands.executeCommand(
-      'setContext',
-      'eaigofer.autonomousMonitoringPaused',
-      false
-    );
+    await vscode.commands.executeCommand('setContext', 'gofer.autonomousMonitoringPaused', false);
     outputChannel.appendLine('[RESUME] Autonomous monitoring resumed');
 
     vscode.window.showInformationMessage('Claude Code autonomous monitoring resumed');
@@ -1152,7 +1214,17 @@ export async function stopClaudeCode(): Promise<void> {
 
   // Reset paused state
   isAutonomousMonitoringPaused = false;
-  await vscode.commands.executeCommand('setContext', 'eaigofer.autonomousMonitoringPaused', false);
+  await vscode.commands.executeCommand('setContext', 'gofer.autonomousMonitoringPaused', false);
+
+  // Kill pty process to release resources
+  if (ptyProcess) {
+    try {
+      ptyProcess.kill();
+    } catch {
+      // Process may already be dead
+    }
+    ptyProcess = null;
+  }
 
   if (claudeTerminal) {
     claudeTerminal.dispose();
@@ -1165,7 +1237,22 @@ export async function stopClaudeCode(): Promise<void> {
   if (autonomousResponder) {
     autonomousResponder = null;
   }
-  await vscode.commands.executeCommand('setContext', 'eaigofer.claudeCodeRunning', false);
+
+  // Clear active driver
+  if (activeDriver) {
+    activeDriver = null;
+  }
+
+  // Dispose output channel to free resources
+  if (outputChannel) {
+    outputChannel.dispose();
+    outputChannel = null;
+  }
+
+  // Clear log file path
+  logFilePath = null;
+
+  await vscode.commands.executeCommand('setContext', 'gofer.claudeCodeRunning', false);
   vscode.window.showInformationMessage('Claude Code stopped');
 }
 

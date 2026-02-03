@@ -2,8 +2,8 @@
 id: feature-001
 title: User Login System
 status: draft
-created: 2026-01-17
-updated: 2026-01-17
+created: 2026-01-30
+updated: 2026-01-30
 priority: medium
 assignee: engineer-agent
 ---

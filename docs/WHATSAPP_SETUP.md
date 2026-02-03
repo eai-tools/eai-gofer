@@ -25,9 +25,9 @@ WHATSAPP_PHONE_NUMBER=61412345678@c.us
   - US mobile: `12125551234@c.us`
   - UK mobile: `447911123456@c.us`
 
-### Step 2: Start SpecGofer
+### Step 2: Start Gofer
 
-Run the task: `▶️ Start SpecGofer (Autonomous Mode)`
+Run the task: `▶️ Start Gofer (Autonomous Mode)`
 
 ### Step 3: Scan QR Code (First Time Only)
 
@@ -59,19 +59,19 @@ You'll see:
 ```
 ✅ WhatsApp authenticated
 ✅ WhatsApp client is ready!
-▶️  Starting SpecGofer Autonomous Mode...
+▶️  Starting Gofer Autonomous Mode...
 ```
 
 ## Two-Way Communication 💬
 
-SpecGofer listens to your WhatsApp messages! You can:
+Gofer listens to your WhatsApp messages! You can:
 
 ### Ask for Status
 Send: `status`
 
 Receive:
 ```
-📊 SpecGofer Status
+📊 Gofer Status
 
 🎯 Current Task: T011
 📝 Create comprehensive Extension tests
@@ -83,20 +83,20 @@ Receive:
 Reply with:
 - "skip" to skip this task
 - "retry" to retry from scratch
-- "stop" to pause SpecGofer
+- "stop" to pause Gofer
 ```
 
-### Control SpecGofer
-- `stop` - Pause SpecGofer
+### Control Gofer
+- `stop` - Pause Gofer
 - `skip` - Skip current task
 - `retry` - Retry current task from scratch
 - `help` - Show all commands
 
 ### Provide Guidance
-When a task fails, SpecGofer will ask for help:
+When a task fails, Gofer will ask for help:
 
 ```
-❓ Question from SpecGofer
+❓ Question from Gofer
 
 Task "Create Extension tests" failed validation after 3 attempts.
 
@@ -119,11 +119,11 @@ You can reply with guidance:
 fix: Split the function into smaller helpers and add proper types
 ```
 
-SpecGofer will incorporate your feedback and retry!
+Gofer will incorporate your feedback and retry!
 
 ## How It Works
 
-SpecGofer uses `whatsapp-web.js` which:
+Gofer uses `whatsapp-web.js` which:
 1. Connects to WhatsApp Web (like desktop app)
 2. Authenticates once via QR code
 3. Saves session in `.wwebjs_auth/` folder
@@ -163,7 +163,7 @@ UK (+44): 447911123456@c.us (remove the 0)
 
 **"Authentication failed"?**
 - Delete `.wwebjs_auth/` folder
-- Run SpecGofer again
+- Run Gofer again
 - Scan QR code fresh
 
 **"Cannot find phone number"?**
@@ -199,7 +199,7 @@ Falls back to:
 
 Send yourself a test:
 ```bash
-# In SpecGofer code, trigger a test notification
+# In Gofer code, trigger a test notification
 # Or manually fail a task 3 times
 ```
 

@@ -43,10 +43,10 @@ describe('TerminalManager', () => {
       const vscode = await import('vscode');
       vi.mocked(vscode.window.createTerminal).mockReturnValue(mockTerminal);
 
-      const terminal = await terminalManager.createTerminal('SpecGofer: Engineer');
+      const terminal = await terminalManager.createTerminal('Gofer: Engineer');
 
       expect(vscode.window.createTerminal).toHaveBeenCalledWith({
-        name: 'SpecGofer: Engineer',
+        name: 'Gofer: Engineer',
         hideFromUser: false,
       });
       expect(terminal).toBeDefined();
@@ -58,7 +58,7 @@ describe('TerminalManager', () => {
       vi.mocked(vscode.window.createTerminal).mockReturnValue(mockTerminal);
 
       const startTime = Date.now();
-      await terminalManager.createTerminal('SpecGofer: Test');
+      await terminalManager.createTerminal('Gofer: Test');
       const duration = Date.now() - startTime;
 
       expect(duration).toBeLessThan(500);
@@ -68,9 +68,9 @@ describe('TerminalManager', () => {
       const vscode = await import('vscode');
       vi.mocked(vscode.window.createTerminal).mockReturnValue(mockTerminal);
 
-      const terminal = await terminalManager.createTerminal('SpecGofer: Engineer');
+      const terminal = await terminalManager.createTerminal('Gofer: Engineer');
 
-      expect(terminal.terminalName).toBe('SpecGofer: Engineer');
+      expect(terminal.terminalName).toBe('Gofer: Engineer');
       expect(terminal.isAlive).toBe(true);
       expect(terminal.createdAt).toBeDefined();
     });
@@ -123,7 +123,7 @@ describe('TerminalManager', () => {
   });
 
   describe('closeTerminal', () => {
-    it('should dispose terminal and update state', async () => {
+    it('should dispose terminal and remove state for garbage collection', async () => {
       const vscode = await import('vscode');
       vi.mocked(vscode.window.createTerminal).mockReturnValue(mockTerminal);
 
@@ -132,9 +132,9 @@ describe('TerminalManager', () => {
 
       expect(mockTerminal.dispose).toHaveBeenCalled();
 
+      // State should be removed entirely to allow garbage collection
       const state = terminalManager.getTerminalState(terminal.terminalId);
-      expect(state?.isAlive).toBe(false);
-      expect(state?.closedAt).toBeDefined();
+      expect(state).toBeUndefined();
     });
   });
 
@@ -152,8 +152,9 @@ describe('TerminalManager', () => {
       const terminal = await terminalManager.createTerminal('Test');
       await terminalManager.closeTerminal(terminal.terminalId);
 
+      // After closeTerminal, state is deleted entirely for GC (not just marked as not alive)
       await expect(terminalManager.sendCommand(terminal.terminalId, 'test')).rejects.toThrow(
-        `Terminal ${terminal.terminalId} is not alive`
+        `Terminal ${terminal.terminalId} not found`
       );
     });
 
@@ -242,14 +243,14 @@ describe('TerminalManager', () => {
       const vscode = await import('vscode');
       vi.mocked(vscode.window.createTerminal).mockReturnValue(mockTerminal);
 
-      const terminal = await terminalManager.createTerminal('SpecGofer: Engineer');
+      const terminal = await terminalManager.createTerminal('Gofer: Engineer');
       const oldTerminalId = terminal.terminalId;
 
       const newTerminal = await terminalManager.restartTerminal(oldTerminalId);
 
-      // Old terminal should be closed
+      // Old terminal should be fully cleaned up (removed from map for GC)
       const oldState = terminalManager.getTerminalState(oldTerminalId);
-      expect(oldState?.isAlive).toBe(false);
+      expect(oldState).toBeUndefined();
       expect(mockTerminal.dispose).toHaveBeenCalled();
 
       // New terminal should be alive

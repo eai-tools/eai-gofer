@@ -1,10 +1,10 @@
 # Configuration Documentation
 
-This document describes the configuration options for the SpecGofer Language Server.
+This document describes the configuration options for the Gofer Language Server.
 
 ## Overview
 
-The SpecGofer Language Server can be configured through VSCode settings, workspace settings, or environment variables. Configuration changes are applied dynamically without requiring a server restart.
+The Gofer Language Server can be configured through VSCode settings, workspace settings, or environment variables. Configuration changes are applied dynamically without requiring a server restart.
 
 ## VSCode Settings
 
@@ -15,11 +15,11 @@ The SpecGofer Language Server can be configured through VSCode settings, workspa
 
 
 {
-  "specgofer.debug": false,
-  "specgofer.logLevel": "info",
-  "specgofer.specDirectory": ".specify",
-  "specgofer.cacheEnabled": true,
-  "specgofer.maxCacheSize": 100
+  "gofer.debug": false,
+  "gofer.logLevel": "info",
+  "gofer.specDirectory": ".specify",
+  "gofer.cacheEnabled": true,
+  "gofer.maxCacheSize": 100
 }
 
 ```
@@ -33,12 +33,12 @@ The SpecGofer Language Server can be configured through VSCode settings, workspa
 
 
 {
-  "specgofer.server.path": "./language-server/dist/server.js",
-  "specgofer.server.options": {
+  "gofer.server.path": "./language-server/dist/server.js",
+  "gofer.server.options": {
     "execArgv": ["--max-old-space-size=4096"]
   },
-  "specgofer.trace.server": "off",
-  "specgofer.experimental.features": []
+  "gofer.trace.server": "off",
+  "gofer.experimental.features": []
 }
 
 ```
@@ -49,7 +49,7 @@ The SpecGofer Language Server can be configured through VSCode settings, workspa
 
 ### Core Settings
 
-#### `specgofer.debug`
+#### `gofer.debug`
 
 - **Type**: `boolean`
 
@@ -59,7 +59,7 @@ The SpecGofer Language Server can be configured through VSCode settings, workspa
 
 - **Example**: `true`
 
-#### `specgofer.logLevel`
+#### `gofer.logLevel`
 
 - **Type**: `string`
 
@@ -71,7 +71,7 @@ The SpecGofer Language Server can be configured through VSCode settings, workspa
 
 - **Example**: `"debug"`
 
-#### `specgofer.specDirectory`
+#### `gofer.specDirectory`
 
 - **Type**: `string`
 
@@ -83,7 +83,7 @@ The SpecGofer Language Server can be configured through VSCode settings, workspa
 
 ### Caching Settings
 
-#### `specgofer.cacheEnabled`
+#### `gofer.cacheEnabled`
 
 - **Type**: `boolean`
 
@@ -93,7 +93,7 @@ The SpecGofer Language Server can be configured through VSCode settings, workspa
 
 - **Example**: `false`
 
-#### `specgofer.maxCacheSize`
+#### `gofer.maxCacheSize`
 
 - **Type**: `number`
 
@@ -103,7 +103,7 @@ The SpecGofer Language Server can be configured through VSCode settings, workspa
 
 - **Example**: `50`
 
-#### `specgofer.cacheTtl`
+#### `gofer.cacheTtl`
 
 - **Type**: `number`
 
@@ -115,7 +115,7 @@ The SpecGofer Language Server can be configured through VSCode settings, workspa
 
 ### Server Settings
 
-#### `specgofer.server.path`
+#### `gofer.server.path`
 
 - **Type**: `string`
 
@@ -123,9 +123,9 @@ The SpecGofer Language Server can be configured through VSCode settings, workspa
 
 - **Description**: Path to the language server executable
 
-- **Example**: `"./node_modules/.bin/specgofer-server"`
+- **Example**: `"./node_modules/.bin/gofer-server"`
 
-#### `specgofer.server.options`
+#### `gofer.server.options`
 
 - **Type**: `object`
 
@@ -147,7 +147,7 @@ The SpecGofer Language Server can be configured through VSCode settings, workspa
 
 
 
-#### `specgofer.trace.server`
+#### `gofer.trace.server`
 
 - **Type**: `string`
 
@@ -161,7 +161,7 @@ The SpecGofer Language Server can be configured through VSCode settings, workspa
 
 ### MCP Integration
 
-#### `specgofer.mcp.enabled`
+#### `gofer.mcp.enabled`
 
 - **Type**: `boolean`
 
@@ -171,7 +171,7 @@ The SpecGofer Language Server can be configured through VSCode settings, workspa
 
 - **Example**: `false`
 
-#### `specgofer.mcp.toolTimeout`
+#### `gofer.mcp.toolTimeout`
 
 - **Type**: `number`
 
@@ -183,7 +183,7 @@ The SpecGofer Language Server can be configured through VSCode settings, workspa
 
 ### Validation Settings
 
-#### `specgofer.validation.enabled`
+#### `gofer.validation.enabled`
 
 - **Type**: `boolean`
 
@@ -193,7 +193,7 @@ The SpecGofer Language Server can be configured through VSCode settings, workspa
 
 - **Example**: `false`
 
-#### `specgofer.validation.strict`
+#### `gofer.validation.strict`
 
 - **Type**: `boolean`
 
@@ -203,7 +203,7 @@ The SpecGofer Language Server can be configured through VSCode settings, workspa
 
 - **Example**: `true`
 
-#### `specgofer.validation.customRules`
+#### `gofer.validation.customRules`
 
 - **Type**: `array`
 
@@ -230,7 +230,7 @@ The SpecGofer Language Server can be configured through VSCode settings, workspa
 
 ### Performance Settings
 
-#### `specgofer.performance.watchFiles`
+#### `gofer.performance.watchFiles`
 
 - **Type**: `boolean`
 
@@ -240,7 +240,7 @@ The SpecGofer Language Server can be configured through VSCode settings, workspa
 
 - **Example**: `false`
 
-#### `specgofer.performance.debounceMs`
+#### `gofer.performance.debounceMs`
 
 - **Type**: `number`
 
@@ -250,7 +250,7 @@ The SpecGofer Language Server can be configured through VSCode settings, workspa
 
 - **Example**: `1000`
 
-#### `specgofer.performance.maxFileSize`
+#### `gofer.performance.maxFileSize`
 
 - **Type**: `number`
 
@@ -314,12 +314,12 @@ Create `.vscode/settings.json` in your workspace:
 
 
 {
-  "specgofer.debug": true,
-  "specgofer.logLevel": "debug",
-  "specgofer.specDirectory": ".specs",
-  "specgofer.validation.strict": true,
-  "specgofer.mcp.enabled": true,
-  "specgofer.trace.server": "verbose"
+  "gofer.debug": true,
+  "gofer.logLevel": "debug",
+  "gofer.specDirectory": ".specs",
+  "gofer.validation.strict": true,
+  "gofer.mcp.enabled": true,
+  "gofer.trace.server": "verbose"
 }
 
 ```
@@ -335,12 +335,12 @@ Create `.vscode/settings.json` in your workspace:
 
 
 {
-  "specgofer.debug": true,
-  "specgofer.logLevel": "debug",
-  "specgofer.trace.server": "verbose",
-  "specgofer.validation.strict": true,
-  "specgofer.performance.watchFiles": true,
-  "specgofer.cacheEnabled": false
+  "gofer.debug": true,
+  "gofer.logLevel": "debug",
+  "gofer.trace.server": "verbose",
+  "gofer.validation.strict": true,
+  "gofer.performance.watchFiles": true,
+  "gofer.cacheEnabled": false
 }
 
 ```
@@ -354,13 +354,13 @@ Create `.vscode/settings.json` in your workspace:
 
 
 {
-  "specgofer.debug": false,
-  "specgofer.logLevel": "warn",
-  "specgofer.trace.server": "off",
-  "specgofer.validation.strict": false,
-  "specgofer.performance.watchFiles": true,
-  "specgofer.cacheEnabled": true,
-  "specgofer.maxCacheSize": 200
+  "gofer.debug": false,
+  "gofer.logLevel": "warn",
+  "gofer.trace.server": "off",
+  "gofer.validation.strict": false,
+  "gofer.performance.watchFiles": true,
+  "gofer.cacheEnabled": true,
+  "gofer.maxCacheSize": 200
 }
 
 ```
@@ -374,12 +374,12 @@ Create `.vscode/settings.json` in your workspace:
 
 
 {
-  "specgofer.cacheEnabled": true,
-  "specgofer.maxCacheSize": 500,
-  "specgofer.cacheTtl": 600000,
-  "specgofer.performance.debounceMs": 1000,
-  "specgofer.validation.enabled": false,
-  "specgofer.trace.server": "off"
+  "gofer.cacheEnabled": true,
+  "gofer.maxCacheSize": 500,
+  "gofer.cacheTtl": 600000,
+  "gofer.performance.debounceMs": 1000,
+  "gofer.validation.enabled": false,
+  "gofer.trace.server": "off"
 }
 
 ```
@@ -420,9 +420,9 @@ The server validates configuration on startup and change:
 
 
 {
-  "specgofer.logLevel": "debug",
-  "specgofer.maxCacheSize": 100,
-  "specgofer.specDirectory": ".specify"
+  "gofer.logLevel": "debug",
+  "gofer.maxCacheSize": 100,
+  "gofer.specDirectory": ".specify"
 }
 
 ```
@@ -436,9 +436,9 @@ The server validates configuration on startup and change:
 
 
 {
-  "specgofer.logLevel": "invalid-level",
-  "specgofer.maxCacheSize": "not-a-number",
-  "specgofer.specDirectory": 123
+  "gofer.logLevel": "invalid-level",
+  "gofer.maxCacheSize": "not-a-number",
+  "gofer.specDirectory": 123
 }
 
 ```
@@ -459,13 +459,13 @@ The server validates configuration on startup and change:
 
    ```json
    {
-     "specgofer.debug": true,
-     "specgofer.logLevel": "debug",
-     "specgofer.trace.server": "verbose"
+     "gofer.debug": true,
+     "gofer.logLevel": "debug",
+     "gofer.trace.server": "verbose"
    }
    ```
 
-2. Check Output panel: "SpecGofer Language Server"
+2. Check Output panel: "Gofer Language Server"
 
 3. Look for configuration-related errors:
 
@@ -479,7 +479,7 @@ The server validates configuration on startup and change:
 
 To reset to defaults:
 
-1. Remove all `specgofer.*` settings from settings.json
+1. Remove all `gofer.*` settings from settings.json
 2. Restart VSCode
 3. Settings will use default values
 
@@ -496,7 +496,7 @@ To reset to defaults:
 
 
 {
-  "specgofer.server.path": "./language-server/dist/server.js"
+  "gofer.server.path": "./language-server/dist/server.js"
 }
 
 ```
@@ -514,7 +514,7 @@ To reset to defaults:
 
 
 {
-  "specgofer.specDirectory": ".specify"
+  "gofer.specDirectory": ".specify"
 }
 
 ```
@@ -532,9 +532,9 @@ To reset to defaults:
 
 
 {
-  "specgofer.cacheEnabled": true,
-  "specgofer.maxCacheSize": 200,
-  "specgofer.performance.debounceMs": 1000
+  "gofer.cacheEnabled": true,
+  "gofer.maxCacheSize": 200,
+  "gofer.performance.debounceMs": 1000
 }
 
 ```
@@ -552,7 +552,7 @@ To reset to defaults:
 
 
 {
-  "specgofer.mcp.enabled": true
+  "gofer.mcp.enabled": true
 }
 
 ```
@@ -569,15 +569,15 @@ To reset to defaults:
 
 // Old configuration
 {
-  "specgofer.specsDir": "specs",
-  "specgofer.enableLogging": true
+  "gofer.specsDir": "specs",
+  "gofer.enableLogging": true
 }
 
 // New configuration
 {
-  "specgofer.specDirectory": "specs",
-  "specgofer.debug": true,
-  "specgofer.logLevel": "debug"
+  "gofer.specDirectory": "specs",
+  "gofer.debug": true,
+  "gofer.logLevel": "debug"
 }
 
 ```
@@ -586,9 +586,9 @@ To reset to defaults:
 
 ### Breaking Changes
 
-- `specgofer.specsDir` → `specgofer.specDirectory`
-- `specgofer.enableLogging` → `specgofer.debug`
-- `specgofer.verboseLogging` → `specgofer.logLevel: "debug"`
+- `gofer.specsDir` → `gofer.specDirectory`
+- `gofer.enableLogging` → `gofer.debug`
+- `gofer.verboseLogging` → `gofer.logLevel: "debug"`
 
 ## Configuration Schema
 
@@ -602,18 +602,18 @@ Full JSON schema for validation:
   "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "object",
   "properties": {
-    "specgofer.debug": {
+    "gofer.debug": {
       "type": "boolean",
       "default": false,
       "description": "Enable debug mode"
     },
-    "specgofer.logLevel": {
+    "gofer.logLevel": {
       "type": "string",
       "enum": ["debug", "info", "warn", "error"],
       "default": "info",
       "description": "Minimum log level"
     },
-    "specgofer.specDirectory": {
+    "gofer.specDirectory": {
       "type": "string",
       "default": ".specify",
       "description": "Specification directory"

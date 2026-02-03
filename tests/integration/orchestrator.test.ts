@@ -8,10 +8,10 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 // - src/orchestrator/SpecLoader.js
 
 // Placeholder types for skipped tests
-type AutonomousOrchestrator = any;
-type EngineerAgent = any;
-type TestAgent = any;
-type SpecLoader = any;
+type AutonomousOrchestrator = unknown;
+type EngineerAgent = unknown;
+type TestAgent = unknown;
+type SpecLoader = unknown;
 
 describe.skip('Orchestrator Integration', () => {
   let orchestrator: AutonomousOrchestrator;
@@ -57,15 +57,15 @@ describe.skip('Orchestrator Integration', () => {
       loadAllSpecs: vi.fn(),
       loadSpec: vi.fn(),
       specDir: '.specify/specs',
-      loadSpecKitSpecs: vi.fn(),
+      loadGoferSpecs: vi.fn(),
       parseSpecHeader: vi.fn(),
-      loadSpecKitSpec: vi.fn(),
+      loadGoferSpec: vi.fn(),
       parseTasks: vi.fn(),
       parseAcceptanceCriteria: vi.fn(),
       loadLegacyJsonSpecs: vi.fn(),
-      loadSpecKitTasks: vi.fn(),
+      loadGoferTasks: vi.fn(),
       saveSpec: vi.fn(),
-      saveSpecKitSpec: vi.fn(),
+      saveGoferSpec: vi.fn(),
       updateTasksMarkdown: vi.fn(),
       updateTaskStatus: vi.fn(),
     } as unknown as SpecLoader;

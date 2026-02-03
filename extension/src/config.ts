@@ -6,8 +6,8 @@ import * as vscode from 'vscode';
  */
 
 // Extension constants
-export const EXTENSION_NAME = 'eai-gofer';
-export const EXTENSION_DISPLAY_NAME = 'EAI-GOFER (Enterprise AI)';
+export const EXTENSION_NAME = 'gofer';
+export const EXTENSION_DISPLAY_NAME = 'Gofer (Enterprise AI)';
 // Read version from package.json to keep it in sync
 export const EXTENSION_VERSION = require('../../package.json').version;
 
@@ -25,56 +25,60 @@ export const GITHUB_REPO = 'gofer-templates';
 export const GITHUB_API_BASE = 'https://api.github.com';
 
 // Language Server constants
-export const LSP_SERVER_NAME = 'EAI-GOFER Language Server';
-export const LSP_SERVER_ID = 'eai-gofer-lsp';
+export const LSP_SERVER_NAME = 'Gofer Language Server';
+export const LSP_SERVER_ID = 'gofer-lsp';
 export const LSP_SERVER_EXECUTABLE = 'node';
 
 // MCP Tool names
 export const MCP_TOOLS = {
-  getSpecs: 'eaigofer_get_specs',
-  getNextTask: 'eaigofer_get_next_task',
-  executeTask: 'eaigofer_execute_task',
-  updateTaskStatus: 'eaigofer_update_task_status',
-  validateCode: 'eaigofer_validate_code',
-  runTests: 'eaigofer_run_tests',
+  getSpecs: 'gofer_get_specs',
+  getNextTask: 'gofer_get_next_task',
+  executeTask: 'gofer_execute_task',
+  updateTaskStatus: 'gofer_update_task_status',
+  validateCode: 'gofer_validate_code',
+  runTests: 'gofer_run_tests',
 } as const;
 
 // Commands
 export const COMMANDS = {
-  initialize: 'eaiGofer.initialize',
-  upgrade: 'eaiGofer.upgrade',
-  checkVersion: 'eaiGofer.checkVersion',
-  refreshSpecs: 'eaiGofer.refreshSpecs',
-  refreshConstitution: 'eaiGofer.refreshConstitution',
-  showProgress: 'eaiGofer.showProgress',
-  showConstitution: 'eaiGofer.showConstitution',
-  checkForUpdates: 'eaiGofer.checkForUpdates',
-  updateNow: 'eaiGofer.updateNow',
+  initialize: 'gofer.initialize',
+  upgrade: 'gofer.upgrade',
+  checkVersion: 'gofer.checkVersion',
+  refreshSpecs: 'gofer.refreshSpecs',
+  refreshConstitution: 'gofer.refreshConstitution',
+  showProgress: 'gofer.showProgress',
+  showConstitution: 'gofer.showConstitution',
+  checkForUpdates: 'gofer.checkForUpdates',
+  updateNow: 'gofer.updateNow',
 } as const;
 
 // View IDs
 export const VIEWS = {
-  progress: 'eaiGoferProgress',
-  constitution: 'eaiGoferConstitution',
-  memory: 'eaiGoferMemory',
+  progress: 'goferProgress',
+  constitution: 'goferConstitution',
+  memory: 'goferMemory',
   container: 'gofer',
 } as const;
 
 // Configuration keys
 export const CONFIG_KEYS = {
-  anthropicApiKey: 'eaiGofer.anthropicApiKey',
-  googleApiKey: 'eaiGofer.googleApiKey',
-  openaiApiKey: 'eaiGofer.openaiApiKey',
-  autoInitialize: 'eaiGofer.autoInitialize',
-  preferredAi: 'eaiGofer.preferredAI',
-  autoUpdateCheck: 'eaiGofer.autoUpdateCheck',
-  telemetryEnabled: 'eaiGofer.telemetryEnabled',
-  updateCheckInterval: 'eaiGofer.updateCheckInterval',
-  performanceMode: 'eaiGofer.performanceMode',
+  anthropicApiKey: 'gofer.anthropicApiKey',
+  googleApiKey: 'gofer.googleApiKey',
+  openaiApiKey: 'gofer.openaiApiKey',
+  claudeCodeMode: 'gofer.claudeCodeMode',
+  claudeCodeCommand: 'gofer.claudeCodeCommand',
+  autoInitialize: 'gofer.autoInitialize',
+  preferredAi: 'gofer.preferredAI',
+  autoUpdateCheck: 'gofer.autoUpdateCheck',
+  telemetryEnabled: 'gofer.telemetryEnabled',
+  updateCheckInterval: 'gofer.updateCheckInterval',
+  performanceMode: 'gofer.performanceMode',
 } as const;
 
 // Default values
 export const DEFAULTS = {
+  claudeCodeMode: 'standard' as const,
+  claudeCodeCommand: 'claude',
   autoInitialize: false,
   preferredAi: 'claude',
   autoUpdateCheck: true,
@@ -101,7 +105,7 @@ export class ConfigManager {
   private config: vscode.WorkspaceConfiguration;
 
   private constructor() {
-    this.config = vscode.workspace.getConfiguration('eaiGofer');
+    this.config = vscode.workspace.getConfiguration('gofer');
   }
 
   public static getInstance(): ConfigManager {
@@ -115,28 +119,57 @@ export class ConfigManager {
    * Refresh configuration (call when settings change)
    */
   public refresh(): void {
-    this.config = vscode.workspace.getConfiguration('eaiGofer');
+    this.config = vscode.workspace.getConfiguration('gofer');
   }
 
   /**
    * Get Anthropic API key
    */
   public getAnthropicApiKey(): string {
-    return this.config.get<string>(CONFIG_KEYS.anthropicApiKey.replace('eaiGofer.', ''), '') || '';
+    return this.config.get<string>(CONFIG_KEYS.anthropicApiKey.replace('gofer.', ''), '') || '';
   }
 
   /**
    * Get Google AI API key (for Gemini)
    */
   public getGoogleApiKey(): string {
-    return this.config.get<string>(CONFIG_KEYS.googleApiKey.replace('eaiGofer.', ''), '') || '';
+    return this.config.get<string>(CONFIG_KEYS.googleApiKey.replace('gofer.', ''), '') || '';
   }
 
   /**
    * Get OpenAI API key (for GPT)
    */
   public getOpenaiApiKey(): string {
-    return this.config.get<string>(CONFIG_KEYS.openaiApiKey.replace('eaiGofer.', ''), '') || '';
+    return this.config.get<string>(CONFIG_KEYS.openaiApiKey.replace('gofer.', ''), '') || '';
+  }
+
+  /**
+   * Get Claude Code launch mode
+   */
+  public getClaudeCodeMode(): 'standard' | 'yolo' | 'custom' {
+    return this.config.get<'standard' | 'yolo' | 'custom'>(
+      CONFIG_KEYS.claudeCodeMode.replace('gofer.', ''),
+      DEFAULTS.claudeCodeMode
+    );
+  }
+
+  /**
+   * Get the resolved Claude Code command based on mode setting
+   */
+  public getClaudeCodeCommand(): string {
+    const mode = this.getClaudeCodeMode();
+    switch (mode) {
+      case 'yolo':
+        return 'claude --dangerously-skip-permissions';
+      case 'custom':
+        return this.config.get<string>(
+          CONFIG_KEYS.claudeCodeCommand.replace('gofer.', ''),
+          DEFAULTS.claudeCodeCommand
+        );
+      case 'standard':
+      default:
+        return 'claude';
+    }
   }
 
   /**
@@ -144,7 +177,7 @@ export class ConfigManager {
    */
   public getAutoInitialize(): boolean {
     return this.config.get<boolean>(
-      CONFIG_KEYS.autoInitialize.replace('eaiGofer.', ''),
+      CONFIG_KEYS.autoInitialize.replace('gofer.', ''),
       DEFAULTS.autoInitialize
     );
   }
@@ -156,7 +189,7 @@ export class ConfigManager {
     value: boolean,
     target: vscode.ConfigurationTarget = vscode.ConfigurationTarget.Global
   ): Promise<void> {
-    await this.config.update(CONFIG_KEYS.autoInitialize.replace('eaiGofer.', ''), value, target);
+    await this.config.update(CONFIG_KEYS.autoInitialize.replace('gofer.', ''), value, target);
   }
 
   /**
@@ -164,7 +197,7 @@ export class ConfigManager {
    */
   public getPreferredAI(): string {
     return this.config.get<string>(
-      CONFIG_KEYS.preferredAi.replace('eaiGofer.', ''),
+      CONFIG_KEYS.preferredAi.replace('gofer.', ''),
       DEFAULTS.preferredAi
     );
   }
@@ -174,7 +207,7 @@ export class ConfigManager {
    */
   public getAutoUpdateCheck(): boolean {
     return this.config.get<boolean>(
-      CONFIG_KEYS.autoUpdateCheck.replace('eaiGofer.', ''),
+      CONFIG_KEYS.autoUpdateCheck.replace('gofer.', ''),
       DEFAULTS.autoUpdateCheck
     );
   }
@@ -184,7 +217,7 @@ export class ConfigManager {
    */
   public getTelemetryEnabled(): boolean {
     return this.config.get<boolean>(
-      CONFIG_KEYS.telemetryEnabled.replace('eaiGofer.', ''),
+      CONFIG_KEYS.telemetryEnabled.replace('gofer.', ''),
       DEFAULTS.telemetryEnabled
     );
   }
@@ -194,7 +227,7 @@ export class ConfigManager {
    */
   public getUpdateCheckInterval(): number {
     return this.config.get<number>(
-      CONFIG_KEYS.updateCheckInterval.replace('eaiGofer.', ''),
+      CONFIG_KEYS.updateCheckInterval.replace('gofer.', ''),
       DEFAULTS.updateCheckInterval
     );
   }
@@ -204,7 +237,7 @@ export class ConfigManager {
    */
   public getPerformanceMode(): 'fast' | 'balanced' | 'thorough' {
     return this.config.get<'fast' | 'balanced' | 'thorough'>(
-      CONFIG_KEYS.performanceMode.replace('eaiGofer.', ''),
+      CONFIG_KEYS.performanceMode.replace('gofer.', ''),
       DEFAULTS.performanceMode as 'balanced'
     );
   }

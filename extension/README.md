@@ -1,9 +1,9 @@
-# SpecGofer VSCode Extension
+# Gofer VSCode Extension
 
 **Transform any repository into a spec-driven development workspace with
 AI-powered automation.**
 
-SpecGofer is a VSCode extension that provides seamless integration with the
+Gofer is a VSCode extension that provides seamless integration with the
 spec-driven development system, enabling developers to manage specifications,
 track progress, and leverage AI assistance through Claude Code integration.
 
@@ -26,14 +26,13 @@ track progress, and leverage AI assistance through Claude Code integration.
 
 ### Smart Templates
 
-- **GitHub Integration**: Downloads latest Spec Kit templates from GitHub
-  releases
+- **GitHub Integration**: Downloads latest Gofer templates from GitHub releases
 - **Repository Initialization**: One-click setup of `.specify/` structure
-- **Template Updates**: Automatic checking and updating of Spec Kit templates
+- **Template Updates**: Automatic checking and updating of Gofer templates
 
 ### Advanced Features
 
-- **Legacy Migration**: Converts old JSON specs to modern GitHub Spec Kit format
+- **Legacy Migration**: Converts old JSON specs to modern GitHub Gofer format
 - **Branch-Specific Specs**: Automatically reloads specs when switching Git
   branches
 - **Real-time Updates**: File watching with automatic refresh of tree views
@@ -41,8 +40,8 @@ track progress, and leverage AI assistance through Claude Code integration.
 
 ### 🤖 Claude Code Terminal Integration (New!)
 
-SpecGofer now provides autonomous Claude Code execution with intelligent
-question handling:
+Gofer now provides autonomous Claude Code execution with intelligent question
+handling:
 
 #### Features
 
@@ -64,13 +63,13 @@ question handling:
 
 #### Commands
 
-- `SpecGofer: Start Claude Code Terminal` - Launch autonomous execution
-- `SpecGofer: Pause Claude Code Terminal` - Send ESC signal to pause execution
-- `SpecGofer: Stop Claude Code Terminal` - Stop current session
-- `SpecGofer: Configure WhatsApp Integration` - Setup WhatsApp notifications
-- `SpecGofer: Test WhatsApp Connection` - Verify Twilio configuration
-- `SpecGofer: Clear Memory Database` - Reset learned decision patterns
-- `SpecGofer: View Pending Escalations` - See questions waiting for response
+- `Gofer: Start Claude Code Terminal` - Launch autonomous execution
+- `Gofer: Pause Claude Code Terminal` - Send ESC signal to pause execution
+- `Gofer: Stop Claude Code Terminal` - Stop current session
+- `Gofer: Configure WhatsApp Integration` - Setup WhatsApp notifications
+- `Gofer: Test WhatsApp Connection` - Verify Twilio configuration
+- `Gofer: Clear Memory Database` - Reset learned decision patterns
+- `Gofer: View Pending Escalations` - See questions waiting for response
 
 #### Setup
 
@@ -83,7 +82,7 @@ question handling:
 2. **Configure Anthropic API Key** (required):
    - **Option 1 - VSCode Settings** (Recommended):
      1. Open Settings (Cmd+, or Ctrl+,)
-     2. Search for "SpecGofer: Anthropic Api Key"
+     2. Search for "Gofer: Anthropic Api Key"
      3. Enter your API key from
         [Anthropic Console](https://console.anthropic.com/settings/keys)
 
@@ -93,7 +92,7 @@ question handling:
      ```
 
 3. **Configure WhatsApp Integration** (optional):
-   - Run `SpecGofer: Configure WhatsApp Integration` from Command Palette
+   - Run `Gofer: Configure WhatsApp Integration` from Command Palette
    - Or set environment variables:
      ```bash
      export TWILIO_ACCOUNT_SID=your-account-sid
@@ -102,11 +101,11 @@ question handling:
      export WHATSAPP_PHONE_NUMBER=whatsapp:+1234567890
      ```
 
-4. **Launch**: Run `SpecGofer: Start Claude Code Terminal` from Command Palette
+4. **Launch**: Run `Gofer: Start Claude Code Terminal` from Command Palette
 
 #### How It Works
 
-1. **Terminal Launch**: SpecGofer launches Claude Code with your spec as context
+1. **Terminal Launch**: Gofer launches Claude Code with your spec as context
 2. **Output Monitoring**: Captures all terminal output in real-time using
    node-pty
 3. **Question Detection**: Pattern matching detects questions needing user input
@@ -120,7 +119,7 @@ question handling:
 
 ### 🏛️ LLM Council Mode (New!)
 
-SpecGofer supports an optional multi-LLM council pattern that enables parallel
+Gofer supports an optional multi-LLM council pattern that enables parallel
 execution across multiple AI providers for research and analysis workflows.
 
 #### Features
@@ -137,10 +136,10 @@ execution across multiple AI providers for research and analysis workflows.
 
 #### Setup
 
-1. **Configure API Keys** in VSCode Settings (Settings > SpecGofer):
-   - `specGofer.anthropicApiKey` - Anthropic (Claude) API key (required)
-   - `specGofer.googleApiKey` - Google (Gemini) API key (optional)
-   - `specGofer.openaiApiKey` - OpenAI API key (optional)
+1. **Configure API Keys** in VSCode Settings (Settings > Gofer):
+   - `gofer.anthropicApiKey` - Anthropic (Claude) API key (required)
+   - `gofer.googleApiKey` - Google (Gemini) API key (optional)
+   - `gofer.openaiApiKey` - OpenAI API key (optional)
 
 2. **Create Council Config** at `.specify/memory/council-config.yaml`:
 
@@ -163,7 +162,7 @@ execution across multiple AI providers for research and analysis workflows.
        enabled: true
    ```
 
-3. **View Status**: Run `SpecGofer: Show Council Status` from Command Palette
+3. **View Status**: Run `Gofer: Show Council Status` from Command Palette
 
 #### How It Works
 
@@ -176,7 +175,7 @@ execution across multiple AI providers for research and analysis workflows.
 
 ### MCP Tools for AI Assistants
 
-SpecGofer provides 6 Model Context Protocol (MCP) tools that AI assistants can
+Gofer provides 6 Model Context Protocol (MCP) tools that AI assistants can
 invoke:
 
 - **`specgofer_get_specs`** - Get all specifications and tasks
@@ -192,13 +191,13 @@ invoke:
 
 1. Open VS Code
 2. Go to Extensions (Ctrl+Shift+X / Cmd+Shift+X)
-3. Search for "SpecGofer"
+3. Search for "Gofer"
 4. Click "Install"
 
 ### Manual Installation
 
 1. Download the latest `.vsix` file from
-   [releases](https://github.com/eai-tools/specgofer/releases)
+   [releases](https://github.com/eai-tools/gofer/releases)
 2. Open VS Code
 3. Run command: `Extensions: Install from VSIX...`
 4. Select the downloaded `.vsix` file
@@ -206,8 +205,8 @@ invoke:
 ### Development Installation
 
 ```bash
-git clone https://github.com/eai-tools/specgofer.git
-cd specgofer/extension
+git clone https://github.com/eai-tools/gofer.git
+cd gofer/extension
 npm install
 npm run compile
 # Open VS Code and press F5 to launch Extension Development Host
@@ -219,14 +218,14 @@ npm run compile
 
 1. Open any workspace in VS Code
 2. Press `Ctrl+Shift+P` / `Cmd+Shift+P`
-3. Run: `SpecGofer: Initialize Repository`
+3. Run: `Gofer: Initialize Repository`
 4. The extension will create `.specify/` structure and download latest templates
 
 ### Using with Existing Specs
 
 1. Open a workspace containing a `.specify/` folder
 2. The extension automatically activates
-3. View specs in the "SpecGofer Progress" panel
+3. View specs in the "Gofer Progress" panel
 4. View constitution in the "Constitution" panel
 
 ### Claude Code Integration
@@ -237,14 +236,14 @@ The extension automatically configures Claude Code integration:
 2. The extension creates `.vscode/mcp.json` automatically
 3. Claude Code can now access MCP tools for spec management
 
-## 🤖 Autonomous Development with SpecGofer
+## 🤖 Autonomous Development with Gofer
 
-**SpecGofer autonomously drives Claude Code terminals to implement features
+**Gofer autonomously drives Claude Code terminals to implement features
 end-to-end without manual intervention.**
 
 ### How It Works
 
-Once you have a fully-specified feature (spec + plan + tasks), SpecGofer:
+Once you have a fully-specified feature (spec + plan + tasks), Gofer:
 
 1. **Spawns Claude Code Terminal**: Creates a terminal and sends
    `/speckit.implement` command
@@ -273,7 +272,7 @@ Once you have a fully-specified feature (spec + plan + tasks), SpecGofer:
 ┌─────────────────────────────────────────────────────────────────────┐
 │ YOU                                                                  │
 │  1. Create feature spec with plan and tasks                         │
-│  2. Click "▶️ Start Autonomous Implementation" in SpecGofer sidebar │
+│  2. Click "▶️ Start Autonomous Implementation" in Gofer sidebar │
 │  3. Go do something else                                            │
 └─────────────────────────────────────────────────────────────────────┘
                                 │
@@ -332,7 +331,7 @@ Once you have a fully-specified feature (spec + plan + tasks), SpecGofer:
 
 ### Decision-Making Hierarchy
 
-SpecGofer instructs Claude Code to follow this decision tree:
+Gofer instructs Claude Code to follow this decision tree:
 
 ```text
 Question: "How should I implement X?"
@@ -354,7 +353,7 @@ Question: "How should I implement X?"
     │
     ↓
 4. Escalate to You
-   - SpecGofer detects question in Claude's output
+   - Gofer detects question in Claude's output
    - Extracts options and trade-offs
    - Sends WhatsApp/VSCode notification
    - Waits for your response
@@ -366,8 +365,7 @@ Question: "How should I implement X?"
 
 Before starting autonomous development:
 
-- ✅ **SpecGofer Extension**: Installed and activated (`.specify/` folder
-  detected)
+- ✅ **Gofer Extension**: Installed and activated (`.specify/` folder detected)
 - ✅ **Claude Code**: Integrated via MCP (`.vscode/mcp.json` auto-created)
 - ✅ **Constitution**: `.specify/memory/constitution.md` exists with your
   principles
@@ -384,7 +382,7 @@ Before starting autonomous development:
 git checkout -b feature/user-authentication
 ```
 
-SpecGofer automatically detects branch-specific specs in:
+Gofer automatically detects branch-specific specs in:
 
 ```text
 .specify/branches/feature/user-authentication/specs/
@@ -392,7 +390,7 @@ SpecGofer automatically detects branch-specific specs in:
 
 #### 2. Define Your Specification
 
-Create or edit your spec using SpecGofer commands:
+Create or edit your spec using Gofer commands:
 
 **Option A: From Template**
 
@@ -488,7 +486,7 @@ Start with task #T001.
 
 #### 6. Monitor Progress in Real-Time
 
-SpecGofer shows live progress in the sidebar:
+Gofer shows live progress in the sidebar:
 
 ```text
 📋 Specifications
@@ -691,7 +689,7 @@ Completed all tasks in spec 001-user-authentication:
 - Rate limiting on auth endpoints
 - 94% test coverage (23/23 tasks)
 
-AI Agent: Claude Code via SpecGofer MCP
+AI Agent: Claude Code via Gofer MCP
 Constitution compliance: VERIFIED
 Manual review: PASSED"
 
@@ -959,15 +957,15 @@ Final validation:
 Ready for human review and PR creation.
 ```
 
-This is the power of SpecGofer-driven autonomous development: fully-specified
+This is the power of Gofer-driven autonomous development: fully-specified
 features become production-ready code with minimal human intervention.
 
 ## 📝 Markdown Viewing Options
 
-SpecGofer supports multiple ways to view and edit your specifications,
-constitution, and memory documents. By default, it uses VSCode's built-in
-markdown preview (read-only), but you can install WYSIWYG editors for a better
-editing experience.
+Gofer supports multiple ways to view and edit your specifications, constitution,
+and memory documents. By default, it uses VSCode's built-in markdown preview
+(read-only), but you can install WYSIWYG editors for a better editing
+experience.
 
 ### Available Viewers
 
@@ -1005,8 +1003,8 @@ editing experience.
 **Set Default Viewer:**
 
 1. Open VSCode Settings (`Cmd+,` or `Ctrl+,`)
-2. Search for `specGofer.markdownViewer` or just `markdown viewer`
-3. In the "SpecGofer: Markdown Viewer" dropdown, choose your preferred viewer:
+2. Search for `gofer.markdownViewer` or just `markdown viewer`
+3. In the "Gofer: Markdown Viewer" dropdown, choose your preferred viewer:
    - `preview` - VSCode's built-in preview (default)
    - `mark-sharp` - Mark Sharp WYSIWYG editor
    - `markdown-editor` - Markdown Editor by zaaack
@@ -1014,7 +1012,7 @@ editing experience.
 
 **Use Context Menu:**
 
-Right-click any item in the SpecGofer sidebar (Specifications, Constitution, or
+Right-click any item in the Gofer sidebar (Specifications, Constitution, or
 Memory) and choose:
 
 - **Open with Preview** - VSCode's built-in preview
@@ -1027,14 +1025,14 @@ changing your default setting.
 
 ## 📋 Commands
 
-| Command                                 | Keyboard Shortcut  | Description                                  |
-| --------------------------------------- | ------------------ | -------------------------------------------- |
-| `SpecGofer: Initialize Repository`      | `Ctrl+Shift+Alt+I` | Create `.specify/` structure with templates  |
-| `SpecGofer: Refresh Progress`           | `Ctrl+Shift+Alt+R` | Manually refresh spec and task views         |
-| `SpecGofer: Upgrade to Spec Kit Format` | -                  | Convert legacy JSON specs to Spec Kit format |
-| `SpecGofer: Update Templates`           | -                  | Download latest Spec Kit templates           |
-| `SpecGofer: Show Progress Panel`        | `Ctrl+Shift+Alt+P` | Open the progress tracking panel             |
-| `SpecGofer: Check for Updates`          | -                  | Check for extension and template updates     |
+| Command                          | Keyboard Shortcut  | Description                                 |
+| -------------------------------- | ------------------ | ------------------------------------------- |
+| `Gofer: Initialize Repository`   | `Ctrl+Shift+Alt+I` | Create `.specify/` structure with templates |
+| `Gofer: Refresh Progress`        | `Ctrl+Shift+Alt+R` | Manually refresh spec and task views        |
+| `Gofer: Upgrade to Gofer Format` | -                  | Convert legacy JSON specs to Gofer format   |
+| `Gofer: Update Templates`        | -                  | Download latest Gofer templates             |
+| `Gofer: Show Progress Panel`     | `Ctrl+Shift+Alt+P` | Open the progress tracking panel            |
+| `Gofer: Check for Updates`       | -                  | Check for extension and template updates    |
 
 ## How It Works
 
@@ -1066,27 +1064,27 @@ Configure the extension through VS Code settings:
 
 ```json
 {
-  "specGofer.markdownViewer": "preview",
-  "specGofer.autoRefresh": true,
-  "specGofer.showNotifications": true,
-  "specGofer.telemetryEnabled": false,
-  "specGofer.templateSource": "github",
-  "specGofer.updateCheckInterval": 86400000,
-  "specGofer.branchSpecificSpecs": true
+  "gofer.markdownViewer": "preview",
+  "gofer.autoRefresh": true,
+  "gofer.showNotifications": true,
+  "gofer.telemetryEnabled": false,
+  "gofer.templateSource": "github",
+  "gofer.updateCheckInterval": 86400000,
+  "gofer.branchSpecificSpecs": true
 }
 ```
 
 ### Settings Reference
 
-| Setting                         | Default     | Description                                                                        |
-| ------------------------------- | ----------- | ---------------------------------------------------------------------------------- |
-| `specGofer.markdownViewer`      | `"preview"` | Markdown viewer: "preview", "mark-sharp", "markdown-editor", or "markdown-wysiwyg" |
-| `specGofer.autoRefresh`         | `true`      | Auto-refresh panels on file changes                                                |
-| `specGofer.showNotifications`   | `true`      | Show update and status notifications                                               |
-| `specGofer.telemetryEnabled`    | `false`     | Enable anonymous usage analytics                                                   |
-| `specGofer.templateSource`      | `"github"`  | Template source: "github" or "bundled"                                             |
-| `specGofer.updateCheckInterval` | `86400000`  | Update check interval in milliseconds                                              |
-| `specGofer.branchSpecificSpecs` | `true`      | Reload specs when switching branches                                               |
+| Setting                     | Default     | Description                                                                        |
+| --------------------------- | ----------- | ---------------------------------------------------------------------------------- |
+| `gofer.markdownViewer`      | `"preview"` | Markdown viewer: "preview", "mark-sharp", "markdown-editor", or "markdown-wysiwyg" |
+| `gofer.autoRefresh`         | `true`      | Auto-refresh panels on file changes                                                |
+| `gofer.showNotifications`   | `true`      | Show update and status notifications                                               |
+| `gofer.telemetryEnabled`    | `false`     | Enable anonymous usage analytics                                                   |
+| `gofer.templateSource`      | `"github"`  | Template source: "github" or "bundled"                                             |
+| `gofer.updateCheckInterval` | `86400000`  | Update check interval in milliseconds                                              |
+| `gofer.branchSpecificSpecs` | `true`      | Reload specs when switching branches                                               |
 
 ## 🔧 Troubleshooting
 
@@ -1101,12 +1099,12 @@ Configure the extension through VS Code settings:
 #### Progress panel empty
 
 - Verify specs exist in `.specify/specs/`
-- Check spec files use valid GitHub Spec Kit format
-- Run "SpecGofer: Refresh Progress" command
+- Check spec files use valid GitHub Gofer format
+- Run "Gofer: Refresh Progress" command
 
 #### Language Server not starting
 
-- Check Output panel → "SpecGofer Language Server"
+- Check Output panel → "Gofer Language Server"
 - Ensure Node.js 18+ is installed
 - Try restarting VS Code
 
@@ -1124,11 +1122,10 @@ Configure the extension through VS Code settings:
 
 ### Getting Help
 
-1. **Check Logs**: View Output panel → "SpecGofer" channel
-2. **Report Issues**:
-   [GitHub Issues](https://github.com/eai-tools/specgofer/issues)
+1. **Check Logs**: View Output panel → "Gofer" channel
+2. **Report Issues**: [GitHub Issues](https://github.com/eai-tools/gofer/issues)
 3. **Documentation**:
-   [Full Documentation](https://github.com/eai-tools/specgofer/tree/main/docs)
+   [Full Documentation](https://github.com/eai-tools/gofer/tree/main/docs)
 
 ## 🏗️ Architecture
 
@@ -1140,7 +1137,7 @@ The extension works through a dual-protocol approach:
 │                    (VSCode 1.102+)                       │
 │                                                          │
 │  ┌──────────────┐         ┌────────────────────────┐   │
-│  │ Claude Code  │───MCP──→│ SpecGofer Extension     │   │
+│  │ Claude Code  │───MCP──→│ Gofer Extension     │   │
 │  │ or Copilot   │         │ (Language Server)       │   │
 │  └──────────────┘         └────────────────────────┘   │
 │                                     │                   │
@@ -1182,7 +1179,7 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
-- Built on [GitHub Spec Kit](https://github.com/github/spec-kit) format
+- Built on Gofer specification format
 - Inspired by spec-driven development principles
 - Powered by Claude AI through MCP integration
 
@@ -1195,9 +1192,9 @@ specifications.
 
 ### Language Server Protocol (LSP)
 
-SpecGofer runs a Language Server that:
+Gofer runs a Language Server that:
 
-- Parses GitHub Spec Kit Markdown files
+- Parses GitHub Gofer Markdown files
 - Manages spec and task state
 - Exposes MCP tools via experimental capabilities
 - Provides real-time updates to VSCode UI
@@ -1214,7 +1211,7 @@ MCP tools allow AI assistants to:
 
 ### Branch Awareness
 
-SpecGofer detects Git branch and shows branch-specific specs:
+Gofer detects Git branch and shows branch-specific specs:
 
 ```text
 .specify/
@@ -1227,15 +1224,15 @@ SpecGofer detects Git branch and shows branch-specific specs:
 ## Security
 
 - API keys managed by VSCode/AI extensions
-- No credentials stored by SpecGofer
+- No credentials stored by Gofer
 - MCP tools validate input for path traversal
 - Constitution validation is optional
 
 ## Support
 
 - **Documentation:** <https://github.com/eai-tools/specgofer>
-- **Issues:** <https://github.com/eai-tools/specgofer/issues>
-- **Discussions:** <https://github.com/eai-tools/specgofer/discussions>
+- **Issues:** <https://github.com/eai-tools/gofer/issues>
+- **Discussions:** <https://github.com/eai-tools/gofer/discussions>
 
 ## License
 

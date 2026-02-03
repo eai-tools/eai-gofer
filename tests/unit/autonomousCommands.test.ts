@@ -107,7 +107,7 @@ describe.skip('Autonomous Commands - Play/Stop Button State Management', () => {
     it('should create output channel on first launch', async () => {
       await launchClaudeCode('test-spec');
 
-      expect(mockCreateOutputChannel).toHaveBeenCalledWith('SpecGofer-ClaudeCode');
+      expect(mockCreateOutputChannel).toHaveBeenCalledWith('Gofer-ClaudeCode');
     });
 
     it('should create terminal with correct name', async () => {

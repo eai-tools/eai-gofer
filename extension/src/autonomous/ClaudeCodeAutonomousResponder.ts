@@ -387,7 +387,7 @@ export class ClaudeCodeAutonomousResponder {
       const fullContext = await this.loadContext(workspacePath, context.specId);
 
       // Read configuration settings
-      const config = vscode.workspace.getConfiguration('eaiGofer.autonomous');
+      const config = vscode.workspace.getConfiguration('gofer.autonomous');
       const enableEngReview = config.get<boolean>('enableEngineeringReview', true);
       const enablePerfReview = config.get<boolean>('enablePerformanceReview', true);
 
@@ -670,7 +670,7 @@ If question found: Provide the answer (number only for multiple choice, clear te
 
         if (trimmedAnswer.includes('ACTION: ENGINEERING_REVIEW')) {
           // Check if engineering review is enabled
-          const config = vscode.workspace.getConfiguration('eaiGofer.autonomous');
+          const config = vscode.workspace.getConfiguration('gofer.autonomous');
           const enableEngReview = config.get<boolean>('enableEngineeringReview', true);
 
           if (!enableEngReview) {
@@ -706,7 +706,7 @@ Provide a brief summary of findings and recommendations for next steps.`
 
         if (trimmedAnswer.includes('ACTION: PERFORMANCE_REVIEW')) {
           // Check if performance review is enabled
-          const config = vscode.workspace.getConfiguration('eaiGofer.autonomous');
+          const config = vscode.workspace.getConfiguration('gofer.autonomous');
           const enablePerfReview = config.get<boolean>('enablePerformanceReview', true);
 
           if (!enablePerfReview) {

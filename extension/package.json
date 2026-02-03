@@ -1,8 +1,8 @@
 {
-  "name": "eai-gofer",
-  "displayName": "EAI-GOFER (Enterprise AI) [PREVIEW]",
-  "description": "Spec-driven development for AI. Exposes 6 MCP tools that let Claude Code and GitHub Copilot autonomously implement features from GitHub Gofer specifications.",
-  "version": "4.5.0",
+  "name": "gofer",
+  "displayName": "Gofer (Enterprise AI) [PREVIEW]",
+  "description": "Spec-driven development for AI. Exposes 6 MCP tools that let Claude Code and GitHub Copilot autonomously implement features from specifications.",
+  "version": "1.0.3",
   "publisher": "EnterpriseAI",
   "icon": "icon.png",
   "author": {
@@ -39,207 +39,202 @@
   "contributes": {
     "commands": [
       {
-        "command": "eaiGofer.initialize",
-        "title": "EAI-GOFER: Initialize Repository",
+        "command": "gofer.initialize",
+        "title": "Gofer: Initialize Repository",
         "icon": "$(rocket)"
       },
       {
-        "command": "eaiGofer.upgrade",
-        "title": "EAI-GOFER: Upgrade to Gofer Format",
+        "command": "gofer.upgrade",
+        "title": "Gofer: Upgrade to Gofer Format",
         "icon": "$(arrow-up)"
       },
       {
-        "command": "eaiGofer.showProgress",
-        "title": "EAI-GOFER: Show Progress Panel",
+        "command": "gofer.showProgress",
+        "title": "Gofer: Show Progress Panel",
         "icon": "$(dashboard)"
       },
       {
-        "command": "eaiGofer.refreshSpecs",
-        "title": "EAI-GOFER: Refresh Specifications",
+        "command": "gofer.refreshSpecs",
+        "title": "Gofer: Refresh Specifications",
         "icon": "$(refresh)"
       },
       {
-        "command": "eaiGofer.checkForUpdates",
-        "title": "EAI-GOFER: Check for Updates",
+        "command": "gofer.checkForUpdates",
+        "title": "Gofer: Check for Updates",
         "icon": "$(cloud-download)"
       },
       {
-        "command": "eaiGofer.updateNow",
-        "title": "EAI-GOFER: Update Now",
+        "command": "gofer.updateNow",
+        "title": "Gofer: Update Now",
         "icon": "$(desktop-download)"
       },
       {
-        "command": "eaiGofer.refreshConstitution",
-        "title": "EAI-GOFER: Refresh Constitution",
+        "command": "gofer.refreshConstitution",
+        "title": "Gofer: Refresh Constitution",
         "icon": "$(refresh)"
       },
       {
-        "command": "eaiGofer.refreshMemory",
-        "title": "EAI-GOFER: Refresh Memory",
+        "command": "gofer.refreshMemory",
+        "title": "Gofer: Refresh Memory",
         "icon": "$(refresh)"
       },
       {
-        "command": "eaigofer.remember",
-        "title": "EAI-GOFER: Remember",
+        "command": "gofer.remember",
+        "title": "Gofer: Remember",
         "icon": "$(bookmark)"
       },
       {
-        "command": "eaigofer.searchMemory",
-        "title": "EAI-GOFER: Search Memory",
+        "command": "gofer.searchMemory",
+        "title": "Gofer: Search Memory",
         "icon": "$(search)"
       },
       {
-        "command": "eaigofer.forgetMemory",
-        "title": "EAI-GOFER: Forget Memory",
+        "command": "gofer.forgetMemory",
+        "title": "Gofer: Forget Memory",
         "icon": "$(trash)"
       },
       {
-        "command": "eaigofer.clearMemory",
-        "title": "EAI-GOFER: Clear Memory",
+        "command": "gofer.clearMemory",
+        "title": "Gofer: Clear Memory",
         "icon": "$(clear-all)"
       },
       {
-        "command": "eaigofer.viewMemories",
-        "title": "EAI-GOFER: View Memories",
+        "command": "gofer.viewMemories",
+        "title": "Gofer: View Memories",
         "icon": "$(library)"
       },
       {
-        "command": "eaigofer.viewCompactionHistory",
-        "title": "EAI-GOFER: View Compaction History",
+        "command": "gofer.viewCompactionHistory",
+        "title": "Gofer: View Compaction History",
         "icon": "$(history)"
       },
       {
-        "command": "eaigofer.createHintFile",
-        "title": "EAI-GOFER: Create Hint File",
+        "command": "gofer.createHintFile",
+        "title": "Gofer: Create Hint File",
         "icon": "$(new-file)"
       },
       {
-        "command": "eaiGofer.showConstitution",
-        "title": "EAI-GOFER: Show Constitution Panel",
+        "command": "gofer.showConstitution",
+        "title": "Gofer: Show Constitution Panel",
         "icon": "$(law)"
       },
       {
-        "command": "eaiGofer.updateTemplates",
-        "title": "EAI-GOFER: Update Templates",
+        "command": "gofer.updateTemplates",
+        "title": "Gofer: Update Templates",
         "icon": "$(cloud-download)"
       },
       {
-        "command": "eaiGofer.fixSpecPaths",
-        "title": "EAI-GOFER: Fix Spec Path References (specs/ → .specify/specs/)",
+        "command": "gofer.fixSpecPaths",
+        "title": "Gofer: Fix Spec Path References (specs/ → .specify/specs/)",
         "icon": "$(wrench)"
       },
       {
-        "command": "eaiGofer.openSpec",
-        "title": "EAI-GOFER: Open Specification",
+        "command": "gofer.openSpec",
+        "title": "Gofer: Open Specification",
         "icon": "$(file-text)"
       },
       {
-        "command": "eaiGofer.createSpec",
-        "title": "EAI-GOFER: Create New Specification",
+        "command": "gofer.createSpec",
+        "title": "Gofer: Create New Specification",
         "icon": "$(file-add)"
       },
       {
-        "command": "eaiGofer.showSpecDetails",
-        "title": "EAI-GOFER: Show Specification Details"
+        "command": "gofer.showSpecDetails",
+        "title": "Gofer: Show Specification Details"
       },
       {
-        "command": "eaiGofer.showSectionDetails",
-        "title": "EAI-GOFER: Show Constitution Section Details"
+        "command": "gofer.showSectionDetails",
+        "title": "Gofer: Show Constitution Section Details"
       },
       {
-        "command": "eaiGofer.showArticleDetails",
-        "title": "EAI-GOFER: Show Constitution Article Details"
+        "command": "gofer.showArticleDetails",
+        "title": "Gofer: Show Constitution Article Details"
       },
       {
-        "command": "eaiGofer.showMemoryDocument",
-        "title": "EAI-GOFER: Show Memory Document"
+        "command": "gofer.showMemoryDocument",
+        "title": "Gofer: Show Memory Document"
       },
       {
-        "command": "eaiGofer.showMemorySection",
-        "title": "EAI-GOFER: Show Memory Section"
+        "command": "gofer.showMemorySection",
+        "title": "Gofer: Show Memory Section"
       },
       {
-        "command": "eaiGofer.openWithPreview",
+        "command": "gofer.openWithPreview",
         "title": "Open with Preview"
       },
       {
-        "command": "eaiGofer.openWithMarkSharp",
+        "command": "gofer.openWithMarkSharp",
         "title": "Open with Mark Sharp"
       },
       {
-        "command": "eaiGofer.openWithMarkdownEditor",
+        "command": "gofer.openWithMarkdownEditor",
         "title": "Open with Markdown Editor"
       },
       {
-        "command": "eaiGofer.openWithMarkdownWYSIWYG",
+        "command": "gofer.openWithMarkdownWYSIWYG",
         "title": "Open with Markdown WYSIWYG"
       },
       {
-        "command": "eaiGofer.executeAllPendingSpecs",
-        "title": "EAI-GOFER: Execute All Pending Specs (Dependency Order)",
+        "command": "gofer.executeAllPendingSpecs",
+        "title": "Gofer: Execute All Pending Specs (Dependency Order)",
         "icon": "$(run-all)"
       },
       {
-        "command": "eaigofer.startClaudeCode",
-        "title": "EAI-GOFER: Start Claude Code Terminal",
+        "command": "gofer.startClaudeCode",
+        "title": "Gofer: Start Claude Code Terminal",
         "icon": "$(play)"
       },
       {
-        "command": "eaigofer.stopClaudeCode",
-        "title": "EAI-GOFER: Stop Claude Code Terminal",
+        "command": "gofer.stopClaudeCode",
+        "title": "Gofer: Stop Claude Code Terminal",
         "icon": "$(stop)"
       },
       {
-        "command": "eaigofer.pauseClaudeCode",
-        "title": "EAI-GOFER: Pause Claude Code Terminal (Send ESC)",
+        "command": "gofer.pauseClaudeCode",
+        "title": "Gofer: Pause Claude Code Terminal (Send ESC)",
         "icon": "$(debug-pause)"
       },
       {
-        "command": "eaigofer.resumeClaudeCode",
-        "title": "EAI-GOFER: Resume Claude Code Autonomous Monitoring",
+        "command": "gofer.resumeClaudeCode",
+        "title": "Gofer: Resume Claude Code Autonomous Monitoring",
         "icon": "$(play)"
       },
       {
-        "command": "eaigofer.clearMemory",
-        "title": "EAI-GOFER: Clear Memory Database",
-        "icon": "$(trash)"
-      },
-      {
-        "command": "eaiGofer.showCouncilStatus",
-        "title": "EAI-GOFER: Show LLM Council Status",
+        "command": "gofer.showCouncilStatus",
+        "title": "Gofer: Show LLM Council Status",
         "icon": "$(organization)"
       }
     ],
     "keybindings": [
       {
-        "command": "eaiGofer.initialize",
+        "command": "gofer.initialize",
         "key": "ctrl+shift+alt+i",
         "mac": "cmd+shift+alt+i",
         "when": "editorTextFocus || explorerResourceIsFolder"
       },
       {
-        "command": "eaiGofer.showProgress",
+        "command": "gofer.showProgress",
         "key": "ctrl+shift+alt+p",
         "mac": "cmd+shift+alt+p"
       },
       {
-        "command": "eaiGofer.refreshSpecs",
+        "command": "gofer.refreshSpecs",
         "key": "ctrl+shift+alt+r",
         "mac": "cmd+shift+alt+r"
       },
       {
-        "command": "eaiGofer.showConstitution",
+        "command": "gofer.showConstitution",
         "key": "ctrl+shift+alt+c",
         "mac": "cmd+shift+alt+c"
       },
       {
-        "command": "eaiGofer.createSpec",
+        "command": "gofer.createSpec",
         "key": "ctrl+shift+alt+n",
         "mac": "cmd+shift+alt+n",
         "when": "explorerResourceIsFolder"
       },
       {
-        "command": "eaiGofer.checkForUpdates",
+        "command": "gofer.checkForUpdates",
         "key": "ctrl+shift+alt+u",
         "mac": "cmd+shift+alt+u"
       }
@@ -248,7 +243,7 @@
       "activitybar": [
         {
           "id": "gofer",
-          "title": "EAI-GOFER - Enterprise AI",
+          "title": "Gofer - Enterprise AI",
           "icon": "$(notebook)"
         }
       ]
@@ -256,19 +251,19 @@
     "views": {
       "gofer": [
         {
-          "id": "eaiGoferProgress",
+          "id": "goferProgress",
           "name": "Specifications",
           "icon": "$(notebook)",
           "contextualTitle": "Gofer"
         },
         {
-          "id": "eaiGoferConstitution",
+          "id": "goferConstitution",
           "name": "Constitution",
           "icon": "$(law)",
           "contextualTitle": "Project Principles"
         },
         {
-          "id": "eaiGoferMemory",
+          "id": "goferMemory",
           "name": "Memory",
           "icon": "$(database)",
           "contextualTitle": "Project Memory"
@@ -277,159 +272,159 @@
     },
     "viewsWelcome": [
       {
-        "view": "eaiGoferProgress",
-        "contents": "Welcome to SpecGofer!\n\nNo .specify folder found in this workspace.\n\n[Initialize SpecGofer](command:eaiGofer.initialize)\n\nThis creates the folder structure for feature specifications, plans, and tasks."
+        "view": "goferProgress",
+        "contents": "Welcome to Gofer!\n\nNo .specify folder found in this workspace.\n\n[Initialize Gofer](command:gofer.initialize)\n\nThis creates the folder structure for feature specifications, plans, and tasks."
       }
     ],
     "menus": {
       "view/title": [
         {
-          "command": "eaiGofer.refreshSpecs",
-          "when": "view == eaiGoferProgress",
+          "command": "gofer.refreshSpecs",
+          "when": "view == goferProgress",
           "group": "navigation@1"
         },
         {
-          "command": "eaiGofer.updateNow",
-          "when": "view == eaiGoferProgress",
+          "command": "gofer.updateNow",
+          "when": "view == goferProgress",
           "group": "navigation@2"
         },
         {
-          "command": "eaiGofer.refreshConstitution",
-          "when": "view == eaiGoferConstitution",
+          "command": "gofer.refreshConstitution",
+          "when": "view == goferConstitution",
           "group": "navigation"
         },
         {
-          "command": "eaiGofer.refreshMemory",
-          "when": "view == eaiGoferMemory",
+          "command": "gofer.refreshMemory",
+          "when": "view == goferMemory",
           "group": "navigation"
         }
       ],
       "view/item/context": [
         {
-          "command": "eaiGofer.openWithPreview",
+          "command": "gofer.openWithPreview",
           "when": "viewItem == spec || viewItem == constitution-article || viewItem == constitution-section || viewItem == memory-document || viewItem == memory-section",
           "group": "openwith@1"
         },
         {
-          "command": "eaiGofer.openWithMarkSharp",
+          "command": "gofer.openWithMarkSharp",
           "when": "viewItem == spec || viewItem == constitution-article || viewItem == constitution-section || viewItem == memory-document || viewItem == memory-section",
           "group": "openwith@2"
         },
         {
-          "command": "eaiGofer.openWithMarkdownEditor",
+          "command": "gofer.openWithMarkdownEditor",
           "when": "viewItem == spec || viewItem == constitution-article || viewItem == constitution-section || viewItem == memory-document || viewItem == memory-section",
           "group": "openwith@3"
         },
         {
-          "command": "eaiGofer.openWithMarkdownWYSIWYG",
+          "command": "gofer.openWithMarkdownWYSIWYG",
           "when": "viewItem == spec || viewItem == constitution-article || viewItem == constitution-section || viewItem == memory-document || viewItem == memory-section",
           "group": "openwith@4"
         },
         {
-          "command": "eaigofer.startClaudeCode",
-          "when": "viewItem == spec && !eaigofer.claudeCodeRunning",
+          "command": "gofer.startClaudeCode",
+          "when": "viewItem == spec && !gofer.claudeCodeRunning",
           "group": "inline@2"
         },
         {
-          "command": "eaigofer.pauseClaudeCode",
-          "when": "viewItem == spec && eaigofer.claudeCodeRunning && !eaigofer.autonomousMonitoringPaused",
+          "command": "gofer.pauseClaudeCode",
+          "when": "viewItem == spec && gofer.claudeCodeRunning && !gofer.autonomousMonitoringPaused",
           "group": "inline@2"
         },
         {
-          "command": "eaigofer.resumeClaudeCode",
-          "when": "viewItem == spec && eaigofer.claudeCodeRunning && eaigofer.autonomousMonitoringPaused",
+          "command": "gofer.resumeClaudeCode",
+          "when": "viewItem == spec && gofer.claudeCodeRunning && gofer.autonomousMonitoringPaused",
           "group": "inline@2"
         },
         {
-          "command": "eaigofer.stopClaudeCode",
-          "when": "viewItem == spec && eaigofer.claudeCodeRunning",
+          "command": "gofer.stopClaudeCode",
+          "when": "viewItem == spec && gofer.claudeCodeRunning",
           "group": "inline@3"
         }
       ],
       "explorer/context": [
         {
-          "command": "eaiGofer.initialize",
-          "when": "explorerResourceIsFolder && !eaiGoferInitialized",
-          "group": "specgofer@1"
+          "command": "gofer.initialize",
+          "when": "explorerResourceIsFolder && !goferInitialized",
+          "group": "gofer@1"
         },
         {
-          "command": "eaiGofer.createSpec",
-          "when": "explorerResourceIsFolder && eaiGoferInitialized",
-          "group": "specgofer@2"
+          "command": "gofer.createSpec",
+          "when": "explorerResourceIsFolder && goferInitialized",
+          "group": "gofer@2"
         }
       ],
       "commandPalette": [
         {
-          "command": "eaiGofer.initialize",
-          "when": "!eaiGoferInitialized"
+          "command": "gofer.initialize",
+          "when": "!goferInitialized"
         },
         {
-          "command": "eaiGofer.showProgress",
-          "when": "eaiGoferInitialized"
+          "command": "gofer.showProgress",
+          "when": "goferInitialized"
         },
         {
-          "command": "eaiGofer.showConstitution",
-          "when": "eaiGoferInitialized"
+          "command": "gofer.showConstitution",
+          "when": "goferInitialized"
         },
         {
-          "command": "eaiGofer.refreshSpecs",
-          "when": "eaiGoferInitialized"
+          "command": "gofer.refreshSpecs",
+          "when": "goferInitialized"
         },
         {
-          "command": "eaiGofer.refreshConstitution",
-          "when": "eaiGoferInitialized"
+          "command": "gofer.refreshConstitution",
+          "when": "goferInitialized"
         },
         {
-          "command": "eaiGofer.upgrade",
-          "when": "eaiGoferInitialized"
+          "command": "gofer.upgrade",
+          "when": "goferInitialized"
         },
         {
-          "command": "eaiGofer.updateTemplates",
-          "when": "eaiGoferInitialized"
+          "command": "gofer.updateTemplates",
+          "when": "goferInitialized"
         },
         {
-          "command": "eaiGofer.createSpec",
-          "when": "eaiGoferInitialized"
+          "command": "gofer.createSpec",
+          "when": "goferInitialized"
         }
       ]
     },
     "configuration": {
-      "title": "SpecGofer",
+      "title": "Gofer",
       "properties": {
-        "eaiGofer.anthropicApiKey": {
+        "gofer.anthropicApiKey": {
           "type": "string",
           "default": "",
           "description": "Anthropic API Key for Claude (get yours at https://console.anthropic.com/settings/keys)",
           "markdownDescription": "Your Anthropic API key for Claude. [Get one here](https://console.anthropic.com/settings/keys). This is stored securely in VSCode settings and never shared.",
           "order": 0
         },
-        "eaiGofer.googleApiKey": {
+        "gofer.googleApiKey": {
           "type": "string",
           "default": "",
           "description": "Google AI API Key for Gemini (get yours at https://aistudio.google.com/apikey)",
           "markdownDescription": "Your Google AI API key for Gemini models. [Get one here](https://aistudio.google.com/apikey). Used by LLM Council feature for multi-provider execution.",
           "order": 1
         },
-        "eaiGofer.openaiApiKey": {
+        "gofer.openaiApiKey": {
           "type": "string",
           "default": "",
           "description": "OpenAI API Key for GPT models (get yours at https://platform.openai.com/api-keys)",
           "markdownDescription": "Your OpenAI API key for GPT models. [Get one here](https://platform.openai.com/api-keys). Used by LLM Council feature for multi-provider execution.",
           "order": 2
         },
-        "eaiGofer.autonomousMode": {
+        "gofer.autonomousMode": {
           "type": "boolean",
           "default": true,
           "description": "Enable autonomous question answering in Claude Code terminal",
-          "markdownDescription": "When enabled, SpecGofer will automatically answer Claude Code's questions using Claude 3.5 Haiku with full context (constitution, spec, tasks). Requires `eaiGofer.anthropicApiKey` to be set.",
+          "markdownDescription": "When enabled, Gofer will automatically answer Claude Code's questions using Claude 3.5 Haiku with full context (constitution, spec, tasks). Requires `gofer.anthropicApiKey` to be set.",
           "order": 1
         },
-        "eaiGofer.autoInitialize": {
+        "gofer.autoInitialize": {
           "type": "boolean",
           "default": false,
-          "description": "Automatically offer to initialize SpecGofer when opening a repository without it"
+          "description": "Automatically offer to initialize Gofer when opening a repository without it"
         },
-        "eaiGofer.preferredAI": {
+        "gofer.preferredAI": {
           "type": "string",
           "enum": [
             "claude",
@@ -439,22 +434,45 @@
           "default": "ask",
           "description": "Preferred AI tool when sending tasks (ask, claude, copilot)"
         },
-        "eaiGofer.claudeTerminalName": {
+        "gofer.claudeCodeMode": {
+          "type": "string",
+          "enum": [
+            "standard",
+            "yolo",
+            "custom"
+          ],
+          "enumDescriptions": [
+            "Standard mode — Claude Code asks for permission before executing tools",
+            "Yolo mode — Skip all permission prompts (--dangerously-skip-permissions)",
+            "Custom — Use the command specified in gofer.claudeCodeCommand"
+          ],
+          "default": "standard",
+          "description": "How to launch Claude Code from the status bar",
+          "markdownDescription": "Controls how Claude Code is launched from the status bar.\n\n- **Standard**: `claude` — asks for permission before tools\n- **Yolo**: `claude --dangerously-skip-permissions` — skips all prompts\n- **Custom**: Uses the command from `gofer.claudeCodeCommand`",
+          "order": 3
+        },
+        "gofer.claudeCodeCommand": {
+          "type": "string",
+          "default": "claude",
+          "description": "Custom command to launch Claude Code (only used when mode is 'custom')",
+          "markdownDescription": "Custom command used when `gofer.claudeCodeMode` is set to `custom`.\n\nExamples:\n- `claude-skip` (shell alias)\n- `/usr/local/bin/claude --flag` (full path with flags)"
+        },
+        "gofer.claudeTerminalName": {
           "type": "string",
           "default": "Claude",
           "description": "Name pattern to identify Claude Code terminals"
         },
-        "eaiGofer.autoValidate": {
+        "gofer.autoValidate": {
           "type": "boolean",
           "default": true,
           "description": "Automatically validate specs against constitution when creating/updating"
         },
-        "eaiGofer.showWelcome": {
+        "gofer.showWelcome": {
           "type": "boolean",
           "default": true,
           "description": "Show welcome message and quick start when initializing"
         },
-        "eaiGofer.markdownViewer": {
+        "gofer.markdownViewer": {
           "type": "string",
           "enum": [
             "preview",
@@ -472,13 +490,13 @@
           "description": "Choose how to view markdown files when clicking tree view items",
           "markdownDescription": "Choose how to view markdown files when clicking tree view items.\n\n**Recommended WYSIWYG Extensions:**\n- [Mark Sharp](https://marketplace.visualstudio.com/items?itemName=JonathanYeung.mark-sharp) - Fast & modern\n- [Markdown Editor](https://marketplace.visualstudio.com/items?itemName=zaaack.markdown-editor) - Feature-rich\n- [Markdown WYSIWYG](https://marketplace.visualstudio.com/items?itemName=adamerose.markdown-wysiwyg) - Simple"
         },
-        "eaiGofer.autonomous.showTerminals": {
+        "gofer.autonomous.showTerminals": {
           "type": "boolean",
           "default": true,
           "description": "Show Claude Code terminals during autonomous execution",
-          "markdownDescription": "Whether to show Claude Code terminals when SpecGofer runs autonomous implementation.\n\n- `true`: Terminals are visible (you can watch progress)\n- `false`: Terminals are hidden (cleaner UI)"
+          "markdownDescription": "Whether to show Claude Code terminals when Gofer runs autonomous implementation.\n\n- `true`: Terminals are visible (you can watch progress)\n- `false`: Terminals are hidden (cleaner UI)"
         },
-        "eaiGofer.autonomous.notificationChannel": {
+        "gofer.autonomous.notificationChannel": {
           "type": "string",
           "enum": [
             "vscode",
@@ -492,79 +510,79 @@
           ],
           "default": "vscode",
           "description": "How to receive notifications from autonomous execution",
-          "markdownDescription": "Choose how you want to receive notifications when SpecGofer needs your attention during autonomous execution.\n\n- `vscode`: Notification popups in VSCode (default)\n- `whatsapp`: Send messages to your phone (requires WhatsApp setup)\n- `email`: Send email notifications (requires email setup)"
+          "markdownDescription": "Choose how you want to receive notifications when Gofer needs your attention during autonomous execution.\n\n- `vscode`: Notification popups in VSCode (default)\n- `whatsapp`: Send messages to your phone (requires WhatsApp setup)\n- `email`: Send email notifications (requires email setup)"
         },
-        "eaiGofer.autonomous.whatsappPhoneNumber": {
+        "gofer.autonomous.whatsappPhoneNumber": {
           "type": "string",
           "default": "",
           "description": "WhatsApp phone number for notifications (format: +1234567890)",
           "markdownDescription": "Your WhatsApp phone number for receiving notifications.\n\n**Format**: Include country code with +, e.g., `+1234567890`\n\n**Note**: Requires WhatsApp to be set up and running."
         },
-        "eaiGofer.autonomous.emailAddress": {
+        "gofer.autonomous.emailAddress": {
           "type": "string",
           "default": "",
           "description": "Email address for notifications",
           "markdownDescription": "Your email address for receiving notifications from autonomous execution."
         },
-        "eaiGofer.autonomous.maxRetries": {
+        "gofer.autonomous.maxRetries": {
           "type": "number",
           "default": 3,
           "minimum": 1,
           "maximum": 5,
           "description": "Maximum number of retry attempts for errors (1-5)",
-          "markdownDescription": "How many times SpecGofer should retry when encountering recoverable errors.\n\n- **Default**: 3 retries with exponential backoff (10s, 30s, 60s)\n- **Minimum**: 1 (fail fast)\n- **Maximum**: 5 (very persistent)"
+          "markdownDescription": "How many times Gofer should retry when encountering recoverable errors.\n\n- **Default**: 3 retries with exponential backoff (10s, 30s, 60s)\n- **Minimum**: 1 (fail fast)\n- **Maximum**: 5 (very persistent)"
         },
-        "eaiGofer.autonomous.tokenWarningThreshold": {
+        "gofer.autonomous.tokenWarningThreshold": {
           "type": "number",
           "default": 150000,
           "description": "Show warning when context reaches this many tokens",
-          "markdownDescription": "Token count threshold for context window warnings.\n\n**Default**: 150,000 tokens (75% of Claude's 200K context)\n\nSpecGofer will show a warning when approaching this limit."
+          "markdownDescription": "Token count threshold for context window warnings.\n\n**Default**: 150,000 tokens (75% of Claude's 200K context)\n\nGofer will show a warning when approaching this limit."
         },
-        "eaiGofer.autonomous.tokenActionThreshold": {
+        "gofer.autonomous.tokenActionThreshold": {
           "type": "number",
           "default": 180000,
           "description": "Spawn new terminal when context reaches this many tokens",
-          "markdownDescription": "Token count threshold for spawning a new terminal with fresh context.\n\n**Default**: 180,000 tokens (90% of Claude's 200K context)\n\nSpecGofer will automatically create a new terminal with a context summary when this limit is reached."
+          "markdownDescription": "Token count threshold for spawning a new terminal with fresh context.\n\n**Default**: 180,000 tokens (90% of Claude's 200K context)\n\nGofer will automatically create a new terminal with a context summary when this limit is reached."
         },
-        "eaiGofer.autonomous.compactionThreshold": {
+        "gofer.autonomous.compactionThreshold": {
           "type": "number",
           "default": 80,
           "minimum": 50,
           "maximum": 95,
           "description": "Trigger context compaction at this percentage (50-95%)",
-          "markdownDescription": "Context window usage percentage that triggers automatic compaction.\n\n**Default**: 80% (160,000 tokens of 200K context)\n**Range**: 50-95%\n\nWhen context usage reaches this threshold, SpecGofer will automatically:\n1. Summarize completed tasks to free up space\n2. Preserve the last 10 tasks in full detail\n3. Reduce context by approximately 40-60%\n\n**Lower values** = more frequent compaction, smaller context\n**Higher values** = less frequent compaction, larger context"
+          "markdownDescription": "Context window usage percentage that triggers automatic compaction.\n\n**Default**: 80% (160,000 tokens of 200K context)\n**Range**: 50-95%\n\nWhen context usage reaches this threshold, Gofer will automatically:\n1. Summarize completed tasks to free up space\n2. Preserve the last 10 tasks in full detail\n3. Reduce context by approximately 40-60%\n\n**Lower values** = more frequent compaction, smaller context\n**Higher values** = less frequent compaction, larger context"
         },
-        "eaiGofer.autonomous.questionTimeout": {
+        "gofer.autonomous.questionTimeout": {
           "type": "number",
           "default": 300000,
           "description": "How long to wait for user response to questions (milliseconds)",
-          "markdownDescription": "How long SpecGofer should wait for your response when it asks a question.\n\n**Default**: 300,000 ms (5 minutes)\n\nAfter this timeout, execution will pause and you'll need to manually resume."
+          "markdownDescription": "How long Gofer should wait for your response when it asks a question.\n\n**Default**: 300,000 ms (5 minutes)\n\nAfter this timeout, execution will pause and you'll need to manually resume."
         },
-        "eaiGofer.autonomous.runFinalValidation": {
+        "gofer.autonomous.runFinalValidation": {
           "type": "boolean",
           "default": true,
           "description": "Run constitution validation check after implementation completes",
           "markdownDescription": "Whether to run a final validation check against the project constitution after completing implementation.\n\n- `true`: Run validation (recommended)\n- `false`: Skip validation (faster, but may miss issues)"
         },
-        "eaiGofer.autonomous.validateConstitution": {
+        "gofer.autonomous.validateConstitution": {
           "type": "boolean",
           "default": true,
           "description": "Validate implementation against constitution principles",
           "markdownDescription": "Whether to validate implementation against the project's constitutional principles.\n\n- `true`: Ensure compliance with constitution (recommended)\n- `false`: Skip constitution validation"
         },
-        "eaiGofer.autonomous.enableEngineeringReview": {
+        "gofer.autonomous.enableEngineeringReview": {
           "type": "boolean",
           "default": true,
           "description": "Enable proactive engineering reviews during implementation",
           "markdownDescription": "When enabled, Haiku will proactively request engineering reviews at strategic milestones (typically 40-80% completion).\n\n- `true`: Enable strategic reviews (recommended)\n- `false`: Disable reviews (faster, but may miss issues early)"
         },
-        "eaiGofer.autonomous.enablePerformanceReview": {
+        "gofer.autonomous.enablePerformanceReview": {
           "type": "boolean",
           "default": true,
           "description": "Enable proactive performance reviews during implementation",
           "markdownDescription": "When enabled, Haiku will proactively request performance and architecture reviews near completion (typically >70% completion).\n\n- `true`: Enable performance reviews (recommended)\n- `false`: Disable reviews (faster, but may miss optimizations)"
         },
-        "eaiGofer.autonomous.engineeringReviewMinCompletion": {
+        "gofer.autonomous.engineeringReviewMinCompletion": {
           "type": "number",
           "default": 40,
           "minimum": 0,
@@ -572,7 +590,7 @@
           "description": "Minimum completion % to trigger engineering review",
           "markdownDescription": "Engineering reviews will only be triggered when completion is at least this percentage.\n\n**Default**: 40% (early enough to catch issues)\n\n**Range**: 0-100%"
         },
-        "eaiGofer.autonomous.engineeringReviewMaxCompletion": {
+        "gofer.autonomous.engineeringReviewMaxCompletion": {
           "type": "number",
           "default": 80,
           "minimum": 0,
@@ -580,7 +598,7 @@
           "description": "Maximum completion % to trigger engineering review",
           "markdownDescription": "Engineering reviews will only be triggered when completion is below this percentage.\n\n**Default**: 80% (before polish phase)\n\n**Range**: 0-100%"
         },
-        "eaiGofer.autonomous.performanceReviewMinCompletion": {
+        "gofer.autonomous.performanceReviewMinCompletion": {
           "type": "number",
           "default": 70,
           "minimum": 0,
@@ -588,28 +606,28 @@
           "description": "Minimum completion % to trigger performance review",
           "markdownDescription": "Performance reviews will only be triggered when completion is at least this percentage.\n\n**Default**: 70% (when core features are done)\n\n**Range**: 0-100%"
         },
-        "eaiGofer.autonomous.engineeringReviewPrompt": {
+        "gofer.autonomous.engineeringReviewPrompt": {
           "type": "string",
           "default": "Please perform an engineering review of the work completed so far:\n\n1. Compare the implemented code against the original specification\n2. Identify any gaps or deviations from the spec\n3. Check if the implementation aligns with the constitution principles\n4. Verify that completed tasks match their requirements in tasks.md\n\nProvide a brief summary of findings and recommendations for next steps.",
           "description": "Custom prompt for engineering reviews",
           "markdownDescription": "The prompt sent to Claude Code when requesting an engineering review.\n\n**Default**: Asks Claude to compare implementation vs spec, identify gaps, check constitution alignment, and verify task completion.\n\n**Tip**: You can customize this to focus on specific aspects of your project (e.g., security, accessibility, API design).",
           "editPresentation": "multilineText"
         },
-        "eaiGofer.autonomous.performanceReviewPrompt": {
+        "gofer.autonomous.performanceReviewPrompt": {
           "type": "string",
           "default": "Please perform a performance and architecture analysis of the implementation:\n\n1. Review the code against current best practices for each technology used\n2. Identify potential performance bottlenecks or optimization opportunities\n3. Check for architectural patterns that could be improved\n4. Verify proper error handling and edge case coverage\n5. Suggest any improvements for maintainability and scalability\n\nProvide specific, actionable recommendations.",
           "description": "Custom prompt for performance reviews",
           "markdownDescription": "The prompt sent to Claude Code when requesting a performance review.\n\n**Default**: Asks Claude to review best practices, identify bottlenecks, check architecture, verify error handling, and suggest improvements.\n\n**Tip**: You can customize this to focus on specific aspects (e.g., database queries, API performance, memory usage).",
           "editPresentation": "multilineText"
         },
-        "eaiGofer.autonomous.haikuSystemPrompt": {
+        "gofer.autonomous.haikuSystemPrompt": {
           "type": "string",
           "default": "You are an autonomous development assistant managing Claude Code's feature implementation workflow.\n\nYou have access to:\n- The project constitution (principles and standards)\n- The feature specification\n- The implementation plan\n- The task list\n- The recent terminal output from Claude Code\n- Latest best practices (you should consider current industry standards)\n\nYour job is to monitor Claude Code and decide whether to interrupt based on the situation.\n\n{WORK_STATE}\n\nRESPONSE TYPES:\n\n{RESPONSE_TYPES}\n\nDECISION PRINCIPLES:\n- If there's a question, answer it first (takes priority)\n- Otherwise, decide next action based on completion percentage\n- Keep work moving forward efficiently\n- Reviews are checkpoints, not blockers - use them strategically\n- Always align with constitution, spec, and plan\n\nThe goal is to autonomously drive feature completion with quality checks at appropriate milestones.",
           "description": "System prompt for Haiku's decision-making",
           "markdownDescription": "The system prompt that instructs Haiku on how to make decisions.\n\n**Variables**: `{WORK_STATE}` (working vs idle state), `{RESPONSE_TYPES}` (available actions)\n\n**Tip**: You can customize this to change Haiku's decision-making behavior.\n\n**Warning**: Incorrect prompts may cause Haiku to make poor decisions.",
           "editPresentation": "multilineText"
         },
-        "eaiGofer.autonomous.haikuUserPromptTemplate": {
+        "gofer.autonomous.haikuUserPromptTemplate": {
           "type": "string",
           "default": "# Recent Terminal Output (last 20,000 characters):\n{terminalOutput}\n\n# Constitution:\n{constitution}\n\n# Specification:\n{spec}\n\n# Implementation Plan:\n{plan}\n\n# Tasks:\n{tasks}\n\n---\n\nANALYZE THE TERMINAL AND DECIDE NEXT ACTION:\n\n{workState}\n\n**Your response must be ONE of:**\n- A direct answer (number or text)\n- ACTION: NO_INTERRUPT\n- ACTION: CONTINUE_IMPLEMENT\n- ACTION: ENGINEERING_REVIEW\n- ACTION: PERFORMANCE_REVIEW\n\nDecide NOW:",
           "description": "User prompt template for Haiku with context",

@@ -282,7 +282,7 @@ describe('MCP Tools Integration', () => {
         'completed'
       );
       expect(mockConnection.sendNotification).toHaveBeenCalledWith(
-        'specGofer/taskProgress',
+        'gofer/taskProgress',
         expect.objectContaining({
           specId: '002-orchestrator',
           taskId: 'T004',

@@ -1,13 +1,13 @@
 ---
 description:
-  'Reverse-engineer a SpecKit specification from existing code (Hydration)'
+  'Reverse-engineer a Gofer specification from existing code (Hydration)'
 author: 'SpecGofer'
 ---
 
 # RPI Phase: Spec Hydration (Reverse Engineering)
 
 You are tasked with analyzing the existing codebase and generating a compliant
-**SpecKit 0.2** specification (`spec.md`) and task list (`tasks.md`) that
+**Gofer 0.2** specification (`spec.md`) and task list (`tasks.md`) that
 accurately reflects the current implementation.
 
 ## Context

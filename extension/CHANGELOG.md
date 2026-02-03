@@ -1,6 +1,41 @@
 # Changelog
 
-All notable changes to the SpecGofer extension will be documented in this file.
+All notable changes to the Gofer extension will be documented in this file.
+
+## [1.0.3] - 2026-01-27
+
+Fix: Sync missing bundled resources on Codespaces/new machines
+
+## [1.0.2] - 2026-01-26
+
+chore: pre-release changes
+
+Auto-committed changes before release v1.0.1
+
+## [1.0.1] - 2026-01-26
+
+chore: pre-release changes
+
+Auto-committed changes before release v1.0.0
+
+## [1.0.0] - 2026-01-26
+
+First major release: Consultative business discovery, memory leak fixes, script
+upgrade improvements
+
+## [0.0.9] - 2026-01-25
+
+Context health monitoring and integration
+
+## [4.6.1] - 2026-01-20
+
+fix: auto-reload VS Code after extension update
+
+## [4.6.0] - 2026-01-19
+
+Add Gofer Memory and Journey System - agentic memory with priority-based
+retention, interactive journey mapping, journey variant generation, multi-option
+sequence diagrams, and vertical slice delivery
 
 ## [4.5.0] - 2026-01-17
 
@@ -79,7 +114,7 @@ Fix buggy regex that corrupted copilot-instructions.md on upgrade
 
 ## [4.1.0] - 2026-01-08
 
-Replace external spec-kit CLI with bundled resources, add hydrate command
+Replace external gofer CLI with bundled resources, add hydrate command
 
 ## [4.0.1] - 2026-01-07
 
@@ -245,7 +280,7 @@ Auto-committed changes before release v3.0.34
 - **Debug logging for question detection** - Added comprehensive diagnostic
   logging to help troubleshoot why questions aren't being detected. Logs buffer
   size, last 5 lines, promptLine/lastLine values, and pattern matching results.
-  Check SpecGofer output channel for debug information when questions appear in
+  Check Gofer output channel for debug information when questions appear in
   Claude Code terminal. (ClaudeCodeAutonomousResponder.ts:162-261)
 
 ## [3.0.30] - 2025-11-04
@@ -498,7 +533,7 @@ Auto-committed changes before release v2.0.4
 - Fixed path reference updating during upgrade (content-based, no file moving)
 - Fixed missing `showTaskDetails` command registration that caused 'command not
   found' error when clicking tasks
-- Kept Claude commands in `.claude/commands/` per SpecGofer convention
+- Kept Claude commands in `.claude/commands/` per Gofer convention
 - Auto-fixes `specs/` references to `.specify/specs/` in upgrade process
 - Fixed version detection to read from package.json instead of hardcoded value
 
@@ -615,7 +650,7 @@ Auto-committed changes before release v1.12.8
 
 ## [1.12.8] - 2025-10-26
 
-Fix Initialize command to always trigger update flow for spec-kit format
+Fix Initialize command to always trigger update flow for gofer format
 
 ## [1.12.7] - 2025-10-26
 
@@ -637,12 +672,12 @@ Auto-committed changes before release v1.12.4
 
 ## [1.12.4] - 2025-10-26
 
-Complete SpecKit setup: bash scripts, Claude commands, VSCode settings + debug
+Complete Gofer setup: bash scripts, Claude commands, VSCode settings + debug
 logging
 
 ## [1.12.3] - 2025-10-26
 
-Fix fallback setup when spec-kit CLI fails + improve release automation
+Fix fallback setup when gofer CLI fails + improve release automation
 
 ## [1.11.0] - 2025-10-25
 
@@ -804,7 +839,7 @@ Auto-release
 
 ### Fixed
 
-- Task parser regex now supports multiple GitHub Spec Kit task formats
+- Task parser regex now supports multiple GitHub Gofer task formats
 - MCP configuration path resolution works correctly in packaged VSIX
 - Input validation prevents path traversal attacks
 - Extension context properly passed to MCP config helper
@@ -825,14 +860,14 @@ Auto-release
 
 ### Added
 
-- GitHub Spec Kit format support
-- SpecKitParser for YAML frontmatter and Markdown task lists
+- GitHub Gofer format support
+- GoferParser for YAML frontmatter and Markdown task lists
 - Progress tree view with spec and task display
 - Auto-updater with periodic update checks
 
 ### Changed
 
-- Migrated from legacy JSON format to GitHub Spec Kit Markdown format
+- Migrated from legacy JSON format to GitHub Gofer Markdown format
 
 ## [1.0.0] - 2025-10-19
 
@@ -853,7 +888,7 @@ To upgrade from version 1.1.0 or earlier:
 1. **Install the new VSIX**:
 
    ```bash
-   code --install-extension /path/to/specgofer-1.2.0.vsix
+   code --install-extension /path/to/gofer-1.2.0.vsix
    ```
 
 2. **Reload VSCode**: Press `Cmd+Shift+P` and select "Developer: Reload Window"

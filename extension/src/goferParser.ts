@@ -1,7 +1,7 @@
 /**
  * Gofer Markdown Parser
  *
- * Parses GitHub Gofer Markdown files:
+ * Parses Gofer Markdown files:
  * - spec.md (with YAML frontmatter)
  * - tasks.md (Markdown task lists with checkboxes)
  * - plan.md (technical plan)
@@ -67,7 +67,7 @@ export interface YAMLFrontmatter {
 }
 
 /**
- * GoferParser - Parses Gofer spec format
+ * GoferParser - Parses Gofer format
  */
 export class GoferParser {
   constructor(
@@ -199,7 +199,7 @@ export class GoferParser {
   }
 
   /**
-   * Parse header metadata from official GitHub Gofer format
+   * Parse header metadata from official Gofer format
    *
    * Example:
    * # Feature Specification: My Feature
@@ -271,7 +271,7 @@ export class GoferParser {
     const match = content.match(frontmatterRegex);
 
     if (!match) {
-      // Try to parse as official GitHub Gofer format
+      // Try to parse as official Gofer format
       const { metadata, content: bodyContent } = this.parseSpecHeader(content);
 
       // Convert to legacy format for compatibility

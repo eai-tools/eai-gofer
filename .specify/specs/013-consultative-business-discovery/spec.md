@@ -252,7 +252,7 @@ selecting a "Skip Discovery" option to proceed directly to routing.
 
 - Must work within existing Claude command prompt architecture (markdown-based)
 - Must integrate with existing MemoryManager API without modifications
-- Must follow existing AskUserQuestion patterns from speckit.clarify.md
+- Must follow existing AskUserQuestion patterns from 0_business_scenario.md
 
 ### Usability
 
@@ -284,7 +284,7 @@ selecting a "Skip Discovery" option to proceed directly to routing.
 - `extension/src/autonomous/ContextBuilder.ts` - For loading discovery context
 - `.claude/commands/0_business_scenario.md` - Primary implementation target
 - `extension/resources/claude-commands/` - Sync target for bundled commands
-- Existing AskUserQuestion patterns from speckit.clarify.md
+- Existing AskUserQuestion patterns from 0_business_scenario.md
 
 ## Out of Scope
 

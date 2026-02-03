@@ -24,7 +24,7 @@ import * as fs from 'fs';
 import { EventEmitter } from 'events';
 import { HintLoader } from './HintLoader';
 import { MemoryManager } from './MemoryManager';
-import type { Memory } from './memory';
+import type { Memory, MemoryType } from './memory';
 import {
   ObservationMasker,
   type ObservationMaskerConfig,
@@ -39,6 +39,7 @@ import {
 import { StageContextProfileLoader } from './StageContextProfileLoader';
 import { ResearchChunker, type ScoredChunk } from './ResearchChunker';
 import type { ContextUsageLogger } from './ContextUsageLogger';
+import { KnowledgeGraph, type SubgraphResult } from './KnowledgeGraph';
 
 /**
  * Task information for context building
@@ -233,6 +234,8 @@ export class ContextBuilder extends EventEmitter {
   private currentStage: GoferStage = 'implement';
   private currentProfile: StageContextProfile;
   private usageLogger?: ContextUsageLogger;
+  /** Optional knowledge graph for entity-aware context */
+  private knowledgeGraph?: KnowledgeGraph;
 
   constructor(
     workspaceRoot: string,
@@ -253,6 +256,20 @@ export class ContextBuilder extends EventEmitter {
     this.profileLoader = profileLoader || new StageContextProfileLoader(workspaceRoot);
     this.researchChunker = researchChunker || new ResearchChunker(workspaceRoot);
     this.currentProfile = DEFAULT_PROFILES[this.currentStage];
+  }
+
+  /**
+   * Wire a KnowledgeGraph instance for entity-aware context building.
+   */
+  setKnowledgeGraph(graph: KnowledgeGraph): void {
+    this.knowledgeGraph = graph;
+  }
+
+  /**
+   * Get the wired KnowledgeGraph (if any).
+   */
+  getKnowledgeGraph(): KnowledgeGraph | undefined {
+    return this.knowledgeGraph;
   }
 
   /**
@@ -557,6 +574,15 @@ export class ContextBuilder extends EventEmitter {
       }
     }
 
+    // 4.5 Load knowledge graph context for affected files
+    if (this.knowledgeGraph && task.affectedFiles && task.affectedFiles.length > 0) {
+      const graphContext = this.loadGraphContext(task.affectedFiles);
+      if (graphContext) {
+        // Append graph context to code section
+        sections.code = (sections.code || '') + graphContext;
+      }
+    }
+
     // 5. Task-specific context
     if (task.customContext) {
       sections.taskContext = task.customContext;
@@ -808,18 +834,102 @@ export class ContextBuilder extends EventEmitter {
       return '';
     }
 
+    // Group memories by type for organized context
+    const grouped = this.groupMemoriesByType(memories);
     const parts: string[] = ['# Relevant Memories\n'];
 
-    for (const memory of memories) {
-      parts.push(`### Memory: ${memory.category}\n`);
-      parts.push(`**Tags**: ${memory.tags.join(', ')}\n`);
-      parts.push(`**Created**: ${new Date(memory.created).toISOString().split('T')[0]}\n`);
-      parts.push('\n');
-      parts.push(memory.content);
-      parts.push('\n');
+    // Type display order: procedural first (most actionable), then semantic, episodic, prospective, untyped
+    const typeOrder: Array<MemoryType | 'untyped'> = [
+      'procedural',
+      'semantic',
+      'decision',
+      'episodic',
+      'prospective',
+    ];
+
+    for (const type of typeOrder) {
+      const group = grouped.get(type);
+      if (!group || group.length === 0) {
+        continue;
+      }
+
+      const typeLabel = this.getTypeLabel(type);
+      parts.push(`## ${typeLabel}\n`);
+
+      for (const memory of group) {
+        parts.push(`### ${memory.category}`);
+        if (memory.tags.length > 0) {
+          parts.push(`**Tags**: ${memory.tags.join(', ')}`);
+        }
+        if (memory.confidence !== undefined) {
+          parts.push(`**Confidence**: ${memory.confidence}%`);
+        }
+        if (memory.stale) {
+          parts.push(`**Status**: ⚠ Stale (cited files changed)`);
+        }
+        if (memory.citations && memory.citations.length > 0) {
+          const citeList = memory.citations
+            .map((c) => `${c.file}${c.line ? `:${c.line}` : ''}`)
+            .join(', ');
+          parts.push(`**Citations**: ${citeList}`);
+        }
+        parts.push('');
+        parts.push(memory.content);
+        parts.push('');
+      }
+    }
+
+    // Include any untyped memories
+    const untyped = grouped.get('untyped');
+    if (untyped && untyped.length > 0) {
+      parts.push('## General Memories\n');
+      for (const memory of untyped) {
+        parts.push(`### ${memory.category}`);
+        if (memory.tags.length > 0) {
+          parts.push(`**Tags**: ${memory.tags.join(', ')}`);
+        }
+        parts.push('');
+        parts.push(memory.content);
+        parts.push('');
+      }
     }
 
     return parts.join('\n');
+  }
+
+  /**
+   * Group memories by their cognitive type.
+   */
+  private groupMemoriesByType(memories: Memory[]): Map<MemoryType | 'untyped', Memory[]> {
+    const groups = new Map<MemoryType | 'untyped', Memory[]>();
+    for (const memory of memories) {
+      const key: MemoryType | 'untyped' = memory.type || 'untyped';
+      if (!groups.has(key)) {
+        groups.set(key, []);
+      }
+      groups.get(key)!.push(memory);
+    }
+    return groups;
+  }
+
+  /**
+   * Get human-readable label for memory type.
+   */
+  private getTypeLabel(type: MemoryType | 'untyped'): string {
+    switch (type) {
+      case 'procedural':
+        return 'How-To Knowledge (Procedural)';
+      case 'semantic':
+        return 'Facts & Concepts (Semantic)';
+      case 'episodic':
+        return 'Session History (Episodic)';
+      case 'prospective':
+        return 'TODOs & Follow-ups (Prospective)';
+      case 'decision':
+        return 'Decisions Made';
+      default:
+        return 'General Memories';
+    }
   }
 
   /**
@@ -928,6 +1038,86 @@ export class ContextBuilder extends EventEmitter {
     }
 
     return parts.join('\n\n---\n\n');
+  }
+
+  /**
+   * Load relevant knowledge graph context for affected files.
+   * Uses BFS from each file node to find connected patterns, decisions, and entities.
+   */
+  private loadGraphContext(affectedFiles: string[]): string | undefined {
+    if (!this.knowledgeGraph) {
+      return undefined;
+    }
+
+    const allNodes = new Set<string>();
+    const allEdges: Array<{ source: string; target: string; type: string }> = [];
+
+    for (const filePath of affectedFiles.slice(0, 5)) {
+      const fileId = `file:${filePath}`;
+      const subgraph = this.knowledgeGraph.querySubgraph(fileId, 1);
+
+      for (const node of subgraph.nodes) {
+        allNodes.add(`${node.data.type}:${node.data.name}`);
+      }
+      for (const edge of subgraph.edges) {
+        allEdges.push({
+          source: edge.source,
+          target: edge.target,
+          type: edge.data.type,
+        });
+      }
+    }
+
+    if (allNodes.size === 0) {
+      return undefined;
+    }
+
+    const parts: string[] = ['# Code Entity Graph\n'];
+    parts.push(`_${allNodes.size} entities connected to affected files_\n`);
+
+    for (const nodeStr of allNodes) {
+      parts.push(`- ${nodeStr}`);
+    }
+
+    if (allEdges.length > 0) {
+      parts.push('\n**Relationships:**');
+      const uniqueEdges = allEdges.slice(0, 10);
+      for (const edge of uniqueEdges) {
+        parts.push(`- ${edge.source} --[${edge.type}]--> ${edge.target}`);
+      }
+    }
+
+    return parts.join('\n');
+  }
+
+  /**
+   * Reseed context: discard current observations and rebuild from memory store.
+   *
+   * Use this when context window is near capacity (>70%) and accumulated
+   * observations are consuming too much space. The reseed clears stale
+   * observations and reloads only the most relevant memories.
+   *
+   * @param task - Current task context
+   * @returns Fresh built context with clean observations
+   */
+  async reseedContext(task: TaskContext): Promise<BuiltContext> {
+    // 1. Clear observation cache (frees the most context)
+    this.observationMasker.clearCache();
+
+    // 2. Reset turn counter to reduce future masking overhead
+    this.currentTurn = 0;
+
+    // 3. Rebuild context fresh from memory + research
+    const context = await this.buildContext(task);
+
+    // 4. Emit reseed event for monitoring
+    this.emit('context-reseed', {
+      stage: this.currentStage,
+      memoriesLoaded: context.memoryCoverage?.memoriesLoaded ?? 0,
+      totalTokens: context.budgetUsage?.usage.total ?? 0,
+    });
+
+    return context;
   }
 
   /**

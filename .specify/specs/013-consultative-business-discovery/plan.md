@@ -116,7 +116,7 @@ User starts /0_business_scenario
 
 ### Question Flow Pattern
 
-Each discovery question follows the established speckit.clarify.md pattern:
+Each discovery question follows the established 0_business_scenario.md pattern:
 
 ```markdown
 **What we need to know**: [Question]

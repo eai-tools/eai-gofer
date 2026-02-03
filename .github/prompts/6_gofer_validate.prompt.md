@@ -2,6 +2,7 @@
 name: 6_gofer_validate
 description: Validate implementation matches plan and passes all checks
 agent: agent
+tools: ['search/codebase', 'terminal', 'editFile']
 argument-hint: The feature to validate (or continue from implementation)
 ---
 

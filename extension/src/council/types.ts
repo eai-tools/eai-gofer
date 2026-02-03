@@ -80,8 +80,8 @@ export type CouncilMode = 'council' | 'single';
  * Per-stage council/single mode configuration
  */
 export interface StageConfig {
-  speckit_plan: CouncilMode;
-  speckit_analyze: CouncilMode;
+  gofer_plan: CouncilMode;
+  gofer_analyze: CouncilMode;
   research_codebase: CouncilMode;
   validate_plan: CouncilMode;
   implement: CouncilMode;
@@ -260,7 +260,7 @@ export interface CouncilSession {
   id: string;
   /** Which agent triggered this session */
   agentType: AgentType;
-  /** Workflow stage (e.g., "speckit_plan") */
+  /** Workflow stage (e.g., "gofer_plan") */
   stage: string;
   /** Current state */
   status: SessionStatus;
@@ -415,8 +415,8 @@ export const DEFAULT_COUNCIL_CONFIG: CouncilConfig = {
   timeout: 30000,
   providers: [{ providerId: 'anthropic', enabled: true, model: 'claude-opus-4-5-20251101' }],
   stages: {
-    speckit_plan: 'single',
-    speckit_analyze: 'single',
+    gofer_plan: 'single',
+    gofer_analyze: 'single',
     research_codebase: 'single',
     validate_plan: 'single',
     implement: 'single',

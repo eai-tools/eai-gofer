@@ -88,18 +88,18 @@ describe('Memory Integration Tests', () => {
 
       expect(saved.id).toBeDefined();
 
-      // Verify file was created
-      const localMemoryPath = path.join(testWorkspaceRoot, '.specify', 'memory', 'local.json');
-      expect(fs.existsSync(localMemoryPath)).toBe(true);
+      // Verify JSONL file was created (new JSONL backend)
+      const jsonlPath = path.join(testWorkspaceRoot, '.specify', 'memory', 'memories.jsonl');
+      expect(fs.existsSync(jsonlPath)).toBe(true);
 
-      // Read file directly
-      const fileContent = fs.readFileSync(localMemoryPath, 'utf-8');
-      const parsed = JSON.parse(fileContent);
+      // Read JSONL file directly
+      const fileContent = fs.readFileSync(jsonlPath, 'utf-8');
+      const lines = fileContent.trim().split('\n');
 
-      expect(parsed.version).toBe(1);
-      expect(parsed.memories).toHaveLength(1);
-      expect(parsed.memories[0].id).toBe(saved.id);
-      expect(parsed.memories[0].content).toBe(saved.content);
+      expect(lines.length).toBeGreaterThanOrEqual(1);
+      const parsed = JSON.parse(lines[lines.length - 1]);
+      expect(parsed.id).toBe(saved.id);
+      expect(parsed.content).toBe(saved.content);
     });
 
     it('should load local memories from file system (simulating restart)', async () => {
@@ -146,14 +146,15 @@ describe('Memory Integration Tests', () => {
     });
 
     it('should handle file corruption gracefully', async () => {
-      // Create corrupted file
-      const localMemoryPath = path.join(testWorkspaceRoot, '.specify', 'memory', 'local.json');
+      // Create corrupted JSONL file
+      const jsonlPath = path.join(testWorkspaceRoot, '.specify', 'memory', 'memories.jsonl');
 
-      fs.mkdirSync(path.dirname(localMemoryPath), { recursive: true });
-      fs.writeFileSync(localMemoryPath, 'invalid json {{{');
+      fs.mkdirSync(path.dirname(jsonlPath), { recursive: true });
+      fs.writeFileSync(jsonlPath, 'invalid json {{{\nmore garbage\n');
 
-      // Should throw error with validation message
-      await expect(memoryManager.load('local')).rejects.toThrow();
+      // JSONL backend gracefully skips invalid lines and returns empty
+      const loaded = await memoryManager.load('local');
+      expect(loaded).toEqual([]);
     });
 
     it('should preserve memory metadata across sessions', async () => {
@@ -359,7 +360,7 @@ describe('Memory Integration Tests', () => {
       const memoryManagerAfterRestart = new MemoryManager(mockContext, testWorkspaceRoot);
 
       // Add small delay to ensure timestamp changes
-      await new Promise(resolve => setTimeout(resolve, 2));
+      await new Promise((resolve) => setTimeout(resolve, 2));
       await memoryManagerAfterRestart.recordUsage(saved.id);
       await memoryManagerAfterRestart.recordUsage(saved.id);
 

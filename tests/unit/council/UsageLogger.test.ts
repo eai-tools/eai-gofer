@@ -285,8 +285,8 @@ describe('UsageLogger', () => {
           google: { tokens: 5000, costUsd: 0.05, sessions: 5 },
         },
         byStage: {
-          speckit_plan: { tokens: 8000, costUsd: 0.08, sessions: 4 },
-          speckit_analyze: { tokens: 7000, costUsd: 0.07, sessions: 6 },
+          gofer_plan: { tokens: 8000, costUsd: 0.08, sessions: 4 },
+          gofer_analyze: { tokens: 7000, costUsd: 0.07, sessions: 6 },
         },
         fromDate: '2024-01-01T00:00:00.000Z',
         toDate: '2024-01-31T00:00:00.000Z',
@@ -299,7 +299,7 @@ describe('UsageLogger', () => {
       expect(formatted).toContain('Single provider: 3');
       expect(formatted).toContain('$0.1500');
       expect(formatted).toContain('anthropic');
-      expect(formatted).toContain('speckit_plan');
+      expect(formatted).toContain('gofer_plan');
     });
   });
 

@@ -205,7 +205,7 @@ Which approach should I use?
 
         const response = await responder.getAutonomousResponse('/test/workspace', context);
 
-        expect(response).toBe('/speckit.implement\n');
+        expect(response).toBe('/5_gofer_implement\n');
         expect(mockCreate).toHaveBeenCalledWith(
           expect.objectContaining({
             model: 'claude-3-5-haiku-20241022',
@@ -317,7 +317,7 @@ Which approach should I use?
         expect(response).toBe('Test answer\n');
       });
 
-      it.skip('should convert CONTINUE_IMPLEMENT to /speckit.implement command', async () => {
+      it.skip('should convert CONTINUE_IMPLEMENT to /5_gofer_implement command', async () => {
         // Setup mock response
         mockCreate.mockResolvedValue({
           content: [{ type: 'text', text: 'ACTION: CONTINUE_IMPLEMENT' }],
@@ -334,7 +334,7 @@ Which approach should I use?
 
         const response = await responder.getAutonomousResponse('/test/workspace', context);
 
-        expect(response).toBe('/speckit.implement\n');
+        expect(response).toBe('/5_gofer_implement\n');
       });
     });
 

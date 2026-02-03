@@ -2,7 +2,7 @@
 
 **Enterprise AI Pty Ltd - Skateboard Methodology and E2E-First Development**
 
-*Last Updated: January 2026*
+_Last Updated: January 2026_
 
 ---
 
@@ -156,15 +156,25 @@ describe('Skateboard: Core Login', () => {
 
 // Iteration 1: Scooter
 describe('Scooter: Error Handling', () => {
-  test('shows error for invalid credentials', async () => { /* ... */ });
-  test('handles network failure gracefully', async () => { /* ... */ });
-  test('user can cancel login attempt', async () => { /* ... */ });
+  test('shows error for invalid credentials', async () => {
+    /* ... */
+  });
+  test('handles network failure gracefully', async () => {
+    /* ... */
+  });
+  test('user can cancel login attempt', async () => {
+    /* ... */
+  });
 });
 
 // Iteration 2: Bicycle
 describe('Bicycle: User Registration', () => {
-  test('new user can register', async () => { /* ... */ });
-  test('user can reset password', async () => { /* ... */ });
+  test('new user can register', async () => {
+    /* ... */
+  });
+  test('user can reset password', async () => {
+    /* ... */
+  });
   // ... more tests
 });
 ```
@@ -192,16 +202,16 @@ tests/e2e/
 Primitives are the **composable building blocks** of your system. Identify them
 BEFORE designing features.
 
-### Recommended Primitives for SpecGofer
+### Recommended Primitives for Gofer
 
-| Primitive   | Description                            | Composability              |
-| ----------- | -------------------------------------- | -------------------------- |
-| Spec        | Core unit of work definition           | Spec + Task → Feature Plan |
-| Task        | Atomic implementation unit             | Task + Agent → Execution   |
-| Agent       | Autonomous executor                    | Agent + Context → Work     |
-| Context     | Accumulated knowledge                  | Context + Spec → Research  |
-| Validation  | Constitution compliance check          | Validation + Code → Review |
-| Iteration   | Skateboard/Bicycle/Car checkpoint      | Iteration + Test → Gate    |
+| Primitive  | Description                       | Composability              |
+| ---------- | --------------------------------- | -------------------------- |
+| Spec       | Core unit of work definition      | Spec + Task → Feature Plan |
+| Task       | Atomic implementation unit        | Task + Agent → Execution   |
+| Agent      | Autonomous executor               | Agent + Context → Work     |
+| Context    | Accumulated knowledge             | Context + Spec → Research  |
+| Validation | Constitution compliance check     | Validation + Code → Review |
+| Iteration  | Skateboard/Bicycle/Car checkpoint | Iteration + Test → Gate    |
 
 ### Primitive Composition
 
@@ -282,12 +292,12 @@ Before starting each iteration:
 
 ### Refresh Timing
 
-| Point                 | Action                              |
-| --------------------- | ----------------------------------- |
-| > 30 min in session   | Re-read core files                  |
-| > 1 hour in session   | Consider session save               |
-| > 2 hours in session  | Strongly recommend fresh session    |
-| Iteration boundary    | Always save and refresh             |
+| Point                | Action                           |
+| -------------------- | -------------------------------- |
+| > 30 min in session  | Re-read core files               |
+| > 1 hour in session  | Consider session save            |
+| > 2 hours in session | Strongly recommend fresh session |
+| Iteration boundary   | Always save and refresh          |
 
 ---
 
@@ -299,27 +309,30 @@ Before starting each iteration:
 ## Iterative Development Strategy
 
 ### Iteration 0: Skateboard
-**Goal**: [Single happy-path E2E proving core workflow]
-**Scope**: User Story 1 only
-**E2E Test**: `tests/e2e/iteration/0-skateboard.test.ts`
-**Exit Criteria**: [Specific user action works end-to-end]
+
+**Goal**: [Single happy-path E2E proving core workflow] **Scope**: User Story 1
+only **E2E Test**: `tests/e2e/iteration/0-skateboard.test.ts` **Exit Criteria**:
+[Specific user action works end-to-end]
 
 ### Iteration 1: Scooter
-**Goal**: [Error handling and resilience]
-**Scope**: + Error cases, + Validation, + Cancel
-**E2E Tests**: 3 tests
-**Exit Criteria**: [System handles failures gracefully]
+
+**Goal**: [Error handling and resilience] **Scope**: + Error cases, +
+Validation, + Cancel **E2E Tests**: 3 tests **Exit Criteria**: [System handles
+failures gracefully]
 
 ### Iteration 2: Bicycle
+
 [Continue for remaining iterations...]
 
 ## Product Primitives
 
 ### Identified Primitives
+
 - **Primitive 1**: [Description, role]
 - **Primitive 2**: [Description, role]
 
 ### Compositions
+
 - Primitive 1 + Primitive 2 → [Capability]
 ```
 
@@ -328,8 +341,8 @@ Before starting each iteration:
 ```markdown
 ## Iteration 0: Skateboard
 
-**Goal**: Prove core workflow with single E2E test
-**Validation**: `npm run test:e2e:skateboard` passes
+**Goal**: Prove core workflow with single E2E test **Validation**:
+`npm run test:e2e:skateboard` passes
 
 - [ ] T001 [E2E-I0] Write skateboard E2E test
 - [ ] T002 [E2E-I0] Implement minimum code to pass test
@@ -341,8 +354,7 @@ Before starting each iteration:
 
 ## Iteration 1: Scooter
 
-**Goal**: Add error handling
-**Prerequisite**: Skateboard checkpoint validated
+**Goal**: Add error handling **Prerequisite**: Skateboard checkpoint validated
 **Validation**: `npm run test:e2e:scooter` passes (3 tests)
 
 - [ ] T004 [E2E-I1] Write error handling E2E test
@@ -391,14 +403,14 @@ Before marking iteration complete:
 
 ## 9. Benefits Summary
 
-| Benefit              | How It's Achieved                    |
-| -------------------- | ------------------------------------ |
-| Working software     | E2E test passes at every iteration   |
-| Early integration    | Tests require full stack from start  |
-| Clear progress       | Checkpoints validate readiness       |
-| Reduced risk         | Small increments, quick feedback     |
-| Scope control        | Test defines "done", nothing extra   |
-| Maintainability      | Primitives enable reuse              |
+| Benefit           | How It's Achieved                   |
+| ----------------- | ----------------------------------- |
+| Working software  | E2E test passes at every iteration  |
+| Early integration | Tests require full stack from start |
+| Clear progress    | Checkpoints validate readiness      |
+| Reduced risk      | Small increments, quick feedback    |
+| Scope control     | Test defines "done", nothing extra  |
+| Maintainability   | Primitives enable reuse             |
 
 ---
 

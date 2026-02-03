@@ -3,7 +3,7 @@ import { defineConfig } from '@playwright/test';
 /**
  * Playwright E2E Test Configuration
  * 
- * Configures Playwright for SpecGofer E2E testing including:
+ * Configures Playwright for Gofer E2E testing including:
  * - VSCode Extension tests
  * - Language Server tests  
  * - Integration tests

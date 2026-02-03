@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.1.5",
+  "latest_version": "1.1.6",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-02-03T20:34:03.370Z",
+  "last_updated": "2026-02-03T21:17:19.204Z",
   "releases": [
+    {
+      "version": "1.1.6",
+      "tag_name": "v1.1.6",
+      "published_at": "2026-02-03T21:17:19.203Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.1.6.vsix",
+      "notes": "chore: pre-release changes\n\nAuto-committed changes before release v1.1.5",
+      "prerelease": false,
+      "size_mb": 15.4
+    },
     {
       "version": "1.1.5",
       "tag_name": "v1.1.5",
@@ -81,15 +90,6 @@
       "published_at": "2026-01-25T23:52:26.677Z",
       "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.0.1.vsix",
       "notes": "chore: pre-release changes\n\nAuto-committed changes before release v1.0.0",
-      "prerelease": false,
-      "size_mb": 8.5
-    },
-    {
-      "version": "1.0.0",
-      "tag_name": "v1.0.0",
-      "published_at": "2026-01-25T23:44:50.935Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.0.0.vsix",
-      "notes": "First major release: Consultative business discovery, memory leak fixes, script upgrade improvements",
       "prerelease": false,
       "size_mb": 8.5
     }

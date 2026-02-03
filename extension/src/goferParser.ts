@@ -80,21 +80,29 @@ export class GoferParser {
    * If branchSpecManager is provided, loads branch-aware specs
    */
   async loadAllSpecs(): Promise<Spec[]> {
+    console.log('[GoferParser] loadAllSpecs starting...');
     let specsDirs: string[];
 
-    if (this.branchSpecManager) {
-      // Get branch-aware spec paths
-      specsDirs = await this.branchSpecManager.getAllSpecPaths();
-    } else {
-      // Fallback to simple .specify/specs
-      const specsDir = path.join(this.workspacePath, '.specify', 'specs');
-      try {
+    try {
+      if (this.branchSpecManager) {
+        // Get branch-aware spec paths with timeout protection
+        console.log('[GoferParser] Using branchSpecManager to get spec paths...');
+        const getPathsPromise = this.branchSpecManager.getAllSpecPaths();
+        const timeoutPromise = new Promise<string[]>((_, reject) => {
+          setTimeout(() => reject(new Error('getAllSpecPaths timed out')), 5000);
+        });
+        specsDirs = await Promise.race([getPathsPromise, timeoutPromise]);
+      } else {
+        // Fallback to simple .specify/specs
+        console.log('[GoferParser] Reading specs directory directly...');
+        const specsDir = path.join(this.workspacePath, '.specify', 'specs');
         const entries = await fs.readdir(specsDir, { withFileTypes: true });
         specsDirs = entries.filter((e) => e.isDirectory()).map((e) => path.join(specsDir, e.name));
-      } catch (error) {
-        console.error('Failed to read specs directory:', error);
-        return [];
       }
+      console.log(`[GoferParser] Found ${specsDirs.length} spec directories`);
+    } catch (error) {
+      console.error('[GoferParser] Failed to get specs directories:', error);
+      return [];
     }
 
     const specs = await Promise.all(
@@ -103,12 +111,13 @@ export class GoferParser {
           const specId = path.basename(specPath);
           return await this.loadSpecFromPath(specId, specPath);
         } catch (error) {
-          console.error(`Failed to load spec ${specPath}:`, error);
+          console.error(`[GoferParser] Failed to load spec ${specPath}:`, error);
           return null;
         }
       })
     );
 
+    console.log(`[GoferParser] Loaded ${specs.filter(Boolean).length} specs successfully`);
     return specs.filter((s): s is Spec => s !== null);
   }
 

@@ -142,7 +142,7 @@ resources:
     url: 'https://nodejs.org/en/docs/guides/error-handling/'
 
 metadata:
-  author: 'SpecGofer Team'
+  author: 'Gofer Team'
   created: '2025-11-01'
   last_updated: '2025-11-01'
   version: '1.0.0'

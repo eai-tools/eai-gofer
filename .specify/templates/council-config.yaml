@@ -26,9 +26,9 @@ council:
 
   # Provider configuration
   # API keys are stored in VSCode settings:
-  #   - specGofer.anthropicApiKey
-  #   - specGofer.googleApiKey
-  #   - specGofer.openaiApiKey
+  #   - gofer.anthropicApiKey
+  #   - gofer.googleApiKey
+  #   - gofer.openaiApiKey
   providers:
     anthropic:
       enabled: true

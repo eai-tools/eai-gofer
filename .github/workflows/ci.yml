@@ -1,4 +1,4 @@
-name: SpecGofer CI/CD Pipeline
+name: Gofer CI/CD Pipeline
 
 on:
   push:
@@ -410,7 +410,7 @@ jobs:
       
     - name: Create Release Summary
       run: |
-        echo "# SpecGofer Build Summary" > release-summary.md
+        echo "# Gofer Build Summary" > release-summary.md
         echo "**Branch**: ${{ github.ref_name }}" >> release-summary.md
         echo "**Commit**: ${{ github.sha }}" >> release-summary.md
         echo "**Build Date**: $(date)" >> release-summary.md

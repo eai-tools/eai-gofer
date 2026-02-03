@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Manual Test - Shows how SpecGofer should work with direct Claude API calls
+ * Manual Test - Shows how Gofer should work with direct Claude API calls
  * Run this to see the autonomous mode in action without file-watching
  */
 
@@ -24,7 +24,7 @@ const workspaceDir = process.cwd();
 console.log(`
 ╔═══════════════════════════════════════════════════════════╗
 ║                                                           ║
-║         🤖 SpecGofer Direct API Test 🤖                   ║
+║         🤖 Gofer Direct API Test 🤖                       ║
 ║         Shows Claude API Integration                      ║
 ║                                                           ║
 ╚═══════════════════════════════════════════════════════════╝
@@ -56,7 +56,7 @@ async function implementTask() {
   }
 
   // Build prompt
-  const prompt = `You are a senior software engineer implementing a task for the SpecGofer project.
+  const prompt = `You are a senior software engineer implementing a task for the Gofer project.
 
 # Task: ${task.id}
 **Description**: ${task.description}
@@ -142,7 +142,7 @@ implementTask()
   .then((result) => {
     if (result) {
       console.log('\n✅ Test completed successfully!');
-      console.log('\n💡 This shows how SpecGofer should work:');
+      console.log('\n💡 This shows how Gofer should work:');
       console.log('   1. Load task from spec');
       console.log('   2. Build comprehensive prompt with constitution');
       console.log('   3. Call Claude API directly (no file watching!)');

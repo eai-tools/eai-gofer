@@ -11,7 +11,7 @@ const fs = require('fs').promises;
 const path = require('path');
 
 async function generateCoverageReport() {
-  console.log('📊 Generating SpecGofer Coverage Report\n');
+  console.log('📊 Generating Gofer Coverage Report\n');
 
   const coverageDir = './coverage';
   const coverageFile = path.join(coverageDir, 'coverage-summary.json');
@@ -156,7 +156,7 @@ async function generateDetailedReport(coverageData) {
   try {
     const reportPath = './coverage/detailed-report.md';
     
-    let report = `# SpecGofer Test Coverage Report
+    let report = `# Gofer Test Coverage Report
 
 Generated on: ${new Date().toISOString()}
 

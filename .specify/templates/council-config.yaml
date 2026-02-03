@@ -44,10 +44,10 @@ council:
   # Options: 'council' (multi-provider) or 'single' (primary provider only)
   stages:
     # Planning workflows benefit from diverse perspectives
-    speckit_plan: council
+    gofer_plan: council
 
     # Analysis benefits from multiple viewpoints
-    speckit_analyze: council
+    gofer_analyze: council
 
     # Research benefits from diverse interpretations
     research_codebase: council

@@ -1,5 +1,5 @@
 /**
- * EAI-GOFER Language Server
+ * Gofer Language Server
  *
  * Provides both:
  * 1. Language Server Protocol (LSP) for extension communication
@@ -70,10 +70,11 @@ class Logger {
   }
 
   error(message: string, error?: Error | unknown, data?: unknown): void {
-    const errorDetails = error instanceof Error 
-      ? { message: error.message, stack: error.stack, name: error.name }
-      : error;
-    
+    const errorDetails =
+      error instanceof Error
+        ? { message: error.message, stack: error.stack, name: error.name }
+        : error;
+
     this.connection.console.error(
       `[ERROR] ${message}${errorDetails ? ` Error: ${JSON.stringify(errorDetails)}` : ''}${
         data ? ` Data: ${JSON.stringify(data)}` : ''
@@ -109,12 +110,9 @@ let goferLoader: GoferLoader | undefined;
 let mcpToolHandler: MCPToolHandler | undefined;
 
 // Async error wrapper
-async function withErrorHandling<T>(
-  operation: string,
-  fn: () => Promise<T>
-): Promise<T> {
+async function withErrorHandling<T>(operation: string, fn: () => Promise<T>): Promise<T> {
   const startTime = Date.now();
-  
+
   try {
     logger.debug(`Starting operation: ${operation}`);
     const result = await fn();
@@ -130,9 +128,9 @@ async function withErrorHandling<T>(
 
 connection.onInitialize(async (params: InitializeParams): Promise<InitializeResult> => {
   return withErrorHandling('server-initialization', async () => {
-    logger.logServerEvent('Initializing EAI-GOFER Language Server', {
+    logger.logServerEvent('Initializing Gofer Language Server', {
       processId: params.processId,
-      workspaceFolders: params.workspaceFolders?.map(f => f.uri)
+      workspaceFolders: params.workspaceFolders?.map((f) => f.uri),
     });
 
     const capabilities = params.capabilities;
@@ -170,134 +168,213 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
         completionProvider: {
           resolveProvider: true,
         },
-      // MCP capabilities (experimental)
-      experimental: {
-        mcp: {
-          // MCP tools exposed to Claude Code / GitHub Copilot
-          tools: [
-            {
-              name: 'eaigofer_get_specs',
-              description: 'Get all specifications from the .specify folder',
-              parameters: {
-                type: 'object',
-                properties: {},
-                required: [],
-              },
-            },
-            {
-              name: 'eaigofer_get_next_task',
-              description: 'Get the next available task to work on',
-              parameters: {
-                type: 'object',
-                properties: {},
-                required: [],
-              },
-            },
-            {
-              name: 'eaigofer_execute_task',
-              description: 'Execute a specific task from a specification',
-              parameters: {
-                type: 'object',
-                properties: {
-                  specId: {
-                    type: 'string',
-                    description: 'The specification ID (e.g., "001-login-feature")',
-                  },
-                  taskId: {
-                    type: 'string',
-                    description: 'The task ID (e.g., "T001")',
-                  },
+        // MCP capabilities (experimental)
+        experimental: {
+          mcp: {
+            // MCP tools exposed to Claude Code / GitHub Copilot
+            tools: [
+              {
+                name: 'gofer_get_specs',
+                description: 'Get all specifications from the .specify folder',
+                parameters: {
+                  type: 'object',
+                  properties: {},
+                  required: [],
                 },
-                required: ['specId', 'taskId'],
               },
-            },
-            {
-              name: 'eaigofer_update_task_status',
-              description: 'Update the status of a task',
-              parameters: {
-                type: 'object',
-                properties: {
-                  specId: {
-                    type: 'string',
-                    description: 'The specification ID',
-                  },
-                  taskId: {
-                    type: 'string',
-                    description: 'The task ID',
-                  },
-                  status: {
-                    type: 'string',
-                    enum: ['pending', 'in_progress', 'testing', 'completed', 'failed', 'blocked'],
-                    description: 'The new status',
-                  },
+              {
+                name: 'gofer_get_next_task',
+                description: 'Get the next available task to work on',
+                parameters: {
+                  type: 'object',
+                  properties: {},
+                  required: [],
                 },
-                required: ['specId', 'taskId', 'status'],
               },
-            },
-            {
-              name: 'eaigofer_validate_code',
-              description: 'Validate code against constitutional requirements',
-              parameters: {
-                type: 'object',
-                properties: {
-                  files: {
-                    type: 'array',
-                    items: { type: 'string' },
-                    description: 'Array of file paths to validate',
+              {
+                name: 'gofer_execute_task',
+                description: 'Execute a specific task from a specification',
+                parameters: {
+                  type: 'object',
+                  properties: {
+                    specId: {
+                      type: 'string',
+                      description: 'The specification ID (e.g., "001-login-feature")',
+                    },
+                    taskId: {
+                      type: 'string',
+                      description: 'The task ID (e.g., "T001")',
+                    },
                   },
+                  required: ['specId', 'taskId'],
                 },
-                required: ['files'],
               },
-            },
-            {
-              name: 'eaigofer_run_tests',
-              description: 'Run tests for a specification',
-              parameters: {
-                type: 'object',
-                properties: {
-                  specId: {
-                    type: 'string',
-                    description: 'The specification ID',
+              {
+                name: 'gofer_update_task_status',
+                description: 'Update the status of a task',
+                parameters: {
+                  type: 'object',
+                  properties: {
+                    specId: {
+                      type: 'string',
+                      description: 'The specification ID',
+                    },
+                    taskId: {
+                      type: 'string',
+                      description: 'The task ID',
+                    },
+                    status: {
+                      type: 'string',
+                      enum: ['pending', 'in_progress', 'testing', 'completed', 'failed', 'blocked'],
+                      description: 'The new status',
+                    },
                   },
+                  required: ['specId', 'taskId', 'status'],
                 },
-                required: ['specId'],
               },
-            },
-          ],
+              {
+                name: 'gofer_validate_code',
+                description: 'Validate code against constitutional requirements',
+                parameters: {
+                  type: 'object',
+                  properties: {
+                    files: {
+                      type: 'array',
+                      items: { type: 'string' },
+                      description: 'Array of file paths to validate',
+                    },
+                  },
+                  required: ['files'],
+                },
+              },
+              {
+                name: 'gofer_run_tests',
+                description: 'Run tests for a specification',
+                parameters: {
+                  type: 'object',
+                  properties: {
+                    specId: {
+                      type: 'string',
+                      description: 'The specification ID',
+                    },
+                  },
+                  required: ['specId'],
+                },
+              },
+              {
+                name: 'gofer_expand_observation',
+                description: 'Retrieve the full content of a masked observation by its ID',
+                parameters: {
+                  type: 'object',
+                  properties: {
+                    observationId: {
+                      type: 'string',
+                      description: 'UUID v4 observation ID',
+                    },
+                  },
+                  required: ['observationId'],
+                },
+              },
+              {
+                name: 'gofer_get_context_health',
+                description: 'Get current context health status including token usage breakdown',
+                parameters: {
+                  type: 'object',
+                  properties: {
+                    includeBreakdown: {
+                      type: 'boolean',
+                      description: 'Include detailed token breakdown',
+                    },
+                  },
+                  required: [],
+                },
+              },
+              {
+                name: 'gofer_get_research_index',
+                description: "Get the research chunk index for a spec's research.md file",
+                parameters: {
+                  type: 'object',
+                  properties: {
+                    specId: {
+                      type: 'string',
+                      description: 'Spec identifier',
+                    },
+                  },
+                  required: ['specId'],
+                },
+              },
+              {
+                name: 'gofer_load_research_chunk',
+                description: "Load a specific research chunk by ID from a spec's research index",
+                parameters: {
+                  type: 'object',
+                  properties: {
+                    specId: {
+                      type: 'string',
+                      description: 'Spec identifier',
+                    },
+                    chunkId: {
+                      type: 'string',
+                      description: 'Chunk identifier from research index',
+                    },
+                  },
+                  required: ['specId', 'chunkId'],
+                },
+              },
+              {
+                name: 'gofer_trigger_handoff',
+                description:
+                  'Trigger a session handoff, saving current context state for resumption',
+                parameters: {
+                  type: 'object',
+                  properties: {
+                    specId: {
+                      type: 'string',
+                      description: 'Active spec identifier',
+                    },
+                    reason: {
+                      type: 'string',
+                      description: 'Reason for handoff',
+                    },
+                  },
+                  required: ['specId'],
+                },
+              },
+            ],
+          },
         },
       },
-    },
-  };
-
-  if (hasWorkspaceFolderCapability) {
-    result.capabilities.workspace = {
-      workspaceFolders: {
-        supported: true,
-      },
     };
-  }
 
-  logger.info('Server initialization completed successfully');
-  return result;
+    if (hasWorkspaceFolderCapability) {
+      result.capabilities.workspace = {
+        workspaceFolders: {
+          supported: true,
+        },
+      };
+    }
+
+    logger.info('Server initialization completed successfully');
+    return result;
   });
 });
 
 connection.onInitialized(() => {
   try {
     logger.logServerEvent('Server initialized notification received');
-    
+
     if (hasConfigurationCapability) {
       // Register for configuration changes
       connection.client.register(DidChangeConfigurationNotification.type, undefined);
     }
-    
+
     if (hasWorkspaceFolderCapability) {
       connection.workspace.onDidChangeWorkspaceFolders(() => {
         logger.info('Workspace folder change event received');
       });
     }
 
-    logger.info('EAI-GOFER Language Server initialized successfully');
+    logger.info('Gofer Language Server initialized successfully');
   } catch (error) {
     logger.error('Error during server initialization', error);
   }
@@ -311,39 +388,46 @@ connection.onInitialized(() => {
  * LSP Custom Method: gofer/getSpecs
  * Returns all specifications from .specify/specs/
  */
-connection.onRequest('eaiGofer/getSpecs', async (): Promise<{
-  success: boolean;
-  specs?: unknown[];
-  error?: string;
-}> => {
-  return withErrorHandling('lsp-get-specs', async () => {
-    if (!goferLoader) {
-      throw new ServerError('Gofer loader not initialized', 'NOT_INITIALIZED');
-    }
+connection.onRequest(
+  'gofer/getSpecs',
+  async (): Promise<{
+    success: boolean;
+    specs?: unknown[];
+    error?: string;
+  }> => {
+    return withErrorHandling('lsp-get-specs', async () => {
+      if (!goferLoader) {
+        throw new ServerError('Gofer loader not initialized', 'NOT_INITIALIZED');
+      }
 
-    const specs = await goferLoader.loadAllSpecs();
-    logger.debug(`Retrieved ${specs.length} specifications`);
-    
-    return {
-      success: true,
-      specs: specs
-    };
-  }).catch((error) => {
-    logger.error('Failed to get specs via LSP', error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error'
-    };
-  });
-});
+      const specs = await goferLoader.loadAllSpecs();
+      logger.debug(`Retrieved ${specs.length} specifications`);
+
+      return {
+        success: true,
+        specs: specs,
+      };
+    }).catch((error) => {
+      logger.error('Failed to get specs via LSP', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    });
+  }
+);
 
 /**
  * LSP Custom Method: gofer/executeTask
  * Returns full context for a specific task
  */
 connection.onRequest(
-  'eaiGofer/executeTask',
-    async (params: { specId: string; taskId: string; context?: unknown }): Promise<{
+  'gofer/executeTask',
+  async (params: {
+    specId: string;
+    taskId: string;
+    context?: unknown;
+  }): Promise<{
     success: boolean;
     task?: unknown;
     spec?: unknown;
@@ -373,13 +457,13 @@ connection.onRequest(
       return {
         success: true,
         task: task,
-        spec: spec
+        spec: spec,
       };
     }).catch((error) => {
       logger.error('Failed to execute task via LSP', error, { params });
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     });
   }
@@ -390,8 +474,12 @@ connection.onRequest(
  * Updates task status in specification file
  */
 connection.onRequest(
-  'eaiGofer/updateTaskStatus',
-  async (params: { specId: string; taskId: string; status: string }): Promise<{
+  'gofer/updateTaskStatus',
+  async (params: {
+    specId: string;
+    taskId: string;
+    status: string;
+  }): Promise<{
     success: boolean;
     error?: string;
   }> => {
@@ -406,14 +494,18 @@ connection.onRequest(
 
       const validStatuses = ['pending', 'in_progress', 'testing', 'completed', 'failed', 'blocked'];
       if (!validStatuses.includes(params.status)) {
-        throw new ValidationError(`Invalid status: ${params.status}. Valid statuses: ${validStatuses.join(', ')}`);
+        throw new ValidationError(
+          `Invalid status: ${params.status}. Valid statuses: ${validStatuses.join(', ')}`
+        );
       }
 
       await goferLoader.updateTaskStatus(params.specId, params.taskId, params.status);
-      logger.info(`Updated task ${params.taskId} in spec ${params.specId} to status: ${params.status}`);
+      logger.info(
+        `Updated task ${params.taskId} in spec ${params.specId} to status: ${params.status}`
+      );
 
       // Notify extension of progress
-      connection.sendNotification('eaiGofer/taskProgress', {
+      connection.sendNotification('gofer/taskProgress', {
         specId: params.specId,
         taskId: params.taskId,
         status: params.status,
@@ -421,13 +513,13 @@ connection.onRequest(
       });
 
       return {
-        success: true
+        success: true,
       };
     }).catch((error) => {
       logger.error('Failed to update task status via LSP', error, { params });
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     });
   }
@@ -447,74 +539,107 @@ connection.onRequest(
  * MCP Tool Invocation Handler
  * Called by Claude Code or GitHub Copilot via VSCode's native MCP support
  */
-connection.onRequest('tools/call', async (params: { name: string; arguments: Record<string, unknown> }) => {
-  return withErrorHandling('mcp-tools-call', async () => {
-    if (!mcpToolHandler) {
-      throw new ServerError('MCP tool handler not initialized', 'NOT_INITIALIZED');
-    }
+connection.onRequest(
+  'tools/call',
+  async (params: { name: string; arguments: Record<string, unknown> }) => {
+    return withErrorHandling('mcp-tools-call', async () => {
+      if (!mcpToolHandler) {
+        throw new ServerError('MCP tool handler not initialized', 'NOT_INITIALIZED');
+      }
 
-    const { name, arguments: args } = params;
-    logger.debug(`MCP tool called: ${name}`, args);
+      const { name, arguments: args } = params;
+      logger.debug(`MCP tool called: ${name}`, args);
 
-    let result;
-    switch (name) {
-      case 'eaigofer_get_specs':
-        result = await mcpToolHandler.getSpecs();
-        break;
+      let result;
+      switch (name) {
+        case 'gofer_get_specs':
+          result = await mcpToolHandler.getSpecs();
+          break;
 
-      case 'eaigofer_get_next_task':
-        result = await mcpToolHandler.getNextTask();
-        break;
+        case 'gofer_get_next_task':
+          result = await mcpToolHandler.getNextTask();
+          break;
 
-      case 'eaigofer_execute_task':
-        result = await mcpToolHandler.executeTask(
-          args.specId as string, 
-          args.taskId as string
-        );
-        break;
+        case 'gofer_execute_task':
+          result = await mcpToolHandler.executeTask(args.specId as string, args.taskId as string);
+          break;
 
-      case 'eaigofer_update_task_status':
-        result = await mcpToolHandler.updateTaskStatus(
-          args.specId as string, 
-          args.taskId as string, 
-          args.status as string
-        );
-        break;
+        case 'gofer_update_task_status':
+          result = await mcpToolHandler.updateTaskStatus(
+            args.specId as string,
+            args.taskId as string,
+            args.status as string
+          );
+          break;
 
-      case 'eaigofer_validate_code':
-        result = await mcpToolHandler.validateCode(args.files as string[]);
-        break;
+        case 'gofer_validate_code':
+          result = await mcpToolHandler.validateCode(args.files as string[]);
+          break;
 
-      case 'eaigofer_run_tests':
-        result = await mcpToolHandler.runTests(args.specId as string);
-        break;
+        case 'gofer_run_tests':
+          result = await mcpToolHandler.runTests(args.specId as string);
+          break;
 
-      default:
-        throw new ValidationError(`Unknown tool: ${name}`);
-    }
+        case 'gofer_expand_observation':
+          result = await mcpToolHandler.expandObservation(args.observationId as string);
+          break;
 
-    return {
-      content: [
-        {
-          type: 'text',
-          text: JSON.stringify(result, null, 2)
-        }
-      ],
-      isError: false
-    };
-  }).catch((error) => {
-    logger.error(`MCP tool ${params.name} failed`, error);
-    return {
-      content: [
-        {
-          type: 'text',
-          text: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
-        }
-      ],
-      isError: true
-    };
-  });
-});
+        case 'gofer_get_context_health':
+          result = await mcpToolHandler.getContextHealth(
+            (args.includeBreakdown as boolean) ?? true
+          );
+          break;
+
+        case 'gofer_get_research_index':
+          result = await mcpToolHandler.getResearchIndex(args.specId as string);
+          break;
+
+        case 'gofer_load_research_chunk':
+          result = await mcpToolHandler.loadResearchChunk(
+            args.specId as string,
+            args.chunkId as string
+          );
+          break;
+
+        case 'gofer_trigger_handoff':
+          result = await mcpToolHandler.triggerHandoff(
+            (args.reason as string as
+              | 'context_critical'
+              | 'manual_request'
+              | 'stage_complete'
+              | 'error_recovery') || 'manual_request',
+            undefined,
+            args.specId ? `Spec: ${args.specId as string}` : undefined
+          );
+          break;
+
+        default:
+          throw new ValidationError(`Unknown tool: ${name}`);
+      }
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify(result, null, 2),
+          },
+        ],
+        isError: false,
+      };
+    }).catch((error) => {
+      logger.error(`MCP tool ${params.name} failed`, error);
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          },
+        ],
+        isError: true,
+      };
+    });
+  }
+);
 
 // ============================================================================
 // STANDARD LSP HANDLERS
@@ -537,4 +662,4 @@ documents.listen(connection);
 // Listen on the connection
 connection.listen();
 
-logger.info('EAI-GOFER Language Server started');
+logger.info('Gofer Language Server started');

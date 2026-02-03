@@ -1,14 +1,18 @@
 # LSP Custom Methods Documentation
 
-This document describes the custom Language Server Protocol (LSP) methods provided by the SpecGofer Language Server for extension communication.
+This document describes the custom Language Server Protocol (LSP) methods
+provided by the Gofer Language Server for extension communication.
 
 ## Overview
 
-The SpecGofer Language Server extends the standard LSP with custom methods that enable the VSCode extension to interact with the specification system. These methods provide the same functionality as MCP tools but are designed for extension-to-server communication.
+The Gofer Language Server extends the standard LSP with custom methods that
+enable the VSCode extension to interact with the specification system. These
+methods provide the same functionality as MCP tools but are designed for
+extension-to-server communication.
 
 ## Custom LSP Methods
 
-### 1. specKit/getSpecs
+### 1. gofer/getSpecs
 
 **Description**: Get all specifications from the .specify folder
 
@@ -16,7 +20,7 @@ The SpecGofer Language Server extends the standard LSP with custom methods that 
 
 ```typescript
 interface GetSpecsRequest {
-  method: 'specKit/getSpecs';
+  method: 'gofer/getSpecs';
   params: {};
 }
 ```
@@ -46,13 +50,13 @@ interface Spec {
 
 ```typescript
 // From VSCode Extension
-const response = await connection.sendRequest('specKit/getSpecs', {});
+const response = await connection.sendRequest('gofer/getSpecs', {});
 if (response.success) {
   console.log(`Found ${response.specs.length} specifications`);
 }
 ```
 
-### 2. specKit/executeTask
+### 2. gofer/executeTask
 
 **Description**: Execute a specific task and get full context
 
@@ -60,7 +64,7 @@ if (response.success) {
 
 ```typescript
 interface ExecuteTaskRequest {
-  method: 'specKit/executeTask';
+  method: 'gofer/executeTask';
   params: {
     specId: string;
     taskId: string;
@@ -94,9 +98,9 @@ interface Task {
 
 ```typescript
 // From VSCode Extension
-const response = await connection.sendRequest('specKit/executeTask', {
+const response = await connection.sendRequest('gofer/executeTask', {
   specId: '001-login-feature',
-  taskId: 'T001'
+  taskId: 'T001',
 });
 
 if (response.success) {
@@ -105,7 +109,7 @@ if (response.success) {
 }
 ```
 
-### 3. specKit/updateTaskStatus
+### 3. gofer/updateTaskStatus
 
 **Description**: Update the status of a task in the specification file
 
@@ -113,11 +117,17 @@ if (response.success) {
 
 ```typescript
 interface UpdateTaskStatusRequest {
-  method: 'specKit/updateTaskStatus';
+  method: 'gofer/updateTaskStatus';
   params: {
     specId: string;
     taskId: string;
-    status: 'pending' | 'in_progress' | 'testing' | 'completed' | 'failed' | 'blocked';
+    status:
+      | 'pending'
+      | 'in_progress'
+      | 'testing'
+      | 'completed'
+      | 'failed'
+      | 'blocked';
   };
 }
 ```
@@ -135,10 +145,10 @@ interface UpdateTaskStatusResponse {
 
 ```typescript
 // From VSCode Extension
-const response = await connection.sendRequest('specKit/updateTaskStatus', {
+const response = await connection.sendRequest('gofer/updateTaskStatus', {
   specId: '001-login-feature',
   taskId: 'T001',
-  status: 'completed'
+  status: 'completed',
 });
 
 if (response.success) {
@@ -188,7 +198,7 @@ Common error scenarios:
    ```json
    {
      "success": false,
-     "error": "SpecKit loader not initialized"
+     "error": "Gofer loader not initialized"
    }
    ```
 
@@ -313,11 +323,11 @@ The extension communicates with the language server using these methods:
 
 ```typescript
 // Extension code example
-export class SpecGoferExtension {
+export class GoferExtension {
   private client: LanguageClient;
 
   async getSpecs(): Promise<Spec[]> {
-    const response = await this.client.sendRequest('specKit/getSpecs', {});
+    const response = await this.client.sendRequest('gofer/getSpecs', {});
     if (response.success) {
       return response.specs;
     }
@@ -325,9 +335,9 @@ export class SpecGoferExtension {
   }
 
   async executeTask(specId: string, taskId: string): Promise<Task> {
-    const response = await this.client.sendRequest('specKit/executeTask', {
+    const response = await this.client.sendRequest('gofer/executeTask', {
       specId,
-      taskId
+      taskId,
     });
     if (response.success) {
       return response.task;
@@ -335,11 +345,15 @@ export class SpecGoferExtension {
     throw new Error(response.error);
   }
 
-  async updateTaskStatus(specId: string, taskId: string, status: string): Promise<void> {
-    const response = await this.client.sendRequest('specKit/updateTaskStatus', {
+  async updateTaskStatus(
+    specId: string,
+    taskId: string,
+    status: string
+  ): Promise<void> {
+    const response = await this.client.sendRequest('gofer/updateTaskStatus', {
       specId,
       taskId,
-      status
+      status,
     });
     if (!response.success) {
       throw new Error(response.error);
@@ -357,11 +371,11 @@ To debug LSP communication:
    ```json
    {
      "typescript.preferences.includePackageJsonAutoImports": "off",
-     "specgofer.trace.server": "verbose"
+     "gofer.trace.server": "verbose"
    }
    ```
 
-2. **Check Output panel**: "SpecGofer Language Server"
+2. **Check Output panel**: "Gofer Language Server"
 
 3. **Server logs include**:
    - Request/response pairs
@@ -373,17 +387,17 @@ To debug LSP communication:
 
 The current custom methods replace legacy implementations:
 
-| Legacy | Current | Notes |
-|--------|---------|-------|
-| `getSpecifications()` | `specKit/getSpecs` | Improved error handling |
-| `executeTask()` | `specKit/executeTask` | Added context parameter |
-| `updateStatus()` | `specKit/updateTaskStatus` | Validates status values |
+| Legacy                | Current                  | Notes                   |
+| --------------------- | ------------------------ | ----------------------- |
+| `getSpecifications()` | `gofer/getSpecs`         | Improved error handling |
+| `executeTask()`       | `gofer/executeTask`      | Added context parameter |
+| `updateStatus()`      | `gofer/updateTaskStatus` | Validates status values |
 
 ## Future Enhancements
 
 Planned additions:
 
-- **specKit/searchTasks**: Search tasks by criteria
-- **specKit/validateSpec**: Validate specification format
-- **specKit/generateReport**: Generate progress reports
-- **specKit/importSpec**: Import external specifications
+- **gofer/searchTasks**: Search tasks by criteria
+- **gofer/validateSpec**: Validate specification format
+- **gofer/generateReport**: Generate progress reports
+- **gofer/importSpec**: Import external specifications

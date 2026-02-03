@@ -38,8 +38,8 @@ export class MemoryPanel {
 
     // Create new panel
     const panel = vscode.window.createWebviewPanel(
-      'eaiGoferMemories',
-      'EAI-GOFER Memories',
+      'goferMemories',
+      'Gofer Memories',
       column || vscode.ViewColumn.One,
       {
         enableScripts: true,
@@ -188,7 +188,7 @@ export class MemoryPanel {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EAI-GOFER Memories</title>
+    <title>Gofer Memories</title>
     <style>
         body {
             padding: 20px;
@@ -403,7 +403,7 @@ export class MemoryPanel {
     </style>
 </head>
 <body>
-    <h1>EAI-GOFER Memories</h1>
+    <h1>Gofer Memories</h1>
 
     <div class="search-container">
         <div class="search-row">
@@ -610,7 +610,7 @@ export class MemoryPanel {
                     <div class="empty-state-icon">📚</div>
                     <div>No memories yet</div>
                     <div style="margin-top: 10px; font-size: 12px;">
-                        Use the "EAI-GOFER: Remember" command to create your first memory
+                        Use the "Gofer: Remember" command to create your first memory
                     </div>
                 </div>
             `;

@@ -1,6 +1,6 @@
 # Extension Distribution Guide
 
-This document explains how to build, package, and distribute the SpecGofer VSCode extension.
+This document explains how to build, package, and distribute the Gofer VSCode extension.
 
 ## 🚀 Quick Start
 
@@ -21,7 +21,7 @@ This document explains how to build, package, and distribute the SpecGofer VSCod
 
 ```bash
 # Install the generated VSIX
-code --install-extension dist/specgofer-*.vsix
+code --install-extension dist/gofer-*.vsix
 ```
 
 ## 📦 Packaging Options
@@ -144,7 +144,7 @@ npm install -g @vscode/vsce
 vsce login <publisher-name>
 
 # Publish
-vsce publish --packagePath dist/specgofer-1.2.3.vsix
+vsce publish --packagePath dist/gofer-1.2.3.vsix
 ```
 
 ## 🏪 Marketplace Publishing
@@ -169,13 +169,13 @@ vsce publish --packagePath dist/specgofer-1.2.3.vsix
 
 ```bash
 # Publish to VS Code Marketplace
-vsce publish --packagePath dist/specgofer-1.2.3.vsix
+vsce publish --packagePath dist/gofer-1.2.3.vsix
 
 # Publish to Open VSX Registry  
-npx ovsx publish dist/specgofer-1.2.3.vsix
+npx ovsx publish dist/gofer-1.2.3.vsix
 
 # Publish pre-release
-vsce publish --pre-release --packagePath dist/specgofer-1.2.3-beta.vsix
+vsce publish --pre-release --packagePath dist/gofer-1.2.3-beta.vsix
 ```
 
 ### Marketplace Settings
@@ -196,11 +196,11 @@ The `extension/package.json` contains marketplace metadata:
 ./scripts/package-extension.sh
 
 # Install in VS Code
-code --install-extension dist/specgofer-*.vsix
+code --install-extension dist/gofer-*.vsix
 
 # Test in VS Code
 # 1. Open a workspace
-# 2. Run "SpecGofer: Initialize Repository"
+# 2. Run "Gofer: Initialize Repository"
 # 3. Verify extension activates correctly
 ```
 
@@ -220,7 +220,7 @@ The GitHub Actions workflow runs:
 ./scripts/package-extension.sh --version 1.2.3-beta.1
 
 # Test with limited users
-code --install-extension dist/specgofer-1.2.3-beta.1.vsix
+code --install-extension dist/gofer-1.2.3-beta.1.vsix
 ```
 
 ## 📊 Release Checklist
@@ -280,20 +280,20 @@ npm run prepare-language-server
 
 ```bash
 # List files in VSIX
-npx @vscode/vsce ls dist/specgofer-*.vsix
+npx @vscode/vsce ls dist/gofer-*.vsix
 
 # Extract VSIX for inspection
-unzip -l dist/specgofer-*.vsix
+unzip -l dist/gofer-*.vsix
 ```
 
 ### Manual Verification
 
 ```bash
 # Test VSIX validity
-npx @vscode/vsce verify dist/specgofer-*.vsix
+npx @vscode/vsce verify dist/gofer-*.vsix
 
 # Check package size
-du -h dist/specgofer-*.vsix
+du -h dist/gofer-*.vsix
 
 # Validate manifest
 node -e "console.log(JSON.stringify(require('./extension/package.json'), null, 2))"
@@ -304,7 +304,7 @@ node -e "console.log(JSON.stringify(require('./extension/package.json'), null, 2
 ### Download Statistics
 
 - **VS Code Marketplace**: https://marketplace.visualstudio.com/items?itemName=EnterpriseAI.specgofer
-- **GitHub Releases**: https://github.com/eai-tools/specgofer/releases
+- **GitHub Releases**: https://github.com/eai-tools/gofer/releases
 
 ### User Feedback
 

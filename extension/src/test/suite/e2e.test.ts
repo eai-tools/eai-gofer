@@ -2,11 +2,15 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
-import { GitHubApiClient, downloadLatestTemplates, getLatestTemplateRelease } from '../../utils/githubApi.js';
+import {
+  GitHubApiClient,
+  downloadLatestTemplates,
+  getLatestTemplateRelease,
+} from '../../utils/githubApi.js';
 
 /**
  * End-to-End Tests for GitHub API Integration
- * 
+ *
  * These tests verify real GitHub API connectivity and template downloading.
  * They can be run with network access or skipped in CI environments.
  */
@@ -28,7 +32,7 @@ suite('E2E GitHub API Tests', () => {
   });
 
   suite('GitHub API Connectivity', () => {
-    test('should connect to GitHub API', async function() {
+    test('should connect to GitHub API', async function () {
       // Skip if no network access (CI environment)
       if (process.env.CI || process.env.SKIP_NETWORK_TESTS) {
         this.skip();
@@ -40,7 +44,7 @@ suite('E2E GitHub API Tests', () => {
       assert.ok(result.rateLimit >= 0, 'Should return rate limit information');
     });
 
-    test('should handle rate limiting gracefully', async function() {
+    test('should handle rate limiting gracefully', async function () {
       // Skip if no network access
       if (process.env.CI || process.env.SKIP_NETWORK_TESTS) {
         this.skip();
@@ -48,9 +52,9 @@ suite('E2E GitHub API Tests', () => {
       }
 
       // Make multiple rapid requests to trigger rate limiting
-      const promises = Array(10).fill(null).map(() => 
-        apiClient.testConnection()
-      );
+      const promises = Array(10)
+        .fill(null)
+        .map(() => apiClient.testConnection());
 
       try {
         const results = await Promise.all(promises);
@@ -63,7 +67,7 @@ suite('E2E GitHub API Tests', () => {
       }
     });
 
-    test('should fetch latest SpecGofer release', async function() {
+    test('should fetch latest Gofer release', async function () {
       if (process.env.CI || process.env.SKIP_NETWORK_TESTS) {
         this.skip();
         return;
@@ -76,7 +80,7 @@ suite('E2E GitHub API Tests', () => {
       assert.ok(release.published, 'Release should have a published date');
     });
 
-    test('should fetch Gofer template releases', async function() {
+    test('should fetch Gofer template releases', async function () {
       if (process.env.CI || process.env.SKIP_NETWORK_TESTS) {
         this.skip();
         return;
@@ -107,7 +111,7 @@ suite('E2E GitHub API Tests', () => {
       }
     });
 
-    test('should download and extract template with progress', async function() {
+    test('should download and extract template with progress', async function () {
       if (process.env.CI || process.env.SKIP_NETWORK_TESTS) {
         this.skip();
         return;
@@ -117,28 +121,27 @@ suite('E2E GitHub API Tests', () => {
 
       try {
         const templateData = await downloadLatestTemplates();
-        
+
         assert.ok(templateData, 'Should return template data');
         assert.ok(templateData.byteLength > 0, 'Template data should not be empty');
-        
+
         // Verify it's a valid ZIP file by checking magic bytes
         const view = new Uint8Array(templateData);
-        const isZip = view[0] === 0x50 && view[1] === 0x4B; // PK header
+        const isZip = view[0] === 0x50 && view[1] === 0x4b; // PK header
         assert.ok(isZip, 'Downloaded data should be a ZIP file');
-        
       } catch (error) {
         // Network failures are acceptable in test environment
         console.warn('Template download failed (acceptable in test):', error);
       }
     });
 
-    test('should handle download failures gracefully', async function() {
+    test('should handle download failures gracefully', async function () {
       // This test doesn't require network access
-      
+
       // Verify the function exists and returns a promise
       const downloadPromise = downloadLatestTemplates();
       assert.ok(downloadPromise instanceof Promise, 'Should return a Promise');
-      
+
       try {
         const result = await downloadPromise;
         // If it succeeds, that's fine
@@ -149,7 +152,7 @@ suite('E2E GitHub API Tests', () => {
       }
     });
 
-    test('should validate downloaded templates', async function() {
+    test('should validate downloaded templates', async function () {
       if (process.env.CI || process.env.SKIP_NETWORK_TESTS) {
         this.skip();
         return;
@@ -159,24 +162,23 @@ suite('E2E GitHub API Tests', () => {
 
       try {
         const templateData = await downloadLatestTemplates();
-        
+
         // Basic validation - should be binary data
         assert.ok(templateData instanceof ArrayBuffer, 'Should return ArrayBuffer');
         assert.ok(templateData.byteLength > 0, 'Should have content');
-        
+
         // Create test extraction to verify it's valid
         const testDir = path.join(testTemplateDir, 'validation');
         fs.mkdirSync(testDir, { recursive: true });
-        
+
         // Write to file for validation
         const testFile = path.join(testDir, 'template.zip');
         fs.writeFileSync(testFile, Buffer.from(templateData));
-        
+
         // Verify file was written
         assert.ok(fs.existsSync(testFile), 'Template file should be written');
         const stats = fs.statSync(testFile);
         assert.ok(stats.size > 0, 'Template file should have content');
-        
       } catch (error) {
         console.warn('Template validation failed (acceptable in test):', error);
       }
@@ -201,7 +203,7 @@ suite('E2E GitHub API Tests', () => {
       }
     });
 
-    test('should initialize repository with latest templates', async function() {
+    test('should initialize repository with latest templates', async function () {
       if (process.env.CI || process.env.SKIP_NETWORK_TESTS) {
         this.skip();
         return;
@@ -219,16 +221,16 @@ suite('E2E GitHub API Tests', () => {
 
       // Verify .specify structure was created
       assert.ok(fs.existsSync(specifyPath), '.specify directory should exist');
-      
+
       // Write template data for verification
       const templateFile = path.join(specifyPath, 'templates.zip');
       fs.writeFileSync(templateFile, Buffer.from(templateData));
       assert.ok(fs.existsSync(templateFile), 'Template file should be written');
     });
 
-    test('should handle network failures during initialization', async function() {
+    test('should handle network failures during initialization', async function () {
       // This test can run without network
-      
+
       // Create empty .specify structure
       const specifyPath = path.join(testRepoPath, '.specify');
       fs.mkdirSync(specifyPath, { recursive: true });
@@ -246,7 +248,7 @@ suite('E2E GitHub API Tests', () => {
   });
 
   suite('Integration with Extension Commands', () => {
-    test('should execute initialize command successfully', async function() {
+    test('should execute initialize command successfully', async function () {
       if (process.env.CI || process.env.SKIP_NETWORK_TESTS) {
         this.skip();
         return;
@@ -256,11 +258,11 @@ suite('E2E GitHub API Tests', () => {
 
       // Execute the initialize command
       try {
-        await vscode.commands.executeCommand('eaiGofer.initialize');
-        
+        await vscode.commands.executeCommand('gofer.initialize');
+
         // Verify the command completed (no exception thrown)
         assert.ok(true, 'Initialize command should execute without errors');
-        
+
         // Check if .specify directory was created in workspace
         const workspacePath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
         if (workspacePath) {
@@ -274,28 +276,28 @@ suite('E2E GitHub API Tests', () => {
       }
     });
 
-    test('should execute template update command', async function() {
+    test('should execute template update command', async function () {
       if (process.env.CI || process.env.SKIP_NETWORK_TESTS) {
         this.skip();
         return;
       }
 
       try {
-        await vscode.commands.executeCommand('eaiGofer.updateTemplates');
+        await vscode.commands.executeCommand('gofer.updateTemplates');
         assert.ok(true, 'Update templates command should execute');
       } catch (error) {
         console.warn('Update templates command failed in test environment:', error);
       }
     });
 
-    test('should execute update check command', async function() {
+    test('should execute update check command', async function () {
       if (process.env.CI || process.env.SKIP_NETWORK_TESTS) {
         this.skip();
         return;
       }
 
       try {
-        await vscode.commands.executeCommand('eaiGofer.checkForUpdates');
+        await vscode.commands.executeCommand('gofer.checkForUpdates');
         assert.ok(true, 'Check for updates command should execute');
       } catch (error) {
         console.warn('Check for updates command failed in test environment:', error);

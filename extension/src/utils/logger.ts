@@ -194,7 +194,7 @@ export class Logger {
     this.component = component;
   }
 
-  public static getInstance(component: string = 'SpecGofer'): Logger {
+  public static getInstance(component: string = 'Gofer'): Logger {
     if (!Logger.instance) {
       Logger.instance = new Logger(component);
     }
@@ -316,10 +316,10 @@ export class Logger {
  * Initialize logging for the extension
  */
 export function initializeLogging(context: vscode.ExtensionContext): Logger {
-  const logger = Logger.getInstance('SpecGofer');
+  const logger = Logger.getInstance('Gofer');
   
   // Add output channel for user visibility
-  const outputChannel = new OutputChannelLogger('SpecGofer - Enterprise AI');
+  const outputChannel = new OutputChannelLogger('Gofer - Enterprise AI');
   logger.addOutput(outputChannel);
   
   // Add console logging in development
@@ -332,7 +332,7 @@ export function initializeLogging(context: vscode.ExtensionContext): Logger {
   const config = ConfigManager.getInstance();
   if (config.getTelemetryEnabled()) {
     const path = require('path');
-    const logPath = path.join(context.globalStorageUri.fsPath, 'logs', 'specgofer.log');
+    const logPath = path.join(context.globalStorageUri.fsPath, 'logs', 'gofer.log');
     const fileLogger = new FileLogger(logPath);
     logger.addOutput(fileLogger);
     

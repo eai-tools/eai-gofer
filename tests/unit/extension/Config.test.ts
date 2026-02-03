@@ -25,11 +25,11 @@ import {
 describe('Config - Constants', () => {
   describe('Extension Constants', () => {
     it('should have correct extension name', () => {
-      expect(EXTENSION_NAME).toBe('eai-gofer');
+      expect(EXTENSION_NAME).toBe('gofer');
     });
 
     it('should have correct display name', () => {
-      expect(EXTENSION_DISPLAY_NAME).toBe('EAI-GOFER (Enterprise AI)');
+      expect(EXTENSION_DISPLAY_NAME).toBe('Gofer (Enterprise AI)');
     });
 
     it('should have a valid version string', () => {
@@ -80,12 +80,12 @@ describe('Config - Constants', () => {
 
   describe('MCP Tool Names', () => {
     it('should define all MCP tools', () => {
-      expect(MCP_TOOLS.getSpecs).toBe('eaigofer_get_specs');
-      expect(MCP_TOOLS.getNextTask).toBe('eaigofer_get_next_task');
-      expect(MCP_TOOLS.executeTask).toBe('eaigofer_execute_task');
-      expect(MCP_TOOLS.updateTaskStatus).toBe('eaigofer_update_task_status');
-      expect(MCP_TOOLS.validateCode).toBe('eaigofer_validate_code');
-      expect(MCP_TOOLS.runTests).toBe('eaigofer_run_tests');
+      expect(MCP_TOOLS.getSpecs).toBe('gofer_get_specs');
+      expect(MCP_TOOLS.getNextTask).toBe('gofer_get_next_task');
+      expect(MCP_TOOLS.executeTask).toBe('gofer_execute_task');
+      expect(MCP_TOOLS.updateTaskStatus).toBe('gofer_update_task_status');
+      expect(MCP_TOOLS.validateCode).toBe('gofer_validate_code');
+      expect(MCP_TOOLS.runTests).toBe('gofer_run_tests');
     });
 
     it('should have 6 MCP tools', () => {
@@ -95,47 +95,47 @@ describe('Config - Constants', () => {
 
   describe('Command IDs', () => {
     it('should define all command IDs', () => {
-      expect(COMMANDS.initialize).toBe('eaiGofer.initialize');
-      expect(COMMANDS.upgrade).toBe('eaiGofer.upgrade');
-      expect(COMMANDS.checkVersion).toBe('eaiGofer.checkVersion');
-      expect(COMMANDS.refreshSpecs).toBe('eaiGofer.refreshSpecs');
-      expect(COMMANDS.refreshConstitution).toBe('eaiGofer.refreshConstitution');
-      expect(COMMANDS.showProgress).toBe('eaiGofer.showProgress');
-      expect(COMMANDS.showConstitution).toBe('eaiGofer.showConstitution');
-      expect(COMMANDS.checkForUpdates).toBe('eaiGofer.checkForUpdates');
-      expect(COMMANDS.updateNow).toBe('eaiGofer.updateNow');
+      expect(COMMANDS.initialize).toBe('gofer.initialize');
+      expect(COMMANDS.upgrade).toBe('gofer.upgrade');
+      expect(COMMANDS.checkVersion).toBe('gofer.checkVersion');
+      expect(COMMANDS.refreshSpecs).toBe('gofer.refreshSpecs');
+      expect(COMMANDS.refreshConstitution).toBe('gofer.refreshConstitution');
+      expect(COMMANDS.showProgress).toBe('gofer.showProgress');
+      expect(COMMANDS.showConstitution).toBe('gofer.showConstitution');
+      expect(COMMANDS.checkForUpdates).toBe('gofer.checkForUpdates');
+      expect(COMMANDS.updateNow).toBe('gofer.updateNow');
     });
 
-    it('should have all commands prefixed with eaiGofer.', () => {
-      Object.values(COMMANDS).forEach(cmd => {
-        expect(cmd).toMatch(/^eaiGofer\./);
+    it('should have all commands prefixed with gofer.', () => {
+      Object.values(COMMANDS).forEach((cmd) => {
+        expect(cmd).toMatch(/^gofer\./);
       });
     });
   });
 
   describe('View IDs', () => {
     it('should define all view IDs', () => {
-      expect(VIEWS.progress).toBe('eaiGoferProgress');
-      expect(VIEWS.constitution).toBe('eaiGoferConstitution');
-      expect(VIEWS.memory).toBe('eaiGoferMemory');
+      expect(VIEWS.progress).toBe('goferProgress');
+      expect(VIEWS.constitution).toBe('goferConstitution');
+      expect(VIEWS.memory).toBe('goferMemory');
       expect(VIEWS.container).toBe('gofer');
     });
   });
 
   describe('Config Keys', () => {
     it('should define all configuration keys', () => {
-      expect(CONFIG_KEYS.anthropicApiKey).toBe('eaiGofer.anthropicApiKey');
-      expect(CONFIG_KEYS.autoInitialize).toBe('eaiGofer.autoInitialize');
-      expect(CONFIG_KEYS.preferredAi).toBe('eaiGofer.preferredAI');
-      expect(CONFIG_KEYS.autoUpdateCheck).toBe('eaiGofer.autoUpdateCheck');
-      expect(CONFIG_KEYS.telemetryEnabled).toBe('eaiGofer.telemetryEnabled');
-      expect(CONFIG_KEYS.updateCheckInterval).toBe('eaiGofer.updateCheckInterval');
-      expect(CONFIG_KEYS.performanceMode).toBe('eaiGofer.performanceMode');
+      expect(CONFIG_KEYS.anthropicApiKey).toBe('gofer.anthropicApiKey');
+      expect(CONFIG_KEYS.autoInitialize).toBe('gofer.autoInitialize');
+      expect(CONFIG_KEYS.preferredAi).toBe('gofer.preferredAI');
+      expect(CONFIG_KEYS.autoUpdateCheck).toBe('gofer.autoUpdateCheck');
+      expect(CONFIG_KEYS.telemetryEnabled).toBe('gofer.telemetryEnabled');
+      expect(CONFIG_KEYS.updateCheckInterval).toBe('gofer.updateCheckInterval');
+      expect(CONFIG_KEYS.performanceMode).toBe('gofer.performanceMode');
     });
 
-    it('should have all config keys prefixed with eaiGofer.', () => {
-      Object.values(CONFIG_KEYS).forEach(key => {
-        expect(key).toMatch(/^eaiGofer\./);
+    it('should have all config keys prefixed with gofer.', () => {
+      Object.values(CONFIG_KEYS).forEach((key) => {
+        expect(key).toMatch(/^gofer\./);
       });
     });
   });
@@ -348,7 +348,9 @@ describe('Config - Validation Helpers', () => {
     });
 
     it('should return false for files with constitution.md in name but not ending', () => {
-      expect(VALIDATION.isConstitutionFile('/project/.specify/memory/constitution.md.backup')).toBe(false);
+      expect(VALIDATION.isConstitutionFile('/project/.specify/memory/constitution.md.backup')).toBe(
+        false
+      );
     });
   });
 });
@@ -390,9 +392,9 @@ describe('Config - Integration Scenarios', () => {
     expect(uniqueNames.size).toBe(toolNames.length);
   });
 
-  it('should have all MCP tool names prefixed with eaigofer_', () => {
-    Object.values(MCP_TOOLS).forEach(tool => {
-      expect(tool).toMatch(/^eaigofer_/);
+  it('should have all MCP tool names prefixed with gofer_', () => {
+    Object.values(MCP_TOOLS).forEach((tool) => {
+      expect(tool).toMatch(/^gofer_/);
     });
   });
 });

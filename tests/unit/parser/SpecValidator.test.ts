@@ -520,7 +520,7 @@ updated: 2025-01-15
       const fs = require('fs/promises');
       const updatedContent = await fs.readFile(tasksPath, 'utf-8');
       // Note: The current regex has a bug that removes the closing bracket
-      // TODO: Fix regex in specKitParser.ts:581
+      // TODO: Fix regex in goferParser.ts:581
       expect(updatedContent).toContain('- [x **T002**: Second task');
       expect(updatedContent).toContain('- [ ] **T001**: First task');
       expect(updatedContent).toContain('- [ ] **T003**: Third task');

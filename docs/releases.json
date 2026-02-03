@@ -1,97 +1,79 @@
 {
-  "latest_version": "4.5.0",
-  "repository": "eai-tools/specgofer",
-  "last_updated": "2026-01-17T05:29:23.358Z",
+  "latest_version": "1.0.3",
+  "repository": "eai-tools/gofer",
+  "last_updated": "2026-01-27T08:19:20.666Z",
   "releases": [
     {
-      "version": "4.5.0",
-      "tag_name": "v4.5.0",
-      "published_at": "2026-01-17T05:29:23.358Z",
-      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-4.5.0.vsix",
-      "notes": "New release",
+      "version": "1.0.3",
+      "tag_name": "v1.0.3",
+      "published_at": "2026-01-27T08:19:20.665Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.0.3.vsix",
+      "notes": "Fix: Sync missing bundled resources on Codespaces/new machines",
       "prerelease": false,
       "size_mb": 8.5
     },
     {
-      "version": "4.3.2",
-      "tag_name": "v4.3.2",
-      "published_at": "2026-01-13T08:22:16.327Z",
-      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-4.3.2.vsix",
-      "notes": "chore: pre-release changes\n\nAuto-committed changes before release v4.3.1",
+      "version": "1.0.2",
+      "tag_name": "v1.0.2",
+      "published_at": "2026-01-26T01:40:03.060Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.0.2.vsix",
+      "notes": "chore: pre-release changes\n\nAuto-committed changes before release v1.0.1",
       "prerelease": false,
-      "size_mb": 16
+      "size_mb": 8.5
     },
     {
-      "version": "4.3.1",
-      "tag_name": "v4.3.1",
-      "published_at": "2026-01-13T08:14:02.853Z",
-      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-4.3.1.vsix",
-      "notes": "chore: pre-release changes\n\nAuto-committed changes before release v4.3.0",
+      "version": "1.0.1",
+      "tag_name": "v1.0.1",
+      "published_at": "2026-01-25T23:52:26.677Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.0.1.vsix",
+      "notes": "chore: pre-release changes\n\nAuto-committed changes before release v1.0.0",
       "prerelease": false,
-      "size_mb": 16
+      "size_mb": 8.5
     },
     {
-      "version": "4.3.0",
-      "tag_name": "v4.3.0",
-      "published_at": "2026-01-13T03:27:56.944Z",
-      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-4.3.0.vsix",
-      "notes": "chore: pre-release changes\n\nAuto-committed changes before release v4.2.7",
+      "version": "1.0.0",
+      "tag_name": "v1.0.0",
+      "published_at": "2026-01-25T23:44:50.935Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.0.0.vsix",
+      "notes": "First major release: Consultative business discovery, memory leak fixes, script upgrade improvements",
       "prerelease": false,
-      "size_mb": 16
+      "size_mb": 8.5
     },
     {
-      "version": "4.2.7",
-      "tag_name": "v4.2.7",
-      "published_at": "2026-01-13T02:53:31.238Z",
-      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-4.2.7.vsix",
-      "notes": "chore: pre-release changes\n\nAuto-committed changes before release v4.2.6",
+      "version": "0.0.9",
+      "tag_name": "v0.0.9",
+      "published_at": "2026-01-25T08:14:23.805Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-0.0.9.vsix",
+      "notes": "Context health monitoring and integration",
       "prerelease": false,
-      "size_mb": 16
+      "size_mb": 8.5
     },
     {
-      "version": "4.2.6",
-      "tag_name": "v4.2.6",
-      "published_at": "2026-01-13T02:44:25.182Z",
-      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-4.2.6.vsix",
-      "notes": "chore: pre-release changes\n\nAuto-committed changes before release v4.2.5",
+      "version": "4.6.1",
+      "tag_name": "v4.6.1",
+      "published_at": "2026-01-19T21:20:47.855Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-4.6.1.vsix",
+      "notes": "fix: auto-reload VS Code after extension update",
       "prerelease": false,
-      "size_mb": 16
+      "size_mb": 16.1
     },
     {
-      "version": "4.2.5",
-      "tag_name": "v4.2.5",
-      "published_at": "2026-01-13T01:07:18.409Z",
-      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-4.2.5.vsix",
-      "notes": "Add missing bash scripts to bundle (check-context-health, log-stage, save-checkpoint, verify-task)",
+      "version": "4.6.0",
+      "tag_name": "v4.6.0",
+      "published_at": "2026-01-19T11:50:48.591Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-4.6.0.vsix",
+      "notes": "Add Gofer Memory and Journey System - agentic memory with priority-based retention, interactive journey mapping, journey variant generation, multi-option sequence diagrams, and vertical slice delivery",
       "prerelease": false,
-      "size_mb": 16
+      "size_mb": 16.1
     },
     {
-      "version": "4.2.4",
-      "tag_name": "v4.2.4",
-      "published_at": "2026-01-12T09:01:56.131Z",
-      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-4.2.4.vsix",
-      "notes": "chore: pre-release changes\n\nAuto-committed changes before release v4.2.3",
+      "version": "4.5.0",
+      "tag_name": "v4.5.0",
+      "published_at": "2026-01-17T05:29:23.358Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-4.5.0.vsix",
+      "notes": "Unified Claude and Copilot commands with identical naming",
       "prerelease": false,
-      "size_mb": 16
-    },
-    {
-      "version": "4.2.3",
-      "tag_name": "v4.2.3",
-      "published_at": "2026-01-12T04:29:32.685Z",
-      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-4.2.3.vsix",
-      "notes": "Fixed bundled templates sync and README update during upgrades",
-      "prerelease": false,
-      "size_mb": 16
-    },
-    {
-      "version": "4.2.2",
-      "tag_name": "v4.2.2",
-      "published_at": "2026-01-12T03:55:11.342Z",
-      "download_url": "https://eai-tools.github.io/specgofer/releases/specgofer-4.2.2.vsix",
-      "notes": "Updated templates and documentation for unified Gofer pipeline",
-      "prerelease": false,
-      "size_mb": 16
+      "size_mb": 30.1
     }
   ]
 }

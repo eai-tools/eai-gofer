@@ -10,7 +10,7 @@ suite('GoferParser Test Suite', () => {
 
   suiteSetup(async () => {
     // Create temporary directory for tests
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'speckit-test-'));
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'gofer-test-'));
     parser = new GoferParser(tempDir);
   });
 
@@ -224,7 +224,7 @@ created: "2025-10-22"
     });
 
     test('should handle empty specs directory gracefully', async () => {
-      const emptyTempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'empty-speckit-test-'));
+      const emptyTempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'empty-gofer-test-'));
       const emptyParser = new GoferParser(emptyTempDir);
 
       const specs = await emptyParser.loadAllSpecs();

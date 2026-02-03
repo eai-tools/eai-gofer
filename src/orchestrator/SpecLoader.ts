@@ -55,7 +55,7 @@ export class SpecLoader {
   }
 
   /**
-   * Load specs from GitHub Gofer format (.specify/specs/)
+   * Load specs from Gofer format (.specify/specs/)
    */
   private async loadGoferSpecs(): Promise<Spec[]> {
     try {
@@ -81,7 +81,7 @@ export class SpecLoader {
   }
 
   /**
-   * Parse header metadata from official GitHub Gofer format
+   * Parse header metadata from official Gofer format
    */
   private parseSpecHeader(content: string): ParsedSpec {
     const lines = content.split('\n');

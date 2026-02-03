@@ -38,7 +38,7 @@ describe('MCPToolHandler', () => {
 
     // Create tool handler
     toolHandler = new MCPToolHandler('/test/workspace', mockConnection);
-    
+
     // Get the mocked GoferLoader instance
     mockGoferLoader = (toolHandler as unknown as { goferLoader: typeof mockGoferLoader }).goferLoader;
   });
@@ -102,7 +102,7 @@ describe('MCPToolHandler', () => {
           expect.stringContaining('Security Violation')
         );
         expect(mockConnection.sendNotification).toHaveBeenCalledWith(
-          'eaiGofer/securityViolation',
+          'gofer/securityViolation',
           expect.objectContaining({
             type: 'SECURITY_VIOLATION',
             message: 'Path traversal attempt in specId'

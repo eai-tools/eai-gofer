@@ -70,3 +70,6 @@ extension/out/
 # SpecGofer state files (auto-generated, should not be committed)
 .specify/memory/dependency-graph.json
 .specify/specs/*/.branch-info.json
+
+# Gofer hooks runtime state (ephemeral, session-specific)
+.specify/hooks/

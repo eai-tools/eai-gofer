@@ -21,7 +21,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
  * E2E Test Suite for Dependency Impact Notifications
  *
  * These tests simulate a complete user workflow:
- * 1. User opens VSCode with SpecGofer extension and a project with specs
+ * 1. User opens VSCode with Gofer extension and a project with specs
  * 2. Specs have declared dependencies in frontmatter
  * 3. User edits a spec file that has dependents
  * 4. Extension shows impact notification
@@ -252,7 +252,7 @@ describe('Dependency Impact E2E Tests', () => {
       // Implementation would verify empty sections:
       /*
       const impactReport = await vscode.commands.executeCommand(
-        'specGofer.showImpactReport',
+        'gofer.showImpactReport',
         '002-leaf'
       );
 
@@ -321,7 +321,7 @@ describe('Dependency Impact E2E Tests', () => {
       //
       // Test steps:
       // 1. Open workspace
-      // 2. Focus on SpecGofer Progress tree view
+      // 2. Focus on Gofer Progress tree view
       // 3. Hover over spec with dependencies (e.g., 002-user-profile)
       // 4. Verify tooltip shows:
       //    - Spec title and description
@@ -330,7 +330,7 @@ describe('Dependency Impact E2E Tests', () => {
 
       // Implementation would verify tree item tooltip:
       /*
-      const treeView = await getTreeView('specGoferProgress');
+      const treeView = await getTreeView('goferProgress');
       const specItem = await findTreeItem(treeView, '002-user-profile');
       const tooltip = await getTooltip(specItem);
 
@@ -350,14 +350,14 @@ describe('Dependency Impact E2E Tests', () => {
       //
       // Test steps:
       // 1. Open workspace
-      // 2. Focus on SpecGofer Progress tree view
+      // 2. Focus on Gofer Progress tree view
       // 3. Find spec with dependencies (e.g., 002-user-profile)
       // 4. Verify description field shows:
       //    "→ depends on: 001-authentication • XX%"
 
       // Implementation would verify tree item description:
       /*
-      const treeView = await getTreeView('specGoferProgress');
+      const treeView = await getTreeView('goferProgress');
       const specItem = await findTreeItem(treeView, '002-user-profile');
       const description = specItem.description;
 
@@ -399,7 +399,7 @@ describe('Dependency Impact E2E Tests', () => {
         expect.stringContaining('depends on non-existent spec')
       );
 
-      const treeView = await getTreeView('specGoferProgress');
+      const treeView = await getTreeView('goferProgress');
       const specItem = await findTreeItem(treeView, '002-invalid-deps');
       expect(specItem).toBeDefined();
       */
@@ -430,7 +430,7 @@ describe('Dependency Impact E2E Tests', () => {
       await sleep(2000);
 
       // Try to execute all specs
-      await vscode.commands.executeCommand('specGofer.executeAllPendingSpecs');
+      await vscode.commands.executeCommand('gofer.executeAllPendingSpecs');
 
       const notifications = await getNotifications();
       const errorNotification = notifications.find((n) =>

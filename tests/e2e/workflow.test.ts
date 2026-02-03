@@ -5,16 +5,16 @@ import { spawn, ChildProcess } from 'child_process';
 import { join } from 'path';
 
 /**
- * End-to-End Tests for SpecGofer System
+ * End-to-End Tests for Gofer System
  *
  * Tests the complete workflow from spec creation to task completion
  * using file system operations and the autonomous orchestrator
  */
 
-const WORKSPACE_PATH = process.env.WORKSPACE_PATH || '/tmp/specgofer-e2e-test';
+const WORKSPACE_PATH = process.env.WORKSPACE_PATH || '/tmp/gofer-e2e-test';
 const SPEC_DIR = join(WORKSPACE_PATH, '.specify');
 
-test.describe('SpecGofer E2E Workflow', () => {
+test.describe('Gofer E2E Workflow', () => {
   test.beforeEach(async () => {
     // Setup test workspace
     await setupTestWorkspace();
@@ -197,7 +197,7 @@ Test complex task dependencies.
     // Test the Claude Code integration through MCP tools
     const testInput = `
 Please help me implement Task T001 from spec 005-e2e-test.
-Use the SpecGofer MCP tools to:
+Use the Gofer MCP tools to:
 1. Get the task details
 2. Execute the task
 3. Validate the implementation
@@ -214,8 +214,8 @@ Use the SpecGofer MCP tools to:
 
     // Read and verify Claude response
     const response = readFileSync(claudeOutputPath, 'utf-8');
-    expect(response).toContain('specgofer_get_next_task');
-    expect(response).toContain('specgofer_execute_task');
+    expect(response).toContain('gofer_get_next_task');
+    expect(response).toContain('gofer_execute_task');
     expect(response).toContain('Task execution completed');
 
     // Verify task was actually processed
@@ -225,7 +225,7 @@ Use the SpecGofer MCP tools to:
 
   test('constitutional validation enforcement', async () => {
     // Create constitution file
-    const constitutionContent = `# SpecGofer Development Constitution
+    const constitutionContent = `# Gofer Development Constitution
 
 ## Code Quality Standards
 - No \`any\` types in TypeScript
@@ -300,7 +300,7 @@ async function setupTestWorkspace(): Promise<void> {
 
   // Create package.json
   const packageJson = {
-    name: 'specgofer-e2e-test',
+    name: 'gofer-e2e-test',
     version: '1.0.0',
     scripts: {
       test: 'vitest',
@@ -394,7 +394,7 @@ async function getTaskStatus(specId: string, taskId: string): Promise<string> {
     const content = readFileSync(specPath, 'utf-8');
 
     // Parse YAML frontmatter and markdown to get task status
-    // This is a simplified version - full implementation would use the SpecKitParser
+    // This is a simplified version - full implementation would use the GoferParser
     if (content.includes(`#${taskId}`)) {
       if (content.includes(`- [x] #${taskId}`)) {
         return 'completed';

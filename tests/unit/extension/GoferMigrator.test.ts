@@ -8,10 +8,10 @@ import * as os from 'os';
 
 /**
  * Create a bare test workspace without any .specify structure
- * (Unlike createTestWorkspace which creates full spec-kit structure)
+ * (Unlike createTestWorkspace which creates full gofer structure)
  */
 async function createBareWorkspace(): Promise<string> {
-  const tmpDir = fsSync.mkdtempSync(path.join(os.tmpdir(), 'specgofer-test-'));
+  const tmpDir = fsSync.mkdtempSync(path.join(os.tmpdir(), 'gofer-test-'));
   return tmpDir;
 }
 
@@ -34,14 +34,14 @@ describe('GoferMigrator', () => {
       expect(format).toBe('none');
     });
 
-    it('should detect "spec-kit" format with all required directories', async () => {
-      // Create Spec Kit structure
+    it('should detect "gofer" format with all required directories', async () => {
+      // Create Gofer structure
       await fs.mkdir(path.join(workspace, '.specify/specs'), { recursive: true });
       await fs.mkdir(path.join(workspace, '.specify/memory'), { recursive: true });
       await fs.mkdir(path.join(workspace, '.specify/templates'), { recursive: true });
 
       const format = await migrator.detectFormat();
-      expect(format).toBe('spec-kit');
+      expect(format).toBe('gofer');
     });
 
     it('should detect "legacy-json" format with JSON specs', async () => {
@@ -57,8 +57,8 @@ describe('GoferMigrator', () => {
       expect(format).toBe('legacy-json');
     });
 
-    it('should detect "mixed" format when both Spec Kit and JSON exist', async () => {
-      // Create Spec Kit structure
+    it('should detect "mixed" format when both Gofer and JSON exist', async () => {
+      // Create Gofer structure
       await fs.mkdir(path.join(workspace, '.specify/specs'), { recursive: true });
       await fs.mkdir(path.join(workspace, '.specify/memory'), { recursive: true });
       await fs.mkdir(path.join(workspace, '.specify/templates'), { recursive: true });
@@ -87,7 +87,7 @@ describe('GoferMigrator', () => {
       expect(format).not.toBe('legacy-json');
     });
 
-    it('should detect "mixed" for partial Spec Kit structure', async () => {
+    it('should detect "mixed" for partial Gofer structure', async () => {
       // Only create some directories
       await fs.mkdir(path.join(workspace, '.specify/specs'), { recursive: true });
 
@@ -126,14 +126,14 @@ describe('GoferMigrator', () => {
       expect(info.details).toContain('No .specify folder');
     });
 
-    it('should return version info for "spec-kit" format', async () => {
+    it('should return version info for "gofer" format', async () => {
       await fs.mkdir(path.join(workspace, '.specify/specs'), { recursive: true });
       await fs.mkdir(path.join(workspace, '.specify/memory'), { recursive: true });
       await fs.mkdir(path.join(workspace, '.specify/templates'), { recursive: true });
 
       const info = await migrator.getVersionInfo();
 
-      expect(info.format).toBe('spec-kit');
+      expect(info.format).toBe('gofer');
       expect(info.needsUpgrade).toBe(false);
       expect(info.details).toBeDefined();
     });
@@ -177,7 +177,7 @@ describe('GoferMigrator', () => {
       const commandsDir = path.join(workspace, '.claude/commands');
       await fs.mkdir(commandsDir, { recursive: true });
 
-      const commandContent = `# Spec Kit Command
+      const commandContent = `# Gofer Command
 
 Load all specs from specs/001-feature/spec.md
 
@@ -210,9 +210,13 @@ cd specs/001-feature
       const vscodeDir = path.join(workspace, '.vscode');
       await fs.mkdir(vscodeDir, { recursive: true });
 
-      const settingsContent = JSON.stringify({
-        'specgofer.specsPath': '${workspaceFolder}/specs/',
-      }, null, 2);
+      const settingsContent = JSON.stringify(
+        {
+          'specgofer.specsPath': '${workspaceFolder}/specs/',
+        },
+        null,
+        2
+      );
 
       await fs.writeFile(path.join(vscodeDir, 'settings.json'), settingsContent, 'utf-8');
 
@@ -250,9 +254,9 @@ cd specs/001-feature
         migrator.detectFormat(),
       ]);
 
-      expect(format1).toBe('spec-kit');
-      expect(format2).toBe('spec-kit');
-      expect(format3).toBe('spec-kit');
+      expect(format1).toBe('gofer');
+      expect(format2).toBe('gofer');
+      expect(format3).toBe('gofer');
     });
 
     it('should handle invalid JSON files gracefully', async () => {
@@ -281,7 +285,7 @@ cd specs/001-feature
 
         const format = await migrator.detectFormat();
         // Should handle symlinks as directories
-        expect(['spec-kit', 'mixed']).toContain(format);
+        expect(['gofer', 'mixed']).toContain(format);
       } catch (error) {
         // Symlink creation may fail on Windows without admin rights
         // Skip test in that case
@@ -291,10 +295,7 @@ cd specs/001-feature
 
     it('should handle very deep directory structures', async () => {
       // Create a very deep structure
-      const deepPath = path.join(
-        workspace,
-        '.specify/scripts/bash/utils/helpers/tools/vendor'
-      );
+      const deepPath = path.join(workspace, '.specify/scripts/bash/utils/helpers/tools/vendor');
       await fs.mkdir(deepPath, { recursive: true });
       await fs.writeFile(path.join(deepPath, 'deep-script.sh'), '#!/bin/bash\nspecs/', 'utf-8');
 
@@ -319,7 +320,7 @@ cd specs/001-feature
       }
 
       const format = await migrator.detectFormat();
-      expect(format).toBe('spec-kit');
+      expect(format).toBe('gofer');
     });
 
     it('should handle empty specs/ directory', async () => {
@@ -328,7 +329,7 @@ cd specs/001-feature
       await fs.mkdir(path.join(workspace, '.specify/templates'), { recursive: true });
 
       const format = await migrator.detectFormat();
-      expect(format).toBe('spec-kit');
+      expect(format).toBe('gofer');
     });
   });
 
@@ -353,8 +354,8 @@ cd specs/001-feature
   });
 
   describe('Real-World Scenarios', () => {
-    it('should detect fresh Spec Kit installation', async () => {
-      // Simulate fresh spec-kit init
+    it('should detect fresh Gofer installation', async () => {
+      // Simulate fresh gofer init
       await fs.mkdir(path.join(workspace, '.specify/specs'), { recursive: true });
       await fs.mkdir(path.join(workspace, '.specify/memory'), { recursive: true });
       await fs.mkdir(path.join(workspace, '.specify/templates'), { recursive: true });
@@ -365,14 +366,14 @@ cd specs/001-feature
       );
 
       const format = await migrator.detectFormat();
-      expect(format).toBe('spec-kit');
+      expect(format).toBe('gofer');
 
       const info = await migrator.getVersionInfo();
       expect(info.needsUpgrade).toBe(false);
     });
 
     it('should detect legacy project needing upgrade', async () => {
-      // Simulate old SpecGofer project
+      // Simulate old Gofer project
       await fs.mkdir(path.join(workspace, '.specify'), { recursive: true });
       await fs.writeFile(
         path.join(workspace, '.specify/feature-login.json'),

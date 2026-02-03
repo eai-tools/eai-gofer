@@ -2,7 +2,7 @@
 
 **Version**: 2.1.0 **Feature**: 001-memory-learning-system **Date**: 2025-11-01
 
-This guide helps you migrate to SpecGofer's new Memory & Learning System
+This guide helps you migrate to Gofer's new Memory & Learning System
 (Feature 001), which introduces persistent memory, contextual hints, dependency
 tracking, and intelligent context management.
 
@@ -21,11 +21,11 @@ tracking, and intelligent context management.
 ## Overview
 
 The Memory & Learning System is a **fully backward-compatible** addition to
-SpecGofer. Existing workflows will continue to work without modification.
+Gofer. Existing workflows will continue to work without modification.
 
 **Migration is optional** - you can adopt features incrementally:
 
-- ✅ Keep using SpecGofer without the Memory & Learning System
+- ✅ Keep using Gofer without the Memory & Learning System
 - ✅ Add memory storage to autonomous execution (recommended)
 - ✅ Create hint files for contextual guidance (recommended)
 - ✅ Track dependencies between specs (optional)
@@ -118,12 +118,12 @@ SpecGofer. Existing workflows will continue to work without modification.
 
 ## Migration Steps
 
-### Step 1: Update SpecGofer Extension
+### Step 1: Update Gofer Extension
 
 **Option A: Auto-Update (Recommended)**
 
 ```
-1. Cmd+Shift+P → SpecGofer: Check for Updates
+1. Cmd+Shift+P → Gofer: Check for Updates
 2. Click "Install Update" button
 3. Reload VSCode when prompted
 ```
@@ -132,10 +132,10 @@ SpecGofer. Existing workflows will continue to work without modification.
 
 ```bash
 # Download latest VSIX
-curl -LO https://github.com/eai-tools/specgofer/releases/download/v2.1.0/specgofer-2.1.0.vsix
+curl -LO https://github.com/eai-tools/gofer/releases/download/v2.1.0/gofer-2.1.0.vsix
 
 # Install
-code --install-extension specgofer-2.1.0.vsix
+code --install-extension gofer-2.1.0.vsix
 
 # Reload VSCode
 # Cmd+Shift+P → Developer: Reload Window
@@ -144,8 +144,8 @@ code --install-extension specgofer-2.1.0.vsix
 ### Step 2: Verify Installation
 
 ```
-1. Cmd+Shift+P → SpecGofer: Initialize
-2. Check VSCode Output panel for "SpecGofer v2.1.0"
+1. Cmd+Shift+P → Gofer: Initialize
+2. Check VSCode Output panel for "Gofer v2.1.0"
 3. Verify new directories created:
    - .specify/memory/
    - .specify/state/
@@ -182,7 +182,7 @@ dependencies:
 ### Step 5: Test the Migration
 
 ```
-1. Cmd+Shift+P → SpecGofer: Refresh Specs
+1. Cmd+Shift+P → Gofer: Refresh Specs
 2. Verify specs load correctly
 3. Check that tasks are still visible
 4. Run a simple task to test memory storage
@@ -463,7 +463,7 @@ async function executeTask(task: Task): Promise<void> {
 
 ### Checklist
 
-- [ ] SpecGofer v2.1.0 installed
+- [ ] Gofer v2.1.0 installed
 - [ ] `.specify/memory/` directory created
 - [ ] `.specify/state/` directory created
 - [ ] Existing specs still load correctly
@@ -489,7 +489,7 @@ ls -la .specify/
 cat .specify/memory/local.json
 
 # Verify hint discovery
-# (Check Output panel: SpecGofer)
+# (Check Output panel: Gofer)
 # Should see: "Found X hint files"
 ```
 
@@ -498,7 +498,7 @@ cat .specify/memory/local.json
 1. **Test Memory Storage**:
 
    ```
-   Cmd+Shift+P → SpecGofer: View Memory
+   Cmd+Shift+P → Gofer: View Memory
    Create a test memory
    Verify it appears in tree view
    Search for it
@@ -509,14 +509,14 @@ cat .specify/memory/local.json
 
    ```
    Create .specify/hints/general/test.yaml
-   Cmd+Shift+P → SpecGofer: Reload Hints
+   Cmd+Shift+P → Gofer: Reload Hints
    Check Output panel for hint discovery log
    ```
 
 3. **Test Dependency Validation**:
    ```
    Add dependency to spec frontmatter
-   Cmd+Shift+P → SpecGofer: Validate Dependencies
+   Cmd+Shift+P → Gofer: Validate Dependencies
    Check for cycle detection
    ```
 
@@ -528,13 +528,13 @@ If you encounter issues, you can safely roll back:
 
 ```bash
 # Download v2.0.6
-curl -LO https://github.com/eai-tools/specgofer/releases/download/v2.0.6/specgofer-2.0.6.vsix
+curl -LO https://github.com/eai-tools/gofer/releases/download/v2.0.6/gofer-2.0.6.vsix
 
 # Uninstall v2.1.0
 code --uninstall-extension eai-tools.specgofer
 
 # Install v2.0.6
-code --install-extension specgofer-2.0.6.vsix
+code --install-extension gofer-2.0.6.vsix
 
 # Reload VSCode
 ```
@@ -621,7 +621,7 @@ cp ~/backups/project-memories.json .specify/memory/local.json
 
 ```
 1. View → Output
-2. Select "SpecGofer" from dropdown
+2. Select "Gofer" from dropdown
 3. Look for "Hint discovery" and "Loaded hint" messages
 ```
 
@@ -658,10 +658,10 @@ await compactor.rollbackCompaction(session);
 
 - **Documentation**:
   [Memory & Learning System Guide](./memory-learning-system.md)
-- **Issues**: [GitHub Issues](https://github.com/eai-tools/specgofer/issues)
+- **Issues**: [GitHub Issues](https://github.com/eai-tools/gofer/issues)
 - **Discussions**:
-  [GitHub Discussions](https://github.com/eai-tools/specgofer/discussions)
-- **Email**: support@specgofer.com
+  [GitHub Discussions](https://github.com/eai-tools/gofer/discussions)
+- **Email**: support@gofer.com
 
 ---
 

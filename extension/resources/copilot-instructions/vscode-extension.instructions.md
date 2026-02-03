@@ -4,15 +4,14 @@ applyTo: 'extension/**/*'
 
 # VSCode Extension Development Instructions
 
-You are working on the SpecGofer VSCode extension.
+You are working on the Gofer VSCode extension.
 
 ## Key Architecture
 
 - **Extension entry**: `extension/src/extension.ts`
 - **LSP Client**: `extension/src/lspClient.ts` - Connects to Language Server
 - **MCP Config**: `extension/src/mcpConfig.ts` - Creates `.vscode/mcp.json`
-- **Spec Parser**: `extension/src/specKitParser.ts` - Parses GitHub Spec Kit
-  format
+- **Spec Parser**: `extension/src/goferParser.ts` - Parses GitHub Gofer format
 
 ## VSCode APIs to Use
 
@@ -28,7 +27,7 @@ You are working on the SpecGofer VSCode extension.
    - Use `workspaceContains` activation events
 
 2. **Command Registration**
-   - All commands prefixed with `specGofer.`
+   - All commands prefixed with `gofer.`
    - Register in `extension.ts` activate()
    - Dispose properly in deactivate()
 
@@ -39,7 +38,7 @@ You are working on the SpecGofer VSCode extension.
 
 4. **Settings**
    - Contribute through `package.json` contributes.configuration
-   - Access via `vscode.workspace.getConfiguration('specGofer')`
+   - Access via `vscode.workspace.getConfiguration('gofer')`
 
 ## Testing
 

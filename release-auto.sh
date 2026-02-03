@@ -185,7 +185,7 @@ TEMP_FILE=$(mktemp)
 cat > "$TEMP_FILE" << EOF
 # Changelog
 
-All notable changes to the SpecGofer extension will be documented in this file.
+All notable changes to the Gofer extension will be documented in this file.
 
 ## [$NEW_VERSION] - $CURRENT_DATE
 
@@ -228,7 +228,7 @@ else
 fi
 
 # Run vsce package and capture both success and failure
-if npx @vscode/vsce package --out "specgofer-$NEW_VERSION.vsix" 2>&1; then
+if npx @vscode/vsce package --out "gofer-$NEW_VERSION.vsix" 2>&1; then
     print_success "VSIX package built successfully"
 else
     print_error "Failed to build VSIX package"
@@ -239,18 +239,18 @@ fi
 cd ..
 
 # Move VSIX file and verify it exists
-if [ -f "extension/specgofer-$NEW_VERSION.vsix" ]; then
-    mv "extension/specgofer-$NEW_VERSION.vsix" "./specgofer-$NEW_VERSION.vsix"
-    print_success "Built specgofer-$NEW_VERSION.vsix"
+if [ -f "extension/gofer-$NEW_VERSION.vsix" ]; then
+    mv "extension/gofer-$NEW_VERSION.vsix" "./gofer-$NEW_VERSION.vsix"
+    print_success "Built gofer-$NEW_VERSION.vsix"
 else
-    print_error "VSIX file was not created: extension/specgofer-$NEW_VERSION.vsix"
+    print_error "VSIX file was not created: extension/gofer-$NEW_VERSION.vsix"
     exit 1
 fi
 
 # Test VSIX activation before releasing
 print_info "Running VSIX pre-flight tests including activation..."
 if [ -f "./test-vsix.sh" ]; then
-    if ./test-vsix.sh "./specgofer-$NEW_VERSION.vsix" --test-activation; then
+    if ./test-vsix.sh "./gofer-$NEW_VERSION.vsix" --test-activation; then
         print_success "VSIX passed all pre-flight tests including activation"
     else
         print_error "VSIX failed pre-flight tests!"
@@ -268,7 +268,7 @@ print_info "Testing all extension commands for runtime errors..."
 if [ -f "./test-commands.sh" ]; then
     # Install the VSIX temporarily for testing
     print_info "Installing VSIX for command testing..."
-    /Applications/Visual\ Studio\ Code.app/Contents/Resources/app/bin/code --install-extension "./specgofer-$NEW_VERSION.vsix" --force > /dev/null 2>&1
+    /Applications/Visual\ Studio\ Code.app/Contents/Resources/app/bin/code --install-extension "./gofer-$NEW_VERSION.vsix" --force > /dev/null 2>&1
 
     # Wait for extension to load
     sleep 2
@@ -287,14 +287,14 @@ fi
 # Create releases directory and copy VSIX for GitHub Pages hosting
 print_info "Preparing GitHub Pages release assets..."
 mkdir -p docs/releases
-cp "specgofer-$NEW_VERSION.vsix" "docs/releases/"
+cp "gofer-$NEW_VERSION.vsix" "docs/releases/"
 print_success "Copied VSIX to docs/releases/ for GitHub Pages hosting"
 
 # Update GitHub Pages releases.json with GitHub Pages download URLs
 print_info "Updating GitHub Pages releases.json..."
 if [ -f "docs/update-releases.js" ]; then
     # Update the script to use GitHub Pages URLs
-    GITHUB_PAGES_URL="https://eai-tools.github.io/specgofer/releases/specgofer-$NEW_VERSION.vsix"
+    GITHUB_PAGES_URL="https://eai-tools.github.io/gofer/releases/gofer-$NEW_VERSION.vsix"
     node docs/update-releases.js "$NEW_VERSION" "$COMMIT_MSG" "$GITHUB_PAGES_URL"
     git add docs/releases.json docs/releases/
     print_success "Updated GitHub Pages release data with assets"
@@ -382,7 +382,7 @@ sleep 30
 EXPECTED_VERSION="$NEW_VERSION"
 print_info "Verifying GitHub Pages deployment..."
 for i in {1..6}; do
-    DEPLOYED_VERSION=$(curl -s "https://eai-tools.github.io/specgofer/releases.json?cachebust=$(date +%s)" | grep -o '"latest_version"[^,]*' | cut -d'"' -f4 || echo "")
+    DEPLOYED_VERSION=$(curl -s "https://eai-tools.github.io/gofer/releases.json?cachebust=$(date +%s)" | grep -o '"latest_version"[^,]*' | cut -d'"' -f4 || echo "")
     
     if [ "$DEPLOYED_VERSION" = "$EXPECTED_VERSION" ]; then
         print_success "GitHub Pages deployed successfully! Latest version: $DEPLOYED_VERSION"
@@ -394,7 +394,7 @@ for i in {1..6}; do
             print_warning "Expected version: $EXPECTED_VERSION"
             echo ""
             print_info "The deployment may still be in progress. Check:"
-            echo "  https://github.com/eai-tools/specgofer/actions/workflows/pages.yml"
+            echo "  https://github.com/eai-tools/gofer/actions/workflows/pages.yml"
             break
         fi
         print_info "Waiting for deployment... (attempt $i/6, deployed: $DEPLOYED_VERSION, expected: $EXPECTED_VERSION)"
@@ -406,11 +406,11 @@ print_success "🎉 Release $NEW_VERSION complete!"
 echo ""
 print_success "Extension Update:"
 echo "  • Users can now update to v$NEW_VERSION via the extension's update button"
-echo "  • Download URL: https://eai-tools.github.io/specgofer/releases/specgofer-$NEW_VERSION.vsix"
+echo "  • Download URL: https://eai-tools.github.io/gofer/releases/gofer-$NEW_VERSION.vsix"
 echo ""
 print_info "GitHub Resources:"
-echo "  • Releases: https://github.com/eai-tools/specgofer/releases"
-echo "  • Actions: https://github.com/eai-tools/specgofer/actions"
-echo "  • GitHub Pages: https://eai-tools.github.io/specgofer/"
+echo "  • Releases: https://github.com/eai-tools/gofer/releases"
+echo "  • Actions: https://github.com/eai-tools/gofer/actions"
+echo "  • GitHub Pages: https://eai-tools.github.io/gofer/"
 echo ""
-print_info "Local VSIX file: ./specgofer-$NEW_VERSION.vsix"
+print_info "Local VSIX file: ./gofer-$NEW_VERSION.vsix"

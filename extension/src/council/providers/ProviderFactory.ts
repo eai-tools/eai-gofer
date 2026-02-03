@@ -39,7 +39,7 @@ export class ProviderFactory {
    * Get the API key for a provider from VSCode settings
    */
   getApiKey(providerId: ProviderId): string | undefined {
-    const config = vscode.workspace.getConfiguration('specGofer');
+    const config = vscode.workspace.getConfiguration('gofer');
 
     switch (providerId) {
       case 'anthropic':

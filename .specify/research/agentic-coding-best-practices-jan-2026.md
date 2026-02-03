@@ -40,7 +40,7 @@ window.
 | GPT-5           | 200k             | ~130k           | Sudden drop at ~130k        |
 | Gemini 2.5 Pro  | 1M+              | ~200k           | Gradual degradation         |
 
-**Implications for SpecGofer**:
+**Implications for Gofer**:
 
 - Monitor token usage and trigger compaction BEFORE hitting the "rot zone"
 - Anthropic recommends compaction at 50% of context for complex reasoning tasks
@@ -482,7 +482,7 @@ forced (95%).
 
 ---
 
-## Recommendations for SpecGofer
+## Recommendations for Gofer
 
 Based on this research, the following improvements should be considered:
 

@@ -4,7 +4,7 @@ import * as path from 'path';
 import * as os from 'os';
 
 /**
- * Enhanced E2E Test Suite for SpecGofer Brownfield Improvements
+ * Enhanced E2E Test Suite for Gofer Brownfield Improvements
  *
  * Verifies:
  * 1. Test Harness Generation (Real World Testing)
@@ -12,10 +12,10 @@ import * as os from 'os';
  * 3. Hydration (Spec Generation)
  */
 
-const WORKSPACE_PATH = process.env.WORKSPACE_PATH || path.join(os.tmpdir(), 'specgofer-e2e-update');
+const WORKSPACE_PATH = process.env.WORKSPACE_PATH || path.join(os.tmpdir(), 'gofer-e2e-update');
 const SPEC_DIR = path.join(WORKSPACE_PATH, '.specify');
 
-test.describe('SpecGofer Brownfield Improvements', () => {
+test.describe('Gofer Brownfield Improvements', () => {
   test.beforeAll(async () => {
     // Setup shared workspace
     if (fs.existsSync(WORKSPACE_PATH)) {
@@ -43,7 +43,7 @@ test.describe('SpecGofer Brownfield Improvements', () => {
     expect(fs.existsSync(promptPath)).toBe(true);
 
     const content = fs.readFileSync(promptPath, 'utf-8');
-    expect(content).toContain('Reverse-engineer a SpecKit specification');
+    expect(content).toContain('Reverse-engineer a Gofer specification');
   });
 
   test('Phase 3: Real World Test Harness Generation', async () => {

@@ -7,7 +7,7 @@ import * as os from 'os';
  * @returns Absolute path to the temporary workspace
  */
 export async function createTestWorkspace(): Promise<string> {
-  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'specgofer-test-'));
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gofer-test-'));
 
   // Create .specify structure
   await fs.promises.mkdir(path.join(tmpDir, '.specify/specs'), { recursive: true });

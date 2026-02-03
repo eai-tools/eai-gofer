@@ -53,7 +53,7 @@ describe('Auto-Compaction E2E Tests', () => {
       await fs.writeFile(path.join(specPath, 'tasks.md'), generateLargeTasks(120));
 
       // Start execution
-      await vscode.commands.executeCommand('specGofer.executeSpec', 'test-large-spec');
+      await vscode.commands.executeCommand('gofer.executeSpec', 'test-large-spec');
 
       // Wait for first compaction notification
       const notification = await waitForNotification('Context compacted');
@@ -141,7 +141,7 @@ describe('Auto-Compaction E2E Tests', () => {
     it('should show compaction history via command', async () => {
       // Test steps:
       // 1. Complete execution with multiple compactions
-      // 2. Execute command: "SpecGofer: View Compaction History"
+      // 2. Execute command: "Gofer: View Compaction History"
       // 3. Verify webview opens with all compaction summaries
       // 4. Verify each entry shows timestamp, tasks compacted, tokens saved
       // 5. Verify entries are in chronological order
@@ -168,14 +168,14 @@ describe('Auto-Compaction E2E Tests', () => {
   describe('Threshold Configuration', () => {
     it('should respect custom threshold from settings', async () => {
       // Test steps:
-      // 1. Set specGofer.autonomous.compactionThreshold to 70
+      // 1. Set gofer.autonomous.compactionThreshold to 70
       // 2. Start execution with large spec
       // 3. Verify compaction triggers at 70% (earlier than default 80%)
       // 4. Verify notification mentions correct threshold
 
       // Implementation:
       /*
-      await vscode.workspace.getConfiguration('specGofer.autonomous')
+      await vscode.workspace.getConfiguration('gofer.autonomous')
         .update('compactionThreshold', 70, vscode.ConfigurationTarget.Workspace);
 
       // Start execution and verify compaction at 70%
@@ -215,7 +215,7 @@ describe('Auto-Compaction E2E Tests', () => {
     it('should support manual rollback', async () => {
       // Test steps:
       // 1. Complete execution with compaction
-      // 2. Execute command: "SpecGofer: Rollback Last Compaction"
+      // 2. Execute command: "Gofer: Rollback Last Compaction"
       // 3. Verify full context is restored
       // 4. Verify compaction history is updated
       // 5. Verify notification confirms rollback

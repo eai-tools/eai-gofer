@@ -36,7 +36,7 @@ describe('${specId} - ${taskId}', () => {
 
     beforeEach(async () => {
         // 1. Create a real temporary workspace
-        tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'specgofer-test-${sanitizedTask}-'));
+        tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'gofer-test-${sanitizedTask}-'));
         console.log('Test Workspace:', tempDir);
         
         // 2. Setup standard environment (e.g. .specify folder)

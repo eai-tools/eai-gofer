@@ -340,7 +340,7 @@ describe('MemoryManager', () => {
       await memoryManager.save(memoryInput);
 
       expect(mockContext.globalState.update).toHaveBeenCalledWith(
-        'specgofer.memories',
+        'gofer.memories',
         expect.objectContaining({
           version: 1,
           memories: expect.arrayContaining([
@@ -739,6 +739,443 @@ describe('MemoryManager', () => {
       // Verify it wasn't saved
       const loaded = await memoryManager.load();
       expect(loaded).toHaveLength(0);
+    });
+  });
+
+  // ============================================================================
+  // T043-T046: Priority-Based Loading and Relevance Scoring
+  // ============================================================================
+
+  describe('calculatePriorityScore()', () => {
+    it('should return 0-100 score', () => {
+      const memory: Memory = {
+        id: '550e8400-e29b-41d4-a716-446655440000',
+        category: 'test',
+        tags: [],
+        scope: 'local',
+        content: 'Test memory',
+        created: Date.now(),
+        lastUsed: Date.now(),
+        usedCount: 0,
+        learnedFrom: 'test',
+      };
+
+      const score = memoryManager.calculatePriorityScore(memory);
+
+      expect(score).toBeGreaterThanOrEqual(0);
+      expect(score).toBeLessThanOrEqual(100);
+    });
+
+    it('should give higher score to frequently used memories', () => {
+      const now = Date.now();
+      const lowUsage: Memory = {
+        id: '550e8400-e29b-41d4-a716-446655440001',
+        category: 'test',
+        tags: [],
+        scope: 'local',
+        content: 'Low usage memory',
+        created: now,
+        lastUsed: now,
+        usedCount: 1,
+        learnedFrom: 'test',
+      };
+
+      const highUsage: Memory = {
+        id: '550e8400-e29b-41d4-a716-446655440002',
+        category: 'test',
+        tags: [],
+        scope: 'local',
+        content: 'High usage memory',
+        created: now,
+        lastUsed: now,
+        usedCount: 50,
+        learnedFrom: 'test',
+      };
+
+      const lowScore = memoryManager.calculatePriorityScore(lowUsage);
+      const highScore = memoryManager.calculatePriorityScore(highUsage);
+
+      expect(highScore).toBeGreaterThan(lowScore);
+    });
+
+    it('should give higher score to recently used memories', () => {
+      const now = Date.now();
+      const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000;
+
+      const recent: Memory = {
+        id: '550e8400-e29b-41d4-a716-446655440003',
+        category: 'test',
+        tags: [],
+        scope: 'local',
+        content: 'Recent memory',
+        created: now,
+        lastUsed: now,
+        usedCount: 5,
+        learnedFrom: 'test',
+      };
+
+      const old: Memory = {
+        id: '550e8400-e29b-41d4-a716-446655440004',
+        category: 'test',
+        tags: [],
+        scope: 'local',
+        content: 'Old memory',
+        created: thirtyDaysAgo,
+        lastUsed: thirtyDaysAgo,
+        usedCount: 5,
+        learnedFrom: 'test',
+      };
+
+      const recentScore = memoryManager.calculatePriorityScore(recent);
+      const oldScore = memoryManager.calculatePriorityScore(old);
+
+      expect(recentScore).toBeGreaterThan(oldScore);
+    });
+
+    it('should give age bonus to older memories that are still used', () => {
+      const now = Date.now();
+      const ninetyDaysAgo = now - 90 * 24 * 60 * 60 * 1000;
+
+      const newUnused: Memory = {
+        id: '550e8400-e29b-41d4-a716-446655440005',
+        category: 'test',
+        tags: [],
+        scope: 'local',
+        content: 'New unused memory',
+        created: now,
+        lastUsed: now,
+        usedCount: 0,
+        learnedFrom: 'test',
+      };
+
+      const oldUsed: Memory = {
+        id: '550e8400-e29b-41d4-a716-446655440006',
+        category: 'test',
+        tags: [],
+        scope: 'local',
+        content: 'Old but used memory',
+        created: ninetyDaysAgo,
+        lastUsed: now,
+        usedCount: 10,
+        learnedFrom: 'test',
+      };
+
+      const newScore = memoryManager.calculatePriorityScore(newUnused);
+      const oldUsedScore = memoryManager.calculatePriorityScore(oldUsed);
+
+      // Old memory that's still being used should have higher score
+      expect(oldUsedScore).toBeGreaterThan(newScore);
+    });
+  });
+
+  describe('calculateRelevanceScore()', () => {
+    it('should return 0 for empty task context', () => {
+      const memory: Memory = {
+        id: '550e8400-e29b-41d4-a716-446655440000',
+        category: 'api_patterns',
+        tags: ['#rest', '#api'],
+        scope: 'local',
+        content: 'Use RESTful conventions for API endpoints',
+        created: Date.now(),
+        lastUsed: Date.now(),
+        usedCount: 0,
+        learnedFrom: 'test',
+      };
+
+      const score = memoryManager.calculateRelevanceScore(memory, '');
+
+      expect(score).toBe(0);
+    });
+
+    it('should return high score for matching keywords', () => {
+      const memory: Memory = {
+        id: '550e8400-e29b-41d4-a716-446655440000',
+        category: 'api_patterns',
+        tags: ['#rest', '#api'],
+        scope: 'local',
+        content: 'Use RESTful conventions for API endpoints',
+        created: Date.now(),
+        lastUsed: Date.now(),
+        usedCount: 0,
+        learnedFrom: 'test',
+      };
+
+      const score = memoryManager.calculateRelevanceScore(
+        memory,
+        'Implement REST API endpoints for user management'
+      );
+
+      expect(score).toBeGreaterThan(50);
+    });
+
+    it('should return low score for non-matching content', () => {
+      const memory: Memory = {
+        id: '550e8400-e29b-41d4-a716-446655440000',
+        category: 'database',
+        tags: ['#sql', '#postgres'],
+        scope: 'local',
+        content: 'Always use parameterized queries for SQL',
+        created: Date.now(),
+        lastUsed: Date.now(),
+        usedCount: 0,
+        learnedFrom: 'test',
+      };
+
+      const score = memoryManager.calculateRelevanceScore(
+        memory,
+        'Implement REST API endpoints for user management'
+      );
+
+      expect(score).toBeLessThan(30);
+    });
+
+    it('should give bonus for category match', () => {
+      const memory: Memory = {
+        id: '550e8400-e29b-41d4-a716-446655440000',
+        category: 'authentication',
+        tags: ['#auth'],
+        scope: 'local',
+        content: 'Use JWT tokens for API authentication',
+        created: Date.now(),
+        lastUsed: Date.now(),
+        usedCount: 0,
+        learnedFrom: 'test',
+      };
+
+      const withCategory = memoryManager.calculateRelevanceScore(
+        memory,
+        'Implement authentication for the API'
+      );
+
+      const withoutCategory = memoryManager.calculateRelevanceScore(
+        memory,
+        'Implement tokens for the API'
+      );
+
+      expect(withCategory).toBeGreaterThan(withoutCategory);
+    });
+  });
+
+  describe('search() with priority sorting', () => {
+    beforeEach(async () => {
+      const now = Date.now();
+
+      // Create memories with different usage patterns
+      await memoryManager.save({
+        category: 'api_patterns',
+        tags: ['#api'],
+        scope: 'local',
+        content: 'High usage API memory',
+        lastUsed: now,
+        usedCount: 50,
+        learnedFrom: 'test',
+      });
+
+      await memoryManager.save({
+        category: 'testing',
+        tags: ['#test'],
+        scope: 'local',
+        content: 'Low usage testing memory',
+        lastUsed: now - 10 * 24 * 60 * 60 * 1000, // 10 days ago
+        usedCount: 2,
+        learnedFrom: 'test',
+      });
+
+      await memoryManager.save({
+        category: 'coding',
+        tags: ['#code'],
+        scope: 'local',
+        content: 'Medium usage coding memory',
+        lastUsed: now - 5 * 24 * 60 * 60 * 1000, // 5 days ago
+        usedCount: 10,
+        learnedFrom: 'test',
+      });
+    });
+
+    it('should sort results by priority when sortByPriority is true', async () => {
+      const result = await memoryManager.search({ sortByPriority: true });
+
+      expect(result.count).toBe(3);
+      expect(result.scoredMemories).toBeDefined();
+      expect(result.scoredMemories?.length).toBe(3);
+
+      // Verify sorted by combinedScore descending
+      const scores = result.scoredMemories!.map((m) => m.combinedScore);
+      expect(scores[0]).toBeGreaterThanOrEqual(scores[1]);
+      expect(scores[1]).toBeGreaterThanOrEqual(scores[2]);
+    });
+
+    it('should include relevance scores when taskContext provided', async () => {
+      const result = await memoryManager.search({
+        sortByPriority: true,
+        taskContext: 'Implement API endpoints',
+      });
+
+      expect(result.scoredMemories).toBeDefined();
+      result.scoredMemories!.forEach((m) => {
+        expect(m.relevanceScore).toBeDefined();
+        expect(m.relevanceScore).toBeGreaterThanOrEqual(0);
+        expect(m.relevanceScore).toBeLessThanOrEqual(100);
+      });
+    });
+
+    it('should combine priority and relevance for final ranking', async () => {
+      const result = await memoryManager.search({
+        sortByPriority: true,
+        taskContext: 'API development and testing',
+      });
+
+      // The high-usage API memory should rank higher due to both priority and relevance
+      const apiMemory = result.scoredMemories!.find((m) => m.category === 'api_patterns');
+      expect(apiMemory).toBeDefined();
+      expect(apiMemory!.combinedScore).toBeGreaterThan(0);
+    });
+  });
+
+  describe('loadByPriority()', () => {
+    beforeEach(async () => {
+      const now = Date.now();
+
+      // Create 5 memories with different characteristics
+      await memoryManager.save({
+        category: 'high_priority',
+        tags: ['#important'],
+        scope: 'local',
+        content: 'Very important high-use memory about API development',
+        lastUsed: now,
+        usedCount: 100,
+        learnedFrom: 'test',
+      });
+
+      await memoryManager.save({
+        category: 'medium_priority',
+        tags: ['#useful'],
+        scope: 'local',
+        content: 'Moderately useful memory about testing',
+        lastUsed: now - 7 * 24 * 60 * 60 * 1000,
+        usedCount: 20,
+        learnedFrom: 'test',
+      });
+
+      await memoryManager.save({
+        category: 'low_priority',
+        tags: ['#rare'],
+        scope: 'local',
+        content: 'Rarely used memory about old patterns',
+        lastUsed: now - 30 * 24 * 60 * 60 * 1000,
+        usedCount: 1,
+        learnedFrom: 'test',
+      });
+
+      await memoryManager.save({
+        category: 'api_patterns',
+        tags: ['#api'],
+        scope: 'global',
+        content: 'Global memory about RESTful API design',
+        lastUsed: now,
+        usedCount: 30,
+        learnedFrom: 'test',
+      });
+
+      await memoryManager.save({
+        category: 'database',
+        tags: ['#sql'],
+        scope: 'global',
+        content: 'Database optimization techniques',
+        lastUsed: now - 14 * 24 * 60 * 60 * 1000,
+        usedCount: 5,
+        learnedFrom: 'test',
+      });
+    });
+
+    it('should return memories sorted by priority score', async () => {
+      const result = await memoryManager.loadByPriority({ limit: 5 });
+
+      expect(result.memories.length).toBe(5);
+      expect(result.totalConsidered).toBe(5);
+
+      // Verify sorted by combinedScore descending
+      const scores = result.memories.map((m) => m.combinedScore);
+      for (let i = 0; i < scores.length - 1; i++) {
+        expect(scores[i]).toBeGreaterThanOrEqual(scores[i + 1]);
+      }
+    });
+
+    it('should respect limit parameter', async () => {
+      const result = await memoryManager.loadByPriority({ limit: 3 });
+
+      expect(result.memories.length).toBe(3);
+      expect(result.totalConsidered).toBe(5);
+    });
+
+    it('should include relevance scores when taskContext provided', async () => {
+      const result = await memoryManager.loadByPriority({
+        limit: 5,
+        taskContext: 'Build API for user management',
+      });
+
+      expect(result.memories.length).toBeGreaterThan(0);
+      result.memories.forEach((m) => {
+        expect(m.relevanceScore).toBeDefined();
+        expect(m.relevanceScore).toBeGreaterThanOrEqual(0);
+      });
+    });
+
+    it('should use custom weights for priority and relevance', async () => {
+      // Load with default weights
+      const defaultResult = await memoryManager.loadByPriority({
+        limit: 5,
+        taskContext: 'API development',
+      });
+
+      // Load with priority-heavy weights
+      const priorityResult = await memoryManager.loadByPriority({
+        limit: 5,
+        taskContext: 'API development',
+        priorityWeight: 0.9,
+        relevanceWeight: 0.1,
+      });
+
+      // The high_priority memory should rank higher with priority-heavy weights
+      const defaultRank = defaultResult.memories.findIndex((m) => m.category === 'high_priority');
+      const priorityRank = priorityResult.memories.findIndex((m) => m.category === 'high_priority');
+
+      // High priority should be at top with priority-heavy weights
+      expect(priorityRank).toBeLessThanOrEqual(defaultRank);
+    });
+
+    it('should filter by minScore when specified', async () => {
+      const result = await memoryManager.loadByPriority({
+        limit: 10,
+        minScore: 50,
+      });
+
+      expect(result.filtered).toBe(true);
+      result.memories.forEach((m) => {
+        expect(m.combinedScore).toBeGreaterThanOrEqual(50);
+      });
+    });
+
+    it('should filter by scope', async () => {
+      const localResult = await memoryManager.loadByPriority({
+        limit: 10,
+        scope: 'local',
+      });
+
+      const globalResult = await memoryManager.loadByPriority({
+        limit: 10,
+        scope: 'global',
+      });
+
+      expect(localResult.memories.length).toBe(3);
+      expect(globalResult.memories.length).toBe(2);
+    });
+
+    it('should track load time', async () => {
+      const result = await memoryManager.loadByPriority({ limit: 5 });
+
+      expect(result.loadTime).toBeGreaterThanOrEqual(0);
+      expect(result.loadTime).toBeLessThan(1000);
     });
   });
 

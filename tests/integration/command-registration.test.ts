@@ -154,12 +154,12 @@ describe('Command Registration Validation', () => {
 
   it('should have all critical navigation commands registered', () => {
     const criticalCommands = [
-      'eaiGofer.refreshSpecs',
-      'eaiGofer.refreshConstitution',
-      'eaiGofer.refreshMemory',
-      'eaiGofer.showProgress',
-      'eaiGofer.showConstitution',
-      'eaiGofer.initialize',
+      'gofer.refreshSpecs',
+      'gofer.refreshConstitution',
+      'gofer.refreshMemory',
+      'gofer.showProgress',
+      'gofer.showConstitution',
+      'gofer.initialize',
     ];
 
     const missingCommands: string[] = [];
@@ -180,12 +180,12 @@ describe('Command Registration Validation', () => {
 
   it('should register all tree view commands', () => {
     const treeViewCommands = [
-      'eaiGofer.showSpecDetails',
-      'eaiGofer.showTaskDetails',
-      'eaiGofer.showSectionDetails',
-      'eaiGofer.showArticleDetails',
-      'eaiGofer.showMemoryDocument',
-      'eaiGofer.showMemorySection',
+      'gofer.showSpecDetails',
+      'gofer.showTaskDetails',
+      'gofer.showSectionDetails',
+      'gofer.showArticleDetails',
+      'gofer.showMemoryDocument',
+      'gofer.showMemorySection',
     ];
 
     const missingCommands: string[] = [];
@@ -207,10 +207,10 @@ describe('Command Registration Validation', () => {
   it.skip('should register all autonomous execution commands', () => {
     // TODO: Re-enable when autonomous execution feature is implemented
     const autonomousCommands = [
-      'eaiGofer.startAutonomous',
-      'eaiGofer.stopAutonomous',
-      'eaiGofer.pauseAutonomous',
-      'eaiGofer.resumeAutonomous',
+      'gofer.startAutonomous',
+      'gofer.stopAutonomous',
+      'gofer.pauseAutonomous',
+      'gofer.resumeAutonomous',
     ];
 
     const missingCommands: string[] = [];
@@ -230,7 +230,7 @@ describe('Command Registration Validation', () => {
   });
 
   it('should register all memory commands', () => {
-    const memoryCommands = ['eaiGofer.refreshMemory', 'eaiGofer.showMemoryDocument'];
+    const memoryCommands = ['gofer.refreshMemory', 'gofer.showMemoryDocument'];
 
     const missingCommands: string[] = [];
 
@@ -327,34 +327,34 @@ describe('Command Registration Validation', () => {
 
   it('should have all views declared in package.json', () => {
     expect(packageJson.contributes.views).toBeDefined();
-    expect(packageJson.contributes.views['spec-kit']).toBeDefined();
+    expect(packageJson.contributes.views['gofer']).toBeDefined();
 
-    const views = packageJson.contributes.views['spec-kit'];
+    const views = packageJson.contributes.views['gofer'];
     expect(views).toContainEqual(
       expect.objectContaining({
-        id: 'eaiGoferProgress',
+        id: 'goferProgress',
       })
     );
     expect(views).toContainEqual(
       expect.objectContaining({
-        id: 'eaiGoferConstitution',
+        id: 'goferConstitution',
       })
     );
     expect(views).toContainEqual(
       expect.objectContaining({
-        id: 'eaiGoferMemory',
+        id: 'goferMemory',
       })
     );
   });
 
   it('should register tree data providers for all views', () => {
-    expect(extensionSource).toContain("registerTreeDataProvider('eaiGoferProgress'");
-    expect(extensionSource).toContain("registerTreeDataProvider('eaiGoferConstitution'");
-    expect(extensionSource).toContain("registerTreeDataProvider('eaiGoferMemory'");
+    expect(extensionSource).toContain("registerTreeDataProvider('goferProgress'");
+    expect(extensionSource).toContain("registerTreeDataProvider('goferConstitution'");
+    expect(extensionSource).toContain("registerTreeDataProvider('goferMemory'");
   });
 
   it('should have update commands registered', () => {
-    const updateCommands = ['eaiGofer.checkForUpdates', 'eaiGofer.updateNow'];
+    const updateCommands = ['gofer.checkForUpdates', 'gofer.updateNow'];
 
     const missingCommands: string[] = [];
 
@@ -373,7 +373,7 @@ describe('Command Registration Validation', () => {
   });
 
   it('should have spec creation and management commands registered', () => {
-    const specCommands = ['eaiGofer.createSpec', 'eaiGofer.openSpec'];
+    const specCommands = ['gofer.createSpec', 'gofer.openSpec'];
 
     const missingCommands: string[] = [];
 
@@ -393,10 +393,10 @@ describe('Command Registration Validation', () => {
 
   it('should have Open With commands registered', () => {
     const openWithCommands = [
-      'eaiGofer.openWithPreview',
-      'eaiGofer.openWithMarkSharp',
-      'eaiGofer.openWithMarkdownEditor',
-      'eaiGofer.openWithMarkdownWYSIWYG',
+      'gofer.openWithPreview',
+      'gofer.openWithMarkSharp',
+      'gofer.openWithMarkdownEditor',
+      'gofer.openWithMarkdownWYSIWYG',
     ];
 
     const missingCommands: string[] = [];
@@ -425,7 +425,7 @@ describe('Package.json Validation', () => {
   });
 
   it('should have required metadata', () => {
-    expect(packageJson.name).toBe('eai-gofer');
+    expect(packageJson.name).toBe('gofer');
     expect(packageJson.displayName).toBeDefined();
     expect(packageJson.description).toBeDefined();
     expect(packageJson.version).toBeDefined();
@@ -469,20 +469,20 @@ describe('Package.json Validation', () => {
     // Should have refresh commands in view/title for each view
     const progressRefresh = viewTitleMenus.find(
       (menu) =>
-        menu.command === 'eaiGofer.refreshSpecs' && menu.when === 'view == eaiGoferProgress'
+        menu.command === 'gofer.refreshSpecs' && menu.when === 'view == goferProgress'
     );
     expect(progressRefresh).toBeDefined();
 
     const constitutionRefresh = viewTitleMenus.find(
       (menu) =>
-        menu.command === 'eaiGofer.refreshConstitution' &&
-        menu.when === 'view == eaiGoferConstitution'
+        menu.command === 'gofer.refreshConstitution' &&
+        menu.when === 'view == goferConstitution'
     );
     expect(constitutionRefresh).toBeDefined();
 
     const memoryRefresh = viewTitleMenus.find(
       (menu) =>
-        menu.command === 'eaiGofer.refreshMemory' && menu.when === 'view == eaiGoferMemory'
+        menu.command === 'gofer.refreshMemory' && menu.when === 'view == goferMemory'
     );
     expect(memoryRefresh).toBeDefined();
   });
@@ -492,10 +492,10 @@ describe('Package.json Validation', () => {
     expect(keybindings).toBeDefined();
 
     // Check for important keybindings
-    const initializeKeybinding = keybindings.find((kb) => kb.command === 'eaiGofer.initialize');
+    const initializeKeybinding = keybindings.find((kb) => kb.command === 'gofer.initialize');
     expect(initializeKeybinding).toBeDefined();
 
-    const refreshKeybinding = keybindings.find((kb) => kb.command === 'eaiGofer.refreshSpecs');
+    const refreshKeybinding = keybindings.find((kb) => kb.command === 'gofer.refreshSpecs');
     expect(refreshKeybinding).toBeDefined();
   });
 });

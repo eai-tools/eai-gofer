@@ -34,7 +34,7 @@ class MemoryItem extends vscode.TreeItem {
       this.tooltip = `Memory document: ${document.name}`;
       // Add click command to open document in preview
       this.command = {
-        command: 'eaiGofer.showMemoryDocument',
+        command: 'gofer.showMemoryDocument',
         title: 'Show Memory Document',
         arguments: [document]
       };
@@ -45,7 +45,7 @@ class MemoryItem extends vscode.TreeItem {
       this.tooltip = `${section.title} (line ${section.line})`;
       // Add click command to show section in document
       this.command = {
-        command: 'eaiGofer.showMemorySection',
+        command: 'gofer.showMemorySection',
         title: 'Show Memory Section',
         arguments: [section, document]
       };
@@ -65,7 +65,7 @@ export class MemoryProvider implements vscode.TreeDataProvider<MemoryItem> {
   private loadError: string | null = null;
 
   constructor(workspacePath: string) {
-    console.log(`[EAI-GOFER] MemoryProvider initialized for workspace: ${workspacePath}`);
+    console.log(`[Gofer] MemoryProvider initialized for workspace: ${workspacePath}`);
     this.memoryPath = path.join(workspacePath, '.specify', 'memory');
     this.loadMemoryDocuments();
   }
@@ -136,14 +136,14 @@ export class MemoryProvider implements vscode.TreeDataProvider<MemoryItem> {
 
   private async loadMemoryDocuments(): Promise<void> {
     try {
-      console.log(`[EAI-GOFER] Loading memory documents from: ${this.memoryPath}`);
+      console.log(`[Gofer] Loading memory documents from: ${this.memoryPath}`);
 
       // Check if memory directory exists
       try {
         await fs.access(this.memoryPath);
       } catch {
         this.loadError = 'Memory directory not found';
-        console.log('[EAI-GOFER] Memory directory does not exist');
+        console.log('[Gofer] Memory directory does not exist');
         return;
       }
 
@@ -151,7 +151,7 @@ export class MemoryProvider implements vscode.TreeDataProvider<MemoryItem> {
       const files = await fs.readdir(this.memoryPath);
       const markdownFiles = files.filter(f => f.endsWith('.md'));
 
-      console.log(`[EAI-GOFER] Found ${markdownFiles.length} markdown files in memory`);
+      console.log(`[Gofer] Found ${markdownFiles.length} markdown files in memory`);
 
       this.documents = await Promise.all(
         markdownFiles.map(async (file) => {
@@ -168,10 +168,10 @@ export class MemoryProvider implements vscode.TreeDataProvider<MemoryItem> {
       );
 
       this.loadError = null;
-      console.log(`[EAI-GOFER] Loaded ${this.documents.length} memory documents`);
+      console.log(`[Gofer] Loaded ${this.documents.length} memory documents`);
     } catch (error) {
       this.loadError = `Failed to load memory documents: ${error}`;
-      console.error('[EAI-GOFER] Error loading memory documents:', error);
+      console.error('[Gofer] Error loading memory documents:', error);
     }
   }
 

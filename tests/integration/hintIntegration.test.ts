@@ -212,8 +212,18 @@ describe('Hint Integration Tests (T075)', () => {
         usedCount: 0,
       });
 
+      // Use a contextBuilder with memory-first loading disabled to ensure
+      // hints are always loaded (legacy behavior for this test)
+      const legacyContextBuilder = new ContextBuilder(
+        testWorkspaceRoot,
+        memoryManager,
+        hintLoader,
+        undefined,
+        { enableMemoryFirstLoading: false }
+      );
+
       // Build context
-      const result = await contextBuilder.buildContext({
+      const result = await legacyContextBuilder.buildContext({
         taskId: 'task-001',
         specId: 'spec-001',
         description: 'Add unit testing for authentication module',

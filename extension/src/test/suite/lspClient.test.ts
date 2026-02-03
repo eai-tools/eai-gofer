@@ -3,7 +3,7 @@ import * as path from 'path';
 import * as fs from 'fs/promises';
 import * as os from 'os';
 import * as vscode from 'vscode';
-import { SpecGoferLSPClient } from '../../lspClient';
+import { GoferLSPClient } from '../../lspClient';
 
 suite('LSPClient Integration Test Suite', () => {
   let tempDir: string;
@@ -33,12 +33,12 @@ suite('LSPClient Integration Test Suite', () => {
 
   suite('LSP Client Creation', () => {
     test('should create LSP client instance', () => {
-      const lspClient = new SpecGoferLSPClient(mockContext as vscode.ExtensionContext);
+      const lspClient = new GoferLSPClient(mockContext as vscode.ExtensionContext);
       assert.ok(lspClient);
     });
 
     test('should handle start attempt in test environment', async () => {
-      const lspClient = new SpecGoferLSPClient(mockContext as vscode.ExtensionContext);
+      const lspClient = new GoferLSPClient(mockContext as vscode.ExtensionContext);
 
       try {
         // This will likely fail in test environment, which is expected
@@ -58,7 +58,7 @@ suite('LSPClient Integration Test Suite', () => {
 
   suite('Configuration Validation', () => {
     test('should handle missing language server gracefully', async () => {
-      const lspClient = new SpecGoferLSPClient(mockContext as vscode.ExtensionContext);
+      const lspClient = new GoferLSPClient(mockContext as vscode.ExtensionContext);
       
       try {
         await lspClient.start();
@@ -75,7 +75,7 @@ suite('LSPClient Integration Test Suite', () => {
     });
 
     test('should handle stop when not started', async () => {
-      const lspClient = new SpecGoferLSPClient(mockContext as vscode.ExtensionContext);
+      const lspClient = new GoferLSPClient(mockContext as vscode.ExtensionContext);
       
       // Stopping a client that was never started should not throw
       try {
@@ -93,12 +93,12 @@ suite('LSPClient Integration Test Suite', () => {
       // the expected MCP tools as defined in the specification
       
       const expectedTools = [
-        'specgofer_get_specs',
-        'specgofer_get_next_task', 
-        'specgofer_execute_task',
-        'specgofer_update_task_status',
-        'specgofer_validate_code',
-        'specgofer_run_tests'
+        'gofer_get_specs',
+        'gofer_get_next_task', 
+        'gofer_execute_task',
+        'gofer_update_task_status',
+        'gofer_validate_code',
+        'gofer_run_tests'
       ];
 
       // Verify we have the expected number of tools defined
@@ -106,8 +106,8 @@ suite('LSPClient Integration Test Suite', () => {
       
       // Verify all tools follow the naming convention
       expectedTools.forEach(tool => {
-        assert.ok(tool.startsWith('specgofer_'));
-        assert.ok(tool.length > 'specgofer_'.length);
+        assert.ok(tool.startsWith('gofer_'));
+        assert.ok(tool.length > 'gofer_'.length);
       });
     });
 
@@ -115,7 +115,7 @@ suite('LSPClient Integration Test Suite', () => {
       // This test verifies that the LSP client is designed for
       // proper communication with the language server
       
-      const lspClient = new SpecGoferLSPClient(mockContext as vscode.ExtensionContext);
+      const lspClient = new GoferLSPClient(mockContext as vscode.ExtensionContext);
       assert.ok(lspClient);
       
       // The existence of the client class confirms the design
@@ -132,7 +132,7 @@ suite('LSPClient Integration Test Suite', () => {
           extensionPath: '/invalid/path'
         } as unknown as vscode.ExtensionContext;
         
-        const lspClient = new SpecGoferLSPClient(minimalContext);
+        const lspClient = new GoferLSPClient(minimalContext);
         assert.ok(lspClient);
       } catch (error: unknown) {
         // Some validation might occur during construction

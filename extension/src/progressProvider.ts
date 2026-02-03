@@ -31,7 +31,7 @@ class SpecItem extends vscode.TreeItem {
       this.contextValue = 'spec';
       // Add click command to show spec details
       this.command = {
-        command: 'eaiGofer.showSpecDetails',
+        command: 'gofer.showSpecDetails',
         title: 'Show Spec Details',
         arguments: [spec],
       };
@@ -45,7 +45,7 @@ class SpecItem extends vscode.TreeItem {
       this.contextValue = 'task';
       // Add click command to show task details
       this.command = {
-        command: 'eaiGofer.showTaskDetails',
+        command: 'gofer.showTaskDetails',
         title: 'Show Task Details',
         arguments: [task, spec],
       };
@@ -187,7 +187,7 @@ class SpecItem extends vscode.TreeItem {
 }
 
 /**
- * Provides a tree view of spec progress (Gofer format)
+ * Provides a tree view of spec progress (GitHub Gofer format)
  */
 export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
   private _onDidChangeTreeData = new vscode.EventEmitter<SpecItem | undefined | null | void>();
@@ -202,7 +202,7 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
   private workspacePath: string;
 
   constructor(workspacePath: string, branchSpecManager?: any) {
-    console.log(`[EAI-GOFER] ProgressProvider initialized for workspace: ${workspacePath}`);
+    console.log(`[Gofer] ProgressProvider initialized for workspace: ${workspacePath}`);
     this.workspacePath = workspacePath;
     this.branchSpecManager = branchSpecManager;
     this.parser = new GoferParser(workspacePath, branchSpecManager);
@@ -225,7 +225,7 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
       // Root level - check if .specify folder exists
       // If no .specify folder, return empty array to show welcome view with Initialize button
       if (this.loadError?.includes('.specify folder not found')) {
-        return []; // Shows welcome view with "Initialize SpecGofer" button
+        return []; // Shows welcome view with "Initialize Gofer" button
       }
 
       // Check for other load errors
@@ -243,9 +243,9 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
       if (this.specs.length === 0) {
         const noSpecsItem = new SpecItem('No specs found', vscode.TreeItemCollapsibleState.None);
         noSpecsItem.iconPath = new vscode.ThemeIcon('info');
-        noSpecsItem.tooltip = `Workspace: ${this.parser['workspacePath']}\n\nLooking for specs in: .specify/specs/\n\nCreate a spec with: SpecGofer: Create New Spec`;
+        noSpecsItem.tooltip = `Workspace: ${this.parser['workspacePath']}\n\nLooking for specs in: .specify/specs/\n\nCreate a spec with: Gofer: Create New Spec`;
         noSpecsItem.command = {
-          command: 'eaiGofer.createSpec',
+          command: 'gofer.createSpec',
           title: 'Create New Spec',
         };
         return [noSpecsItem];
@@ -301,13 +301,13 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
       } catch (error) {
         this.loadError = `.specify folder not found in this workspace`;
         this.specs = [];
-        console.log(`[EAI-GOFER] .specify folder not found at ${specifyPath}`);
+        console.log(`[Gofer] .specify folder not found at ${specifyPath}`);
         return;
       }
 
       this.specs = await this.parser.loadAllSpecs();
       this.loadError = null;
-      console.log(`[EAI-GOFER] Loaded ${this.specs.length} spec(s) from ${specifyPath}`);
+      console.log(`[Gofer] Loaded ${this.specs.length} spec(s) from ${specifyPath}`);
 
       // T106: Load dependency graph from spec frontmatter
       await this.loadDependencyGraph();
@@ -360,11 +360,11 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
       try {
         await fs.access(graphPath);
         this.dependencyGraph = await DependencyGraph.load(this.workspacePath);
-        console.log(`[EAI-GOFER] Loaded dependency graph from ${graphPath}`);
+        console.log(`[Gofer] Loaded dependency graph from ${graphPath}`);
       } catch {
         // Graph doesn't exist, create new one
         this.dependencyGraph = new DependencyGraph(this.workspacePath);
-        console.log('[EAI-GOFER] Created new dependency graph');
+        console.log('[Gofer] Created new dependency graph');
       }
 
       // Get all dependencies from spec frontmatter
@@ -382,7 +382,7 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
           try {
             // Validate dependency exists
             if (!allDependencies.has(depId)) {
-              console.warn(`[EAI-GOFER] Spec ${specId} depends on non-existent spec ${depId}`);
+              console.warn(`[Gofer] Spec ${specId} depends on non-existent spec ${depId}`);
               continue;
             }
 
@@ -396,10 +396,10 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
           } catch (error) {
             if (error instanceof Error && error.message.includes('cycle')) {
               console.warn(
-                `[EAI-GOFER] Cannot add dependency ${specId} -> ${depId}: would create cycle`
+                `[Gofer] Cannot add dependency ${specId} -> ${depId}: would create cycle`
               );
             } else {
-              console.error(`[EAI-GOFER] Error adding dependency ${specId} -> ${depId}:`, error);
+              console.error(`[Gofer] Error adding dependency ${specId} -> ${depId}:`, error);
             }
           }
         }
@@ -407,9 +407,9 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
 
       // Save updated graph
       await this.dependencyGraph.save();
-      console.log('[EAI-GOFER] Dependency graph updated and saved');
+      console.log('[Gofer] Dependency graph updated and saved');
     } catch (error) {
-      console.error('[EAI-GOFER] Error loading dependency graph:', error);
+      console.error('[Gofer] Error loading dependency graph:', error);
     }
   }
 

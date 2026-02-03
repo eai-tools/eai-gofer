@@ -343,7 +343,7 @@ This is a simple spec without frontmatter.
   describe('path security', (): void => {
     it('should construct safe file paths', async (): Promise<void> => {
       const specId = '001-test-spec';
-      
+
       // Mock readFile to capture the path being used
       let capturedPath = '';
       vi.mocked(fs.readFile).mockImplementation((path: Parameters<typeof fs.readFile>[0]): Promise<string> => {

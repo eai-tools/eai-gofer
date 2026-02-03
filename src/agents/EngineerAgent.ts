@@ -233,7 +233,7 @@ Be thorough but practical. Focus on real issues, not style preferences.`;
         suggestions: parsed.suggestions || [],
         constitutionChecks: parsed.constitutionChecks || {},
       };
-    } catch (error) {
+    } catch (_error) {
       // Try to parse as structured text (fallback)
       return this.parseStructuredTextResponse(response, options);
     }

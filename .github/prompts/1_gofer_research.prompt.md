@@ -2,6 +2,7 @@
 name: 1_gofer_research
 description: Deep codebase and technology research for feature implementation
 agent: agent
+tools: ['search/codebase', 'terminal', 'editFile']
 argument-hint: Describe what you want to research or the feature to analyze
 ---
 

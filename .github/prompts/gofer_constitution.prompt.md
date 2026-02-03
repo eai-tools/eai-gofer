@@ -3,6 +3,7 @@ name: gofer_constitution
 description:
   Create or update project constitution with coding principles and guidelines
 agent: agent
+tools: ['search/codebase', 'terminal', 'editFile']
 argument-hint: What principles or guidelines to add/update
 ---
 

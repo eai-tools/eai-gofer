@@ -17,6 +17,8 @@
 import * as vscode from 'vscode';
 import { ContextHealthMonitor, type ContextHealthStatus } from './ContextHealthMonitor';
 import { ContextUsageLogger } from './ContextUsageLogger';
+import type { ContextBuilder } from './ContextBuilder';
+import type { TaskContext } from './ContextBuilder';
 import { Logger } from '../utils/logger';
 
 /**
@@ -68,7 +70,7 @@ export interface HandoffTriggerResult {
   /** Whether handoff was triggered */
   triggered: boolean;
   /** User's selected action */
-  action: 'save' | 'dismiss' | 'remind-later' | 'auto-dismissed' | 'disabled';
+  action: 'save' | 'dismiss' | 'remind-later' | 'reseed' | 'auto-dismissed' | 'disabled';
   /** Timestamp of the action */
   timestamp: number;
   /** Health status that triggered the handoff */
@@ -84,6 +86,7 @@ export class AutoHandoffTrigger implements vscode.Disposable {
   private readonly disposables: vscode.Disposable[] = [];
   private monitor: ContextHealthMonitor | null = null;
   private usageLogger: ContextUsageLogger | null = null;
+  private contextBuilder: ContextBuilder | null = null;
   private lastNotificationTime: number = 0;
   private currentSessionId: string = '';
   private currentStage: string = 'implement';
@@ -150,6 +153,15 @@ export class AutoHandoffTrigger implements vscode.Disposable {
    */
   setUsageLogger(logger: ContextUsageLogger): void {
     this.usageLogger = logger;
+  }
+
+  /**
+   * Sets the ContextBuilder for reseed support (T035).
+   *
+   * @param builder - ContextBuilder instance
+   */
+  setContextBuilder(builder: ContextBuilder): void {
+    this.contextBuilder = builder;
   }
 
   /**
@@ -309,6 +321,7 @@ export class AutoHandoffTrigger implements vscode.Disposable {
     const message = this.getNotificationMessage(status, reason);
 
     const saveAction = 'Save & Continue Later';
+    const reseedAction = 'Reseed Context';
     const dismissAction = 'Dismiss';
     const remindAction = 'Remind in 10 min';
 
@@ -321,6 +334,7 @@ export class AutoHandoffTrigger implements vscode.Disposable {
       `${title}\n${message}`,
       { modal: false },
       saveAction,
+      reseedAction,
       dismissAction,
       remindAction
     );
@@ -341,6 +355,15 @@ export class AutoHandoffTrigger implements vscode.Disposable {
         return {
           triggered: true,
           action: 'save',
+          timestamp: Date.now(),
+          healthStatus: status,
+        };
+
+      case reseedAction:
+        await this.executeReseed(status);
+        return {
+          triggered: true,
+          action: 'reseed',
           timestamp: Date.now(),
           healthStatus: status,
         };
@@ -410,6 +433,42 @@ export class AutoHandoffTrigger implements vscode.Disposable {
     }
 
     return `${recommendation}`;
+  }
+
+  /**
+   * Executes a context reseed to reclaim context space (T035).
+   * Clears stale observations and rebuilds from memory store.
+   *
+   * @param status - Health status at time of reseed
+   */
+  private async executeReseed(status: ContextHealthStatus): Promise<void> {
+    this.logger.info('Executing context reseed', {
+      sessionId: this.currentSessionId,
+      stage: this.currentStage,
+      utilizationBefore: status.utilizationPercent,
+    });
+
+    try {
+      if (this.contextBuilder) {
+        const task: TaskContext = {
+          taskId: this.currentTask || 'current',
+          specId: '',
+          description: this.currentTask || 'Active task',
+        };
+        await this.contextBuilder.reseedContext(task);
+        vscode.window.showInformationMessage(
+          'Context reseeded. Stale observations cleared and memories refreshed.'
+        );
+        this.logger.info('Context reseed completed');
+      } else {
+        vscode.window.showWarningMessage(
+          'Context reseed unavailable. No ContextBuilder connected. Consider saving instead.'
+        );
+      }
+    } catch (error) {
+      this.logger.error('Failed to reseed context', error as Error);
+      vscode.window.showErrorMessage(`Context reseed failed: ${(error as Error).message}`);
+    }
   }
 
   /**

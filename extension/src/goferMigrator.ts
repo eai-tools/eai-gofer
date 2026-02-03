@@ -466,7 +466,7 @@ export class GoferMigrator {
         await this.fixSpecPathReferences();
 
         progress.report({ message: 'Checking Claude commands format...' });
-        console.log('[Gofer Update] Ensuring speckit.tasks includes issues generation...');
+        console.log('[Gofer Update] Ensuring gofer commands are up to date...');
         await this.fixClaudeCommands();
 
         progress.report({ message: 'Updating .gitignore...' });
@@ -561,7 +561,7 @@ export class GoferMigrator {
         const goferCommandsDir = path.join(this.workspacePath, '.claude', 'commands');
         try {
           const files = await fs.readdir(goferCommandsDir);
-          const hasGoferCommands = files.some((f) => f.startsWith('speckit.'));
+          const hasGoferCommands = files.some((f) => f.includes('gofer') || f.startsWith('0_'));
 
           if (!hasGoferCommands) {
             console.warn('[setupClaudeCommands] No gofer Claude commands found after installation');

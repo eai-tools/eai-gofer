@@ -23,6 +23,8 @@ export interface EnrichedContextBridge {
     hints?: string;
     memories?: string;
     research?: string;
+    /** Code context including entity graph data */
+    code?: string;
   };
   memoryCoverage?: {
     coveredKeywords: string[];
@@ -81,6 +83,7 @@ export class ContextBridgeWriter {
         hints: built.sections.hints,
         memories: built.sections.memories,
         research: built.sections.research,
+        code: built.sections.code,
       },
     };
 

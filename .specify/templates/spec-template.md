@@ -4,7 +4,7 @@
 **Input**: User description: "$ARGUMENTS"
 
 <!--
-  This template is filled in by /2_gofer_specify (or legacy /speckit.specify).
+  This template is filled in by /2_gofer_specify (or legacy /2_gofer_specify).
   Recommended: Use /0_business_scenario to auto-chain the entire pipeline.
   Location: .specify/specs/[###-feature-name]/spec.md
 -->

@@ -16,7 +16,7 @@ import {
 // Mock Logger first
 vi.mock('../../../extension/src/utils/logger', () => ({
   Logger: {
-    for: () => ({
+    for: (): object => ({
       debug: vi.fn(),
       info: vi.fn(),
       warn: vi.fn(),
@@ -229,6 +229,7 @@ describe('AutoHandoffTrigger', () => {
         expect.stringContaining('Context Critical'),
         expect.any(Object),
         'Save & Continue Later',
+        'Reseed Context',
         'Dismiss',
         'Remind in 10 min'
       );

@@ -149,8 +149,8 @@ execution across multiple AI providers for research and analysis workflows.
    timeout: 30000
    peerReview: false
    stages:
-     speckit_plan: true
-     speckit_analyze: true
+     gofer_plan: true
+     gofer_analyze: true
      research_codebase: true
      validate_plan: true
    providers:
@@ -246,7 +246,7 @@ end-to-end without manual intervention.**
 Once you have a fully-specified feature (spec + plan + tasks), Gofer:
 
 1. **Spawns Claude Code Terminal**: Creates a terminal and sends
-   `/speckit.implement` command
+   `/5_gofer_implement` command
 2. **Monitors Continuously**: Watches Claude's output in real-time for progress,
    errors, and questions
 3. **Manages Errors**: Detects failures and retries up to 3 times with
@@ -283,7 +283,7 @@ Once you have a fully-specified feature (spec + plan + tasks), Gofer:
 │  ┌──────────────────────────────────────────────────────────────┐  │
 │  │ Autonomous Driver                                            │  │
 │  │  - Spawns Claude Code terminal                              │  │
-│  │  - Sends: /speckit.implement                                │  │
+│  │  - Sends: /5_gofer_implement                                │  │
 │  │  - Monitors output continuously                             │  │
 │  └──────────────┬───────────────────────────────────────────────┘  │
 │                 │                                                   │
@@ -402,7 +402,7 @@ cp .specify/templates/spec-template.md .specify/specs/001-user-authentication/sp
 **Option B: Use Slash Commands** (if configured)
 
 ```bash
-/speckit.specify "Add user authentication with OAuth2 and JWT tokens"
+/2_gofer_specify "Add user authentication with OAuth2 and JWT tokens"
 ```
 
 Your spec should include:
@@ -427,7 +427,7 @@ Create `plan.md` in your spec folder with:
 
 ```bash
 # In Claude Code
-/speckit.plan
+/3_gofer_plan
 ```
 
 The AI will:
@@ -444,7 +444,7 @@ Create executable tasks with dependencies:
 
 ```bash
 # In Claude Code
-/speckit.tasks
+/4_gofer_tasks
 ```
 
 This produces `tasks.md` with dependency-ordered tasks:

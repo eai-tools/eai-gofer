@@ -73,6 +73,10 @@ interface EnrichedContextBridge {
     hints?: string;
     memories?: string;
     research?: string;
+    /** Entity knowledge graph context for affected files */
+    graphContext?: string;
+    /** Code context */
+    code?: string;
   };
   memoryCoverage?: {
     coveredKeywords: string[];
@@ -81,6 +85,15 @@ interface EnrichedContextBridge {
     memoriesLoaded: number;
     researchLoadedForGaps: boolean;
     researchTriggers: string[];
+  };
+  /** Memory type breakdown for the loaded memories */
+  memoryTypes?: {
+    procedural: number;
+    semantic: number;
+    episodic: number;
+    decision: number;
+    prospective: number;
+    untyped: number;
   };
   budgetUsage?: Record<string, unknown>;
 }
@@ -550,6 +563,10 @@ export class MCPToolHandler {
         response.memories = enriched.sections.memories;
         response.hints = enriched.sections.hints;
         response.researchChunks = enriched.sections.research;
+        // Include graph context and code context if available
+        if (enriched.sections.graphContext) {
+          response.hints = (response.hints || '') + '\n\n' + enriched.sections.graphContext;
+        }
         if (enriched.memoryCoverage) {
           response.memoryCoverage = {
             coveragePercent: enriched.memoryCoverage.coveragePercent,

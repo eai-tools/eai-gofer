@@ -60,7 +60,7 @@ describe('Foundation Integration Tests', () => {
       });
 
       // 2. Send command
-      const command = '/speckit.implement';
+      const command = '/5_gofer_implement';
       await terminalManager.sendCommand(terminal.terminalId, command);
 
       expect(mockTerminal.sendText).toHaveBeenCalledWith(command);
@@ -153,7 +153,7 @@ describe('Foundation Integration Tests', () => {
       const originalTerminalId = terminal.terminalId;
 
       // 2. Send command
-      await terminalManager.sendCommand(originalTerminalId, '/speckit.implement');
+      await terminalManager.sendCommand(originalTerminalId, '/5_gofer_implement');
 
       // 3. Simulate crash by closing terminal
       await terminalManager.closeTerminal(originalTerminalId);
@@ -169,7 +169,7 @@ describe('Foundation Integration Tests', () => {
       expect(restartedTerminal.terminalId).not.toBe(originalTerminalId);
 
       // 6. Verify last command was restored
-      expect(mockTerminal.sendText).toHaveBeenCalledWith('/speckit.implement');
+      expect(mockTerminal.sendText).toHaveBeenCalledWith('/5_gofer_implement');
 
       // 7. Verify old terminal is marked as dead
       const oldState = terminalManager.getTerminalState(originalTerminalId);

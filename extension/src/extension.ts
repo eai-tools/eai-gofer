@@ -772,7 +772,10 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
           await migrator.upgrade({ skipConfirmation: true });
         }
 
-        await initializeProgressProvider(context, workspacePath);
+        // Use handleGoferFormat() instead of just initializeProgressProvider()
+        // so that MCP config, context health monitoring, status bars, and
+        // resource sync are all set up — not just the tree view.
+        await handleGoferFormat(context, workspacePath);
 
         // Register workspace-specific commands if not already done
         await registerCommands(context, workspacePath, migrator);

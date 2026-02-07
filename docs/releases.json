@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.1.7",
+  "latest_version": "1.1.8",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-02-03T21:26:26.919Z",
+  "last_updated": "2026-02-07T07:36:13.978Z",
   "releases": [
+    {
+      "version": "1.1.8",
+      "tag_name": "v1.1.8",
+      "published_at": "2026-02-07T07:36:13.978Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.1.8.vsix",
+      "notes": "chore: pre-release changes\n\nAuto-committed changes before release v1.1.7",
+      "prerelease": false,
+      "size_mb": 15.4
+    },
     {
       "version": "1.1.7",
       "tag_name": "v1.1.7",
@@ -81,24 +90,6 @@
       "published_at": "2026-01-27T08:19:20.665Z",
       "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.0.3.vsix",
       "notes": "Fix: Sync missing bundled resources on Codespaces/new machines",
-      "prerelease": false,
-      "size_mb": 8.5
-    },
-    {
-      "version": "1.0.2",
-      "tag_name": "v1.0.2",
-      "published_at": "2026-01-26T01:40:03.060Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.0.2.vsix",
-      "notes": "chore: pre-release changes\n\nAuto-committed changes before release v1.0.1",
-      "prerelease": false,
-      "size_mb": 8.5
-    },
-    {
-      "version": "1.0.1",
-      "tag_name": "v1.0.1",
-      "published_at": "2026-01-25T23:52:26.677Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.0.1.vsix",
-      "notes": "chore: pre-release changes\n\nAuto-committed changes before release v1.0.0",
       "prerelease": false,
       "size_mb": 8.5
     }

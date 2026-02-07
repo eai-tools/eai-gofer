@@ -2,7 +2,7 @@
   "name": "gofer",
   "displayName": "Gofer (Enterprise AI) [PREVIEW]",
   "description": "Spec-driven development for AI. Exposes 6 MCP tools that let Claude Code and GitHub Copilot autonomously implement features from specifications.",
-  "version": "1.1.10",
+  "version": "1.1.11",
   "publisher": "EnterpriseAI",
   "icon": "icon.png",
   "author": {

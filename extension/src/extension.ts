@@ -568,8 +568,9 @@ async function initializeProgressProvider(context: vscode.ExtensionContext, work
   // They will pick up the new branchSpecManager and workspacePath
   if (progressProvider) {
     // ProgressProvider needs to be updated with the branch manager
-    // We need to set its branch manager reference
-    (progressProvider as any).branchManager = branchSpecManager;
+    // We need to set its branch manager reference (fix: correct property name)
+    (progressProvider as any).branchSpecManager = branchSpecManager;
+    console.log('[Gofer] Wired branchSpecManager to progressProvider');
     progressProvider.refresh();
   }
   if (constitutionProvider) {

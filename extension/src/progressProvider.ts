@@ -3,6 +3,9 @@ import { GoferParser, Spec, Task, SpecStatus, TaskStatus } from './goferParser';
 import { SpecLoader } from './autonomous/SpecLoader';
 import { DependencyGraph } from './autonomous/DependencyGraph';
 
+// Debug output channel for initialization troubleshooting
+let debugChannel: vscode.OutputChannel | undefined;
+
 class SpecItem extends vscode.TreeItem {
   constructor(
     public readonly label: string,
@@ -202,61 +205,53 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
   private workspacePath: string;
   private isLoading: boolean = true;  // Start in loading state
   private loadSequence: number = 0;   // Sequence number to track load operations
+  private hasStartedInitialLoad: boolean = false;  // Track if initial load started
 
   constructor(workspacePath: string, branchSpecManager?: any) {
-    console.log(`[Gofer] ProgressProvider initialized for workspace: ${workspacePath}`);
+    // Initialize debug channel once
+    if (!debugChannel) {
+      debugChannel = vscode.window.createOutputChannel('Gofer Debug');
+    }
+    this.log(`ProgressProvider created for workspace: ${workspacePath}`);
+
     this.workspacePath = workspacePath;
     this.branchSpecManager = branchSpecManager;
     this.parser = new GoferParser(workspacePath, branchSpecManager);
     this.specLoader = new SpecLoader(workspacePath);
     this.dependencyGraph = new DependencyGraph(workspacePath);
-    // Start loading and fire change event when done
-    const startSequence = this.loadSequence + 1; // Will be incremented inside loadSpecs
-    this.loadSpecs()
-      .then(() => {
-        // Only fire event if this load is still current
-        if (startSequence === this.loadSequence) {
-          console.log(`[Gofer] Constructor loadSpecs done, isLoading=${this.isLoading}, error=${this.loadError}, specs=${this.specs.length}`);
-          this._onDidChangeTreeData.fire();
-        } else {
-          console.log(`[Gofer] Constructor loadSpecs superseded by newer load`);
-        }
-      })
-      .catch((error) => {
-        // Only update if this load is still current
-        if (startSequence === this.loadSequence) {
-          console.error('[Gofer] Unexpected error in loadSpecs:', error);
-          this.isLoading = false;
-          this.loadError = error instanceof Error ? error.message : 'Unknown error';
-          this._onDidChangeTreeData.fire();
-        }
-      });
+
+    // Don't start loading in constructor - let getChildren() trigger it
+    // This prevents race conditions and simplifies the flow
+    this.log('ProgressProvider initialized (load will start on first getChildren call)');
+  }
+
+  /**
+   * Log to debug output channel
+   */
+  private log(message: string): void {
+    const timestamp = new Date().toISOString();
+    const logMessage = `[${timestamp}] [Gofer] ${message}`;
+    console.log(logMessage);
+    debugChannel?.appendLine(logMessage);
   }
 
   refresh(): void {
-    console.log('[Gofer] refresh() called');
+    this.log('refresh() called');
+    this.triggerLoad();
+  }
+
+  /**
+   * Trigger a load operation with proper sequence tracking
+   */
+  private triggerLoad(): void {
     this.isLoading = true;
     this._onDidChangeTreeData.fire();  // Show loading state immediately
-    const startSequence = this.loadSequence + 1; // Will be incremented inside loadSpecs
-    this.loadSpecs()
-      .then(() => {
-        // Only fire event if this load is still current
-        if (startSequence === this.loadSequence) {
-          console.log(`[Gofer] Refresh loadSpecs done, error=${this.loadError}`);
-          this._onDidChangeTreeData.fire();  // Update with results
-        } else {
-          console.log(`[Gofer] Refresh loadSpecs superseded by newer load`);
-        }
-      })
-      .catch((error) => {
-        // Only update if this load is still current
-        if (startSequence === this.loadSequence) {
-          console.error('[Gofer] Unexpected error in refresh loadSpecs:', error);
-          this.isLoading = false;
-          this.loadError = error instanceof Error ? error.message : 'Unknown error';
-          this._onDidChangeTreeData.fire();
-        }
-      });
+
+    // Start load - the sequence is managed inside _doLoadSpecs
+    this._doLoadSpecs().catch((error) => {
+      // Catch any unexpected errors that escape the try/finally
+      this.log(`Unexpected error escaped _doLoadSpecs: ${error}`);
+    });
   }
 
   getTreeItem(element: SpecItem): vscode.TreeItem {
@@ -265,6 +260,13 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
 
   async getChildren(element?: SpecItem): Promise<SpecItem[]> {
     if (!element) {
+      // Trigger initial load on first getChildren call
+      if (!this.hasStartedInitialLoad) {
+        this.hasStartedInitialLoad = true;
+        this.log('First getChildren call - triggering initial load');
+        this.triggerLoad();
+      }
+
       // Root level - show loading state if still loading
       if (this.isLoading) {
         const loadingItem = new SpecItem('Loading specs...', vscode.TreeItemCollapsibleState.None);
@@ -340,27 +342,30 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
     return [];
   }
 
-  private async loadSpecs(): Promise<void> {
-    // Increment sequence number to track this load operation
-    const currentSequence = ++this.loadSequence;
-    console.log(`[Gofer] loadSpecs starting (sequence ${currentSequence}), workspace: ${this.workspacePath}`);
+  /**
+   * Internal method that performs the actual loading with proper sequence tracking
+   * and guaranteed cleanup via try/finally
+   */
+  private async _doLoadSpecs(): Promise<void> {
+    // Increment sequence FIRST - this is OUR sequence number
+    const mySequence = ++this.loadSequence;
+    this.log(`_doLoadSpecs starting (sequence ${mySequence}), workspace: ${this.workspacePath}`);
     this.isLoading = true;
 
-    // If no workspace path, return immediately with error
-    if (!this.workspacePath || this.workspacePath === '') {
-      console.log(`[Gofer] No workspace path, skipping load (sequence ${currentSequence})`);
-      this.loadError = 'No workspace folder open';
-      this.specs = [];
-      this.isLoading = false;
-      return;
-    }
-
-    // Add timeout to prevent indefinite hanging (5 seconds for faster feedback)
-    const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error('Loading specs timed out after 5 seconds')), 5000);
-    });
-
     try {
+      // If no workspace path, return immediately with error
+      if (!this.workspacePath || this.workspacePath === '') {
+        this.log(`No workspace path, skipping load (sequence ${mySequence})`);
+        this.loadError = 'No workspace folder open';
+        this.specs = [];
+        return;
+      }
+
+      // Add timeout to prevent indefinite hanging (15 seconds for cold start resilience)
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Loading specs timed out after 15 seconds')), 15000);
+      });
+
       // Check if .specify and .specify/specs exist in this workspace
       const fs = require('fs').promises;
       const path = require('path');
@@ -370,57 +375,50 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
       // Check .specify folder exists
       try {
         await fs.access(specifyPath);
-      } catch (error) {
-        // Only update state if this is still the current load
-        if (currentSequence === this.loadSequence) {
-          this.loadError = `.specify folder not found in this workspace`;
-          this.specs = [];
-          this.isLoading = false;
-          console.log(`[Gofer] .specify folder not found at ${specifyPath} (sequence ${currentSequence})`);
+      } catch {
+        // Check if superseded before updating state
+        if (mySequence !== this.loadSequence) {
+          this.log(`Load superseded before .specify check (sequence ${mySequence}, current ${this.loadSequence})`);
+          return;
         }
+        this.loadError = `.specify folder not found in this workspace`;
+        this.specs = [];
+        this.log(`.specify folder not found at ${specifyPath} (sequence ${mySequence})`);
         return;
       }
 
       // Check .specify/specs folder exists
       try {
         await fs.access(specsPath);
-      } catch (error) {
-        // .specify exists but no specs folder - this is fine, show empty state
-        if (currentSequence === this.loadSequence) {
-          this.loadError = null;  // Not an error, just empty
-          this.specs = [];
-          this.isLoading = false;
-          console.log(`[Gofer] No specs folder at ${specsPath} (sequence ${currentSequence})`);
+      } catch {
+        // Check if superseded before updating state
+        if (mySequence !== this.loadSequence) {
+          this.log(`Load superseded before specs check (sequence ${mySequence}, current ${this.loadSequence})`);
+          return;
         }
+        // .specify exists but no specs folder - this is fine, show empty state
+        this.loadError = null;  // Not an error, just empty
+        this.specs = [];
+        this.log(`No specs folder at ${specsPath} (sequence ${mySequence})`);
         return;
       }
 
-      // Wrap ALL async operations in the timeout (including dependency graph)
-      const loadAllWithDeps = async (): Promise<Spec[]> => {
-        const specs = await this.parser.loadAllSpecs();
-        // Load dependency graph (non-critical, catch errors)
-        try {
-          await this.loadDependencyGraph();
-        } catch (depError) {
-          console.warn(`[Gofer] Failed to load dependency graph:`, depError);
-        }
-        return specs;
-      };
-
+      // Load specs with timeout - dependency graph is loaded separately (non-blocking)
+      // to avoid cold-start timeouts from synchronous SpecLoader re-reads
       const loadedSpecs = await Promise.race([
-        loadAllWithDeps(),
+        this.parser.loadAllSpecs(),
         timeoutPromise,
       ]);
 
-      // Only update state if this is still the current load
-      if (currentSequence !== this.loadSequence) {
-        console.log(`[Gofer] Ignoring stale load result (sequence ${currentSequence}, current ${this.loadSequence})`);
+      // Check if superseded before updating state
+      if (mySequence !== this.loadSequence) {
+        this.log(`Ignoring stale load result (sequence ${mySequence}, current ${this.loadSequence})`);
         return;
       }
 
       this.specs = loadedSpecs;
       this.loadError = null;
-      console.log(`[Gofer] Loaded ${this.specs.length} spec(s) from ${specifyPath} (sequence ${currentSequence})`);
+      this.log(`Loaded ${this.specs.length} spec(s) from ${specifyPath} (sequence ${mySequence})`);
 
       // Sort specs by status and completion
       this.specs.sort((a, b) => {
@@ -445,17 +443,40 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
         const bCompleted = b.tasks.filter((t) => t.status === 'completed').length / b.tasks.length;
         return bCompleted - aCompleted;
       });
-      this.isLoading = false;
-      console.log(`[Gofer] loadSpecs completed successfully (sequence ${currentSequence})`);
+
+      // Load dependency graph in background (non-critical, non-blocking)
+      // This avoids cold-start timeouts since SpecLoader.getAllDependencies()
+      // uses synchronous fs reads that block the event loop
+      this.loadDependencyGraph()
+        .then(() => {
+          // Refresh tree view to show dependency info if we're still current
+          if (mySequence === this.loadSequence) {
+            this._onDidChangeTreeData.fire();
+          }
+        })
+        .catch((depError) => {
+          this.log(`Failed to load dependency graph: ${depError}`);
+        });
+
+      this.log(`_doLoadSpecs completed successfully (sequence ${mySequence})`);
     } catch (error) {
-      // Only update state if this is still the current load
-      if (currentSequence === this.loadSequence) {
-        console.error(`[Gofer] Error loading specs (sequence ${currentSequence}):`, error);
-        this.loadError = error instanceof Error ? error.message : 'Unknown error';
-        this.specs = [];
+      // Check if superseded before updating state
+      if (mySequence !== this.loadSequence) {
+        this.log(`Ignoring stale error (sequence ${mySequence}, current ${this.loadSequence})`);
+        return;
+      }
+      this.log(`Error loading specs (sequence ${mySequence}): ${error}`);
+      this.loadError = error instanceof Error ? error.message : 'Unknown error';
+      this.specs = [];
+    } finally {
+      // ALWAYS reset isLoading and fire event if we're still the current load
+      // This is the key fix - guaranteed cleanup
+      if (mySequence === this.loadSequence) {
         this.isLoading = false;
+        this.log(`Finalizing load (sequence ${mySequence}): isLoading=false, firing change event`);
+        this._onDidChangeTreeData.fire();
       } else {
-        console.log(`[Gofer] Ignoring stale error (sequence ${currentSequence}, current ${this.loadSequence})`);
+        this.log(`Not finalizing superseded load (sequence ${mySequence}, current ${this.loadSequence})`);
       }
     }
   }
@@ -478,11 +499,11 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
       try {
         await fs.access(graphPath);
         this.dependencyGraph = await DependencyGraph.load(this.workspacePath);
-        console.log(`[Gofer] Loaded dependency graph from ${graphPath}`);
+        this.log(`Loaded dependency graph from ${graphPath}`);
       } catch {
         // Graph doesn't exist, create new one
         this.dependencyGraph = new DependencyGraph(this.workspacePath);
-        console.log('[Gofer] Created new dependency graph');
+        this.log('Created new dependency graph');
       }
 
       // Get all dependencies from spec frontmatter
@@ -500,7 +521,7 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
           try {
             // Validate dependency exists
             if (!allDependencies.has(depId)) {
-              console.warn(`[Gofer] Spec ${specId} depends on non-existent spec ${depId}`);
+              this.log(`Spec ${specId} depends on non-existent spec ${depId}`);
               continue;
             }
 
@@ -513,11 +534,9 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
             }
           } catch (error) {
             if (error instanceof Error && error.message.includes('cycle')) {
-              console.warn(
-                `[Gofer] Cannot add dependency ${specId} -> ${depId}: would create cycle`
-              );
+              this.log(`Cannot add dependency ${specId} -> ${depId}: would create cycle`);
             } else {
-              console.error(`[Gofer] Error adding dependency ${specId} -> ${depId}:`, error);
+              this.log(`Error adding dependency ${specId} -> ${depId}: ${error}`);
             }
           }
         }
@@ -525,9 +544,9 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
 
       // Save updated graph
       await this.dependencyGraph.save();
-      console.log('[Gofer] Dependency graph updated and saved');
+      this.log('Dependency graph updated and saved');
     } catch (error) {
-      console.error('[Gofer] Error loading dependency graph:', error);
+      this.log(`Error loading dependency graph: ${error}`);
     }
   }
 

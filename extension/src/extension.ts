@@ -65,6 +65,9 @@ let goferActivityStatusBar: GoferActivityStatusBar | undefined;
 // Flag to prevent file watcher refreshes during upgrade
 let isUpgrading = false;
 
+// Flag to prevent duplicate command registration
+let workspaceCommandsRegistered = false;
+
 /**
  * Set the upgrade state (exported for use by goferMigrator)
  */
@@ -733,6 +736,55 @@ async function handleBranchChange() {
  * Register commands that work globally without requiring a workspace
  */
 function registerGlobalCommands(context: vscode.ExtensionContext) {
+  // Initialize/Create Gofer structure
+  // CRITICAL: This must be registered here (not in registerCommands) so it's
+  // available immediately when the welcome view "Initialize Gofer" button appears.
+  // Previously it was registered in registerCommands() which runs at the end of
+  // initializeForWorkspace() — if anything in that chain failed, the command was
+  // never registered and the button silently did nothing.
+  context.subscriptions.push(
+    vscode.commands.registerCommand('gofer.initialize', async () => {
+      const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+      if (!workspaceFolder) {
+        vscode.window.showErrorMessage('No workspace folder open. Open a folder first.');
+        return;
+      }
+
+      const workspacePath = workspaceFolder.uri.fsPath;
+      const migrator = new GoferMigrator(workspacePath);
+
+      try {
+        const exists = await migrator.exists();
+
+        if (exists) {
+          const versionInfo = await migrator.getVersionInfo();
+
+          if (versionInfo.needsUpgrade) {
+            await migrator.upgrade();
+          } else if (versionInfo.format === 'gofer') {
+            await migrator.upgrade();
+          } else {
+            vscode.window.showInformationMessage('Gofer already initialized!');
+          }
+        } else {
+          // Create from scratch — skip confirmation since user explicitly
+          // clicked "Initialize Gofer"
+          await migrator.upgrade({ skipConfirmation: true });
+        }
+
+        await initializeProgressProvider(context, workspacePath);
+
+        // Register workspace-specific commands if not already done
+        await registerCommands(context, workspacePath, migrator);
+      } catch (error) {
+        console.error('[Gofer] Initialize failed:', error);
+        vscode.window.showErrorMessage(
+          `Failed to initialize Gofer: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
+    })
+  );
+
   // Show progress panel
   context.subscriptions.push(
     vscode.commands.registerCommand('gofer.showProgress', () => {
@@ -978,31 +1030,16 @@ async function registerCommands(
   workspacePath: string,
   migrator: GoferMigrator
 ): Promise<void> {
-  // Initialize/Create Gofer structure
-  context.subscriptions.push(
-    vscode.commands.registerCommand('gofer.initialize', async () => {
-      const exists = await migrator.exists();
+  // Guard against duplicate registration (can happen if gofer.initialize
+  // triggers this, and then initializeForWorkspace also calls it)
+  if (workspaceCommandsRegistered) {
+    console.log('[Gofer] Workspace commands already registered, skipping');
+    return;
+  }
+  workspaceCommandsRegistered = true;
 
-      if (exists) {
-        const versionInfo = await migrator.getVersionInfo();
-
-        if (versionInfo.needsUpgrade) {
-          // Legacy or mixed format - needs upgrade
-          await migrator.upgrade();
-        } else if (versionInfo.format === 'gofer') {
-          // Already gofer format - offer to update templates/scripts
-          await migrator.upgrade(); // This will call updateGoferTemplates()
-        } else {
-          vscode.window.showInformationMessage('Gofer already initialized!');
-        }
-      } else {
-        // Create from scratch
-        await migrator.upgrade(); // This also creates new structure
-      }
-
-      await initializeProgressProvider(context, workspacePath);
-    })
-  );
+  // Note: gofer.initialize is registered in registerGlobalCommands() so it's
+  // available immediately when the welcome view button appears.
 
   // Upgrade existing .specify
   context.subscriptions.push(

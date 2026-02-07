@@ -1,6 +1,9 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { execSync } from 'child_process';
+import { execFile } from 'child_process';
+import { promisify } from 'util';
+
+const execFileAsync = promisify(execFile);
 
 /**
  * Manages branch-specific .specify folders
@@ -10,57 +13,75 @@ import { execSync } from 'child_process';
  * - .specify/<branch-name>/ (branch-specific extensions)
  *
  * Branch-specific folders inherit from main and can override/extend
+ *
+ * IMPORTANT: All git operations are async (no execSync) to avoid
+ * blocking the Node.js event loop during extension activation.
  */
 export class BranchSpecManager {
   private workspacePath: string;
-  private currentBranch: string;
+  private currentBranch: string = 'main';
   private mainBranch: string = 'main';
+  private _initialized: boolean = false;
 
   constructor(workspacePath: string) {
     this.workspacePath = workspacePath;
-    this.currentBranch = this.getCurrentBranch();
-    this.mainBranch = this.getMainBranch();
+    // Git operations are deferred to initialize() to avoid blocking
+    // the event loop with synchronous execSync calls.
   }
 
   /**
-   * Get current git branch name
+   * Async initialization - must be called after construction.
+   * Replaces the previous execSync calls in the constructor that
+   * blocked the event loop for up to 15 seconds.
    */
-  private getCurrentBranch(): string {
+  async initialize(): Promise<void> {
+    if (this._initialized) { return; }
+    this.currentBranch = await this.detectCurrentBranch();
+    this.mainBranch = await this.detectMainBranch();
+    this._initialized = true;
+  }
+
+  /**
+   * Get current git branch name (async, non-blocking)
+   */
+  private async detectCurrentBranch(): Promise<string> {
     try {
-      const branch = execSync('git rev-parse --abbrev-ref HEAD', {
+      const { stdout } = await execFileAsync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], {
         cwd: this.workspacePath,
-        encoding: 'utf-8',
-        timeout: 5000, // 5 second timeout to prevent hanging
-      }).trim();
-      return branch;
+        timeout: 5000,
+      });
+      return stdout.trim() || 'main';
     } catch (error) {
-      console.error('Failed to get current branch:', error);
+      console.warn('[BranchSpecManager] Failed to get current branch:', error);
       return 'main';
     }
   }
 
   /**
-   * Get main branch name (main or master)
+   * Get main branch name (async, non-blocking)
    */
-  private getMainBranch(): string {
+  private async detectMainBranch(): Promise<string> {
     try {
       // Try to get default branch from remote
-      const remoteBranch = execSync('git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null || echo ""', {
-        cwd: this.workspacePath,
-        encoding: 'utf-8',
-        timeout: 5000, // 5 second timeout to prevent hanging
-      }).trim();
+      const { stdout: remoteBranch } = await execFileAsync(
+        'git', ['symbolic-ref', 'refs/remotes/origin/HEAD'],
+        { cwd: this.workspacePath, timeout: 5000 }
+      );
 
-      if (remoteBranch) {
-        return remoteBranch.replace('refs/remotes/origin/', '');
+      const trimmed = remoteBranch.trim();
+      if (trimmed) {
+        return trimmed.replace('refs/remotes/origin/', '');
       }
+    } catch {
+      // Remote HEAD not set — fall through to branch check
+    }
 
+    try {
       // Fall back to checking if main or master exists
-      const branches = execSync('git branch -a', {
-        cwd: this.workspacePath,
-        encoding: 'utf-8',
-        timeout: 5000, // 5 second timeout to prevent hanging
-      }).trim();
+      const { stdout: branches } = await execFileAsync(
+        'git', ['branch', '-a'],
+        { cwd: this.workspacePath, timeout: 5000 }
+      );
 
       if (branches.includes('main')) {
         return 'main';
@@ -68,7 +89,7 @@ export class BranchSpecManager {
         return 'master';
       }
     } catch (error) {
-      console.error('Failed to get main branch:', error);
+      console.warn('[BranchSpecManager] Failed to detect main branch:', error);
     }
 
     return 'main';
@@ -108,8 +129,13 @@ export class BranchSpecManager {
    * Creates branch info file in .specify/specs/<branch-name>/ folder
    */
   async initializeBranchStructure(): Promise<void> {
+    // Ensure git detection has completed
+    if (!this._initialized) {
+      await this.initialize();
+    }
+
     const mainPath = this.getMainSpecifyPath();
-    
+
     // Ensure main .specify structure exists
     await this.ensureDirectory(mainPath);
     await this.ensureDirectory(path.join(mainPath, 'specs'));
@@ -123,7 +149,7 @@ export class BranchSpecManager {
 
     // For feature branches, create .branch-info.json inside .specify/specs/<branch-name>/
     const branchSpecPath = path.join(mainPath, 'specs', this.currentBranch);
-    
+
     // Only create .branch-info.json if the spec folder exists
     const specFolderExists = await this.fileExists(branchSpecPath);
     if (!specFolderExists) {
@@ -211,7 +237,7 @@ export class BranchSpecManager {
    * Update branch info when branch changes
    */
   async refreshBranch(): Promise<void> {
-    this.currentBranch = this.getCurrentBranch();
+    this.currentBranch = await this.detectCurrentBranch();
     await this.initializeBranchStructure();
   }
 }

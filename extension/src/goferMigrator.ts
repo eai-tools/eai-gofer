@@ -236,7 +236,7 @@ export class GoferMigrator {
   /**
    * Upgrade .specify folder to Gofer format
    */
-  async upgrade(): Promise<void> {
+  async upgrade(options?: { skipConfirmation?: boolean }): Promise<void> {
     const format = await this.detectFormat();
 
     if (format === 'gofer') {
@@ -246,15 +246,19 @@ export class GoferMigrator {
       return;
     }
 
-    const choice = await vscode.window.showWarningMessage(
-      `Install/Upgrade to Gofer format?\n\nThis will:\n- Create proper folder structure\n- Install latest templates from Gofer\n- Set up Claude commands\n- Keep original files as backup`,
-      { modal: true },
-      'Upgrade',
-      'Cancel'
-    );
+    // When called from the Initialize Gofer button, skip the modal dialog
+    // since the user already expressed their intent by clicking the button
+    if (!options?.skipConfirmation) {
+      const choice = await vscode.window.showWarningMessage(
+        `Install/Upgrade to Gofer format?\n\nThis will:\n- Create proper folder structure\n- Install latest templates from Gofer\n- Set up Claude commands\n- Keep original files as backup`,
+        { modal: true },
+        'Upgrade',
+        'Cancel'
+      );
 
-    if (choice !== 'Upgrade') {
-      return;
+      if (choice !== 'Upgrade') {
+        return;
+      }
     }
 
     await vscode.window.withProgress(

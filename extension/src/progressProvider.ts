@@ -235,6 +235,19 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
     debugChannel?.appendLine(logMessage);
   }
 
+  /**
+   * Update the workspace path and branch spec manager, recreating the parser.
+   * This fixes the bug where the parser retained stale references from construction.
+   */
+  updateWorkspace(workspacePath: string, branchSpecManager?: any): void {
+    this.log(`updateWorkspace called: path=${workspacePath}, hasBranchMgr=${!!branchSpecManager}`);
+    this.workspacePath = workspacePath;
+    this.branchSpecManager = branchSpecManager;
+    this.parser = new GoferParser(workspacePath, branchSpecManager);
+    this.specLoader = new SpecLoader(workspacePath);
+    this.dependencyGraph = new DependencyGraph(workspacePath);
+  }
+
   refresh(): void {
     this.log('refresh() called');
     this.triggerLoad();
@@ -352,6 +365,11 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
     this.log(`_doLoadSpecs starting (sequence ${mySequence}), workspace: ${this.workspacePath}`);
     this.isLoading = true;
 
+    // Track timeout so we can clear it on early return (prevents orphaned
+    // unhandled Promise rejections that were causing the persistent
+    // "Loading specs timed out" error in logs)
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
     try {
       // If no workspace path, return immediately with error
       if (!this.workspacePath || this.workspacePath === '') {
@@ -360,11 +378,6 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
         this.specs = [];
         return;
       }
-
-      // Add timeout to prevent indefinite hanging (15 seconds for cold start resilience)
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('Loading specs timed out after 15 seconds')), 15000);
-      });
 
       // Check if .specify and .specify/specs exist in this workspace
       const fs = require('fs').promises;
@@ -403,12 +416,22 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
         return;
       }
 
+      // Create timeout ONLY after all early-return checks pass.
+      // Previously the timeout was created at the top, so early returns left
+      // an orphaned setTimeout that fired 15s later as an unhandled rejection.
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        timeoutId = setTimeout(() => reject(new Error('Loading specs timed out after 15 seconds')), 15000);
+      });
+
       // Load specs with timeout - dependency graph is loaded separately (non-blocking)
       // to avoid cold-start timeouts from synchronous SpecLoader re-reads
       const loadedSpecs = await Promise.race([
         this.parser.loadAllSpecs(),
         timeoutPromise,
       ]);
+
+      // Clear timeout now that loading succeeded (prevent lingering timer)
+      if (timeoutId) { clearTimeout(timeoutId); timeoutId = undefined; }
 
       // Check if superseded before updating state
       if (mySequence !== this.loadSequence) {
@@ -460,6 +483,8 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
 
       this.log(`_doLoadSpecs completed successfully (sequence ${mySequence})`);
     } catch (error) {
+      // Always clear timeout to prevent orphaned timers
+      if (timeoutId) { clearTimeout(timeoutId); timeoutId = undefined; }
       // Check if superseded before updating state
       if (mySequence !== this.loadSequence) {
         this.log(`Ignoring stale error (sequence ${mySequence}, current ${this.loadSequence})`);
@@ -469,6 +494,8 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
       this.loadError = error instanceof Error ? error.message : 'Unknown error';
       this.specs = [];
     } finally {
+      // Always clear timeout to prevent orphaned timers
+      if (timeoutId) { clearTimeout(timeoutId); }
       // ALWAYS reset isLoading and fire event if we're still the current load
       // This is the key fix - guaranteed cleanup
       if (mySequence === this.loadSequence) {

@@ -551,7 +551,8 @@ async function initializeProgressProvider(context: vscode.ExtensionContext, work
     console.log('[Gofer] Initializing BranchSpecManager...');
     branchSpecManager = new BranchSpecManager(workspacePath);
 
-    // Add timeout to prevent hanging on git operations
+    // BranchSpecManager.initialize() is async (uses execFile, not execSync)
+    // so it won't block the event loop during git detection
     const initPromise = branchSpecManager.initializeBranchStructure();
     const timeoutPromise = new Promise<void>((_, reject) => {
       setTimeout(() => reject(new Error('BranchSpecManager init timed out')), 10000);
@@ -564,13 +565,12 @@ async function initializeProgressProvider(context: vscode.ExtensionContext, work
     branchSpecManager = undefined;
   }
 
-  // The providers are already registered - just refresh them with new data
-  // They will pick up the new branchSpecManager and workspacePath
+  // Update the ProgressProvider with the new workspace path and branch manager.
+  // This recreates the internal GoferParser so it uses the correct branchSpecManager.
+  // Previously we set branchSpecManager via (as any) cast which never reached the parser.
   if (progressProvider) {
-    // ProgressProvider needs to be updated with the branch manager
-    // We need to set its branch manager reference (fix: correct property name)
-    (progressProvider as any).branchSpecManager = branchSpecManager;
-    console.log('[Gofer] Wired branchSpecManager to progressProvider');
+    progressProvider.updateWorkspace(workspacePath, branchSpecManager);
+    console.log('[Gofer] Updated progressProvider workspace and branchSpecManager');
     progressProvider.refresh();
   }
   if (constitutionProvider) {

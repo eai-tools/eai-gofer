@@ -1,8 +1,8 @@
 {
-  "timestamp": 1770462533091,
-  "status": "warning",
-  "utilizationPercent": 58.26,
-  "tokensUsed": 116525,
+  "timestamp": 1770610794019,
+  "status": "critical",
+  "utilizationPercent": 76.57,
+  "tokensUsed": 153145,
   "tokensLimit": 200000,
   "breakdown": {
     "specArtifacts": 0,
@@ -10,13 +10,15 @@
     "hints": 0,
     "observations": 0,
     "systemFiles": 0,
-    "conversation": 116525
+    "conversation": 153145
   },
   "recommendations": [
-    "Context at 58%. Consider reducing context soon.",
-    "Long conversation history. Consider starting a new session with /8_gofer_resume."
+    "Context at 77%. Immediate action recommended.",
+    "Run /7_gofer_save to preserve progress before handoff.",
+    "Long conversation history. Consider starting a new session with /8_gofer_resume.",
+    "During implementation, keep only task-relevant files in context."
   ],
-  "sessionId": "5c4ac86c-1096-4355-885e-f3e7b89a19bc",
+  "sessionId": "b6fdc14e-c264-47fc-bef9-848c4582590e",
   "dataSource": "real",
   "model": "claude-opus-4-6"
 }

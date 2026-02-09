@@ -555,7 +555,10 @@ async function runPostCompletionChecks(report: CompletionReport, wsPath: string)
         category: 'auto_decision',
         content: `Build failed after completing spec ${report.specId}: ${errorMsg.slice(0, 500)}`,
         tags: ['#auto', '#build-failure', `#spec-${report.specId}`],
-        specId: report.specId,
+        scope: 'local',
+        lastUsed: Date.now(),
+        usedCount: 0,
+        learnedFrom: report.specId,
       }).catch(() => {});
     }
     return; // Don't run tests if build fails
@@ -576,7 +579,10 @@ async function runPostCompletionChecks(report: CompletionReport, wsPath: string)
         category: 'auto_decision',
         content: `Tests failed after completing spec ${report.specId}: ${errorMsg.slice(0, 500)}`,
         tags: ['#auto', '#test-failure', `#spec-${report.specId}`],
-        specId: report.specId,
+        scope: 'local',
+        lastUsed: Date.now(),
+        usedCount: 0,
+        learnedFrom: report.specId,
       }).catch(() => {});
     }
   }

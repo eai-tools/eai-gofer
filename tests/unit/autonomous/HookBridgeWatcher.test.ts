@@ -214,6 +214,66 @@ describe('HookBridgeWatcher', () => {
     });
   });
 
+  describe('observation fields in bridge data (T020)', () => {
+    it('parses bridge data with observationId and toolInput', () => {
+      const data = makeBridgeData({
+        lastToolUse: {
+          toolName: 'Read',
+          timestamp: Date.now(),
+          observationId: 'abc-123-def-456',
+          toolInput: { file_path: '/tmp/test.ts' },
+        },
+      });
+      readFileSync.mockReturnValue(JSON.stringify(data));
+
+      watcher.start();
+      const latest = watcher.getLatestData();
+      expect(latest?.lastToolUse?.observationId).toBe('abc-123-def-456');
+      expect(latest?.lastToolUse?.toolInput).toEqual({ file_path: '/tmp/test.ts' });
+    });
+
+    it('parses bridge data without observationId (backward compat)', () => {
+      const data = makeBridgeData({
+        lastToolUse: {
+          toolName: 'Bash',
+          timestamp: Date.now(),
+        },
+      });
+      readFileSync.mockReturnValue(JSON.stringify(data));
+
+      watcher.start();
+      const latest = watcher.getLatestData();
+      expect(latest?.lastToolUse?.toolName).toBe('Bash');
+      expect(latest?.lastToolUse?.observationId).toBeUndefined();
+      expect(latest?.lastToolUse?.toolInput).toBeUndefined();
+    });
+
+    it('emits bridge-update with observation fields accessible', () => {
+      const data = makeBridgeData({
+        lastToolUse: {
+          toolName: 'Grep',
+          timestamp: Date.now(),
+          observationId: 'grep-obs-id',
+          toolInput: { pattern: 'TODO', path: '/src' },
+        },
+      });
+      readFileSync.mockReturnValue(JSON.stringify(data));
+
+      const handler = vi.fn();
+      watcher.on('bridge-update', handler);
+      watcher.start();
+
+      expect(handler).toHaveBeenCalledWith(
+        expect.objectContaining({
+          lastToolUse: expect.objectContaining({
+            observationId: 'grep-obs-id',
+            toolInput: { pattern: 'TODO', path: '/src' },
+          }),
+        })
+      );
+    });
+  });
+
   describe('dispose()', () => {
     it('cleans up resources', () => {
       watcher.start();

@@ -36,6 +36,8 @@ export interface BridgeData {
   lastToolUse: {
     toolName: string;
     timestamp: number;
+    observationId?: string;
+    toolInput?: Record<string, unknown>;
   } | null;
   session: {
     active: boolean;

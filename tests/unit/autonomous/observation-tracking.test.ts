@@ -38,3 +38,54 @@ describe('Observation Tracking (T044)', () => {
     expect(source).toContain('specId');
   });
 });
+
+/**
+ * T019: Structural tests for observation content ingestion from hook bridge.
+ *
+ * Verifies extension.ts contains the new observation file reading logic
+ * that replaces the old tool-output.txt approach.
+ */
+describe('Observation Content Ingestion from Hook Bridge (T019)', () => {
+  const extPath = path.resolve(__dirname, '../../../extension/src/extension.ts');
+  const extSource = fs.readFileSync(extPath, 'utf-8');
+
+  it('should read observation files by observationId', () => {
+    expect(extSource).toContain('observationId');
+    expect(extSource).toContain('observationsDir');
+    expect(extSource).toContain('.json');
+  });
+
+  it('should parse observation JSON and extract toolResponse', () => {
+    expect(extSource).toContain('obsData.toolResponse');
+  });
+
+  it('should fall back to placeholder when no observationId is present', () => {
+    expect(extSource).toContain('[Tool output from ${toolUse.toolName}]');
+  });
+
+  it('should enrich metadata with toolInput fields', () => {
+    expect(extSource).toContain('toolUse.toolInput');
+    expect(extSource).toContain('metadata.filePath');
+    expect(extSource).toContain('metadata.command');
+    expect(extSource).toContain('metadata.pattern');
+  });
+
+  it('should clean up observation files after reading', () => {
+    expect(extSource).toContain('fsPromises.unlink');
+  });
+
+  it('should clean stale observation files on session start', () => {
+    expect(extSource).toContain('session-start');
+    expect(extSource).toContain('STALE_THRESHOLD_MS');
+  });
+
+  it('should map tool names to correct observation types', () => {
+    expect(extSource).toContain("'file_read'");
+    expect(extSource).toContain("'search_result'");
+    expect(extSource).toContain("'command_output'");
+  });
+
+  it('should not reference the old tool-output.txt file', () => {
+    expect(extSource).not.toContain('tool-output.txt');
+  });
+});

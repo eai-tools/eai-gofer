@@ -20,7 +20,10 @@ interface MemoryManagerLike {
     category: string;
     content: string;
     tags: string[];
-    specId?: string;
+    scope: string;
+    lastUsed: number;
+    usedCount: number;
+    learnedFrom: string;
   }): Promise<{ id: string }>;
 }
 
@@ -89,7 +92,8 @@ export class ResearchSummarizer {
       return 0;
     }
 
-    const chunks = this.researchChunker.chunkFile(researchPath);
+    const indexResult = await this.researchChunker.indexResearchFile(specId);
+    const chunks = indexResult.chunks;
     let memoriesCreated = 0;
 
     for (const chunk of chunks) {
@@ -100,8 +104,11 @@ export class ResearchSummarizer {
         await this.memoryManager.save({
           category: 'discovery',
           content: `[Research Summary: ${chunk.sectionTitle}] ${summary}`,
-          tags: ['#auto', '#research-summary', `#spec-${specId}`, ...chunk.relevanceKeywords.slice(0, 3).map(k => `#${k}`)],
-          specId,
+          tags: ['#auto', '#research-summary', `#spec-${specId}`, ...chunk.relevanceKeywords.slice(0, 3).map((k: string) => `#${k}`)],
+          scope: 'local',
+          lastUsed: Date.now(),
+          usedCount: 0,
+          learnedFrom: specId,
         });
 
         memoriesCreated++;

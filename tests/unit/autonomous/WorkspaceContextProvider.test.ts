@@ -105,10 +105,13 @@ describe('WorkspaceContextProvider (T018)', () => {
       expect(provider.detectCurrentStage()).toBe('unknown');
     });
 
+    // T035: Files must be > 100 bytes and contain expected heading
+    const pad = (heading: string): string => heading + '\n\n' + 'Content '.repeat(20) + '\n';
+
     it('should detect research stage', () => {
       const specDir = path.join(tmpDir, '.specify', 'specs', 'test-feature');
       fs.mkdirSync(specDir, { recursive: true });
-      fs.writeFileSync(path.join(specDir, 'research.md'), '# Research');
+      fs.writeFileSync(path.join(specDir, 'research.md'), pad('# Research'));
 
       expect(provider.detectCurrentStage()).toBe('research');
     });
@@ -116,7 +119,7 @@ describe('WorkspaceContextProvider (T018)', () => {
     it('should detect specify stage', () => {
       const specDir = path.join(tmpDir, '.specify', 'specs', 'test-feature');
       fs.mkdirSync(specDir, { recursive: true });
-      fs.writeFileSync(path.join(specDir, 'spec.md'), '# Spec');
+      fs.writeFileSync(path.join(specDir, 'spec.md'), pad('# Spec'));
 
       expect(provider.detectCurrentStage()).toBe('specify');
     });
@@ -124,8 +127,8 @@ describe('WorkspaceContextProvider (T018)', () => {
     it('should detect plan stage', () => {
       const specDir = path.join(tmpDir, '.specify', 'specs', 'test-feature');
       fs.mkdirSync(specDir, { recursive: true });
-      fs.writeFileSync(path.join(specDir, 'spec.md'), '# Spec');
-      fs.writeFileSync(path.join(specDir, 'plan.md'), '# Plan');
+      fs.writeFileSync(path.join(specDir, 'spec.md'), pad('# Spec'));
+      fs.writeFileSync(path.join(specDir, 'plan.md'), pad('# Plan'));
 
       expect(provider.detectCurrentStage()).toBe('plan');
     });
@@ -133,9 +136,9 @@ describe('WorkspaceContextProvider (T018)', () => {
     it('should detect tasks stage (no completed tasks)', () => {
       const specDir = path.join(tmpDir, '.specify', 'specs', 'test-feature');
       fs.mkdirSync(specDir, { recursive: true });
-      fs.writeFileSync(path.join(specDir, 'spec.md'), '# Spec');
-      fs.writeFileSync(path.join(specDir, 'plan.md'), '# Plan');
-      fs.writeFileSync(path.join(specDir, 'tasks.md'), '- [ ] T001 Do something');
+      fs.writeFileSync(path.join(specDir, 'spec.md'), pad('# Spec'));
+      fs.writeFileSync(path.join(specDir, 'plan.md'), pad('# Plan'));
+      fs.writeFileSync(path.join(specDir, 'tasks.md'), pad('# Tasks\n\n- [ ] T001 Do something'));
 
       expect(provider.detectCurrentStage()).toBe('tasks');
     });
@@ -143,9 +146,9 @@ describe('WorkspaceContextProvider (T018)', () => {
     it('should detect implement stage (has completed tasks)', () => {
       const specDir = path.join(tmpDir, '.specify', 'specs', 'test-feature');
       fs.mkdirSync(specDir, { recursive: true });
-      fs.writeFileSync(path.join(specDir, 'spec.md'), '# Spec');
-      fs.writeFileSync(path.join(specDir, 'plan.md'), '# Plan');
-      fs.writeFileSync(path.join(specDir, 'tasks.md'), '- [X] T001 Done\n- [ ] T002 Pending');
+      fs.writeFileSync(path.join(specDir, 'spec.md'), pad('# Spec'));
+      fs.writeFileSync(path.join(specDir, 'plan.md'), pad('# Plan'));
+      fs.writeFileSync(path.join(specDir, 'tasks.md'), pad('# Tasks\n\n- [X] T001 Done\n- [ ] T002 Pending'));
 
       expect(provider.detectCurrentStage()).toBe('implement');
     });
@@ -153,8 +156,8 @@ describe('WorkspaceContextProvider (T018)', () => {
     it('should detect validate stage', () => {
       const specDir = path.join(tmpDir, '.specify', 'specs', 'test-feature');
       fs.mkdirSync(specDir, { recursive: true });
-      fs.writeFileSync(path.join(specDir, 'spec.md'), '# Spec');
-      fs.writeFileSync(path.join(specDir, 'validation-report.md'), '# Report');
+      fs.writeFileSync(path.join(specDir, 'spec.md'), pad('# Spec'));
+      fs.writeFileSync(path.join(specDir, 'validation-report.md'), pad('# Report'));
 
       expect(provider.detectCurrentStage()).toBe('validate');
     });

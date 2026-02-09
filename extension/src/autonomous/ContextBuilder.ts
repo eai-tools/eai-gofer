@@ -40,6 +40,8 @@ import { StageContextProfileLoader } from './StageContextProfileLoader';
 import { ResearchChunker, type ScoredChunk } from './ResearchChunker';
 import type { ContextUsageLogger } from './ContextUsageLogger';
 import { KnowledgeGraph, type SubgraphResult } from './KnowledgeGraph';
+import { CitationVerifier } from './CitationVerifier';
+import { ScopeGuard } from './ScopeGuard';
 
 /**
  * Task information for context building
@@ -81,6 +83,8 @@ export interface ContextBuilderConfig {
   researchChunkLimit: number;
   /** Minimum relevance score for research chunks (default: 10) */
   minChunkRelevance: number;
+  /** T045: When true, truncate context sections exceeding stage budget allocation */
+  enforceBudgetCaps: boolean;
 }
 
 /**
@@ -220,6 +224,7 @@ const DEFAULT_CONTEXT_BUILDER_CONFIG: ContextBuilderConfig = {
   enableChunkedResearch: true,
   researchChunkLimit: 5,
   minChunkRelevance: 10,
+  enforceBudgetCaps: false,
 };
 
 export class ContextBuilder extends EventEmitter {
@@ -236,6 +241,16 @@ export class ContextBuilder extends EventEmitter {
   private usageLogger?: ContextUsageLogger;
   /** Optional knowledge graph for entity-aware context */
   private knowledgeGraph?: KnowledgeGraph;
+  /** T010: Optional citation verifier for memory staleness detection */
+  private citationVerifier?: CitationVerifier;
+  /** T013: Optional scope guard for protected boundary checking */
+  private scopeGuard?: ScopeGuard;
+  /** T048: Optional sub-agent dispatcher for delegation recommendations */
+  private subAgentDispatcher?: { getRecommendation(): { agentType: string; taskCategory: string; reason: string; utilizationPercent: number } | null; formatAsContextSection(): string | undefined };
+  /** T063: Optional layered memory manager (MemGPT-inspired) */
+  private memoryLayerManager?: { formatAsContextSection(taskContext?: string): Promise<string>; getCoreMemory(): Promise<{ memories: Array<{ content: string }>; tokenEstimate: number }>; getRecallMemory(limit?: number): Promise<{ memories: Array<{ content: string }>; tokenEstimate: number }> };
+  /** T063: Whether to use layered memory instead of direct memory/observation access */
+  private useLayeredMemory = false;
 
   constructor(
     workspaceRoot: string,
@@ -282,6 +297,37 @@ export class ContextBuilder extends EventEmitter {
   }
 
   /**
+   * T010: Wire a CitationVerifier for memory staleness detection.
+   */
+  setCitationVerifier(verifier: CitationVerifier): void {
+    this.citationVerifier = verifier;
+  }
+
+  /**
+   * T013: Wire a ScopeGuard for protected boundary checking.
+   */
+  setScopeGuard(guard: ScopeGuard): void {
+    this.scopeGuard = guard;
+  }
+
+  /**
+   * T048: Set sub-agent dispatcher for delegation recommendations.
+   */
+  setSubAgentDispatcher(dispatcher: typeof this.subAgentDispatcher): void {
+    this.subAgentDispatcher = dispatcher;
+  }
+
+  /**
+   * T063: Set layered memory manager (MemGPT-inspired three-layer architecture).
+   * When set with useLayered=true, buildContext uses layered memory instead of
+   * direct MemoryManager access.
+   */
+  setMemoryLayerManager(manager: typeof this.memoryLayerManager, useLayered: boolean = false): void {
+    this.memoryLayerManager = manager;
+    this.useLayeredMemory = useLayered;
+  }
+
+  /**
    * Set the current Gofer stage and load corresponding profile
    *
    * @param stage - New Gofer stage
@@ -298,6 +344,32 @@ export class ContextBuilder extends EventEmitter {
     this.observationMasker.updateConfig({
       ageThresholdTurns: this.currentProfile.observationWindow,
     });
+
+    // T069: Persist current stage to disk for WorkspaceContextProvider to read
+    try {
+      const stageFilePath = path.join(this.workspaceRoot, '.specify', 'memory', 'current-stage.json');
+      fs.mkdirSync(path.dirname(stageFilePath), { recursive: true });
+      fs.writeFileSync(stageFilePath, JSON.stringify({
+        stage,
+        timestamp: Date.now(),
+        source: 'explicit',
+      }));
+    } catch {
+      // Non-fatal: stage persistence is best-effort
+    }
+
+    // T046: Log stage transition to JSONL
+    if (this.usageLogger && previousStage !== stage) {
+      this.usageLogger.logStageTransition({
+        sessionId: 'current',
+        fromStage: previousStage,
+        toStage: stage,
+        status: 'healthy',
+        tokensUsed: 0,
+        tokensLimit: this.config.contextTokenLimit,
+        utilizationPercent: 0,
+      });
+    }
 
     // Emit stage change event
     this.emit('stage-change', {
@@ -394,6 +466,41 @@ export class ContextBuilder extends EventEmitter {
   }
 
   /**
+   * T045: Truncate context sections that exceed their stage budget allocation.
+   * Preserves first N tokens worth of content (approximately N*4 characters).
+   */
+  private truncateOverBudgetSections(
+    sections: BuiltContext['sections'],
+    budgetUsage: BudgetUsage
+  ): void {
+    const truncateToTokens = (content: string | undefined, maxTokens: number): string | undefined => {
+      if (!content) return content;
+      const currentTokens = this.estimateTokens(content);
+      if (currentTokens <= maxTokens) return content;
+      const maxChars = maxTokens * 4;
+      return content.slice(0, maxChars) + `\n\n... [truncated: ${currentTokens - maxTokens} tokens over budget]`;
+    };
+
+    for (const category of budgetUsage.exceededCategories) {
+      const limit = budgetUsage.limits[category as keyof typeof budgetUsage.limits];
+      switch (category) {
+        case 'research':
+          sections.hints = truncateToTokens(sections.hints, limit);
+          break;
+        case 'memory':
+          sections.memories = truncateToTokens(sections.memories, limit);
+          break;
+        case 'code':
+          sections.code = truncateToTokens(sections.code, limit);
+          break;
+        case 'conversation':
+          sections.observations = truncateToTokens(sections.observations, limit);
+          break;
+      }
+    }
+  }
+
+  /**
    * Get the ObservationMasker instance for external access
    */
   getObservationMasker(): ObservationMasker {
@@ -430,6 +537,14 @@ export class ContextBuilder extends EventEmitter {
     metadata?: Record<string, unknown>,
     summary?: string
   ): string {
+    // T013: Check scope guard when file path is available
+    if (this.scopeGuard && metadata?.filePath) {
+      const violation = this.scopeGuard.check(String(metadata.filePath));
+      if (violation) {
+        console.warn(`[Gofer] ScopeGuard: ${violation}`);
+      }
+    }
+
     return this.observationMasker.trackObservation({
       timestamp: Date.now(),
       turnNumber: this.currentTurn,
@@ -492,7 +607,25 @@ export class ContextBuilder extends EventEmitter {
     const memoriesStartTime = Date.now();
     let memories: Memory[] = [];
 
-    if (this.config.enableMemoryFirstLoading) {
+    // T063: Use layered memory if available and enabled
+    if (this.useLayeredMemory && this.memoryLayerManager) {
+      try {
+        const layeredContent = await this.memoryLayerManager.formatAsContextSection(task.description);
+        if (layeredContent) {
+          sections.memories = layeredContent;
+          loadingDecisions.push({
+            source: 'memory',
+            decision: 'loaded',
+            reason: 'Loaded via MemoryLayerManager (core + recall layers)',
+            tokens: this.estimateTokens(layeredContent),
+          });
+        }
+      } catch {
+        // Fallback to standard memory loading below
+      }
+    }
+
+    if (!sections.memories && this.config.enableMemoryFirstLoading) {
       // Use loadByPriority with task context for relevance scoring
       const priorityResult = await this.memoryManager.loadByPriority({
         limit: this.config.memoryPriorityLimit,
@@ -514,7 +647,28 @@ export class ContextBuilder extends EventEmitter {
     const memoriesLoadTime = Date.now() - memoriesStartTime;
 
     if (memories.length > 0) {
+      // T029: Record usage for each loaded memory (async, fire-and-forget)
+      for (const memory of memories) {
+        this.memoryManager.recordUsage(memory.id).catch(() => {});
+      }
+
       sections.memories = this.formatMemories(memories);
+
+      // T010: Verify citations in formatted memories for staleness
+      // T011: Also verify code symbols referenced in memories
+      if (this.citationVerifier && sections.memories) {
+        const citationResult = this.citationVerifier.verifyCitations(sections.memories);
+        if (citationResult.needsReview) {
+          sections.memories = this.citationVerifier.addStalenessWarning(
+            sections.memories,
+            citationResult
+          );
+        }
+        const missingSymbols = this.citationVerifier.verifyCodeSymbols(sections.memories);
+        if (missingSymbols.length > 0) {
+          console.warn('[Gofer] Missing code symbols in memories:', missingSymbols.slice(0, 5));
+        }
+      }
     }
 
     // 3. Calculate memory coverage (T048)
@@ -574,6 +728,15 @@ export class ContextBuilder extends EventEmitter {
       }
     }
 
+    // T031: Emit research-complete event when research/hints were loaded
+    if (sections.hints) {
+      this.emit('research-complete', {
+        specId: task.specId,
+        hintsLoaded: true,
+        memoryCoverage: memoryCoverage?.coveragePercent ?? 0,
+      });
+    }
+
     // 4.5 Load knowledge graph context for affected files
     if (this.knowledgeGraph && task.affectedFiles && task.affectedFiles.length > 0) {
       const graphContext = this.loadGraphContext(task.affectedFiles);
@@ -600,13 +763,21 @@ export class ContextBuilder extends EventEmitter {
         tokensSaved: maskResult.tokensSaved,
         totalObservations: this.observationMasker.getAllObservations().length,
       };
+
+      // T002: Persist cache to disk after masking (fire-and-forget)
+      this.observationMasker.saveCacheToDisk().catch(() => {});
     }
 
-    // Build full context
-    const fullContext = this.mergeContextSections(sections);
-    const loadTime = Date.now() - startTime;
+    // T048: Inject delegation advisory section if dispatcher recommends
+    if (this.subAgentDispatcher) {
+      const delegationSection = this.subAgentDispatcher.formatAsContextSection();
+      if (delegationSection) {
+        sections.taskContext = (sections.taskContext || '') + '\n\n' + delegationSection;
+      }
+    }
 
     // 7. Calculate budget usage (if budget enforcement enabled)
+    // Do this BEFORE merging so we can enforce caps
     let budgetUsage: BudgetUsage | undefined;
     if (this.config.enableBudgetEnforcement) {
       budgetUsage = this.calculateBudgetUsage(sections);
@@ -627,7 +798,16 @@ export class ContextBuilder extends EventEmitter {
           } as BudgetWarningEvent);
         }
       }
+
+      // T045: Enforce budget caps by truncating over-budget sections
+      if (this.config.enforceBudgetCaps && budgetUsage.exceededCategories.length > 0) {
+        this.truncateOverBudgetSections(sections, budgetUsage);
+      }
     }
+
+    // Build full context (after potential truncation)
+    const fullContext = this.mergeContextSections(sections);
+    const loadTime = Date.now() - startTime;
 
     // Emit loading decision events for logging
     if (this.config.logLoadingDecisions) {
@@ -707,10 +887,10 @@ export class ContextBuilder extends EventEmitter {
     const uncoveredKeywords: string[] = [];
 
     for (const keyword of taskKeywords) {
-      // Check for exact match or partial match
+      // T030: Exact match fast path, then trigram Jaccard similarity
       const isMatched =
         memoryKeywords.has(keyword) ||
-        Array.from(memoryKeywords).some((mk) => mk.includes(keyword) || keyword.includes(mk));
+        Array.from(memoryKeywords).some((mk) => this.trigramSimilarity(keyword, mk) >= 0.3);
 
       if (isMatched) {
         coveredKeywords.push(keyword);
@@ -812,6 +992,32 @@ export class ContextBuilder extends EventEmitter {
       .split(/\s+/)
       .filter((word) => word.length > 3 && !commonWords.has(word))
       .slice(0, 5); // Limit to 5 keywords
+  }
+
+  /**
+   * T030: Compute trigram Jaccard similarity between two strings.
+   * Returns 0-1 where 1 means identical trigram sets.
+   */
+  private trigramSimilarity(a: string, b: string): number {
+    if (a.length < 3 || b.length < 3) {
+      return a === b ? 1 : 0;
+    }
+    const trigramsA = new Set<string>();
+    const trigramsB = new Set<string>();
+    for (let i = 0; i <= a.length - 3; i++) {
+      trigramsA.add(a.slice(i, i + 3));
+    }
+    for (let i = 0; i <= b.length - 3; i++) {
+      trigramsB.add(b.slice(i, i + 3));
+    }
+    let intersection = 0;
+    for (const t of trigramsA) {
+      if (trigramsB.has(t)) {
+        intersection++;
+      }
+    }
+    const union = trigramsA.size + trigramsB.size - intersection;
+    return union === 0 ? 0 : intersection / union;
   }
 
   /**

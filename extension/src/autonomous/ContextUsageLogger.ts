@@ -56,7 +56,10 @@ export interface ContextUsageLogEntry {
     | 'memory_save'
     | 'memory_search'
     | 'memory_load'
-    | 'loading_decision';
+    | 'loading_decision'
+    | 'reseed'
+    | 'llm_call'
+    | 'delegation_recommendation';
   /** Memory-specific fields (Spec 012) */
   memoryId?: string;
   category?: string;
@@ -69,6 +72,15 @@ export interface ContextUsageLogEntry {
   source?: 'memory' | 'research' | 'hints';
   decision?: 'loaded' | 'skipped';
   reason?: string;
+  /** T051: Reseed metrics */
+  observationsCleared?: number;
+  memoriesPreserved?: number;
+  reseedTimestamp?: string;
+  /** T054: Cost tracking fields */
+  llmInputTokens?: number;
+  llmOutputTokens?: number;
+  stageDuration?: number;
+  slopCount?: number;
 }
 
 /**
@@ -511,6 +523,31 @@ export class ContextUsageLogger {
       decision: input.decision,
       reason: input.reason,
       coveragePercent: input.memoryCoveragePercent,
+    };
+    await this.log(entry);
+  }
+
+  /**
+   * T051: Log a reseed event with observation and memory metrics.
+   */
+  async logReseed(input: {
+    sessionId: string;
+    stage: string;
+    observationsCleared: number;
+    memoriesPreserved: number;
+  }): Promise<void> {
+    const entry: ContextUsageLogEntry = {
+      timestamp: new Date().toISOString(),
+      sessionId: input.sessionId,
+      stage: input.stage,
+      status: 'healthy',
+      tokensUsed: 0,
+      tokensLimit: 120000,
+      utilizationPercent: 0,
+      eventType: 'reseed',
+      observationsCleared: input.observationsCleared,
+      memoriesPreserved: input.memoriesPreserved,
+      reseedTimestamp: new Date().toISOString(),
     };
     await this.log(entry);
   }

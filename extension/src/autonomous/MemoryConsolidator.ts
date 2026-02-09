@@ -61,11 +61,23 @@ export interface ConsolidationResult {
 // MemoryConsolidator Class
 // ============================================================================
 
+/** T034: CitationVerifier interface for consolidation */
+interface CitationVerifierLike {
+  verifyCitations(text: string): { needsReview: boolean; staleCount?: number; totalCount?: number };
+}
+
 export class MemoryConsolidator {
+  private citationVerifier: CitationVerifierLike | null = null;
+
   constructor(
     private storage: MemoryStorage,
     private workspaceRoot: string
   ) {}
+
+  /** T034: Wire CitationVerifier for enhanced staleness checking */
+  setCitationVerifier(verifier: CitationVerifierLike): void {
+    this.citationVerifier = verifier;
+  }
 
   /**
    * Run the full consolidation pipeline:
@@ -118,6 +130,23 @@ export class MemoryConsolidator {
         if (isStale) {
           await this.storage.update(memory.id, { stale: true });
           flaggedStale++;
+        }
+      }
+
+      // T034: Enhanced staleness via CitationVerifier — check content references
+      if (this.citationVerifier && !memory.stale) {
+        const result = this.citationVerifier.verifyCitations(memory.content);
+        if (result.needsReview && result.staleCount && result.totalCount) {
+          const staleRatio = result.staleCount / result.totalCount;
+          if (staleRatio > 0.5) {
+            // >50% stale citations — reduce priority by 2
+            const newPriority = Math.max(0, (memory.priorityIndex ?? 5) - 2);
+            await this.storage.update(memory.id, {
+              stale: true,
+              priorityIndex: newPriority,
+            });
+            flaggedStale++;
+          }
         }
       }
     }

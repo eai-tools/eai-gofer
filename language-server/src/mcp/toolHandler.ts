@@ -218,6 +218,110 @@ interface LoadResearchChunkResponse {
   errorCode?: string;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// T060/T067/T074: Observation Folding, Context REPL, Undo Types
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface ObservationCacheEntry {
+  id: string;
+  type: 'file_read' | 'command_output' | 'api_response' | 'search_result' | 'test_output';
+  timestamp: number;
+  turnNumber: number;
+  tokenEstimate: number;
+  originalContent: string;
+  keyPointsContent?: string;
+  decayTier?: 'full' | 'key-points' | 'masked';
+  foldLevel?: 'collapsed' | 'summary' | 'expanded';
+  metadata?: Record<string, unknown>;
+}
+
+interface PeekObservationResponse {
+  success: boolean;
+  peek?: {
+    id: string;
+    type: string;
+    decayTier: string;
+    foldLevel?: string;
+    tokenEstimate: number;
+    peekContent: string;
+    metadata?: Record<string, unknown>;
+  };
+  error?: string;
+  errorCode?: string;
+}
+
+interface FoldObservationResponse {
+  success: boolean;
+  result?: {
+    id: string;
+    previousLevel: string;
+    newLevel: string;
+  };
+  error?: string;
+  errorCode?: string;
+}
+
+interface GrepObservationsResponse {
+  success: boolean;
+  results?: {
+    pattern: string;
+    totalMatches: number;
+    observationsMatched: number;
+    matches: Array<{
+      id: string;
+      type: string;
+      matchCount: number;
+      excerpts: string[];
+      metadata?: Record<string, unknown>;
+    }>;
+  };
+  error?: string;
+  errorCode?: string;
+}
+
+interface ContextReplResponse {
+  success: boolean;
+  content?: string;
+  section?: string;
+  error?: string;
+  errorCode?: string;
+}
+
+interface ContextGrepResponse {
+  success: boolean;
+  results?: {
+    pattern: string;
+    totalMatches: number;
+    sectionMatches: Array<{
+      section: string;
+      matchCount: number;
+      excerpts: string[];
+    }>;
+  };
+  error?: string;
+  errorCode?: string;
+}
+
+interface ContextHistoryResponse {
+  success: boolean;
+  operations?: Array<{
+    type: string;
+    target: string;
+    detail: string;
+    timestamp: number;
+  }>;
+  error?: string;
+}
+
+interface ContextOperation {
+  type: string;
+  observationId?: string;
+  section?: string;
+  foldLevel?: string;
+  previousLevel?: string;
+  timestamp: number;
+}
+
 interface TriggerHandoffResponse {
   success: boolean;
   handoff?: {
@@ -1199,5 +1303,395 @@ ${notes || 'No additional notes.'}
         errorCode: 'HANDOFF_ERROR',
       };
     }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // T060: Observation Folding & Peek MCP Tools
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * MCP Tool: gofer_peek_observation
+   * Returns key-points or summary of an observation without full expansion.
+   */
+  async peekObservation(observationId: string): Promise<PeekObservationResponse> {
+    try {
+      const validation = this.validateObservationId(observationId);
+      if (!validation.valid) {
+        return { success: false, error: validation.error, errorCode: 'INVALID_OBSERVATION_ID' };
+      }
+
+      const cachePath = path.join(this.workspacePath, '.specify', 'memory', 'observation-cache', 'index.json');
+      const cacheContent = await fs.readFile(cachePath, 'utf-8');
+      const cache = JSON.parse(cacheContent) as { observations: Array<ObservationCacheEntry> };
+
+      const observation = cache.observations.find(o => o.id === observationId);
+      if (!observation) {
+        return { success: false, error: 'Observation not found', errorCode: 'OBSERVATION_NOT_FOUND' };
+      }
+
+      // Return key-points if available, otherwise first/last lines
+      const peek = observation.keyPointsContent || this.generateQuickPeek(observation.originalContent, observation.type);
+
+      return {
+        success: true,
+        peek: {
+          id: observation.id,
+          type: observation.type,
+          decayTier: observation.decayTier || 'full',
+          foldLevel: observation.foldLevel,
+          tokenEstimate: observation.tokenEstimate,
+          peekContent: peek,
+          metadata: observation.metadata,
+        },
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        errorCode: 'CACHE_ERROR',
+      };
+    }
+  }
+
+  /**
+   * MCP Tool: gofer_fold_observation
+   * Sets the fold level for an observation in the cache.
+   */
+  async foldObservation(observationId: string, foldLevel: 'collapsed' | 'summary' | 'expanded'): Promise<FoldObservationResponse> {
+    try {
+      const validation = this.validateObservationId(observationId);
+      if (!validation.valid) {
+        return { success: false, error: validation.error, errorCode: 'INVALID_OBSERVATION_ID' };
+      }
+
+      if (!['collapsed', 'summary', 'expanded'].includes(foldLevel)) {
+        return { success: false, error: 'foldLevel must be collapsed, summary, or expanded', errorCode: 'INVALID_FOLD_LEVEL' };
+      }
+
+      const cachePath = path.join(this.workspacePath, '.specify', 'memory', 'observation-cache', 'index.json');
+      const cacheContent = await fs.readFile(cachePath, 'utf-8');
+      const cache = JSON.parse(cacheContent) as { version: number; observations: Array<ObservationCacheEntry>; lastSaved: number };
+
+      const observation = cache.observations.find(o => o.id === observationId);
+      if (!observation) {
+        return { success: false, error: 'Observation not found', errorCode: 'OBSERVATION_NOT_FOUND' };
+      }
+
+      const previousLevel = observation.foldLevel;
+      observation.foldLevel = foldLevel;
+
+      // Write back to disk
+      await fs.writeFile(cachePath, JSON.stringify(cache, null, 2), 'utf-8');
+
+      // Track in operation history
+      this.recordContextOperation({ type: 'fold', observationId, foldLevel, previousLevel, timestamp: Date.now() });
+
+      return {
+        success: true,
+        result: {
+          id: observationId,
+          previousLevel: previousLevel || 'expanded',
+          newLevel: foldLevel,
+        },
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        errorCode: 'CACHE_ERROR',
+      };
+    }
+  }
+
+  /**
+   * MCP Tool: gofer_grep_observations
+   * Searches across all observation content for a pattern.
+   */
+  async grepObservations(pattern: string, maxResults: number = 10): Promise<GrepObservationsResponse> {
+    try {
+      if (!pattern || typeof pattern !== 'string' || pattern.length > 500) {
+        return { success: false, error: 'pattern must be a non-empty string (max 500 chars)', errorCode: 'INVALID_PATTERN' };
+      }
+
+      const cachePath = path.join(this.workspacePath, '.specify', 'memory', 'observation-cache', 'index.json');
+      const cacheContent = await fs.readFile(cachePath, 'utf-8');
+      const cache = JSON.parse(cacheContent) as { observations: Array<ObservationCacheEntry> };
+
+      let regex: RegExp;
+      try {
+        regex = new RegExp(pattern, 'gi');
+      } catch {
+        regex = new RegExp(pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+      }
+
+      const matches: Array<{ id: string; type: string; matchCount: number; excerpts: string[]; metadata?: Record<string, unknown> }> = [];
+
+      for (const observation of cache.observations) {
+        const content = observation.originalContent || '';
+        const allMatches = content.match(regex);
+        if (allMatches && allMatches.length > 0) {
+          // Extract context around first few matches
+          const excerpts: string[] = [];
+          const lines = content.split('\n');
+          let found = 0;
+          for (let i = 0; i < lines.length && found < 3; i++) {
+            if (regex.test(lines[i])) {
+              const start = Math.max(0, i - 1);
+              const end = Math.min(lines.length, i + 2);
+              excerpts.push(lines.slice(start, end).join('\n'));
+              found++;
+            }
+            regex.lastIndex = 0; // Reset regex state
+          }
+
+          matches.push({
+            id: observation.id,
+            type: observation.type,
+            matchCount: allMatches.length,
+            excerpts,
+            metadata: observation.metadata,
+          });
+
+          if (matches.length >= maxResults) break;
+        }
+      }
+
+      return {
+        success: true,
+        results: {
+          pattern,
+          totalMatches: matches.reduce((sum, m) => sum + m.matchCount, 0),
+          observationsMatched: matches.length,
+          matches,
+        },
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        errorCode: 'GREP_ERROR',
+      };
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // T067: Context REPL MCP Tools
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * MCP Tool: gofer_context_peek
+   * Peeks at a specific section of the current context.
+   */
+  async contextPeek(section: string): Promise<ContextReplResponse> {
+    try {
+      const statePath = path.join(this.workspacePath, '.specify', 'memory', 'context-health-state.json');
+      try {
+        const content = await fs.readFile(statePath, 'utf-8');
+        const state = JSON.parse(content);
+        const sectionContent = state.sections?.[section];
+        if (sectionContent) {
+          return { success: true, content: typeof sectionContent === 'string' ? sectionContent : JSON.stringify(sectionContent), section };
+        }
+        return { success: true, content: `Section '${section}' not found. Available: ${Object.keys(state.sections || {}).join(', ')}`, section };
+      } catch {
+        return { success: false, error: 'Context state not available', errorCode: 'NO_STATE' };
+      }
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error', errorCode: 'REPL_ERROR' };
+    }
+  }
+
+  /**
+   * MCP Tool: gofer_context_grep
+   * Searches across all context sections for a pattern.
+   */
+  async contextGrep(pattern: string): Promise<ContextGrepResponse> {
+    try {
+      if (!pattern || pattern.length > 500) {
+        return { success: false, error: 'pattern must be non-empty (max 500 chars)', errorCode: 'INVALID_PATTERN' };
+      }
+
+      const statePath = path.join(this.workspacePath, '.specify', 'memory', 'context-health-state.json');
+      const content = await fs.readFile(statePath, 'utf-8');
+      const state = JSON.parse(content);
+
+      let regex: RegExp;
+      try {
+        regex = new RegExp(pattern, 'gi');
+      } catch {
+        regex = new RegExp(pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+      }
+
+      const sectionMatches: Array<{ section: string; matchCount: number; excerpts: string[] }> = [];
+
+      for (const [sectionName, sectionContent] of Object.entries(state.sections || {})) {
+        const text = typeof sectionContent === 'string' ? sectionContent : JSON.stringify(sectionContent);
+        const matches = text.match(regex);
+        if (matches && matches.length > 0) {
+          const lines = text.split('\n');
+          const excerpts: string[] = [];
+          let found = 0;
+          for (let i = 0; i < lines.length && found < 3; i++) {
+            if (regex.test(lines[i])) {
+              excerpts.push(`L${i + 1}: ${lines[i].slice(0, 200)}`);
+              found++;
+            }
+            regex.lastIndex = 0;
+          }
+          sectionMatches.push({ section: sectionName, matchCount: matches.length, excerpts });
+        }
+      }
+
+      return {
+        success: true,
+        results: { pattern, sectionMatches, totalMatches: sectionMatches.reduce((s, m) => s + m.matchCount, 0) },
+      };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error', errorCode: 'GREP_ERROR' };
+    }
+  }
+
+  /**
+   * MCP Tool: gofer_context_fold
+   * Folds (collapses) a context section.
+   */
+  async contextFold(section: string): Promise<ContextReplResponse> {
+    return this.updateContextFoldState(section, 'collapsed');
+  }
+
+  /**
+   * MCP Tool: gofer_context_expand
+   * Expands a collapsed context section.
+   */
+  async contextExpand(section: string): Promise<ContextReplResponse> {
+    return this.updateContextFoldState(section, 'expanded');
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // T074: Context Undo & History MCP Tools
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * MCP Tool: gofer_context_undo
+   * Reverts last fold/expand operation.
+   */
+  async contextUndo(): Promise<ContextReplResponse> {
+    try {
+      const history = await this.loadOperationHistory();
+      if (history.length === 0) {
+        return { success: false, error: 'No operations to undo', errorCode: 'EMPTY_HISTORY' };
+      }
+
+      const lastOp = history.pop()!;
+      await this.saveOperationHistory(history);
+
+      // Revert the operation
+      if (lastOp.type === 'fold' && lastOp.observationId) {
+        const previousLevel = lastOp.previousLevel || 'expanded';
+        const cachePath = path.join(this.workspacePath, '.specify', 'memory', 'observation-cache', 'index.json');
+        try {
+          const cacheContent = await fs.readFile(cachePath, 'utf-8');
+          const cache = JSON.parse(cacheContent) as { version: number; observations: Array<ObservationCacheEntry>; lastSaved: number };
+          const obs = cache.observations.find(o => o.id === lastOp.observationId);
+          if (obs) {
+            obs.foldLevel = previousLevel as 'collapsed' | 'summary' | 'expanded';
+            await fs.writeFile(cachePath, JSON.stringify(cache, null, 2), 'utf-8');
+          }
+        } catch { /* cache may not exist */ }
+        return { success: true, content: `Undid fold: ${lastOp.observationId} reverted to ${previousLevel}`, section: 'undo' };
+      } else if (lastOp.type === 'context_fold' || lastOp.type === 'context_expand') {
+        const revertLevel = lastOp.type === 'context_fold' ? 'expanded' : 'collapsed';
+        await this.updateContextFoldState(lastOp.section || '', revertLevel);
+        return { success: true, content: `Undid ${lastOp.type}: ${lastOp.section} reverted to ${revertLevel}`, section: 'undo' };
+      }
+
+      return { success: true, content: `Undid operation: ${lastOp.type}`, section: 'undo' };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error', errorCode: 'UNDO_ERROR' };
+    }
+  }
+
+  /**
+   * MCP Tool: gofer_context_history
+   * Shows last 10 context operations with timestamps.
+   */
+  async contextHistory(): Promise<ContextHistoryResponse> {
+    try {
+      const history = await this.loadOperationHistory();
+      return {
+        success: true,
+        operations: history.slice(-10).map(op => ({
+          type: op.type,
+          target: op.observationId || op.section || '',
+          detail: op.foldLevel || '',
+          timestamp: op.timestamp,
+        })),
+      };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Private helpers for context operations
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  private async updateContextFoldState(section: string, level: 'collapsed' | 'expanded'): Promise<ContextReplResponse> {
+    try {
+      const foldStatePath = path.join(this.workspacePath, '.specify', 'memory', 'context-fold-state.json');
+      let foldState: Record<string, string> = {};
+      try {
+        const content = await fs.readFile(foldStatePath, 'utf-8');
+        foldState = JSON.parse(content);
+      } catch { /* start fresh */ }
+
+      const previous = foldState[section] || 'expanded';
+      foldState[section] = level;
+      await fs.writeFile(foldStatePath, JSON.stringify(foldState, null, 2), 'utf-8');
+
+      this.recordContextOperation({ type: level === 'collapsed' ? 'context_fold' : 'context_expand', section, timestamp: Date.now(), previousLevel: previous });
+
+      return { success: true, content: `Section '${section}' ${level === 'collapsed' ? 'folded' : 'expanded'}`, section };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error', errorCode: 'FOLD_ERROR' };
+    }
+  }
+
+  private generateQuickPeek(content: string, type: string): string {
+    const lines = content.split('\n');
+    if (lines.length <= 5) return content;
+    if (type === 'file_read') {
+      return [...lines.slice(0, 3), `  ... (${lines.length - 5} lines) ...`, ...lines.slice(-2)].join('\n');
+    }
+    return [...lines.slice(0, 5), `  ... (${lines.length - 10} lines) ...`, ...lines.slice(-5)].join('\n');
+  }
+
+  private contextOperationHistory: ContextOperation[] = [];
+
+  private recordContextOperation(op: ContextOperation): void {
+    this.contextOperationHistory.push(op);
+    if (this.contextOperationHistory.length > 10) {
+      this.contextOperationHistory.shift();
+    }
+    // Fire-and-forget persist
+    this.saveOperationHistory(this.contextOperationHistory).catch(() => {});
+  }
+
+  private async loadOperationHistory(): Promise<ContextOperation[]> {
+    try {
+      const histPath = path.join(this.workspacePath, '.specify', 'memory', 'context-operation-history.json');
+      const content = await fs.readFile(histPath, 'utf-8');
+      this.contextOperationHistory = JSON.parse(content);
+      return this.contextOperationHistory;
+    } catch {
+      return this.contextOperationHistory;
+    }
+  }
+
+  private async saveOperationHistory(history: ContextOperation[]): Promise<void> {
+    const histPath = path.join(this.workspacePath, '.specify', 'memory', 'context-operation-history.json');
+    const dir = path.dirname(histPath);
+    await fs.mkdir(dir, { recursive: true });
+    await fs.writeFile(histPath, JSON.stringify(history, null, 2), 'utf-8');
   }
 }

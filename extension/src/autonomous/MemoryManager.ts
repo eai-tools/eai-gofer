@@ -11,6 +11,7 @@
 
 import * as vscode from 'vscode';
 import * as fs from 'fs';
+import * as fsPromises from 'fs/promises';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import {
@@ -164,6 +165,56 @@ export class MemoryManager implements IMemoryManager {
 
       // Delegate to JSONL storage (generates hash-based ID)
       const newMemory = await this.storage.append(memory);
+
+      // T032: Dual storage for long memories — write companion .md file
+      if (newMemory.content.length > 500) {
+        const notesDir = path.join(this.workspaceRoot, '.specify', 'memory', 'memory-notes');
+        const notePath = path.join(notesDir, `${newMemory.id}.md`);
+        try {
+          await fsPromises.mkdir(notesDir, { recursive: true });
+          await fsPromises.writeFile(notePath, newMemory.content, 'utf-8');
+          await this.storage.update(newMemory.id, { notePath: `memory-notes/${newMemory.id}.md` });
+          newMemory.notePath = `memory-notes/${newMemory.id}.md`;
+        } catch {
+          // Non-fatal: dual storage is best-effort
+        }
+      }
+
+      // T033: Compute related memories via keyword overlap
+      try {
+        const allMemories = this.storage.getAll('local');
+        if (allMemories.length > 1) {
+          const recent = allMemories.slice(-20);
+          const contentWords = new Set(
+            newMemory.content.toLowerCase().split(/\W+/).filter((w: string) => w.length >= 3)
+          );
+          const scored = recent
+            .filter((m) => m.id !== newMemory.id)
+            .map((m) => {
+              const mWords = new Set(
+                m.content.toLowerCase().split(/\W+/).filter((w: string) => w.length >= 3)
+              );
+              let intersection = 0;
+              for (const w of contentWords) {
+                if (mWords.has(w)) { intersection++; }
+              }
+              const union = contentWords.size + mWords.size - intersection;
+              let similarity = union === 0 ? 0 : intersection / union;
+              // Category bonus
+              if (m.category === newMemory.category) { similarity += 0.1; }
+              return { memoryId: m.id, similarity };
+            })
+            .filter((s) => s.similarity > 0.05)
+            .sort((a, b) => b.similarity - a.similarity)
+            .slice(0, 3);
+          if (scored.length > 0) {
+            await this.storage.update(newMemory.id, { relatedMemories: scored });
+            newMemory.relatedMemories = scored;
+          }
+        }
+      } catch {
+        // Non-fatal
+      }
 
       this.logger.info('Memory saved to JSONL', {
         id: newMemory.id,

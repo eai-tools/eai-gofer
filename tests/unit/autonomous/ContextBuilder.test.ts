@@ -48,6 +48,7 @@ vi.mock('../../../extension/src/autonomous/MemoryManager', () => ({
     }),
     calculatePriorityScore: vi.fn().mockReturnValue(50),
     calculateRelevanceScore: vi.fn().mockReturnValue(50),
+    recordUsage: vi.fn().mockResolvedValue(undefined),
   })),
 }));
 

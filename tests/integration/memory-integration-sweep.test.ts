@@ -145,11 +145,13 @@ describe('Memory System Integration Sweep (T053)', () => {
     });
 
     it('should detect implement stage from workspace artifacts', () => {
+      // T035: Files must be > 100 bytes with expected headings
+      const pad = (s: string): string => s + '\n\n' + 'Content '.repeat(20) + '\n';
       const specDir = path.join(tmpDir, '.specify', 'specs', 'active-feature');
       fs.mkdirSync(specDir, { recursive: true });
-      fs.writeFileSync(path.join(specDir, 'spec.md'), '# Spec');
-      fs.writeFileSync(path.join(specDir, 'plan.md'), '# Plan');
-      fs.writeFileSync(path.join(specDir, 'tasks.md'), '- [X] T001 Done');
+      fs.writeFileSync(path.join(specDir, 'spec.md'), pad('# Spec'));
+      fs.writeFileSync(path.join(specDir, 'plan.md'), pad('# Plan'));
+      fs.writeFileSync(path.join(specDir, 'tasks.md'), pad('# Tasks\n\n- [X] T001 Done'));
 
       const provider = new WorkspaceContextProvider(tmpDir);
       const analysis = provider.getContextAnalysis();

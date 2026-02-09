@@ -219,6 +219,24 @@ export class WorkspaceContextProvider {
    * Checks the most recently modified spec directory.
    */
   detectCurrentStage(): GoferStage {
+    // T069: Check current-stage.json first — if fresh (<30 min), use it
+    try {
+      const stageFile = path.join(this.specifyDir, 'memory', 'current-stage.json');
+      if (fs.existsSync(stageFile)) {
+        const raw = fs.readFileSync(stageFile, 'utf-8');
+        const data = JSON.parse(raw);
+        const STALE_THRESHOLD = 30 * 60 * 1000; // 30 minutes
+        if (data.timestamp && Date.now() - data.timestamp < STALE_THRESHOLD) {
+          const validStages = ['research', 'specify', 'plan', 'tasks', 'implement', 'validate'];
+          if (validStages.includes(data.stage)) {
+            return data.stage as GoferStage;
+          }
+        }
+      }
+    } catch {
+      // Fall through to heuristic detection
+    }
+
     try {
       const specsDir = path.join(this.specifyDir, 'specs');
       if (!fs.existsSync(specsDir)) {
@@ -378,15 +396,27 @@ export class WorkspaceContextProvider {
 
   /** Detect pipeline stage from which artifacts exist in a spec directory */
   private detectStageFromArtifacts(specDir: string): GoferStage {
-    const hasFile = (name: string): boolean => {
-      return fs.existsSync(path.join(specDir, name));
+    // T035: Validate file content (size > 100 bytes, contains expected heading), not just existence
+    const hasValidFile = (name: string, heading?: string): boolean => {
+      const filePath = path.join(specDir, name);
+      try {
+        const stat = fs.statSync(filePath);
+        if (stat.size < 100) { return false; }
+        if (heading) {
+          const content = fs.readFileSync(filePath, 'utf-8').slice(0, 500);
+          return content.includes(heading);
+        }
+        return true;
+      } catch {
+        return false;
+      }
     };
 
     // Check from most advanced stage backward
-    if (hasFile('validation-report.md')) {
+    if (hasValidFile('validation-report.md')) {
       return 'validate';
     }
-    if (hasFile('tasks.md')) {
+    if (hasValidFile('tasks.md', '# Tasks')) {
       // Check if tasks are being executed (any [X] marks)
       try {
         const content = fs.readFileSync(path.join(specDir, 'tasks.md'), 'utf-8');
@@ -398,13 +428,13 @@ export class WorkspaceContextProvider {
       }
       return 'tasks';
     }
-    if (hasFile('plan.md')) {
+    if (hasValidFile('plan.md', '# ')) {
       return 'plan';
     }
-    if (hasFile('spec.md')) {
+    if (hasValidFile('spec.md', '# ')) {
       return 'specify';
     }
-    if (hasFile('research.md')) {
+    if (hasValidFile('research.md', '# ')) {
       return 'research';
     }
 

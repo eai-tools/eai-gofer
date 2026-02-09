@@ -96,6 +96,16 @@ export class KnowledgeGraph {
   }
 
   /**
+   * T049: Get basic graph statistics.
+   */
+  getStats(): { nodeCount: number; edgeCount: number } {
+    return {
+      nodeCount: this.graph.nodeCount(),
+      edgeCount: this.graph.edgeCount(),
+    };
+  }
+
+  /**
    * Persist graph to disk.
    */
   async save(): Promise<void> {

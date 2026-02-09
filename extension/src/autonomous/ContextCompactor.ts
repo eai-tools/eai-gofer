@@ -31,11 +31,21 @@ import { telemetry } from './telemetryIntegration';
  * - Fallback truncation strategy
  * - Session state backup/restore
  */
+/**
+ * T042: Duck-typed interface for LLM summarization.
+ */
+interface LLMSummarizerLike {
+  isAvailable(): boolean;
+  isRateLimited(): boolean;
+  summarize(prompt: string, maxTokens?: number): Promise<{ text: string } | null>;
+}
+
 export class ContextCompactor implements IContextCompactor {
   private config: CompactorConfig;
   private threshold: number;
   private readonly workspacePath: string;
   private readonly logger: Logger;
+  private llmProvider?: LLMSummarizerLike;
 
   /**
    * Default summarization prompt template
@@ -95,6 +105,13 @@ Summary:`;
       threshold: this.threshold * 100,
       contextWindowSize: this.config.contextWindowSize,
     });
+  }
+
+  /**
+   * T042: Set optional LLM provider for enhanced task summarization.
+   */
+  setLLMProvider(provider: LLMSummarizerLike): void {
+    this.llmProvider = provider;
   }
 
   /**
@@ -225,11 +242,19 @@ Summary:`;
 
     const prompt = strategy.summaryPrompt.replace('{tasks}', taskDescriptions);
 
-    // In production, would call LLM API here
-    // For now, return a simple summary
-    const summary = this.generateFallbackSummary(tasks);
+    // T042: Use LLM when available, fall back to deterministic summary
+    if (this.llmProvider && this.llmProvider.isAvailable() && !this.llmProvider.isRateLimited()) {
+      try {
+        const result = await this.llmProvider.summarize(prompt, 500);
+        if (result && result.text) {
+          return result.text;
+        }
+      } catch (error) {
+        this.logger.warn('LLM summarization failed, using fallback', { error });
+      }
+    }
 
-    return summary;
+    return this.generateFallbackSummary(tasks);
   }
 
   /**

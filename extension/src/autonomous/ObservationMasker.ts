@@ -30,6 +30,16 @@ export type ObservationType =
   | 'test_output';
 
 /**
+ * T017: Three-tier decay state for observations.
+ */
+export type DecayTier = 'full' | 'key-points' | 'masked';
+
+/**
+ * T059: Fold level for observations (orthogonal to decay).
+ */
+export type FoldLevel = 'collapsed' | 'summary' | 'expanded';
+
+/**
  * Configuration for the ObservationMasker.
  */
 export interface ObservationMaskerConfig {
@@ -43,6 +53,8 @@ export interface ObservationMaskerConfig {
   maxCacheSize: number;
   /** Directory for cache storage (default: .specify/memory/observation-cache) */
   cacheDirectory: string;
+  /** T018: Fraction of ageThreshold at which to transition full→key-points (default: 0.6) */
+  keyPointsAgeFraction: number;
 }
 
 /**
@@ -67,10 +79,18 @@ export interface ObservationEntry {
   summary?: string;
   /** Additional context (file path, command, etc.) */
   metadata?: Record<string, unknown>;
-  /** Whether observation is currently masked */
+  /** Whether observation is currently masked (legacy — use decayTier) */
   masked: boolean;
   /** Unix timestamp when masked (if applicable) */
   maskedAt?: number;
+  /** T017: Three-tier decay state */
+  decayTier: DecayTier;
+  /** T017: Generated key-points summary (when decayTier === 'key-points') */
+  keyPointsContent?: string;
+  /** T017: Timestamp when transitioned to key-points */
+  keyPointsAt?: number;
+  /** T059: User-controlled fold level (orthogonal to decay) */
+  foldLevel?: FoldLevel;
 }
 
 /**
@@ -85,6 +105,14 @@ export interface MaskResult {
   tokensSaved: number;
   /** The observations that were masked */
   maskedObservations: ObservationEntry[];
+  /** Current cache size after masking */
+  cacheSize: number;
+  /** Number of entries evicted during this operation */
+  evictionCount: number;
+  /** T021: Number of observations transitioned to key-points this cycle */
+  keyPointsCount: number;
+  /** T021: Per-tier observation counts */
+  tierCounts: { full: number; keyPoints: number; masked: number };
 }
 
 /**
@@ -92,7 +120,7 @@ export interface MaskResult {
  */
 export type TrackObservationInput = Omit<
   ObservationEntry,
-  'id' | 'masked' | 'maskedAt' | 'contentHash' | 'tokenEstimate'
+  'id' | 'masked' | 'maskedAt' | 'contentHash' | 'tokenEstimate' | 'decayTier' | 'keyPointsContent' | 'keyPointsAt' | 'foldLevel'
 > & {
   /** Original content (contentHash and tokenEstimate will be calculated) */
   originalContent: string;
@@ -113,9 +141,10 @@ interface SerializedCache {
 const DEFAULT_CONFIG: ObservationMaskerConfig = {
   ageThresholdTurns: 10,
   preserveErrorMessages: true,
-  preservePatterns: [/error/i, /exception/i, /failed/i],
+  preservePatterns: [/error/i, /exception/i, /failed/i, /failure/i, /critical/i, /fatal/i, /panic/i, /unhandled/i, /stack\s?trace/i],
   maxCacheSize: 100,
   cacheDirectory: '.specify/memory/observation-cache',
+  keyPointsAgeFraction: 0.6,
 };
 
 /**
@@ -124,11 +153,22 @@ const DEFAULT_CONFIG: ObservationMaskerConfig = {
  * Manages observation tracking, age-based masking, and cache persistence
  * to reduce context window usage while preserving recoverability.
  */
+/**
+ * Duck-typed interface for LLM summarization (T039).
+ * Allows ObservationMasker to optionally use LLM for key-point generation.
+ */
+export interface LLMSummarizerLike {
+  isAvailable(): boolean;
+  isRateLimited(): boolean;
+  summarize(prompt: string, maxTokens?: number): Promise<{ text: string } | null>;
+}
+
 export class ObservationMasker {
   private readonly config: ObservationMaskerConfig;
   private readonly cache: Map<string, ObservationEntry>;
   private readonly logger: Logger;
   private readonly workspaceRoot: string;
+  private llmProvider?: LLMSummarizerLike;
 
   /**
    * Creates a new ObservationMasker instance.
@@ -148,6 +188,15 @@ export class ObservationMasker {
         maxCacheSize: this.config.maxCacheSize,
       },
     });
+  }
+
+  /**
+   * T039: Set optional LLM provider for enhanced key-point generation.
+   * When set and available, key-points are generated via LLM summarization
+   * instead of deterministic extractors. Falls back on error or missing key.
+   */
+  setLLMProvider(provider: LLMSummarizerLike): void {
+    this.llmProvider = provider;
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -197,6 +246,7 @@ export class ObservationMasker {
       contentHash: this.computeHash(entry.originalContent),
       tokenEstimate: this.estimateTokens(entry.originalContent),
       masked: false,
+      decayTier: 'full',
     };
 
     this.cache.set(id, observation);
@@ -284,39 +334,76 @@ export class ObservationMasker {
   public maskOldObservations(currentTurn: number): MaskResult {
     const maskedObservations: ObservationEntry[] = [];
     let tokensSaved = 0;
+    let keyPointsCount = 0;
     const placeholders: string[] = [];
+    const keyPointsThreshold = Math.floor(
+      this.config.ageThresholdTurns * this.config.keyPointsAgeFraction
+    );
 
     for (const observation of this.cache.values()) {
-      // Skip already masked observations
-      if (observation.masked) {
+      // Skip already fully masked observations
+      if (observation.decayTier === 'masked') {
         continue;
       }
 
-      // Check age threshold
-      const age = currentTurn - observation.turnNumber;
-      if (age < this.config.ageThresholdTurns) {
-        continue;
-      }
-
-      // Check if content should be preserved
+      // Check if content should be preserved (never decays)
       if (this.shouldPreserve(observation)) {
         continue;
       }
 
-      // Mask the observation
-      observation.masked = true;
-      observation.maskedAt = Date.now();
-      maskedObservations.push(observation);
-      tokensSaved += observation.tokenEstimate;
+      const age = currentTurn - observation.turnNumber;
 
-      // Generate placeholder
-      placeholders.push(this.generatePlaceholder(observation));
+      // T019: Two-step decay — full→key-points at fraction, key-points→masked at threshold
+      if (observation.decayTier === 'full' && age >= keyPointsThreshold) {
+        // Transition full → key-points
+        observation.decayTier = 'key-points';
+        observation.keyPointsContent = this.generateKeyPoints(observation);
+        observation.keyPointsAt = Date.now();
+        keyPointsCount++;
+
+        // If also past full threshold, go straight to masked
+        if (age >= this.config.ageThresholdTurns) {
+          observation.decayTier = 'masked';
+          observation.masked = true;
+          observation.maskedAt = Date.now();
+          maskedObservations.push(observation);
+          tokensSaved += observation.tokenEstimate;
+          placeholders.push(this.generatePlaceholder(observation));
+        }
+      } else if (observation.decayTier === 'key-points' && age >= this.config.ageThresholdTurns) {
+        // Transition key-points → masked
+        observation.decayTier = 'masked';
+        observation.masked = true;
+        observation.maskedAt = Date.now();
+        maskedObservations.push(observation);
+        // Token savings = original minus key-points estimate
+        const keyPointsTokens = observation.keyPointsContent
+          ? this.estimateTokens(observation.keyPointsContent)
+          : 0;
+        tokensSaved += observation.tokenEstimate - keyPointsTokens;
+        placeholders.push(this.generatePlaceholder(observation));
+      }
+    }
+
+    // T005: Prune after masking and track eviction stats
+    const pruned = this.cache.size > this.config.maxCacheSize ? this.pruneCache() : 0;
+
+    // T021: Count per-tier stats
+    const tierCounts = { full: 0, keyPoints: 0, masked: 0 };
+    for (const obs of this.cache.values()) {
+      if (obs.decayTier === 'full') tierCounts.full++;
+      else if (obs.decayTier === 'key-points') tierCounts.keyPoints++;
+      else tierCounts.masked++;
     }
 
     this.logger.info('Observations masked', {
       maskedCount: maskedObservations.length,
+      keyPointsCount,
       tokensSaved,
       currentTurn,
+      cacheSize: this.cache.size,
+      evictionCount: pruned,
+      tierCounts,
     });
 
     return {
@@ -324,7 +411,106 @@ export class ObservationMasker {
       maskedCount: maskedObservations.length,
       tokensSaved,
       maskedObservations,
+      cacheSize: this.cache.size,
+      evictionCount: pruned,
+      keyPointsCount,
+      tierCounts,
     };
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // T020: Type-Specific Key-Point Extractors
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Generates key-points summary for an observation based on its type.
+   */
+  private generateKeyPoints(observation: ObservationEntry): string {
+    switch (observation.type) {
+      case 'file_read':
+        return this.extractFileKeyPoints(observation.originalContent);
+      case 'command_output':
+        return this.extractCommandKeyPoints(observation.originalContent);
+      case 'search_result':
+        return this.extractSearchKeyPoints(observation.originalContent);
+      case 'test_output':
+        return this.extractTestKeyPoints(observation.originalContent);
+      default:
+        return this.extractCommandKeyPoints(observation.originalContent);
+    }
+  }
+
+  /**
+   * T039: Enhance existing key-points with LLM summarization.
+   *
+   * Iterates observations in key-points tier and replaces deterministic
+   * key-points with LLM-generated summaries. Falls back gracefully on
+   * error or when LLM is unavailable/rate-limited.
+   *
+   * @returns Number of observations enhanced
+   */
+  async enhanceKeyPointsWithLLM(): Promise<number> {
+    if (!this.llmProvider || !this.llmProvider.isAvailable()) {
+      return 0;
+    }
+
+    let enhanced = 0;
+    for (const observation of this.cache.values()) {
+      if (observation.decayTier !== 'key-points') continue;
+      if (this.llmProvider.isRateLimited()) break;
+
+      try {
+        const prompt = `Summarize this ${observation.type} observation concisely. Preserve key facts, file paths, decisions, and error details. Keep under 200 words.\n\n${observation.originalContent.slice(0, 3000)}`;
+        const result = await this.llmProvider.summarize(prompt, 250);
+        if (result && result.text) {
+          observation.keyPointsContent = result.text;
+          enhanced++;
+        }
+      } catch {
+        // Fall back to existing deterministic key-points
+      }
+    }
+
+    return enhanced;
+  }
+
+  /** Extract first 3 + last 2 lines from file content. */
+  private extractFileKeyPoints(content: string): string {
+    const lines = content.split('\n');
+    if (lines.length <= 5) return content;
+    const first = lines.slice(0, 3);
+    const last = lines.slice(-2);
+    return [...first, `  ... (${lines.length - 5} lines omitted) ...`, ...last].join('\n');
+  }
+
+  /** Extract first 5 + last 5 lines from command output. */
+  private extractCommandKeyPoints(content: string): string {
+    const lines = content.split('\n');
+    if (lines.length <= 10) return content;
+    const first = lines.slice(0, 5);
+    const last = lines.slice(-5);
+    return [...first, `  ... (${lines.length - 10} lines omitted) ...`, ...last].join('\n');
+  }
+
+  /** Extract file paths and match count from search results. */
+  private extractSearchKeyPoints(content: string): string {
+    const lines = content.split('\n');
+    const filePaths = lines.filter(l => l.match(/^[\/\w].*\.(ts|js|md|json|yaml)/));
+    const count = lines.length;
+    if (filePaths.length === 0) return this.extractCommandKeyPoints(content);
+    return `Found ${count} results in ${filePaths.length} files:\n${filePaths.slice(0, 10).join('\n')}`;
+  }
+
+  /** Extract pass/fail summary from test output. */
+  private extractTestKeyPoints(content: string): string {
+    const lines = content.split('\n');
+    const summaryLines = lines.filter(
+      l => l.match(/\d+\s*(pass|fail|skip|error|test)/i) || l.match(/^(PASS|FAIL|✓|✗|×)/)
+    );
+    if (summaryLines.length > 0) {
+      return `Test summary:\n${summaryLines.join('\n')}`;
+    }
+    return this.extractCommandKeyPoints(content);
   }
 
   /**
@@ -370,6 +556,46 @@ export class ObservationMasker {
     }
 
     return `<observation_masked ${attrs} />`;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // T059: Fold Level Control (orthogonal to decay)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Set the fold level for an observation (user-controlled, orthogonal to decay).
+   *
+   * @param id - The observation ID
+   * @param level - The fold level to set
+   * @returns True if observation was found and updated, false otherwise
+   */
+  public setFoldLevel(id: string, level: FoldLevel): boolean {
+    const observation = this.cache.get(id);
+    if (!observation) {
+      this.logger.warn('Observation not found for fold level change', { id, level });
+      return false;
+    }
+    observation.foldLevel = level;
+    this.logger.debug('Fold level set', { id, level, type: observation.type });
+    return true;
+  }
+
+  /**
+   * Get the fold level for an observation.
+   *
+   * @param id - The observation ID
+   * @returns The fold level or undefined if not found
+   */
+  public getFoldLevel(id: string): FoldLevel | undefined {
+    const observation = this.cache.get(id);
+    return observation?.foldLevel;
+  }
+
+  /**
+   * Get observations filtered by fold level.
+   */
+  public getObservationsByFoldLevel(level: FoldLevel): ObservationEntry[] {
+    return Array.from(this.cache.values()).filter(o => o.foldLevel === level);
   }
 
   /**
@@ -451,6 +677,10 @@ export class ObservationMasker {
       // Clear existing cache and load from disk
       this.cache.clear();
       for (const observation of serialized.observations) {
+        // T023: Migrate legacy entries without decayTier
+        if (!observation.decayTier) {
+          observation.decayTier = observation.masked ? 'masked' : 'full';
+        }
         this.cache.set(observation.id, observation);
       }
 

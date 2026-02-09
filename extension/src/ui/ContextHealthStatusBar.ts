@@ -36,6 +36,12 @@ export interface MaskingStatistics {
   totalObservations: number;
   /** Expansion requests count */
   expansionRequests: number;
+  /** T024: Per-tier observation counts */
+  tierCounts?: {
+    full: number;
+    keyPoints: number;
+    masked: number;
+  };
 }
 
 /**
@@ -225,12 +231,13 @@ export class ContextHealthStatusBar implements vscode.Disposable {
     const icon = STATUS_ICONS[status.status];
     const percent = Math.round(status.utilizationPercent);
 
-    // T026: Real data mode — show model name
+    // T026: Real data mode — show model name; T007: data-source indicator
+    const sourceIndicator = dataSource === 'real' ? '(real)' : '(est)';
     if (dataSource === 'real' && model) {
       const shortModel = this.getShortModelName(model);
-      this.statusBarItem.text = `${icon} Context: ${percent}% (${shortModel})`;
+      this.statusBarItem.text = `${icon} Context: ${percent}% ${sourceIndicator} (${shortModel})`;
     } else {
-      this.statusBarItem.text = `${icon} Context: ${percent}%`;
+      this.statusBarItem.text = `${icon} Context: ${percent}% ${sourceIndicator}`;
     }
 
     this.statusBarItem.color = STATUS_COLORS[status.status];
@@ -574,6 +581,16 @@ export class ContextHealthStatusBar implements vscode.Disposable {
       description: `${stats.tokensSaved.toLocaleString()} tokens`,
       detail: 'By replacing older observations with placeholders',
     });
+
+    // T024: Per-tier observation counts
+    if (stats.tierCounts) {
+      const { full, keyPoints, masked } = stats.tierCounts;
+      items.push({
+        label: '$(layers) Decay Tiers',
+        description: `Full: ${full} | Key-Points: ${keyPoints} | Masked: ${masked}`,
+        detail: `Three-tier decay: full → key-points → masked`,
+      });
+    }
 
     // Expansion requests
     if (stats.expansionRequests > 0) {

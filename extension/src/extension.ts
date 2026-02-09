@@ -26,7 +26,7 @@ import { ContinuousMemoryWriter } from './autonomous/ContinuousMemoryWriter';
 import { MemoryHookManager } from './autonomous/MemoryHookManager';
 import { KnowledgeGraph } from './autonomous/KnowledgeGraph';
 // Hook-based monitoring
-import { HookBridgeWatcher } from './autonomous/HookBridgeWatcher';
+import { HookBridgeWatcher, BridgeData } from './autonomous/HookBridgeWatcher';
 import { GoferActivityStatusBar } from './ui/GoferActivityStatusBar';
 // Note: stopClaudeCode is imported dynamically in deactivate() to avoid
 // blocking extension activation if node-pty fails to load
@@ -1393,6 +1393,104 @@ created: "${new Date().toISOString().split('T')[0]}"
   continuousMemoryWriter.connectToContextBuilder(sharedContextBuilder);
   console.log('[Gofer] ContinuousMemoryWriter wired to shared ContextBuilder');
 
+  // Wire hook bridge to track real tool output as observations (Spec 001)
+  if (hookBridgeWatcher) {
+    const observationsDir = path.join(workspacePath, '.specify', 'hooks', 'observations');
+    const fsPromises = require('fs').promises as typeof import('fs').promises;
+    const fsSync = require('fs') as typeof import('fs');
+    let lastTrackedToolTimestamp = 0;
+
+    hookBridgeWatcher.on('bridge-update', (data: BridgeData) => {
+      const toolUse = data?.lastToolUse;
+      if (!toolUse || !toolUse.toolName || toolUse.timestamp <= lastTrackedToolTimestamp) {
+        return;
+      }
+      lastTrackedToolTimestamp = toolUse.timestamp;
+
+      // Map tool names to observation types
+      const toolNameLower = toolUse.toolName.toLowerCase();
+      let obsType: 'file_read' | 'command_output' | 'search_result' | 'api_response' = 'command_output';
+      if (toolNameLower.includes('read') || toolNameLower.includes('cat')) {
+        obsType = 'file_read';
+      } else if (toolNameLower.includes('grep') || toolNameLower.includes('glob') || toolNameLower.includes('search')) {
+        obsType = 'search_result';
+      } else if (toolNameLower.includes('bash') || toolNameLower.includes('exec')) {
+        obsType = 'command_output';
+      }
+
+      // Read real tool content from per-observation file (T008)
+      let toolContent = `[Tool output from ${toolUse.toolName}]`;
+      const observationId = toolUse.observationId;
+
+      if (observationId) {
+        const obsFilePath = path.join(observationsDir, `${observationId}.json`);
+        try {
+          const raw = fsSync.readFileSync(obsFilePath, 'utf-8');
+          const obsData = JSON.parse(raw);
+          if (obsData.toolResponse && obsData.toolResponse.length > 0) {
+            toolContent = obsData.toolResponse;
+          }
+        } catch {
+          // Observation file missing or unreadable — use placeholder
+        }
+
+        // Clean up observation file after reading (T012)
+        fsPromises.unlink(path.join(observationsDir, `${observationId}.json`)).catch(() => {});
+      }
+      // If no observationId, toolContent stays as placeholder (T010 backward compat)
+
+      // Enrich metadata with toolInput data (T009)
+      const metadata: Record<string, unknown> = {
+        toolName: toolUse.toolName,
+        timestamp: toolUse.timestamp,
+      };
+      if (toolUse.toolInput) {
+        if (toolUse.toolInput.file_path) {
+          metadata.filePath = toolUse.toolInput.file_path;
+        }
+        if (toolUse.toolInput.command) {
+          metadata.command = toolUse.toolInput.command;
+        }
+        if (toolUse.toolInput.pattern) {
+          metadata.pattern = toolUse.toolInput.pattern;
+        }
+      }
+
+      sharedContextBuilder.trackObservation(
+        obsType,
+        toolContent,
+        metadata,
+        `${toolUse.toolName} tool output`
+      );
+    });
+
+    // Clean stale observation files on session start (T013)
+    hookBridgeWatcher.on('session-start', () => {
+      const STALE_THRESHOLD_MS = 30 * 60 * 1000; // 30 minutes
+      try {
+        if (!fsSync.existsSync(observationsDir)) { return; }
+        const files = fsSync.readdirSync(observationsDir);
+        const now = Date.now();
+        for (const file of files) {
+          if (!file.endsWith('.json')) { continue; }
+          try {
+            const filePath = path.join(observationsDir, file);
+            const stat = fsSync.statSync(filePath);
+            if (now - stat.mtimeMs > STALE_THRESHOLD_MS) {
+              fsSync.unlinkSync(filePath);
+            }
+          } catch {
+            // Ignore individual file errors
+          }
+        }
+      } catch {
+        // Ignore cleanup errors
+      }
+    });
+
+    console.log('[Gofer] Tool output observation tracking wired to bridge watcher');
+  }
+
   // Wire ContextBuilder to AutoHandoffTrigger for context reseed functionality
   if (autoHandoffTrigger) {
     autoHandoffTrigger.setContextBuilder(sharedContextBuilder);
@@ -1501,6 +1599,25 @@ export async function deactivate() {
     continuousMemoryWriter = undefined;
     console.log('ContinuousMemoryWriter disposed');
   }
+  // Clean up observation files on deactivation (Spec 001 T014)
+  try {
+    const wsPath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+    if (wsPath) {
+      const obsDir = path.join(wsPath, '.specify', 'hooks', 'observations');
+      const fsDeactivate = require('fs') as typeof import('fs');
+      if (fsDeactivate.existsSync(obsDir)) {
+        const files = fsDeactivate.readdirSync(obsDir);
+        for (const file of files) {
+          if (file.endsWith('.json')) {
+            try { fsDeactivate.unlinkSync(path.join(obsDir, file)); } catch { /* ignore */ }
+          }
+        }
+      }
+    }
+  } catch {
+    // Ignore cleanup errors during deactivation
+  }
+
   if (hookBridgeWatcher) {
     hookBridgeWatcher.dispose();
     hookBridgeWatcher = undefined;

@@ -287,10 +287,10 @@ describe('MemoryManager', () => {
       await memoryManager.save(memory1);
       await memoryManager.save(memory2);
 
-      // JSONL should have 2 lines
+      // JSONL should have at least 2 lines (may have more from T033 related-memory updates)
       const jsonlPath = path.join(testWorkspaceRoot, '.specify', 'memory', 'memories.jsonl');
       const lines = fs.readFileSync(jsonlPath, 'utf-8').trim().split('\n');
-      expect(lines.length).toBe(2);
+      expect(lines.length).toBeGreaterThanOrEqual(2);
     });
 
     it('should reject invalid memory', async () => {

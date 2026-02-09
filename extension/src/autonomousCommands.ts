@@ -518,8 +518,68 @@ function handleCompletion(report: CompletionReport): void {
     });
   }
 
+  // T055/T071: Post-completion feedback loop — run build and tests if available
+  const wsPath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+  if (report.status === 'success' && wsPath) {
+    runPostCompletionChecks(report, wsPath).catch((error) => {
+      console.warn('[Gofer] Post-completion checks failed (non-fatal):', error);
+    });
+  }
+
   // Clean up
   activeDriver = null;
+}
+
+/**
+ * T055/T071: Run build verification and tests after task completion.
+ * Records failures as memories for future reference.
+ */
+async function runPostCompletionChecks(report: CompletionReport, wsPath: string): Promise<void> {
+  const { execFile } = await import('child_process');
+  const { promisify } = await import('util');
+  const execFileAsync = promisify(execFile);
+
+  // T071: Build verification first
+  try {
+    await execFileAsync('npm', ['run', 'compile'], {
+      cwd: wsPath,
+      timeout: 60000,
+    });
+    console.log('[Gofer] Post-completion build verification passed');
+  } catch (buildError) {
+    const errorMsg = buildError instanceof Error ? buildError.message : String(buildError);
+    console.warn('[Gofer] Post-completion build failed:', errorMsg.slice(0, 200));
+    // Record build error as memory
+    if (sharedMemoryManager) {
+      await sharedMemoryManager.save({
+        category: 'auto_decision',
+        content: `Build failed after completing spec ${report.specId}: ${errorMsg.slice(0, 500)}`,
+        tags: ['#auto', '#build-failure', `#spec-${report.specId}`],
+        specId: report.specId,
+      }).catch(() => {});
+    }
+    return; // Don't run tests if build fails
+  }
+
+  // T055: Run tests
+  try {
+    await execFileAsync('npm', ['test'], {
+      cwd: wsPath,
+      timeout: 120000,
+    });
+    console.log('[Gofer] Post-completion tests passed');
+  } catch (testError) {
+    const errorMsg = testError instanceof Error ? testError.message : String(testError);
+    console.warn('[Gofer] Post-completion tests failed:', errorMsg.slice(0, 200));
+    if (sharedMemoryManager) {
+      await sharedMemoryManager.save({
+        category: 'auto_decision',
+        content: `Tests failed after completing spec ${report.specId}: ${errorMsg.slice(0, 500)}`,
+        tags: ['#auto', '#test-failure', `#spec-${report.specId}`],
+        specId: report.specId,
+      }).catch(() => {});
+    }
+  }
 }
 
 // ============================================================================
@@ -709,6 +769,27 @@ function determineInitialCommand(specId: string, workspacePath: string): string 
 
   // 1. Gofer artifacts exist - continue Gofer flow
   if (hasTasks) {
+    // T036: Validate tasks.md frontmatter status before implementation
+    try {
+      const tasksDirs = fsSync.readdirSync(path.join(workspacePath, '.specify', 'specs'), { withFileTypes: true })
+        .filter((d) => d.isDirectory())
+        .sort((a, b) => {
+          const aTime = fsSync.statSync(path.join(workspacePath, '.specify', 'specs', a.name)).mtimeMs;
+          const bTime = fsSync.statSync(path.join(workspacePath, '.specify', 'specs', b.name)).mtimeMs;
+          return bTime - aTime;
+        });
+      if (tasksDirs.length > 0) {
+        const tasksPath = path.join(workspacePath, '.specify', 'specs', tasksDirs[0].name, 'tasks.md');
+        if (fsSync.existsSync(tasksPath)) {
+          const tasksContent = fsSync.readFileSync(tasksPath, 'utf-8');
+          if (!tasksContent.includes('status: approved') && !tasksContent.includes('status: ready')) {
+            return '/4_gofer_tasks'; // Not yet approved, route to tasks stage
+          }
+        }
+      }
+    } catch {
+      // Non-fatal: proceed with implementation anyway
+    }
     return '/5_gofer_implement';
   }
   if (hasPlan) {
@@ -770,6 +851,21 @@ export async function launchClaudeCode(specId: string): Promise<void> {
     const workspacePath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '';
     if (!workspacePath) {
       throw new Error('No workspace folder found');
+    }
+
+    // T056: Create git stash safety checkpoint before risky operations
+    try {
+      const { execFile: execFileSync } = require('child_process');
+      const { promisify: prom } = require('util');
+      const execFileP = prom(execFileSync);
+      const { stdout: statusOut } = await execFileP('git', ['status', '--porcelain'], { cwd: workspacePath, timeout: 10000 });
+      if (statusOut && statusOut.trim().length > 0) {
+        await execFileP('git', ['stash', 'push', '-m', `gofer-safety-${specId}-${Date.now()}`], { cwd: workspacePath, timeout: 10000 });
+        outputChannel.appendLine('   ✓ Git stash safety checkpoint created');
+      }
+    } catch {
+      // Git stash is best-effort, don't block execution
+      outputChannel.appendLine('   ⚠ Git stash checkpoint skipped (non-fatal)');
     }
 
     outputChannel.appendLine('[2/6] Creating terminal...');

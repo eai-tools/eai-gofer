@@ -68,6 +68,12 @@ export interface Memory {
 
   /** Agent that created this memory (for multi-agent provenance) */
   agentId?: string;
+
+  /** T032: Path to companion markdown file for long memories (content > 500 chars) */
+  notePath?: string;
+
+  /** T033: Top 3 related memory IDs with similarity scores */
+  relatedMemories?: Array<{ memoryId: string; similarity: number }>;
 }
 
 // ============================================================================

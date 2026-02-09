@@ -20,6 +20,7 @@ import { ContextUsageLogger } from './ContextUsageLogger';
 import type { ContextBuilder } from './ContextBuilder';
 import type { TaskContext } from './ContextBuilder';
 import { Logger } from '../utils/logger';
+import { CheckpointValidator } from './CheckpointValidator';
 
 /**
  * Configuration for auto-handoff trigger.
@@ -98,6 +99,9 @@ export class AutoHandoffTrigger implements vscode.Disposable {
    *
    * @param config - Optional partial configuration
    */
+  // T006: CheckpointValidator for handoff document validation
+  private readonly checkpointValidator = new CheckpointValidator();
+
   constructor(config?: Partial<AutoHandoffConfig>) {
     this.config = { ...DEFAULT_CONFIG, ...config };
     this.logger = Logger.for('AutoHandoffTrigger');
@@ -591,6 +595,30 @@ export class AutoHandoffTrigger implements vscode.Disposable {
       lines.push('');
     }
 
+    // T049: Include observation cache and knowledge graph stats
+    lines.push('## Context State Summary');
+    lines.push('');
+    if (this.contextBuilder) {
+      const masker = this.contextBuilder.getObservationMasker();
+      const allObs = masker.getAllObservations();
+      const tiers = { full: 0, keyPoints: 0, masked: 0 };
+      let totalObsTokens = 0;
+      for (const obs of allObs) {
+        if (obs.decayTier === 'full') tiers.full++;
+        else if (obs.decayTier === 'key-points') tiers.keyPoints++;
+        else tiers.masked++;
+        totalObsTokens += obs.tokenEstimate;
+      }
+      lines.push(`- **Observation Cache**: ${allObs.length} entries (Full: ${tiers.full}, Key-Points: ${tiers.keyPoints}, Masked: ${tiers.masked}), ~${totalObsTokens.toLocaleString()} tokens`);
+
+      const kg = this.contextBuilder.getKnowledgeGraph();
+      if (kg) {
+        const stats = kg.getStats();
+        lines.push(`- **Knowledge Graph**: ${stats.nodeCount} nodes, ${stats.edgeCount} edges`);
+      }
+    }
+    lines.push('');
+
     lines.push('## Resume Instructions');
     lines.push('');
     lines.push('1. Start a new Claude session');
@@ -600,7 +628,18 @@ export class AutoHandoffTrigger implements vscode.Disposable {
     lines.push('---');
     lines.push(`*Generated automatically at ${timestamp}*`);
 
-    return lines.join('\n');
+    const document = lines.join('\n');
+
+    // T006: Validate handoff document before returning
+    const validation = this.checkpointValidator.validate(document);
+    if (validation.warnings.length > 0) {
+      this.logger.warn('Handoff document validation warnings', { warnings: validation.warnings });
+    }
+    if (!validation.valid) {
+      this.logger.warn('Handoff document validation errors', { errors: validation.errors });
+    }
+
+    return document;
   }
 
   /**

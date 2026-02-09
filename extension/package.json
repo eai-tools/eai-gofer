@@ -627,6 +627,13 @@
           "markdownDescription": "The system prompt that instructs Haiku on how to make decisions.\n\n**Variables**: `{WORK_STATE}` (working vs idle state), `{RESPONSE_TYPES}` (available actions)\n\n**Tip**: You can customize this to change Haiku's decision-making behavior.\n\n**Warning**: Incorrect prompts may cause Haiku to make poor decisions.",
           "editPresentation": "multilineText"
         },
+        "gofer.observationPreservePatterns": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "Additional regex patterns for observations that should never be masked",
+          "markdownDescription": "Additional regex patterns (case-insensitive) for observation content that should **never** be masked during context management.\n\nBuilt-in patterns already preserve: `error`, `exception`, `failed`, `failure`, `critical`, `fatal`, `panic`, `unhandled`, `stack trace`.\n\n**Example**: `[\"timeout\", \"ECONNREFUSED\", \"segfault\"]`"
+        },
         "gofer.autonomous.haikuUserPromptTemplate": {
           "type": "string",
           "default": "# Recent Terminal Output (last 20,000 characters):\n{terminalOutput}\n\n# Constitution:\n{constitution}\n\n# Specification:\n{spec}\n\n# Implementation Plan:\n{plan}\n\n# Tasks:\n{tasks}\n\n---\n\nANALYZE THE TERMINAL AND DECIDE NEXT ACTION:\n\n{workState}\n\n**Your response must be ONE of:**\n- A direct answer (number or text)\n- ACTION: NO_INTERRUPT\n- ACTION: CONTINUE_IMPLEMENT\n- ACTION: ENGINEERING_REVIEW\n- ACTION: PERFORMANCE_REVIEW\n\nDecide NOW:",

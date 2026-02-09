@@ -14,7 +14,7 @@
  * Memory: .specify/memory/local.json
  */
 
-import { readFileSync, writeFileSync, renameSync, mkdirSync, appendFileSync, openSync, fstatSync, readSync, closeSync } from 'fs';
+import { readFileSync, writeFileSync, renameSync, mkdirSync, appendFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { randomUUID } from 'crypto';
 
@@ -47,18 +47,12 @@ function readStdin() {
 }
 
 function tailRead(filePath, bytes) {
-  let fd;
   try {
-    fd = openSync(filePath, 'r');
-    const stat = fstatSync(fd);
-    const readSize = Math.min(bytes, stat.size);
-    const buf = Buffer.alloc(readSize);
-    readSync(fd, buf, 0, readSize, Math.max(0, stat.size - readSize));
-    return buf.toString('utf-8');
+    const fd = readFileSync(filePath);
+    const start = Math.max(0, fd.length - bytes);
+    return fd.subarray(start).toString('utf-8');
   } catch {
     return '';
-  } finally {
-    if (fd !== undefined) closeSync(fd);
   }
 }
 

@@ -25,6 +25,13 @@ import { ClaudeSessionReader } from './autonomous/ClaudeSessionReader';
 import { ContinuousMemoryWriter } from './autonomous/ContinuousMemoryWriter';
 import { MemoryHookManager } from './autonomous/MemoryHookManager';
 import { KnowledgeGraph } from './autonomous/KnowledgeGraph';
+import { CitationVerifier } from './autonomous/CitationVerifier';
+import { ScopeGuard } from './autonomous/ScopeGuard';
+import { SlopDetector } from './autonomous/SlopDetector';
+import { AutonomousLLMProvider } from './autonomous/LLMProvider';
+import { ResearchSummarizer } from './autonomous/ResearchSummarizer';
+import { ContextCompactor } from './autonomous/ContextCompactor';
+import { SubAgentDispatcher } from './autonomous/SubAgentDispatcher';
 // Hook-based monitoring
 import { HookBridgeWatcher, BridgeData } from './autonomous/HookBridgeWatcher';
 import { GoferActivityStatusBar } from './ui/GoferActivityStatusBar';
@@ -1363,8 +1370,23 @@ created: "${new Date().toISOString().split('T')[0]}"
   registerMemoryCommands(context, memoryManager);
   console.log('[Gofer] Memory commands registered (JSONL backend)');
 
+  // T022: Read user-configured preserve patterns from VSCode settings
+  const userPreservePatterns = vscode.workspace
+    .getConfiguration('gofer')
+    .get<string[]>('observationPreservePatterns', []);
+  const maskerConfig: Record<string, unknown> = {};
+  if (userPreservePatterns.length > 0) {
+    maskerConfig.preservePatterns = [
+      /error/i, /exception/i, /failed/i, /failure/i, /critical/i,
+      /fatal/i, /panic/i, /unhandled/i, /stack\s?trace/i,
+      ...userPreservePatterns.map((p: string) => new RegExp(p, 'i')),
+    ];
+  }
+
   // Create shared ContextBuilder and wire to autonomousCommands (Spec 013 Phase 6)
-  const sharedContextBuilder = new ContextBuilder(workspacePath, memoryManager);
+  const sharedContextBuilder = new ContextBuilder(workspacePath, memoryManager, undefined, undefined, {
+    maskerConfig,
+  });
 
   // Initialize KnowledgeGraph and wire to ContextBuilder
   const knowledgeGraph = new KnowledgeGraph(workspacePath);
@@ -1391,7 +1413,140 @@ created: "${new Date().toISOString().split('T')[0]}"
   // Wire ContinuousMemoryWriter to auto-persist pipeline decisions (Spec 014 T039)
   continuousMemoryWriter = new ContinuousMemoryWriter(memoryManager);
   continuousMemoryWriter.connectToContextBuilder(sharedContextBuilder);
+  // T027/T028: Wire KnowledgeGraph for pattern/decision recording
+  continuousMemoryWriter.setKnowledgeGraph(knowledgeGraph);
   console.log('[Gofer] ContinuousMemoryWriter wired to shared ContextBuilder');
+
+  // T009: Wire CitationVerifier for memory staleness detection
+  const citationVerifier = new CitationVerifier(workspacePath);
+  sharedContextBuilder.setCitationVerifier(citationVerifier);
+  console.log('[Gofer] CitationVerifier initialized');
+
+  // T012: Wire ScopeGuard for protected boundary checking
+  const scopeGuard = new ScopeGuard(workspacePath);
+  // Try to load protected patterns from the active spec
+  const activeSpecDir = path.join(workspacePath, '.specify', 'specs');
+  try {
+    const specDirs = require('fs').readdirSync(activeSpecDir).filter((d: string) => {
+      const specPath = path.join(activeSpecDir, d, 'spec.md');
+      return require('fs').existsSync(specPath);
+    });
+    if (specDirs.length > 0) {
+      const latestSpec = path.join(activeSpecDir, specDirs[specDirs.length - 1], 'spec.md');
+      scopeGuard.loadFromSpec(latestSpec);
+    }
+  } catch {
+    // No spec available yet — ScopeGuard will work without protected patterns
+  }
+  sharedContextBuilder.setScopeGuard(scopeGuard);
+  console.log('[Gofer] ScopeGuard initialized');
+
+  // T014: Wire SlopDetector and register command
+  const slopDetector = new SlopDetector();
+  context.subscriptions.push(
+    vscode.commands.registerCommand('gofer.checkForSlop', () => {
+      const outputChannel = vscode.window.createOutputChannel('Gofer: Slop Report');
+      outputChannel.show();
+      const srcDir = path.join(workspacePath, 'extension', 'src');
+      const report = slopDetector.scanDirectory(srcDir);
+      outputChannel.appendLine(`Scanned ${report.filesScanned} files, found ${report.totalIssues} issues:\n`);
+      for (const match of report.matches) {
+        outputChannel.appendLine(`  ${match.severity.toUpperCase()} [${match.pattern}] ${match.file}:${match.line}`);
+        outputChannel.appendLine(`    ${match.message}`);
+        outputChannel.appendLine(`    > ${match.snippet}\n`);
+      }
+      if (report.totalIssues === 0) {
+        outputChannel.appendLine('No slop detected. Code looks clean!');
+      }
+    })
+  );
+  console.log('[Gofer] SlopDetector initialized with gofer.checkForSlop command');
+
+  // T038/T039/T042/T043: Wire AutonomousLLMProvider for context management LLM operations
+  const anthropicApiKey = vscode.workspace.getConfiguration('gofer').get<string>('anthropicApiKey');
+  const autonomousLLMProvider = new AutonomousLLMProvider({
+    apiKey: anthropicApiKey,
+    workspaceRoot: workspacePath,
+  });
+
+  if (autonomousLLMProvider.isAvailable()) {
+    // T039: Wire LLM to ObservationMasker for enhanced key-point generation
+    sharedContextBuilder.getObservationMasker().setLLMProvider(autonomousLLMProvider);
+
+    // T043: Wire LLM to ContextCompactor for enhanced task summarization
+    const contextCompactor = new ContextCompactor(workspacePath);
+    contextCompactor.setLLMProvider(autonomousLLMProvider);
+
+    // T041: Wire ResearchSummarizer to research-complete event
+    const researchChunkerForSumm = new ResearchChunker(workspacePath);
+    const researchSummarizer = new ResearchSummarizer(
+      autonomousLLMProvider, researchChunkerForSumm, memoryManager, workspacePath
+    );
+    sharedContextBuilder.on('research-complete', (event: { specId: string }) => {
+      researchSummarizer.summarizeSpec(event.specId).catch((error) => {
+        console.warn('[Gofer] Research summarization failed (non-fatal):', error);
+      });
+    });
+
+    // T070: Wire auto-compaction to ContextHealthMonitor critical event
+    if (contextHealthMonitor) {
+      contextHealthMonitor.on('critical', () => {
+        // Auto-enhance key-points with LLM when context hits critical
+        sharedContextBuilder.getObservationMasker().enhanceKeyPointsWithLLM().catch(() => {});
+      });
+    }
+
+    console.log('[Gofer] AutonomousLLMProvider wired to ObservationMasker, ContextCompactor, and ResearchSummarizer');
+  } else {
+    console.log('[Gofer] AutonomousLLMProvider: no API key configured, LLM features disabled (deterministic fallbacks active)');
+  }
+
+  // T065: Wire ResearchGraphBuilder to research-complete event
+  const { ResearchGraphBuilder } = await import('./autonomous/ResearchGraphBuilder');
+  const researchGraphBuilder = new ResearchGraphBuilder(workspacePath);
+  sharedContextBuilder.on('research-complete', (event: { specId: string }) => {
+    try {
+      researchGraphBuilder.buildFromSpec(event.specId, knowledgeGraph);
+      knowledgeGraph.save().catch(() => {});
+    } catch (error) {
+      console.warn('[Gofer] Research graph building failed (non-fatal):', error);
+    }
+  });
+
+  // T063: Wire MemoryLayerManager to ContextBuilder
+  const { MemoryLayerManager } = await import('./autonomous/MemoryLayerManager');
+  const memoryLayerManager = new MemoryLayerManager(workspacePath);
+  memoryLayerManager.setMemoryManager(memoryManager);
+  if (autonomousLLMProvider?.isAvailable()) {
+    memoryLayerManager.setLLMProvider(autonomousLLMProvider);
+  }
+  sharedContextBuilder.setMemoryLayerManager(memoryLayerManager, false); // opt-in via config
+
+  // T050: Restore observation cache from disk on startup
+  sharedContextBuilder.getObservationMasker().loadCacheFromDisk().then(() => {
+    const obsCount = sharedContextBuilder.getObservationMasker().getAllObservations().length;
+    if (obsCount > 0) {
+      console.log(`[Gofer] Observation cache restored: ${obsCount} entries`);
+    }
+  }).catch(() => {
+    // Non-fatal: start with empty cache
+  });
+
+  // T047/T048: Wire SubAgentDispatcher for progressive delegation
+  const subAgentDispatcher = new SubAgentDispatcher(workspacePath);
+  sharedContextBuilder.setSubAgentDispatcher(subAgentDispatcher);
+  if (contextHealthMonitor) {
+    contextHealthMonitor.on('healthy', (status: { utilizationPercent: number }) => {
+      subAgentDispatcher.updateUtilization(status.utilizationPercent);
+    });
+    contextHealthMonitor.on('warning', (status: { utilizationPercent: number }) => {
+      subAgentDispatcher.updateUtilization(status.utilizationPercent);
+    });
+    contextHealthMonitor.on('critical', (status: { utilizationPercent: number }) => {
+      subAgentDispatcher.updateUtilization(status.utilizationPercent);
+    });
+  }
+  console.log('[Gofer] SubAgentDispatcher initialized');
 
   // Wire hook bridge to track real tool output as observations (Spec 001)
   if (hookBridgeWatcher) {
@@ -1399,6 +1554,16 @@ created: "${new Date().toISOString().split('T')[0]}"
     const fsPromises = require('fs').promises as typeof import('fs').promises;
     const fsSync = require('fs') as typeof import('fs');
     let lastTrackedToolTimestamp = 0;
+
+    // T003: Debounced cache persistence (max once per 5s)
+    let cacheSaveTimer: ReturnType<typeof setTimeout> | null = null;
+    const debouncedCacheSave = (): void => {
+      if (cacheSaveTimer) return;
+      cacheSaveTimer = setTimeout(() => {
+        cacheSaveTimer = null;
+        sharedContextBuilder.getObservationMasker().saveCacheToDisk().catch(() => {});
+      }, 5000);
+    };
 
     hookBridgeWatcher.on('bridge-update', (data: BridgeData) => {
       const toolUse = data?.lastToolUse;
@@ -1456,12 +1621,43 @@ created: "${new Date().toISOString().split('T')[0]}"
         }
       }
 
+      // T012: Check scope guard for protected boundaries
+      if (metadata.filePath) {
+        const violation = scopeGuard.check(String(metadata.filePath));
+        if (violation) {
+          console.warn(`[Gofer] ScopeGuard violation: ${violation}`);
+        }
+      }
+
+      // T015: Record file accesses in KnowledgeGraph
+      if (obsType === 'file_read' && metadata.filePath) {
+        knowledgeGraph.recordFileAccess(String(metadata.filePath));
+
+        // T026: Parse import/from statements and record import edges
+        if (toolContent && toolContent.length > 10) {
+          const importRegex = /(?:import\s+.*?from\s+['"]([^'"]+)['"]|require\s*\(\s*['"]([^'"]+)['"]\s*\))/g;
+          let importMatch: RegExpExecArray | null;
+          while ((importMatch = importRegex.exec(toolContent)) !== null) {
+            const importPath = importMatch[1] || importMatch[2];
+            if (importPath && !importPath.startsWith('.') === false || importPath) {
+              knowledgeGraph.recordImport(String(metadata.filePath), importPath);
+            }
+          }
+        }
+      }
+
       sharedContextBuilder.trackObservation(
         obsType,
         toolContent,
         metadata,
         `${toolUse.toolName} tool output`
       );
+
+      // T001: Advance turn counter after each observation so masking thresholds work
+      sharedContextBuilder.incrementTurn();
+
+      // T003: Debounced cache persistence after each observation
+      debouncedCacheSave();
     });
 
     // Clean stale observation files on session start (T013)

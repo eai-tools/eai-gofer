@@ -28,14 +28,26 @@ interface MemoryManagerLike {
 /** Rate limit per stage */
 const MAX_SAVES_PER_STAGE = 10;
 
+/** T027/T028: Interface for KnowledgeGraph record methods */
+interface KnowledgeGraphLike {
+  recordPattern(patternName: string, files: string[]): void;
+  recordDecision(decisionName: string, files: string[]): void;
+}
+
 export class ContinuousMemoryWriter {
   private memoryManager: MemoryManagerLike;
   private stageSaveCounts: Map<string, number> = new Map();
   private currentStage: string = 'unknown';
   private connectedBuilder: EventEmitter | null = null;
+  private knowledgeGraph: KnowledgeGraphLike | null = null;
 
   constructor(memoryManager: MemoryManagerLike) {
     this.memoryManager = memoryManager;
+  }
+
+  /** T027/T028: Wire KnowledgeGraph for pattern/decision recording */
+  setKnowledgeGraph(graph: KnowledgeGraphLike): void {
+    this.knowledgeGraph = graph;
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -77,6 +89,19 @@ export class ContinuousMemoryWriter {
           this.currentStage,
           'loading_decision'
         );
+      }
+    );
+
+    // T031: Listen for research-complete events and create discovery memories
+    builder.on(
+      'research-complete',
+      (event: { specId: string; hintsLoaded: boolean; memoryCoverage: number }) => {
+        this.saveMemory({
+          category: 'discovery',
+          content: `Research complete for spec ${event.specId}. Memory coverage: ${event.memoryCoverage.toFixed(1)}%. Hints loaded: ${event.hintsLoaded}`,
+          tags: ['#auto', '#discovery', `#spec-${event.specId}`],
+          specId: event.specId,
+        });
       }
     );
   }
@@ -235,6 +260,16 @@ export class ContinuousMemoryWriter {
         usedCount: 0,
         learnedFrom: opts.specId,
       });
+
+      // T027: Record patterns in KnowledgeGraph
+      if (this.knowledgeGraph && opts.category === 'pattern') {
+        this.knowledgeGraph.recordPattern(opts.content.slice(0, 100), []);
+      }
+
+      // T028: Record decisions in KnowledgeGraph
+      if (this.knowledgeGraph && (opts.category === 'decision' || opts.category === 'auto_decision')) {
+        this.knowledgeGraph.recordDecision(opts.content.slice(0, 100), []);
+      }
     } catch {
       // Silently ignore save failures — memory persistence is best-effort
     }

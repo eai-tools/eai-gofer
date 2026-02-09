@@ -2,22 +2,27 @@
 /**
  * post-tool-use.mjs — Claude Code PostToolUse hook
  *
- * Fires on every tool call. Reads transcript JSONL to extract the latest
- * token usage from the most recent assistant message, then writes a
- * context-bridge.json file that the VS Code extension watches.
+ * Fires on every tool call. Extracts tool_input and tool_response from the
+ * hook payload (when available) and writes per-observation files for the
+ * VS Code extension to consume. Also reads transcript JSONL for token usage
+ * metadata and writes context-bridge.json.
  *
- * stdin: JSON with { tool_name, session_id, transcript_path }
+ * stdin: JSON with { tool_name, session_id, transcript_path, tool_input?, tool_response?, tool_use_id? }
  * stdout: (none — PostToolUse hooks don't produce output)
  * Bridge: .specify/hooks/context-bridge.json
+ * Observations: .specify/hooks/observations/{uuid}.json
  */
 
 import { readFileSync, writeFileSync, renameSync, mkdirSync, appendFileSync } from 'fs';
 import { join, dirname } from 'path';
+import { randomUUID } from 'crypto';
 
 const PROJECT_DIR = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 const BRIDGE_PATH = join(PROJECT_DIR, '.specify', 'hooks', 'context-bridge.json');
+const OBSERVATIONS_DIR = join(PROJECT_DIR, '.specify', 'hooks', 'observations');
 const DEBUG_LOG = join(PROJECT_DIR, '.specify', 'hooks', 'hook-debug.log');
 const TAIL_BYTES = 20 * 1024; // Read last 20KB of transcript
+const MAX_OBSERVATION_BYTES = 10240; // 10KB cap per observation
 
 function debug(msg) {
   try {
@@ -93,13 +98,70 @@ function extractLatestUsage(transcriptPath) {
   return null;
 }
 
+/**
+ * Serialize tool_response to a string, truncating to maxBytes if needed.
+ * Returns { content: string, truncated: boolean }
+ */
+function serializeToolResponse(toolResponse, maxBytes = MAX_OBSERVATION_BYTES) {
+  let content;
+  if (typeof toolResponse === 'string') {
+    content = toolResponse;
+  } else {
+    try {
+      content = JSON.stringify(toolResponse);
+    } catch {
+      content = String(toolResponse);
+    }
+  }
+
+  if (content.length > maxBytes) {
+    return {
+      content: content.slice(0, maxBytes) + '\n[truncated at 10KB]',
+      truncated: true,
+    };
+  }
+
+  return { content, truncated: false };
+}
+
+/**
+ * Write observation content to a per-observation file using atomic write.
+ * Returns the observation ID on success, null on failure.
+ */
+function writeObservation(id, toolName, toolInput, toolResponse) {
+  try {
+    mkdirSync(OBSERVATIONS_DIR, { recursive: true });
+
+    const serialized = serializeToolResponse(toolResponse);
+    const observation = {
+      id,
+      toolName,
+      toolInput: toolInput || {},
+      toolResponse: serialized.content,
+      timestamp: new Date().toISOString(),
+      truncated: serialized.truncated,
+    };
+
+    const filePath = join(OBSERVATIONS_DIR, `${id}.json`);
+    const tmpPath = filePath + '.tmp';
+    writeFileSync(tmpPath, JSON.stringify(observation, null, 2));
+    renameSync(tmpPath, filePath);
+
+    debug(`Observation written: id=${id}, tool=${toolName}, size=${serialized.content.length}, truncated=${serialized.truncated}`);
+    return id;
+  } catch (err) {
+    debug(`Observation write error: ${err.message}`);
+    return null;
+  }
+}
+
 function writeBridge(data) {
   try {
     mkdirSync(dirname(BRIDGE_PATH), { recursive: true });
     const tmpPath = BRIDGE_PATH + '.tmp';
     writeFileSync(tmpPath, JSON.stringify(data, null, 2));
     renameSync(tmpPath, BRIDGE_PATH);
-    debug(`Bridge written: session=${data.sessionId}, tool=${data.lastToolUse?.toolName}`);
+    debug(`Bridge written: session=${data.sessionId}, tool=${data.lastToolUse?.toolName}, obsId=${data.lastToolUse?.observationId || 'none'}`);
   } catch (err) {
     debug(`Bridge write error: ${err.message}`);
     process.stderr.write(`[post-tool-use] bridge write error: ${err.message}\n`);
@@ -118,17 +180,39 @@ function readExistingBridge() {
 debug(`Hook fired. PROJECT_DIR=${PROJECT_DIR}`);
 
 const input = readStdin();
-debug(`stdin: ${JSON.stringify({ session_id: input.session_id, tool_name: input.tool_name, has_transcript: !!input.transcript_path })}`);
+debug(`stdin: ${JSON.stringify({ session_id: input.session_id, tool_name: input.tool_name, has_transcript: !!input.transcript_path, has_tool_input: !!input.tool_input, has_tool_response: !!input.tool_response })}`);
 
 const sessionId = input.session_id || '';
 const toolName = input.tool_name || '';
 const transcriptPath = input.transcript_path || '';
+const toolInput = input.tool_input || undefined;
+const toolResponse = input.tool_response || undefined;
 
 const usage = extractLatestUsage(transcriptPath);
 debug(`usage: ${usage ? `inputTokens=${usage.inputTokens}, cache=${usage.cacheReadInputTokens}` : 'null'}`);
 
+// Write observation file if tool_response is available (new Claude Code payload)
+let observationId;
+if (toolResponse) {
+  observationId = randomUUID();
+  writeObservation(observationId, toolName, toolInput, toolResponse);
+}
+
 const existing = readExistingBridge();
 const now = Date.now();
+
+const lastToolUse = {
+  toolName,
+  timestamp: now,
+};
+
+// Add observation pointer if observation was written
+if (observationId) {
+  lastToolUse.observationId = observationId;
+}
+if (toolInput) {
+  lastToolUse.toolInput = toolInput;
+}
 
 const bridge = {
   timestamp: now,
@@ -153,10 +237,7 @@ const bridge = {
           100,
       }
     : existing.context || null,
-  lastToolUse: {
-    toolName,
-    timestamp: now,
-  },
+  lastToolUse,
   session: {
     active: true,
     lastActivity: now,

@@ -15,6 +15,21 @@
       "lastUsed": 1769750111813,
       "usedCount": 0,
       "learnedFrom": "session:4b38e529-8d24-434a-b0ea-35a7f95044cb"
+    },
+    {
+      "id": "cf905b0e-0ccf-434d-973f-1740653de7e2",
+      "category": "error_resolution",
+      "tags": [
+        "#auto-learned",
+        "#error-fix",
+        "#session-39562c3b"
+      ],
+      "scope": "local",
+      "content": "ts` issue (5 failures due to missing JSONL file). This is a known pre-existing issue documented in my memory.",
+      "created": 1770597177201,
+      "lastUsed": 1770597177201,
+      "usedCount": 0,
+      "learnedFrom": "session:39562c3b-32d5-4b63-b2a5-399d85cc7149"
     }
   ]
 }

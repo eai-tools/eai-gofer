@@ -598,12 +598,25 @@ export class MemoryManager implements IMemoryManager {
   }
 
   /**
+   * 019 C2: Usage reason types for audit logging.
+   */
+  static readonly UsageReasons = ['context_load', 'user_recall', 'search_match', 'consolidation'] as const;
+
+  /**
    * Update usage statistics for a memory.
    * Increments usedCount and updates lastUsed timestamp.
    *
+   * 019 C2: Expanded with optional reason and source for audit logging.
+   *
    * @param id - UUID of memory to update
+   * @param reason - Why the memory was used (optional, backward compatible)
+   * @param source - Where the usage originated (optional)
    */
-  async recordUsage(id: string): Promise<void> {
+  async recordUsage(
+    id: string,
+    reason?: typeof MemoryManager.UsageReasons[number],
+    source?: string,
+  ): Promise<void> {
     // Try JSONL storage first (local memories)
     await this.ensureStorageReady();
     const localMemory = this.storage.get(id);
@@ -613,6 +626,11 @@ export class MemoryManager implements IMemoryManager {
         usedCount: (localMemory.usedCount ?? 0) + 1,
         lastUsed: Date.now(),
       });
+
+      // 019 C2: Log usage with reason and source for audit
+      if (reason) {
+        this.logUsageAudit(id, reason, source);
+      }
       return;
     }
 
@@ -624,10 +642,33 @@ export class MemoryManager implements IMemoryManager {
       globalMemory.usedCount++;
       globalMemory.lastUsed = Date.now();
       await this.saveGlobalBatch(globalMemories);
+      if (reason) {
+        this.logUsageAudit(id, reason, source);
+      }
       return;
     }
 
     throw new Error(`Memory not found: ${id}`);
+  }
+
+  /**
+   * 019 C2: Log memory usage to audit JSONL file.
+   */
+  private logUsageAudit(id: string, reason: string, source?: string): void {
+    try {
+      const logDir = path.join(this.workspaceRoot, '.specify', 'logs');
+      const logPath = path.join(logDir, 'memory-usage-audit.jsonl');
+      const entry = {
+        timestamp: new Date().toISOString(),
+        memoryId: id,
+        reason,
+        source: source || 'unknown',
+      };
+      fs.mkdirSync(logDir, { recursive: true });
+      fs.appendFileSync(logPath, JSON.stringify(entry) + '\n');
+    } catch {
+      // Best-effort audit logging
+    }
   }
 
   /**

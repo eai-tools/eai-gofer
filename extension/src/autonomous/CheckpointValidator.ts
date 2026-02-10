@@ -11,6 +11,8 @@
 
 import { execFile } from 'child_process';
 import { promisify } from 'util';
+import * as fs from 'fs';
+import * as path from 'path';
 
 const execFileAsync = promisify(execFile);
 
@@ -111,6 +113,72 @@ export class CheckpointValidator {
     const validStages = ['research', 'specify', 'plan', 'tasks', 'implement', 'validate', 'unknown'];
     if (data.stage && typeof data.stage === 'string' && !validStages.includes(data.stage)) {
       warnings.push(`Unknown stage: ${data.stage}`);
+    }
+
+    return { valid: errors.length === 0, warnings, errors };
+  }
+
+  /**
+   * 019 T065-T067: Validate pipeline artifacts in a spec directory.
+   * Checks existence and section completeness of research.md, spec.md, plan.md, tasks.md.
+   * Returns structured validation report with warnings and errors.
+   */
+  validatePipelineArtifacts(specDir: string): CheckpointValidationResult {
+    const warnings: string[] = [];
+    const errors: string[] = [];
+
+    const artifacts = [
+      { file: 'research.md', requiredSections: ['# Research', 'Codebase Analysis', 'Integration Points'], stage: 'research' },
+      { file: 'spec.md', requiredSections: ['User Stories', 'Functional Requirements', 'Success Criteria'], stage: 'specify' },
+      { file: 'plan.md', requiredSections: ['Implementation Plan', 'Phase'], stage: 'plan' },
+      { file: 'tasks.md', requiredSections: ['Tasks', 'Phase'], stage: 'tasks' },
+    ];
+
+    for (const artifact of artifacts) {
+      const filePath = path.join(specDir, artifact.file);
+
+      if (!fs.existsSync(filePath)) {
+        warnings.push(`Missing artifact: ${artifact.file} (stage: ${artifact.stage})`);
+        continue;
+      }
+
+      let content: string;
+      try {
+        content = fs.readFileSync(filePath, 'utf-8');
+      } catch {
+        errors.push(`Cannot read artifact: ${artifact.file}`);
+        continue;
+      }
+
+      // Check minimum size
+      if (content.length < 100) {
+        warnings.push(`${artifact.file} appears too small (${content.length} chars) — may be incomplete`);
+      }
+
+      // Check YAML frontmatter
+      if (!content.startsWith('---')) {
+        warnings.push(`${artifact.file} missing YAML frontmatter`);
+      }
+
+      // Check required sections
+      for (const section of artifact.requiredSections) {
+        if (!content.includes(section)) {
+          warnings.push(`${artifact.file} missing expected section: "${section}"`);
+        }
+      }
+
+      // tasks.md specific: check for task checkboxes
+      if (artifact.file === 'tasks.md') {
+        const taskCount = (content.match(/- \[[ Xx]\]/g) || []).length;
+        if (taskCount === 0) {
+          errors.push('tasks.md has no task checkboxes (expected - [ ] or - [X] format)');
+        }
+        const completedCount = (content.match(/- \[[Xx]\]/g) || []).length;
+        if (taskCount > 0) {
+          const progress = Math.round((completedCount / taskCount) * 100);
+          warnings.push(`tasks.md progress: ${completedCount}/${taskCount} tasks completed (${progress}%)`);
+        }
+      }
     }
 
     return { valid: errors.length === 0, warnings, errors };

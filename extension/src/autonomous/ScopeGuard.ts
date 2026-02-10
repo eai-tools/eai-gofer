@@ -129,6 +129,75 @@ export class ScopeGuard {
   }
 
   /**
+   * 019 T062-T064: Generate structured brownfield analysis for research pipeline.
+   * Returns markdown documenting constraints, deprecated patterns, downstream dependencies,
+   * and integration requirements for existing codebases.
+   */
+  generateBrownfieldAnalysis(): string {
+    if (!this.detectBrownfield()) {
+      return '## Brownfield Analysis\n\nProject appears to be greenfield (new). No brownfield constraints detected.\n';
+    }
+
+    const lines: string[] = ['## Brownfield Analysis', ''];
+
+    // Constraints from package.json
+    const pkgPath = path.join(this.workspaceRoot, 'package.json');
+    if (fs.existsSync(pkgPath)) {
+      try {
+        const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+        lines.push('### Constraints & Limitations', '');
+        lines.push('| Constraint Type | Description | Impact |');
+        lines.push('|-----------------|-------------|--------|');
+
+        if (pkg.engines?.node) {
+          lines.push(`| Node.js | Requires ${pkg.engines.node} | Limits API availability |`);
+        }
+        const depCount = Object.keys(pkg.dependencies || {}).length;
+        const devDepCount = Object.keys(pkg.devDependencies || {}).length;
+        lines.push(`| Dependencies | ${depCount} runtime, ${devDepCount} dev | Compatibility constraints |`);
+
+        if (pkg.type === 'module') {
+          lines.push('| Module System | ESM (`type: module`) | Import/export patterns |');
+        }
+        lines.push('');
+      } catch {
+        // Skip pkg analysis on error
+      }
+    }
+
+    // Protected patterns as "Areas Requiring Extra Caution"
+    if (this.protectedPatterns.length > 0) {
+      lines.push('### Areas Requiring Extra Caution', '');
+      for (const pattern of this.protectedPatterns) {
+        lines.push(`- **\`${pattern}\`**: Protected boundary — do not modify`);
+      }
+      lines.push('');
+    }
+
+    // Test directories found
+    const testDirs = ['tests', 'test', '__tests__', 'spec'].filter(dir =>
+      fs.existsSync(path.join(this.workspaceRoot, dir))
+    );
+    if (testDirs.length > 0) {
+      lines.push('### Existing Test Infrastructure', '');
+      lines.push(`Test directories found: ${testDirs.join(', ')}`);
+      lines.push('Existing tests must continue to pass after modifications.');
+      lines.push('');
+    }
+
+    // Scope violations as known issues
+    if (this.violations.length > 0) {
+      lines.push('### Known Scope Violations', '');
+      for (const v of this.violations.slice(-10)) {
+        lines.push(`- \`${v.file}\` — matches \`${v.protectedPattern}\` (${v.enforcement})`);
+      }
+      lines.push('');
+    }
+
+    return lines.join('\n');
+  }
+
+  /**
    * 018 T074: Auto-detect brownfield project from workspace analysis.
    * Returns true if the project has hallmarks of an existing codebase
    * (many source files, existing tests, package.json with deps).

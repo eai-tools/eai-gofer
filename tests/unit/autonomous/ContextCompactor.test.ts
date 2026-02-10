@@ -240,7 +240,7 @@ describe('ContextCompactor', () => {
       const strategy = compactor.getDefaultStrategy();
       const summary = await compactor.summarizeTasks(tasks, strategy);
 
-      expect(summary).toContain('2 files');
+      expect(summary).toContain('Files modified (2)');
     });
   });
 

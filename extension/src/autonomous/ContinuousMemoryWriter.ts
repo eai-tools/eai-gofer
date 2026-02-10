@@ -104,6 +104,74 @@ export class ContinuousMemoryWriter {
         });
       }
     );
+
+    // 019 C4: Additional event sources for continuous memory writing
+    builder.on('stage-change', (event: { from: string; to: string; specId?: string }) => {
+      this.recordEventWithRateLimit('stage-change', () => {
+        this.recordAutoDecision(
+          `Stage transition: ${event.from} → ${event.to}`,
+          event.to,
+          'stage_change'
+        );
+      });
+    });
+
+    builder.on('compaction-complete', (event: { tokensBefore: number; tokensAfter: number; method: string }) => {
+      this.recordEventWithRateLimit('compaction-complete', () => {
+        this.recordAutoDecision(
+          `Compaction complete: ${event.tokensBefore} → ${event.tokensAfter} tokens (${event.method})`,
+          this.currentStage,
+          'compaction'
+        );
+      });
+    });
+
+    builder.on('reseed', (event: { preservedCount: number; clearedCount: number }) => {
+      this.recordEventWithRateLimit('reseed', () => {
+        this.recordAutoDecision(
+          `Context reseed: preserved ${event.preservedCount}, cleared ${event.clearedCount} observations`,
+          this.currentStage,
+          'reseed'
+        );
+      });
+    });
+
+    builder.on('scope-violation', (event: { file: string; reason: string }) => {
+      this.recordEventWithRateLimit('scope-violation', () => {
+        this.saveMemory({
+          category: 'auto_decision',
+          content: `Scope violation: ${event.file} — ${event.reason}`,
+          tags: ['#auto', '#scope-violation'],
+          specId: 'system',
+        });
+      });
+    });
+
+    builder.on('slop-detected', (event: { count: number; specId?: string }) => {
+      this.recordEventWithRateLimit('slop-detected', () => {
+        this.saveMemory({
+          category: 'auto_decision',
+          content: `Slop detected: ${event.count} issues found`,
+          tags: ['#auto', '#slop-detection'],
+          specId: event.specId || 'system',
+        });
+      });
+    });
+  }
+
+  /**
+   * 019 C4: Per-event-type rate limiting (max 1 per type per 5 minutes).
+   */
+  private eventRateLimits: Map<string, number> = new Map();
+  private static readonly EVENT_RATE_LIMIT_MS = 5 * 60 * 1000; // 5 minutes
+
+  private recordEventWithRateLimit(eventType: string, action: () => void): void {
+    const lastFired = this.eventRateLimits.get(eventType) || 0;
+    if (Date.now() - lastFired < ContinuousMemoryWriter.EVENT_RATE_LIMIT_MS) {
+      return; // Rate-limited
+    }
+    this.eventRateLimits.set(eventType, Date.now());
+    action();
   }
 
   /**

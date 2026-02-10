@@ -55,6 +55,20 @@ export interface ObservationMaskerConfig {
   cacheDirectory: string;
   /** T018: Fraction of ageThreshold at which to transition full→key-points (default: 0.6) */
   keyPointsAgeFraction: number;
+  /** 019 B2: Per-type decay configuration overrides */
+  perTypeDecay?: PerTypeDecayConfig;
+}
+
+/**
+ * 019 B2: Per-observation-type decay rate configuration.
+ * Each type can have independent ageThresholdTurns and keyPointsAgeFraction.
+ */
+export interface PerTypeDecayConfig {
+  file_read?: { ageThresholdTurns: number; keyPointsAgeFraction: number };
+  command_output?: { ageThresholdTurns: number; keyPointsAgeFraction: number };
+  test_output?: { ageThresholdTurns: number; keyPointsAgeFraction: number };
+  search_result?: { ageThresholdTurns: number; keyPointsAgeFraction: number };
+  api_response?: { ageThresholdTurns: number; keyPointsAgeFraction: number };
 }
 
 /**
@@ -138,6 +152,18 @@ interface SerializedCache {
 /**
  * Default configuration values.
  */
+/**
+ * 019 B2: Default per-type decay rates.
+ * test_output preserved longest (12 turns), search_result shortest (6 turns).
+ */
+const DEFAULT_PER_TYPE_DECAY: Required<PerTypeDecayConfig> = {
+  file_read: { ageThresholdTurns: 10, keyPointsAgeFraction: 0.6 },
+  command_output: { ageThresholdTurns: 8, keyPointsAgeFraction: 0.5 },
+  test_output: { ageThresholdTurns: 12, keyPointsAgeFraction: 0.7 },
+  search_result: { ageThresholdTurns: 6, keyPointsAgeFraction: 0.5 },
+  api_response: { ageThresholdTurns: 8, keyPointsAgeFraction: 0.5 },
+};
+
 const DEFAULT_CONFIG: ObservationMaskerConfig = {
   ageThresholdTurns: 10,
   preserveErrorMessages: true,
@@ -145,6 +171,7 @@ const DEFAULT_CONFIG: ObservationMaskerConfig = {
   maxCacheSize: 100,
   cacheDirectory: '.specify/memory/observation-cache',
   keyPointsAgeFraction: 0.6,
+  perTypeDecay: undefined, // Only apply per-type decay when explicitly configured
 };
 
 /**
@@ -353,9 +380,6 @@ export class ObservationMasker {
     let tokensSaved = 0;
     let keyPointsCount = 0;
     const placeholders: string[] = [];
-    const keyPointsThreshold = Math.floor(
-      this.config.ageThresholdTurns * this.config.keyPointsAgeFraction
-    );
 
     for (const observation of this.cache.values()) {
       // Skip already fully masked observations
@@ -363,12 +387,17 @@ export class ObservationMasker {
         continue;
       }
 
-      // Check if content should be preserved (never decays)
+      // 019 B5: Content-aware error preservation
       if (this.shouldPreserve(observation)) {
         continue;
       }
 
       const age = currentTurn - observation.turnNumber;
+
+      // 019 B2: Use per-type decay thresholds when available
+      const typeDecay = this.getTypeDecayConfig(observation.type);
+      const ageThreshold = typeDecay.ageThresholdTurns;
+      const keyPointsThreshold = Math.floor(ageThreshold * typeDecay.keyPointsAgeFraction);
 
       // T019: Two-step decay — full→key-points at fraction, key-points→masked at threshold
       if (observation.decayTier === 'full' && age >= keyPointsThreshold) {
@@ -379,7 +408,7 @@ export class ObservationMasker {
         keyPointsCount++;
 
         // If also past full threshold, go straight to masked
-        if (age >= this.config.ageThresholdTurns) {
+        if (age >= ageThreshold) {
           observation.decayTier = 'masked';
           observation.masked = true;
           observation.maskedAt = Date.now();
@@ -387,7 +416,7 @@ export class ObservationMasker {
           tokensSaved += observation.tokenEstimate;
           placeholders.push(this.generatePlaceholder(observation));
         }
-      } else if (observation.decayTier === 'key-points' && age >= this.config.ageThresholdTurns) {
+      } else if (observation.decayTier === 'key-points' && age >= ageThreshold) {
         // Transition key-points → masked
         observation.decayTier = 'masked';
         observation.masked = true;
@@ -539,14 +568,98 @@ export class ObservationMasker {
   private shouldPreserve(observation: ObservationEntry): boolean {
     // Preserve error messages if configured
     if (this.config.preserveErrorMessages) {
-      for (const pattern of this.config.preservePatterns) {
-        if (pattern.test(observation.originalContent)) {
-          return true;
-        }
+      // 019 B5: Use content-aware error classification instead of simple regex
+      if (this.isActualError(observation.originalContent)) {
+        return true;
       }
     }
 
     return false;
+  }
+
+  /**
+   * 019 B2: Get per-type decay config, falling back to global defaults.
+   */
+  private getTypeDecayConfig(type: ObservationType): { ageThresholdTurns: number; keyPointsAgeFraction: number } {
+    const perType = this.config.perTypeDecay;
+    if (perType) {
+      const typeConfig = perType[type];
+      if (typeConfig) {
+        return typeConfig;
+      }
+    }
+    return {
+      ageThresholdTurns: this.config.ageThresholdTurns,
+      keyPointsAgeFraction: this.config.keyPointsAgeFraction,
+    };
+  }
+
+  /**
+   * 019 B5: Content-aware error detection.
+   * Distinguishes actual error traces from documentation mentioning errors.
+   * Returns true only for content that IS an error (stack traces, exit codes, test failures).
+   */
+  private isActualError(content: string): boolean {
+    const lines = content.split('\n');
+    let errorIndicators = 0;
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      // Stack trace lines: "at FunctionName (file:line:col)" or "at file:line:col"
+      if (/^\s*at\s+/.test(line)) { errorIndicators++; continue; }
+      // Error prefix: "Error: message" or "TypeError: message" or "SomeError: message"
+      if (/^([A-Z][a-zA-Z]*)?Error:/.test(trimmed)) { errorIndicators++; continue; }
+      // Exit code patterns
+      if (/exit\s+code\s+[1-9]/i.test(trimmed)) { errorIndicators++; continue; }
+      // Test FAIL markers
+      if (/^(FAIL|FAILED|✗|✖|×)\s/i.test(trimmed)) { errorIndicators++; continue; }
+      // npm ERR! prefix
+      if (/^npm\s+ERR!/i.test(trimmed)) { errorIndicators++; continue; }
+      // Process exited with non-zero
+      if (/process\s+exited?\s+with\s+(code\s+)?[1-9]/i.test(trimmed)) { errorIndicators++; continue; }
+    }
+
+    // A single strong indicator (Error: prefix, stack trace, FAIL marker) is enough.
+    // The patterns are already specific enough to avoid false positives from prose.
+    return errorIndicators >= 1;
+  }
+
+  /**
+   * 019 B2: Load per-type decay config from YAML file if present.
+   * Falls back to DEFAULT_PER_TYPE_DECAY if file doesn't exist.
+   */
+  public loadPerTypeDecayFromYaml(workspaceRoot: string): void {
+    const configPath = path.join(workspaceRoot, '.specify', 'memory', 'observation-config.yaml');
+    try {
+      if (fs.existsSync(configPath)) {
+        const raw = fs.readFileSync(configPath, 'utf-8');
+        // Simple YAML parsing for key: value pairs (no full YAML library needed)
+        const perType: PerTypeDecayConfig = {};
+        let currentType: string | null = null;
+        for (const line of raw.split('\n')) {
+          const typeMatch = line.match(/^(\w+):\s*$/);
+          if (typeMatch && typeMatch[1] in DEFAULT_PER_TYPE_DECAY) {
+            currentType = typeMatch[1];
+            (perType as Record<string, { ageThresholdTurns: number; keyPointsAgeFraction: number }>)[currentType] =
+              { ...DEFAULT_PER_TYPE_DECAY[currentType as keyof typeof DEFAULT_PER_TYPE_DECAY] };
+          }
+          if (currentType) {
+            const ageMatch = line.match(/^\s+ageThresholdTurns:\s*(\d+)/);
+            if (ageMatch) {
+              (perType as Record<string, { ageThresholdTurns: number; keyPointsAgeFraction: number }>)[currentType].ageThresholdTurns = parseInt(ageMatch[1], 10);
+            }
+            const fracMatch = line.match(/^\s+keyPointsAgeFraction:\s*([\d.]+)/);
+            if (fracMatch) {
+              (perType as Record<string, { ageThresholdTurns: number; keyPointsAgeFraction: number }>)[currentType].keyPointsAgeFraction = parseFloat(fracMatch[1]);
+            }
+          }
+        }
+        this.config = { ...this.config, perTypeDecay: { ...DEFAULT_PER_TYPE_DECAY, ...perType } };
+        this.logger.info('Loaded per-type decay config from YAML', { configPath });
+      }
+    } catch {
+      this.logger.warn('Failed to load per-type decay YAML config, using defaults');
+    }
   }
 
   /**
@@ -621,20 +734,68 @@ export class ObservationMasker {
    * @param id - The observation ID to expand
    * @returns The full observation entry or null if not found
    */
-  public expandObservation(id: string): ObservationEntry | null {
+  public expandObservation(id: string, currentTurn?: number): ObservationEntry | null {
     const observation = this.cache.get(id);
     if (!observation) {
       this.logger.warn('Observation not found for expansion', { id });
       return null;
     }
 
+    // 019 B8: Log observation age at expansion for window tuning validation
+    const ageAtExpansion = currentTurn !== undefined ? currentTurn - observation.turnNumber : undefined;
     this.logger.debug('Observation expanded', {
       id,
       type: observation.type,
       tokenEstimate: observation.tokenEstimate,
+      ageAtExpansion,
+      decayTier: observation.decayTier,
     });
 
+    // 019 B8: Track expansion metrics for window validation
+    if (ageAtExpansion !== undefined) {
+      this.expansionMetrics.push({
+        type: observation.type,
+        ageAtExpansion,
+        timestamp: Date.now(),
+      });
+      // Keep last 100 metrics
+      if (this.expansionMetrics.length > 100) {
+        this.expansionMetrics.shift();
+      }
+    }
+
     return observation;
+  }
+
+  /** 019 B8: Expansion metrics for observation window validation */
+  private expansionMetrics: Array<{ type: ObservationType; ageAtExpansion: number; timestamp: number }> = [];
+
+  /**
+   * 019 B8: Validate observation windows by comparing configured thresholds
+   * against actual expansion patterns. Returns per-type metrics.
+   */
+  public validateObservationWindows(): Record<string, { avgAgeAtExpansion: number; configuredThreshold: number; expanding_after_mask: boolean }> {
+    const result: Record<string, { avgAgeAtExpansion: number; configuredThreshold: number; expanding_after_mask: boolean }> = {};
+    const byType = new Map<string, number[]>();
+
+    for (const m of this.expansionMetrics) {
+      const arr = byType.get(m.type) || [];
+      arr.push(m.ageAtExpansion);
+      byType.set(m.type, arr);
+    }
+
+    for (const [type, ages] of byType) {
+      const avg = ages.reduce((s, a) => s + a, 0) / ages.length;
+      const typeDecay = this.getTypeDecayConfig(type as ObservationType);
+      result[type] = {
+        avgAgeAtExpansion: Math.round(avg * 10) / 10,
+        configuredThreshold: typeDecay.ageThresholdTurns,
+        expanding_after_mask: avg >= typeDecay.ageThresholdTurns,
+      };
+    }
+
+    this.logger.info('Observation window validation', { metrics: result });
+    return result;
   }
 
   // ─────────────────────────────────────────────────────────────────────────────

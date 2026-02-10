@@ -74,6 +74,11 @@
         "icon": "$(refresh)"
       },
       {
+        "command": "gofer.refreshContextWindow",
+        "title": "Gofer: Refresh Context Window",
+        "icon": "$(refresh)"
+      },
+      {
         "command": "gofer.refreshMemory",
         "title": "Gofer: Refresh Memory",
         "icon": "$(refresh)"
@@ -267,10 +272,10 @@
           "contextualTitle": "Gofer"
         },
         {
-          "id": "goferConstitution",
-          "name": "Constitution",
-          "icon": "$(law)",
-          "contextualTitle": "Project Principles"
+          "id": "goferContextWindow",
+          "name": "Context Window",
+          "icon": "$(pulse)",
+          "contextualTitle": "Context Health"
         },
         {
           "id": "goferMemory",
@@ -284,6 +289,10 @@
       {
         "view": "goferProgress",
         "contents": "Welcome to Gofer!\n\nNo .specify folder found in this workspace.\n\n[Initialize Gofer](command:gofer.initialize)\n\nThis creates the folder structure for feature specifications, plans, and tasks."
+      },
+      {
+        "view": "goferContextWindow",
+        "contents": "No active Claude Code sessions.\n\nStart Claude Code in a terminal to see context health."
       }
     ],
     "menus": {
@@ -299,14 +308,19 @@
           "group": "navigation@2"
         },
         {
-          "command": "gofer.refreshConstitution",
-          "when": "view == goferConstitution",
+          "command": "gofer.refreshContextWindow",
+          "when": "view == goferContextWindow",
           "group": "navigation"
+        },
+        {
+          "command": "gofer.showConstitution",
+          "when": "view == goferMemory",
+          "group": "navigation@1"
         },
         {
           "command": "gofer.refreshMemory",
           "when": "view == goferMemory",
-          "group": "navigation"
+          "group": "navigation@2"
         }
       ],
       "view/item/context": [

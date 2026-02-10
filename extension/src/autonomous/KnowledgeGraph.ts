@@ -16,6 +16,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { Graph, json as graphJson } from 'graphlib';
+import { computeCorpusSimilarity } from './TfIdfUtil';
 
 // ============================================================================
 // Types
@@ -261,6 +262,102 @@ export class KnowledgeGraph {
     }
 
     return result;
+  }
+
+  /**
+   * 019 T042-T044: Weighted BFS traversal using cumulative edge weights.
+   * Explores high-weight edges first, returning the most strongly connected subgraph.
+   * Uses an array-based priority queue sorted by cumulative weight (descending).
+   * Preserves backward compatibility — original querySubgraph() is unchanged.
+   */
+  querySubgraphWeighted(startNodeId: string, maxDepth: number = DEFAULT_BFS_DEPTH): SubgraphResult {
+    const result: SubgraphResult = { nodes: [], edges: [] };
+    if (!this.graph.hasNode(startNodeId)) return result;
+
+    const visited = new Set<string>();
+    // Priority queue: sorted by cumulative weight descending
+    const pq: Array<{ id: string; depth: number; cumulativeWeight: number }> = [
+      { id: startNodeId, depth: 0, cumulativeWeight: Infinity },
+    ];
+
+    while (pq.length > 0) {
+      const current = pq.shift()!;
+      if (visited.has(current.id)) continue;
+      visited.add(current.id);
+
+      const nodeData = this.graph.node(current.id) as GraphNode;
+      if (nodeData) {
+        result.nodes.push({ id: current.id, data: nodeData });
+      }
+
+      if (current.depth >= maxDepth) continue;
+
+      // Follow outgoing edges, weighted
+      const successors = this.graph.successors(current.id);
+      if (successors) {
+        for (const succ of successors) {
+          const edgeData = this.graph.edge(current.id, succ) as GraphEdge;
+          if (edgeData) {
+            result.edges.push({ source: current.id, target: succ, data: edgeData });
+          }
+          if (!visited.has(succ)) {
+            const weight = edgeData?.weight ?? 1;
+            pq.push({ id: succ, depth: current.depth + 1, cumulativeWeight: current.cumulativeWeight + weight });
+            // Re-sort: highest cumulative weight first
+            pq.sort((a, b) => b.cumulativeWeight - a.cumulativeWeight);
+          }
+        }
+      }
+
+      // Follow incoming edges, weighted
+      const predecessors = this.graph.predecessors(current.id);
+      if (predecessors) {
+        for (const pred of predecessors) {
+          const edgeData = this.graph.edge(pred, current.id) as GraphEdge;
+          if (edgeData) {
+            result.edges.push({ source: pred, target: current.id, data: edgeData });
+          }
+          if (!visited.has(pred)) {
+            const weight = edgeData?.weight ?? 1;
+            pq.push({ id: pred, depth: current.depth + 1, cumulativeWeight: current.cumulativeWeight + weight });
+            pq.sort((a, b) => b.cumulativeWeight - a.cumulativeWeight);
+          }
+        }
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * 019 T045: Find semantically related nodes using TF-IDF corpus similarity.
+   * Compares query text against all node names and metadata to find related entities.
+   */
+  findRelatedByTfIdf(queryText: string, minSimilarity: number = 0.1): Array<{ id: string; data: GraphNode; similarity: number }> {
+    const corpus: Array<{ id: string; text: string }> = [];
+
+    for (const id of this.graph.nodes()) {
+      const data = this.graph.node(id) as GraphNode;
+      if (!data) continue;
+      // Build text from node name, path, and metadata
+      const parts = [data.name];
+      if (data.path) parts.push(data.path);
+      if (data.metadata) {
+        for (const val of Object.values(data.metadata)) {
+          if (typeof val === 'string') parts.push(val);
+        }
+      }
+      corpus.push({ id, text: parts.join(' ') });
+    }
+
+    if (corpus.length === 0) return [];
+
+    const ranked = computeCorpusSimilarity(queryText, corpus, minSimilarity);
+    return ranked.map(r => ({
+      id: r.id,
+      data: this.graph.node(r.id) as GraphNode,
+      similarity: r.similarity,
+    }));
   }
 
   /**

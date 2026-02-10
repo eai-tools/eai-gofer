@@ -1445,4 +1445,66 @@ describe('ContextHealthStatusBar', () => {
       expect(mockStatusBarItem.tooltip).toContain('No active Claude Code session');
     });
   });
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Session Count [N/3] Display (020 T039-T040)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  describe('session count display (T039, T040)', () => {
+    it('should not show session suffix when count is 0', () => {
+      statusBar.setSessionCount(0);
+      expect(mockStatusBarItem.text).toContain('Context: --');
+      expect(mockStatusBarItem.text).not.toContain('[');
+    });
+
+    it('should show [1/3] when one session is tracked', () => {
+      statusBar.setSessionCount(1);
+      expect(mockStatusBarItem.text).toContain('[1/3]');
+    });
+
+    it('should show [2/3] when two sessions are tracked', () => {
+      statusBar.setSessionCount(2);
+      expect(mockStatusBarItem.text).toContain('[2/3]');
+    });
+
+    it('should show [3/3] when three sessions are tracked', () => {
+      statusBar.setSessionCount(3);
+      expect(mockStatusBarItem.text).toContain('[3/3]');
+    });
+
+    it('should include session count suffix with real data display', () => {
+      statusBar.setSessionCount(2);
+
+      const status = {
+        status: 'healthy',
+        tokensUsed: 50000,
+        tokensLimit: 200000,
+        utilizationPercent: 25,
+        breakdown: {
+          conversation: 50000,
+          specArtifacts: 0,
+          memories: 0,
+          hints: 0,
+          observations: 0,
+          systemFiles: 0,
+        },
+        recommendations: [],
+        timestamp: Date.now(),
+        dataSource: 'real',
+        model: 'claude-opus-4-5-20251101',
+      } as ContextHealthStatus & Record<string, unknown>;
+
+      statusBar.updateDisplay(status);
+
+      expect(mockStatusBarItem.text).toContain('25%');
+      expect(mockStatusBarItem.text).toContain('Opus 4.5');
+      expect(mockStatusBarItem.text).toContain('[2/3]');
+    });
+
+    it('should preserve session count across updateDisplay calls', () => {
+      statusBar.setSessionCount(3);
+      statusBar.updateDisplay(null);
+      expect(mockStatusBarItem.text).toContain('[3/3]');
+    });
+  });
 });

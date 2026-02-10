@@ -11,6 +11,7 @@
 import * as fs from 'fs';
 import * as fsPromises from 'fs/promises';
 import * as path from 'path';
+import * as ts from 'typescript';
 
 /** Result of citation verification for a single memory */
 export interface CitationVerificationResult {
@@ -270,5 +271,109 @@ export class CitationVerifier {
     }
 
     return false;
+  }
+
+  // ── 019 C6: TypeScript AST-based Symbol Extraction ────────────────────
+
+  /**
+   * 019 C6: Extract declared symbols from a TypeScript file using the TypeScript Compiler API.
+   * Parses function, class, interface, type alias, and enum declarations.
+   * Does not require full project compilation — uses ts.createSourceFile().
+   */
+  extractSymbolsWithAST(filePath: string): string[] {
+    try {
+      const content = fs.readFileSync(filePath, 'utf-8');
+      const sourceFile = ts.createSourceFile(
+        path.basename(filePath),
+        content,
+        ts.ScriptTarget.Latest,
+        true,
+      );
+
+      const symbols: string[] = [];
+      const visit = (node: ts.Node): void => {
+        if (ts.isFunctionDeclaration(node) && node.name) {
+          symbols.push(node.name.text);
+        } else if (ts.isClassDeclaration(node) && node.name) {
+          symbols.push(node.name.text);
+        } else if (ts.isInterfaceDeclaration(node) && node.name) {
+          symbols.push(node.name.text);
+        } else if (ts.isTypeAliasDeclaration(node) && node.name) {
+          symbols.push(node.name.text);
+        } else if (ts.isEnumDeclaration(node) && node.name) {
+          symbols.push(node.name.text);
+        } else if (ts.isVariableStatement(node)) {
+          // Capture exported const declarations (e.g., `export const FOO = ...`)
+          for (const decl of node.declarationList.declarations) {
+            if (ts.isIdentifier(decl.name)) {
+              symbols.push(decl.name.text);
+            }
+          }
+        }
+        ts.forEachChild(node, visit);
+      };
+      visit(sourceFile);
+      return symbols;
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * 019 C6: Find a symbol in source files using AST-based extraction.
+   * More reliable than string-includes for symbol verification.
+   */
+  private findSymbolWithAST(symbol: string, dirPath: string, depth: number = 0): boolean {
+    if (depth > 5) return false;
+
+    let entries: fs.Dirent[];
+    try {
+      entries = fs.readdirSync(dirPath, { withFileTypes: true });
+    } catch {
+      return false;
+    }
+
+    for (const entry of entries) {
+      const fullPath = path.join(dirPath, entry.name);
+
+      if (entry.isDirectory()) {
+        if (entry.name.startsWith('.') || entry.name === 'node_modules' || entry.name === 'dist') {
+          continue;
+        }
+        if (this.findSymbolWithAST(symbol, fullPath, depth + 1)) {
+          return true;
+        }
+      } else if (entry.isFile()) {
+        const ext = path.extname(entry.name);
+        if (['.ts', '.tsx'].includes(ext)) {
+          const symbols = this.extractSymbolsWithAST(fullPath);
+          if (symbols.includes(symbol)) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * 019 C6: AST-aware symbol verification (replaces regex-based for TypeScript files).
+   * Falls back to string search for non-TypeScript symbols.
+   */
+  verifyCodeSymbolsWithAST(content: string): string[] {
+    const symbols = this.extractCodeSymbols(content);
+    if (symbols.length === 0) return [];
+
+    const missingSymbols: string[] = [];
+    for (const symbol of symbols) {
+      // Try AST-based lookup first (more reliable for TS)
+      if (!this.findSymbolWithAST(symbol, this.workspaceRoot)) {
+        // Fall back to string search for JS files
+        if (!this.findSymbolInDirectory(symbol, this.workspaceRoot)) {
+          missingSymbols.push(symbol);
+        }
+      }
+    }
+    return missingSymbols;
   }
 }

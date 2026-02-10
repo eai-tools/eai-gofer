@@ -481,6 +481,42 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
                   required: [],
                 },
               },
+              // ── 019: Compound REPL and Test Runner ──
+              {
+                name: 'gofer_context_repl',
+                description: 'Compound context REPL: batch multiple fold/expand/peek operations in a single call to reduce round-trips',
+                parameters: {
+                  type: 'object',
+                  properties: {
+                    operations: {
+                      type: 'array',
+                      description: 'Array of operations to execute sequentially. Each is {op: "fold"|"expand"|"peek"|"fold-all-older-than", target: "section-name", age?: number}',
+                      items: {
+                        type: 'object',
+                      },
+                    },
+                  },
+                  required: ['operations'],
+                },
+              },
+              {
+                name: 'gofer_run_tests',
+                description: 'Detect test framework (vitest/jest/pytest) and run tests with structured result parsing',
+                parameters: {
+                  type: 'object',
+                  properties: {
+                    path: {
+                      type: 'string',
+                      description: 'Test file or directory path (defaults to project root)',
+                    },
+                    filter: {
+                      type: 'string',
+                      description: 'Test name filter pattern',
+                    },
+                  },
+                  required: [],
+                },
+              },
             ],
           },
         },
@@ -800,6 +836,14 @@ connection.onRequest(
 
         case 'gofer_check_slop':
           result = await mcpToolHandler.checkSlop(args.path as string | undefined);
+          break;
+
+        case 'gofer_context_repl':
+          result = await mcpToolHandler.contextRepl(args.operations as Array<Record<string, unknown>>);
+          break;
+
+        case 'gofer_run_tests':
+          result = await mcpToolHandler.runTestsDetect(args.path as string | undefined, args.filter as string | undefined);
           break;
 
         default:

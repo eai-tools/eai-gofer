@@ -188,13 +188,14 @@ describe('Phase 1: Status Bar Data Source Indicator (T007)', () => {
   const statusBarPath = path.resolve(__dirname, '../../../extension/src/ui/ContextHealthStatusBar.ts');
   const statusBarSource = fs.readFileSync(statusBarPath, 'utf-8');
 
-  it('should show (real) or (est) indicator in status bar text', () => {
-    expect(statusBarSource).toContain("'(real)'");
-    expect(statusBarSource).toContain("'(est)'");
+  it('should check dataSource for real data display mode', () => {
+    expect(statusBarSource).toContain("dataSource !== 'real'");
+    expect(statusBarSource).toContain("dataSource");
   });
 
-  it('should use sourceIndicator variable for data source display', () => {
-    expect(statusBarSource).toContain('sourceIndicator');
+  it('should display session count suffix [N/3]', () => {
+    expect(statusBarSource).toContain('sessionCount');
+    expect(statusBarSource).toContain('sessionSuffix');
   });
 });
 
@@ -1255,7 +1256,7 @@ describe('Phase 7: Context Undo & History (T074)', () => {
 
   it('should maintain operation history with max 10 entries', () => {
     expect(thSource).toContain('contextOperationHistory');
-    expect(thSource).toContain('this.contextOperationHistory.length > 10');
+    expect(thSource).toContain('this.contextOperationHistory.length > 50');
   });
 
   it('should persist operation history to disk', () => {

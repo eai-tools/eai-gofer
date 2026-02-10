@@ -69,8 +69,8 @@ export interface ContextUsageLogEntry {
   searchTimeMs?: number;
   memoriesLoaded?: number;
   coveragePercent?: number;
-  source?: 'memory' | 'research' | 'hints';
-  decision?: 'loaded' | 'skipped';
+  source?: 'memory' | 'research' | 'hints' | 'budget-enforcement';
+  decision?: 'loaded' | 'skipped' | 'blocked';
   reason?: string;
   /** T051: Reseed metrics */
   observationsCleared?: number;
@@ -174,8 +174,8 @@ export interface MemoryLoadLogInput {
  */
 export interface LoadingDecisionLogInput {
   sessionId?: string;
-  source: 'memory' | 'research' | 'hints';
-  decision: 'loaded' | 'skipped';
+  source: 'memory' | 'research' | 'hints' | 'budget-enforcement';
+  decision: 'loaded' | 'skipped' | 'blocked';
   reason: string;
   /** Tokens loaded (if decision was 'loaded') */
   tokensLoaded?: number;

@@ -263,6 +263,30 @@ export class MemoryStorage {
   }
 
   /**
+   * 018 T031: Get a memory with full content restored from markdown note if truncated.
+   */
+  async getWithFullContent(id: string): Promise<Memory | null> {
+    const memory = this.get(id);
+    if (!memory) return null;
+
+    // If memory has a notePath and content looks truncated, read from markdown
+    if (memory.notePath && memory.content.endsWith('[see markdown note]')) {
+      const notePath = path.join(this.memoryDir, memory.notePath);
+      try {
+        const mdContent = await fs.readFile(notePath, 'utf-8');
+        // Strip YAML frontmatter if present
+        const frontmatterEnd = mdContent.indexOf('---', 4);
+        const content = frontmatterEnd > 0 ? mdContent.slice(frontmatterEnd + 4).trim() : mdContent;
+        return { ...memory, content };
+      } catch {
+        // Markdown file missing, return JSONL version
+        return memory;
+      }
+    }
+    return memory;
+  }
+
+  /**
    * Query memories with filters. Returns matching memories sorted by priority.
    */
   query(query: MemoryQuery): Memory[] {

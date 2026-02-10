@@ -355,6 +355,95 @@ export class KnowledgeGraph {
   }
 
   // --------------------------------------------------------------------------
+  // 018 T058: AST-aware import extraction
+  // --------------------------------------------------------------------------
+
+  /**
+   * Extract and record import relationships from file content.
+   * Parses import/require statements for TypeScript/JavaScript files.
+   */
+  extractImportsFromContent(filePath: string, content: string): void {
+    const importPatterns = [
+      // ES6: import { foo } from './bar'
+      /import\s+(?:(?:\{[^}]*\}|[\w*]+)\s+from\s+)?['"]([^'"]+)['"]/g,
+      // CommonJS: require('./bar')
+      /require\s*\(\s*['"]([^'"]+)['"]\s*\)/g,
+      // Dynamic import: import('./bar')
+      /import\s*\(\s*['"]([^'"]+)['"]\s*\)/g,
+    ];
+
+    for (const pattern of importPatterns) {
+      let match: RegExpExecArray | null;
+      while ((match = pattern.exec(content)) !== null) {
+        const importPath = match[1];
+        if (importPath) {
+          this.recordImport(filePath, importPath);
+        }
+      }
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // 018 T059: Entity deduplication
+  // --------------------------------------------------------------------------
+
+  /**
+   * Deduplicate graph nodes that represent the same entity.
+   * Merges nodes with matching names but different IDs (e.g., file:./foo and file:foo).
+   */
+  deduplicateEntities(): number {
+    const nodesByName = new Map<string, string[]>();
+
+    for (const id of this.graph.nodes()) {
+      const data = this.graph.node(id) as GraphNode;
+      if (!data) continue;
+      const key = `${data.type}:${data.name}`;
+      const existing = nodesByName.get(key) || [];
+      existing.push(id);
+      nodesByName.set(key, existing);
+    }
+
+    let mergedCount = 0;
+    for (const [, ids] of nodesByName) {
+      if (ids.length <= 1) continue;
+
+      // Keep the node with the most recent lastSeen
+      const sorted = ids.map(id => ({
+        id,
+        data: this.graph.node(id) as GraphNode,
+      })).sort((a, b) => (b.data?.lastSeen ?? 0) - (a.data?.lastSeen ?? 0));
+
+      const primary = sorted[0].id;
+
+      // Merge edges from duplicates into primary
+      for (let i = 1; i < sorted.length; i++) {
+        const dupId = sorted[i].id;
+        // Redirect inbound edges
+        for (const edge of this.graph.inEdges(dupId) || []) {
+          const edgeData = this.graph.edge(edge.v, edge.w) as GraphEdge;
+          if (!this.graph.hasEdge(edge.v, primary)) {
+            this.graph.setEdge(edge.v, primary, edgeData);
+          }
+        }
+        // Redirect outbound edges
+        for (const edge of this.graph.outEdges(dupId) || []) {
+          const edgeData = this.graph.edge(edge.v, edge.w) as GraphEdge;
+          if (!this.graph.hasEdge(primary, edge.w)) {
+            this.graph.setEdge(primary, edge.w, edgeData);
+          }
+        }
+        this.graph.removeNode(dupId);
+        mergedCount++;
+      }
+    }
+
+    if (mergedCount > 0) {
+      this.dirty = true;
+    }
+    return mergedCount;
+  }
+
+  // --------------------------------------------------------------------------
   // LRU Eviction
   // --------------------------------------------------------------------------
 

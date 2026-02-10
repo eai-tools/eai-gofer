@@ -9,6 +9,7 @@
  */
 
 import * as fs from 'fs';
+import * as fsPromises from 'fs/promises';
 import * as path from 'path';
 
 /** Result of citation verification for a single memory */
@@ -151,6 +152,44 @@ export class CitationVerifier {
   }
 
   /**
+   * 018 T035: Async version of verifyCodeSymbols for non-blocking operation.
+   */
+  async verifyCodeSymbolsAsync(content: string): Promise<string[]> {
+    const symbols = this.extractCodeSymbols(content);
+    if (symbols.length === 0) return [];
+
+    const missingSymbols: string[] = [];
+    for (const symbol of symbols) {
+      const found = await this.findSymbolInDirectoryAsync(symbol, this.workspaceRoot);
+      if (!found) {
+        missingSymbols.push(symbol);
+      }
+    }
+    return missingSymbols;
+  }
+
+  /**
+   * 018 T037: Add [STALE] prefix to content with stale code symbol citations.
+   */
+  addSymbolStalenessWarnings(content: string, missingSymbols: string[]): string {
+    if (missingSymbols.length === 0) return content;
+    let result = content;
+    for (const symbol of missingSymbols) {
+      // Add [STALE] prefix before backtick-quoted symbols
+      result = result.replace(new RegExp('`' + symbol.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '`', 'g'), `[STALE] \`${symbol}\``);
+    }
+    return result;
+  }
+
+  /**
+   * 018 T036: Resolve relative file paths in citations.
+   */
+  resolveRelativePath(filePath: string): string {
+    if (path.isAbsolute(filePath)) return filePath;
+    return path.resolve(this.workspaceRoot, filePath);
+  }
+
+  /**
    * Recursively search directory for a symbol name in source files.
    * Returns true on first match (short-circuits).
    */
@@ -179,6 +218,47 @@ export class CitationVerifier {
         if (['.ts', '.tsx', '.js', '.jsx'].includes(ext)) {
           try {
             const content = fs.readFileSync(fullPath, 'utf-8');
+            if (content.includes(symbol)) {
+              return true;
+            }
+          } catch {
+            // Skip unreadable files
+          }
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * 018 T035: Async version of findSymbolInDirectory.
+   */
+  private async findSymbolInDirectoryAsync(symbol: string, dirPath: string, depth: number = 0): Promise<boolean> {
+    if (depth > 5) return false;
+
+    let entries: fs.Dirent[];
+    try {
+      entries = await fsPromises.readdir(dirPath, { withFileTypes: true });
+    } catch {
+      return false;
+    }
+
+    for (const entry of entries) {
+      const fullPath = path.join(dirPath, entry.name);
+
+      if (entry.isDirectory()) {
+        if (entry.name.startsWith('.') || entry.name === 'node_modules' || entry.name === 'dist') {
+          continue;
+        }
+        if (await this.findSymbolInDirectoryAsync(symbol, fullPath, depth + 1)) {
+          return true;
+        }
+      } else if (entry.isFile()) {
+        const ext = path.extname(entry.name);
+        if (['.ts', '.tsx', '.js', '.jsx'].includes(ext)) {
+          try {
+            const content = await fsPromises.readFile(fullPath, 'utf-8');
             if (content.includes(symbol)) {
               return true;
             }

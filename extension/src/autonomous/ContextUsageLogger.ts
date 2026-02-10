@@ -628,4 +628,44 @@ export class ContextUsageLogger {
     this.initialized = false; // Re-check directory on next write
     this.logger.debug('Configuration updated', { config });
   }
+
+  /**
+   * 018 T072: Log an LLM call with token usage.
+   */
+  async logLLMCall(sessionId: string, stage: string, inputTokens: number, outputTokens: number): Promise<void> {
+    const entry: ContextUsageLogEntry = {
+      timestamp: new Date().toISOString(),
+      sessionId,
+      stage,
+      status: 'healthy',
+      tokensUsed: inputTokens + outputTokens,
+      tokensLimit: 120000,
+      utilizationPercent: 0,
+      eventType: 'llm_call',
+      llmInputTokens: inputTokens,
+      llmOutputTokens: outputTokens,
+    };
+    await this.log(entry);
+  }
+
+  /**
+   * 018 T073: Aggregate costs per stage from the log.
+   */
+  async aggregateCostsByStage(): Promise<Map<string, { calls: number; inputTokens: number; outputTokens: number; totalTokens: number }>> {
+    const entries = await this.readLog();
+    const costs = new Map<string, { calls: number; inputTokens: number; outputTokens: number; totalTokens: number }>();
+
+    for (const entry of entries) {
+      if (entry.eventType !== 'llm_call' && entry.eventType !== 'health_check') continue;
+      const stage = entry.stage || 'unknown';
+      const current = costs.get(stage) || { calls: 0, inputTokens: 0, outputTokens: 0, totalTokens: 0 };
+      current.calls++;
+      current.inputTokens += entry.llmInputTokens || 0;
+      current.outputTokens += entry.llmOutputTokens || 0;
+      current.totalTokens += (entry.llmInputTokens || 0) + (entry.llmOutputTokens || 0);
+      costs.set(stage, current);
+    }
+
+    return costs;
+  }
 }

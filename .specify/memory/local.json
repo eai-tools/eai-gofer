@@ -30,6 +30,36 @@
       "lastUsed": 1770597177201,
       "usedCount": 0,
       "learnedFrom": "session:39562c3b-32d5-4b63-b2a5-399d85cc7149"
+    },
+    {
+      "id": "3439049e-c4c8-41c6-a08d-513516562784",
+      "category": "pattern",
+      "tags": [
+        "#auto-learned",
+        "#pattern",
+        "#session-e33c0734"
+      ],
+      "scope": "local",
+      "content": "**How**: Extend the current Task-based agent architecture:\n\n| Agent | Reviews | Blocks Merge If |",
+      "created": 1770670728996,
+      "lastUsed": 1770670728996,
+      "usedCount": 0,
+      "learnedFrom": "session:e33c0734-f796-426e-ad8c-c7a145546046"
+    },
+    {
+      "id": "bc04faa5-0f25-4c74-bdcf-5562d721d919",
+      "category": "file_knowledge",
+      "tags": [
+        "#auto-learned",
+        "#files",
+        "#session-e33c0734"
+      ],
+      "scope": "local",
+      "content": "- .specify/logs/validation-findings.jsonl (1 finding logged)",
+      "created": 1770691095388,
+      "lastUsed": 1770691095388,
+      "usedCount": 0,
+      "learnedFrom": "session:e33c0734-f796-426e-ad8c-c7a145546046"
     }
   ]
 }

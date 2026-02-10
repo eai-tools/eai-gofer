@@ -101,7 +101,7 @@ automatically chain through all stages:
 │     Execute tasks phase by phase                                 │
 │                         ↓ AUTO                                   │
 │  6. /6_gofer_validate    → validation-report.md                 │
-│     Verify implementation matches plan and spec                  │
+│     10-category rubric (100pts), 6 specialist agents, brownfield│
 │                                                                  │
 │  All artifacts go to: .specify/specs/{feature}/                 │
 └─────────────────────────────────────────────────────────────────┘
@@ -148,6 +148,24 @@ research:
 | `codebase-locator`        | Finds WHERE code lives   | Grep, Glob, LS       |
 | `codebase-analyzer`       | Explains HOW code works  | Read, Grep, Glob, LS |
 | `codebase-pattern-finder` | Shows EXAMPLES to follow | Grep, Glob, Read, LS |
+
+### Validation Engineering Rubric
+
+The `/6_gofer_validate` command uses a **10-category engineering quality rubric**
+scored out of 100 points. Six specialist validation agents run in parallel:
+
+| Agent | Focus | Blocks If |
+|-------|-------|-----------|
+| `validation-correctness` | Spec compliance, acceptance criteria | Any criterion unmet |
+| `validation-security` | Secrets, auth bypass, vulnerabilities | Any Red finding |
+| `validation-performance` | Sync I/O, complexity, unbounded ops | Complexity > 12 |
+| `validation-test-quality` | Placeholders, skips, mock ratio | Mock ratio > 30% |
+| `validation-integration` | Contracts, boundaries, dependencies | Contract violation |
+| `validation-standards` | Constitution, patterns, AI slop | Pattern deviation |
+
+Score < 100 triggers a **brownfield restart loop** (max 3 iterations) that
+generates a remediation report and re-enters the pipeline focused on failed
+categories. All findings are logged to `.specify/logs/validation-findings.jsonl`.
 
 ### Journey Mapping and Sequence Diagrams
 

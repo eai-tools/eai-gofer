@@ -26,6 +26,10 @@ export interface DelegationRecommendation {
   utilizationPercent: number;
   /** Timestamp when recommendation was generated */
   timestamp: number;
+  /** 018 T046: Token budget for sub-agent result truncation */
+  tokenBudget: number;
+  /** 018 T045: Enforcement level — advisory (suggest), warning (alert), blocking (require) */
+  enforcement: 'advisory' | 'warning' | 'blocking';
 }
 
 /**
@@ -51,24 +55,32 @@ const DELEGATION_MAP: Array<{
   agentType: string;
   taskCategory: string;
   reason: string;
+  tokenBudget: number;
+  enforcement: 'advisory' | 'warning' | 'blocking';
 }> = [
   {
     minUtilization: 0.5,
     agentType: 'codebase-locator',
     taskCategory: 'file search',
     reason: 'Consider delegating file search to a codebase-locator sub-agent via the Task tool to keep main context lean.',
+    tokenBudget: 2000,
+    enforcement: 'advisory',
   },
   {
     minUtilization: 0.6,
     agentType: 'codebase-analyzer',
     taskCategory: 'code analysis',
     reason: 'Context usage is high. Delegate deep code analysis to a codebase-analyzer sub-agent to reduce main context load.',
+    tokenBudget: 1500,
+    enforcement: 'warning',
   },
   {
     minUtilization: 0.7,
     agentType: 'codebase-pattern-finder',
     taskCategory: 'pattern exploration',
     reason: 'Context approaching critical. Use codebase-pattern-finder sub-agent for exploratory searches instead of main context.',
+    tokenBudget: 1000,
+    enforcement: 'blocking',
   },
 ];
 
@@ -115,6 +127,8 @@ export class SubAgentDispatcher {
       reason: `Context at ${utilizationPercent.toFixed(0)}%. ${bestMatch.reason}`,
       utilizationPercent,
       timestamp: Date.now(),
+      tokenBudget: bestMatch.tokenBudget,
+      enforcement: bestMatch.enforcement,
     };
 
     // Log to JSONL (fire-and-forget)
@@ -137,16 +151,37 @@ export class SubAgentDispatcher {
     }
 
     const rec = this.currentRecommendation;
+    // Maps enforcement to heading: advisory → "## Delegation Advisory", warning → "## Delegation Warning", blocking → "## Delegation REQUIRED"
+    const enforcementLabel = rec.enforcement === 'blocking' ? 'REQUIRED' : rec.enforcement === 'warning' ? 'Warning' : 'Advisory';
     return [
-      `## Delegation Advisory`,
+      `## Delegation ${enforcementLabel}`,
       '',
       `**Context utilization**: ${rec.utilizationPercent.toFixed(0)}%`,
+      `**Enforcement**: ${rec.enforcement}`,
       `**Recommended action**: Use \`${rec.agentType}\` sub-agent for ${rec.taskCategory}`,
+      `**Token budget**: ${rec.tokenBudget} tokens per sub-agent result`,
       '',
       rec.reason,
       '',
       `> Use the Task tool with subagent_type="${rec.agentType}" to delegate work and keep the main context window lean.`,
     ].join('\n');
+  }
+
+  /**
+   * 018 T047: Truncate sub-agent result to fit within the current token budget.
+   * Preserves the first and last portions of the result for maximum usefulness.
+   */
+  truncateResult(result: string, maxTokens?: number): string {
+    const budget = maxTokens ?? this.currentRecommendation?.tokenBudget ?? 2000;
+    const maxChars = budget * 4; // ~4 chars per token
+    if (result.length <= maxChars) return result;
+
+    const headSize = Math.floor(maxChars * 0.7);
+    const tailSize = Math.floor(maxChars * 0.2);
+    const head = result.slice(0, headSize);
+    const tail = result.slice(-tailSize);
+    const truncatedChars = result.length - headSize - tailSize;
+    return `${head}\n\n[...truncated ${truncatedChars} chars (${Math.ceil(truncatedChars / 4)} tokens)...]\n\n${tail}`;
   }
 
   private async logRecommendation(rec: DelegationRecommendation): Promise<void> {

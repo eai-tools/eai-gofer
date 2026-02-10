@@ -9,7 +9,8 @@
  *
  * stdin: JSON with { tool_name, session_id, transcript_path, tool_input?, tool_response?, tool_use_id? }
  * stdout: (none — PostToolUse hooks don't produce output)
- * Bridge: .specify/hooks/context-bridge.json
+ * Bridge: .specify/hooks/context-bridge-{sessionId}.json (per-session)
+ * Legacy: .specify/hooks/context-bridge.json (backward compat)
  * Observations: .specify/hooks/observations/{uuid}.json
  */
 
@@ -18,7 +19,8 @@ import { join, dirname } from 'path';
 import { randomUUID } from 'crypto';
 
 const PROJECT_DIR = process.env.CLAUDE_PROJECT_DIR || process.cwd();
-const BRIDGE_PATH = join(PROJECT_DIR, '.specify', 'hooks', 'context-bridge.json');
+const HOOKS_DIR = join(PROJECT_DIR, '.specify', 'hooks');
+const BRIDGE_PATH = join(HOOKS_DIR, 'context-bridge.json');
 const OBSERVATIONS_DIR = join(PROJECT_DIR, '.specify', 'hooks', 'observations');
 const DEBUG_LOG = join(PROJECT_DIR, '.specify', 'hooks', 'hook-debug.log');
 const TAIL_BYTES = 20 * 1024; // Read last 20KB of transcript
@@ -155,13 +157,27 @@ function writeObservation(id, toolName, toolInput, toolResponse) {
   }
 }
 
+function atomicWrite(filePath, data) {
+  mkdirSync(dirname(filePath), { recursive: true });
+  const tmpPath = filePath + '.tmp';
+  writeFileSync(tmpPath, JSON.stringify(data, null, 2));
+  renameSync(tmpPath, filePath);
+}
+
 function writeBridge(data) {
   try {
-    mkdirSync(dirname(BRIDGE_PATH), { recursive: true });
-    const tmpPath = BRIDGE_PATH + '.tmp';
-    writeFileSync(tmpPath, JSON.stringify(data, null, 2));
-    renameSync(tmpPath, BRIDGE_PATH);
-    debug(`Bridge written: session=${data.sessionId}, tool=${data.lastToolUse?.toolName}, obsId=${data.lastToolUse?.observationId || 'none'}`);
+    // Write per-session bridge file if sessionId is present
+    if (data.sessionId) {
+      // Sanitize sessionId to prevent path traversal
+      const safeSessionId = data.sessionId.replace(/[^a-zA-Z0-9_-]/g, '');
+      const perSessionPath = join(HOOKS_DIR, `context-bridge-${safeSessionId}.json`);
+      atomicWrite(perSessionPath, data);
+      debug(`Per-session bridge written: session=${data.sessionId}, path=${perSessionPath}`);
+    }
+
+    // Always write legacy bridge file for backward compat
+    atomicWrite(BRIDGE_PATH, data);
+    debug(`Legacy bridge written: session=${data.sessionId}, tool=${data.lastToolUse?.toolName}, obsId=${data.lastToolUse?.observationId || 'none'}`);
   } catch (err) {
     debug(`Bridge write error: ${err.message}`);
     process.stderr.write(`[post-tool-use] bridge write error: ${err.message}\n`);

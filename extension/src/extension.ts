@@ -4,6 +4,7 @@ import { GoferMigrator } from './goferMigrator';
 import { ProgressProvider } from './progressProvider';
 import { ConstitutionProvider } from './constitutionProvider';
 import { MemoryProvider } from './memoryProvider';
+import { ContextWindowProvider } from './contextWindowProvider';
 import { BranchSpecManager } from './branchSpecManager';
 import { AutoUpdater } from './autoUpdater';
 import { GoferLSPClient } from './lspClient';
@@ -34,6 +35,7 @@ import { ContextCompactor } from './autonomous/ContextCompactor';
 import { SubAgentDispatcher } from './autonomous/SubAgentDispatcher';
 // Hook-based monitoring
 import { HookBridgeWatcher, BridgeData } from './autonomous/HookBridgeWatcher';
+import { MultiSessionBridgeWatcher } from './autonomous/MultiSessionBridgeWatcher';
 import { GoferActivityStatusBar } from './ui/GoferActivityStatusBar';
 // Note: stopClaudeCode is imported dynamically in deactivate() to avoid
 // blocking extension activation if node-pty fails to load
@@ -52,6 +54,7 @@ import { GoferActivityStatusBar } from './ui/GoferActivityStatusBar';
 let progressProvider: ProgressProvider | undefined;
 let constitutionProvider: ConstitutionProvider | undefined;
 let memoryProvider: MemoryProvider | undefined;
+let contextWindowProvider: ContextWindowProvider | undefined;
 let branchSpecManager: BranchSpecManager | undefined;
 let autoUpdater: AutoUpdater | undefined;
 let lspClient: GoferLSPClient | undefined;
@@ -67,6 +70,7 @@ let continuousMemoryWriter: ContinuousMemoryWriter | undefined;
 let memoryHookManager: MemoryHookManager | undefined;
 // Hook-based monitoring
 let hookBridgeWatcher: HookBridgeWatcher | undefined;
+let multiSessionWatcher: MultiSessionBridgeWatcher | undefined;
 let goferActivityStatusBar: GoferActivityStatusBar | undefined;
 // 018: Module-level references for deactivate cleanup
 let cacheSaveTimerRef: ReturnType<typeof setTimeout> | null = null;
@@ -168,14 +172,17 @@ function registerTreeViews(context: vscode.ExtensionContext) {
   progressProvider = new ProgressProvider(workspacePath, undefined);
   constitutionProvider = new ConstitutionProvider(workspacePath);
   memoryProvider = new MemoryProvider(workspacePath);
+  contextWindowProvider = new ContextWindowProvider(workspacePath);
 
   // Register tree data providers - MUST happen before commands are registered
   context.subscriptions.push(
     vscode.window.registerTreeDataProvider('goferProgress', progressProvider)
   );
 
+  // Context Window replaces Constitution as a sidebar panel (020)
+  // Constitution remains accessible via Command Palette (gofer.showConstitution)
   context.subscriptions.push(
-    vscode.window.registerTreeDataProvider('goferConstitution', constitutionProvider)
+    vscode.window.registerTreeDataProvider('goferContextWindow', contextWindowProvider)
   );
 
   context.subscriptions.push(vscode.window.registerTreeDataProvider('goferMemory', memoryProvider));
@@ -379,28 +386,63 @@ function initializeContextHealthMonitoring(workspacePath: string): void {
     const sessionReader = new ClaudeSessionReader(workspacePath);
     contextProvider.setSessionReader(sessionReader);
 
-    // Wire HookBridgeWatcher for event-driven context data (Priority 1)
+    // Wire MultiSessionBridgeWatcher for multi-session context data (020)
+    multiSessionWatcher = new MultiSessionBridgeWatcher(workspacePath);
+    contextProvider.setHookBridgeWatcher(multiSessionWatcher);
+    multiSessionWatcher.start();
+
+    // Also keep legacy HookBridgeWatcher reference for GoferActivityStatusBar
     hookBridgeWatcher = new HookBridgeWatcher(workspacePath);
-    contextProvider.setHookBridgeWatcher(hookBridgeWatcher);
     hookBridgeWatcher.start();
 
-    // Create GoferActivityStatusBar driven by hook bridge
+    // Create GoferActivityStatusBar driven by legacy hook bridge
     goferActivityStatusBar = new GoferActivityStatusBar(hookBridgeWatcher);
     goferActivityStatusBar.show();
 
-    // On bridge update, trigger immediate health check
-    hookBridgeWatcher.on('bridge-update', () => {
+    // T044: Connect ContextWindowProvider to MultiSessionBridgeWatcher
+    if (contextWindowProvider) {
+      contextWindowProvider.setWatcher(multiSessionWatcher);
+    }
+
+    // T046: Wire session-update event to update status bar session count
+    multiSessionWatcher.on('session-update', () => {
+      if (contextHealthStatusBar && multiSessionWatcher) {
+        contextHealthStatusBar.setSessionCount(multiSessionWatcher.getSessionCount());
+      }
+    });
+
+    multiSessionWatcher.on('session-added', () => {
+      if (contextHealthStatusBar && multiSessionWatcher) {
+        contextHealthStatusBar.setSessionCount(multiSessionWatcher.getSessionCount());
+      }
+    });
+
+    multiSessionWatcher.on('session-removed', () => {
+      if (contextHealthStatusBar && multiSessionWatcher) {
+        contextHealthStatusBar.setSessionCount(multiSessionWatcher.getSessionCount());
+      }
+    });
+
+    // T043: Wire session-limit-reached to info notification
+    multiSessionWatcher.on('session-limit-reached', (payload: { evictedSessionId: string; newSessionId: string }) => {
+      vscode.window.showInformationMessage(
+        `Gofer tracks up to 3 Claude Code sessions. Session ${payload.evictedSessionId.substring(0, 8)} was evicted to make room for ${payload.newSessionId.substring(0, 8)}.`
+      );
+    });
+
+    // On bridge update (legacy event from focused session), trigger immediate health check
+    multiSessionWatcher.on('bridge-update', () => {
       contextHealthMonitor?.checkHealth();
     });
 
     // On session start from hooks, slow polling (hooks handle real-time updates)
-    hookBridgeWatcher.on('session-start', () => {
+    multiSessionWatcher.on('session-start', () => {
       contextHealthMonitor?.startMonitoring(60000);
       console.log('[Gofer] Hooks active — polling slowed to 60s');
     });
 
     // On stale bridge, speed up polling as fallback
-    hookBridgeWatcher.on('session-stale', () => {
+    multiSessionWatcher.on('session-stale', () => {
       contextHealthMonitor?.startMonitoring(10000);
       console.log('[Gofer] Hook bridge stale — polling restored to 10s');
     });
@@ -410,7 +452,7 @@ function initializeContextHealthMonitoring(workspacePath: string): void {
     // Run initial health check and start periodic monitoring
     // Use 10s interval when active session detected, 30s otherwise (Spec 014 T040)
     contextHealthMonitor.checkHealth();
-    const hookDataAvailable = hookBridgeWatcher.isHookDataAvailable();
+    const hookDataAvailable = multiSessionWatcher.isHookDataAvailable();
     const activeSession = sessionReader.findActiveSession();
     const pollingInterval = hookDataAvailable ? 60000 : activeSession ? 10000 : 30000;
     contextHealthMonitor.startMonitoring(pollingInterval);
@@ -809,10 +851,19 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
     })
   );
 
-  // Show constitution panel
+  // Show constitution (opens file directly since panel was replaced by Context Window in 020)
   context.subscriptions.push(
-    vscode.commands.registerCommand('gofer.showConstitution', () => {
-      vscode.commands.executeCommand('goferConstitution.focus');
+    vscode.commands.registerCommand('gofer.showConstitution', async () => {
+      const workspacePath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+      if (workspacePath) {
+        const constitutionPath = path.join(workspacePath, '.specify', 'memory', 'constitution.md');
+        try {
+          const uri = vscode.Uri.file(constitutionPath);
+          await vscode.commands.executeCommand('markdown.showPreview', uri);
+        } catch {
+          vscode.window.showWarningMessage('Constitution file not found');
+        }
+      }
     })
   );
 
@@ -856,6 +907,15 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
         constitutionProvider.refresh();
       } else {
         vscode.window.showWarningMessage('No workspace with Gofer initialized');
+      }
+    })
+  );
+
+  // Refresh context window (020)
+  context.subscriptions.push(
+    vscode.commands.registerCommand('gofer.refreshContextWindow', () => {
+      if (contextWindowProvider) {
+        contextWindowProvider.refresh();
       }
     })
   );
@@ -1375,6 +1435,10 @@ created: "${new Date().toISOString().split('T')[0]}"
     memoryManager.setUsageLogger(contextUsageLogger);
   }
   registerMemoryCommands(context, memoryManager);
+  // T045: Connect MemoryProvider to MemoryManager via setMemoryManager()
+  if (memoryProvider) {
+    memoryProvider.setMemoryManager(memoryManager);
+  }
   console.log('[Gofer] Memory commands registered (JSONL backend)');
 
   // T022: Read user-configured preserve patterns from VSCode settings
@@ -1632,6 +1696,78 @@ created: "${new Date().toISOString().split('T')[0]}"
     });
   }
 
+  // 019 T057: Slop diagnostics collection
+  const slopDiagnostics = vscode.languages.createDiagnosticCollection('gofer-slop');
+  context.subscriptions.push(slopDiagnostics);
+
+  /**
+   * 019 T056-T058: Surface slop results via notification, diagnostics, and JSONL log.
+   */
+  const surfaceSlopResults = (report: ReturnType<SlopDetector['scanDirectory']>): void => {
+    if (report.totalIssues === 0) return;
+
+    // T056: Show VSCode information notification
+    const errorCount = report.matches.filter(m => m.severity === 'error').length;
+    const warnCount = report.matches.filter(m => m.severity === 'warning').length;
+    const severity = errorCount > 0 ? 'error' : 'warning';
+    const msg = `Slop detected: ${report.totalIssues} issues (${errorCount} errors, ${warnCount} warnings)`;
+    if (severity === 'error') {
+      vscode.window.showWarningMessage(msg, 'View Details').then(choice => {
+        if (choice === 'View Details') {
+          vscode.commands.executeCommand('gofer.checkForSlop');
+        }
+      });
+    } else {
+      vscode.window.showInformationMessage(msg);
+    }
+
+    // T057: Add slop findings to VSCode diagnostics collection
+    const diagMap = new Map<string, vscode.Diagnostic[]>();
+    for (const match of report.matches.slice(0, 100)) {
+      const uri = match.file;
+      const diags = diagMap.get(uri) || [];
+      const diagSeverity = match.severity === 'error'
+        ? vscode.DiagnosticSeverity.Error
+        : match.severity === 'warning'
+          ? vscode.DiagnosticSeverity.Warning
+          : vscode.DiagnosticSeverity.Information;
+      const diag = new vscode.Diagnostic(
+        new vscode.Range(Math.max(0, match.line - 1), 0, Math.max(0, match.line - 1), 200),
+        `[${match.pattern}] ${match.message}`,
+        diagSeverity
+      );
+      diag.source = 'Gofer Slop';
+      diags.push(diag);
+      diagMap.set(uri, diags);
+    }
+    slopDiagnostics.clear();
+    for (const [file, diags] of diagMap) {
+      try {
+        slopDiagnostics.set(vscode.Uri.file(file), diags);
+      } catch {
+        // Non-fatal
+      }
+    }
+
+    // T058: Log scan history to JSONL
+    try {
+      const logDir = path.join(workspacePath, '.specify', 'logs');
+      const logPath = path.join(logDir, 'slop-scan.jsonl');
+      require('fs').mkdirSync(logDir, { recursive: true });
+      const entry = {
+        timestamp: new Date().toISOString(),
+        filesScanned: report.filesScanned,
+        totalIssues: report.totalIssues,
+        errorCount,
+        warnCount,
+        patterns: [...new Set(report.matches.map(m => m.pattern))],
+      };
+      require('fs').appendFileSync(logPath, JSON.stringify(entry) + '\n');
+    } catch {
+      // Best-effort logging
+    }
+  };
+
   // 018 T068: Auto-trigger slop detection on task completion (checkbox change in tasks.md)
   if (hookBridgeWatcher) {
     let lastTaskCheckCount = 0;
@@ -1652,6 +1788,7 @@ created: "${new Date().toISOString().split('T')[0]}"
             const report = slopDetector.scanDirectory(srcDir, 100);
             if (report.totalIssues > 0) {
               console.log(`[Gofer] Auto-slop check: ${report.totalIssues} issues found after task completion`);
+              surfaceSlopResults(report);
             }
           }
         } catch {
@@ -2018,6 +2155,59 @@ created: "${new Date().toISOString().split('T')[0]}"
     console.warn('[Gofer] Failed to set up research watcher:', error);
   }
 
+  // 019 T068-T070: Auto-resume on activation — detect recent checkpoint (<24h)
+  try {
+    const handoffDir = path.join(workspacePath, '.specify', 'state', 'sessions');
+    const fsSync = require('fs') as typeof import('fs');
+    if (fsSync.existsSync(handoffDir)) {
+      const files = fsSync.readdirSync(handoffDir).filter((f: string) => f.endsWith('.md') || f.endsWith('.json'));
+      const now = Date.now();
+      const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
+
+      for (const file of files.sort().reverse()) {
+        const filePath = path.join(handoffDir, file);
+        try {
+          const stat = fsSync.statSync(filePath);
+          if (now - stat.mtimeMs < TWENTY_FOUR_HOURS) {
+            // Found a recent checkpoint
+            const content = fsSync.readFileSync(filePath, 'utf-8');
+            // Extract feature name and stage from frontmatter
+            const featureMatch = content.match(/feature:\s*['"]?([^'"\n]+)/);
+            const stageMatch = content.match(/stage:\s*['"]?([^'"\n]+)/);
+            const featureName = featureMatch?.[1] || 'Unknown feature';
+            const stage = stageMatch?.[1] || 'unknown';
+
+            vscode.window.showInformationMessage(
+              `Resume "${featureName}" (${stage} stage)?`,
+              'Resume',
+              'Dismiss'
+            ).then(choice => {
+              if (choice === 'Resume') {
+                // Invoke appropriate pipeline command
+                const stageCommands: Record<string, string> = {
+                  research: '1_gofer_research',
+                  specify: '2_gofer_specify',
+                  plan: '3_gofer_plan',
+                  tasks: '4_gofer_tasks',
+                  implement: '5_gofer_implement',
+                  validate: '6_gofer_validate',
+                };
+                const command = stageCommands[stage] || '8_gofer_resume';
+                vscode.commands.executeCommand('gofer.launchClaudeCode', `/${command}`);
+              }
+            });
+
+            break; // Only show for the most recent checkpoint
+          }
+        } catch {
+          // Skip unreadable files
+        }
+      }
+    }
+  } catch {
+    // Non-fatal: auto-resume is best-effort
+  }
+
   // Note: Tree view detail commands (showSpecDetails, showMemoryDocument, etc.)
   // are now registered globally in registerGlobalCommands() since tree views
   // are registered globally and can be clicked before workspace initialization
@@ -2102,6 +2292,11 @@ export async function deactivate() {
     // Ignore cleanup errors during deactivation
   }
 
+  if (multiSessionWatcher) {
+    multiSessionWatcher.dispose();
+    multiSessionWatcher = undefined;
+    console.log('MultiSessionBridgeWatcher disposed');
+  }
   if (hookBridgeWatcher) {
     hookBridgeWatcher.dispose();
     hookBridgeWatcher = undefined;

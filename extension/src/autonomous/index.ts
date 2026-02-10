@@ -42,6 +42,7 @@ export type {
 } from './MemoryHookManager';
 export { HookBridgeWatcher } from './HookBridgeWatcher';
 export type { BridgeData } from './HookBridgeWatcher';
+export { MultiSessionBridgeWatcher } from './MultiSessionBridgeWatcher';
 export { ContextUsageLogger } from './ContextUsageLogger';
 export type {
   ContextUsageLogEntry,

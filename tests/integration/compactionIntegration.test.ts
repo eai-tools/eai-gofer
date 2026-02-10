@@ -185,7 +185,7 @@ describe('Context Compaction Integration Tests', () => {
       const summary = await compactor.summarizeTasks(tasks.slice(0, 10), strategy);
 
       // Summary should mention file modifications
-      expect(summary).toContain('files');
+      expect(summary).toContain('Files modified');
       expect(summary).toContain('Completed');
     });
 

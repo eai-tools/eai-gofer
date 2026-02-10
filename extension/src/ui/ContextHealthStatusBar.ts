@@ -108,6 +108,7 @@ export class ContextHealthStatusBar implements vscode.Disposable {
   private monitor: ContextHealthMonitor | null = null;
   private maskingStats: MaskingStatistics | null = null;
   private stageProfileUsage: StageProfileUsage | null = null;
+  private sessionCount: number = 0;
 
   /**
    * Creates a new ContextHealthStatusBar instance.
@@ -195,10 +196,21 @@ export class ContextHealthStatusBar implements vscode.Disposable {
   }
 
   /**
+   * T040: Updates the session count displayed in the status bar suffix.
+   *
+   * @param count - Number of tracked sessions (0-3)
+   */
+  setSessionCount(count: number): void {
+    this.sessionCount = count;
+    // Re-render with the current status to update the suffix
+    this.updateDisplay(this.currentStatus);
+  }
+
+  /**
    * Manually updates the status bar with new health status.
    * Supports three display modes:
-   * - Real data: "Context: 54% (Opus)" with health colors
-   * - No session: "Context: No session" in neutral color
+   * - Real data: "Context: 54% (Opus) [N/3]" with health colors
+   * - No session: "Context: --" in neutral color
    * - Estimated/no data: "Context: N%" or "Context: --"
    *
    * @param status - Context health status or null for no data
@@ -206,8 +218,10 @@ export class ContextHealthStatusBar implements vscode.Disposable {
   updateDisplay(status: ContextHealthStatus | null): void {
     this.currentStatus = status;
 
+    const sessionSuffix = this.sessionCount > 0 ? ` [${this.sessionCount}/3]` : '';
+
     if (!status) {
-      this.statusBarItem.text = '$(pulse) Context: --';
+      this.statusBarItem.text = `$(pulse) Context: --${sessionSuffix}`;
       this.statusBarItem.backgroundColor = undefined;
       this.statusBarItem.color = undefined;
       this.statusBarItem.tooltip = 'Context health monitoring not active';
@@ -220,7 +234,7 @@ export class ContextHealthStatusBar implements vscode.Disposable {
 
     // T027: No-session or estimated-only display mode
     if (dataSource !== 'real') {
-      this.statusBarItem.text = '$(pulse) Context: --';
+      this.statusBarItem.text = `$(pulse) Context: --${sessionSuffix}`;
       this.statusBarItem.color = new vscode.ThemeColor('disabledForeground');
       this.statusBarItem.backgroundColor = undefined;
       this.statusBarItem.tooltip =
@@ -231,13 +245,12 @@ export class ContextHealthStatusBar implements vscode.Disposable {
     const icon = STATUS_ICONS[status.status];
     const percent = Math.round(status.utilizationPercent);
 
-    // T026: Real data mode — show model name; T007: data-source indicator
-    const sourceIndicator = dataSource === 'real' ? '(real)' : '(est)';
-    if (dataSource === 'real' && model) {
+    // T026: Real data mode — show model name
+    if (model) {
       const shortModel = this.getShortModelName(model);
-      this.statusBarItem.text = `${icon} Context: ${percent}% ${sourceIndicator} (${shortModel})`;
+      this.statusBarItem.text = `${icon} Context: ${percent}% (${shortModel})${sessionSuffix}`;
     } else {
-      this.statusBarItem.text = `${icon} Context: ${percent}% ${sourceIndicator}`;
+      this.statusBarItem.text = `${icon} Context: ${percent}%${sessionSuffix}`;
     }
 
     this.statusBarItem.color = STATUS_COLORS[status.status];

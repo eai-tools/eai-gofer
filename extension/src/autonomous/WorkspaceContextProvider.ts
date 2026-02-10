@@ -13,7 +13,13 @@ import * as path from 'path';
 import type { ContextAnalysisInput, TokenBreakdown } from './ContextHealthMonitor';
 import type { MemoryManager } from './MemoryManager';
 import type { ClaudeSessionReader, SessionUsage } from './ClaudeSessionReader';
-import type { HookBridgeWatcher, BridgeData } from './HookBridgeWatcher';
+import type { BridgeData } from './HookBridgeWatcher';
+
+/** Minimal interface for bridge watchers (HookBridgeWatcher or MultiSessionBridgeWatcher) */
+interface IBridgeWatcher {
+  isHookDataAvailable(): boolean;
+  getLatestData(): BridgeData | null;
+}
 
 /** Pipeline stages that can be detected from spec artifact state */
 type GoferStage = 'research' | 'specify' | 'plan' | 'tasks' | 'implement' | 'validate' | 'unknown';
@@ -42,10 +48,16 @@ export class WorkspaceContextProvider {
   private memoryManager?: MemoryManager;
   private specifyDir: string;
   private sessionReader?: ClaudeSessionReader;
-  private hookBridgeWatcher?: HookBridgeWatcher;
+  private hookBridgeWatcher?: IBridgeWatcher;
   /** 018 T041: Configurable staleness threshold in milliseconds */
   private static readonly STALE_THRESHOLD = 30 * 60 * 1000;
   private stalenessThresholdMs: number = WorkspaceContextProvider.STALE_THRESHOLD;
+  /** 019 F2: Last known stage for backward transition detection */
+  private lastKnownStage: GoferStage = 'unknown';
+  /** 019 F2: Stage transition history (last 20) */
+  private stageHistory: Array<{ from: GoferStage; to: GoferStage; timestamp: number }> = [];
+  /** 019 F4: Artifact modification times for subtle stage detection */
+  private artifactMtimes: Map<string, number> = new Map();
 
   constructor(workspacePath: string, memoryManager?: MemoryManager) {
     this.workspacePath = workspacePath;
@@ -79,7 +91,7 @@ export class WorkspaceContextProvider {
    *
    * @param watcher - HookBridgeWatcher instance
    */
-  setHookBridgeWatcher(watcher: HookBridgeWatcher): void {
+  setHookBridgeWatcher(watcher: IBridgeWatcher): void {
     this.hookBridgeWatcher = watcher;
   }
 
@@ -468,5 +480,108 @@ export class WorkspaceContextProvider {
     }
 
     return 'unknown';
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 019 F2: Non-Linear Stage Detection
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  private static readonly STAGE_ORDER: GoferStage[] = ['research', 'specify', 'plan', 'tasks', 'implement', 'validate'];
+
+  /**
+   * 019 F2: Detect stage with backward transition awareness.
+   * Tracks lastKnownStage and logs when stage regressions occur.
+   */
+  detectStageWithHistory(specDir: string): { stage: GoferStage; isBackward: boolean } {
+    const detected = this.detectStageFromArtifacts(specDir);
+    const isBackward = this.isBackwardTransition(this.lastKnownStage, detected);
+
+    if (detected !== this.lastKnownStage && detected !== 'unknown') {
+      this.stageHistory.push({
+        from: this.lastKnownStage,
+        to: detected,
+        timestamp: Date.now(),
+      });
+      // Keep last 20 transitions
+      if (this.stageHistory.length > 20) {
+        this.stageHistory.shift();
+      }
+      this.lastKnownStage = detected;
+    }
+
+    return { stage: detected, isBackward };
+  }
+
+  /**
+   * 019 F2: Manual stage override API.
+   */
+  setStage(stage: GoferStage): void {
+    if (stage !== this.lastKnownStage) {
+      this.stageHistory.push({
+        from: this.lastKnownStage,
+        to: stage,
+        timestamp: Date.now(),
+      });
+      if (this.stageHistory.length > 20) {
+        this.stageHistory.shift();
+      }
+      this.lastKnownStage = stage;
+    }
+  }
+
+  /**
+   * 019 F2: Get stage transition history.
+   */
+  getStageHistory(): Array<{ from: GoferStage; to: GoferStage; timestamp: number }> {
+    return [...this.stageHistory];
+  }
+
+  /**
+   * 019 F2: Check if a transition is backward (regression).
+   */
+  private isBackwardTransition(from: GoferStage, to: GoferStage): boolean {
+    if (from === 'unknown' || to === 'unknown') return false;
+    const fromIdx = WorkspaceContextProvider.STAGE_ORDER.indexOf(from);
+    const toIdx = WorkspaceContextProvider.STAGE_ORDER.indexOf(to);
+    return toIdx < fromIdx;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 019 F4: Artifact Modification Time Tracking
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * 019 F4: Update artifact modification times and detect stage re-entry.
+   * If research.md is modified more recently than tasks.md during implement stage,
+   * this suggests research re-entry.
+   */
+  detectSubtleStageChange(specDir: string): GoferStage | null {
+    const artifacts = ['research.md', 'spec.md', 'plan.md', 'tasks.md'];
+    for (const artifact of artifacts) {
+      const filePath = path.join(specDir, artifact);
+      try {
+        const stat = fs.statSync(filePath);
+        this.artifactMtimes.set(artifact, stat.mtimeMs);
+      } catch {
+        // File doesn't exist
+      }
+    }
+
+    // Check for re-entry: if we're in implement stage but research.md was modified
+    // more recently than tasks.md, suggest research re-entry
+    if (this.lastKnownStage === 'implement' || this.lastKnownStage === 'validate') {
+      const researchMtime = this.artifactMtimes.get('research.md') || 0;
+      const tasksMtime = this.artifactMtimes.get('tasks.md') || 0;
+      if (researchMtime > tasksMtime && researchMtime > Date.now() - 60000) {
+        return 'research';
+      }
+
+      const specMtime = this.artifactMtimes.get('spec.md') || 0;
+      if (specMtime > tasksMtime && specMtime > Date.now() - 60000) {
+        return 'specify';
+      }
+    }
+
+    return null;
   }
 }

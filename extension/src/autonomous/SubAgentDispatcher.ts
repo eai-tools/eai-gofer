@@ -184,6 +184,57 @@ export class SubAgentDispatcher {
     return `${head}\n\n[...truncated ${truncatedChars} chars (${Math.ceil(truncatedChars / 4)} tokens)...]\n\n${tail}`;
   }
 
+  /**
+   * 019 F5: Programmatic delegation check. Returns structured recommendation
+   * that can be used for automated enforcement decisions.
+   */
+  shouldDelegate(): { delegate: boolean; reason: string; agentType: string } {
+    if (!this.currentRecommendation) {
+      return { delegate: false, reason: 'Utilization below delegation threshold', agentType: '' };
+    }
+    return {
+      delegate: true,
+      reason: this.currentRecommendation.reason,
+      agentType: this.currentRecommendation.agentType,
+    };
+  }
+
+  /**
+   * 019 G3: Format dispatch instructions if delegation is recommended.
+   * Returns structured dispatch instructions with result collection markers,
+   * or undefined if no delegation needed.
+   */
+  dispatchIfRecommended(): string | undefined {
+    const check = this.shouldDelegate();
+    if (!check.delegate || !this.currentRecommendation) {
+      return undefined;
+    }
+
+    const rec = this.currentRecommendation;
+    return [
+      `## DELEGATION DISPATCH`,
+      '',
+      `**Agent**: \`${rec.agentType}\``,
+      `**Task Category**: ${rec.taskCategory}`,
+      `**Token Budget**: ${rec.tokenBudget} tokens`,
+      `**Enforcement**: ${rec.enforcement}`,
+      '',
+      `### Dispatch Instructions`,
+      '',
+      `Use the Task tool with \`subagent_type="${rec.agentType}"\` to delegate the following:`,
+      `- Category: ${rec.taskCategory}`,
+      `- Max result size: ${rec.tokenBudget} tokens`,
+      '',
+      `### Result Collection`,
+      '',
+      `<!-- DISPATCH_RESULT_START agent="${rec.agentType}" -->`,
+      `[Sub-agent result will be inserted here]`,
+      `<!-- DISPATCH_RESULT_END -->`,
+      '',
+      `> ${rec.reason}`,
+    ].join('\n');
+  }
+
   private async logRecommendation(rec: DelegationRecommendation): Promise<void> {
     const logDir = path.join(this.workspaceRoot, '.specify', 'logs');
     const logPath = path.join(logDir, 'context-usage.jsonl');

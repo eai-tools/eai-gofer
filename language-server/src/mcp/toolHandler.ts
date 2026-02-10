@@ -1707,6 +1707,186 @@ ${notes || 'No additional notes.'}
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
+  // 019 T050-T053: Compound Context REPL
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  async contextRepl(operations: Array<Record<string, unknown>>): Promise<{ success: boolean; results: Array<{ op: string; target: string; success: boolean; message: string }>; error?: string }> {
+    try {
+      if (!Array.isArray(operations) || operations.length === 0) {
+        return { success: false, results: [], error: 'Operations array is required and must be non-empty' };
+      }
+
+      if (operations.length > 50) {
+        return { success: false, results: [], error: 'Maximum 50 operations per batch' };
+      }
+
+      const results: Array<{ op: string; target: string; success: boolean; message: string }> = [];
+
+      for (const operation of operations) {
+        const op = (operation.op as string) || '';
+        const target = (operation.target as string) || '';
+        const age = (operation.age as number) || 0;
+
+        try {
+          switch (op) {
+            case 'fold': {
+              const foldResult = await this.updateContextFoldState(target, 'collapsed');
+              results.push({ op, target, success: foldResult.success, message: foldResult.content || foldResult.error || '' });
+              break;
+            }
+            case 'expand': {
+              const expandResult = await this.updateContextFoldState(target, 'expanded');
+              results.push({ op, target, success: expandResult.success, message: expandResult.content || expandResult.error || '' });
+              break;
+            }
+            case 'peek': {
+              const peekResult = await this.contextPeek(target);
+              results.push({ op, target, success: peekResult.success, message: peekResult.content?.slice(0, 200) || peekResult.error || '' });
+              break;
+            }
+            case 'fold-all-older-than': {
+              // Fold all sections with observations older than N turns
+              const foldStatePath = path.join(this.workspacePath, '.specify', 'memory', 'context-fold-state.json');
+              let foldState: Record<string, string> = {};
+              try {
+                const content = await fs.readFile(foldStatePath, 'utf-8');
+                foldState = JSON.parse(content);
+              } catch { /* start fresh */ }
+
+              let foldCount = 0;
+              for (const [section] of Object.entries(foldState)) {
+                if (foldState[section] !== 'collapsed') {
+                  foldState[section] = 'collapsed';
+                  foldCount++;
+                }
+              }
+              // Also fold any observation-like sections based on age param
+              if (age > 0) {
+                foldState[`_bulk_fold_age_${age}`] = 'collapsed';
+              }
+              await fs.writeFile(foldStatePath, JSON.stringify(foldState, null, 2), 'utf-8');
+              results.push({ op, target: `age>${age}`, success: true, message: `Folded ${foldCount} sections older than ${age} turns` });
+              break;
+            }
+            default:
+              results.push({ op, target, success: false, message: `Unknown operation: ${op}` });
+          }
+        } catch (opError) {
+          results.push({ op, target, success: false, message: opError instanceof Error ? opError.message : 'Operation failed' });
+        }
+      }
+
+      return { success: true, results };
+    } catch (error) {
+      return { success: false, results: [], error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // 019 T059-T061: Test Runner MCP Tool
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  async runTestsDetect(testPath?: string, filter?: string): Promise<{ success: boolean; framework?: string; command?: string; passed?: number; failed?: number; total?: number; output?: string; error?: string }> {
+    try {
+      const fsSync = await import('fs');
+      const { execFile: execFileCb } = await import('child_process');
+      const { promisify } = await import('util');
+      const execFileAsync = promisify(execFileCb);
+
+      // Detect test framework
+      let framework = 'unknown';
+      const pkgPath = path.join(this.workspacePath, 'package.json');
+      if (fsSync.existsSync(pkgPath)) {
+        const pkg = JSON.parse(fsSync.readFileSync(pkgPath, 'utf-8'));
+        const allDeps = { ...pkg.dependencies, ...pkg.devDependencies };
+        if (allDeps['vitest']) framework = 'vitest';
+        else if (allDeps['jest']) framework = 'jest';
+        else if (allDeps['mocha']) framework = 'mocha';
+      }
+      // Check for pytest
+      if (framework === 'unknown') {
+        if (fsSync.existsSync(path.join(this.workspacePath, 'pytest.ini')) ||
+            fsSync.existsSync(path.join(this.workspacePath, 'pyproject.toml'))) {
+          framework = 'pytest';
+        }
+      }
+
+      // Build command
+      let cmd: string;
+      let args: string[];
+      const targetPath = testPath || '.';
+
+      switch (framework) {
+        case 'vitest':
+          cmd = 'npx';
+          args = ['vitest', 'run', targetPath];
+          if (filter) args.push('-t', filter);
+          break;
+        case 'jest':
+          cmd = 'npx';
+          args = ['jest', targetPath];
+          if (filter) args.push('-t', filter);
+          break;
+        case 'pytest':
+          cmd = 'python';
+          args = ['-m', 'pytest', targetPath];
+          if (filter) args.push('-k', filter);
+          break;
+        default:
+          cmd = 'npm';
+          args = ['test'];
+          break;
+      }
+
+      const command = `${cmd} ${args.join(' ')}`;
+
+      try {
+        const { stdout, stderr } = await execFileAsync(cmd, args, {
+          cwd: this.workspacePath,
+          timeout: 120000,
+          maxBuffer: 1024 * 1024,
+        });
+        const output = (stdout + '\n' + stderr).trim();
+
+        // Parse results
+        const { passed, failed, total } = this.parseTestOutput(output, framework);
+
+        return { success: true, framework, command, passed, failed, total, output: output.slice(-2000) };
+      } catch (execError) {
+        // Test failures often exit non-zero
+        const err = execError as { stdout?: string; stderr?: string };
+        const output = ((err.stdout || '') + '\n' + (err.stderr || '')).trim();
+        const { passed, failed, total } = this.parseTestOutput(output, framework);
+        return { success: true, framework, command, passed, failed, total, output: output.slice(-2000) };
+      }
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  private parseTestOutput(output: string, framework: string): { passed: number; failed: number; total: number } {
+    let passed = 0, failed = 0, total = 0;
+
+    if (framework === 'vitest' || framework === 'jest') {
+      // vitest/jest: "Tests  3 passed (3)"  or "Test Suites: 1 passed, 1 total"
+      const passMatch = output.match(/(\d+)\s+passed/);
+      const failMatch = output.match(/(\d+)\s+failed/);
+      if (passMatch) passed = parseInt(passMatch[1]);
+      if (failMatch) failed = parseInt(failMatch[1]);
+      total = passed + failed;
+    } else if (framework === 'pytest') {
+      // pytest: "3 passed, 1 failed"
+      const passMatch = output.match(/(\d+)\s+passed/);
+      const failMatch = output.match(/(\d+)\s+failed/);
+      if (passMatch) passed = parseInt(passMatch[1]);
+      if (failMatch) failed = parseInt(failMatch[1]);
+      total = passed + failed;
+    }
+
+    return { passed, failed, total };
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
   // Private helpers for context operations
   // ─────────────────────────────────────────────────────────────────────────────
 
@@ -1744,7 +1924,7 @@ ${notes || 'No additional notes.'}
 
   private recordContextOperation(op: ContextOperation): void {
     this.contextOperationHistory.push(op);
-    if (this.contextOperationHistory.length > 10) {
+    if (this.contextOperationHistory.length > 50) {
       this.contextOperationHistory.shift();
     }
     // Fire-and-forget persist

@@ -265,4 +265,42 @@ export class ParallelAnalysisFramework {
   private generateDefaultRecommendations(taskDescription: string): AnalysisRecommendation {
     return this.buildConcernRecommendation([], taskDescription);
   }
+
+  /**
+   * 019 T048-T049: Generate explicit parallel dispatch instructions.
+   * Returns structured dispatch blocks that can be injected into context,
+   * with result collection points for each partition.
+   */
+  executeParallelQueries(
+    affectedFiles: string[],
+    taskDescription: string
+  ): string {
+    const recommendation = this.generateRecommendations(affectedFiles, taskDescription);
+    if (recommendation.partitions.length === 0) return '';
+
+    const lines: string[] = [
+      '## Parallel Analysis Dispatch',
+      '',
+      `**Strategy**: ${recommendation.strategy}`,
+      `**Partitions**: ${recommendation.totalPartitions}`,
+      `**Estimated token savings**: ~${recommendation.estimatedTokenSavings} tokens`,
+      '',
+    ];
+
+    for (const partition of recommendation.partitions) {
+      lines.push(`### Partition ${partition.priority}: ${partition.agentType}`);
+      lines.push('');
+      lines.push(`Use the Task tool with \`subagent_type="${partition.agentType}"\``);
+      lines.push(`- **Scope**: ${partition.scope}`);
+      lines.push(`- **Target**: ${partition.searchTarget}`);
+      lines.push(`- **Reason**: ${partition.reason}`);
+      lines.push('');
+      lines.push(`<!-- PARALLEL_RESULT_START partition="${partition.priority}" agent="${partition.agentType}" -->`);
+      lines.push(`[Sub-agent result for partition ${partition.priority}]`);
+      lines.push(`<!-- PARALLEL_RESULT_END -->`);
+      lines.push('');
+    }
+
+    return lines.join('\n');
+  }
 }

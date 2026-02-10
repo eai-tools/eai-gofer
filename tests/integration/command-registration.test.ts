@@ -337,7 +337,7 @@ describe('Command Registration Validation', () => {
     );
     expect(views).toContainEqual(
       expect.objectContaining({
-        id: 'goferConstitution',
+        id: 'goferContextWindow',
       })
     );
     expect(views).toContainEqual(
@@ -349,7 +349,7 @@ describe('Command Registration Validation', () => {
 
   it('should register tree data providers for all views', () => {
     expect(extensionSource).toContain("registerTreeDataProvider('goferProgress'");
-    expect(extensionSource).toContain("registerTreeDataProvider('goferConstitution'");
+    expect(extensionSource).toContain("registerTreeDataProvider('goferContextWindow'");
     expect(extensionSource).toContain("registerTreeDataProvider('goferMemory'");
   });
 
@@ -473,12 +473,12 @@ describe('Package.json Validation', () => {
     );
     expect(progressRefresh).toBeDefined();
 
-    const constitutionRefresh = viewTitleMenus.find(
+    const contextWindowRefresh = viewTitleMenus.find(
       (menu) =>
-        menu.command === 'gofer.refreshConstitution' &&
-        menu.when === 'view == goferConstitution'
+        menu.command === 'gofer.refreshContextWindow' &&
+        menu.when === 'view == goferContextWindow'
     );
-    expect(constitutionRefresh).toBeDefined();
+    expect(contextWindowRefresh).toBeDefined();
 
     const memoryRefresh = viewTitleMenus.find(
       (menu) =>

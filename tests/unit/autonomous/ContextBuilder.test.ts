@@ -713,12 +713,14 @@ describe('ContextBuilder', () => {
 
       const result = await builder.buildContext(task);
 
-      // 'authentication' should be covered by memory category
+      // 'authentication' (stemmed to 'authentic') should be covered by memory category
       // 'database' should not be covered
       expect(result.memoryCoverage?.memoriesLoaded).toBe(1);
-      // Memory has category 'authentication' which partially matches task keyword
-      expect(result.memoryCoverage?.coveredKeywords).toContain('authentication');
-      expect(result.memoryCoverage?.uncoveredKeywords).toContain('database');
+      // Memory has category 'authentication' which matches stemmed task keyword 'authentic' via trigram similarity
+      const covered = result.memoryCoverage?.coveredKeywords || [];
+      expect(covered.some(k => k === 'authentication' || k === 'authentic')).toBe(true);
+      const uncovered = result.memoryCoverage?.uncoveredKeywords || [];
+      expect(uncovered.some(k => k === 'database' || k === 'databas')).toBe(true);
     });
 
     it('should skip research loading when coverage is sufficient', async () => {

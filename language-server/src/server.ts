@@ -340,6 +340,147 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
                   required: ['specId'],
                 },
               },
+              // ── Observation Folding & Peek Tools ──
+              {
+                name: 'gofer_peek_observation',
+                description: 'Returns key-points or summary of an observation without full expansion',
+                parameters: {
+                  type: 'object',
+                  properties: {
+                    observationId: {
+                      type: 'string',
+                      description: 'UUID v4 observation ID to peek at',
+                    },
+                  },
+                  required: ['observationId'],
+                },
+              },
+              {
+                name: 'gofer_fold_observation',
+                description: 'Sets the fold level (collapsed/summary/expanded) for an observation',
+                parameters: {
+                  type: 'object',
+                  properties: {
+                    observationId: {
+                      type: 'string',
+                      description: 'UUID v4 observation ID',
+                    },
+                    foldLevel: {
+                      type: 'string',
+                      enum: ['collapsed', 'summary', 'expanded'],
+                      description: 'The fold level to set',
+                    },
+                  },
+                  required: ['observationId', 'foldLevel'],
+                },
+              },
+              {
+                name: 'gofer_grep_observations',
+                description: 'Searches across all observation content for a regex pattern',
+                parameters: {
+                  type: 'object',
+                  properties: {
+                    pattern: {
+                      type: 'string',
+                      description: 'Regex pattern to search for (max 500 chars)',
+                    },
+                    maxResults: {
+                      type: 'number',
+                      description: 'Maximum number of matching observations to return (default: 10)',
+                    },
+                  },
+                  required: ['pattern'],
+                },
+              },
+              // ── Context REPL Tools ──
+              {
+                name: 'gofer_context_peek',
+                description: 'Peeks at a specific section of the current context state',
+                parameters: {
+                  type: 'object',
+                  properties: {
+                    section: {
+                      type: 'string',
+                      description: 'Context section name to peek at',
+                    },
+                  },
+                  required: ['section'],
+                },
+              },
+              {
+                name: 'gofer_context_grep',
+                description: 'Searches across all context sections for a pattern',
+                parameters: {
+                  type: 'object',
+                  properties: {
+                    pattern: {
+                      type: 'string',
+                      description: 'Regex pattern to search for (max 500 chars)',
+                    },
+                  },
+                  required: ['pattern'],
+                },
+              },
+              {
+                name: 'gofer_context_fold',
+                description: 'Folds (collapses) a context section to reduce token usage',
+                parameters: {
+                  type: 'object',
+                  properties: {
+                    section: {
+                      type: 'string',
+                      description: 'Context section name to fold',
+                    },
+                  },
+                  required: ['section'],
+                },
+              },
+              {
+                name: 'gofer_context_expand',
+                description: 'Expands a previously collapsed context section',
+                parameters: {
+                  type: 'object',
+                  properties: {
+                    section: {
+                      type: 'string',
+                      description: 'Context section name to expand',
+                    },
+                  },
+                  required: ['section'],
+                },
+              },
+              {
+                name: 'gofer_context_undo',
+                description: 'Reverts the last fold/expand operation on observations or context sections',
+                parameters: {
+                  type: 'object',
+                  properties: {},
+                  required: [],
+                },
+              },
+              {
+                name: 'gofer_context_history',
+                description: 'Shows the last 10 context operations with timestamps',
+                parameters: {
+                  type: 'object',
+                  properties: {},
+                  required: [],
+                },
+              },
+              {
+                name: 'gofer_check_slop',
+                description: 'Scans source files for common AI code quality issues (disabled tests, empty catch blocks, as any casts, leftover console.log)',
+                parameters: {
+                  type: 'object',
+                  properties: {
+                    path: {
+                      type: 'string',
+                      description: 'File or directory path to scan (defaults to workspace root)',
+                    },
+                  },
+                  required: [],
+                },
+              },
             ],
           },
         },
@@ -611,6 +752,54 @@ connection.onRequest(
             undefined,
             args.specId ? `Spec: ${args.specId as string}` : undefined
           );
+          break;
+
+        // ── Observation Folding & Peek Tools ──
+        case 'gofer_peek_observation':
+          result = await mcpToolHandler.peekObservation(args.observationId as string);
+          break;
+
+        case 'gofer_fold_observation':
+          result = await mcpToolHandler.foldObservation(
+            args.observationId as string,
+            args.foldLevel as 'collapsed' | 'summary' | 'expanded'
+          );
+          break;
+
+        case 'gofer_grep_observations':
+          result = await mcpToolHandler.grepObservations(
+            args.pattern as string,
+            (args.maxResults as number) ?? 10
+          );
+          break;
+
+        // ── Context REPL Tools ──
+        case 'gofer_context_peek':
+          result = await mcpToolHandler.contextPeek(args.section as string);
+          break;
+
+        case 'gofer_context_grep':
+          result = await mcpToolHandler.contextGrep(args.pattern as string);
+          break;
+
+        case 'gofer_context_fold':
+          result = await mcpToolHandler.contextFold(args.section as string);
+          break;
+
+        case 'gofer_context_expand':
+          result = await mcpToolHandler.contextExpand(args.section as string);
+          break;
+
+        case 'gofer_context_undo':
+          result = await mcpToolHandler.contextUndo();
+          break;
+
+        case 'gofer_context_history':
+          result = await mcpToolHandler.contextHistory();
+          break;
+
+        case 'gofer_check_slop':
+          result = await mcpToolHandler.checkSlop(args.path as string | undefined);
           break;
 
         default:

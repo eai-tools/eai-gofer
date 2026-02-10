@@ -1633,6 +1633,80 @@ ${notes || 'No additional notes.'}
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
+  // 018 T066: SlopDetector MCP tool
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  async checkSlop(scanPath?: string): Promise<{ success: boolean; report?: { totalIssues: number; filesScanned: number; matches: Array<{ file: string; line: number; pattern: string; severity: string; message: string }> }; error?: string }> {
+    try {
+      const targetPath = scanPath || path.join(this.workspacePath, 'extension', 'src');
+      const fsSync = await import('fs');
+      if (!fsSync.existsSync(targetPath)) {
+        return { success: false, error: `Path not found: ${targetPath}` };
+      }
+
+      // Inline slop scanning to avoid cross-package import
+      const SLOP_PATTERNS = [
+        { regex: /\bit\.skip\b|\btest\.skip\b|\bdescribe\.skip\b/, name: 'disabled-test', severity: 'error', message: 'Disabled test found' },
+        { regex: /\bTODO\b(?!.*(?:#\d+|[A-Z]+-\d+))/, name: 'todo-no-issue', severity: 'warning', message: 'TODO without issue reference' },
+        { regex: /catch\s*\([^)]*\)\s*\{\s*\}/, name: 'empty-catch', severity: 'warning', message: 'Empty catch block' },
+        { regex: /\bas\s+any\b/, name: 'as-any', severity: 'warning', message: 'as any cast' },
+        { regex: /\bdebugger\b/, name: 'debugger', severity: 'error', message: 'debugger statement' },
+      ];
+      const SCAN_EXT = new Set(['.ts', '.tsx', '.js', '.jsx']);
+
+      const matches: Array<{ file: string; line: number; pattern: string; severity: string; message: string }> = [];
+      let filesScanned = 0;
+
+      const stat = fsSync.statSync(targetPath);
+      if (stat.isFile()) {
+        const content = fsSync.readFileSync(targetPath, 'utf-8');
+        const lines = content.split('\n');
+        for (let i = 0; i < lines.length; i++) {
+          for (const p of SLOP_PATTERNS) {
+            if (p.regex.test(lines[i])) {
+              matches.push({ file: targetPath, line: i + 1, pattern: p.name, severity: p.severity, message: p.message });
+            }
+          }
+        }
+        filesScanned = 1;
+      } else {
+        const walk = (dir: string): void => {
+          if (filesScanned >= 200) return;
+          try {
+            const entries = fsSync.readdirSync(dir, { withFileTypes: true });
+            for (const entry of entries) {
+              if (filesScanned >= 200) return;
+              const fp = path.join(dir, entry.name);
+              if (entry.isDirectory() && !entry.name.startsWith('.') && entry.name !== 'node_modules' && entry.name !== 'dist') {
+                walk(fp);
+              } else if (entry.isFile() && SCAN_EXT.has(path.extname(entry.name))) {
+                filesScanned++;
+                const content = fsSync.readFileSync(fp, 'utf-8');
+                const lines = content.split('\n');
+                for (let i = 0; i < lines.length; i++) {
+                  for (const p of SLOP_PATTERNS) {
+                    if (p.regex.test(lines[i])) {
+                      matches.push({ file: fp, line: i + 1, pattern: p.name, severity: p.severity, message: p.message });
+                    }
+                  }
+                }
+              }
+            }
+          } catch { /* skip unreadable dirs */ }
+        };
+        walk(targetPath);
+      }
+
+      return {
+        success: true,
+        report: { totalIssues: matches.length, filesScanned, matches: matches.slice(0, 50) },
+      };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
   // Private helpers for context operations
   // ─────────────────────────────────────────────────────────────────────────────
 

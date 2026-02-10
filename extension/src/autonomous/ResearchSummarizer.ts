@@ -80,9 +80,8 @@ export class ResearchSummarizer {
    * @returns Number of memories created
    */
   async summarizeSpec(specId: string): Promise<number> {
-    if (!this.llmProvider.isAvailable()) {
-      return 0;
-    }
+    // 018 T055: Use deterministic fallback when LLM is unavailable
+    const useLLM = this.llmProvider.isAvailable();
 
     const researchPath = path.join(
       this.workspaceRoot, '.specify', 'specs', specId, 'research.md'
@@ -98,7 +97,9 @@ export class ResearchSummarizer {
 
     for (const chunk of chunks) {
       try {
-        const summary = await this.summarizeChunk(chunk);
+        const summary = useLLM
+          ? await this.summarizeChunk(chunk)
+          : this.deterministicSummarize(chunk);
         if (!summary) continue;
 
         await this.memoryManager.save({
@@ -186,6 +187,74 @@ export class ResearchSummarizer {
     } catch {
       // Cache save is best-effort
     }
+  }
+
+  /**
+   * 018 T055: Deterministic fallback summarization when no LLM is available.
+   * Extracts first sentence of each paragraph + headings.
+   */
+  private deterministicSummarize(chunk: ResearchChunk): string {
+    const lines = chunk.content.split('\n');
+    const summaryParts: string[] = [];
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+      // Keep headings
+      if (trimmed.startsWith('#')) {
+        summaryParts.push(trimmed);
+        continue;
+      }
+      // Keep bullet points (truncated)
+      if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+        summaryParts.push(trimmed.slice(0, 120) + (trimmed.length > 120 ? '...' : ''));
+        continue;
+      }
+      // Keep first sentence of paragraphs
+      if (summaryParts.length < 10) {
+        const firstSentence = trimmed.match(/^[^.!?]+[.!?]/);
+        if (firstSentence) {
+          summaryParts.push(firstSentence[0]);
+        }
+      }
+    }
+    return summaryParts.join('\n').slice(0, 800);
+  }
+
+  /**
+   * 018 T056: Hierarchical summarization — summarize at chapter, section, paragraph levels.
+   * Returns a structured summary with decreasing detail.
+   */
+  async summarizeHierarchical(specId: string): Promise<{ chapter: string; sections: string[]; paragraphs: string[] }> {
+    const researchPath = path.join(this.workspaceRoot, '.specify', 'specs', specId, 'research.md');
+    if (!fs.existsSync(researchPath)) {
+      return { chapter: '', sections: [], paragraphs: [] };
+    }
+
+    const content = fs.readFileSync(researchPath, 'utf-8');
+    const h2Sections = content.split(/^## /m).filter(Boolean);
+
+    // Chapter level: title + first paragraph
+    const titleMatch = content.match(/^# (.+)/m);
+    const chapter = titleMatch ? titleMatch[1] : specId;
+
+    // Section level: each H2 heading + first line
+    const sections = h2Sections.slice(0, 10).map(s => {
+      const firstLine = s.split('\n').find(l => l.trim() && !l.startsWith('#'));
+      const heading = s.split('\n')[0]?.trim() || '';
+      return `## ${heading}: ${(firstLine || '').slice(0, 100)}`;
+    });
+
+    // Paragraph level: first sentences from each section
+    const paragraphs = h2Sections.slice(0, 5).map(s => {
+      const lines = s.split('\n').filter(l => l.trim() && !l.startsWith('#'));
+      return lines.slice(0, 3).map(l => {
+        const sentence = l.match(/^[^.!?]+[.!?]/);
+        return sentence ? sentence[0] : l.slice(0, 80);
+      }).join(' ');
+    });
+
+    return { chapter, sections, paragraphs };
   }
 
   private getCachePath(): string {

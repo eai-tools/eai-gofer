@@ -14,15 +14,36 @@ export interface ScopeViolation {
   file: string;
   protectedPattern: string;
   timestamp: number;
+  /** 018 T064: Enforcement level of this violation */
+  enforcement: ScopeEnforcementMode;
 }
+
+/** 018 T064: Enforcement modes for scope guard */
+export type ScopeEnforcementMode = 'advisory' | 'warning' | 'blocking';
 
 export class ScopeGuard {
   private protectedPatterns: string[] = [];
   private readonly workspaceRoot: string;
   private violations: ScopeViolation[] = [];
+  /** 018 T064: Current enforcement mode */
+  private enforcementMode: ScopeEnforcementMode = 'advisory';
 
   constructor(workspaceRoot: string) {
     this.workspaceRoot = workspaceRoot;
+  }
+
+  /**
+   * 018 T064: Set the enforcement mode.
+   */
+  setEnforcementMode(mode: ScopeEnforcementMode): void {
+    this.enforcementMode = mode;
+  }
+
+  /**
+   * 018 T064: Get the current enforcement mode.
+   */
+  getEnforcementMode(): ScopeEnforcementMode {
+    return this.enforcementMode;
   }
 
   /**
@@ -73,6 +94,7 @@ export class ScopeGuard {
           file: filePath,
           protectedPattern: pattern,
           timestamp: Date.now(),
+          enforcement: this.enforcementMode,
         };
         this.violations.push(violation);
         console.warn(
@@ -104,5 +126,36 @@ export class ScopeGuard {
    */
   reset(): void {
     this.violations = [];
+  }
+
+  /**
+   * 018 T074: Auto-detect brownfield project from workspace analysis.
+   * Returns true if the project has hallmarks of an existing codebase
+   * (many source files, existing tests, package.json with deps).
+   */
+  detectBrownfield(): boolean {
+    try {
+      const pkgPath = path.join(this.workspaceRoot, 'package.json');
+      if (fs.existsSync(pkgPath)) {
+        const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+        const depCount = Object.keys(pkg.dependencies || {}).length + Object.keys(pkg.devDependencies || {}).length;
+        if (depCount > 5) return true;
+      }
+      // Check for existing source files
+      const srcDir = path.join(this.workspaceRoot, 'src');
+      if (fs.existsSync(srcDir)) {
+        const entries = fs.readdirSync(srcDir, { withFileTypes: true });
+        const sourceFiles = entries.filter(e => e.isFile() && /\.(ts|js|tsx|jsx)$/.test(e.name));
+        if (sourceFiles.length > 3) return true;
+      }
+      // Check for test directories
+      const testDirs = ['tests', 'test', '__tests__', 'spec'];
+      for (const dir of testDirs) {
+        if (fs.existsSync(path.join(this.workspaceRoot, dir))) return true;
+      }
+    } catch {
+      // Cannot determine — assume greenfield
+    }
+    return false;
   }
 }

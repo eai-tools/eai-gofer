@@ -251,6 +251,10 @@ export class ContextBuilder extends EventEmitter {
   private memoryLayerManager?: { formatAsContextSection(taskContext?: string): Promise<string>; getCoreMemory(): Promise<{ memories: Array<{ content: string }>; tokenEstimate: number }>; getRecallMemory(limit?: number): Promise<{ memories: Array<{ content: string }>; tokenEstimate: number }> };
   /** T063: Whether to use layered memory instead of direct memory/observation access */
   private useLayeredMemory = false;
+  /** 018: Optional parallel analysis framework for sub-agent partition recommendations */
+  private parallelAnalysisFramework?: { generateRecommendations(affectedFiles: string[], taskDescription: string): { partitions: Array<{ agentType: string; searchTarget: string; scope: string; reason: string; priority: number }>; strategy: string; totalPartitions: number }; formatAsContextSection(recommendation: { partitions: Array<{ agentType: string; searchTarget: string; scope: string; reason: string; priority: number }>; strategy: string; totalPartitions: number }): string };
+  /** 018 T052: Optional context folder for section-level folding */
+  private contextFolder?: { getFoldMode(key: string): 'collapsed' | 'summary' | 'expanded'; applyToSections(sections: Record<string, string | undefined>): Record<string, string | undefined>; reload(): void };
 
   constructor(
     workspaceRoot: string,
@@ -325,6 +329,27 @@ export class ContextBuilder extends EventEmitter {
   setMemoryLayerManager(manager: typeof this.memoryLayerManager, useLayered: boolean = false): void {
     this.memoryLayerManager = manager;
     this.useLayeredMemory = useLayered;
+  }
+
+  /**
+   * 018: Set parallel analysis framework for sub-agent partition recommendations.
+   */
+  setParallelAnalysisFramework(framework: typeof this.parallelAnalysisFramework): void {
+    this.parallelAnalysisFramework = framework;
+  }
+
+  /**
+   * 018 T052: Set the context folder for section-level folding.
+   */
+  setContextFolder(folder: typeof this.contextFolder): void {
+    this.contextFolder = folder;
+  }
+
+  /**
+   * 018: Get the current memory layer manager (for runtime config updates).
+   */
+  getMemoryLayerManager(): typeof this.memoryLayerManager {
+    return this.memoryLayerManager;
   }
 
   /**
@@ -776,6 +801,21 @@ export class ContextBuilder extends EventEmitter {
       }
     }
 
+    // 018: Inject parallel analysis recommendations if framework is wired
+    if (this.parallelAnalysisFramework) {
+      try {
+        const recommendation = this.parallelAnalysisFramework.generateRecommendations(task.affectedFiles || [], task.description || '');
+        if (recommendation.partitions.length > 0) {
+          const analysisSection = this.parallelAnalysisFramework.formatAsContextSection(recommendation);
+          if (analysisSection) {
+            sections.taskContext = (sections.taskContext || '') + '\n\n' + analysisSection;
+          }
+        }
+      } catch {
+        // Non-fatal: parallel analysis is advisory
+      }
+    }
+
     // 7. Calculate budget usage (if budget enforcement enabled)
     // Do this BEFORE merging so we can enforce caps
     let budgetUsage: BudgetUsage | undefined;
@@ -1210,6 +1250,12 @@ export class ContextBuilder extends EventEmitter {
    * @returns Merged context string
    */
   private mergeContextSections(sections: BuiltContext['sections']): string {
+    // 018 T054: Apply fold state to sections before rendering
+    if (this.contextFolder) {
+      const folded = this.contextFolder.applyToSections(sections as unknown as Record<string, string | undefined>);
+      Object.assign(sections, folded);
+    }
+
     const parts: string[] = [];
 
     if (sections.constitution) {

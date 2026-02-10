@@ -43,11 +43,22 @@ export class WorkspaceContextProvider {
   private specifyDir: string;
   private sessionReader?: ClaudeSessionReader;
   private hookBridgeWatcher?: HookBridgeWatcher;
+  /** 018 T041: Configurable staleness threshold in milliseconds */
+  private static readonly STALE_THRESHOLD = 30 * 60 * 1000;
+  private stalenessThresholdMs: number = WorkspaceContextProvider.STALE_THRESHOLD;
 
   constructor(workspacePath: string, memoryManager?: MemoryManager) {
     this.workspacePath = workspacePath;
     this.memoryManager = memoryManager;
     this.specifyDir = path.join(workspacePath, '.specify');
+  }
+
+  /**
+   * 018 T041: Update staleness threshold from user configuration.
+   * @param minutes - staleness threshold in minutes
+   */
+  setStalenessThresholdMinutes(minutes: number): void {
+    this.stalenessThresholdMs = Math.max(5, minutes) * 60 * 1000;
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -219,15 +230,33 @@ export class WorkspaceContextProvider {
    * Checks the most recently modified spec directory.
    */
   detectCurrentStage(): GoferStage {
-    // T069: Check current-stage.json first — if fresh (<30 min), use it
+    const validStages = ['research', 'specify', 'plan', 'tasks', 'implement', 'validate'];
+
+    // 018 T042: Priority 1 — hook-bridge command detection (most reliable)
+    if (this.hookBridgeWatcher?.isHookDataAvailable()) {
+      try {
+        const bridgeData = this.hookBridgeWatcher.getLatestData();
+        const lastCommand = bridgeData?.lastToolUse?.toolInput?.command as string | undefined;
+        if (lastCommand) {
+          const cmd = lastCommand.toLowerCase();
+          for (const stage of validStages) {
+            if (cmd.includes(`gofer_${stage}`) || cmd.includes(`/${stage}`)) {
+              return stage as GoferStage;
+            }
+          }
+        }
+      } catch {
+        // Fall through to file-based detection
+      }
+    }
+
+    // Priority 2: Check current-stage.json — if fresh (within staleness threshold), use it
     try {
       const stageFile = path.join(this.specifyDir, 'memory', 'current-stage.json');
       if (fs.existsSync(stageFile)) {
         const raw = fs.readFileSync(stageFile, 'utf-8');
         const data = JSON.parse(raw);
-        const STALE_THRESHOLD = 30 * 60 * 1000; // 30 minutes
-        if (data.timestamp && Date.now() - data.timestamp < STALE_THRESHOLD) {
-          const validStages = ['research', 'specify', 'plan', 'tasks', 'implement', 'validate'];
+        if (data.timestamp && Date.now() - data.timestamp < this.stalenessThresholdMs) {
           if (validStages.includes(data.stage)) {
             return data.stage as GoferStage;
           }

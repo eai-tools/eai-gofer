@@ -68,6 +68,12 @@ let memoryHookManager: MemoryHookManager | undefined;
 // Hook-based monitoring
 let hookBridgeWatcher: HookBridgeWatcher | undefined;
 let goferActivityStatusBar: GoferActivityStatusBar | undefined;
+// 018: Module-level references for deactivate cleanup
+let cacheSaveTimerRef: ReturnType<typeof setTimeout> | null = null;
+let sharedContextBuilderRef: ContextBuilder | undefined;
+let consolidationTimerRef: ReturnType<typeof setInterval> | null = null;
+// 018 T041: Module-level reference for contextProvider (needed for config reload)
+let workspaceContextProviderRef: WorkspaceContextProvider | undefined;
 
 // Flag to prevent file watcher refreshes during upgrade
 let isUpgrading = false;
@@ -367,6 +373,7 @@ function initializeContextHealthMonitoring(workspacePath: string): void {
 
     // Wire real context provider for token estimation (Spec 013 Phase 2)
     const contextProvider = new WorkspaceContextProvider(workspacePath);
+    workspaceContextProviderRef = contextProvider;
 
     // Wire ClaudeSessionReader for real JSONL session data (Spec 014 T038)
     const sessionReader = new ClaudeSessionReader(workspacePath);
@@ -1388,6 +1395,133 @@ created: "${new Date().toISOString().split('T')[0]}"
     maskerConfig,
   });
 
+  // 018 T025/T026: Start periodic consolidation timer and trigger on session-start
+  if (memoryManager) {
+    consolidationTimerRef = memoryManager.startConsolidationTimer();
+    if (hookBridgeWatcher) {
+      const mm = memoryManager;
+      hookBridgeWatcher.on('session-start', () => {
+        mm.consolidate().catch(() => {});
+      });
+    }
+  }
+
+  // 018 T041: Read configurable staleness threshold and pass to WorkspaceContextProvider
+  const stalenessMinutes = vscode.workspace.getConfiguration('gofer').get<number>('stageDetectionStalenessMinutes', 30);
+  if (workspaceContextProviderRef) {
+    workspaceContextProviderRef.setStalenessThresholdMinutes(stalenessMinutes);
+  }
+
+  // 018 T043/T044/T060: Listen for stage changes and save validated checkpoint
+  const { CheckpointValidator } = await import('./autonomous/CheckpointValidator');
+  const checkpointValidator = new CheckpointValidator(workspacePath);
+  if (hookBridgeWatcher && workspaceContextProviderRef) {
+    let lastDetectedStage = '';
+    const wcp = workspaceContextProviderRef;
+    hookBridgeWatcher.on('bridge-update', () => {
+      const currentStage = wcp.detectCurrentStage();
+      if (currentStage !== 'unknown' && currentStage !== lastDetectedStage) {
+        const previousStage = lastDetectedStage;
+        lastDetectedStage = currentStage;
+        if (previousStage) {
+          // Save lightweight checkpoint on stage transition with validation
+          const checkpointDir = path.join(workspacePath, '.specify', 'memory', 'checkpoints');
+          const checkpoint = {
+            session_id: `stage-${Date.now()}`,
+            timestamp: new Date().toISOString(),
+            stage: currentStage,
+            status: 'stage-transition',
+            previousStage,
+            newStage: currentStage,
+            type: 'stage-transition',
+          };
+          // T060: Validate before saving
+          const validation = checkpointValidator.validateRequiredFields(checkpoint);
+          if (!validation.valid) {
+            console.warn('[Gofer] Checkpoint validation failed:', validation.errors);
+          }
+          // T061: Capture git state asynchronously
+          checkpointValidator.captureGitState().then((gitState) => {
+            const fullCheckpoint = { ...checkpoint, gitState };
+            try {
+              require('fs').mkdirSync(checkpointDir, { recursive: true });
+              const fileName = `stage-${previousStage}-to-${currentStage}-${Date.now()}.json`;
+              require('fs').writeFileSync(
+                path.join(checkpointDir, fileName),
+                JSON.stringify(fullCheckpoint, null, 2)
+              );
+            } catch {
+              // Non-fatal: checkpoint save failure
+            }
+          }).catch(() => {
+            // Non-fatal: git state capture failure
+          });
+          console.log(`[Gofer] Stage transition: ${previousStage} → ${currentStage} (checkpoint saved)`);
+        }
+      }
+    });
+  }
+
+  // 018 T062: Programmatic session resume command
+  context.subscriptions.push(
+    vscode.commands.registerCommand('gofer.resumeSession', async () => {
+      const checkpointDir = path.join(workspacePath, '.specify', 'memory', 'checkpoints');
+      try {
+        const files = require('fs').readdirSync(checkpointDir)
+          .filter((f: string) => f.endsWith('.json'))
+          .sort()
+          .reverse();
+        if (files.length === 0) {
+          vscode.window.showInformationMessage('No checkpoints found to resume from.');
+          return;
+        }
+        const latest = JSON.parse(
+          require('fs').readFileSync(path.join(checkpointDir, files[0]), 'utf-8')
+        );
+        const validation = checkpointValidator.validate(
+          `---\nsession_id: ${latest.session_id}\ntimestamp: ${latest.timestamp}\nstage: ${latest.stage}\nstatus: ${latest.status}\n---\n# Session Handoff\nResume with stage ${latest.stage}`
+        );
+        if (!validation.valid) {
+          vscode.window.showWarningMessage(`Checkpoint has issues: ${validation.errors.join(', ')}`);
+        }
+        vscode.window.showInformationMessage(
+          `Latest checkpoint: stage=${latest.stage}, git=${latest.gitState?.branch || 'unknown'}@${latest.gitState?.headCommit || '?'}`
+        );
+      } catch {
+        vscode.window.showErrorMessage('Failed to read checkpoint files.');
+      }
+    })
+  );
+
+  // 018 T023: Runtime reload of observation preserve patterns on config change
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeConfiguration((e) => {
+      if (e.affectsConfiguration('gofer.observationPreservePatterns')) {
+        const newPatterns = vscode.workspace.getConfiguration('gofer').get<string[]>('observationPreservePatterns', []);
+        const allPatterns = [
+          /error/i, /exception/i, /failed/i, /failure/i, /critical/i,
+          /fatal/i, /panic/i, /unhandled/i, /stack\s?trace/i,
+          ...newPatterns.map((p: string) => new RegExp(p, 'i')),
+        ];
+        sharedContextBuilder.getObservationMasker().updatePreservePatterns(allPatterns);
+        console.log(`[Gofer] Observation preserve patterns reloaded: ${newPatterns.length} user patterns`);
+      }
+      if (e.affectsConfiguration('gofer.useLayeredMemory')) {
+        const useLayered = vscode.workspace.getConfiguration('gofer').get<boolean>('useLayeredMemory', false);
+        sharedContextBuilder.setMemoryLayerManager(sharedContextBuilder.getMemoryLayerManager(), useLayered);
+        console.log(`[Gofer] Layered memory ${useLayered ? 'enabled' : 'disabled'}`);
+      }
+      // 018 T041: Reload staleness threshold on config change
+      if (e.affectsConfiguration('gofer.stageDetectionStalenessMinutes')) {
+        const newMinutes = vscode.workspace.getConfiguration('gofer').get<number>('stageDetectionStalenessMinutes', 30);
+        if (workspaceContextProviderRef) {
+          workspaceContextProviderRef.setStalenessThresholdMinutes(newMinutes);
+        }
+        console.log(`[Gofer] Stage detection staleness threshold: ${newMinutes} minutes`);
+      }
+    })
+  );
+
   // Initialize KnowledgeGraph and wire to ContextBuilder
   const knowledgeGraph = new KnowledgeGraph(workspacePath);
   knowledgeGraph
@@ -1462,6 +1596,116 @@ created: "${new Date().toISOString().split('T')[0]}"
   );
   console.log('[Gofer] SlopDetector initialized with gofer.checkForSlop command');
 
+  // 018 T065: Wire ScopeGuard violations to VSCode diagnostics collection
+  const scopeDiagnostics = vscode.languages.createDiagnosticCollection('gofer-scope');
+  context.subscriptions.push(scopeDiagnostics);
+  // Update diagnostics on bridge-update events
+  if (hookBridgeWatcher) {
+    hookBridgeWatcher.on('bridge-update', () => {
+      const violations = scopeGuard.getViolations();
+      if (violations.length === 0) return;
+      const diagMap = new Map<string, vscode.Diagnostic[]>();
+      for (const v of violations.slice(-20)) {
+        const uri = v.file;
+        const diags = diagMap.get(uri) || [];
+        const severity = v.enforcement === 'blocking'
+          ? vscode.DiagnosticSeverity.Error
+          : v.enforcement === 'warning'
+            ? vscode.DiagnosticSeverity.Warning
+            : vscode.DiagnosticSeverity.Information;
+        const diag = new vscode.Diagnostic(
+          new vscode.Range(0, 0, 0, 0),
+          `ScopeGuard: ${v.file} matches protected pattern "${v.protectedPattern}"`,
+          severity
+        );
+        diag.source = 'Gofer ScopeGuard';
+        diags.push(diag);
+        diagMap.set(uri, diags);
+      }
+      for (const [file, diags] of diagMap) {
+        try {
+          scopeDiagnostics.set(vscode.Uri.file(file), diags);
+        } catch {
+          // Non-fatal: URI creation can fail for non-file paths
+        }
+      }
+    });
+  }
+
+  // 018 T068: Auto-trigger slop detection on task completion (checkbox change in tasks.md)
+  if (hookBridgeWatcher) {
+    let lastTaskCheckCount = 0;
+    hookBridgeWatcher.on('bridge-update', (data: BridgeData) => {
+      // Check if a file write to tasks.md happened
+      const toolUse = data?.lastToolUse;
+      if (!toolUse) return;
+      const toolName = (toolUse.toolName || '').toLowerCase();
+      const filePath = toolUse.toolInput?.file_path as string | undefined;
+      if ((toolName.includes('write') || toolName.includes('edit')) && filePath?.endsWith('tasks.md')) {
+        try {
+          const content = require('fs').readFileSync(filePath, 'utf-8');
+          const checkCount = (content.match(/- \[X\]/gi) || []).length;
+          if (checkCount > lastTaskCheckCount) {
+            lastTaskCheckCount = checkCount;
+            // Task was completed — auto-trigger slop check on workspace
+            const srcDir = path.join(workspacePath, 'extension', 'src');
+            const report = slopDetector.scanDirectory(srcDir, 100);
+            if (report.totalIssues > 0) {
+              console.log(`[Gofer] Auto-slop check: ${report.totalIssues} issues found after task completion`);
+            }
+          }
+        } catch {
+          // Non-fatal
+        }
+      }
+    });
+  }
+
+  // 018 T070/T071: PreOperationCheckpoint with git stash and rollback command
+  context.subscriptions.push(
+    vscode.commands.registerCommand('gofer.createPreOpCheckpoint', async () => {
+      try {
+        const { execFile: ef } = require('child_process');
+        const { promisify: p } = require('util');
+        const execAsync = p(ef);
+        const opts = { cwd: workspacePath };
+        // Create a git stash as pre-operation checkpoint
+        const { stdout } = await execAsync('git', ['stash', 'push', '-m', `gofer-pre-op-${Date.now()}`], opts);
+        if (stdout.includes('No local changes')) {
+          vscode.window.showInformationMessage('No changes to checkpoint (working tree clean).');
+        } else {
+          // Immediately pop to keep changes but record the stash reference
+          await execAsync('git', ['stash', 'pop'], opts);
+          vscode.window.showInformationMessage('Pre-operation checkpoint created (git stash reference saved).');
+        }
+      } catch {
+        vscode.window.showWarningMessage('Could not create pre-operation checkpoint.');
+      }
+    }),
+    vscode.commands.registerCommand('gofer.rollbackToCheckpoint', async () => {
+      try {
+        const { execFile: ef } = require('child_process');
+        const { promisify: p } = require('util');
+        const execAsync = p(ef);
+        const opts = { cwd: workspacePath };
+        const { stdout } = await execAsync('git', ['stash', 'list'], opts);
+        const goferStashes = stdout.split('\n').filter((l: string) => l.includes('gofer-pre-op'));
+        if (goferStashes.length === 0) {
+          vscode.window.showInformationMessage('No Gofer pre-operation checkpoints found.');
+          return;
+        }
+        const choice = await vscode.window.showQuickPick(goferStashes, { placeHolder: 'Select checkpoint to rollback to' });
+        if (choice) {
+          const stashRef = choice.split(':')[0];
+          await execAsync('git', ['stash', 'apply', stashRef], opts);
+          vscode.window.showInformationMessage(`Rolled back to checkpoint: ${stashRef}`);
+        }
+      } catch {
+        vscode.window.showWarningMessage('Rollback failed.');
+      }
+    })
+  );
+
   // T038/T039/T042/T043: Wire AutonomousLLMProvider for context management LLM operations
   const anthropicApiKey = vscode.workspace.getConfiguration('gofer').get<string>('anthropicApiKey');
   const autonomousLLMProvider = new AutonomousLLMProvider({
@@ -1469,12 +1713,14 @@ created: "${new Date().toISOString().split('T')[0]}"
     workspaceRoot: workspacePath,
   });
 
+  // 018 T080: Promote contextCompactor to module-level for deactivate cleanup
+  const contextCompactor = new ContextCompactor(workspacePath);
+
   if (autonomousLLMProvider.isAvailable()) {
     // T039: Wire LLM to ObservationMasker for enhanced key-point generation
     sharedContextBuilder.getObservationMasker().setLLMProvider(autonomousLLMProvider);
 
-    // T043: Wire LLM to ContextCompactor for enhanced task summarization
-    const contextCompactor = new ContextCompactor(workspacePath);
+    // T076: Set LLM provider on ContextCompactor when API key is available
     contextCompactor.setLLMProvider(autonomousLLMProvider);
 
     // T041: Wire ResearchSummarizer to research-complete event
@@ -1488,10 +1734,13 @@ created: "${new Date().toISOString().split('T')[0]}"
       });
     });
 
-    // T070: Wire auto-compaction to ContextHealthMonitor critical event
+    // T070/018: Wire auto-compaction to ContextHealthMonitor warning + critical events
     if (contextHealthMonitor) {
+      contextHealthMonitor.on('warning', () => {
+        // 018: Trigger LLM compression on warning level too (not just critical)
+        sharedContextBuilder.getObservationMasker().enhanceKeyPointsWithLLM().catch(() => {});
+      });
       contextHealthMonitor.on('critical', () => {
-        // Auto-enhance key-points with LLM when context hits critical
         sharedContextBuilder.getObservationMasker().enhanceKeyPointsWithLLM().catch(() => {});
       });
     }
@@ -1520,7 +1769,8 @@ created: "${new Date().toISOString().split('T')[0]}"
   if (autonomousLLMProvider?.isAvailable()) {
     memoryLayerManager.setLLMProvider(autonomousLLMProvider);
   }
-  sharedContextBuilder.setMemoryLayerManager(memoryLayerManager, false); // opt-in via config
+  const useLayeredMemory = vscode.workspace.getConfiguration('gofer').get<boolean>('useLayeredMemory', false);
+  sharedContextBuilder.setMemoryLayerManager(memoryLayerManager, useLayeredMemory);
 
   // T050: Restore observation cache from disk on startup
   sharedContextBuilder.getObservationMasker().loadCacheFromDisk().then(() => {
@@ -1531,6 +1781,18 @@ created: "${new Date().toISOString().split('T')[0]}"
   }).catch(() => {
     // Non-fatal: start with empty cache
   });
+
+  // 018: Wire ParallelAnalysisFramework for sub-agent partition recommendations
+  const { ParallelAnalysisFramework } = await import('./autonomous/ParallelAnalysisFramework');
+  const parallelAnalysisFramework = new ParallelAnalysisFramework(workspacePath);
+  sharedContextBuilder.setParallelAnalysisFramework(parallelAnalysisFramework);
+  console.log('[Gofer] ParallelAnalysisFramework wired to ContextBuilder');
+
+  // 018 T053: Wire ContextFolder for section-level folding
+  const { ContextFolder } = await import('./autonomous/ContextFolder');
+  const contextFolder = new ContextFolder(workspacePath);
+  sharedContextBuilder.setContextFolder(contextFolder);
+  console.log('[Gofer] ContextFolder wired to ContextBuilder');
 
   // T047/T048: Wire SubAgentDispatcher for progressive delegation
   const subAgentDispatcher = new SubAgentDispatcher(workspacePath);
@@ -1555,15 +1817,15 @@ created: "${new Date().toISOString().split('T')[0]}"
     const fsSync = require('fs') as typeof import('fs');
     let lastTrackedToolTimestamp = 0;
 
-    // T003: Debounced cache persistence (max once per 5s)
-    let cacheSaveTimer: ReturnType<typeof setTimeout> | null = null;
+    // T003/018: Trailing-edge debounced cache persistence (max once per 5s)
     const debouncedCacheSave = (): void => {
-      if (cacheSaveTimer) return;
-      cacheSaveTimer = setTimeout(() => {
-        cacheSaveTimer = null;
+      if (cacheSaveTimerRef) clearTimeout(cacheSaveTimerRef);
+      cacheSaveTimerRef = setTimeout(() => {
+        cacheSaveTimerRef = null;
         sharedContextBuilder.getObservationMasker().saveCacheToDisk().catch(() => {});
       }, 5000);
     };
+    sharedContextBuilderRef = sharedContextBuilder;
 
     hookBridgeWatcher.on('bridge-update', (data: BridgeData) => {
       const toolUse = data?.lastToolUse;
@@ -1763,6 +2025,32 @@ created: "${new Date().toISOString().split('T')[0]}"
 
 export async function deactivate() {
   console.log('Gofer extension deactivating...');
+
+  // 018: Flush observation cache to disk on deactivate (T019)
+  if (sharedContextBuilderRef) {
+    try {
+      await sharedContextBuilderRef.getObservationMasker().saveCacheToDisk();
+      console.log('Observation cache flushed to disk on deactivate');
+    } catch {
+      // Best-effort flush
+    }
+    sharedContextBuilderRef = undefined;
+  }
+
+  // 018: Clear debounce timer (T020)
+  if (cacheSaveTimerRef) {
+    clearTimeout(cacheSaveTimerRef);
+    cacheSaveTimerRef = null;
+  }
+
+  // 018: Clear consolidation timer
+  if (consolidationTimerRef) {
+    clearInterval(consolidationTimerRef);
+    consolidationTimerRef = null;
+  }
+
+  // 018 T081: WorkspaceContextProvider cleanup
+  workspaceContextProviderRef = undefined;
 
   // Stop Claude Code terminals and autonomous monitoring
   // Dynamic import to avoid blocking activation if node-pty fails

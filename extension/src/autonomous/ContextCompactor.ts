@@ -576,4 +576,62 @@ Summary:`;
       return null;
     }
   }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // 018 T078: Debounce/cooldown to prevent rapid compaction cycles
+  // ──────────────────────────────────────────────────────────────────────────
+
+  private lastCompactionTime = 0;
+  private readonly compactionCooldownMs = 5 * 60 * 1000; // 5 minute cooldown
+
+  /**
+   * Check if compaction is allowed (respects cooldown).
+   */
+  isCompactionAllowed(): boolean {
+    return Date.now() - this.lastCompactionTime > this.compactionCooldownMs;
+  }
+
+  /**
+   * 018 T077: Monitor context health and trigger compaction on critical events.
+   * Returns true if compaction was triggered.
+   */
+  async monitorAndCompactContext(session: Session): Promise<boolean> {
+    if (!this.isCompactionAllowed()) {
+      this.logger.debug('Compaction skipped (cooldown active)');
+      return false;
+    }
+
+    const shouldTrigger = await this.shouldCompact(session);
+    if (!shouldTrigger) return false;
+
+    this.lastCompactionTime = Date.now();
+    const summary = await this.compact(session);
+    this.logCompactionTelemetry(summary);
+    return true;
+  }
+
+  /**
+   * 018 T079: Log compaction telemetry for observability.
+   */
+  private logCompactionTelemetry(summary: CompactionSummary): void {
+    const telemetryEntry = {
+      timestamp: new Date().toISOString(),
+      eventType: 'compaction',
+      sessionId: summary.sessionId,
+      tasksCompacted: summary.tasksCompacted.length,
+      tasksPreserved: summary.preservedTasks.length,
+      tokensSaved: summary.tokensSaved,
+    };
+    this.logger.info('Compaction telemetry', telemetryEntry);
+    // Also write to JSONL log
+    const pathModule = require('path') as typeof import('path');
+    const logDir = pathModule.join(this.workspacePath, '.specify', 'logs');
+    const logPath = pathModule.join(logDir, 'context-usage.jsonl');
+    try {
+      require('fs').mkdirSync(logDir, { recursive: true });
+      require('fs').appendFileSync(logPath, JSON.stringify(telemetryEntry) + '\n');
+    } catch {
+      // Best-effort telemetry
+    }
+  }
 }

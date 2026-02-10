@@ -164,7 +164,7 @@ export interface LLMSummarizerLike {
 }
 
 export class ObservationMasker {
-  private readonly config: ObservationMaskerConfig;
+  private config: ObservationMaskerConfig;
   private readonly cache: Map<string, ObservationEntry>;
   private readonly logger: Logger;
   private readonly workspaceRoot: string;
@@ -197,6 +197,13 @@ export class ObservationMasker {
    */
   setLLMProvider(provider: LLMSummarizerLike): void {
     this.llmProvider = provider;
+  }
+
+  /**
+   * 018: Update preserve patterns at runtime (for config reload).
+   */
+  updatePreservePatterns(patterns: RegExp[]): void {
+    this.config = { ...this.config, preservePatterns: patterns };
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -262,6 +269,14 @@ export class ObservationMasker {
       this.pruneCache();
     }
 
+    // 018 T022: Auto-trigger LLM compression when observation count exceeds threshold
+    if (this.cache.size > 50 && this.llmProvider) {
+      const fullCount = Array.from(this.cache.values()).filter(o => o.decayTier === 'key-points').length;
+      if (fullCount > 20) {
+        this.enhanceKeyPointsWithLLM().catch(() => {});
+      }
+    }
+
     return id;
   }
 
@@ -317,7 +332,9 @@ export class ObservationMasker {
       removed++;
     }
 
-    this.logger.debug('Cache pruned', { removed, remaining: this.cache.size });
+    // Calculate tokens reclaimed from evicted entries
+    const tokensReclaimed = sorted.slice(0, removed).reduce((sum, [, obs]) => sum + (obs.tokenEstimate || 0), 0);
+    this.logger.info('LRU eviction completed', { evictionCount: removed, tokensReclaimed, cacheSize: this.cache.size });
     return removed;
   }
 

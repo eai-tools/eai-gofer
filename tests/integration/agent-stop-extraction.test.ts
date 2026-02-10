@@ -3,9 +3,9 @@
  *
  * Tests the agent-stop hook's ability to:
  * 1. Extract learnings from a transcript
- * 2. Classify them by cognitive memory type
+ * 2. Classify them by category
  * 3. Deduplicate against existing memories
- * 4. Write to both JSONL and local.json
+ * 4. Write to local.json
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
@@ -17,7 +17,6 @@ describe('Agent-Stop Memory Extraction Pipeline', () => {
   const testDir = path.join(__dirname, 'test-workspace-agent-stop');
   const memoryDir = path.join(testDir, '.specify', 'memory');
   const hooksDir = path.join(testDir, '.specify', 'hooks');
-  const jsonlPath = path.join(memoryDir, 'memories.jsonl');
   const localJsonPath = path.join(memoryDir, 'local.json');
   const transcriptPath = path.join(testDir, 'test-transcript.jsonl');
 
@@ -76,6 +75,12 @@ describe('Agent-Stop Memory Extraction Pipeline', () => {
     });
   }
 
+  function readMemories(): Array<Record<string, unknown>> {
+    if (!fs.existsSync(localJsonPath)) return [];
+    const data = JSON.parse(fs.readFileSync(localJsonPath, 'utf-8'));
+    return data.memories || [];
+  }
+
   it('should extract decision memories from transcript', () => {
     writeTranscript([
       { type: 'human', content: 'How should we handle authentication?' },
@@ -88,19 +93,13 @@ describe('Agent-Stop Memory Extraction Pipeline', () => {
 
     runHook();
 
-    // JSONL should have entries
-    expect(fs.existsSync(jsonlPath)).toBe(true);
-    const jsonlContent = fs.readFileSync(jsonlPath, 'utf-8');
-    const lines = jsonlContent.trim().split('\n');
-    expect(lines.length).toBeGreaterThanOrEqual(1);
+    expect(fs.existsSync(localJsonPath)).toBe(true);
+    const memories = readMemories();
+    expect(memories.length).toBeGreaterThanOrEqual(1);
 
-    // Should have a decision type
-    const memories = lines.map((l) => JSON.parse(l));
-    const decision = memories.find((m: Record<string, unknown>) => m.type === 'decision');
+    const decision = memories.find((m) => m.category === 'decision');
     expect(decision).toBeDefined();
-    expect(decision.category).toBe('decision');
-    expect(decision.confidence).toBe(70);
-    expect(decision.source).toBeDefined();
+    expect(decision!.learnedFrom).toBeDefined();
   });
 
   it('should extract preference memories from human messages', () => {
@@ -111,16 +110,11 @@ describe('Agent-Stop Memory Extraction Pipeline', () => {
 
     runHook();
 
-    expect(fs.existsSync(jsonlPath)).toBe(true);
-    const memories = fs
-      .readFileSync(jsonlPath, 'utf-8')
-      .trim()
-      .split('\n')
-      .map((l) => JSON.parse(l));
+    expect(fs.existsSync(localJsonPath)).toBe(true);
+    const memories = readMemories();
 
-    const pref = memories.find((m: Record<string, unknown>) => m.category === 'preference');
+    const pref = memories.find((m) => m.category === 'preference');
     expect(pref).toBeDefined();
-    expect(pref.type).toBe('procedural'); // Preferences → procedural
   });
 
   it('should extract error resolution memories from assistant messages', () => {
@@ -135,16 +129,11 @@ describe('Agent-Stop Memory Extraction Pipeline', () => {
 
     runHook();
 
-    expect(fs.existsSync(jsonlPath)).toBe(true);
-    const memories = fs
-      .readFileSync(jsonlPath, 'utf-8')
-      .trim()
-      .split('\n')
-      .map((l) => JSON.parse(l));
+    expect(fs.existsSync(localJsonPath)).toBe(true);
+    const memories = readMemories();
 
-    const fix = memories.find((m: Record<string, unknown>) => m.category === 'error_resolution');
+    const fix = memories.find((m) => m.category === 'error_resolution');
     expect(fix).toBeDefined();
-    expect(fix.type).toBe('episodic'); // Error resolutions → episodic
   });
 
   it('should deduplicate against existing memories', () => {
@@ -188,7 +177,7 @@ describe('Agent-Stop Memory Extraction Pipeline', () => {
     }
   });
 
-  it('should dual-write to both JSONL and local.json', () => {
+  it('should write to local.json with StoredMemories format', () => {
     writeTranscript([
       { type: 'human', content: 'Always use Vitest instead of Jest' },
       { type: 'assistant', content: 'Noted. Going with Vitest for the test framework.' },
@@ -196,22 +185,25 @@ describe('Agent-Stop Memory Extraction Pipeline', () => {
 
     runHook();
 
-    // Both files should exist
-    expect(fs.existsSync(jsonlPath)).toBe(true);
     expect(fs.existsSync(localJsonPath)).toBe(true);
-
-    // JSONL should have new entries
-    const jsonlLines = fs.readFileSync(jsonlPath, 'utf-8').trim().split('\n');
-    expect(jsonlLines.length).toBeGreaterThanOrEqual(1);
 
     // local.json should have the StoredMemories format
     const localData = JSON.parse(fs.readFileSync(localJsonPath, 'utf-8'));
     expect(localData.version).toBe(1);
     expect(localData.memories).toBeDefined();
     expect(localData.memories.length).toBeGreaterThanOrEqual(1);
+
+    // Each memory should have required fields
+    for (const mem of localData.memories) {
+      expect(mem.id).toBeDefined();
+      expect(mem.category).toBeDefined();
+      expect(mem.content).toBeDefined();
+      expect(mem.created).toBeDefined();
+      expect(mem.scope).toBe('local');
+    }
   });
 
-  it('should assign correct priority indices by category', () => {
+  it('should assign correct categories by content type', () => {
     writeTranscript([
       { type: 'human', content: 'I prefer tabs over spaces' },
       {
@@ -223,19 +215,12 @@ describe('Agent-Stop Memory Extraction Pipeline', () => {
 
     runHook();
 
-    const memories = fs
-      .readFileSync(jsonlPath, 'utf-8')
-      .trim()
-      .split('\n')
-      .map((l) => JSON.parse(l));
+    const memories = readMemories();
 
     for (const mem of memories) {
-      if (mem.category === 'decision') {
-        expect(mem.priorityIndex).toBe(3);
-      }
-      if (mem.category === 'preference') {
-        expect(mem.priorityIndex).toBe(4);
-      }
+      expect(['decision', 'preference', 'error_resolution', 'file_knowledge', 'pattern']).toContain(
+        mem.category
+      );
     }
   });
 });

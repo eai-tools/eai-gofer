@@ -179,9 +179,13 @@ export class MemoryStorage {
   // Write Operations
   // --------------------------------------------------------------------------
 
+  /** 019 C10: Character threshold for auto-promotion to markdown note */
+  private static readonly AUTO_PROMOTE_THRESHOLD = 500;
+
   /**
    * Append a memory to the JSONL file and update the index.
    * Returns the memory with a generated hash-based ID.
+   * 019 C10: Automatically promotes entries exceeding 500 chars to markdown notes.
    */
   async append(memory: Omit<Memory, 'id' | 'created'>): Promise<Memory> {
     await this.ensureInitialized();
@@ -189,13 +193,18 @@ export class MemoryStorage {
     const now = Date.now();
     const id = this.generateId(memory.content, now);
 
-    const fullMemory: Memory = {
+    let fullMemory: Memory = {
       ...memory,
       id,
       created: now,
       lastUsed: memory.lastUsed || now,
       usedCount: memory.usedCount ?? 0,
     };
+
+    // 019 C10: Auto-promote large entries to markdown notes
+    if (memory.content.length > MemoryStorage.AUTO_PROMOTE_THRESHOLD) {
+      fullMemory = await this.autoPromoteToMarkdown(fullMemory);
+    }
 
     // Append to JSONL (atomic for small payloads on POSIX)
     const line = JSON.stringify(fullMemory) + '\n';
@@ -468,5 +477,36 @@ export class MemoryStorage {
    */
   getArchivePath(): string {
     return this.archivePath;
+  }
+
+  /**
+   * 019 C10: Auto-promote a memory entry to a markdown note file.
+   * Creates `.specify/memory/memory-notes/{id}.md` with full content,
+   * and returns the memory with truncated content + notePath reference.
+   */
+  private async autoPromoteToMarkdown(memory: Memory): Promise<Memory> {
+    const notesDir = path.join(path.dirname(this.jsonlPath), 'memory-notes');
+    await fs.mkdir(notesDir, { recursive: true });
+
+    const notePath = `memory-notes/${memory.id}.md`;
+    const fullNotePath = path.join(path.dirname(this.jsonlPath), notePath);
+
+    // Write markdown note with YAML frontmatter
+    const mdContent = [
+      '---',
+      `id: ${memory.id}`,
+      `category: ${memory.category}`,
+      `created: ${new Date(memory.created).toISOString()}`,
+      `tags: [${memory.tags.map((t: string) => `"${t}"`).join(', ')}]`,
+      '---',
+      '',
+      memory.content,
+    ].join('\n');
+
+    await fs.writeFile(fullNotePath, mdContent, 'utf-8');
+
+    // Truncate JSONL content and add notePath reference
+    const truncated = memory.content.slice(0, 200) + '... [see markdown note]';
+    return { ...memory, content: truncated, notePath };
   }
 }

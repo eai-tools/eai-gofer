@@ -125,6 +125,9 @@ export interface Task {
   /** Task completion status */
   status: 'pending' | 'in_progress' | 'completed' | 'failed';
 
+  /** Error message if task failed */
+  error?: string;
+
   /** Task completion timestamp */
   completedAt?: number;
 }

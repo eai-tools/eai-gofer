@@ -444,8 +444,9 @@ Summary:`;
   }
 
   /**
-   * T158: Generate fallback summary without LLM.
-   * Simple truncation strategy preserving essential info.
+   * T158 + 019 T054-T055: Generate fallback summary without LLM.
+   * Deterministic: extracts task description first lines, preserves error messages,
+   * and includes file modification summary.
    */
   private generateFallbackSummary(tasks: Task[]): string {
     if (tasks.length === 0) {
@@ -460,25 +461,52 @@ Summary:`;
       task.affectedFiles?.forEach((file) => filesAffected.add(file));
     });
 
-    let summary = `Completed ${completedCount} tasks`;
-    if (failedCount > 0) {
-      summary += `, ${failedCount} failed`;
+    const lines: string[] = [];
+
+    // Header with counts
+    let header = `Completed ${completedCount} tasks`;
+    if (failedCount > 0) header += `, ${failedCount} failed`;
+    lines.push(header + '.');
+
+    // 019 T054: Extract first line of each task description for context
+    const taskSummaries = tasks.slice(0, 10).map(task => {
+      const firstLine = task.description?.split('\n')[0]?.trim() || task.id;
+      return `- ${task.id}: ${firstLine.slice(0, 100)}`;
+    });
+    if (taskSummaries.length > 0) {
+      lines.push('');
+      lines.push('Task summaries:');
+      lines.push(...taskSummaries);
+      if (tasks.length > 10) {
+        lines.push(`  ... and ${tasks.length - 10} more`);
+      }
     }
+
+    // 019 T055: Preserve error messages from failed tasks
+    const failedTasks = tasks.filter(t => t.status === 'failed');
+    if (failedTasks.length > 0) {
+      lines.push('');
+      lines.push('Errors:');
+      for (const task of failedTasks.slice(0, 5)) {
+        const errorMsg = task.error || task.description?.split('\n')[0] || 'Unknown error';
+        lines.push(`- ${task.id}: ${errorMsg.slice(0, 150)}`);
+      }
+    }
+
+    // 019 T055: File modification summary
     if (filesAffected.size > 0) {
-      summary += `. Modified ${filesAffected.size} files`;
-    }
-    summary += '.';
-
-    // Add sample task IDs
-    if (tasks.length > 5) {
-      const sampleIds = tasks.slice(0, 3).map((t) => t.id);
-      summary += ` Tasks: ${sampleIds.join(', ')}, ...`;
-    } else {
-      const ids = tasks.map((t) => t.id);
-      summary += ` Tasks: ${ids.join(', ')}`;
+      lines.push('');
+      lines.push(`Files modified (${filesAffected.size}):`);
+      const sortedFiles = [...filesAffected].sort().slice(0, 15);
+      for (const file of sortedFiles) {
+        lines.push(`- ${file}`);
+      }
+      if (filesAffected.size > 15) {
+        lines.push(`  ... and ${filesAffected.size - 15} more`);
+      }
     }
 
-    return summary;
+    return lines.join('\n');
   }
 
   /**

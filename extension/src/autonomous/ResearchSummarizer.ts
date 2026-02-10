@@ -11,6 +11,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import type { AutonomousLLMProvider } from './LLMProvider';
 import type { ResearchChunker, ResearchChunk } from './ResearchChunker';
+import { extractKeywords, computeDocumentSimilarity } from './TfIdfUtil';
 
 /**
  * Duck-typed interface for MemoryManager save operations.
@@ -255,6 +256,99 @@ export class ResearchSummarizer {
     });
 
     return { chapter, sections, paragraphs };
+  }
+
+  /**
+   * 019 T046-T047: Consolidate findings across all research chunks for a spec.
+   * Merges overlapping findings, deduplicates entities, and produces a
+   * "Research Synthesis" memory with cross-chunk consolidated insights.
+   */
+  async consolidateFindings(specId: string): Promise<string> {
+    const researchPath = path.join(
+      this.workspaceRoot, '.specify', 'specs', specId, 'research.md'
+    );
+
+    if (!fs.existsSync(researchPath)) {
+      return '';
+    }
+
+    const indexResult = await this.researchChunker.indexResearchFile(specId);
+    const chunks = indexResult.chunks;
+
+    if (chunks.length === 0) return '';
+
+    // Extract keywords from each chunk
+    const chunkKeywords: Array<{ chunk: ResearchChunk; keywords: string[] }> = chunks.map(chunk => ({
+      chunk,
+      keywords: extractKeywords(chunk.content, 10),
+    }));
+
+    // Find overlapping chunks by TF-IDF similarity
+    const consolidatedGroups: Array<{ representative: ResearchChunk; merged: ResearchChunk[] }> = [];
+    const used = new Set<string>();
+
+    for (let i = 0; i < chunkKeywords.length; i++) {
+      if (used.has(chunkKeywords[i].chunk.id)) continue;
+      used.add(chunkKeywords[i].chunk.id);
+
+      const group = { representative: chunkKeywords[i].chunk, merged: [] as ResearchChunk[] };
+
+      for (let j = i + 1; j < chunkKeywords.length; j++) {
+        if (used.has(chunkKeywords[j].chunk.id)) continue;
+
+        const similarity = computeDocumentSimilarity(
+          chunkKeywords[i].chunk.content,
+          chunkKeywords[j].chunk.content
+        );
+
+        if (similarity > 0.3) {
+          group.merged.push(chunkKeywords[j].chunk);
+          used.add(chunkKeywords[j].chunk.id);
+        }
+      }
+
+      consolidatedGroups.push(group);
+    }
+
+    // Build synthesis
+    const synthesisLines: string[] = [
+      `# Research Synthesis: ${specId}`,
+      '',
+      `Consolidated ${chunks.length} chunks into ${consolidatedGroups.length} groups.`,
+      '',
+    ];
+
+    for (const group of consolidatedGroups) {
+      const allContent = [group.representative.content, ...group.merged.map(m => m.content)].join('\n');
+      const topKeywords = extractKeywords(allContent, 5);
+      const mergedTitles = [group.representative.sectionTitle, ...group.merged.map(m => m.sectionTitle)];
+
+      synthesisLines.push(`## ${mergedTitles[0]}${group.merged.length > 0 ? ` (+${group.merged.length} related)` : ''}`);
+      synthesisLines.push(`**Keywords**: ${topKeywords.join(', ')}`);
+      if (group.merged.length > 0) {
+        synthesisLines.push(`**Merged from**: ${mergedTitles.join(', ')}`);
+      }
+      synthesisLines.push('');
+    }
+
+    const synthesis = synthesisLines.join('\n');
+
+    // Save as a discovery memory
+    try {
+      await this.memoryManager.save({
+        category: 'discovery',
+        content: `[Research Synthesis] ${synthesis.slice(0, 800)}`,
+        tags: ['#auto', '#research-synthesis', `#spec-${specId}`],
+        scope: 'local',
+        lastUsed: Date.now(),
+        usedCount: 0,
+        learnedFrom: specId,
+      });
+    } catch {
+      // Best-effort
+    }
+
+    return synthesis;
   }
 
   private getCachePath(): string {

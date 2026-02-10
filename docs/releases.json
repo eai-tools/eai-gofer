@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.4.0",
+  "latest_version": "1.4.1",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-02-10T02:40:38.331Z",
+  "last_updated": "2026-02-10T02:48:05.664Z",
   "releases": [
+    {
+      "version": "1.4.1",
+      "tag_name": "v1.4.1",
+      "published_at": "2026-02-10T02:48:05.663Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.4.1.vsix",
+      "notes": "chore: pre-release changes\n\nAuto-committed changes before release v1.4.0",
+      "prerelease": false,
+      "size_mb": 15.5
+    },
     {
       "version": "1.4.0",
       "tag_name": "v1.4.0",
@@ -81,15 +90,6 @@
       "published_at": "2026-02-03T21:26:26.919Z",
       "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.1.7.vsix",
       "notes": "fix: wire ContextBuilder to AutoHandoffTrigger, add aggressive timeouts",
-      "prerelease": false,
-      "size_mb": 15.4
-    },
-    {
-      "version": "1.1.6",
-      "tag_name": "v1.1.6",
-      "published_at": "2026-02-03T21:17:19.203Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.1.6.vsix",
-      "notes": "chore: pre-release changes\n\nAuto-committed changes before release v1.1.5",
       "prerelease": false,
       "size_mb": 15.4
     }

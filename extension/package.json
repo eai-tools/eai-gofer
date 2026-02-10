@@ -203,6 +203,16 @@
         "command": "gofer.showCouncilStatus",
         "title": "Gofer: Show LLM Council Status",
         "icon": "$(organization)"
+      },
+      {
+        "command": "gofer.checkForSlop",
+        "title": "Gofer: Check for Slop (AI Code Quality)",
+        "icon": "$(bug)"
+      },
+      {
+        "command": "gofer.resumeSession",
+        "title": "Gofer: Resume Session from Checkpoint",
+        "icon": "$(debug-continue)"
       }
     ],
     "keybindings": [
@@ -635,6 +645,20 @@
           "default": [],
           "description": "Additional regex patterns for observations that should never be masked",
           "markdownDescription": "Additional regex patterns (case-insensitive) for observation content that should **never** be masked during context management.\n\nBuilt-in patterns already preserve: `error`, `exception`, `failed`, `failure`, `critical`, `fatal`, `panic`, `unhandled`, `stack trace`.\n\n**Example**: `[\"timeout\", \"ECONNREFUSED\", \"segfault\"]`"
+        },
+        "gofer.useLayeredMemory": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable MemGPT-inspired three-layer memory (core/recall/archival)",
+          "markdownDescription": "Enable **MemGPT-inspired three-layer memory** architecture:\n- **Core**: Always-loaded high-priority memories\n- **Recall**: Recent session context\n- **Archival**: Long-term searchable storage\n\nWhen enabled, `buildContext()` uses layered memory instead of flat memory loading."
+        },
+        "gofer.stageDetectionStalenessMinutes": {
+          "type": "number",
+          "default": 30,
+          "minimum": 5,
+          "maximum": 120,
+          "description": "Minutes before stage detection data is considered stale",
+          "markdownDescription": "How many minutes before the cached stage detection data (from `current-stage.json`) is considered stale and falls back to heuristic detection."
         },
         "gofer.autonomous.haikuUserPromptTemplate": {
           "type": "string",

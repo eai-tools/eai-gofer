@@ -71,6 +71,11 @@ export class MemoryManager implements IMemoryManager {
    * @param context - VSCode extension context
    * @param workspaceRoot - Workspace root directory (for local memories)
    */
+  // 018: Consolidation timer and memory limits
+  private consolidationTimer: ReturnType<typeof setInterval> | null = null;
+  private static readonly MAX_MEMORY_COUNT = 200;
+  private static readonly CONSOLIDATION_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
+
   constructor(context: vscode.ExtensionContext, workspaceRoot: string) {
     this.context = context;
     this.workspaceRoot = workspaceRoot;
@@ -82,6 +87,75 @@ export class MemoryManager implements IMemoryManager {
       workspaceRoot,
       localMemoryPath: this.localMemoryPath,
     });
+  }
+
+  /**
+   * 018 T025: Start periodic consolidation timer (30 min).
+   * Returns the timer reference for cleanup in deactivate().
+   */
+  startConsolidationTimer(): ReturnType<typeof setInterval> {
+    if (this.consolidationTimer) {
+      clearInterval(this.consolidationTimer);
+    }
+    this.consolidationTimer = setInterval(async () => {
+      try {
+        const result = await this.consolidate();
+        this.logger.info('Periodic consolidation completed', {
+          merged: result.merged,
+          archived: result.archived,
+          decayed: result.decayed,
+        });
+      } catch {
+        // Non-fatal: consolidation is best-effort
+      }
+    }, MemoryManager.CONSOLIDATION_INTERVAL_MS);
+    this.logger.info('Consolidation timer started (30 min interval)');
+    return this.consolidationTimer;
+  }
+
+  /**
+   * 018: Stop consolidation timer.
+   */
+  stopConsolidationTimer(): void {
+    if (this.consolidationTimer) {
+      clearInterval(this.consolidationTimer);
+      this.consolidationTimer = null;
+    }
+  }
+
+  /**
+   * 018 T034: BFS traversal from a memory through related links (Zettelkasten navigation).
+   * Returns memories reachable within maxDepth hops.
+   */
+  async traverseRelated(startId: string, maxDepth: number = 3): Promise<Memory[]> {
+    await this.ensureStorageReady();
+    const visited = new Set<string>();
+    const result: Memory[] = [];
+    const queue: Array<{ id: string; depth: number }> = [{ id: startId, depth: 0 }];
+
+    while (queue.length > 0) {
+      const { id, depth } = queue.shift()!;
+      if (visited.has(id) || depth > maxDepth) continue;
+      visited.add(id);
+
+      const memory = this.storage.get(id);
+      if (!memory) continue;
+      if (id !== startId) result.push(memory);
+
+      // Follow forward links (relatedMemories)
+      for (const link of memory.relatedMemories || []) {
+        if (!visited.has(link.memoryId)) {
+          queue.push({ id: link.memoryId, depth: depth + 1 });
+        }
+      }
+      // Follow back-references
+      for (const backRef of (memory as Memory & { backReferences?: string[] }).backReferences || []) {
+        if (!visited.has(backRef)) {
+          queue.push({ id: backRef, depth: depth + 1 });
+        }
+      }
+    }
+    return result;
   }
 
   /**
@@ -166,14 +240,31 @@ export class MemoryManager implements IMemoryManager {
       // Delegate to JSONL storage (generates hash-based ID)
       const newMemory = await this.storage.append(memory);
 
-      // T032: Dual storage for long memories — write companion .md file
+      // T032/018: Dual storage with rich markdown + YAML frontmatter for long memories
       if (newMemory.content.length > 500) {
         const notesDir = path.join(this.workspaceRoot, '.specify', 'memory', 'memory-notes');
         const notePath = path.join(notesDir, `${newMemory.id}.md`);
         try {
           await fsPromises.mkdir(notesDir, { recursive: true });
-          await fsPromises.writeFile(notePath, newMemory.content, 'utf-8');
-          await this.storage.update(newMemory.id, { notePath: `memory-notes/${newMemory.id}.md` });
+          // 018 T029: Rich markdown format with YAML frontmatter
+          const frontmatter = [
+            '---',
+            `id: ${newMemory.id}`,
+            `category: ${newMemory.category}`,
+            `tags: [${(newMemory.tags || []).map((t: string) => `"${t}"`).join(', ')}]`,
+            `created: ${new Date(newMemory.created).toISOString()}`,
+            `priority: ${newMemory.priorityIndex ?? 0}`,
+            `learnedFrom: ${newMemory.learnedFrom || 'unknown'}`,
+            '---',
+            '',
+          ].join('\n');
+          await fsPromises.writeFile(notePath, frontmatter + newMemory.content, 'utf-8');
+          // 018 T030: Store notePath and truncate JSONL content for long memories
+          const truncatedContent = newMemory.content.slice(0, 200) + '... [see markdown note]';
+          await this.storage.update(newMemory.id, {
+            notePath: `memory-notes/${newMemory.id}.md`,
+            content: truncatedContent,
+          });
           newMemory.notePath = `memory-notes/${newMemory.id}.md`;
         } catch {
           // Non-fatal: dual storage is best-effort
@@ -210,6 +301,18 @@ export class MemoryManager implements IMemoryManager {
           if (scored.length > 0) {
             await this.storage.update(newMemory.id, { relatedMemories: scored });
             newMemory.relatedMemories = scored;
+
+            // 018 T033: Maintain bidirectional back-references
+            for (const link of scored) {
+              const targetMemory = this.storage.get(link.memoryId);
+              if (targetMemory) {
+                const backRefs: string[] = (targetMemory as Memory & { backReferences?: string[] }).backReferences || [];
+                if (!backRefs.includes(newMemory.id)) {
+                  backRefs.push(newMemory.id);
+                  await this.storage.update(link.memoryId, { backReferences: backRefs } as Partial<Memory>);
+                }
+              }
+            }
           }
         }
       } catch {
@@ -232,6 +335,25 @@ export class MemoryManager implements IMemoryManager {
           tokenEstimate: estimatedTokens,
           scope: newMemory.scope,
         });
+      }
+
+      // 018 T027/T028: Enforce MAX_MEMORY_COUNT — auto-archive lowest priority
+      try {
+        const count = this.storage.count();
+        if (count > MemoryManager.MAX_MEMORY_COUNT) {
+          const excess = count - MemoryManager.MAX_MEMORY_COUNT;
+          const allLocal = this.storage.getAll('local');
+          // Sort by priority (lowest first), then by lastUsed (oldest first)
+          const sortedForArchive = allLocal
+            .sort((a, b) => (a.priorityIndex ?? 0) - (b.priorityIndex ?? 0) || a.lastUsed - b.lastUsed);
+          const toArchive = sortedForArchive.slice(0, excess).map(m => m.id);
+          if (toArchive.length > 0) {
+            await this.storage.archive(toArchive);
+            this.logger.info('Auto-archived low-priority memories', { archived: toArchive.length, remaining: this.storage.count() });
+          }
+        }
+      } catch {
+        // Non-fatal: archiving is best-effort
       }
 
       return newMemory;

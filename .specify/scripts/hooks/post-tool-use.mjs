@@ -76,30 +76,14 @@ function extractLatestUsage(transcriptPath) {
 
   const lines = tail.split('\n').filter(Boolean);
 
-  let usageResult = null;
-  let customTitle = null;
-  let slug = null;
-
-  // Walk backward to find last assistant message with usage,
-  // and also pick up custom-title and slug fields
+  // Walk backward to find last assistant message with usage
   for (let i = lines.length - 1; i >= 0; i--) {
     try {
       const entry = JSON.parse(lines[i]);
-
-      // Extract custom-title (from /rename command)
-      if (!customTitle && entry.type === 'custom-title' && entry.customTitle) {
-        customTitle = entry.customTitle;
-      }
-
-      // Extract slug (auto-generated, present on most entries)
-      if (!slug && entry.slug) {
-        slug = entry.slug;
-      }
-
-      if (!usageResult && entry.type === 'assistant' && entry.message?.usage) {
+      if (entry.type === 'assistant' && entry.message?.usage) {
         const usage = entry.message.usage;
         const model = entry.message?.model || '';
-        usageResult = {
+        return {
           inputTokens: usage.input_tokens || 0,
           cacheCreationInputTokens: usage.cache_creation_input_tokens || 0,
           cacheReadInputTokens: usage.cache_read_input_tokens || 0,
@@ -108,20 +92,12 @@ function extractLatestUsage(transcriptPath) {
           timestamp: entry.timestamp || new Date().toISOString(),
         };
       }
-
-      // Stop early if we have everything
-      if (usageResult && (customTitle || slug)) break;
     } catch {
       // Skip malformed lines
     }
   }
 
-  // Attach display name to usage result
-  if (usageResult) {
-    usageResult.displayName = customTitle || slug || null;
-  }
-
-  return usageResult;
+  return null;
 }
 
 /**
@@ -258,7 +234,6 @@ const bridge = {
   timestamp: now,
   sessionId,
   model: usage?.model || existing.model || '',
-  displayName: usage?.displayName || existing.displayName || null,
   context: usage
     ? {
         totalContextTokens:

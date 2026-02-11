@@ -29,6 +29,8 @@ import { KnowledgeGraph } from './autonomous/KnowledgeGraph';
 import { CitationVerifier } from './autonomous/CitationVerifier';
 import { ScopeGuard } from './autonomous/ScopeGuard';
 import { SlopDetector } from './autonomous/SlopDetector';
+import { SlopReducer } from './autonomous/SlopReducer';
+import { ConfigManager } from './config';
 import { AutonomousLLMProvider } from './autonomous/LLMProvider';
 import { ResearchSummarizer } from './autonomous/ResearchSummarizer';
 import { ContextCompactor } from './autonomous/ContextCompactor';
@@ -1726,6 +1728,20 @@ created: "${new Date().toISOString().split('T')[0]}"
     })
   );
   console.log('[Gofer] SlopDetector initialized with gofer.checkForSlop command');
+
+  // 001-yolo-slop-reduction: Wire SlopReducer for auto-fix on save
+  const slopReducer = new SlopReducer(workspacePath);
+  context.subscriptions.push(
+    vscode.workspace.onDidSaveTextDocument((doc) => {
+      const config = ConfigManager.getInstance();
+      config.refresh();
+      if (!config.getSlopReductionEnabled()) return;
+      const filePath = doc.uri.fsPath;
+      if (!slopReducer.isEligibleFile(filePath)) return;
+      if (slopReducer.isTestFile(filePath)) return;
+      slopReducer.reduceFile(filePath);
+    })
+  );
 
   // 018 T065: Wire ScopeGuard violations to VSCode diagnostics collection
   const scopeDiagnostics = vscode.languages.createDiagnosticCollection('gofer-scope');

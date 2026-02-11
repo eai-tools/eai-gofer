@@ -73,6 +73,8 @@ export const CONFIG_KEYS = {
   telemetryEnabled: 'gofer.telemetryEnabled',
   updateCheckInterval: 'gofer.updateCheckInterval',
   performanceMode: 'gofer.performanceMode',
+  yoloSlopReductionEnabled: 'gofer.yoloSlopReduction.enabled',
+  yoloSlopReductionNotifyEvery: 'gofer.yoloSlopReduction.notifyEvery',
 } as const;
 
 // Default values
@@ -85,6 +87,8 @@ export const DEFAULTS = {
   telemetryEnabled: true,
   updateCheckInterval: 24 * 60 * 60 * 1000, // 24 hours in ms
   performanceMode: 'balanced',
+  yoloSlopReductionEnabled: false,
+  yoloSlopReductionNotifyEvery: 10,
 } as const;
 
 // File patterns
@@ -239,6 +243,23 @@ export class ConfigManager {
     return this.config.get<'fast' | 'balanced' | 'thorough'>(
       CONFIG_KEYS.performanceMode.replace('gofer.', ''),
       DEFAULTS.performanceMode as 'balanced'
+    );
+  }
+
+  /**
+   * Get YOLO slop reduction enabled setting
+   */
+  public getSlopReductionEnabled(): boolean {
+    return this.config.get<boolean>('yoloSlopReduction.enabled', DEFAULTS.yoloSlopReductionEnabled);
+  }
+
+  /**
+   * Get YOLO slop reduction notification frequency
+   */
+  public getSlopReductionNotifyEvery(): number {
+    return this.config.get<number>(
+      'yoloSlopReduction.notifyEvery',
+      DEFAULTS.yoloSlopReductionNotifyEvery
     );
   }
 

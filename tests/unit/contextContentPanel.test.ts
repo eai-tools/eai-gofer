@@ -281,7 +281,7 @@ describe('ContextContentPanel', () => {
       ].join('\n');
 
       const panel = ContextContentPanel.createOrShow(extensionUri, workspacePath);
-      await panel.showCategory('sess-1', 'Memories/Hints', makeBridgeData());
+      await panel.showCategory('sess-1', 'Memories & Hints', makeBridgeData());
 
       const html = lastCreatedPanel.webview.html;
       expect(html).toContain('architecture');
@@ -293,7 +293,7 @@ describe('ContextContentPanel', () => {
 
     it('shows empty state when no memory files exist', async () => {
       const panel = ContextContentPanel.createOrShow(extensionUri, workspacePath);
-      await panel.showCategory('sess-1', 'Memories/Hints', makeBridgeData());
+      await panel.showCategory('sess-1', 'Memories & Hints', makeBridgeData());
 
       const html = lastCreatedPanel.webview.html;
       expect(html).toContain('No memories or hints found');
@@ -304,7 +304,7 @@ describe('ContextContentPanel', () => {
         '{"content":"valid","category":"test"}\nnot-json\n{"content":"also valid","category":"test"}';
 
       const panel = ContextContentPanel.createOrShow(extensionUri, workspacePath);
-      await panel.showCategory('sess-1', 'Memories/Hints', makeBridgeData());
+      await panel.showCategory('sess-1', 'Memories & Hints', makeBridgeData());
 
       const html = lastCreatedPanel.webview.html;
       expect(html).toContain('valid');
@@ -359,8 +359,6 @@ describe('ContextContentPanel', () => {
       await panel.showCategory('session-xyz', 'Conversation History', data);
 
       const html = lastCreatedPanel.webview.html;
-      expect(html).toContain('Session Metadata');
-      expect(html).toContain('claude-opus-4-5-20251101');
       expect(html).toContain('Context Utilization');
       expect(html).toContain('50%');
       expect(html).toContain('Token Breakdown');

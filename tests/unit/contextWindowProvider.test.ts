@@ -181,7 +181,7 @@ describe('ContextWindowProvider', () => {
       expect(categories).toHaveLength(6);
       expect(categories.map((c) => c.categoryName)).toEqual([
         'Spec Artifacts',
-        'Memories/Hints',
+        'Memories & Hints',
         'System Files',
         'Conversation History',
         'Tool Outputs',

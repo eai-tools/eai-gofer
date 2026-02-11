@@ -312,19 +312,19 @@
           "group": "navigation@2"
         },
         {
+          "command": "gofer.showConstitution",
+          "when": "view == goferProgress",
+          "group": "navigation@3"
+        },
+        {
           "command": "gofer.refreshContextWindow",
           "when": "view == goferContextWindow",
           "group": "navigation"
         },
         {
-          "command": "gofer.showConstitution",
-          "when": "view == goferMemory",
-          "group": "navigation@1"
-        },
-        {
           "command": "gofer.refreshMemory",
           "when": "view == goferMemory",
-          "group": "navigation@2"
+          "group": "navigation"
         }
       ],
       "view/item/context": [

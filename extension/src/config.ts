@@ -55,7 +55,7 @@ export const COMMANDS = {
 // View IDs
 export const VIEWS = {
   progress: 'goferProgress',
-  constitution: 'goferConstitution',
+  contextWindow: 'goferContextWindow',
   memory: 'goferMemory',
   container: 'gofer',
 } as const;

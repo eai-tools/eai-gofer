@@ -598,10 +598,13 @@ function renderConversationHistory(bridgeData: BridgeData | undefined): string {
     .map((row) => {
       const pct = Math.round((row.bytes / grandTotal) * 100);
       const sizeStr = row.bytes > 1024 ? `${(row.bytes / 1024).toFixed(1)} KB` : `${row.bytes} B`;
+      const estTokens = Math.ceil(row.bytes / 4);
+      const tokenStr = estTokens > 1000 ? `~${(estTokens / 1000).toFixed(1)}k` : `~${estTokens}`;
       return `<tr>
       <td>${escapeHtml(row.label)}</td>
       <td class="number">${row.count}</td>
       <td class="number">${escapeHtml(sizeStr)}</td>
+      <td class="number">${escapeHtml(tokenStr)}</td>
       <td class="number">${pct}%</td>
     </tr>`;
     })
@@ -641,7 +644,7 @@ function renderConversationHistory(bridgeData: BridgeData | undefined): string {
           entries.length > 0
             ? `
           <table class="token-table">
-            <thead><tr><th>Category</th><th>Count</th><th>Size</th><th>Share</th></tr></thead>
+            <thead><tr><th>Category</th><th>Count</th><th>Size</th><th>~Tokens</th><th>Share</th></tr></thead>
             <tbody>${tableHtml}</tbody>
           </table>
           <p class="muted" style="margin-top:8px">Click sub-categories in the tree to view actual content.</p>

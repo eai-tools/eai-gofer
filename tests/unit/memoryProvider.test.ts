@@ -1,7 +1,7 @@
 /**
  * Unit tests for MemoryProvider (rewritten)
  *
- * Tests: T030 — empty state, categories, entries, constitution node,
+ * Tests: T030 — empty state, sections, categories, entries,
  * setMemoryManager injection, click to open.
  */
 
@@ -39,6 +39,17 @@ vi.mock('vscode', () => ({
     event = vi.fn();
     dispose = vi.fn();
   },
+  Uri: {
+    file: (p: string) => ({ fsPath: p, scheme: 'file' }),
+  },
+}));
+
+// Mock fs module for file-system dependent sections
+vi.mock('fs', () => ({
+  readFileSync: vi.fn().mockReturnValue(''),
+  readdirSync: vi.fn().mockReturnValue([]),
+  statSync: vi.fn().mockReturnValue({ size: 0 }),
+  existsSync: vi.fn().mockReturnValue(false),
 }));
 
 import { MemoryProvider, MemoryTreeItem } from '../../extension/src/memoryProvider';
@@ -71,53 +82,48 @@ describe('MemoryProvider', () => {
     provider = new MemoryProvider('/test/workspace');
   });
 
-  describe('empty state', () => {
-    it('shows constitution and info item when no MemoryManager is set', async () => {
+  describe('root sections', () => {
+    it('shows 2 top-level sections: Memories and Decisions', async () => {
       const children = await provider.getChildren();
       expect(children).toHaveLength(2);
-      expect(children[0].kind).toBe('constitution');
-      expect(children[1].kind).toBe('info');
-      expect(children[1].label).toBe('No memories stored yet');
+      expect(children[0].label).toBe('Memories');
+      expect(children[1].label).toBe('Decisions');
     });
 
-    it('shows constitution and info item when MemoryManager returns empty', async () => {
-      const mockManager = createMockMemoryManager([]);
+    it('all root items are section kind', async () => {
+      const children = await provider.getChildren();
+      children.forEach((c) => expect(c.kind).toBe('section'));
+    });
+
+    it('Memories section shows entry count', async () => {
+      const memories = [makeMemory(), makeMemory()];
+      const mockManager = createMockMemoryManager(memories);
       provider.setMemoryManager(mockManager);
 
       const children = await provider.getChildren();
-      expect(children).toHaveLength(2);
-      expect(children[0].kind).toBe('constitution');
-      expect(children[1].kind).toBe('info');
+      const memoriesItem = children.find((c) => c.label === 'Memories');
+      expect(memoriesItem?.description).toBe('2 entries');
     });
-  });
 
-  describe('constitution node (T035)', () => {
-    it('always shows constitution as first item', async () => {
+    it('Memories section is expanded when entries exist', async () => {
       const memories = [makeMemory()];
       const mockManager = createMockMemoryManager(memories);
       provider.setMemoryManager(mockManager);
 
       const children = await provider.getChildren();
-      expect(children[0].kind).toBe('constitution');
-      expect(children[0].label).toBe('Constitution');
-      expect(children[0].description).toBe('Project principles');
+      const memoriesItem = children.find((c) => c.label === 'Memories');
+      expect(memoriesItem?.collapsibleState).toBe(2); // Expanded
     });
 
-    it('constitution has law icon', async () => {
+    it('Memories section is non-collapsible when empty', async () => {
       const children = await provider.getChildren();
-      const icon = children[0].iconPath as { id: string };
-      expect(icon.id).toBe('law');
-    });
-
-    it('constitution has showConstitution command', async () => {
-      const children = await provider.getChildren();
-      const cmd = children[0].command as { command: string };
-      expect(cmd.command).toBe('gofer.showConstitution');
+      const memoriesItem = children.find((c) => c.label === 'Memories');
+      expect(memoriesItem?.collapsibleState).toBe(0); // None
     });
   });
 
-  describe('category grouping (T032)', () => {
-    it('groups memories by category', async () => {
+  describe('memory category grouping', () => {
+    it('groups memories by category under Memories section', async () => {
       const memories = [
         makeMemory({ category: 'discovery', content: 'Discovery 1' }),
         makeMemory({ category: 'discovery', content: 'Discovery 2' }),
@@ -126,11 +132,15 @@ describe('MemoryProvider', () => {
       const mockManager = createMockMemoryManager(memories);
       provider.setMemoryManager(mockManager);
 
-      const children = await provider.getChildren();
-      // Constitution + 2 categories
-      expect(children).toHaveLength(3);
-      expect(children[1].kind).toBe('category');
-      expect(children[2].kind).toBe('category');
+      // Get root items
+      const root = await provider.getChildren();
+      const memoriesSection = root.find((c) => c.section === 'memories');
+
+      // Get children of Memories section
+      const categories = await provider.getChildren(memoriesSection as never);
+      expect(categories).toHaveLength(2);
+      expect(categories[0].kind).toBe('category');
+      expect(categories[1].kind).toBe('category');
     });
 
     it('sorts categories alphabetically', async () => {
@@ -142,12 +152,14 @@ describe('MemoryProvider', () => {
       const mockManager = createMockMemoryManager(memories);
       provider.setMemoryManager(mockManager);
 
-      const children = await provider.getChildren();
-      const categories = children.filter(c => c.kind === 'category').map(c => c.category);
-      expect(categories).toEqual(['architecture', 'debug', 'pattern']);
+      const root = await provider.getChildren();
+      const memoriesSection = root.find((c) => c.section === 'memories');
+      const categories = await provider.getChildren(memoriesSection as never);
+      const catNames = categories.map((c) => c.category);
+      expect(catNames).toEqual(['architecture', 'debug', 'pattern']);
     });
 
-    it('shows count in category description (T033)', async () => {
+    it('shows count in category description', async () => {
       const memories = [
         makeMemory({ category: 'discovery' }),
         makeMemory({ category: 'discovery' }),
@@ -156,9 +168,11 @@ describe('MemoryProvider', () => {
       const mockManager = createMockMemoryManager(memories);
       provider.setMemoryManager(mockManager);
 
-      const children = await provider.getChildren();
-      const discoveryItem = children.find(c => c.category === 'discovery');
-      expect(discoveryItem?.description).toBe('3 entries');
+      const root = await provider.getChildren();
+      const memoriesSection = root.find((c) => c.section === 'memories');
+      const categories = await provider.getChildren(memoriesSection as never);
+      const discoveryItem = categories.find((c) => c.category === 'discovery');
+      expect(discoveryItem?.description).toBe('3');
     });
 
     it('uses display names for known categories', async () => {
@@ -174,8 +188,10 @@ describe('MemoryProvider', () => {
       const mockManager = createMockMemoryManager(memories);
       provider.setMemoryManager(mockManager);
 
-      const children = await provider.getChildren();
-      const labels = children.filter(c => c.kind === 'category').map(c => c.label);
+      const root = await provider.getChildren();
+      const memoriesSection = root.find((c) => c.section === 'memories');
+      const categories = await provider.getChildren(memoriesSection as never);
+      const labels = categories.map((c) => c.label);
       expect(labels).toContain('Discovery');
       expect(labels).toContain('Patterns');
       expect(labels).toContain('Decisions');
@@ -190,17 +206,37 @@ describe('MemoryProvider', () => {
       const mockManager = createMockMemoryManager(memories);
       provider.setMemoryManager(mockManager);
 
-      const children = await provider.getChildren();
-      const categoryItem = children.find(c => c.kind === 'category');
+      const root = await provider.getChildren();
+      const memoriesSection = root.find((c) => c.section === 'memories');
+      const categories = await provider.getChildren(memoriesSection as never);
+      const categoryItem = categories.find((c) => c.kind === 'category');
       expect(categoryItem?.label).toBe('Other');
+    });
+
+    it('shows info when no memories exist', async () => {
+      const mockManager = createMockMemoryManager([]);
+      provider.setMemoryManager(mockManager);
+
+      const root = await provider.getChildren();
+      const memoriesSection = root.find((c) => c.section === 'memories');
+      const children = await provider.getChildren(memoriesSection as never);
+      expect(children).toHaveLength(1);
+      expect(children[0].kind).toBe('info');
+      expect(children[0].label).toBe('No memories stored yet');
     });
   });
 
-  describe('memory entries (T034)', () => {
+  describe('memory entries', () => {
     it('returns memory items when expanding a category', async () => {
       const memories = [
-        makeMemory({ category: 'discovery', content: 'Found interesting API pattern for authentication' }),
-        makeMemory({ category: 'discovery', content: 'Discovered caching strategy in the middleware layer' }),
+        makeMemory({
+          category: 'discovery',
+          content: 'Found interesting API pattern for authentication',
+        }),
+        makeMemory({
+          category: 'discovery',
+          content: 'Discovered caching strategy in the middleware layer',
+        }),
       ];
       const mockManager = createMockMemoryManager(memories);
       provider.setMemoryManager(mockManager);
@@ -208,11 +244,15 @@ describe('MemoryProvider', () => {
       // Force load
       await provider.getChildren();
 
-      const categoryElement = { kind: 'category' as const, category: 'discovery', label: 'Discovery' };
+      const categoryElement = {
+        kind: 'category' as const,
+        category: 'discovery',
+        label: 'Discovery',
+      };
       const entries = await provider.getChildren(categoryElement as never);
 
       expect(entries).toHaveLength(2);
-      entries.forEach(entry => expect(entry.kind).toBe('memory'));
+      entries.forEach((entry) => expect(entry.kind).toBe('memory'));
     });
 
     it('truncates content to 60 chars', async () => {
@@ -251,14 +291,18 @@ describe('MemoryProvider', () => {
 
       await provider.getChildren();
 
-      const categoryElement = { kind: 'category' as const, category: 'discovery', label: 'Discovery' };
+      const categoryElement = {
+        kind: 'category' as const,
+        category: 'discovery',
+        label: 'Discovery',
+      };
       const entries = await provider.getChildren(categoryElement as never);
 
       expect(entries[0].description).toContain('1h ago');
     });
   });
 
-  describe('memory entry click command (US4-AC4)', () => {
+  describe('memory entry click command', () => {
     it('sets gofer.showMemoryDocument command on memory entries', async () => {
       const memories = [makeMemory({ category: 'pattern', content: 'Test pattern' })];
       const mockManager = createMockMemoryManager(memories);
@@ -276,7 +320,7 @@ describe('MemoryProvider', () => {
     });
   });
 
-  describe('setMemoryManager (T037)', () => {
+  describe('setMemoryManager', () => {
     it('loads memories after injection', async () => {
       const memories = [makeMemory()];
       const mockManager = createMockMemoryManager(memories);

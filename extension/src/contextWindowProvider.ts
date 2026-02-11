@@ -5,35 +5,48 @@
  * Shows up to 3 Claude Code sessions with context health breakdowns.
  *
  * Tree structure:
- *   Session {shortId} ({model})  — {utilization}%
- *     ├─ Spec Artifacts          — ~{tokens} tokens (est.)
- *     ├─ Memories/Hints          — ~{tokens} tokens (est.)
- *     ├─ System Files            — ~{tokens} tokens (est.)
- *     ├─ Conversation History    — ~{tokens} tokens (est.)
- *     ├─ Tool Outputs            — ~{tokens} tokens (est.)
- *     └─ Masked Observations     — ~{tokens} tokens (est.)
+ *   Session {name} ({model})       — {utilization}%
+ *     ├─ Spec Artifacts            — ~{tokens} tokens (est.)
+ *     ├─ Memories & Hints           — ~{tokens} tokens (est.)
+ *     ├─ System Files              — ~{tokens} tokens (est.)
+ *     ├─ Conversation History      — ~{tokens} tokens (est.)
+ *     │   ├─ Your Prompts          — click to view
+ *     │   ├─ Assistant Responses   — click to view
+ *     │   ├─ Tool Calls & Results  — click to view
+ *     │   └─ System / Commands     — click to view
+ *     ├─ Tool Outputs              — ~{tokens} tokens (est.)
+ *     └─ Masked Observations       — ~{tokens} tokens (est.)
  */
 
 import * as vscode from 'vscode';
 import type { BridgeData } from './autonomous/HookBridgeWatcher';
 import type { MultiSessionBridgeWatcher } from './autonomous/MultiSessionBridgeWatcher';
 
-export type ContextWindowItemKind = 'session' | 'category' | 'info' | 'empty';
+export type ContextWindowItemKind = 'session' | 'category' | 'subcategory' | 'info' | 'empty';
 
 /** Context breakdown category definitions */
 const CONTEXT_CATEGORIES = [
-  { name: 'Spec Artifacts', icon: 'file-code', estimatePct: 0.15 },
-  { name: 'Memories/Hints', icon: 'brain', estimatePct: 0.1 },
-  { name: 'System Files', icon: 'gear', estimatePct: 0.08 },
-  { name: 'Conversation History', icon: 'comment-discussion', estimatePct: 0.4 },
-  { name: 'Tool Outputs', icon: 'terminal', estimatePct: 0.22 },
-  { name: 'Masked Observations', icon: 'eye-closed', estimatePct: 0.05 },
+  { name: 'Spec Artifacts', icon: 'file-code', estimatePct: 0.15, expandable: false },
+  { name: 'Memories & Hints', icon: 'brain', estimatePct: 0.1, expandable: false },
+  { name: 'System Files', icon: 'gear', estimatePct: 0.08, expandable: false },
+  { name: 'Conversation History', icon: 'comment-discussion', estimatePct: 0.4, expandable: true },
+  { name: 'Tool Outputs', icon: 'terminal', estimatePct: 0.22, expandable: false },
+  { name: 'Masked Observations', icon: 'eye-closed', estimatePct: 0.05, expandable: false },
+] as const;
+
+/** Sub-categories for Conversation History */
+const CONVERSATION_SUBCATEGORIES = [
+  { name: 'Your Prompts', icon: 'account', key: 'user_prompts' },
+  { name: 'Assistant Responses', icon: 'hubot', key: 'assistant_responses' },
+  { name: 'Tool Calls & Results', icon: 'tools', key: 'tool_calls' },
+  { name: 'System / Commands', icon: 'settings-gear', key: 'system_commands' },
 ] as const;
 
 export class ContextWindowItem extends vscode.TreeItem {
   kind: ContextWindowItemKind;
   sessionId?: string;
   categoryName?: string;
+  subcategoryKey?: string;
   tokenCount?: number;
 
   constructor(
@@ -96,9 +109,18 @@ export class ContextWindowProvider
       return this.getSessionItems();
     }
 
-    // Session level: return category breakdown items (pass sessionId for click commands)
+    // Session level: return category breakdown items
     if (element.kind === 'session' && element.sessionId) {
       return this.getCategoryItems(element.sessionId);
+    }
+
+    // Conversation History: return sub-categories
+    if (
+      element.kind === 'category' &&
+      element.categoryName === 'Conversation History' &&
+      element.sessionId
+    ) {
+      return this.getConversationSubcategories(element.sessionId);
     }
 
     return [];
@@ -166,17 +188,55 @@ export class ContextWindowProvider
 
     return CONTEXT_CATEGORIES.map((cat) => {
       const estimatedTokens = Math.round(totalTokens * cat.estimatePct);
-      const item = new ContextWindowItem(cat.name, 'category');
+
+      // Conversation History is expandable with sub-categories
+      const collapsible = cat.expandable
+        ? vscode.TreeItemCollapsibleState.Collapsed
+        : vscode.TreeItemCollapsibleState.None;
+
+      const item = new ContextWindowItem(cat.name, 'category', collapsible);
       item.sessionId = sessionId;
       item.categoryName = cat.name;
       item.tokenCount = estimatedTokens;
       item.description = `~${this.formatTokens(estimatedTokens)} tokens (est.)`;
       item.iconPath = new vscode.ThemeIcon(cat.icon);
       item.tooltip = `${cat.name}: ~${estimatedTokens.toLocaleString()} tokens (estimated)\nClick to view content`;
+
+      // Non-expandable categories get a click command directly
+      if (!cat.expandable) {
+        item.command = {
+          command: 'gofer.showContextCategoryContent',
+          title: `Show ${cat.name}`,
+          arguments: [sessionId, cat.name],
+        };
+      } else {
+        // Expandable: clicking the parent also shows the overview
+        item.command = {
+          command: 'gofer.showContextCategoryContent',
+          title: `Show ${cat.name}`,
+          arguments: [sessionId, cat.name],
+        };
+      }
+
+      return item;
+    });
+  }
+
+  /**
+   * Sub-categories under Conversation History.
+   */
+  private getConversationSubcategories(sessionId: string): ContextWindowItem[] {
+    return CONVERSATION_SUBCATEGORIES.map((sub) => {
+      const item = new ContextWindowItem(sub.name, 'subcategory');
+      item.sessionId = sessionId;
+      item.categoryName = 'Conversation History';
+      item.subcategoryKey = sub.key;
+      item.iconPath = new vscode.ThemeIcon(sub.icon);
+      item.tooltip = `${sub.name}\nClick to view`;
       item.command = {
         command: 'gofer.showContextCategoryContent',
-        title: `Show ${cat.name}`,
-        arguments: [sessionId, cat.name],
+        title: `Show ${sub.name}`,
+        arguments: [sessionId, `Conversation History:${sub.key}`],
       };
       return item;
     });

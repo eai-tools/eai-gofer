@@ -2,6 +2,12 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.7.0] - 2026-02-12
+
+chore: pre-release changes
+
+Auto-committed changes before release v1.6.0
+
 ## [1.6.0] - 2026-02-11
 
 feat: Context Window click-to-view for category items

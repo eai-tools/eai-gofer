@@ -72,6 +72,8 @@ export interface ContextHealthStatus {
   sessionAge?: number;
   /** Number of API calls in session */
   apiCallCount?: number;
+  /** Display name from /rename (customTitle) or auto-generated slug */
+  displayName?: string;
 }
 
 /**
@@ -124,6 +126,8 @@ export interface ContextAnalysisInput {
   sessionAge?: number;
   /** Number of API calls in session */
   apiCallCount?: number;
+  /** Display name from /rename (customTitle) or auto-generated slug */
+  displayName?: string;
 }
 
 /**
@@ -268,6 +272,7 @@ export class ContextHealthMonitor extends EventEmitter {
       model: input.model,
       sessionAge: input.sessionAge,
       apiCallCount: input.apiCallCount,
+      displayName: input.displayName,
     };
 
     // Track status history
@@ -623,6 +628,7 @@ export class ContextHealthMonitor extends EventEmitter {
         dataSource: status.dataSource,
         model: status.model,
         sessionAge: status.sessionAge,
+        displayName: status.displayName,
       };
 
       const tempFile = stateFile + '.tmp';

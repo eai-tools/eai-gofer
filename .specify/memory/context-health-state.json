@@ -1,8 +1,8 @@
 {
-  "timestamp": 1770706054564,
+  "timestamp": 1770792664486,
   "status": "healthy",
-  "utilizationPercent": 38.29,
-  "tokensUsed": 76571,
+  "utilizationPercent": 38.09,
+  "tokensUsed": 76188,
   "tokensLimit": 200000,
   "breakdown": {
     "specArtifacts": 0,
@@ -10,12 +10,10 @@
     "hints": 0,
     "observations": 0,
     "systemFiles": 0,
-    "conversation": 76571
+    "conversation": 76188
   },
-  "recommendations": [
-    "Context usage is healthy. Continue working normally."
-  ],
-  "sessionId": "a12aec95-30eb-4067-afcf-7cd06082197b",
+  "recommendations": ["Context usage is healthy. Continue working normally."],
+  "sessionId": "f154ddea-1751-4dcf-94a6-c2a115b151a2",
   "dataSource": "real",
   "model": "claude-opus-4-6"
 }

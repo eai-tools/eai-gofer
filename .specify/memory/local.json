@@ -57,8 +57,8 @@
       "scope": "local",
       "content": "- .specify/logs/validation-findings.jsonl (1 finding logged)",
       "created": 1770691095388,
-      "lastUsed": 1770691095388,
-      "usedCount": 0,
+      "lastUsed": 1770783628950,
+      "usedCount": 2,
       "learnedFrom": "session:e33c0734-f796-426e-ad8c-c7a145546046"
     },
     {
@@ -75,6 +75,66 @@
       "lastUsed": 1770692185116,
       "usedCount": 0,
       "learnedFrom": "session:b6fdc14e-c264-47fc-bef9-848c4582590e"
+    },
+    {
+      "id": "aae33070-1642-454a-bb16-5aeff5f1c460",
+      "category": "file_knowledge",
+      "tags": [
+        "#auto-learned",
+        "#files",
+        "#session-a12aec95"
+      ],
+      "scope": "local",
+      "content": "- [ ] T001 Create ThemeContext in src/contexts/theme.ts",
+      "created": 1770707083290,
+      "lastUsed": 1770707083290,
+      "usedCount": 0,
+      "learnedFrom": "session:a12aec95-30eb-4067-afcf-7cd06082197b"
+    },
+    {
+      "id": "1adc5090-6e75-4b2c-9138-861148428d7f",
+      "category": "file_knowledge",
+      "tags": [
+        "#auto-learned",
+        "#files",
+        "#session-a12aec95"
+      ],
+      "scope": "local",
+      "content": "- [ ] T002 [P] Add toggle component in src/components/ThemeToggle.tsx",
+      "created": 1770707083290,
+      "lastUsed": 1770707083290,
+      "usedCount": 0,
+      "learnedFrom": "session:a12aec95-30eb-4067-afcf-7cd06082197b"
+    },
+    {
+      "id": "27573202-03c1-4d42-a76b-6e28d1bee870",
+      "category": "pattern",
+      "tags": [
+        "#auto-learned",
+        "#pattern",
+        "#session-f154ddea"
+      ],
+      "scope": "local",
+      "content": "Everything is consistent with the **100/100 PASS** result. The feature pipeline for 021-context-item-click-to-view is complete.",
+      "created": 1770783529089,
+      "lastUsed": 1770783628950,
+      "usedCount": 8,
+      "learnedFrom": "session:f154ddea-1751-4dcf-94a6-c2a115b151a2"
+    },
+    {
+      "id": "43a34946-b6ae-4e94-bd77-bfde99f4847c",
+      "category": "pattern",
+      "tags": [
+        "#auto-learned",
+        "#pattern",
+        "#session-f154ddea"
+      ],
+      "scope": "local",
+      "content": "All 6 specialist agents have now reported in, all consistent with the **100/100 PASS**.",
+      "created": 1770783615722,
+      "lastUsed": 1770783628950,
+      "usedCount": 2,
+      "learnedFrom": "session:f154ddea-1751-4dcf-94a6-c2a115b151a2"
     }
   ]
 }

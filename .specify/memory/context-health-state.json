@@ -1,8 +1,8 @@
 {
-  "timestamp": 1770849835235,
+  "timestamp": 1770849869793,
   "status": "warning",
-  "utilizationPercent": 63.98,
-  "tokensUsed": 127967,
+  "utilizationPercent": 56.3,
+  "tokensUsed": 112598,
   "tokensLimit": 200000,
   "breakdown": {
     "specArtifacts": 0,
@@ -10,13 +10,13 @@
     "hints": 0,
     "observations": 0,
     "systemFiles": 0,
-    "conversation": 127967
+    "conversation": 112598
   },
   "recommendations": [
-    "Context at 64%. Consider reducing context soon.",
+    "Context at 56%. Consider reducing context soon.",
     "Long conversation history. Consider starting a new session with /8_gofer_resume."
   ],
-  "sessionId": "d5677db6-e08e-491d-8b1d-4ff8f868cb8f",
+  "sessionId": "d1ab6032-dc76-4076-83ea-bf71febdfdad",
   "dataSource": "real",
   "model": "claude-opus-4-6"
 }

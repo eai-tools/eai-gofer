@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { GoferParser, Spec, Task, SpecStatus, TaskStatus } from './goferParser';
 import { SpecLoader } from './autonomous/SpecLoader';
 import { DependencyGraph } from './autonomous/DependencyGraph';
+import { Logger } from './utils/logger';
 
 // Debug output channel for initialization troubleshooting
 let debugChannel: vscode.OutputChannel | undefined;
@@ -203,9 +204,9 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
   private specLoader: SpecLoader;
   private dependencyGraph: DependencyGraph;
   private workspacePath: string;
-  private isLoading: boolean = true;  // Start in loading state
-  private loadSequence: number = 0;   // Sequence number to track load operations
-  private hasStartedInitialLoad: boolean = false;  // Track if initial load started
+  private isLoading: boolean = true; // Start in loading state
+  private loadSequence: number = 0; // Sequence number to track load operations
+  private hasStartedInitialLoad: boolean = false; // Track if initial load started
 
   constructor(workspacePath: string, branchSpecManager?: any) {
     // Initialize debug channel once
@@ -225,13 +226,15 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
     this.log('ProgressProvider initialized (load will start on first getChildren call)');
   }
 
+  private readonly logger = Logger.for('ProgressProvider');
+
   /**
    * Log to debug output channel
    */
   private log(message: string): void {
+    this.logger.debug(message);
     const timestamp = new Date().toISOString();
     const logMessage = `[${timestamp}] [Gofer] ${message}`;
-    console.log(logMessage);
     debugChannel?.appendLine(logMessage);
   }
 
@@ -258,7 +261,7 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
    */
   private triggerLoad(): void {
     this.isLoading = true;
-    this._onDidChangeTreeData.fire();  // Show loading state immediately
+    this._onDidChangeTreeData.fire(); // Show loading state immediately
 
     // Start load - the sequence is managed inside _doLoadSpecs
     this._doLoadSpecs().catch((error) => {
@@ -391,7 +394,9 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
       } catch {
         // Check if superseded before updating state
         if (mySequence !== this.loadSequence) {
-          this.log(`Load superseded before .specify check (sequence ${mySequence}, current ${this.loadSequence})`);
+          this.log(
+            `Load superseded before .specify check (sequence ${mySequence}, current ${this.loadSequence})`
+          );
           return;
         }
         this.loadError = `.specify folder not found in this workspace`;
@@ -406,11 +411,13 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
       } catch {
         // Check if superseded before updating state
         if (mySequence !== this.loadSequence) {
-          this.log(`Load superseded before specs check (sequence ${mySequence}, current ${this.loadSequence})`);
+          this.log(
+            `Load superseded before specs check (sequence ${mySequence}, current ${this.loadSequence})`
+          );
           return;
         }
         // .specify exists but no specs folder - this is fine, show empty state
-        this.loadError = null;  // Not an error, just empty
+        this.loadError = null; // Not an error, just empty
         this.specs = [];
         this.log(`No specs folder at ${specsPath} (sequence ${mySequence})`);
         return;
@@ -420,22 +427,27 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
       // Previously the timeout was created at the top, so early returns left
       // an orphaned setTimeout that fired 15s later as an unhandled rejection.
       const timeoutPromise = new Promise<never>((_, reject) => {
-        timeoutId = setTimeout(() => reject(new Error('Loading specs timed out after 15 seconds')), 15000);
+        timeoutId = setTimeout(
+          () => reject(new Error('Loading specs timed out after 15 seconds')),
+          15000
+        );
       });
 
       // Load specs with timeout - dependency graph is loaded separately (non-blocking)
       // to avoid cold-start timeouts from synchronous SpecLoader re-reads
-      const loadedSpecs = await Promise.race([
-        this.parser.loadAllSpecs(),
-        timeoutPromise,
-      ]);
+      const loadedSpecs = await Promise.race([this.parser.loadAllSpecs(), timeoutPromise]);
 
       // Clear timeout now that loading succeeded (prevent lingering timer)
-      if (timeoutId) { clearTimeout(timeoutId); timeoutId = undefined; }
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = undefined;
+      }
 
       // Check if superseded before updating state
       if (mySequence !== this.loadSequence) {
-        this.log(`Ignoring stale load result (sequence ${mySequence}, current ${this.loadSequence})`);
+        this.log(
+          `Ignoring stale load result (sequence ${mySequence}, current ${this.loadSequence})`
+        );
         return;
       }
 
@@ -484,7 +496,10 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
       this.log(`_doLoadSpecs completed successfully (sequence ${mySequence})`);
     } catch (error) {
       // Always clear timeout to prevent orphaned timers
-      if (timeoutId) { clearTimeout(timeoutId); timeoutId = undefined; }
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = undefined;
+      }
       // Check if superseded before updating state
       if (mySequence !== this.loadSequence) {
         this.log(`Ignoring stale error (sequence ${mySequence}, current ${this.loadSequence})`);
@@ -495,7 +510,9 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
       this.specs = [];
     } finally {
       // Always clear timeout to prevent orphaned timers
-      if (timeoutId) { clearTimeout(timeoutId); }
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
       // ALWAYS reset isLoading and fire event if we're still the current load
       // This is the key fix - guaranteed cleanup
       if (mySequence === this.loadSequence) {
@@ -503,7 +520,9 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
         this.log(`Finalizing load (sequence ${mySequence}): isLoading=false, firing change event`);
         this._onDidChangeTreeData.fire();
       } else {
-        this.log(`Not finalizing superseded load (sequence ${mySequence}, current ${this.loadSequence})`);
+        this.log(
+          `Not finalizing superseded load (sequence ${mySequence}, current ${this.loadSequence})`
+        );
       }
     }
   }

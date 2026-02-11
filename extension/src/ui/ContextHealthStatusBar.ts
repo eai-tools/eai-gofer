@@ -419,8 +419,9 @@ export class ContextHealthStatusBar implements vscode.Disposable {
       }
 
       if (status.sessionId) {
+        const sessionDisplay = status.displayName || `${status.sessionId.substring(0, 8)}...`;
         items.push({
-          label: `$(key) Session: ${status.sessionId.substring(0, 8)}...`,
+          label: `$(key) Session: ${sessionDisplay}`,
           description: status.sessionId,
         });
       }

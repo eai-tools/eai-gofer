@@ -23,9 +23,9 @@ export type ContextWindowItemKind = 'session' | 'category' | 'info' | 'empty';
 /** Context breakdown category definitions */
 const CONTEXT_CATEGORIES = [
   { name: 'Spec Artifacts', icon: 'file-code', estimatePct: 0.15 },
-  { name: 'Memories/Hints', icon: 'brain', estimatePct: 0.10 },
+  { name: 'Memories/Hints', icon: 'brain', estimatePct: 0.1 },
   { name: 'System Files', icon: 'gear', estimatePct: 0.08 },
-  { name: 'Conversation History', icon: 'comment-discussion', estimatePct: 0.40 },
+  { name: 'Conversation History', icon: 'comment-discussion', estimatePct: 0.4 },
   { name: 'Tool Outputs', icon: 'terminal', estimatePct: 0.22 },
   { name: 'Masked Observations', icon: 'eye-closed', estimatePct: 0.05 },
 ] as const;
@@ -39,14 +39,16 @@ export class ContextWindowItem extends vscode.TreeItem {
   constructor(
     label: string,
     kind: ContextWindowItemKind,
-    collapsibleState: vscode.TreeItemCollapsibleState = vscode.TreeItemCollapsibleState.None,
+    collapsibleState: vscode.TreeItemCollapsibleState = vscode.TreeItemCollapsibleState.None
   ) {
     super(label, collapsibleState);
     this.kind = kind;
   }
 }
 
-export class ContextWindowProvider implements vscode.TreeDataProvider<ContextWindowItem>, vscode.Disposable {
+export class ContextWindowProvider
+  implements vscode.TreeDataProvider<ContextWindowItem>, vscode.Disposable
+{
   private _onDidChangeTreeData: vscode.EventEmitter<ContextWindowItem | undefined | null | void> =
     new vscode.EventEmitter<ContextWindowItem | undefined | null | void>();
   readonly onDidChangeTreeData: vscode.Event<ContextWindowItem | undefined | null | void> =
@@ -71,7 +73,7 @@ export class ContextWindowProvider implements vscode.TreeDataProvider<ContextWin
     this.disposables.push(
       { dispose: () => watcher.off('session-update', onUpdate) },
       { dispose: () => watcher.off('session-added', onAdded) },
-      { dispose: () => watcher.off('session-removed', onRemoved) },
+      { dispose: () => watcher.off('session-removed', onRemoved) }
     );
   }
 
@@ -94,7 +96,7 @@ export class ContextWindowProvider implements vscode.TreeDataProvider<ContextWin
       return this.getSessionItems();
     }
 
-    // Session level: return category breakdown items
+    // Session level: return category breakdown items (pass sessionId for click commands)
     if (element.kind === 'session' && element.sessionId) {
       return this.getCategoryItems(element.sessionId);
     }
@@ -115,11 +117,14 @@ export class ContextWindowProvider implements vscode.TreeDataProvider<ContextWin
       const shortId = sessionId.length > 8 ? sessionId.slice(0, 8) : sessionId;
       const model = this.formatModel(data.model);
       const utilization = data.context?.utilizationPercent ?? 0;
+      const sessionLabel = data.displayName
+        ? `${data.displayName} (${model})`
+        : `Session ${shortId} (${model})`;
 
       const item = new ContextWindowItem(
-        `Session ${shortId} (${model})`,
+        sessionLabel,
         'session',
-        vscode.TreeItemCollapsibleState.Collapsed,
+        vscode.TreeItemCollapsibleState.Collapsed
       );
       item.sessionId = sessionId;
       item.description = `${Math.round(utilization)}%`;
@@ -131,7 +136,10 @@ export class ContextWindowProvider implements vscode.TreeDataProvider<ContextWin
       if (isStale) {
         item.iconPath = new vscode.ThemeIcon('clock', new vscode.ThemeColor('disabledForeground'));
       } else if (!isActive) {
-        item.iconPath = new vscode.ThemeIcon('circle-slash', new vscode.ThemeColor('disabledForeground'));
+        item.iconPath = new vscode.ThemeIcon(
+          'circle-slash',
+          new vscode.ThemeColor('disabledForeground')
+        );
       } else {
         // Active session — color based on utilization
         const color = this.getHealthColor(utilization);
@@ -156,14 +164,20 @@ export class ContextWindowProvider implements vscode.TreeDataProvider<ContextWin
 
     const totalTokens = data.context.totalContextTokens;
 
-    return CONTEXT_CATEGORIES.map(cat => {
+    return CONTEXT_CATEGORIES.map((cat) => {
       const estimatedTokens = Math.round(totalTokens * cat.estimatePct);
       const item = new ContextWindowItem(cat.name, 'category');
+      item.sessionId = sessionId;
       item.categoryName = cat.name;
       item.tokenCount = estimatedTokens;
       item.description = `~${this.formatTokens(estimatedTokens)} tokens (est.)`;
       item.iconPath = new vscode.ThemeIcon(cat.icon);
-      item.tooltip = `${cat.name}: ~${estimatedTokens.toLocaleString()} tokens (estimated)`;
+      item.tooltip = `${cat.name}: ~${estimatedTokens.toLocaleString()} tokens (estimated)\nClick to view content`;
+      item.command = {
+        command: 'gofer.showContextCategoryContent',
+        title: `Show ${cat.name}`,
+        arguments: [sessionId, cat.name],
+      };
       return item;
     });
   }
@@ -191,9 +205,10 @@ export class ContextWindowProvider implements vscode.TreeDataProvider<ContextWin
 
   private buildSessionTooltip(sessionId: string, data: BridgeData, isStale: boolean): string {
     const parts = [
+      data.displayName ? `Name: ${data.displayName}` : null,
       `Session: ${sessionId}`,
       `Model: ${data.model || 'unknown'}`,
-    ];
+    ].filter(Boolean) as string[];
 
     if (data.context) {
       parts.push(
@@ -201,7 +216,7 @@ export class ContextWindowProvider implements vscode.TreeDataProvider<ContextWin
         `Input: ${data.context.inputTokens.toLocaleString()} tokens`,
         `Cache Read: ${data.context.cacheReadInputTokens.toLocaleString()} tokens`,
         `Cache Create: ${data.context.cacheCreationInputTokens.toLocaleString()} tokens`,
-        `Output: ${data.context.outputTokens.toLocaleString()} tokens`,
+        `Output: ${data.context.outputTokens.toLocaleString()} tokens`
       );
     }
 

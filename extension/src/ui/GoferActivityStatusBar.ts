@@ -99,7 +99,8 @@ export class GoferActivityStatusBar implements vscode.Disposable {
       this.statusBarItem.backgroundColor = undefined;
       const idleSecs = Math.round(timeSinceLastTool / 1000);
       const idleDisplay = idleSecs < 60 ? `${idleSecs}s` : `${Math.round(idleSecs / 60)}m`;
-      this.statusBarItem.tooltip = `Claude Code idle for ${idleDisplay}\nSession: ${data.sessionId?.substring(0, 8) || 'unknown'}`;
+      const sessionLabel = data.displayName || data.sessionId?.substring(0, 8) || 'unknown';
+      this.statusBarItem.tooltip = `Claude Code idle for ${idleDisplay}\nSession: ${sessionLabel}`;
     }
   }
 
@@ -119,8 +120,9 @@ export class GoferActivityStatusBar implements vscode.Disposable {
     });
 
     if (data.sessionId) {
+      const sessionDisplay = data.displayName || `${data.sessionId.substring(0, 8)}...`;
       items.push({
-        label: `$(key) Session: ${data.sessionId.substring(0, 8)}...`,
+        label: `$(key) Session: ${sessionDisplay}`,
         description: data.sessionId,
       });
     }

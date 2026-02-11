@@ -51,7 +51,10 @@ vi.mock('vscode', () => ({
   },
 }));
 
-import { ContextWindowProvider, ContextWindowItem } from '../../extension/src/contextWindowProvider';
+import {
+  ContextWindowProvider,
+  ContextWindowItem,
+} from '../../extension/src/contextWindowProvider';
 
 function makeBridgeData(overrides: Partial<BridgeData> = {}): BridgeData {
   return {
@@ -80,7 +83,10 @@ function makeBridgeData(overrides: Partial<BridgeData> = {}): BridgeData {
 }
 
 /** Create a mock MultiSessionBridgeWatcher */
-function createMockWatcher(sessions: Map<string, BridgeData> = new Map(), staleSessions: Set<string> = new Set()) {
+function createMockWatcher(
+  sessions: Map<string, BridgeData> = new Map(),
+  staleSessions: Set<string> = new Set()
+) {
   const eventHandlers: Record<string, Array<() => void>> = {};
   return {
     getSessions: vi.fn(() => new Map(sessions)),
@@ -129,7 +135,10 @@ describe('ContextWindowProvider', () => {
   describe('1 session display', () => {
     it('returns one session item at root', async () => {
       const sessions = new Map([
-        ['sess-abc123', makeBridgeData({ sessionId: 'sess-abc123', model: 'claude-opus-4-5-20251101' })],
+        [
+          'sess-abc123',
+          makeBridgeData({ sessionId: 'sess-abc123', model: 'claude-opus-4-5-20251101' }),
+        ],
       ]);
       const mockWatcher = createMockWatcher(sessions);
       provider.setWatcher(mockWatcher as never);
@@ -155,15 +164,13 @@ describe('ContextWindowProvider', () => {
 
       const children = await provider.getChildren();
       expect(children).toHaveLength(3);
-      children.forEach(child => expect(child.kind).toBe('session'));
+      children.forEach((child) => expect(child.kind).toBe('session'));
     });
   });
 
   describe('category breakdown (T024)', () => {
     it('returns 6 categories when expanding a session', async () => {
-      const sessions = new Map([
-        ['sess-1', makeBridgeData({ sessionId: 'sess-1' })],
-      ]);
+      const sessions = new Map([['sess-1', makeBridgeData({ sessionId: 'sess-1' })]]);
       const mockWatcher = createMockWatcher(sessions);
       provider.setWatcher(mockWatcher as never);
 
@@ -172,7 +179,7 @@ describe('ContextWindowProvider', () => {
 
       const categories = await provider.getChildren(sessionItem as never);
       expect(categories).toHaveLength(6);
-      expect(categories.map(c => c.categoryName)).toEqual([
+      expect(categories.map((c) => c.categoryName)).toEqual([
         'Spec Artifacts',
         'Memories/Hints',
         'System Files',
@@ -184,18 +191,21 @@ describe('ContextWindowProvider', () => {
 
     it('category tokens are estimated from total context', async () => {
       const sessions = new Map([
-        ['sess-1', makeBridgeData({
-          sessionId: 'sess-1',
-          context: {
-            totalContextTokens: 100000,
-            inputTokens: 500,
-            cacheCreationInputTokens: 1000,
-            cacheReadInputTokens: 98500,
-            outputTokens: 1500,
-            contextLimit: 200000,
-            utilizationPercent: 50,
-          },
-        })],
+        [
+          'sess-1',
+          makeBridgeData({
+            sessionId: 'sess-1',
+            context: {
+              totalContextTokens: 100000,
+              inputTokens: 500,
+              cacheCreationInputTokens: 1000,
+              cacheReadInputTokens: 98500,
+              outputTokens: 1500,
+              contextLimit: 200000,
+              utilizationPercent: 50,
+            },
+          }),
+        ],
       ]);
       const mockWatcher = createMockWatcher(sessions);
       provider.setWatcher(mockWatcher as never);
@@ -204,7 +214,7 @@ describe('ContextWindowProvider', () => {
       const categories = await provider.getChildren(sessionItem as never);
 
       // All token counts should be defined
-      categories.forEach(cat => {
+      categories.forEach((cat) => {
         expect(cat.tokenCount).toBeDefined();
         expect(cat.tokenCount).toBeGreaterThan(0);
       });
@@ -214,7 +224,7 @@ describe('ContextWindowProvider', () => {
       expect(total).toBe(100000);
 
       // Descriptions should contain "est."
-      categories.forEach(cat => {
+      categories.forEach((cat) => {
         expect(cat.description).toContain('est.');
       });
     });
@@ -235,10 +245,13 @@ describe('ContextWindowProvider', () => {
   describe('session lifecycle icons (T026)', () => {
     it('shows pulse icon for active sessions', async () => {
       const sessions = new Map([
-        ['sess-1', makeBridgeData({
-          sessionId: 'sess-1',
-          session: { active: true, lastActivity: Date.now() },
-        })],
+        [
+          'sess-1',
+          makeBridgeData({
+            sessionId: 'sess-1',
+            session: { active: true, lastActivity: Date.now() },
+          }),
+        ],
       ]);
       const mockWatcher = createMockWatcher(sessions);
       provider.setWatcher(mockWatcher as never);
@@ -250,10 +263,13 @@ describe('ContextWindowProvider', () => {
 
     it('shows clock icon for stale sessions', async () => {
       const sessions = new Map([
-        ['sess-stale', makeBridgeData({
-          sessionId: 'sess-stale',
-          session: { active: true, lastActivity: Date.now() },
-        })],
+        [
+          'sess-stale',
+          makeBridgeData({
+            sessionId: 'sess-stale',
+            session: { active: true, lastActivity: Date.now() },
+          }),
+        ],
       ]);
       const staleSessions = new Set(['sess-stale']);
       const mockWatcher = createMockWatcher(sessions, staleSessions);
@@ -266,10 +282,13 @@ describe('ContextWindowProvider', () => {
 
     it('shows circle-slash icon for inactive sessions', async () => {
       const sessions = new Map([
-        ['sess-1', makeBridgeData({
-          sessionId: 'sess-1',
-          session: { active: false, lastActivity: Date.now() },
-        })],
+        [
+          'sess-1',
+          makeBridgeData({
+            sessionId: 'sess-1',
+            session: { active: false, lastActivity: Date.now() },
+          }),
+        ],
       ]);
       const mockWatcher = createMockWatcher(sessions);
       provider.setWatcher(mockWatcher as never);
@@ -281,18 +300,21 @@ describe('ContextWindowProvider', () => {
 
     it('uses green color for low utilization (<50%)', async () => {
       const sessions = new Map([
-        ['sess-1', makeBridgeData({
-          sessionId: 'sess-1',
-          context: {
-            totalContextTokens: 40000,
-            inputTokens: 500,
-            cacheCreationInputTokens: 1000,
-            cacheReadInputTokens: 38500,
-            outputTokens: 1500,
-            contextLimit: 200000,
-            utilizationPercent: 20,
-          },
-        })],
+        [
+          'sess-1',
+          makeBridgeData({
+            sessionId: 'sess-1',
+            context: {
+              totalContextTokens: 40000,
+              inputTokens: 500,
+              cacheCreationInputTokens: 1000,
+              cacheReadInputTokens: 38500,
+              outputTokens: 1500,
+              contextLimit: 200000,
+              utilizationPercent: 20,
+            },
+          }),
+        ],
       ]);
       const mockWatcher = createMockWatcher(sessions);
       provider.setWatcher(mockWatcher as never);
@@ -304,18 +326,21 @@ describe('ContextWindowProvider', () => {
 
     it('uses yellow color for medium utilization (50-70%)', async () => {
       const sessions = new Map([
-        ['sess-1', makeBridgeData({
-          sessionId: 'sess-1',
-          context: {
-            totalContextTokens: 120000,
-            inputTokens: 500,
-            cacheCreationInputTokens: 1000,
-            cacheReadInputTokens: 118500,
-            outputTokens: 1500,
-            contextLimit: 200000,
-            utilizationPercent: 60,
-          },
-        })],
+        [
+          'sess-1',
+          makeBridgeData({
+            sessionId: 'sess-1',
+            context: {
+              totalContextTokens: 120000,
+              inputTokens: 500,
+              cacheCreationInputTokens: 1000,
+              cacheReadInputTokens: 118500,
+              outputTokens: 1500,
+              contextLimit: 200000,
+              utilizationPercent: 60,
+            },
+          }),
+        ],
       ]);
       const mockWatcher = createMockWatcher(sessions);
       provider.setWatcher(mockWatcher as never);
@@ -327,18 +352,21 @@ describe('ContextWindowProvider', () => {
 
     it('uses red color for high utilization (>70%)', async () => {
       const sessions = new Map([
-        ['sess-1', makeBridgeData({
-          sessionId: 'sess-1',
-          context: {
-            totalContextTokens: 160000,
-            inputTokens: 500,
-            cacheCreationInputTokens: 1000,
-            cacheReadInputTokens: 158500,
-            outputTokens: 1500,
-            contextLimit: 200000,
-            utilizationPercent: 80,
-          },
-        })],
+        [
+          'sess-1',
+          makeBridgeData({
+            sessionId: 'sess-1',
+            context: {
+              totalContextTokens: 160000,
+              inputTokens: 500,
+              cacheCreationInputTokens: 1000,
+              cacheReadInputTokens: 158500,
+              outputTokens: 1500,
+              contextLimit: 200000,
+              utilizationPercent: 80,
+            },
+          }),
+        ],
       ]);
       const mockWatcher = createMockWatcher(sessions);
       provider.setWatcher(mockWatcher as never);
@@ -373,9 +401,7 @@ describe('ContextWindowProvider', () => {
     });
 
     it('shows unknown for empty model', async () => {
-      const sessions = new Map([
-        ['s1', makeBridgeData({ sessionId: 's1', model: '' })],
-      ]);
+      const sessions = new Map([['s1', makeBridgeData({ sessionId: 's1', model: '' })]]);
       const mockWatcher = createMockWatcher(sessions);
       provider.setWatcher(mockWatcher as never);
 
@@ -399,6 +425,55 @@ describe('ContextWindowProvider', () => {
     it('returns the element itself', () => {
       const item = new ContextWindowItem('test', 'session');
       expect(provider.getTreeItem(item)).toBe(item);
+    });
+  });
+
+  describe('category items have click command (T018 — 021-context-item-click-to-view)', () => {
+    it('each category item has .command set to gofer.showContextCategoryContent', async () => {
+      const sessions = new Map([
+        ['sess-click-test', makeBridgeData({ sessionId: 'sess-click-test' })],
+      ]);
+      const mockWatcher = createMockWatcher(sessions);
+      provider.setWatcher(mockWatcher as never);
+
+      const sessionItem = { kind: 'session' as const, sessionId: 'sess-click-test', label: 'test' };
+      const categories = await provider.getChildren(sessionItem as never);
+
+      expect(categories).toHaveLength(6);
+      for (const cat of categories) {
+        expect(cat.command).toBeDefined();
+        expect(cat.command!.command).toBe('gofer.showContextCategoryContent');
+      }
+    });
+
+    it('command arguments include sessionId and categoryName', async () => {
+      const sessions = new Map([
+        ['sess-args-test', makeBridgeData({ sessionId: 'sess-args-test' })],
+      ]);
+      const mockWatcher = createMockWatcher(sessions);
+      provider.setWatcher(mockWatcher as never);
+
+      const sessionItem = { kind: 'session' as const, sessionId: 'sess-args-test', label: 'test' };
+      const categories = await provider.getChildren(sessionItem as never);
+
+      const specItem = categories.find((c) => c.categoryName === 'Spec Artifacts')!;
+      expect(specItem.command!.arguments).toEqual(['sess-args-test', 'Spec Artifacts']);
+
+      const historyItem = categories.find((c) => c.categoryName === 'Conversation History')!;
+      expect(historyItem.command!.arguments).toEqual(['sess-args-test', 'Conversation History']);
+    });
+
+    it('category items have sessionId set', async () => {
+      const sessions = new Map([['sess-id-test', makeBridgeData({ sessionId: 'sess-id-test' })]]);
+      const mockWatcher = createMockWatcher(sessions);
+      provider.setWatcher(mockWatcher as never);
+
+      const sessionItem = { kind: 'session' as const, sessionId: 'sess-id-test', label: 'test' };
+      const categories = await provider.getChildren(sessionItem as never);
+
+      for (const cat of categories) {
+        expect(cat.sessionId).toBe('sess-id-test');
+      }
     });
   });
 });

@@ -424,11 +424,14 @@ function initializeContextHealthMonitoring(workspacePath: string): void {
     });
 
     // T043: Wire session-limit-reached to info notification
-    multiSessionWatcher.on('session-limit-reached', (payload: { evictedSessionId: string; newSessionId: string }) => {
-      vscode.window.showInformationMessage(
-        `Gofer tracks up to 3 Claude Code sessions. Session ${payload.evictedSessionId.substring(0, 8)} was evicted to make room for ${payload.newSessionId.substring(0, 8)}.`
-      );
-    });
+    multiSessionWatcher.on(
+      'session-limit-reached',
+      (payload: { evictedSessionId: string; newSessionId: string }) => {
+        vscode.window.showInformationMessage(
+          `Gofer tracks up to 3 Claude Code sessions. Session ${payload.evictedSessionId.substring(0, 8)} was evicted to make room for ${payload.newSessionId.substring(0, 8)}.`
+        );
+      }
+    );
 
     // On bridge update (legacy event from focused session), trigger immediate health check
     multiSessionWatcher.on('bridge-update', () => {
@@ -918,6 +921,23 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
         contextWindowProvider.refresh();
       }
     })
+  );
+
+  // Show context category content (021) — click handler for Context Window tree items
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      'gofer.showContextCategoryContent',
+      async (sessionId: string, categoryName: string) => {
+        const workspacePath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+        if (!workspacePath) return;
+
+        const { ContextContentPanel } = await import('./ui/ContextContentPanel');
+        const panel = ContextContentPanel.createOrShow(context.extensionUri, workspacePath);
+
+        const bridgeData = multiSessionWatcher?.getSessions().get(sessionId);
+        await panel.showCategory(sessionId, categoryName, bridgeData);
+      }
+    )
   );
 
   // Refresh memory
@@ -1448,16 +1468,29 @@ created: "${new Date().toISOString().split('T')[0]}"
   const maskerConfig: Record<string, unknown> = {};
   if (userPreservePatterns.length > 0) {
     maskerConfig.preservePatterns = [
-      /error/i, /exception/i, /failed/i, /failure/i, /critical/i,
-      /fatal/i, /panic/i, /unhandled/i, /stack\s?trace/i,
+      /error/i,
+      /exception/i,
+      /failed/i,
+      /failure/i,
+      /critical/i,
+      /fatal/i,
+      /panic/i,
+      /unhandled/i,
+      /stack\s?trace/i,
       ...userPreservePatterns.map((p: string) => new RegExp(p, 'i')),
     ];
   }
 
   // Create shared ContextBuilder and wire to autonomousCommands (Spec 013 Phase 6)
-  const sharedContextBuilder = new ContextBuilder(workspacePath, memoryManager, undefined, undefined, {
-    maskerConfig,
-  });
+  const sharedContextBuilder = new ContextBuilder(
+    workspacePath,
+    memoryManager,
+    undefined,
+    undefined,
+    {
+      maskerConfig,
+    }
+  );
 
   // 018 T025/T026: Start periodic consolidation timer and trigger on session-start
   if (memoryManager) {
@@ -1471,7 +1504,9 @@ created: "${new Date().toISOString().split('T')[0]}"
   }
 
   // 018 T041: Read configurable staleness threshold and pass to WorkspaceContextProvider
-  const stalenessMinutes = vscode.workspace.getConfiguration('gofer').get<number>('stageDetectionStalenessMinutes', 30);
+  const stalenessMinutes = vscode.workspace
+    .getConfiguration('gofer')
+    .get<number>('stageDetectionStalenessMinutes', 30);
   if (workspaceContextProviderRef) {
     workspaceContextProviderRef.setStalenessThresholdMinutes(stalenessMinutes);
   }
@@ -1505,22 +1540,27 @@ created: "${new Date().toISOString().split('T')[0]}"
             console.warn('[Gofer] Checkpoint validation failed:', validation.errors);
           }
           // T061: Capture git state asynchronously
-          checkpointValidator.captureGitState().then((gitState) => {
-            const fullCheckpoint = { ...checkpoint, gitState };
-            try {
-              require('fs').mkdirSync(checkpointDir, { recursive: true });
-              const fileName = `stage-${previousStage}-to-${currentStage}-${Date.now()}.json`;
-              require('fs').writeFileSync(
-                path.join(checkpointDir, fileName),
-                JSON.stringify(fullCheckpoint, null, 2)
-              );
-            } catch {
-              // Non-fatal: checkpoint save failure
-            }
-          }).catch(() => {
-            // Non-fatal: git state capture failure
-          });
-          console.log(`[Gofer] Stage transition: ${previousStage} → ${currentStage} (checkpoint saved)`);
+          checkpointValidator
+            .captureGitState()
+            .then((gitState) => {
+              const fullCheckpoint = { ...checkpoint, gitState };
+              try {
+                require('fs').mkdirSync(checkpointDir, { recursive: true });
+                const fileName = `stage-${previousStage}-to-${currentStage}-${Date.now()}.json`;
+                require('fs').writeFileSync(
+                  path.join(checkpointDir, fileName),
+                  JSON.stringify(fullCheckpoint, null, 2)
+                );
+              } catch {
+                // Non-fatal: checkpoint save failure
+              }
+            })
+            .catch(() => {
+              // Non-fatal: git state capture failure
+            });
+          console.log(
+            `[Gofer] Stage transition: ${previousStage} → ${currentStage} (checkpoint saved)`
+          );
         }
       }
     });
@@ -1531,7 +1571,8 @@ created: "${new Date().toISOString().split('T')[0]}"
     vscode.commands.registerCommand('gofer.resumeSession', async () => {
       const checkpointDir = path.join(workspacePath, '.specify', 'memory', 'checkpoints');
       try {
-        const files = require('fs').readdirSync(checkpointDir)
+        const files = require('fs')
+          .readdirSync(checkpointDir)
           .filter((f: string) => f.endsWith('.json'))
           .sort()
           .reverse();
@@ -1546,7 +1587,9 @@ created: "${new Date().toISOString().split('T')[0]}"
           `---\nsession_id: ${latest.session_id}\ntimestamp: ${latest.timestamp}\nstage: ${latest.stage}\nstatus: ${latest.status}\n---\n# Session Handoff\nResume with stage ${latest.stage}`
         );
         if (!validation.valid) {
-          vscode.window.showWarningMessage(`Checkpoint has issues: ${validation.errors.join(', ')}`);
+          vscode.window.showWarningMessage(
+            `Checkpoint has issues: ${validation.errors.join(', ')}`
+          );
         }
         vscode.window.showInformationMessage(
           `Latest checkpoint: stage=${latest.stage}, git=${latest.gitState?.branch || 'unknown'}@${latest.gitState?.headCommit || '?'}`
@@ -1561,23 +1604,41 @@ created: "${new Date().toISOString().split('T')[0]}"
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration((e) => {
       if (e.affectsConfiguration('gofer.observationPreservePatterns')) {
-        const newPatterns = vscode.workspace.getConfiguration('gofer').get<string[]>('observationPreservePatterns', []);
+        const newPatterns = vscode.workspace
+          .getConfiguration('gofer')
+          .get<string[]>('observationPreservePatterns', []);
         const allPatterns = [
-          /error/i, /exception/i, /failed/i, /failure/i, /critical/i,
-          /fatal/i, /panic/i, /unhandled/i, /stack\s?trace/i,
+          /error/i,
+          /exception/i,
+          /failed/i,
+          /failure/i,
+          /critical/i,
+          /fatal/i,
+          /panic/i,
+          /unhandled/i,
+          /stack\s?trace/i,
           ...newPatterns.map((p: string) => new RegExp(p, 'i')),
         ];
         sharedContextBuilder.getObservationMasker().updatePreservePatterns(allPatterns);
-        console.log(`[Gofer] Observation preserve patterns reloaded: ${newPatterns.length} user patterns`);
+        console.log(
+          `[Gofer] Observation preserve patterns reloaded: ${newPatterns.length} user patterns`
+        );
       }
       if (e.affectsConfiguration('gofer.useLayeredMemory')) {
-        const useLayered = vscode.workspace.getConfiguration('gofer').get<boolean>('useLayeredMemory', false);
-        sharedContextBuilder.setMemoryLayerManager(sharedContextBuilder.getMemoryLayerManager(), useLayered);
+        const useLayered = vscode.workspace
+          .getConfiguration('gofer')
+          .get<boolean>('useLayeredMemory', false);
+        sharedContextBuilder.setMemoryLayerManager(
+          sharedContextBuilder.getMemoryLayerManager(),
+          useLayered
+        );
         console.log(`[Gofer] Layered memory ${useLayered ? 'enabled' : 'disabled'}`);
       }
       // 018 T041: Reload staleness threshold on config change
       if (e.affectsConfiguration('gofer.stageDetectionStalenessMinutes')) {
-        const newMinutes = vscode.workspace.getConfiguration('gofer').get<number>('stageDetectionStalenessMinutes', 30);
+        const newMinutes = vscode.workspace
+          .getConfiguration('gofer')
+          .get<number>('stageDetectionStalenessMinutes', 30);
         if (workspaceContextProviderRef) {
           workspaceContextProviderRef.setStalenessThresholdMinutes(newMinutes);
         }
@@ -1625,10 +1686,12 @@ created: "${new Date().toISOString().split('T')[0]}"
   // Try to load protected patterns from the active spec
   const activeSpecDir = path.join(workspacePath, '.specify', 'specs');
   try {
-    const specDirs = require('fs').readdirSync(activeSpecDir).filter((d: string) => {
-      const specPath = path.join(activeSpecDir, d, 'spec.md');
-      return require('fs').existsSync(specPath);
-    });
+    const specDirs = require('fs')
+      .readdirSync(activeSpecDir)
+      .filter((d: string) => {
+        const specPath = path.join(activeSpecDir, d, 'spec.md');
+        return require('fs').existsSync(specPath);
+      });
     if (specDirs.length > 0) {
       const latestSpec = path.join(activeSpecDir, specDirs[specDirs.length - 1], 'spec.md');
       scopeGuard.loadFromSpec(latestSpec);
@@ -1647,9 +1710,13 @@ created: "${new Date().toISOString().split('T')[0]}"
       outputChannel.show();
       const srcDir = path.join(workspacePath, 'extension', 'src');
       const report = slopDetector.scanDirectory(srcDir);
-      outputChannel.appendLine(`Scanned ${report.filesScanned} files, found ${report.totalIssues} issues:\n`);
+      outputChannel.appendLine(
+        `Scanned ${report.filesScanned} files, found ${report.totalIssues} issues:\n`
+      );
       for (const match of report.matches) {
-        outputChannel.appendLine(`  ${match.severity.toUpperCase()} [${match.pattern}] ${match.file}:${match.line}`);
+        outputChannel.appendLine(
+          `  ${match.severity.toUpperCase()} [${match.pattern}] ${match.file}:${match.line}`
+        );
         outputChannel.appendLine(`    ${match.message}`);
         outputChannel.appendLine(`    > ${match.snippet}\n`);
       }
@@ -1672,11 +1739,12 @@ created: "${new Date().toISOString().split('T')[0]}"
       for (const v of violations.slice(-20)) {
         const uri = v.file;
         const diags = diagMap.get(uri) || [];
-        const severity = v.enforcement === 'blocking'
-          ? vscode.DiagnosticSeverity.Error
-          : v.enforcement === 'warning'
-            ? vscode.DiagnosticSeverity.Warning
-            : vscode.DiagnosticSeverity.Information;
+        const severity =
+          v.enforcement === 'blocking'
+            ? vscode.DiagnosticSeverity.Error
+            : v.enforcement === 'warning'
+              ? vscode.DiagnosticSeverity.Warning
+              : vscode.DiagnosticSeverity.Information;
         const diag = new vscode.Diagnostic(
           new vscode.Range(0, 0, 0, 0),
           `ScopeGuard: ${v.file} matches protected pattern "${v.protectedPattern}"`,
@@ -1707,12 +1775,12 @@ created: "${new Date().toISOString().split('T')[0]}"
     if (report.totalIssues === 0) return;
 
     // T056: Show VSCode information notification
-    const errorCount = report.matches.filter(m => m.severity === 'error').length;
-    const warnCount = report.matches.filter(m => m.severity === 'warning').length;
+    const errorCount = report.matches.filter((m) => m.severity === 'error').length;
+    const warnCount = report.matches.filter((m) => m.severity === 'warning').length;
     const severity = errorCount > 0 ? 'error' : 'warning';
     const msg = `Slop detected: ${report.totalIssues} issues (${errorCount} errors, ${warnCount} warnings)`;
     if (severity === 'error') {
-      vscode.window.showWarningMessage(msg, 'View Details').then(choice => {
+      vscode.window.showWarningMessage(msg, 'View Details').then((choice) => {
         if (choice === 'View Details') {
           vscode.commands.executeCommand('gofer.checkForSlop');
         }
@@ -1726,11 +1794,12 @@ created: "${new Date().toISOString().split('T')[0]}"
     for (const match of report.matches.slice(0, 100)) {
       const uri = match.file;
       const diags = diagMap.get(uri) || [];
-      const diagSeverity = match.severity === 'error'
-        ? vscode.DiagnosticSeverity.Error
-        : match.severity === 'warning'
-          ? vscode.DiagnosticSeverity.Warning
-          : vscode.DiagnosticSeverity.Information;
+      const diagSeverity =
+        match.severity === 'error'
+          ? vscode.DiagnosticSeverity.Error
+          : match.severity === 'warning'
+            ? vscode.DiagnosticSeverity.Warning
+            : vscode.DiagnosticSeverity.Information;
       const diag = new vscode.Diagnostic(
         new vscode.Range(Math.max(0, match.line - 1), 0, Math.max(0, match.line - 1), 200),
         `[${match.pattern}] ${match.message}`,
@@ -1760,7 +1829,7 @@ created: "${new Date().toISOString().split('T')[0]}"
         totalIssues: report.totalIssues,
         errorCount,
         warnCount,
-        patterns: [...new Set(report.matches.map(m => m.pattern))],
+        patterns: [...new Set(report.matches.map((m) => m.pattern))],
       };
       require('fs').appendFileSync(logPath, JSON.stringify(entry) + '\n');
     } catch {
@@ -1777,7 +1846,10 @@ created: "${new Date().toISOString().split('T')[0]}"
       if (!toolUse) return;
       const toolName = (toolUse.toolName || '').toLowerCase();
       const filePath = toolUse.toolInput?.file_path as string | undefined;
-      if ((toolName.includes('write') || toolName.includes('edit')) && filePath?.endsWith('tasks.md')) {
+      if (
+        (toolName.includes('write') || toolName.includes('edit')) &&
+        filePath?.endsWith('tasks.md')
+      ) {
         try {
           const content = require('fs').readFileSync(filePath, 'utf-8');
           const checkCount = (content.match(/- \[X\]/gi) || []).length;
@@ -1787,7 +1859,9 @@ created: "${new Date().toISOString().split('T')[0]}"
             const srcDir = path.join(workspacePath, 'extension', 'src');
             const report = slopDetector.scanDirectory(srcDir, 100);
             if (report.totalIssues > 0) {
-              console.log(`[Gofer] Auto-slop check: ${report.totalIssues} issues found after task completion`);
+              console.log(
+                `[Gofer] Auto-slop check: ${report.totalIssues} issues found after task completion`
+              );
               surfaceSlopResults(report);
             }
           }
@@ -1807,13 +1881,19 @@ created: "${new Date().toISOString().split('T')[0]}"
         const execAsync = p(ef);
         const opts = { cwd: workspacePath };
         // Create a git stash as pre-operation checkpoint
-        const { stdout } = await execAsync('git', ['stash', 'push', '-m', `gofer-pre-op-${Date.now()}`], opts);
+        const { stdout } = await execAsync(
+          'git',
+          ['stash', 'push', '-m', `gofer-pre-op-${Date.now()}`],
+          opts
+        );
         if (stdout.includes('No local changes')) {
           vscode.window.showInformationMessage('No changes to checkpoint (working tree clean).');
         } else {
           // Immediately pop to keep changes but record the stash reference
           await execAsync('git', ['stash', 'pop'], opts);
-          vscode.window.showInformationMessage('Pre-operation checkpoint created (git stash reference saved).');
+          vscode.window.showInformationMessage(
+            'Pre-operation checkpoint created (git stash reference saved).'
+          );
         }
       } catch {
         vscode.window.showWarningMessage('Could not create pre-operation checkpoint.');
@@ -1831,7 +1911,9 @@ created: "${new Date().toISOString().split('T')[0]}"
           vscode.window.showInformationMessage('No Gofer pre-operation checkpoints found.');
           return;
         }
-        const choice = await vscode.window.showQuickPick(goferStashes, { placeHolder: 'Select checkpoint to rollback to' });
+        const choice = await vscode.window.showQuickPick(goferStashes, {
+          placeHolder: 'Select checkpoint to rollback to',
+        });
         if (choice) {
           const stashRef = choice.split(':')[0];
           await execAsync('git', ['stash', 'apply', stashRef], opts);
@@ -1863,7 +1945,10 @@ created: "${new Date().toISOString().split('T')[0]}"
     // T041: Wire ResearchSummarizer to research-complete event
     const researchChunkerForSumm = new ResearchChunker(workspacePath);
     const researchSummarizer = new ResearchSummarizer(
-      autonomousLLMProvider, researchChunkerForSumm, memoryManager, workspacePath
+      autonomousLLMProvider,
+      researchChunkerForSumm,
+      memoryManager,
+      workspacePath
     );
     sharedContextBuilder.on('research-complete', (event: { specId: string }) => {
       researchSummarizer.summarizeSpec(event.specId).catch((error) => {
@@ -1875,16 +1960,26 @@ created: "${new Date().toISOString().split('T')[0]}"
     if (contextHealthMonitor) {
       contextHealthMonitor.on('warning', () => {
         // 018: Trigger LLM compression on warning level too (not just critical)
-        sharedContextBuilder.getObservationMasker().enhanceKeyPointsWithLLM().catch(() => {});
+        sharedContextBuilder
+          .getObservationMasker()
+          .enhanceKeyPointsWithLLM()
+          .catch(() => {});
       });
       contextHealthMonitor.on('critical', () => {
-        sharedContextBuilder.getObservationMasker().enhanceKeyPointsWithLLM().catch(() => {});
+        sharedContextBuilder
+          .getObservationMasker()
+          .enhanceKeyPointsWithLLM()
+          .catch(() => {});
       });
     }
 
-    console.log('[Gofer] AutonomousLLMProvider wired to ObservationMasker, ContextCompactor, and ResearchSummarizer');
+    console.log(
+      '[Gofer] AutonomousLLMProvider wired to ObservationMasker, ContextCompactor, and ResearchSummarizer'
+    );
   } else {
-    console.log('[Gofer] AutonomousLLMProvider: no API key configured, LLM features disabled (deterministic fallbacks active)');
+    console.log(
+      '[Gofer] AutonomousLLMProvider: no API key configured, LLM features disabled (deterministic fallbacks active)'
+    );
   }
 
   // T065: Wire ResearchGraphBuilder to research-complete event
@@ -1906,18 +2001,24 @@ created: "${new Date().toISOString().split('T')[0]}"
   if (autonomousLLMProvider?.isAvailable()) {
     memoryLayerManager.setLLMProvider(autonomousLLMProvider);
   }
-  const useLayeredMemory = vscode.workspace.getConfiguration('gofer').get<boolean>('useLayeredMemory', false);
+  const useLayeredMemory = vscode.workspace
+    .getConfiguration('gofer')
+    .get<boolean>('useLayeredMemory', false);
   sharedContextBuilder.setMemoryLayerManager(memoryLayerManager, useLayeredMemory);
 
   // T050: Restore observation cache from disk on startup
-  sharedContextBuilder.getObservationMasker().loadCacheFromDisk().then(() => {
-    const obsCount = sharedContextBuilder.getObservationMasker().getAllObservations().length;
-    if (obsCount > 0) {
-      console.log(`[Gofer] Observation cache restored: ${obsCount} entries`);
-    }
-  }).catch(() => {
-    // Non-fatal: start with empty cache
-  });
+  sharedContextBuilder
+    .getObservationMasker()
+    .loadCacheFromDisk()
+    .then(() => {
+      const obsCount = sharedContextBuilder.getObservationMasker().getAllObservations().length;
+      if (obsCount > 0) {
+        console.log(`[Gofer] Observation cache restored: ${obsCount} entries`);
+      }
+    })
+    .catch(() => {
+      // Non-fatal: start with empty cache
+    });
 
   // 018: Wire ParallelAnalysisFramework for sub-agent partition recommendations
   const { ParallelAnalysisFramework } = await import('./autonomous/ParallelAnalysisFramework');
@@ -1959,7 +2060,10 @@ created: "${new Date().toISOString().split('T')[0]}"
       if (cacheSaveTimerRef) clearTimeout(cacheSaveTimerRef);
       cacheSaveTimerRef = setTimeout(() => {
         cacheSaveTimerRef = null;
-        sharedContextBuilder.getObservationMasker().saveCacheToDisk().catch(() => {});
+        sharedContextBuilder
+          .getObservationMasker()
+          .saveCacheToDisk()
+          .catch(() => {});
       }, 5000);
     };
     sharedContextBuilderRef = sharedContextBuilder;
@@ -1973,10 +2077,15 @@ created: "${new Date().toISOString().split('T')[0]}"
 
       // Map tool names to observation types
       const toolNameLower = toolUse.toolName.toLowerCase();
-      let obsType: 'file_read' | 'command_output' | 'search_result' | 'api_response' = 'command_output';
+      let obsType: 'file_read' | 'command_output' | 'search_result' | 'api_response' =
+        'command_output';
       if (toolNameLower.includes('read') || toolNameLower.includes('cat')) {
         obsType = 'file_read';
-      } else if (toolNameLower.includes('grep') || toolNameLower.includes('glob') || toolNameLower.includes('search')) {
+      } else if (
+        toolNameLower.includes('grep') ||
+        toolNameLower.includes('glob') ||
+        toolNameLower.includes('search')
+      ) {
         obsType = 'search_result';
       } else if (toolNameLower.includes('bash') || toolNameLower.includes('exec')) {
         obsType = 'command_output';
@@ -2034,11 +2143,12 @@ created: "${new Date().toISOString().split('T')[0]}"
 
         // T026: Parse import/from statements and record import edges
         if (toolContent && toolContent.length > 10) {
-          const importRegex = /(?:import\s+.*?from\s+['"]([^'"]+)['"]|require\s*\(\s*['"]([^'"]+)['"]\s*\))/g;
+          const importRegex =
+            /(?:import\s+.*?from\s+['"]([^'"]+)['"]|require\s*\(\s*['"]([^'"]+)['"]\s*\))/g;
           let importMatch: RegExpExecArray | null;
           while ((importMatch = importRegex.exec(toolContent)) !== null) {
             const importPath = importMatch[1] || importMatch[2];
-            if (importPath && !importPath.startsWith('.') === false || importPath) {
+            if ((importPath && !importPath.startsWith('.') === false) || importPath) {
               knowledgeGraph.recordImport(String(metadata.filePath), importPath);
             }
           }
@@ -2063,11 +2173,15 @@ created: "${new Date().toISOString().split('T')[0]}"
     hookBridgeWatcher.on('session-start', () => {
       const STALE_THRESHOLD_MS = 30 * 60 * 1000; // 30 minutes
       try {
-        if (!fsSync.existsSync(observationsDir)) { return; }
+        if (!fsSync.existsSync(observationsDir)) {
+          return;
+        }
         const files = fsSync.readdirSync(observationsDir);
         const now = Date.now();
         for (const file of files) {
-          if (!file.endsWith('.json')) { continue; }
+          if (!file.endsWith('.json')) {
+            continue;
+          }
           try {
             const filePath = path.join(observationsDir, file);
             const stat = fsSync.statSync(filePath);
@@ -2160,7 +2274,9 @@ created: "${new Date().toISOString().split('T')[0]}"
     const handoffDir = path.join(workspacePath, '.specify', 'state', 'sessions');
     const fsSync = require('fs') as typeof import('fs');
     if (fsSync.existsSync(handoffDir)) {
-      const files = fsSync.readdirSync(handoffDir).filter((f: string) => f.endsWith('.md') || f.endsWith('.json'));
+      const files = fsSync
+        .readdirSync(handoffDir)
+        .filter((f: string) => f.endsWith('.md') || f.endsWith('.json'));
       const now = Date.now();
       const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
 
@@ -2177,25 +2293,27 @@ created: "${new Date().toISOString().split('T')[0]}"
             const featureName = featureMatch?.[1] || 'Unknown feature';
             const stage = stageMatch?.[1] || 'unknown';
 
-            vscode.window.showInformationMessage(
-              `Resume "${featureName}" (${stage} stage)?`,
-              'Resume',
-              'Dismiss'
-            ).then(choice => {
-              if (choice === 'Resume') {
-                // Invoke appropriate pipeline command
-                const stageCommands: Record<string, string> = {
-                  research: '1_gofer_research',
-                  specify: '2_gofer_specify',
-                  plan: '3_gofer_plan',
-                  tasks: '4_gofer_tasks',
-                  implement: '5_gofer_implement',
-                  validate: '6_gofer_validate',
-                };
-                const command = stageCommands[stage] || '8_gofer_resume';
-                vscode.commands.executeCommand('gofer.launchClaudeCode', `/${command}`);
-              }
-            });
+            vscode.window
+              .showInformationMessage(
+                `Resume "${featureName}" (${stage} stage)?`,
+                'Resume',
+                'Dismiss'
+              )
+              .then((choice) => {
+                if (choice === 'Resume') {
+                  // Invoke appropriate pipeline command
+                  const stageCommands: Record<string, string> = {
+                    research: '1_gofer_research',
+                    specify: '2_gofer_specify',
+                    plan: '3_gofer_plan',
+                    tasks: '4_gofer_tasks',
+                    implement: '5_gofer_implement',
+                    validate: '6_gofer_validate',
+                  };
+                  const command = stageCommands[stage] || '8_gofer_resume';
+                  vscode.commands.executeCommand('gofer.launchClaudeCode', `/${command}`);
+                }
+              });
 
             break; // Only show for the most recent checkpoint
           }
@@ -2283,7 +2401,11 @@ export async function deactivate() {
         const files = fsDeactivate.readdirSync(obsDir);
         for (const file of files) {
           if (file.endsWith('.json')) {
-            try { fsDeactivate.unlinkSync(path.join(obsDir, file)); } catch { /* ignore */ }
+            try {
+              fsDeactivate.unlinkSync(path.join(obsDir, file));
+            } catch {
+              /* ignore */
+            }
           }
         }
       }

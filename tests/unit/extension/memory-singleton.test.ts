@@ -55,7 +55,9 @@ describe('Extension wiring (T049-T050)', () => {
   });
 
   it('should create shared ContextBuilder in registerCommands', () => {
-    expect(extensionSource).toContain('new ContextBuilder(workspacePath, memoryManager,');
+    expect(extensionSource).toContain('new ContextBuilder(');
+    expect(extensionSource).toContain('workspacePath,');
+    expect(extensionSource).toContain('memoryManager,');
   });
 
   it('should call setSharedMemoryManager from extension.ts', () => {

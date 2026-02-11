@@ -127,6 +127,7 @@ export class WorkspaceContextProvider {
           dataSource: 'none',
           sessionId: bridgeData.sessionId,
           model: bridgeData.model,
+          displayName: bridgeData.displayName,
         };
       }
     }
@@ -213,6 +214,7 @@ export class WorkspaceContextProvider {
       modelContextLimit: ctx.contextLimit,
       model: data.model,
       sessionId: data.sessionId,
+      displayName: data.displayName,
     };
   }
 
@@ -442,7 +444,9 @@ export class WorkspaceContextProvider {
       const filePath = path.join(specDir, name);
       try {
         const stat = fs.statSync(filePath);
-        if (stat.size < 100) { return false; }
+        if (stat.size < 100) {
+          return false;
+        }
         if (heading) {
           const content = fs.readFileSync(filePath, 'utf-8').slice(0, 500);
           return content.includes(heading);
@@ -486,7 +490,14 @@ export class WorkspaceContextProvider {
   // 019 F2: Non-Linear Stage Detection
   // ─────────────────────────────────────────────────────────────────────────────
 
-  private static readonly STAGE_ORDER: GoferStage[] = ['research', 'specify', 'plan', 'tasks', 'implement', 'validate'];
+  private static readonly STAGE_ORDER: GoferStage[] = [
+    'research',
+    'specify',
+    'plan',
+    'tasks',
+    'implement',
+    'validate',
+  ];
 
   /**
    * 019 F2: Detect stage with backward transition awareness.

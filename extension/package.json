@@ -79,6 +79,10 @@
         "icon": "$(refresh)"
       },
       {
+        "command": "gofer.showContextCategoryContent",
+        "title": "Gofer: Show Context Category Content"
+      },
+      {
         "command": "gofer.refreshMemory",
         "title": "Gofer: Refresh Memory",
         "icon": "$(refresh)"

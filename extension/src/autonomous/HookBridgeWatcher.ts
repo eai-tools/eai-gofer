@@ -24,6 +24,8 @@ export interface BridgeData {
   timestamp: number;
   sessionId: string;
   model: string;
+  /** Display name from /rename (customTitle) or auto-generated slug */
+  displayName?: string;
   context: {
     totalContextTokens: number;
     inputTokens: number;

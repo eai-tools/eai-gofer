@@ -1,5 +1,5 @@
 {
-  "timestamp": 1770849245040,
+  "timestamp": 1770849287694,
   "status": "healthy",
   "utilizationPercent": 45.08,
   "tokensUsed": 90159,
@@ -12,7 +12,9 @@
     "systemFiles": 0,
     "conversation": 90159
   },
-  "recommendations": ["Context usage is healthy. Continue working normally."],
+  "recommendations": [
+    "Context usage is healthy. Continue working normally."
+  ],
   "sessionId": "d5677db6-e08e-491d-8b1d-4ff8f868cb8f",
   "dataSource": "real",
   "model": "claude-opus-4-6"

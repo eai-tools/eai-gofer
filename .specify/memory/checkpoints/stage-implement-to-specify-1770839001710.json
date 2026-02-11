@@ -1,0 +1,15 @@
+{
+  "session_id": "stage-1770839001632",
+  "timestamp": "2026-02-11T19:43:21.632Z",
+  "stage": "specify",
+  "status": "stage-transition",
+  "previousStage": "implement",
+  "newStage": "specify",
+  "type": "stage-transition",
+  "gitState": {
+    "branch": "main",
+    "status": "M .specify/logs/context-usage.jsonl\n M .specify/memory/context-health-state.json\n?? .specify/memory/checkpoints/\n?? .specify/memory/observation-cache/\n?? .specify/specs/022-memory-categorization-cleanup/\n?? tests/unit/autonomous/MemoryLayerManager.test.ts",
+    "stashCount": 24,
+    "headCommit": "92677d1"
+  }
+}

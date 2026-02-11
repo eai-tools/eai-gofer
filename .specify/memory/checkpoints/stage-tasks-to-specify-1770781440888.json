@@ -1,0 +1,15 @@
+{
+  "session_id": "stage-1770781440829",
+  "timestamp": "2026-02-11T03:44:00.829Z",
+  "stage": "specify",
+  "status": "stage-transition",
+  "previousStage": "tasks",
+  "newStage": "specify",
+  "type": "stage-transition",
+  "gitState": {
+    "branch": "main",
+    "status": "M .claude/agents/codebase-analyzer.md\n M .claude/agents/codebase-locator.md\n M .claude/agents/codebase-pattern-finder.md\n M .specify/.gofer-version\n M .specify/logs/context-usage.jsonl\n M .specify/memory/context-health-state.json\n M .specify/memory/local.json\n M .specify/specs/feature-001/spec.md\n?? .specify/memory/checkpoints/\n?? .specify/memory/observation-cache/",
+    "stashCount": 21,
+    "headCommit": "bae20aa"
+  }
+}

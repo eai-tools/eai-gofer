@@ -2,7 +2,7 @@
   "name": "gofer",
   "displayName": "Gofer (Enterprise AI) [PREVIEW]",
   "description": "Spec-driven development for AI. Exposes 6 MCP tools that let Claude Code and GitHub Copilot autonomously implement features from specifications.",
-  "version": "1.7.1",
+  "version": "1.7.2",
   "publisher": "EnterpriseAI",
   "icon": "icon.png",
   "author": {
@@ -684,6 +684,19 @@
           "description": "User prompt template for Haiku with context",
           "markdownDescription": "The user prompt template that provides context to Haiku.\n\n**Available variables**: `{terminalOutput}`, `{constitution}`, `{spec}`, `{plan}`, `{tasks}`, `{workState}`\n\n**Tip**: You can customize this to include different context or formatting.\n\n**Warning**: Incorrect templates may cause Haiku to miss important context.",
           "editPresentation": "multilineText"
+        },
+        "gofer.yoloSlopReduction.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable automatic slop reduction on file save",
+          "markdownDescription": "When enabled, Gofer automatically fixes common code quality issues ('slop') when you save a file:\n\n- **console.log** statements are removed\n- **debugger** statements are removed\n- **@ts-ignore** is upgraded to `@ts-expect-error`\n\nAll fixes are logged to `.specify/logs/slop-reduction.jsonl` for audit.\n\n**Note**: Only affects `.ts/.tsx/.js/.jsx` files. Test files are excluded."
+        },
+        "gofer.yoloSlopReduction.notifyEvery": {
+          "type": "number",
+          "default": 10,
+          "minimum": 1,
+          "description": "Show notification every N slop fixes (default: 10)",
+          "markdownDescription": "How often to show a notification about slop reductions.\n\n**Default**: Every 10 fixes\n\nThe notification shows the cumulative count of fixes in this session."
         }
       }
     }

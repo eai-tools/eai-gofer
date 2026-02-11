@@ -396,7 +396,7 @@ export class ContextContentPanel {
 
 // ── Conversation History (US6) — parses real transcript JSONL ──
 
-interface TranscriptEntry {
+export interface TranscriptEntry {
   type: string;
   message?: {
     content?: string | Array<{ type: string; text?: string; name?: string; input?: unknown }>;
@@ -408,7 +408,7 @@ interface TranscriptEntry {
 }
 
 /** Read and parse transcript JSONL for a session */
-function readTranscript(sessionId: string): TranscriptEntry[] {
+export function readTranscript(sessionId: string): TranscriptEntry[] {
   if (!sessionId) return [];
   const homedir = require('os').homedir();
   // Claude Code stores transcripts by project path hash
@@ -467,7 +467,7 @@ function extractText(content: string | Array<{ type: string; text?: string }> | 
 }
 
 /** Classify transcript entries into sub-categories */
-function classifyTranscript(entries: TranscriptEntry[]): {
+export function classifyTranscript(entries: TranscriptEntry[]): {
   userPrompts: Array<{ text: string; timestamp?: string }>;
   assistantResponses: Array<{ text: string; timestamp?: string }>;
   toolCalls: Array<{ name: string; input: string; timestamp?: string }>;

@@ -12,6 +12,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as yaml from 'yaml';
+import { Logger } from './utils/logger';
 
 export interface Spec {
   id: string; // "001-login-feature"
@@ -70,6 +71,8 @@ export interface YAMLFrontmatter {
  * GoferParser - Parses Gofer format
  */
 export class GoferParser {
+  private readonly logger = Logger.for('GoferParser');
+
   constructor(
     private workspacePath: string,
     private branchSpecManager?: any
@@ -80,13 +83,13 @@ export class GoferParser {
    * If branchSpecManager is provided, loads branch-aware specs
    */
   async loadAllSpecs(): Promise<Spec[]> {
-    console.log('[GoferParser] loadAllSpecs starting...');
+    this.logger.info('loadAllSpecs starting...');
     let specsDirs: string[];
 
     try {
       if (this.branchSpecManager) {
         // Get branch-aware spec paths with timeout protection
-        console.log('[GoferParser] Using branchSpecManager to get spec paths...');
+        this.logger.debug('Using branchSpecManager to get spec paths...');
         const getPathsPromise = this.branchSpecManager.getAllSpecPaths();
         const timeoutPromise = new Promise<string[]>((_, reject) => {
           setTimeout(() => reject(new Error('getAllSpecPaths timed out')), 5000);
@@ -94,7 +97,7 @@ export class GoferParser {
         specsDirs = await Promise.race([getPathsPromise, timeoutPromise]);
       } else {
         // Fallback to simple .specify/specs with timeout protection
-        console.log('[GoferParser] Reading specs directory directly...');
+        this.logger.debug('Reading specs directory directly...');
         const specsDir = path.join(this.workspacePath, '.specify', 'specs');
 
         // Timeout for directory reading (2 seconds)
@@ -105,15 +108,15 @@ export class GoferParser {
         const entries = await Promise.race([readdirPromise, readdirTimeout]);
         specsDirs = entries.filter((e) => e.isDirectory()).map((e) => path.join(specsDir, e.name));
       }
-      console.log(`[GoferParser] Found ${specsDirs.length} spec directories`);
+      this.logger.debug(`Found ${specsDirs.length} spec directories`);
 
       // Early return if no specs
       if (specsDirs.length === 0) {
-        console.log('[GoferParser] No spec directories found, returning empty');
+        this.logger.debug('No spec directories found, returning empty');
         return [];
       }
     } catch (error) {
-      console.error('[GoferParser] Failed to get specs directories:', error);
+      this.logger.error('Failed to get specs directories:', error as Error);
       return [];
     }
 
@@ -125,19 +128,19 @@ export class GoferParser {
           const loadPromise = this.loadSpecFromPath(specId, specPath);
           const loadTimeout = new Promise<null>((resolve) => {
             setTimeout(() => {
-              console.warn(`[GoferParser] Spec ${specId} load timed out`);
+              this.logger.warn(`Spec ${specId} load timed out`);
               resolve(null);
             }, 1000);
           });
           return await Promise.race([loadPromise, loadTimeout]);
         } catch (error) {
-          console.error(`[GoferParser] Failed to load spec ${specPath}:`, error);
+          this.logger.error(`Failed to load spec ${specPath}:`, error as Error);
           return null;
         }
       })
     );
 
-    console.log(`[GoferParser] Loaded ${specs.filter(Boolean).length} specs successfully`);
+    this.logger.info(`Loaded ${specs.filter(Boolean).length} specs successfully`);
     return specs.filter((s): s is Spec => s !== null);
   }
 
@@ -200,7 +203,7 @@ export class GoferParser {
       tasks = this.parseTasks(tasksContent);
     } catch {
       // Tasks file is optional
-      console.log(`No tasks.md found for spec ${specId}`);
+      this.logger.debug(`No tasks.md found for spec ${specId}`);
     }
 
     // Parse plan.md (optional)

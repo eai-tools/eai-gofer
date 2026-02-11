@@ -10,10 +10,10 @@
  *     ├─ Memories & Hints           — ~{tokens} tokens (est.)
  *     ├─ System Files              — ~{tokens} tokens (est.)
  *     ├─ Conversation History      — ~{tokens} tokens (est.)
- *     │   ├─ Your Prompts          — click to view
- *     │   ├─ Assistant Responses   — click to view
- *     │   ├─ Tool Calls & Results  — click to view
- *     │   └─ System / Commands     — click to view
+ *     │   ├─ Your Prompts          — {count} items, ~{tokens} tokens
+ *     │   ├─ Assistant Responses   — {count} items, ~{tokens} tokens
+ *     │   ├─ Tool Calls & Results  — {count} items, ~{tokens} tokens
+ *     │   └─ System / Commands     — {count} items, ~{tokens} tokens
  *     ├─ Tool Outputs              — ~{tokens} tokens (est.)
  *     └─ Masked Observations       — ~{tokens} tokens (est.)
  */
@@ -21,6 +21,7 @@
 import * as vscode from 'vscode';
 import type { BridgeData } from './autonomous/HookBridgeWatcher';
 import type { MultiSessionBridgeWatcher } from './autonomous/MultiSessionBridgeWatcher';
+import { readTranscript, classifyTranscript } from './ui/ContextContentPanel';
 
 export type ContextWindowItemKind = 'session' | 'category' | 'subcategory' | 'info' | 'empty';
 
@@ -223,16 +224,45 @@ export class ContextWindowProvider
   }
 
   /**
-   * Sub-categories under Conversation History.
+   * Sub-categories under Conversation History with token estimates.
    */
   private getConversationSubcategories(sessionId: string): ContextWindowItem[] {
+    const entries = readTranscript(sessionId);
+    const classified = classifyTranscript(entries);
+    const total = classified.totalBytes;
+
+    const bytesByKey: Record<string, number> = {
+      user_prompts: total.user,
+      assistant_responses: total.assistant,
+      tool_calls: total.tools,
+      system_commands: total.system,
+    };
+    const countByKey: Record<string, number> = {
+      user_prompts: classified.userPrompts.length,
+      assistant_responses: classified.assistantResponses.length,
+      tool_calls: classified.toolCalls.length,
+      system_commands: classified.systemCommands.length,
+    };
+
     return CONVERSATION_SUBCATEGORIES.map((sub) => {
       const item = new ContextWindowItem(sub.name, 'subcategory');
       item.sessionId = sessionId;
       item.categoryName = 'Conversation History';
       item.subcategoryKey = sub.key;
       item.iconPath = new vscode.ThemeIcon(sub.icon);
-      item.tooltip = `${sub.name}\nClick to view`;
+
+      const bytes = bytesByKey[sub.key] || 0;
+      const count = countByKey[sub.key] || 0;
+      const estTokens = Math.ceil(bytes / 4);
+
+      if (count > 0) {
+        item.description = `${count} items, ~${this.formatTokens(estTokens)} tokens`;
+        item.tooltip = `${sub.name}: ${count} items, ~${estTokens.toLocaleString()} tokens (est.)\nClick to view content`;
+      } else {
+        item.description = 'no data';
+        item.tooltip = `${sub.name}\nNo transcript data found`;
+      }
+
       item.command = {
         command: 'gofer.showContextCategoryContent',
         title: `Show ${sub.name}`,

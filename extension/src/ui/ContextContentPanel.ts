@@ -2,7 +2,7 @@
  * ContextContentPanel
  *
  * Singleton webview panel that displays the content of a context window category
- * (Spec Artifacts, Memories/Hints, System Files, Conversation History,
+ * (Spec Artifacts, Memories & Hints, System Files, Conversation History,
  * Tool Outputs, Masked Observations) when the user clicks on it in the sidebar.
  *
  * Feature 021-context-item-click-to-view
@@ -99,10 +99,16 @@ export class ContextContentPanel {
     categoryName: string,
     bridgeData: BridgeData | undefined
   ): Promise<string> {
+    // Handle Conversation History sub-categories (e.g., "Conversation History:user_prompts")
+    if (categoryName.startsWith('Conversation History:')) {
+      const subKey = categoryName.split(':')[1];
+      return renderConversationSubcategory(bridgeData, subKey);
+    }
+
     switch (categoryName) {
       case 'Spec Artifacts':
         return this.renderSpecArtifacts();
-      case 'Memories/Hints':
+      case 'Memories & Hints':
         return this.renderMemoriesHints();
       case 'System Files':
         return this.renderSystemFiles();
@@ -202,7 +208,7 @@ export class ContextContentPanel {
     return cards.join('');
   }
 
-  // ── Memories/Hints (US3) ──────────────────────────────────────
+  // ── Memories & Hints (US3) ─────────────────────────────────────
 
   private async renderMemoriesHints(): Promise<string> {
     const memoryDir = path.join(this.workspacePath, '.specify', 'memory');
@@ -388,21 +394,220 @@ export class ContextContentPanel {
   }
 }
 
-// ── Conversation History (US6) — standalone since it only uses BridgeData ──
+// ── Conversation History (US6) — parses real transcript JSONL ──
 
+interface TranscriptEntry {
+  type: string;
+  message?: {
+    content?: string | Array<{ type: string; text?: string; name?: string; input?: unknown }>;
+    usage?: Record<string, number>;
+    model?: string;
+  };
+  timestamp?: string;
+  sessionId?: string;
+}
+
+/** Read and parse transcript JSONL for a session */
+function readTranscript(sessionId: string): TranscriptEntry[] {
+  if (!sessionId) return [];
+  const homedir = require('os').homedir();
+  // Claude Code stores transcripts by project path hash
+  const projectDir = process.env.CLAUDE_PROJECT_DIR || '';
+  const projectHash = projectDir.replace(/\//g, '-');
+
+  // Try to find the transcript file
+  const candidates = [path.join(homedir, '.claude', 'projects', projectHash, `${sessionId}.jsonl`)];
+
+  // Also try to glob for it if the hash doesn't match
+  try {
+    const projectsDir = path.join(homedir, '.claude', 'projects');
+    const dirs = fs.readdirSync(projectsDir);
+    for (const dir of dirs) {
+      const candidate = path.join(projectsDir, dir, `${sessionId}.jsonl`);
+      if (!candidates.includes(candidate)) {
+        candidates.push(candidate);
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+
+  for (const filePath of candidates) {
+    try {
+      const raw = fs.readFileSync(filePath, 'utf-8');
+      const entries: TranscriptEntry[] = [];
+      for (const line of raw.split('\n')) {
+        if (!line.trim()) continue;
+        try {
+          entries.push(JSON.parse(line));
+        } catch {
+          /* skip malformed */
+        }
+      }
+      if (entries.length > 0) return entries;
+    } catch {
+      /* try next */
+    }
+  }
+
+  return [];
+}
+
+/** Extract text from message content (string or content blocks) */
+function extractText(content: string | Array<{ type: string; text?: string }> | undefined): string {
+  if (!content) return '';
+  if (typeof content === 'string') return content;
+  if (Array.isArray(content)) {
+    return content
+      .filter((b) => b.type === 'text' && b.text)
+      .map((b) => b.text!)
+      .join('\n');
+  }
+  return '';
+}
+
+/** Classify transcript entries into sub-categories */
+function classifyTranscript(entries: TranscriptEntry[]): {
+  userPrompts: Array<{ text: string; timestamp?: string }>;
+  assistantResponses: Array<{ text: string; timestamp?: string }>;
+  toolCalls: Array<{ name: string; input: string; timestamp?: string }>;
+  systemCommands: Array<{ text: string; timestamp?: string }>;
+  totalBytes: { user: number; assistant: number; tools: number; system: number };
+} {
+  const result = {
+    userPrompts: [] as Array<{ text: string; timestamp?: string }>,
+    assistantResponses: [] as Array<{ text: string; timestamp?: string }>,
+    toolCalls: [] as Array<{ name: string; input: string; timestamp?: string }>,
+    systemCommands: [] as Array<{ text: string; timestamp?: string }>,
+    totalBytes: { user: 0, assistant: 0, tools: 0, system: 0 },
+  };
+
+  for (const entry of entries) {
+    const ts = entry.timestamp;
+
+    if (entry.type === 'user') {
+      const content = entry.message?.content;
+      const text = extractText(content as string | Array<{ type: string; text?: string }>);
+      const isCommand = text.includes('<command-message>') || text.includes('<command-name>');
+
+      if (isCommand) {
+        result.systemCommands.push({ text, timestamp: ts });
+        result.totalBytes.system += text.length;
+      } else if (text && text !== 'No prompt') {
+        result.userPrompts.push({ text, timestamp: ts });
+        result.totalBytes.user += text.length;
+      }
+
+      // Also check for tool_result blocks in user messages
+      if (Array.isArray(content)) {
+        for (const block of content as Array<{ type: string; content?: unknown }>) {
+          if (block.type === 'tool_result') {
+            const toolResultStr = JSON.stringify(block.content || '').slice(0, 500);
+            result.totalBytes.tools += toolResultStr.length;
+          }
+        }
+      }
+    } else if (entry.type === 'assistant') {
+      const content = entry.message?.content;
+      if (Array.isArray(content)) {
+        for (const block of content as Array<{
+          type: string;
+          text?: string;
+          name?: string;
+          input?: unknown;
+        }>) {
+          if (block.type === 'text' && block.text) {
+            result.assistantResponses.push({ text: block.text, timestamp: ts });
+            result.totalBytes.assistant += block.text.length;
+          } else if (block.type === 'tool_use') {
+            const inputStr = JSON.stringify(block.input || {});
+            result.toolCalls.push({
+              name: block.name || 'unknown',
+              input: inputStr.slice(0, 300),
+              timestamp: ts,
+            });
+            result.totalBytes.tools += inputStr.length;
+          }
+        }
+      } else {
+        const text = extractText(content as string | Array<{ type: string; text?: string }>);
+        if (text) {
+          result.assistantResponses.push({ text, timestamp: ts });
+          result.totalBytes.assistant += text.length;
+        }
+      }
+    } else if (entry.type === 'system') {
+      const text = extractText(
+        entry.message?.content as string | Array<{ type: string; text?: string }>
+      );
+      if (text) {
+        result.systemCommands.push({ text, timestamp: ts });
+        result.totalBytes.system += text.length;
+      }
+    }
+  }
+
+  return result;
+}
+
+/** Overview: shows breakdown sizes + utilization */
 function renderConversationHistory(bridgeData: BridgeData | undefined): string {
   if (!bridgeData?.context) {
-    return '<div class="empty-state"><p>No conversation data available.</p><p class="muted">Session bridge data has no context information.</p></div>';
+    return '<div class="empty-state"><p>No conversation data available.</p></div>';
   }
 
   const ctx = bridgeData.context;
-  const model = bridgeData.model || 'unknown';
-  const sessionId = bridgeData.sessionId || 'unknown';
-  const displayName = bridgeData.displayName || '';
+  const sessionId = bridgeData.sessionId || '';
   const utilization = Math.round(ctx.utilizationPercent);
   const barColor = utilization > 70 ? '#dc3545' : utilization > 50 ? '#fd7e14' : '#28a745';
 
-  const rows = [
+  // Parse real transcript
+  const entries = readTranscript(sessionId);
+  const classified = classifyTranscript(entries);
+  const total = classified.totalBytes;
+  const grandTotal = total.user + total.assistant + total.tools + total.system || 1;
+
+  const breakdownRows = [
+    {
+      label: 'Your Prompts',
+      count: classified.userPrompts.length,
+      bytes: total.user,
+      icon: 'account',
+    },
+    {
+      label: 'Assistant Responses',
+      count: classified.assistantResponses.length,
+      bytes: total.assistant,
+      icon: 'hubot',
+    },
+    {
+      label: 'Tool Calls & Results',
+      count: classified.toolCalls.length,
+      bytes: total.tools,
+      icon: 'tools',
+    },
+    {
+      label: 'System / Commands',
+      count: classified.systemCommands.length,
+      bytes: total.system,
+      icon: 'settings-gear',
+    },
+  ];
+
+  const tableHtml = breakdownRows
+    .map((row) => {
+      const pct = Math.round((row.bytes / grandTotal) * 100);
+      const sizeStr = row.bytes > 1024 ? `${(row.bytes / 1024).toFixed(1)} KB` : `${row.bytes} B`;
+      return `<tr>
+      <td>${escapeHtml(row.label)}</td>
+      <td class="number">${row.count}</td>
+      <td class="number">${escapeHtml(sizeStr)}</td>
+      <td class="number">${pct}%</td>
+    </tr>`;
+    })
+    .join('');
+
+  const tokenRows = [
     ['Input Tokens', ctx.inputTokens],
     ['Cache Read', ctx.cacheReadInputTokens],
     ['Cache Creation', ctx.cacheCreationInputTokens],
@@ -411,7 +616,7 @@ function renderConversationHistory(bridgeData: BridgeData | undefined): string {
     ['Context Limit', ctx.contextLimit],
   ] as const;
 
-  const tableRows = rows
+  const tokenTableHtml = tokenRows
     .map(
       ([label, value]) =>
         `<tr><td>${escapeHtml(label)}</td><td class="number">${value.toLocaleString()}</td></tr>`
@@ -419,17 +624,6 @@ function renderConversationHistory(bridgeData: BridgeData | undefined): string {
     .join('');
 
   return `
-    <div class="card">
-      <div class="card-title">Session Metadata</div>
-      <div class="card-body">
-        <table class="meta-table">
-          <tr><td>Model</td><td>${escapeHtml(model)}</td></tr>
-          <tr><td>Session ID</td><td><code>${escapeHtml(sessionId)}</code></td></tr>
-          ${displayName ? `<tr><td>Name</td><td>${escapeHtml(displayName)}</td></tr>` : ''}
-        </table>
-      </div>
-    </div>
-
     <div class="card">
       <div class="card-title">Context Utilization</div>
       <div class="card-body">
@@ -441,21 +635,194 @@ function renderConversationHistory(bridgeData: BridgeData | undefined): string {
     </div>
 
     <div class="card">
+      <div class="card-title">Conversation Breakdown${entries.length > 0 ? ` <span class="count">(${entries.length} transcript entries)</span>` : ''}</div>
+      <div class="card-body">
+        ${
+          entries.length > 0
+            ? `
+          <table class="token-table">
+            <thead><tr><th>Category</th><th>Count</th><th>Size</th><th>Share</th></tr></thead>
+            <tbody>${tableHtml}</tbody>
+          </table>
+          <p class="muted" style="margin-top:8px">Click sub-categories in the tree to view actual content.</p>
+        `
+            : `
+          <p class="muted">No transcript found for this session. The transcript JSONL file may not be accessible.</p>
+        `
+        }
+      </div>
+    </div>
+
+    <div class="card">
       <div class="card-title">Token Breakdown</div>
       <div class="card-body">
         <table class="token-table">
           <thead><tr><th>Category</th><th>Tokens</th></tr></thead>
-          <tbody>${tableRows}</tbody>
+          <tbody>${tokenTableHtml}</tbody>
         </table>
       </div>
     </div>
+  `;
+}
 
-    <div class="card info-card">
+/** Render a specific sub-category of conversation history */
+function renderConversationSubcategory(bridgeData: BridgeData | undefined, subKey: string): string {
+  const sessionId = bridgeData?.sessionId || '';
+  const entries = readTranscript(sessionId);
+
+  if (entries.length === 0) {
+    return '<div class="empty-state"><p>No transcript data found.</p><p class="muted">The transcript JSONL for this session could not be read.</p></div>';
+  }
+
+  const classified = classifyTranscript(entries);
+
+  switch (subKey) {
+    case 'user_prompts':
+      return renderUserPrompts(classified.userPrompts);
+    case 'assistant_responses':
+      return renderAssistantResponses(classified.assistantResponses);
+    case 'tool_calls':
+      return renderToolCalls(classified.toolCalls);
+    case 'system_commands':
+      return renderSystemCommands(classified.systemCommands);
+    default:
+      return `<div class="empty-state"><p>Unknown sub-category: ${escapeHtml(subKey)}</p></div>`;
+  }
+}
+
+function renderUserPrompts(prompts: Array<{ text: string; timestamp?: string }>): string {
+  if (prompts.length === 0) {
+    return '<div class="empty-state"><p>No user prompts in this session.</p></div>';
+  }
+
+  return prompts
+    .map((p, i) => {
+      const age = p.timestamp ? formatAge(new Date(p.timestamp)) : '';
+      const preview = p.text.slice(0, 800);
+      const truncated = p.text.length > 800;
+      return `
+      <div class="card">
+        <div class="card-title">
+          <span>Prompt ${i + 1}</span>
+          ${age ? `<span class="timestamp">${escapeHtml(age)}</span>` : ''}
+          <span class="file-size">${escapeHtml(formatByteSize(p.text.length))}</span>
+        </div>
+        <div class="card-body">
+          <pre class="file-preview">${escapeHtml(preview)}${truncated ? '\n...' : ''}</pre>
+        </div>
+      </div>
+    `;
+    })
+    .join('');
+}
+
+function renderAssistantResponses(responses: Array<{ text: string; timestamp?: string }>): string {
+  if (responses.length === 0) {
+    return '<div class="empty-state"><p>No assistant text responses in this session.</p></div>';
+  }
+
+  return responses
+    .map((r, i) => {
+      const age = r.timestamp ? formatAge(new Date(r.timestamp)) : '';
+      const preview = r.text.slice(0, 800);
+      const truncated = r.text.length > 800;
+      return `
+      <div class="card">
+        <div class="card-title">
+          <span>Response ${i + 1}</span>
+          ${age ? `<span class="timestamp">${escapeHtml(age)}</span>` : ''}
+          <span class="file-size">${escapeHtml(formatByteSize(r.text.length))}</span>
+        </div>
+        <div class="card-body">
+          <pre class="file-preview">${escapeHtml(preview)}${truncated ? '\n...' : ''}</pre>
+        </div>
+      </div>
+    `;
+    })
+    .join('');
+}
+
+function renderToolCalls(
+  calls: Array<{ name: string; input: string; timestamp?: string }>
+): string {
+  if (calls.length === 0) {
+    return '<div class="empty-state"><p>No tool calls in this session.</p></div>';
+  }
+
+  // Group by tool name for summary
+  const byTool = new Map<string, number>();
+  for (const c of calls) {
+    byTool.set(c.name, (byTool.get(c.name) || 0) + 1);
+  }
+
+  const summaryRows = [...byTool.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([name, count]) => `<tr><td>${escapeHtml(name)}</td><td class="number">${count}</td></tr>`)
+    .join('');
+
+  const summaryHtml = `
+    <div class="card">
+      <div class="card-title">Tool Usage Summary <span class="count">(${calls.length} total)</span></div>
       <div class="card-body">
-        <p class="muted">Full conversation content is not available for inspection. The conversation history includes all messages exchanged with Claude during this session. Token counts above reflect the total context consumed.</p>
+        <table class="token-table">
+          <thead><tr><th>Tool</th><th>Calls</th></tr></thead>
+          <tbody>${summaryRows}</tbody>
+        </table>
       </div>
     </div>
   `;
+
+  // Show last 20 calls (most recent)
+  const recentCalls = calls.slice(-20).reverse();
+  const callCards = recentCalls
+    .map((c, i) => {
+      const age = c.timestamp ? formatAge(new Date(c.timestamp)) : '';
+      return `
+      <div class="card">
+        <div class="card-title">
+          <span class="tool-name">${escapeHtml(c.name)}</span>
+          ${age ? `<span class="timestamp">${escapeHtml(age)}</span>` : ''}
+        </div>
+        <div class="card-body">
+          <pre class="file-preview">${escapeHtml(c.input)}</pre>
+        </div>
+      </div>
+    `;
+    })
+    .join('');
+
+  return summaryHtml + callCards;
+}
+
+function renderSystemCommands(commands: Array<{ text: string; timestamp?: string }>): string {
+  if (commands.length === 0) {
+    return '<div class="empty-state"><p>No system messages or commands in this session.</p></div>';
+  }
+
+  return commands
+    .map((c, i) => {
+      const age = c.timestamp ? formatAge(new Date(c.timestamp)) : '';
+      const preview = c.text.slice(0, 600);
+      const truncated = c.text.length > 600;
+      return `
+      <div class="card">
+        <div class="card-title">
+          <span>System ${i + 1}</span>
+          ${age ? `<span class="timestamp">${escapeHtml(age)}</span>` : ''}
+          <span class="file-size">${escapeHtml(formatByteSize(c.text.length))}</span>
+        </div>
+        <div class="card-body">
+          <pre class="file-preview">${escapeHtml(preview)}${truncated ? '\n...' : ''}</pre>
+        </div>
+      </div>
+    `;
+    })
+    .join('');
+}
+
+function formatByteSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  return `${(bytes / 1024).toFixed(1)} KB`;
 }
 
 // ── Shared utilities ────────────────────────────────────────────

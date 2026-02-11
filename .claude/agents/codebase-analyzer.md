@@ -58,9 +58,6 @@ implementation details, trace data flow, and explain functionality.
 
 ## Output Format
 
-**IMPORTANT**: Return results in <2000 tokens. Summarize if longer. Focus on key
-interfaces, methods, and patterns — omit verbose implementation details.
-
 ```
 ## Analysis: [Component/Feature Name]
 

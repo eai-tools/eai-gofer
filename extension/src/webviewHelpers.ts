@@ -22,7 +22,9 @@ async function openMarkdownFileWith(uri: vscode.Uri, viewer: string): Promise<vo
         await vscode.window.showTextDocument(uri);
         await vscode.commands.executeCommand('mark-sharp.switch-editor-mode');
       } catch (error) {
-        vscode.window.showErrorMessage('Mark Sharp extension not installed. Install it from the marketplace or change your viewer setting.');
+        vscode.window.showErrorMessage(
+          'Mark Sharp extension not installed. Install it from the marketplace or change your viewer setting.'
+        );
       }
       break;
 
@@ -32,7 +34,9 @@ async function openMarkdownFileWith(uri: vscode.Uri, viewer: string): Promise<vo
         await vscode.window.showTextDocument(uri);
         await vscode.commands.executeCommand('markdown-editor.toggleEditor');
       } catch (error) {
-        vscode.window.showErrorMessage('Markdown Editor extension not installed. Install it from the marketplace or change your viewer setting.');
+        vscode.window.showErrorMessage(
+          'Markdown Editor extension not installed. Install it from the marketplace or change your viewer setting.'
+        );
       }
       break;
 
@@ -42,7 +46,9 @@ async function openMarkdownFileWith(uri: vscode.Uri, viewer: string): Promise<vo
         await vscode.window.showTextDocument(uri);
         await vscode.commands.executeCommand('markdown-wysiwyg.toggle');
       } catch (error) {
-        vscode.window.showErrorMessage('Markdown WYSIWYG extension not installed. Install it from the marketplace or change your viewer setting.');
+        vscode.window.showErrorMessage(
+          'Markdown WYSIWYG extension not installed. Install it from the marketplace or change your viewer setting.'
+        );
       }
       break;
 
@@ -75,7 +81,12 @@ function getUriForTreeItem(item: any): vscode.Uri | null {
   }
 
   // Handle constitution items
-  const constitutionFile = path.join(workspaceFolder.uri.fsPath, '.specify', 'memory', 'constitution.md');
+  const constitutionFile = path.join(
+    workspaceFolder.uri.fsPath,
+    '.specify',
+    'memory',
+    'constitution.md'
+  );
   return vscode.Uri.file(constitutionFile);
 }
 
@@ -166,7 +177,11 @@ export async function showArticleDetailsWebview(context: vscode.ExtensionContext
 /**
  * Show section details using VSCode's native markdown preview
  */
-export async function showSectionDetailsWebview(context: vscode.ExtensionContext, section: any, article: any) {
+export async function showSectionDetailsWebview(
+  context: vscode.ExtensionContext,
+  section: any,
+  article: any
+) {
   await openConstitutionPreview();
 }
 
@@ -180,7 +195,12 @@ async function openConstitutionPreview(): Promise<void> {
     return;
   }
 
-  const constitutionFile = path.join(workspaceFolder.uri.fsPath, '.specify', 'memory', 'constitution.md');
+  const constitutionFile = path.join(
+    workspaceFolder.uri.fsPath,
+    '.specify',
+    'memory',
+    'constitution.md'
+  );
   try {
     const uri = vscode.Uri.file(constitutionFile);
     const doc = await vscode.workspace.openTextDocument(uri);
@@ -193,14 +213,61 @@ async function openConstitutionPreview(): Promise<void> {
 }
 
 /**
- * Show memory document using VSCode's native markdown preview
+ * Show memory document using VSCode's native markdown preview.
+ * Accepts either a Memory object (from tree view click) or a document with a path property.
  */
 export async function showMemoryDocumentWebview(context: vscode.ExtensionContext, document: any) {
   try {
-    const uri = vscode.Uri.file(document.path);
-    const doc = await vscode.workspace.openTextDocument(uri);
+    // If this is a Memory object (from memoryProvider tree view click),
+    // it has 'content' and optionally 'notePath', but no 'path' property.
+    if (document && document.content && !document.path) {
+      // If a companion markdown file exists, open it directly
+      if (document.notePath) {
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (workspaceFolders) {
+          const notePath = path.join(workspaceFolders[0].uri.fsPath, document.notePath);
+          const uri = vscode.Uri.file(notePath);
+          try {
+            await vscode.workspace.fs.stat(uri);
+            await openMarkdownFile(uri);
+            return;
+          } catch {
+            // Note file doesn't exist, fall through to content display
+          }
+        }
+      }
 
-    // Open with user's preferred viewer
+      // Render the memory content in a virtual document
+      const category = document.category || 'memory';
+      const created = document.created ? new Date(document.created).toLocaleString() : 'Unknown';
+      const tags = (document.tags || []).join(', ');
+      const markdownContent = [
+        `# Memory: ${category}`,
+        '',
+        `**Category:** ${category}`,
+        tags ? `**Tags:** ${tags}` : '',
+        `**Created:** ${created}`,
+        `**Used:** ${document.usedCount || 0} times`,
+        document.learnedFrom ? `**Source:** ${document.learnedFrom}` : '',
+        '',
+        '---',
+        '',
+        document.content,
+      ]
+        .filter(Boolean)
+        .join('\n');
+
+      const doc = await vscode.workspace.openTextDocument({
+        content: markdownContent,
+        language: 'markdown',
+      });
+      await vscode.window.showTextDocument(doc, { preview: true });
+      return;
+    }
+
+    // Original behavior: document has a 'path' property (e.g., constitution sections)
+    const uri = vscode.Uri.file(document.path);
+    await vscode.workspace.openTextDocument(uri);
     await openMarkdownFile(uri);
   } catch (error) {
     vscode.window.showErrorMessage(`Failed to open memory document: ${error}`);
@@ -211,7 +278,11 @@ export async function showMemoryDocumentWebview(context: vscode.ExtensionContext
  * Show memory section using VSCode's native markdown preview
  * Opens the document and scrolls to the section
  */
-export async function showMemorySectionWebview(context: vscode.ExtensionContext, section: any, document: any) {
+export async function showMemorySectionWebview(
+  context: vscode.ExtensionContext,
+  section: any,
+  document: any
+) {
   try {
     const uri = vscode.Uri.file(document.path);
     const doc = await vscode.workspace.openTextDocument(uri);
@@ -219,7 +290,7 @@ export async function showMemorySectionWebview(context: vscode.ExtensionContext,
     // Open in editor first (to allow scrolling to line)
     const editor = await vscode.window.showTextDocument(doc, {
       preview: true,
-      viewColumn: vscode.ViewColumn.One
+      viewColumn: vscode.ViewColumn.One,
     });
 
     // Scroll to the section line
@@ -387,16 +458,17 @@ function getSpecDetailsHTML(spec: any, stats: any): string {
 
       <h2>Task Breakdown</h2>
       <div class="task-list">
-        ${spec.tasks.map((task: any) => {
-          const icons: Record<string, string> = {
-            completed: '✓',
-            in_progress: '⟳',
-            testing: '⚗',
-            failed: '✗',
-            blocked: '🔒',
-            pending: '○'
-          };
-          return `
+        ${spec.tasks
+          .map((task: any) => {
+            const icons: Record<string, string> = {
+              completed: '✓',
+              in_progress: '⟳',
+              testing: '⚗',
+              failed: '✗',
+              blocked: '🔒',
+              pending: '○',
+            };
+            return `
             <div class="task-item ${task.status}">
               <span class="task-icon">${icons[task.status] || '○'}</span>
               <div class="task-content">
@@ -406,7 +478,8 @@ function getSpecDetailsHTML(spec: any, stats: any): string {
               </div>
             </div>
           `;
-        }).join('')}
+          })
+          .join('')}
       </div>
 
       <h2>Metadata</h2>
@@ -419,12 +492,16 @@ function getSpecDetailsHTML(spec: any, stats: any): string {
           <div class="info-label">Status</div>
           <div class="info-value" style="font-size: 14px">${spec.status}</div>
         </div>
-        ${spec.author ? `
+        ${
+          spec.author
+            ? `
           <div class="info-card">
             <div class="info-label">Author</div>
             <div class="info-value" style="font-size: 14px">${spec.author}</div>
           </div>
-        ` : ''}
+        `
+            : ''
+        }
         <div class="info-card">
           <div class="info-label">Created</div>
           <div class="info-value" style="font-size: 14px">${new Date(spec.created).toLocaleDateString()}</div>
@@ -446,7 +523,7 @@ function getTaskDetailsHTML(task: any, spec: any): string {
     testing: '#6f42c1',
     failed: '#dc3545',
     blocked: '#fd7e14',
-    pending: '#6c757d'
+    pending: '#6c757d',
   };
 
   const statusIcons: Record<string, string> = {
@@ -455,7 +532,7 @@ function getTaskDetailsHTML(task: any, spec: any): string {
     testing: '⚗',
     failed: '✗',
     blocked: '🔒',
-    pending: '○'
+    pending: '○',
   };
 
   return `
@@ -573,21 +650,29 @@ function getTaskDetailsHTML(task: any, spec: any): string {
         ${task.description}
       </div>
 
-      ${task.error ? `
+      ${
+        task.error
+          ? `
         <h2>Error Message</h2>
         <div class="error-message">
           ${task.error}
         </div>
-      ` : ''}
+      `
+          : ''
+      }
 
       <h2>Task Details</h2>
       <div class="info-grid">
-        ${task.estimated ? `
+        ${
+          task.estimated
+            ? `
           <div class="info-card">
             <div class="info-label">Estimated Time</div>
             <div class="info-value">${task.estimated}</div>
           </div>
-        ` : ''}
+        `
+            : ''
+        }
         <div class="info-card">
           <div class="info-label">Attempts</div>
           <div class="info-value">${task.attempts || 0}</div>
@@ -596,22 +681,34 @@ function getTaskDetailsHTML(task: any, spec: any): string {
           <div class="info-label">Parallel Execution</div>
           <div class="info-value">${task.parallel ? 'Yes' : 'No'}</div>
         </div>
-        ${task.completedAt ? `
+        ${
+          task.completedAt
+            ? `
           <div class="info-card">
             <div class="info-label">Completed At</div>
             <div class="info-value" style="font-size: 14px">${new Date(task.completedAt).toLocaleString()}</div>
           </div>
-        ` : ''}
+        `
+            : ''
+        }
       </div>
 
-      ${task.dependencies && task.dependencies.length > 0 ? `
+      ${
+        task.dependencies && task.dependencies.length > 0
+          ? `
         <h2>Dependencies</h2>
         <ul class="dependency-list">
-          ${task.dependencies.map((dep: string) => `
+          ${task.dependencies
+            .map(
+              (dep: string) => `
             <li class="dependency-item">${dep}</li>
-          `).join('')}
+          `
+            )
+            .join('')}
         </ul>
-      ` : ''}
+      `
+          : ''
+      }
 
       <h2>Specification Context</h2>
       <div class="info-grid">
@@ -695,7 +792,9 @@ function getArticleDetailsHTML(article: any): string {
         ${article.title}
       </h1>
 
-      ${article.sections.map((section: any) => `
+      ${article.sections
+        .map(
+          (section: any) => `
         <div class="section">
           <div class="section-title">
             <span class="section-number">${section.number}</span>
@@ -703,7 +802,9 @@ function getArticleDetailsHTML(article: any): string {
           </div>
           <div class="section-content">${section.content}</div>
         </div>
-      `).join('')}
+      `
+        )
+        .join('')}
     </body>
     </html>
   `;

@@ -64,7 +64,10 @@ vi.mock('vscode', () => ({
     }),
   },
   RelativePattern: class {
-    constructor(public base: string, public pattern: string) {}
+    constructor(
+      public base: string,
+      public pattern: string
+    ) {}
   },
 }));
 
@@ -97,22 +100,16 @@ function makeBridgeData(sessionId: string, overrides: Partial<BridgeData> = {}):
 }
 
 function writeBridgeFile(hooksDir: string, sessionId: string, data: BridgeData): void {
-  fs.writeFileSync(
-    path.join(hooksDir, `context-bridge-${sessionId}.json`),
-    JSON.stringify(data),
-  );
+  fs.writeFileSync(path.join(hooksDir, `context-bridge-${sessionId}.json`), JSON.stringify(data));
 }
 
 function writeLegacyBridgeFile(hooksDir: string, data: BridgeData): void {
-  fs.writeFileSync(
-    path.join(hooksDir, 'context-bridge.json'),
-    JSON.stringify(data),
-  );
+  fs.writeFileSync(path.join(hooksDir, 'context-bridge.json'), JSON.stringify(data));
 }
 
 function createMockWatcher(
   sessions: Map<string, BridgeData>,
-  staleSessions: Set<string> = new Set(),
+  staleSessions: Set<string> = new Set()
 ) {
   const eventHandlers: Record<string, Array<(...args: unknown[]) => void>> = {};
   return {
@@ -199,24 +196,48 @@ describe('Multi-Session Context Panel Integration', () => {
 
     it('each session shows correct utilization percentage', async () => {
       const sessions = new Map<string, BridgeData>();
-      sessions.set('s1', makeBridgeData('s1', {
-        context: {
-          totalContextTokens: 40000, inputTokens: 0, cacheCreationInputTokens: 0,
-          cacheReadInputTokens: 40000, outputTokens: 0, contextLimit: 200000, utilizationPercent: 20,
-        },
-      }));
-      sessions.set('s2', makeBridgeData('s2', {
-        context: {
-          totalContextTokens: 120000, inputTokens: 0, cacheCreationInputTokens: 0,
-          cacheReadInputTokens: 120000, outputTokens: 0, contextLimit: 200000, utilizationPercent: 60,
-        },
-      }));
-      sessions.set('s3', makeBridgeData('s3', {
-        context: {
-          totalContextTokens: 160000, inputTokens: 0, cacheCreationInputTokens: 0,
-          cacheReadInputTokens: 160000, outputTokens: 0, contextLimit: 200000, utilizationPercent: 80,
-        },
-      }));
+      sessions.set(
+        's1',
+        makeBridgeData('s1', {
+          context: {
+            totalContextTokens: 40000,
+            inputTokens: 0,
+            cacheCreationInputTokens: 0,
+            cacheReadInputTokens: 40000,
+            outputTokens: 0,
+            contextLimit: 200000,
+            utilizationPercent: 20,
+          },
+        })
+      );
+      sessions.set(
+        's2',
+        makeBridgeData('s2', {
+          context: {
+            totalContextTokens: 120000,
+            inputTokens: 0,
+            cacheCreationInputTokens: 0,
+            cacheReadInputTokens: 120000,
+            outputTokens: 0,
+            contextLimit: 200000,
+            utilizationPercent: 60,
+          },
+        })
+      );
+      sessions.set(
+        's3',
+        makeBridgeData('s3', {
+          context: {
+            totalContextTokens: 160000,
+            inputTokens: 0,
+            cacheCreationInputTokens: 0,
+            cacheReadInputTokens: 160000,
+            outputTokens: 0,
+            contextLimit: 200000,
+            utilizationPercent: 80,
+          },
+        })
+      );
 
       const provider = new ContextWindowProvider(tmpDir);
       const mockWatcher = createMockWatcher(sessions);
@@ -356,17 +377,20 @@ describe('Multi-Session Context Panel Integration', () => {
     it('category token counts sum exactly to totalContextTokens', async () => {
       const totalTokens = 150000;
       const sessions = new Map<string, BridgeData>();
-      sessions.set('breakdown-sess', makeBridgeData('breakdown-sess', {
-        context: {
-          totalContextTokens: totalTokens,
-          inputTokens: 500,
-          cacheCreationInputTokens: 1000,
-          cacheReadInputTokens: 148500,
-          outputTokens: 1500,
-          contextLimit: 200000,
-          utilizationPercent: 75,
-        },
-      }));
+      sessions.set(
+        'breakdown-sess',
+        makeBridgeData('breakdown-sess', {
+          context: {
+            totalContextTokens: totalTokens,
+            inputTokens: 500,
+            cacheCreationInputTokens: 1000,
+            cacheReadInputTokens: 148500,
+            outputTokens: 1500,
+            contextLimit: 200000,
+            utilizationPercent: 75,
+          },
+        })
+      );
 
       const provider = new ContextWindowProvider(tmpDir);
       const mockWatcher = createMockWatcher(sessions);
@@ -382,10 +406,7 @@ describe('Multi-Session Context Panel Integration', () => {
       expect(categories).toHaveLength(6);
 
       // Sum category token counts
-      const tokenSum = categories.reduce(
-        (sum, cat) => sum + (cat.tokenCount ?? 0),
-        0,
-      );
+      const tokenSum = categories.reduce((sum, cat) => sum + (cat.tokenCount ?? 0), 0);
 
       // Must sum exactly to total (percentage-based estimation ensures this)
       expect(tokenSum).toBe(totalTokens);
@@ -421,7 +442,7 @@ describe('Multi-Session Context Panel Integration', () => {
       const names = categories.map((c) => c.categoryName);
       expect(names).toEqual([
         'Spec Artifacts',
-        'Memories/Hints',
+        'Memories & Hints',
         'System Files',
         'Conversation History',
         'Tool Outputs',

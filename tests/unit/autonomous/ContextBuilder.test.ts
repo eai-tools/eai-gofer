@@ -718,9 +718,9 @@ describe('ContextBuilder', () => {
       expect(result.memoryCoverage?.memoriesLoaded).toBe(1);
       // Memory has category 'authentication' which matches stemmed task keyword 'authentic' via trigram similarity
       const covered = result.memoryCoverage?.coveredKeywords || [];
-      expect(covered.some(k => k === 'authentication' || k === 'authentic')).toBe(true);
+      expect(covered.some((k) => k === 'authentication' || k === 'authentic')).toBe(true);
       const uncovered = result.memoryCoverage?.uncoveredKeywords || [];
-      expect(uncovered.some(k => k === 'database' || k === 'databas')).toBe(true);
+      expect(uncovered.some((k) => k === 'database' || k === 'databas')).toBe(true);
     });
 
     it('should skip research loading when coverage is sufficient', async () => {
@@ -962,6 +962,40 @@ describe('ContextBuilder', () => {
       expect(result.turnNumber).toBe(0);
       expect(result.stage).toBe('implement');
       expect(result.loadTime).toBeGreaterThanOrEqual(0);
+    });
+
+    it('should track constitution separately from memory in budget usage', async () => {
+      const constitutionPath = path.join(tempDir, '.specify', 'memory', 'constitution.md');
+      await fs.promises.writeFile(
+        constitutionPath,
+        '# Constitution\n\nProject principles and guidelines for consistency.'
+      );
+
+      const builder = new ContextBuilder(tempDir, memoryManager, hintLoader, undefined, {
+        enableBudgetEnforcement: true,
+        contextTokenLimit: 120000,
+      });
+
+      const task: TaskContext = {
+        taskId: 'T001',
+        specId: 'test-spec',
+        description: 'Test task',
+      };
+
+      const result = await builder.buildContext(task);
+
+      // Budget usage should have separate constitution and memory keys
+      expect(result.budgetUsage?.usage).toHaveProperty('constitution');
+      expect(result.budgetUsage?.usage).toHaveProperty('memory');
+
+      // Constitution tokens should be in constitution, not memory
+      expect(result.budgetUsage?.usage.constitution).toBeGreaterThan(0);
+
+      // Total should include both
+      const total = result.budgetUsage?.usage.total ?? 0;
+      const constitution = result.budgetUsage?.usage.constitution ?? 0;
+      const memory = result.budgetUsage?.usage.memory ?? 0;
+      expect(total).toBeGreaterThanOrEqual(constitution + memory);
     });
   });
 

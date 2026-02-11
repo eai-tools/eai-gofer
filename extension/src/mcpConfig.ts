@@ -8,8 +8,11 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs/promises';
+import { Logger } from './utils/logger';
 
 export class MCPConfigHelper {
+  private readonly logger = Logger.for('McpConfig');
+
   constructor(
     private workspacePath: string,
     private context: vscode.ExtensionContext
@@ -26,7 +29,7 @@ export class MCPConfigHelper {
     try {
       await fs.mkdir(vscodeDir, { recursive: true });
     } catch (error) {
-      console.error('Failed to create .vscode directory:', error);
+      this.logger.error('Failed to create .vscode directory:', error as Error);
     }
 
     // Get the path to the language server (works in both dev and production)
@@ -78,9 +81,9 @@ export class MCPConfigHelper {
     // Write configuration
     try {
       await fs.writeFile(mcpConfigPath, JSON.stringify(mergedConfig, null, 2), 'utf-8');
-      console.log('MCP configuration created/updated:', mcpConfigPath);
+      this.logger.info(`MCP configuration created/updated: ${mcpConfigPath}`);
     } catch (error) {
-      console.error('Failed to write MCP configuration:', error);
+      this.logger.error('Failed to write MCP configuration:', error as Error);
       throw error;
     }
   }
@@ -160,17 +163,22 @@ export class MCPConfigHelper {
           );
 
           if (settingChoice === 'Open Settings') {
-            vscode.commands.executeCommand('workbench.action.openSettings', 'gofer.anthropicApiKey');
+            vscode.commands.executeCommand(
+              'workbench.action.openSettings',
+              'gofer.anthropicApiKey'
+            );
           }
         } else {
-          vscode.window.showInformationMessage(
-            '✅ MCP configured! Reload VSCode to activate Gofer MCP tools.',
-            'Reload Now'
-          ).then((choice) => {
-            if (choice === 'Reload Now') {
-              vscode.commands.executeCommand('workbench.action.reloadWindow');
-            }
-          });
+          vscode.window
+            .showInformationMessage(
+              '✅ MCP configured! Reload VSCode to activate Gofer MCP tools.',
+              'Reload Now'
+            )
+            .then((choice) => {
+              if (choice === 'Reload Now') {
+                vscode.commands.executeCommand('workbench.action.reloadWindow');
+              }
+            });
         }
       } else if (choice === 'Learn More') {
         vscode.env.openExternal(
@@ -188,12 +196,12 @@ export class MCPConfigHelper {
       const exists = await this.configExists();
       if (!exists) {
         await this.createOrUpdateConfig();
-        console.log('MCP configuration auto-created');
+        this.logger.info('MCP configuration auto-created');
         return true;
       }
       return false;
     } catch (error) {
-      console.error('MCP auto-setup failed:', error);
+      this.logger.error('MCP auto-setup failed:', error as Error);
       return false;
     }
   }

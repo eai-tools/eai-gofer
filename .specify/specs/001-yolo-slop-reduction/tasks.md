@@ -2,8 +2,9 @@
 feature: YOLO Slop Reduction Mode
 spec: spec.md
 plan: plan.md
-status: review
+status: complete
 created: '2026-02-12'
+completedAt: '2026-02-12'
 ---
 
 # Tasks: YOLO Slop Reduction Mode
@@ -33,27 +34,27 @@ graph LR
 **Story**: As a developer, I want to enable/disable slop reduction via VSCode
 Settings
 
-- [ ] T001 [P] [US4] Add `gofer.yoloSlopReduction.enabled` boolean setting
+- [x] T001 [P] [US4] Add `gofer.yoloSlopReduction.enabled` boolean setting
       (default `false`) to `extension/package.json`
       contributes.configuration.properties
-- [ ] T002 [P] [US4] Add `gofer.yoloSlopReduction.notifyEvery` number setting
+- [x] T002 [P] [US4] Add `gofer.yoloSlopReduction.notifyEvery` number setting
       (default `10`, min `1`) to `extension/package.json`
       contributes.configuration.properties
-- [ ] T003 [US4] Add `yoloSlopReductionEnabled` and
+- [x] T003 [US4] Add `yoloSlopReductionEnabled` and
       `yoloSlopReductionNotifyEvery` to CONFIG_KEYS in `extension/src/config.ts`
-- [ ] T004 [US4] Add `yoloSlopReductionEnabled: false` and
+- [x] T004 [US4] Add `yoloSlopReductionEnabled: false` and
       `yoloSlopReductionNotifyEvery: 10` to DEFAULTS in
       `extension/src/config.ts`
-- [ ] T005 [P] [US4] Add `getSlopReductionEnabled(): boolean` method to
+- [x] T005 [P] [US4] Add `getSlopReductionEnabled(): boolean` method to
       ConfigManager in `extension/src/config.ts`
-- [ ] T006 [P] [US4] Add `getSlopReductionNotifyEvery(): number` method to
+- [x] T006 [P] [US4] Add `getSlopReductionNotifyEvery(): number` method to
       ConfigManager in `extension/src/config.ts`
 
 **Verification**:
 
-- [ ] AC4.1: Settings appear in VSCode Settings UI under Gofer section
-- [ ] AC4.2: Both settings have correct types and defaults
-- [ ] AC4.4: ConfigManager provides typed getters for both settings
+- [x] AC4.1: Settings appear in VSCode Settings UI under Gofer section
+- [x] AC4.2: Both settings have correct types and defaults
+- [x] AC4.4: ConfigManager provides typed getters for both settings
 
 ## Phase 2: SlopReducer Core [US1, US5]
 
@@ -62,38 +63,38 @@ Settings
 **Story**: As a developer, I want slop patterns automatically fixed when I save
 a file
 
-- [ ] T007 [US1] Create `extension/src/autonomous/SlopReducer.ts` with class
+- [x] T007 [US1] Create `extension/src/autonomous/SlopReducer.ts` with class
       skeleton, constructor taking `workspacePath: string`
-- [ ] T008 [US5] Define `FixPattern` interface in
+- [x] T008 [US5] Define `FixPattern` interface in
       `extension/src/autonomous/SlopReducer.ts`:
       `{ name: string; regex: RegExp; fix: ((line: string) => string | null) | null; reason: string }`
-- [ ] T009 [US5] Define `FIX_PATTERNS` constant array with 3 fixable patterns in
+- [x] T009 [US5] Define `FIX_PATTERNS` constant array with 3 fixable patterns in
       `extension/src/autonomous/SlopReducer.ts`:
   - `console-log`: regex `/^\s*console\.log\(.*\);\s*$/`, fix returns `null`
     (remove line)
   - `debugger`: regex `/^\s*debugger;\s*$/`, fix returns `null` (remove line)
   - `ts-ignore`: regex `/\/\/\s*@ts-ignore/`, fix replaces with
     `// @ts-expect-error`
-- [ ] T010 [US1] Implement `isTestFile(filePath: string): boolean` in
+- [x] T010 [US1] Implement `isTestFile(filePath: string): boolean` in
       SlopReducer — returns true for `**/tests/**`, `**/*.test.ts`,
       `**/*.spec.ts`, `**/test-*/**`
-- [ ] T011 [US1] Implement `reduceFile(filePath: string): FixResult` in
+- [x] T011 [US1] Implement `reduceFile(filePath: string): FixResult` in
       SlopReducer — reads file, applies fix patterns line-by-line, writes only
       if changed, returns `{ fixCount, fixes }`
-- [ ] T012 [US1] Add re-entrant guard (`private reducing = new Set<string>()`)
+- [x] T012 [US1] Add re-entrant guard (`private reducing = new Set<string>()`)
       to SlopReducer — skip if file already being reduced, clear after write
 
 **Verification**:
 
-- [ ] AC1.2: `console.log(...)` lines removed entirely
-- [ ] AC1.3: `debugger` lines removed entirely
-- [ ] AC1.4: `// @ts-ignore` replaced with `// @ts-expect-error`
-- [ ] AC1.5: Test files NOT auto-fixed
-- [ ] AC1.6: Non-slop lines remain untouched
-- [ ] AC1.7: No infinite save loop
-- [ ] AC5.1: Fix patterns defined in declarative registry
-- [ ] AC5.2: Patterns without fix function are detection-only
-- [ ] AC5.3: Adding new pattern requires only one registry entry
+- [x] AC1.2: `console.log(...)` lines removed entirely
+- [x] AC1.3: `debugger` lines removed entirely
+- [x] AC1.4: `// @ts-ignore` replaced with `// @ts-expect-error`
+- [x] AC1.5: Test files NOT auto-fixed
+- [x] AC1.6: Non-slop lines remain untouched
+- [x] AC1.7: No infinite save loop
+- [x] AC5.1: Fix patterns defined in declarative registry
+- [x] AC5.2: Patterns without fix function are detection-only
+- [x] AC5.3: Adding new pattern requires only one registry entry
 
 ## Phase 3: JSONL Logging [US2]
 
@@ -102,19 +103,19 @@ a file
 **Story**: As a developer, I want every auto-fix logged with timestamp, file,
 pattern, and before/after snippets
 
-- [ ] T013 [US2] Define `FixLogEntry` interface in SlopReducer:
+- [x] T013 [US2] Define `FixLogEntry` interface in SlopReducer:
       `{ timestamp, file, line, pattern, originalSnippet, replacement, reason }`
-- [ ] T014 [US2] Implement `private logFix(entry: FixLogEntry): void` in
+- [x] T014 [US2] Implement `private logFix(entry: FixLogEntry): void` in
       SlopReducer — lazy mkdir for `.specify/logs/`, append JSONL to
       `slop-reduction.jsonl`, catch errors silently
 
 **Verification**:
 
-- [ ] AC2.1: Each fix logged as single JSON line to
+- [x] AC2.1: Each fix logged as single JSON line to
       `.specify/logs/slop-reduction.jsonl`
-- [ ] AC2.2: Entry contains all required fields
-- [ ] AC2.3: Log directory created lazily
-- [ ] AC2.4: Logging failures non-fatal
+- [x] AC2.2: Entry contains all required fields
+- [x] AC2.3: Log directory created lazily
+- [x] AC2.4: Logging failures non-fatal
 
 ## Phase 4: Notifications [US3]
 
@@ -123,40 +124,40 @@ pattern, and before/after snippets
 **Story**: As a developer, I want a notification every N fixes so I'm aware
 without being overwhelmed
 
-- [ ] T015 [US3] Add `private sessionFixCount = 0` counter to SlopReducer
-- [ ] T016 [US3] Implement `private maybeNotify(): void` in SlopReducer —
+- [x] T015 [US3] Add `private sessionFixCount = 0` counter to SlopReducer
+- [x] T016 [US3] Implement `private maybeNotify(): void` in SlopReducer —
       increment counter, show notification when
       `sessionFixCount % notifyEvery === 0`
-- [ ] T017 [US3] Set notification text to
+- [x] T017 [US3] Set notification text to
       `"Gofer: Reduced ${sessionFixCount} slop issues this session"` with "View
       Log" action
-- [ ] T018 [US3] Implement "View Log" action — opens JSONL file via
+- [x] T018 [US3] Implement "View Log" action — opens JSONL file via
       `vscode.workspace.openTextDocument()` + `vscode.window.showTextDocument()`
 
 **Verification**:
 
-- [ ] AC3.1: Notification appears every N fixes (default 10)
-- [ ] AC3.2: Shows cumulative session count
-- [ ] AC3.3: Includes "View Log" action
-- [ ] AC3.4: No notification between milestones
+- [x] AC3.1: Notification appears every N fixes (default 10)
+- [x] AC3.2: Shows cumulative session count
+- [x] AC3.3: Includes "View Log" action
+- [x] AC3.4: No notification between milestones
 
 ## Phase 5: Extension Wiring [US1]
 
 **Goal**: Wire SlopReducer into extension activation and file save handler
 
-- [ ] T019 [US1] Import SlopReducer and create instance in
+- [x] T019 [US1] Import SlopReducer and create instance in
       `extension/src/extension.ts` during activation, passing `workspacePath`
-- [ ] T020 [US1] Register `vscode.workspace.onDidSaveTextDocument` handler in
+- [x] T020 [US1] Register `vscode.workspace.onDidSaveTextDocument` handler in
       `extension/src/extension.ts` that checks enabled setting, file extension
       (`.ts/.tsx/.js/.jsx`), test file exclusion, then calls
       `slopReducer.reduceFile()`
-- [ ] T021 [US1] Add save handler disposable to `context.subscriptions` for
+- [x] T021 [US1] Add save handler disposable to `context.subscriptions` for
       cleanup in `extension/src/extension.ts`
 
 **Verification**:
 
-- [ ] AC1.1: When enabled and file saved, fixable patterns auto-removed
-- [ ] AC4.3: Setting changes take effect immediately (re-read config on each
+- [x] AC1.1: When enabled and file saved, fixable patterns auto-removed
+- [x] AC4.3: Setting changes take effect immediately (re-read config on each
       save)
 
 ## Parallel Execution Guide

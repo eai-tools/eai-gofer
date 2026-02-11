@@ -2,7 +2,7 @@
  * MemoryLayerManager - MemGPT-inspired Three-Layer Memory Architecture
  *
  * Provides a three-layer memory system inspired by MemGPT:
- * - Core Memory: Always loaded (constitution, current task, key decisions)
+ * - Core Memory: Always loaded (current task, key decisions)
  * - Recall Memory: Recent memories limited by recency window
  * - Archival Memory: Searchable long-term storage
  *
@@ -13,8 +13,6 @@
  * @see spec 017 T062: MemGPT three-layer architecture
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
 import { Logger } from '../utils/logger';
 
 // ============================================================================
@@ -23,8 +21,15 @@ import { Logger } from '../utils/logger';
 
 /** Duck-typed interface for MemoryManager dependency */
 export interface MemoryManagerLike {
-  search(query: { keywords?: string; tags?: string[]; scope?: string }): Promise<{ memories: MemoryItem[] }>;
-  loadByPriority(options: { limit?: number; taskContext?: string }): Promise<{ memories: MemoryItem[] }>;
+  search(query: {
+    keywords?: string;
+    tags?: string[];
+    scope?: string;
+  }): Promise<{ memories: MemoryItem[] }>;
+  loadByPriority(options: {
+    limit?: number;
+    taskContext?: string;
+  }): Promise<{ memories: MemoryItem[] }>;
 }
 
 /** Duck-typed memory item */
@@ -78,8 +83,8 @@ export interface MemoryLayerConfig {
 const DEFAULT_CONFIG: MemoryLayerConfig = {
   recallLimit: 20,
   recallWindowMs: 60 * 60 * 1000, // 1 hour
-  coreTags: ['#constitution', '#task-context', '#key-decision', '#core'],
-  coreCategories: ['constitution', 'task_context', 'decisions'],
+  coreTags: ['#task-context', '#key-decision', '#core'],
+  coreCategories: ['task_context', 'decisions'],
 };
 
 // ============================================================================
@@ -118,36 +123,20 @@ export class MemoryLayerManager {
   // --------------------------------------------------------------------------
 
   /**
-   * Get core memories: constitution, current task context, key decisions.
+   * Get core memories: current task context, key decisions.
    * These are always loaded into context, never demoted.
+   * Note: Constitution is loaded separately by ContextBuilder, not as a memory.
    */
   async getCoreMemory(): Promise<LayerResult> {
     const memories: MemoryItem[] = [];
 
-    // 1. Load constitution if it exists
-    const constitutionPath = path.join(this.workspaceRoot, '.specify', 'memory', 'constitution.md');
-    try {
-      const content = fs.readFileSync(constitutionPath, 'utf-8');
-      memories.push({
-        id: 'core:constitution',
-        content,
-        category: 'constitution',
-        tags: ['#constitution', '#core'],
-        created: 0,
-        lastUsed: Date.now(),
-        usedCount: 999,
-        priorityIndex: 100,
-        type: 'procedural',
-      });
-    } catch { /* no constitution */ }
-
-    // 2. Load memories tagged as core
+    // Load memories tagged as core
     if (this.memoryManager) {
       for (const tag of this.config.coreTags) {
         try {
           const result = await this.memoryManager.search({ tags: [tag] });
           for (const mem of result.memories) {
-            if (!memories.find(m => m.id === mem.id)) {
+            if (!memories.find((m) => m.id === mem.id)) {
               memories.push(mem);
             }
           }
@@ -251,7 +240,12 @@ export class MemoryLayerManager {
 
       const candidates = recall.memories.slice(this.config.recallLimit);
 
-      if (this.llmProvider && this.llmProvider.isAvailable() && !this.llmProvider.isRateLimited() && currentTask) {
+      if (
+        this.llmProvider &&
+        this.llmProvider.isAvailable() &&
+        !this.llmProvider.isRateLimited() &&
+        currentTask
+      ) {
         // LLM-scored demotion
         return this.demoteWithLLM(candidates, currentTask);
       }
@@ -299,7 +293,10 @@ export class MemoryLayerManager {
       sorted[i].stale = true;
     }
 
-    this.logger.info('Priority-based demotion', { candidates: candidates.length, demoted: demoteCount });
+    this.logger.info('Priority-based demotion', {
+      candidates: candidates.length,
+      demoted: demoteCount,
+    });
     return demoteCount;
   }
 
@@ -327,7 +324,9 @@ export class MemoryLayerManager {
       sections.push('## Recall Memory\n');
       for (const mem of recall.memories) {
         const tags = mem.tags.join(', ');
-        sections.push(`- **[${mem.category}]** ${mem.content.slice(0, 200)}${mem.content.length > 200 ? '...' : ''} _(${tags})_`);
+        sections.push(
+          `- **[${mem.category}]** ${mem.content.slice(0, 200)}${mem.content.length > 200 ? '...' : ''} _(${tags})_`
+        );
       }
     }
 

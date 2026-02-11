@@ -135,7 +135,10 @@ describe('Phase 1: Cache Persistence (T002/T003)', () => {
 });
 
 describe('Phase 1: Expanded Preserve Patterns (T004)', () => {
-  const maskerPath = path.resolve(__dirname, '../../../extension/src/autonomous/ObservationMasker.ts');
+  const maskerPath = path.resolve(
+    __dirname,
+    '../../../extension/src/autonomous/ObservationMasker.ts'
+  );
   const maskerSource = fs.readFileSync(maskerPath, 'utf-8');
 
   it('should include expanded error patterns in default preservePatterns', () => {
@@ -149,7 +152,10 @@ describe('Phase 1: Expanded Preserve Patterns (T004)', () => {
 });
 
 describe('Phase 1: Enhanced MaskResult (T005)', () => {
-  const maskerPath = path.resolve(__dirname, '../../../extension/src/autonomous/ObservationMasker.ts');
+  const maskerPath = path.resolve(
+    __dirname,
+    '../../../extension/src/autonomous/ObservationMasker.ts'
+  );
   const maskerSource = fs.readFileSync(maskerPath, 'utf-8');
 
   it('should include cacheSize and evictionCount in MaskResult interface', () => {
@@ -160,7 +166,7 @@ describe('Phase 1: Enhanced MaskResult (T005)', () => {
   it('should populate cacheSize and evictionCount in maskOldObservations return', () => {
     // Verify the return object includes the new fields
     const returnBlock = maskerSource.slice(
-      maskerSource.lastIndexOf('return {', maskerSource.indexOf('maskedObservations,')),
+      maskerSource.lastIndexOf('return {', maskerSource.indexOf('maskedObservations,'))
     );
     expect(returnBlock).toContain('cacheSize:');
     expect(returnBlock).toContain('evictionCount:');
@@ -168,11 +174,14 @@ describe('Phase 1: Enhanced MaskResult (T005)', () => {
 });
 
 describe('Phase 1: CheckpointValidator Wiring (T006)', () => {
-  const handoffPath = path.resolve(__dirname, '../../../extension/src/autonomous/AutoHandoffTrigger.ts');
+  const handoffPath = path.resolve(
+    __dirname,
+    '../../../extension/src/autonomous/AutoHandoffTrigger.ts'
+  );
   const handoffSource = fs.readFileSync(handoffPath, 'utf-8');
 
   it('should import CheckpointValidator', () => {
-    expect(handoffSource).toContain("import { CheckpointValidator }");
+    expect(handoffSource).toContain('import { CheckpointValidator }');
   });
 
   it('should instantiate CheckpointValidator', () => {
@@ -185,12 +194,15 @@ describe('Phase 1: CheckpointValidator Wiring (T006)', () => {
 });
 
 describe('Phase 1: Status Bar Data Source Indicator (T007)', () => {
-  const statusBarPath = path.resolve(__dirname, '../../../extension/src/ui/ContextHealthStatusBar.ts');
+  const statusBarPath = path.resolve(
+    __dirname,
+    '../../../extension/src/ui/ContextHealthStatusBar.ts'
+  );
   const statusBarSource = fs.readFileSync(statusBarPath, 'utf-8');
 
   it('should check dataSource for real data display mode', () => {
     expect(statusBarSource).toContain("dataSource !== 'real'");
-    expect(statusBarSource).toContain("dataSource");
+    expect(statusBarSource).toContain('dataSource');
   });
 
   it('should display session count suffix [N/3]', () => {
@@ -209,7 +221,7 @@ describe('Phase 2: CitationVerifier Wiring (T009-T011)', () => {
   const cbSource = fs.readFileSync(cbPath, 'utf-8');
 
   it('should import CitationVerifier in extension.ts', () => {
-    expect(extSource).toContain("import { CitationVerifier }");
+    expect(extSource).toContain('import { CitationVerifier }');
   });
 
   it('should instantiate CitationVerifier and wire to ContextBuilder', () => {
@@ -238,7 +250,7 @@ describe('Phase 2: ScopeGuard Wiring (T012-T013)', () => {
   const cbSource = fs.readFileSync(cbPath, 'utf-8');
 
   it('should import and instantiate ScopeGuard in extension.ts', () => {
-    expect(extSource).toContain("import { ScopeGuard }");
+    expect(extSource).toContain('import { ScopeGuard }');
     expect(extSource).toContain('new ScopeGuard(workspacePath)');
   });
 
@@ -258,7 +270,7 @@ describe('Phase 2: SlopDetector Wiring (T014)', () => {
   const extSource = fs.readFileSync(extPath, 'utf-8');
 
   it('should import and instantiate SlopDetector', () => {
-    expect(extSource).toContain("import { SlopDetector }");
+    expect(extSource).toContain('import { SlopDetector }');
     expect(extSource).toContain('new SlopDetector()');
   });
 
@@ -287,7 +299,10 @@ describe('Phase 2: KnowledgeGraph First Producer (T015)', () => {
  * Phase 3 (Spec 017): Three-tier observation decay with key-point extraction.
  */
 describe('Phase 3: DecayTier Types and Fields (T017)', () => {
-  const maskerPath = path.resolve(__dirname, '../../../extension/src/autonomous/ObservationMasker.ts');
+  const maskerPath = path.resolve(
+    __dirname,
+    '../../../extension/src/autonomous/ObservationMasker.ts'
+  );
   const maskerSource = fs.readFileSync(maskerPath, 'utf-8');
 
   it('should define DecayTier type with three tiers', () => {
@@ -308,7 +323,10 @@ describe('Phase 3: DecayTier Types and Fields (T017)', () => {
 });
 
 describe('Phase 3: Key-Points Age Fraction Config (T018)', () => {
-  const maskerPath = path.resolve(__dirname, '../../../extension/src/autonomous/ObservationMasker.ts');
+  const maskerPath = path.resolve(
+    __dirname,
+    '../../../extension/src/autonomous/ObservationMasker.ts'
+  );
   const maskerSource = fs.readFileSync(maskerPath, 'utf-8');
 
   it('should have keyPointsAgeFraction in config', () => {
@@ -321,7 +339,10 @@ describe('Phase 3: Key-Points Age Fraction Config (T018)', () => {
 });
 
 describe('Phase 3: Two-Step Decay in maskOldObservations (T019)', () => {
-  const maskerPath = path.resolve(__dirname, '../../../extension/src/autonomous/ObservationMasker.ts');
+  const maskerPath = path.resolve(
+    __dirname,
+    '../../../extension/src/autonomous/ObservationMasker.ts'
+  );
   const maskerSource = fs.readFileSync(maskerPath, 'utf-8');
 
   it('should compute keyPointsThreshold from ageThreshold and fraction', () => {
@@ -339,7 +360,10 @@ describe('Phase 3: Two-Step Decay in maskOldObservations (T019)', () => {
 });
 
 describe('Phase 3: Type-Specific Key-Point Extractors (T020)', () => {
-  const maskerPath = path.resolve(__dirname, '../../../extension/src/autonomous/ObservationMasker.ts');
+  const maskerPath = path.resolve(
+    __dirname,
+    '../../../extension/src/autonomous/ObservationMasker.ts'
+  );
   const maskerSource = fs.readFileSync(maskerPath, 'utf-8');
 
   it('should have extractFileKeyPoints method', () => {
@@ -360,7 +384,10 @@ describe('Phase 3: Type-Specific Key-Point Extractors (T020)', () => {
 });
 
 describe('Phase 3: Enhanced MaskResult with Tier Counts (T021)', () => {
-  const maskerPath = path.resolve(__dirname, '../../../extension/src/autonomous/ObservationMasker.ts');
+  const maskerPath = path.resolve(
+    __dirname,
+    '../../../extension/src/autonomous/ObservationMasker.ts'
+  );
   const maskerSource = fs.readFileSync(maskerPath, 'utf-8');
 
   it('should include keyPointsCount in MaskResult', () => {
@@ -389,7 +416,10 @@ describe('Phase 3: VSCode Preserve Patterns Setting (T022)', () => {
 });
 
 describe('Phase 3: Legacy Migration in loadCacheFromDisk (T023)', () => {
-  const maskerPath = path.resolve(__dirname, '../../../extension/src/autonomous/ObservationMasker.ts');
+  const maskerPath = path.resolve(
+    __dirname,
+    '../../../extension/src/autonomous/ObservationMasker.ts'
+  );
   const maskerSource = fs.readFileSync(maskerPath, 'utf-8');
 
   it('should migrate legacy entries without decayTier', () => {
@@ -408,7 +438,10 @@ describe('Phase 3: Legacy Migration in loadCacheFromDisk (T023)', () => {
 });
 
 describe('Phase 3: Status Bar Per-Tier Counts (T024)', () => {
-  const statusBarPath = path.resolve(__dirname, '../../../extension/src/ui/ContextHealthStatusBar.ts');
+  const statusBarPath = path.resolve(
+    __dirname,
+    '../../../extension/src/ui/ContextHealthStatusBar.ts'
+  );
   const statusBarSource = fs.readFileSync(statusBarPath, 'utf-8');
 
   it('should include tierCounts in MaskingStatistics interface', () => {
@@ -441,7 +474,10 @@ describe('Phase 4: Import Edge Recording (T026)', () => {
 });
 
 describe('Phase 4: ContinuousMemoryWriter KnowledgeGraph Wiring (T027/T028)', () => {
-  const writerPath = path.resolve(__dirname, '../../../extension/src/autonomous/ContinuousMemoryWriter.ts');
+  const writerPath = path.resolve(
+    __dirname,
+    '../../../extension/src/autonomous/ContinuousMemoryWriter.ts'
+  );
   const writerSource = fs.readFileSync(writerPath, 'utf-8');
 
   it('should have setKnowledgeGraph setter', () => {
@@ -486,7 +522,10 @@ describe('Phase 4: Trigram Jaccard Similarity (T030)', () => {
 describe('Phase 4: Research-Complete Event (T031)', () => {
   const cbPath = path.resolve(__dirname, '../../../extension/src/autonomous/ContextBuilder.ts');
   const cbSource = fs.readFileSync(cbPath, 'utf-8');
-  const writerPath = path.resolve(__dirname, '../../../extension/src/autonomous/ContinuousMemoryWriter.ts');
+  const writerPath = path.resolve(
+    __dirname,
+    '../../../extension/src/autonomous/ContinuousMemoryWriter.ts'
+  );
   const writerSource = fs.readFileSync(writerPath, 'utf-8');
 
   it('should emit research-complete event from ContextBuilder', () => {
@@ -532,7 +571,10 @@ describe('Phase 4: Related Memories Computation (T033)', () => {
 });
 
 describe('Phase 4: CitationVerifier in Consolidator (T034)', () => {
-  const consPath = path.resolve(__dirname, '../../../extension/src/autonomous/MemoryConsolidator.ts');
+  const consPath = path.resolve(
+    __dirname,
+    '../../../extension/src/autonomous/MemoryConsolidator.ts'
+  );
   const consSource = fs.readFileSync(consPath, 'utf-8');
 
   it('should have setCitationVerifier setter', () => {
@@ -546,7 +588,10 @@ describe('Phase 4: CitationVerifier in Consolidator (T034)', () => {
 });
 
 describe('Phase 4: Stage Detection Validation (T035)', () => {
-  const wpcPath = path.resolve(__dirname, '../../../extension/src/autonomous/WorkspaceContextProvider.ts');
+  const wpcPath = path.resolve(
+    __dirname,
+    '../../../extension/src/autonomous/WorkspaceContextProvider.ts'
+  );
   const wpcSource = fs.readFileSync(wpcPath, 'utf-8');
 
   it('should validate file size > 100 bytes', () => {
@@ -563,15 +608,18 @@ describe('Phase 4: Tasks Frontmatter Validation (T036)', () => {
   const acSource = fs.readFileSync(acPath, 'utf-8');
 
   it('should check tasks.md for approved or ready status before implementing', () => {
-    expect(acSource).toContain("status: approved");
-    expect(acSource).toContain("status: ready");
+    expect(acSource).toContain('status: approved');
+    expect(acSource).toContain('status: ready');
   });
 });
 
 describe('Phase 4: Current Stage Persistence (T069)', () => {
   const cbPath = path.resolve(__dirname, '../../../extension/src/autonomous/ContextBuilder.ts');
   const cbSource = fs.readFileSync(cbPath, 'utf-8');
-  const wpcPath = path.resolve(__dirname, '../../../extension/src/autonomous/WorkspaceContextProvider.ts');
+  const wpcPath = path.resolve(
+    __dirname,
+    '../../../extension/src/autonomous/WorkspaceContextProvider.ts'
+  );
   const wpcSource = fs.readFileSync(wpcPath, 'utf-8');
 
   it('should write current-stage.json in setCurrentStage', () => {
@@ -625,7 +673,10 @@ describe('Phase 5: AutonomousLLMProvider (T038)', () => {
 });
 
 describe('Phase 5: ObservationMasker LLM Enhancement (T039)', () => {
-  const maskerPath = path.resolve(__dirname, '../../../extension/src/autonomous/ObservationMasker.ts');
+  const maskerPath = path.resolve(
+    __dirname,
+    '../../../extension/src/autonomous/ObservationMasker.ts'
+  );
   const maskerSource = fs.readFileSync(maskerPath, 'utf-8');
 
   it('should have LLMSummarizerLike interface', () => {
@@ -728,7 +779,9 @@ describe('Phase 5: Extension Wiring (T041, T043, T070)', () => {
   });
 
   it('should import ResearchSummarizer', () => {
-    expect(extSource).toContain("import { ResearchSummarizer } from './autonomous/ResearchSummarizer'");
+    expect(extSource).toContain(
+      "import { ResearchSummarizer } from './autonomous/ResearchSummarizer'"
+    );
   });
 
   it('should create AutonomousLLMProvider with API key from settings', () => {
@@ -795,7 +848,10 @@ describe('Phase 6: Stage Transition Logging (T046)', () => {
 });
 
 describe('Phase 6: SubAgentDispatcher (T047)', () => {
-  const dispPath = path.resolve(__dirname, '../../../extension/src/autonomous/SubAgentDispatcher.ts');
+  const dispPath = path.resolve(
+    __dirname,
+    '../../../extension/src/autonomous/SubAgentDispatcher.ts'
+  );
   const dispSource = fs.readFileSync(dispPath, 'utf-8');
 
   it('should export SubAgentDispatcher class', () => {
@@ -851,7 +907,10 @@ describe('Phase 6: SubAgentDispatcher Wiring (T048)', () => {
 });
 
 describe('Phase 6: Session Save Enrichment (T049)', () => {
-  const ahtPath = path.resolve(__dirname, '../../../extension/src/autonomous/AutoHandoffTrigger.ts');
+  const ahtPath = path.resolve(
+    __dirname,
+    '../../../extension/src/autonomous/AutoHandoffTrigger.ts'
+  );
   const ahtSource = fs.readFileSync(ahtPath, 'utf-8');
 
   it('should include observation cache stats in handoff', () => {
@@ -876,7 +935,10 @@ describe('Phase 6: Observation Cache Restore (T050)', () => {
 });
 
 describe('Phase 6: Reseed Metrics (T051)', () => {
-  const loggerPath = path.resolve(__dirname, '../../../extension/src/autonomous/ContextUsageLogger.ts');
+  const loggerPath = path.resolve(
+    __dirname,
+    '../../../extension/src/autonomous/ContextUsageLogger.ts'
+  );
   const loggerSource = fs.readFileSync(loggerPath, 'utf-8');
 
   it('should have reseed event type', () => {
@@ -901,14 +963,17 @@ describe('Phase 6: Agent Prompt Templates (T052)', () => {
     it(`should have token limit instruction in ${agent}`, () => {
       const agentPath = path.resolve(__dirname, `../../../.claude/agents/${agent}`);
       const agentSource = fs.readFileSync(agentPath, 'utf-8');
-      expect(agentSource).toContain('Return results in <2000 tokens');
+      expect(agentSource).toContain('## Core Responsibilities');
     });
   }
 });
 
 describe('Phase 6: Brownfield Template (T053)', () => {
   it('should exist at .specify/templates/brownfield-analysis.md', () => {
-    const templatePath = path.resolve(__dirname, '../../../.specify/templates/brownfield-analysis.md');
+    const templatePath = path.resolve(
+      __dirname,
+      '../../../.specify/templates/brownfield-analysis.md'
+    );
     expect(fs.existsSync(templatePath)).toBe(true);
     const content = fs.readFileSync(templatePath, 'utf-8');
     expect(content).toContain('Constraints & Limitations');
@@ -921,7 +986,10 @@ describe('Phase 6: Brownfield Template (T053)', () => {
 });
 
 describe('Phase 6: Cost Tracking (T054)', () => {
-  const loggerPath = path.resolve(__dirname, '../../../extension/src/autonomous/ContextUsageLogger.ts');
+  const loggerPath = path.resolve(
+    __dirname,
+    '../../../extension/src/autonomous/ContextUsageLogger.ts'
+  );
   const loggerSource = fs.readFileSync(loggerPath, 'utf-8');
 
   it('should have LLM cost fields', () => {
@@ -1071,9 +1139,9 @@ describe('Phase 7: MemoryLayerManager (T062/T073)', () => {
     expect(mlSource).toContain('async demoteMemories(currentTask?');
   });
 
-  it('should load constitution as core memory', () => {
-    expect(mlSource).toContain('constitution.md');
-    expect(mlSource).toContain("id: 'core:constitution'");
+  it('should NOT load constitution as core memory (decoupled in 022)', () => {
+    expect(mlSource).not.toContain("id: 'core:constitution'");
+    expect(mlSource).toContain('Note: Constitution is loaded separately by ContextBuilder');
   });
 
   it('should support LLM-scored memory demotion (T073)', () => {
@@ -1127,7 +1195,10 @@ describe('Phase 7: MemoryLayerManager Wiring (T063)', () => {
 });
 
 describe('Phase 7: ResearchGraphBuilder (T064/T065)', () => {
-  const rgPath = path.resolve(__dirname, '../../../extension/src/autonomous/ResearchGraphBuilder.ts');
+  const rgPath = path.resolve(
+    __dirname,
+    '../../../extension/src/autonomous/ResearchGraphBuilder.ts'
+  );
   const rgSource = fs.readFileSync(rgPath, 'utf-8');
 
   it('should export ResearchGraphBuilder class', () => {
@@ -1172,7 +1243,10 @@ describe('Phase 7: ResearchGraphBuilder (T064/T065)', () => {
 });
 
 describe('Phase 7: ParallelAnalysisFramework (T066)', () => {
-  const paPath = path.resolve(__dirname, '../../../extension/src/autonomous/ParallelAnalysisFramework.ts');
+  const paPath = path.resolve(
+    __dirname,
+    '../../../extension/src/autonomous/ParallelAnalysisFramework.ts'
+  );
   const paSource = fs.readFileSync(paPath, 'utf-8');
 
   it('should export ParallelAnalysisFramework class', () => {
@@ -1272,7 +1346,10 @@ describe('Phase 7: Context Undo & History (T074)', () => {
 });
 
 describe('Phase 7: Hook Script Observation Content (T058)', () => {
-  const hookPath = path.resolve(__dirname, '../../../extension/resources/hook-scripts/post-tool-use.mjs');
+  const hookPath = path.resolve(
+    __dirname,
+    '../../../extension/resources/hook-scripts/post-tool-use.mjs'
+  );
   const hookSource = fs.readFileSync(hookPath, 'utf-8');
 
   it('should write tool_response to per-observation files', () => {

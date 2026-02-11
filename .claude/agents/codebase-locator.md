@@ -54,9 +54,6 @@ contents.
 
 ## Output Format
 
-**IMPORTANT**: Return results in <2000 tokens. Summarize if longer. Focus on the
-most relevant findings and omit verbose details.
-
 ```
 ## File Locations for [Feature/Topic]
 

@@ -102,6 +102,7 @@ export interface BudgetUsage {
   usage: {
     research: number;
     memory: number;
+    constitution: number;
     code: number;
     conversation: number;
     total: number;
@@ -254,15 +255,61 @@ export class ContextBuilder extends EventEmitter {
   /** T013: Optional scope guard for protected boundary checking */
   private scopeGuard?: ScopeGuard;
   /** T048: Optional sub-agent dispatcher for delegation recommendations */
-  private subAgentDispatcher?: { getRecommendation(): { agentType: string; taskCategory: string; reason: string; utilizationPercent: number } | null; formatAsContextSection(): string | undefined };
+  private subAgentDispatcher?: {
+    getRecommendation(): {
+      agentType: string;
+      taskCategory: string;
+      reason: string;
+      utilizationPercent: number;
+    } | null;
+    formatAsContextSection(): string | undefined;
+  };
   /** T063: Optional layered memory manager (MemGPT-inspired) */
-  private memoryLayerManager?: { formatAsContextSection(taskContext?: string): Promise<string>; getCoreMemory(): Promise<{ memories: Array<{ content: string }>; tokenEstimate: number }>; getRecallMemory(limit?: number): Promise<{ memories: Array<{ content: string }>; tokenEstimate: number }> };
+  private memoryLayerManager?: {
+    formatAsContextSection(taskContext?: string): Promise<string>;
+    getCoreMemory(): Promise<{ memories: Array<{ content: string }>; tokenEstimate: number }>;
+    getRecallMemory(
+      limit?: number
+    ): Promise<{ memories: Array<{ content: string }>; tokenEstimate: number }>;
+  };
   /** T063: Whether to use layered memory instead of direct memory/observation access */
   private useLayeredMemory = false;
   /** 018: Optional parallel analysis framework for sub-agent partition recommendations */
-  private parallelAnalysisFramework?: { generateRecommendations(affectedFiles: string[], taskDescription: string): { partitions: Array<{ agentType: string; searchTarget: string; scope: string; reason: string; priority: number }>; strategy: string; totalPartitions: number }; formatAsContextSection(recommendation: { partitions: Array<{ agentType: string; searchTarget: string; scope: string; reason: string; priority: number }>; strategy: string; totalPartitions: number }): string };
+  private parallelAnalysisFramework?: {
+    generateRecommendations(
+      affectedFiles: string[],
+      taskDescription: string
+    ): {
+      partitions: Array<{
+        agentType: string;
+        searchTarget: string;
+        scope: string;
+        reason: string;
+        priority: number;
+      }>;
+      strategy: string;
+      totalPartitions: number;
+    };
+    formatAsContextSection(recommendation: {
+      partitions: Array<{
+        agentType: string;
+        searchTarget: string;
+        scope: string;
+        reason: string;
+        priority: number;
+      }>;
+      strategy: string;
+      totalPartitions: number;
+    }): string;
+  };
   /** 018 T052: Optional context folder for section-level folding */
-  private contextFolder?: { getFoldMode(key: string): 'collapsed' | 'summary' | 'expanded'; applyToSections(sections: Record<string, string | undefined>): Record<string, string | undefined>; reload(): void };
+  private contextFolder?: {
+    getFoldMode(key: string): 'collapsed' | 'summary' | 'expanded';
+    applyToSections(
+      sections: Record<string, string | undefined>
+    ): Record<string, string | undefined>;
+    reload(): void;
+  };
 
   constructor(
     workspaceRoot: string,
@@ -334,7 +381,10 @@ export class ContextBuilder extends EventEmitter {
    * When set with useLayered=true, buildContext uses layered memory instead of
    * direct MemoryManager access.
    */
-  setMemoryLayerManager(manager: typeof this.memoryLayerManager, useLayered: boolean = false): void {
+  setMemoryLayerManager(
+    manager: typeof this.memoryLayerManager,
+    useLayered: boolean = false
+  ): void {
     this.memoryLayerManager = manager;
     this.useLayeredMemory = useLayered;
   }
@@ -380,13 +430,21 @@ export class ContextBuilder extends EventEmitter {
 
     // T069: Persist current stage to disk for WorkspaceContextProvider to read
     try {
-      const stageFilePath = path.join(this.workspaceRoot, '.specify', 'memory', 'current-stage.json');
+      const stageFilePath = path.join(
+        this.workspaceRoot,
+        '.specify',
+        'memory',
+        'current-stage.json'
+      );
       fs.mkdirSync(path.dirname(stageFilePath), { recursive: true });
-      fs.writeFileSync(stageFilePath, JSON.stringify({
-        stage,
-        timestamp: Date.now(),
-        source: 'explicit',
-      }));
+      fs.writeFileSync(
+        stageFilePath,
+        JSON.stringify({
+          stage,
+          timestamp: Date.now(),
+          source: 'explicit',
+        })
+      );
     } catch {
       // Non-fatal: stage persistence is best-effort
     }
@@ -438,7 +496,8 @@ export class ContextBuilder extends EventEmitter {
    *
    * Maps context sections to budget categories:
    * - research: hints (research docs loaded via hints)
-   * - memory: memories + constitution
+   * - memory: memories only
+   * - constitution: constitution (tracked separately from memory)
    * - code: code sections (future: inline code context)
    * - conversation: taskContext + observations
    *
@@ -462,16 +521,16 @@ export class ContextBuilder extends EventEmitter {
     // Calculate actual token usage per category
     const usage = {
       research: this.estimateTokens(sections.hints || ''),
-      memory:
-        this.estimateTokens(sections.memories || '') +
-        this.estimateTokens(sections.constitution || ''),
+      memory: this.estimateTokens(sections.memories || ''),
+      constitution: this.estimateTokens(sections.constitution || ''),
       code: this.estimateTokens(sections.code || ''),
       conversation:
         this.estimateTokens(sections.taskContext || '') +
         this.estimateTokens(sections.observations || ''),
       total: 0,
     };
-    usage.total = usage.research + usage.memory + usage.code + usage.conversation;
+    usage.total =
+      usage.research + usage.memory + usage.constitution + usage.code + usage.conversation;
 
     // Determine which categories exceeded their budget
     const exceededCategories: string[] = [];
@@ -480,6 +539,11 @@ export class ContextBuilder extends EventEmitter {
     }
     if (usage.memory > limits.memory) {
       exceededCategories.push('memory');
+    }
+    // Constitution budget: small fixed cap (shared from memory budget allocation)
+    const constitutionLimit = Math.floor(limits.memory * 0.2);
+    if (usage.constitution > constitutionLimit) {
+      exceededCategories.push('constitution');
     }
     if (usage.code > limits.code) {
       exceededCategories.push('code');
@@ -506,12 +570,18 @@ export class ContextBuilder extends EventEmitter {
     sections: BuiltContext['sections'],
     budgetUsage: BudgetUsage
   ): void {
-    const truncateToTokens = (content: string | undefined, maxTokens: number): string | undefined => {
+    const truncateToTokens = (
+      content: string | undefined,
+      maxTokens: number
+    ): string | undefined => {
       if (!content) return content;
       const currentTokens = this.estimateTokens(content);
       if (currentTokens <= maxTokens) return content;
       const maxChars = maxTokens * 4;
-      return content.slice(0, maxChars) + `\n\n... [truncated: ${currentTokens - maxTokens} tokens over budget]`;
+      return (
+        content.slice(0, maxChars) +
+        `\n\n... [truncated: ${currentTokens - maxTokens} tokens over budget]`
+      );
     };
 
     for (const category of budgetUsage.exceededCategories) {
@@ -626,12 +696,14 @@ export class ContextBuilder extends EventEmitter {
           turnNumber: this.currentTurn,
           stage: this.currentStage,
           totalTokens: estimatedTokens,
-          loadingDecisions: [{
-            source: 'budget-enforcement',
-            decision: 'blocked',
-            reason: `Context build blocked: estimated ${estimatedTokens} tokens exceeds limit of ${this.config.contextTokenLimit}`,
-            tokens: estimatedTokens,
-          }],
+          loadingDecisions: [
+            {
+              source: 'budget-enforcement',
+              decision: 'blocked',
+              reason: `Context build blocked: estimated ${estimatedTokens} tokens exceeds limit of ${this.config.contextTokenLimit}`,
+              tokens: estimatedTokens,
+            },
+          ],
           error: `Budget enforcement (blocking mode): ${estimatedTokens} tokens exceeds ${this.config.contextTokenLimit} limit`,
         };
       }
@@ -668,7 +740,9 @@ export class ContextBuilder extends EventEmitter {
     // T063: Use layered memory if available and enabled
     if (this.useLayeredMemory && this.memoryLayerManager) {
       try {
-        const layeredContent = await this.memoryLayerManager.formatAsContextSection(task.description);
+        const layeredContent = await this.memoryLayerManager.formatAsContextSection(
+          task.description
+        );
         if (layeredContent) {
           sections.memories = layeredContent;
           loadingDecisions.push({
@@ -837,9 +911,13 @@ export class ContextBuilder extends EventEmitter {
     // 018: Inject parallel analysis recommendations if framework is wired
     if (this.parallelAnalysisFramework) {
       try {
-        const recommendation = this.parallelAnalysisFramework.generateRecommendations(task.affectedFiles || [], task.description || '');
+        const recommendation = this.parallelAnalysisFramework.generateRecommendations(
+          task.affectedFiles || [],
+          task.description || ''
+        );
         if (recommendation.partitions.length > 0) {
-          const analysisSection = this.parallelAnalysisFramework.formatAsContextSection(recommendation);
+          const analysisSection =
+            this.parallelAnalysisFramework.formatAsContextSection(recommendation);
           if (analysisSection) {
             sections.taskContext = (sections.taskContext || '') + '\n\n' + analysisSection;
           }
@@ -1258,7 +1336,9 @@ export class ContextBuilder extends EventEmitter {
   private mergeContextSections(sections: BuiltContext['sections']): string {
     // 018 T054: Apply fold state to sections before rendering
     if (this.contextFolder) {
-      const folded = this.contextFolder.applyToSections(sections as unknown as Record<string, string | undefined>);
+      const folded = this.contextFolder.applyToSections(
+        sections as unknown as Record<string, string | undefined>
+      );
       Object.assign(sections, folded);
     }
 
@@ -1390,7 +1470,8 @@ export class ContextBuilder extends EventEmitter {
 
     // Get all observations and selectively clear
     const stats = this.observationMasker.getStats();
-    const allObservations = this.observationMasker.getObservationsByFoldLevel('expanded')
+    const allObservations = this.observationMasker
+      .getObservationsByFoldLevel('expanded')
       .concat(this.observationMasker.getObservationsByFoldLevel('summary'))
       .concat(this.observationMasker.getObservationsByFoldLevel('collapsed'));
 
@@ -1399,7 +1480,9 @@ export class ContextBuilder extends EventEmitter {
     // Simpler approach: just reset and rebuild, but emit event with counts
     for (const obs of allObservations) {
       const age = currentTurn - obs.turnNumber;
-      const isError = obs.originalContent && /^\s*at\s+|^[A-Z]\w*Error:|exit\s+code\s+[1-9]/m.test(obs.originalContent);
+      const isError =
+        obs.originalContent &&
+        /^\s*at\s+|^[A-Z]\w*Error:|exit\s+code\s+[1-9]/m.test(obs.originalContent);
       const isRecent = age <= 3;
       const isCurrent = obs.turnNumber === currentTurn;
 

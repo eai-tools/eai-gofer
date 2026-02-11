@@ -48,9 +48,6 @@ to locate similar implementations that can serve as templates or references.
 
 ## Output Format
 
-**IMPORTANT**: Return results in <2000 tokens. Summarize if longer. Show the most
-relevant 2-3 patterns with brief code snippets, not exhaustive listings.
-
 ````
 ## Pattern Analysis: [What You're Looking For]
 

@@ -1,15 +1,15 @@
 /**
- * AutoHandoffTrigger - Automatic Session Handoff at Critical Thresholds
+ * AutoHandoffTrigger - Automatic Context Reduction at Critical Thresholds
  *
- * Monitors context health and triggers session handoff when context usage
- * exceeds critical thresholds. Integrates with VSCode notifications and
- * the Gofer save workflow.
+ * Monitors context health and automatically reduces AI slop when context
+ * usage exceeds 70% (critical threshold). Runs SlopReducer on the entire
+ * workspace and shows a summary notification.
  *
  * Key Features:
- * - Listens for critical health events
- * - Shows warning notification with actionable options
- * - Integrates with /7_gofer_save command
- * - Generates session-handoff.md content
+ * - Listens for critical health events from ContextHealthMonitor
+ * - Automatically runs SlopReducer.reduceWorkspace() at 70%
+ * - Shows summary of what was cleaned up
+ * - Falls back to save/reseed options if no slop found
  *
  * @see .specify/specs/011-context-health-recursive-memory/tasks.md T030-T033
  */
@@ -21,6 +21,7 @@ import type { ContextBuilder } from './ContextBuilder';
 import type { TaskContext } from './ContextBuilder';
 import { Logger } from '../utils/logger';
 import { CheckpointValidator } from './CheckpointValidator';
+import type { SlopReducer, WorkspaceReduceResult } from './SlopReducer';
 
 /**
  * Configuration for auto-handoff trigger.
@@ -88,6 +89,7 @@ export class AutoHandoffTrigger implements vscode.Disposable {
   private monitor: ContextHealthMonitor | null = null;
   private usageLogger: ContextUsageLogger | null = null;
   private contextBuilder: ContextBuilder | null = null;
+  private slopReducer: SlopReducer | null = null;
   private lastNotificationTime: number = 0;
   private currentSessionId: string = '';
   private currentStage: string = 'implement';
@@ -169,6 +171,13 @@ export class AutoHandoffTrigger implements vscode.Disposable {
   }
 
   /**
+   * Sets the SlopReducer for automatic workspace reduction at critical threshold.
+   */
+  setSlopReducer(reducer: SlopReducer): void {
+    this.slopReducer = reducer;
+  }
+
+  /**
    * Sets the current session context.
    *
    * @param sessionId - Session identifier
@@ -184,11 +193,10 @@ export class AutoHandoffTrigger implements vscode.Disposable {
 
   /**
    * Handles critical health status event.
-   *
-   * @param status - Critical health status
+   * Automatically runs slop reduction on the workspace, then shows a summary.
    */
   private async handleCriticalStatus(status: ContextHealthStatus): Promise<void> {
-    // Only notify for real session data — filesystem estimates are not context usage
+    // Only act on real session data — filesystem estimates are not context usage
     if (status.dataSource !== 'real') {
       return;
     }
@@ -198,7 +206,77 @@ export class AutoHandoffTrigger implements vscode.Disposable {
       tokensUsed: status.tokensUsed,
     });
 
-    await this.triggerHandoffNotification(status, 'critical');
+    // Auto-reduce slop if SlopReducer is available
+    if (this.slopReducer) {
+      await this.autoReduceSlop(status);
+    } else {
+      await this.triggerHandoffNotification(status, 'critical');
+    }
+  }
+
+  /**
+   * Automatically runs workspace slop reduction and shows a summary.
+   */
+  private async autoReduceSlop(status: ContextHealthStatus): Promise<void> {
+    if (!this.config.enabled) return;
+    if (this.isInCooldown()) return;
+    if (this.pendingNotification) return;
+
+    this.pendingNotification = true;
+    this.lastNotificationTime = Date.now();
+
+    try {
+      this.logger.info('Running automatic slop reduction at critical threshold');
+      const result = this.slopReducer!.reduceWorkspace();
+
+      // Log the event
+      if (this.usageLogger) {
+        await this.usageLogger.logHandoff(
+          this.currentSessionId || status.sessionId || 'unknown',
+          this.currentStage,
+          status.status,
+          status.tokensUsed,
+          status.tokensLimit,
+          status.utilizationPercent,
+          `auto-slop-reduction: ${result.totalFixes} fixes in ${result.filesFixed} files`
+        );
+      }
+
+      // Show summary notification
+      if (result.totalFixes > 0) {
+        const patternSummary = Object.entries(result.fixesByPattern)
+          .map(([pattern, count]) => `${pattern}: ${count}`)
+          .join(', ');
+
+        vscode.window
+          .showInformationMessage(
+            `Gofer: Context at ${Math.round(status.utilizationPercent)}% — auto-reduced ${result.totalFixes} slop issues in ${result.filesFixed} files (${patternSummary})`,
+            'View Log'
+          )
+          .then((choice) => {
+            if (choice === 'View Log') {
+              const logPath = require('path').join(
+                this.slopReducer!['workspacePath'],
+                '.specify',
+                'logs',
+                'slop-reduction.jsonl'
+              );
+              vscode.workspace.openTextDocument(logPath).then(
+                (doc: vscode.TextDocument) => vscode.window.showTextDocument(doc),
+                () => {
+                  /* log file may not exist yet */
+                }
+              );
+            }
+          });
+      } else {
+        vscode.window.showInformationMessage(
+          `Gofer: Context at ${Math.round(status.utilizationPercent)}% — no AI slop found to reduce. Code is clean.`
+        );
+      }
+    } finally {
+      this.pendingNotification = false;
+    }
   }
 
   /**
@@ -609,7 +687,9 @@ export class AutoHandoffTrigger implements vscode.Disposable {
         else tiers.masked++;
         totalObsTokens += obs.tokenEstimate;
       }
-      lines.push(`- **Observation Cache**: ${allObs.length} entries (Full: ${tiers.full}, Key-Points: ${tiers.keyPoints}, Masked: ${tiers.masked}), ~${totalObsTokens.toLocaleString()} tokens`);
+      lines.push(
+        `- **Observation Cache**: ${allObs.length} entries (Full: ${tiers.full}, Key-Points: ${tiers.keyPoints}, Masked: ${tiers.masked}), ~${totalObsTokens.toLocaleString()} tokens`
+      );
 
       const kg = this.contextBuilder.getKnowledgeGraph();
       if (kg) {

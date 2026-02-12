@@ -494,6 +494,127 @@ describe('AutoHandoffTrigger', () => {
   });
 
   // ─────────────────────────────────────────────────────────────────────────────
+  // Auto Slop Reduction Tests
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  describe('auto slop reduction', () => {
+    const createMockSlopReducer = (totalFixes: number = 3, filesFixed: number = 2) => ({
+      reduceWorkspace: vi.fn().mockReturnValue({
+        filesScanned: 50,
+        filesFixed,
+        totalFixes,
+        fixesByPattern: totalFixes > 0 ? { 'console-log': 2, debugger: 1 } : {},
+        fixes: [],
+      }),
+      workspacePath: '/mock/workspace',
+    });
+
+    it('should auto-reduce slop on critical event when SlopReducer is set', async () => {
+      const mockReducer = createMockSlopReducer();
+      trigger.setSlopReducer(mockReducer as never);
+      trigger.connect(monitor);
+
+      monitor.emit('critical', createCriticalStatus());
+      await vi.runAllTimersAsync();
+
+      expect(mockReducer.reduceWorkspace).toHaveBeenCalled();
+      expect(vscode.window.showInformationMessage).toHaveBeenCalledWith(
+        expect.stringContaining('auto-reduced 3 slop issues'),
+        'View Log'
+      );
+    });
+
+    it('should show clean message when no slop found', async () => {
+      const mockReducer = createMockSlopReducer(0, 0);
+      trigger.setSlopReducer(mockReducer as never);
+      trigger.connect(monitor);
+
+      monitor.emit('critical', createCriticalStatus());
+      await vi.runAllTimersAsync();
+
+      expect(mockReducer.reduceWorkspace).toHaveBeenCalled();
+      expect(vscode.window.showInformationMessage).toHaveBeenCalledWith(
+        expect.stringContaining('no AI slop found')
+      );
+    });
+
+    it('should include utilization % in notification', async () => {
+      const mockReducer = createMockSlopReducer();
+      trigger.setSlopReducer(mockReducer as never);
+      trigger.connect(monitor);
+
+      monitor.emit('critical', createCriticalStatus());
+      await vi.runAllTimersAsync();
+
+      expect(vscode.window.showInformationMessage).toHaveBeenCalledWith(
+        expect.stringContaining('85%'),
+        expect.anything()
+      );
+    });
+
+    it('should respect cooldown for auto-reduction', async () => {
+      const mockReducer = createMockSlopReducer();
+      trigger.setSlopReducer(mockReducer as never);
+      trigger.connect(monitor);
+
+      // First critical event
+      monitor.emit('critical', createCriticalStatus());
+      await vi.runAllTimersAsync();
+
+      expect(mockReducer.reduceWorkspace).toHaveBeenCalledTimes(1);
+
+      // Second critical event immediately — should be in cooldown
+      monitor.emit('critical', createCriticalStatus());
+      await vi.runAllTimersAsync();
+
+      expect(mockReducer.reduceWorkspace).toHaveBeenCalledTimes(1);
+    });
+
+    it('should fall back to notification without SlopReducer', async () => {
+      // No SlopReducer set — should show old-style warning
+      trigger.connect(monitor);
+
+      monitor.emit('critical', createCriticalStatus());
+      await vi.runAllTimersAsync();
+
+      expect(vscode.window.showWarningMessage).toHaveBeenCalled();
+    });
+
+    it('should not auto-reduce for estimated data source', async () => {
+      const mockReducer = createMockSlopReducer();
+      trigger.setSlopReducer(mockReducer as never);
+      trigger.connect(monitor);
+
+      const estimatedStatus = { ...createCriticalStatus(), dataSource: 'estimated' as const };
+      monitor.emit('critical', estimatedStatus);
+      await vi.runAllTimersAsync();
+
+      expect(mockReducer.reduceWorkspace).not.toHaveBeenCalled();
+    });
+
+    it('should log auto-reduction to usage logger', async () => {
+      const mockReducer = createMockSlopReducer();
+      trigger.setSlopReducer(mockReducer as never);
+      const mockLogger = { logHandoff: vi.fn().mockResolvedValue(undefined) };
+      trigger.setUsageLogger(mockLogger as unknown as ContextUsageLogger);
+      trigger.connect(monitor);
+
+      monitor.emit('critical', createCriticalStatus());
+      await vi.runAllTimersAsync();
+
+      expect(mockLogger.logHandoff).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(String),
+        'critical',
+        102000,
+        120000,
+        85,
+        expect.stringContaining('auto-slop-reduction')
+      );
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────────
   // Manual Check Tests
   // ─────────────────────────────────────────────────────────────────────────────
 

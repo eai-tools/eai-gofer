@@ -2,6 +2,12 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.7.5] - 2026-02-13
+
+chore: pre-release changes
+
+Auto-committed changes before release v1.7.4
+
 ## [1.7.4] - 2026-02-13
 
 chore: pre-release changes

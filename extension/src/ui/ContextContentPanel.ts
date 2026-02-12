@@ -470,17 +470,20 @@ function extractText(content: string | Array<{ type: string; text?: string }> | 
 export function classifyTranscript(entries: TranscriptEntry[]): {
   userPrompts: Array<{ text: string; timestamp?: string }>;
   assistantResponses: Array<{ text: string; timestamp?: string }>;
-  toolCalls: Array<{ name: string; input: string; timestamp?: string }>;
+  toolCalls: Array<{ name: string; input: string; result?: string; timestamp?: string }>;
   systemCommands: Array<{ text: string; timestamp?: string }>;
   totalBytes: { user: number; assistant: number; tools: number; system: number };
 } {
   const result = {
     userPrompts: [] as Array<{ text: string; timestamp?: string }>,
     assistantResponses: [] as Array<{ text: string; timestamp?: string }>,
-    toolCalls: [] as Array<{ name: string; input: string; timestamp?: string }>,
+    toolCalls: [] as Array<{ name: string; input: string; result?: string; timestamp?: string }>,
     systemCommands: [] as Array<{ text: string; timestamp?: string }>,
     totalBytes: { user: 0, assistant: 0, tools: 0, system: 0 },
   };
+
+  // Track pending tool calls by ID so we can attach results
+  const pendingTools = new Map<string, number>(); // tool_use_id -> index in toolCalls
 
   for (const entry of entries) {
     const ts = entry.timestamp;
@@ -500,10 +503,20 @@ export function classifyTranscript(entries: TranscriptEntry[]): {
 
       // Also check for tool_result blocks in user messages
       if (Array.isArray(content)) {
-        for (const block of content as Array<{ type: string; content?: unknown }>) {
+        for (const block of content as Array<{
+          type: string;
+          content?: unknown;
+          tool_use_id?: string;
+        }>) {
           if (block.type === 'tool_result') {
             const toolResultStr = JSON.stringify(block.content || '').slice(0, 500);
             result.totalBytes.tools += toolResultStr.length;
+            // Attach result to the matching tool call
+            if (block.tool_use_id && pendingTools.has(block.tool_use_id)) {
+              const idx = pendingTools.get(block.tool_use_id)!;
+              result.toolCalls[idx].result = toolResultStr;
+              pendingTools.delete(block.tool_use_id);
+            }
           }
         }
       }
@@ -521,12 +534,16 @@ export function classifyTranscript(entries: TranscriptEntry[]): {
             result.totalBytes.assistant += block.text.length;
           } else if (block.type === 'tool_use') {
             const inputStr = JSON.stringify(block.input || {});
+            const idx = result.toolCalls.length;
             result.toolCalls.push({
               name: block.name || 'unknown',
               input: inputStr.slice(0, 300),
               timestamp: ts,
             });
             result.totalBytes.tools += inputStr.length;
+            if ((block as Record<string, unknown>).id) {
+              pendingTools.set((block as Record<string, unknown>).id as string, idx);
+            }
           }
         }
       } else {
@@ -746,7 +763,7 @@ function renderAssistantResponses(responses: Array<{ text: string; timestamp?: s
 }
 
 function renderToolCalls(
-  calls: Array<{ name: string; input: string; timestamp?: string }>
+  calls: Array<{ name: string; input: string; result?: string; timestamp?: string }>
 ): string {
   if (calls.length === 0) {
     return '<div class="empty-state"><p>No tool calls in this session.</p></div>';
@@ -778,8 +795,14 @@ function renderToolCalls(
   // Show last 20 calls (most recent)
   const recentCalls = calls.slice(-20).reverse();
   const callCards = recentCalls
-    .map((c, i) => {
+    .map((c) => {
       const age = c.timestamp ? formatAge(new Date(c.timestamp)) : '';
+      const resultHtml = c.result
+        ? `<div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--vscode-panel-border)">
+            <span class="muted" style="font-size:11px">Result:</span>
+            <pre class="file-preview" style="margin-top:4px">${escapeHtml(c.result.slice(0, 300))}${c.result.length > 300 ? '\n...' : ''}</pre>
+           </div>`
+        : '';
       return `
       <div class="card">
         <div class="card-title">
@@ -788,6 +811,7 @@ function renderToolCalls(
         </div>
         <div class="card-body">
           <pre class="file-preview">${escapeHtml(c.input)}</pre>
+          ${resultHtml}
         </div>
       </div>
     `;

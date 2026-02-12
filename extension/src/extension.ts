@@ -2219,7 +2219,8 @@ created: "${new Date().toISOString().split('T')[0]}"
   // Wire ContextBuilder to AutoHandoffTrigger for context reseed functionality
   if (autoHandoffTrigger) {
     autoHandoffTrigger.setContextBuilder(sharedContextBuilder);
-    console.log('[Gofer] ContextBuilder wired to AutoHandoffTrigger for reseed');
+    autoHandoffTrigger.setSlopReducer(slopReducer);
+    console.log('[Gofer] ContextBuilder + SlopReducer wired to AutoHandoffTrigger');
   }
 
   // Initialize MemoryHookManager for automatic memory operations (Spec 010 T025)

@@ -48,6 +48,7 @@ vi.mock('fs', () => ({
   writeFileSync: vi.fn(),
   mkdirSync: vi.fn(),
   appendFileSync: vi.fn(),
+  readdirSync: vi.fn(),
 }));
 
 describe('SlopReducer', () => {
@@ -427,6 +428,160 @@ describe('SlopReducer', () => {
       expect(entry).toHaveProperty('originalSnippet');
       expect(entry).toHaveProperty('replacement');
       expect(entry).toHaveProperty('reason');
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // reduceWorkspace — workspace-wide scan and fix
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  describe('reduceWorkspace', () => {
+    const makeDirent = (name: string, isDir: boolean): fs.Dirent =>
+      ({
+        name,
+        isDirectory: () => isDir,
+        isFile: () => !isDir,
+      }) as fs.Dirent;
+
+    it('should scan and fix eligible files in workspace', () => {
+      // Root directory has src/ subdirectory
+      vi.mocked(fs.readdirSync).mockImplementation((dir: fs.PathLike) => {
+        const dirStr = dir.toString();
+        if (dirStr === workspacePath) {
+          return [makeDirent('src', true)] as unknown as fs.Dirent[];
+        }
+        if (dirStr === path.join(workspacePath, 'src')) {
+          return [makeDirent('file.ts', false)] as unknown as fs.Dirent[];
+        }
+        return [] as unknown as fs.Dirent[];
+      });
+
+      vi.mocked(fs.readFileSync).mockReturnValue('  debugger;\nconst x = 1;\n');
+
+      const result = reducer.reduceWorkspace();
+
+      expect(result.filesScanned).toBe(1);
+      expect(result.filesFixed).toBe(1);
+      expect(result.totalFixes).toBe(1);
+      expect(result.fixesByPattern['debugger']).toBe(1);
+    });
+
+    it('should skip node_modules and hidden directories', () => {
+      vi.mocked(fs.readdirSync).mockImplementation((dir: fs.PathLike) => {
+        const dirStr = dir.toString();
+        if (dirStr === workspacePath) {
+          return [
+            makeDirent('node_modules', true),
+            makeDirent('.git', true),
+            makeDirent('dist', true),
+            makeDirent('src', true),
+          ] as unknown as fs.Dirent[];
+        }
+        if (dirStr === path.join(workspacePath, 'src')) {
+          return [makeDirent('clean.ts', false)] as unknown as fs.Dirent[];
+        }
+        return [] as unknown as fs.Dirent[];
+      });
+
+      vi.mocked(fs.readFileSync).mockReturnValue('const x = 1;\n');
+
+      const result = reducer.reduceWorkspace();
+
+      // Only src/clean.ts should be scanned
+      expect(result.filesScanned).toBe(1);
+      expect(result.totalFixes).toBe(0);
+    });
+
+    it('should skip test files', () => {
+      vi.mocked(fs.readdirSync).mockImplementation((dir: fs.PathLike) => {
+        const dirStr = dir.toString();
+        if (dirStr === workspacePath) {
+          return [makeDirent('tests', true), makeDirent('src', true)] as unknown as fs.Dirent[];
+        }
+        if (dirStr === path.join(workspacePath, 'tests')) {
+          return [makeDirent('foo.test.ts', false)] as unknown as fs.Dirent[];
+        }
+        if (dirStr === path.join(workspacePath, 'src')) {
+          return [makeDirent('app.ts', false)] as unknown as fs.Dirent[];
+        }
+        return [] as unknown as fs.Dirent[];
+      });
+
+      vi.mocked(fs.readFileSync).mockReturnValue('  debugger;\n');
+
+      const result = reducer.reduceWorkspace();
+
+      // tests/foo.test.ts is in tests/ dir → excluded. src/app.ts is scanned.
+      expect(result.filesScanned).toBe(1);
+      expect(result.filesFixed).toBe(1);
+    });
+
+    it('should return zero fixes when workspace is clean', () => {
+      vi.mocked(fs.readdirSync).mockImplementation((dir: fs.PathLike) => {
+        const dirStr = dir.toString();
+        if (dirStr === workspacePath) {
+          return [makeDirent('src', true)] as unknown as fs.Dirent[];
+        }
+        if (dirStr === path.join(workspacePath, 'src')) {
+          return [makeDirent('clean.ts', false)] as unknown as fs.Dirent[];
+        }
+        return [] as unknown as fs.Dirent[];
+      });
+
+      vi.mocked(fs.readFileSync).mockReturnValue('const x = 1;\n');
+
+      const result = reducer.reduceWorkspace();
+
+      expect(result.filesScanned).toBe(1);
+      expect(result.filesFixed).toBe(0);
+      expect(result.totalFixes).toBe(0);
+      expect(Object.keys(result.fixesByPattern)).toHaveLength(0);
+    });
+
+    it('should aggregate fixes by pattern', () => {
+      vi.mocked(fs.readdirSync).mockImplementation((dir: fs.PathLike) => {
+        const dirStr = dir.toString();
+        if (dirStr === workspacePath) {
+          return [makeDirent('src', true)] as unknown as fs.Dirent[];
+        }
+        if (dirStr === path.join(workspacePath, 'src')) {
+          return [makeDirent('a.ts', false), makeDirent('b.ts', false)] as unknown as fs.Dirent[];
+        }
+        return [] as unknown as fs.Dirent[];
+      });
+
+      vi.mocked(fs.readFileSync).mockReturnValue('  debugger;\n// @ts-ignore\nconst x = 1;\n');
+
+      const result = reducer.reduceWorkspace();
+
+      expect(result.filesScanned).toBe(2);
+      expect(result.filesFixed).toBe(2);
+      expect(result.totalFixes).toBe(4); // 2 fixes × 2 files
+      expect(result.fixesByPattern['debugger']).toBe(2);
+      expect(result.fixesByPattern['ts-ignore']).toBe(2);
+    });
+
+    it('should respect maxFiles limit', () => {
+      vi.mocked(fs.readdirSync).mockImplementation((dir: fs.PathLike) => {
+        const dirStr = dir.toString();
+        if (dirStr === workspacePath) {
+          return [makeDirent('src', true)] as unknown as fs.Dirent[];
+        }
+        if (dirStr === path.join(workspacePath, 'src')) {
+          return [
+            makeDirent('a.ts', false),
+            makeDirent('b.ts', false),
+            makeDirent('c.ts', false),
+          ] as unknown as fs.Dirent[];
+        }
+        return [] as unknown as fs.Dirent[];
+      });
+
+      vi.mocked(fs.readFileSync).mockReturnValue('const x = 1;\n');
+
+      const result = reducer.reduceWorkspace(2);
+
+      expect(result.filesScanned).toBe(2);
     });
   });
 });

@@ -1,8 +1,8 @@
 {
-  "timestamp": 1770939104567,
-  "status": "critical",
-  "utilizationPercent": 79.95,
-  "tokensUsed": 159895,
+  "timestamp": 1770939822648,
+  "status": "warning",
+  "utilizationPercent": 59.82,
+  "tokensUsed": 119641,
   "tokensLimit": 200000,
   "breakdown": {
     "specArtifacts": 0,
@@ -10,12 +10,12 @@
     "hints": 0,
     "observations": 0,
     "systemFiles": 0,
-    "conversation": 159895
+    "conversation": 119641
   },
   "recommendations": [
-    "Context at 80%. Immediate action recommended.",
-    "Run /7_gofer_save to preserve progress before handoff.",
-    "Long conversation history. Consider starting a new session with /8_gofer_resume."
+    "Context at 60%. Consider reducing context soon.",
+    "Long conversation history. Consider starting a new session with /8_gofer_resume.",
+    "During validation, focus on test outputs and error messages."
   ],
   "sessionId": "d5677db6-e08e-491d-8b1d-4ff8f868cb8f",
   "dataSource": "real",

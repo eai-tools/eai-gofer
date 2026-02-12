@@ -407,7 +407,24 @@
       "tokenEstimate": 2565,
       "masked": false,
       "decayTier": "full"
+    },
+    {
+      "timestamp": 1770939053694,
+      "turnNumber": 10,
+      "type": "command_output",
+      "originalContent": "{\"stdout\":\"\",\"stderr\":\"\",\"interrupted\":false,\"isImage\":false,\"backgroundTaskId\":\"bf90068\"}",
+      "metadata": {
+        "toolName": "Bash",
+        "timestamp": 1770939053551,
+        "command": "./release-auto.sh patch \"Fix tool results not showing in conversation history\""
+      },
+      "summary": "Bash tool output",
+      "id": "60392da7-4c2e-4538-843a-156cd302a55c",
+      "contentHash": "d1eb38f806e37386c319f3c786a92b53b23774778a7f627ed874812d3b8fbf8f",
+      "tokenEstimate": 23,
+      "masked": false,
+      "decayTier": "full"
     }
   ],
-  "lastSaved": 1770939053471
+  "lastSaved": 1770939058701
 }

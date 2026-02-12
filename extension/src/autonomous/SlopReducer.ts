@@ -41,6 +41,15 @@ export interface FixResult {
   fixes: FixLogEntry[];
 }
 
+/** Result from reduceWorkspace() */
+export interface WorkspaceReduceResult {
+  filesScanned: number;
+  filesFixed: number;
+  totalFixes: number;
+  fixesByPattern: Record<string, number>;
+  fixes: FixLogEntry[];
+}
+
 /** Declarative registry of fixable patterns */
 const FIX_PATTERNS: FixPattern[] = [
   {
@@ -168,6 +177,67 @@ export class SlopReducer {
     } finally {
       this.reducing.delete(filePath);
     }
+  }
+
+  /**
+   * Scan and fix all eligible source files in the workspace.
+   * Skips node_modules, dist, hidden directories, and test files.
+   */
+  reduceWorkspace(maxFiles: number = 500): WorkspaceReduceResult {
+    const result: WorkspaceReduceResult = {
+      filesScanned: 0,
+      filesFixed: 0,
+      totalFixes: 0,
+      fixesByPattern: {},
+      fixes: [],
+    };
+
+    const walk = (dir: string): void => {
+      if (result.filesScanned >= maxFiles) return;
+
+      let entries: fs.Dirent[];
+      try {
+        entries = fs.readdirSync(dir, { withFileTypes: true });
+      } catch {
+        return;
+      }
+
+      for (const entry of entries) {
+        if (result.filesScanned >= maxFiles) return;
+        const fullPath = path.join(dir, entry.name);
+
+        if (entry.isDirectory()) {
+          if (
+            entry.name.startsWith('.') ||
+            entry.name === 'node_modules' ||
+            entry.name === 'dist'
+          ) {
+            continue;
+          }
+          walk(fullPath);
+        } else if (entry.isFile()) {
+          if (!this.isEligibleFile(fullPath)) continue;
+          if (this.isTestFile(fullPath)) continue;
+          result.filesScanned++;
+
+          const fileResult = this.reduceFile(fullPath);
+          if (fileResult.fixCount > 0) {
+            result.filesFixed++;
+            result.totalFixes += fileResult.fixCount;
+            result.fixes.push(...fileResult.fixes);
+            for (const fix of fileResult.fixes) {
+              result.fixesByPattern[fix.pattern] = (result.fixesByPattern[fix.pattern] || 0) + 1;
+            }
+          }
+        }
+      }
+    };
+
+    walk(this.workspacePath);
+    this.logger.info(
+      `Workspace reduction complete: ${result.totalFixes} fixes in ${result.filesFixed}/${result.filesScanned} files`
+    );
+    return result;
   }
 
   /** Append a fix entry to the JSONL audit log */

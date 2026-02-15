@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.11.0] - 2026-02-16
+
+Remove approval gates - fully autonomous execution after planning
+
 ## [1.10.0] - 2026-02-16
 
 Auto-save and auto-resume at 69% context threshold

@@ -42,6 +42,8 @@ export interface AutoHandoffConfig {
   autoExecuteSave: boolean;
   /** Threshold for auto-save trigger (default: 0.69 = 69%) */
   autoSaveThreshold: number;
+  /** Auto-resume in new session after save completes (default: false) */
+  autoResumeAfterSave: boolean;
 }
 
 /**
@@ -54,6 +56,7 @@ const DEFAULT_CONFIG: AutoHandoffConfig = {
   notifyAtWarning: false,
   autoExecuteSave: false,
   autoSaveThreshold: 0.69,
+  autoResumeAfterSave: false,
 };
 
 /**
@@ -258,8 +261,9 @@ export class AutoHandoffTrigger implements vscode.Disposable {
    *
    * Flow:
    * 1. Send /7_gofer_save command to Claude Code terminal
-   * 2. Log the auto-save event
-   * 3. Show confirmation notification
+   * 2. If autoResumeAfterSave is enabled, also send /8_gofer_resume
+   * 3. Log the auto-save event
+   * 4. Show confirmation notification
    */
   private async executeAutoSave(status: ContextHealthStatus): Promise<void> {
     if (!this.config.enabled) return;
@@ -275,6 +279,13 @@ export class AutoHandoffTrigger implements vscode.Disposable {
       // Send /7_gofer_save to Claude Code terminal
       const saved = this.sendSaveToTerminal();
 
+      // If auto-resume is enabled, also send /8_gofer_resume
+      // Claude Code will execute them sequentially
+      if (saved && this.config.autoResumeAfterSave) {
+        this.logger.info('Auto-resume enabled, sending /8_gofer_resume after /7_gofer_save');
+        this.sendResumeToTerminal();
+      }
+
       // Log the event
       if (this.usageLogger) {
         await this.usageLogger.logHandoff(
@@ -284,16 +295,17 @@ export class AutoHandoffTrigger implements vscode.Disposable {
           status.tokensUsed,
           status.tokensLimit,
           status.utilizationPercent,
-          `auto-save: executed at ${status.utilizationPercent.toFixed(1)}%`
+          `auto-save: executed at ${status.utilizationPercent.toFixed(1)}%${this.config.autoResumeAfterSave ? ' + auto-resume' : ''}`
         );
       }
 
       // Show notification
       const percent = Math.round(status.utilizationPercent);
       if (saved) {
-        vscode.window.showInformationMessage(
-          `Gofer: Context at ${percent}% — session automatically saved via /7_gofer_save. Continue working or start fresh session with /8_gofer_resume.`
-        );
+        const message = this.config.autoResumeAfterSave
+          ? `Gofer: Context at ${percent}% — session saved and resumed automatically. Fresh context window loaded.`
+          : `Gofer: Context at ${percent}% — session automatically saved via /7_gofer_save. Continue working or start fresh session with /8_gofer_resume.`;
+        vscode.window.showInformationMessage(message);
       } else {
         vscode.window.showWarningMessage(
           `Gofer: Context at ${percent}% — attempted auto-save but no active Claude Code terminal found. Please save manually with /7_gofer_save.`
@@ -321,6 +333,29 @@ export class AutoHandoffTrigger implements vscode.Disposable {
       return true;
     } catch (error) {
       this.logger.error('Failed to send /7_gofer_save to terminal', error as Error);
+      return false;
+    }
+  }
+
+  /**
+   * Sends /8_gofer_resume command to the Claude Code terminal.
+   * This is called after /7_gofer_save to automatically resume with fresh context.
+   *
+   * @returns true if command was sent successfully, false if no terminal available
+   */
+  private sendResumeToTerminal(): boolean {
+    if (!this.claudePtyProcess) {
+      this.logger.warn('No Claude Code pty process available for auto-resume');
+      return false;
+    }
+
+    try {
+      // Send resume command - Claude Code will execute it after save completes
+      this.claudePtyProcess.write('/8_gofer_resume\r');
+      this.logger.info('Sent /8_gofer_resume command to Claude Code terminal');
+      return true;
+    } catch (error) {
+      this.logger.error('Failed to send /8_gofer_resume to terminal', error as Error);
       return false;
     }
   }

@@ -551,15 +551,17 @@ async function runPostCompletionChecks(report: CompletionReport, wsPath: string)
     console.warn('[Gofer] Post-completion build failed:', errorMsg.slice(0, 200));
     // Record build error as memory
     if (sharedMemoryManager) {
-      await sharedMemoryManager.save({
-        category: 'auto_decision',
-        content: `Build failed after completing spec ${report.specId}: ${errorMsg.slice(0, 500)}`,
-        tags: ['#auto', '#build-failure', `#spec-${report.specId}`],
-        scope: 'local',
-        lastUsed: Date.now(),
-        usedCount: 0,
-        learnedFrom: report.specId,
-      }).catch(() => {});
+      await sharedMemoryManager
+        .save({
+          category: 'auto_decision',
+          content: `Build failed after completing spec ${report.specId}: ${errorMsg.slice(0, 500)}`,
+          tags: ['#auto', '#build-failure', `#spec-${report.specId}`],
+          scope: 'local',
+          lastUsed: Date.now(),
+          usedCount: 0,
+          learnedFrom: report.specId,
+        })
+        .catch(() => {});
     }
     return; // Don't run tests if build fails
   }
@@ -575,15 +577,17 @@ async function runPostCompletionChecks(report: CompletionReport, wsPath: string)
     const errorMsg = testError instanceof Error ? testError.message : String(testError);
     console.warn('[Gofer] Post-completion tests failed:', errorMsg.slice(0, 200));
     if (sharedMemoryManager) {
-      await sharedMemoryManager.save({
-        category: 'auto_decision',
-        content: `Tests failed after completing spec ${report.specId}: ${errorMsg.slice(0, 500)}`,
-        tags: ['#auto', '#test-failure', `#spec-${report.specId}`],
-        scope: 'local',
-        lastUsed: Date.now(),
-        usedCount: 0,
-        learnedFrom: report.specId,
-      }).catch(() => {});
+      await sharedMemoryManager
+        .save({
+          category: 'auto_decision',
+          content: `Tests failed after completing spec ${report.specId}: ${errorMsg.slice(0, 500)}`,
+          tags: ['#auto', '#test-failure', `#spec-${report.specId}`],
+          scope: 'local',
+          lastUsed: Date.now(),
+          usedCount: 0,
+          learnedFrom: report.specId,
+        })
+        .catch(() => {});
     }
   }
 }
@@ -777,18 +781,32 @@ function determineInitialCommand(specId: string, workspacePath: string): string 
   if (hasTasks) {
     // T036: Validate tasks.md frontmatter status before implementation
     try {
-      const tasksDirs = fsSync.readdirSync(path.join(workspacePath, '.specify', 'specs'), { withFileTypes: true })
+      const tasksDirs = fsSync
+        .readdirSync(path.join(workspacePath, '.specify', 'specs'), { withFileTypes: true })
         .filter((d) => d.isDirectory())
         .sort((a, b) => {
-          const aTime = fsSync.statSync(path.join(workspacePath, '.specify', 'specs', a.name)).mtimeMs;
-          const bTime = fsSync.statSync(path.join(workspacePath, '.specify', 'specs', b.name)).mtimeMs;
+          const aTime = fsSync.statSync(
+            path.join(workspacePath, '.specify', 'specs', a.name)
+          ).mtimeMs;
+          const bTime = fsSync.statSync(
+            path.join(workspacePath, '.specify', 'specs', b.name)
+          ).mtimeMs;
           return bTime - aTime;
         });
       if (tasksDirs.length > 0) {
-        const tasksPath = path.join(workspacePath, '.specify', 'specs', tasksDirs[0].name, 'tasks.md');
+        const tasksPath = path.join(
+          workspacePath,
+          '.specify',
+          'specs',
+          tasksDirs[0].name,
+          'tasks.md'
+        );
         if (fsSync.existsSync(tasksPath)) {
           const tasksContent = fsSync.readFileSync(tasksPath, 'utf-8');
-          if (!tasksContent.includes('status: approved') && !tasksContent.includes('status: ready')) {
+          if (
+            !tasksContent.includes('status: approved') &&
+            !tasksContent.includes('status: ready')
+          ) {
             return '/4_gofer_tasks'; // Not yet approved, route to tasks stage
           }
         }
@@ -864,9 +882,15 @@ export async function launchClaudeCode(specId: string): Promise<void> {
       const { execFile: execFileSync } = require('child_process');
       const { promisify: prom } = require('util');
       const execFileP = prom(execFileSync);
-      const { stdout: statusOut } = await execFileP('git', ['status', '--porcelain'], { cwd: workspacePath, timeout: 10000 });
+      const { stdout: statusOut } = await execFileP('git', ['status', '--porcelain'], {
+        cwd: workspacePath,
+        timeout: 10000,
+      });
       if (statusOut && statusOut.trim().length > 0) {
-        await execFileP('git', ['stash', 'push', '-m', `gofer-safety-${specId}-${Date.now()}`], { cwd: workspacePath, timeout: 10000 });
+        await execFileP('git', ['stash', 'push', '-m', `gofer-safety-${specId}-${Date.now()}`], {
+          cwd: workspacePath,
+          timeout: 10000,
+        });
         outputChannel.appendLine('   ✓ Git stash safety checkpoint created');
       }
     } catch {
@@ -938,7 +962,11 @@ export async function launchClaudeCode(specId: string): Promise<void> {
       cols: 120,
       rows: 30,
       cwd: workspacePath,
-      env: process.env as any,
+      env: {
+        ...process.env,
+        // Trigger Claude Code auto-compaction at 70% instead of default ~95%
+        CLAUDE_AUTOCOMPACT_PCT_OVERRIDE: '70',
+      } as any,
     });
 
     // Capture output and feed to autonomous responder
@@ -1102,14 +1130,18 @@ export async function launchClaudeCode(specId: string): Promise<void> {
             // Inject memories as context before the command
             // Format: "Context from previous sessions:\n<memories>\n...\n</memories>\n\nNow execute: /5_gofer_implement"
             fullCommand = `Context from previous sessions:\n${memoryInjection}\n\nNow execute: ${initialCommand}`;
-            outputChannel?.appendLine(`   → Memory context injected (${memoryInjection.length} chars)`);
+            outputChannel?.appendLine(
+              `   → Memory context injected (${memoryInjection.length} chars)`
+            );
           }
         }
 
         // METHOD 5 (WORKING): Write command first, then send \r separately with 500ms delay
         // This is the only method that works reliably with Claude Code
         ptyRef.write(fullCommand);
-        outputChannel?.appendLine(`  → Typed command: ${fullCommand.substring(0, 100)}${fullCommand.length > 100 ? '...' : ''}`);
+        outputChannel?.appendLine(
+          `  → Typed command: ${fullCommand.substring(0, 100)}${fullCommand.length > 100 ? '...' : ''}`
+        );
 
         setTimeout(() => {
           ptyRef.write('\r');
@@ -1486,4 +1518,12 @@ export async function stopClaudeCode(): Promise<void> {
  */
 export function getActiveDriver(): AutonomousDriver | null {
   return activeDriver;
+}
+
+/**
+ * Get the active Claude Code pty process for sending commands.
+ * Used by AutoHandoffTrigger to send /compact or /clear to the terminal.
+ */
+export function getClaudePtyProcess(): pty.IPty | null {
+  return ptyProcess;
 }

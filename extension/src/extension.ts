@@ -38,6 +38,8 @@ import { SubAgentDispatcher } from './autonomous/SubAgentDispatcher';
 // Hook-based monitoring
 import { HookBridgeWatcher, BridgeData } from './autonomous/HookBridgeWatcher';
 import { MultiSessionBridgeWatcher } from './autonomous/MultiSessionBridgeWatcher';
+// Context Window Accuracy (Feature 023)
+import { ClaudeCodeContextScanner } from './autonomous/ClaudeCodeContextScanner';
 import { GoferActivityStatusBar } from './ui/GoferActivityStatusBar';
 // Note: stopClaudeCode is imported dynamically in deactivate() to avoid
 // blocking extension activation if node-pty fails to load
@@ -74,6 +76,8 @@ let memoryHookManager: MemoryHookManager | undefined;
 let hookBridgeWatcher: HookBridgeWatcher | undefined;
 let multiSessionWatcher: MultiSessionBridgeWatcher | undefined;
 let goferActivityStatusBar: GoferActivityStatusBar | undefined;
+// Context Window Accuracy (Feature 023)
+let contextScanner: ClaudeCodeContextScanner | undefined;
 // 018: Module-level references for deactivate cleanup
 let cacheSaveTimerRef: ReturnType<typeof setTimeout> | null = null;
 let sharedContextBuilderRef: ContextBuilder | undefined;
@@ -406,10 +410,20 @@ function initializeContextHealthMonitoring(workspacePath: string): void {
       contextWindowProvider.setWatcher(multiSessionWatcher);
     }
 
+    // Feature 023: Wire ClaudeCodeContextScanner for real token counts
+    contextScanner = new ClaudeCodeContextScanner(workspacePath);
+    if (contextWindowProvider) {
+      contextWindowProvider.setScanner(contextScanner);
+    }
+
     // T046: Wire session-update event to update status bar session count
     multiSessionWatcher.on('session-update', () => {
       if (contextHealthStatusBar && multiSessionWatcher) {
         contextHealthStatusBar.setSessionCount(multiSessionWatcher.getSessionCount());
+      }
+      // Feature 023: Invalidate scanner cache on bridge updates
+      if (contextScanner) {
+        contextScanner.invalidate();
       }
     });
 
@@ -935,6 +949,11 @@ function registerGlobalCommands(context: vscode.ExtensionContext) {
 
         const { ContextContentPanel } = await import('./ui/ContextContentPanel');
         const panel = ContextContentPanel.createOrShow(context.extensionUri, workspacePath);
+
+        // Feature 023: Pass scanner to panel for real file-based category views
+        if (contextScanner) {
+          panel.setScanner(contextScanner);
+        }
 
         const bridgeData = multiSessionWatcher?.getSessions().get(sessionId);
         await panel.showCategory(sessionId, categoryName, bridgeData);
@@ -2220,7 +2239,6 @@ created: "${new Date().toISOString().split('T')[0]}"
   if (autoHandoffTrigger) {
     autoHandoffTrigger.setContextBuilder(sharedContextBuilder);
     autoHandoffTrigger.setSlopReducer(slopReducer);
-    console.log('[Gofer] ContextBuilder + SlopReducer wired to AutoHandoffTrigger');
   }
 
   // Initialize MemoryHookManager for automatic memory operations (Spec 010 T025)

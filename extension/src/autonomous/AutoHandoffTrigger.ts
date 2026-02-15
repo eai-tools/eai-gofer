@@ -15,6 +15,8 @@
  */
 
 import * as vscode from 'vscode';
+import * as fs from 'fs';
+import * as path from 'path';
 import { ContextHealthMonitor, type ContextHealthStatus } from './ContextHealthMonitor';
 import { ContextUsageLogger } from './ContextUsageLogger';
 import type { ContextBuilder } from './ContextBuilder';
@@ -97,6 +99,7 @@ export class AutoHandoffTrigger implements vscode.Disposable {
   private currentStage: string = 'implement';
   private currentTask: string = '';
   private pendingNotification: boolean = false;
+  private workspaceRoot: string = '';
 
   /**
    * Creates a new AutoHandoffTrigger instance.
@@ -106,8 +109,9 @@ export class AutoHandoffTrigger implements vscode.Disposable {
   // T006: CheckpointValidator for handoff document validation
   private readonly checkpointValidator = new CheckpointValidator();
 
-  constructor(config?: Partial<AutoHandoffConfig>) {
+  constructor(config?: Partial<AutoHandoffConfig>, workspaceRoot?: string) {
     this.config = { ...DEFAULT_CONFIG, ...config };
+    this.workspaceRoot = workspaceRoot || vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '';
     this.logger = Logger.for('AutoHandoffTrigger');
     this.logger.debug('AutoHandoffTrigger initialized', { config: this.config });
   }
@@ -696,6 +700,24 @@ export class AutoHandoffTrigger implements vscode.Disposable {
       lines.push('');
     }
 
+    // Include failed approaches from JSONL if they exist
+    const failedApproachesContent = this.readFailedApproaches();
+    if (failedApproachesContent) {
+      lines.push('## Failed Approaches');
+      lines.push('');
+      lines.push(failedApproachesContent);
+      lines.push('');
+    }
+
+    // Include session memories from JSONL if they exist
+    const sessionMemoriesContent = this.readSessionMemories();
+    if (sessionMemoriesContent) {
+      lines.push('## Session Memories');
+      lines.push('');
+      lines.push(sessionMemoriesContent);
+      lines.push('');
+    }
+
     if (options.additionalContext) {
       lines.push('## Additional Context');
       lines.push('');
@@ -750,6 +772,64 @@ export class AutoHandoffTrigger implements vscode.Disposable {
     }
 
     return document;
+  }
+
+  /**
+   * Reads failed approaches from JSONL file and formats as markdown.
+   * Returns null if no entries exist.
+   */
+  private readFailedApproaches(): string | null {
+    if (!this.workspaceRoot) return null;
+    const filePath = path.join(this.workspaceRoot, '.specify/logs/failed-approaches.jsonl');
+    return this.readJsonlEntries(filePath, (entry: Record<string, unknown>) => {
+      const approach = entry.approach || 'Unknown approach';
+      const reason = entry.reason || 'No reason given';
+      return `- **${approach}**: ${reason}`;
+    });
+  }
+
+  /**
+   * Reads session memories from JSONL file and formats as markdown.
+   * Returns null if no entries exist.
+   */
+  private readSessionMemories(): string | null {
+    if (!this.workspaceRoot) return null;
+    const filePath = path.join(this.workspaceRoot, '.specify/logs/session-memory.jsonl');
+    return this.readJsonlEntries(filePath, (entry: Record<string, unknown>) => {
+      const type = entry.type || 'learning';
+      const content = entry.content || '';
+      const taskId = entry.taskId || '';
+      return `- **[${type}]** ${taskId ? `(${taskId}) ` : ''}${content}`;
+    });
+  }
+
+  /**
+   * Reads entries from a JSONL file and formats them with a formatter function.
+   * Returns null if file doesn't exist or has no entries.
+   */
+  private readJsonlEntries(
+    filePath: string,
+    formatter: (entry: Record<string, unknown>) => string
+  ): string | null {
+    try {
+      if (!fs.existsSync(filePath)) return null;
+      const content = fs.readFileSync(filePath, 'utf-8');
+      const lines = content.split('\n').filter((line) => line.trim().length > 0);
+      if (lines.length === 0) return null;
+
+      const formatted: string[] = [];
+      for (const line of lines) {
+        try {
+          const entry = JSON.parse(line) as Record<string, unknown>;
+          formatted.push(formatter(entry));
+        } catch {
+          continue; // Skip invalid JSONL lines
+        }
+      }
+      return formatted.length > 0 ? formatted.join('\n') : null;
+    } catch {
+      return null;
+    }
   }
 
   /**

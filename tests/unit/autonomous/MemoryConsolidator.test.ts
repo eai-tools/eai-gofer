@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { MemoryConsolidator } from '../../../extension/src/autonomous/MemoryConsolidator';
 import { MemoryStorage } from '../../../extension/src/autonomous/MemoryStorage';
-import type { Memory } from '../../../extension/src/autonomous/memory';
 import * as fs from 'fs/promises';
 
 vi.mock('fs/promises');
@@ -115,6 +114,87 @@ describe('MemoryConsolidator', () => {
       const result = await consolidator.consolidate();
 
       expect(result.decayed).toBe(0);
+    });
+
+    it('should include conflictsResolved in result', async () => {
+      await storage.initialize();
+      const result = await consolidator.consolidate();
+
+      expect(result.conflictsResolved).toBe(0);
+    });
+  });
+
+  describe('conflict detection', () => {
+    it('should detect conflicts with medium overlap (0.5-0.8) and shared tags', async () => {
+      const now = Date.now();
+      // Two memories about similar topic but different enough (50-80% overlap)
+      // They share the #auth tag, making them conflicts
+      const memories = [
+        `{"id":"c1","category":"api","tags":["#auth","#security"],"scope":"local","content":"Use JWT tokens for authentication in the API service layer with refresh tokens","created":${now - 10000},"lastUsed":${now},"usedCount":2,"learnedFrom":"t","priorityIndex":3}`,
+        `{"id":"c2","category":"api","tags":["#auth"],"scope":"local","content":"Use session cookies for authentication in the API service layer instead of tokens","created":${now},"lastUsed":${now},"usedCount":1,"learnedFrom":"t","priorityIndex":2}`,
+      ];
+
+      vi.mocked(fs.readFile).mockResolvedValue(memories.join('\n') + '\n');
+      await storage.initialize();
+
+      const result = await consolidator.consolidate();
+
+      expect(result.conflictsResolved).toBe(1);
+    });
+
+    it('should archive older memory with supersededBy field on conflict', async () => {
+      const now = Date.now();
+      const memories = [
+        `{"id":"old-mem","category":"pattern","tags":["#config"],"scope":"local","content":"Use YAML configuration files for all service settings and environment config","created":${now - 20000},"lastUsed":${now},"usedCount":2,"learnedFrom":"t","priorityIndex":3}`,
+        `{"id":"new-mem","category":"pattern","tags":["#config"],"scope":"local","content":"Use JSON configuration files for all service settings and environment variables","created":${now},"lastUsed":${now},"usedCount":1,"learnedFrom":"t","priorityIndex":2}`,
+      ];
+
+      vi.mocked(fs.readFile).mockResolvedValue(memories.join('\n') + '\n');
+      await storage.initialize();
+
+      const updateSpy = vi.spyOn(storage, 'update');
+      await consolidator.consolidate();
+
+      // Verify that old-mem was updated with supersededBy pointing to new-mem
+      const supersededCall = updateSpy.mock.calls.find(
+        (call) =>
+          call[0] === 'old-mem' && (call[1] as Record<string, unknown>).supersededBy === 'new-mem'
+      );
+      expect(supersededCall).toBeDefined();
+    });
+
+    it('should not detect conflict when tags do not overlap', async () => {
+      const now = Date.now();
+      // Medium keyword overlap but NO shared tags → not a conflict
+      const memories = [
+        `{"id":"no-tag1","category":"api","tags":["#frontend"],"scope":"local","content":"Use async await for all API calls in the service modules","created":${now - 10000},"lastUsed":${now},"usedCount":1,"learnedFrom":"t"}`,
+        `{"id":"no-tag2","category":"api","tags":["#backend"],"scope":"local","content":"Use async await for all API calls in the controller layer","created":${now},"lastUsed":${now},"usedCount":1,"learnedFrom":"t"}`,
+      ];
+
+      vi.mocked(fs.readFile).mockResolvedValue(memories.join('\n') + '\n');
+      await storage.initialize();
+
+      const result = await consolidator.consolidate();
+
+      expect(result.conflictsResolved).toBe(0);
+    });
+
+    it('should not detect conflict when overlap is above dedup threshold (>=0.8)', async () => {
+      const now = Date.now();
+      // These are near-duplicates (>80% overlap) — handled by dedup, not conflict
+      const memories = [
+        `{"id":"dup1","category":"api","tags":["#test"],"scope":"local","content":"Use async await for all API calls in the service layer","created":${now - 10000},"lastUsed":${now},"usedCount":3,"learnedFrom":"t","priorityIndex":5}`,
+        `{"id":"dup2","category":"api","tags":["#test"],"scope":"local","content":"Use async await for all API calls in the service layer module","created":${now},"lastUsed":${now},"usedCount":1,"learnedFrom":"t","priorityIndex":2}`,
+      ];
+
+      vi.mocked(fs.readFile).mockResolvedValue(memories.join('\n') + '\n');
+      await storage.initialize();
+
+      const result = await consolidator.consolidate();
+
+      // Should be handled by dedup (merged), not conflict
+      expect(result.conflictsResolved).toBe(0);
+      expect(result.merged).toBeGreaterThanOrEqual(1);
     });
   });
 });

@@ -31,7 +31,7 @@ export interface GitState {
 }
 
 const REQUIRED_FIELDS = ['session_id', 'timestamp', 'stage', 'status'];
-const MAX_TOKEN_BUDGET = 5000;
+const MAX_TOKEN_BUDGET = 8000;
 
 export class CheckpointValidator {
   private workspaceRoot?: string;
@@ -81,6 +81,27 @@ export class CheckpointValidator {
       );
     }
 
+    // Check for empty critical sections
+    const criticalSections = ['Key Decisions', 'Next Steps'];
+    for (const section of criticalSections) {
+      // Match the section heading
+      const headingIdx = content.indexOf(`## ${section}`);
+      if (headingIdx === -1) continue;
+
+      // Find where the content after the heading starts (skip heading line + blank lines)
+      const afterHeading = content.slice(headingIdx + `## ${section}`.length);
+      // Find the next section heading or end of string
+      const nextSectionMatch = afterHeading.match(/\n## /);
+      const sectionBody = nextSectionMatch
+        ? afterHeading.slice(0, nextSectionMatch.index)
+        : afterHeading;
+
+      // Check if section body has any non-whitespace content
+      if (sectionBody.trim().length === 0) {
+        warnings.push(`Section "${section}" exists but has no content`);
+      }
+    }
+
     return {
       valid: errors.length === 0,
       warnings,
@@ -96,7 +117,12 @@ export class CheckpointValidator {
     const errors: string[] = [];
 
     for (const field of REQUIRED_FIELDS) {
-      if (!(field in data) || data[field] === undefined || data[field] === null || data[field] === '') {
+      if (
+        !(field in data) ||
+        data[field] === undefined ||
+        data[field] === null ||
+        data[field] === ''
+      ) {
         errors.push(`Missing or empty required field: ${field}`);
       }
     }
@@ -110,7 +136,15 @@ export class CheckpointValidator {
     }
 
     // Validate stage is a known stage
-    const validStages = ['research', 'specify', 'plan', 'tasks', 'implement', 'validate', 'unknown'];
+    const validStages = [
+      'research',
+      'specify',
+      'plan',
+      'tasks',
+      'implement',
+      'validate',
+      'unknown',
+    ];
     if (data.stage && typeof data.stage === 'string' && !validStages.includes(data.stage)) {
       warnings.push(`Unknown stage: ${data.stage}`);
     }
@@ -128,8 +162,16 @@ export class CheckpointValidator {
     const errors: string[] = [];
 
     const artifacts = [
-      { file: 'research.md', requiredSections: ['# Research', 'Codebase Analysis', 'Integration Points'], stage: 'research' },
-      { file: 'spec.md', requiredSections: ['User Stories', 'Functional Requirements', 'Success Criteria'], stage: 'specify' },
+      {
+        file: 'research.md',
+        requiredSections: ['# Research', 'Codebase Analysis', 'Integration Points'],
+        stage: 'research',
+      },
+      {
+        file: 'spec.md',
+        requiredSections: ['User Stories', 'Functional Requirements', 'Success Criteria'],
+        stage: 'specify',
+      },
       { file: 'plan.md', requiredSections: ['Implementation Plan', 'Phase'], stage: 'plan' },
       { file: 'tasks.md', requiredSections: ['Tasks', 'Phase'], stage: 'tasks' },
     ];
@@ -152,7 +194,9 @@ export class CheckpointValidator {
 
       // Check minimum size
       if (content.length < 100) {
-        warnings.push(`${artifact.file} appears too small (${content.length} chars) — may be incomplete`);
+        warnings.push(
+          `${artifact.file} appears too small (${content.length} chars) — may be incomplete`
+        );
       }
 
       // Check YAML frontmatter
@@ -176,7 +220,9 @@ export class CheckpointValidator {
         const completedCount = (content.match(/- \[[Xx]\]/g) || []).length;
         if (taskCount > 0) {
           const progress = Math.round((completedCount / taskCount) * 100);
-          warnings.push(`tasks.md progress: ${completedCount}/${taskCount} tasks completed (${progress}%)`);
+          warnings.push(
+            `tasks.md progress: ${completedCount}/${taskCount} tasks completed (${progress}%)`
+          );
         }
       }
     }
@@ -197,24 +243,40 @@ export class CheckpointValidator {
     const gitState: GitState = { branch: 'unknown', status: '', stashCount: 0, headCommit: '' };
 
     try {
-      const { stdout: branch } = await execFileAsync('git', ['rev-parse', '--abbrev-ref', 'HEAD'], opts);
+      const { stdout: branch } = await execFileAsync(
+        'git',
+        ['rev-parse', '--abbrev-ref', 'HEAD'],
+        opts
+      );
       gitState.branch = branch.trim();
-    } catch { /* not a git repo */ }
+    } catch {
+      /* not a git repo */
+    }
 
     try {
-      const { stdout: status } = await execFileAsync('git', ['status', '--porcelain', '--short'], opts);
+      const { stdout: status } = await execFileAsync(
+        'git',
+        ['status', '--porcelain', '--short'],
+        opts
+      );
       gitState.status = status.trim().slice(0, 500); // Limit size
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
 
     try {
       const { stdout: stash } = await execFileAsync('git', ['stash', 'list'], opts);
       gitState.stashCount = stash.split('\n').filter(Boolean).length;
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
 
     try {
       const { stdout: head } = await execFileAsync('git', ['rev-parse', '--short', 'HEAD'], opts);
       gitState.headCommit = head.trim();
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
 
     return gitState;
   }

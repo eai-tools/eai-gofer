@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.10.0] - 2026-02-16
+
+Auto-save and auto-resume at 69% context threshold
+
 ## [1.9.0] - 2026-02-15
 
 Context Continuity Overhaul - 11 improvements to context management

@@ -711,6 +711,12 @@
           "maximum": 1,
           "description": "Context utilization threshold for automatic session save (0.0-1.0, default: 0.69 = 69%)",
           "markdownDescription": "The context utilization ratio that triggers automatic session save.\n\n**Default**: 0.69 (69%)\n\n**Range**: 0.0 to 1.0\n\n**How it works**:\n- Gofer monitors context usage continuously\n- When utilization crosses this threshold, the auto-save event is triggered\n- If `autoExecuteSave` is enabled, `/7_gofer_save` executes automatically\n- If `autoExecuteSave` is disabled, a notification is shown instead\n\n**Research-based**: 69% is optimal based on 2025-2026 effective context research. Going above 70% significantly degrades LLM accuracy."
+        },
+        "gofer.contextWindow.autoResumeAfterSave": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically execute /8_gofer_resume after /7_gofer_save completes",
+          "markdownDescription": "When enabled, automatically sends `/8_gofer_resume` to Claude Code terminal immediately after `/7_gofer_save`.\n\n**Default**: Disabled\n\n**How it works**:\n1. Context reaches auto-save threshold (69%)\n2. `/7_gofer_save` executes automatically (saves session state)\n3. `/8_gofer_resume` executes immediately after (loads fresh context)\n4. Claude Code continues with clean context window\n\n**Benefits**:\n- Zero-interruption context continuity\n- Automatic context refresh without manual intervention\n- Maintains full session state across save/resume cycle\n\n**Note**: Only works when `autoExecuteSave` is also enabled. Both commands execute in the same Claude Code session sequentially."
         }
       }
     }

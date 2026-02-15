@@ -385,6 +385,7 @@ function initializeContextHealthMonitoring(workspacePath: string): void {
     const autoHandoffConfig = {
       autoExecuteSave: configManager.getContextWindowAutoExecuteSave(),
       autoSaveThreshold: configManager.getContextWindowAutoSaveThreshold(),
+      autoResumeAfterSave: configManager.getContextWindowAutoResumeAfterSave(),
     };
     autoHandoffTrigger = new AutoHandoffTrigger(autoHandoffConfig, workspacePath);
 

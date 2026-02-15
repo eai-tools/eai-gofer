@@ -15,6 +15,51 @@
       "lastUsed": 1770844129296,
       "usedCount": 1,
       "learnedFrom": "session:d5677db6-e08e-491d-8b1d-4ff8f868cb8f"
+    },
+    {
+      "id": "860ad1ef-3caf-4ef7-a494-1ebc672a2bf5",
+      "category": "pattern",
+      "tags": [
+        "#auto-learned",
+        "#pattern",
+        "#session-0e67b4cf"
+      ],
+      "scope": "local",
+      "content": "The findings are consistent with what's already documented in the validation report — all Yellow/Gray informational items, no Red blockers. The final result stands at **100/100 PASS**.",
+      "created": 1771113179755,
+      "lastUsed": 1771113200197,
+      "usedCount": 2,
+      "learnedFrom": "session:0e67b4cf-69ab-44fa-80f7-f42654a89bfd"
+    },
+    {
+      "id": "1f1f2678-34b3-4912-9074-989e4622f681",
+      "category": "pattern",
+      "tags": [
+        "#auto-learned",
+        "#pattern",
+        "#session-0e67b4cf"
+      ],
+      "scope": "local",
+      "content": "Test quality agent confirmed: 18% mock ratio, zero placeholders, zero skips — all consistent with the 100/100 report. All agents are now fully reported.",
+      "created": 1771113195951,
+      "lastUsed": 1771113200197,
+      "usedCount": 1,
+      "learnedFrom": "session:0e67b4cf-69ab-44fa-80f7-f42654a89bfd"
+    },
+    {
+      "id": "749b43c9-4b2e-4220-b16a-0cc5e83c927d",
+      "category": "pattern",
+      "tags": [
+        "#auto-learned",
+        "#pattern",
+        "#session-0e67b4cf"
+      ],
+      "scope": "local",
+      "content": "Both produce the same result, but the pattern is inconsistent. Want me to align them with the existing style?",
+      "created": 1771113195951,
+      "lastUsed": 1771113296348,
+      "usedCount": 2,
+      "learnedFrom": "session:0e67b4cf-69ab-44fa-80f7-f42654a89bfd"
     }
   ]
 }

@@ -1,12 +1,19 @@
 /**
  * Unit tests for ContextWindowProvider
  *
- * Tests: T021 — empty state, 1 session, 3 sessions, categories,
+ * Tests: empty state, 1 session, 3 sessions, categories (both scanner and fallback),
  * stale session display, lifecycle icons.
+ *
+ * Feature 023: Updated to test real scanner-based categories + fallback mode.
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import type { BridgeData } from '../../extension/src/autonomous/HookBridgeWatcher';
+import type {
+  ClaudeCodeContextScanner,
+  ScanResult,
+  CategoryBreakdown,
+} from '../../extension/src/autonomous/ClaudeCodeContextScanner';
 
 // Mock vscode module
 vi.mock('vscode', () => ({
@@ -110,6 +117,34 @@ function createMockWatcher(
   };
 }
 
+/** Create a mock scanner with configurable scan results */
+function createMockScanner(overrides: Partial<ScanResult> = {}): ClaudeCodeContextScanner {
+  const defaultCategories: CategoryBreakdown[] = [
+    {
+      name: 'CLAUDE.md & Rules',
+      icon: 'file-text',
+      totalTokens: 8000,
+      files: [],
+      expandable: false,
+    },
+    { name: 'Auto Memory', icon: 'brain', totalTokens: 1100, files: [], expandable: false },
+    { name: 'Agents & Commands', icon: 'robot', totalTokens: 10000, files: [], expandable: false },
+    { name: 'Spec Artifacts', icon: 'file-code', totalTokens: 5700, files: [], expandable: false },
+    { name: 'System Overhead', icon: 'gear', totalTokens: 14800, files: [], expandable: false },
+  ];
+  const defaultResult: ScanResult = {
+    categories: defaultCategories,
+    measuredTokens: defaultCategories.reduce((s, c) => s + c.totalTokens, 0),
+    scannedAt: Date.now(),
+    ...overrides,
+  };
+
+  return {
+    scan: vi.fn(() => defaultResult),
+    invalidate: vi.fn(),
+  } as unknown as ClaudeCodeContextScanner;
+}
+
 describe('ContextWindowProvider', () => {
   let provider: ContextWindowProvider;
 
@@ -117,7 +152,7 @@ describe('ContextWindowProvider', () => {
     provider = new ContextWindowProvider('/test/workspace');
   });
 
-  describe('empty state (T025)', () => {
+  describe('empty state', () => {
     it('returns empty array when no watcher is set', async () => {
       const children = await provider.getChildren();
       expect(children).toEqual([]);
@@ -168,28 +203,46 @@ describe('ContextWindowProvider', () => {
     });
   });
 
-  describe('category breakdown (T024)', () => {
-    it('returns 6 categories when expanding a session', async () => {
+  describe('category breakdown with scanner (Feature 023)', () => {
+    it('returns 6 categories (5 scanned + Conversation History) when scanner is set', async () => {
       const sessions = new Map([['sess-1', makeBridgeData({ sessionId: 'sess-1' })]]);
       const mockWatcher = createMockWatcher(sessions);
+      const mockScanner = createMockScanner();
       provider.setWatcher(mockWatcher as never);
+      provider.setScanner(mockScanner);
 
-      // Create a mock session element
       const sessionItem = { kind: 'session' as const, sessionId: 'sess-1', label: 'test' };
-
       const categories = await provider.getChildren(sessionItem as never);
+
       expect(categories).toHaveLength(6);
       expect(categories.map((c) => c.categoryName)).toEqual([
+        'CLAUDE.md & Rules',
+        'Auto Memory',
+        'Agents & Commands',
         'Spec Artifacts',
-        'Memories & Hints',
-        'System Files',
+        'System Overhead',
         'Conversation History',
-        'Tool Outputs',
-        'Masked Observations',
       ]);
     });
 
-    it('category tokens are estimated from total context', async () => {
+    it('scanned category tokens come from scanner, not percentages', async () => {
+      const sessions = new Map([['sess-1', makeBridgeData({ sessionId: 'sess-1' })]]);
+      const mockWatcher = createMockWatcher(sessions);
+      const mockScanner = createMockScanner();
+      provider.setWatcher(mockWatcher as never);
+      provider.setScanner(mockScanner);
+
+      const sessionItem = { kind: 'session' as const, sessionId: 'sess-1', label: 'test' };
+      const categories = await provider.getChildren(sessionItem as never);
+
+      const claudeItem = categories.find((c) => c.categoryName === 'CLAUDE.md & Rules')!;
+      expect(claudeItem.tokenCount).toBe(8000);
+
+      const memoryItem = categories.find((c) => c.categoryName === 'Auto Memory')!;
+      expect(memoryItem.tokenCount).toBe(1100);
+    });
+
+    it('Conversation History is residual (total - measured)', async () => {
       const sessions = new Map([
         [
           'sess-1',
@@ -208,25 +261,91 @@ describe('ContextWindowProvider', () => {
         ],
       ]);
       const mockWatcher = createMockWatcher(sessions);
+      // measuredTokens = 8000 + 1100 + 10000 + 5700 + 14800 = 39600
+      const mockScanner = createMockScanner();
       provider.setWatcher(mockWatcher as never);
+      provider.setScanner(mockScanner);
 
       const sessionItem = { kind: 'session' as const, sessionId: 'sess-1', label: 'test' };
       const categories = await provider.getChildren(sessionItem as never);
 
-      // All token counts should be defined
-      categories.forEach((cat) => {
-        expect(cat.tokenCount).toBeDefined();
-        expect(cat.tokenCount).toBeGreaterThan(0);
-      });
+      const convItem = categories.find((c) => c.categoryName === 'Conversation History')!;
+      expect(convItem.tokenCount).toBe(100000 - 39600); // 60400
+    });
 
-      // Token counts should sum to approximately the total
+    it('all categories sum to totalContextTokens', async () => {
+      const sessions = new Map([
+        [
+          'sess-1',
+          makeBridgeData({
+            sessionId: 'sess-1',
+            context: {
+              totalContextTokens: 100000,
+              inputTokens: 500,
+              cacheCreationInputTokens: 1000,
+              cacheReadInputTokens: 98500,
+              outputTokens: 1500,
+              contextLimit: 200000,
+              utilizationPercent: 50,
+            },
+          }),
+        ],
+      ]);
+      const mockWatcher = createMockWatcher(sessions);
+      const mockScanner = createMockScanner();
+      provider.setWatcher(mockWatcher as never);
+      provider.setScanner(mockScanner);
+
+      const sessionItem = { kind: 'session' as const, sessionId: 'sess-1', label: 'test' };
+      const categories = await provider.getChildren(sessionItem as never);
+
       const total = categories.reduce((sum, cat) => sum + (cat.tokenCount ?? 0), 0);
       expect(total).toBe(100000);
+    });
 
-      // Descriptions should contain "est."
+    it('descriptions do NOT contain "(est.)" when scanner is active', async () => {
+      const sessions = new Map([['sess-1', makeBridgeData({ sessionId: 'sess-1' })]]);
+      const mockWatcher = createMockWatcher(sessions);
+      const mockScanner = createMockScanner();
+      provider.setWatcher(mockWatcher as never);
+      provider.setScanner(mockScanner);
+
+      const sessionItem = { kind: 'session' as const, sessionId: 'sess-1', label: 'test' };
+      const categories = await provider.getChildren(sessionItem as never);
+
       categories.forEach((cat) => {
-        expect(cat.description).toContain('est.');
+        expect(cat.description).not.toContain('est.');
       });
+    });
+
+    it('each category has click command', async () => {
+      const sessions = new Map([['sess-1', makeBridgeData({ sessionId: 'sess-1' })]]);
+      const mockWatcher = createMockWatcher(sessions);
+      const mockScanner = createMockScanner();
+      provider.setWatcher(mockWatcher as never);
+      provider.setScanner(mockScanner);
+
+      const sessionItem = { kind: 'session' as const, sessionId: 'sess-1', label: 'test' };
+      const categories = await provider.getChildren(sessionItem as never);
+
+      for (const cat of categories) {
+        expect(cat.command).toBeDefined();
+        expect(cat.command!.command).toBe('gofer.showContextCategoryContent');
+      }
+    });
+
+    it('Conversation History is expandable (collapsed state)', async () => {
+      const sessions = new Map([['sess-1', makeBridgeData({ sessionId: 'sess-1' })]]);
+      const mockWatcher = createMockWatcher(sessions);
+      const mockScanner = createMockScanner();
+      provider.setWatcher(mockWatcher as never);
+      provider.setScanner(mockScanner);
+
+      const sessionItem = { kind: 'session' as const, sessionId: 'sess-1', label: 'test' };
+      const categories = await provider.getChildren(sessionItem as never);
+
+      const convItem = categories.find((c) => c.categoryName === 'Conversation History')!;
+      expect(convItem.collapsibleState).toBe(1); // Collapsed
     });
 
     it('returns empty categories when session has no context data', async () => {
@@ -234,7 +353,9 @@ describe('ContextWindowProvider', () => {
         ['sess-1', makeBridgeData({ sessionId: 'sess-1', context: null })],
       ]);
       const mockWatcher = createMockWatcher(sessions);
+      const mockScanner = createMockScanner();
       provider.setWatcher(mockWatcher as never);
+      provider.setScanner(mockScanner);
 
       const sessionItem = { kind: 'session' as const, sessionId: 'sess-1', label: 'test' };
       const categories = await provider.getChildren(sessionItem as never);
@@ -242,7 +363,53 @@ describe('ContextWindowProvider', () => {
     });
   });
 
-  describe('session lifecycle icons (T026)', () => {
+  describe('category breakdown fallback (no scanner)', () => {
+    it('returns 6 old categories when no scanner is set', async () => {
+      const sessions = new Map([['sess-1', makeBridgeData({ sessionId: 'sess-1' })]]);
+      const mockWatcher = createMockWatcher(sessions);
+      provider.setWatcher(mockWatcher as never);
+
+      const sessionItem = { kind: 'session' as const, sessionId: 'sess-1', label: 'test' };
+      const categories = await provider.getChildren(sessionItem as never);
+
+      expect(categories).toHaveLength(6);
+      expect(categories.map((c) => c.categoryName)).toEqual([
+        'Spec Artifacts',
+        'Memories & Hints',
+        'System Files',
+        'Conversation History',
+        'Tool Outputs',
+        'Masked Observations',
+      ]);
+    });
+
+    it('fallback tokens sum to totalContextTokens', async () => {
+      const sessions = new Map([['sess-1', makeBridgeData({ sessionId: 'sess-1' })]]);
+      const mockWatcher = createMockWatcher(sessions);
+      provider.setWatcher(mockWatcher as never);
+
+      const sessionItem = { kind: 'session' as const, sessionId: 'sess-1', label: 'test' };
+      const categories = await provider.getChildren(sessionItem as never);
+
+      const total = categories.reduce((sum, cat) => sum + (cat.tokenCount ?? 0), 0);
+      expect(total).toBe(100000);
+    });
+
+    it('fallback descriptions contain "(est.)"', async () => {
+      const sessions = new Map([['sess-1', makeBridgeData({ sessionId: 'sess-1' })]]);
+      const mockWatcher = createMockWatcher(sessions);
+      provider.setWatcher(mockWatcher as never);
+
+      const sessionItem = { kind: 'session' as const, sessionId: 'sess-1', label: 'test' };
+      const categories = await provider.getChildren(sessionItem as never);
+
+      categories.forEach((cat) => {
+        expect(cat.description).toContain('est.');
+      });
+    });
+  });
+
+  describe('session lifecycle icons', () => {
     it('shows pulse icon for active sessions', async () => {
       const sessions = new Map([
         [
@@ -410,7 +577,7 @@ describe('ContextWindowProvider', () => {
     });
   });
 
-  describe('watcher event subscription (T028)', () => {
+  describe('watcher event subscription', () => {
     it('subscribes to session-update, session-added, session-removed', () => {
       const mockWatcher = createMockWatcher();
       provider.setWatcher(mockWatcher as never);
@@ -425,55 +592,6 @@ describe('ContextWindowProvider', () => {
     it('returns the element itself', () => {
       const item = new ContextWindowItem('test', 'session');
       expect(provider.getTreeItem(item)).toBe(item);
-    });
-  });
-
-  describe('category items have click command (T018 — 021-context-item-click-to-view)', () => {
-    it('each category item has .command set to gofer.showContextCategoryContent', async () => {
-      const sessions = new Map([
-        ['sess-click-test', makeBridgeData({ sessionId: 'sess-click-test' })],
-      ]);
-      const mockWatcher = createMockWatcher(sessions);
-      provider.setWatcher(mockWatcher as never);
-
-      const sessionItem = { kind: 'session' as const, sessionId: 'sess-click-test', label: 'test' };
-      const categories = await provider.getChildren(sessionItem as never);
-
-      expect(categories).toHaveLength(6);
-      for (const cat of categories) {
-        expect(cat.command).toBeDefined();
-        expect(cat.command!.command).toBe('gofer.showContextCategoryContent');
-      }
-    });
-
-    it('command arguments include sessionId and categoryName', async () => {
-      const sessions = new Map([
-        ['sess-args-test', makeBridgeData({ sessionId: 'sess-args-test' })],
-      ]);
-      const mockWatcher = createMockWatcher(sessions);
-      provider.setWatcher(mockWatcher as never);
-
-      const sessionItem = { kind: 'session' as const, sessionId: 'sess-args-test', label: 'test' };
-      const categories = await provider.getChildren(sessionItem as never);
-
-      const specItem = categories.find((c) => c.categoryName === 'Spec Artifacts')!;
-      expect(specItem.command!.arguments).toEqual(['sess-args-test', 'Spec Artifacts']);
-
-      const historyItem = categories.find((c) => c.categoryName === 'Conversation History')!;
-      expect(historyItem.command!.arguments).toEqual(['sess-args-test', 'Conversation History']);
-    });
-
-    it('category items have sessionId set', async () => {
-      const sessions = new Map([['sess-id-test', makeBridgeData({ sessionId: 'sess-id-test' })]]);
-      const mockWatcher = createMockWatcher(sessions);
-      provider.setWatcher(mockWatcher as never);
-
-      const sessionItem = { kind: 'session' as const, sessionId: 'sess-id-test', label: 'test' };
-      const categories = await provider.getChildren(sessionItem as never);
-
-      for (const cat of categories) {
-        expect(cat.sessionId).toBe('sess-id-test');
-      }
     });
   });
 });

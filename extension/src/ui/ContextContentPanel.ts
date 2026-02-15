@@ -2,16 +2,20 @@
  * ContextContentPanel
  *
  * Singleton webview panel that displays the content of a context window category
- * (Spec Artifacts, Memories & Hints, System Files, Conversation History,
- * Tool Outputs, Masked Observations) when the user clicks on it in the sidebar.
+ * when the user clicks on it in the sidebar.
  *
  * Feature 021-context-item-click-to-view
+ * Feature 023-context-window-accuracy: Added renderers for scanner-based categories
  */
 
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import type { BridgeData } from '../autonomous/HookBridgeWatcher';
+import type {
+  ClaudeCodeContextScanner,
+  CategoryBreakdown,
+} from '../autonomous/ClaudeCodeContextScanner';
 
 /** Max bytes to read from any single file */
 const MAX_FILE_BYTES = 50 * 1024;
@@ -26,6 +30,7 @@ export class ContextContentPanel {
   public static currentPanel: ContextContentPanel | undefined;
   private readonly panel: vscode.WebviewPanel;
   private readonly workspacePath: string;
+  private scanner: ClaudeCodeContextScanner | null = null;
   private disposables: vscode.Disposable[] = [];
 
   public static createOrShow(extensionUri: vscode.Uri, workspacePath: string): ContextContentPanel {
@@ -71,6 +76,13 @@ export class ContextContentPanel {
   }
 
   /**
+   * Set scanner for rendering real file-based categories (Feature 023).
+   */
+  public setScanner(scanner: ClaudeCodeContextScanner): void {
+    this.scanner = scanner;
+  }
+
+  /**
    * Update the panel to show content for a specific category.
    */
   public async showCategory(
@@ -106,14 +118,27 @@ export class ContextContentPanel {
     }
 
     switch (categoryName) {
+      // Feature 023: Scanner-based categories (new)
+      case 'CLAUDE.md & Rules':
+        return this.renderScannerCategory('CLAUDE.md & Rules');
+      case 'Auto Memory':
+        return this.renderScannerCategory('Auto Memory');
+      case 'Agents & Commands':
+        return this.renderScannerCategory('Agents & Commands');
+      case 'System Overhead':
+        return this.renderSystemOverhead();
+      // Shared between old and new
       case 'Spec Artifacts':
-        return this.renderSpecArtifacts();
+        return this.scanner
+          ? this.renderScannerCategory('Spec Artifacts')
+          : this.renderSpecArtifacts();
+      case 'Conversation History':
+        return renderConversationHistory(bridgeData);
+      // Legacy fallback categories (Feature 021)
       case 'Memories & Hints':
         return this.renderMemoriesHints();
       case 'System Files':
         return this.renderSystemFiles();
-      case 'Conversation History':
-        return renderConversationHistory(bridgeData);
       case 'Tool Outputs':
         return this.renderToolOutputs();
       case 'Masked Observations':
@@ -123,7 +148,111 @@ export class ContextContentPanel {
     }
   }
 
-  // ── Spec Artifacts (US2) ──────────────────────────────────────
+  // ── Scanner-based category renderer (Feature 023) ──────────────
+
+  /**
+   * Generic renderer for scanner-based categories.
+   * Shows each file with path, size, token count, and content preview.
+   */
+  private renderScannerCategory(categoryName: string): string {
+    if (!this.scanner) {
+      return `<div class="empty-state"><p>Scanner not available.</p></div>`;
+    }
+
+    const scanResult = this.scanner.scan();
+    const category = scanResult.categories.find((c) => c.name === categoryName);
+    if (!category) {
+      return `<div class="empty-state"><p>Category not found: ${escapeHtml(categoryName)}</p></div>`;
+    }
+
+    if (category.files.length === 0) {
+      return `<div class="empty-state">
+        <p>No files found for ${escapeHtml(categoryName)}.</p>
+        ${category.note ? `<p class="muted">${escapeHtml(category.note)}</p>` : ''}
+      </div>`;
+    }
+
+    const fileCards = category.files.map((f) => {
+      let preview = '';
+      // Read file content for preview (skip built-in entries)
+      if (f.filePath !== '(built-in)') {
+        try {
+          const raw = fs.readFileSync(f.filePath, 'utf-8');
+          preview = raw.slice(0, PREVIEW_CHARS);
+          if (raw.length > PREVIEW_CHARS) {
+            preview += '...';
+          }
+        } catch {
+          /* file not readable */
+        }
+      }
+
+      return `
+        <div class="card">
+          <div class="card-title">
+            <span class="file-name">${escapeHtml(f.displayPath)}</span>
+            <span class="file-size">${escapeHtml(formatFileSize(f.bytes))} · ~${f.tokens.toLocaleString()} tokens</span>
+          </div>
+          <div class="card-body">
+            ${preview ? `<pre class="file-preview">${escapeHtml(preview)}</pre>` : '<p class="muted">Content not available</p>'}
+          </div>
+        </div>
+      `;
+    });
+
+    const totalHtml = `
+      <div class="card info-card">
+        <div class="card-body">
+          <strong>${category.files.length}</strong> file(s) · <strong>~${category.totalTokens.toLocaleString()}</strong> tokens total
+          ${category.note ? `<br><span class="muted">${escapeHtml(category.note)}</span>` : ''}
+        </div>
+      </div>
+    `;
+
+    return totalHtml + fileCards.join('');
+  }
+
+  // ── System Overhead renderer (Feature 023) ────────────────────
+
+  private renderSystemOverhead(): string {
+    if (!this.scanner) {
+      return `<div class="empty-state"><p>Scanner not available.</p></div>`;
+    }
+
+    const scanResult = this.scanner.scan();
+    const category = scanResult.categories.find((c) => c.name === 'System Overhead');
+    if (!category) {
+      return `<div class="empty-state"><p>System overhead data not found.</p></div>`;
+    }
+
+    const rows = category.files
+      .map(
+        (f) =>
+          `<tr><td>${escapeHtml(f.displayPath)}</td><td class="number">~${f.tokens.toLocaleString()}</td></tr>`
+      )
+      .join('');
+
+    return `
+      <div class="card info-card">
+        <div class="card-body">
+          <p>These are invisible components baked into every Claude Code API call.
+          Token counts are estimates based on research.</p>
+          <p><strong>Total: ~${category.totalTokens.toLocaleString()} tokens</strong></p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Breakdown</div>
+        <div class="card-body">
+          <table class="token-table">
+            <thead><tr><th>Component</th><th>~Tokens</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+
+  // ── Spec Artifacts (US2 — legacy fallback) ────────────────────
 
   private async renderSpecArtifacts(): Promise<string> {
     const specsDir = path.join(this.workspacePath, '.specify', 'specs');

@@ -6,34 +6,28 @@
  *
  * Tree structure:
  *   Session {name} ({model})       — {utilization}%
- *     ├─ Spec Artifacts            — ~{tokens} tokens (est.)
- *     ├─ Memories & Hints           — ~{tokens} tokens (est.)
- *     ├─ System Files              — ~{tokens} tokens (est.)
- *     ├─ Conversation History      — ~{tokens} tokens (est.)
+ *     ├─ CLAUDE.md & Rules         — ~{tokens} tokens
+ *     ├─ Auto Memory               — ~{tokens} tokens
+ *     ├─ Agents & Commands         — ~{tokens} tokens
+ *     ├─ Conversation History      — ~{tokens} tokens
  *     │   ├─ Your Prompts          — {count} items, ~{tokens} tokens
  *     │   ├─ Assistant Responses   — {count} items, ~{tokens} tokens
  *     │   ├─ Tool Calls & Results  — {count} items, ~{tokens} tokens
  *     │   └─ System / Commands     — {count} items, ~{tokens} tokens
- *     ├─ Tool Outputs              — ~{tokens} tokens (est.)
- *     └─ Masked Observations       — ~{tokens} tokens (est.)
+ *     ├─ System Overhead           — ~14.8k tokens
+ *     └─ Spec Artifacts            — ~{tokens} tokens
+ *
+ * Feature 023: Categories now show REAL token counts from scanning actual
+ * Claude Code files, not hardcoded percentage estimates.
  */
 
 import * as vscode from 'vscode';
 import type { BridgeData } from './autonomous/HookBridgeWatcher';
 import type { MultiSessionBridgeWatcher } from './autonomous/MultiSessionBridgeWatcher';
+import type { ClaudeCodeContextScanner } from './autonomous/ClaudeCodeContextScanner';
 import { readTranscript, classifyTranscript } from './ui/ContextContentPanel';
 
 export type ContextWindowItemKind = 'session' | 'category' | 'subcategory' | 'info' | 'empty';
-
-/** Context breakdown category definitions */
-const CONTEXT_CATEGORIES = [
-  { name: 'Spec Artifacts', icon: 'file-code', estimatePct: 0.15, expandable: false },
-  { name: 'Memories & Hints', icon: 'brain', estimatePct: 0.1, expandable: false },
-  { name: 'System Files', icon: 'gear', estimatePct: 0.08, expandable: false },
-  { name: 'Conversation History', icon: 'comment-discussion', estimatePct: 0.4, expandable: true },
-  { name: 'Tool Outputs', icon: 'terminal', estimatePct: 0.22, expandable: false },
-  { name: 'Masked Observations', icon: 'eye-closed', estimatePct: 0.05, expandable: false },
-] as const;
 
 /** Sub-categories for Conversation History */
 const CONVERSATION_SUBCATEGORIES = [
@@ -69,12 +63,13 @@ export class ContextWindowProvider
     this._onDidChangeTreeData.event;
 
   private watcher: MultiSessionBridgeWatcher | null = null;
+  private scanner: ClaudeCodeContextScanner | null = null;
   private disposables: vscode.Disposable[] = [];
 
   constructor(private readonly _workspacePath: string) {}
 
   /**
-   * Connect to MultiSessionBridgeWatcher for real-time updates (T028).
+   * Connect to MultiSessionBridgeWatcher for real-time updates.
    */
   setWatcher(watcher: MultiSessionBridgeWatcher): void {
     this.watcher = watcher;
@@ -91,6 +86,13 @@ export class ContextWindowProvider
     );
   }
 
+  /**
+   * Connect the context scanner for real token counts.
+   */
+  setScanner(scanner: ClaudeCodeContextScanner): void {
+    this.scanner = scanner;
+  }
+
   refresh(): void {
     this._onDidChangeTreeData.fire();
   }
@@ -100,7 +102,6 @@ export class ContextWindowProvider
   }
 
   async getChildren(element?: ContextWindowItem): Promise<ContextWindowItem[]> {
-    // T025: Empty state — return empty array to trigger viewsWelcome
     if (!this.watcher || this.watcher.getSessionCount() === 0) {
       return [];
     }
@@ -128,7 +129,7 @@ export class ContextWindowProvider
   }
 
   /**
-   * T023: Session-level tree items with health icons and utilization.
+   * Session-level tree items with health icons and utilization.
    */
   private getSessionItems(): ContextWindowItem[] {
     if (!this.watcher) return [];
@@ -152,7 +153,6 @@ export class ContextWindowProvider
       item.sessionId = sessionId;
       item.description = `${Math.round(utilization)}%`;
 
-      // T026: Session lifecycle icons with color coding
       const isStale = this.watcher!.isSessionStale(sessionId);
       const isActive = data.session?.active ?? false;
 
@@ -164,13 +164,11 @@ export class ContextWindowProvider
           new vscode.ThemeColor('disabledForeground')
         );
       } else {
-        // Active session — color based on utilization
         const color = this.getHealthColor(utilization);
         item.iconPath = new vscode.ThemeIcon('pulse', new vscode.ThemeColor(color));
       }
 
       item.tooltip = this.buildSessionTooltip(sessionId, data, isStale);
-
       items.push(item);
     }
 
@@ -178,19 +176,94 @@ export class ContextWindowProvider
   }
 
   /**
-   * T024/T027: Category-level tree items with estimated token breakdown.
+   * Category-level tree items with real token counts from scanner.
+   * Falls back to the old percentage-based estimates if no scanner is set.
    */
   private getCategoryItems(sessionId: string): ContextWindowItem[] {
     if (!this.watcher) return [];
     const data = this.watcher.getSessions().get(sessionId);
     if (!data?.context) return [];
 
-    const totalTokens = data.context.totalContextTokens;
+    const totalContextTokens = data.context.totalContextTokens;
 
-    return CONTEXT_CATEGORIES.map((cat) => {
+    // Use real scanner if available
+    if (this.scanner) {
+      return this.buildRealCategories(sessionId, totalContextTokens);
+    }
+
+    // Fallback: old hardcoded estimates (should not normally be reached)
+    return this.buildEstimatedCategories(sessionId, totalContextTokens);
+  }
+
+  /**
+   * Build categories from real scanner results.
+   * Conversation History is calculated as the residual (totalContextTokens - measured).
+   */
+  private buildRealCategories(sessionId: string, totalContextTokens: number): ContextWindowItem[] {
+    const scanResult = this.scanner!.scan();
+    const items: ContextWindowItem[] = [];
+
+    // Add file-based categories from scanner
+    for (const cat of scanResult.categories) {
+      const item = new ContextWindowItem(cat.name, 'category');
+      item.sessionId = sessionId;
+      item.categoryName = cat.name;
+      item.tokenCount = cat.totalTokens;
+      item.description = `~${this.formatTokens(cat.totalTokens)} tokens`;
+      item.iconPath = new vscode.ThemeIcon(cat.icon);
+      item.tooltip = `${cat.name}: ~${cat.totalTokens.toLocaleString()} tokens\n${cat.files.length} file(s)${cat.note ? '\n' + cat.note : ''}\nClick to view content`;
+      item.command = {
+        command: 'gofer.showContextCategoryContent',
+        title: `Show ${cat.name}`,
+        arguments: [sessionId, cat.name],
+      };
+      items.push(item);
+    }
+
+    // Add Conversation History as residual
+    const conversationTokens = Math.max(0, totalContextTokens - scanResult.measuredTokens);
+    const convItem = new ContextWindowItem(
+      'Conversation History',
+      'category',
+      vscode.TreeItemCollapsibleState.Collapsed
+    );
+    convItem.sessionId = sessionId;
+    convItem.categoryName = 'Conversation History';
+    convItem.tokenCount = conversationTokens;
+    convItem.description = `~${this.formatTokens(conversationTokens)} tokens`;
+    convItem.iconPath = new vscode.ThemeIcon('comment-discussion');
+    convItem.tooltip = `Conversation History: ~${conversationTokens.toLocaleString()} tokens\nCalculated as total context minus file-based categories\nClick to view breakdown`;
+    convItem.command = {
+      command: 'gofer.showContextCategoryContent',
+      title: 'Show Conversation History',
+      arguments: [sessionId, 'Conversation History'],
+    };
+    items.push(convItem);
+
+    return items;
+  }
+
+  /**
+   * Fallback: old hardcoded percentage-based estimates.
+   * Used only if no scanner is set.
+   */
+  private buildEstimatedCategories(sessionId: string, totalTokens: number): ContextWindowItem[] {
+    const fallbackCategories = [
+      { name: 'Spec Artifacts', icon: 'file-code', estimatePct: 0.15, expandable: false },
+      { name: 'Memories & Hints', icon: 'brain', estimatePct: 0.1, expandable: false },
+      { name: 'System Files', icon: 'gear', estimatePct: 0.08, expandable: false },
+      {
+        name: 'Conversation History',
+        icon: 'comment-discussion',
+        estimatePct: 0.4,
+        expandable: true,
+      },
+      { name: 'Tool Outputs', icon: 'terminal', estimatePct: 0.22, expandable: false },
+      { name: 'Masked Observations', icon: 'eye-closed', estimatePct: 0.05, expandable: false },
+    ];
+
+    return fallbackCategories.map((cat) => {
       const estimatedTokens = Math.round(totalTokens * cat.estimatePct);
-
-      // Conversation History is expandable with sub-categories
       const collapsible = cat.expandable
         ? vscode.TreeItemCollapsibleState.Collapsed
         : vscode.TreeItemCollapsibleState.None;
@@ -202,23 +275,11 @@ export class ContextWindowProvider
       item.description = `~${this.formatTokens(estimatedTokens)} tokens (est.)`;
       item.iconPath = new vscode.ThemeIcon(cat.icon);
       item.tooltip = `${cat.name}: ~${estimatedTokens.toLocaleString()} tokens (estimated)\nClick to view content`;
-
-      // Non-expandable categories get a click command directly
-      if (!cat.expandable) {
-        item.command = {
-          command: 'gofer.showContextCategoryContent',
-          title: `Show ${cat.name}`,
-          arguments: [sessionId, cat.name],
-        };
-      } else {
-        // Expandable: clicking the parent also shows the overview
-        item.command = {
-          command: 'gofer.showContextCategoryContent',
-          title: `Show ${cat.name}`,
-          arguments: [sessionId, cat.name],
-        };
-      }
-
+      item.command = {
+        command: 'gofer.showContextCategoryContent',
+        title: `Show ${cat.name}`,
+        arguments: [sessionId, cat.name],
+      };
       return item;
     });
   }
@@ -257,7 +318,7 @@ export class ContextWindowProvider
 
       if (count > 0) {
         item.description = `${count} items, ~${this.formatTokens(estTokens)} tokens`;
-        item.tooltip = `${sub.name}: ${count} items, ~${estTokens.toLocaleString()} tokens (est.)\nClick to view content`;
+        item.tooltip = `${sub.name}: ${count} items, ~${estTokens.toLocaleString()} tokens\nClick to view content`;
       } else {
         item.description = 'no data';
         item.tooltip = `${sub.name}\nNo transcript data found`;

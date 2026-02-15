@@ -250,7 +250,10 @@ export class ConfigManager {
    * Get YOLO slop reduction enabled setting
    */
   public getSlopReductionEnabled(): boolean {
-    return this.config.get<boolean>('yoloSlopReduction.enabled', DEFAULTS.yoloSlopReductionEnabled);
+    return this.config.get<boolean>(
+      CONFIG_KEYS.yoloSlopReductionEnabled.replace('gofer.', ''),
+      DEFAULTS.yoloSlopReductionEnabled
+    );
   }
 
   /**
@@ -258,7 +261,7 @@ export class ConfigManager {
    */
   public getSlopReductionNotifyEvery(): number {
     return this.config.get<number>(
-      'yoloSlopReduction.notifyEvery',
+      CONFIG_KEYS.yoloSlopReductionNotifyEvery.replace('gofer.', ''),
       DEFAULTS.yoloSlopReductionNotifyEvery
     );
   }
@@ -277,6 +280,8 @@ export class ConfigManager {
       telemetryEnabled: this.getTelemetryEnabled(),
       updateCheckInterval: this.getUpdateCheckInterval(),
       performanceMode: this.getPerformanceMode(),
+      yoloSlopReductionEnabled: this.getSlopReductionEnabled(),
+      yoloSlopReductionNotifyEvery: this.getSlopReductionNotifyEvery(),
     };
   }
 }

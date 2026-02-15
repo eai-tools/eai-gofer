@@ -519,8 +519,7 @@ describe('AutoHandoffTrigger', () => {
 
       expect(mockReducer.reduceWorkspace).toHaveBeenCalled();
       expect(vscode.window.showInformationMessage).toHaveBeenCalledWith(
-        expect.stringContaining('auto-reduced 3 slop issues'),
-        'View Log'
+        expect.stringContaining('Cleaned 3 issues in 2 files')
       );
     });
 
@@ -534,21 +533,21 @@ describe('AutoHandoffTrigger', () => {
 
       expect(mockReducer.reduceWorkspace).toHaveBeenCalled();
       expect(vscode.window.showInformationMessage).toHaveBeenCalledWith(
-        expect.stringContaining('no AI slop found')
+        expect.stringContaining('workspace already clean')
       );
     });
 
     it('should include utilization % in notification', async () => {
-      const mockReducer = createMockSlopReducer();
+      const mockReducer = createMockSlopReducer(0, 0);
       trigger.setSlopReducer(mockReducer as never);
       trigger.connect(monitor);
 
       monitor.emit('critical', createCriticalStatus());
       await vi.runAllTimersAsync();
 
+      // When no fixes and no compaction, message includes percent
       expect(vscode.window.showInformationMessage).toHaveBeenCalledWith(
-        expect.stringContaining('85%'),
-        expect.anything()
+        expect.stringContaining('85%')
       );
     });
 
@@ -609,7 +608,7 @@ describe('AutoHandoffTrigger', () => {
         102000,
         120000,
         85,
-        expect.stringContaining('auto-slop-reduction')
+        expect.stringContaining('auto-context-clean')
       );
     });
   });

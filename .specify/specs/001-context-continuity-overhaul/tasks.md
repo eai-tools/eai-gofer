@@ -47,27 +47,27 @@ graph LR
 **Goal**: Create the bash scripts that bridge prompt-layer commands to JSONL
 files
 
-- [ ] T001 Create `write-session-memory.sh` in `.specify/scripts/bash/` —
+- [x] T001 Create `write-session-memory.sh` in `.specify/scripts/bash/` —
       accepts --task-id, --feature-id, --type, --content, --session-id, --files
       arguments; appends JSON line to `.specify/logs/session-memory.jsonl`; lazy
       directory creation; always exits 0
-- [ ] T002 [P] Create `write-failed-approach.sh` in `.specify/scripts/bash/` —
+- [x] T002 [P] Create `write-failed-approach.sh` in `.specify/scripts/bash/` —
       accepts --task-id, --feature-id, --approach, --reason, --files,
       --session-id arguments; appends JSON line to
       `.specify/logs/failed-approaches.jsonl`; always exits 0
-- [ ] T003 [P] Create `write-periodic-checkpoint.sh` in `.specify/scripts/bash/`
+- [x] T003 [P] Create `write-periodic-checkpoint.sh` in `.specify/scripts/bash/`
       — accepts --feature-id, --task-number, --total-tasks, --completed,
       --decisions, --files-modified arguments; writes JSON to
       `.specify/memory/checkpoints/periodic-{timestamp}.json`
-- [ ] T004 Create `read-session-memories.sh` in `.specify/scripts/bash/` —
+- [x] T004 Create `read-session-memories.sh` in `.specify/scripts/bash/` —
       accepts --feature-id, --limit arguments; reads
       `.specify/logs/session-memory.jsonl`, filters by feature, formats output
       for prompt consumption
-- [ ] T005 [P] Create `read-failed-approaches.sh` in `.specify/scripts/bash/` —
+- [x] T005 [P] Create `read-failed-approaches.sh` in `.specify/scripts/bash/` —
       accepts --feature-id, --sessions arguments; reads
       `.specify/logs/failed-approaches.jsonl`, filters by feature and last N
       sessions, formats output as warnings
-- [ ] T006 [P] Copy all 5 new bash scripts to
+- [x] T006 [P] Copy all 5 new bash scripts to
       `extension/resources/bash-scripts/` for bundled distribution
 
 **Verification**:
@@ -84,15 +84,15 @@ files
 **Goal**: Add incremental memory extraction, failed approach logging, and
 periodic checkpoints to the implementation loop
 
-- [ ] T007 [US1] Add session-memory extraction instruction to
+- [x] T007 [US1] Add session-memory extraction instruction to
       `.claude/commands/5_gofer_implement.md` after step 7 (task completion
       mark) — instruct the agent to call `write-session-memory.sh` with a 1-3
       sentence learning after each `- [X]` mark
-- [ ] T008 [US3] Add failed approach logging instruction to
+- [x] T008 [US3] Add failed approach logging instruction to
       `.claude/commands/5_gofer_implement.md` in the Feedback Loop error
       handling section — instruct the agent to call `write-failed-approach.sh`
       when an approach fails before trying an alternative
-- [ ] T009 [US5] Add periodic checkpoint instruction to
+- [x] T009 [US5] Add periodic checkpoint instruction to
       `.claude/commands/5_gofer_implement.md` — add instruction to call
       `write-periodic-checkpoint.sh` every 5 completed tasks (after the existing
       "every 5 tasks context health check" at line 75-77)
@@ -110,24 +110,24 @@ periodic checkpoints to the implementation loop
 
 **Goal**: Make resume stage-aware and load session memories + failed approaches
 
-- [ ] T010 [US2] Add stage detection logic to
+- [x] T010 [US2] Add stage detection logic to
       `.claude/commands/8_gofer_resume.md` — detect current stage from session
       checkpoint YAML `stage` field, or infer from artifact presence (tasks.md
       exists → implement, plan.md but no tasks → plan, etc.)
-- [ ] T011 [US2] Add Stage Loading Matrix to
+- [x] T011 [US2] Add Stage Loading Matrix to
       `.claude/commands/8_gofer_resume.md` — define which artifacts to fully
       read, summarize, or skip per stage (implement: full-load tasks.md+plan.md,
       summary spec.md+research.md; validate: full-load tasks.md+spec.md, summary
       plan.md, skip research.md)
-- [ ] T012 [US1] Add session-memory loading step to
+- [x] T012 [US1] Add session-memory loading step to
       `.claude/commands/8_gofer_resume.md` — instruct the agent to run
       `read-session-memories.sh --feature-id {feature} --limit 20` and display
       learnings from previous sessions
-- [ ] T013 [US3] Add failed-approaches loading step to
+- [x] T013 [US3] Add failed-approaches loading step to
       `.claude/commands/8_gofer_resume.md` — instruct the agent to run
       `read-failed-approaches.sh --feature-id {feature} --sessions 3` and
       display as "Approaches Already Tried" warnings before resuming work
-- [ ] T014 [US5] Add periodic checkpoint fallback to
+- [x] T014 [US5] Add periodic checkpoint fallback to
       `.claude/commands/8_gofer_resume.md` — if no session-checkpoint.md exists,
       load the most recent `periodic-*.json` from `.specify/memory/checkpoints/`
       and use its tasksCompleted list to determine resume point
@@ -146,23 +146,23 @@ periodic checkpoints to the implementation loop
 **Goal**: Extend MemoryConsolidator with UPDATE operation for contradictory
 memories
 
-- [ ] T015 [US7] Write tests for conflict detection in
+- [x] T015 [US7] Write tests for conflict detection in
       `tests/unit/autonomous/MemoryConsolidator.test.ts` — test findConflicts()
       identifies memories with Jaccard overlap ≥0.5 and shared tags; test
       conflict resolution archives older memory with supersededBy field
-- [ ] T016 [US7] Add `CONFLICT_OVERLAP_THRESHOLD = 0.5` constant to
+- [x] T016 [US7] Add `CONFLICT_OVERLAP_THRESHOLD = 0.5` constant to
       `extension/src/autonomous/MemoryConsolidator.ts`
-- [ ] T017 [US7] Add `findConflicts(memories: Memory[])` private method to
+- [x] T017 [US7] Add `findConflicts(memories: Memory[])` private method to
       `extension/src/autonomous/MemoryConsolidator.ts` — returns pairs of
       conflicting memories where Jaccard overlap is ≥0.5 but <0.8 (below dedup
       threshold) AND they share at least one tag
-- [ ] T018 [US7] Add conflict resolution step to `consolidate()` in
+- [x] T018 [US7] Add conflict resolution step to `consolidate()` in
       `extension/src/autonomous/MemoryConsolidator.ts` — between step 1
       (duplicate detection) and step 2 (stale detection); archive older memory
       with `supersededBy` field pointing to newer memory ID
-- [ ] T019 [US7] Add `conflictsResolved: number` field to `ConsolidationResult`
+- [x] T019 [US7] Add `conflictsResolved: number` field to `ConsolidationResult`
       interface in `extension/src/autonomous/MemoryConsolidator.ts`
-- [ ] T020 [P] [US7] Add consolidation log entry for each conflict resolution —
+- [x] T020 [P] [US7] Add consolidation log entry for each conflict resolution —
       log both memory IDs, resolution action, and timestamp to console.log
       following existing pattern at line 212-217
 
@@ -181,21 +181,21 @@ memories
 **Goal**: Add save/load methods to ObservationMasker for cross-session cache
 persistence
 
-- [ ] T021 [US6] Write tests for manifest save/load in
+- [x] T021 [US6] Write tests for manifest save/load in
       `tests/unit/autonomous/ObservationMasker.test.ts` — test saveManifest
       writes JSONL with correct hashes; test loadManifest verifies hashes and
       restores valid entries; test stale entries are discarded; test missing
       files handled gracefully
-- [ ] T022 [US6] Add `saveManifest(outputPath?: string): void` method to
+- [x] T022 [US6] Add `saveManifest(outputPath?: string): void` method to
       `extension/src/autonomous/ObservationMasker.ts` — serialize all cached
       observations to `.specify/memory/observation-cache/manifest.jsonl` with
       SHA-256 content hashes; use sync I/O (consistent with existing cache save)
-- [ ] T023 [US6] Add
+- [x] T023 [US6] Add
       `loadManifest(inputPath?: string): { restored: number; stale: number; missing: number }`
       method to `extension/src/autonomous/ObservationMasker.ts` — read manifest,
       verify file hashes with 2-tier checking (mtime first, SHA-256 second),
       restore valid entries to cache, discard stale/missing
-- [ ] T024 [P] [US6] Add manifest types — `ObservationManifestEntry` interface
+- [x] T024 [P] [US6] Add manifest types — `ObservationManifestEntry` interface
       to `extension/src/autonomous/ObservationMasker.ts` with fields: filePath,
       contentHash, summary, tokenEstimate, turnNumber, timestamp, type
 
@@ -213,27 +213,27 @@ persistence
 **Goal**: Fix context health script to use real data and improve
 CheckpointValidator
 
-- [ ] T025 [US4] Modify `.specify/scripts/bash/check-context-health.sh` — add
+- [x] T025 [US4] Modify `.specify/scripts/bash/check-context-health.sh` — add
       function to check `context-health-state.json` freshness (< 5 minutes); if
       fresh, use its `tokensUsed` and `tokensLimit` directly
-- [ ] T026 [US4] Modify `.specify/scripts/bash/check-context-health.sh` — fix
+- [x] T026 [US4] Modify `.specify/scripts/bash/check-context-health.sh` — fix
       fallback estimation to count only: current feature spec artifacts
       (spec.md, plan.md, tasks.md, research.md) + CLAUDE.md + AGENTS.md; remove
       `calculate_source_context()` function that counts all source files from
       recent commits
-- [ ] T027 [P] [US4] Add `dataSource` field to JSON output in
+- [x] T027 [P] [US4] Add `dataSource` field to JSON output in
       `.specify/scripts/bash/check-context-health.sh` — value is "real" when
       using context-health-state.json, "estimated" when using filesystem
       fallback
-- [ ] T028 [P] [US4] Copy updated `check-context-health.sh` to
+- [x] T028 [P] [US4] Copy updated `check-context-health.sh` to
       `extension/resources/bash-scripts/check-context-health.sh`
-- [ ] T029 [US8] Write tests for CheckpointValidator token budget increase in
+- [x] T029 [US8] Write tests for CheckpointValidator token budget increase in
       `tests/unit/autonomous/CheckpointValidator.test.ts` — test warning at 8000
       tokens (not 5000); test empty section detection for "Key Decisions" and
       "Next Steps"
-- [ ] T030 [US8] Update `MAX_TOKEN_BUDGET` constant from 5000 to 8000 in
+- [x] T030 [US8] Update `MAX_TOKEN_BUDGET` constant from 5000 to 8000 in
       `extension/src/autonomous/CheckpointValidator.ts`
-- [ ] T031 [US8] Add empty section validation to `validate()` method in
+- [x] T031 [US8] Add empty section validation to `validate()` method in
       `extension/src/autonomous/CheckpointValidator.ts` — warn if "Key
       Decisions" or "Next Steps" sections exist but have no content after the
       heading
@@ -253,23 +253,23 @@ CheckpointValidator
 
 **Goal**: Enrich handoff documents and unify format
 
-- [ ] T032 [US8] Add "Failed Approaches" section to
+- [x] T032 [US8] Add "Failed Approaches" section to
       `.claude/commands/7_gofer_save.md` — instruct the agent to run
       `read-failed-approaches.sh` and include output in the handoff document
       under "## Failed Approaches"
-- [ ] T033 [US8] Add "Session Memories" section to
+- [x] T033 [US8] Add "Session Memories" section to
       `.claude/commands/7_gofer_save.md` — instruct the agent to run
       `read-session-memories.sh` and include top-priority learnings under "##
       Session Memories"
-- [ ] T034 [P] [US8] Update token budget guidance in
+- [x] T034 [P] [US8] Update token budget guidance in
       `.claude/commands/7_gofer_save.md` — change budget reference from 5,000 to
       8,000 tokens
-- [ ] T035 [US8] Align handoff format in
+- [x] T035 [US8] Align handoff format in
       `extension/src/autonomous/AutoHandoffTrigger.ts`
       `generateHandoffDocument()` method — ensure the generated markdown
       includes "Failed Approaches" and "Session Memories" sections by reading
       the JSONL files if they exist
-- [ ] T036 [P] [US8] Write test for AutoHandoffTrigger handoff format alignment
+- [x] T036 [P] [US8] Write test for AutoHandoffTrigger handoff format alignment
       in `tests/unit/autonomous/AutoHandoffTrigger.test.ts` — test that
       generateHandoffDocument output includes Failed Approaches and Session
       Memories sections
@@ -288,16 +288,16 @@ CheckpointValidator
 
 **Goal**: Final integration, build verification, and cleanup
 
-- [ ] T037 [P] Verify all bash scripts are executable — run `chmod +x` on all
+- [x] T037 [P] Verify all bash scripts are executable — run `chmod +x` on all
       new scripts in `.specify/scripts/bash/` and
       `extension/resources/bash-scripts/`
-- [ ] T038 Run full test suite — `npm test` to verify no regressions
-- [ ] T039 Run TypeScript type check — `npx tsc --noEmit` to verify all type
+- [x] T038 Run full test suite — `npm test` to verify no regressions
+- [x] T039 Run TypeScript type check — `npx tsc --noEmit` to verify all type
       additions compile
-- [ ] T040 Run ESLint — `npm run lint` to verify code quality
-- [ ] T041 [P] Verify JSONL file creation — run write scripts manually, verify
+- [x] T040 Run ESLint — `npm run lint` to verify code quality
+- [x] T041 [P] Verify JSONL file creation — run write scripts manually, verify
       output format matches data-model.md entity definitions
-- [ ] T042 End-to-end prompt flow test — simulate /5_gofer_implement task
+- [x] T042 End-to-end prompt flow test — simulate /5_gofer_implement task
       completion and verify session-memory.jsonl is populated, then simulate
       /8_gofer_resume and verify memories are loaded
 

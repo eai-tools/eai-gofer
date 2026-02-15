@@ -11,6 +11,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
+import * as crypto from 'crypto';
 import {
   ObservationMasker,
   type TrackObservationInput,
@@ -439,6 +440,238 @@ describe('ObservationMasker', () => {
 
       const config = masker.getConfig();
       expect(config.ageThresholdTurns).toBe(20);
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Manifest Persistence Tests (T021)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  describe('saveManifest', () => {
+    it('should write JSONL manifest with correct hashes', () => {
+      // Create a real file so we can verify hash
+      const testFilePath = path.join(tempDir, 'src', 'example.ts');
+      fs.mkdirSync(path.dirname(testFilePath), { recursive: true });
+      const fileContent = 'export const greeting = "hello";';
+      fs.writeFileSync(testFilePath, fileContent, 'utf-8');
+
+      // Track observation with filePath metadata
+      masker.trackObservation({
+        timestamp: Date.now(),
+        turnNumber: 1,
+        type: 'file_read',
+        originalContent: fileContent,
+        metadata: { filePath: testFilePath },
+        summary: 'Greeting module',
+      });
+
+      const manifestPath = path.join(tempDir, 'manifest-test.jsonl');
+      masker.saveManifest(manifestPath);
+
+      // Verify file exists and contains JSONL
+      const content = fs.readFileSync(manifestPath, 'utf-8');
+      const lines = content.trim().split('\n');
+      expect(lines.length).toBe(1);
+
+      const entry = JSON.parse(lines[0]);
+      expect(entry.filePath).toBe(testFilePath);
+      expect(entry.contentHash).toBeDefined();
+      expect(entry.contentHash.length).toBe(64); // SHA-256 hex
+      expect(entry.summary).toBe('Greeting module');
+      expect(entry.tokenEstimate).toBeGreaterThan(0);
+      expect(entry.turnNumber).toBe(1);
+      expect(entry.type).toBe('file_read');
+    });
+
+    it('should only persist observations with filePath metadata', () => {
+      // Track one with filePath and one without
+      masker.trackObservation({
+        timestamp: Date.now(),
+        turnNumber: 1,
+        type: 'file_read',
+        originalContent: 'file content',
+        metadata: { filePath: '/some/file.ts' },
+      });
+      masker.trackObservation({
+        timestamp: Date.now(),
+        turnNumber: 2,
+        type: 'command_output',
+        originalContent: 'npm run build output',
+        // No filePath metadata
+      });
+
+      const manifestPath = path.join(tempDir, 'manifest-filter-test.jsonl');
+      masker.saveManifest(manifestPath);
+
+      const content = fs.readFileSync(manifestPath, 'utf-8');
+      const lines = content
+        .trim()
+        .split('\n')
+        .filter((l) => l.length > 0);
+      expect(lines.length).toBe(1); // Only the file_read with filePath
+    });
+
+    it('should write empty file when no eligible observations', () => {
+      masker.trackObservation({
+        timestamp: Date.now(),
+        turnNumber: 1,
+        type: 'command_output',
+        originalContent: 'output without file path',
+      });
+
+      const manifestPath = path.join(tempDir, 'manifest-empty-test.jsonl');
+      masker.saveManifest(manifestPath);
+
+      const content = fs.readFileSync(manifestPath, 'utf-8');
+      expect(content).toBe('');
+    });
+  });
+
+  describe('loadManifest', () => {
+    it('should restore valid entries with matching hashes', () => {
+      // Create a real file
+      const testFilePath = path.join(tempDir, 'src', 'valid.ts');
+      fs.mkdirSync(path.dirname(testFilePath), { recursive: true });
+      const fileContent = 'const valid = true;';
+      fs.writeFileSync(testFilePath, fileContent, 'utf-8');
+
+      // Compute the expected hash
+      const expectedHash = crypto.createHash('sha256').update(fileContent).digest('hex');
+
+      // Write a manifest entry directly
+      const manifestPath = path.join(tempDir, 'manifest-load-test.jsonl');
+      const entry = {
+        filePath: testFilePath,
+        contentHash: expectedHash,
+        summary: 'Valid file',
+        tokenEstimate: 5,
+        turnNumber: 3,
+        timestamp: Date.now() - 10000, // Older than file mtime to trigger hash check
+        type: 'file_read',
+      };
+      fs.writeFileSync(manifestPath, JSON.stringify(entry) + '\n', 'utf-8');
+
+      const result = masker.loadManifest(manifestPath);
+
+      expect(result.restored).toBe(1);
+      expect(result.stale).toBe(0);
+      expect(result.missing).toBe(0);
+
+      // Verify observation was added to cache
+      const observations = masker.getAllObservations();
+      expect(observations.length).toBe(1);
+      expect(observations[0].masked).toBe(true);
+      expect(observations[0].type).toBe('file_read');
+    });
+
+    it('should discard entries for missing files', () => {
+      const manifestPath = path.join(tempDir, 'manifest-missing-test.jsonl');
+      const entry = {
+        filePath: path.join(tempDir, 'nonexistent', 'file.ts'),
+        contentHash: 'abc123',
+        tokenEstimate: 10,
+        turnNumber: 1,
+        timestamp: Date.now(),
+        type: 'file_read',
+      };
+      fs.writeFileSync(manifestPath, JSON.stringify(entry) + '\n', 'utf-8');
+
+      const result = masker.loadManifest(manifestPath);
+
+      expect(result.restored).toBe(0);
+      expect(result.missing).toBe(1);
+      expect(result.stale).toBe(0);
+    });
+
+    it('should discard stale entries when file content changed', () => {
+      // Create a file with original content
+      const testFilePath = path.join(tempDir, 'src', 'stale.ts');
+      fs.mkdirSync(path.dirname(testFilePath), { recursive: true });
+      const originalContent = 'const original = 1;';
+      fs.writeFileSync(testFilePath, originalContent, 'utf-8');
+
+      // Hash of OLD content (different from current)
+      const oldHash = crypto.createHash('sha256').update('const old = 0;').digest('hex');
+
+      const manifestPath = path.join(tempDir, 'manifest-stale-test.jsonl');
+      const entry = {
+        filePath: testFilePath,
+        contentHash: oldHash,
+        tokenEstimate: 5,
+        turnNumber: 2,
+        timestamp: Date.now() - 100000, // Older than file mtime
+        type: 'file_read',
+      };
+      fs.writeFileSync(manifestPath, JSON.stringify(entry) + '\n', 'utf-8');
+
+      const result = masker.loadManifest(manifestPath);
+
+      expect(result.restored).toBe(0);
+      expect(result.stale).toBe(1);
+      expect(result.missing).toBe(0);
+    });
+
+    it('should handle missing manifest file gracefully', () => {
+      const result = masker.loadManifest(path.join(tempDir, 'nonexistent-manifest.jsonl'));
+
+      expect(result.restored).toBe(0);
+      expect(result.stale).toBe(0);
+      expect(result.missing).toBe(0);
+    });
+
+    it('should skip invalid JSONL lines', () => {
+      // Create a valid file for the valid entry
+      const testFilePath = path.join(tempDir, 'src', 'valid2.ts');
+      fs.mkdirSync(path.dirname(testFilePath), { recursive: true });
+      const fileContent = 'const x = 2;';
+      fs.writeFileSync(testFilePath, fileContent, 'utf-8');
+      const validHash = crypto.createHash('sha256').update(fileContent).digest('hex');
+
+      const manifestPath = path.join(tempDir, 'manifest-invalid-test.jsonl');
+      const validEntry = {
+        filePath: testFilePath,
+        contentHash: validHash,
+        tokenEstimate: 3,
+        turnNumber: 1,
+        timestamp: Date.now() - 10000,
+        type: 'file_read',
+      };
+      // Write one invalid line followed by one valid line
+      fs.writeFileSync(
+        manifestPath,
+        'not valid json\n' + JSON.stringify(validEntry) + '\n',
+        'utf-8'
+      );
+
+      const result = masker.loadManifest(manifestPath);
+
+      expect(result.restored).toBe(1); // Only the valid entry
+    });
+
+    it('should restore entry when mtime changed but content hash matches', () => {
+      // Create file
+      const testFilePath = path.join(tempDir, 'src', 'touchonly.ts');
+      fs.mkdirSync(path.dirname(testFilePath), { recursive: true });
+      const fileContent = 'const touched = true;';
+      fs.writeFileSync(testFilePath, fileContent, 'utf-8');
+      const hash = crypto.createHash('sha256').update(fileContent).digest('hex');
+
+      const manifestPath = path.join(tempDir, 'manifest-touch-test.jsonl');
+      const entry = {
+        filePath: testFilePath,
+        contentHash: hash,
+        tokenEstimate: 5,
+        turnNumber: 4,
+        timestamp: Date.now() - 100000, // Older than file mtime
+        type: 'file_read',
+      };
+      fs.writeFileSync(manifestPath, JSON.stringify(entry) + '\n', 'utf-8');
+
+      const result = masker.loadManifest(manifestPath);
+
+      // mtime is newer but hash matches → still valid
+      expect(result.restored).toBe(1);
+      expect(result.stale).toBe(0);
     });
   });
 

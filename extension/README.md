@@ -173,6 +173,143 @@ execution across multiple AI providers for research and analysis workflows.
 5. Chairman LLM synthesizes unified output
 6. Usage logged to `.specify/logs/council-usage.jsonl`
 
+### 🧠 Context Continuity Management (v1.9.0+)
+
+Gofer includes advanced context window management to prevent AI context
+degradation during long implementation sessions. The system monitors context
+usage in real-time and automatically preserves progress when limits are
+approached.
+
+#### Features
+
+- **Real-Time Context Monitoring**: Track token usage across conversation, code,
+  memories, and research documents
+- **Auto-Save Triggering**: Automatically triggers session save at 70% context
+  threshold
+- **Observation Masking**: Reduces context usage by 50%+ by masking older tool
+  outputs
+- **Stage-Aware Memory Loading**: Loads relevant memories based on current
+  workflow stage
+- **Failed Approaches Registry**: Tracks and warns about previously failed
+  approaches
+- **Session Handoff Documents**: Preserves full context across sessions
+- **VSCode Status Bar Integration**: Real-time context health indicator
+
+#### How It Works
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│ Context Window (200K tokens)                                │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  0-50%: ● GREEN - Healthy                                   │
+│  ↓ Implementation proceeding normally                      │
+│  ↓ All observations active                                 │
+│                                                             │
+│  50-69%: ⚠ YELLOW - Warning                                │
+│  ↓ System begins masking older observations                │
+│  ↓ Loading only high-priority memories                     │
+│  ↓ Checkpoint recommended                                  │
+│                                                             │
+│  69%: 💾 AUTO-SAVE THRESHOLD (configurable)                │
+│  ↓ Automatically triggers /7_gofer_save if enabled         │
+│  ↓ Or shows "Save Now" notification if disabled            │
+│                                                             │
+│  70%+: ⛔ RED - Critical                                    │
+│  ↓ Context accuracy degradation risk high                  │
+│  ↓ Creates handoff document with full state                │
+│  ↓ New session strongly recommended                        │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### Context Budget Allocation
+
+Each workflow stage has optimized context profiles:
+
+| Stage     | Research | Memory | Code | Conversation | Obs. Window |
+| --------- | -------- | ------ | ---- | ------------ | ----------- |
+| Research  | 40%      | 20%    | 20%  | 20%          | 10 turns    |
+| Specify   | 30%      | 30%    | 20%  | 20%          | 8 turns     |
+| Plan      | 25%      | 30%    | 25%  | 20%          | 7 turns     |
+| Tasks     | 20%      | 35%    | 25%  | 20%          | 6 turns     |
+| Implement | 15%      | 25%    | 40%  | 20%          | 5 turns     |
+| Validate  | 20%      | 20%    | 30%  | 30%          | 3 turns     |
+
+#### Observation Masking
+
+Older tool outputs are automatically masked to reduce context usage:
+
+```text
+Before Masking (5000 tokens):
+[Full file content with 200 lines of code...]
+
+After Masking (50 tokens):
+<observation_masked id="abc123" type="file_read" tokens="1250" />
+```
+
+Masked observations can be expanded on-demand via MCP tools when needed.
+
+#### Session Handoffs
+
+When context reaches critical levels:
+
+1. **Save**: `/7_gofer_save` creates comprehensive checkpoint
+   - Current task progress and blockers
+   - Key decisions and rationale
+   - File modifications made
+   - Session memories and failed approaches
+
+2. **Resume**: `/8_gofer_resume` restores full context
+   - Loads handoff document
+   - Restores relevant memories
+   - Re-establishes stage context
+   - Continues seamlessly
+
+#### Status Bar Indicator
+
+The VSCode status bar shows real-time context health:
+
+- **$(check) Healthy** - Context < 50%
+- **$(warning) Warning** - Context 50-70%
+- **$(error) Critical** - Context > 70%
+
+Click the indicator to view detailed breakdown by category.
+
+#### Commands
+
+- `Gofer: Check Context Health` - View detailed context usage report
+- `Gofer: Show Context Breakdown` - Category-by-category analysis
+- `Gofer: Clear Observation Cache` - Reset masked observations
+
+#### Configuration
+
+Configure context management in VSCode Settings (Settings > Gofer):
+
+- `gofer.contextWindow.autoExecuteSave` - Auto-execute /7_gofer_save at
+  threshold (default: false)
+  - When `true`: Automatically sends `/7_gofer_save` to Claude Code terminal
+    when threshold is reached
+  - When `false`: Shows notification with "Save Now" button
+
+- `gofer.contextWindow.autoSaveThreshold` - Context utilization threshold for
+  auto-save (default: 0.69)
+  - Research-based optimal: 69% prevents accuracy degradation
+  - Range: 0.0 to 1.0 (e.g., 0.69 = 69%)
+
+- `gofer.contextWindow.enableObservationMasking` - Enable masking older
+  observations (default: true)
+  - Reduces context usage by 50%+ by replacing old tool outputs with
+    placeholders
+
+- `gofer.contextWindow.observationWindow` - Number of recent turns to keep
+  unmasked (default: varies by stage)
+  - Research: 10 turns, Implement: 5 turns, Validate: 3 turns
+
+- `gofer.contextWindow.enableMemoryFirstLoading` - Load memories before research
+  docs (default: true)
+  - Memory-first strategy reduces redundant context loading by ~40%
+
 ### MCP Tools for AI Assistants
 
 Gofer provides 6 Model Context Protocol (MCP) tools that AI assistants can

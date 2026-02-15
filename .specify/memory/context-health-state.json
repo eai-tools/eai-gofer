@@ -1,8 +1,8 @@
 {
-  "timestamp": 1771192170772,
+  "timestamp": 1771192540639,
   "status": "warning",
-  "utilizationPercent": 60.8,
-  "tokensUsed": 121601,
+  "utilizationPercent": 65.44,
+  "tokensUsed": 130870,
   "tokensLimit": 200000,
   "breakdown": {
     "specArtifacts": 0,
@@ -10,10 +10,10 @@
     "hints": 0,
     "observations": 0,
     "systemFiles": 0,
-    "conversation": 121601
+    "conversation": 130870
   },
   "recommendations": [
-    "Context at 61%. Consider reducing context soon.",
+    "Context at 65%. Consider reducing context soon.",
     "Long conversation history. Consider starting a new session with /8_gofer_resume.",
     "During validation, focus on test outputs and error messages."
   ],

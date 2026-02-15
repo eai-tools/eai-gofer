@@ -74,6 +74,9 @@ export interface Memory {
 
   /** T033: Top 3 related memory IDs with similarity scores */
   relatedMemories?: Array<{ memoryId: string; similarity: number }>;
+
+  /** ID of newer memory that supersedes this one (set during conflict resolution) */
+  supersededBy?: string;
 }
 
 // ============================================================================

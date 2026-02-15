@@ -12,6 +12,9 @@ import {
   ContextHealthMonitor,
   type ContextHealthStatus,
 } from '../../../extension/src/autonomous/ContextHealthMonitor';
+import * as os from 'os';
+import * as path from 'path';
+import * as fs from 'fs';
 
 // Mock Logger first
 vi.mock('../../../extension/src/utils/logger', () => ({
@@ -34,6 +37,9 @@ vi.mock('vscode', () => ({
   },
   commands: {
     executeCommand: vi.fn().mockResolvedValue(undefined),
+  },
+  workspace: {
+    workspaceFolders: undefined,
   },
 }));
 
@@ -154,8 +160,7 @@ describe('AutoHandoffTrigger', () => {
 
   describe('monitor connection', () => {
     it('should connect to ContextHealthMonitor', () => {
-      trigger.connect(monitor);
-      // Should not throw
+      expect(() => trigger.connect(monitor)).not.toThrow();
     });
 
     it('should trigger notification on critical event', async () => {
@@ -441,6 +446,75 @@ describe('AutoHandoffTrigger', () => {
       expect(doc).toContain('## Resume Instructions');
       expect(doc).toContain('/8_gofer_resume');
     });
+
+    it('should include Failed Approaches section when JSONL entries exist', () => {
+      const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'handoff-test-'));
+      const logsDir = path.join(tmpDir, '.specify/logs');
+      fs.mkdirSync(logsDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(logsDir, 'failed-approaches.jsonl'),
+        JSON.stringify({ approach: 'Use polling', reason: 'Too slow for real-time updates' }) +
+          '\n',
+        'utf-8'
+      );
+
+      const triggerWithWorkspace = new AutoHandoffTrigger({ notificationCooldownMs: 1000 }, tmpDir);
+      const status = createCriticalStatus();
+      const doc = triggerWithWorkspace.generateHandoffDocument(status, {
+        sessionId: 'test',
+        currentStage: 'implement',
+      });
+
+      expect(doc).toContain('## Failed Approaches');
+      expect(doc).toContain('Use polling');
+      expect(doc).toContain('Too slow for real-time updates');
+
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    });
+
+    it('should include Session Memories section when JSONL entries exist', () => {
+      const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'handoff-test-'));
+      const logsDir = path.join(tmpDir, '.specify/logs');
+      fs.mkdirSync(logsDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(logsDir, 'session-memory.jsonl'),
+        JSON.stringify({
+          type: 'learning',
+          taskId: 'T005',
+          content: 'Always source common.sh first',
+        }) + '\n',
+        'utf-8'
+      );
+
+      const triggerWithWorkspace = new AutoHandoffTrigger({ notificationCooldownMs: 1000 }, tmpDir);
+      const status = createCriticalStatus();
+      const doc = triggerWithWorkspace.generateHandoffDocument(status, {
+        sessionId: 'test',
+        currentStage: 'implement',
+      });
+
+      expect(doc).toContain('## Session Memories');
+      expect(doc).toContain('learning');
+      expect(doc).toContain('Always source common.sh first');
+
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    });
+
+    it('should not include Failed Approaches or Session Memories when no JSONL files exist', () => {
+      const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'handoff-test-'));
+
+      const triggerWithWorkspace = new AutoHandoffTrigger({ notificationCooldownMs: 1000 }, tmpDir);
+      const status = createCriticalStatus();
+      const doc = triggerWithWorkspace.generateHandoffDocument(status, {
+        sessionId: 'test',
+        currentStage: 'implement',
+      });
+
+      expect(doc).not.toContain('## Failed Approaches');
+      expect(doc).not.toContain('## Session Memories');
+
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    });
   });
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -450,7 +524,13 @@ describe('AutoHandoffTrigger', () => {
   describe('session context', () => {
     it('should update session context', () => {
       trigger.setSessionContext('session-456', 'research', 'T001: Research task');
-      // No direct getter, but we can verify through handoff document
+      const doc = trigger.generateHandoffDocument(createCriticalStatus(), {
+        sessionId: 'session-456',
+        currentStage: 'research',
+        currentTask: 'T001: Research task',
+      });
+      expect(doc).toContain('session_id: session-456');
+      expect(doc).toContain('stage: research');
     });
 
     it('should use session context in notifications', async () => {
@@ -679,19 +759,18 @@ describe('AutoHandoffTrigger', () => {
   describe('disposal', () => {
     it('should clean up on dispose', () => {
       trigger.connect(monitor);
-      trigger.dispose();
-      // Should not throw
+      expect(() => trigger.dispose()).not.toThrow();
     });
 
     it('should not respond to events after dispose', async () => {
       trigger.connect(monitor);
       trigger.dispose();
 
+      vi.clearAllMocks();
       monitor.emit('critical', createCriticalStatus());
       await vi.runAllTimersAsync();
 
-      // Notification should not be shown after disposal
-      // Note: The mock may still have calls from before disposal
+      expect(vscode.window.showWarningMessage).not.toHaveBeenCalled();
     });
   });
 });

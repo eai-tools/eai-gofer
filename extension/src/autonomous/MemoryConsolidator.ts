@@ -11,9 +11,11 @@
  */
 
 import * as fs from 'fs/promises';
+import * as path from 'path';
 import * as crypto from 'crypto';
 import type { Memory, MemoryType } from './memory';
 import type { MemoryStorage } from './MemoryStorage';
+import { Logger } from '../utils/logger';
 
 // ============================================================================
 // Constants
@@ -28,6 +30,9 @@ const COMPACTION_MIN_USES = 2;
 /** Keyword overlap threshold for duplicate detection (0-1) */
 const DEDUP_OVERLAP_THRESHOLD = 0.8;
 
+/** Keyword overlap threshold for conflict detection (0-1) */
+const CONFLICT_OVERLAP_THRESHOLD = 0.5;
+
 /** Days without use before priority decay kicks in */
 const DECAY_INACTIVE_DAYS = 30;
 
@@ -41,6 +46,8 @@ const DECAY_AMOUNT = 1;
 export interface ConsolidationResult {
   /** Number of duplicate memories merged */
   merged: number;
+  /** Number of conflicting memories resolved (older superseded by newer) */
+  conflictsResolved: number;
   /** Number of old memories compacted */
   compacted: number;
   /** Number of memories flagged as stale */
@@ -68,6 +75,7 @@ interface CitationVerifierLike {
 
 export class MemoryConsolidator {
   private citationVerifier: CitationVerifierLike | null = null;
+  private logger = Logger.for('MemoryConsolidator');
 
   constructor(
     private storage: MemoryStorage,
@@ -93,6 +101,7 @@ export class MemoryConsolidator {
     const totalBefore = allMemories.length;
 
     let merged = 0;
+    let conflictsResolved = 0;
     let compacted = 0;
     let flaggedStale = 0;
     let decayed = 0;
@@ -104,9 +113,7 @@ export class MemoryConsolidator {
       if (group.length <= 1) continue;
 
       // Keep the highest-priority memory, archive the rest
-      const sorted = [...group].sort(
-        (a, b) => (b.priorityIndex ?? 0) - (a.priorityIndex ?? 0)
-      );
+      const sorted = [...group].sort((a, b) => (b.priorityIndex ?? 0) - (a.priorityIndex ?? 0));
       const keeper = sorted[0];
       const removals = sorted.slice(1);
 
@@ -121,6 +128,24 @@ export class MemoryConsolidator {
         toArchive.push(dup.id);
       }
       merged += removals.length;
+    }
+
+    // Step 1.5: Detect and resolve conflicts (medium overlap + shared tags)
+    const conflicts = this.findConflicts(allMemories);
+    for (const conflict of conflicts) {
+      if (toArchive.includes(conflict.older.id)) continue; // Already archived
+
+      // Archive older memory with supersededBy reference
+      await this.storage.update(conflict.older.id, {
+        supersededBy: conflict.newer.id,
+      });
+      toArchive.push(conflict.older.id);
+      conflictsResolved++;
+
+      this.logger.info(
+        `Conflict resolved: "${conflict.older.id}" superseded by "${conflict.newer.id}"`,
+        `(overlap=${conflict.overlap.toFixed(2)}, sharedTags=${conflict.sharedTags.join(',')})`
+      );
     }
 
     // Step 2: Flag stale memories (cited files changed)
@@ -163,8 +188,7 @@ export class MemoryConsolidator {
       if (age > compactionAge && usage < COMPACTION_MIN_USES) {
         // Compact: truncate content to first 200 chars + "[compacted]" marker
         if (memory.content.length > 200) {
-          const compactedContent =
-            memory.content.substring(0, 200) + '... [compacted]';
+          const compactedContent = memory.content.substring(0, 200) + '... [compacted]';
           await this.storage.update(memory.id, {
             content: compactedContent,
             compactedFrom: memory.id,
@@ -200,6 +224,7 @@ export class MemoryConsolidator {
 
     const result: ConsolidationResult = {
       merged,
+      conflictsResolved,
       compacted,
       flaggedStale,
       decayed,
@@ -209,9 +234,9 @@ export class MemoryConsolidator {
       durationMs,
     };
 
-    console.log(
-      `[MemoryConsolidator] Consolidation complete:`,
-      `merged=${merged}, compacted=${compacted}, stale=${flaggedStale},`,
+    this.logger.info(
+      `Consolidation complete:`,
+      `merged=${merged}, conflicts=${conflictsResolved}, compacted=${compacted}, stale=${flaggedStale},`,
       `decayed=${decayed}, archived=${archived},`,
       `${totalBefore} → ${totalAfter} memories in ${durationMs}ms`
     );
@@ -240,10 +265,7 @@ export class MemoryConsolidator {
       for (let j = i + 1; j < memories.length; j++) {
         if (assigned.has(memories[j].id)) continue;
 
-        const overlap = this.calculateKeywordOverlap(
-          memories[i].content,
-          memories[j].content
-        );
+        const overlap = this.calculateKeywordOverlap(memories[i].content, memories[j].content);
         if (overlap >= DEDUP_OVERLAP_THRESHOLD) {
           group.push(memories[j]);
           assigned.add(memories[j].id);
@@ -256,6 +278,50 @@ export class MemoryConsolidator {
     }
 
     return groups;
+  }
+
+  // --------------------------------------------------------------------------
+  // Conflict Detection
+  // --------------------------------------------------------------------------
+
+  /**
+   * Find pairs of conflicting memories: medium keyword overlap (0.5-0.8)
+   * AND at least one shared tag. These are memories that cover similar topics
+   * but aren't exact duplicates — the newer one supersedes the older.
+   */
+  private findConflicts(
+    memories: Memory[]
+  ): Array<{ older: Memory; newer: Memory; overlap: number; sharedTags: string[] }> {
+    const conflicts: Array<{
+      older: Memory;
+      newer: Memory;
+      overlap: number;
+      sharedTags: string[];
+    }> = [];
+
+    for (let i = 0; i < memories.length; i++) {
+      for (let j = i + 1; j < memories.length; j++) {
+        const a = memories[i];
+        const b = memories[j];
+
+        const overlap = this.calculateKeywordOverlap(a.content, b.content);
+
+        // Must be in the conflict range: >= 0.5 but < 0.8 (below dedup threshold)
+        if (overlap < CONFLICT_OVERLAP_THRESHOLD || overlap >= DEDUP_OVERLAP_THRESHOLD) {
+          continue;
+        }
+
+        // Must share at least one tag
+        const sharedTags = (a.tags ?? []).filter((t) => (b.tags ?? []).includes(t));
+        if (sharedTags.length === 0) continue;
+
+        // Newer memory supersedes older
+        const [older, newer] = a.created <= b.created ? [a, b] : [b, a];
+        conflicts.push({ older, newer, overlap, sharedTags });
+      }
+    }
+
+    return conflicts;
   }
 
   /**
@@ -300,7 +366,7 @@ export class MemoryConsolidator {
 
     for (const citation of memory.citations) {
       try {
-        const filePath = require('path').join(this.workspaceRoot, citation.file);
+        const filePath = path.join(this.workspaceRoot, citation.file);
         const stat = await fs.stat(filePath);
         const fileModified = stat.mtimeMs;
 

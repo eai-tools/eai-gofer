@@ -1,5 +1,6 @@
 ---
-description: Resume work from saved session checkpoint with full context restoration
+description:
+  Resume work from saved session checkpoint with full context restoration
 ---
 
 # Gofer Resume
@@ -53,10 +54,10 @@ If multiple sessions found:
 ```markdown
 ## Saved Sessions Found
 
-| Feature         | Stage            | Last Saved          | Tasks Done |
-| --------------- | ---------------- | ------------------- | ---------- |
-| [feature-1]     | 5_implement      | 2026-01-13 14:30    | 12/25      |
-| [feature-2]     | 3_plan           | 2026-01-12 09:15    | 0/0        |
+| Feature     | Stage       | Last Saved       | Tasks Done |
+| ----------- | ----------- | ---------------- | ---------- |
+| [feature-1] | 5_implement | 2026-01-13 14:30 | 12/25      |
+| [feature-2] | 3_plan      | 2026-01-12 09:15 | 0/0        |
 
 Which feature would you like to resume?
 ```
@@ -76,11 +77,49 @@ If found, offer to resume from tasks.md directly.
 
 ---
 
-## Step 2: Load Session Context
+## Step 2: Detect Current Stage
 
-Once feature is identified, read in this order:
+### 2.1 Stage Detection
 
-### 2.1 Session Checkpoint (Primary)
+Determine the current pipeline stage using these rules (in priority order):
+
+1. **From session checkpoint**: If `session-checkpoint.md` exists, read the
+   `stage` field from YAML frontmatter.
+2. **From artifact presence**: Infer stage from which artifacts exist:
+   - `tasks.md` with unchecked items → `implement`
+   - `tasks.md` fully checked → `validate`
+   - `plan.md` exists, no `tasks.md` → `plan` (needs `/4_gofer_tasks`)
+   - `spec.md` exists, no `plan.md` → `specify` (needs `/3_gofer_plan`)
+   - `research.md` exists, no `spec.md` → `research` (needs `/2_gofer_specify`)
+   - Nothing → `research` (needs `/1_gofer_research`)
+3. **From periodic checkpoint**: If no `session-checkpoint.md` exists, check for
+   the most recent `periodic-*.json` in `.specify/memory/checkpoints/` and use
+   its `tasksCompleted` list to determine resume point.
+
+### 2.2 Stage Loading Matrix
+
+Load artifacts based on the detected stage. This prevents loading unnecessary
+context that wastes the context window:
+
+| Stage     | Full Load              | Summary Only         | Skip              |
+| --------- | ---------------------- | -------------------- | ----------------- |
+| research  | CLAUDE.md              | -                    | spec, plan, tasks |
+| specify   | research.md, CLAUDE.md | -                    | plan, tasks       |
+| plan      | spec.md, research.md   | -                    | tasks             |
+| tasks     | plan.md, spec.md       | research.md          | -                 |
+| implement | tasks.md, plan.md      | spec.md, research.md | -                 |
+| validate  | tasks.md, spec.md      | plan.md              | research.md       |
+
+**Full Load**: Read the entire file into context. **Summary Only**: Mention the
+file exists and note key sections, but do NOT read the full content. Only read
+specific sections if needed during work. **Skip**: Do not load at all.
+
+## Step 3: Load Session Context
+
+Once feature and stage are identified, load context per the Stage Loading
+Matrix:
+
+### 3.1 Session Checkpoint (Primary)
 
 ```bash
 Read: {FEATURE_DIR}/session-checkpoint.md
@@ -92,16 +131,58 @@ Extract from YAML frontmatter:
 - `last_commit`: Where code was at save time
 - `context_usage`: How much context was used
 
-### 2.2 Feature Artifacts
+### 3.2 Load Session Memories
+
+Load learnings from previous sessions for this feature:
 
 ```bash
-Read: {FEATURE_DIR}/tasks.md      # Current task list
-Read: {FEATURE_DIR}/plan.md       # Architecture context
-Read: {FEATURE_DIR}/spec.md       # Requirements (if needed)
-Read: {FEATURE_DIR}/research.md   # Technical context (if needed)
+.specify/scripts/bash/read-session-memories.sh \
+  --feature-id "[FEATURE_DIR_NAME]" \
+  --limit 20
 ```
 
-### 2.3 Git State
+Display the output to restore institutional knowledge from prior sessions.
+
+### 3.3 Load Failed Approaches
+
+Load failed approaches from the last 3 sessions to avoid repeating mistakes:
+
+```bash
+.specify/scripts/bash/read-failed-approaches.sh \
+  --feature-id "[FEATURE_DIR_NAME]" \
+  --sessions 3
+```
+
+Display the output as **"Approaches Already Tried"** warnings before resuming
+work. These approaches should NOT be retried without a fundamentally different
+strategy.
+
+### 3.4 Periodic Checkpoint Fallback
+
+If no `session-checkpoint.md` exists, check for the most recent periodic
+checkpoint:
+
+```bash
+ls -t .specify/memory/checkpoints/periodic-*.json 2>/dev/null | head -1
+```
+
+If found, read the checkpoint JSON and use its `tasksCompleted` array to
+determine which tasks are already done. Cross-reference with `tasks.md` to find
+the next incomplete task.
+
+### 3.5 Feature Artifacts (Per Stage Loading Matrix)
+
+Load artifacts according to the matrix in Step 2.2:
+
+```bash
+# Full Load artifacts for the detected stage
+Read: {FEATURE_DIR}/[full-load artifacts per matrix]
+
+# Summary Only artifacts — mention but do not fully read
+# "spec.md exists (12 user stories, 11 FRs) — will load sections as needed"
+```
+
+### 3.6 Git State
 
 ```bash
 # Verify we're on the right branch
@@ -116,7 +197,7 @@ git status
 
 ---
 
-## Step 3: Validate Resumption State
+## Step 4: Validate Resumption State
 
 ### 3.1 Check Code State
 
@@ -155,7 +236,7 @@ git stash pop stash@{n}  # if applicable
 
 ---
 
-## Step 4: Rebuild Mental Model
+## Step 5: Rebuild Mental Model
 
 Create a context summary for the conversation:
 
@@ -190,7 +271,7 @@ From checkpoint:
 
 ---
 
-## Step 5: Restore Todo List
+## Step 6: Restore Todo List
 
 Load the task state into TodoWrite:
 
@@ -203,41 +284,43 @@ Based on tasks.md and checkpoint:
 
 ---
 
-## Step 6: Signal Ready to Continue
+## Step 7: Signal Ready to Continue
 
 ```markdown
+================================================================ CONTEXT
+RESTORED: [Feature Name]
 ================================================================
-  CONTEXT RESTORED: [Feature Name]
-================================================================
 
-  Resuming from: [checkpoint timestamp]
-  Branch: [branch name]
-  Stage: [pipeline stage]
+Resuming from: [checkpoint timestamp] Branch: [branch name] Stage: [pipeline
+stage]
 
-  Progress:
-  - Tasks completed: [X]/[Total]
-  - Current phase: [Phase name]
-  - Current task: [Task ID] - [Description]
+Progress:
 
-  Files to focus on:
-  - [Current file from checkpoint]
-  - [Next file in task list]
+- Tasks completed: [X]/[Total]
+- Current phase: [Phase name]
+- Current task: [Task ID] - [Description]
 
-  Code Status:
-  - Build: [passing/failing]
-  - Tests: [passing/failing/skipped]
-  - Changes since save: [N commits]
+Files to focus on:
 
-  Ready to continue with: /5_gofer_implement
+- [Current file from checkpoint]
+- [Next file in task list]
 
-  Or I can pick up exactly where we left off...
+Code Status:
+
+- Build: [passing/failing]
+- Tests: [passing/failing/skipped]
+- Changes since save: [N commits]
+
+Ready to continue with: /5_gofer_implement
+
+Or I can pick up exactly where we left off...
 
 ================================================================
 ```
 
 ---
 
-## Step 7: Continue Implementation
+## Step 8: Continue Implementation
 
 Based on checkpoint state, either:
 
@@ -343,7 +426,6 @@ Options:
 Warning: Build is currently failing.
 
 Error:
-
 ```
 
 [build error output]

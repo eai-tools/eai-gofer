@@ -84,6 +84,8 @@ export interface ContextHealthConfig {
   warningThreshold: number;
   /** Critical threshold (default: 0.7 = 70%) */
   criticalThreshold: number;
+  /** Auto-save threshold (default: 0.69 = 69%) */
+  autoSaveThreshold: number;
   /** Effective context token limit (default: 120000) */
   effectiveContextLimit: number;
   /** Check interval in milliseconds (default: 5000) */
@@ -101,6 +103,7 @@ export interface ContextHealthEvents {
   healthy: (status: ContextHealthStatus) => void;
   warning: (status: ContextHealthStatus) => void;
   critical: (status: ContextHealthStatus) => void;
+  'auto-save': (status: ContextHealthStatus) => void;
   'handoff-recommended': (status: ContextHealthStatus) => void;
   'status-change': (from: HealthStatus, to: HealthStatus, status: ContextHealthStatus) => void;
 }
@@ -136,6 +139,7 @@ export interface ContextAnalysisInput {
 const DEFAULT_CONFIG: ContextHealthConfig = {
   warningThreshold: 0.5,
   criticalThreshold: 0.7,
+  autoSaveThreshold: 0.69,
   effectiveContextLimit: 120000,
   checkIntervalMs: 5000,
   autoHandoffEnabled: true,
@@ -154,6 +158,7 @@ export class ContextHealthMonitor extends EventEmitter {
   private monitoringInterval: NodeJS.Timeout | null = null;
   private statusHistory: ContextHealthStatus[] = [];
   private lastStatus: HealthStatus = 'healthy';
+  private lastUtilizationRatio: number | null = null;
   private contextProvider: (() => ContextAnalysisInput) | null = null;
   private workspaceRoot: string | null = null;
 
@@ -410,6 +415,25 @@ export class ContextHealthMonitor extends EventEmitter {
     // Always emit status-specific event so UI (status bar) stays updated
     this.emit(status.status, status);
 
+    // Check for auto-save threshold crossing (69% by default)
+    // This is checked independently of status to allow auto-save to trigger
+    // even if we're still in "warning" status (50-70%)
+    const utilizationRatio = status.utilizationPercent / 100;
+    const previousRatio = this.lastUtilizationRatio ?? 0;
+
+    if (
+      utilizationRatio >= this.config.autoSaveThreshold &&
+      previousRatio < this.config.autoSaveThreshold &&
+      status.dataSource === 'real'
+    ) {
+      this.emit('auto-save', status);
+      this.logger.warn('Auto-save threshold reached', {
+        threshold: this.config.autoSaveThreshold,
+        utilizationPercent: status.utilizationPercent,
+        tokensUsed: status.tokensUsed,
+      });
+    }
+
     // Check for status change
     if (status.status !== this.lastStatus) {
       this.emit('status-change', this.lastStatus, status.status, status);
@@ -436,6 +460,8 @@ export class ContextHealthMonitor extends EventEmitter {
 
       this.lastStatus = status.status;
     }
+
+    this.lastUtilizationRatio = utilizationRatio;
   }
 
   // ─────────────────────────────────────────────────────────────────────────────

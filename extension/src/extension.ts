@@ -368,11 +368,25 @@ async function handleGoferFormat(context: vscode.ExtensionContext, workspacePath
  */
 function initializeContextHealthMonitoring(workspacePath: string): void {
   try {
+    // Read config from VSCode settings
+    const configManager = ConfigManager.getInstance();
+
     // Create components
     contextUsageLogger = new ContextUsageLogger(workspacePath);
-    contextHealthMonitor = new ContextHealthMonitor();
+
+    // Create health monitor with auto-save threshold from settings
+    const healthMonitorConfig = {
+      autoSaveThreshold: configManager.getContextWindowAutoSaveThreshold(),
+    };
+    contextHealthMonitor = new ContextHealthMonitor(healthMonitorConfig);
     contextHealthMonitor.setWorkspaceRoot(workspacePath); // For state persistence (Spec 012)
-    autoHandoffTrigger = new AutoHandoffTrigger();
+
+    // Create auto-handoff trigger with auto-execute config from settings
+    const autoHandoffConfig = {
+      autoExecuteSave: configManager.getContextWindowAutoExecuteSave(),
+      autoSaveThreshold: configManager.getContextWindowAutoSaveThreshold(),
+    };
+    autoHandoffTrigger = new AutoHandoffTrigger(autoHandoffConfig, workspacePath);
 
     // Wire status bar to monitor
     if (contextHealthStatusBar) {

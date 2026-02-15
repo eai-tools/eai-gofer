@@ -1,0 +1,15 @@
+{
+  "session_id": "stage-1771197487471",
+  "timestamp": "2026-02-15T23:18:07.471Z",
+  "stage": "tasks",
+  "status": "stage-transition",
+  "previousStage": "validate",
+  "newStage": "tasks",
+  "type": "stage-transition",
+  "gitState": {
+    "branch": "main",
+    "status": "M .specify/logs/context-usage.jsonl\n M .specify/memory/context-health-state.json\n M .specify/memory/observation-cache/index.json",
+    "stashCount": 24,
+    "headCommit": "daf7f5a"
+  }
+}

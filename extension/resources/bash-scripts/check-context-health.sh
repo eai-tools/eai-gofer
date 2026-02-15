@@ -131,24 +131,40 @@ calculate_spec_context() {
     echo "$total"
 }
 
-# Calculate recently modified source files
-calculate_source_context() {
-    local total=0
+# Check if context-health-state.json is fresh (< 5 minutes old)
+# Returns: "real" data source and sets REAL_TOKENS_USED / REAL_TOKENS_LIMIT on success
+check_real_context_health() {
+    local state_file="$REPO_ROOT/.specify/memory/context-health-state.json"
 
-    # Get recently modified source files (last 24 hours or last 10 commits)
-    if has_git; then
-        # Files modified in last 10 commits
-        local recent_files=$(git diff --name-only HEAD~10 HEAD 2>/dev/null || echo "")
-
-        for file in $recent_files; do
-            if [[ -f "$REPO_ROOT/$file" ]]; then
-                local chars=$(get_file_chars "$REPO_ROOT/$file")
-                total=$((total + chars))
-            fi
-        done
+    if [[ ! -f "$state_file" ]]; then
+        return 1
     fi
 
-    echo "$total"
+    # Check freshness (< 5 minutes = 300 seconds)
+    local now
+    local file_mtime
+    now=$(date +%s)
+
+    if [[ "$(uname)" == "Darwin" ]]; then
+        file_mtime=$(stat -f '%m' "$state_file" 2>/dev/null || echo 0)
+    else
+        file_mtime=$(stat -c '%Y' "$state_file" 2>/dev/null || echo 0)
+    fi
+
+    local age=$((now - file_mtime))
+    if [[ $age -gt 300 ]]; then
+        return 1  # Stale (> 5 minutes)
+    fi
+
+    # Extract tokensUsed and tokensLimit using grep/sed (no jq dependency)
+    REAL_TOKENS_USED=$(grep -o '"tokensUsed"[[:space:]]*:[[:space:]]*[0-9]*' "$state_file" | grep -o '[0-9]*$' || echo "")
+    REAL_TOKENS_LIMIT=$(grep -o '"tokensLimit"[[:space:]]*:[[:space:]]*[0-9]*' "$state_file" | grep -o '[0-9]*$' || echo "")
+
+    if [[ -n "$REAL_TOKENS_USED" && -n "$REAL_TOKENS_LIMIT" && "$REAL_TOKENS_LIMIT" -gt 0 ]]; then
+        return 0
+    fi
+
+    return 1
 }
 
 # Calculate CLAUDE.md and agent files
@@ -170,17 +186,29 @@ calculate_system_context() {
 
 # Main calculation
 main() {
-    # Calculate sizes
-    local spec_chars=$(calculate_spec_context)
-    local source_chars=$(calculate_source_context)
-    local system_chars=$(calculate_system_context)
-    local total_chars=$((spec_chars + source_chars + system_chars))
+    local data_source="estimated"
+    local spec_tokens=0
+    local system_tokens=0
+    local total_tokens=0
 
-    # Estimate tokens
-    local spec_tokens=$(estimate_tokens $spec_chars)
-    local source_tokens=$(estimate_tokens $source_chars)
-    local system_tokens=$(estimate_tokens $system_chars)
-    local total_tokens=$(estimate_tokens $total_chars)
+    # Try real data first (from context-health-state.json)
+    if check_real_context_health; then
+        data_source="real"
+        total_tokens=$REAL_TOKENS_USED
+        CONTEXT_LIMIT=$REAL_TOKENS_LIMIT
+        # Breakdown not available from real data — set to 0
+        spec_tokens=0
+        system_tokens=0
+    else
+        # Fallback: estimate from spec artifacts + CLAUDE.md + AGENTS.md
+        local spec_chars=$(calculate_spec_context)
+        local system_chars=$(calculate_system_context)
+        local total_chars=$((spec_chars + system_chars))
+
+        spec_tokens=$(estimate_tokens $spec_chars)
+        system_tokens=$(estimate_tokens $system_chars)
+        total_tokens=$(estimate_tokens $total_chars)
+    fi
 
     # Calculate percentages
     local usage_percent=$((total_tokens * 100 / CONTEXT_LIMIT))
@@ -210,13 +238,13 @@ main() {
         cat <<EOF
 {
   "status": "$status",
+  "dataSource": "$data_source",
   "totalTokens": $total_tokens,
   "contextLimit": $CONTEXT_LIMIT,
   "effectiveLimit": $USE_EFFECTIVE,
   "usagePercent": $usage_percent,
   "breakdown": {
     "specArtifacts": $spec_tokens,
-    "sourceFiles": $source_tokens,
     "systemFiles": $system_tokens
   },
   "thresholds": {
@@ -277,9 +305,10 @@ EOF
         printf "] %d%%\n" $usage_percent
 
         echo ""
+        echo "  Data Source: $data_source"
+        echo ""
         echo "  Breakdown:"
         echo "    Spec artifacts:  $(printf "%6d" $spec_tokens) tokens"
-        echo "    Source files:    $(printf "%6d" $source_tokens) tokens"
         echo "    System files:    $(printf "%6d" $system_tokens) tokens"
         echo "    ─────────────────────────────"
         echo "    Total:           $(printf "%6d" $total_tokens) tokens"

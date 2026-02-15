@@ -134,7 +134,15 @@ export interface MaskResult {
  */
 export type TrackObservationInput = Omit<
   ObservationEntry,
-  'id' | 'masked' | 'maskedAt' | 'contentHash' | 'tokenEstimate' | 'decayTier' | 'keyPointsContent' | 'keyPointsAt' | 'foldLevel'
+  | 'id'
+  | 'masked'
+  | 'maskedAt'
+  | 'contentHash'
+  | 'tokenEstimate'
+  | 'decayTier'
+  | 'keyPointsContent'
+  | 'keyPointsAt'
+  | 'foldLevel'
 > & {
   /** Original content (contentHash and tokenEstimate will be calculated) */
   originalContent: string;
@@ -147,6 +155,27 @@ interface SerializedCache {
   version: number;
   observations: Array<Omit<ObservationEntry, 'metadata'> & { metadata?: Record<string, unknown> }>;
   lastSaved: number;
+}
+
+/**
+ * Manifest entry for cross-session observation persistence.
+ * Each entry is written as a JSONL line with a content hash for verification.
+ */
+export interface ObservationManifestEntry {
+  /** Absolute or workspace-relative file path */
+  filePath: string;
+  /** Full SHA-256 hash of file content at observation time */
+  contentHash: string;
+  /** Brief observation summary */
+  summary?: string;
+  /** Estimated tokens of observation */
+  tokenEstimate: number;
+  /** Turn when observation was created */
+  turnNumber: number;
+  /** Unix ms timestamp when observation was captured */
+  timestamp: number;
+  /** Observation type */
+  type: ObservationType;
 }
 
 /**
@@ -167,7 +196,17 @@ const DEFAULT_PER_TYPE_DECAY: Required<PerTypeDecayConfig> = {
 const DEFAULT_CONFIG: ObservationMaskerConfig = {
   ageThresholdTurns: 10,
   preserveErrorMessages: true,
-  preservePatterns: [/error/i, /exception/i, /failed/i, /failure/i, /critical/i, /fatal/i, /panic/i, /unhandled/i, /stack\s?trace/i],
+  preservePatterns: [
+    /error/i,
+    /exception/i,
+    /failed/i,
+    /failure/i,
+    /critical/i,
+    /fatal/i,
+    /panic/i,
+    /unhandled/i,
+    /stack\s?trace/i,
+  ],
   maxCacheSize: 100,
   cacheDirectory: '.specify/memory/observation-cache',
   keyPointsAgeFraction: 0.6,
@@ -298,9 +337,13 @@ export class ObservationMasker {
 
     // 018 T022: Auto-trigger LLM compression when observation count exceeds threshold
     if (this.cache.size > 50 && this.llmProvider) {
-      const fullCount = Array.from(this.cache.values()).filter(o => o.decayTier === 'key-points').length;
+      const fullCount = Array.from(this.cache.values()).filter(
+        (o) => o.decayTier === 'key-points'
+      ).length;
       if (fullCount > 20) {
-        this.enhanceKeyPointsWithLLM().catch(() => {});
+        this.enhanceKeyPointsWithLLM().catch((err) =>
+          this.logger.warn('LLM key-points enhancement failed', err)
+        );
       }
     }
 
@@ -360,8 +403,14 @@ export class ObservationMasker {
     }
 
     // Calculate tokens reclaimed from evicted entries
-    const tokensReclaimed = sorted.slice(0, removed).reduce((sum, [, obs]) => sum + (obs.tokenEstimate || 0), 0);
-    this.logger.info('LRU eviction completed', { evictionCount: removed, tokensReclaimed, cacheSize: this.cache.size });
+    const tokensReclaimed = sorted
+      .slice(0, removed)
+      .reduce((sum, [, obs]) => sum + (obs.tokenEstimate || 0), 0);
+    this.logger.info('LRU eviction completed', {
+      evictionCount: removed,
+      tokensReclaimed,
+      cacheSize: this.cache.size,
+    });
     return removed;
   }
 
@@ -541,7 +590,7 @@ export class ObservationMasker {
   /** Extract file paths and match count from search results. */
   private extractSearchKeyPoints(content: string): string {
     const lines = content.split('\n');
-    const filePaths = lines.filter(l => l.match(/^[\/\w].*\.(ts|js|md|json|yaml)/));
+    const filePaths = lines.filter((l) => l.match(/^[\/\w].*\.(ts|js|md|json|yaml)/));
     const count = lines.length;
     if (filePaths.length === 0) return this.extractCommandKeyPoints(content);
     return `Found ${count} results in ${filePaths.length} files:\n${filePaths.slice(0, 10).join('\n')}`;
@@ -551,7 +600,7 @@ export class ObservationMasker {
   private extractTestKeyPoints(content: string): string {
     const lines = content.split('\n');
     const summaryLines = lines.filter(
-      l => l.match(/\d+\s*(pass|fail|skip|error|test)/i) || l.match(/^(PASS|FAIL|✓|✗|×)/)
+      (l) => l.match(/\d+\s*(pass|fail|skip|error|test)/i) || l.match(/^(PASS|FAIL|✓|✗|×)/)
     );
     if (summaryLines.length > 0) {
       return `Test summary:\n${summaryLines.join('\n')}`;
@@ -580,7 +629,10 @@ export class ObservationMasker {
   /**
    * 019 B2: Get per-type decay config, falling back to global defaults.
    */
-  private getTypeDecayConfig(type: ObservationType): { ageThresholdTurns: number; keyPointsAgeFraction: number } {
+  private getTypeDecayConfig(type: ObservationType): {
+    ageThresholdTurns: number;
+    keyPointsAgeFraction: number;
+  } {
     const perType = this.config.perTypeDecay;
     if (perType) {
       const typeConfig = perType[type];
@@ -606,17 +658,35 @@ export class ObservationMasker {
     for (const line of lines) {
       const trimmed = line.trim();
       // Stack trace lines: "at FunctionName (file:line:col)" or "at file:line:col"
-      if (/^\s*at\s+/.test(line)) { errorIndicators++; continue; }
+      if (/^\s*at\s+/.test(line)) {
+        errorIndicators++;
+        continue;
+      }
       // Error prefix: "Error: message" or "TypeError: message" or "SomeError: message"
-      if (/^([A-Z][a-zA-Z]*)?Error:/.test(trimmed)) { errorIndicators++; continue; }
+      if (/^([A-Z][a-zA-Z]*)?Error:/.test(trimmed)) {
+        errorIndicators++;
+        continue;
+      }
       // Exit code patterns
-      if (/exit\s+code\s+[1-9]/i.test(trimmed)) { errorIndicators++; continue; }
+      if (/exit\s+code\s+[1-9]/i.test(trimmed)) {
+        errorIndicators++;
+        continue;
+      }
       // Test FAIL markers
-      if (/^(FAIL|FAILED|✗|✖|×)\s/i.test(trimmed)) { errorIndicators++; continue; }
+      if (/^(FAIL|FAILED|✗|✖|×)\s/i.test(trimmed)) {
+        errorIndicators++;
+        continue;
+      }
       // npm ERR! prefix
-      if (/^npm\s+ERR!/i.test(trimmed)) { errorIndicators++; continue; }
+      if (/^npm\s+ERR!/i.test(trimmed)) {
+        errorIndicators++;
+        continue;
+      }
       // Process exited with non-zero
-      if (/process\s+exited?\s+with\s+(code\s+)?[1-9]/i.test(trimmed)) { errorIndicators++; continue; }
+      if (/process\s+exited?\s+with\s+(code\s+)?[1-9]/i.test(trimmed)) {
+        errorIndicators++;
+        continue;
+      }
     }
 
     // A single strong indicator (Error: prefix, stack trace, FAIL marker) is enough.
@@ -640,17 +710,30 @@ export class ObservationMasker {
           const typeMatch = line.match(/^(\w+):\s*$/);
           if (typeMatch && typeMatch[1] in DEFAULT_PER_TYPE_DECAY) {
             currentType = typeMatch[1];
-            (perType as Record<string, { ageThresholdTurns: number; keyPointsAgeFraction: number }>)[currentType] =
-              { ...DEFAULT_PER_TYPE_DECAY[currentType as keyof typeof DEFAULT_PER_TYPE_DECAY] };
+            (
+              perType as Record<string, { ageThresholdTurns: number; keyPointsAgeFraction: number }>
+            )[currentType] = {
+              ...DEFAULT_PER_TYPE_DECAY[currentType as keyof typeof DEFAULT_PER_TYPE_DECAY],
+            };
           }
           if (currentType) {
             const ageMatch = line.match(/^\s+ageThresholdTurns:\s*(\d+)/);
             if (ageMatch) {
-              (perType as Record<string, { ageThresholdTurns: number; keyPointsAgeFraction: number }>)[currentType].ageThresholdTurns = parseInt(ageMatch[1], 10);
+              (
+                perType as Record<
+                  string,
+                  { ageThresholdTurns: number; keyPointsAgeFraction: number }
+                >
+              )[currentType].ageThresholdTurns = parseInt(ageMatch[1], 10);
             }
             const fracMatch = line.match(/^\s+keyPointsAgeFraction:\s*([\d.]+)/);
             if (fracMatch) {
-              (perType as Record<string, { ageThresholdTurns: number; keyPointsAgeFraction: number }>)[currentType].keyPointsAgeFraction = parseFloat(fracMatch[1]);
+              (
+                perType as Record<
+                  string,
+                  { ageThresholdTurns: number; keyPointsAgeFraction: number }
+                >
+              )[currentType].keyPointsAgeFraction = parseFloat(fracMatch[1]);
             }
           }
         }
@@ -725,7 +808,7 @@ export class ObservationMasker {
    * Get observations filtered by fold level.
    */
   public getObservationsByFoldLevel(level: FoldLevel): ObservationEntry[] {
-    return Array.from(this.cache.values()).filter(o => o.foldLevel === level);
+    return Array.from(this.cache.values()).filter((o) => o.foldLevel === level);
   }
 
   /**
@@ -742,7 +825,8 @@ export class ObservationMasker {
     }
 
     // 019 B8: Log observation age at expansion for window tuning validation
-    const ageAtExpansion = currentTurn !== undefined ? currentTurn - observation.turnNumber : undefined;
+    const ageAtExpansion =
+      currentTurn !== undefined ? currentTurn - observation.turnNumber : undefined;
     this.logger.debug('Observation expanded', {
       id,
       type: observation.type,
@@ -768,14 +852,24 @@ export class ObservationMasker {
   }
 
   /** 019 B8: Expansion metrics for observation window validation */
-  private expansionMetrics: Array<{ type: ObservationType; ageAtExpansion: number; timestamp: number }> = [];
+  private expansionMetrics: Array<{
+    type: ObservationType;
+    ageAtExpansion: number;
+    timestamp: number;
+  }> = [];
 
   /**
    * 019 B8: Validate observation windows by comparing configured thresholds
    * against actual expansion patterns. Returns per-type metrics.
    */
-  public validateObservationWindows(): Record<string, { avgAgeAtExpansion: number; configuredThreshold: number; expanding_after_mask: boolean }> {
-    const result: Record<string, { avgAgeAtExpansion: number; configuredThreshold: number; expanding_after_mask: boolean }> = {};
+  public validateObservationWindows(): Record<
+    string,
+    { avgAgeAtExpansion: number; configuredThreshold: number; expanding_after_mask: boolean }
+  > {
+    const result: Record<
+      string,
+      { avgAgeAtExpansion: number; configuredThreshold: number; expanding_after_mask: boolean }
+    > = {};
     const byType = new Map<string, number[]>();
 
     for (const m of this.expansionMetrics) {
@@ -898,6 +992,130 @@ export class ObservationMasker {
    */
   public getConfig(): ObservationMaskerConfig {
     return { ...this.config };
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Manifest Persistence (Cross-Session)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Persist observation manifest to disk as JSONL with SHA-256 content hashes.
+   * This enables cross-session cache restoration with content verification.
+   *
+   * @param outputPath - Optional custom output path (defaults to manifest.jsonl in cache dir)
+   */
+  public saveManifest(outputPath?: string): void {
+    const manifestPath = outputPath ?? path.join(this.getCacheDir(), 'manifest.jsonl');
+    const manifestDir = path.dirname(manifestPath);
+
+    // Ensure directory exists
+    fs.mkdirSync(manifestDir, { recursive: true });
+
+    // Build manifest entries from cache
+    const lines: string[] = [];
+    for (const observation of this.cache.values()) {
+      // Only persist file_read observations with file path metadata
+      const filePath = observation.metadata?.filePath as string | undefined;
+      if (!filePath) continue;
+
+      const entry: ObservationManifestEntry = {
+        filePath,
+        contentHash: observation.contentHash,
+        summary: observation.summary ?? observation.keyPointsContent,
+        tokenEstimate: observation.tokenEstimate,
+        turnNumber: observation.turnNumber,
+        timestamp: observation.timestamp,
+        type: observation.type,
+      };
+      lines.push(JSON.stringify(entry));
+    }
+
+    fs.writeFileSync(manifestPath, lines.join('\n') + (lines.length > 0 ? '\n' : ''), 'utf-8');
+    this.logger.info('Manifest saved', { path: manifestPath, entries: lines.length });
+  }
+
+  /**
+   * Load and verify observation manifest from disk.
+   * Uses 2-tier verification: mtime first (fast), SHA-256 second (accurate).
+   * Stale or missing entries are discarded.
+   *
+   * @param inputPath - Optional custom input path (defaults to manifest.jsonl in cache dir)
+   * @returns Counts of restored, stale, and missing entries
+   */
+  public loadManifest(inputPath?: string): { restored: number; stale: number; missing: number } {
+    const manifestPath = inputPath ?? path.join(this.getCacheDir(), 'manifest.jsonl');
+    const result = { restored: 0, stale: 0, missing: 0 };
+
+    // Check if manifest file exists
+    if (!fs.existsSync(manifestPath)) {
+      this.logger.debug('No manifest file found', { path: manifestPath });
+      return result;
+    }
+
+    const content = fs.readFileSync(manifestPath, 'utf-8');
+    const lines = content.split('\n').filter((line) => line.trim().length > 0);
+
+    for (const line of lines) {
+      let entry: ObservationManifestEntry;
+      try {
+        entry = JSON.parse(line);
+      } catch {
+        continue; // Skip invalid JSONL lines
+      }
+
+      // Resolve file path
+      const resolvedPath = path.isAbsolute(entry.filePath)
+        ? entry.filePath
+        : path.join(this.workspaceRoot, entry.filePath);
+
+      // Check if file exists
+      if (!fs.existsSync(resolvedPath)) {
+        result.missing++;
+        continue;
+      }
+
+      // Tier 1: mtime check (fast) — if file was modified after observation, it's stale
+      const stat = fs.statSync(resolvedPath);
+      if (stat.mtimeMs > entry.timestamp) {
+        // Tier 2: SHA-256 check (accurate) — confirm content actually changed
+        const fileContent = fs.readFileSync(resolvedPath, 'utf-8');
+        const currentHash = crypto.createHash('sha256').update(fileContent).digest('hex');
+        if (currentHash !== entry.contentHash) {
+          result.stale++;
+          continue;
+        }
+        // mtime changed but content didn't — still valid (e.g., git checkout)
+      }
+
+      // Restore observation to cache
+      const id = uuidv4();
+      const observation: ObservationEntry = {
+        id,
+        timestamp: entry.timestamp,
+        turnNumber: entry.turnNumber,
+        type: entry.type,
+        contentHash: entry.contentHash,
+        tokenEstimate: entry.tokenEstimate,
+        originalContent: '', // Content not stored in manifest, must be re-read
+        summary: entry.summary,
+        metadata: { filePath: entry.filePath },
+        masked: true, // Start masked since we don't have original content
+        decayTier: 'key-points', // Start at key-points since content unavailable
+        keyPointsContent: entry.summary,
+      };
+
+      this.cache.set(id, observation);
+      result.restored++;
+    }
+
+    this.logger.info('Manifest loaded', {
+      path: manifestPath,
+      restored: result.restored,
+      stale: result.stale,
+      missing: result.missing,
+    });
+
+    return result;
   }
 
   // ─────────────────────────────────────────────────────────────────────────────

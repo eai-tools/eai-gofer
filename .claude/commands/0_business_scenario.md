@@ -7,6 +7,22 @@ description: Triage business scenario and orchestrate the unified Gofer pipeline
 You are the Gofer orchestrator. Your job is to understand the user's business
 scenario and route them through the **unified Gofer pipeline**.
 
+## CRITICAL: Autonomous Execution After Planning
+
+**Questions are OK during stages 0-3** (business scenario, research, specify,
+plan).
+
+**After planning is complete (stage 3), the pipeline runs FULLY AUTONOMOUSLY:**
+
+- ✅ Stage 4 (tasks): AUTO-APPROVED, no waiting for user confirmation
+- ✅ Stage 5 (implement): Executes immediately, no approval gates
+- ✅ Stage 6 (validate): Auto-fixes if < 100/100, re-validates until 100 or max
+  3 iterations
+- ❌ NO "LGTM" prompts, NO "approved" waits, NO confirmation dialogs
+
+**The goal**: Once planning is done, execute → validate → fix → re-validate
+until delivered.
+
 ## The Unified Gofer Pipeline
 
 ```text
@@ -14,6 +30,7 @@ scenario and route them through the **unified Gofer pipeline**.
 │                    UNIFIED GOFER PIPELINE                        │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                  │
+│  QUESTIONS OK → User can be asked for clarification             │
 │  1. /1_gofer_research    → research.md                          │
 │     Deep codebase exploration + technology research              │
 │                         ↓ AUTO                                   │
@@ -22,15 +39,20 @@ scenario and route them through the **unified Gofer pipeline**.
 │                         ↓ AUTO                                   │
 │  3. /3_gofer_plan        → plan.md, data-model.md, contracts/   │
 │     Technical architecture and design                            │
-│                         ↓ AUTO                                   │
+│                         ↓ AUTO (NO QUESTIONS)                    │
+│  ╔═══════════════════════════════════════════════════════════╗  │
+│  ║ FULLY AUTONOMOUS FROM HERE — NO APPROVAL GATES            ║  │
+│  ╚═══════════════════════════════════════════════════════════╝  │
 │  4. /4_gofer_tasks       → tasks.md, issues.md                  │
-│     Dependency-ordered task breakdown                            │
-│                         ↓ AUTO                                   │
+│     Dependency-ordered task breakdown (AUTO-APPROVED)            │
+│                         ↓ AUTO (NO WAITING)                      │
 │  5. /5_gofer_implement   → [source code]                        │
 │     Execute tasks phase by phase                                 │
-│                         ↓ AUTO                                   │
+│                         ↓ AUTO (NO WAITING)                      │
 │  6. /6_gofer_validate    → validation-report.md                 │
-│     Verify implementation matches plan and spec                  │
+│     Verify implementation (100/100 required)                     │
+│          ↓ IF < 100: AUTO-FIX & RE-VALIDATE (max 3 loops)       │
+│          ↓ IF = 100: DONE                                        │
 │                                                                  │
 │  All artifacts go to: .specify/specs/{feature}/                 │
 └─────────────────────────────────────────────────────────────────┘
@@ -299,15 +321,15 @@ Content: 'Primary value: [benefit]. Success metric: [metric] target [goal].'
 
 ## Step 2.7: Journey Confirmation (For New Features)
 
-**When the user selects A. New Feature**, after completing discovery, confirm the
-customer journey before routing to the pipeline.
+**When the user selects A. New Feature**, after completing discovery, confirm
+the customer journey before routing to the pipeline.
 
 **First, offer the option to skip:**
 
-| Option                         | Description                                                      |
-| ------------------------------ | ---------------------------------------------------------------- |
-| **Confirm Journey (Recommended)** | Review and confirm the user journey for this feature            |
-| **Skip Journey Mapping**       | Go straight to implementation without journey confirmation       |
+| Option                            | Description                                                |
+| --------------------------------- | ---------------------------------------------------------- |
+| **Confirm Journey (Recommended)** | Review and confirm the user journey for this feature       |
+| **Skip Journey Mapping**          | Go straight to implementation without journey confirmation |
 
 If user selects "Skip Journey Mapping", proceed directly to Step 3.
 
@@ -338,39 +360,39 @@ Use AskUserQuestion to present the extracted journey:
 
 "Based on your description, I've identified these actors in the journey:"
 
-| Option | Description |
-| ------ | ----------- |
-| A | **[Actor 1]** - [role description] |
-| B | **[Actor 2]** - [role description] |
-| C | **[System]** - [role description] |
-| Custom | Add or modify actors |
+| Option | Description                        |
+| ------ | ---------------------------------- |
+| A      | **[Actor 1]** - [role description] |
+| B      | **[Actor 2]** - [role description] |
+| C      | **[System]** - [role description]  |
+| Custom | Add or modify actors               |
 
 **Question 2: Confirm Journey Steps**
 
 "Here's the main flow I've identified:"
 
-| Option | Description |
-| ------ | ----------- |
-| A | Step 1: [action] → Step 2: [action] → Step 3: [action] (Confirm this flow) |
-| B | I need to modify some steps |
-| C | Show me all steps in detail first |
+| Option | Description                                                                |
+| ------ | -------------------------------------------------------------------------- |
+| A      | Step 1: [action] → Step 2: [action] → Step 3: [action] (Confirm this flow) |
+| B      | I need to modify some steps                                                |
+| C      | Show me all steps in detail first                                          |
 
 **Question 3: Identify Key Touchpoints**
 
 "What are the main interaction points for this feature?"
 
-| Option | Description |
-| ------ | ----------- |
-| A | UI-heavy: Multiple screens and forms |
-| B | API-driven: Primarily backend/integration work |
-| C | Mixed: Both UI and API touchpoints |
-| Custom | Describe your touchpoints |
+| Option | Description                                    |
+| ------ | ---------------------------------------------- |
+| A      | UI-heavy: Multiple screens and forms           |
+| B      | API-driven: Primarily backend/integration work |
+| C      | Mixed: Both UI and API touchpoints             |
+| Custom | Describe your touchpoints                      |
 
 ### Save Confirmed Journey
 
 After confirmation, save to `.specify/specs/{feature}/journeys/base-journey.md`:
 
-```markdown
+````markdown
 ---
 id: {{feature-id}}-journey
 name: {{journey-name}}
@@ -388,18 +410,19 @@ modified: {{ISO-timestamp}}
 
 ## Actors
 
-| ID | Name | Type | Role |
-|----|------|------|------|
-| user | End User | user | Primary user of the feature |
-| system | Backend API | system | Handles business logic |
+| ID     | Name        | Type   | Role                        |
+| ------ | ----------- | ------ | --------------------------- |
+| user   | End User    | user   | Primary user of the feature |
+| system | Backend API | system | Handles business logic      |
 
 ## Journey Steps
 
 ### Step 1: {{action}}
-**Actor**: {{actor-id}}
-{{action-description}}
+
+**Actor**: {{actor-id}} {{action-description}}
 
 ### Step 2: {{action}}
+
 ...
 
 ## Journey Diagram
@@ -413,27 +436,31 @@ sequenceDiagram
     system-->>user: Response
     user->>system: Step 2 action
 ```
+````
 
 ## Touchpoints
 
-| ID | Type | Description | Actors | Steps |
-|----|------|-------------|--------|-------|
-| login-form | ui | Login screen | user | 1 |
-| auth-api | api | Authentication endpoint | system | 1, 2 |
+| ID         | Type | Description             | Actors | Steps |
+| ---------- | ---- | ----------------------- | ------ | ----- |
+| login-form | ui   | Login screen            | user   | 1     |
+| auth-api   | api  | Authentication endpoint | system | 1, 2  |
 
 ## Confirmation
 
-- [X] Actors confirmed
-- [X] Steps confirmed
-- [X] Touchpoints identified
+- [x] Actors confirmed
+- [x] Steps confirmed
+- [x] Touchpoints identified
+
 ```
 
 ### Store Journey in Memory
 
 ```
-Category: 'journey'
-Tags: ['#journey', '#feature-{id}', '#confirmed']
-Content: 'Journey for {feature}: {actor-count} actors, {step-count} steps. Main flow: {step-summary}.'
+
+Category: 'journey' Tags: ['#journey', '#feature-{id}', '#confirmed'] Content:
+'Journey for {feature}: {actor-count} actors, {step-count} steps. Main flow:
+{step-summary}.'
+
 ```
 
 ---
@@ -474,11 +501,11 @@ Check existing artifacts for the feature:
 Output:
 
 ```
-ROUTING: GOFER PIPELINE
-FEATURE: {feature-name}
-STARTING: /1_gofer_research
-AUTO-CHAIN: research → specify → plan → tasks → implement → validate
-REASON: [explanation]
+
+ROUTING: GOFER PIPELINE FEATURE: {feature-name} STARTING: /1_gofer_research
+AUTO-CHAIN: research → specify → plan → tasks → implement → validate REASON:
+[explanation]
+
 ```
 
 #### For Existing Features
@@ -492,11 +519,10 @@ If user chose to continue an existing feature:
 Output:
 
 ```
-ROUTING: GOFER PIPELINE
-FEATURE: {feature-name}
-STARTING: /[N]_gofer_[stage]
-REMAINING: [remaining stages]
-REASON: Continuing from existing artifacts
+
+ROUTING: GOFER PIPELINE FEATURE: {feature-name} STARTING: /[N]_gofer_[stage]
+REMAINING: [remaining stages] REASON: Continuing from existing artifacts
+
 ```
 
 ### Route D: Explore/Research
@@ -504,11 +530,12 @@ REASON: Continuing from existing artifacts
 Start with `/1_gofer_research` without auto-chaining:
 
 ```
-ROUTING: GOFER RESEARCH (STANDALONE)
-COMMAND: /1_gofer_research
-AUTO-CHAIN: disabled (ask to continue after research)
-REASON: User wants to explore the codebase first
-```
+
+ROUTING: GOFER RESEARCH (STANDALONE) COMMAND: /1_gofer_research AUTO-CHAIN:
+disabled (ask to continue after research) REASON: User wants to explore the
+codebase first
+
+````
 
 ### Route E: Resume Work
 
@@ -516,7 +543,7 @@ Check for session checkpoints:
 
 ```bash
 find .specify/specs -name "session-checkpoint.md" -type f 2>/dev/null
-```
+````
 
 If checkpoint found → Invoke `/8_gofer_resume`
 

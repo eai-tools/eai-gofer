@@ -508,4 +508,159 @@ describe('ContextContentPanel', () => {
       expect(html).toContain('No masked observations');
     });
   });
+
+  // ── Feature 023: Scanner-based category renderers ────────────
+
+  describe('scanner-based categories (Feature 023)', () => {
+    function createMockScanner() {
+      return {
+        scan: vi.fn(() => ({
+          categories: [
+            {
+              name: 'CLAUDE.md & Rules',
+              icon: 'file-text',
+              totalTokens: 500,
+              files: [
+                {
+                  filePath: '/workspace/CLAUDE.md',
+                  displayPath: 'CLAUDE.md',
+                  bytes: 2000,
+                  tokens: 500,
+                },
+              ],
+              expandable: false,
+            },
+            {
+              name: 'Auto Memory',
+              icon: 'brain',
+              totalTokens: 300,
+              files: [
+                {
+                  filePath: '/home/.claude/projects/x/memory/MEMORY.md',
+                  displayPath: '~/memory/MEMORY.md',
+                  bytes: 1200,
+                  tokens: 300,
+                },
+              ],
+              expandable: false,
+            },
+            {
+              name: 'Agents & Commands',
+              icon: 'robot',
+              totalTokens: 0,
+              files: [],
+              expandable: false,
+              note: 'Agent files load when Task tool is used.',
+            },
+            {
+              name: 'Spec Artifacts',
+              icon: 'file-code',
+              totalTokens: 200,
+              files: [
+                {
+                  filePath: '/workspace/AGENTS.md',
+                  displayPath: 'AGENTS.md',
+                  bytes: 800,
+                  tokens: 200,
+                },
+              ],
+              expandable: false,
+            },
+            {
+              name: 'System Overhead',
+              icon: 'gear',
+              totalTokens: 14800,
+              files: [
+                {
+                  filePath: '(built-in)',
+                  displayPath: 'System Prompt',
+                  bytes: 12800,
+                  tokens: 3200,
+                },
+                {
+                  filePath: '(built-in)',
+                  displayPath: 'Tool Schemas',
+                  bytes: 46400,
+                  tokens: 11600,
+                },
+              ],
+              expandable: false,
+              note: 'These are invisible components baked into every Claude Code API call.',
+            },
+          ],
+          measuredTokens: 15800,
+          scannedAt: Date.now(),
+        })),
+        invalidate: vi.fn(),
+      };
+    }
+
+    it('renders CLAUDE.md & Rules with file details', async () => {
+      const panel = ContextContentPanel.createOrShow(extensionUri, workspacePath);
+      panel.setScanner(createMockScanner() as never);
+
+      // Mock the file read for preview
+      mockFs['/workspace/CLAUDE.md'] = '# Claude Instructions\nFollow these rules.';
+
+      await panel.showCategory('sess-1', 'CLAUDE.md & Rules', makeBridgeData());
+      const html = lastCreatedPanel.webview.html;
+      expect(html).toContain('CLAUDE.md');
+      expect(html).toContain('500');
+      expect(html).toContain('file(s)');
+    });
+
+    it('renders Auto Memory with file details', async () => {
+      const panel = ContextContentPanel.createOrShow(extensionUri, workspacePath);
+      panel.setScanner(createMockScanner() as never);
+
+      await panel.showCategory('sess-1', 'Auto Memory', makeBridgeData());
+      const html = lastCreatedPanel.webview.html;
+      expect(html).toContain('Auto Memory');
+      expect(html).toContain('MEMORY.md');
+      expect(html).toContain('300');
+    });
+
+    it('renders empty state for Agents & Commands with no files', async () => {
+      const panel = ContextContentPanel.createOrShow(extensionUri, workspacePath);
+      panel.setScanner(createMockScanner() as never);
+
+      await panel.showCategory('sess-1', 'Agents & Commands', makeBridgeData());
+      const html = lastCreatedPanel.webview.html;
+      expect(html).toContain('No files found');
+      expect(html).toContain('Agent files load when Task tool is used.');
+    });
+
+    it('renders System Overhead with breakdown table', async () => {
+      const panel = ContextContentPanel.createOrShow(extensionUri, workspacePath);
+      panel.setScanner(createMockScanner() as never);
+
+      await panel.showCategory('sess-1', 'System Overhead', makeBridgeData());
+      const html = lastCreatedPanel.webview.html;
+      expect(html).toContain('System Prompt');
+      expect(html).toContain('Tool Schemas');
+      expect(html).toContain('14,800');
+      expect(html).toContain('invisible components');
+    });
+
+    it('renders Spec Artifacts from scanner when scanner is set', async () => {
+      const panel = ContextContentPanel.createOrShow(extensionUri, workspacePath);
+      panel.setScanner(createMockScanner() as never);
+
+      mockFs['/workspace/AGENTS.md'] = '# Agent Guidelines';
+
+      await panel.showCategory('sess-1', 'Spec Artifacts', makeBridgeData());
+      const html = lastCreatedPanel.webview.html;
+      expect(html).toContain('AGENTS.md');
+      expect(html).toContain('200');
+    });
+
+    it('shows scanner unavailable when no scanner set', async () => {
+      const panel = ContextContentPanel.createOrShow(extensionUri, workspacePath);
+      // Don't set scanner
+
+      await panel.showCategory('sess-1', 'System Overhead', makeBridgeData());
+      const html = lastCreatedPanel.webview.html;
+      expect(html).toContain('Scanner not available');
+    });
+  });
 });

@@ -1,0 +1,15 @@
+{
+  "session_id": "stage-1771134589094",
+  "timestamp": "2026-02-15T05:49:49.094Z",
+  "stage": "plan",
+  "status": "stage-transition",
+  "previousStage": "specify",
+  "newStage": "plan",
+  "type": "stage-transition",
+  "gitState": {
+    "branch": "001-context-continuity-overhaul",
+    "status": "M .specify/.gofer-version\n M .specify/logs/context-usage.jsonl\n M .specify/logs/pipeline.jsonl\n M .specify/logs/quality-metrics.jsonl\n M .specify/logs/slop-scan.jsonl\n M .specify/memory/context-health-state.json\n M .specify/memory/local.json\n M .specify/memory/observation-cache/index.json\n M .specify/specs/001-yolo-slop-reduction/validation-report.md\n M .specify/specs/feature-001/spec.md\n M docs/releases.json\n M extension/CHANGELOG.md\n M extension/src/autonomous/AutoHandoffTrigger.ts\n M extensio",
+    "stashCount": 23,
+    "headCommit": "832dae4"
+  }
+}

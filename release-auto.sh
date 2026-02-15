@@ -32,6 +32,8 @@ fi
 
 RELEASE_TYPE=$1
 COMMIT_MSG="${2:-Auto-release}"
+# Preserve the user-provided release notes — auto-commit logic may overwrite COMMIT_MSG
+RELEASE_NOTES="$COMMIT_MSG"
 
 # Validate release type
 if [[ ! "$RELEASE_TYPE" =~ ^(patch|minor|major)$ ]]; then
@@ -189,7 +191,7 @@ All notable changes to the Gofer extension will be documented in this file.
 
 ## [$NEW_VERSION] - $CURRENT_DATE
 
-$COMMIT_MSG
+$RELEASE_NOTES
 
 EOF
 
@@ -295,7 +297,7 @@ print_info "Updating GitHub Pages releases.json..."
 if [ -f "docs/update-releases.js" ]; then
     # Update the script to use GitHub Pages URLs
     GITHUB_PAGES_URL="https://eai-tools.github.io/gofer/releases/gofer-$NEW_VERSION.vsix"
-    node docs/update-releases.js "$NEW_VERSION" "$COMMIT_MSG" "$GITHUB_PAGES_URL"
+    node docs/update-releases.js "$NEW_VERSION" "$RELEASE_NOTES" "$GITHUB_PAGES_URL"
     git add docs/releases.json docs/releases/
     print_success "Updated GitHub Pages release data with assets"
 else
@@ -341,7 +343,7 @@ git add package.json extension/package.json extension/CHANGELOG.md extension/lan
 
 git commit --no-verify -m "release: v$NEW_VERSION
 
-$COMMIT_MSG
+$RELEASE_NOTES
 
 🤖 Generated with release-auto.sh
 

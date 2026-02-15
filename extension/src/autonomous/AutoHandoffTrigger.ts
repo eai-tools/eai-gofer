@@ -22,6 +22,7 @@ import type { TaskContext } from './ContextBuilder';
 import { Logger } from '../utils/logger';
 import { CheckpointValidator } from './CheckpointValidator';
 import type { SlopReducer, WorkspaceReduceResult } from './SlopReducer';
+import type { IPty } from 'node-pty';
 
 /**
  * Configuration for auto-handoff trigger.
@@ -90,6 +91,7 @@ export class AutoHandoffTrigger implements vscode.Disposable {
   private usageLogger: ContextUsageLogger | null = null;
   private contextBuilder: ContextBuilder | null = null;
   private slopReducer: SlopReducer | null = null;
+  private claudePtyProcess: IPty | null = null;
   private lastNotificationTime: number = 0;
   private currentSessionId: string = '';
   private currentStage: string = 'implement';
@@ -178,6 +180,13 @@ export class AutoHandoffTrigger implements vscode.Disposable {
   }
 
   /**
+   * Sets the Claude Code pty process for sending /compact commands.
+   */
+  setClaudePtyProcess(pty: IPty | null): void {
+    this.claudePtyProcess = pty;
+  }
+
+  /**
    * Sets the current session context.
    *
    * @param sessionId - Session identifier
@@ -215,7 +224,12 @@ export class AutoHandoffTrigger implements vscode.Disposable {
   }
 
   /**
-   * Automatically runs workspace slop reduction and shows a summary.
+   * Automatically cleans workspace files, then compacts the Claude Code context.
+   *
+   * Flow:
+   * 1. Run SlopReducer on workspace files (removes console.log, debugger, etc.)
+   * 2. Send /compact to Claude Code terminal (rebuilds context from clean files)
+   * 3. Show notification summarizing what was done
    */
   private async autoReduceSlop(status: ContextHealthStatus): Promise<void> {
     if (!this.config.enabled) return;
@@ -226,8 +240,12 @@ export class AutoHandoffTrigger implements vscode.Disposable {
     this.lastNotificationTime = Date.now();
 
     try {
+      // Step 1: Clean workspace files
       this.logger.info('Running automatic slop reduction at critical threshold');
       const result = this.slopReducer!.reduceWorkspace();
+
+      // Step 2: Send /compact to Claude Code terminal to rebuild context
+      const compacted = this.sendCompactToTerminal();
 
       // Log the event
       if (this.usageLogger) {
@@ -238,44 +256,56 @@ export class AutoHandoffTrigger implements vscode.Disposable {
           status.tokensUsed,
           status.tokensLimit,
           status.utilizationPercent,
-          `auto-slop-reduction: ${result.totalFixes} fixes in ${result.filesFixed} files`
+          `auto-context-clean: ${result.totalFixes} file fixes, compacted=${compacted}`
         );
       }
 
-      // Show summary notification
-      if (result.totalFixes > 0) {
+      // Step 3: Show summary notification
+      const percent = Math.round(status.utilizationPercent);
+      if (result.totalFixes > 0 && compacted) {
         const patternSummary = Object.entries(result.fixesByPattern)
           .map(([pattern, count]) => `${pattern}: ${count}`)
           .join(', ');
 
-        vscode.window
-          .showInformationMessage(
-            `Gofer: Context at ${Math.round(status.utilizationPercent)}% — auto-reduced ${result.totalFixes} slop issues in ${result.filesFixed} files (${patternSummary})`,
-            'View Log'
-          )
-          .then((choice) => {
-            if (choice === 'View Log') {
-              const logPath = require('path').join(
-                this.slopReducer!['workspacePath'],
-                '.specify',
-                'logs',
-                'slop-reduction.jsonl'
-              );
-              vscode.workspace.openTextDocument(logPath).then(
-                (doc: vscode.TextDocument) => vscode.window.showTextDocument(doc),
-                () => {
-                  /* log file may not exist yet */
-                }
-              );
-            }
-          });
+        vscode.window.showInformationMessage(
+          `Gofer: Context at ${percent}% — cleaned ${result.totalFixes} issues in ${result.filesFixed} files (${patternSummary}) and compacted context`
+        );
+      } else if (compacted) {
+        vscode.window.showInformationMessage(
+          `Gofer: Context at ${percent}% — workspace clean, context compacted for fresh start`
+        );
+      } else if (result.totalFixes > 0) {
+        vscode.window.showInformationMessage(
+          `Gofer: Cleaned ${result.totalFixes} issues in ${result.filesFixed} files. No active terminal for compaction.`
+        );
       } else {
         vscode.window.showInformationMessage(
-          `Gofer: Context at ${Math.round(status.utilizationPercent)}% — no AI slop found to reduce. Code is clean.`
+          `Gofer: Context at ${percent}% — workspace already clean. Use /compact in Claude Code to free context.`
         );
       }
     } finally {
       this.pendingNotification = false;
+    }
+  }
+
+  /**
+   * Sends /compact to the active Claude Code pty process.
+   * Returns true if the command was sent successfully.
+   */
+  private sendCompactToTerminal(): boolean {
+    if (!this.claudePtyProcess) {
+      this.logger.warn('No Claude Code pty process available for /compact');
+      return false;
+    }
+
+    try {
+      // Send /compact followed by Enter to the Claude Code CLI
+      this.claudePtyProcess.write('/compact\r');
+      this.logger.info('Sent /compact to Claude Code terminal');
+      return true;
+    } catch (error) {
+      this.logger.error('Failed to send /compact to terminal', error as Error);
+      return false;
     }
   }
 

@@ -77,6 +77,7 @@ export const CONFIG_KEYS = {
   yoloSlopReductionNotifyEvery: 'gofer.yoloSlopReduction.notifyEvery',
   contextWindowAutoExecuteSave: 'gofer.contextWindow.autoExecuteSave',
   contextWindowAutoSaveThreshold: 'gofer.contextWindow.autoSaveThreshold',
+  contextWindowAutoResumeAfterSave: 'gofer.contextWindow.autoResumeAfterSave',
 } as const;
 
 // Default values
@@ -93,6 +94,7 @@ export const DEFAULTS = {
   yoloSlopReductionNotifyEvery: 10,
   contextWindowAutoExecuteSave: false,
   contextWindowAutoSaveThreshold: 0.69,
+  contextWindowAutoResumeAfterSave: false,
 } as const;
 
 // File patterns
@@ -291,6 +293,16 @@ export class ConfigManager {
   }
 
   /**
+   * Get context window auto-resume after save setting
+   */
+  public getContextWindowAutoResumeAfterSave(): boolean {
+    return this.config.get<boolean>(
+      CONFIG_KEYS.contextWindowAutoResumeAfterSave.replace('gofer.', ''),
+      DEFAULTS.contextWindowAutoResumeAfterSave
+    );
+  }
+
+  /**
    * Get all configuration as object
    */
   public getAll(): Record<string, unknown> {
@@ -308,6 +320,7 @@ export class ConfigManager {
       yoloSlopReductionNotifyEvery: this.getSlopReductionNotifyEvery(),
       contextWindowAutoExecuteSave: this.getContextWindowAutoExecuteSave(),
       contextWindowAutoSaveThreshold: this.getContextWindowAutoSaveThreshold(),
+      contextWindowAutoResumeAfterSave: this.getContextWindowAutoResumeAfterSave(),
     };
   }
 }

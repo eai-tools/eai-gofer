@@ -143,8 +143,7 @@ export class MemoryConsolidator {
       conflictsResolved++;
 
       this.logger.info(
-        `Conflict resolved: "${conflict.older.id}" superseded by "${conflict.newer.id}"`,
-        `(overlap=${conflict.overlap.toFixed(2)}, sharedTags=${conflict.sharedTags.join(',')})`
+        `Conflict resolved: "${conflict.older.id}" superseded by "${conflict.newer.id}" (overlap=${conflict.overlap.toFixed(2)}, sharedTags=${conflict.sharedTags.join(',')})`
       );
     }
 
@@ -235,10 +234,7 @@ export class MemoryConsolidator {
     };
 
     this.logger.info(
-      `Consolidation complete:`,
-      `merged=${merged}, conflicts=${conflictsResolved}, compacted=${compacted}, stale=${flaggedStale},`,
-      `decayed=${decayed}, archived=${archived},`,
-      `${totalBefore} → ${totalAfter} memories in ${durationMs}ms`
+      `Consolidation complete: merged=${merged}, conflicts=${conflictsResolved}, compacted=${compacted}, stale=${flaggedStale}, decayed=${decayed}, archived=${archived}, ${totalBefore} → ${totalAfter} memories in ${durationMs}ms`
     );
 
     return result;

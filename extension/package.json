@@ -697,6 +697,20 @@
           "minimum": 1,
           "description": "Show notification every N slop fixes (default: 10)",
           "markdownDescription": "How often to show a notification about slop reductions.\n\n**Default**: Every 10 fixes\n\nThe notification shows the cumulative count of fixes in this session."
+        },
+        "gofer.contextWindow.autoExecuteSave": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically execute /7_gofer_save when context reaches auto-save threshold",
+          "markdownDescription": "When enabled, Gofer will automatically execute `/7_gofer_save` when context utilization reaches the auto-save threshold.\n\n**Default**: Disabled (shows notification instead)\n\n**When enabled**: Automatically sends `/7_gofer_save` to Claude Code terminal\n\n**Safety**: Only executes when a real Claude Code session is detected, not during testing.\n\n**Tip**: Enable this to maintain context continuity without manual intervention."
+        },
+        "gofer.contextWindow.autoSaveThreshold": {
+          "type": "number",
+          "default": 0.69,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Context utilization threshold for automatic session save (0.0-1.0, default: 0.69 = 69%)",
+          "markdownDescription": "The context utilization ratio that triggers automatic session save.\n\n**Default**: 0.69 (69%)\n\n**Range**: 0.0 to 1.0\n\n**How it works**:\n- Gofer monitors context usage continuously\n- When utilization crosses this threshold, the auto-save event is triggered\n- If `autoExecuteSave` is enabled, `/7_gofer_save` executes automatically\n- If `autoExecuteSave` is disabled, a notification is shown instead\n\n**Research-based**: 69% is optimal based on 2025-2026 effective context research. Going above 70% significantly degrades LLM accuracy."
         }
       }
     }

@@ -1,8 +1,8 @@
 {
-  "timestamp": 1771149605432,
+  "timestamp": 1771149731222,
   "status": "healthy",
-  "utilizationPercent": 39.56,
-  "tokensUsed": 79114,
+  "utilizationPercent": 43.85,
+  "tokensUsed": 87708,
   "tokensLimit": 200000,
   "breakdown": {
     "specArtifacts": 0,
@@ -10,7 +10,7 @@
     "hints": 0,
     "observations": 0,
     "systemFiles": 0,
-    "conversation": 79114
+    "conversation": 87708
   },
   "recommendations": ["Context usage is healthy. Continue working normally."],
   "sessionId": "0e67b4cf-69ab-44fa-80f7-f42654a89bfd",

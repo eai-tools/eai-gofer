@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.7.5",
+  "latest_version": "1.9.0",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-02-12T23:46:13.596Z",
+  "last_updated": "2026-02-15T10:04:47.735Z",
   "releases": [
+    {
+      "version": "1.9.0",
+      "tag_name": "v1.9.0",
+      "published_at": "2026-02-15T10:04:47.734Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.9.0.vsix",
+      "notes": "Context Continuity Overhaul - 11 improvements to context management",
+      "prerelease": false,
+      "size_mb": 16.5
+    },
     {
       "version": "1.7.5",
       "tag_name": "v1.7.5",
@@ -82,16 +91,7 @@
       "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.1.0.vsix",
       "notes": "LLM Council — Multi-provider parallel execution for research and analysis. Get diverse perspectives from multiple AI providers simultaneously with chairman synthesis.",
       "prerelease": false,
-      "size_mb": 15.0
-    },
-    {
-      "version": "1.0.0",
-      "tag_name": "v1.0.0",
-      "published_at": "2026-01-26T06:00:00.000Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.0.0.vsix",
-      "notes": "First Major Release — Complete feature development pipeline from business scenario through validation. Persistent memory system, consultative business discovery, and context-aware workflow stages.",
-      "prerelease": false,
-      "size_mb": 14.0
+      "size_mb": 15
     }
   ]
 }

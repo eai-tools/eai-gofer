@@ -38,6 +38,10 @@ export interface AutoHandoffConfig {
   autoDismissMs?: number;
   /** Show notification at warning level too (default: false) */
   notifyAtWarning: boolean;
+  /** Auto-execute session save at threshold (default: false) */
+  autoExecuteSave: boolean;
+  /** Threshold for auto-save trigger (default: 0.69 = 69%) */
+  autoSaveThreshold: number;
 }
 
 /**
@@ -48,6 +52,8 @@ const DEFAULT_CONFIG: AutoHandoffConfig = {
   notificationCooldownMs: 5 * 60 * 1000, // 5 minutes
   autoDismissMs: undefined,
   notifyAtWarning: false,
+  autoExecuteSave: false,
+  autoSaveThreshold: 0.69,
 };
 
 /**
@@ -124,6 +130,11 @@ export class AutoHandoffTrigger implements vscode.Disposable {
   connect(monitor: ContextHealthMonitor): void {
     this.monitor = monitor;
 
+    // Listen for auto-save threshold events (69% by default)
+    const autoSaveHandler = (status: ContextHealthStatus): void => {
+      this.handleAutoSaveThreshold(status);
+    };
+
     // Listen for critical events
     const criticalHandler = (status: ContextHealthStatus): void => {
       this.handleCriticalStatus(status);
@@ -145,11 +156,13 @@ export class AutoHandoffTrigger implements vscode.Disposable {
       });
     }
 
+    monitor.on('auto-save', autoSaveHandler);
     monitor.on('critical', criticalHandler);
     monitor.on('handoff-recommended', handoffHandler);
 
     this.disposables.push({
       dispose: () => {
+        monitor.off('auto-save', autoSaveHandler);
         monitor.off('critical', criticalHandler);
         monitor.off('handoff-recommended', handoffHandler);
       },
@@ -202,6 +215,114 @@ export class AutoHandoffTrigger implements vscode.Disposable {
     this.currentStage = stage;
     this.currentTask = task || '';
     this.logger.debug('Session context updated', { sessionId, stage, task });
+  }
+
+  /**
+   * Handles auto-save threshold crossing (69% by default).
+   * Automatically executes /7_gofer_save if autoExecuteSave is enabled.
+   */
+  private async handleAutoSaveThreshold(status: ContextHealthStatus): Promise<void> {
+    // Only act on real session data — filesystem estimates are not context usage
+    if (status.dataSource !== 'real') {
+      return;
+    }
+
+    this.logger.info('Auto-save threshold reached', {
+      threshold: this.config.autoSaveThreshold,
+      utilization: status.utilizationPercent,
+      tokensUsed: status.tokensUsed,
+    });
+
+    // If auto-execute is enabled, automatically run /7_gofer_save
+    if (this.config.autoExecuteSave) {
+      await this.executeAutoSave(status);
+    } else {
+      // Otherwise, just show an information notification
+      const percent = Math.round(status.utilizationPercent);
+      void vscode.window
+        .showInformationMessage(
+          `Gofer: Context at ${percent}% (auto-save threshold). Consider running /7_gofer_save to create a checkpoint.`,
+          'Save Now',
+          'Later'
+        )
+        .then((choice) => {
+          if (choice === 'Save Now' && this.claudePtyProcess) {
+            this.claudePtyProcess.write('/7_gofer_save\r');
+          }
+        });
+    }
+  }
+
+  /**
+   * Automatically executes /7_gofer_save to create a session checkpoint.
+   *
+   * Flow:
+   * 1. Send /7_gofer_save command to Claude Code terminal
+   * 2. Log the auto-save event
+   * 3. Show confirmation notification
+   */
+  private async executeAutoSave(status: ContextHealthStatus): Promise<void> {
+    if (!this.config.enabled) return;
+    if (this.isInCooldown()) return;
+    if (this.pendingNotification) return;
+
+    this.pendingNotification = true;
+    this.lastNotificationTime = Date.now();
+
+    try {
+      this.logger.info('Executing automatic session save at 69% threshold');
+
+      // Send /7_gofer_save to Claude Code terminal
+      const saved = this.sendSaveToTerminal();
+
+      // Log the event
+      if (this.usageLogger) {
+        await this.usageLogger.logHandoff(
+          this.currentSessionId || status.sessionId || 'unknown',
+          this.currentStage,
+          status.status,
+          status.tokensUsed,
+          status.tokensLimit,
+          status.utilizationPercent,
+          `auto-save: executed at ${status.utilizationPercent.toFixed(1)}%`
+        );
+      }
+
+      // Show notification
+      const percent = Math.round(status.utilizationPercent);
+      if (saved) {
+        vscode.window.showInformationMessage(
+          `Gofer: Context at ${percent}% — session automatically saved via /7_gofer_save. Continue working or start fresh session with /8_gofer_resume.`
+        );
+      } else {
+        vscode.window.showWarningMessage(
+          `Gofer: Context at ${percent}% — attempted auto-save but no active Claude Code terminal found. Please save manually with /7_gofer_save.`
+        );
+      }
+    } finally {
+      this.pendingNotification = false;
+    }
+  }
+
+  /**
+   * Sends /7_gofer_save command to the Claude Code terminal.
+   *
+   * @returns true if command was sent successfully, false if no terminal available
+   */
+  private sendSaveToTerminal(): boolean {
+    if (!this.claudePtyProcess) {
+      this.logger.warn('No Claude Code pty process available for auto-save');
+      return false;
+    }
+
+    try {
+      this.claudePtyProcess.write('/7_gofer_save\r');
+      this.logger.info('Sent /7_gofer_save command to Claude Code terminal');
+      return true;
+    } catch (error) {
+      this.logger.error('Failed to send /7_gofer_save to terminal', error as Error);
+      return false;
+    }
   }
 
   /**

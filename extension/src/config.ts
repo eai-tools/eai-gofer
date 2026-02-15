@@ -75,6 +75,8 @@ export const CONFIG_KEYS = {
   performanceMode: 'gofer.performanceMode',
   yoloSlopReductionEnabled: 'gofer.yoloSlopReduction.enabled',
   yoloSlopReductionNotifyEvery: 'gofer.yoloSlopReduction.notifyEvery',
+  contextWindowAutoExecuteSave: 'gofer.contextWindow.autoExecuteSave',
+  contextWindowAutoSaveThreshold: 'gofer.contextWindow.autoSaveThreshold',
 } as const;
 
 // Default values
@@ -89,6 +91,8 @@ export const DEFAULTS = {
   performanceMode: 'balanced',
   yoloSlopReductionEnabled: false,
   yoloSlopReductionNotifyEvery: 10,
+  contextWindowAutoExecuteSave: false,
+  contextWindowAutoSaveThreshold: 0.69,
 } as const;
 
 // File patterns
@@ -267,6 +271,26 @@ export class ConfigManager {
   }
 
   /**
+   * Get context window auto-execute save setting
+   */
+  public getContextWindowAutoExecuteSave(): boolean {
+    return this.config.get<boolean>(
+      CONFIG_KEYS.contextWindowAutoExecuteSave.replace('gofer.', ''),
+      DEFAULTS.contextWindowAutoExecuteSave
+    );
+  }
+
+  /**
+   * Get context window auto-save threshold
+   */
+  public getContextWindowAutoSaveThreshold(): number {
+    return this.config.get<number>(
+      CONFIG_KEYS.contextWindowAutoSaveThreshold.replace('gofer.', ''),
+      DEFAULTS.contextWindowAutoSaveThreshold
+    );
+  }
+
+  /**
    * Get all configuration as object
    */
   public getAll(): Record<string, unknown> {
@@ -282,6 +306,8 @@ export class ConfigManager {
       performanceMode: this.getPerformanceMode(),
       yoloSlopReductionEnabled: this.getSlopReductionEnabled(),
       yoloSlopReductionNotifyEvery: this.getSlopReductionNotifyEvery(),
+      contextWindowAutoExecuteSave: this.getContextWindowAutoExecuteSave(),
+      contextWindowAutoSaveThreshold: this.getContextWindowAutoSaveThreshold(),
     };
   }
 }

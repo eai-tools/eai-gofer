@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.9.0] - 2026-02-15
+
+Context Continuity Overhaul - 11 improvements to context management
+
 ## [1.8.0] - 2026-02-15
 
 Context Continuity Overhaul - 11 improvements to context management

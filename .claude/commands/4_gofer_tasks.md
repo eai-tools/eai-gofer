@@ -417,34 +417,31 @@ This creates `{FEATURE_DIR}/issues.md` with GitHub-ready issue definitions.
 
 ---
 
-## Step 6: Finalize and Auto-Proceed
+## Step 6: Approval Gate
 
-**NO APPROVAL GATE**: Tasks are automatically approved and implementation
-proceeds immediately.
+**IMPORTANT**: Tasks MUST be reviewed and approved before implementation begins.
 
 ### 6.1 Update Task Status
 
-Set the frontmatter status to `approved`:
+Set the frontmatter status to `review`:
 
 ```yaml
 ---
 feature: [Feature Name]
 spec: spec.md
 plan: plan.md
-status: approved
-autoApproved: true
-approvedAt: '[ISO timestamp]'
+status: review # Changed from 'draft' to 'review'
 created: [ISO date]
 ---
 ```
 
-### 6.2 Display Summary (Informational Only)
+### 6.2 Present for Approval
 
-Show task summary but do NOT wait for approval:
+Display the task summary and request explicit approval:
 
 ```
 ════════════════════════════════════════════════════════════════
-  ✓ TASKS GENERATED: [Feature Name]
+  TASKS READY FOR REVIEW: [Feature Name]
 ════════════════════════════════════════════════════════════════
 
   📋 Task Summary:
@@ -460,28 +457,62 @@ Show task summary but do NOT wait for approval:
   - {FEATURE_DIR}/tasks.md
   - {FEATURE_DIR}/issues.md ([N] GitHub issues)
 
-  → Proceeding automatically to /5_gofer_implement
+════════════════════════════════════════════════════════════════
+  ⚠️  APPROVAL REQUIRED BEFORE IMPLEMENTATION
+════════════════════════════════════════════════════════════════
+
+  Please review tasks.md and confirm:
+  1. Task breakdown is complete and accurate
+  2. Protected files list is correct
+  3. Phase dependencies make sense
+  4. Scope boundaries are appropriate
+
+  Reply with:
+  - "approved" or "lgtm" to proceed to implementation
+  - "modify [feedback]" to request changes
+  - "stop" to halt the pipeline
 
 ════════════════════════════════════════════════════════════════
 ```
 
-**Note**: User can review tasks.md later if needed, but implementation starts
-immediately.
+### 6.3 Handle Approval Response
+
+| Response                    | Action                                                       |
+| --------------------------- | ------------------------------------------------------------ |
+| `approved` / `lgtm` / `yes` | Update status to `approved`, proceed to `/5_gofer_implement` |
+| `modify [feedback]`         | Update tasks based on feedback, re-present for approval      |
+| `stop`                      | Halt pipeline, document reason in tasks.md                   |
+
+### 6.4 Record Approval
+
+When approved, update frontmatter:
+
+```yaml
+---
+feature: [Feature Name]
+spec: spec.md
+plan: plan.md
+status: approved
+approvedBy: '[user]'
+approvedAt: '[ISO timestamp]'
+created: [ISO date]
+---
+```
 
 ---
 
-## Step 7: Auto-Continue to Implementation
+## Step 7: Continue to Implementation
 
-Automatically proceed without waiting:
+After approval received:
 
 ```
-✓ Tasks generated: {FEATURE_DIR}/tasks.md
+✓ Tasks APPROVED: {FEATURE_DIR}/tasks.md
 
-→ Auto-proceeding to /5_gofer_implement
+Ready for next stage: /5_gofer_implement
 ```
 
-The orchestrator automatically invokes `/5_gofer_implement` next with NO user
-interaction required.
+If orchestrated by `/0_business_scenario`, the orchestrator will automatically
+invoke `/5_gofer_implement` next.
 
 ---
 

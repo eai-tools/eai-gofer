@@ -696,13 +696,13 @@ The following pipeline stages should re-run focused on these areas:
 | 2         | [N]/100 | [list]            | [date] |
 ```
 
-### 10.3 Auto-Execute Remediation
+### 10.3 Signal Orchestrator
 
-**Immediately re-invoke /5_gofer_implement** to fix the failed categories:
+Output the routing instruction:
 
 ```
 ════════════════════════════════════════════════════════════════
-  VALIDATION FAILED: [Feature Name] — AUTO-FIXING
+  VALIDATION FAILED: [Feature Name]
 ════════════════════════════════════════════════════════════════
 
   Score: [N]/100
@@ -714,20 +714,13 @@ The following pipeline stages should re-run focused on these areas:
 
   Remediation report: {FEATURE_DIR}/remediation-report.md
 
-  → AUTO-FIXING: Automatically re-invoking /5_gofer_implement
-  → Focus: [failed categories]
-  → After fixes complete: Will auto-revalidate with /6_gofer_validate
+  REMEDIATION REQUIRED: [feature-name]
+  Failed categories: [list]
+  Iteration: [N] of 3
+  Route: /5_gofer_implement → focused on [failed areas]
 
 ════════════════════════════════════════════════════════════════
 ```
-
-**Action**: Immediately invoke `/5_gofer_implement` with the remediation context
-loaded. Do NOT wait for user approval. The implement stage will:
-
-1. Load remediation-report.md
-2. Focus only on fixing failed categories
-3. Auto-invoke /6_gofer_validate when complete
-4. Loop continues until 100/100 or max iterations
 
 Then proceed to **Step 11: Attribution Logging**.
 

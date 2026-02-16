@@ -75,16 +75,6 @@ During implementation, use these techniques to preserve context quality:
    - Every 5 completed tasks, check context health
    - If Warning status: Run `/7_gofer_save`
    - This enables resumption with fresh context
-   - **Write periodic checkpoint** every 5 tasks for crash recovery:
-     ```bash
-     .specify/scripts/bash/write-periodic-checkpoint.sh \
-       --feature-id "[FEATURE_DIR_NAME]" \
-       --task-number [current_task_number] \
-       --total-tasks [total] \
-       --completed "[comma-separated completed task IDs]" \
-       --decisions "[key decisions since last checkpoint]" \
-       --files-modified "[files changed since last checkpoint]"
-     ```
 
 **If compaction needed**:
 
@@ -269,19 +259,7 @@ Create checkpoints (git commits) at strategic points:
 5. Follow existing codebase patterns (from research.md)
 6. **RUN FEEDBACK LOOP** (see below)
 7. Mark task complete: Change `- [ ]` to `- [X]` in tasks.md
-8. **EXTRACT SESSION MEMORY**: After marking complete, capture a 1-3 sentence
-   learning from this task (decision made, gotcha discovered, pattern found, or
-   approach taken):
-   ```bash
-   .specify/scripts/bash/write-session-memory.sh \
-     --task-id "[TASK_ID]" \
-     --feature-id "[FEATURE_DIR_NAME]" \
-     --type "[decision|gotcha|pattern|approach]" \
-     --content "[1-3 sentence learning]" \
-     --files "[comma-separated files modified]"
-   ```
-   This is fire-and-forget — failures do not block progress.
-9. Report progress
+8. Report progress
 
 ### Feedback Loop (After EACH Task)
 
@@ -304,17 +282,6 @@ npm run typecheck  # or tsc --noEmit
 - If lint errors → **FIX BEFORE** proceeding
 - If type errors → **FIX BEFORE** proceeding
 - **DO NOT** accumulate failures across tasks
-- **LOG FAILED APPROACHES**: When an approach fails and you try an alternative,
-  log the failed approach before switching:
-  ```bash
-  .specify/scripts/bash/write-failed-approach.sh \
-    --task-id "[TASK_ID]" \
-    --feature-id "[FEATURE_DIR_NAME]" \
-    --approach "[description of what was tried]" \
-    --reason "[why it failed]" \
-    --files "[comma-separated files involved]"
-  ```
-  This prevents future sessions from repeating dead-end approaches.
 
 ### After Each Phase
 

@@ -190,27 +190,6 @@ From tasks.md Protected Files section:
 - [ ] [Question requiring user input]
 - [ ] [Question requiring research]
 
-## Failed Approaches
-
-[Include output from read-failed-approaches.sh if entries exist for this
-feature]
-
-```bash
-.specify/scripts/bash/read-failed-approaches.sh --feature-id {feature-id} --sessions 3
-```
-
-[Paste output here — these warn the next session not to retry known dead ends]
-
-## Session Memories
-
-[Include top-priority learnings from read-session-memories.sh]
-
-```bash
-.specify/scripts/bash/read-session-memories.sh --feature-id {feature-id} --limit 10
-```
-
-[Paste output here — these carry forward incremental learnings across sessions]
-
 ## Resumption Instructions
 
 ### Quick Resume
@@ -353,7 +332,7 @@ The markdown body ensures:
 Aim for session-checkpoint.md to be:
 
 - **< 2,000 tokens** for critical information
-- **< 8,000 tokens** total including context
+- **< 5,000 tokens** total including context
 
 This ensures the resume session starts with clean context.
 

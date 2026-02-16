@@ -1,8 +1,8 @@
 {
-  "timestamp": 1771198101116,
+  "timestamp": 1771210076801,
   "status": "healthy",
-  "utilizationPercent": 32.59,
-  "tokensUsed": 65174,
+  "utilizationPercent": 41.93,
+  "tokensUsed": 83864,
   "tokensLimit": 200000,
   "breakdown": {
     "specArtifacts": 0,
@@ -10,11 +10,9 @@
     "hints": 0,
     "observations": 0,
     "systemFiles": 0,
-    "conversation": 65174
+    "conversation": 83864
   },
-  "recommendations": [
-    "Context usage is healthy. Continue working normally."
-  ],
+  "recommendations": ["Context usage is healthy. Continue working normally."],
   "sessionId": "0e67b4cf-69ab-44fa-80f7-f42654a89bfd",
   "dataSource": "real",
   "model": "claude-sonnet-4-5-20250929"

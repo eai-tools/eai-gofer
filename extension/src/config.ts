@@ -92,9 +92,9 @@ export const DEFAULTS = {
   performanceMode: 'balanced',
   yoloSlopReductionEnabled: false,
   yoloSlopReductionNotifyEvery: 10,
-  contextWindowAutoExecuteSave: false,
+  contextWindowAutoExecuteSave: true,
   contextWindowAutoSaveThreshold: 0.69,
-  contextWindowAutoResumeAfterSave: false,
+  contextWindowAutoResumeAfterSave: true,
 } as const;
 
 // File patterns

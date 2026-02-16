@@ -287,10 +287,16 @@ Click the indicator to view detailed breakdown by category.
 Configure context management in VSCode Settings (Settings > Gofer):
 
 - `gofer.contextWindow.autoExecuteSave` - Auto-execute /7_gofer_save at
-  threshold (default: false)
+  threshold (default: true)
   - When `true`: Automatically sends `/7_gofer_save` to Claude Code terminal
     when threshold is reached
   - When `false`: Shows notification with "Save Now" button
+
+- `gofer.contextWindow.autoResumeAfterSave` - Auto-execute /8_gofer_resume after
+  /7_gofer_save completes (default: true)
+  - When `true`: Automatically sends `/8_gofer_resume` immediately after save
+    completes, maintaining seamless context continuity
+  - When `false`: Manual resume required after save
 
 - `gofer.contextWindow.autoSaveThreshold` - Context utilization threshold for
   auto-save (default: 0.69)

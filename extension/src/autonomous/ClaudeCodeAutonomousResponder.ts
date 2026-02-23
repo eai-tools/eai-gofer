@@ -31,9 +31,6 @@ export class ClaudeCodeAutonomousResponder {
   private recentLines: Set<string> = new Set(); // Track recent unique lines
   private readonly dedupeWindow = 50; // Check last 50 lines for duplicates
   private lineBuffer = ''; // Buffer for incomplete lines from pty chunks
-  private lastBufferUpdateTime = 0; // Timestamp of last buffer content change
-  private lastBufferSnapshot = ''; // Last buffer content for stability detection
-  private readonly stabilityDelayMs = 10000; // 10 seconds stability required
   private logFilePath: string | null = null; // Path to detailed log file
   private ipcWatcher: vscode.FileSystemWatcher | null = null;
   private workspaceRoot: string | undefined;
@@ -67,7 +64,6 @@ export class ClaudeCodeAutonomousResponder {
             `IPC: Detected waiting state. Last output: ${status.last_output.substring(0, 50)}...`
           );
           this.terminalBuffer.push(status.last_output);
-          this.lastBufferUpdateTime = Date.now();
         }
       } catch (e) {
         // Siltently fail if IPC read fails
@@ -212,12 +208,6 @@ export class ClaudeCodeAutonomousResponder {
       this.recentLines = new Set(recentClean);
     }
 
-    // Update stability tracking
-    const currentSnapshot = this.terminalBuffer.slice(-10).join('\n');
-    if (currentSnapshot !== this.lastBufferSnapshot) {
-      this.lastBufferSnapshot = currentSnapshot;
-      this.lastBufferUpdateTime = Date.now();
-    }
   }
 
   /**
@@ -811,39 +801,6 @@ Provide specific, actionable recommendations.`
       return null;
     } finally {
       this.isProcessing = false;
-    }
-  }
-
-  /**
-   * Send response to terminal (legacy method for regular terminals)
-   */
-  async sendResponseToTerminal(terminal: vscode.Terminal, response: string): Promise<void> {
-    try {
-      this.outputChannel.appendLine('⌨️  Sending response to terminal...');
-
-      // Press ESC to enter text mode (based on Claude Code behavior)
-      await vscode.commands.executeCommand('workbench.action.terminal.sendSequence', {
-        text: '\x1B', // ESC key
-      });
-
-      await this.delay(500);
-
-      // Type the response
-      terminal.sendText(response, false);
-      this.outputChannel.appendLine(`   Typed: "${response}"`);
-
-      await this.delay(500);
-
-      // Press Enter to submit
-      await vscode.commands.executeCommand('workbench.action.terminal.sendSequence', {
-        text: '\x0D', // Enter key
-      });
-
-      this.outputChannel.appendLine('   ✓ Response sent!\n');
-    } catch (error) {
-      this.outputChannel.appendLine(
-        `✗ Error sending response: ${error instanceof Error ? error.message : String(error)}`
-      );
     }
   }
 

@@ -29,8 +29,7 @@ import {
 } from './autonomous/ClaudeCodeAutonomousResponder';
 import type { ProgressProvider } from './progressProvider';
 import type { EnrichedContextBridge } from './autonomous/ContextBridgeWriter';
-// Note: wireClaudePtyToAutoHandoff is dynamically imported to avoid circular dependency
-// (autonomousCommands.ts ↔ extension.ts)
+import { wireClaudePtyToAutoHandoff } from './autoHandoffBridge';
 
 // Shared singleton instances (set from extension.ts)
 let sharedMemoryManager: MemoryManager | undefined;
@@ -967,8 +966,6 @@ export async function launchClaudeCode(specId: string): Promise<void> {
     });
 
     // Wire pty to AutoHandoffTrigger for automated save/resume
-    // Dynamic import to avoid circular dependency (autonomousCommands ↔ extension)
-    const { wireClaudePtyToAutoHandoff } = await import('./extension');
     wireClaudePtyToAutoHandoff(ptyProcess);
 
     // Capture output and feed to autonomous responder

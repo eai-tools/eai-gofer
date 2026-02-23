@@ -130,7 +130,9 @@ Handlers)
   - **COMPLETED**: TSyringe and reflect-metadata installed, decorators enabled
     in tsconfig.json
 
-- [ ] T010 [P] [US2] Create DI container in extension/src/di/container.ts
+- [x] T010 [P] [US2] Create DI container in extension/src/di/container.ts ✅
+      Complete - Created container.ts and index.ts with registerServices(),
+      getContainer(), resetContainer()
   - Import `container` from tsyringe
   - Create `registerServices()` function for service registration
   - Create `resetContainer()` function for testing
@@ -138,7 +140,8 @@ Handlers)
 
 ### US4: Observability - Replace Silent Error Handlers
 
-- [ ] T011 [P] [US4] Create Logger service in extension/src/services/Logger.ts
+- [x] T011 [P] [US4] Create Logger service in extension/src/services/Logger.ts
+      ✅ Complete - Created Logger with error(), warn(), info(), debug() methods
   - Interface:
     `error(context: string, error: Error, metadata?: Record<string, unknown>): void`
   - Add `@injectable()` decorator
@@ -146,7 +149,8 @@ Handlers)
     `[ERROR][${context}] ${error.message} ${JSON.stringify(metadata)}`
   - Include warn() and info() methods for completeness
 
-- [ ] T012 [US4] Register Logger in DI container
+- [x] T012 [US4] Register Logger in DI container ✅ Complete - Logger registered
+      and initialized in extension.ts:activate()
   - Update extension/src/di/container.ts: Add
     `container.registerSingleton(Logger)`
   - Test injection in extension/src/extension.ts:activate()

@@ -6,14 +6,11 @@
  * console.log/debugger statements, upgrading @ts-ignore to @ts-expect-error.
  *
  * Logs every fix to .specify/logs/slop-reduction.jsonl for audit.
- * Shows batched notifications every N fixes (configurable).
  */
 
 import * as fs from 'fs';
 import * as path from 'path';
-import * as vscode from 'vscode';
 import { Logger } from '../utils/logger';
-import { ConfigManager } from '../config';
 
 /** A fixable pattern entry in the registry */
 export interface FixPattern {
@@ -170,7 +167,6 @@ export class SlopReducer {
         fs.writeFileSync(filePath, newLines.join('\n'), 'utf-8');
         this.sessionFixCount += result.fixCount;
         this.logger.info(`Reduced ${result.fixCount} slop issues in ${path.basename(filePath)}`);
-        this.maybeNotify();
       }
 
       return result;
@@ -249,13 +245,6 @@ export class SlopReducer {
       fs.appendFileSync(logPath, JSON.stringify(entry) + '\n');
     } catch {
       // Non-fatal — don't block the fix
-    }
-  }
-
-  /** Silent background operation — log to console only */
-  private maybeNotify(): void {
-    const notifyEvery = ConfigManager.getInstance().getSlopReductionNotifyEvery();
-    if (this.sessionFixCount > 0 && this.sessionFixCount % notifyEvery === 0) {
     }
   }
 }

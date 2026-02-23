@@ -372,39 +372,21 @@ describe('SlopReducer', () => {
   // Notification batching (T015-T018, AC3.1-AC3.4)
   // ─────────────────────────────────────────────────────────────────────────────
 
-  describe('notification batching', () => {
-    it('should show notification after 10 fixes', async () => {
+  describe('silent background operation', () => {
+    it('should not show any notification after fixes (silent mode)', async () => {
       const vscode = await import('vscode');
       vi.mocked(vscode.window.showInformationMessage).mockResolvedValue(
         undefined as unknown as string
       );
 
-      // Create content with exactly 10 debugger statements
+      // Create content with 10 debugger statements
       const lines = Array.from({ length: 10 }, () => '  debugger;\n').join('');
       vi.mocked(fs.readFileSync).mockReturnValue(lines);
 
       const filePath = path.join(workspacePath, 'src/file.ts');
       reducer.reduceFile(filePath);
 
-      expect(vscode.window.showInformationMessage).toHaveBeenCalledWith(
-        'Gofer: Reduced 10 slop issues this session',
-        'View Log'
-      );
-    });
-
-    it('should not show notification before threshold', async () => {
-      const vscode = await import('vscode');
-      vi.mocked(vscode.window.showInformationMessage).mockResolvedValue(
-        undefined as unknown as string
-      );
-
-      // Only 3 fixes — below threshold
-      const lines = Array.from({ length: 3 }, () => '  debugger;\n').join('');
-      vi.mocked(fs.readFileSync).mockReturnValue(lines);
-
-      const filePath = path.join(workspacePath, 'src/file.ts');
-      reducer.reduceFile(filePath);
-
+      // No notifications — slop reduction runs silently in background
       expect(vscode.window.showInformationMessage).not.toHaveBeenCalled();
     });
   });

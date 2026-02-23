@@ -109,7 +109,6 @@ export class AutoHandoffTrigger implements vscode.Disposable {
   private contextBuilder: ContextBuilder | null = null;
   private slopReducer: SlopReducer | null = null;
   private claudePtyProcess: IPty | null = null;
-  private spawnNewTerminalFn: ((initialCommand?: string) => Promise<void>) | null = null;
   private lastNotificationTime: number = 0;
   private currentSessionId: string = '';
   private currentStage: string = 'implement';
@@ -234,16 +233,6 @@ export class AutoHandoffTrigger implements vscode.Disposable {
   }
 
   /**
-   * Sets the callback function for spawning a new Claude Code terminal.
-   * Used for auto-resume workflow to spawn fresh terminal after save.
-   *
-   * @param fn Callback that spawns a new terminal, optionally with an initial command
-   */
-  setSpawnNewTerminalCallback(fn: (initialCommand?: string) => Promise<void>): void {
-    this.spawnNewTerminalFn = fn;
-  }
-
-  /**
    * Sets the current session context.
    *
    * @param sessionId - Session identifier
@@ -327,50 +316,6 @@ export class AutoHandoffTrigger implements vscode.Disposable {
       }
     } finally {
       this.pendingNotification = false;
-    }
-  }
-
-  /**
-   * Sends /7_gofer_save command to the Claude Code terminal.
-   *
-   * @returns true if command was sent successfully, false if no terminal available
-   */
-  private sendSaveToTerminal(): boolean {
-    if (!this.claudePtyProcess) {
-      this.logger.warn('No Claude Code pty process available for auto-save');
-      return false;
-    }
-
-    try {
-      this.claudePtyProcess.write('/7_gofer_save\r');
-      this.logger.info('Sent /7_gofer_save command to Claude Code terminal');
-      return true;
-    } catch (error) {
-      this.logger.error('Failed to send /7_gofer_save to terminal', error as Error);
-      return false;
-    }
-  }
-
-  /**
-   * Sends /8_gofer_resume command to the Claude Code terminal.
-   * This is called after /7_gofer_save to automatically resume with fresh context.
-   *
-   * @returns true if command was sent successfully, false if no terminal available
-   */
-  private sendResumeToTerminal(): boolean {
-    if (!this.claudePtyProcess) {
-      this.logger.warn('No Claude Code pty process available for auto-resume');
-      return false;
-    }
-
-    try {
-      // Send resume command - Claude Code will execute it after save completes
-      this.claudePtyProcess.write('/8_gofer_resume\r');
-      this.logger.info('Sent /8_gofer_resume command to Claude Code terminal');
-      return true;
-    } catch (error) {
-      this.logger.error('Failed to send /8_gofer_resume to terminal', error as Error);
-      return false;
     }
   }
 

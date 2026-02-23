@@ -11,7 +11,6 @@ const fs = require('fs').promises;
 const path = require('path');
 
 async function generateCoverageReport() {
-  console.log('📊 Generating Gofer Coverage Report\n');
 
   const coverageDir = './coverage';
   const coverageFile = path.join(coverageDir, 'coverage-summary.json');
@@ -20,18 +19,11 @@ async function generateCoverageReport() {
     // Check if coverage data exists
     const coverageData = JSON.parse(await fs.readFile(coverageFile, 'utf-8'));
     
-    console.log('🎯 Coverage Summary:');
-    console.log('==================');
     
     const { total } = coverageData;
     
     // Display overall coverage
-    console.log(`Lines:      ${total.lines.pct}% (${total.lines.covered}/${total.lines.total})`);
-    console.log(`Functions:  ${total.functions.pct}% (${total.functions.covered}/${total.functions.total})`);
-    console.log(`Branches:   ${total.branches.pct}% (${total.branches.covered}/${total.branches.total})`);
-    console.log(`Statements: ${total.statements.pct}% (${total.statements.covered}/${total.statements.total})`);
     
-    console.log('\n');
     
     // Constitutional validation
     const minCoverage = 80;
@@ -54,28 +46,20 @@ async function generateCoverageReport() {
     }
     
     if (issues.length > 0) {
-      console.log('🚨 Constitutional Violations:');
-      console.log('============================');
       issues.forEach(issue => console.log(issue));
-      console.log('\n');
       
       // Show files with low coverage
-      console.log('📋 Files needing attention:');
-      console.log('===========================');
       
       for (const [file, data] of Object.entries(coverageData)) {
         if (file === 'total') continue;
         
         const fileData = data;
         if (fileData.lines.pct < minCoverage) {
-          console.log(`${file}: ${fileData.lines.pct}% line coverage`);
         }
       }
       
       process.exit(1);
     } else {
-      console.log('✅ All coverage requirements met!');
-      console.log('🏆 Constitutional compliance: PASSED');
     }
     
     // Generate badges
@@ -84,19 +68,12 @@ async function generateCoverageReport() {
     // Generate detailed report
     await generateDetailedReport(coverageData);
     
-    console.log('\n📈 Coverage reports generated:');
-    console.log('- HTML Report: ./coverage/index.html');
-    console.log('- LCOV Report: ./coverage/lcov.info');
-    console.log('- JSON Report: ./coverage/coverage-final.json');
-    console.log('- Badge SVGs: ./coverage/badges/');
     
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('❌ Failed to generate coverage report:', errorMessage);
     
     if (errorMessage.includes('ENOENT')) {
-      console.log('\n💡 Run tests with coverage first:');
-      console.log('   npm run test:coverage');
     }
     
     process.exit(1);
@@ -146,7 +123,6 @@ async function generateCoverageBadges(total) {
       await fs.writeFile(path.join(badgeDir, `${badge.name}.svg`), badgeSvg);
     }
     
-    console.log('✅ Coverage badges generated');
   } catch (error) {
     console.warn('⚠️  Failed to generate badges:', error instanceof Error ? error.message : 'Unknown error');
   }
@@ -216,7 +192,6 @@ Generated on: ${new Date().toISOString()}
 `;
 
     await fs.writeFile(reportPath, report);
-    console.log('✅ Detailed report generated');
   } catch (error) {
     console.warn('⚠️  Failed to generate detailed report:', error instanceof Error ? error.message : 'Unknown error');
   }

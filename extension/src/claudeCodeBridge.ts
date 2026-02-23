@@ -23,12 +23,9 @@ export class ClaudeCodeBridge {
     });
   }
 
-  async start(): Promise<void> {
-    console.log('Claude Code Bridge started');
-  }
+  async start(): Promise<void> {}
 
   async stop(): Promise<void> {
-    console.log('Claude Code Bridge stopped');
     this.conversationHistory = [];
   }
 
@@ -154,10 +151,7 @@ Work autonomously but ask for help when needed.`;
     try {
       const data = await fs.readFile(historyPath, 'utf-8');
       this.conversationHistory = JSON.parse(data);
-      console.log('Loaded conversation history from disk');
-    } catch (error) {
-      console.log('No conversation history found, starting fresh');
-    }
+    } catch (error) {}
   }
 
   /**
@@ -166,6 +160,5 @@ Work autonomously but ask for help when needed.`;
   async saveConversationHistory(): Promise<void> {
     const historyPath = path.join(this.workspacePath, '.claude-history.json');
     await fs.writeFile(historyPath, JSON.stringify(this.conversationHistory, null, 2), 'utf-8');
-    console.log('Saved conversation history to disk');
   }
 }

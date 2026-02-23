@@ -448,7 +448,6 @@ export class AutonomousDriver {
       this.sessionMemories = await this.memoryManager.load('both');
 
       // Log memory count for debugging
-      console.log(`[AutonomousDriver] Loaded ${this.sessionMemories.length} memories for session`);
     } catch (error) {
       console.error('[AutonomousDriver] Failed to load memories:', error);
       // Don't fail the session if memory loading fails
@@ -506,7 +505,6 @@ export class AutonomousDriver {
   async recordMemoryUsage(memoryId: string): Promise<void> {
     try {
       await this.memoryManager.recordUsage(memoryId);
-      console.log(`[AutonomousDriver] Recorded usage for memory: ${memoryId}`);
     } catch (error) {
       console.error(`[AutonomousDriver] Failed to record memory usage:`, error);
       // Don't fail the task if usage recording fails
@@ -648,8 +646,6 @@ export class AutonomousDriver {
     const newCount = currentCount + 1;
     this.patternTracker.set(concept, newCount);
 
-    console.log(`[AutonomousDriver] Pattern tracked: ${concept} (count: ${newCount})`);
-
     // T049: Show notification after 3 occurrences (if not already suggested)
     if (newCount >= 3 && !this.suggestedPatterns.has(concept)) {
       await this.suggestMemoryToUser(concept, content, category, tags);
@@ -712,8 +708,6 @@ export class AutonomousDriver {
 
         // Reload session memories to include the new one
         await this.loadSessionMemories();
-
-        console.log(`[AutonomousDriver] Pattern saved as memory: ${concept}`);
       } catch (error) {
         vscode.window.showErrorMessage(`Failed to save memory: ${(error as Error).message}`);
         console.error('[AutonomousDriver] Failed to save suggested memory:', error);
@@ -729,7 +723,6 @@ export class AutonomousDriver {
 
       panel.webview.html = this.getMemorySuggestionHtml(suggestedMemory);
     } else {
-      console.log(`[AutonomousDriver] User declined memory suggestion: ${concept}`);
     }
   }
 
@@ -895,8 +888,6 @@ export class AutonomousDriver {
       const shouldCompact = await this.contextCompactor.shouldCompact(session);
 
       if (shouldCompact) {
-        console.log('[AutonomousDriver] Context threshold reached, triggering compaction...');
-
         // T147: Trigger compaction
         const summary = await this.contextCompactor.compact(session);
 

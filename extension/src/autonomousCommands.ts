@@ -29,6 +29,7 @@ import {
 } from './autonomous/ClaudeCodeAutonomousResponder';
 import type { ProgressProvider } from './progressProvider';
 import type { EnrichedContextBridge } from './autonomous/ContextBridgeWriter';
+import { wireClaudePtyToAutoHandoff } from './extension';
 
 // Shared singleton instances (set from extension.ts)
 let sharedMemoryManager: MemoryManager | undefined;
@@ -37,6 +38,9 @@ let sharedMemoryHookManager: MemoryHookManager | undefined;
 
 // Cached enriched context from bridge file (for memory injection)
 let cachedEnrichedContext: EnrichedContextBridge | undefined;
+
+// Override command for next terminal spawn (used by auto-resume workflow)
+let overrideInitialCommand: string | undefined;
 
 /** Set the shared MemoryManager instance */
 export function setSharedMemoryManager(mm: MemoryManager): void {
@@ -545,7 +549,6 @@ async function runPostCompletionChecks(report: CompletionReport, wsPath: string)
       cwd: wsPath,
       timeout: 60000,
     });
-    console.log('[Gofer] Post-completion build verification passed');
   } catch (buildError) {
     const errorMsg = buildError instanceof Error ? buildError.message : String(buildError);
     console.warn('[Gofer] Post-completion build failed:', errorMsg.slice(0, 200));
@@ -572,7 +575,6 @@ async function runPostCompletionChecks(report: CompletionReport, wsPath: string)
       cwd: wsPath,
       timeout: 120000,
     });
-    console.log('[Gofer] Post-completion tests passed');
   } catch (testError) {
     const errorMsg = testError instanceof Error ? testError.message : String(testError);
     console.warn('[Gofer] Post-completion tests failed:', errorMsg.slice(0, 200));
@@ -842,18 +844,13 @@ function determineInitialCommand(specId: string, workspacePath: string): string 
  * Launch Claude Code in integrated VSCode terminal
  */
 export async function launchClaudeCode(specId: string): Promise<void> {
-  console.log('[Gofer] launchClaudeCode called for:', specId);
-
   // Create output channel FIRST - before any try/catch
   // Use a simpler name without spaces to ensure it appears in dropdown
   if (!outputChannel) {
-    console.log('[Gofer] Creating new output channel');
     outputChannel = vscode.window.createOutputChannel('Gofer-ClaudeCode');
-    console.log('[Gofer] Output channel created:', outputChannel);
   }
 
   // Clear previous content and show (don't preserve focus so it's visible)
-  console.log('[Gofer] Clearing and showing output channel');
   outputChannel.clear();
   outputChannel.show(false); // Don't preserve focus - make it visible
   outputChannel.appendLine('='.repeat(80));
@@ -861,7 +858,6 @@ export async function launchClaudeCode(specId: string): Promise<void> {
   outputChannel.appendLine(`Spec ID: ${specId}`);
   outputChannel.appendLine(`Time: ${new Date().toISOString()}`);
   outputChannel.appendLine('='.repeat(80));
-  console.log('[Gofer] Output channel content written');
 
   // Reset paused state when starting new Claude Code session
   isAutonomousMonitoringPaused = false;
@@ -968,6 +964,9 @@ export async function launchClaudeCode(specId: string): Promise<void> {
         CLAUDE_AUTOCOMPACT_PCT_OVERRIDE: '70',
       } as any,
     });
+
+    // Wire pty to AutoHandoffTrigger for automated save/resume
+    wireClaudePtyToAutoHandoff(ptyProcess);
 
     // Capture output and feed to autonomous responder
     if (autonomousMode && apiKey && autonomousResponder) {
@@ -1117,9 +1116,17 @@ export async function launchClaudeCode(specId: string): Promise<void> {
         promptDetected = true;
         outputChannel?.appendLine('✓ Claude Code prompt detected, determining command...');
 
-        // Dynamically determine command based on workspace state
-        const initialCommand = determineInitialCommand(specId, workspacePath);
-        outputChannel?.appendLine(`   → State detection chose: ${initialCommand}`);
+        // Check for override command first (used by auto-resume workflow)
+        let initialCommand: string;
+        if (overrideInitialCommand) {
+          initialCommand = overrideInitialCommand;
+          outputChannel?.appendLine(`   → Using override command: ${initialCommand}`);
+          overrideInitialCommand = undefined; // Clear after use
+        } else {
+          // Dynamically determine command based on workspace state
+          initialCommand = determineInitialCommand(specId, workspacePath);
+          outputChannel?.appendLine(`   → State detection chose: ${initialCommand}`);
+        }
 
         // Build the full command with memory injection (memory-system-integration-sweep)
         // If we have cached enriched context, prepend memory context to the command
@@ -1526,4 +1533,50 @@ export function getActiveDriver(): AutonomousDriver | null {
  */
 export function getClaudePtyProcess(): pty.IPty | null {
   return ptyProcess;
+}
+
+/**
+ * Spawn a new Claude Code terminal with an optional initial command.
+ * Used by AutoHandoffTrigger for auto-resume workflow.
+ *
+ * @param initialCommand Optional command to send after terminal is ready (e.g., "/8_gofer_resume")
+ */
+export async function spawnNewClaudeCodeTerminal(initialCommand?: string): Promise<void> {
+  // Get the most recent spec ID from workspace
+  const workspacePath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '';
+  if (!workspacePath) {
+    throw new Error('No workspace folder found');
+  }
+
+  // Find the most recent spec
+  const specsDir = path.join(workspacePath, '.specify', 'specs');
+  let latestSpecId = 'feature-001'; // Default fallback
+
+  try {
+    const specDirs = fsSync
+      .readdirSync(specsDir, { withFileTypes: true })
+      .filter((d) => d.isDirectory())
+      .sort((a, b) => {
+        const aTime = fsSync.statSync(path.join(specsDir, a.name)).mtimeMs;
+        const bTime = fsSync.statSync(path.join(specsDir, b.name)).mtimeMs;
+        return bTime - aTime;
+      });
+
+    if (specDirs.length > 0) {
+      latestSpecId = specDirs[0].name;
+    }
+  } catch (error) {
+    // Fall back to default if error reading specs
+    console.error('Error finding latest spec:', error);
+  }
+
+  // Stop the old terminal before spawning a new one to prevent
+  // two Claude Code processes from running simultaneously
+  await stopClaudeCode();
+
+  // Store the override command in a module variable before launching
+  overrideInitialCommand = initialCommand;
+
+  // Launch Claude Code (it will use the override command if set)
+  await launchClaudeCode(latestSpecId);
 }

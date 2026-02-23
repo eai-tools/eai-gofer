@@ -114,8 +114,6 @@ export class MemoryStorage {
       // Write each memory as a JSONL line
       const lines = memories.map((m) => JSON.stringify(m)).join('\n') + '\n';
       await fs.writeFile(this.jsonlPath, lines, 'utf-8');
-
-      console.log(`[MemoryStorage] Migrated ${memories.length} memories from local.json to JSONL`);
     } catch {
       // No legacy file or parse error — start fresh
     }
@@ -400,7 +398,8 @@ export class MemoryStorage {
     await fs.appendFile(this.archivePath, lines, 'utf-8');
 
     // Append tombstones to active JSONL
-    const tombstones = toArchive.map((m) => JSON.stringify({ id: m.id, _deleted: true })).join('\n') + '\n';
+    const tombstones =
+      toArchive.map((m) => JSON.stringify({ id: m.id, _deleted: true })).join('\n') + '\n';
     await fs.appendFile(this.jsonlPath, tombstones, 'utf-8');
 
     return toArchive.length;
@@ -432,8 +431,6 @@ export class MemoryStorage {
     const tempPath = this.jsonlPath + '.tmp';
     await fs.writeFile(tempPath, lines, 'utf-8');
     await fs.rename(tempPath, this.jsonlPath);
-
-    console.log(`[MemoryStorage] Compacted JSONL: ${activeMemories.length} active memories`);
   }
 
   // --------------------------------------------------------------------------

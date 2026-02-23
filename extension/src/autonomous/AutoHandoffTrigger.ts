@@ -40,10 +40,14 @@ export interface AutoHandoffConfig {
   notifyAtWarning: boolean;
   /** Auto-execute session save at threshold (default: false) */
   autoExecuteSave: boolean;
-  /** Threshold for auto-save trigger (default: 0.69 = 69%) */
+  /** Threshold for auto-save trigger (default: 0.65 = 65%) */
   autoSaveThreshold: number;
   /** Auto-resume in new session after save completes (default: false) */
   autoResumeAfterSave: boolean;
+  /** Enable continuous slop reduction (default: true) */
+  enableContinuousSlopReduction: boolean;
+  /** Interval for periodic slop scanning in milliseconds (default: 2 minutes) */
+  slopScanIntervalMs: number;
 }
 
 /**
@@ -55,8 +59,10 @@ const DEFAULT_CONFIG: AutoHandoffConfig = {
   autoDismissMs: undefined,
   notifyAtWarning: false,
   autoExecuteSave: false,
-  autoSaveThreshold: 0.69,
+  autoSaveThreshold: 0.65,
   autoResumeAfterSave: false,
+  enableContinuousSlopReduction: true,
+  slopScanIntervalMs: 2 * 60 * 1000, // 2 minutes
 };
 
 /**
@@ -103,12 +109,15 @@ export class AutoHandoffTrigger implements vscode.Disposable {
   private contextBuilder: ContextBuilder | null = null;
   private slopReducer: SlopReducer | null = null;
   private claudePtyProcess: IPty | null = null;
+  private spawnNewTerminalFn: ((initialCommand?: string) => Promise<void>) | null = null;
   private lastNotificationTime: number = 0;
   private currentSessionId: string = '';
   private currentStage: string = 'implement';
   private currentTask: string = '';
   private pendingNotification: boolean = false;
   private workspaceRoot: string = '';
+  private slopScanTimer: NodeJS.Timeout | null = null;
+  private lastSlopScanTime: number = 0;
 
   /**
    * Creates a new AutoHandoffTrigger instance.
@@ -133,7 +142,7 @@ export class AutoHandoffTrigger implements vscode.Disposable {
   connect(monitor: ContextHealthMonitor): void {
     this.monitor = monitor;
 
-    // Listen for auto-save threshold events (69% by default)
+    // Listen for auto-save threshold events (65% by default)
     const autoSaveHandler = (status: ContextHealthStatus): void => {
       this.handleAutoSaveThreshold(status);
     };
@@ -171,6 +180,20 @@ export class AutoHandoffTrigger implements vscode.Disposable {
       },
     });
 
+    // Set up file watcher for on-save slop scanning
+    if (this.config.enableContinuousSlopReduction) {
+      const fileWatcher = vscode.workspace.onDidSaveTextDocument((document) => {
+        // Only scan TypeScript/JavaScript files
+        if (document.languageId === 'typescript' || document.languageId === 'javascript') {
+          this.logger.debug('File saved, triggering slop scan', { file: document.fileName });
+          this.runContinuousSlopScan();
+        }
+      });
+
+      this.disposables.push(fileWatcher);
+      this.logger.debug('File watcher for slop scanning enabled');
+    }
+
     this.logger.debug('Connected to ContextHealthMonitor');
   }
 
@@ -194,9 +217,13 @@ export class AutoHandoffTrigger implements vscode.Disposable {
 
   /**
    * Sets the SlopReducer for automatic workspace reduction at critical threshold.
+   * Also starts continuous slop scanning if enabled.
    */
   setSlopReducer(reducer: SlopReducer): void {
     this.slopReducer = reducer;
+
+    // Start continuous scanning now that we have a reducer
+    this.startContinuousSlopScanning();
   }
 
   /**
@@ -204,6 +231,16 @@ export class AutoHandoffTrigger implements vscode.Disposable {
    */
   setClaudePtyProcess(pty: IPty | null): void {
     this.claudePtyProcess = pty;
+  }
+
+  /**
+   * Sets the callback function for spawning a new Claude Code terminal.
+   * Used for auto-resume workflow to spawn fresh terminal after save.
+   *
+   * @param fn Callback that spawns a new terminal, optionally with an initial command
+   */
+  setSpawnNewTerminalCallback(fn: (initialCommand?: string) => Promise<void>): void {
+    this.spawnNewTerminalFn = fn;
   }
 
   /**
@@ -221,7 +258,7 @@ export class AutoHandoffTrigger implements vscode.Disposable {
   }
 
   /**
-   * Handles auto-save threshold crossing (69% by default).
+   * Handles auto-save threshold crossing (65% by default).
    * Automatically executes /7_gofer_save if autoExecuteSave is enabled.
    */
   private async handleAutoSaveThreshold(status: ContextHealthStatus): Promise<void> {
@@ -240,19 +277,9 @@ export class AutoHandoffTrigger implements vscode.Disposable {
     if (this.config.autoExecuteSave) {
       await this.executeAutoSave(status);
     } else {
-      // Otherwise, just show an information notification
+      // Log threshold reached (no notification - status bar shows visual feedback)
       const percent = Math.round(status.utilizationPercent);
-      void vscode.window
-        .showInformationMessage(
-          `Gofer: Context at ${percent}% (auto-save threshold). Consider running /7_gofer_save to create a checkpoint.`,
-          'Save Now',
-          'Later'
-        )
-        .then((choice) => {
-          if (choice === 'Save Now' && this.claudePtyProcess) {
-            this.claudePtyProcess.write('/7_gofer_save\r');
-          }
-        });
+      this.logger.warn(`Context at ${percent}% (auto-save threshold) - auto-save disabled`);
     }
   }
 
@@ -274,16 +301,43 @@ export class AutoHandoffTrigger implements vscode.Disposable {
     this.lastNotificationTime = Date.now();
 
     try {
-      this.logger.info('Executing automatic session save at 69% threshold');
+      this.logger.info('Executing automatic session save at 65% threshold');
+
+      // Capture checkpoint file states BEFORE sending save command
+      const checkpointStatesBefore = this.getCheckpointStates();
 
       // Send /7_gofer_save to Claude Code terminal
       const saved = this.sendSaveToTerminal();
 
-      // If auto-resume is enabled, also send /8_gofer_resume
-      // Claude Code will execute them sequentially
-      if (saved && this.config.autoResumeAfterSave) {
-        this.logger.info('Auto-resume enabled, sending /8_gofer_resume after /7_gofer_save');
-        this.sendResumeToTerminal();
+      if (saved) {
+        // If auto-resume is enabled, wait for checkpoint then spawn a new terminal
+        if (this.config.autoResumeAfterSave && this.spawnNewTerminalFn) {
+          this.logger.info(
+            'Auto-resume enabled, waiting for checkpoint file before spawning new terminal'
+          );
+
+          // Wait for checkpoint file to appear/update (max 60 seconds)
+          const checkpointDetected = await this.waitForCheckpointFile(
+            checkpointStatesBefore,
+            60000
+          );
+
+          if (checkpointDetected) {
+            this.logger.info(
+              'Checkpoint file confirmed, spawning new terminal with /8_gofer_resume'
+            );
+          } else {
+            this.logger.warn(
+              'Checkpoint file wait timed out after 60s, spawning new terminal anyway'
+            );
+          }
+
+          // Spawn new terminal with /8_gofer_resume as initial command
+          // spawnNewTerminalFn stops the old terminal before launching the new one
+          await this.spawnNewTerminalFn('/8_gofer_resume');
+
+          this.logger.info('New terminal spawned with fresh context window');
+        }
       }
 
       // Log the event
@@ -295,21 +349,19 @@ export class AutoHandoffTrigger implements vscode.Disposable {
           status.tokensUsed,
           status.tokensLimit,
           status.utilizationPercent,
-          `auto-save: executed at ${status.utilizationPercent.toFixed(1)}%${this.config.autoResumeAfterSave ? ' + auto-resume' : ''}`
+          `auto-save: executed at ${status.utilizationPercent.toFixed(1)}%${this.config.autoResumeAfterSave ? ' + auto-resume in new terminal' : ''}`
         );
       }
 
-      // Show notification
+      // Log status (no notification popup - status bar handles visual feedback)
       const percent = Math.round(status.utilizationPercent);
       if (saved) {
         const message = this.config.autoResumeAfterSave
-          ? `Gofer: Context at ${percent}% — session saved and resumed automatically. Fresh context window loaded.`
-          : `Gofer: Context at ${percent}% — session automatically saved via /7_gofer_save. Continue working or start fresh session with /8_gofer_resume.`;
-        vscode.window.showInformationMessage(message);
+          ? `Context at ${percent}% — session saved and resumed in new terminal`
+          : `Context at ${percent}% — session automatically saved`;
+        this.logger.info(message);
       } else {
-        vscode.window.showWarningMessage(
-          `Gofer: Context at ${percent}% — attempted auto-save but no active Claude Code terminal found. Please save manually with /7_gofer_save.`
-        );
+        this.logger.warn(`Context at ${percent}% — auto-save failed, no active terminal`);
       }
     } finally {
       this.pendingNotification = false;
@@ -358,6 +410,99 @@ export class AutoHandoffTrigger implements vscode.Disposable {
       this.logger.error('Failed to send /8_gofer_resume to terminal', error as Error);
       return false;
     }
+  }
+
+  /**
+   * Gets the current state (mtime) of all session-checkpoint.md files across spec dirs.
+   * Used to detect when a new checkpoint is created or an existing one is updated.
+   */
+  private getCheckpointStates(): Map<string, number> {
+    const states = new Map<string, number>();
+    const specsDir = path.join(this.workspaceRoot, '.specify', 'specs');
+
+    try {
+      const dirs = fs.readdirSync(specsDir, { withFileTypes: true }).filter((d) => d.isDirectory());
+      for (const dir of dirs) {
+        const checkpointPath = path.join(specsDir, dir.name, 'session-checkpoint.md');
+        try {
+          const stat = fs.statSync(checkpointPath);
+          states.set(checkpointPath, stat.mtimeMs);
+        } catch {
+          // File doesn't exist yet — that's fine
+        }
+      }
+    } catch {
+      // Specs dir doesn't exist
+    }
+
+    return states;
+  }
+
+  /**
+   * Waits for a session-checkpoint.md file to appear or update in any spec directory.
+   * Polls every 1 second, times out after maxWaitMs.
+   *
+   * @param beforeStates Checkpoint file states captured before the save command was sent
+   * @param maxWaitMs Maximum time to wait in milliseconds (default: 60000)
+   * @returns true if checkpoint was detected, false if timed out
+   */
+  private waitForCheckpointFile(
+    beforeStates: Map<string, number>,
+    maxWaitMs: number = 60000
+  ): Promise<boolean> {
+    const specsDir = path.join(this.workspaceRoot, '.specify', 'specs');
+    const startTime = Date.now();
+    const pollIntervalMs = 1000;
+
+    return new Promise<boolean>((resolve) => {
+      const timer = setInterval(() => {
+        // Check timeout
+        if (Date.now() - startTime >= maxWaitMs) {
+          clearInterval(timer);
+          resolve(false);
+          return;
+        }
+
+        // Scan for new or updated checkpoint files
+        try {
+          const dirs = fs
+            .readdirSync(specsDir, { withFileTypes: true })
+            .filter((d) => d.isDirectory());
+
+          for (const dir of dirs) {
+            const checkpointPath = path.join(specsDir, dir.name, 'session-checkpoint.md');
+            try {
+              const stat = fs.statSync(checkpointPath);
+              const previousMtime = beforeStates.get(checkpointPath);
+
+              if (previousMtime === undefined) {
+                // New checkpoint file created
+                this.logger.info(
+                  `New checkpoint file detected: ${path.basename(path.dirname(checkpointPath))}/${path.basename(checkpointPath)}`
+                );
+                clearInterval(timer);
+                resolve(true);
+                return;
+              }
+
+              if (stat.mtimeMs > previousMtime) {
+                // Existing checkpoint file was updated
+                this.logger.info(
+                  `Checkpoint file updated: ${path.basename(path.dirname(checkpointPath))}/${path.basename(checkpointPath)}`
+                );
+                clearInterval(timer);
+                resolve(true);
+                return;
+              }
+            } catch {
+              // File doesn't exist yet, continue polling
+            }
+          }
+        } catch {
+          // Specs dir error, continue polling
+        }
+      }, pollIntervalMs);
+    });
   }
 
   /**
@@ -420,28 +565,22 @@ export class AutoHandoffTrigger implements vscode.Disposable {
         );
       }
 
-      // Step 3: Show summary notification
+      // Step 3: Log summary (no notification - status bar handles visual feedback)
       const percent = Math.round(status.utilizationPercent);
       if (result.totalFixes > 0 && compacted) {
         const patternSummary = Object.entries(result.fixesByPattern)
           .map(([pattern, count]) => `${pattern}: ${count}`)
           .join(', ');
 
-        vscode.window.showInformationMessage(
-          `Gofer: Context at ${percent}% — cleaned ${result.totalFixes} issues in ${result.filesFixed} files (${patternSummary}) and compacted context`
+        this.logger.info(
+          `Context at ${percent}% — cleaned ${result.totalFixes} issues in ${result.filesFixed} files (${patternSummary}) and compacted context`
         );
       } else if (compacted) {
-        vscode.window.showInformationMessage(
-          `Gofer: Context at ${percent}% — workspace clean, context compacted for fresh start`
-        );
+        this.logger.info(`Context at ${percent}% — workspace clean, context compacted`);
       } else if (result.totalFixes > 0) {
-        vscode.window.showInformationMessage(
-          `Gofer: Cleaned ${result.totalFixes} issues in ${result.filesFixed} files. No active terminal for compaction.`
-        );
+        this.logger.info(`Cleaned ${result.totalFixes} issues in ${result.filesFixed} files`);
       } else {
-        vscode.window.showInformationMessage(
-          `Gofer: Context at ${percent}% — workspace already clean. Use /compact in Claude Code to free context.`
-        );
+        this.logger.debug(`Context at ${percent}% — workspace already clean`);
       }
     } finally {
       this.pendingNotification = false;
@@ -466,6 +605,80 @@ export class AutoHandoffTrigger implements vscode.Disposable {
     } catch (error) {
       this.logger.error('Failed to send /compact to terminal', error as Error);
       return false;
+    }
+  }
+
+  /**
+   * Runs continuous slop reduction scan.
+   * Called periodically (every 2 minutes by default) to clean workspace files.
+   * Runs independently of context threshold - prevents slop accumulation.
+   */
+  private runContinuousSlopScan(): void {
+    if (!this.config.enableContinuousSlopReduction) {
+      return;
+    }
+
+    if (!this.slopReducer) {
+      return;
+    }
+
+    try {
+      this.logger.debug('Running continuous slop scan');
+      const result = this.slopReducer.reduceWorkspace();
+      this.lastSlopScanTime = Date.now();
+
+      if (result.totalFixes > 0) {
+        this.logger.info('Continuous slop scan found issues', {
+          totalFixes: result.totalFixes,
+          filesFixed: result.filesFixed,
+          fixesByPattern: result.fixesByPattern,
+        });
+
+        // Send /compact to refresh context if we cleaned something
+        this.sendCompactToTerminal();
+      } else {
+        this.logger.debug('Continuous slop scan: workspace clean');
+      }
+    } catch (error) {
+      this.logger.error('Continuous slop scan failed', error as Error);
+    }
+  }
+
+  /**
+   * Starts the periodic slop scanning timer.
+   */
+  private startContinuousSlopScanning(): void {
+    if (!this.config.enableContinuousSlopReduction) {
+      this.logger.debug('Continuous slop reduction disabled');
+      return;
+    }
+
+    if (this.slopScanTimer) {
+      this.logger.debug('Continuous slop scanning already started');
+      return;
+    }
+
+    // Run initial scan immediately
+    this.runContinuousSlopScan();
+
+    // Set up periodic scanning
+    this.slopScanTimer = setInterval(() => {
+      this.runContinuousSlopScan();
+    }, this.config.slopScanIntervalMs);
+
+    this.logger.info('Continuous slop scanning started', {
+      intervalMs: this.config.slopScanIntervalMs,
+    });
+  }
+
+  /**
+   * Stops the periodic slop scanning timer.
+   */
+  private stopContinuousSlopScanning(): void {
+    if (this.slopScanTimer) {
+      clearInterval(this.slopScanTimer);
+      this.slopScanTimer = null;
+      this.logger.debug('Continuous slop scanning stopped');
     }
   }
 
@@ -523,7 +736,7 @@ export class AutoHandoffTrigger implements vscode.Disposable {
     reason: 'critical' | 'warning' | 'handoff-recommended'
   ): Promise<HandoffTriggerResult> {
     if (!this.config.enabled) {
-      this.logger.debug('Auto-handoff disabled, skipping notification');
+      this.logger.debug('Auto-handoff disabled');
       return {
         triggered: false,
         action: 'disabled',
@@ -532,37 +745,10 @@ export class AutoHandoffTrigger implements vscode.Disposable {
       };
     }
 
-    if (this.isInCooldown()) {
-      this.logger.debug('Notification in cooldown period', {
-        lastNotification: this.lastNotificationTime,
-        cooldown: this.config.notificationCooldownMs,
-      });
-      return {
-        triggered: false,
-        action: 'dismiss',
-        timestamp: Date.now(),
-        healthStatus: status,
-      };
-    }
+    // Log the handoff event (no notification - status bar handles visual feedback)
+    const percent = Math.round(status.utilizationPercent);
+    this.logger.warn(`Handoff recommended: ${reason} at ${percent}%`);
 
-    if (this.pendingNotification) {
-      this.logger.debug('Notification already pending');
-      return {
-        triggered: false,
-        action: 'dismiss',
-        timestamp: Date.now(),
-        healthStatus: status,
-      };
-    }
-
-    this.pendingNotification = true;
-    this.lastNotificationTime = Date.now();
-
-    const result = await this.showHandoffNotification(status, reason);
-
-    this.pendingNotification = false;
-
-    // Log the handoff event
     if (this.usageLogger) {
       await this.usageLogger.logHandoff(
         this.currentSessionId || status.sessionId || 'unknown',
@@ -571,11 +757,16 @@ export class AutoHandoffTrigger implements vscode.Disposable {
         status.tokensUsed,
         status.tokensLimit,
         status.utilizationPercent,
-        `${reason}: ${result.action}`
+        `${reason}: logged`
       );
     }
 
-    return result;
+    return {
+      triggered: true,
+      action: 'dismiss',
+      timestamp: Date.now(),
+      healthStatus: status,
+    };
   }
 
   /**
@@ -585,128 +776,6 @@ export class AutoHandoffTrigger implements vscode.Disposable {
    * @param reason - Reason for notification
    * @returns Promise<HandoffTriggerResult>
    */
-  private async showHandoffNotification(
-    status: ContextHealthStatus,
-    reason: 'critical' | 'warning' | 'handoff-recommended'
-  ): Promise<HandoffTriggerResult> {
-    const title = this.getNotificationTitle(status, reason);
-    const message = this.getNotificationMessage(status, reason);
-
-    const saveAction = 'Save & Continue Later';
-    const reseedAction = 'Reseed Context';
-    const dismissAction = 'Dismiss';
-    const remindAction = 'Remind in 10 min';
-
-    this.logger.debug('Showing handoff notification', { title, reason });
-
-    const showNotification =
-      reason === 'warning' ? vscode.window.showWarningMessage : vscode.window.showWarningMessage;
-
-    const selection = await showNotification(
-      `${title}\n${message}`,
-      { modal: false },
-      saveAction,
-      reseedAction,
-      dismissAction,
-      remindAction
-    );
-
-    if (!selection) {
-      // User dismissed the notification
-      return {
-        triggered: true,
-        action: 'dismiss',
-        timestamp: Date.now(),
-        healthStatus: status,
-      };
-    }
-
-    switch (selection) {
-      case saveAction:
-        await this.executeSaveAndHandoff(status);
-        return {
-          triggered: true,
-          action: 'save',
-          timestamp: Date.now(),
-          healthStatus: status,
-        };
-
-      case reseedAction:
-        await this.executeReseed(status);
-        return {
-          triggered: true,
-          action: 'reseed',
-          timestamp: Date.now(),
-          healthStatus: status,
-        };
-
-      case remindAction:
-        // Reset cooldown to 10 minutes
-        this.lastNotificationTime =
-          Date.now() - this.config.notificationCooldownMs + 10 * 60 * 1000;
-        return {
-          triggered: true,
-          action: 'remind-later',
-          timestamp: Date.now(),
-          healthStatus: status,
-        };
-
-      default:
-        return {
-          triggered: true,
-          action: 'dismiss',
-          timestamp: Date.now(),
-          healthStatus: status,
-        };
-    }
-  }
-
-  /**
-   * Gets the notification title based on reason.
-   *
-   * @param status - Health status
-   * @param reason - Notification reason
-   * @returns Title string
-   */
-  private getNotificationTitle(
-    status: ContextHealthStatus,
-    reason: 'critical' | 'warning' | 'handoff-recommended'
-  ): string {
-    const percent = Math.round(status.utilizationPercent);
-    switch (reason) {
-      case 'critical':
-        return `⚠️ Context Critical (${percent}%)`;
-      case 'handoff-recommended':
-        return `📋 Handoff Recommended (${percent}%)`;
-      case 'warning':
-        return `⚡ Context Warning (${percent}%)`;
-    }
-  }
-
-  /**
-   * Gets the notification message based on status.
-   *
-   * @param status - Health status
-   * @param reason - Notification reason
-   * @returns Message string
-   */
-  private getNotificationMessage(
-    status: ContextHealthStatus,
-    reason: 'critical' | 'warning' | 'handoff-recommended'
-  ): string {
-    const recommendation = status.recommendations[0] || 'Consider saving your progress.';
-
-    if (reason === 'critical') {
-      return `Context window is nearly full. ${recommendation} Save your session to continue later with a fresh context.`;
-    }
-
-    if (reason === 'handoff-recommended') {
-      return `${recommendation} This is a good time to save your progress.`;
-    }
-
-    return `${recommendation}`;
-  }
-
   /**
    * Executes a context reseed to reclaim context space (T035).
    * Clears stale observations and rebuilds from memory store.
@@ -728,18 +797,12 @@ export class AutoHandoffTrigger implements vscode.Disposable {
           description: this.currentTask || 'Active task',
         };
         await this.contextBuilder.reseedContext(task);
-        vscode.window.showInformationMessage(
-          'Context reseeded. Stale observations cleared and memories refreshed.'
-        );
         this.logger.info('Context reseed completed');
       } else {
-        vscode.window.showWarningMessage(
-          'Context reseed unavailable. No ContextBuilder connected. Consider saving instead.'
-        );
+        this.logger.warn('Context reseed unavailable - no ContextBuilder connected');
       }
     } catch (error) {
       this.logger.error('Failed to reseed context', error as Error);
-      vscode.window.showErrorMessage(`Context reseed failed: ${(error as Error).message}`);
     }
   }
 
@@ -769,14 +832,9 @@ export class AutoHandoffTrigger implements vscode.Disposable {
         reason: 'auto-handoff',
       });
 
-      vscode.window.showInformationMessage(
-        `Session saved successfully. Resume with /8_gofer_resume when ready.`
-      );
-
       this.logger.info('Handoff completed successfully');
     } catch (error) {
       this.logger.error('Failed to execute save and handoff', error as Error);
-      vscode.window.showErrorMessage(`Failed to save session: ${(error as Error).message}`);
     }
   }
 
@@ -1069,6 +1127,8 @@ export class AutoHandoffTrigger implements vscode.Disposable {
    * Disposes all resources.
    */
   dispose(): void {
+    this.stopContinuousSlopScanning();
+
     for (const disposable of this.disposables) {
       disposable.dispose();
     }

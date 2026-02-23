@@ -60,7 +60,6 @@ export class FileMonitor {
       }
     });
 
-    console.log('File monitor started, watching:', inputPath, questionPath);
     vscode.window.showInformationMessage('Automated Claude Code integration active');
   }
 
@@ -69,7 +68,6 @@ export class FileMonitor {
       await this.watcher.close();
       this.watcher = undefined;
     }
-    console.log('File monitor stopped');
   }
 
   /**
@@ -77,7 +75,6 @@ export class FileMonitor {
    */
   private async handleInputChange(inputPath: string): Promise<void> {
     if (this.isProcessing) {
-      console.log('Already processing, skipping this change');
       return;
     }
 
@@ -93,7 +90,6 @@ export class FileMonitor {
       this.lastInputContent = content;
       this.isProcessing = true;
 
-      console.log('New prompt detected in .claude-input.txt');
       vscode.window.showInformationMessage('Processing new task from orchestrator...');
 
       // Process the prompt through Claude
@@ -103,7 +99,6 @@ export class FileMonitor {
       const outputPath = path.join(this.workspacePath, '.claude-output.txt');
       await fs.writeFile(outputPath, response, 'utf-8');
 
-      console.log('Response written to .claude-output.txt');
       vscode.window.showInformationMessage('Task completed! Response sent to orchestrator.');
 
       // Refresh progress view
@@ -133,8 +128,6 @@ export class FileMonitor {
         return;
       }
 
-      console.log('New question detected in .claude-question.txt');
-
       // Show question to user and get answer
       const userAnswer = await vscode.window.showInputBox({
         prompt: 'Question from Claude Code',
@@ -147,12 +140,11 @@ export class FileMonitor {
         // Write answer to a response file
         const answerPath = path.join(this.workspacePath, '.claude-answer.txt');
         await fs.writeFile(answerPath, userAnswer, 'utf-8');
-        console.log('Answer written to .claude-answer.txt');
 
         // Clear the question file
         await fs.writeFile(questionPath, '', 'utf-8');
       } else {
-        vscode.window.showWarningMessage('No answer provided for Claude\'s question');
+        vscode.window.showWarningMessage("No answer provided for Claude's question");
       }
     } catch (error) {
       console.error('Error handling question:', error);
@@ -170,7 +162,6 @@ export class FileMonitor {
       await fs.access(filePath);
     } catch {
       await fs.writeFile(filePath, '', 'utf-8');
-      console.log('Created file:', filePath);
     }
   }
 }

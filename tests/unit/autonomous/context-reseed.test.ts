@@ -28,13 +28,17 @@ vi.mock('vscode', () => ({
       update: vi.fn(),
     })),
     workspaceFolders: [],
+    onDidSaveTextDocument: vi.fn(() => ({ dispose: vi.fn() })),
   },
 }));
 
 import { ContextBuilder, type TaskContext } from '../../../extension/src/autonomous/ContextBuilder';
 import { MemoryManager } from '../../../extension/src/autonomous/MemoryManager';
 import { AutoHandoffTrigger } from '../../../extension/src/autonomous/AutoHandoffTrigger';
-import { ContextHealthMonitor, type ContextHealthStatus } from '../../../extension/src/autonomous/ContextHealthMonitor';
+import {
+  ContextHealthMonitor,
+  type ContextHealthStatus,
+} from '../../../extension/src/autonomous/ContextHealthMonitor';
 
 // ──────────────────────────────────────────────────────────────
 // Observation Type Classification (post-tool-use.mjs logic)
@@ -134,12 +138,18 @@ describe('ContextBuilder.reseedContext', () => {
 
   beforeEach(() => {
     mockMemoryManager = new MemoryManager(mockContext, '/tmp/test-reseed');
-    contextBuilder = new ContextBuilder('/tmp/test-reseed', mockMemoryManager, undefined, undefined, {
-      enableMasking: true,
-      enableBudgetEnforcement: false,
-      enableMemoryFirstLoading: false,
-      enableChunkedResearch: false,
-    });
+    contextBuilder = new ContextBuilder(
+      '/tmp/test-reseed',
+      mockMemoryManager,
+      undefined,
+      undefined,
+      {
+        enableMasking: true,
+        enableBudgetEnforcement: false,
+        enableMemoryFirstLoading: false,
+        enableChunkedResearch: false,
+      }
+    );
   });
 
   it('should reset turn counter to 0 on reseed', async () => {

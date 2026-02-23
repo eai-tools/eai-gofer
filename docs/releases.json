@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.12.1",
+  "latest_version": "1.12.2",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-02-23T05:21:36.026Z",
+  "last_updated": "2026-02-23T06:21:34.075Z",
   "releases": [
+    {
+      "version": "1.12.2",
+      "tag_name": "v1.12.2",
+      "published_at": "2026-02-23T06:21:34.075Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.12.2.vsix",
+      "notes": "Remove dead code: spawnNewTerminalFn, sendSaveToTerminal, sendResumeToTerminal, autonomousMonitoringInterval, stability tracking, maybeNotify",
+      "prerelease": false,
+      "size_mb": 31.1
+    },
     {
       "version": "1.12.1",
       "tag_name": "v1.12.1",
@@ -83,15 +92,6 @@
       "notes": "Streamlined Sidebar — Cleaner, more intuitive organization of the Memory and Context panels. Removed redundant sections to reduce clutter and improve navigation.",
       "prerelease": false,
       "size_mb": 16.5
-    },
-    {
-      "version": "1.6.0",
-      "tag_name": "v1.6.0",
-      "published_at": "2026-02-11T06:55:18.015Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.6.0.vsix",
-      "notes": "Click to Explore Context — Every category in the Context Window panel is now clickable. View detailed content for spec artifacts, memories, conversation history, and more with a single click.",
-      "prerelease": false,
-      "size_mb": 16.4
     }
   ]
 }

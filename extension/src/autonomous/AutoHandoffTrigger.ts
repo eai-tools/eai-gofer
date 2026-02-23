@@ -301,44 +301,11 @@ export class AutoHandoffTrigger implements vscode.Disposable {
     this.lastNotificationTime = Date.now();
 
     try {
-      this.logger.info('Executing automatic session save at 65% threshold');
+      const percent = Math.round(status.utilizationPercent);
+      this.logger.info(`Context at ${percent}% — executing save/clear/resume cycle`);
 
-      // Capture checkpoint file states BEFORE sending save command
-      const checkpointStatesBefore = this.getCheckpointStates();
-
-      // Send /7_gofer_save to Claude Code terminal
-      const saved = this.sendSaveToTerminal();
-
-      if (saved) {
-        // If auto-resume is enabled, wait for checkpoint then spawn a new terminal
-        if (this.config.autoResumeAfterSave && this.spawnNewTerminalFn) {
-          this.logger.info(
-            'Auto-resume enabled, waiting for checkpoint file before spawning new terminal'
-          );
-
-          // Wait for checkpoint file to appear/update (max 60 seconds)
-          const checkpointDetected = await this.waitForCheckpointFile(
-            checkpointStatesBefore,
-            60000
-          );
-
-          if (checkpointDetected) {
-            this.logger.info(
-              'Checkpoint file confirmed, spawning new terminal with /8_gofer_resume'
-            );
-          } else {
-            this.logger.warn(
-              'Checkpoint file wait timed out after 60s, spawning new terminal anyway'
-            );
-          }
-
-          // Spawn new terminal with /8_gofer_resume as initial command
-          // spawnNewTerminalFn stops the old terminal before launching the new one
-          await this.spawnNewTerminalFn('/8_gofer_resume');
-
-          this.logger.info('New terminal spawned with fresh context window');
-        }
-      }
+      // Save → Clear → Resume in the same terminal (no kill/respawn needed)
+      const sent = await this.sendSaveClearResume();
 
       // Log the event
       if (this.usageLogger) {
@@ -349,19 +316,14 @@ export class AutoHandoffTrigger implements vscode.Disposable {
           status.tokensUsed,
           status.tokensLimit,
           status.utilizationPercent,
-          `auto-save: executed at ${status.utilizationPercent.toFixed(1)}%${this.config.autoResumeAfterSave ? ' + auto-resume in new terminal' : ''}`
+          `auto-save: save/clear/resume at ${status.utilizationPercent.toFixed(1)}%, success=${sent}`
         );
       }
 
-      // Log status (no notification popup - status bar handles visual feedback)
-      const percent = Math.round(status.utilizationPercent);
-      if (saved) {
-        const message = this.config.autoResumeAfterSave
-          ? `Context at ${percent}% — session saved and resumed in new terminal`
-          : `Context at ${percent}% — session automatically saved`;
-        this.logger.info(message);
+      if (sent) {
+        this.logger.info(`Context at ${percent}% — save/clear/resume completed`);
       } else {
-        this.logger.warn(`Context at ${percent}% — auto-save failed, no active terminal`);
+        this.logger.warn(`Context at ${percent}% — save/clear/resume failed, no active terminal`);
       }
     } finally {
       this.pendingNotification = false;
@@ -545,12 +507,25 @@ export class AutoHandoffTrigger implements vscode.Disposable {
     this.lastNotificationTime = Date.now();
 
     try {
+      const percent = Math.round(status.utilizationPercent);
+
       // Step 1: Clean workspace files
       this.logger.info('Running automatic slop reduction at critical threshold');
       const result = this.slopReducer!.reduceWorkspace();
 
-      // Step 2: Send /compact to Claude Code terminal to rebuild context
-      const compacted = this.sendCompactToTerminal();
+      if (result.totalFixes > 0) {
+        const patternSummary = Object.entries(result.fixesByPattern)
+          .map(([pattern, count]) => `${pattern}: ${count}`)
+          .join(', ');
+        this.logger.info(
+          `Cleaned ${result.totalFixes} issues in ${result.filesFixed} files (${patternSummary})`
+        );
+      }
+
+      // Step 2: Save → Clear → Resume in the same terminal session
+      // This gives a fresh context window without killing the terminal
+      this.logger.info(`Context at ${percent}% — executing save/clear/resume cycle`);
+      const sent = await this.sendSaveClearResume();
 
       // Log the event
       if (this.usageLogger) {
@@ -561,26 +536,8 @@ export class AutoHandoffTrigger implements vscode.Disposable {
           status.tokensUsed,
           status.tokensLimit,
           status.utilizationPercent,
-          `auto-context-clean: ${result.totalFixes} file fixes, compacted=${compacted}`
+          `auto-context-reset: ${result.totalFixes} file fixes, save/clear/resume=${sent}`
         );
-      }
-
-      // Step 3: Log summary (no notification - status bar handles visual feedback)
-      const percent = Math.round(status.utilizationPercent);
-      if (result.totalFixes > 0 && compacted) {
-        const patternSummary = Object.entries(result.fixesByPattern)
-          .map(([pattern, count]) => `${pattern}: ${count}`)
-          .join(', ');
-
-        this.logger.info(
-          `Context at ${percent}% — cleaned ${result.totalFixes} issues in ${result.filesFixed} files (${patternSummary}) and compacted context`
-        );
-      } else if (compacted) {
-        this.logger.info(`Context at ${percent}% — workspace clean, context compacted`);
-      } else if (result.totalFixes > 0) {
-        this.logger.info(`Cleaned ${result.totalFixes} issues in ${result.filesFixed} files`);
-      } else {
-        this.logger.debug(`Context at ${percent}% — workspace already clean`);
       }
     } finally {
       this.pendingNotification = false;
@@ -604,6 +561,62 @@ export class AutoHandoffTrigger implements vscode.Disposable {
       return true;
     } catch (error) {
       this.logger.error('Failed to send /compact to terminal', error as Error);
+      return false;
+    }
+  }
+
+  /**
+   * Sends /7_gofer_save, /clear, /8_gofer_resume in sequence to the PTY.
+   * This resets the context window without killing the terminal:
+   *   1. /7_gofer_save — writes checkpoint to disk
+   *   2. Wait for checkpoint file to appear on disk (confirms save completed)
+   *   3. /clear — wipes Claude Code's context window
+   *   4. /8_gofer_resume — reloads from checkpoint into fresh context
+   */
+  private async sendSaveClearResume(): Promise<boolean> {
+    if (!this.claudePtyProcess) {
+      this.logger.warn('No Claude Code pty process available for save/clear/resume');
+      return false;
+    }
+
+    try {
+      // Snapshot checkpoint files BEFORE save so we can detect when a new one appears
+      const checkpointsBefore = this.getCheckpointStates();
+
+      // Step 1: Send /7_gofer_save
+      this.claudePtyProcess.write('/7_gofer_save\r');
+      this.logger.info('[save/clear/resume] Step 1: Sent /7_gofer_save');
+
+      // Step 2: Wait for checkpoint file to appear/update (max 90 seconds)
+      const checkpointDetected = await this.waitForCheckpointFile(checkpointsBefore, 90000);
+      if (checkpointDetected) {
+        this.logger.info('[save/clear/resume] Step 2: Checkpoint file confirmed on disk');
+      } else {
+        this.logger.warn('[save/clear/resume] Step 2: Checkpoint wait timed out after 90s, proceeding anyway');
+      }
+
+      // Step 3: Send /clear (guard against dead PTY)
+      if (!this.claudePtyProcess) {
+        this.logger.warn('[save/clear/resume] PTY died during save, aborting');
+        return false;
+      }
+      this.claudePtyProcess.write('/clear\r');
+      this.logger.info('[save/clear/resume] Step 3: Sent /clear');
+
+      // Brief pause for clear to take effect
+      await new Promise<void>((resolve) => setTimeout(resolve, 2000));
+
+      // Step 4: Send /8_gofer_resume (guard against dead PTY)
+      if (!this.claudePtyProcess) {
+        this.logger.warn('[save/clear/resume] PTY died after clear, aborting');
+        return false;
+      }
+      this.claudePtyProcess.write('/8_gofer_resume\r');
+      this.logger.info('[save/clear/resume] Step 4: Sent /8_gofer_resume — context reset complete');
+
+      return true;
+    } catch (error) {
+      this.logger.error('[save/clear/resume] Failed', error as Error);
       return false;
     }
   }

@@ -1784,9 +1784,7 @@ created: "${new Date().toISOString().split('T')[0]}"
     });
   }
 
-  // 019 T057: Slop diagnostics collection
-  const slopDiagnostics = vscode.languages.createDiagnosticCollection('gofer-slop');
-  context.subscriptions.push(slopDiagnostics);
+  // Slop detection runs silently in background — results logged to .specify/logs/
 
   /**
    * 019 T056-T058: Surface slop results via notification, diagnostics, and JSONL log.
@@ -1794,51 +1792,15 @@ created: "${new Date().toISOString().split('T')[0]}"
   const surfaceSlopResults = (report: ReturnType<SlopDetector['scanDirectory']>): void => {
     if (report.totalIssues === 0) return;
 
-    // T056: Show VSCode information notification
     const errorCount = report.matches.filter((m) => m.severity === 'error').length;
     const warnCount = report.matches.filter((m) => m.severity === 'warning').length;
-    const severity = errorCount > 0 ? 'error' : 'warning';
-    const msg = `Slop detected: ${report.totalIssues} issues (${errorCount} errors, ${warnCount} warnings)`;
-    if (severity === 'error') {
-      vscode.window.showWarningMessage(msg, 'View Details').then((choice) => {
-        if (choice === 'View Details') {
-          vscode.commands.executeCommand('gofer.checkForSlop');
-        }
-      });
-    } else {
-      vscode.window.showInformationMessage(msg);
-    }
 
-    // T057: Add slop findings to VSCode diagnostics collection
-    const diagMap = new Map<string, vscode.Diagnostic[]>();
-    for (const match of report.matches.slice(0, 100)) {
-      const uri = match.file;
-      const diags = diagMap.get(uri) || [];
-      const diagSeverity =
-        match.severity === 'error'
-          ? vscode.DiagnosticSeverity.Error
-          : match.severity === 'warning'
-            ? vscode.DiagnosticSeverity.Warning
-            : vscode.DiagnosticSeverity.Information;
-      const diag = new vscode.Diagnostic(
-        new vscode.Range(Math.max(0, match.line - 1), 0, Math.max(0, match.line - 1), 200),
-        `[${match.pattern}] ${match.message}`,
-        diagSeverity
-      );
-      diag.source = 'Gofer Slop';
-      diags.push(diag);
-      diagMap.set(uri, diags);
-    }
-    slopDiagnostics.clear();
-    for (const [file, diags] of diagMap) {
-      try {
-        slopDiagnostics.set(vscode.Uri.file(file), diags);
-      } catch {
-        // Non-fatal
-      }
-    }
+    // Silent background operation — log only, no notifications or diagnostics
+    console.log(
+      `[Gofer] Slop scan: ${report.totalIssues} issues (${errorCount} errors, ${warnCount} warnings)`
+    );
 
-    // T058: Log scan history to JSONL
+    // Log scan history to JSONL
     try {
       const logDir = path.join(workspacePath, '.specify', 'logs');
       const logPath = path.join(logDir, 'slop-scan.jsonl');

@@ -41,6 +41,7 @@ import { MultiSessionBridgeWatcher } from './autonomous/MultiSessionBridgeWatche
 // Context Window Accuracy (Feature 023)
 import { ClaudeCodeContextScanner } from './autonomous/ClaudeCodeContextScanner';
 import { GoferActivityStatusBar } from './ui/GoferActivityStatusBar';
+import { setAutoHandoffTrigger } from './autoHandoffBridge';
 // Note: stopClaudeCode is imported dynamically in deactivate() to avoid
 // blocking extension activation if node-pty fails to load
 
@@ -107,12 +108,12 @@ export function isUpgradeInProgress(): boolean {
 
 /**
  * Wire the Claude Code pty process to AutoHandoffTrigger for automated save/resume.
- * Called from autonomousCommands.ts after the pty process is spawned.
+ * @deprecated Use wireClaudePtyToAutoHandoff from './autoHandoffBridge' directly.
+ * Kept for backward compatibility.
  */
 export function wireClaudePtyToAutoHandoff(pty: any): void {
-  if (autoHandoffTrigger) {
-    autoHandoffTrigger.setClaudePtyProcess(pty);
-  }
+  const { wireClaudePtyToAutoHandoff: wire } = require('./autoHandoffBridge');
+  wire(pty);
 }
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -367,6 +368,7 @@ function initializeContextHealthMonitoring(workspacePath: string): void {
       autoResumeAfterSave: configManager.getContextWindowAutoResumeAfterSave(),
     };
     autoHandoffTrigger = new AutoHandoffTrigger(autoHandoffConfig, workspacePath);
+    setAutoHandoffTrigger(autoHandoffTrigger);
 
     // Wire status bar to monitor
     if (contextHealthStatusBar) {
@@ -645,15 +647,20 @@ async function initializeProgressProvider(context: vscode.ExtensionContext, work
     memoryProvider.refresh();
   }
 
-  // Watch for git branch changes
+  // Watch for git branch changes (debounced to avoid thrashing from frequent
+  // git state events caused by ContextHealthMonitor file writes, etc.)
   const gitExtension = vscode.extensions.getExtension('vscode.git');
   if (gitExtension) {
     const git = gitExtension.exports.getAPI(1);
     if (git.repositories.length > 0) {
       const repo = git.repositories[0];
+      let branchChangeTimer: ReturnType<typeof setTimeout> | null = null;
       repo.state.onDidChange(() => {
-        // Branch might have changed
-        handleBranchChange();
+        if (branchChangeTimer) return; // Already scheduled
+        branchChangeTimer = setTimeout(() => {
+          branchChangeTimer = null;
+          handleBranchChange();
+        }, 5000); // Check at most every 5 seconds
       });
     }
   }
@@ -2027,7 +2034,6 @@ created: "${new Date().toISOString().split('T')[0]}"
       const obsCount = sharedContextBuilder.getObservationMasker().getAllObservations().length;
       if (obsCount > 0) {
         // Observation cache restored - count logged for diagnostics
-        console.log(`[Gofer] Observation cache restored: ${obsCount} observations`);
       }
     })
     .catch(() => {

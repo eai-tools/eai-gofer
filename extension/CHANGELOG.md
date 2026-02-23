@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.12.1] - 2026-02-23
+
+fix: save/clear/resume context reset, silent slop reduction, PTY cleanup on exit
+
 ## [1.12.0] - 2026-02-23
 
 Add engineer review gate to /4_gofer_tasks pipeline

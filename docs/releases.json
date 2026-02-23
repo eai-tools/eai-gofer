@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.12.0",
+  "latest_version": "1.12.1",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-02-23T04:50:08.139Z",
+  "last_updated": "2026-02-23T05:21:36.026Z",
   "releases": [
+    {
+      "version": "1.12.1",
+      "tag_name": "v1.12.1",
+      "published_at": "2026-02-23T05:21:36.025Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.12.1.vsix",
+      "notes": "fix: save/clear/resume context reset, silent slop reduction, PTY cleanup on exit",
+      "prerelease": false,
+      "size_mb": 31.1
+    },
     {
       "version": "1.12.0",
       "tag_name": "v1.12.0",
@@ -81,15 +90,6 @@
       "published_at": "2026-02-11T06:55:18.015Z",
       "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.6.0.vsix",
       "notes": "Click to Explore Context — Every category in the Context Window panel is now clickable. View detailed content for spec artifacts, memories, conversation history, and more with a single click.",
-      "prerelease": false,
-      "size_mb": 16.4
-    },
-    {
-      "version": "1.5.0",
-      "tag_name": "v1.5.0",
-      "published_at": "2026-02-10T06:48:57.315Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.5.0.vsix",
-      "notes": "Multi-Session Monitoring — Monitor up to 3 concurrent Claude Code sessions simultaneously with real-time context health, color-coded utilization indicators, and stale session detection.",
       "prerelease": false,
       "size_mb": 16.4
     }

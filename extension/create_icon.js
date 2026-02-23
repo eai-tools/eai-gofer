@@ -23,7 +23,6 @@ function createIcon() {
 </svg>`;
 
   fs.writeFileSync('icon.svg', svg);
-  console.log('Created icon.svg');
 }
 
 createIcon();

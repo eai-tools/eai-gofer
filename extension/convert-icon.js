@@ -10,7 +10,6 @@ async function convertSvgToPng() {
       .png()
       .toFile('icon.png');
 
-    console.log('✅ Successfully converted icon.svg to icon.png (128x128)');
   } catch (error) {
     console.error('❌ Error converting SVG to PNG:', error);
     process.exit(1);

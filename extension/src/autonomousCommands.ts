@@ -136,7 +136,6 @@ let terminalCloseListener: vscode.Disposable | null = null;
 
 // Autonomous responder
 let autonomousResponder: ClaudeCodeAutonomousResponder | null = null;
-let autonomousMonitoringInterval: NodeJS.Timeout | null = null; // Deprecated - kept for compatibility
 let idleDetectionInterval: NodeJS.Timeout | null = null; // Fast idle detection (5-10 seconds)
 let comprehensiveCheckInterval: NodeJS.Timeout | null = null; // Slow comprehensive check (60 seconds)
 let ptyProcess: pty.IPty | null = null;
@@ -1387,12 +1386,6 @@ async function attemptQuestionResponse(
  * Stop autonomous monitoring
  */
 function stopAutonomousMonitoring(): void {
-  // Clear old interval (deprecated, for compatibility)
-  if (autonomousMonitoringInterval) {
-    clearInterval(autonomousMonitoringInterval);
-    autonomousMonitoringInterval = null;
-  }
-
   // Clear dual-mode monitoring intervals
   if (idleDetectionInterval) {
     clearInterval(idleDetectionInterval);

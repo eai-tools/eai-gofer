@@ -380,12 +380,6 @@ function initializeContextHealthMonitoring(workspacePath: string): void {
     autoHandoffTrigger.connect(contextHealthMonitor);
     autoHandoffTrigger.setUsageLogger(contextUsageLogger);
 
-    // Wire spawn terminal callback for auto-resume workflow
-    autoHandoffTrigger.setSpawnNewTerminalCallback(async (initialCommand?: string) => {
-      const { spawnNewClaudeCodeTerminal } = await import('./autonomousCommands');
-      await spawnNewClaudeCodeTerminal(initialCommand);
-    });
-
     // Wire real context provider for token estimation (Spec 013 Phase 2)
     const contextProvider = new WorkspaceContextProvider(workspacePath);
     workspaceContextProviderRef = contextProvider;

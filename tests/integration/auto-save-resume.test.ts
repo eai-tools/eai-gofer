@@ -5,8 +5,7 @@
  *   ContextHealthMonitor detects 65% threshold
  *   → AutoHandoffTrigger sends /7_gofer_save to pty
  *   → Polls for session-checkpoint.md (Gap #1: replaces fixed 3s wait)
- *   → spawnNewClaudeCodeTerminal stops old terminal (Gap #2)
- *   → Launches new terminal with /8_gofer_resume
+ *   → Sends /clear then /8_gofer_resume to same pty (save/clear/resume cycle)
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -62,7 +61,6 @@ describe('Auto-Save/Resume Integration', () => {
   let monitor: ContextHealthMonitor;
   let trigger: AutoHandoffTrigger;
   let mockPty: { write: ReturnType<typeof vi.fn> };
-  let mockSpawnFn: ReturnType<typeof vi.fn>;
   let mockLogger: { logHandoff: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
@@ -76,7 +74,6 @@ describe('Auto-Save/Resume Integration', () => {
 
     // Create mocks
     mockPty = { write: vi.fn() };
-    mockSpawnFn = vi.fn().mockResolvedValue(undefined);
     mockLogger = { logHandoff: vi.fn().mockResolvedValue(undefined) };
 
     // Set up monitor and trigger
@@ -96,7 +93,6 @@ describe('Auto-Save/Resume Integration', () => {
     );
 
     trigger.setClaudePtyProcess(mockPty as unknown as IPty);
-    trigger.setSpawnNewTerminalCallback(mockSpawnFn);
     trigger.setUsageLogger(mockLogger as unknown as ContextUsageLogger);
     trigger.setSessionContext('integration-test', 'implement', 'T001');
     trigger.connect(monitor);
@@ -109,7 +105,7 @@ describe('Auto-Save/Resume Integration', () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  it('should wait for checkpoint file before spawning new terminal (Gap #1)', async () => {
+  it('should wait for checkpoint file before sending /clear and /8_gofer_resume (Gap #1)', async () => {
     let utilization = 54000; // 45%
 
     monitor.setContextProvider(() => ({
@@ -126,12 +122,13 @@ describe('Auto-Save/Resume Integration', () => {
     // Verify /7_gofer_save was sent
     expect(mockPty.write).toHaveBeenCalledWith('/7_gofer_save\r');
 
-    // spawnNewTerminalFn should NOT have been called yet (no checkpoint file)
-    expect(mockSpawnFn).not.toHaveBeenCalled();
+    // /clear and /8_gofer_resume should NOT have been sent yet (no checkpoint file)
+    expect(mockPty.write).not.toHaveBeenCalledWith('/clear\r');
+    expect(mockPty.write).not.toHaveBeenCalledWith('/8_gofer_resume\r');
 
     // Advance 2 seconds — still no checkpoint file
     await vi.advanceTimersByTimeAsync(2000);
-    expect(mockSpawnFn).not.toHaveBeenCalled();
+    expect(mockPty.write).not.toHaveBeenCalledWith('/clear\r');
 
     // Simulate Claude finishing the save — create checkpoint file
     fs.writeFileSync(
@@ -142,9 +139,13 @@ describe('Auto-Save/Resume Integration', () => {
     // Advance 1 more second — polling detects the new file
     await vi.advanceTimersByTimeAsync(1100);
 
-    // NOW the new terminal should have been spawned
-    expect(mockSpawnFn).toHaveBeenCalledWith('/8_gofer_resume');
-    expect(mockSpawnFn).toHaveBeenCalledTimes(1);
+    // NOW /clear and /8_gofer_resume should have been sent
+    expect(mockPty.write).toHaveBeenCalledWith('/clear\r');
+
+    // Advance past the 2-second delay after /clear
+    await vi.advanceTimersByTimeAsync(2100);
+
+    expect(mockPty.write).toHaveBeenCalledWith('/8_gofer_resume\r');
   });
 
   it('should detect updated checkpoint file (not just new ones)', async () => {
@@ -168,7 +169,7 @@ describe('Auto-Save/Resume Integration', () => {
     monitor.checkHealth();
 
     expect(mockPty.write).toHaveBeenCalledWith('/7_gofer_save\r');
-    expect(mockSpawnFn).not.toHaveBeenCalled();
+    expect(mockPty.write).not.toHaveBeenCalledWith('/clear\r');
 
     // Advance 2 seconds, then update the existing file
     await vi.advanceTimersByTimeAsync(2000);
@@ -182,10 +183,15 @@ describe('Auto-Save/Resume Integration', () => {
     // Advance to let polling detect the update
     await vi.advanceTimersByTimeAsync(1100);
 
-    expect(mockSpawnFn).toHaveBeenCalledWith('/8_gofer_resume');
+    expect(mockPty.write).toHaveBeenCalledWith('/clear\r');
+
+    // Advance past the 2-second delay after /clear
+    await vi.advanceTimersByTimeAsync(2100);
+
+    expect(mockPty.write).toHaveBeenCalledWith('/8_gofer_resume\r');
   });
 
-  it('should timeout and still spawn terminal after 60 seconds (graceful degradation)', async () => {
+  it('should timeout and still send /clear + /8_gofer_resume after 90 seconds (graceful degradation)', async () => {
     let utilization = 54000;
     monitor.setContextProvider(() => ({
       breakdown: { conversation: utilization },
@@ -201,11 +207,16 @@ describe('Auto-Save/Resume Integration', () => {
     expect(mockPty.write).toHaveBeenCalledWith('/7_gofer_save\r');
 
     // Never create a checkpoint file — simulate save failure/hang
-    // Advance past the 60-second timeout
-    await vi.advanceTimersByTimeAsync(61000);
+    // Advance past the 90-second timeout
+    await vi.advanceTimersByTimeAsync(91000);
 
-    // Should still spawn terminal (graceful degradation)
-    expect(mockSpawnFn).toHaveBeenCalledWith('/8_gofer_resume');
+    // Should still send /clear (graceful degradation)
+    expect(mockPty.write).toHaveBeenCalledWith('/clear\r');
+
+    // Advance past the 2-second delay after /clear
+    await vi.advanceTimersByTimeAsync(2100);
+
+    expect(mockPty.write).toHaveBeenCalledWith('/8_gofer_resume\r');
   });
 
   it('should not trigger on non-real data sources', async () => {
@@ -219,51 +230,8 @@ describe('Auto-Save/Resume Integration', () => {
 
     await vi.advanceTimersByTimeAsync(5000);
 
-    // Should NOT have sent save or spawned
+    // Should NOT have sent save or resume
     expect(mockPty.write).not.toHaveBeenCalled();
-    expect(mockSpawnFn).not.toHaveBeenCalled();
-  });
-
-  it('should not auto-resume when autoResumeAfterSave is false', async () => {
-    // Create trigger with auto-resume disabled
-    const noResumeTrigger = new AutoHandoffTrigger(
-      {
-        autoExecuteSave: true,
-        autoResumeAfterSave: false,
-        enableContinuousSlopReduction: false,
-        notificationCooldownMs: 1000,
-      },
-      tmpDir
-    );
-
-    noResumeTrigger.setClaudePtyProcess(mockPty as unknown as IPty);
-    noResumeTrigger.setSpawnNewTerminalCallback(mockSpawnFn);
-    noResumeTrigger.setUsageLogger(mockLogger as unknown as ContextUsageLogger);
-    noResumeTrigger.setSessionContext('no-resume-test', 'implement', 'T001');
-
-    const noResumeMonitor = new ContextHealthMonitor({
-      autoSaveThreshold: 0.65,
-      effectiveContextLimit: 120000,
-    });
-
-    noResumeTrigger.connect(noResumeMonitor);
-
-    noResumeMonitor.setContextProvider(() => ({
-      breakdown: { conversation: 80000 },
-      dataSource: 'real' as const,
-    }));
-
-    noResumeMonitor.startMonitoring(30000);
-    noResumeMonitor.checkHealth();
-
-    await vi.advanceTimersByTimeAsync(5000);
-
-    // Save command sent but no new terminal spawn
-    expect(mockPty.write).toHaveBeenCalledWith('/7_gofer_save\r');
-    expect(mockSpawnFn).not.toHaveBeenCalled();
-
-    noResumeTrigger.dispose();
-    noResumeMonitor.dispose();
   });
 
   it('should respect cooldown between auto-save triggers', async () => {
@@ -281,14 +249,16 @@ describe('Auto-Save/Resume Integration', () => {
 
     // Create checkpoint so it resolves quickly
     fs.writeFileSync(path.join(specDir, 'session-checkpoint.md'), '---\nstatus: paused\n---\n');
-    await vi.advanceTimersByTimeAsync(1100);
+    // Advance enough to complete full save/clear/resume cycle:
+    // 1s for checkpoint poll + 2s delay after /clear + buffer
+    await vi.advanceTimersByTimeAsync(4000);
 
-    expect(mockPty.write).toHaveBeenCalledTimes(1);
-    expect(mockSpawnFn).toHaveBeenCalledTimes(1);
+    expect(mockPty.write).toHaveBeenCalledWith('/7_gofer_save\r');
+    expect(mockPty.write).toHaveBeenCalledWith('/clear\r');
+    expect(mockPty.write).toHaveBeenCalledWith('/8_gofer_resume\r');
 
     // Reset mocks and try to trigger again immediately (should be blocked by cooldown)
     mockPty.write.mockClear();
-    mockSpawnFn.mockClear();
 
     // Force another health check at same level
     // Need a new monitor since the threshold was already crossed
@@ -309,7 +279,6 @@ describe('Auto-Save/Resume Integration', () => {
     );
 
     trigger2.setClaudePtyProcess(mockPty as unknown as IPty);
-    trigger2.setSpawnNewTerminalCallback(mockSpawnFn);
     trigger2.connect(monitor2);
 
     monitor2.setContextProvider(() => ({
@@ -327,7 +296,6 @@ describe('Auto-Save/Resume Integration', () => {
 
     // Should be blocked by cooldown
     expect(mockPty.write).not.toHaveBeenCalled();
-    expect(mockSpawnFn).not.toHaveBeenCalled();
 
     trigger2.dispose();
     monitor2.dispose();
@@ -359,7 +327,12 @@ describe('Auto-Save/Resume Integration', () => {
 
     await vi.advanceTimersByTimeAsync(1100);
 
-    // Should still detect it
-    expect(mockSpawnFn).toHaveBeenCalledWith('/8_gofer_resume');
+    // Should still detect it and send /clear
+    expect(mockPty.write).toHaveBeenCalledWith('/clear\r');
+
+    // Advance past the 2-second delay after /clear
+    await vi.advanceTimersByTimeAsync(2100);
+
+    expect(mockPty.write).toHaveBeenCalledWith('/8_gofer_resume\r');
   });
 });

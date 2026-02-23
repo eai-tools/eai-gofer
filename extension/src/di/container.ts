@@ -20,6 +20,7 @@
 
 import { container } from 'tsyringe';
 import 'reflect-metadata';
+import { Logger } from '../services/Logger';
 
 /**
  * Register all injectable services in the DI container.
@@ -32,7 +33,8 @@ import 'reflect-metadata';
  */
 export function registerServices(): void {
   // Phase 1: Core infrastructure services
-  // Logger will be registered here in T012
+  container.registerSingleton(Logger);
+
   // Phase 2: Cache and performance services
   // Cache services will be registered here in Phase 2
   // Phase 3: Extension.ts extracted services

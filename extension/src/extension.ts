@@ -42,6 +42,9 @@ import { MultiSessionBridgeWatcher } from './autonomous/MultiSessionBridgeWatche
 import { ClaudeCodeContextScanner } from './autonomous/ClaudeCodeContextScanner';
 import { GoferActivityStatusBar } from './ui/GoferActivityStatusBar';
 import { setAutoHandoffTrigger } from './autoHandoffBridge';
+// Dependency Injection (Phase 1 - Engineering Remediation)
+import { registerServices, getContainer } from './di';
+import { Logger } from './services/Logger';
 // Note: stopClaudeCode is imported dynamically in deactivate() to avoid
 // blocking extension activation if node-pty fails to load
 
@@ -120,6 +123,15 @@ export function wireClaudePtyToAutoHandoff(pty: any): void {
 }
 
 export async function activate(context: vscode.ExtensionContext) {
+  // Initialize Dependency Injection container (Phase 1 - Engineering Remediation)
+  registerServices();
+
+  // Resolve Logger service and initialize with output channel
+  const logger = getContainer().resolve(Logger);
+  const outputChannel = vscode.window.createOutputChannel('Gofer');
+  logger.initialize(outputChannel);
+  context.subscriptions.push(outputChannel);
+
   // Reset Claude Code running context on startup (in case it was left true from a crash)
   await vscode.commands.executeCommand('setContext', 'gofer.claudeCodeRunning', false);
 

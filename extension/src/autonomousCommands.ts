@@ -1524,7 +1524,7 @@ export function getActiveDriver(): AutonomousDriver | null {
 
 /**
  * Get the active Claude Code pty process for sending commands.
- * Used by AutoHandoffTrigger to send /compact or /clear to the terminal.
+ * Used by AutoHandoffTrigger to send commands to the terminal.
  */
 export function getClaudePtyProcess(): pty.IPty | null {
   return ptyProcess;

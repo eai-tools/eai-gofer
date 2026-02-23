@@ -18,6 +18,7 @@
 import { EventEmitter } from 'events';
 import * as fs from 'fs';
 import * as path from 'path';
+import { THRESHOLDS, LIMITS, TIMEOUTS } from '../config/index';
 import { Logger } from '../utils/logger';
 
 /**
@@ -137,11 +138,11 @@ export interface ContextAnalysisInput {
  * Default configuration values.
  */
 const DEFAULT_CONFIG: ContextHealthConfig = {
-  warningThreshold: 0.5,
-  criticalThreshold: 0.7,
-  autoSaveThreshold: 0.65,
-  effectiveContextLimit: 120000,
-  checkIntervalMs: 5000,
+  warningThreshold: THRESHOLDS.CONTEXT_WARNING,
+  criticalThreshold: THRESHOLDS.CONTEXT_CRITICAL,
+  autoSaveThreshold: THRESHOLDS.MEMORY_PRIORITY_CUTOFF,
+  effectiveContextLimit: LIMITS.EFFECTIVE_CONTEXT_LIMIT,
+  checkIntervalMs: TIMEOUTS.CONTEXT_HEALTH_CHECK_INTERVAL,
   autoHandoffEnabled: true,
   logToJsonl: true,
 };
@@ -366,23 +367,29 @@ export class ContextHealthMonitor extends EventEmitter {
     }
 
     // Category-specific recommendations
-    if (categories[0].name === 'observations' && breakdown.observations > 10000) {
+    if (
+      categories[0].name === 'observations' &&
+      breakdown.observations > LIMITS.OBSERVATIONS_WARNING_THRESHOLD
+    ) {
       recommendations.push(
         'Large observation cache detected. Older tool outputs will be auto-masked.'
       );
     }
 
-    if (categories[0].name === 'conversation' && breakdown.conversation > 30000) {
+    if (
+      categories[0].name === 'conversation' &&
+      breakdown.conversation > LIMITS.CONVERSATION_WARNING_THRESHOLD
+    ) {
       recommendations.push(
         'Long conversation history. Consider starting a new session with /8_gofer_resume.'
       );
     }
 
-    if (breakdown.specArtifacts > 20000) {
+    if (breakdown.specArtifacts > LIMITS.SPEC_ARTIFACTS_WARNING_THRESHOLD) {
       recommendations.push('Large spec artifacts. Consider summarizing completed sections.');
     }
 
-    if (breakdown.memories > 15000) {
+    if (breakdown.memories > LIMITS.MEMORIES_WARNING_THRESHOLD) {
       recommendations.push('Many memories loaded. Consider consolidating related memories.');
     }
 

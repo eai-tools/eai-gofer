@@ -226,7 +226,7 @@ export class AutoHandoffTrigger implements vscode.Disposable {
   }
 
   /**
-   * Sets the Claude Code pty process for sending /compact commands.
+   * Sets the Claude Code pty process for sending commands.
    */
   setClaudePtyProcess(pty: IPty | null): void {
     this.claudePtyProcess = pty;
@@ -440,7 +440,7 @@ export class AutoHandoffTrigger implements vscode.Disposable {
    *
    * Flow:
    * 1. Run SlopReducer on workspace files (removes console.log, debugger, etc.)
-   * 2. Send /compact to Claude Code terminal (rebuilds context from clean files)
+   * 2. Execute save/clear/resume cycle to refresh context with clean files
    * 3. Show notification summarizing what was done
    */
   private async autoReduceSlop(status: ContextHealthStatus): Promise<void> {
@@ -490,27 +490,6 @@ export class AutoHandoffTrigger implements vscode.Disposable {
   }
 
   /**
-   * Sends /compact to the active Claude Code pty process.
-   * Returns true if the command was sent successfully.
-   */
-  private sendCompactToTerminal(): boolean {
-    if (!this.claudePtyProcess) {
-      this.logger.warn('No Claude Code pty process available for /compact');
-      return false;
-    }
-
-    try {
-      // Send /compact followed by Enter to the Claude Code CLI
-      this.claudePtyProcess.write('/compact\r');
-      this.logger.info('Sent /compact to Claude Code terminal');
-      return true;
-    } catch (error) {
-      this.logger.error('Failed to send /compact to terminal', error as Error);
-      return false;
-    }
-  }
-
-  /**
    * Sends /7_gofer_save, /clear, /8_gofer_resume in sequence to the PTY.
    * This resets the context window without killing the terminal:
    *   1. /7_gofer_save — writes checkpoint to disk
@@ -537,7 +516,9 @@ export class AutoHandoffTrigger implements vscode.Disposable {
       if (checkpointDetected) {
         this.logger.info('[save/clear/resume] Step 2: Checkpoint file confirmed on disk');
       } else {
-        this.logger.warn('[save/clear/resume] Step 2: Checkpoint wait timed out after 90s, proceeding anyway');
+        this.logger.warn(
+          '[save/clear/resume] Step 2: Checkpoint wait timed out after 90s, proceeding anyway'
+        );
       }
 
       // Step 3: Send /clear (guard against dead PTY)
@@ -591,9 +572,6 @@ export class AutoHandoffTrigger implements vscode.Disposable {
           filesFixed: result.filesFixed,
           fixesByPattern: result.fixesByPattern,
         });
-
-        // Send /compact to refresh context if we cleaned something
-        this.sendCompactToTerminal();
       } else {
         this.logger.debug('Continuous slop scan: workspace clean');
       }

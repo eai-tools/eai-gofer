@@ -156,8 +156,9 @@ Handlers)
   - Test injection in extension/src/extension.ts:activate()
   - Verify Logger can be resolved and used
 
-- [ ] T013 [P] [US4] Replace first 10 silent error handlers in
-      extension/src/extension.ts
+- [x] T013 [P] [US4] Replace first 10 silent error handlers in
+      extension/src/extension.ts ✅ Complete - Replaced 9 silent error handlers
+      with logger calls
   - Search for `.catch(() => {})` patterns (lines 892-894, etc.)
   - Replace with `.catch(err => logger.error('ExtensionActivation', err))`
   - Inject Logger via DI container

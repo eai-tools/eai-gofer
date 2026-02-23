@@ -207,6 +207,8 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
   private isLoading: boolean = true; // Start in loading state
   private loadSequence: number = 0; // Sequence number to track load operations
   private hasStartedInitialLoad: boolean = false; // Track if initial load started
+  private refreshDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+  private static readonly REFRESH_DEBOUNCE_MS = 2000; // 2 second debounce
 
   constructor(workspacePath: string, branchSpecManager?: any) {
     // Initialize debug channel once
@@ -252,8 +254,17 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
   }
 
   refresh(): void {
-    this.log('refresh() called');
-    this.triggerLoad();
+    // Debounce rapid refreshes to prevent tree flickering.
+    // Multiple callers (git state changes, file watchers, hook events) can
+    // trigger refresh() in quick succession — coalesce into a single reload.
+    if (this.refreshDebounceTimer) {
+      return; // Already scheduled
+    }
+    this.log('refresh() called — scheduling debounced load');
+    this.refreshDebounceTimer = setTimeout(() => {
+      this.refreshDebounceTimer = null;
+      this.triggerLoad();
+    }, ProgressProvider.REFRESH_DEBOUNCE_MS);
   }
 
   /**

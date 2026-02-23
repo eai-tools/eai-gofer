@@ -71,7 +71,8 @@ describe('Observation Content Ingestion from Hook Bridge (T019)', () => {
   });
 
   it('should clean up observation files after reading', () => {
-    expect(extSource).toContain('fsPromises.unlink');
+    expect(extSource).toContain('unlink');
+    expect(extSource).toContain('observationId');
   });
 
   it('should clean stale observation files on session start', () => {

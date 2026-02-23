@@ -65,6 +65,8 @@ export class ContextWindowProvider
   private watcher: MultiSessionBridgeWatcher | null = null;
   private scanner: ClaudeCodeContextScanner | null = null;
   private disposables: vscode.Disposable[] = [];
+  private refreshDebounceTimer: NodeJS.Timeout | null = null;
+  private static readonly REFRESH_DEBOUNCE_MS = 5000;
 
   constructor(private readonly _workspacePath: string) {}
 
@@ -94,7 +96,15 @@ export class ContextWindowProvider
   }
 
   refresh(): void {
-    this._onDidChangeTreeData.fire();
+    // Debounce rapid refreshes — bridge files update on every tool call,
+    // so without debouncing the tree flickers every few seconds
+    if (this.refreshDebounceTimer) {
+      return; // Already scheduled
+    }
+    this.refreshDebounceTimer = setTimeout(() => {
+      this.refreshDebounceTimer = null;
+      this._onDidChangeTreeData.fire();
+    }, ContextWindowProvider.REFRESH_DEBOUNCE_MS);
   }
 
   getTreeItem(element: ContextWindowItem): vscode.TreeItem {
@@ -387,6 +397,10 @@ export class ContextWindowProvider
   }
 
   dispose(): void {
+    if (this.refreshDebounceTimer) {
+      clearTimeout(this.refreshDebounceTimer);
+      this.refreshDebounceTimer = null;
+    }
     this._onDidChangeTreeData.dispose();
     for (const d of this.disposables) {
       d.dispose();

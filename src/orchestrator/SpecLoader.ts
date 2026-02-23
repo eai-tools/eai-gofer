@@ -60,7 +60,7 @@ export class SpecLoader {
   private async loadGoferSpecs(): Promise<Spec[]> {
     try {
       const entries = await fs.readdir(this.specDir, { withFileTypes: true });
-      const specDirs = entries.filter((e) => e.isDirectory());
+      const specDirs = entries.filter((e) => e.isDirectory() && !e.name.startsWith('_'));
 
       const specs = await Promise.all(
         specDirs.map(async (dir) => {
@@ -388,8 +388,6 @@ export class SpecLoader {
 
       // Update the tasks.md file
       await this.updateTasksMarkdown(specId, spec.tasks);
-
-      console.log(`✅ Updated task ${taskId} in ${specId} to status: ${status}`);
     } else {
       // Legacy JSON format
       const spec = await this.loadSpec(specId);

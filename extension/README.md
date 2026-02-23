@@ -206,12 +206,12 @@ approached.
 │  ↓ Implementation proceeding normally                      │
 │  ↓ All observations active                                 │
 │                                                             │
-│  50-69%: ⚠ YELLOW - Warning                                │
+│  50-65%: ⚠ YELLOW - Warning                                │
 │  ↓ System begins masking older observations                │
 │  ↓ Loading only high-priority memories                     │
 │  ↓ Checkpoint recommended                                  │
 │                                                             │
-│  69%: 💾 AUTO-SAVE THRESHOLD (configurable)                │
+│  65%: 💾 AUTO-SAVE THRESHOLD (configurable)                │
 │  ↓ Automatically triggers /7_gofer_save if enabled         │
 │  ↓ Or shows "Save Now" notification if disabled            │
 │                                                             │
@@ -299,9 +299,9 @@ Configure context management in VSCode Settings (Settings > Gofer):
   - When `false`: Manual resume required after save
 
 - `gofer.contextWindow.autoSaveThreshold` - Context utilization threshold for
-  auto-save (default: 0.69)
-  - Research-based optimal: 69% prevents accuracy degradation
-  - Range: 0.0 to 1.0 (e.g., 0.69 = 69%)
+  auto-save (default: 0.65)
+  - Research-based optimal: 65% gives safety margin before accuracy degradation
+  - Range: 0.0 to 1.0 (e.g., 0.65 = 65%)
 
 - `gofer.contextWindow.enableObservationMasking` - Enable masking older
   observations (default: true)

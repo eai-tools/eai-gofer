@@ -92,7 +92,6 @@ export class KnowledgeGraph {
       );
     } catch {
       this.graph = new Graph({ directed: true, multigraph: false });
-      console.log('[KnowledgeGraph] Starting with empty graph');
     }
   }
 
@@ -302,7 +301,11 @@ export class KnowledgeGraph {
           }
           if (!visited.has(succ)) {
             const weight = edgeData?.weight ?? 1;
-            pq.push({ id: succ, depth: current.depth + 1, cumulativeWeight: current.cumulativeWeight + weight });
+            pq.push({
+              id: succ,
+              depth: current.depth + 1,
+              cumulativeWeight: current.cumulativeWeight + weight,
+            });
             // Re-sort: highest cumulative weight first
             pq.sort((a, b) => b.cumulativeWeight - a.cumulativeWeight);
           }
@@ -319,7 +322,11 @@ export class KnowledgeGraph {
           }
           if (!visited.has(pred)) {
             const weight = edgeData?.weight ?? 1;
-            pq.push({ id: pred, depth: current.depth + 1, cumulativeWeight: current.cumulativeWeight + weight });
+            pq.push({
+              id: pred,
+              depth: current.depth + 1,
+              cumulativeWeight: current.cumulativeWeight + weight,
+            });
             pq.sort((a, b) => b.cumulativeWeight - a.cumulativeWeight);
           }
         }
@@ -333,7 +340,10 @@ export class KnowledgeGraph {
    * 019 T045: Find semantically related nodes using TF-IDF corpus similarity.
    * Compares query text against all node names and metadata to find related entities.
    */
-  findRelatedByTfIdf(queryText: string, minSimilarity: number = 0.1): Array<{ id: string; data: GraphNode; similarity: number }> {
+  findRelatedByTfIdf(
+    queryText: string,
+    minSimilarity: number = 0.1
+  ): Array<{ id: string; data: GraphNode; similarity: number }> {
     const corpus: Array<{ id: string; text: string }> = [];
 
     for (const id of this.graph.nodes()) {
@@ -353,7 +363,7 @@ export class KnowledgeGraph {
     if (corpus.length === 0) return [];
 
     const ranked = computeCorpusSimilarity(queryText, corpus, minSimilarity);
-    return ranked.map(r => ({
+    return ranked.map((r) => ({
       id: r.id,
       data: this.graph.node(r.id) as GraphNode,
       similarity: r.similarity,
@@ -505,10 +515,12 @@ export class KnowledgeGraph {
       if (ids.length <= 1) continue;
 
       // Keep the node with the most recent lastSeen
-      const sorted = ids.map(id => ({
-        id,
-        data: this.graph.node(id) as GraphNode,
-      })).sort((a, b) => (b.data?.lastSeen ?? 0) - (a.data?.lastSeen ?? 0));
+      const sorted = ids
+        .map((id) => ({
+          id,
+          data: this.graph.node(id) as GraphNode,
+        }))
+        .sort((a, b) => (b.data?.lastSeen ?? 0) - (a.data?.lastSeen ?? 0));
 
       const primary = sorted[0].id;
 
@@ -567,6 +579,5 @@ export class KnowledgeGraph {
     }
 
     this.dirty = true;
-    console.log(`[KnowledgeGraph] Evicted ${evictCount} LRU nodes`);
   }
 }

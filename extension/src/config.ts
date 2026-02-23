@@ -90,10 +90,10 @@ export const DEFAULTS = {
   telemetryEnabled: true,
   updateCheckInterval: 24 * 60 * 60 * 1000, // 24 hours in ms
   performanceMode: 'balanced',
-  yoloSlopReductionEnabled: false,
+  yoloSlopReductionEnabled: true,
   yoloSlopReductionNotifyEvery: 10,
   contextWindowAutoExecuteSave: true,
-  contextWindowAutoSaveThreshold: 0.69,
+  contextWindowAutoSaveThreshold: 0.65,
   contextWindowAutoResumeAfterSave: true,
 } as const;
 

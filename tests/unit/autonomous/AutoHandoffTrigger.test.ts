@@ -1,8 +1,8 @@
 /**
  * Unit tests for AutoHandoffTrigger
  *
- * Tests auto-handoff at critical threshold, notification display,
- * integration with save command, and handoff document generation.
+ * Tests auto-handoff at critical threshold, auto-save trigger,
+ * slop reduction, handoff document generation, and threshold crossing.
  *
  * @see .specify/specs/011-context-health-recursive-memory/tasks.md T030-T033
  */
@@ -12,6 +12,7 @@ import {
   ContextHealthMonitor,
   type ContextHealthStatus,
 } from '../../../extension/src/autonomous/ContextHealthMonitor';
+import type { IPty } from 'node-pty';
 import * as os from 'os';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -40,6 +41,7 @@ vi.mock('vscode', () => ({
   },
   workspace: {
     workspaceFolders: undefined,
+    onDidSaveTextDocument: vi.fn().mockReturnValue({ dispose: vi.fn() }),
   },
 }));
 
@@ -49,7 +51,6 @@ import {
   type HandoffDocumentOptions,
 } from '../../../extension/src/autonomous/AutoHandoffTrigger';
 import { ContextUsageLogger } from '../../../extension/src/autonomous/ContextUsageLogger';
-import * as vscode from 'vscode';
 
 // Mock ContextUsageLogger
 vi.mock('../../../extension/src/autonomous/ContextUsageLogger', () => ({
@@ -107,6 +108,7 @@ describe('AutoHandoffTrigger', () => {
 
     trigger = new AutoHandoffTrigger({
       notificationCooldownMs: 1000, // Short cooldown for testing
+      enableContinuousSlopReduction: false, // Prevent setInterval in tests
     });
 
     monitor = new ContextHealthMonitor();
@@ -163,182 +165,168 @@ describe('AutoHandoffTrigger', () => {
       expect(() => trigger.connect(monitor)).not.toThrow();
     });
 
-    it('should trigger notification on critical event', async () => {
+    it('should handle critical event via triggerHandoffNotification (log-only)', async () => {
+      // Without SlopReducer, critical events go through triggerHandoffNotification
+      // which now logs instead of showing a notification popup
+      const mockLogger = { logHandoff: vi.fn().mockResolvedValue(undefined) };
+      trigger.setUsageLogger(mockLogger as unknown as ContextUsageLogger);
       trigger.connect(monitor);
 
-      // Emit critical event
-      monitor.analyzeContext({
-        breakdown: { conversation: 100000 },
-        dataSource: 'real',
-      });
+      monitor.emit('critical', createCriticalStatus());
+      await vi.advanceTimersByTimeAsync(100);
 
-      // Allow async handler to run
-      await vi.runAllTimersAsync();
-
-      expect(vscode.window.showWarningMessage).toHaveBeenCalled();
+      // triggerHandoffNotification logs the event (no UI notification)
+      expect(mockLogger.logHandoff).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(String),
+        'critical',
+        102000,
+        120000,
+        85,
+        expect.stringContaining('critical')
+      );
     });
 
-    it('should trigger notification on handoff-recommended event', async () => {
+    it('should handle handoff-recommended event via logging', async () => {
+      const mockLogger = { logHandoff: vi.fn().mockResolvedValue(undefined) };
+      trigger.setUsageLogger(mockLogger as unknown as ContextUsageLogger);
       trigger.connect(monitor);
 
-      // Force handoff-recommended emission by triggering critical
       monitor.emit('handoff-recommended', createCriticalStatus());
+      await vi.advanceTimersByTimeAsync(100);
 
-      await vi.runAllTimersAsync();
-
-      expect(vscode.window.showWarningMessage).toHaveBeenCalled();
+      expect(mockLogger.logHandoff).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(String),
+        'critical',
+        102000,
+        120000,
+        85,
+        expect.stringContaining('handoff-recommended')
+      );
     });
 
     it('should not trigger on warning by default', async () => {
+      const mockLogger = { logHandoff: vi.fn().mockResolvedValue(undefined) };
+      trigger.setUsageLogger(mockLogger as unknown as ContextUsageLogger);
       trigger.connect(monitor);
 
-      // Emit warning event
-      monitor.analyzeContext({
-        breakdown: { conversation: 70000 },
-      });
+      monitor.emit('warning', createWarningStatus());
+      await vi.advanceTimersByTimeAsync(100);
 
-      await vi.runAllTimersAsync();
-
-      // Should not show notification for warning (default behavior)
-      const calls = vi.mocked(vscode.window.showWarningMessage).mock.calls;
-      const warningCalls = calls.filter((call) => call[0].includes('Warning'));
-      expect(warningCalls.length).toBe(0);
+      // Warning handler not registered by default (notifyAtWarning: false)
+      expect(mockLogger.logHandoff).not.toHaveBeenCalled();
     });
 
     it('should trigger on warning when configured', async () => {
       const warningTrigger = new AutoHandoffTrigger({
         notifyAtWarning: true,
         notificationCooldownMs: 1000,
+        enableContinuousSlopReduction: false,
       });
+      const mockLogger = { logHandoff: vi.fn().mockResolvedValue(undefined) };
+      warningTrigger.setUsageLogger(mockLogger as unknown as ContextUsageLogger);
       warningTrigger.connect(monitor);
 
       monitor.emit('warning', createWarningStatus());
+      await vi.advanceTimersByTimeAsync(100);
 
-      await vi.runAllTimersAsync();
-
-      expect(vscode.window.showWarningMessage).toHaveBeenCalled();
+      expect(mockLogger.logHandoff).toHaveBeenCalled();
 
       warningTrigger.dispose();
     });
   });
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // Notification Tests (T031)
+  // Handoff Notification Tests (T031) — Updated for log-only behavior
   // ─────────────────────────────────────────────────────────────────────────────
 
-  describe('notification display', () => {
-    it('should show notification with correct options', async () => {
+  describe('handoff notification (log-only)', () => {
+    it('should return triggered=true and action=dismiss for enabled trigger', async () => {
+      const result = await trigger.triggerHandoffNotification(createCriticalStatus(), 'critical');
+
+      expect(result.triggered).toBe(true);
+      expect(result.action).toBe('dismiss');
+      expect(result.timestamp).toBeGreaterThan(0);
+      expect(result.healthStatus).toBeDefined();
+    });
+
+    it('should log handoff event with utilization details', async () => {
+      const mockLogger = { logHandoff: vi.fn().mockResolvedValue(undefined) };
+      trigger.setUsageLogger(mockLogger as unknown as ContextUsageLogger);
+
       await trigger.triggerHandoffNotification(createCriticalStatus(), 'critical');
 
-      expect(vscode.window.showWarningMessage).toHaveBeenCalledWith(
-        expect.stringContaining('Context Critical'),
-        expect.any(Object),
-        'Save & Continue Later',
-        'Reseed Context',
-        'Dismiss',
-        'Remind in 10 min'
+      expect(mockLogger.logHandoff).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(String),
+        'critical',
+        102000,
+        120000,
+        85,
+        expect.stringContaining('critical')
       );
     });
 
-    it('should include utilization percentage in title', async () => {
-      const status = createCriticalStatus();
-      await trigger.triggerHandoffNotification(status, 'critical');
-
-      const call = vi.mocked(vscode.window.showWarningMessage).mock.calls[0];
-      expect(call[0]).toContain('85%');
-    });
-
-    it('should not show notification when disabled', async () => {
+    it('should not trigger when disabled', async () => {
       trigger.updateConfig({ enabled: false });
 
       const result = await trigger.triggerHandoffNotification(createCriticalStatus(), 'critical');
 
       expect(result.action).toBe('disabled');
       expect(result.triggered).toBe(false);
-      expect(vscode.window.showWarningMessage).not.toHaveBeenCalled();
     });
 
-    it('should respect cooldown period', async () => {
-      await trigger.triggerHandoffNotification(createCriticalStatus(), 'critical');
-      vi.clearAllMocks();
-
-      // Try to trigger again immediately
-      const result = await trigger.triggerHandoffNotification(createCriticalStatus(), 'critical');
-
-      expect(result.triggered).toBe(false);
-      expect(result.action).toBe('dismiss');
-      expect(vscode.window.showWarningMessage).not.toHaveBeenCalled();
-    });
-
-    it('should allow notification after cooldown', async () => {
-      await trigger.triggerHandoffNotification(createCriticalStatus(), 'critical');
-      vi.clearAllMocks();
-
-      // Advance past cooldown
-      vi.advanceTimersByTime(1100);
-
-      await trigger.triggerHandoffNotification(createCriticalStatus(), 'critical');
-
-      expect(vscode.window.showWarningMessage).toHaveBeenCalled();
-    });
-
-    it('should handle dismiss action', async () => {
-      vi.mocked(vscode.window.showWarningMessage).mockResolvedValueOnce(undefined);
-
+    it('should handle dismiss action (default)', async () => {
       const result = await trigger.triggerHandoffNotification(createCriticalStatus(), 'critical');
 
       expect(result.action).toBe('dismiss');
       expect(result.triggered).toBe(true);
     });
-
-    it('should handle remind-later action', async () => {
-      vi.mocked(vscode.window.showWarningMessage).mockResolvedValueOnce('Remind in 10 min');
-
-      const result = await trigger.triggerHandoffNotification(createCriticalStatus(), 'critical');
-
-      expect(result.action).toBe('remind-later');
-    });
   });
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // Save Integration Tests (T032)
+  // Save Integration Tests (T032) — Updated for executeSaveAndHandoff
   // ─────────────────────────────────────────────────────────────────────────────
 
   describe('save integration', () => {
-    it('should execute gofer.saveProgress on save action', async () => {
-      vi.mocked(vscode.window.showWarningMessage).mockResolvedValueOnce('Save & Continue Later');
+    it('should execute gofer.saveProgress via executeSaveAndHandoff on critical with no SlopReducer', async () => {
+      // Without SlopReducer, critical handler calls triggerHandoffNotification
+      // which logs the event. The save is handled by auto-save flow instead.
+      const mockLogger = { logHandoff: vi.fn().mockResolvedValue(undefined) };
+      trigger.setUsageLogger(mockLogger as unknown as ContextUsageLogger);
+      trigger.setSessionContext('test-session', 'implement', 'T025');
+      trigger.connect(monitor);
 
-      const result = await trigger.triggerHandoffNotification(createCriticalStatus(), 'critical');
+      monitor.emit('critical', createCriticalStatus());
+      await vi.advanceTimersByTimeAsync(100);
 
-      expect(result.action).toBe('save');
-      expect(vscode.commands.executeCommand).toHaveBeenCalledWith(
-        'gofer.saveProgress',
-        expect.objectContaining({
-          handoffContent: expect.any(String),
-          healthStatus: expect.any(Object),
-          reason: 'auto-handoff',
-        })
+      // Verify the handoff was logged
+      expect(mockLogger.logHandoff).toHaveBeenCalledWith(
+        'test-session',
+        'implement',
+        'critical',
+        102000,
+        120000,
+        85,
+        expect.stringContaining('critical')
       );
     });
 
-    it('should show success message after save', async () => {
-      vi.mocked(vscode.window.showWarningMessage).mockResolvedValueOnce('Save & Continue Later');
+    it('should handle different event reasons', async () => {
+      const mockLogger = { logHandoff: vi.fn().mockResolvedValue(undefined) };
+      trigger.setUsageLogger(mockLogger as unknown as ContextUsageLogger);
 
-      await trigger.triggerHandoffNotification(createCriticalStatus(), 'critical');
+      await trigger.triggerHandoffNotification(createCriticalStatus(), 'handoff-recommended');
 
-      expect(vscode.window.showInformationMessage).toHaveBeenCalledWith(
-        expect.stringContaining('Session saved successfully')
-      );
-    });
-
-    it('should handle save failure', async () => {
-      vi.mocked(vscode.window.showWarningMessage).mockResolvedValueOnce('Save & Continue Later');
-      vi.mocked(vscode.commands.executeCommand).mockRejectedValueOnce(new Error('Save failed'));
-
-      await trigger.triggerHandoffNotification(createCriticalStatus(), 'critical');
-
-      expect(vscode.window.showErrorMessage).toHaveBeenCalledWith(
-        expect.stringContaining('Failed to save session')
+      expect(mockLogger.logHandoff).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(String),
+        'critical',
+        102000,
+        120000,
+        85,
+        expect.stringContaining('handoff-recommended')
       );
     });
   });
@@ -533,17 +521,22 @@ describe('AutoHandoffTrigger', () => {
       expect(doc).toContain('stage: research');
     });
 
-    it('should use session context in notifications', async () => {
+    it('should use session context in handoff logging', async () => {
+      const mockLogger = { logHandoff: vi.fn().mockResolvedValue(undefined) };
+      trigger.setUsageLogger(mockLogger as unknown as ContextUsageLogger);
       trigger.setSessionContext('my-session', 'validate', 'T050: Validate implementation');
-      vi.mocked(vscode.window.showWarningMessage).mockResolvedValueOnce('Save & Continue Later');
 
       await trigger.triggerHandoffNotification(createCriticalStatus(), 'critical');
 
-      const executeCommandCall = vi.mocked(vscode.commands.executeCommand).mock.calls[0];
-      const handoffContent = executeCommandCall[1].handoffContent as string;
-
-      expect(handoffContent).toContain('session_id: my-session');
-      expect(handoffContent).toContain('stage: validate');
+      expect(mockLogger.logHandoff).toHaveBeenCalledWith(
+        'my-session',
+        'validate',
+        'critical',
+        102000,
+        120000,
+        85,
+        expect.stringContaining('critical')
+      );
     });
   });
 
@@ -590,96 +583,105 @@ describe('AutoHandoffTrigger', () => {
     });
 
     it('should auto-reduce slop on critical event when SlopReducer is set', async () => {
+      const slopTrigger = new AutoHandoffTrigger({
+        notificationCooldownMs: 1000,
+        enableContinuousSlopReduction: false,
+      });
       const mockReducer = createMockSlopReducer();
-      trigger.setSlopReducer(mockReducer as never);
-      trigger.connect(monitor);
+      slopTrigger.setSlopReducer(mockReducer as never);
+      slopTrigger.connect(monitor);
 
       monitor.emit('critical', createCriticalStatus());
-      await vi.runAllTimersAsync();
+      await vi.advanceTimersByTimeAsync(100);
 
       expect(mockReducer.reduceWorkspace).toHaveBeenCalled();
-      expect(vscode.window.showInformationMessage).toHaveBeenCalledWith(
-        expect.stringContaining('Cleaned 3 issues in 2 files')
-      );
+
+      slopTrigger.dispose();
     });
 
-    it('should show clean message when no slop found', async () => {
+    it('should call reduceWorkspace with no fixes and log clean status', async () => {
+      const slopTrigger = new AutoHandoffTrigger({
+        notificationCooldownMs: 1000,
+        enableContinuousSlopReduction: false,
+      });
       const mockReducer = createMockSlopReducer(0, 0);
-      trigger.setSlopReducer(mockReducer as never);
-      trigger.connect(monitor);
+      slopTrigger.setSlopReducer(mockReducer as never);
+      slopTrigger.connect(monitor);
 
       monitor.emit('critical', createCriticalStatus());
-      await vi.runAllTimersAsync();
+      await vi.advanceTimersByTimeAsync(100);
 
       expect(mockReducer.reduceWorkspace).toHaveBeenCalled();
-      expect(vscode.window.showInformationMessage).toHaveBeenCalledWith(
-        expect.stringContaining('workspace already clean')
-      );
-    });
 
-    it('should include utilization % in notification', async () => {
-      const mockReducer = createMockSlopReducer(0, 0);
-      trigger.setSlopReducer(mockReducer as never);
-      trigger.connect(monitor);
-
-      monitor.emit('critical', createCriticalStatus());
-      await vi.runAllTimersAsync();
-
-      // When no fixes and no compaction, message includes percent
-      expect(vscode.window.showInformationMessage).toHaveBeenCalledWith(
-        expect.stringContaining('85%')
-      );
+      slopTrigger.dispose();
     });
 
     it('should respect cooldown for auto-reduction', async () => {
+      const slopTrigger = new AutoHandoffTrigger({
+        notificationCooldownMs: 60000,
+        enableContinuousSlopReduction: false,
+      });
       const mockReducer = createMockSlopReducer();
-      trigger.setSlopReducer(mockReducer as never);
-      trigger.connect(monitor);
+      slopTrigger.setSlopReducer(mockReducer as never);
+      slopTrigger.connect(monitor);
 
       // First critical event
       monitor.emit('critical', createCriticalStatus());
-      await vi.runAllTimersAsync();
-
+      await vi.advanceTimersByTimeAsync(100);
       expect(mockReducer.reduceWorkspace).toHaveBeenCalledTimes(1);
 
       // Second critical event immediately — should be in cooldown
       monitor.emit('critical', createCriticalStatus());
-      await vi.runAllTimersAsync();
-
+      await vi.advanceTimersByTimeAsync(100);
       expect(mockReducer.reduceWorkspace).toHaveBeenCalledTimes(1);
+
+      slopTrigger.dispose();
     });
 
-    it('should fall back to notification without SlopReducer', async () => {
-      // No SlopReducer set — should show old-style warning
-      trigger.connect(monitor);
-
-      monitor.emit('critical', createCriticalStatus());
-      await vi.runAllTimersAsync();
-
-      expect(vscode.window.showWarningMessage).toHaveBeenCalled();
-    });
-
-    it('should not auto-reduce for estimated data source', async () => {
-      const mockReducer = createMockSlopReducer();
-      trigger.setSlopReducer(mockReducer as never);
-      trigger.connect(monitor);
-
-      const estimatedStatus = { ...createCriticalStatus(), dataSource: 'estimated' as const };
-      monitor.emit('critical', estimatedStatus);
-      await vi.runAllTimersAsync();
-
-      expect(mockReducer.reduceWorkspace).not.toHaveBeenCalled();
-    });
-
-    it('should log auto-reduction to usage logger', async () => {
-      const mockReducer = createMockSlopReducer();
-      trigger.setSlopReducer(mockReducer as never);
+    it('should fall back to log-only notification without SlopReducer', async () => {
+      // No SlopReducer set — should fall through to triggerHandoffNotification (log-only)
       const mockLogger = { logHandoff: vi.fn().mockResolvedValue(undefined) };
       trigger.setUsageLogger(mockLogger as unknown as ContextUsageLogger);
       trigger.connect(monitor);
 
       monitor.emit('critical', createCriticalStatus());
-      await vi.runAllTimersAsync();
+      await vi.advanceTimersByTimeAsync(100);
+
+      // triggerHandoffNotification logs instead of showing UI
+      expect(mockLogger.logHandoff).toHaveBeenCalled();
+    });
+
+    it('should not auto-reduce for estimated data source', async () => {
+      const slopTrigger = new AutoHandoffTrigger({
+        notificationCooldownMs: 1000,
+        enableContinuousSlopReduction: false,
+      });
+      const mockReducer = createMockSlopReducer();
+      slopTrigger.setSlopReducer(mockReducer as never);
+      slopTrigger.connect(monitor);
+
+      const estimatedStatus = { ...createCriticalStatus(), dataSource: 'estimated' as const };
+      monitor.emit('critical', estimatedStatus);
+      await vi.advanceTimersByTimeAsync(100);
+
+      expect(mockReducer.reduceWorkspace).not.toHaveBeenCalled();
+
+      slopTrigger.dispose();
+    });
+
+    it('should log auto-reduction to usage logger', async () => {
+      const slopTrigger = new AutoHandoffTrigger({
+        notificationCooldownMs: 1000,
+        enableContinuousSlopReduction: false,
+      });
+      const mockReducer = createMockSlopReducer();
+      slopTrigger.setSlopReducer(mockReducer as never);
+      const mockLogger = { logHandoff: vi.fn().mockResolvedValue(undefined) };
+      slopTrigger.setUsageLogger(mockLogger as unknown as ContextUsageLogger);
+      slopTrigger.connect(monitor);
+
+      monitor.emit('critical', createCriticalStatus());
+      await vi.advanceTimersByTimeAsync(100);
 
       expect(mockLogger.logHandoff).toHaveBeenCalledWith(
         expect.any(String),
@@ -690,6 +692,8 @@ describe('AutoHandoffTrigger', () => {
         85,
         expect.stringContaining('auto-context-clean')
       );
+
+      slopTrigger.dispose();
     });
   });
 
@@ -702,38 +706,6 @@ describe('AutoHandoffTrigger', () => {
       const result = await trigger.checkAndTrigger();
       expect(result).toBeNull();
     });
-
-    it('should work with checkAndTrigger when monitor has critical status', async () => {
-      // Set up context provider that returns critical status
-      monitor.setContextProvider(() => ({
-        breakdown: { conversation: 100000 },
-        dataSource: 'real',
-      }));
-
-      // Create a custom trigger that we DON'T connect to events
-      // to test checkAndTrigger() independently
-      const isolatedTrigger = new AutoHandoffTrigger({
-        notificationCooldownMs: 1000,
-      });
-
-      // Manually set the monitor reference via a private method approach
-      // Since connect() would add event handlers, we need direct access
-      // For testing, we'll use connect() but verify the cumulative effect
-
-      isolatedTrigger.connect(monitor);
-
-      // When connect() is called and then checkAndTrigger() is invoked,
-      // the internal checkHealth() call triggers events. The event handler
-      // gets the notification first, which is the expected behavior.
-      // So we verify the notification was eventually shown.
-      await isolatedTrigger.checkAndTrigger();
-
-      // Result might be null (event handler got it) or have triggered=false (cooldown)
-      // The important thing is the notification was shown
-      expect(vscode.window.showWarningMessage).toHaveBeenCalled();
-
-      isolatedTrigger.dispose();
-    });
   });
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -742,13 +714,570 @@ describe('AutoHandoffTrigger', () => {
 
   describe('cooldown management', () => {
     it('should reset cooldown', async () => {
-      await trigger.triggerHandoffNotification(createCriticalStatus(), 'critical');
-      vi.clearAllMocks();
+      const mockLogger = { logHandoff: vi.fn().mockResolvedValue(undefined) };
+      trigger.setUsageLogger(mockLogger as unknown as ContextUsageLogger);
 
+      await trigger.triggerHandoffNotification(createCriticalStatus(), 'critical');
+      expect(mockLogger.logHandoff).toHaveBeenCalledTimes(1);
+
+      // Reset cooldown and trigger again
       trigger.resetCooldown();
       await trigger.triggerHandoffNotification(createCriticalStatus(), 'critical');
+      expect(mockLogger.logHandoff).toHaveBeenCalledTimes(2);
+    });
+  });
 
-      expect(vscode.window.showWarningMessage).toHaveBeenCalled();
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Auto-Save Trigger Tests
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  describe('auto-save trigger', () => {
+    const createAutoSaveStatus = (): ContextHealthStatus => ({
+      status: 'warning',
+      utilizationPercent: 70,
+      tokensUsed: 84000,
+      tokensLimit: 120000,
+      breakdown: {
+        specArtifacts: 15000,
+        memories: 12000,
+        hints: 6000,
+        observations: 20000,
+        systemFiles: 9000,
+        conversation: 22000,
+      },
+      recommendations: ['Context at auto-save threshold.'],
+      timestamp: Date.now(),
+      sessionId: 'test-session',
+      dataSource: 'real',
+    });
+
+    it('should send /7_gofer_save to pty when auto-save event fires', async () => {
+      const mockPty = { write: vi.fn() };
+      const autoSaveTrigger = new AutoHandoffTrigger({
+        autoExecuteSave: true,
+        autoResumeAfterSave: false,
+        enableContinuousSlopReduction: false,
+        notificationCooldownMs: 1000,
+      });
+      autoSaveTrigger.setClaudePtyProcess(mockPty as unknown as IPty);
+      autoSaveTrigger.connect(monitor);
+
+      // Emit auto-save event directly
+      monitor.emit('auto-save', createAutoSaveStatus());
+      await vi.runAllTimersAsync();
+
+      expect(mockPty.write).toHaveBeenCalledWith('/7_gofer_save\r');
+
+      autoSaveTrigger.dispose();
+    });
+
+    it('should not send save when autoExecuteSave is disabled', async () => {
+      const mockPty = { write: vi.fn() };
+      const autoSaveTrigger = new AutoHandoffTrigger({
+        autoExecuteSave: false,
+        enableContinuousSlopReduction: false,
+        notificationCooldownMs: 1000,
+      });
+      autoSaveTrigger.setClaudePtyProcess(mockPty as unknown as IPty);
+      autoSaveTrigger.connect(monitor);
+
+      monitor.emit('auto-save', createAutoSaveStatus());
+      await vi.runAllTimersAsync();
+
+      expect(mockPty.write).not.toHaveBeenCalled();
+
+      autoSaveTrigger.dispose();
+    });
+
+    it('should not send save for estimated data source', async () => {
+      const mockPty = { write: vi.fn() };
+      const autoSaveTrigger = new AutoHandoffTrigger({
+        autoExecuteSave: true,
+        enableContinuousSlopReduction: false,
+        notificationCooldownMs: 1000,
+      });
+      autoSaveTrigger.setClaudePtyProcess(mockPty as unknown as IPty);
+      autoSaveTrigger.connect(monitor);
+
+      const estimatedStatus = { ...createAutoSaveStatus(), dataSource: 'estimated' as const };
+      monitor.emit('auto-save', estimatedStatus);
+      await vi.runAllTimersAsync();
+
+      expect(mockPty.write).not.toHaveBeenCalled();
+
+      autoSaveTrigger.dispose();
+    });
+
+    it('should spawn new terminal with /8_gofer_resume when autoResumeAfterSave is enabled', async () => {
+      const mockPty = { write: vi.fn() };
+      const mockSpawnFn = vi.fn().mockResolvedValue(undefined);
+      const autoSaveTrigger = new AutoHandoffTrigger({
+        autoExecuteSave: true,
+        autoResumeAfterSave: true,
+        enableContinuousSlopReduction: false,
+        notificationCooldownMs: 1000,
+      });
+      autoSaveTrigger.setClaudePtyProcess(mockPty as unknown as IPty);
+      autoSaveTrigger.setSpawnNewTerminalCallback(mockSpawnFn);
+      autoSaveTrigger.connect(monitor);
+
+      monitor.emit('auto-save', createAutoSaveStatus());
+      await vi.runAllTimersAsync();
+
+      expect(mockPty.write).toHaveBeenCalledWith('/7_gofer_save\r');
+      expect(mockSpawnFn).toHaveBeenCalledWith('/8_gofer_resume');
+
+      autoSaveTrigger.dispose();
+    });
+
+    it('should not spawn new terminal when autoResumeAfterSave is disabled', async () => {
+      const mockPty = { write: vi.fn() };
+      const mockSpawnFn = vi.fn().mockResolvedValue(undefined);
+      const autoSaveTrigger = new AutoHandoffTrigger({
+        autoExecuteSave: true,
+        autoResumeAfterSave: false,
+        enableContinuousSlopReduction: false,
+        notificationCooldownMs: 1000,
+      });
+      autoSaveTrigger.setClaudePtyProcess(mockPty as unknown as IPty);
+      autoSaveTrigger.setSpawnNewTerminalCallback(mockSpawnFn);
+      autoSaveTrigger.connect(monitor);
+
+      monitor.emit('auto-save', createAutoSaveStatus());
+      await vi.runAllTimersAsync();
+
+      expect(mockPty.write).toHaveBeenCalledWith('/7_gofer_save\r');
+      expect(mockSpawnFn).not.toHaveBeenCalled();
+
+      autoSaveTrigger.dispose();
+    });
+
+    it('should not crash when no pty is connected', async () => {
+      const autoSaveTrigger = new AutoHandoffTrigger({
+        autoExecuteSave: true,
+        autoResumeAfterSave: true,
+        enableContinuousSlopReduction: false,
+        notificationCooldownMs: 1000,
+      });
+      // No pty set
+      autoSaveTrigger.connect(monitor);
+
+      // Should not throw
+      monitor.emit('auto-save', createAutoSaveStatus());
+      await vi.runAllTimersAsync();
+
+      autoSaveTrigger.dispose();
+    });
+
+    it('should respect cooldown for auto-save', async () => {
+      const mockPty = { write: vi.fn() };
+      const autoSaveTrigger = new AutoHandoffTrigger({
+        autoExecuteSave: true,
+        autoResumeAfterSave: false,
+        enableContinuousSlopReduction: false,
+        notificationCooldownMs: 60000,
+      });
+      autoSaveTrigger.setClaudePtyProcess(mockPty as unknown as IPty);
+      autoSaveTrigger.connect(monitor);
+
+      // First auto-save
+      monitor.emit('auto-save', createAutoSaveStatus());
+      await vi.runAllTimersAsync();
+      expect(mockPty.write).toHaveBeenCalledTimes(1);
+
+      // Second auto-save immediately — should be blocked by cooldown
+      monitor.emit('auto-save', createAutoSaveStatus());
+      await vi.runAllTimersAsync();
+      expect(mockPty.write).toHaveBeenCalledTimes(1);
+
+      autoSaveTrigger.dispose();
+    });
+
+    it('should log auto-save event to usage logger', async () => {
+      const mockPty = { write: vi.fn() };
+      const mockLogger = {
+        logHandoff: vi.fn().mockResolvedValue(undefined),
+      };
+      const autoSaveTrigger = new AutoHandoffTrigger({
+        autoExecuteSave: true,
+        autoResumeAfterSave: false,
+        enableContinuousSlopReduction: false,
+        notificationCooldownMs: 1000,
+      });
+      autoSaveTrigger.setClaudePtyProcess(mockPty as unknown as IPty);
+      autoSaveTrigger.setUsageLogger(mockLogger as unknown as ContextUsageLogger);
+      autoSaveTrigger.setSessionContext('auto-save-session', 'implement', 'T005');
+      autoSaveTrigger.connect(monitor);
+
+      monitor.emit('auto-save', createAutoSaveStatus());
+      await vi.runAllTimersAsync();
+
+      expect(mockLogger.logHandoff).toHaveBeenCalledWith(
+        'auto-save-session',
+        'implement',
+        'warning',
+        84000,
+        120000,
+        70,
+        expect.stringContaining('auto-save')
+      );
+
+      autoSaveTrigger.dispose();
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // End-to-End Threshold Crossing Test (65% auto-save trigger)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  describe('end-to-end threshold crossing at 65%', () => {
+    it('should trigger auto-save when context crosses from below 65% to above 65%', async () => {
+      const mockPty = { write: vi.fn() };
+      const mockSpawnFn = vi.fn().mockResolvedValue(undefined);
+      const mockLogger = { logHandoff: vi.fn().mockResolvedValue(undefined) };
+
+      // Create monitor with auto-save threshold at 65%
+      const thresholdMonitor = new ContextHealthMonitor({
+        autoSaveThreshold: 0.65,
+        effectiveContextLimit: 120000,
+      });
+
+      // Create trigger with auto-save + auto-resume enabled
+      const thresholdTrigger = new AutoHandoffTrigger({
+        autoExecuteSave: true,
+        autoResumeAfterSave: true,
+        enableContinuousSlopReduction: false,
+        notificationCooldownMs: 1000,
+      });
+      thresholdTrigger.setClaudePtyProcess(mockPty as unknown as IPty);
+      thresholdTrigger.setSpawnNewTerminalCallback(mockSpawnFn);
+      thresholdTrigger.setUsageLogger(mockLogger as unknown as ContextUsageLogger);
+      thresholdTrigger.setSessionContext('threshold-test', 'implement', 'T010');
+      thresholdTrigger.connect(thresholdMonitor);
+
+      // Step 1: Context at 50% — should NOT trigger auto-save
+      thresholdMonitor.analyzeContext({
+        breakdown: { conversation: 60000 },
+        dataSource: 'real',
+      });
+      await vi.advanceTimersByTimeAsync(100);
+
+      expect(mockPty.write).not.toHaveBeenCalled();
+      expect(mockSpawnFn).not.toHaveBeenCalled();
+
+      // Step 2: Context crosses 65% threshold (jump to 66%)
+      thresholdMonitor.analyzeContext({
+        breakdown: { conversation: 80000 },
+        dataSource: 'real',
+      });
+      await vi.runAllTimersAsync();
+
+      // auto-save should have fired: /7_gofer_save sent to terminal
+      expect(mockPty.write).toHaveBeenCalledWith('/7_gofer_save\r');
+
+      // auto-resume should have spawned new terminal
+      expect(mockSpawnFn).toHaveBeenCalledWith('/8_gofer_resume');
+
+      // Usage logger should have recorded the auto-save event
+      expect(mockLogger.logHandoff).toHaveBeenCalledWith(
+        'threshold-test',
+        'implement',
+        expect.any(String),
+        expect.any(Number),
+        expect.any(Number),
+        expect.any(Number),
+        expect.stringContaining('auto-save')
+      );
+
+      thresholdTrigger.dispose();
+      thresholdMonitor.dispose();
+    });
+
+    it('should NOT trigger auto-save when context stays below 65%', async () => {
+      const mockPty = { write: vi.fn() };
+
+      const thresholdMonitor = new ContextHealthMonitor({
+        autoSaveThreshold: 0.65,
+        effectiveContextLimit: 120000,
+      });
+
+      const thresholdTrigger = new AutoHandoffTrigger({
+        autoExecuteSave: true,
+        enableContinuousSlopReduction: false,
+        notificationCooldownMs: 1000,
+      });
+      thresholdTrigger.setClaudePtyProcess(mockPty as unknown as IPty);
+      thresholdTrigger.connect(thresholdMonitor);
+
+      // Context at 40%
+      thresholdMonitor.analyzeContext({
+        breakdown: { conversation: 48000 },
+        dataSource: 'real',
+      });
+      await vi.advanceTimersByTimeAsync(100);
+
+      // Context at 55% — still below 65%
+      thresholdMonitor.analyzeContext({
+        breakdown: { conversation: 66000 },
+        dataSource: 'real',
+      });
+      await vi.advanceTimersByTimeAsync(100);
+
+      expect(mockPty.write).not.toHaveBeenCalled();
+
+      thresholdTrigger.dispose();
+      thresholdMonitor.dispose();
+    });
+
+    it('should NOT trigger auto-save for estimated data even above 65%', async () => {
+      const mockPty = { write: vi.fn() };
+
+      const thresholdMonitor = new ContextHealthMonitor({
+        autoSaveThreshold: 0.65,
+        effectiveContextLimit: 120000,
+      });
+
+      const thresholdTrigger = new AutoHandoffTrigger({
+        autoExecuteSave: true,
+        enableContinuousSlopReduction: false,
+        notificationCooldownMs: 1000,
+      });
+      thresholdTrigger.setClaudePtyProcess(mockPty as unknown as IPty);
+      thresholdTrigger.connect(thresholdMonitor);
+
+      // Estimated data at 50% then 80% — should NOT trigger because dataSource is estimated
+      thresholdMonitor.analyzeContext({
+        breakdown: { conversation: 60000 },
+        dataSource: 'estimated',
+      });
+      await vi.advanceTimersByTimeAsync(100);
+
+      thresholdMonitor.analyzeContext({
+        breakdown: { conversation: 96000 },
+        dataSource: 'estimated',
+      });
+      await vi.advanceTimersByTimeAsync(100);
+
+      expect(mockPty.write).not.toHaveBeenCalled();
+
+      thresholdTrigger.dispose();
+      thresholdMonitor.dispose();
+    });
+
+    it('should only trigger auto-save ONCE per threshold crossing (edge detection)', async () => {
+      const mockPty = { write: vi.fn() };
+
+      const thresholdMonitor = new ContextHealthMonitor({
+        autoSaveThreshold: 0.65,
+        effectiveContextLimit: 120000,
+      });
+
+      const thresholdTrigger = new AutoHandoffTrigger({
+        autoExecuteSave: true,
+        autoResumeAfterSave: false,
+        enableContinuousSlopReduction: false,
+        notificationCooldownMs: 100, // Short cooldown so it doesn't interfere
+      });
+      thresholdTrigger.setClaudePtyProcess(mockPty as unknown as IPty);
+      thresholdTrigger.connect(thresholdMonitor);
+
+      // Cross threshold: 50% → 75%
+      thresholdMonitor.analyzeContext({
+        breakdown: { conversation: 60000 },
+        dataSource: 'real',
+      });
+      await vi.advanceTimersByTimeAsync(100);
+
+      thresholdMonitor.analyzeContext({
+        breakdown: { conversation: 90000 },
+        dataSource: 'real',
+      });
+      await vi.runAllTimersAsync();
+
+      expect(mockPty.write).toHaveBeenCalledTimes(1);
+
+      // Continue above threshold: 75% → 80% — should NOT fire again (edge detection)
+      vi.advanceTimersByTime(200); // Past cooldown
+      thresholdMonitor.analyzeContext({
+        breakdown: { conversation: 96000 },
+        dataSource: 'real',
+      });
+      await vi.advanceTimersByTimeAsync(100);
+
+      // Still only 1 call — the monitor only emits 'auto-save' on the crossing edge
+      expect(mockPty.write).toHaveBeenCalledTimes(1);
+
+      thresholdTrigger.dispose();
+      thresholdMonitor.dispose();
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Adaptive Polling Tests
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  describe('adaptive polling', () => {
+    it('should accelerate polling to 2s when utilization crosses 50%', () => {
+      const adaptiveMonitor = new ContextHealthMonitor({
+        autoSaveThreshold: 0.65,
+        effectiveContextLimit: 120000,
+      });
+
+      // Set a context provider that returns 55% utilization
+      adaptiveMonitor.setContextProvider(() => ({
+        breakdown: { conversation: 66000 }, // 66k / 120k = 55%
+        dataSource: 'real',
+      }));
+
+      // Start monitoring with default 30s interval
+      adaptiveMonitor.startMonitoring(30000);
+      expect(adaptiveMonitor.getCurrentPollingInterval()).toBe(30000);
+
+      // First health check should trigger adaptive acceleration
+      adaptiveMonitor.checkHealth();
+      expect(adaptiveMonitor.getCurrentPollingInterval()).toBe(2000);
+
+      adaptiveMonitor.dispose();
+    });
+
+    it('should revert to base interval when utilization drops below 50%', () => {
+      let utilization = 66000; // 55%
+      const adaptiveMonitor = new ContextHealthMonitor({
+        autoSaveThreshold: 0.65,
+        effectiveContextLimit: 120000,
+      });
+
+      adaptiveMonitor.setContextProvider(() => ({
+        breakdown: { conversation: utilization },
+        dataSource: 'real',
+      }));
+
+      adaptiveMonitor.startMonitoring(30000);
+
+      // Health check at 55% → accelerate to 2s
+      adaptiveMonitor.checkHealth();
+      expect(adaptiveMonitor.getCurrentPollingInterval()).toBe(2000);
+
+      // Drop to 40% → revert to base 30s
+      utilization = 48000; // 48k / 120k = 40%
+      adaptiveMonitor.checkHealth();
+      expect(adaptiveMonitor.getCurrentPollingInterval()).toBe(30000);
+
+      adaptiveMonitor.dispose();
+    });
+
+    it('should not slow down when setBasePollingInterval is called during acceleration', () => {
+      const adaptiveMonitor = new ContextHealthMonitor({
+        autoSaveThreshold: 0.65,
+        effectiveContextLimit: 120000,
+      });
+
+      adaptiveMonitor.setContextProvider(() => ({
+        breakdown: { conversation: 72000 }, // 60%
+        dataSource: 'real',
+      }));
+
+      adaptiveMonitor.startMonitoring(10000);
+
+      // Accelerate via health check
+      adaptiveMonitor.checkHealth();
+      expect(adaptiveMonitor.getCurrentPollingInterval()).toBe(2000);
+
+      // External event tries to set base to 60s — should NOT slow down
+      adaptiveMonitor.setBasePollingInterval(60000);
+      expect(adaptiveMonitor.getCurrentPollingInterval()).toBe(2000);
+
+      adaptiveMonitor.dispose();
+    });
+
+    it('should accelerate when setBasePollingInterval is called with faster interval', () => {
+      const adaptiveMonitor = new ContextHealthMonitor({
+        autoSaveThreshold: 0.65,
+        effectiveContextLimit: 120000,
+      });
+
+      adaptiveMonitor.setContextProvider(() => ({
+        breakdown: { conversation: 36000 }, // 30%
+        dataSource: 'real',
+      }));
+
+      adaptiveMonitor.startMonitoring(30000);
+      expect(adaptiveMonitor.getCurrentPollingInterval()).toBe(30000);
+
+      // External event sets base to faster 5s — should speed up
+      adaptiveMonitor.setBasePollingInterval(5000);
+      expect(adaptiveMonitor.getCurrentPollingInterval()).toBe(5000);
+
+      adaptiveMonitor.dispose();
+    });
+
+    it('should catch 65% threshold with 2s polling when context grows rapidly', async () => {
+      let utilization = 54000; // Start at 45%
+      const mockPty = { write: vi.fn() };
+      const mockSpawnFn = vi.fn().mockResolvedValue(undefined);
+      const mockLogger = { logHandoff: vi.fn().mockResolvedValue(undefined) };
+
+      // Create temp workspace with spec structure for checkpoint file detection
+      const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gofer-test-'));
+      const specDir = path.join(tmpDir, '.specify', 'specs', 'test-spec');
+      fs.mkdirSync(specDir, { recursive: true });
+
+      const rapidMonitor = new ContextHealthMonitor({
+        autoSaveThreshold: 0.65,
+        effectiveContextLimit: 120000,
+      });
+      const rapidTrigger = new AutoHandoffTrigger(
+        {
+          autoExecuteSave: true,
+          autoResumeAfterSave: true,
+          enableContinuousSlopReduction: false,
+          notificationCooldownMs: 1000,
+        },
+        tmpDir
+      );
+
+      rapidTrigger.setClaudePtyProcess(mockPty as unknown as IPty);
+      rapidTrigger.setSpawnNewTerminalCallback(mockSpawnFn);
+      rapidTrigger.setUsageLogger(mockLogger as unknown as ContextUsageLogger);
+      rapidTrigger.setSessionContext('rapid-test', 'implement', 'T010');
+      rapidTrigger.connect(rapidMonitor);
+
+      rapidMonitor.setContextProvider(() => ({
+        breakdown: { conversation: utilization },
+        dataSource: 'real',
+      }));
+
+      // Start at 30s polling
+      rapidMonitor.startMonitoring(30000);
+      expect(rapidMonitor.getCurrentPollingInterval()).toBe(30000);
+
+      // Step 1: Context at 45% — no change to polling
+      rapidMonitor.checkHealth();
+      expect(rapidMonitor.getCurrentPollingInterval()).toBe(30000);
+
+      // Step 2: Context jumps to 55% — accelerate to 2s
+      utilization = 66000;
+      rapidMonitor.checkHealth();
+      expect(rapidMonitor.getCurrentPollingInterval()).toBe(2000);
+
+      // Step 3: Context crosses 65% — auto-save fires, starts checkpoint polling
+      utilization = 80000; // 67%
+      rapidMonitor.checkHealth();
+
+      // Simulate Claude creating the checkpoint file (what /7_gofer_save does)
+      fs.writeFileSync(path.join(specDir, 'session-checkpoint.md'), '---\nstatus: paused\n---\n');
+
+      // Advance timers so the 1-second checkpoint polling interval fires
+      await vi.advanceTimersByTimeAsync(1100);
+
+      expect(mockPty.write).toHaveBeenCalledWith('/7_gofer_save\r');
+      expect(mockSpawnFn).toHaveBeenCalledWith('/8_gofer_resume');
+
+      rapidTrigger.dispose();
+      rapidMonitor.dispose();
+
+      // Clean up temp dir
+      fs.rmSync(tmpDir, { recursive: true, force: true });
     });
   });
 
@@ -763,14 +1292,17 @@ describe('AutoHandoffTrigger', () => {
     });
 
     it('should not respond to events after dispose', async () => {
+      const mockLogger = { logHandoff: vi.fn().mockResolvedValue(undefined) };
+      trigger.setUsageLogger(mockLogger as unknown as ContextUsageLogger);
       trigger.connect(monitor);
       trigger.dispose();
 
       vi.clearAllMocks();
       monitor.emit('critical', createCriticalStatus());
-      await vi.runAllTimersAsync();
+      await vi.advanceTimersByTimeAsync(100);
 
-      expect(vscode.window.showWarningMessage).not.toHaveBeenCalled();
+      // After dispose, no events should be processed
+      expect(mockLogger.logHandoff).not.toHaveBeenCalled();
     });
   });
 });

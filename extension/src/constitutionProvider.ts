@@ -36,7 +36,7 @@ class ConstitutionItem extends vscode.TreeItem {
       this.command = {
         command: 'gofer.showArticleDetails',
         title: 'Show Article Details',
-        arguments: [article]
+        arguments: [article],
       };
     } else if (section) {
       // This is a section item
@@ -48,7 +48,7 @@ class ConstitutionItem extends vscode.TreeItem {
       this.command = {
         command: 'gofer.showSectionDetails',
         title: 'Show Section Details',
-        arguments: [section, article]
+        arguments: [section, article],
       };
     }
   }
@@ -58,7 +58,9 @@ class ConstitutionItem extends vscode.TreeItem {
  * Provides a tree view of the project constitution
  */
 export class ConstitutionProvider implements vscode.TreeDataProvider<ConstitutionItem> {
-  private _onDidChangeTreeData = new vscode.EventEmitter<ConstitutionItem | undefined | null | void>();
+  private _onDidChangeTreeData = new vscode.EventEmitter<
+    ConstitutionItem | undefined | null | void
+  >();
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
   private articles: ConstitutionArticle[] = [];
@@ -68,7 +70,6 @@ export class ConstitutionProvider implements vscode.TreeDataProvider<Constitutio
   private lastUpdated: string = '';
 
   constructor(workspacePath: string) {
-    console.log(`[Gofer] ConstitutionProvider initialized for workspace: ${workspacePath}`);
     this.constitutionPath = path.join(workspacePath, '.specify', 'memory', 'constitution.md');
     this.loadConstitution();
   }
@@ -163,14 +164,12 @@ export class ConstitutionProvider implements vscode.TreeDataProvider<Constitutio
       } catch (error) {
         this.loadError = `Constitution file not found at ${this.constitutionPath}`;
         this.articles = [];
-        console.log(`[Gofer] Constitution not found at ${this.constitutionPath}`);
         return;
       }
 
       const content = await fs.readFile(this.constitutionPath, 'utf-8');
       this.parseConstitution(content);
       this.loadError = null;
-      console.log(`[Gofer] Loaded constitution with ${this.articles.length} article(s) from ${this.constitutionPath}`);
     } catch (error) {
       console.error('Error loading constitution:', error);
       this.loadError = error instanceof Error ? error.message : 'Unknown error';
@@ -274,7 +273,13 @@ export class ConstitutionProvider implements vscode.TreeDataProvider<Constitutio
       // Collect section content
       if (currentSection && line.trim() && !line.startsWith('#') && !line.startsWith('<!--')) {
         sectionContent.push(line);
-      } else if (currentArticle && !currentSection && line.trim() && !line.startsWith('#') && !line.startsWith('<!--')) {
+      } else if (
+        currentArticle &&
+        !currentSection &&
+        line.trim() &&
+        !line.startsWith('#') &&
+        !line.startsWith('<!--')
+      ) {
         // Content directly under an article without a subsection
         if (!currentSection) {
           currentSection = {
@@ -295,24 +300,33 @@ export class ConstitutionProvider implements vscode.TreeDataProvider<Constitutio
     if (currentArticle) {
       this.articles.push(currentArticle);
     }
-
-    console.log(`[Gofer] Parsed constitution: ${this.articles.length} articles with ${this.articles.reduce((sum, a) => sum + a.sections.length, 0)} total sections`);
   }
 
   private romanToNumber(roman: string): number {
     // Roman numeral to number conversion
     switch (roman) {
-      case 'I': return 1;
-      case 'II': return 2;
-      case 'III': return 3;
-      case 'IV': return 4;
-      case 'V': return 5;
-      case 'VI': return 6;
-      case 'VII': return 7;
-      case 'VIII': return 8;
-      case 'IX': return 9;
-      case 'X': return 10;
-      default: return 0;
+      case 'I':
+        return 1;
+      case 'II':
+        return 2;
+      case 'III':
+        return 3;
+      case 'IV':
+        return 4;
+      case 'V':
+        return 5;
+      case 'VI':
+        return 6;
+      case 'VII':
+        return 7;
+      case 'VIII':
+        return 8;
+      case 'IX':
+        return 9;
+      case 'X':
+        return 10;
+      default:
+        return 0;
     }
   }
 

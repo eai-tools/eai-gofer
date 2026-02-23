@@ -29,9 +29,7 @@ let fileSize = 8.5; // Default approximate size
 if (fs.existsSync(vsixPath)) {
   const stats = fs.statSync(vsixPath);
   fileSize = (stats.size / (1024 * 1024)).toFixed(1); // Convert bytes to MB
-  console.log(`📏 Actual file size: ${fileSize} MB`);
 } else {
-  console.log(`⚠️  VSIX file not found at ${vsixPath}, using default size: ${fileSize} MB`);
 }
 
 // Create new release entry
@@ -57,7 +55,3 @@ releases.releases = releases.releases.slice(0, 10);
 
 // Write back to file
 fs.writeFileSync(releasesPath, JSON.stringify(releases, null, 2));
-
-console.log(`✅ Updated releases.json with version ${version}`);
-console.log(`📦 Release URL: ${newRelease.download_url}`);
-console.log(`📄 Site URL: https://eai-tools.github.io/gofer`);

@@ -84,7 +84,7 @@ export interface ContextHealthConfig {
   warningThreshold: number;
   /** Critical threshold (default: 0.7 = 70%) */
   criticalThreshold: number;
-  /** Auto-save threshold (default: 0.69 = 69%) */
+  /** Auto-save threshold (default: 0.65 = 65%) */
   autoSaveThreshold: number;
   /** Effective context token limit (default: 120000) */
   effectiveContextLimit: number;
@@ -139,7 +139,7 @@ export interface ContextAnalysisInput {
 const DEFAULT_CONFIG: ContextHealthConfig = {
   warningThreshold: 0.5,
   criticalThreshold: 0.7,
-  autoSaveThreshold: 0.69,
+  autoSaveThreshold: 0.65,
   effectiveContextLimit: 120000,
   checkIntervalMs: 5000,
   autoHandoffEnabled: true,
@@ -161,6 +161,10 @@ export class ContextHealthMonitor extends EventEmitter {
   private lastUtilizationRatio: number | null = null;
   private contextProvider: (() => ContextAnalysisInput) | null = null;
   private workspaceRoot: string | null = null;
+  /** Current polling interval in ms, tracked for adaptive polling */
+  private currentPollingInterval: number | null = null;
+  /** Base polling interval set by external callers (session events) */
+  private basePollingInterval: number | null = null;
 
   /**
    * Creates a new ContextHealthMonitor instance.
@@ -412,12 +416,11 @@ export class ContextHealthMonitor extends EventEmitter {
    * @param status - Current context health status
    */
   private emitStatusEvents(status: ContextHealthStatus): void {
-    // Always emit status-specific event so UI (status bar) stays updated
-    this.emit(status.status, status);
-
-    // Check for auto-save threshold crossing (69% by default)
-    // This is checked independently of status to allow auto-save to trigger
-    // even if we're still in "warning" status (50-70%)
+    // Check for auto-save threshold crossing FIRST (65% by default)
+    // MUST emit before status events because the critical handler (70%+) sets
+    // pendingNotification=true which blocks executeAutoSave. When context jumps
+    // from below 65% to above 70% in one step, both fire simultaneously —
+    // auto-save must win the race to save+resume before critical does cleanup.
     const utilizationRatio = status.utilizationPercent / 100;
     const previousRatio = this.lastUtilizationRatio ?? 0;
 
@@ -433,6 +436,9 @@ export class ContextHealthMonitor extends EventEmitter {
         tokensUsed: status.tokensUsed,
       });
     }
+
+    // Emit status-specific event so UI (status bar) stays updated
+    this.emit(status.status, status);
 
     // Check for status change
     if (status.status !== this.lastStatus) {
@@ -500,11 +506,12 @@ export class ContextHealthMonitor extends EventEmitter {
    */
   startMonitoring(intervalMs?: number): void {
     if (this.monitoringInterval) {
-      this.logger.warn('Monitoring already active, stopping existing interval');
       this.stopMonitoring();
     }
 
     const interval = intervalMs ?? this.config.checkIntervalMs;
+    this.basePollingInterval = interval;
+    this.currentPollingInterval = interval;
     this.logger.info('Starting context health monitoring', { intervalMs: interval });
 
     this.monitoringInterval = setInterval(() => {
@@ -528,6 +535,10 @@ export class ContextHealthMonitor extends EventEmitter {
    * If the provider returns a model-based context limit, updates
    * the effective limit before calculating utilization.
    *
+   * After each check, adaptively adjusts the polling interval:
+   * - >= 50% utilization: poll every 2s (catch 65% threshold quickly)
+   * - < 50% utilization: revert to base interval
+   *
    * @returns ContextHealthStatus or null if no provider set
    */
   checkHealth(): ContextHealthStatus | null {
@@ -544,10 +555,50 @@ export class ContextHealthMonitor extends EventEmitter {
         this.setEffectiveContextLimit(input.modelContextLimit);
       }
 
-      return this.analyzeContext(input);
+      const status = this.analyzeContext(input);
+
+      // Adaptive polling: accelerate when approaching auto-save threshold
+      if (status && this.monitoringInterval) {
+        this.adjustPollingForUtilization(status.utilizationPercent / 100);
+      }
+
+      return status;
     } catch (error) {
       this.logger.error('Error during health check', error as Error);
       return null;
+    }
+  }
+
+  /**
+   * Adjusts the polling interval based on current utilization.
+   * When utilization >= 50%, switches to 2-second polling to ensure
+   * the 65% auto-save threshold is caught before Claude's built-in
+   * compaction at ~77%.
+   *
+   * @param utilization - Current utilization ratio (0-1)
+   */
+  private adjustPollingForUtilization(utilization: number): void {
+    const ACCELERATED_INTERVAL_MS = 2000;
+
+    let targetInterval: number;
+    if (utilization >= 0.5) {
+      targetInterval = ACCELERATED_INTERVAL_MS;
+    } else {
+      targetInterval = this.basePollingInterval ?? this.config.checkIntervalMs;
+    }
+
+    if (targetInterval !== this.currentPollingInterval) {
+      this.logger.info('Adaptive polling: adjusting interval', {
+        utilizationPercent: Math.round(utilization * 100),
+        previousIntervalMs: this.currentPollingInterval,
+        newIntervalMs: targetInterval,
+      });
+      // Restart with new interval (stopMonitoring clears existing interval)
+      this.stopMonitoring();
+      this.currentPollingInterval = targetInterval;
+      this.monitoringInterval = setInterval(() => {
+        this.checkHealth();
+      }, targetInterval);
     }
   }
 
@@ -556,6 +607,39 @@ export class ContextHealthMonitor extends EventEmitter {
    */
   isMonitoring(): boolean {
     return this.monitoringInterval !== null;
+  }
+
+  /**
+   * Returns the current polling interval in milliseconds.
+   * Useful for testing adaptive polling behavior.
+   */
+  getCurrentPollingInterval(): number | null {
+    return this.currentPollingInterval;
+  }
+
+  /**
+   * Updates the base polling interval without resetting adaptive acceleration.
+   * Use this from external events (session-start, session-stale) so they don't
+   * override the faster adaptive interval when context is above 50%.
+   *
+   * @param intervalMs - New base polling interval
+   */
+  setBasePollingInterval(intervalMs: number): void {
+    this.basePollingInterval = intervalMs;
+    // Only restart if the new base is FASTER than current (don't slow down adaptive)
+    if (this.currentPollingInterval && intervalMs < this.currentPollingInterval) {
+      this.stopMonitoring();
+      this.currentPollingInterval = intervalMs;
+      this.monitoringInterval = setInterval(() => {
+        this.checkHealth();
+      }, intervalMs);
+      this.logger.info('Base polling interval updated (faster)', { intervalMs });
+    } else {
+      this.logger.info('Base polling interval updated (deferred to adaptive)', {
+        baseIntervalMs: intervalMs,
+        currentIntervalMs: this.currentPollingInterval,
+      });
+    }
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -626,9 +710,23 @@ export class ContextHealthMonitor extends EventEmitter {
    *
    * @param status - The health status to persist
    */
+  private lastPersistedStatus?: string;
+  private lastPersistedUtilization?: number;
+
   async persistState(status: ContextHealthStatus): Promise<void> {
     if (!this.workspaceRoot) {
       this.logger.debug('Cannot persist state: no workspace root set');
+      return;
+    }
+
+    // Skip writing when status and utilization haven't meaningfully changed.
+    // With 2s adaptive polling, writing every cycle causes git state churn
+    // which triggers repo.state.onDidChange → handleBranchChange → tree refresh.
+    const roundedUtilization = Math.round(status.utilizationPercent * 10) / 10;
+    if (
+      this.lastPersistedStatus === status.status &&
+      this.lastPersistedUtilization === roundedUtilization
+    ) {
       return;
     }
 
@@ -660,6 +758,9 @@ export class ContextHealthMonitor extends EventEmitter {
       const tempFile = stateFile + '.tmp';
       await fs.promises.writeFile(tempFile, JSON.stringify(state, null, 2));
       await fs.promises.rename(tempFile, stateFile);
+
+      this.lastPersistedStatus = status.status;
+      this.lastPersistedUtilization = roundedUtilization;
 
       this.logger.debug('State persisted', { status: status.status });
     } catch (error) {

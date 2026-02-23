@@ -88,6 +88,8 @@ let sharedContextBuilderRef: ContextBuilder | undefined;
 let consolidationTimerRef: ReturnType<typeof setInterval> | null = null;
 // 018 T041: Module-level reference for contextProvider (needed for config reload)
 let workspaceContextProviderRef: WorkspaceContextProvider | undefined;
+// Phase 1 Engineering Remediation: Logger service (T011-T013)
+let logger: Logger | undefined;
 
 // Flag to prevent file watcher refreshes during upgrade
 let isUpgrading = false;
@@ -127,7 +129,7 @@ export async function activate(context: vscode.ExtensionContext) {
   registerServices();
 
   // Resolve Logger service and initialize with output channel
-  const logger = getContainer().resolve(Logger);
+  logger = getContainer().resolve(Logger);
   const outputChannel = vscode.window.createOutputChannel('Gofer');
   logger.initialize(outputChannel);
   context.subscriptions.push(outputChannel);
@@ -1564,7 +1566,11 @@ created: "${new Date().toISOString().split('T')[0]}"
     if (hookBridgeWatcher) {
       const mm = memoryManager;
       hookBridgeWatcher.on('session-start', () => {
-        mm.consolidate().catch(() => {});
+        mm.consolidate().catch((err) =>
+          logger!.error('HookBridgeWatcher:SessionStart', err, {
+            operation: 'memory-consolidation',
+          })
+        );
       });
     }
   }
@@ -1617,13 +1623,17 @@ created: "${new Date().toISOString().split('T')[0]}"
                   path.join(checkpointDir, fileName),
                   JSON.stringify(fullCheckpoint, null, 2)
                 );
-              } catch {
-                // Non-fatal: checkpoint save failure
+              } catch (err) {
+                logger!.error('CheckpointValidator:SaveCheckpoint', err as Error, {
+                  stage: `${previousStage}-to-${currentStage}`,
+                });
               }
             })
-            .catch(() => {
-              // Non-fatal: git state capture failure
-            });
+            .catch((err) =>
+              logger!.error('CheckpointValidator:CaptureGitState', err, {
+                stage: `${previousStage}-to-${currentStage}`,
+              })
+            );
           console.log(
             `[Gofer] Stage transition: ${previousStage} → ${currentStage} (checkpoint saved)`
           );
@@ -1997,13 +2007,17 @@ created: "${new Date().toISOString().split('T')[0]}"
         sharedContextBuilder
           .getObservationMasker()
           .enhanceKeyPointsWithLLM()
-          .catch(() => {});
+          .catch((err) =>
+            logger!.error('ContextHealthMonitor:LLMCompression', err, { level: 'warning' })
+          );
       });
       contextHealthMonitor.on('critical', () => {
         sharedContextBuilder
           .getObservationMasker()
           .enhanceKeyPointsWithLLM()
-          .catch(() => {});
+          .catch((err) =>
+            logger!.error('ContextHealthMonitor:LLMCompression', err, { level: 'critical' })
+          );
       });
     }
 
@@ -2022,9 +2036,20 @@ created: "${new Date().toISOString().split('T')[0]}"
   sharedContextBuilder.on('research-complete', (event: { specId: string }) => {
     try {
       researchGraphBuilder.buildFromSpec(event.specId, knowledgeGraph);
-      knowledgeGraph.save().catch(() => {});
+      knowledgeGraph
+        .save()
+        .catch((err) =>
+          logger!.error('ResearchGraphBuilder:SaveKnowledgeGraph', err, { specId: event.specId })
+        );
     } catch (error) {
-      console.warn('[Gofer] Research graph building failed (non-fatal):', error);
+      logger!.warn(
+        'ResearchGraphBuilder:BuildFromSpec',
+        'Research graph building failed (non-fatal)',
+        {
+          specId: event.specId,
+          error: String(error),
+        }
+      );
     }
   });
 
@@ -2047,12 +2072,14 @@ created: "${new Date().toISOString().split('T')[0]}"
     .then(() => {
       const obsCount = sharedContextBuilder.getObservationMasker().getAllObservations().length;
       if (obsCount > 0) {
-        // Observation cache restored - count logged for diagnostics
+        logger!.info('ObservationMasker:CacheRestore', 'Observation cache restored', {
+          count: obsCount,
+        });
       }
     })
-    .catch(() => {
-      // Non-fatal: start with empty cache
-    });
+    .catch((err) =>
+      logger!.error('ObservationMasker:LoadCache', err, { operation: 'load-from-disk' })
+    );
 
   // 018: Wire ParallelAnalysisFramework for sub-agent partition recommendations
   const { ParallelAnalysisFramework } = await import('./autonomous/ParallelAnalysisFramework');
@@ -2094,7 +2121,9 @@ created: "${new Date().toISOString().split('T')[0]}"
         sharedContextBuilder
           .getObservationMasker()
           .saveCacheToDisk()
-          .catch(() => {});
+          .catch((err) =>
+            logger!.error('ObservationMasker:SaveCache', err, { operation: 'debounced-save' })
+          );
       }, 5000);
     };
     sharedContextBuilderRef = sharedContextBuilder;
@@ -2139,7 +2168,14 @@ created: "${new Date().toISOString().split('T')[0]}"
         }
 
         // Clean up observation file after reading (T012)
-        fsPromises.unlink(path.join(observationsDir, `${observationId}.json`)).catch(() => {});
+        fsPromises
+          .unlink(path.join(observationsDir, `${observationId}.json`))
+          .catch((err) =>
+            logger!.error('HookBridge:CleanupObservation', err, {
+              observationId,
+              operation: 'unlink',
+            })
+          );
       }
       // If no observationId, toolContent stays as placeholder (T010 backward compat)
 
@@ -2245,9 +2281,9 @@ created: "${new Date().toISOString().split('T')[0]}"
         setSharedMemoryHookManager(memoryHookManager!);
       }
     })
-    .catch(() => {
-      // autonomousCommands may not have the setter yet
-    });
+    .catch((err) =>
+      logger!.error('AutonomousCommands:Init', err, { operation: 'setSharedMemoryHookManager' })
+    );
 
   // T116: Register spec execution commands
   if (progressProvider) {

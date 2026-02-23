@@ -268,12 +268,12 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
   }
 
   /**
-   * Trigger a load operation with proper sequence tracking
+   * Trigger a load operation with proper sequence tracking.
+   * Does NOT fire _onDidChangeTreeData before the load completes — showing
+   * a brief "Loading specs..." spinner between reloads causes visible flicker.
+   * The final fire in _doLoadSpecs (the finally block) is sufficient.
    */
   private triggerLoad(): void {
-    this.isLoading = true;
-    this._onDidChangeTreeData.fire(); // Show loading state immediately
-
     // Start load - the sequence is managed inside _doLoadSpecs
     this._doLoadSpecs().catch((error) => {
       // Catch any unexpected errors that escape the try/finally
@@ -492,17 +492,13 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
 
       // Load dependency graph in background (non-critical, non-blocking)
       // This avoids cold-start timeouts since SpecLoader.getAllDependencies()
-      // uses synchronous fs reads that block the event loop
-      this.loadDependencyGraph()
-        .then(() => {
-          // Refresh tree view to show dependency info if we're still current
-          if (mySequence === this.loadSequence) {
-            this._onDidChangeTreeData.fire();
-          }
-        })
-        .catch((depError) => {
-          this.log(`Failed to load dependency graph: ${depError}`);
-        });
+      // uses synchronous fs reads that block the event loop.
+      // NOTE: We intentionally do NOT fire _onDidChangeTreeData after this
+      // completes. The dependency info will appear on the next natural refresh.
+      // Firing here caused a second redraw that made the tree flicker.
+      this.loadDependencyGraph().catch((depError) => {
+        this.log(`Failed to load dependency graph: ${depError}`);
+      });
 
       this.log(`_doLoadSpecs completed successfully (sequence ${mySequence})`);
     } catch (error) {

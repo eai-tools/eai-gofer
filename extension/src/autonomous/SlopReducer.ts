@@ -252,31 +252,10 @@ export class SlopReducer {
     }
   }
 
-  /** Show notification every N fixes */
+  /** Silent background operation — log to console only */
   private maybeNotify(): void {
     const notifyEvery = ConfigManager.getInstance().getSlopReductionNotifyEvery();
     if (this.sessionFixCount > 0 && this.sessionFixCount % notifyEvery === 0) {
-      vscode.window
-        .showInformationMessage(
-          `Gofer: Reduced ${this.sessionFixCount} slop issues this session`,
-          'View Log'
-        )
-        .then((choice) => {
-          if (choice === 'View Log') {
-            const logPath = path.join(
-              this.workspacePath,
-              '.specify',
-              'logs',
-              'slop-reduction.jsonl'
-            );
-            vscode.workspace.openTextDocument(logPath).then(
-              (doc) => vscode.window.showTextDocument(doc),
-              () => {
-                /* log file may not exist yet */
-              }
-            );
-          }
-        });
     }
   }
 }

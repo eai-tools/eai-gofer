@@ -51,11 +51,11 @@ Before starting implementation, assess context window health:
 
 **Evaluate thresholds (2025-2026 research-based)**:
 
-| Status   | Token Usage | Action                                   |
-| -------- | ----------- | ---------------------------------------- |
-| Healthy  | < 50%       | Proceed normally                         |
-| Warning  | 50-70%      | Use sub-agents, checkpoint every 5 tasks |
-| Critical | > 70%       | Run `/7_gofer_save`, start new session   |
+| Status   | Token Usage | Action                                        |
+| -------- | ----------- | --------------------------------------------- |
+| Healthy  | < 50%       | Proceed normally                              |
+| Warning  | 50-70%      | Use sub-agents, checkpoint every 5 tasks      |
+| Critical | > 70%       | Run `/7_gofer_save`, start new session        |
 
 ### Context Management Techniques
 

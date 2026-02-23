@@ -95,7 +95,7 @@ automatically chain through all stages:
 │     Technical architecture (uses selected option)                │
 │                         ↓ AUTO                                   │
 │  4. /4_gofer_tasks       → tasks.md, issues.md                  │
-│     Dependency-ordered task breakdown                            │
+│     Dependency-ordered task breakdown + engineer review gate     │
 │                         ↓ AUTO                                   │
 │  5. /5_gofer_implement   → [source code]                        │
 │     Execute tasks phase by phase                                 │
@@ -151,26 +151,43 @@ research:
 
 ### Validation Engineering Rubric
 
-The `/6_gofer_validate` command uses a **10-category engineering quality rubric**
-scored out of 100 points. Six specialist validation agents run in parallel:
+The `/6_gofer_validate` command uses a **10-category engineering quality
+rubric** scored out of 100 points. Six specialist validation agents run in
+parallel:
 
-| Agent | Focus | Blocks If |
-|-------|-------|-----------|
-| `validation-correctness` | Spec compliance, acceptance criteria | Any criterion unmet |
-| `validation-security` | Secrets, auth bypass, vulnerabilities | Any Red finding |
-| `validation-performance` | Sync I/O, complexity, unbounded ops | Complexity > 12 |
-| `validation-test-quality` | Placeholders, skips, mock ratio | Mock ratio > 30% |
-| `validation-integration` | Contracts, boundaries, dependencies | Contract violation |
-| `validation-standards` | Constitution, patterns, AI slop | Pattern deviation |
+| Agent                     | Focus                                 | Blocks If           |
+| ------------------------- | ------------------------------------- | ------------------- |
+| `validation-correctness`  | Spec compliance, acceptance criteria  | Any criterion unmet |
+| `validation-security`     | Secrets, auth bypass, vulnerabilities | Any Red finding     |
+| `validation-performance`  | Sync I/O, complexity, unbounded ops   | Complexity > 12     |
+| `validation-test-quality` | Placeholders, skips, mock ratio       | Mock ratio > 30%    |
+| `validation-integration`  | Contracts, boundaries, dependencies   | Contract violation  |
+| `validation-standards`    | Constitution, patterns, AI slop       | Pattern deviation   |
 
 Score < 100 triggers a **brownfield restart loop** (max 3 iterations) that
 generates a remediation report and re-enters the pipeline focused on failed
-categories. All findings are logged to `.specify/logs/validation-findings.jsonl`.
+categories. All findings are logged to
+`.specify/logs/validation-findings.jsonl`.
+
+### Engineer Review Gate
+
+The `/4_gofer_tasks` command includes an **engineer review gate** (Step 4.6)
+that runs after traceability generation and before the approval gate. It uses
+the `engineer-review` agent to cross-reference spec.md, plan.md, and tasks.md
+for alignment gaps.
+
+| Agent             | Focus                    | Blocks If                          |
+| ----------------- | ------------------------ | ---------------------------------- |
+| `engineer-review` | Spec/plan/task alignment | Any Red finding (missing coverage) |
+
+If Red findings are detected, a **correction loop** (max 3 iterations) applies
+fixes to tasks.md and re-validates. If issues persist after 3 iterations, an
+escalation report is generated and the pipeline halts for human review.
 
 ### Journey Mapping and Sequence Diagrams
 
-The pipeline includes optional customer journey mapping and implementation option
-generation to ensure feature alignment with business value.
+The pipeline includes optional customer journey mapping and implementation
+option generation to ensure feature alignment with business value.
 
 #### Journey Confirmation (`/0_business_scenario`)
 
@@ -182,6 +199,7 @@ journey:
 3. **Save to** `journeys/base-journey.md` with Mermaid diagram
 
 **Artifacts:**
+
 - `journeys/base-journey.md` - Confirmed customer journey with actors and flow
 
 #### Industry Variants (`/1_gofer_research`)
@@ -190,10 +208,12 @@ If a base journey exists, generates 10-50 industry variants to discover
 innovations from other domains:
 
 **Industries covered:**
+
 - Retail, Healthcare, Finance, Education, Hospitality
 - Logistics, Manufacturing, Legal, Real Estate, Entertainment
 
 **Artifacts:**
+
 - `journeys/variants/{industry}-{N}.md` - Industry-specific adaptations
 - Innovation insights section in `research.md`
 
@@ -201,25 +221,28 @@ innovations from other domains:
 
 Generates 5 implementation options spanning the efficiency→innovation spectrum:
 
-| Option | Name | Efficiency | Innovation | Complexity | Gen AI |
-|--------|------|------------|------------|------------|--------|
-| 1 | Minimal | 95% | 10% | Low | None |
-| 2 | Efficient | 80% | 30% | Low-Medium | Optional validation |
-| 3 | Standard | 60% | 50% | Medium | Suggestions, smart defaults |
-| 4 | Enhanced | 40% | 70% | Medium-High | Recommendations, NLP |
-| 5 | Innovative | 20% | 95% | High | Autonomous agents, multi-modal |
+| Option | Name       | Efficiency | Innovation | Complexity  | Gen AI                         |
+| ------ | ---------- | ---------- | ---------- | ----------- | ------------------------------ |
+| 1      | Minimal    | 95%        | 10%        | Low         | None                           |
+| 2      | Efficient  | 80%        | 30%        | Low-Medium  | Optional validation            |
+| 3      | Standard   | 60%        | 50%        | Medium      | Suggestions, smart defaults    |
+| 4      | Enhanced   | 40%        | 70%        | Medium-High | Recommendations, NLP           |
+| 5      | Innovative | 20%        | 95%        | High        | Autonomous agents, multi-modal |
 
-**User selects preferred option** via AskUserQuestion. The selected option guides
-the technical architecture in `/3_gofer_plan`.
+**User selects preferred option** via AskUserQuestion. The selected option
+guides the technical architecture in `/3_gofer_plan`.
 
 **Artifacts:**
+
 - `sequence-diagrams/option-{N}-{name}.md` - All 5 options with Mermaid diagrams
 - `sequence-diagrams/selected-option.md` - User's chosen approach
 
 **Templates:**
+
 - `.specify/templates/journey/base-journey.md` - Journey document template
 - `.specify/templates/journey/industry-variants.yaml` - Industry definitions
-- `.specify/templates/sequence-diagrams/option-spectrum.yaml` - Option definitions
+- `.specify/templates/sequence-diagrams/option-spectrum.yaml` - Option
+  definitions
 
 ### Auxiliary Gofer Commands
 

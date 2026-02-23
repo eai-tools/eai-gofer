@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.12.2] - 2026-02-23
+
+Remove dead code: spawnNewTerminalFn, sendSaveToTerminal, sendResumeToTerminal, autonomousMonitoringInterval, stability tracking, maybeNotify
+
 ## [1.12.1] - 2026-02-23
 
 fix: save/clear/resume context reset, silent slop reduction, PTY cleanup on exit

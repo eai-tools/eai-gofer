@@ -1900,6 +1900,11 @@ AI agents validate code against the constitution before implementation.
         '.specify/memory/local.json',
         '.specify/memory/dependency-graph.json',
         '.specify/specs/*/.branch-info.json',
+        '.specify/logs/',
+        '.specify/memory/checkpoints/',
+        '.specify/memory/context-health-state.json',
+        '.specify/memory/observation-cache/',
+        '.specify/specs/*/research-index.json',
       ];
 
       // Read existing .gitignore or create empty content

@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.12.0] - 2026-02-23
+
+Add engineer review gate to /4_gofer_tasks pipeline
+
 ## [1.11.0] - 2026-02-16
 
 Remove approval gates - fully autonomous execution after planning

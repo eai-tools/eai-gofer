@@ -92,6 +92,9 @@ let isUpgrading = false;
 // Flag to prevent duplicate command registration
 let workspaceCommandsRegistered = false;
 
+// Flag to prevent concurrent reinitializations
+let isReinitializing = false;
+
 /**
  * Set the upgrade state (exported for use by goferMigrator)
  */
@@ -149,23 +152,22 @@ export async function activate(context: vscode.ExtensionContext) {
   // This ensures commands are always available even without a workspace
   registerGlobalCommands(context);
 
-  const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-  if (!workspaceFolder) {
-    // No workspace open yet, wait for one
+  // Listen for workspace changes to reinitialize (SINGLE listener, properly disposed)
+  context.subscriptions.push(
     vscode.workspace.onDidChangeWorkspaceFolders(async () => {
       await reinitializeExtension(context);
-    });
+    })
+  );
+
+  const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+  if (!workspaceFolder) {
+    // No workspace open yet, listener above will handle it when one is added
     return;
   }
 
   // Initialize workspace in background (non-blocking) to prevent activation timeout
   initializeForWorkspace(context).catch((error) => {
     console.warn('[Gofer] Workspace initialization failed (non-critical):', error);
-  });
-
-  // Listen for workspace changes to reinitialize
-  vscode.workspace.onDidChangeWorkspaceFolders(async () => {
-    await reinitializeExtension(context);
   });
 }
 
@@ -203,31 +205,75 @@ function registerTreeViews(context: vscode.ExtensionContext) {
 }
 
 async function reinitializeExtension(context: vscode.ExtensionContext) {
-  // Refresh the providers with new workspace data
-  const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-  if (workspaceFolder) {
-    const workspacePath = workspaceFolder.uri.fsPath;
-
-    // Reinitialize branch spec manager
-    if (branchSpecManager) {
-      branchSpecManager = new BranchSpecManager(workspacePath);
-      await branchSpecManager.initializeBranchStructure();
-    }
-
-    // Update providers with new workspace
-    if (progressProvider) {
-      progressProvider.refresh();
-    }
-    if (constitutionProvider) {
-      constitutionProvider.refresh();
-    }
-    if (memoryProvider) {
-      memoryProvider.refresh();
-    }
+  // Prevent concurrent reinitializations
+  if (isReinitializing) {
+    return;
   }
 
-  // Reinitialize for new workspace
-  await initializeForWorkspace(context);
+  isReinitializing = true;
+  try {
+    // CRITICAL: Dispose all watchers and timers BEFORE reinitializing
+    // to prevent memory leaks and resource exhaustion
+
+    // Dispose watchers and their timers
+    if (multiSessionWatcher) {
+      multiSessionWatcher.dispose();
+      multiSessionWatcher = undefined;
+    }
+    if (hookBridgeWatcher) {
+      hookBridgeWatcher.dispose();
+      hookBridgeWatcher = undefined;
+    }
+    if (contextHealthMonitor) {
+      contextHealthMonitor.dispose();
+      contextHealthMonitor = undefined;
+    }
+    if (contextScanner) {
+      contextScanner = undefined;
+    }
+    if (goferActivityStatusBar) {
+      goferActivityStatusBar.dispose();
+      goferActivityStatusBar = undefined;
+    }
+
+    // Clear timers
+    if (consolidationTimerRef) {
+      clearInterval(consolidationTimerRef);
+      consolidationTimerRef = null;
+    }
+    if (cacheSaveTimerRef) {
+      clearTimeout(cacheSaveTimerRef);
+      cacheSaveTimerRef = null;
+    }
+
+    // Refresh the providers with new workspace data
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    if (workspaceFolder) {
+      const workspacePath = workspaceFolder.uri.fsPath;
+
+      // Reinitialize branch spec manager
+      if (branchSpecManager) {
+        branchSpecManager = new BranchSpecManager(workspacePath);
+        await branchSpecManager.initializeBranchStructure();
+      }
+
+      // Update providers with new workspace
+      if (progressProvider) {
+        progressProvider.refresh();
+      }
+      if (constitutionProvider) {
+        constitutionProvider.refresh();
+      }
+      if (memoryProvider) {
+        memoryProvider.refresh();
+      }
+    }
+
+    // Reinitialize for new workspace
+    await initializeForWorkspace(context);
+  } finally {
+    isReinitializing = false;
+  }
 }
 
 async function initializeForWorkspace(context: vscode.ExtensionContext) {

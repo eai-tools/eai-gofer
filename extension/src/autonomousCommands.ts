@@ -999,6 +999,8 @@ export async function launchClaudeCode(specId: string): Promise<void> {
 
     ptyProcess.onExit(() => {
       ptyProcess = null;
+      // Clear the PTY reference in AutoHandoffTrigger to prevent writes to dead process
+      wireClaudePtyToAutoHandoff(null);
     });
 
     // Create event emitters for pty interface

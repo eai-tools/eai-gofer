@@ -63,7 +63,6 @@ class QualityDashboard {
   }
 
   private getESLintMetrics(): QualityMetrics['eslint'] {
-    console.log('📊 Analyzing ESLint metrics...');
     
     const eslintJson = this.runCommand('npx eslint src/ --ext .ts,.js --format json');
     
@@ -90,7 +89,6 @@ class QualityDashboard {
   }
 
   private getTestMetrics(): QualityMetrics['tests'] {
-    console.log('🧪 Analyzing test metrics...');
     
     const testOutput = this.runCommand('npm run test -- --reporter=json');
     
@@ -116,7 +114,6 @@ class QualityDashboard {
   }
 
   private getCoverageMetrics(): QualityMetrics['coverage'] {
-    console.log('📈 Analyzing coverage metrics...');
     
     // Try to read coverage summary if it exists
     const coveragePath = path.join('coverage', 'coverage-summary.json');
@@ -141,7 +138,6 @@ class QualityDashboard {
   }
 
   private getTypeScriptMetrics(): QualityMetrics['typescript'] {
-    console.log('🔧 Analyzing TypeScript metrics...');
     
     const tscOutput = this.runCommand('npx tsc --noEmit');
     
@@ -154,7 +150,6 @@ class QualityDashboard {
   }
 
   private getFileMetrics(): QualityMetrics['files'] {
-    console.log('📁 Analyzing file metrics...');
     
     const files = this.runCommand('find src -name "*.ts" -type f').trim().split('\n').filter(f => f);
     let totalLines = 0;
@@ -359,7 +354,6 @@ class QualityDashboard {
   }
 
   public generateReport(): void {
-    console.log('🎯 Generating Quality Dashboard...\n');
     
     const currentMetrics = this.getCurrentMetrics();
     const history = this.loadMetricsHistory();
@@ -375,14 +369,6 @@ class QualityDashboard {
     this.saveMetricsHistory(history);
     this.generateHtmlReport(currentMetrics, history);
     
-    console.log('\n✅ Quality Dashboard generated!');
-    console.log(`📊 Reports saved to: ${this.reportsDir}/`);
-    console.log(`🌐 Open dashboard.html in your browser to view the report`);
-    console.log('\n📈 Current Quality Summary:');
-    console.log(`   ESLint: ${currentMetrics.eslint.errors} errors, ${currentMetrics.eslint.warnings} warnings`);
-    console.log(`   Tests: ${currentMetrics.tests.successRate.toFixed(1)}% success rate (${currentMetrics.tests.passed}/${currentMetrics.tests.total})`);
-    console.log(`   Coverage: ${currentMetrics.coverage.lines.toFixed(1)}% lines`);
-    console.log(`   TypeScript: ${currentMetrics.typescript.errors} errors`);
   }
 }
 

@@ -35,7 +35,9 @@ export class BranchSpecManager {
    * blocked the event loop for up to 15 seconds.
    */
   async initialize(): Promise<void> {
-    if (this._initialized) { return; }
+    if (this._initialized) {
+      return;
+    }
     this.currentBranch = await this.detectCurrentBranch();
     this.mainBranch = await this.detectMainBranch();
     this._initialized = true;
@@ -64,7 +66,8 @@ export class BranchSpecManager {
     try {
       // Try to get default branch from remote
       const { stdout: remoteBranch } = await execFileAsync(
-        'git', ['symbolic-ref', 'refs/remotes/origin/HEAD'],
+        'git',
+        ['symbolic-ref', 'refs/remotes/origin/HEAD'],
         { cwd: this.workspacePath, timeout: 5000 }
       );
 
@@ -78,10 +81,10 @@ export class BranchSpecManager {
 
     try {
       // Fall back to checking if main or master exists
-      const { stdout: branches } = await execFileAsync(
-        'git', ['branch', '-a'],
-        { cwd: this.workspacePath, timeout: 5000 }
-      );
+      const { stdout: branches } = await execFileAsync('git', ['branch', '-a'], {
+        cwd: this.workspacePath,
+        timeout: 5000,
+      });
 
       if (branches.includes('main')) {
         return 'main';
@@ -189,9 +192,7 @@ export class BranchSpecManager {
           specs.push(path.join(specsPath, entry.name));
         }
       }
-    } catch (error) {
-      console.log('No specs found in .specify/specs/');
-    }
+    } catch (error) {}
 
     return specs;
   }

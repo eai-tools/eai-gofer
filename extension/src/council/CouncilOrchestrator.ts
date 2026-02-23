@@ -326,13 +326,6 @@ export class CouncilOrchestrator {
     if (!synthesis) {
       return;
     }
-
-    console.log(`[Council] Session ${session.id} synthesis:`);
-    console.log(`  - Members: ${members.length}`);
-    console.log(`  - Responded: ${members.filter((m) => m.status === 'responded').length}`);
-    console.log(`  - Consensus points: ${synthesis.consensusPoints.length}`);
-    console.log(`  - Conflicts resolved: ${synthesis.conflictsResolved.length}`);
-    console.log(`  - Peer review included: ${synthesis.qualitySignals.peerReviewIncluded}`);
   }
 
   /**

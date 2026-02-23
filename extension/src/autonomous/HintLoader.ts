@@ -399,17 +399,14 @@ export class HintLoader {
       this.watcher = vscode.workspace.createFileSystemWatcher(watchPattern);
 
       this.watcher.onDidCreate(() => {
-        console.log('[HintLoader] Hint file created, invalidating cache');
         this.invalidateCache();
       });
 
       this.watcher.onDidChange(() => {
-        console.log('[HintLoader] Hint file changed, invalidating cache');
         this.invalidateCache();
       });
 
       this.watcher.onDidDelete(() => {
-        console.log('[HintLoader] Hint file deleted, invalidating cache');
         this.invalidateCache();
       });
     } catch (error) {

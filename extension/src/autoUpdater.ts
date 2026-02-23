@@ -90,8 +90,6 @@ export class AutoUpdater {
           res.on('end', () => {
             try {
               // Log the response for debugging
-              console.log(`GitHub Pages API Response Status: ${res.statusCode}`);
-              console.log(`GitHub Pages API Response Data: ${data.substring(0, 500)}...`);
 
               if (res.statusCode === 404) {
                 reject(
@@ -235,11 +233,8 @@ export class AutoUpdater {
       // Use VS Code's built-in extension installation
       const vsixUri = vscode.Uri.file(vsixPath);
       await vscode.commands.executeCommand('workbench.extensions.installExtension', vsixUri);
-
-      console.log('Extension installed successfully via VS Code API');
     } catch (error) {
       // Fallback: Try the CLI approach with better error handling
-      console.log('VS Code API installation failed, trying CLI fallback...');
 
       try {
         // Try to find the code command in common locations
@@ -282,8 +277,6 @@ export class AutoUpdater {
         ) {
           throw new Error(stderr);
         }
-
-        console.log('Extension installed via CLI:', stdout);
       } catch (cliError) {
         // If both methods fail, provide clear instructions
         const errorMsg = cliError instanceof Error ? cliError.message : String(cliError);

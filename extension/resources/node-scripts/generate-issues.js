@@ -41,7 +41,6 @@ if (!fs.existsSync(tasksPath)) {
   process.exit(1);
 }
 
-console.log('Parsing tasks.md...');
 const tasksContent = fs.readFileSync(tasksPath, 'utf-8');
 
 // Parse feature metadata from tasks.md header
@@ -94,7 +93,6 @@ while ((match = taskRegex.exec(tasksContent)) !== null) {
   });
 }
 
-console.log(`Found ${tasks.length} tasks`);
 
 // Generate issues.md content
 const issues = [];
@@ -111,7 +109,6 @@ const issuesContent = buildIssuesDocument(featureName, featureId, issues, tasks)
 
 // Write issues.md
 fs.writeFileSync(issuesPath, issuesContent, 'utf-8');
-console.log(`✅ Generated issues.md with ${tasks.length} issues at ${issuesPath}`);
 
 // Generate summary
 const phaseSummary = {};
@@ -122,12 +119,7 @@ for (const task of tasks) {
   phaseSummary[task.phase]++;
 }
 
-console.log('\nSummary:');
-console.log(`  Feature: ${featureName}`);
-console.log(`  Total Issues: ${tasks.length}`);
-console.log('\n  By Phase:');
 for (const [phase, count] of Object.entries(phaseSummary)) {
-  console.log(`    ${phase}: ${count} issues`);
 }
 
 /**

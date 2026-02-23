@@ -410,7 +410,6 @@ Summary:`;
       session.context = backup.context;
       session.compactionHistory = backup.compactionHistory.slice(0, -1); // Remove last compaction
 
-      console.log(`[ContextCompactor] Rolled back compaction for session ${session.id}`);
       telemetry.trackCompactionRollback(session.id, true);
       return true;
     } catch (error) {
@@ -469,7 +468,7 @@ Summary:`;
     lines.push(header + '.');
 
     // 019 T054: Extract first line of each task description for context
-    const taskSummaries = tasks.slice(0, 10).map(task => {
+    const taskSummaries = tasks.slice(0, 10).map((task) => {
       const firstLine = task.description?.split('\n')[0]?.trim() || task.id;
       return `- ${task.id}: ${firstLine.slice(0, 100)}`;
     });
@@ -483,7 +482,7 @@ Summary:`;
     }
 
     // 019 T055: Preserve error messages from failed tasks
-    const failedTasks = tasks.filter(t => t.status === 'failed');
+    const failedTasks = tasks.filter((t) => t.status === 'failed');
     if (failedTasks.length > 0) {
       lines.push('');
       lines.push('Errors:');

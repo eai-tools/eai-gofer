@@ -45,13 +45,13 @@ export class OutputChannelLogger implements LoggerOutput {
     const timestamp = entry.timestamp.toISOString();
     const level = Object.keys(LogLevel)[entry.level].padEnd(5);
     const component = entry.component.padEnd(15);
-    
+
     let message = `[${timestamp}] ${level} ${component} ${entry.message}`;
-    
+
     if (entry.data) {
       message += `\nData: ${JSON.stringify(entry.data, null, 2)}`;
     }
-    
+
     if (entry.error) {
       message += `\nError: ${entry.error.message}`;
       if (entry.error.stack) {
@@ -78,13 +78,13 @@ export class ConsoleLogger implements LoggerOutput {
   write(entry: LogEntry): void {
     const timestamp = entry.timestamp.toISOString();
     const component = `[${entry.component}]`;
-    
+
     const args: any[] = [`${timestamp} ${component} ${entry.message}`];
-    
+
     if (entry.data) {
       args.push('\nData:', entry.data);
     }
-    
+
     if (entry.error) {
       args.push('\nError:', entry.error);
     }
@@ -94,7 +94,6 @@ export class ConsoleLogger implements LoggerOutput {
         console.debug(...args);
         break;
       case LogLevel.info:
-        console.log(...args);
         break;
       case LogLevel.warn:
         console.warn(...args);
@@ -135,29 +134,29 @@ export class FileLogger implements LoggerOutput {
     try {
       const fs = require('fs/promises');
       const path = require('path');
-      
+
       // Ensure directory exists
       await fs.mkdir(path.dirname(this.filePath), { recursive: true });
-      
+
       const entries = this.writeQueue.splice(0);
-      const lines = entries.map(entry => {
+      const lines = entries.map((entry) => {
         const timestamp = entry.timestamp.toISOString();
         const level = Object.keys(LogLevel)[entry.level];
         const component = entry.component;
-        
+
         let line = `${timestamp} [${level}] [${component}] ${entry.message}`;
-        
+
         if (entry.data) {
           line += ` | Data: ${JSON.stringify(entry.data)}`;
         }
-        
+
         if (entry.error) {
           line += ` | Error: ${entry.error.message}`;
           if (entry.error.stack) {
             line += ` | Stack: ${entry.error.stack.replace(/\n/g, ' | ')}`;
           }
         }
-        
+
         return line;
       });
 
@@ -166,7 +165,7 @@ export class FileLogger implements LoggerOutput {
       console.error('Failed to write log file:', error);
     } finally {
       this.isWriting = false;
-      
+
       // Process any entries that arrived while writing
       if (this.writeQueue.length > 0) {
         setImmediate(() => this.flushQueue());
@@ -317,17 +316,17 @@ export class Logger {
  */
 export function initializeLogging(context: vscode.ExtensionContext): Logger {
   const logger = Logger.getInstance('Gofer');
-  
+
   // Add output channel for user visibility
   const outputChannel = new OutputChannelLogger('Gofer - Enterprise AI');
   logger.addOutput(outputChannel);
-  
+
   // Add console logging in development
   if (process.env.NODE_ENV === 'development') {
     logger.addOutput(new ConsoleLogger());
     logger.setLevel(LogLevel.debug);
   }
-  
+
   // Add file logging for diagnostics
   const config = ConfigManager.getInstance();
   if (config.getTelemetryEnabled()) {
@@ -335,18 +334,18 @@ export function initializeLogging(context: vscode.ExtensionContext): Logger {
     const logPath = path.join(context.globalStorageUri.fsPath, 'logs', 'gofer.log');
     const fileLogger = new FileLogger(logPath);
     logger.addOutput(fileLogger);
-    
+
     // Clean up on dispose
     context.subscriptions.push({
-      dispose: () => fileLogger.dispose()
+      dispose: () => fileLogger.dispose(),
     });
   }
-  
+
   // Clean up on dispose
   context.subscriptions.push({
-    dispose: () => logger.dispose()
+    dispose: () => logger.dispose(),
   });
-  
+
   logger.info('Logging initialized');
   return logger;
 }
@@ -400,7 +399,7 @@ export function withErrorLogging<T extends any[], R>(
   logger?: Logger
 ): (...args: T) => Promise<R> {
   const log = logger || Logger.getInstance();
-  
+
   return async (...args: T): Promise<R> => {
     try {
       return await fn(...args);
@@ -420,7 +419,7 @@ export function withSyncErrorLogging<T extends any[], R>(
   logger?: Logger
 ): (...args: T) => R {
   const log = logger || Logger.getInstance();
-  
+
   return (...args: T): R => {
     try {
       return fn(...args);

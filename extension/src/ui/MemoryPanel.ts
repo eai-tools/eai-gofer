@@ -449,6 +449,7 @@ export class MemoryPanel {
 
     <script>
         const vscode = acquireVsCodeApi();
+        const DAYS_PER_YEAR = 365;
 
         // Search on Enter key
         document.getElementById('searchInput').addEventListener('keypress', (e) => {
@@ -529,10 +530,10 @@ export class MemoryPanel {
                 return diffDays + ' days ago';
             } else if (diffDays < 30) {
                 return Math.floor(diffDays / 7) + ' weeks ago';
-            } else if (diffDays < 365) {
+            } else if (diffDays < DAYS_PER_YEAR) {
                 return Math.floor(diffDays / 30) + ' months ago';
             } else {
-                return Math.floor(diffDays / 365) + ' years ago';
+                return Math.floor(diffDays / DAYS_PER_YEAR) + ' years ago';
             }
         }
 

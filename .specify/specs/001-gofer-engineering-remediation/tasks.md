@@ -322,7 +322,7 @@ all commands functional, activation <2s
 
 ### US1: Code Maintainability - Eliminate God Objects (goferMigrator.ts)
 
-- [ ] T026 [P] [US1] Create VersionDetector service in
+- [x] T026 [P] [US1] Create VersionDetector service in
       extension/src/services/migration/VersionDetector.ts
   - Extract version detection logic from goferMigrator.ts
   - Interface: `detectCurrentVersion(): string`,

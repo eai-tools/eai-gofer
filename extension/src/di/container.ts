@@ -21,6 +21,10 @@
 import { container } from 'tsyringe';
 import 'reflect-metadata';
 import { Logger } from '../services/Logger';
+import { DisposalService } from '../services/DisposalService';
+import { EventHandlers } from '../services/EventHandlers';
+import { InitializationService } from '../services/InitializationService';
+import { CommandRegistry } from '../services/CommandRegistry';
 
 /**
  * Register all injectable services in the DI container.
@@ -37,9 +41,13 @@ export function registerServices(): void {
 
   // Phase 2: Cache and performance services
   // Cache services will be registered here in Phase 2
-  // Phase 3: Extension.ts extracted services
-  // CommandRegistry, EventHandlers, InitializationService, DisposalService
-  // will be registered here in Phase 3
+
+  // Phase 3: Extension.ts extracted services (T020-T023)
+  container.registerSingleton(DisposalService);
+  container.registerSingleton(EventHandlers);
+  container.registerSingleton(InitializationService);
+  container.registerSingleton(CommandRegistry);
+
   // Phase 4: GoferMigrator.ts extracted services
   // VersionDetector, UpgradeService, ResourceSyncer, PathMigrator
   // will be registered here in Phase 4

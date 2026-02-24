@@ -365,7 +365,7 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
 
   // Initialize MemoryManager for memory commands (if not already initialized)
   if (!memoryManager && branchSpecManager) {
-    memoryManager = new MemoryManager(context, workspacePath);
+    memoryManager = new MemoryManager(workspacePath);
   }
 
   // Register workspace commands using CommandRegistry

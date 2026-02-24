@@ -251,7 +251,7 @@ timer leaks
 
 ### US1: Code Maintainability - Eliminate God Objects (extension.ts)
 
-- [ ] T020 [P] [US1] Create CommandRegistry service in
+- [x] T020 [P] [US1] Create CommandRegistry service in
       extension/src/services/CommandRegistry.ts
   - Extract all command registration logic from extension.ts:registerCommands()
     (lines 1182-2344)
@@ -260,7 +260,7 @@ timer leaks
   - Target: <600 LOC
   - Preserve all existing command IDs (backward compatibility)
 
-- [ ] T021 [P] [US1] Create EventHandlers service in
+- [x] T021 [P] [US1] Create EventHandlers service in
       extension/src/services/EventHandlers.ts
   - Extract workspace change listener (lines 155-160) and other event handlers
   - Interface: `registerAll(context: vscode.ExtensionContext): void`
@@ -268,7 +268,7 @@ timer leaks
   - Target: <600 LOC
   - Use single workspace listener pattern (no duplicates)
 
-- [ ] T022 [P] [US1] Create InitializationService in
+- [x] T022 [P] [US1] Create InitializationService in
       extension/src/services/InitializationService.ts
   - Extract initialization logic from extension.ts:activate() (lines 100-400)
   - Interface: `initialize(context: vscode.ExtensionContext): Promise<void>`
@@ -277,7 +277,7 @@ timer leaks
   - Handle all watcher creation, session initialization, context health
     monitoring
 
-- [ ] T023 [P] [US1] Create DisposalService in
+- [x] T023 [P] [US1] Create DisposalService in
       extension/src/services/DisposalService.ts
   - Extract cleanup logic from reinitializeExtension() (lines 207-277) and
     deactivate()

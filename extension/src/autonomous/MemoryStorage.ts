@@ -23,19 +23,22 @@ const JSONL_FILENAME = 'memories.jsonl';
 const ARCHIVE_FILENAME = 'archive.jsonl';
 const LEGACY_FILENAME = 'local.json';
 const MAX_JSONL_SIZE_BYTES = 8 * 1024 * 1024; // 8MB triggers compaction warning
+const MAX_TOKEN_BUDGET = 50000; // T016: Maximum token budget for in-memory index
 
 // ============================================================================
 // Types
 // ============================================================================
 
-/** In-memory index entry for fast lookups */
+/**
+ * In-memory index entry for fast lookups
+ * T017: Removed duplicate content field - use memory.content instead
+ */
 interface IndexEntry {
   id: string;
   type?: MemoryType;
   category: string;
   tags: string[];
   scope: 'local' | 'global';
-  content: string;
   priorityIndex: number;
   usedCount: number;
   created: number;
@@ -61,6 +64,9 @@ export class MemoryStorage {
 
   /** Whether the index has been loaded from disk */
   private initialized = false;
+
+  /** T016: Current token usage in the in-memory index */
+  private currentTokenUsage = 0;
 
   constructor(workspaceRoot: string) {
     this.memoryDir = path.join(workspaceRoot, '.specify', 'memory');
@@ -125,6 +131,7 @@ export class MemoryStorage {
    */
   async rebuildIndex(): Promise<void> {
     this.index.clear();
+    this.currentTokenUsage = 0; // T016: Reset token usage when rebuilding index
 
     try {
       const content = await fs.readFile(this.jsonlPath, 'utf-8');
@@ -154,15 +161,27 @@ export class MemoryStorage {
 
   /**
    * Add or update a memory in the in-memory index.
+   * T016: Tracks token usage and evicts oldest memories if budget exceeded.
+   * T017: Removed duplicate content storage - access via memory.content.
    */
   private indexMemory(memory: Memory): void {
+    // T016: Calculate tokens for this memory
+    const newTokens = this.estimateTokens(memory.content);
+
+    // T016: If updating existing entry, subtract old token count first
+    const existing = this.index.get(memory.id);
+    if (existing) {
+      const oldTokens = this.estimateTokens(existing.memory.content); // T017: Use memory.content
+      this.currentTokenUsage -= oldTokens;
+    }
+
+    // Add entry to index (T017: no duplicate content field)
     this.index.set(memory.id, {
       id: memory.id,
       type: memory.type,
       category: memory.category,
       tags: memory.tags || [],
       scope: memory.scope,
-      content: memory.content,
       priorityIndex: memory.priorityIndex ?? 0,
       usedCount: memory.usedCount ?? 0,
       created: memory.created,
@@ -171,6 +190,12 @@ export class MemoryStorage {
       agentId: memory.agentId,
       memory,
     });
+
+    // T016: Update token usage and evict if needed
+    this.currentTokenUsage += newTokens;
+    if (this.currentTokenUsage > MAX_TOKEN_BUDGET) {
+      this.evictToFitBudget();
+    }
   }
 
   // --------------------------------------------------------------------------
@@ -324,7 +349,8 @@ export class MemoryStorage {
     if (query.keywords) {
       const keywords = query.keywords.toLowerCase().split(/\s+/);
       results = results.filter((e) => {
-        const text = (e.content + ' ' + e.category + ' ' + e.tags.join(' ')).toLowerCase();
+        // T017: Use e.memory.content instead of duplicate e.content field
+        const text = (e.memory.content + ' ' + e.category + ' ' + e.tags.join(' ')).toLowerCase();
         return keywords.some((kw) => text.includes(kw));
       });
     }
@@ -463,6 +489,45 @@ export class MemoryStorage {
   }
 
   /**
+   * T016: Estimate token count for a string (4 chars ≈ 1 token)
+   * Uses the same pattern as ContextBuilder.
+   */
+  private estimateTokens(content: string): number {
+    return Math.ceil(content.length / 4);
+  }
+
+  /**
+   * T016: Evict oldest memories when token budget is exceeded.
+   * Evicts memories with lowest priority first, then oldest lastUsed.
+   */
+  private evictToFitBudget(): void {
+    while (this.currentTokenUsage > MAX_TOKEN_BUDGET && this.index.size > 0) {
+      let evictKey: string | null = null;
+      let lowestPriority = Infinity;
+      let oldestTime = Infinity;
+
+      // Find memory with lowest priority, breaking ties by oldest lastUsed
+      for (const [key, entry] of this.index.entries()) {
+        if (
+          entry.priorityIndex < lowestPriority ||
+          (entry.priorityIndex === lowestPriority && entry.lastUsed < oldestTime)
+        ) {
+          lowestPriority = entry.priorityIndex;
+          oldestTime = entry.lastUsed;
+          evictKey = key;
+        }
+      }
+
+      if (evictKey) {
+        const entry = this.index.get(evictKey)!;
+        const tokens = this.estimateTokens(entry.memory.content); // T017: Use memory.content
+        this.index.delete(evictKey);
+        this.currentTokenUsage -= tokens;
+      }
+    }
+  }
+
+  /**
    * Get the path to the JSONL file (for external consumers like hook scripts).
    */
   getJsonlPath(): string {
@@ -474,6 +539,17 @@ export class MemoryStorage {
    */
   getArchivePath(): string {
     return this.archivePath;
+  }
+
+  /**
+   * T016: Get current token usage stats for debugging.
+   */
+  getTokenUsageStats(): { currentTokens: number; maxTokens: number; utilization: number } {
+    return {
+      currentTokens: this.currentTokenUsage,
+      maxTokens: MAX_TOKEN_BUDGET,
+      utilization: this.currentTokenUsage / MAX_TOKEN_BUDGET,
+    };
   }
 
   /**

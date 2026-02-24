@@ -149,6 +149,25 @@ export type TrackObservationInput = Omit<
 };
 
 /**
+ * 019 B8 T015: Expansion metric entry for LRU cache
+ */
+export interface ExpansionMetric {
+  type: ObservationType;
+  ageAtExpansion: number;
+  timestamp: number;
+}
+
+/**
+ * 019 B8 T015: Stats for expansion metrics cache
+ */
+export interface ExpansionMetricsStats {
+  hits: number;
+  misses: number;
+  size: number;
+  evictions: number;
+}
+
+/**
  * Serializable format for cache persistence.
  */
 interface SerializedCache {
@@ -835,28 +854,35 @@ export class ObservationMasker {
       decayTier: observation.decayTier,
     });
 
-    // 019 B8: Track expansion metrics for window validation
+    // 019 B8: Track expansion metrics for window validation (LRU cache)
     if (ageAtExpansion !== undefined) {
-      this.expansionMetrics.push({
+      // Evict oldest if at capacity
+      if (this.expansionMetrics.size >= this.maxExpansionMetrics) {
+        this.evictOldestExpansionMetric();
+      }
+
+      // Add new metric with unique key
+      const metricKey = `${observation.id}-${Date.now()}`;
+      this.expansionMetrics.set(metricKey, {
         type: observation.type,
         ageAtExpansion,
         timestamp: Date.now(),
       });
-      // Keep last 100 metrics
-      if (this.expansionMetrics.length > 100) {
-        this.expansionMetrics.shift();
-      }
+      this.expansionMetricsStats.size = this.expansionMetrics.size;
     }
 
     return observation;
   }
 
-  /** 019 B8: Expansion metrics for observation window validation */
-  private expansionMetrics: Array<{
-    type: ObservationType;
-    ageAtExpansion: number;
-    timestamp: number;
-  }> = [];
+  /** 019 B8: Expansion metrics LRU cache (max 100 entries) */
+  private expansionMetrics: Map<string, ExpansionMetric> = new Map();
+  private readonly maxExpansionMetrics = 100;
+  private expansionMetricsStats: ExpansionMetricsStats = {
+    hits: 0,
+    misses: 0,
+    size: 0,
+    evictions: 0,
+  };
 
   /**
    * 019 B8: Validate observation windows by comparing configured thresholds
@@ -872,7 +898,7 @@ export class ObservationMasker {
     > = {};
     const byType = new Map<string, number[]>();
 
-    for (const m of this.expansionMetrics) {
+    for (const m of this.expansionMetrics.values()) {
       const arr = byType.get(m.type) || [];
       arr.push(m.ageAtExpansion);
       byType.set(m.type, arr);
@@ -890,6 +916,42 @@ export class ObservationMasker {
 
     this.logger.info('Observation window validation', { metrics: result });
     return result;
+  }
+
+  /**
+   * 019 B8 T015: Evict oldest expansion metric entry from LRU cache.
+   * Called when cache reaches maxExpansionMetrics limit.
+   */
+  private evictOldestExpansionMetric(): void {
+    let oldestKey: string | null = null;
+    let oldestTime = Infinity;
+
+    for (const [key, metric] of this.expansionMetrics.entries()) {
+      if (metric.timestamp < oldestTime) {
+        oldestTime = metric.timestamp;
+        oldestKey = key;
+      }
+    }
+
+    if (oldestKey) {
+      this.expansionMetrics.delete(oldestKey);
+      this.expansionMetricsStats.evictions++;
+      this.logger.debug(`Evicted expansion metric ${oldestKey}`, {
+        remainingSize: this.expansionMetrics.size,
+        totalEvictions: this.expansionMetricsStats.evictions,
+      });
+    }
+  }
+
+  /**
+   * 019 B8 T015: Get expansion metrics cache statistics.
+   * Returns hits, misses, evictions, and current size for debugging/monitoring.
+   */
+  public getExpansionMetricsStats(): ExpansionMetricsStats {
+    return {
+      ...this.expansionMetricsStats,
+      size: this.expansionMetrics.size,
+    };
   }
 
   // ─────────────────────────────────────────────────────────────────────────────

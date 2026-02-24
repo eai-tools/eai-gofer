@@ -198,7 +198,7 @@ include context
 
 ### US5: Performance - Implement Proper Cache Eviction
 
-- [ ] T015 [P] [US5] Fix ObservationMasker unbounded array in
+- [x] T015 [P] [US5] Fix ObservationMasker unbounded array in
       extension/src/autonomous/ObservationMasker.ts
   - Modify lines 854-859: expansionMetrics array
   - Replace array with `Map<string, ExpansionMetric>` (100-entry LRU limit)
@@ -207,7 +207,7 @@ include context
   - Add stats tracking: hits, misses, evictions
   - Add `getStats()` method for debugging
 
-- [ ] T016 [P] [US5] Add token budget to MemoryStorage in
+- [x] T016 [P] [US5] Add token budget to MemoryStorage in
       extension/src/autonomous/MemoryStorage.ts
   - Add `maxTokenBudget: 50000` configuration constant
   - Implement token estimation using ContextBuilder pattern
@@ -215,14 +215,14 @@ include context
   - Add eviction logic: evict oldest memories when budget exceeded
   - Track current token usage in class state
 
-- [ ] T017 [P] [US5] Remove content duplication in
+- [x] T017 [P] [US5] Remove content duplication in
       extension/src/autonomous/MemoryStorage.ts
   - Modify indexMemory() method (lines 158-174)
   - Store EITHER full content OR full memory object, not both
   - Use memory ID as key, reference content via lookup
   - Reduce memory footprint by ~50%
 
-- [ ] T018 [P] [US5] Fix HookBridgeWatcher timer leak in
+- [x] T018 [P] [US5] Fix HookBridgeWatcher timer leak in
       extension/src/autonomous/HookBridgeWatcher.ts
   - Modify start() method (lines 58-94)
   - Add guard:
@@ -230,7 +230,7 @@ include context
   - Clear old interval BEFORE creating new one
   - Apply same pattern to any other timers in class
 
-- [ ] T019 [US5] Standardize all caches on LRU + TTL pattern
+- [x] T019 [US5] Standardize all caches on LRU + TTL pattern
   - Audit remaining cache implementations across codebase
   - Apply SpecCache pattern template to any unbounded caches
   - Default config: 100 entries max, 5-minute TTL

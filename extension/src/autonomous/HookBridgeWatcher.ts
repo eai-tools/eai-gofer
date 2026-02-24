@@ -71,8 +71,15 @@ export class HookBridgeWatcher extends EventEmitter implements vscode.Disposable
 
   /**
    * Starts watching the bridge file.
+   * T018: Clear any existing timer before creating a new one to prevent leaks.
    */
   start(): void {
+    // T018: Guard against timer leak - clear existing timer if any
+    if (this.stalenessTimer) {
+      clearInterval(this.stalenessTimer);
+      this.stalenessTimer = null;
+    }
+
     // Watch for bridge file changes
     const pattern = new vscode.RelativePattern(
       this.workspacePath,

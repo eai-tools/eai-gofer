@@ -379,59 +379,72 @@ Validation)
 
 ### US7: Documentation - Add Architecture Decision Records
 
-- [ ] T031 [P] [US7] Create ADR-001 in
-      .specify/memory/decisions/001-di-framework.md
+- [x] T031 [P] [US7] Create ADR-001 in
+      .specify/memory/decisions/001-di-framework.md ✅ Complete
   - Sections: Context, Decision (TSyringe), Rationale, Alternatives
     (InversifyJS, manual factories, TypeDI), Consequences
   - Document why TSyringe chosen for DI
   - Reference Phase 1 implementation
+  - **COMPLETED**: Documented DI framework decision with comprehensive
+    alternatives analysis
 
-- [ ] T032 [P] [US7] Create ADR-002 in
-      .specify/memory/decisions/002-module-extraction.md
+- [x] T032 [P] [US7] Create ADR-002 in
+      .specify/memory/decisions/002-module-extraction.md ✅ Complete
   - Sections: Context, Decision (phased with facades), Rationale, Alternatives
     (big bang rewrite, leave as-is), Consequences
   - Document module extraction strategy
   - Reference Phase 3-4 implementation
+  - **COMPLETED**: Documented module extraction strategy with before/after
+    metrics (66% LOC reduction)
 
-- [ ] T033 [P] [US7] Create ADR-003 in
-      .specify/memory/decisions/003-error-handling.md
+- [x] T033 [P] [US7] Create ADR-003 in
+      .specify/memory/decisions/003-error-handling.md ✅ Complete
   - Sections: Context, Decision (Logger service + explicit logging), Rationale,
     Alternatives (global handler, propagate errors), Consequences
   - Document error handling approach
   - Reference Phase 1 Logger implementation
+  - **COMPLETED**: Documented error handling strategy to replace 47 silent error
+    handlers
 
-- [ ] T034 [P] [US7] Create ADR-004 in
-      .specify/memory/decisions/004-cache-eviction.md
+- [x] T034 [P] [US7] Create ADR-004 in
+      .specify/memory/decisions/004-cache-eviction.md ✅ Complete
   - Sections: Context, Decision (LRU + TTL + token budget), Rationale,
     Alternatives (no eviction, different strategies per cache), Consequences
   - Document cache eviction strategy
   - Reference Phase 2 cache fixes, SpecCache pattern
+  - **COMPLETED**: Documented hybrid cache eviction (LRU + TTL + token budget)
 
-- [ ] T035 [P] [US7] Create ADR-005 in
-      .specify/memory/decisions/005-constants-management.md
+- [x] T035 [P] [US7] Create ADR-005 in
+      .specify/memory/decisions/005-constants-management.md ✅ Complete
   - Sections: Context, Decision (hierarchical by domain), Rationale,
     Alternatives (single file, per-module constants, env vars), Consequences
   - Document constants organization
   - Reference Phase 0 constants extraction
+  - **COMPLETED**: Documented hierarchical constants organization strategy
 
-- [ ] T036 [P] [US7] Create extension activation diagram in
-      .specify/memory/diagrams/extension-activation.mmd
+- [x] T036 [P] [US7] Create extension activation diagram in
+      .specify/memory/diagrams/extension-activation.mmd ✅ Complete
   - Mermaid sequence diagram
   - Show: activate() → registerServices() → InitializationService →
     CommandRegistry → EventHandlers
   - Include DI container resolution steps
+  - **COMPLETED**: Comprehensive activation sequence diagram with 8 phases
 
-- [ ] T037 [P] [US7] Create DI container diagram in
-      .specify/memory/diagrams/di-container.mmd
+- [x] T037 [P] [US7] Create DI container diagram in
+      .specify/memory/diagrams/di-container.mmd ✅ Complete
   - Mermaid class diagram
   - Show all injectable services and their dependencies
   - Highlight singleton vs transient scopes
+  - **COMPLETED**: Class diagram showing all 12 injectable services and
+    dependency hierarchy
 
-- [ ] T038 [P] [US7] Create module dependencies diagram in
-      .specify/memory/diagrams/module-dependencies.mmd
+- [x] T038 [P] [US7] Create module dependencies diagram in
+      .specify/memory/diagrams/module-dependencies.mmd ✅ Complete
   - Mermaid graph diagram
   - Show dependencies between refactored modules
   - Highlight before/after architecture
+  - **COMPLETED**: Before/after graph showing 66% LOC reduction from God object
+    elimination
 
 **Checkpoint US7**: 5 ADRs documented, 3 architecture diagrams created
 

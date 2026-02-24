@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.13.0",
+  "latest_version": "1.13.1",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-02-24T23:00:00.000Z",
+  "last_updated": "2026-02-24T07:40:28.077Z",
   "releases": [
+    {
+      "version": "1.13.1",
+      "tag_name": "v1.13.1",
+      "published_at": "2026-02-24T07:40:28.076Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.13.1.vsix",
+      "notes": "Fix release script: add npm install for production deps, add gh release create",
+      "prerelease": false,
+      "size_mb": 30.3
+    },
     {
       "version": "1.13.0",
       "tag_name": "v1.13.0",
@@ -81,24 +90,6 @@
       "published_at": "2026-02-12T23:33:42.866Z",
       "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.7.4.vsix",
       "notes": "Richer Conversation Insights — Tool interactions in the Conversation History panel now show both the request and the response, giving you complete visibility into what happened during each tool call.",
-      "prerelease": false,
-      "size_mb": 16.5
-    },
-    {
-      "version": "1.7.2",
-      "tag_name": "v1.7.2",
-      "published_at": "2026-02-11T22:46:22.939Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.7.2.vsix",
-      "notes": "Better Context Visibility — Token usage estimates are now visible directly in the sidebar for each conversation category. See at a glance where your context budget is being spent.",
-      "prerelease": false,
-      "size_mb": 16.5
-    },
-    {
-      "version": "1.7.0",
-      "tag_name": "v1.7.0",
-      "published_at": "2026-02-11T21:06:46.928Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.7.0.vsix",
-      "notes": "Streamlined Sidebar — Cleaner, more intuitive organization of the Memory and Context panels. Removed redundant sections to reduce clutter and improve navigation.",
       "prerelease": false,
       "size_mb": 16.5
     }

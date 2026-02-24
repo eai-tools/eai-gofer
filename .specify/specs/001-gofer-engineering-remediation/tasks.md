@@ -95,15 +95,20 @@ graph TD
   - Export as const object: `export const INTERVALS = { ... } as const;`
   - **COMPLETED**: 5 interval constants extracted
 
-- [ ] T008 [US3] Replace all magic numbers with imported constants
+- [x] T008 [US3] Replace all magic numbers with imported constants
   - Search codebase:
     `grep -r '\b\d{2,}\b' extension/src --exclude-dir=node_modules --exclude-dir=config`
   - Replace with imports from config/\* files
   - Verify no behavior changes (values identical)
   - Exclude 0, 1, -1 (acceptable magic numbers)
-  - **STATUS**: Partial - ContextHealthMonitor.ts done (9 magic numbers
-    replaced), deferring remaining to Phase 3 (will be easier in extracted
-    modules)
+  - **COMPLETED**: All magic numbers replaced:
+    - Added time conversion constants to intervals.ts (MS_PER_MINUTE=60000, MS_PER_HOUR=3600000, MS_PER_DAY=86400000)
+    - Added UI preview limits to limits.ts (PREVIEW_CHARS_SHORT=200, MEDIUM=300, DEFAULT=500, LONG=600, EXTENDED=800, DAYS_PER_YEAR=365)
+    - Updated ContextHealthStatusBar.ts: line 430 (60000 → INTERVALS.MS_PER_MINUTE)
+    - Updated GoferActivityStatusBar.ts: line 138 (60000 → INTERVALS.MS_PER_MINUTE)
+    - Updated memoryProvider.ts: lines 315-317 (60000, 3600000, 86400000 → INTERVALS constants)
+    - Updated MemoryPanel.ts: lines 532, 535 (365 → DAYS_PER_YEAR constant)
+    - Updated ContextContentPanel.ts: replaced all preview char limits (200→SHORT, 300→MEDIUM, 500→DEFAULT, 600→LONG, 800→EXTENDED)
 
 **Checkpoint US3**: 0 magic numbers remain (except config definitions),
 extension compiles

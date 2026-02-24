@@ -16,11 +16,12 @@ import type {
   ClaudeCodeContextScanner,
   CategoryBreakdown,
 } from '../autonomous/ClaudeCodeContextScanner';
+import { LIMITS } from '../config/limits';
 
 /** Max bytes to read from any single file */
 const MAX_FILE_BYTES = 50 * 1024;
-/** Max chars for a content preview */
-const PREVIEW_CHARS = 500;
+/** Max chars for a content preview (default length) */
+const PREVIEW_CHARS = LIMITS.PREVIEW_CHARS_DEFAULT;
 /** Max recent observations to show */
 const MAX_OBSERVATIONS = 20;
 /** Masking threshold in milliseconds (5 minutes) */
@@ -468,7 +469,7 @@ export class ContextContentPanel {
 
     return recent
       .map((obs) => {
-        const inputStr = obs.toolInput ? JSON.stringify(obs.toolInput).slice(0, 200) : '';
+        const inputStr = obs.toolInput ? JSON.stringify(obs.toolInput).slice(0, LIMITS.PREVIEW_CHARS_SHORT) : '';
         const responsePreview = (obs.toolResponse || '').slice(0, PREVIEW_CHARS);
         const truncatedLabel = obs.truncated ? ' <span class="badge warning">truncated</span>' : '';
         const age = formatAge(new Date(obs.timestamp));
@@ -638,7 +639,7 @@ export function classifyTranscript(entries: TranscriptEntry[]): {
           tool_use_id?: string;
         }>) {
           if (block.type === 'tool_result') {
-            const toolResultStr = JSON.stringify(block.content || '').slice(0, 500);
+            const toolResultStr = JSON.stringify(block.content || '').slice(0, PREVIEW_CHARS);
             result.totalBytes.tools += toolResultStr.length;
             // Attach result to the matching tool call
             if (block.tool_use_id && pendingTools.has(block.tool_use_id)) {
@@ -666,7 +667,7 @@ export function classifyTranscript(entries: TranscriptEntry[]): {
             const idx = result.toolCalls.length;
             result.toolCalls.push({
               name: block.name || 'unknown',
-              input: inputStr.slice(0, 300),
+              input: inputStr.slice(0, LIMITS.PREVIEW_CHARS_MEDIUM),
               timestamp: ts,
             });
             result.totalBytes.tools += inputStr.length;
@@ -847,8 +848,8 @@ function renderUserPrompts(prompts: Array<{ text: string; timestamp?: string }>)
   return prompts
     .map((p, i) => {
       const age = p.timestamp ? formatAge(new Date(p.timestamp)) : '';
-      const preview = p.text.slice(0, 800);
-      const truncated = p.text.length > 800;
+      const preview = p.text.slice(0, LIMITS.PREVIEW_CHARS_EXTENDED);
+      const truncated = p.text.length > LIMITS.PREVIEW_CHARS_EXTENDED;
       return `
       <div class="card">
         <div class="card-title">
@@ -873,8 +874,8 @@ function renderAssistantResponses(responses: Array<{ text: string; timestamp?: s
   return responses
     .map((r, i) => {
       const age = r.timestamp ? formatAge(new Date(r.timestamp)) : '';
-      const preview = r.text.slice(0, 800);
-      const truncated = r.text.length > 800;
+      const preview = r.text.slice(0, LIMITS.PREVIEW_CHARS_EXTENDED);
+      const truncated = r.text.length > LIMITS.PREVIEW_CHARS_EXTENDED;
       return `
       <div class="card">
         <div class="card-title">
@@ -929,7 +930,7 @@ function renderToolCalls(
       const resultHtml = c.result
         ? `<div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--vscode-panel-border)">
             <span class="muted" style="font-size:11px">Result:</span>
-            <pre class="file-preview" style="margin-top:4px">${escapeHtml(c.result.slice(0, 300))}${c.result.length > 300 ? '\n...' : ''}</pre>
+            <pre class="file-preview" style="margin-top:4px">${escapeHtml(c.result.slice(0, LIMITS.PREVIEW_CHARS_MEDIUM))}${c.result.length > LIMITS.PREVIEW_CHARS_MEDIUM ? '\n...' : ''}</pre>
            </div>`
         : '';
       return `
@@ -958,8 +959,8 @@ function renderSystemCommands(commands: Array<{ text: string; timestamp?: string
   return commands
     .map((c, i) => {
       const age = c.timestamp ? formatAge(new Date(c.timestamp)) : '';
-      const preview = c.text.slice(0, 600);
-      const truncated = c.text.length > 600;
+      const preview = c.text.slice(0, LIMITS.PREVIEW_CHARS_LONG);
+      const truncated = c.text.length > LIMITS.PREVIEW_CHARS_LONG;
       return `
       <div class="card">
         <div class="card-title">

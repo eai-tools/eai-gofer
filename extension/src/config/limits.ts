@@ -52,6 +52,24 @@ export const LIMITS = {
 
   /** Tool schema tokens (constant overhead for Claude Code) */
   TOOL_SCHEMA_TOKENS: 11600,
+
+  /** Days in a year (for date calculations) */
+  DAYS_PER_YEAR: 365,
+
+  /** Characters - Short preview length */
+  PREVIEW_CHARS_SHORT: 200,
+
+  /** Characters - Medium preview length */
+  PREVIEW_CHARS_MEDIUM: 300,
+
+  /** Characters - Default/standard preview length */
+  PREVIEW_CHARS_DEFAULT: 500,
+
+  /** Characters - Long preview length */
+  PREVIEW_CHARS_LONG: 600,
+
+  /** Characters - Extended preview length */
+  PREVIEW_CHARS_EXTENDED: 800,
 } as const;
 
 /**

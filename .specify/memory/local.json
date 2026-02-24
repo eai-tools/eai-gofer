@@ -120,6 +120,21 @@
       "lastUsed": 1771905203589,
       "usedCount": 1,
       "learnedFrom": "session:380badb8-fbdd-4a33-b9aa-0fee675438bc"
+    },
+    {
+      "id": "b796922c-7fe8-4d82-8b3f-71e5ef9e69c4",
+      "category": "error_resolution",
+      "tags": [
+        "#auto-learned",
+        "#error-fix",
+        "#session-380badb8"
+      ],
+      "scope": "local",
+      "content": "Fixed by running `npm install` in the extension directory.",
+      "created": 1771914895059,
+      "lastUsed": 1771914895059,
+      "usedCount": 0,
+      "learnedFrom": "session:380badb8-fbdd-4a33-b9aa-0fee675438bc"
     }
   ]
 }

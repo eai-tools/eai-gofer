@@ -24,6 +24,7 @@ import { MultiSessionBridgeWatcher } from '../autonomous/MultiSessionBridgeWatch
 import { ClaudeCodeContextScanner } from '../autonomous/ClaudeCodeContextScanner';
 import { GoferActivityStatusBar } from '../ui/GoferActivityStatusBar';
 import { setAutoHandoffTrigger } from '../autoHandoffBridge';
+import { ConfigValidator } from '../utils/ConfigValidator';
 
 /**
  * Dependencies required by InitializationService
@@ -68,6 +69,27 @@ export class InitializationService {
    */
   public async initialize(deps: InitializationDependencies): Promise<InitializedComponents> {
     this.logger.info('InitializationService', 'Starting workspace initialization');
+
+    // Validate configuration (T039 - Security)
+    const config = vscode.workspace.getConfiguration();
+    const configValidator = new ConfigValidator(this.logger);
+    const validationResult = configValidator.validateConfiguration(config);
+
+    configValidator.logValidationResult(validationResult, 'workspace initialization');
+
+    if (!validationResult.valid) {
+      // Non-blocking: Log errors and continue with defaults
+      this.logger.warn(
+        'InitializationService',
+        'Configuration validation failed, using defaults',
+        {
+          errors: validationResult.errors,
+          warnings: validationResult.warnings,
+        }
+      );
+      // Show errors to user (non-blocking)
+      void configValidator.showValidationErrors(validationResult);
+    }
 
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
     if (!workspaceFolder) {

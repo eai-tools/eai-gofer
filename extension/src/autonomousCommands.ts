@@ -27,6 +27,7 @@ import {
   ClaudeCodeAutonomousResponder,
   QuestionContext,
 } from './autonomous/ClaudeCodeAutonomousResponder';
+import { Logger } from './services/Logger';
 import type { ProgressProvider } from './progressProvider';
 import type { EnrichedContextBridge } from './autonomous/ContextBridgeWriter';
 import { wireClaudePtyToAutoHandoff } from './autoHandoffBridge';
@@ -35,6 +36,7 @@ import { wireClaudePtyToAutoHandoff } from './autoHandoffBridge';
 let sharedMemoryManager: MemoryManager | undefined;
 let sharedContextBuilder: ContextBuilder | undefined;
 let sharedMemoryHookManager: MemoryHookManager | undefined;
+let sharedLogger: Logger | undefined;
 
 // Cached enriched context from bridge file (for memory injection)
 let cachedEnrichedContext: EnrichedContextBridge | undefined;
@@ -57,6 +59,11 @@ export function setSharedMemoryHookManager(mhm: MemoryHookManager): void {
   sharedMemoryHookManager = mhm;
 }
 
+/** Set the shared Logger instance */
+export function setSharedLogger(logger: Logger): void {
+  sharedLogger = logger;
+}
+
 /** Get the shared MemoryManager (for testing) */
 export function getSharedMemoryManager(): MemoryManager | undefined {
   return sharedMemoryManager;
@@ -70,6 +77,11 @@ export function getSharedContextBuilder(): ContextBuilder | undefined {
 /** Get the shared MemoryHookManager (for testing/integration) */
 export function getSharedMemoryHookManager(): MemoryHookManager | undefined {
   return sharedMemoryHookManager;
+}
+
+/** Get the shared Logger (for testing) */
+export function getSharedLogger(): Logger | undefined {
+  return sharedLogger;
 }
 
 /**
@@ -563,7 +575,12 @@ async function runPostCompletionChecks(report: CompletionReport, wsPath: string)
           usedCount: 0,
           learnedFrom: report.specId,
         })
-        .catch(() => {});
+        .catch((err) =>
+          sharedLogger?.error('AutonomousCommands:SaveBuildFailureMemory', err as Error, {
+            specId: report.specId,
+            operation: 'save-memory',
+          })
+        );
     }
     return; // Don't run tests if build fails
   }
@@ -588,7 +605,12 @@ async function runPostCompletionChecks(report: CompletionReport, wsPath: string)
           usedCount: 0,
           learnedFrom: report.specId,
         })
-        .catch(() => {});
+        .catch((err) =>
+          sharedLogger?.error('AutonomousCommands:SaveTestFailureMemory', err as Error, {
+            specId: report.specId,
+            operation: 'save-memory',
+          })
+        );
     }
   }
 }

@@ -1733,9 +1733,10 @@ created: "${new Date().toISOString().split('T')[0]}"
     });
 
   import('./autonomousCommands')
-    .then(({ setSharedMemoryManager, setSharedContextBuilder }) => {
+    .then(({ setSharedMemoryManager, setSharedContextBuilder, setSharedLogger }) => {
       setSharedMemoryManager(memoryManager!);
       setSharedContextBuilder(sharedContextBuilder);
+      setSharedLogger(logger!);
     })
     .catch((error) => {
       console.warn('[Gofer] Failed to wire shared instances to autonomousCommands:', error);
@@ -2168,14 +2169,12 @@ created: "${new Date().toISOString().split('T')[0]}"
         }
 
         // Clean up observation file after reading (T012)
-        fsPromises
-          .unlink(path.join(observationsDir, `${observationId}.json`))
-          .catch((err) =>
-            logger!.error('HookBridge:CleanupObservation', err, {
-              observationId,
-              operation: 'unlink',
-            })
-          );
+        fsPromises.unlink(path.join(observationsDir, `${observationId}.json`)).catch((err) =>
+          logger!.error('HookBridge:CleanupObservation', err, {
+            observationId,
+            operation: 'unlink',
+          })
+        );
       }
       // If no observationId, toolContent stays as placeholder (T010 backward compat)
 

@@ -287,7 +287,7 @@ timer leaks
   - Target: <400 LOC
   - Dispose all watchers, timers, and resources properly
 
-- [x] T024 [US1] Refactor extension.ts to use new services
+- [ ] T024 [US1] Refactor extension.ts to use new services
   - Update activate() to:
     1. Register all services in DI container (registerServices())
     2. Resolve InitializationService and call initialize()
@@ -297,7 +297,7 @@ timer leaks
   - Keep activate() as orchestrator only
   - Target: extension.ts <600 LOC (down from 2469 LOC)
 
-- [x] T025 [US1] Convert 15+ global variables to injectable services
+- [ ] T025 [US1] Convert 15+ global variables to injectable services
   - Identify module-level globals in extension.ts (lines 59-96)
   - Move multiSessionWatcher → InitializationService
   - Move hookBridgeWatcher → InitializationService

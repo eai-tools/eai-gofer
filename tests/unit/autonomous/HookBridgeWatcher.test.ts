@@ -89,6 +89,27 @@ describe('HookBridgeWatcher', () => {
       expect(vscode.workspace.createFileSystemWatcher).toHaveBeenCalled();
     });
 
+    it('clears existing timer on double-start to prevent leaks', () => {
+      vi.useFakeTimers();
+
+      const data = makeBridgeData();
+      readFileSync.mockReturnValue(JSON.stringify(data));
+
+      watcher.start();
+      watcher.start(); // Second start should clear the first timer
+
+      const staleHandler = vi.fn();
+      watcher.on('session-stale', staleHandler);
+
+      // Advance 6 minutes so the interval check at 360s sees age (360s) > threshold (300s)
+      vi.advanceTimersByTime(6 * 60 * 1000);
+
+      // If timer leaked (two intervals), staleHandler would be called twice
+      expect(staleHandler).toHaveBeenCalledTimes(1);
+
+      vi.useRealTimers();
+    });
+
     it('performs an initial read of the bridge file', () => {
       const data = makeBridgeData();
       readFileSync.mockReturnValue(JSON.stringify(data));

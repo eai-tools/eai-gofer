@@ -319,8 +319,11 @@ export class ResponseAggregator {
           const parsed = parsePeerReview(sessionId, reviewerId, response.response.content);
           return parsed.reviews;
         }
-      } catch {
-        // Silently skip failed peer reviews
+      } catch (error) {
+        console.warn(
+          `[Gofer] Peer review from ${reviewerId} failed:`,
+          error instanceof Error ? error.message : error
+        );
       }
 
       return [];

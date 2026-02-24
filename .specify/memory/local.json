@@ -105,6 +105,21 @@
       "lastUsed": 1771822069246,
       "usedCount": 0,
       "learnedFrom": "session:47c31434-a541-477e-acd1-27ab36dccd8f"
+    },
+    {
+      "id": "f1926ce6-5a4c-4a9b-8045-41f838f7abb8",
+      "category": "file_knowledge",
+      "tags": [
+        "#auto-learned",
+        "#files",
+        "#session-380badb8"
+      ],
+      "scope": "local",
+      "content": "| tsyringe not in extension/package.json | Low | Only in root package.",
+      "created": 1771905191981,
+      "lastUsed": 1771905203589,
+      "usedCount": 1,
+      "learnedFrom": "session:380badb8-fbdd-4a33-b9aa-0fee675438bc"
     }
   ]
 }

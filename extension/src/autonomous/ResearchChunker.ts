@@ -241,6 +241,9 @@ const STOPWORDS = new Set([
  * Parses research.md files into semantic chunks based on markdown headings,
  * generates indices for efficient lookup, and provides on-demand loading.
  */
+/** Maximum number of spec indices to keep in memory */
+const MAX_INDEX_CACHE_SIZE = 50;
+
 export class ResearchChunker {
   private readonly options: ResearchChunkerOptions;
   private readonly logger: Logger;
@@ -526,7 +529,7 @@ export class ResearchChunker {
       };
 
       if (this.options.cacheIndices) {
-        this.indexCache.set(specId, result);
+        this.setCacheEntry(specId, result);
       }
 
       return result;
@@ -560,7 +563,7 @@ export class ResearchChunker {
     };
 
     if (this.options.cacheIndices) {
-      this.indexCache.set(specId, result);
+      this.setCacheEntry(specId, result);
     }
 
     this.logger.info('Research file indexed', {
@@ -772,6 +775,20 @@ export class ResearchChunker {
     const count = this.indexCache.size;
     this.indexCache.clear();
     this.logger.debug('Index cache cleared', { previousCount: count });
+  }
+
+  /**
+   * Add an entry to the index cache with max-size enforcement.
+   * Evicts the oldest entry (first inserted) when the limit is reached.
+   */
+  private setCacheEntry(key: string, value: IndexResult): void {
+    if (this.indexCache.size >= MAX_INDEX_CACHE_SIZE && !this.indexCache.has(key)) {
+      const oldest = this.indexCache.keys().next().value;
+      if (oldest !== undefined) {
+        this.indexCache.delete(oldest);
+      }
+    }
+    this.indexCache.set(key, value);
   }
 
   /**

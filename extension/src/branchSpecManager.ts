@@ -192,7 +192,9 @@ export class BranchSpecManager {
           specs.push(path.join(specsPath, entry.name));
         }
       }
-    } catch (error) {}
+    } catch {
+      // Specs directory may not exist yet - return empty array
+    }
 
     return specs;
   }

@@ -11,30 +11,47 @@ import { injectable } from 'tsyringe';
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { Logger } from './Logger';
+import type { ProgressProvider } from '../progressProvider';
+import type { ConstitutionProvider } from '../constitutionProvider';
+import type { MemoryProvider } from '../memoryProvider';
+import type { BranchSpecManager } from '../branchSpecManager';
+import type { AutoUpdater } from '../autoUpdater';
+import type { GoferLSPClient } from '../lspClient';
+import type { MemoryManager } from '../autonomous/MemoryManager';
+import type { ContextHealthMonitor } from '../autonomous/ContextHealthMonitor';
+import type { ContextUsageLogger } from '../autonomous/ContextUsageLogger';
+import type { ContextHealthStatusBar } from '../ui/ContextHealthStatusBar';
+import type { AutoHandoffTrigger } from '../autonomous/AutoHandoffTrigger';
+import type { ContinuousMemoryWriter } from '../autonomous/ContinuousMemoryWriter';
+import type { HookBridgeWatcher } from '../autonomous/HookBridgeWatcher';
+import type { MultiSessionBridgeWatcher } from '../autonomous/MultiSessionBridgeWatcher';
+import type { GoferActivityStatusBar } from '../ui/GoferActivityStatusBar';
+import type { ContextBuilder } from '../autonomous/ContextBuilder';
+import type { WorkspaceContextProvider } from '../autonomous/WorkspaceContextProvider';
 
 /**
  * Disposable resource types that can be managed
  */
 export interface ManagedResources {
-  sharedContextBuilder?: any;
+  sharedContextBuilder?: ContextBuilder;
   cacheSaveTimer?: ReturnType<typeof setTimeout> | null;
   consolidationTimer?: ReturnType<typeof setInterval> | null;
-  workspaceContextProvider?: any;
-  contextHealthMonitor?: any;
-  autoHandoffTrigger?: any;
-  contextHealthStatusBar?: any;
-  continuousMemoryWriter?: any;
-  multiSessionWatcher?: any;
-  hookBridgeWatcher?: any;
-  goferActivityStatusBar?: any;
-  contextUsageLogger?: any;
-  progressProvider?: any;
-  constitutionProvider?: any;
-  memoryProvider?: any;
-  branchSpecManager?: any;
-  memoryManager?: any;
-  autoUpdater?: any;
-  lspClient?: any;
+  workspaceContextProvider?: WorkspaceContextProvider;
+  contextHealthMonitor?: ContextHealthMonitor;
+  autoHandoffTrigger?: AutoHandoffTrigger;
+  contextHealthStatusBar?: ContextHealthStatusBar;
+  continuousMemoryWriter?: ContinuousMemoryWriter;
+  multiSessionWatcher?: MultiSessionBridgeWatcher;
+  hookBridgeWatcher?: HookBridgeWatcher;
+  goferActivityStatusBar?: GoferActivityStatusBar;
+  contextUsageLogger?: ContextUsageLogger;
+  progressProvider?: ProgressProvider;
+  constitutionProvider?: ConstitutionProvider;
+  memoryProvider?: MemoryProvider;
+  branchSpecManager?: BranchSpecManager;
+  memoryManager?: MemoryManager;
+  autoUpdater?: AutoUpdater;
+  lspClient?: GoferLSPClient;
 }
 
 /**

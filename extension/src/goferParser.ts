@@ -213,6 +213,7 @@ export class GoferParser {
       plan = this.parsePlan(planContent);
     } catch {
       // Plan is optional
+      this.logger.debug(`No plan.md found for spec ${specId}`);
     }
 
     return {

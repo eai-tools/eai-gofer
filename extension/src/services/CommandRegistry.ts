@@ -12,6 +12,19 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { Logger } from './Logger';
 import { GoferMigrator } from '../goferMigrator';
+import { validateFeatureName } from '../utils/commandInputValidator';
+import type { ProgressProvider } from '../progressProvider';
+import type { ConstitutionProvider } from '../constitutionProvider';
+import type { MemoryProvider } from '../memoryProvider';
+import type { ContextWindowProvider } from '../contextWindowProvider';
+import type { BranchSpecManager } from '../branchSpecManager';
+import type { ContextBuilder } from '../autonomous/ContextBuilder';
+import type { MemoryManager } from '../autonomous/MemoryManager';
+import type { ScopeGuard } from '../autonomous/ScopeGuard';
+import type { ResearchChunker } from '../autonomous/ResearchChunker';
+import type { AutoUpdater } from '../autoUpdater';
+import type { ClaudeCodeContextScanner } from '../autonomous/ClaudeCodeContextScanner';
+import type { MultiSessionBridgeWatcher } from '../autonomous/MultiSessionBridgeWatcher';
 
 /**
  * Dependencies required for command registration
@@ -22,15 +35,18 @@ import { GoferMigrator } from '../goferMigrator';
 export interface CommandDependencies {
   workspacePath: string;
   migrator: GoferMigrator;
-  progressProvider?: any;
-  constitutionProvider?: any;
-  memoryProvider?: any;
-  contextWindowProvider?: any;
-  branchSpecManager?: any;
-  sharedContextBuilder?: any;
-  memoryManager?: any;
-  scopeGuard?: any;
-  researchChunker?: any;
+  progressProvider?: ProgressProvider;
+  constitutionProvider?: ConstitutionProvider;
+  memoryProvider?: MemoryProvider;
+  contextWindowProvider?: ContextWindowProvider;
+  branchSpecManager?: BranchSpecManager;
+  sharedContextBuilder?: ContextBuilder;
+  memoryManager?: MemoryManager;
+  scopeGuard?: ScopeGuard;
+  researchChunker?: ResearchChunker;
+  autoUpdater?: AutoUpdater;
+  contextScanner?: ClaudeCodeContextScanner;
+  multiSessionWatcher?: MultiSessionBridgeWatcher;
   isUpgrading: () => boolean;
   setUpgradeState: (state: boolean) => void;
 }
@@ -168,6 +184,28 @@ export class CommandRegistry {
         );
       })
     );
+
+    // gofer.checkForUpdates - Manual update check
+    context.subscriptions.push(
+      vscode.commands.registerCommand('gofer.checkForUpdates', async () => {
+        if (deps.autoUpdater) {
+          await deps.autoUpdater.manualCheck();
+        } else {
+          vscode.window.showErrorMessage('Auto-updater not initialized');
+        }
+      })
+    );
+
+    // gofer.updateNow - Update now
+    context.subscriptions.push(
+      vscode.commands.registerCommand('gofer.updateNow', async () => {
+        if (deps.autoUpdater) {
+          await deps.autoUpdater.manualCheck();
+        } else {
+          vscode.window.showErrorMessage('Auto-updater not initialized');
+        }
+      })
+    );
   }
 
   /**
@@ -186,6 +224,10 @@ export class CommandRegistry {
             }
             if (!/^[a-z0-9-]+$/.test(value.trim())) {
               return 'Name must be lowercase with dashes only (a-z, 0-9, -)';
+            }
+            const validation = validateFeatureName(value.trim());
+            if (!validation.valid) {
+              return validation.error || 'Invalid feature name';
             }
             return null;
           },
@@ -251,11 +293,56 @@ export class CommandRegistry {
    */
   private registerClaudeCodeCommands(
     context: vscode.ExtensionContext,
-    deps: CommandDependencies
+    _deps: CommandDependencies
   ): void {
-    // Claude Code commands (start, stop, pause, resume)
-    // are registered in autonomousCommands.ts and imported separately
-    // This is a placeholder for future consolidation
+    // gofer.startClaudeCode - Launch Claude Code for a spec
+    context.subscriptions.push(
+      vscode.commands.registerCommand('gofer.startClaudeCode', async (item: any) => {
+        try {
+          const { launchClaudeCode } = await import('../autonomousCommands');
+
+          let spec = item;
+          if (item && item.spec && item.label) {
+            spec = item.spec;
+          }
+
+          if (!spec || !spec.id) {
+            vscode.window.showErrorMessage('Invalid spec: missing ID');
+            return;
+          }
+
+          await launchClaudeCode(spec.id);
+        } catch (error) {
+          vscode.window.showErrorMessage(
+            `Failed to start Claude Code: ${error instanceof Error ? error.message : String(error)}`
+          );
+        }
+      })
+    );
+
+    // gofer.stopClaudeCode
+    context.subscriptions.push(
+      vscode.commands.registerCommand('gofer.stopClaudeCode', async () => {
+        const { stopClaudeCode } = await import('../autonomousCommands');
+        await stopClaudeCode();
+      })
+    );
+
+    // gofer.pauseClaudeCode
+    context.subscriptions.push(
+      vscode.commands.registerCommand('gofer.pauseClaudeCode', async () => {
+        const { pauseClaudeCode } = await import('../autonomousCommands');
+        await pauseClaudeCode();
+      })
+    );
+
+    // gofer.resumeClaudeCode
+    context.subscriptions.push(
+      vscode.commands.registerCommand('gofer.resumeClaudeCode', async () => {
+        const { resumeClaudeCode } = await import('../autonomousCommands');
+        await resumeClaudeCode();
+      })
+    );
   }
 
   /**
@@ -290,6 +377,34 @@ export class CommandRegistry {
       })
     );
 
+    // gofer.showProgress - Focus progress panel
+    context.subscriptions.push(
+      vscode.commands.registerCommand('gofer.showProgress', () => {
+        vscode.commands.executeCommand('goferProgress.focus');
+      })
+    );
+
+    // gofer.showContextCategoryContent - Context Window category click handler
+    context.subscriptions.push(
+      vscode.commands.registerCommand(
+        'gofer.showContextCategoryContent',
+        async (sessionId: string, categoryName: string) => {
+          const workspacePath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+          if (!workspacePath) return;
+
+          const { ContextContentPanel } = await import('../ui/ContextContentPanel');
+          const panel = ContextContentPanel.createOrShow(context.extensionUri, workspacePath);
+
+          if (deps.contextScanner) {
+            panel.setScanner(deps.contextScanner);
+          }
+
+          const bridgeData = deps.multiSessionWatcher?.getSessions().get(sessionId);
+          await panel.showCategory(sessionId, categoryName, bridgeData);
+        }
+      )
+    );
+
     // Show details commands
     context.subscriptions.push(
       vscode.commands.registerCommand('gofer.showSpecDetails', async (item: any) => {
@@ -306,6 +421,73 @@ export class CommandRegistry {
           const doc = await vscode.workspace.openTextDocument(item.uri);
           await vscode.window.showTextDocument(doc);
         }
+      })
+    );
+
+    // gofer.showSectionDetails - Constitution section view
+    context.subscriptions.push(
+      vscode.commands.registerCommand(
+        'gofer.showSectionDetails',
+        async (section: any, article: any) => {
+          const { showSectionDetailsWebview } = await import('../webviewHelpers');
+          showSectionDetailsWebview(context, section, article);
+        }
+      )
+    );
+
+    // gofer.showArticleDetails - Constitution article view
+    context.subscriptions.push(
+      vscode.commands.registerCommand('gofer.showArticleDetails', async (article: any) => {
+        const { showArticleDetailsWebview } = await import('../webviewHelpers');
+        showArticleDetailsWebview(context, article);
+      })
+    );
+
+    // gofer.showMemoryDocument - Memory document view
+    context.subscriptions.push(
+      vscode.commands.registerCommand('gofer.showMemoryDocument', async (document: any) => {
+        const { showMemoryDocumentWebview } = await import('../webviewHelpers');
+        await showMemoryDocumentWebview(context, document);
+      })
+    );
+
+    // gofer.showMemorySection - Memory section view
+    context.subscriptions.push(
+      vscode.commands.registerCommand(
+        'gofer.showMemorySection',
+        async (section: any, document: any) => {
+          const { showMemorySectionWebview } = await import('../webviewHelpers');
+          await showMemorySectionWebview(context, section, document);
+        }
+      )
+    );
+
+    // Open With... context menu commands
+    context.subscriptions.push(
+      vscode.commands.registerCommand('gofer.openWithPreview', async (item: any) => {
+        const { openWithPreview } = await import('../webviewHelpers');
+        await openWithPreview(item);
+      })
+    );
+
+    context.subscriptions.push(
+      vscode.commands.registerCommand('gofer.openWithMarkSharp', async (item: any) => {
+        const { openWithMarkSharp } = await import('../webviewHelpers');
+        await openWithMarkSharp(item);
+      })
+    );
+
+    context.subscriptions.push(
+      vscode.commands.registerCommand('gofer.openWithMarkdownEditor', async (item: any) => {
+        const { openWithMarkdownEditor } = await import('../webviewHelpers');
+        await openWithMarkdownEditor(item);
+      })
+    );
+
+    context.subscriptions.push(
+      vscode.commands.registerCommand('gofer.openWithMarkdownWYSIWYG', async (item: any) => {
+        const { openWithMarkdownWYSIWYG } = await import('../webviewHelpers');
+        await openWithMarkdownWYSIWYG(item);
       })
     );
   }

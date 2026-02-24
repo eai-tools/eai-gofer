@@ -172,7 +172,10 @@ export class MemoryHookManager {
     // Add file paths (extract filename without extension for better matching)
     if (context.filePaths) {
       for (const filePath of context.filePaths) {
-        const fileName = filePath.split('/').pop()?.replace(/\.[^.]+$/, '');
+        const fileName = filePath
+          .split('/')
+          .pop()
+          ?.replace(/\.[^.]+$/, '');
         if (fileName) {
           keywords.push(fileName);
         }
@@ -203,7 +206,7 @@ export class MemoryHookManager {
         try {
           await this.memoryManager.recordUsage(memory.id);
         } catch {
-          // Ignore usage recording failures
+          // Usage recording is best-effort - don't block memory retrieval
         }
       }
 
@@ -408,12 +411,7 @@ export class MemoryHookManager {
     }
 
     // Build tags
-    const tags = [
-      '#auto',
-      '#preference',
-      `#stage-${this.currentStage}`,
-      ...(context.tags ?? []),
-    ];
+    const tags = ['#auto', '#preference', `#stage-${this.currentStage}`, ...(context.tags ?? [])];
 
     if (context.specId) {
       tags.push(`#spec-${context.specId}`);
@@ -517,9 +515,7 @@ export class MemoryHookManager {
 
     // Citations
     if (memory.citations && memory.citations.length > 0) {
-      const citationStrs = memory.citations.map((c) =>
-        c.line ? `${c.file}:${c.line}` : c.file
-      );
+      const citationStrs = memory.citations.map((c) => (c.line ? `${c.file}:${c.line}` : c.file));
       lines.push(`  Citations: ${citationStrs.join(', ')}`);
     }
 

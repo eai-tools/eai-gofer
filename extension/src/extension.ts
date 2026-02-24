@@ -43,6 +43,7 @@ import {
   type CommandDependencies,
   type ManagedResources,
 } from './services';
+import { Logger as LegacyLogger } from './utils/logger';
 // Note: stopClaudeCode is imported dynamically in deactivate() to avoid
 // blocking extension activation if node-pty fails to load
 
@@ -105,6 +106,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   const outputChannel = vscode.window.createOutputChannel('Gofer');
   logger.initialize(outputChannel);
   context.subscriptions.push(outputChannel);
+
+  // Bridge the legacy Logger (utils/logger.ts) to use the same output channel
+  // so all 16 autonomous/ modules log to the Gofer output panel
+  LegacyLogger.bridgeOutputChannel(outputChannel);
 
   logger.info('Extension', 'Activating Gofer extension');
 
@@ -480,6 +485,14 @@ export async function deactivate(): Promise<void> {
     },
     workspacePath
   );
+
+  // Dispose rate limiter cleanup interval
+  try {
+    const { globalRateLimiter } = await import('./utils/rateLimiter');
+    globalRateLimiter.dispose();
+  } catch {
+    // Rate limiter may not have been imported
+  }
 
   // Stop Claude Code terminals (dynamic import to avoid blocking activation)
   try {

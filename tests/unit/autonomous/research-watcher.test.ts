@@ -4,29 +4,35 @@ import * as path from 'path';
 
 /**
  * T045: Structural test for research index watcher.
+ *
+ * After T020 refactoring, the research watcher moved from extension.ts
+ * to EventHandlers.ts (registerResearchFileWatcher method).
  */
 describe('Research Index Watcher (T045)', () => {
-  const extensionPath = path.resolve(__dirname, '../../../extension/src/extension.ts');
-  const source = fs.readFileSync(extensionPath, 'utf-8');
+  const eventHandlersPath = path.resolve(
+    __dirname,
+    '../../../extension/src/services/EventHandlers.ts'
+  );
+  const source = fs.readFileSync(eventHandlersPath, 'utf-8');
 
   it('should create a FileSystemWatcher for research.md files', () => {
-    expect(source).toContain('createFileSystemWatcher(researchPattern)');
-    expect(source).toContain('.specify/specs/*/research.md');
+    expect(source).toContain('createFileSystemWatcher(');
+    expect(source).toContain('.specify/specs/**/research.md');
   });
 
   it('should call indexResearchFile on create and change events', () => {
     expect(source).toContain('researchWatcher.onDidCreate(');
     expect(source).toContain('researchWatcher.onDidChange(');
-    expect(source).toContain('researchChunker.indexResearchFile(specId)');
+    expect(source).toContain('indexResearchFile(specId)');
   });
 
   it('should extract specId from URI path', () => {
-    expect(source).toContain('function extractSpecId(');
+    expect(source).toContain('extractSpecId(');
     expect(source).toContain('.specify/specs/');
   });
 
   it('should register watcher as disposable for cleanup', () => {
-    expect(source).toContain('context.subscriptions.push(researchWatcher)');
+    expect(source).toContain('deps.context.subscriptions.push(researchWatcher)');
   });
 
   it('should handle watcher errors gracefully', () => {

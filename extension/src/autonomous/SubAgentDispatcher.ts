@@ -11,6 +11,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { Logger } from '../services/Logger';
 
 /**
  * Delegation recommendation for sub-agent usage.
@@ -62,7 +63,8 @@ const DELEGATION_MAP: Array<{
     minUtilization: 0.5,
     agentType: 'codebase-locator',
     taskCategory: 'file search',
-    reason: 'Consider delegating file search to a codebase-locator sub-agent via the Task tool to keep main context lean.',
+    reason:
+      'Consider delegating file search to a codebase-locator sub-agent via the Task tool to keep main context lean.',
     tokenBudget: 2000,
     enforcement: 'advisory',
   },
@@ -70,7 +72,8 @@ const DELEGATION_MAP: Array<{
     minUtilization: 0.6,
     agentType: 'codebase-analyzer',
     taskCategory: 'code analysis',
-    reason: 'Context usage is high. Delegate deep code analysis to a codebase-analyzer sub-agent to reduce main context load.',
+    reason:
+      'Context usage is high. Delegate deep code analysis to a codebase-analyzer sub-agent to reduce main context load.',
     tokenBudget: 1500,
     enforcement: 'warning',
   },
@@ -78,7 +81,8 @@ const DELEGATION_MAP: Array<{
     minUtilization: 0.7,
     agentType: 'codebase-pattern-finder',
     taskCategory: 'pattern exploration',
-    reason: 'Context approaching critical. Use codebase-pattern-finder sub-agent for exploratory searches instead of main context.',
+    reason:
+      'Context approaching critical. Use codebase-pattern-finder sub-agent for exploratory searches instead of main context.',
     tokenBudget: 1000,
     enforcement: 'blocking',
   },
@@ -89,10 +93,12 @@ export class SubAgentDispatcher {
   private readonly workspaceRoot: string;
   private currentRecommendation: DelegationRecommendation | null = null;
   private lastUtilization = 0;
+  private logger?: Logger;
 
-  constructor(workspaceRoot: string, policy?: Partial<DelegationPolicy>) {
+  constructor(workspaceRoot: string, policy?: Partial<DelegationPolicy>, logger?: Logger) {
     this.workspaceRoot = workspaceRoot;
     this.policy = { ...DEFAULT_POLICY, ...policy };
+    this.logger = logger;
   }
 
   /**
@@ -132,7 +138,12 @@ export class SubAgentDispatcher {
     };
 
     // Log to JSONL (fire-and-forget)
-    this.logRecommendation(this.currentRecommendation).catch(() => {});
+    this.logRecommendation(this.currentRecommendation).catch((err) =>
+      this.logger?.error('SubAgentDispatcher:LogRecommendation', err as Error, {
+        operation: 'log-recommendation',
+        agentType: this.currentRecommendation?.agentType,
+      })
+    );
   }
 
   /**
@@ -152,7 +163,12 @@ export class SubAgentDispatcher {
 
     const rec = this.currentRecommendation;
     // Maps enforcement to heading: advisory → "## Delegation Advisory", warning → "## Delegation Warning", blocking → "## Delegation REQUIRED"
-    const enforcementLabel = rec.enforcement === 'blocking' ? 'REQUIRED' : rec.enforcement === 'warning' ? 'Warning' : 'Advisory';
+    const enforcementLabel =
+      rec.enforcement === 'blocking'
+        ? 'REQUIRED'
+        : rec.enforcement === 'warning'
+          ? 'Warning'
+          : 'Advisory';
     return [
       `## Delegation ${enforcementLabel}`,
       '',

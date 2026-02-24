@@ -1,10 +1,42 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { GoferMigrator } from '../../../extension/src/goferMigrator';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import 'reflect-metadata';
 import { cleanupTestWorkspace } from '../../helpers/workspace';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import * as fsSync from 'fs';
 import * as os from 'os';
+
+// Mock the DI container since esbuild (vitest) doesn't emit decorator metadata
+// Create real service instances manually instead of relying on tsyringe resolution
+import { Logger } from '../../../extension/src/services/Logger';
+import { VersionDetector } from '../../../extension/src/services/migration/VersionDetector';
+import { UpgradeService } from '../../../extension/src/services/migration/UpgradeService';
+import { ResourceSyncer } from '../../../extension/src/services/migration/ResourceSyncer';
+import { PathMigrator } from '../../../extension/src/services/migration/PathMigrator';
+
+const logger = new Logger();
+const versionDetector = new VersionDetector(logger);
+const upgradeService = new UpgradeService(logger, versionDetector);
+const resourceSyncer = new ResourceSyncer(logger);
+const pathMigrator = new PathMigrator(logger);
+
+const resolveMap = new Map<unknown, unknown>([
+  [Logger, logger],
+  [VersionDetector, versionDetector],
+  [UpgradeService, upgradeService],
+  [ResourceSyncer, resourceSyncer],
+  [PathMigrator, pathMigrator],
+]);
+
+vi.mock('../../../extension/src/di/container', () => ({
+  getContainer: () => ({
+    resolve: (token: unknown) => resolveMap.get(token),
+  }),
+  registerServices: vi.fn(),
+  resetContainer: vi.fn(),
+}));
+
+import { GoferMigrator } from '../../../extension/src/goferMigrator';
 
 /**
  * Create a bare test workspace without any .specify structure

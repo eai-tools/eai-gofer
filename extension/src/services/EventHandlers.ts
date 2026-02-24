@@ -12,6 +12,13 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { Logger } from './Logger';
 import { ConfigManager } from '../config';
+import type { ProgressProvider } from '../progressProvider';
+import type { BranchSpecManager } from '../branchSpecManager';
+import type { ContextBuilder } from '../autonomous/ContextBuilder';
+import type { WorkspaceContextProvider } from '../autonomous/WorkspaceContextProvider';
+import type { HookBridgeWatcher } from '../autonomous/HookBridgeWatcher';
+import type { ScopeGuard } from '../autonomous/ScopeGuard';
+import type { ResearchChunker } from '../autonomous/ResearchChunker';
 
 /**
  * Dependencies required by event handlers
@@ -19,13 +26,13 @@ import { ConfigManager } from '../config';
 export interface EventHandlerDependencies {
   workspacePath: string;
   context: vscode.ExtensionContext;
-  progressProvider?: any;
-  branchSpecManager?: any;
-  sharedContextBuilder?: any;
-  workspaceContextProvider?: any;
-  hookBridgeWatcher?: any;
-  scopeGuard?: any;
-  researchChunker?: any;
+  progressProvider?: ProgressProvider;
+  branchSpecManager?: BranchSpecManager;
+  sharedContextBuilder?: ContextBuilder;
+  workspaceContextProvider?: WorkspaceContextProvider;
+  hookBridgeWatcher?: HookBridgeWatcher;
+  scopeGuard?: ScopeGuard;
+  researchChunker?: ResearchChunker;
   reinitializeExtension: (context: vscode.ExtensionContext) => Promise<void>;
   handleSpecModification: (uri: vscode.Uri, workspacePath: string) => Promise<void>;
   handleBranchChange: () => Promise<void>;
@@ -278,11 +285,12 @@ export class EventHandlers {
       return;
     }
 
+    const scopeGuard = deps.scopeGuard;
     const scopeDiagnostics = vscode.languages.createDiagnosticCollection('gofer-scope');
     deps.context.subscriptions.push(scopeDiagnostics);
 
     deps.hookBridgeWatcher.on('bridge-update', () => {
-      const violations = deps.scopeGuard.getViolations();
+      const violations = scopeGuard.getViolations();
       if (violations.length === 0) return;
 
       const diagMap = new Map<string, vscode.Diagnostic[]>();
@@ -325,6 +333,8 @@ export class EventHandlers {
       return;
     }
 
+    const researchChunker = deps.researchChunker;
+
     try {
       const researchWatcher = vscode.workspace.createFileSystemWatcher(
         new vscode.RelativePattern(deps.workspacePath, '.specify/specs/**/research.md')
@@ -334,7 +344,7 @@ export class EventHandlers {
         // Extract spec ID from URI
         const specId = this.extractSpecId(uri);
         if (specId) {
-          deps.researchChunker.indexResearchFile(specId).catch((error: Error) => {
+          researchChunker.indexResearchFile(specId).catch((error: Error) => {
             this.logger.warn('EventHandlers', `Failed to index research for ${specId}`, {
               error: error.message,
             });

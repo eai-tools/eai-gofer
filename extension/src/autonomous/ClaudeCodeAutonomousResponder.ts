@@ -380,21 +380,30 @@ export class ClaudeCodeAutonomousResponder {
     };
 
     try {
-      // Load constitution
+      // Load optional context files - these may not exist yet
       const constitutionPath = path.join(specifyPath, 'memory', 'constitution.md');
-      context.constitution = await fs.readFile(constitutionPath, 'utf-8').catch(() => '');
+      context.constitution = await fs.readFile(constitutionPath, 'utf-8').catch(() => {
+        // Constitution file is optional
+        return '';
+      });
 
-      // Load spec.md
       const specMdPath = path.join(specPath, 'spec.md');
-      context.spec = await fs.readFile(specMdPath, 'utf-8').catch(() => '');
+      context.spec = await fs.readFile(specMdPath, 'utf-8').catch(() => {
+        // Spec may not exist yet in early pipeline stages
+        return '';
+      });
 
-      // Load plan.md
       const planMdPath = path.join(specPath, 'plan.md');
-      context.plan = await fs.readFile(planMdPath, 'utf-8').catch(() => '');
+      context.plan = await fs.readFile(planMdPath, 'utf-8').catch(() => {
+        // Plan may not exist yet in early pipeline stages
+        return '';
+      });
 
-      // Load tasks.md
       const tasksMdPath = path.join(specPath, 'tasks.md');
-      context.tasks = await fs.readFile(tasksMdPath, 'utf-8').catch(() => '');
+      context.tasks = await fs.readFile(tasksMdPath, 'utf-8').catch(() => {
+        // Tasks may not exist yet in early pipeline stages
+        return '';
+      });
     } catch (error) {
       this.outputChannel.appendLine(
         `⚠ Warning loading context: ${error instanceof Error ? error.message : String(error)}`

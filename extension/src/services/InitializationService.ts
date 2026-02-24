@@ -14,7 +14,7 @@ import { ConfigManager } from '../config';
 import { GoferMigrator } from '../goferMigrator';
 import { BranchSpecManager } from '../branchSpecManager';
 import { MCPConfigHelper } from '../mcpConfig';
-import { ContextHealthMonitor } from '../autonomous/ContextHealthMonitor';
+import { ContextHealthMonitor, type ContextHealthStatus } from '../autonomous/ContextHealthMonitor';
 import { AutoHandoffTrigger } from '../autonomous/AutoHandoffTrigger';
 import { ContextUsageLogger } from '../autonomous/ContextUsageLogger';
 import { WorkspaceContextProvider } from '../autonomous/WorkspaceContextProvider';
@@ -25,15 +25,18 @@ import { ClaudeCodeContextScanner } from '../autonomous/ClaudeCodeContextScanner
 import { GoferActivityStatusBar } from '../ui/GoferActivityStatusBar';
 import { setAutoHandoffTrigger } from '../autoHandoffBridge';
 import { ConfigValidator } from '../utils/ConfigValidator';
+import type { ProgressProvider } from '../progressProvider';
+import type { ContextHealthStatusBar } from '../ui/ContextHealthStatusBar';
+import type { ContextWindowProvider } from '../contextWindowProvider';
 
 /**
  * Dependencies required by InitializationService
  */
 export interface InitializationDependencies {
   context: vscode.ExtensionContext;
-  progressProvider?: any;
-  contextHealthStatusBar?: any;
-  contextWindowProvider?: any;
+  progressProvider?: ProgressProvider;
+  contextHealthStatusBar?: ContextHealthStatusBar;
+  contextWindowProvider?: ContextWindowProvider;
 }
 
 /**
@@ -79,14 +82,10 @@ export class InitializationService {
 
     if (!validationResult.valid) {
       // Non-blocking: Log errors and continue with defaults
-      this.logger.warn(
-        'InitializationService',
-        'Configuration validation failed, using defaults',
-        {
-          errors: validationResult.errors,
-          warnings: validationResult.warnings,
-        }
-      );
+      this.logger.warn('InitializationService', 'Configuration validation failed, using defaults', {
+        errors: validationResult.errors,
+        warnings: validationResult.warnings,
+      });
       // Show errors to user (non-blocking)
       void configValidator.showValidationErrors(validationResult);
     }
@@ -385,7 +384,7 @@ export class InitializationService {
   private wireSessionEvents(
     multiSessionWatcher: MultiSessionBridgeWatcher,
     contextHealthMonitor: ContextHealthMonitor,
-    contextHealthStatusBar: any,
+    contextHealthStatusBar: ContextHealthStatusBar | undefined,
     contextScanner: ClaudeCodeContextScanner
   ): void {
     // Update session count on events
@@ -438,7 +437,7 @@ export class InitializationService {
   ): void {
     let lastLoggedStatus: string | undefined;
 
-    const logIfStatusChanged = (status: any, action?: string) => {
+    const logIfStatusChanged = (status: ContextHealthStatus, action?: string) => {
       if (status.status === lastLoggedStatus) {
         return;
       }

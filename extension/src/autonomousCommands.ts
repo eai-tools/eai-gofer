@@ -834,8 +834,12 @@ function determineInitialCommand(specId: string, workspacePath: string): string 
           }
         }
       }
-    } catch {
+    } catch (error) {
       // Non-fatal: proceed with implementation anyway
+      console.warn(
+        '[Gofer] Tasks validation check failed:',
+        error instanceof Error ? error.message : error
+      );
     }
     return '/5_gofer_implement';
   }
@@ -1499,7 +1503,7 @@ export async function stopClaudeCode(): Promise<void> {
     try {
       ptyProcess.kill();
     } catch {
-      // Process may already be dead
+      // Process may already be terminated - safe to ignore
     }
     ptyProcess = null;
   }

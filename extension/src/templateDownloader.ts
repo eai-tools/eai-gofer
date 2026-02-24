@@ -90,7 +90,15 @@ class ZipExtractor {
 
         // Get file content
         const content = await file.async('arraybuffer');
-        const filePath = path.join(targetDir, fileName);
+        const filePath = path.resolve(targetDir, fileName);
+
+        // Zip Slip protection: ensure extracted path stays within target directory
+        const normalizedTarget = path.normalize(targetDir) + path.sep;
+        if (!filePath.startsWith(normalizedTarget) && filePath !== path.normalize(targetDir)) {
+          this.logger.warn(`Skipping ZIP entry with path traversal: ${fileName}`);
+          processed++;
+          continue;
+        }
 
         // Ensure directory exists for nested files
         await FileUtils.ensureDirectory(path.dirname(filePath));

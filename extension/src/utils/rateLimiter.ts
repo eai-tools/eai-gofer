@@ -217,6 +217,36 @@ export class RateLimiter {
       }
     }
   }
+
+  private cleanupIntervalId: ReturnType<typeof setInterval> | null = null;
+
+  /**
+   * Start automatic cleanup of expired records
+   *
+   * @param intervalMs - Cleanup interval in milliseconds (default: 5 minutes)
+   */
+  public startAutoCleanup(intervalMs: number = 5 * 60 * 1000): void {
+    this.stopAutoCleanup();
+    this.cleanupIntervalId = setInterval(() => this.cleanup(), intervalMs);
+  }
+
+  /**
+   * Stop automatic cleanup and dispose the interval
+   */
+  public stopAutoCleanup(): void {
+    if (this.cleanupIntervalId !== null) {
+      clearInterval(this.cleanupIntervalId);
+      this.cleanupIntervalId = null;
+    }
+  }
+
+  /**
+   * Dispose all resources (call during extension deactivation)
+   */
+  public dispose(): void {
+    this.stopAutoCleanup();
+    this.records.clear();
+  }
 }
 
 /**
@@ -255,10 +285,8 @@ globalRateLimiter.registerLimit({
   windowMs: 60 * 1000, // 3 migrations per minute
 });
 
-// Cleanup expired records every 5 minutes
-setInterval(() => {
-  globalRateLimiter.cleanup();
-}, 5 * 60 * 1000);
+// Start auto-cleanup with proper lifecycle management
+globalRateLimiter.startAutoCleanup();
 
 export { globalRateLimiter };
 
@@ -289,7 +317,11 @@ export function rateLimit(operation: string, keyExtractor?: (...args: any[]) => 
 
     descriptor.value = async function (...args: any[]) {
       const key = keyExtractor ? keyExtractor(...args) : 'default';
-      return await globalRateLimiter.execute(operation, () => originalMethod.apply(this, args), key);
+      return await globalRateLimiter.execute(
+        operation,
+        () => originalMethod.apply(this, args),
+        key
+      );
     };
 
     return descriptor;

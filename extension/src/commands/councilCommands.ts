@@ -76,8 +76,11 @@ export async function showProviderStatus(): Promise<void> {
         outputChannel.appendLine('\n=== LLM Council Usage Summary ===\n');
         outputChannel.appendLine('No usage data recorded yet.');
       }
-    } catch {
-      // Silently skip if usage summary fails
+    } catch (error) {
+      console.warn(
+        '[Gofer] Failed to load council usage summary:',
+        error instanceof Error ? error.message : error
+      );
     }
   }
 

@@ -151,7 +151,9 @@ Work autonomously but ask for help when needed.`;
     try {
       const data = await fs.readFile(historyPath, 'utf-8');
       this.conversationHistory = JSON.parse(data);
-    } catch (error) {}
+    } catch {
+      // History file may not exist on first run - this is expected
+    }
   }
 
   /**

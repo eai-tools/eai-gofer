@@ -13,6 +13,9 @@ import type { AutonomousLLMProvider } from './LLMProvider';
 import type { ResearchChunker, ResearchChunk } from './ResearchChunker';
 import { extractKeywords, computeDocumentSimilarity } from './TfIdfUtil';
 
+/** Maximum number of summary cache entries to keep in memory */
+const MAX_SUMMARY_CACHE_SIZE = 200;
+
 /**
  * Duck-typed interface for MemoryManager save operations.
  */
@@ -84,9 +87,7 @@ export class ResearchSummarizer {
     // 018 T055: Use deterministic fallback when LLM is unavailable
     const useLLM = this.llmProvider.isAvailable();
 
-    const researchPath = path.join(
-      this.workspaceRoot, '.specify', 'specs', specId, 'research.md'
-    );
+    const researchPath = path.join(this.workspaceRoot, '.specify', 'specs', specId, 'research.md');
 
     if (!fs.existsSync(researchPath)) {
       return 0;
@@ -106,7 +107,12 @@ export class ResearchSummarizer {
         await this.memoryManager.save({
           category: 'discovery',
           content: `[Research Summary: ${chunk.sectionTitle}] ${summary}`,
-          tags: ['#auto', '#research-summary', `#spec-${specId}`, ...chunk.relevanceKeywords.slice(0, 3).map((k: string) => `#${k}`)],
+          tags: [
+            '#auto',
+            '#research-summary',
+            `#spec-${specId}`,
+            ...chunk.relevanceKeywords.slice(0, 3).map((k: string) => `#${k}`),
+          ],
           scope: 'local',
           lastUsed: Date.now(),
           usedCount: 0,
@@ -134,16 +140,23 @@ export class ResearchSummarizer {
       return cached.summary;
     }
 
-    const prompt = SUMMARIZE_PROMPT
-      .replace('{title}', chunk.sectionTitle)
-      .replace('{content}', chunk.content.slice(0, 4000)); // Limit input size
+    const prompt = SUMMARIZE_PROMPT.replace('{title}', chunk.sectionTitle).replace(
+      '{content}',
+      chunk.content.slice(0, 4000)
+    ); // Limit input size
 
     const result = await this.llmProvider.summarize(prompt, 300);
     if (!result) {
       return null;
     }
 
-    // Cache the result
+    // Cache the result (with max-size enforcement)
+    if (this.cache.size >= MAX_SUMMARY_CACHE_SIZE && !this.cache.has(chunk.id)) {
+      const oldest = this.cache.keys().next().value;
+      if (oldest !== undefined) {
+        this.cache.delete(oldest);
+      }
+    }
     this.cache.set(chunk.id, {
       chunkId: chunk.id,
       contentHash,
@@ -159,7 +172,7 @@ export class ResearchSummarizer {
     let hash = 0;
     for (let i = 0; i < content.length; i++) {
       const char = content.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash |= 0; // Convert to 32-bit integer
     }
     return hash.toString(36);
@@ -170,7 +183,9 @@ export class ResearchSummarizer {
     try {
       if (fs.existsSync(cachePath)) {
         const data = JSON.parse(fs.readFileSync(cachePath, 'utf-8')) as SummaryCache[];
-        for (const entry of data) {
+        // Load only the most recent entries up to the max size
+        const entries = data.slice(-MAX_SUMMARY_CACHE_SIZE);
+        for (const entry of entries) {
           this.cache.set(entry.chunkId, entry);
         }
       }
@@ -226,7 +241,9 @@ export class ResearchSummarizer {
    * 018 T056: Hierarchical summarization — summarize at chapter, section, paragraph levels.
    * Returns a structured summary with decreasing detail.
    */
-  async summarizeHierarchical(specId: string): Promise<{ chapter: string; sections: string[]; paragraphs: string[] }> {
+  async summarizeHierarchical(
+    specId: string
+  ): Promise<{ chapter: string; sections: string[]; paragraphs: string[] }> {
     const researchPath = path.join(this.workspaceRoot, '.specify', 'specs', specId, 'research.md');
     if (!fs.existsSync(researchPath)) {
       return { chapter: '', sections: [], paragraphs: [] };
@@ -240,19 +257,22 @@ export class ResearchSummarizer {
     const chapter = titleMatch ? titleMatch[1] : specId;
 
     // Section level: each H2 heading + first line
-    const sections = h2Sections.slice(0, 10).map(s => {
-      const firstLine = s.split('\n').find(l => l.trim() && !l.startsWith('#'));
+    const sections = h2Sections.slice(0, 10).map((s) => {
+      const firstLine = s.split('\n').find((l) => l.trim() && !l.startsWith('#'));
       const heading = s.split('\n')[0]?.trim() || '';
       return `## ${heading}: ${(firstLine || '').slice(0, 100)}`;
     });
 
     // Paragraph level: first sentences from each section
-    const paragraphs = h2Sections.slice(0, 5).map(s => {
-      const lines = s.split('\n').filter(l => l.trim() && !l.startsWith('#'));
-      return lines.slice(0, 3).map(l => {
-        const sentence = l.match(/^[^.!?]+[.!?]/);
-        return sentence ? sentence[0] : l.slice(0, 80);
-      }).join(' ');
+    const paragraphs = h2Sections.slice(0, 5).map((s) => {
+      const lines = s.split('\n').filter((l) => l.trim() && !l.startsWith('#'));
+      return lines
+        .slice(0, 3)
+        .map((l) => {
+          const sentence = l.match(/^[^.!?]+[.!?]/);
+          return sentence ? sentence[0] : l.slice(0, 80);
+        })
+        .join(' ');
     });
 
     return { chapter, sections, paragraphs };
@@ -264,9 +284,7 @@ export class ResearchSummarizer {
    * "Research Synthesis" memory with cross-chunk consolidated insights.
    */
   async consolidateFindings(specId: string): Promise<string> {
-    const researchPath = path.join(
-      this.workspaceRoot, '.specify', 'specs', specId, 'research.md'
-    );
+    const researchPath = path.join(this.workspaceRoot, '.specify', 'specs', specId, 'research.md');
 
     if (!fs.existsSync(researchPath)) {
       return '';
@@ -278,13 +296,16 @@ export class ResearchSummarizer {
     if (chunks.length === 0) return '';
 
     // Extract keywords from each chunk
-    const chunkKeywords: Array<{ chunk: ResearchChunk; keywords: string[] }> = chunks.map(chunk => ({
-      chunk,
-      keywords: extractKeywords(chunk.content, 10),
-    }));
+    const chunkKeywords: Array<{ chunk: ResearchChunk; keywords: string[] }> = chunks.map(
+      (chunk) => ({
+        chunk,
+        keywords: extractKeywords(chunk.content, 10),
+      })
+    );
 
     // Find overlapping chunks by TF-IDF similarity
-    const consolidatedGroups: Array<{ representative: ResearchChunk; merged: ResearchChunk[] }> = [];
+    const consolidatedGroups: Array<{ representative: ResearchChunk; merged: ResearchChunk[] }> =
+      [];
     const used = new Set<string>();
 
     for (let i = 0; i < chunkKeywords.length; i++) {
@@ -319,11 +340,18 @@ export class ResearchSummarizer {
     ];
 
     for (const group of consolidatedGroups) {
-      const allContent = [group.representative.content, ...group.merged.map(m => m.content)].join('\n');
+      const allContent = [group.representative.content, ...group.merged.map((m) => m.content)].join(
+        '\n'
+      );
       const topKeywords = extractKeywords(allContent, 5);
-      const mergedTitles = [group.representative.sectionTitle, ...group.merged.map(m => m.sectionTitle)];
+      const mergedTitles = [
+        group.representative.sectionTitle,
+        ...group.merged.map((m) => m.sectionTitle),
+      ];
 
-      synthesisLines.push(`## ${mergedTitles[0]}${group.merged.length > 0 ? ` (+${group.merged.length} related)` : ''}`);
+      synthesisLines.push(
+        `## ${mergedTitles[0]}${group.merged.length > 0 ? ` (+${group.merged.length} related)` : ''}`
+      );
       synthesisLines.push(`**Keywords**: ${topKeywords.join(', ')}`);
       if (group.merged.length > 0) {
         synthesisLines.push(`**Merged from**: ${mergedTitles.join(', ')}`);

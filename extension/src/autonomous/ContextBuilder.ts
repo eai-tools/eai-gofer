@@ -1529,5 +1529,6 @@ export class ContextBuilder extends EventEmitter {
    */
   dispose(): void {
     this.hintLoader.dispose();
+    this.observationMasker.clearCache();
   }
 }

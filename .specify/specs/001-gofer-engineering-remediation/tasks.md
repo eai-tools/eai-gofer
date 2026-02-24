@@ -337,7 +337,7 @@ all commands functional, activation <2s
   - Add `@injectable()` decorator, inject Logger and VersionDetector
   - Target: <600 LOC
 
-- [ ] T028 [P] [US1] Create ResourceSyncer service in
+- [x] T028 [P] [US1] Create ResourceSyncer service in
       extension/src/services/migration/ResourceSyncer.ts
   - Extract resource synchronization logic from goferMigrator.ts
   - Interface: `syncResources(): Promise<void>`

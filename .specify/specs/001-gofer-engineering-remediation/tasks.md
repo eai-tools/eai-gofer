@@ -344,7 +344,7 @@ all commands functional, activation <2s
   - Add `@injectable()` decorator, inject Logger
   - Target: <500 LOC
 
-- [ ] T029 [P] [US1] Create PathMigrator service in
+- [x] T029 [P] [US1] Create PathMigrator service in
       extension/src/services/migration/PathMigrator.ts
   - Extract path migration logic from goferMigrator.ts (specs/ →
     .specify/specs/)

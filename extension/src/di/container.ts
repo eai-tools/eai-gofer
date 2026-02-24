@@ -29,6 +29,7 @@ import { StateManager } from '../services/StateManager';
 import { VersionDetector } from '../services/migration/VersionDetector';
 import { UpgradeService } from '../services/migration/UpgradeService';
 import { ResourceSyncer } from '../services/migration/ResourceSyncer';
+import { PathMigrator } from '../services/migration/PathMigrator';
 
 /**
  * Register all injectable services in the DI container.
@@ -58,7 +59,7 @@ export function registerServices(): void {
   container.registerSingleton(VersionDetector); // T026: Version detection
   container.registerSingleton(UpgradeService); // T027: Upgrade orchestration
   container.registerSingleton(ResourceSyncer); // T028: Resource synchronization
-  // PathMigrator will be registered here in T029
+  container.registerSingleton(PathMigrator); // T029: Path migration
 }
 
 /**

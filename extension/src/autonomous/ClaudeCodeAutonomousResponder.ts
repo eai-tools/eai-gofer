@@ -10,6 +10,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import Anthropic from '@anthropic-ai/sdk';
 import { IPCStatus } from './IPC';
+import { Logger } from '../services/Logger';
 
 export interface QuestionContext {
   specId: string;
@@ -38,7 +39,8 @@ export class ClaudeCodeAutonomousResponder {
   constructor(
     private apiKey: string,
     outputChannel: vscode.OutputChannel,
-    workspaceRoot?: string
+    workspaceRoot?: string,
+    private logger?: Logger
   ) {
     this.outputChannel = outputChannel;
     this.workspaceRoot = workspaceRoot;
@@ -194,7 +196,11 @@ export class ClaudeCodeAutonomousResponder {
     }
 
     // Log new terminal line
-    this.writeLog(`TERMINAL: ${cleanLine.substring(0, 200)}`).catch(() => {});
+    this.writeLog(`TERMINAL: ${cleanLine.substring(0, 200)}`).catch((err) =>
+      this.logger?.error('ClaudeCodeAutonomousResponder:WriteLog', err as Error, {
+        operation: 'write-log',
+      })
+    );
 
     // Track in dedupe window
     this.recentLines.add(cleanLine);
@@ -207,7 +213,6 @@ export class ClaudeCodeAutonomousResponder {
         .map((l) => this.stripAnsi(l));
       this.recentLines = new Set(recentClean);
     }
-
   }
 
   /**
@@ -229,12 +234,32 @@ export class ClaudeCodeAutonomousResponder {
     });
 
     // Log to file with full buffer context
-    this.writeLog('\n' + '='.repeat(80)).catch(() => {});
-    this.writeLog('QUESTION DETECTION STARTED').catch(() => {});
-    this.writeLog(`Buffer size: ${this.terminalBuffer.length} lines`).catch(() => {});
-    this.writeLog('\nLast 30 lines of terminal buffer:').catch(() => {});
+    this.writeLog('\n' + '='.repeat(80)).catch((err) =>
+      this.logger?.error('ClaudeCodeAutonomousResponder:WriteLog', err as Error, {
+        operation: 'write-log',
+      })
+    );
+    this.writeLog('QUESTION DETECTION STARTED').catch((err) =>
+      this.logger?.error('ClaudeCodeAutonomousResponder:WriteLog', err as Error, {
+        operation: 'write-log',
+      })
+    );
+    this.writeLog(`Buffer size: ${this.terminalBuffer.length} lines`).catch((err) =>
+      this.logger?.error('ClaudeCodeAutonomousResponder:WriteLog', err as Error, {
+        operation: 'write-log',
+      })
+    );
+    this.writeLog('\nLast 30 lines of terminal buffer:').catch((err) =>
+      this.logger?.error('ClaudeCodeAutonomousResponder:WriteLog', err as Error, {
+        operation: 'write-log',
+      })
+    );
     lastLines.forEach((line, i) => {
-      this.writeLog(`  [${i}] ${this.stripAnsi(line)}`).catch(() => {});
+      this.writeLog(`  [${i}] ${this.stripAnsi(line)}`).catch((err) =>
+        this.logger?.error('ClaudeCodeAutonomousResponder:WriteLog', err as Error, {
+          operation: 'write-log',
+        })
+      );
     });
 
     // ONLY CHECK: Is there a spinner? If yes, Claude Code is still working - NOT ready!
@@ -266,16 +291,36 @@ export class ClaudeCodeAutonomousResponder {
 
     this.writeLog(
       `\nChecking last ${recentLines.length} lines for ACTIVE spinner (not historical):`
-    ).catch(() => {});
+    ).catch((err) =>
+      this.logger?.error('ClaudeCodeAutonomousResponder:WriteLog', err as Error, {
+        operation: 'write-log',
+      })
+    );
     recentLines.forEach((line, i) => {
       const actualIndex = lastLines.length - recentLines.length + i;
-      this.writeLog(`  [${actualIndex}] ${this.stripAnsi(line).substring(0, 100)}`).catch(() => {});
+      this.writeLog(`  [${actualIndex}] ${this.stripAnsi(line).substring(0, 100)}`).catch((err) =>
+        this.logger?.error('ClaudeCodeAutonomousResponder:WriteLog', err as Error, {
+          operation: 'write-log',
+        })
+      );
     });
-    this.writeLog(`\nSpinner check: ${hasSpinner}`).catch(() => {});
+    this.writeLog(`\nSpinner check: ${hasSpinner}`).catch((err) =>
+      this.logger?.error('ClaudeCodeAutonomousResponder:WriteLog', err as Error, {
+        operation: 'write-log',
+      })
+    );
     if (spinnerLine) {
-      this.writeLog(`Spinner line found: "${spinnerLine}"`).catch(() => {});
+      this.writeLog(`Spinner line found: "${spinnerLine}"`).catch((err) =>
+        this.logger?.error('ClaudeCodeAutonomousResponder:WriteLog', err as Error, {
+          operation: 'write-log',
+        })
+      );
     } else {
-      this.writeLog(`No active spinner in last ${recentLines.length} lines`).catch(() => {});
+      this.writeLog(`No active spinner in last ${recentLines.length} lines`).catch((err) =>
+        this.logger?.error('ClaudeCodeAutonomousResponder:WriteLog', err as Error, {
+          operation: 'write-log',
+        })
+      );
     }
 
     // NEW APPROACH: Always ask Haiku to monitor, even when spinner is present
@@ -287,16 +332,28 @@ export class ClaudeCodeAutonomousResponder {
       this.outputChannel.appendLine(
         '   → Will ask Haiku to monitor and interrupt ONLY if going wrong direction\n'
       );
-      this.writeLog('STATUS: Spinner detected - Claude actively working').catch(() => {});
+      this.writeLog('STATUS: Spinner detected - Claude actively working').catch((err) =>
+        this.logger?.error('ClaudeCodeAutonomousResponder:WriteLog', err as Error, {
+          operation: 'write-log',
+        })
+      );
     } else {
       this.outputChannel.appendLine('   ✅ No spinner - Claude Code is idle\n');
       this.outputChannel.appendLine(
         '   → Will ask Haiku to evaluate situation and decide next action\n'
       );
-      this.writeLog('STATUS: No spinner - Claude idle').catch(() => {});
+      this.writeLog('STATUS: No spinner - Claude idle').catch((err) =>
+        this.logger?.error('ClaudeCodeAutonomousResponder:WriteLog', err as Error, {
+          operation: 'write-log',
+        })
+      );
     }
 
-    this.writeLog(`Context length for Haiku: ${last20k.length} characters`).catch(() => {});
+    this.writeLog(`Context length for Haiku: ${last20k.length} characters`).catch((err) =>
+      this.logger?.error('ClaudeCodeAutonomousResponder:WriteLog', err as Error, {
+        operation: 'write-log',
+      })
+    );
 
     return {
       detected: true,

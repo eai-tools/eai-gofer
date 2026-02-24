@@ -58,10 +58,7 @@ export interface InitializedComponents {
  */
 @injectable()
 export class InitializationService {
-  constructor(
-    private readonly logger: Logger,
-    private readonly configManager: ConfigManager
-  ) {}
+  constructor(private readonly logger: Logger) {}
 
   /**
    * Initialize extension for the current workspace
@@ -127,7 +124,7 @@ export class InitializationService {
     context: vscode.ExtensionContext,
     workspacePath: string
   ): Promise<void> {
-    const autoInit = this.configManager.getAutoInitialize();
+    const autoInit = ConfigManager.getInstance().getAutoInitialize();
 
     if (autoInit) {
       const choice = await vscode.window.showInformationMessage(
@@ -263,15 +260,15 @@ export class InitializationService {
       const contextUsageLogger = new ContextUsageLogger(workspacePath);
 
       const healthMonitorConfig = {
-        autoSaveThreshold: this.configManager.getContextWindowAutoSaveThreshold(),
+        autoSaveThreshold: ConfigManager.getInstance().getContextWindowAutoSaveThreshold(),
       };
       const contextHealthMonitor = new ContextHealthMonitor(healthMonitorConfig);
       contextHealthMonitor.setWorkspaceRoot(workspacePath);
 
       const autoHandoffConfig = {
-        autoExecuteSave: this.configManager.getContextWindowAutoExecuteSave(),
-        autoSaveThreshold: this.configManager.getContextWindowAutoSaveThreshold(),
-        autoResumeAfterSave: this.configManager.getContextWindowAutoResumeAfterSave(),
+        autoExecuteSave: ConfigManager.getInstance().getContextWindowAutoExecuteSave(),
+        autoSaveThreshold: ConfigManager.getInstance().getContextWindowAutoSaveThreshold(),
+        autoResumeAfterSave: ConfigManager.getInstance().getContextWindowAutoResumeAfterSave(),
       };
       const autoHandoffTrigger = new AutoHandoffTrigger(autoHandoffConfig, workspacePath);
       setAutoHandoffTrigger(autoHandoffTrigger);

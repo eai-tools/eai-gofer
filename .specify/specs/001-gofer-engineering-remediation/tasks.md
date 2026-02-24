@@ -352,11 +352,14 @@ all commands functional, activation <2s
   - Add `@injectable()` decorator, inject Logger
   - Target: <400 LOC
 
-- [ ] T030 [US1] Refactor goferMigrator.ts to use new services
+- [x] T030 [US1] Refactor goferMigrator.ts to use new services ✅ Complete -
+      Reduced from 2499 LOC to 467 LOC (81% reduction)
   - Update to inject and orchestrate migration services
   - Keep as facade/orchestrator only (preserve public API)
   - Target: goferMigrator.ts <600 LOC (down from 2499 LOC)
   - Register migration services in DI container
+  - **COMPLETED**: Created facade that delegates to VersionDetector,
+    UpgradeService, ResourceSyncer, PathMigrator services
 
 **Checkpoint US1 (goferMigrator.ts)**: goferMigrator.ts <600 LOC, all migration
 services <600 LOC, migrations functional

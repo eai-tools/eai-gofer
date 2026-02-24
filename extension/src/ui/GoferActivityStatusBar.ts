@@ -13,6 +13,7 @@
 
 import * as vscode from 'vscode';
 import type { HookBridgeWatcher, BridgeData } from '../autonomous/HookBridgeWatcher';
+import { INTERVALS } from '../config/intervals';
 
 /** How recent a tool call must be to show "Active" (30 seconds) */
 const ACTIVE_THRESHOLD_MS = 30 * 1000;
@@ -135,7 +136,7 @@ export class GoferActivityStatusBar implements vscode.Disposable {
 
     if (data.session?.startedAt) {
       const durationMs = Date.now() - data.session.startedAt;
-      const minutes = Math.round(durationMs / 60000);
+      const minutes = Math.round(durationMs / INTERVALS.MS_PER_MINUTE);
       const display =
         minutes < 60 ? `${minutes}m` : `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
       items.push({

@@ -18,6 +18,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import type { Memory } from './autonomous/memory';
+import { INTERVALS } from './config/intervals';
 
 export type MemoryTreeItemKind = 'section' | 'category' | 'memory' | 'file-item' | 'info';
 
@@ -312,9 +313,9 @@ export class MemoryProvider implements vscode.TreeDataProvider<MemoryTreeItem> {
   private formatRelativeTime(timestamp: number): string {
     const now = Date.now();
     const diff = now - timestamp;
-    const minutes = Math.floor(diff / 60000);
-    const hours = Math.floor(diff / 3600000);
-    const days = Math.floor(diff / 86400000);
+    const minutes = Math.floor(diff / INTERVALS.MS_PER_MINUTE);
+    const hours = Math.floor(diff / INTERVALS.MS_PER_HOUR);
+    const days = Math.floor(diff / INTERVALS.MS_PER_DAY);
 
     if (minutes < 1) return 'just now';
     if (minutes < 60) return `${minutes}m ago`;

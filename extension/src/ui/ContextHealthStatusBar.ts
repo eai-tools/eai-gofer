@@ -22,6 +22,7 @@ import {
 } from '../autonomous/ContextHealthMonitor';
 import { Logger } from '../utils/logger';
 import type { GoferStage, StageContextProfile } from '../autonomous/StageContextProfile';
+import { INTERVALS } from '../config/intervals';
 
 /**
  * Masking statistics for display
@@ -427,7 +428,7 @@ export class ContextHealthStatusBar implements vscode.Disposable {
       }
 
       if (typeof status.sessionAge === 'number') {
-        const ageMinutes = Math.round(status.sessionAge / 60000);
+        const ageMinutes = Math.round(status.sessionAge / INTERVALS.MS_PER_MINUTE);
         const ageDisplay =
           ageMinutes < 60
             ? `${ageMinutes}m`

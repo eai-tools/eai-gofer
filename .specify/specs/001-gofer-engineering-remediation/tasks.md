@@ -450,25 +450,25 @@ Validation)
 
 ### US8: Security - Add Input Validation
 
-- [ ] T039 [P] [US8] Add JSON schema validation for configuration
+- [x] T039 [P] [US8] Add JSON schema validation for configuration
   - Install ajv: `npm install --save ajv`
   - Create schema in extension/src/schemas/config.schema.json
   - Validate configuration in InitializationService on extension activation
   - Graceful fallback: log warning and use defaults if invalid
 
-- [ ] T040 [P] [US8] Add file path sanitization in
+- [x] T040 [P] [US8] Add file path sanitization in
       extension/src/utils/pathSanitizer.ts
   - Create utility: `sanitizePath(path: string): string | null`
   - Check for path traversal attempts: `../`, absolute paths outside workspace
   - Return null for invalid paths
   - Apply to all file operations across codebase
 
-- [ ] T041 [P] [US8] Add command input validation
+- [x] T041 [P] [US8] Add command input validation
   - Validate special characters in command inputs before execution
   - Sanitize user-provided strings
   - Return clear error messages for invalid inputs (don't crash)
 
-- [ ] T042 [US8] Add rate limiting for expensive operations in
+- [x] T042 [US8] Add rate limiting for expensive operations in
       extension/src/utils/rateLimiter.ts
   - Create `RateLimiter` class with `checkLimit(operation: string): boolean`
   - Limit context building: 10 requests/minute

@@ -27,6 +27,7 @@ import { InitializationService } from '../services/InitializationService';
 import { CommandRegistry } from '../services/CommandRegistry';
 import { StateManager } from '../services/StateManager';
 import { VersionDetector } from '../services/migration/VersionDetector';
+import { UpgradeService } from '../services/migration/UpgradeService';
 
 /**
  * Register all injectable services in the DI container.
@@ -54,8 +55,9 @@ export function registerServices(): void {
 
   // Phase 4: GoferMigrator.ts extracted services (T026-T030)
   container.registerSingleton(VersionDetector); // T026: Version detection
-  // UpgradeService, ResourceSyncer, PathMigrator
-  // will be registered here in T027-T029
+  container.registerSingleton(UpgradeService); // T027: Upgrade orchestration
+  // ResourceSyncer, PathMigrator
+  // will be registered here in T028-T029
 }
 
 /**

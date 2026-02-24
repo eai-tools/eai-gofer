@@ -330,7 +330,7 @@ all commands functional, activation <2s
   - Add `@injectable()` decorator, inject Logger
   - Target: <500 LOC
 
-- [ ] T027 [P] [US1] Create UpgradeService in
+- [x] T027 [P] [US1] Create UpgradeService in
       extension/src/services/migration/UpgradeService.ts
   - Extract upgrade execution logic from goferMigrator.ts
   - Interface: `upgrade(from: string, to: string): Promise<void>`

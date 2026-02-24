@@ -37,7 +37,6 @@ import {
   EventHandlers,
   InitializationService,
   CommandRegistry,
-  StateManager,
   type EventHandlerDependencies,
   type InitializationDependencies,
   type CommandDependencies,
@@ -57,30 +56,59 @@ import {
  * Now with LSP + MCP integration for automated orchestration!
  */
 
+// Module-level globals (to be converted to injectable services in T025)
+let progressProvider: ProgressProvider | undefined;
+let constitutionProvider: ConstitutionProvider | undefined;
+let memoryProvider: MemoryProvider | undefined;
+let contextWindowProvider: ContextWindowProvider | undefined;
+let branchSpecManager: BranchSpecManager | undefined;
+let autoUpdater: AutoUpdater | undefined;
+let lspClient: GoferLSPClient | undefined;
+let memoryManager: MemoryManager | undefined;
+// Context Health Monitoring (Spec 012)
+let contextHealthMonitor: ContextHealthMonitor | undefined;
+let contextUsageLogger: ContextUsageLogger | undefined;
+let contextHealthStatusBar: ContextHealthStatusBar | undefined;
+let autoHandoffTrigger: AutoHandoffTrigger | undefined;
+// Real Context Monitoring (Spec 014)
+let continuousMemoryWriter: ContinuousMemoryWriter | undefined;
+// Hook-based monitoring
+let hookBridgeWatcher: HookBridgeWatcher | undefined;
+let multiSessionWatcher: MultiSessionBridgeWatcher | undefined;
+let goferActivityStatusBar: GoferActivityStatusBar | undefined;
+// Context Window Accuracy (Feature 023)
+let contextScanner: ClaudeCodeContextScanner | undefined;
+// 018: Module-level references for deactivate cleanup
+let cacheSaveTimerRef: ReturnType<typeof setTimeout> | null = null;
+let sharedContextBuilderRef: ContextBuilder | undefined;
+let consolidationTimerRef: ReturnType<typeof setInterval> | null = null;
+// 018 T041: Module-level reference for contextProvider (needed for config reload)
+let workspaceContextProviderRef: WorkspaceContextProvider | undefined;
 // Phase 1 Engineering Remediation: Logger service (T011-T013)
-// Keep logger as module-level for early initialization and convenience
 let logger: Logger | undefined;
+// ScopeGuard instance
+let scopeGuard: ScopeGuard | undefined;
+// ResearchChunker instance
+let researchChunker: ResearchChunker | undefined;
 
-/**
- * Get StateManager singleton from DI container
- * Helper function for convenient access to state throughout the extension
- */
-function getState(): StateManager {
-  return getContainer().resolve(StateManager);
-}
+// Flag to prevent file watcher refreshes during upgrade
+let isUpgrading = false;
+
+// Flag to prevent concurrent reinitializations
+let isReinitializing = false;
 
 /**
  * Set the upgrade state (exported for use by goferMigrator)
  */
 export function setUpgradeState(state: boolean): void {
-  getState().isUpgrading = state;
+  isUpgrading = state;
 }
 
 /**
  * Check if an upgrade is in progress
  */
 export function isUpgradeInProgress(): boolean {
-  return getState().isUpgrading;
+  return isUpgrading;
 }
 
 /**
@@ -113,7 +141,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
   // Setup auto-updater (using GitHub Pages API for private repo)
   const packageJson = require('../package.json');
-  const autoUpdater = new AutoUpdater(
+  autoUpdater = new AutoUpdater(
     'eai-tools/gofer', // GitHub repo
     packageJson.version, // Current version
     'gofer' // Extension name for VSIX filename
@@ -122,58 +150,51 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   // Start checking for updates using GitHub Pages API
   autoUpdater.startPeriodicChecks(context);
 
-  // Store in state
-  getState().autoUpdater = autoUpdater;
+  // Start Language Server (non-blocking - extension works without it)
+  lspClient = new GoferLSPClient(context);
+  lspClient
+    .start()
+    .then(() => {
+      logger?.debug('Extension', 'Language Server started successfully');
+    })
+    .catch((error) => {
+      logger?.warn('Extension', 'Language Server failed to start (non-critical)', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      // LSP is optional - extension works without it
+    });
 
-  // Setup Language Server (deferred to avoid blocking activation)
-  const setupLSP = async (): Promise<void> => {
-    try {
-      const lspClient = new GoferLSPClient(context);
-      await lspClient.start();
-      getState().lspClient = lspClient;
-      logger?.info('Extension', 'Language Server started');
-    } catch (error) {
-      logger?.error('Extension', error as Error, { operation: 'setupLSP' });
-    }
-  };
-
-  // Start LSP in background (non-blocking)
-  setupLSP();
-
-  // Register tree views immediately
+  // Register tree views IMMEDIATELY (even if empty) so VSCode can find them
+  // This must happen before any commands that reference these views
   registerTreeViews(context);
 
-  // Register global commands (available even without workspace)
+  // Register commands globally (before workspace check)
+  // This ensures commands are always available even without a workspace
   registerGlobalCommands(context);
 
-  // Get or create EventHandlers instance
+  // Resolve EventHandlers service and register all event listeners
   const eventHandlers = getContainer().resolve(EventHandlers);
   const workspacePath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '';
-
-  const state = getState();
-
-  // Register event handlers
   eventHandlers.registerAll({
     workspacePath,
     context,
-    progressProvider: state.progressProvider,
-    branchSpecManager: state.branchSpecManager,
-    sharedContextBuilder: state.sharedContextBuilder,
-    workspaceContextProvider: state.workspaceContextProvider,
-    hookBridgeWatcher: state.hookBridgeWatcher,
-    scopeGuard: state.scopeGuard,
-    researchChunker: state.researchChunker,
-    reinitializeExtension: () => reinitializeExtension(context),
+    progressProvider,
+    branchSpecManager,
+    sharedContextBuilder: sharedContextBuilderRef,
+    workspaceContextProvider: workspaceContextProviderRef,
+    hookBridgeWatcher,
+    scopeGuard,
+    researchChunker,
+    reinitializeExtension,
     handleSpecModification: async () => {
       /* Spec modification handled by EventHandlers */
     },
     handleBranchChange: async () => {
       /* Branch change handled by EventHandlers */
     },
-    isUpgrading: () => state.isUpgrading,
+    isUpgrading: () => isUpgrading,
   });
 
-  // Initialize for the current workspace (if one is open)
   const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
   if (!workspaceFolder) {
     logger.info('Extension', 'No workspace folder open yet, waiting for workspace...');
@@ -201,17 +222,10 @@ function registerTreeViews(context: vscode.ExtensionContext): void {
 
   // Create providers with empty/initial state
   // They will be properly initialized later when workspace is ready
-  const progressProvider = new ProgressProvider(workspacePath, undefined);
-  const constitutionProvider = new ConstitutionProvider(workspacePath);
-  const memoryProvider = new MemoryProvider(workspacePath);
-  const contextWindowProvider = new ContextWindowProvider(workspacePath);
-
-  // Store in state
-  const state = getState();
-  state.progressProvider = progressProvider;
-  state.constitutionProvider = constitutionProvider;
-  state.memoryProvider = memoryProvider;
-  state.contextWindowProvider = contextWindowProvider;
+  progressProvider = new ProgressProvider(workspacePath, undefined);
+  constitutionProvider = new ConstitutionProvider(workspacePath);
+  memoryProvider = new MemoryProvider(workspacePath);
+  contextWindowProvider = new ContextWindowProvider(workspacePath);
 
   // Register tree data providers - MUST happen before commands are registered
   context.subscriptions.push(
@@ -228,8 +242,7 @@ function registerTreeViews(context: vscode.ExtensionContext): void {
 
   // Create context health status bar (Spec 012)
   // Created early so command is available, connected to monitor later
-  const contextHealthStatusBar = new ContextHealthStatusBar(context);
-  state.contextHealthStatusBar = contextHealthStatusBar;
+  contextHealthStatusBar = new ContextHealthStatusBar(context);
 }
 
 /**
@@ -237,15 +250,13 @@ function registerTreeViews(context: vscode.ExtensionContext): void {
  * Uses DisposalService to clean up old resources and InitializationService to reinitialize
  */
 async function reinitializeExtension(context: vscode.ExtensionContext): Promise<void> {
-  const state = getState();
-
   // Prevent concurrent reinitializations
-  if (state.isReinitializing) {
+  if (isReinitializing) {
     logger?.debug('Extension', 'Reinitialize already in progress, skipping');
     return;
   }
 
-  state.isReinitializing = true;
+  isReinitializing = true;
   try {
     logger?.info('Extension', 'Reinitializing extension for workspace change');
 
@@ -256,39 +267,56 @@ async function reinitializeExtension(context: vscode.ExtensionContext): Promise<
 
     await disposalService.dispose(
       {
-        sharedContextBuilder: state.sharedContextBuilder,
-        cacheSaveTimer: state.cacheSaveTimer,
-        consolidationTimer: state.consolidationTimer,
-        workspaceContextProvider: state.workspaceContextProvider,
-        contextHealthMonitor: state.contextHealthMonitor,
-        autoHandoffTrigger: state.autoHandoffTrigger,
-        contextHealthStatusBar: state.contextHealthStatusBar,
-        continuousMemoryWriter: state.continuousMemoryWriter,
-        hookBridgeWatcher: state.hookBridgeWatcher,
-        multiSessionWatcher: state.multiSessionWatcher,
-        goferActivityStatusBar: state.goferActivityStatusBar,
-        contextUsageLogger: state.contextUsageLogger,
-        progressProvider: state.progressProvider,
-        constitutionProvider: state.constitutionProvider,
-        memoryProvider: state.memoryProvider,
-        branchSpecManager: state.branchSpecManager,
-        memoryManager: state.memoryManager,
+        sharedContextBuilder: sharedContextBuilderRef,
+        cacheSaveTimer: cacheSaveTimerRef,
+        consolidationTimer: consolidationTimerRef,
+        workspaceContextProvider: workspaceContextProviderRef,
+        contextHealthMonitor,
+        autoHandoffTrigger,
+        contextHealthStatusBar,
+        continuousMemoryWriter,
+        hookBridgeWatcher,
+        multiSessionWatcher,
+        goferActivityStatusBar,
+        contextUsageLogger,
+        progressProvider,
+        constitutionProvider,
+        memoryProvider,
+        branchSpecManager,
+        memoryManager,
       },
       workspacePath
     );
 
     // Clear references after disposal
-    state.sharedContextBuilder = undefined;
-    state.clearTimers();
-    state.clearMonitoringComponents();
+    sharedContextBuilderRef = undefined;
+    cacheSaveTimerRef = null;
+    consolidationTimerRef = null;
+    workspaceContextProviderRef = undefined;
+    contextHealthMonitor = undefined;
+    autoHandoffTrigger = undefined;
+    continuousMemoryWriter = undefined;
+    hookBridgeWatcher = undefined;
+    multiSessionWatcher = undefined;
+    goferActivityStatusBar = undefined;
+    contextScanner = undefined;
+    contextUsageLogger = undefined;
 
     // Refresh the providers with new workspace data
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
     if (workspaceFolder) {
+      const newWorkspacePath = workspaceFolder.uri.fsPath;
+
       // Update providers with new workspace
-      state.progressProvider?.refresh();
-      state.constitutionProvider?.refresh();
-      state.memoryProvider?.refresh();
+      if (progressProvider) {
+        progressProvider.refresh();
+      }
+      if (constitutionProvider) {
+        constitutionProvider.refresh();
+      }
+      if (memoryProvider) {
+        memoryProvider.refresh();
+      }
     }
 
     // Reinitialize for new workspace
@@ -296,7 +324,7 @@ async function reinitializeExtension(context: vscode.ExtensionContext): Promise<
 
     logger?.info('Extension', 'Extension reinitialized successfully');
   } finally {
-    state.resetReinitializationFlag();
+    isReinitializing = false;
   }
 }
 
@@ -314,32 +342,30 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
   const workspacePath = workspaceFolder.uri.fsPath;
   logger?.info('Extension', 'Initializing workspace', { workspacePath });
 
-  const state = getState();
-
   // Resolve InitializationService and initialize workspace
   const initService = getContainer().resolve(InitializationService);
   const components = await initService.initialize({
     context,
-    progressProvider: state.progressProvider,
-    contextHealthStatusBar: state.contextHealthStatusBar,
-    contextWindowProvider: state.contextWindowProvider,
+    progressProvider,
+    contextHealthStatusBar,
+    contextWindowProvider,
   });
 
-  // Update state with initialized components
-  state.contextHealthMonitor = components.contextHealthMonitor;
-  state.autoHandoffTrigger = components.autoHandoffTrigger;
-  state.contextUsageLogger = components.contextUsageLogger;
-  state.workspaceContextProvider = components.workspaceContextProvider;
-  state.multiSessionWatcher = components.multiSessionWatcher;
-  state.hookBridgeWatcher = components.hookBridgeWatcher;
-  state.goferActivityStatusBar = components.goferActivityStatusBar;
-  state.contextScanner = components.contextScanner;
-  state.branchSpecManager = components.branchSpecManager;
+  // Update module-level references with initialized components
+  contextHealthMonitor = components.contextHealthMonitor;
+  autoHandoffTrigger = components.autoHandoffTrigger;
+  contextUsageLogger = components.contextUsageLogger;
+  workspaceContextProviderRef = components.workspaceContextProvider;
+  multiSessionWatcher = components.multiSessionWatcher;
+  hookBridgeWatcher = components.hookBridgeWatcher;
+  goferActivityStatusBar = components.goferActivityStatusBar;
+  contextScanner = components.contextScanner;
+  branchSpecManager = components.branchSpecManager;
   const migrator = components.migrator;
 
   // Initialize MemoryManager for memory commands (if not already initialized)
-  if (!state.memoryManager && state.branchSpecManager) {
-    state.memoryManager = new MemoryManager(context, workspacePath);
+  if (!memoryManager && branchSpecManager) {
+    memoryManager = new MemoryManager(context, workspacePath);
   }
 
   // Register workspace commands using CommandRegistry
@@ -348,16 +374,16 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
     const commandDeps: CommandDependencies = {
       workspacePath,
       migrator,
-      progressProvider: state.progressProvider,
-      constitutionProvider: state.constitutionProvider,
-      memoryProvider: state.memoryProvider,
-      contextWindowProvider: state.contextWindowProvider,
-      branchSpecManager: state.branchSpecManager,
-      sharedContextBuilder: state.sharedContextBuilder,
-      memoryManager: state.memoryManager,
-      scopeGuard: state.scopeGuard,
-      researchChunker: state.researchChunker,
-      isUpgrading: () => state.isUpgrading,
+      progressProvider,
+      constitutionProvider,
+      memoryProvider,
+      contextWindowProvider,
+      branchSpecManager,
+      sharedContextBuilder: sharedContextBuilderRef,
+      memoryManager,
+      scopeGuard,
+      researchChunker,
+      isUpgrading: () => isUpgrading,
       setUpgradeState,
     };
     commandRegistry.registerAll(context, commandDeps);
@@ -424,17 +450,15 @@ function registerGlobalCommands(context: vscode.ExtensionContext): void {
     })
   );
 
-  const state = getState();
-
   // Register memory commands (deferred until memoryManager is initialized)
   // Commands will be registered in initializeForWorkspace() when memoryManager is ready
-  if (state.memoryManager) {
-    registerMemoryCommands(context, state.memoryManager);
+  if (memoryManager) {
+    registerMemoryCommands(context, memoryManager);
   }
 
   // Register spec commands (deferred until progressProvider is initialized)
-  if (state.progressProvider) {
-    registerSpecCommands(context, state.progressProvider);
+  if (progressProvider) {
+    registerSpecCommands(context, progressProvider);
   }
 
   // Register council commands (always available)
@@ -450,8 +474,6 @@ function registerGlobalCommands(context: vscode.ExtensionContext): void {
 export async function deactivate(): Promise<void> {
   logger?.info('Extension', 'Deactivating Gofer extension');
 
-  const state = getState();
-
   // Resolve DisposalService for cleanup
   const disposalService = getContainer().resolve(DisposalService);
   const workspacePath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '';
@@ -459,24 +481,24 @@ export async function deactivate(): Promise<void> {
   // Dispose all managed resources
   await disposalService.dispose(
     {
-      sharedContextBuilder: state.sharedContextBuilder,
-      cacheSaveTimer: state.cacheSaveTimer,
-      consolidationTimer: state.consolidationTimer,
-      workspaceContextProvider: state.workspaceContextProvider,
-      contextHealthMonitor: state.contextHealthMonitor,
-      autoHandoffTrigger: state.autoHandoffTrigger,
-      contextHealthStatusBar: state.contextHealthStatusBar,
-      continuousMemoryWriter: state.continuousMemoryWriter,
-      hookBridgeWatcher: state.hookBridgeWatcher,
-      multiSessionWatcher: state.multiSessionWatcher,
-      goferActivityStatusBar: state.goferActivityStatusBar,
-      contextUsageLogger: state.contextUsageLogger,
-      progressProvider: state.progressProvider,
-      constitutionProvider: state.constitutionProvider,
-      memoryProvider: state.memoryProvider,
-      branchSpecManager: state.branchSpecManager,
-      memoryManager: state.memoryManager,
-      autoUpdater: state.autoUpdater,
+      sharedContextBuilder: sharedContextBuilderRef,
+      cacheSaveTimer: cacheSaveTimerRef,
+      consolidationTimer: consolidationTimerRef,
+      workspaceContextProvider: workspaceContextProviderRef,
+      contextHealthMonitor,
+      autoHandoffTrigger,
+      contextHealthStatusBar,
+      continuousMemoryWriter,
+      hookBridgeWatcher,
+      multiSessionWatcher,
+      goferActivityStatusBar,
+      contextUsageLogger,
+      progressProvider,
+      constitutionProvider,
+      memoryProvider,
+      branchSpecManager,
+      memoryManager,
+      autoUpdater,
     },
     workspacePath
   );
@@ -490,9 +512,9 @@ export async function deactivate(): Promise<void> {
   }
 
   // Stop Language Server
-  if (state.lspClient) {
-    await state.lspClient.stop();
-    state.lspClient = undefined;
+  if (lspClient) {
+    await lspClient.stop();
+    lspClient = undefined;
   }
 
   logger?.info('Extension', 'Gofer extension deactivated');

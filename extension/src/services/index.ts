@@ -13,3 +13,4 @@ export {
   type InitializedComponents,
 } from './InitializationService';
 export { CommandRegistry, type CommandDependencies } from './CommandRegistry';
+export { StateManager } from './StateManager';

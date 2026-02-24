@@ -204,6 +204,16 @@ print_success "Updated package.json and CHANGELOG.md"
 print_info "Building VSIX package..."
 cd extension
 
+# Ensure all production dependencies are installed (needed for vsce package)
+print_info "Installing extension dependencies..."
+if npm install 2>&1; then
+    print_success "Dependencies installed"
+else
+    print_error "Failed to install extension dependencies"
+    cd ..
+    exit 1
+fi
+
 # Ensure language-server is up to date
 print_info "Syncing language-server files..."
 rsync -av --delete ../language-server/ ./language-server/ \
@@ -369,6 +379,16 @@ if git push --no-verify origin "v$NEW_VERSION"; then
 else
     print_error "Failed to push tag"
     exit 1
+fi
+
+# Create GitHub release with VSIX attachment
+print_info "Creating GitHub release..."
+if gh release create "v$NEW_VERSION" "./gofer-$NEW_VERSION.vsix" \
+    --title "v$NEW_VERSION" \
+    --notes "$RELEASE_NOTES" 2>&1; then
+    print_success "GitHub release created: v$NEW_VERSION"
+else
+    print_warning "Failed to create GitHub release (may need manual creation)"
 fi
 
 # Wait for GitHub Pages deployment

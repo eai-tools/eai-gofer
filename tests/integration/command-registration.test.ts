@@ -2,10 +2,12 @@
  * Command Registration Tests
  *
  * Validates that all commands declared in package.json are properly registered
- * in extension.ts activation function.
+ * in extension.ts, CommandRegistry.ts, or other command files.
  *
- * This prevents the "command not found" errors that occur when commands are
- * declared in package.json but not registered in the activation function.
+ * After T020 refactoring, commands are split across:
+ * - extension.ts: registerGlobalCommands() for welcome view commands
+ * - CommandRegistry.ts: registerAll() for workspace-specific commands
+ * - memoryCommands.ts, specCommands.ts, councilCommands.ts: domain commands
  */
 
 import { describe, it, expect, beforeAll, vi } from 'vitest';
@@ -87,9 +89,12 @@ interface PackageJson {
 describe('Command Registration Validation', () => {
   let packageJson: PackageJson;
   let extensionSource: string;
+  let commandRegistrySource: string;
   let memoryCommandsSource: string;
   let specCommandsSource: string;
   let councilCommandsSource: string;
+  /** Combined source of all command registration files */
+  let allCommandSources: string;
 
   beforeAll(() => {
     // Read package.json
@@ -99,6 +104,13 @@ describe('Command Registration Validation', () => {
     // Read extension.ts source
     const extensionPath = path.join(__dirname, '../../extension/src/extension.ts');
     extensionSource = readFileSync(extensionPath, 'utf-8');
+
+    // Read CommandRegistry.ts (T020 refactoring target)
+    const commandRegistryPath = path.join(
+      __dirname,
+      '../../extension/src/services/CommandRegistry.ts'
+    );
+    commandRegistrySource = readFileSync(commandRegistryPath, 'utf-8');
 
     // Read command files
     const memoryCommandsPath = path.join(
@@ -115,6 +127,15 @@ describe('Command Registration Validation', () => {
       '../../extension/src/commands/councilCommands.ts'
     );
     councilCommandsSource = readFileSync(councilCommandsPath, 'utf-8');
+
+    // Combined for convenience
+    allCommandSources = [
+      extensionSource,
+      commandRegistrySource,
+      memoryCommandsSource,
+      specCommandsSource,
+      councilCommandsSource,
+    ].join('\n');
   });
 
   it('should have commands declared in package.json', () => {
@@ -127,20 +148,12 @@ describe('Command Registration Validation', () => {
     const missingCommands: string[] = [];
 
     for (const command of declaredCommands) {
-      // Check if command is registered in extension.ts, memoryCommands.ts, or specCommands.ts
-      // Pattern: vscode.commands.registerCommand('commandName', ...)
       const registrationPattern = new RegExp(
         `vscode\\.commands\\.registerCommand\\s*\\(\\s*['"]${command.replace('.', '\\.')}['"]`,
         'm'
       );
 
-      const isRegistered =
-        registrationPattern.test(extensionSource) ||
-        registrationPattern.test(memoryCommandsSource) ||
-        registrationPattern.test(specCommandsSource) ||
-        registrationPattern.test(councilCommandsSource);
-
-      if (!isRegistered) {
+      if (!registrationPattern.test(allCommandSources)) {
         missingCommands.push(command);
       }
     }
@@ -170,7 +183,11 @@ describe('Command Registration Validation', () => {
         'm'
       );
 
-      if (!registrationPattern.test(extensionSource)) {
+      // Check extension.ts (global commands) AND CommandRegistry.ts (workspace commands)
+      if (
+        !registrationPattern.test(extensionSource) &&
+        !registrationPattern.test(commandRegistrySource)
+      ) {
         missingCommands.push(command);
       }
     }
@@ -196,7 +213,8 @@ describe('Command Registration Validation', () => {
         'm'
       );
 
-      if (!registrationPattern.test(extensionSource)) {
+      // Tree view commands may be in extension.ts or CommandRegistry.ts
+      if (!registrationPattern.test(allCommandSources)) {
         missingCommands.push(command);
       }
     }
@@ -235,16 +253,12 @@ describe('Command Registration Validation', () => {
     const missingCommands: string[] = [];
 
     for (const command of memoryCommands) {
-      // These might be registered in memoryCommands.ts or extension.ts
       const registrationPattern = new RegExp(
         `vscode\\.commands\\.registerCommand\\s*\\(\\s*['"]${command.replace('.', '\\.')}['"]`,
         'm'
       );
 
-      if (
-        !registrationPattern.test(extensionSource) &&
-        !registrationPattern.test(memoryCommandsSource)
-      ) {
+      if (!registrationPattern.test(allCommandSources)) {
         missingCommands.push(command);
       }
     }
@@ -260,36 +274,34 @@ describe('Command Registration Validation', () => {
     expect(extensionSource).toContain('registerGlobalCommands(context)');
   });
 
-  it('should register registerCommands() function', () => {
-    // Check that registerCommands function exists
-    expect(extensionSource).toContain('function registerCommands(');
+  it('should use CommandRegistry for workspace commands', () => {
+    // After T020 refactoring, registerCommands() was replaced by CommandRegistry.registerAll()
+    expect(commandRegistrySource).toContain('class CommandRegistry');
+    expect(commandRegistrySource).toContain('registerAll(');
 
-    // Check that it's called somewhere
-    expect(extensionSource).toContain('registerCommands(');
+    // Extension.ts should reference CommandRegistry
+    expect(extensionSource).toContain('CommandRegistry');
   });
 
-  it('should have all commands in both registerGlobalCommands and registerCommands', () => {
+  it('should have commands distributed across extension.ts and CommandRegistry', () => {
     const globalCommandsSection = extensionSource.match(
       /function registerGlobalCommands\([^)]*\)[^{]*\{([\s\S]*?)^}/m
     );
-    const workspaceCommandsSection = extensionSource.match(
-      /(?:async\s+)?function registerCommands\([\s\S]*?\)[^{]*\{([\s\S]*?)^}/m
-    );
 
     expect(globalCommandsSection).toBeTruthy();
-    expect(workspaceCommandsSection).toBeTruthy();
 
-    // Extract command registrations from both sections
+    // Extract command registrations from global commands
     const globalCommands = globalCommandsSection
       ? globalCommandsSection[1].match(/registerCommand\s*\(\s*['"]([^'"]+)['"]/g) || []
       : [];
-    const workspaceCommands = workspaceCommandsSection
-      ? workspaceCommandsSection[1].match(/registerCommand\s*\(\s*['"]([^'"]+)['"]/g) || []
-      : [];
+
+    // Extract command registrations from CommandRegistry
+    const workspaceCommands =
+      commandRegistrySource.match(/registerCommand\s*\(\s*['"]([^'"]+)['"]/g) || [];
 
     const totalRegistrations = globalCommands.length + workspaceCommands.length;
 
-    // Should have at least 20 command registrations total
+    // Should have at least 20 command registrations total across both files
     expect(totalRegistrations).toBeGreaterThan(20);
   });
 
@@ -364,7 +376,8 @@ describe('Command Registration Validation', () => {
         'm'
       );
 
-      if (!registrationPattern.test(extensionSource)) {
+      // Update commands may be in extension.ts or CommandRegistry.ts
+      if (!registrationPattern.test(allCommandSources)) {
         missingCommands.push(command);
       }
     }
@@ -383,7 +396,8 @@ describe('Command Registration Validation', () => {
         'm'
       );
 
-      if (!registrationPattern.test(extensionSource)) {
+      // Spec commands are in CommandRegistry.ts after T020 refactoring
+      if (!registrationPattern.test(allCommandSources)) {
         missingCommands.push(command);
       }
     }
@@ -407,7 +421,8 @@ describe('Command Registration Validation', () => {
         'm'
       );
 
-      if (!registrationPattern.test(extensionSource)) {
+      // Open With commands may be in extension.ts or CommandRegistry.ts
+      if (!registrationPattern.test(allCommandSources)) {
         missingCommands.push(command);
       }
     }
@@ -468,21 +483,18 @@ describe('Package.json Validation', () => {
 
     // Should have refresh commands in view/title for each view
     const progressRefresh = viewTitleMenus.find(
-      (menu) =>
-        menu.command === 'gofer.refreshSpecs' && menu.when === 'view == goferProgress'
+      (menu) => menu.command === 'gofer.refreshSpecs' && menu.when === 'view == goferProgress'
     );
     expect(progressRefresh).toBeDefined();
 
     const contextWindowRefresh = viewTitleMenus.find(
       (menu) =>
-        menu.command === 'gofer.refreshContextWindow' &&
-        menu.when === 'view == goferContextWindow'
+        menu.command === 'gofer.refreshContextWindow' && menu.when === 'view == goferContextWindow'
     );
     expect(contextWindowRefresh).toBeDefined();
 
     const memoryRefresh = viewTitleMenus.find(
-      (menu) =>
-        menu.command === 'gofer.refreshMemory' && menu.when === 'view == goferMemory'
+      (menu) => menu.command === 'gofer.refreshMemory' && menu.when === 'view == goferMemory'
     );
     expect(memoryRefresh).toBeDefined();
   });

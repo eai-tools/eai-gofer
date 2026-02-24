@@ -204,8 +204,11 @@ export class ErrorRecovery {
               affectedFiles: error.affectedFiles,
             };
             // Fire and forget - don't block on memory save
-            this.memoryHookManager.onErrorRecovery(recoveryContext).catch(() => {
-              // Ignore memory save failures
+            this.memoryHookManager.onErrorRecovery(recoveryContext).catch((err) => {
+              console.warn(
+                '[Gofer] Memory save for error recovery failed:',
+                err instanceof Error ? err.message : err
+              );
             });
           }
 

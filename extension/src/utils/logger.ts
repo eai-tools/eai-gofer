@@ -72,6 +72,39 @@ export class OutputChannelLogger implements LoggerOutput {
 }
 
 /**
+ * Bridged output channel logger - uses an existing VSCode output channel
+ * instead of creating a new one. Used to share the DI Logger's channel.
+ */
+class BridgedOutputChannelLogger implements LoggerOutput {
+  private outputChannel: vscode.OutputChannel;
+
+  constructor(outputChannel: vscode.OutputChannel) {
+    this.outputChannel = outputChannel;
+  }
+
+  write(entry: LogEntry): void {
+    const timestamp = entry.timestamp.toISOString();
+    const level = Object.keys(LogLevel)[entry.level].padEnd(5);
+    const component = entry.component.padEnd(15);
+
+    let message = `[${timestamp}] ${level} ${component} ${entry.message}`;
+
+    if (entry.data) {
+      message += `\nData: ${JSON.stringify(entry.data, null, 2)}`;
+    }
+
+    if (entry.error) {
+      message += `\nError: ${entry.error.message}`;
+      if (entry.error.stack) {
+        message += `\nStack: ${entry.error.stack}`;
+      }
+    }
+
+    this.outputChannel.appendLine(message);
+  }
+}
+
+/**
  * Console logger for development
  */
 export class ConsoleLogger implements LoggerOutput {
@@ -198,6 +231,19 @@ export class Logger {
       Logger.instance = new Logger(component);
     }
     return Logger.instance;
+  }
+
+  /**
+   * Bridge method: share an output channel from the DI Logger.
+   * Call once during activation to unify logging output.
+   */
+  public static bridgeOutputChannel(outputChannel: vscode.OutputChannel): void {
+    const instance = Logger.getInstance();
+    // Only add if no OutputChannelLogger is present yet
+    const hasOutputChannel = instance.outputs.some((o) => o instanceof OutputChannelLogger);
+    if (!hasOutputChannel) {
+      instance.addOutput(new BridgedOutputChannelLogger(outputChannel));
+    }
   }
 
   /**

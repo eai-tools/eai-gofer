@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.12.2",
+  "latest_version": "1.13.0",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-02-23T06:21:34.075Z",
+  "last_updated": "2026-02-24T23:00:00.000Z",
   "releases": [
+    {
+      "version": "1.13.0",
+      "tag_name": "v1.13.0",
+      "published_at": "2026-02-24T23:00:00.000Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.13.0.vsix",
+      "notes": "Engineering remediation: DI framework (tsyringe), 4 service extractions from extension.ts, bounded caches, Logger bridging, type safety improvements",
+      "prerelease": false,
+      "size_mb": 8.4
+    },
     {
       "version": "1.12.2",
       "tag_name": "v1.12.2",

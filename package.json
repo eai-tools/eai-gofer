@@ -1,6 +1,6 @@
 {
   "name": "gofer",
-  "version": "1.12.2",
+  "version": "1.13.0",
   "description": "Enterprise AI Pty Ltd - Automated spec-driven development system with Claude Code integration",
   "author": "Enterprise AI Pty Ltd",
   "license": "SEE LICENSE IN LICENSE",

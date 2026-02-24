@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.13.0] - 2026-02-24
+
+Engineering remediation: DI framework, service extraction, cache bounds, Logger bridge
+
 ## [1.12.2] - 2026-02-23
 
 Remove dead code: spawnNewTerminalFn, sendSaveToTerminal, sendResumeToTerminal, autonomousMonitoringInterval, stability tracking, maybeNotify

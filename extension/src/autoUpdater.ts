@@ -5,6 +5,7 @@ import * as path from 'path';
 import * as os from 'os';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { Logger } from './services/Logger';
 
 const execAsync = promisify(exec);
 
@@ -17,11 +18,18 @@ export class AutoUpdater {
   private checkInterval: number = 24 * 60 * 60 * 1000; // 24 hours
   private extensionName: string;
   private intervalId: NodeJS.Timeout | null = null;
+  private logger?: Logger;
 
-  constructor(githubRepo: string, currentVersion: string, extensionName: string = 'gofer') {
+  constructor(
+    githubRepo: string,
+    currentVersion: string,
+    extensionName: string = 'gofer',
+    logger?: Logger
+  ) {
     this.githubRepo = githubRepo; // e.g., "eai-tools/gofer"
     this.currentVersion = currentVersion;
     this.extensionName = extensionName;
+    this.logger = logger;
   }
 
   /**
@@ -348,7 +356,12 @@ Or install VS Code CLI: https://code.visualstudio.com/docs/editor/command-line`)
       await this.installVsix(vsixPath);
 
       // Clean up
-      await fs.unlink(vsixPath).catch(() => {});
+      await fs.unlink(vsixPath).catch((err) =>
+        this.logger?.error('AutoUpdater:CleanupVsix', err as Error, {
+          operation: 'cleanup',
+          vsixPath,
+        })
+      );
 
       statusBarItem.dispose();
 

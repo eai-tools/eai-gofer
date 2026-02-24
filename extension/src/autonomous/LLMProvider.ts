@@ -12,6 +12,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { Logger } from '../services/Logger';
 
 /**
  * Duck-typed interface for the Anthropic SDK client.
@@ -71,14 +72,16 @@ export class AutonomousLLMProvider {
   private totalInputTokens = 0;
   private totalOutputTokens = 0;
   private totalCalls = 0;
+  private logger?: Logger;
 
-  constructor(config: Partial<AutonomousLLMConfig> & { workspaceRoot: string }) {
+  constructor(config: Partial<AutonomousLLMConfig> & { workspaceRoot: string }, logger?: Logger) {
     this.config = {
       model: config.model ?? DEFAULT_MODEL,
       rateLimitPerMinute: config.rateLimitPerMinute ?? 10,
       apiKey: config.apiKey,
       workspaceRoot: config.workspaceRoot,
     };
+    this.logger = logger;
   }
 
   /**
@@ -94,7 +97,7 @@ export class AutonomousLLMProvider {
   isRateLimited(): boolean {
     const now = Date.now();
     // Remove timestamps older than 1 minute
-    this.callTimestamps = this.callTimestamps.filter(t => now - t < 60_000);
+    this.callTimestamps = this.callTimestamps.filter((t) => now - t < 60_000);
     return this.callTimestamps.length >= this.config.rateLimitPerMinute;
   }
 
@@ -131,8 +134,8 @@ export class AutonomousLLMProvider {
       });
 
       const text = response.content
-        .filter(block => block.type === 'text' && block.text)
-        .map(block => block.text!)
+        .filter((block) => block.type === 'text' && block.text)
+        .map((block) => block.text!)
         .join('');
 
       const inputTokens = response.usage.input_tokens;
@@ -142,7 +145,13 @@ export class AutonomousLLMProvider {
       this.totalOutputTokens += outputTokens;
 
       // Log usage to JSONL (fire-and-forget)
-      this.logUsage(inputTokens, outputTokens).catch(() => {});
+      this.logUsage(inputTokens, outputTokens).catch((err) =>
+        this.logger?.error('AutonomousLLMProvider:LogUsage', err as Error, {
+          operation: 'log-usage',
+          inputTokens,
+          outputTokens,
+        })
+      );
 
       return { text, inputTokens, outputTokens, cached: false };
     } catch (error) {

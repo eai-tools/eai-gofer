@@ -40,6 +40,7 @@ import { StageContextProfileLoader } from './StageContextProfileLoader';
 import { ResearchChunker, type ScoredChunk } from './ResearchChunker';
 import type { ContextUsageLogger } from './ContextUsageLogger';
 import { KnowledgeGraph, type SubgraphResult } from './KnowledgeGraph';
+import { Logger } from '../services/Logger';
 import { CitationVerifier } from './CitationVerifier';
 import { ScopeGuard } from './ScopeGuard';
 import { extractKeywords as tfIdfExtractKeywords } from './TfIdfUtil';
@@ -310,6 +311,8 @@ export class ContextBuilder extends EventEmitter {
     ): Record<string, string | undefined>;
     reload(): void;
   };
+  /** Optional logger for error tracking */
+  private logger?: Logger;
 
   constructor(
     workspaceRoot: string,
@@ -318,12 +321,14 @@ export class ContextBuilder extends EventEmitter {
     observationMasker?: ObservationMasker,
     config?: Partial<ContextBuilderConfig>,
     profileLoader?: StageContextProfileLoader,
-    researchChunker?: ResearchChunker
+    researchChunker?: ResearchChunker,
+    logger?: Logger
   ) {
     super();
     this.workspaceRoot = workspaceRoot;
     this.memoryManager = memoryManager;
     this.hintLoader = hintLoader || new HintLoader(workspaceRoot);
+    this.logger = logger;
     this.config = { ...DEFAULT_CONTEXT_BUILDER_CONFIG, ...config };
     this.observationMasker =
       observationMasker || new ObservationMasker(workspaceRoot, this.config.maskerConfig);
@@ -781,7 +786,12 @@ export class ContextBuilder extends EventEmitter {
     if (memories.length > 0) {
       // T029: Record usage for each loaded memory (async, fire-and-forget)
       for (const memory of memories) {
-        this.memoryManager.recordUsage(memory.id).catch(() => {});
+        this.memoryManager.recordUsage(memory.id).catch((err) =>
+          this.logger?.error('ContextBuilder:RecordMemoryUsage', err as Error, {
+            memoryId: memory.id,
+            operation: 'record-usage',
+          })
+        );
       }
 
       sections.memories = this.formatMemories(memories);
@@ -897,7 +907,11 @@ export class ContextBuilder extends EventEmitter {
       };
 
       // T002: Persist cache to disk after masking (fire-and-forget)
-      this.observationMasker.saveCacheToDisk().catch(() => {});
+      this.observationMasker.saveCacheToDisk().catch((err) =>
+        this.logger?.error('ContextBuilder:SaveObservationCache', err as Error, {
+          operation: 'save-cache',
+        })
+      );
     }
 
     // T048: Inject delegation advisory section if dispatcher recommends

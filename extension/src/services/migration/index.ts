@@ -8,4 +8,4 @@
 export { VersionDetector, type FormatType, type VersionInfo } from './VersionDetector';
 export { UpgradeService, type IResourceOperations } from './UpgradeService';
 export { ResourceSyncer } from './ResourceSyncer';
-// PathMigrator will be added in T029
+export { PathMigrator } from './PathMigrator';

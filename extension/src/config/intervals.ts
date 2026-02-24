@@ -19,6 +19,15 @@ export const INTERVALS = {
 
   /** ms - Context usage logger poll interval (1 minute) */
   CONTEXT_USAGE_LOG_INTERVAL: 60000,
+
+  /** ms - Milliseconds per minute (time unit conversion) */
+  MS_PER_MINUTE: 60000,
+
+  /** ms - Milliseconds per hour (time unit conversion) */
+  MS_PER_HOUR: 3600000,
+
+  /** ms - Milliseconds per day (time unit conversion) */
+  MS_PER_DAY: 86400000,
 } as const;
 
 /**

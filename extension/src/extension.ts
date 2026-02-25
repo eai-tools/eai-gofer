@@ -1,3 +1,6 @@
+// reflect-metadata MUST be imported before anything that uses tsyringe decorators
+// (e.g. @injectable() in ./services). Without this, the extension crashes at load time.
+import 'reflect-metadata';
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { GoferMigrator } from './goferMigrator';
@@ -362,6 +365,7 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
       memoryManager: state.memoryManager,
       scopeGuard: state.scopeGuard,
       researchChunker: state.researchChunker,
+      autoUpdater: state.autoUpdater,
       isUpgrading: () => state.isUpgrading,
       setUpgradeState,
     };
@@ -430,6 +434,28 @@ function registerGlobalCommands(context: vscode.ExtensionContext): void {
   );
 
   const state = getState();
+
+  // gofer.checkForUpdates - Manual update check (must be global for Command Palette)
+  context.subscriptions.push(
+    vscode.commands.registerCommand('gofer.checkForUpdates', async () => {
+      if (state.autoUpdater) {
+        await state.autoUpdater.manualCheck();
+      } else {
+        vscode.window.showErrorMessage('Auto-updater not initialized');
+      }
+    })
+  );
+
+  // gofer.updateNow - Update now (must be global - referenced in view/title menu)
+  context.subscriptions.push(
+    vscode.commands.registerCommand('gofer.updateNow', async () => {
+      if (state.autoUpdater) {
+        await state.autoUpdater.manualCheck();
+      } else {
+        vscode.window.showErrorMessage('Auto-updater not initialized');
+      }
+    })
+  );
 
   // Register memory commands (deferred until memoryManager is initialized)
   // Commands will be registered in initializeForWorkspace() when memoryManager is ready

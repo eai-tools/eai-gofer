@@ -13,6 +13,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as yaml from 'yaml';
 import { Logger } from './utils/logger';
+import { TIMEOUTS } from './config/timeouts';
 
 export interface Spec {
   id: string; // "001-login-feature"
@@ -92,7 +93,7 @@ export class GoferParser {
         this.logger.debug('Using branchSpecManager to get spec paths...');
         const getPathsPromise = this.branchSpecManager.getAllSpecPaths();
         const timeoutPromise = new Promise<string[]>((_, reject) => {
-          setTimeout(() => reject(new Error('getAllSpecPaths timed out')), 5000);
+          setTimeout(() => reject(new Error('getAllSpecPaths timed out')), TIMEOUTS.SPEC_DIR_DISCOVERY_TIMEOUT);
         });
         specsDirs = await Promise.race([getPathsPromise, timeoutPromise]);
       } else {
@@ -103,10 +104,12 @@ export class GoferParser {
         // Timeout for directory reading (2 seconds)
         const readdirPromise = fs.readdir(specsDir, { withFileTypes: true });
         const readdirTimeout = new Promise<never>((_, reject) => {
-          setTimeout(() => reject(new Error('readdir timed out')), 2000);
+          setTimeout(() => reject(new Error('readdir timed out')), TIMEOUTS.SPEC_DIR_READ_TIMEOUT);
         });
         const entries = await Promise.race([readdirPromise, readdirTimeout]);
-        specsDirs = entries.filter((e) => e.isDirectory()).map((e) => path.join(specsDir, e.name));
+        specsDirs = entries
+          .filter((e) => e.isDirectory() && !e.name.startsWith('_'))
+          .map((e) => path.join(specsDir, e.name));
       }
       this.logger.debug(`Found ${specsDirs.length} spec directories`);
 
@@ -120,7 +123,7 @@ export class GoferParser {
       return [];
     }
 
-    // Load specs with per-spec timeout (1 second each)
+    // Load specs with per-spec timeout
     const specs = await Promise.all(
       specsDirs.map(async (specPath) => {
         try {
@@ -130,7 +133,7 @@ export class GoferParser {
             setTimeout(() => {
               this.logger.warn(`Spec ${specId} load timed out`);
               resolve(null);
-            }, 1000);
+            }, TIMEOUTS.SPEC_LOAD_TIMEOUT);
           });
           return await Promise.race([loadPromise, loadTimeout]);
         } catch (error) {

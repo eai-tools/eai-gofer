@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.13.2] - 2026-02-26
+
+Fix extension activation crash: reflect-metadata import order, command registration timing, config schema mismatch, spec loader filtering
+
 ## [1.13.1] - 2026-02-24
 
 Fix release script: add npm install for production deps, add gh release create

@@ -188,7 +188,7 @@ export class BranchSpecManager {
     try {
       const entries = await fs.readdir(specsPath, { withFileTypes: true });
       for (const entry of entries) {
-        if (entry.isDirectory()) {
+        if (entry.isDirectory() && !entry.name.startsWith('_')) {
           specs.push(path.join(specsPath, entry.name));
         }
       }

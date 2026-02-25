@@ -8,6 +8,15 @@ export const TIMEOUTS = {
   /** ms - BranchSpecManager initialization timeout */
   BRANCH_SPEC_INIT_TIMEOUT: 10000,
 
+  /** ms - Per-spec file loading timeout (reads spec.md, tasks.md, plan.md) */
+  SPEC_LOAD_TIMEOUT: 3000,
+
+  /** ms - Spec directory discovery timeout (branchSpecManager path) */
+  SPEC_DIR_DISCOVERY_TIMEOUT: 5000,
+
+  /** ms - Spec directory read timeout (direct fs.readdir fallback) */
+  SPEC_DIR_READ_TIMEOUT: 2000,
+
   /** ms - Delay before checking status updates */
   STATUS_CHECK_DELAY: 5000,
 

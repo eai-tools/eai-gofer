@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.13.1",
+  "latest_version": "1.13.2",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-02-24T07:40:28.077Z",
+  "last_updated": "2026-02-25T22:59:51.332Z",
   "releases": [
+    {
+      "version": "1.13.2",
+      "tag_name": "v1.13.2",
+      "published_at": "2026-02-25T22:59:51.331Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.13.2.vsix",
+      "notes": "Fix extension activation crash: reflect-metadata import order, command registration timing, config schema mismatch, spec loader filtering",
+      "prerelease": false,
+      "size_mb": 30.3
+    },
     {
       "version": "1.13.1",
       "tag_name": "v1.13.1",
@@ -81,15 +90,6 @@
       "published_at": "2026-02-12T23:46:13.595Z",
       "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.7.5.vsix",
       "notes": "Proactive Code Quality — Gofer now automatically scans your workspace for common AI-generated code issues when sessions reach high utilization, providing a clear summary of what was cleaned up.",
-      "prerelease": false,
-      "size_mb": 16.5
-    },
-    {
-      "version": "1.7.4",
-      "tag_name": "v1.7.4",
-      "published_at": "2026-02-12T23:33:42.866Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.7.4.vsix",
-      "notes": "Richer Conversation Insights — Tool interactions in the Conversation History panel now show both the request and the response, giving you complete visibility into what happened during each tool call.",
       "prerelease": false,
       "size_mb": 16.5
     }

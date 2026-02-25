@@ -185,21 +185,9 @@
           }
         },
         "autonomousMode": {
-          "type": "object",
-          "properties": {
-            "enabled": {
-              "type": "boolean",
-              "description": "Enable autonomous execution mode",
-              "default": false
-            },
-            "maxIterations": {
-              "type": "integer",
-              "description": "Maximum autonomous iterations",
-              "minimum": 1,
-              "maximum": 100,
-              "default": 10
-            }
-          }
+          "type": "boolean",
+          "description": "Enable autonomous question answering in Claude Code terminal",
+          "default": true
         },
         "languageServer": {
           "type": "object",

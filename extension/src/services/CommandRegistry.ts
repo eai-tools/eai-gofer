@@ -185,27 +185,9 @@ export class CommandRegistry {
       })
     );
 
-    // gofer.checkForUpdates - Manual update check
-    context.subscriptions.push(
-      vscode.commands.registerCommand('gofer.checkForUpdates', async () => {
-        if (deps.autoUpdater) {
-          await deps.autoUpdater.manualCheck();
-        } else {
-          vscode.window.showErrorMessage('Auto-updater not initialized');
-        }
-      })
-    );
-
-    // gofer.updateNow - Update now
-    context.subscriptions.push(
-      vscode.commands.registerCommand('gofer.updateNow', async () => {
-        if (deps.autoUpdater) {
-          await deps.autoUpdater.manualCheck();
-        } else {
-          vscode.window.showErrorMessage('Auto-updater not initialized');
-        }
-      })
-    );
+    // NOTE: gofer.checkForUpdates and gofer.updateNow are registered in
+    // registerGlobalCommands() (extension.ts) because they're referenced in
+    // view/title menus and must be available immediately on activation.
   }
 
   /**

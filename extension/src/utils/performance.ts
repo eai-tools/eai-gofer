@@ -377,6 +377,7 @@ export class PerformanceMonitor {
   private metrics: PerformanceMetrics;
   private logger = Logger.for('PerformanceMonitor');
   private config = ConfigManager.getInstance();
+  private memoryMonitoringTimer: ReturnType<typeof setInterval> | null = null;
 
   private constructor() {
     this.metrics = {
@@ -516,16 +517,26 @@ export class PerformanceMonitor {
    * Start memory monitoring
    */
   private startMemoryMonitoring(): void {
-    setInterval(() => {
+    this.memoryMonitoringTimer = setInterval(() => {
       const memoryUsage = process.memoryUsage();
       this.metrics.memoryUsage = memoryUsage.heapUsed;
-      
+
       // Check for memory pressure
       const memoryMb = memoryUsage.heapUsed / 1024 / 1024;
       if (memoryMb > 500) { // Warn if using more than 500MB
         this.logger.warn(`High memory usage detected: ${memoryMb.toFixed(2)}MB`);
       }
     }, 30000); // Every 30 seconds
+  }
+
+  /**
+   * Dispose resources
+   */
+  public dispose(): void {
+    if (this.memoryMonitoringTimer) {
+      clearInterval(this.memoryMonitoringTimer);
+      this.memoryMonitoringTimer = null;
+    }
   }
 }
 

@@ -181,8 +181,15 @@ export class ContinuousMemoryWriter {
     if (this.connectedBuilder) {
       this.connectedBuilder.removeAllListeners('budget-warning');
       this.connectedBuilder.removeAllListeners('loading-decision');
+      this.connectedBuilder.removeAllListeners('research-complete');
+      this.connectedBuilder.removeAllListeners('stage-change');
+      this.connectedBuilder.removeAllListeners('compaction-complete');
+      this.connectedBuilder.removeAllListeners('reseed');
+      this.connectedBuilder.removeAllListeners('scope-violation');
+      this.connectedBuilder.removeAllListeners('slop-detected');
       this.connectedBuilder = null;
     }
+    this.eventRateLimits.clear();
   }
 
   // ─────────────────────────────────────────────────────────────────────────────

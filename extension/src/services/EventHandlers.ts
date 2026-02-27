@@ -113,7 +113,7 @@ export class EventHandlers {
       const repo = git.repositories[0];
       let branchChangeTimer: ReturnType<typeof setTimeout> | null = null;
 
-      repo.state.onDidChange(() => {
+      const disposable = repo.state.onDidChange(() => {
         if (branchChangeTimer) return; // Already scheduled
 
         branchChangeTimer = setTimeout(() => {
@@ -126,6 +126,7 @@ export class EventHandlers {
         }, 5000); // Check at most every 5 seconds
       });
 
+      deps.context.subscriptions.push(disposable);
       this.logger.debug('EventHandlers', 'Git branch change listener registered');
     } catch (error) {
       this.logger.warn('EventHandlers', 'Failed to register git branch listener', {

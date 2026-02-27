@@ -497,6 +497,24 @@ export class AutoHandoffTrigger implements vscode.Disposable {
    *   3. /clear — wipes Claude Code's context window
    *   4. /8_gofer_resume — reloads from checkpoint into fresh context
    */
+  /**
+   * Sends a command to the Claude Code PTY by writing the text first,
+   * then sending \r separately after a 500ms delay. This is the only
+   * method that works reliably with Claude Code's PTY input handling.
+   * (Matches the working METHOD 5 pattern in autonomousCommands.ts)
+   */
+  private async sendPtyCommand(command: string): Promise<void> {
+    if (!this.claudePtyProcess) {
+      throw new Error('No Claude Code pty process available');
+    }
+    this.claudePtyProcess.write(command);
+    await new Promise<void>((resolve) => setTimeout(resolve, 500));
+    if (!this.claudePtyProcess) {
+      throw new Error('PTY died before Enter could be sent');
+    }
+    this.claudePtyProcess.write('\r');
+  }
+
   private async sendSaveClearResume(): Promise<boolean> {
     if (!this.claudePtyProcess) {
       this.logger.warn('No Claude Code pty process available for save/clear/resume');
@@ -508,7 +526,7 @@ export class AutoHandoffTrigger implements vscode.Disposable {
       const checkpointsBefore = this.getCheckpointStates();
 
       // Step 1: Send /7_gofer_save
-      this.claudePtyProcess.write('/7_gofer_save\r');
+      await this.sendPtyCommand('/7_gofer_save');
       this.logger.info('[save/clear/resume] Step 1: Sent /7_gofer_save');
 
       // Step 2: Wait for checkpoint file to appear/update (max 90 seconds)
@@ -526,7 +544,7 @@ export class AutoHandoffTrigger implements vscode.Disposable {
         this.logger.warn('[save/clear/resume] PTY died during save, aborting');
         return false;
       }
-      this.claudePtyProcess.write('/clear\r');
+      await this.sendPtyCommand('/clear');
       this.logger.info('[save/clear/resume] Step 3: Sent /clear');
 
       // Brief pause for clear to take effect
@@ -537,7 +555,7 @@ export class AutoHandoffTrigger implements vscode.Disposable {
         this.logger.warn('[save/clear/resume] PTY died after clear, aborting');
         return false;
       }
-      this.claudePtyProcess.write('/8_gofer_resume\r');
+      await this.sendPtyCommand('/8_gofer_resume');
       this.logger.info('[save/clear/resume] Step 4: Sent /8_gofer_resume — context reset complete');
 
       return true;

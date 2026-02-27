@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.13.3] - 2026-02-27
+
+Fix PTY command submission: send carriage return separately with 500ms delay to match working pattern
+
 ## [1.13.2] - 2026-02-26
 
 Fix extension activation crash: reflect-metadata import order, command registration timing, config schema mismatch, spec loader filtering

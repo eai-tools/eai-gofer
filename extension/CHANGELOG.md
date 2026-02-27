@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.13.4] - 2026-02-27
+
+Fix memory leaks from leaked event listeners and untracked timers
+
 ## [1.13.3] - 2026-02-27
 
 Fix PTY command submission: send carriage return separately with 500ms delay to match working pattern

@@ -520,6 +520,14 @@ export async function deactivate(): Promise<void> {
     // Rate limiter may not have been imported
   }
 
+  // Dispose performance monitor timer
+  try {
+    const { PerformanceMonitor } = await import('./utils/performance');
+    PerformanceMonitor.getInstance().dispose();
+  } catch {
+    // Performance monitor may not have been imported
+  }
+
   // Stop Claude Code terminals (dynamic import to avoid blocking activation)
   try {
     const { stopClaudeCode } = await import('./autonomousCommands');

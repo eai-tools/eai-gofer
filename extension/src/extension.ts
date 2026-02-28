@@ -26,6 +26,11 @@ import { ContextHealthStatusBar } from './ui/ContextHealthStatusBar';
 // Real Context Monitoring (Spec 014)
 import { ContinuousMemoryWriter } from './autonomous/ContinuousMemoryWriter';
 import { ScopeGuard } from './autonomous/ScopeGuard';
+import { ToolAuditLogger } from './autonomous/ToolAuditLogger';
+import { RunLedger } from './autonomous/RunLedger';
+import { CostBudgetEnforcer } from './autonomous/CostBudgetEnforcer';
+import { PipelineStateManager } from './autonomous/PipelineStateManager';
+import { ConfigManager } from './config';
 // Hook-based monitoring
 import { HookBridgeWatcher } from './autonomous/HookBridgeWatcher';
 import { MultiSessionBridgeWatcher } from './autonomous/MultiSessionBridgeWatcher';
@@ -350,6 +355,46 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
     state.memoryManager = new MemoryManager(context, workspacePath);
   }
 
+  // Initialize ScopeGuard, RunLedger, and ToolAuditLogger
+  const runLedger = new RunLedger(workspacePath);
+
+  // 002 AC-3.3: Wire pipeline runId to RunLedger for correlation
+  const pipelineStateManager = new PipelineStateManager(workspacePath);
+  tryWireRunId(pipelineStateManager, runLedger, workspacePath);
+
+  const scopeGuard = new ScopeGuard(workspacePath);
+  const configManager = ConfigManager.getInstance();
+  scopeGuard.setEnforcementMode(configManager.getScopeGuardMode());
+
+  const toolAuditLogger = new ToolAuditLogger(workspacePath, runLedger);
+  scopeGuard.setToolAuditLogger(toolAuditLogger);
+  state.scopeGuard = scopeGuard;
+
+  // Initialize CostBudgetEnforcer with config from settings
+  const costBudgetEnforcer = new CostBudgetEnforcer(
+    {
+      maxCostUsd: configManager.getBudgetMaxCostUsd(),
+      maxTokensPerRun: configManager.getBudgetMaxTokensPerRun(),
+      enforcementMode: configManager.getBudgetEnforcementMode(),
+    },
+    runLedger
+  );
+  state.costBudgetEnforcer = costBudgetEnforcer;
+
+  // Wire RunLedger into existing loggers
+  if (state.contextUsageLogger) {
+    state.contextUsageLogger.setRunLedger(runLedger);
+    // 002 AC-6.4: Wire CostBudgetEnforcer so logLLMCall() forwards to recordUsage()
+    state.contextUsageLogger.setCostBudgetEnforcer(costBudgetEnforcer);
+    // 002 AC-6.7: Wire ContextHealthStatusBar for budget snapshot display
+    if (state.contextHealthStatusBar) {
+      state.contextUsageLogger.setContextHealthStatusBar(state.contextHealthStatusBar);
+    }
+  }
+
+  // Protected boundaries are loaded by ScopeGuard.loadFromSpec() when a spec is opened.
+  // The EventHandlers' ScopeGuard diagnostics integration handles this via hookBridgeWatcher.
+
   // Register workspace commands using CommandRegistry
   if (migrator) {
     const commandRegistry = getContainer().resolve(CommandRegistry);
@@ -543,4 +588,52 @@ export async function deactivate(): Promise<void> {
   }
 
   logger?.info('Extension', 'Gofer extension deactivated');
+}
+
+/**
+ * 002 AC-3.3: Try to find the most recent pipeline-state.json and set its runId on RunLedger.
+ * Best-effort: if no pipeline state exists, RunLedger uses '' as fallback.
+ */
+function tryWireRunId(
+  pipelineStateManager: PipelineStateManager,
+  runLedger: RunLedger,
+  workspacePath: string
+): void {
+  try {
+    const fs = require('fs');
+    const specsDir = path.join(workspacePath, '.specify', 'specs');
+    if (!fs.existsSync(specsDir)) return;
+
+    const entries = fs.readdirSync(specsDir, { withFileTypes: true }) as Array<{
+      isDirectory(): boolean;
+      name: string;
+    }>;
+    let latestRunId = '';
+    let latestTime = 0;
+
+    for (const entry of entries) {
+      if (!entry.isDirectory() || entry.name.startsWith('_')) continue;
+      const statePath = path.join(specsDir, entry.name, 'pipeline-state.json');
+      try {
+        const stat = fs.statSync(statePath);
+        if (stat.mtimeMs > latestTime) {
+          const content = fs.readFileSync(statePath, 'utf-8');
+          const state = JSON.parse(content);
+          if (state.runId) {
+            latestRunId = state.runId;
+            latestTime = stat.mtimeMs;
+          }
+        }
+      } catch {
+        // pipeline-state.json doesn't exist for this feature
+      }
+    }
+
+    if (latestRunId) {
+      runLedger.setRunId(latestRunId);
+      logger?.debug('Extension', `Wired RunLedger with runId: ${latestRunId.substring(0, 8)}...`);
+    }
+  } catch {
+    // Non-fatal: RunLedger will use '' as runId
+  }
 }

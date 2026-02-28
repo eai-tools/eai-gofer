@@ -9,6 +9,22 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import type { ToolAuditLogger, ToolAuditEntry } from './ToolAuditLogger';
+
+/** Error thrown when ScopeGuard is in blocking mode and a violation occurs */
+export class ScopeViolationError extends Error {
+  public readonly filePath: string;
+  public readonly protectedPattern: string;
+  public readonly enforcement: ScopeEnforcementMode;
+
+  constructor(filePath: string, protectedPattern: string, enforcement: ScopeEnforcementMode) {
+    super(`Scope violation blocked: ${filePath} matches protected pattern "${protectedPattern}"`);
+    this.name = 'ScopeViolationError';
+    this.filePath = filePath;
+    this.protectedPattern = protectedPattern;
+    this.enforcement = enforcement;
+  }
+}
 
 export interface ScopeViolation {
   file: string;
@@ -25,11 +41,23 @@ export class ScopeGuard {
   private protectedPatterns: string[] = [];
   private readonly workspaceRoot: string;
   private violations: ScopeViolation[] = [];
-  /** 018 T064: Current enforcement mode */
-  private enforcementMode: ScopeEnforcementMode = 'advisory';
+  /** Current enforcement mode — default is 'warning' */
+  private enforcementMode: ScopeEnforcementMode = 'warning';
+  private auditLogger?: ToolAuditLogger;
+  private agentName = 'unknown';
 
   constructor(workspaceRoot: string) {
     this.workspaceRoot = workspaceRoot;
+  }
+
+  /** Wire a ToolAuditLogger for audit trail */
+  setToolAuditLogger(logger: ToolAuditLogger): void {
+    this.auditLogger = logger;
+  }
+
+  /** Set the agent name for audit entries */
+  setAgentName(name: string): void {
+    this.agentName = name;
   }
 
   /**
@@ -80,16 +108,14 @@ export class ScopeGuard {
   /**
    * Check if a file path violates protected boundaries.
    * Returns the matching protected pattern or null if no violation.
+   * In blocking mode, throws ScopeViolationError instead of returning.
    */
   check(filePath: string): string | null {
     const normalized = filePath.replace(/\\/g, '/');
 
     for (const pattern of this.protectedPatterns) {
       const normalizedPattern = pattern.replace(/\\/g, '/');
-      if (
-        normalized.includes(normalizedPattern) ||
-        normalized.endsWith(normalizedPattern)
-      ) {
+      if (normalized.includes(normalizedPattern) || normalized.endsWith(normalizedPattern)) {
         const violation: ScopeViolation = {
           file: filePath,
           protectedPattern: pattern,
@@ -97,14 +123,52 @@ export class ScopeGuard {
           enforcement: this.enforcementMode,
         };
         this.violations.push(violation);
-        console.warn(
-          `[Gofer] Scope violation: ${filePath} matches protected pattern "${pattern}"`
-        );
+
+        const outcome: ToolAuditEntry['outcome'] =
+          this.enforcementMode === 'blocking'
+            ? 'blocked'
+            : this.enforcementMode === 'warning'
+              ? 'warned'
+              : 'warned';
+
+        // Log to audit trail
+        this.emitAuditEntry(filePath, pattern, outcome);
+
+        if (this.enforcementMode === 'blocking') {
+          throw new ScopeViolationError(filePath, pattern, this.enforcementMode);
+        }
+
+        console.warn(`[Gofer] Scope violation: ${filePath} matches protected pattern "${pattern}"`);
         return pattern;
       }
     }
 
+    // Log allowed access
+    this.emitAuditEntry(filePath, '', 'allowed');
+
     return null;
+  }
+
+  /** Emit an audit entry to the ToolAuditLogger if wired */
+  private emitAuditEntry(
+    filePath: string,
+    protectedPattern: string,
+    outcome: ToolAuditEntry['outcome']
+  ): void {
+    if (!this.auditLogger) return;
+    this.auditLogger
+      .logCheck({
+        timestamp: new Date().toISOString(),
+        runId: '',
+        agent: this.agentName,
+        filePath,
+        protectedPattern,
+        enforcement: this.enforcementMode,
+        outcome,
+      })
+      .catch(() => {
+        /* non-fatal */
+      });
   }
 
   /**
@@ -154,7 +218,9 @@ export class ScopeGuard {
         }
         const depCount = Object.keys(pkg.dependencies || {}).length;
         const devDepCount = Object.keys(pkg.devDependencies || {}).length;
-        lines.push(`| Dependencies | ${depCount} runtime, ${devDepCount} dev | Compatibility constraints |`);
+        lines.push(
+          `| Dependencies | ${depCount} runtime, ${devDepCount} dev | Compatibility constraints |`
+        );
 
         if (pkg.type === 'module') {
           lines.push('| Module System | ESM (`type: module`) | Import/export patterns |');
@@ -175,7 +241,7 @@ export class ScopeGuard {
     }
 
     // Test directories found
-    const testDirs = ['tests', 'test', '__tests__', 'spec'].filter(dir =>
+    const testDirs = ['tests', 'test', '__tests__', 'spec'].filter((dir) =>
       fs.existsSync(path.join(this.workspaceRoot, dir))
     );
     if (testDirs.length > 0) {
@@ -207,14 +273,16 @@ export class ScopeGuard {
       const pkgPath = path.join(this.workspaceRoot, 'package.json');
       if (fs.existsSync(pkgPath)) {
         const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
-        const depCount = Object.keys(pkg.dependencies || {}).length + Object.keys(pkg.devDependencies || {}).length;
+        const depCount =
+          Object.keys(pkg.dependencies || {}).length +
+          Object.keys(pkg.devDependencies || {}).length;
         if (depCount > 5) return true;
       }
       // Check for existing source files
       const srcDir = path.join(this.workspaceRoot, 'src');
       if (fs.existsSync(srcDir)) {
         const entries = fs.readdirSync(srcDir, { withFileTypes: true });
-        const sourceFiles = entries.filter(e => e.isFile() && /\.(ts|js|tsx|jsx)$/.test(e.name));
+        const sourceFiles = entries.filter((e) => e.isFile() && /\.(ts|js|tsx|jsx)$/.test(e.name));
         if (sourceFiles.length > 3) return true;
       }
       // Check for test directories

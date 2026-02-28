@@ -78,6 +78,10 @@ export const CONFIG_KEYS = {
   contextWindowAutoExecuteSave: 'gofer.contextWindow.autoExecuteSave',
   contextWindowAutoSaveThreshold: 'gofer.contextWindow.autoSaveThreshold',
   contextWindowAutoResumeAfterSave: 'gofer.contextWindow.autoResumeAfterSave',
+  scopeGuardMode: 'gofer.scopeGuard.mode',
+  budgetMaxCostUsd: 'gofer.budgets.maxCostUsd',
+  budgetMaxTokensPerRun: 'gofer.budgets.maxTokensPerRun',
+  budgetEnforcementMode: 'gofer.budgets.enforcementMode',
 } as const;
 
 // Default values
@@ -95,6 +99,10 @@ export const DEFAULTS = {
   contextWindowAutoExecuteSave: true,
   contextWindowAutoSaveThreshold: 0.65,
   contextWindowAutoResumeAfterSave: true,
+  scopeGuardMode: 'warning',
+  budgetMaxCostUsd: 10.0,
+  budgetMaxTokensPerRun: 500_000,
+  budgetEnforcementMode: 'advisory',
 } as const;
 
 // File patterns
@@ -303,6 +311,46 @@ export class ConfigManager {
   }
 
   /**
+   * Get ScopeGuard enforcement mode
+   */
+  public getScopeGuardMode(): 'advisory' | 'warning' | 'blocking' {
+    return this.config.get<'advisory' | 'warning' | 'blocking'>(
+      CONFIG_KEYS.scopeGuardMode.replace('gofer.', ''),
+      DEFAULTS.scopeGuardMode as 'warning'
+    );
+  }
+
+  /**
+   * Get budget max cost in USD
+   */
+  public getBudgetMaxCostUsd(): number {
+    return this.config.get<number>(
+      CONFIG_KEYS.budgetMaxCostUsd.replace('gofer.', ''),
+      DEFAULTS.budgetMaxCostUsd
+    );
+  }
+
+  /**
+   * Get budget max tokens per run
+   */
+  public getBudgetMaxTokensPerRun(): number {
+    return this.config.get<number>(
+      CONFIG_KEYS.budgetMaxTokensPerRun.replace('gofer.', ''),
+      DEFAULTS.budgetMaxTokensPerRun
+    );
+  }
+
+  /**
+   * Get budget enforcement mode
+   */
+  public getBudgetEnforcementMode(): 'advisory' | 'truncate' | 'blocking' {
+    return this.config.get<'advisory' | 'truncate' | 'blocking'>(
+      CONFIG_KEYS.budgetEnforcementMode.replace('gofer.', ''),
+      DEFAULTS.budgetEnforcementMode as 'advisory'
+    );
+  }
+
+  /**
    * Get all configuration as object
    */
   public getAll(): Record<string, unknown> {
@@ -321,6 +369,10 @@ export class ConfigManager {
       contextWindowAutoExecuteSave: this.getContextWindowAutoExecuteSave(),
       contextWindowAutoSaveThreshold: this.getContextWindowAutoSaveThreshold(),
       contextWindowAutoResumeAfterSave: this.getContextWindowAutoResumeAfterSave(),
+      scopeGuardMode: this.getScopeGuardMode(),
+      budgetMaxCostUsd: this.getBudgetMaxCostUsd(),
+      budgetMaxTokensPerRun: this.getBudgetMaxTokensPerRun(),
+      budgetEnforcementMode: this.getBudgetEnforcementMode(),
     };
   }
 }

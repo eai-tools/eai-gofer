@@ -987,6 +987,8 @@ export async function launchClaudeCode(specId: string): Promise<void> {
         ...process.env,
         // Trigger Claude Code auto-compaction at 70% instead of default ~95%
         CLAUDE_AUTOCOMPACT_PCT_OVERRIDE: '70',
+        // Pass terminal display name so hooks can include it in bridge data
+        GOFER_DISPLAY_NAME: `Claude Code: ${specId}`,
       } as any,
     });
 

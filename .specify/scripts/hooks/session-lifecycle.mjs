@@ -61,6 +61,7 @@ if (mode === 'start') {
     timestamp: now,
     sessionId,
     model: '',
+    displayName: process.env.GOFER_DISPLAY_NAME || undefined,
     context: null,
     lastToolUse: null,
     session: {

@@ -354,6 +354,8 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
   // Initialize MemoryManager for memory commands (if not already initialized)
   if (!state.memoryManager && state.branchSpecManager) {
     state.memoryManager = new MemoryManager(context, workspacePath);
+    // Wire MemoryManager to MemoryProvider so the MEMORY panel can display stored memories
+    state.memoryProvider?.setMemoryManager(state.memoryManager);
   }
 
   // Initialize ScopeGuard, RunLedger, and ToolAuditLogger

@@ -421,8 +421,7 @@ Generate 5 implementation options spanning the efficiency→innovation spectrum.
 
 ### Load Option Templates
 
-Read `.specify/templates/sequence-diagrams/option-spectrum.yaml` for option
-definitions:
+Read `.specify/templates/sequence-diagrams/option-spectrum.yaml` for option definitions:
 
 - Option 1: Minimal (95% efficiency, 10% innovation)
 - Option 2: Efficient (80% efficiency, 30% innovation)
@@ -437,7 +436,7 @@ For each option (1-5), create a sequence diagram file at:
 
 **Each option file should include:**
 
-````markdown
+```markdown
 ---
 id: {feature}-option-{N}
 optionNumber: {N}
@@ -461,9 +460,9 @@ created: {ISO-timestamp}
 
 ## Actors
 
-| Actor     | Role                  | System/Human |
-| --------- | --------------------- | ------------ |
-| {Actor 1} | {Role in this option} | {Type}       |
+| Actor | Role | System/Human |
+|-------|------|--------------|
+| {Actor 1} | {Role in this option} | {Type} |
 
 ## Sequence Diagram
 
@@ -480,7 +479,6 @@ sequenceDiagram
 
     {Gen AI touchpoints if applicable - highlighted in rect}
 ```
-````
 
 ## Gen AI Touchpoints
 
@@ -490,10 +488,10 @@ sequenceDiagram
 
 ## Scores
 
-| Metric     | Score             |
-| ---------- | ----------------- |
-| Efficiency | {score}%          |
-| Innovation | {score}%          |
+| Metric | Score |
+|--------|-------|
+| Efficiency | {score}% |
+| Innovation | {score}% |
 | Complexity | {low/medium/high} |
 
 ## Estimated Effort
@@ -507,7 +505,6 @@ sequenceDiagram
 ## Trade-offs
 
 {Explain what you gain and lose with this option}
-
 ```
 
 ### Present Options for Selection
@@ -515,17 +512,15 @@ sequenceDiagram
 After generating all 5 options, present them to the user via **AskUserQuestion**:
 
 ```
-
-Question: "Which implementation option best fits your needs?" Header: "Option"
+Question: "Which implementation option best fits your needs?"
+Header: "Option"
 Options:
-
-1. "Option 1: Minimal" - "Fast delivery, basic functionality, no AI features"
-2. "Option 2: Efficient" - "Good balance of speed and quality, minimal AI"
-3. "Option 3: Standard (Recommended)" - "Full features, moderate AI integration"
-4. "Option 4: Enhanced" - "Rich features, significant AI assistance"
-5. "Option 5: Innovative" - "Cutting-edge, heavy AI/ML, longer timeline"
-
-````
+  1. "Option 1: Minimal" - "Fast delivery, basic functionality, no AI features"
+  2. "Option 2: Efficient" - "Good balance of speed and quality, minimal AI"
+  3. "Option 3: Standard (Recommended)" - "Full features, moderate AI integration"
+  4. "Option 4: Enhanced" - "Rich features, significant AI assistance"
+  5. "Option 5: Innovative" - "Cutting-edge, heavy AI/ML, longer timeline"
+```
 
 ### Save Selection
 
@@ -537,10 +532,8 @@ After user selects an option:
    selected: true
    selectedAt: {ISO-timestamp}
    selectedBy: user
-````
-
+   ```
 3. **Reference in spec.md** - Add section:
-
    ```markdown
    ## Selected Implementation Approach
 
@@ -590,27 +583,6 @@ invoke `/3_gofer_plan` next.
 
 ---
 
-## Required Output Schema
-
-The specify stage MUST produce `spec.md` with the following structure:
-
-### Required Frontmatter
-
-```yaml
----
-id: [feature-id]
-title: [Feature Title]
-status: draft
-created: [ISO date]
----
-```
-
-### Required Sections
-
-- `## User Stories` or `## User Scenarios` — At least one user story
-- `## Functional Requirements` or `## Requirements` — Testable requirements
-- `## Success Criteria` — Measurable success metrics
-
 ## Guidelines
 
 ### Quick Guidelines
@@ -644,12 +616,6 @@ At stage completion, log metrics:
 
 ```bash
 .specify/scripts/bash/log-stage.sh 2_specify --complete --tokens [N] --compactions [N]
-```
-
-Update pipeline state to record stage completion:
-
-```bash
-.specify/scripts/bash/pipeline-state.sh update --stage 2_specify
 ```
 
 Logs to: `.specify/logs/pipeline.jsonl`

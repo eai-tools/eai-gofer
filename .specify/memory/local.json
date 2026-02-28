@@ -210,6 +210,21 @@
       "lastUsed": 1772059441270,
       "usedCount": 0,
       "learnedFrom": "session:5dc95b1d-6b0b-448c-917f-0e66542ac9a5"
+    },
+    {
+      "id": "70b4dbc1-f7eb-48fb-a147-6d97be6fc890",
+      "category": "file_knowledge",
+      "tags": [
+        "#auto-learned",
+        "#files",
+        "#session-9c0df6b3"
+      ],
+      "scope": "local",
+      "content": "- .specify/specs/002-gofer-gap-remediation/issues.md (50 GitHub issues)",
+      "created": 1772247532740,
+      "lastUsed": 1772247532740,
+      "usedCount": 0,
+      "learnedFrom": "session:9c0df6b3-d898-4ea2-96f2-cf66e4ffe2df"
     }
   ]
 }

@@ -73,7 +73,6 @@ Planning loads research.md, spec.md, and constitution.md - monitor context.
 3. **Load plan template**: `.specify/templates/plan-template.md`
 
 4. **Load sequence diagram option** (if exists):
-
    ```bash
    ls -la {FEATURE_DIR}/sequence-diagrams/selected-option.md 2>/dev/null
    ```
@@ -601,35 +600,9 @@ At stage completion, log metrics:
 .specify/scripts/bash/log-stage.sh 3_plan --complete --tokens [N] --compactions [N]
 ```
 
-Update pipeline state to record stage completion:
-
-```bash
-.specify/scripts/bash/pipeline-state.sh update --stage 3_plan
-```
-
 Logs to: `.specify/logs/pipeline.jsonl`
 
 ---
-
-## Required Output Schema
-
-The plan stage MUST produce `plan.md` with the following structure:
-
-### Required Frontmatter
-
-```yaml
----
-feature: [Feature Name]
-spec: spec.md
-status: ready
-created: [ISO date]
----
-```
-
-### Required Sections
-
-- `## Technical Context` or `## Tech Stack` — Technology choices
-- `## Implementation Phases` or `## Phases` — Phased implementation plan
 
 ## Key Rules
 

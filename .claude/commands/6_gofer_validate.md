@@ -1,5 +1,6 @@
 ---
-description: Validate implementation with 10-category engineering rubric (100 points)
+description:
+  Validate implementation with 10-category engineering rubric (100 points)
 ---
 
 # Gofer Validate
@@ -53,18 +54,18 @@ This command expects in `.specify/specs/{feature}/`:
 
 ### 10-Category Scoring (100 Points)
 
-| # | Category | Points | Pass Criteria | Agent |
-|---|----------|--------|---------------|-------|
-| 1 | Functional Correctness | 15 | Every acceptance criterion in spec.md has a passing test exercising real code | validation-correctness |
-| 2 | Test Authenticity | 15 | Zero skips, zero placeholders, zero mock-only assertions. Mutation score >= 60% if Stryker available | validation-test-quality |
-| 3 | UI/E2E Verification | 10 | If feature has UI: real rendering tests pass. If no UI: points redistribute | N/A (automated check) |
-| 4 | Security Posture | 10 | Zero hardcoded secrets, no disabled security features, no client-side keys | validation-security |
-| 5 | Integration Reality | 10 | Integration tests use real dependencies where possible. Contract tests validate boundaries | validation-integration |
-| 6 | Error Path Coverage | 10 | Public functions tested for failure modes. No empty catch blocks | validation-correctness + validation-standards |
-| 7 | Architecture Compliance | 10 | File structure and patterns match plan.md and research.md | validation-standards |
-| 8 | Performance Baseline | 5 | No synchronous I/O in async paths, no unbounded loops, no N+1 patterns | validation-performance |
-| 9 | Code Hygiene | 10 | Zero AI slop: no TODO placeholders, no redundant comments, no magic numbers | validation-standards |
-| 10 | Specification Traceability | 5 | Every user story maps to tests, every test maps to code | validation-correctness |
+| #   | Category                   | Points | Pass Criteria                                                                                        | Agent                                         |
+| --- | -------------------------- | ------ | ---------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| 1   | Functional Correctness     | 15     | Every acceptance criterion in spec.md has a passing test exercising real code                        | validation-correctness                        |
+| 2   | Test Authenticity          | 15     | Zero skips, zero placeholders, zero mock-only assertions. Mutation score >= 60% if Stryker available | validation-test-quality                       |
+| 3   | UI/E2E Verification        | 10     | If feature has UI: real rendering tests pass. If no UI: points redistribute                          | N/A (automated check)                         |
+| 4   | Security Posture           | 10     | Zero hardcoded secrets, no disabled security features, no client-side keys                           | validation-security                           |
+| 5   | Integration Reality        | 10     | Integration tests use real dependencies where possible. Contract tests validate boundaries           | validation-integration                        |
+| 6   | Error Path Coverage        | 10     | Public functions tested for failure modes. No empty catch blocks                                     | validation-correctness + validation-standards |
+| 7   | Architecture Compliance    | 10     | File structure and patterns match plan.md and research.md                                            | validation-standards                          |
+| 8   | Performance Baseline       | 5      | No synchronous I/O in async paths, no unbounded loops, no N+1 patterns                               | validation-performance                        |
+| 9   | Code Hygiene               | 10     | Zero AI slop: no TODO placeholders, no redundant comments, no magic numbers                          | validation-standards                          |
+| 10  | Specification Traceability | 5      | Every user story maps to tests, every test maps to code                                              | validation-correctness                        |
 
 ### Point Redistribution (No-UI Features)
 
@@ -74,8 +75,8 @@ interface), the 10 points from UI/E2E Verification are redistributed:
 - **+5 to Functional Correctness** (total: 20 points)
 - **+5 to Test Authenticity** (total: 20 points)
 
-**Detection**: Check plan.md tech stack. If no UI framework (React, Vue, Angular,
-Svelte) and no Playwright/Cypress tests exist, this is a no-UI feature.
+**Detection**: Check plan.md tech stack. If no UI framework (React, Vue,
+Angular, Svelte) and no Playwright/Cypress tests exist, this is a no-UI feature.
 
 ### Scoring Rules
 
@@ -139,7 +140,7 @@ feature context and returns structured findings.
 ### Agent 1: Correctness Validator
 
 ```
-Task: subagent_type="validation-correctness"
+Task: subagent_type="validation-correctness", model="sonnet"
 Prompt: "Validate functional correctness for feature [FEATURE_NAME].
 
 Feature directory: {FEATURE_DIR}
@@ -154,7 +155,7 @@ Return findings in your standard report format (<2000 tokens)."
 ### Agent 2: Security Validator
 
 ```
-Task: subagent_type="validation-security"
+Task: subagent_type="validation-security", model="sonnet"
 Prompt: "Validate security posture for feature [FEATURE_NAME].
 
 Scan all new/modified files (from tasks.md file paths).
@@ -165,7 +166,7 @@ Return findings with Red/Yellow/Gray severity (<2000 tokens)."
 ### Agent 3: Performance Validator
 
 ```
-Task: subagent_type="validation-performance"
+Task: subagent_type="validation-performance", model="haiku"
 Prompt: "Validate performance characteristics for feature [FEATURE_NAME].
 
 Scan all new/modified source files (from tasks.md file paths).
@@ -177,7 +178,7 @@ Return findings with complexity scores (<2000 tokens)."
 ### Agent 4: Test Quality Validator
 
 ```
-Task: subagent_type="validation-test-quality"
+Task: subagent_type="validation-test-quality", model="haiku"
 Prompt: "Validate test quality for feature [FEATURE_NAME].
 
 Scan test files related to the feature.
@@ -189,7 +190,7 @@ Return findings with mock ratio calculation (<2000 tokens)."
 ### Agent 5: Integration Validator
 
 ```
-Task: subagent_type="validation-integration"
+Task: subagent_type="validation-integration", model="sonnet"
 Prompt: "Validate integration contracts for feature [FEATURE_NAME].
 
 Feature directory: {FEATURE_DIR}
@@ -201,7 +202,7 @@ Return findings with contract compliance status (<2000 tokens)."
 ### Agent 6: Standards Validator
 
 ```
-Task: subagent_type="validation-standards"
+Task: subagent_type="validation-standards", model="sonnet"
 Prompt: "Validate standards compliance for feature [FEATURE_NAME].
 
 Feature directory: {FEATURE_DIR}
@@ -211,7 +212,39 @@ Check code hygiene: TODO/FIXME, magic numbers, unused imports.
 Return findings with severity tiers (<2000 tokens)."
 ```
 
-**Run all 6 agents in parallel.** Collect all results before proceeding.
+### Agent 7: Security Red Team (Optional — Multi-Perspective)
+
+When the feature involves security-sensitive code (authentication,
+authorization, user input handling, external APIs), run the security red team
+strategy (#13):
+
+```
+# Diverge: 3 attack perspectives
+Task: subagent_type="validate-security-red-team", model="sonnet"
+Prompt: "Perspective 1: OWASP Top 10 attack analysis for feature [FEATURE_NAME].
+Scan all new/modified files from tasks.md. Attack from OWASP perspective.
+Return findings with exploit steps (<2000 tokens)."
+
+Task: subagent_type="validate-security-red-team", model="sonnet"
+Prompt: "Perspective 2: Business logic abuse analysis for feature [FEATURE_NAME].
+Scan all new/modified files from tasks.md. Attack business logic.
+Return findings with exploit steps (<2000 tokens)."
+
+Task: subagent_type="validate-security-red-team", model="sonnet"
+Prompt: "Perspective 3: CVE search for feature [FEATURE_NAME].
+Check package.json dependencies for known CVEs.
+Return findings with advisory references (<2000 tokens)."
+
+# Converge: Judge synthesizes attack findings
+Task: subagent_type="multi-perspective-judge", model="opus"
+Prompt: "Synthesize 3 security red team perspectives for [FEATURE_NAME].
+Perspective 1 (OWASP): [result]. Perspective 2 (Business Logic): [result].
+Perspective 3 (CVE): [result].
+Identify confirmed vulnerabilities vs false positives. Prioritize by exploitability."
+```
+
+**Run all 6 core agents in parallel.** Run Agent 7 (if applicable) in parallel
+with the core agents. Collect all results before proceeding.
 
 ---
 
@@ -280,7 +313,8 @@ npx stryker --version 2>/dev/null
 
 1. Record: `MUTATION_SCORE = "unavailable"`
 2. Log recommendation: "Install @stryker-mutator/core for mutation testing"
-3. Test Authenticity is scored based on other criteria only (placeholders, skips, mock ratio)
+3. Test Authenticity is scored based on other criteria only (placeholders,
+   skips, mock ratio)
 4. Do NOT block on mutation score when Stryker is absent
 
 ---
@@ -359,13 +393,14 @@ Method: Grep for catch blocks with empty or whitespace-only bodies
 
 #### Gray Severity (Informational)
 
-Gray-level findings are reported by the specialist agents (Standards and
-Test Quality). They include:
+Gray-level findings are reported by the specialist agents (Standards and Test
+Quality). They include:
 
 - Redundant comments restating code (agent: validation-standards)
 - Over-engineered abstractions for one-time use (agent: validation-standards)
 - Magic numbers without named constants (agent: validation-standards)
-- Mock-only tests that verify wiring not behavior (agent: validation-test-quality)
+- Mock-only tests that verify wiring not behavior (agent:
+  validation-test-quality)
 
 ### Consolidate Slop Findings
 
@@ -390,54 +425,65 @@ category:
 ### Scoring Logic
 
 **Category 1: Functional Correctness** ({15 or 20 if no UI} pts)
+
 - Input: validation-correctness agent report + automated test results
 - Score 0 if: Any Red finding from correctness agent, OR build/tests fail
 - Score full if: All acceptance criteria verified with real tests
 
 **Category 2: Test Authenticity** ({15 or 20 if no UI} pts)
+
 - Input: validation-test-quality agent report + mutation score + mock ratio
-- Score 0 if: Any placeholder assertion found, OR any test.skip found, OR
-  mock ratio > 30%, OR mutation score < 60% (when Stryker available)
+- Score 0 if: Any placeholder assertion found, OR any test.skip found, OR mock
+  ratio > 30%, OR mutation score < 60% (when Stryker available)
 - Score full if: Zero placeholders, zero skips, mock ratio <= 30%
 
 **Category 3: UI/E2E Verification** (10 pts, or 0 if redistributed)
+
 - If `HAS_UI = false`: Skip (points already redistributed to Cat 1 & 2)
-- If `HAS_UI = true`: Check for Playwright/Cypress test files that exercise
-  real rendering. Score 0 if no real UI tests exist.
+- If `HAS_UI = true`: Check for Playwright/Cypress test files that exercise real
+  rendering. Score 0 if no real UI tests exist.
 
 **Category 4: Security Posture** (10 pts)
+
 - Input: validation-security agent report
 - Score 0 if: Any Red finding from security agent
 - Score full if: No Red or Yellow findings
 
 **Category 5: Integration Reality** (10 pts)
+
 - Input: validation-integration agent report
 - Score 0 if: Any contract violation, OR critical boundary with zero tests
 - Score full if: All contracts satisfied, integration tests use real deps
 
 **Category 6: Error Path Coverage** (10 pts)
+
 - Input: validation-correctness agent (error paths) + validation-standards agent
   (empty catch blocks)
-- Score 0 if: Empty catch blocks found, OR public functions lack error path tests
+- Score 0 if: Empty catch blocks found, OR public functions lack error path
+  tests
 - Score full if: Error paths tested, catch blocks handle errors properly
 
 **Category 7: Architecture Compliance** (10 pts)
+
 - Input: validation-standards agent report (architecture section)
 - Score 0 if: File structure deviates from plan.md without justification
 - Score full if: All files in expected locations, patterns followed
 
 **Category 8: Performance Baseline** (5 pts)
+
 - Input: validation-performance agent report
 - Score 0 if: Sync I/O in async paths, OR complexity > 12, OR unbounded loops
 - Score full if: No blocking performance findings
 
 **Category 9: Code Hygiene** (10 pts)
+
 - Input: validation-standards agent report (hygiene section) + slop detection
 - Score 0 if: TODO placeholders in production code, OR > 5 redundant comments,
   OR silent error swallowing found
 - Score full if: Clean code, no slop findings above Gray
 
 **Category 10: Specification Traceability** (5 pts)
+
 - Input: validation-correctness agent (criteria mapping)
 - Score 0 if: User stories cannot be traced to tests and code
 - Score full if: Every US has tests, every test maps to implementing code
@@ -471,28 +517,28 @@ has_ui: [true/false]
 
 ## Rubric Score
 
-| # | Category | Points | Score | Status | Evidence |
-|---|----------|--------|-------|--------|----------|
-| 1 | Functional Correctness | [15/20] | [0/15/20] | PASS/FAIL | [summary] |
-| 2 | Test Authenticity | [15/20] | [0/15/20] | PASS/FAIL | [summary] |
-| 3 | UI/E2E Verification | [10/0] | [0/10/N/A] | PASS/FAIL/SKIP | [summary] |
-| 4 | Security Posture | 10 | [0/10] | PASS/FAIL | [summary] |
-| 5 | Integration Reality | 10 | [0/10] | PASS/FAIL | [summary] |
-| 6 | Error Path Coverage | 10 | [0/10] | PASS/FAIL | [summary] |
-| 7 | Architecture Compliance | 10 | [0/10] | PASS/FAIL | [summary] |
-| 8 | Performance Baseline | 5 | [0/5] | PASS/FAIL | [summary] |
-| 9 | Code Hygiene | 10 | [0/10] | PASS/FAIL | [summary] |
-| 10 | Specification Traceability | 5 | [0/5] | PASS/FAIL | [summary] |
-| | **TOTAL** | **100** | **[N]** | **[PASS/FAIL]** | |
+| #   | Category                   | Points  | Score      | Status          | Evidence  |
+| --- | -------------------------- | ------- | ---------- | --------------- | --------- |
+| 1   | Functional Correctness     | [15/20] | [0/15/20]  | PASS/FAIL       | [summary] |
+| 2   | Test Authenticity          | [15/20] | [0/15/20]  | PASS/FAIL       | [summary] |
+| 3   | UI/E2E Verification        | [10/0]  | [0/10/N/A] | PASS/FAIL/SKIP  | [summary] |
+| 4   | Security Posture           | 10      | [0/10]     | PASS/FAIL       | [summary] |
+| 5   | Integration Reality        | 10      | [0/10]     | PASS/FAIL       | [summary] |
+| 6   | Error Path Coverage        | 10      | [0/10]     | PASS/FAIL       | [summary] |
+| 7   | Architecture Compliance    | 10      | [0/10]     | PASS/FAIL       | [summary] |
+| 8   | Performance Baseline       | 5       | [0/5]      | PASS/FAIL       | [summary] |
+| 9   | Code Hygiene               | 10      | [0/10]     | PASS/FAIL       | [summary] |
+| 10  | Specification Traceability | 5       | [0/5]      | PASS/FAIL       | [summary] |
+|     | **TOTAL**                  | **100** | **[N]**    | **[PASS/FAIL]** |           |
 
 ## Automated Check Results
 
-| Check | Command | Result |
-|-------|---------|--------|
-| Build | npm run build | [PASS/FAIL] |
-| Tests | npm test | [PASS/FAIL] |
-| Lint | npm run lint | [PASS/FAIL + count] |
-| TypeCheck | tsc --noEmit | [PASS/FAIL] |
+| Check     | Command       | Result              |
+| --------- | ------------- | ------------------- |
+| Build     | npm run build | [PASS/FAIL]         |
+| Tests     | npm test      | [PASS/FAIL]         |
+| Lint      | npm run lint  | [PASS/FAIL + count] |
+| TypeCheck | tsc --noEmit  | [PASS/FAIL]         |
 
 ## Mutation Testing
 
@@ -508,41 +554,41 @@ has_ui: [true/false]
 
 ### Worst Offenders by File
 
-| File | Mocks | Assertions | Ratio | Status |
-|------|-------|------------|-------|--------|
-| [file] | [N] | [N] | [N]% | OK/FAIL |
+| File   | Mocks | Assertions | Ratio | Status  |
+| ------ | ----- | ---------- | ----- | ------- |
+| [file] | [N]   | [N]        | [N]%  | OK/FAIL |
 
 ## Specialist Agent Findings
 
 ### Red (Blocking)
 
-| # | Category | Finding | File | Line |
-|---|----------|---------|------|------|
+| #   | Category   | Finding       | File   | Line   |
+| --- | ---------- | ------------- | ------ | ------ |
 | [N] | [category] | [description] | [file] | [line] |
 
 ### Yellow (Must Address)
 
-| # | Category | Finding | File | Line |
-|---|----------|---------|------|------|
+| #   | Category   | Finding       | File   | Line   |
+| --- | ---------- | ------------- | ------ | ------ |
 | [N] | [category] | [description] | [file] | [line] |
 
 ### Gray (Informational)
 
-| # | Category | Finding | File | Line |
-|---|----------|---------|------|------|
+| #   | Category   | Finding       | File   | Line   |
+| --- | ---------- | ------------- | ------ | ------ |
 | [N] | [category] | [description] | [file] | [line] |
 
 ## AI Slop Detection Summary
 
-| Pattern | Count | Severity |
-|---------|-------|----------|
-| Placeholder assertions | [N] | Red |
-| Skipped tests | [N] | Red |
-| TODO/FIXME placeholders | [N] | Yellow |
-| Empty catch blocks | [N] | Yellow |
-| Redundant comments | [N] | Yellow |
-| Over-engineered abstractions | [N] | Gray |
-| Magic numbers | [N] | Gray |
+| Pattern                      | Count | Severity |
+| ---------------------------- | ----- | -------- |
+| Placeholder assertions       | [N]   | Red      |
+| Skipped tests                | [N]   | Red      |
+| TODO/FIXME placeholders      | [N]   | Yellow   |
+| Empty catch blocks           | [N]   | Yellow   |
+| Redundant comments           | [N]   | Yellow   |
+| Over-engineered abstractions | [N]   | Gray     |
+| Magic numbers                | [N]   | Gray     |
 
 ## Spec Compliance
 
@@ -608,7 +654,8 @@ has_ui: [true/false]
 ════════════════════════════════════════════════════════════════
 ```
 
-Proceed to **Step 12: Attribution Logging** then **Step 13: Memory Update Check**.
+Proceed to **Step 12: Attribution Logging** then **Step 13: Memory Update
+Check**.
 
 ### If TOTAL < 100: FAIL
 
@@ -643,8 +690,7 @@ failed_categories: [list]
 
 ## Iteration [N] of 3
 
-**Score**: [N]/100
-**Status**: FAIL — Remediation Required
+**Score**: [N]/100 **Status**: FAIL — Remediation Required
 
 ## Failed Categories
 
@@ -653,10 +699,12 @@ failed_categories: [list]
 **Evidence**: [Specific findings from agent reports]
 
 **Required Actions**:
+
 1. [Specific action to fix this category]
 2. [Another specific action]
 
 **Files to modify**:
+
 - `path/to/file.ts:line` — [what to change]
 
 ### [Next Failed Category]
@@ -674,10 +722,10 @@ The following pipeline stages should re-run focused on these areas:
 
 ## Previous Iterations
 
-| Iteration | Score | Failed Categories | Date |
-|-----------|-------|-------------------|------|
-| 1 | [N]/100 | [list] | [date] |
-| 2 | [N]/100 | [list] | [date] |
+| Iteration | Score   | Failed Categories | Date   |
+| --------- | ------- | ----------------- | ------ |
+| 1         | [N]/100 | [list]            | [date] |
+| 2         | [N]/100 | [list]            | [date] |
 ```
 
 ### 10.3 Signal Orchestrator
@@ -730,6 +778,7 @@ After 3 remediation attempts, the following categories still fail:
 ### [Category] — All 3 attempts failed
 
 **Iteration history**:
+
 1. Score [N] — [what was tried]
 2. Score [N] — [what was tried]
 3. Score [N] — [what was tried]
@@ -741,10 +790,10 @@ After 3 remediation attempts, the following categories still fail:
 ## Full Score History
 
 | Iteration | Total | Cat1 | Cat2 | Cat3 | Cat4 | Cat5 | Cat6 | Cat7 | Cat8 | Cat9 | Cat10 |
-|-----------|-------|------|------|------|------|------|------|------|------|------|-------|
-| 1 | [N] | [N] | [N] | [N] | [N] | [N] | [N] | [N] | [N] | [N] | [N] |
-| 2 | [N] | [N] | [N] | [N] | [N] | [N] | [N] | [N] | [N] | [N] | [N] |
-| 3 | [N] | [N] | [N] | [N] | [N] | [N] | [N] | [N] | [N] | [N] | [N] |
+| --------- | ----- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ----- |
+| 1         | [N]   | [N]  | [N]  | [N]  | [N]  | [N]  | [N]  | [N]  | [N]  | [N]  | [N]   |
+| 2         | [N]   | [N]  | [N]  | [N]  | [N]  | [N]  | [N]  | [N]  | [N]  | [N]  | [N]   |
+| 3         | [N]   | [N]  | [N]  | [N]  | [N]  | [N]  | [N]  | [N]  | [N]  | [N]  | [N]   |
 ```
 
 Output:
@@ -844,13 +893,13 @@ After validation, assess whether learnings should be persisted.
 
 ### 12.1 Memory Update Decision Matrix
 
-| Learning Type | Update Location | When to Update |
-|---------------|-----------------|----------------|
-| **Project-wide patterns** | `CLAUDE.md` | New conventions affecting all future work |
-| **Architectural decisions** | `.specify/memory/decisions/` | Significant design choices with rationale |
-| **Feature-specific context** | `{FEATURE_DIR}/research.md` | Discoveries relevant only to this feature |
-| **Reusable code patterns** | `CLAUDE.md` or constitution | Patterns other features should follow |
-| **Bug workarounds** | `.specify/memory/decisions/` | Issues that may recur |
+| Learning Type                | Update Location              | When to Update                            |
+| ---------------------------- | ---------------------------- | ----------------------------------------- |
+| **Project-wide patterns**    | `CLAUDE.md`                  | New conventions affecting all future work |
+| **Architectural decisions**  | `.specify/memory/decisions/` | Significant design choices with rationale |
+| **Feature-specific context** | `{FEATURE_DIR}/research.md`  | Discoveries relevant only to this feature |
+| **Reusable code patterns**   | `CLAUDE.md` or constitution  | Patterns other features should follow     |
+| **Bug workarounds**          | `.specify/memory/decisions/` | Issues that may recur                     |
 
 ### 12.2 CLAUDE.md Update Criteria
 
@@ -912,9 +961,11 @@ This also logs quality metrics (rubric scores, finding counts) to:
 - **Agents run in parallel** — spawn all 6 at once, do not serialize
 - **Red findings block** — any Red finding in any agent zeroes that category
 - **Mutation testing is optional** — gracefully degrade when Stryker absent
-- **Mock ratio excludes justified mocks** — mark with `// mock-justified:` comment
+- **Mock ratio excludes justified mocks** — mark with `// mock-justified:`
+  comment
 - **Attribution logging is mandatory** — every finding gets logged to JSONL
 - **Maximum 3 remediation iterations** — then escalate to human
 - **Be specific** — cite file paths and line numbers for all findings
-- **Score the rubric honestly** — the goal is to catch real problems, not to pass
+- **Score the rubric honestly** — the goal is to catch real problems, not to
+  pass
 - Log stage completion for observability tracking

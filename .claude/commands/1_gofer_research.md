@@ -100,7 +100,7 @@ Launch these specialized agents **in parallel** using the Task tool:
 ### Agent 1: Codebase Locator
 
 ```
-Task: subagent_type="codebase-locator"
+Task: subagent_type="codebase-locator", model="haiku"
 Prompt: "Find all code related to [FEATURE AREA] in this codebase.
 Identify: entry points, related files, directory structure, key classes/functions.
 Focus on: [specific aspects from user's description]"
@@ -109,7 +109,7 @@ Focus on: [specific aspects from user's description]"
 ### Agent 2: Codebase Analyzer
 
 ```
-Task: subagent_type="codebase-analyzer"
+Task: subagent_type="codebase-analyzer", model="sonnet"
 Prompt: "Analyze how [RELATED FUNCTIONALITY] is implemented in this codebase.
 Explain: architecture patterns, data flow, key abstractions.
 Focus on: [how similar features work]"
@@ -118,13 +118,82 @@ Focus on: [how similar features work]"
 ### Agent 3: Pattern Finder
 
 ```
-Task: subagent_type="codebase-pattern-finder"
+Task: subagent_type="codebase-pattern-finder", model="haiku"
 Prompt: "Find examples of [PATTERN TYPE] in this codebase.
 Show: similar implementations we should model after.
 Include: file paths, code snippets, conventions used."
 ```
 
 **Run all three agents in parallel** for maximum efficiency.
+
+---
+
+## Step 2.5: Multi-Perspective Research (Optional)
+
+After the core research agents complete, optionally run additional perspective
+strategies for deeper analysis. **Skip this step if the feature is
+straightforward or time-constrained.**
+
+### Strategy #6: Research Perspective Multiplier
+
+When the feature involves complex integration or unfamiliar territory, spawn 5
+perspective agents:
+
+```
+Task: subagent_type="research-perspective-multiplier", model="haiku"
+Prompt: "Research [TOPIC] from perspective [1-5].
+Perspective 1: Existing codebase patterns
+Perspective 2: Open-source project approaches
+Perspective 3: Latest documentation/guides
+Perspective 4: Anti-patterns to avoid
+Perspective 5: Emerging approaches
+Context: [summary of feature and existing research findings]"
+```
+
+Run all 5 perspectives in parallel, then synthesize with judge:
+
+```
+Task: subagent_type="multi-perspective-judge", model="sonnet"
+Prompt: "Judge verdict type: research synthesis.
+Synthesize these 5 research perspectives into a unified recommendation.
+[paste all 5 agent outputs]"
+```
+
+### Strategy #9: Dependency Evaluator
+
+When the research proposes new dependencies, evaluate each one:
+
+```
+Task: subagent_type="research-dependency-evaluator", model="haiku"
+Prompt: "Evaluate [LIBRARY NAME] from perspective [1-3].
+Perspective 1: Evaluate the proposed library
+Perspective 2: Find alternatives
+Perspective 3: Estimate building without it
+Needed functionality: [what we need from it]"
+```
+
+Run all 3 perspectives in parallel, then synthesize with judge:
+
+```
+Task: subagent_type="multi-perspective-judge", model="sonnet"
+Prompt: "Judge verdict type: dependency decision.
+Decide whether to adopt, find alternative, or build in-house.
+[paste all 3 agent outputs]"
+```
+
+### Strategy #20: Technology Horizon Scanner
+
+For features touching evolving technology areas:
+
+```
+Task: subagent_type="research-horizon-scanner", model="sonnet"
+Prompt: "Scan for emerging alternatives and approaches relevant to [TOPIC].
+Current approach: [what we're considering]
+Tech stack: [relevant technologies]"
+```
+
+This is a single agent — no judge synthesis needed. Include findings in the
+research document.
 
 ---
 
@@ -337,7 +406,8 @@ Before modifying existing code:
 
 ## Step 6.5: Journey Variant Generation (Optional)
 
-**If a base journey exists** at `.specify/specs/{feature}/journeys/base-journey.md`:
+**If a base journey exists** at
+`.specify/specs/{feature}/journeys/base-journey.md`:
 
 Generate industry variants to discover innovative approaches from other domains.
 
@@ -352,7 +422,8 @@ echo "Generating $VARIANT_COUNT industry variants"
 
 ### Load Industry Templates
 
-Read `.specify/templates/journey/industry-variants.yaml` for industry-specific patterns.
+Read `.specify/templates/journey/industry-variants.yaml` for industry-specific
+patterns.
 
 ### Generate Variants
 
@@ -368,7 +439,7 @@ Example: `healthcare-1.md`, `retail-2.md`, `finance-1.md`
 
 **Each variant should include:**
 
-```markdown
+````markdown
 ---
 id: {feature}-{industry}-{number}
 baseJourneyId: {feature}-journey
@@ -407,6 +478,7 @@ Key innovations from {industry} that could apply to your feature:
 sequenceDiagram
     {Industry-specific sequence diagram}
 ```
+````
 
 ## Potential Application
 
@@ -414,7 +486,8 @@ How these insights could enhance your feature:
 
 - {Specific suggestion 1}
 - {Specific suggestion 2}
-```
+
+````
 
 ### Document Innovation Summary
 
@@ -440,7 +513,7 @@ Generated {N} journey variants across 10 industries.
 | Retail | 5 | Cart recovery, recommendations |
 | Healthcare | 4 | Patient portal, telehealth |
 | ... | ... | ... |
-```
+````
 
 ### Skip Conditions
 

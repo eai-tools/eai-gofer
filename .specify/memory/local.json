@@ -225,6 +225,21 @@
       "lastUsed": 1772247532740,
       "usedCount": 0,
       "learnedFrom": "session:9c0df6b3-d898-4ea2-96f2-cf66e4ffe2df"
+    },
+    {
+      "id": "29a17ca8-d578-446a-aeed-a4cad92621fc",
+      "category": "file_knowledge",
+      "tags": [
+        "#auto-learned",
+        "#files",
+        "#session-c7d61fec"
+      ],
+      "scope": "local",
+      "content": "Findings: .specify/logs/validation-findings.jsonl (F017-F021, SUMMARY-003)",
+      "created": 1772278058542,
+      "lastUsed": 1772278058542,
+      "usedCount": 0,
+      "learnedFrom": "session:c7d61fec-18c8-439d-a5d3-dcc7066d90a1"
     }
   ]
 }

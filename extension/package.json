@@ -717,6 +717,52 @@
           "default": true,
           "description": "Automatically execute /8_gofer_resume after /7_gofer_save completes",
           "markdownDescription": "When enabled, automatically sends `/8_gofer_resume` to Claude Code terminal immediately after `/7_gofer_save`.\n\n**Default**: Enabled (automatic resume after save)\n\n**How it works**:\n1. Context reaches auto-save threshold (65%)\n2. `/7_gofer_save` executes automatically (saves session state)\n3. `/8_gofer_resume` executes immediately after (loads fresh context)\n4. Claude Code continues with clean context window\n\n**Benefits**:\n- Zero-interruption context continuity\n- Automatic context refresh without manual intervention\n- Maintains full session state across save/resume cycle\n\n**Note**: Only works when `autoExecuteSave` is also enabled. Both commands execute in the same Claude Code session sequentially."
+        },
+        "gofer.scopeGuard.mode": {
+          "type": "string",
+          "default": "warning",
+          "enum": [
+            "advisory",
+            "warning",
+            "blocking"
+          ],
+          "enumDescriptions": [
+            "Log scope violations to console only — no user-facing warnings",
+            "Show warnings when agents access protected files — recommended default",
+            "Block file access that violates protected boundaries — strictest mode"
+          ],
+          "description": "ScopeGuard enforcement mode for protected file boundaries",
+          "markdownDescription": "Controls how ScopeGuard enforces protected file boundaries defined in spec.md `## Protected Boundaries` sections.\n\n- **advisory**: Violations logged to console only\n- **warning**: Violations produce VSCode diagnostics (Information/Warning)\n- **blocking**: Violations throw `ScopeViolationError` and prevent file access\n\nAll checks are logged to `.specify/logs/tool-audit.jsonl` for audit."
+        },
+        "gofer.budgets.maxCostUsd": {
+          "type": "number",
+          "default": 10,
+          "minimum": 0,
+          "description": "Maximum cost in USD per pipeline run before enforcement kicks in",
+          "markdownDescription": "Maximum cost in USD for a single pipeline run. When cumulative token cost exceeds this threshold, the configured enforcement mode activates.\n\nCost is estimated using per-provider token rates (Anthropic, Google, OpenAI)."
+        },
+        "gofer.budgets.maxTokensPerRun": {
+          "type": "number",
+          "default": 500000,
+          "minimum": 0,
+          "description": "Maximum total tokens (input + output) per pipeline run",
+          "markdownDescription": "Maximum total tokens (input + output) allowed in a single pipeline run. Whichever limit (cost or tokens) is hit first triggers enforcement."
+        },
+        "gofer.budgets.enforcementMode": {
+          "type": "string",
+          "default": "advisory",
+          "enum": [
+            "advisory",
+            "truncate",
+            "blocking"
+          ],
+          "enumDescriptions": [
+            "Log budget warnings but allow pipeline to continue",
+            "Reduce context aggressively when budget is exceeded",
+            "Stop pipeline execution when budget is exceeded"
+          ],
+          "description": "How the cost budget is enforced when limits are exceeded",
+          "markdownDescription": "Controls what happens when a pipeline run exceeds the configured budget.\n\n- **advisory**: Warnings logged to console and status bar — pipeline continues\n- **truncate**: Context is aggressively reduced to lower costs\n- **blocking**: Pipeline execution halts until budget is reset\n\nBudget events are logged to `.specify/logs/gofer-run-ledger.jsonl`."
         }
       }
     }

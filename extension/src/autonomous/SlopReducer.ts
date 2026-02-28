@@ -86,8 +86,14 @@ export class SlopReducer {
   private readonly logger = Logger.for('SlopReducer');
   private readonly reducing = new Set<string>();
   private sessionFixCount = 0;
+  private runLedger?: import('./RunLedger').RunLedger;
 
   constructor(private readonly workspacePath: string) {}
+
+  /** Wire RunLedger for slop fix event emission. */
+  setRunLedger(ledger: import('./RunLedger').RunLedger): void {
+    this.runLedger = ledger;
+  }
 
   /** Check if a file is a test file (excluded from auto-fix) */
   isTestFile(filePath: string): boolean {
@@ -245,6 +251,28 @@ export class SlopReducer {
       fs.appendFileSync(logPath, JSON.stringify(entry) + '\n');
     } catch {
       // Non-fatal — don't block the fix
+    }
+
+    // Emit to RunLedger if wired
+    if (this.runLedger) {
+      this.runLedger
+        .log({
+          runId: '',
+          timestamp: new Date().toISOString(),
+          eventType: 'slop_fix',
+          stage: '',
+          feature: '',
+          source: 'SlopReducer',
+          severity: 'info',
+          data: {
+            pattern: entry.pattern,
+            filePath: entry.file,
+            fixDescription: entry.reason || entry.pattern,
+          },
+        })
+        .catch(() => {
+          /* non-fatal */
+        });
     }
   }
 }

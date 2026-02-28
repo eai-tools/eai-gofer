@@ -130,13 +130,14 @@ handles everything else automatically.
 
 When resuming, the orchestrator detects the most advanced artifact and resumes:
 
-| Has This                | Start At           |
-| ----------------------- | ------------------ |
-| tasks.md (unchecked)    | /5_gofer_implement |
-| plan.md, no tasks.md    | /4_gofer_tasks     |
-| spec.md, no plan.md     | /3_gofer_plan      |
-| research.md, no spec.md | /2_gofer_specify   |
-| Nothing                 | /1_gofer_research  |
+| Has This                          | Start At           |
+| --------------------------------- | ------------------ |
+| tasks.md (unchecked)              | /5_gofer_implement |
+| plan.md, no tasks.md              | /4_gofer_tasks     |
+| spec.md + research.md, no plan.md | /3_gofer_plan      |
+| research.md, no spec.md           | /2_gofer_specify   |
+| spec.md only (no research.md)     | /1_gofer_research  |
+| Nothing                           | /1_gofer_research  |
 
 ### Parallel Agents
 
@@ -551,14 +552,16 @@ Click the status bar to view detailed breakdown:
 When Gofer launches Claude Code via the Play button:
 
 1. **Detects current spec state** - checks which artifacts exist:
-   - spec.md only → needs research and planning
+   - spec.md only (no research.md) → needs research first
+   - spec.md + research.md → needs planning
    - spec.md + plan.md → needs tasks
    - spec.md + plan.md + tasks.md → ready for implementation
 
 2. **Sends appropriate Gofer command**:
    - If tasks.md exists → `/5_gofer_implement`
    - If plan.md exists but no tasks.md → `/4_gofer_tasks`
-   - If only spec.md exists → `/3_gofer_plan`
+   - If spec.md + research.md exist but no plan.md → `/3_gofer_plan`
+   - If spec.md only (no research.md) → `/1_gofer_research`
 
 ### Task Format
 

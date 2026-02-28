@@ -358,6 +358,63 @@ Add to end of spec.md:
 
 ---
 
+## Step 3.7: Multi-Perspective Spec Review (Optional)
+
+Before the quality checklist, optionally run multi-perspective strategies to
+stress-test the specification. **Skip this step if the spec is simple or
+time-constrained.**
+
+### Strategy #10: Spec Ambiguity Detector
+
+Spawn 3 agents that independently interpret the spec and write pseudocode.
+Compare their interpretations to find ambiguities:
+
+```
+Task: subagent_type="specify-ambiguity-detector", model="sonnet"
+Prompt: "You are Agent [1/2/3]. Read spec.md at [FEATURE_DIR]/spec.md.
+For each acceptance criterion, write pseudocode showing how you would implement it.
+Document every assumption you make. Focus on literal interpretation."
+```
+
+Run all 3 agents in parallel, then synthesize with judge:
+
+```
+Task: subagent_type="multi-perspective-judge", model="opus"
+Prompt: "Judge verdict type: ambiguity detection.
+Compare these 3 independent spec interpretations. Identify criteria where agents
+diverged — these are specification ambiguities that need clarification.
+[paste all 3 agent outputs]"
+```
+
+If the judge identifies HIGH ambiguity (>30% criteria diverge), add
+clarifications to the spec before proceeding.
+
+### Strategy #19: User Journey Stress Tester
+
+Spawn 4 persona agents to walk through user journeys and find gaps:
+
+```
+Task: subagent_type="specify-journey-stress-tester", model="haiku"
+Prompt: "You are Persona [1/2/3/4]. Walk through the user journeys in spec.md at [FEATURE_DIR]/spec.md.
+Persona 1: Power user — fast, keyboard-driven, expects batch operations
+Persona 2: First-timer — needs onboarding, clear errors, discoverable features
+Persona 3: Accessibility-dependent — screen reader, keyboard-only
+Persona 4: Adversarial — tries to break things, unexpected inputs"
+```
+
+Run all 4 personas in parallel, then synthesize with judge:
+
+```
+Task: subagent_type="multi-perspective-judge", model="sonnet"
+Prompt: "Judge verdict type: journey gap analysis.
+Synthesize 4 persona journey reports. Flag gaps found by 2+ personas as HIGH priority.
+[paste all 4 agent outputs]"
+```
+
+If HIGH priority gaps are found, add them to the spec before proceeding.
+
+---
+
 ## Step 4: Create Quality Checklist
 
 Generate `{FEATURE_DIR}/checklists/requirements.md`:
@@ -590,27 +647,6 @@ invoke `/3_gofer_plan` next.
 
 ---
 
-## Required Output Schema
-
-The specify stage MUST produce `spec.md` with the following structure:
-
-### Required Frontmatter
-
-```yaml
----
-id: [feature-id]
-title: [Feature Title]
-status: draft
-created: [ISO date]
----
-```
-
-### Required Sections
-
-- `## User Stories` or `## User Scenarios` — At least one user story
-- `## Functional Requirements` or `## Requirements` — Testable requirements
-- `## Success Criteria` — Measurable success metrics
-
 ## Guidelines
 
 ### Quick Guidelines
@@ -644,12 +680,6 @@ At stage completion, log metrics:
 
 ```bash
 .specify/scripts/bash/log-stage.sh 2_specify --complete --tokens [N] --compactions [N]
-```
-
-Update pipeline state to record stage completion:
-
-```bash
-.specify/scripts/bash/pipeline-state.sh update --stage 2_specify
 ```
 
 Logs to: `.specify/logs/pipeline.jsonl`

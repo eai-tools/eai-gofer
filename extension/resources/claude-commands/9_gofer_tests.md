@@ -1,5 +1,7 @@
 ---
-description: Define acceptance test cases using DSL approach before or during implementation
+description:
+  Define acceptance test cases using DSL approach before or during
+  implementation
 ---
 
 # Gofer Tests
@@ -75,7 +77,7 @@ Parse JSON for FEATURE_DIR, then load:
 **CRITICAL**: Before writing any test cases, spawn a research agent:
 
 ```
-Task: subagent_type="codebase-pattern-finder"
+Task: subagent_type="codebase-pattern-finder", model="haiku"
 Prompt: "Find existing test files and patterns in this codebase.
 Identify:
 - Test file locations and naming conventions
@@ -94,11 +96,11 @@ Identify:
 For each user story in spec.md, extract:
 
 ```markdown
-| User Story | Priority | Acceptance Criteria      | Test Cases Needed |
-| ---------- | -------- | ------------------------ | ----------------- |
-| US1        | P1       | User can login with email| TC001, TC002      |
-| US1        | P1       | Error on invalid creds   | TC003, TC004      |
-| US2        | P2       | Dashboard shows metrics  | TC005, TC006      |
+| User Story | Priority | Acceptance Criteria       | Test Cases Needed |
+| ---------- | -------- | ------------------------- | ----------------- |
+| US1        | P1       | User can login with email | TC001, TC002      |
+| US1        | P1       | Error on invalid creds    | TC003, TC004      |
+| US2        | P2       | Dashboard shows metrics   | TC005, TC006      |
 ```
 
 ### 3.2 Coverage Requirements
@@ -305,26 +307,26 @@ Traces to: US1-AC3
 
 ### Setup Functions (To Create)
 
-| Function             | Purpose                         | Exists? |
-| -------------------- | ------------------------------- | ------- |
-| `userExists()`       | Create test user in database    | No      |
-| `authServiceIsDown()`| Mock auth service failure       | No      |
-| `rememberMeEnabled()`| Set remember me preference      | No      |
+| Function              | Purpose                      | Exists? |
+| --------------------- | ---------------------------- | ------- |
+| `userExists()`        | Create test user in database | No      |
+| `authServiceIsDown()` | Mock auth service failure    | No      |
+| `rememberMeEnabled()` | Set remember me preference   | No      |
 
 ### Action Functions (To Create)
 
-| Function              | Purpose                        | Exists? |
-| --------------------- | ------------------------------ | ------- |
-| `userSubmitsLogin()`  | Simulate login form submission | No      |
-| `userNavigatesTo()`   | Navigate to URL                | Yes     |
+| Function             | Purpose                        | Exists? |
+| -------------------- | ------------------------------ | ------- |
+| `userSubmitsLogin()` | Simulate login form submission | No      |
+| `userNavigatesTo()`  | Navigate to URL                | Yes     |
 
 ### Assertion Functions (To Create)
 
-| Function                  | Purpose                      | Exists? |
-| ------------------------- | ---------------------------- | ------- |
-| `expectUserLoggedIn()`    | Verify user session exists   | No      |
-| `expectErrorMessage()`    | Verify error is displayed    | Yes     |
-| `expectRedirectedTo()`    | Verify redirect occurred     | Yes     |
+| Function               | Purpose                    | Exists? |
+| ---------------------- | -------------------------- | ------- |
+| `expectUserLoggedIn()` | Verify user session exists | No      |
+| `expectErrorMessage()` | Verify error is displayed  | Yes     |
+| `expectRedirectedTo()` | Verify redirect occurred   | Yes     |
 
 ## Implementation Notes
 

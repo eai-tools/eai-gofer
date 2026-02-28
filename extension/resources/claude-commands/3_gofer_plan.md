@@ -403,6 +403,115 @@ src/ ├── [component]/ │ ├── [file].ts │ └── [file].test.ts
 
 ---
 
+## Step 5.3: Multi-Perspective Plan Review (Optional)
+
+After generating the initial plan, optionally run multi-perspective strategies
+to stress-test architectural decisions. **Skip this step if the plan is
+straightforward or time-constrained.**
+
+### Strategy #2: Solution Architecture Diverger
+
+For features with significant architectural decisions, spawn 5 agents each using
+a different pattern:
+
+```
+Task: subagent_type="plan-architecture-diverger", model="sonnet"
+Prompt: "Design architecture for [FEATURE] using Pattern [1-5].
+Pattern 1: Microservices/modular  2: Monolithic/cohesive  3: Event-sourced
+4: CQRS  5: Plugin-based
+Spec: [FEATURE_DIR]/spec.md  Plan context: [summary of current plan]"
+```
+
+Run all 5 in parallel, then judge:
+
+```
+Task: subagent_type="multi-perspective-judge", model="opus"
+Prompt: "Judge verdict type: architecture selection.
+Select the best architecture for this feature considering codebase fit, complexity, and testability.
+[paste all 5 agent outputs]"
+```
+
+### Strategy #5: API Design Comparator
+
+For features with API surfaces, compare paradigms:
+
+```
+Task: subagent_type="plan-api-comparator", model="sonnet"
+Prompt: "Design API for [FEATURE] using Paradigm [1-4].
+Paradigm 1: REST  2: GraphQL  3: RPC  4: Event-based
+Requirements: [API requirements from spec]"
+```
+
+Run 3-4 in parallel, then judge:
+
+```
+Task: subagent_type="multi-perspective-judge", model="opus"
+Prompt: "Judge verdict type: API paradigm selection.
+[paste all agent outputs]"
+```
+
+### Strategy #7: Refactor vs Rewrite Advisor
+
+For features that modify existing code significantly:
+
+```
+Task: subagent_type="plan-refactor-rewrite-advisor", model="sonnet"
+Prompt: "Perspective [1/2] for changing [CODE AREA].
+Perspective 1: Plan minimal incremental refactor
+Perspective 2: Plan clean rewrite
+Current code: [file paths and summary]"
+```
+
+Run both in parallel, then judge:
+
+```
+Task: subagent_type="multi-perspective-judge", model="opus"
+Prompt: "Judge verdict type: refactor vs rewrite decision.
+[paste both agent outputs]"
+```
+
+### Strategy #12: Migration Path Finder
+
+When the feature requires migrating existing code or data:
+
+```
+Task: subagent_type="plan-migration-path-finder", model="sonnet"
+Prompt: "Design migration for [CHANGE] using Strategy [1-4].
+Strategy 1: Big bang  2: Strangler fig  3: Feature-flagged  4: Adapter/facade
+Migration scope: [what needs changing]"
+```
+
+Run all 4 in parallel, then judge:
+
+```
+Task: subagent_type="multi-perspective-judge", model="opus"
+Prompt: "Judge verdict type: migration strategy selection.
+[paste all 4 agent outputs]"
+```
+
+### Strategy #16: Data Model Stress Tester
+
+For features with data models, stress-test before finalizing:
+
+```
+Task: subagent_type="plan-data-model-stress-tester", model="haiku"
+Prompt: "Stress-test data model from Perspective [1-4].
+Perspective 1: 10x scale  2: Concurrent access  3: Schema evolution  4: Edge-case shapes
+Data model: [entities and relationships from plan]"
+```
+
+Run all 4 in parallel, then judge:
+
+```
+Task: subagent_type="multi-perspective-judge", model="sonnet"
+Prompt: "Judge verdict type: data model robustness assessment.
+[paste all 4 agent outputs]"
+```
+
+Incorporate judge recommendations into the plan before proceeding to validation.
+
+---
+
 ## Step 5.5: Spec Coverage Validation (GAP-01)
 
 **CRITICAL**: Before completing plan.md, validate that the plan covers ALL user
@@ -601,35 +710,9 @@ At stage completion, log metrics:
 .specify/scripts/bash/log-stage.sh 3_plan --complete --tokens [N] --compactions [N]
 ```
 
-Update pipeline state to record stage completion:
-
-```bash
-.specify/scripts/bash/pipeline-state.sh update --stage 3_plan
-```
-
 Logs to: `.specify/logs/pipeline.jsonl`
 
 ---
-
-## Required Output Schema
-
-The plan stage MUST produce `plan.md` with the following structure:
-
-### Required Frontmatter
-
-```yaml
----
-feature: [Feature Name]
-spec: spec.md
-status: ready
-created: [ISO date]
----
-```
-
-### Required Sections
-
-- `## Technical Context` or `## Tech Stack` — Technology choices
-- `## Implementation Phases` or `## Phases` — Phased implementation plan
 
 ## Key Rules
 

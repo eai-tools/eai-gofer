@@ -65,6 +65,9 @@ export class EventHandlers {
     // Spec file changes → show impact notifications
     this.registerSpecFileWatcher(deps);
 
+    // Tasks file changes → auto-refresh progress display
+    this.registerTasksFileWatcher(deps);
+
     // Configuration changes → runtime config reloads
     this.registerConfigurationChangeListener(deps);
 
@@ -156,6 +159,27 @@ export class EventHandlers {
 
     deps.context.subscriptions.push(specWatcher);
     this.logger.debug('EventHandlers', 'Spec file watcher registered');
+  }
+
+  /**
+   * Register tasks.md file watcher for progress auto-refresh
+   */
+  private registerTasksFileWatcher(deps: EventHandlerDependencies): void {
+    const tasksWatcher = vscode.workspace.createFileSystemWatcher(
+      new vscode.RelativePattern(deps.workspacePath, '.specify/specs/**/tasks.md')
+    );
+
+    const refreshOnTaskChange = (): void => {
+      if (deps.progressProvider) {
+        deps.progressProvider.refresh();
+      }
+    };
+
+    tasksWatcher.onDidChange(refreshOnTaskChange);
+    tasksWatcher.onDidCreate(refreshOnTaskChange);
+
+    deps.context.subscriptions.push(tasksWatcher);
+    this.logger.debug('EventHandlers', 'Tasks file watcher registered');
   }
 
   /**

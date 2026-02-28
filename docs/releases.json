@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.13.4",
+  "latest_version": "1.13.5",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-02-27T06:05:02.629Z",
+  "last_updated": "2026-02-28T06:47:32.539Z",
   "releases": [
+    {
+      "version": "1.13.5",
+      "tag_name": "v1.13.5",
+      "published_at": "2026-02-28T06:47:32.538Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.13.5.vsix",
+      "notes": "Fix validation findings: async I/O, reduced complexity, integration tests",
+      "prerelease": false,
+      "size_mb": 30.3
+    },
     {
       "version": "1.13.4",
       "tag_name": "v1.13.4",
@@ -81,15 +90,6 @@
       "published_at": "2026-02-15T23:30:09.632Z",
       "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.11.0.vsix",
       "notes": "Remove approval gates - fully autonomous execution after planning",
-      "prerelease": false,
-      "size_mb": 16.5
-    },
-    {
-      "version": "1.10.0",
-      "tag_name": "v1.10.0",
-      "published_at": "2026-02-15T21:57:27.418Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.10.0.vsix",
-      "notes": "Auto-save and auto-resume at 69% context threshold",
       "prerelease": false,
       "size_mb": 16.5
     }

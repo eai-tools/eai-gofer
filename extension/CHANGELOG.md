@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.13.5] - 2026-02-28
+
+Fix validation findings: async I/O, reduced complexity, integration tests
+
 ## [1.13.4] - 2026-02-27
 
 Fix memory leaks from leaked event listeners and untracked timers

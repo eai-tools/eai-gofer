@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.13.6",
+  "latest_version": "1.14.0",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-02-28T06:49:18.550Z",
+  "last_updated": "2026-02-28T11:42:20.479Z",
   "releases": [
+    {
+      "version": "1.14.0",
+      "tag_name": "v1.14.0",
+      "published_at": "2026-02-28T11:42:20.478Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.14.0.vsix",
+      "notes": "Multi-perspective sub-agent strategies with diverge-converge pattern",
+      "prerelease": false,
+      "size_mb": 30.3
+    },
     {
       "version": "1.13.6",
       "tag_name": "v1.13.6",
@@ -81,15 +90,6 @@
       "published_at": "2026-02-23T05:21:36.025Z",
       "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.12.1.vsix",
       "notes": "fix: save/clear/resume context reset, silent slop reduction, PTY cleanup on exit",
-      "prerelease": false,
-      "size_mb": 31.1
-    },
-    {
-      "version": "1.12.0",
-      "tag_name": "v1.12.0",
-      "published_at": "2026-02-23T04:50:08.138Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.12.0.vsix",
-      "notes": "Add engineer review gate to /4_gofer_tasks pipeline",
       "prerelease": false,
       "size_mb": 31.1
     }

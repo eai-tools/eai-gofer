@@ -51,7 +51,7 @@ graph LR
 **Purpose**: Create JSON Schema for pipeline state — the foundation all other
 phases depend on
 
-- [ ] T001 [US1] Create `extension/src/schemas/pipeline-state.schema.json` with
+- [x] T001 [US1] Create `extension/src/schemas/pipeline-state.schema.json` with
       all fields from data-model.md: runId (UUID v4), featureId, featureDir,
       currentStage (enum of 6 values), completedStages[], startedAt (ISO-8601),
       updatedAt (ISO-8601), status (enum:
@@ -75,32 +75,32 @@ corrupt JSON, verify graceful fallback.
 
 ### Implementation
 
-- [ ] T002 [US1] Create `.specify/scripts/bash/pipeline-state.sh` — bash script
+- [x] T002 [US1] Create `.specify/scripts/bash/pipeline-state.sh` — bash script
       with `init`, `read`, `update`, `status` commands. Uses `jq` with Python3
       fallback. `init` generates UUID runId via
       `uuidgen || python3 -c 'import uuid; print(uuid.uuid4())'`. Validates
       stage names against enum. Includes `--feature-dir DIR` and `--json`
       options per contracts/internal-api.md
-- [ ] T003 [P] [US1] Create `extension/src/autonomous/PipelineStateManager.ts`
+- [x] T003 [P] [US1] Create `extension/src/autonomous/PipelineStateManager.ts`
       following ContextUsageLogger pattern — typed PipelineState interface,
       `async init(workspaceRoot, featureId)`, `async readState()`,
       `async updateStage(stage)`, `getRunId()`, lazy directory creation via
       `fs.promises.mkdir({recursive: true})`, graceful fallback on corrupt JSON
-- [ ] T004 [P] [US1] Create `tests/unit/autonomous/PipelineStateManager.test.ts`
+- [x] T004 [P] [US1] Create `tests/unit/autonomous/PipelineStateManager.test.ts`
       — test init creates valid JSON with UUID runId, update transitions
       currentStage and appends to completedStages, corrupt file falls back to
       re-init, read returns typed PipelineState, concurrent writes don't corrupt
-- [ ] T005 [US1] Create `tests/unit/scripts/pipeline-state.test.ts` — Vitest
+- [x] T005 [US1] Create `tests/unit/scripts/pipeline-state.test.ts` — Vitest
       test that shells out to `pipeline-state.sh init`, verifies JSON output
       matches schema, tests `update --stage`, tests `status` returns stage name,
       tests invalid stage name rejection
 
 **Verification**:
 
-- [ ] AC-1.1: `pipeline-state.sh init` creates valid JSON with UUID runId
-- [ ] AC-1.3: All four operations (init/read/update/status) work correctly
-- [ ] AC-1.5: `pipeline-state.json` includes a UUID `runId`
-- [ ] All unit tests pass
+- [x] AC-1.1: `pipeline-state.sh init` creates valid JSON with UUID runId
+- [x] AC-1.3: All four operations (init/read/update/status) work correctly
+- [x] AC-1.5: `pipeline-state.json` includes a UUID `runId`
+- [x] All unit tests pass
 
 ---
 
@@ -120,21 +120,21 @@ Create valid spec.md — expect pass.
 
 ### Implementation
 
-- [ ] T006 [P] [US2] Create `extension/src/schemas/artifact-spec.schema.json` —
+- [x] T006 [P] [US2] Create `extension/src/schemas/artifact-spec.schema.json` —
       required: id (string), title (string), status (enum:
       draft/ready/approved), created (string, date format); optional: updated,
       author, priority, assignee, dependencies. No `additionalProperties: false`
       to allow extensibility
-- [ ] T007 [P] [US2] Create `extension/src/schemas/artifact-plan.schema.json` —
+- [x] T007 [P] [US2] Create `extension/src/schemas/artifact-plan.schema.json` —
       required: feature (string), spec (string), status (enum:
       draft/ready/approved), created (string); optional: research, updated. No
       `additionalProperties: false`
-- [ ] T008 [P] [US2] Create `extension/src/schemas/artifact-tasks.schema.json` —
+- [x] T008 [P] [US2] Create `extension/src/schemas/artifact-tasks.schema.json` —
       required: feature (string), plan (string), status (enum:
       draft/review/approved/ready), created (string); optional: updated,
       totalTasks, completedTasks, approvedBy, approvedAt. No
       `additionalProperties: false`
-- [ ] T009 [US2] Create `.specify/scripts/bash/validate-artifact.sh` — accepts
+- [x] T009 [US2] Create `.specify/scripts/bash/validate-artifact.sh` — accepts
       `<artifact-type> <file-path> [--json] [--strict] [--schema-dir DIR]`.
       Parses YAML frontmatter between `---` markers with `sed`. Validates
       frontmatter fields against schema (report specific missing/invalid
@@ -144,38 +144,38 @@ Create valid spec.md — expect pass.
       OR `## Phases`, `## Tech Stack` OR `## Technical Context`; tasks: at least
       one `- [ ]` task line). Exit code 0 on pass, 1 on validation error, 2 on
       file not found. Legacy specs without frontmatter produce warning not error
-- [ ] T010 [US2] Modify `.specify/scripts/bash/check-prerequisites.sh` — after
+- [x] T010 [US2] Modify `.specify/scripts/bash/check-prerequisites.sh` — after
       existing file-existence checks, call `validate-artifact.sh` for each found
       artifact. Include validation results in `--json` output as
       `validationErrors[]` array. When `pipeline-state.json` exists, include
       `currentStage` and `runId` in JSON output. Non-blocking: validation
       warnings don't prevent pipeline continuation
-- [ ] T011 [P] [US2] Add `## Required Output Schema` section to
+- [x] T011 [P] [US2] Add `## Required Output Schema` section to
       `.claude/commands/1_gofer_research.md` — document required research.md
       frontmatter (date, researcher, feature, status) and required sections
       (Feature Summary, Codebase Analysis, Technology Decisions)
-- [ ] T012 [P] [US2] Add `## Required Output Schema` section to
+- [x] T012 [P] [US2] Add `## Required Output Schema` section to
       `.claude/commands/2_gofer_specify.md` — document required spec.md
       frontmatter (id, title, status, created) and required sections (User
       Stories/Scenarios, Functional Requirements, Success Criteria) that the LLM
       must produce
-- [ ] T013 [P] [US2] Add `## Required Output Schema` section to
+- [x] T013 [P] [US2] Add `## Required Output Schema` section to
       `.claude/commands/3_gofer_plan.md` — document required plan.md frontmatter
       (feature, spec, status, created) and required sections (Technical Context,
       Implementation Phases)
-- [ ] T014a [P] [US2] Add `## Required Output Schema` section to
+- [x] T014a [P] [US2] Add `## Required Output Schema` section to
       `.claude/commands/4_gofer_tasks.md` — document required tasks.md
       frontmatter (feature, plan, status, created) and format (at least one
       `- [ ]` task line)
-- [ ] T014b [P] [US2] Add `## Required Output Schema` section to
+- [x] T014b [P] [US2] Add `## Required Output Schema` section to
       `.claude/commands/5_gofer_implement.md` — document that this stage
       produces source code files matching plan.md file structure (no structured
       artifact schema, but document expected output conventions)
-- [ ] T014c [P] [US2] Add `## Required Output Schema` section to
+- [x] T014c [P] [US2] Add `## Required Output Schema` section to
       `.claude/commands/6_gofer_validate.md` — document required
       validation-report.md structure (scoring rubric output, findings format,
       pass/fail criteria)
-- [ ] T014d [US2] Create `tests/unit/scripts/validate-artifact.test.ts` — test
+- [x] T014d [US2] Create `tests/unit/scripts/validate-artifact.test.ts` — test
       valid spec passes, missing frontmatter id field fails with specific error,
       missing `## Requirements` section fails with specific error, legacy spec
       without frontmatter produces warning not error, --json output is valid
@@ -183,13 +183,13 @@ Create valid spec.md — expect pass.
 
 **Verification**:
 
-- [ ] AC-2.1: JSON Schema files exist for spec, plan, and tasks
-- [ ] AC-2.2: `validate-artifact.sh` validates frontmatter + sections
-- [ ] AC-2.3: Error messages include specific field names
-- [ ] AC-2.4: All 6 command files include Required Output Schema sections
-- [ ] AC-2.5: `check-prerequisites.sh` calls validation
-- [ ] AC-2.6: Extra fields/sections pass validation (additive)
-- [ ] All unit tests pass
+- [x] AC-2.1: JSON Schema files exist for spec, plan, and tasks
+- [x] AC-2.2: `validate-artifact.sh` validates frontmatter + sections
+- [x] AC-2.3: Error messages include specific field names
+- [x] AC-2.4: All 6 command files include Required Output Schema sections
+- [x] AC-2.5: `check-prerequisites.sh` calls validation
+- [x] AC-2.6: Extra fields/sections pass validation (additive)
+- [x] All unit tests pass
 
 ---
 
@@ -208,7 +208,7 @@ different runIds — verify correct filtering.
 
 ### Implementation
 
-- [ ] T015 [US3] Create `extension/src/autonomous/RunLedger.ts` — typed
+- [x] T015 [US3] Create `extension/src/autonomous/RunLedger.ts` — typed
       `RunLedgerEntry` interface (runId, timestamp, eventType, stage, feature,
       source, severity, data?), `RunLedgerEventType` union type, class with
       `constructor(workspaceRoot)`, `async log(entry)` (non-blocking append to
@@ -217,41 +217,41 @@ different runIds — verify correct filtering.
       `async filterByStage(stage)`, `getLogPath()`. Follow ContextUsageLogger
       pattern: lazy dir creation, `fs.promises.appendFile`, JSON.stringify per
       line
-- [ ] T016 [US3] Modify `.specify/scripts/bash/log-stage.sh` — in addition to
+- [x] T016 [US3] Modify `.specify/scripts/bash/log-stage.sh` — in addition to
       existing `pipeline.jsonl` write, append a JSONL entry to
       `gofer-run-ledger.jsonl` with `runId` read from `pipeline-state.json` (if
       available). Entry format matches RunLedgerEntry:
       `{"runId":"...", "timestamp":"...", "eventType":"stage_start|stage_complete|stage_error", "stage":"...", "feature":"...", "source":"log-stage", "severity":"info|error"}`
-- [ ] T017 [US3] Modify `extension/src/autonomous/ContextUsageLogger.ts` — add
+- [x] T017 [US3] Modify `extension/src/autonomous/ContextUsageLogger.ts` — add
       `setRunLedger(ledger: RunLedger)` method. Add `private emitMilestone()`
       that emits to RunLedger on health status transitions (healthy→warning,
       warning→critical) only, NOT on every 10s poll. Event types:
       `health_warning`, `health_critical`
-- [ ] T018 [P] [US3] Modify `extension/src/autonomous/SlopReducer.ts` — add
+- [x] T018 [P] [US3] Modify `extension/src/autonomous/SlopReducer.ts` — add
       `setRunLedger(ledger: RunLedger)` method. After each successful fix, emit
       a `slop_fix` event to RunLedger with data:
       `{pattern, filePath, fixDescription}`
-- [ ] T019 [US3] Create `tests/unit/autonomous/RunLedger.test.ts` — test: log
+- [x] T019 [US3] Create `tests/unit/autonomous/RunLedger.test.ts` — test: log
       creates file on first write, entries are valid JSON per line, readLog
       returns all entries, filterByRunId returns only matching,
       filterByEventType returns only matching, filterByStage returns only
       matching, concurrent writes don't corrupt, readLog with limit returns
       correct count
-- [ ] T020 [P] [US3] Create `tests/unit/scripts/log-stage-ledger.test.ts` —
+- [x] T020 [P] [US3] Create `tests/unit/scripts/log-stage-ledger.test.ts` —
       test: after `log-stage.sh 3_plan --complete`, both `pipeline.jsonl` and
       `gofer-run-ledger.jsonl` contain entries, ledger entry has runId from
       pipeline-state.json
 
 **Verification**:
 
-- [ ] AC-3.1: RunLedger writes to gofer-run-ledger.jsonl
-- [ ] AC-3.2: Every entry has runId, timestamp, eventType, stage, feature
-- [ ] AC-3.3: runId comes from pipeline-state.json
-- [ ] AC-3.4: Existing loggers emit milestone events to ledger
-- [ ] AC-3.5: Only milestones, not 10s polls
-- [ ] AC-3.6: log-stage.sh writes to both log files
-- [ ] AC-3.7: filterByRunId and filterByEventType work correctly
-- [ ] All unit tests pass
+- [x] AC-3.1: RunLedger writes to gofer-run-ledger.jsonl
+- [x] AC-3.2: Every entry has runId, timestamp, eventType, stage, feature
+- [x] AC-3.3: runId comes from pipeline-state.json
+- [x] AC-3.4: Existing loggers emit milestone events to ledger
+- [x] AC-3.5: Only milestones, not 10s polls
+- [x] AC-3.6: log-stage.sh writes to both log files
+- [x] AC-3.7: filterByRunId and filterByEventType work correctly
+- [x] All unit tests pass
 
 ---
 
@@ -273,14 +273,14 @@ tool-audit.jsonl, and emits to run ledger.
 
 ### Implementation
 
-- [ ] T021 [US4] Create `extension/src/autonomous/ToolAuditLogger.ts` — typed
+- [x] T021 [US4] Create `extension/src/autonomous/ToolAuditLogger.ts` — typed
       `ToolAuditEntry` interface (timestamp, runId, agent, filePath,
       protectedPattern, enforcement, outcome), class with
       `constructor(workspaceRoot, runLedger?)`, `async logCheck(entry)` (append
       to `.specify/logs/tool-audit.jsonl`), `async readLog(limit?)`,
       `getLogPath()`. If RunLedger provided, also emit `scope_violation` event
       to ledger on warned/blocked outcomes
-- [ ] T022 [US4] Modify `extension/src/autonomous/ScopeGuard.ts` — change
+- [x] T022 [US4] Modify `extension/src/autonomous/ScopeGuard.ts` — change
       default enforcement from `'advisory'` to `'warning'` (line 29). Add
       `export class ScopeViolationError extends Error` with fields: `filePath`,
       `protectedPattern`, `enforcement`. In `check()` method: if mode is
@@ -288,13 +288,13 @@ tool-audit.jsonl, and emits to run ledger.
       returning pattern. Add `setToolAuditLogger(logger: ToolAuditLogger)`
       method. Call audit logger in `check()` for every invocation (outcome:
       allowed/warned/blocked)
-- [ ] T023 [US4] Add `gofer.scopeGuard.mode` setting — follow ConfigManager
+- [x] T023 [US4] Add `gofer.scopeGuard.mode` setting — follow ConfigManager
       3-step pattern: (1) add to `CONFIG_KEYS` in `extension/src/config.ts`, (2)
       add default `'warning'` to `DEFAULTS`, (3) add
       `getScopeGuardMode(): ScopeEnforcementMode` getter. Add property to
       `extension/package.json` `contributes.configuration.properties` with enum:
       `advisory`, `warning`, `blocking`
-- [ ] T024 [US4] Modify `extension/src/extension.ts` `initializeForWorkspace()`
+- [x] T024 [US4] Modify `extension/src/extension.ts` `initializeForWorkspace()`
       — after workspace detection, instantiate ScopeGuard, call `loadFromSpec()`
       with current spec path (if spec exists), set mode from ConfigManager
       `getScopeGuardMode()`, create ToolAuditLogger and wire to ScopeGuard via
@@ -303,16 +303,16 @@ tool-audit.jsonl, and emits to run ledger.
       (Information/Warning/Error severity). Wire into StateManager if available.
       IMPORTANT: do this in the async `initializeForWorkspace()`, NOT in
       synchronous `activate()`
-- [ ] T025 [P] [US4] Wire ToolAuditLogger into ScopeGuard — in
+- [x] T025 [P] [US4] Wire ToolAuditLogger into ScopeGuard — in
       `ScopeGuard.check()`, after determining match/no-match, call
       `this.auditLogger?.logCheck({timestamp, runId, agent, filePath, protectedPattern, enforcement, outcome})`.
       Agent name comes from a new `setAgentName(name)` method or constructor
       parameter
-- [ ] T026 [P] [US4] Create `tests/unit/autonomous/ToolAuditLogger.test.ts` —
+- [x] T026 [P] [US4] Create `tests/unit/autonomous/ToolAuditLogger.test.ts` —
       test: logCheck appends to JSONL file, readLog returns entries, RunLedger
       receives scope_violation on warned outcome, allowed outcome not emitted to
       ledger, entries have all required fields
-- [ ] T027 [US4] Create `tests/unit/autonomous/ScopeGuard.test.ts` — test:
+- [x] T027 [US4] Create `tests/unit/autonomous/ScopeGuard.test.ts` — test:
       warning mode returns pattern and produces diagnostic-mappable result,
       blocking mode throws ScopeViolationError, advisory mode logs to
       console.warn only, audit entries created for every check, mode change via
@@ -320,15 +320,15 @@ tool-audit.jsonl, and emits to run ledger.
 
 **Verification**:
 
-- [ ] AC-4.1: ScopeGuard instantiated in initializeForWorkspace()
-- [ ] AC-4.2: Default mode is 'warning'
-- [ ] AC-4.3: Mode configurable via gofer.scopeGuard.mode setting
-- [ ] AC-4.4: Violations produce diagnostics (via existing EventHandlers
+- [x] AC-4.1: ScopeGuard instantiated in initializeForWorkspace()
+- [x] AC-4.2: Default mode is 'warning'
+- [x] AC-4.3: Mode configurable via gofer.scopeGuard.mode setting
+- [x] AC-4.4: Violations produce diagnostics (via existing EventHandlers
       mapping)
-- [ ] AC-4.5: tool-audit.jsonl created with proper entries
-- [ ] AC-4.6: Audit entries emitted to run ledger
-- [ ] AC-4.7: Blocking mode throws ScopeViolationError
-- [ ] All unit tests pass
+- [x] AC-4.5: tool-audit.jsonl created with proper entries
+- [x] AC-4.6: Audit entries emitted to run ledger
+- [x] AC-4.7: Blocking mode throws ScopeViolationError
+- [x] All unit tests pass
 
 ---
 
@@ -348,45 +348,45 @@ tasks pass. Intentionally remove a required frontmatter field from a golden task
 
 ### Implementation
 
-- [ ] T028 [US5] Create `tests/regression/golden-tasks/` directory structure and
+- [x] T028 [US5] Create `tests/regression/golden-tasks/` directory structure and
       `tests/regression/golden-tasks/001-engineering-remediation/` subdirectory
-- [ ] T029 [US5] Curate first golden task from
+- [x] T029 [US5] Curate first golden task from
       `.specify/specs/001-gofer-engineering-remediation/` — copy spec.md,
       plan.md, tasks.md with minimal valid frontmatter. Ensure all required
       fields present per artifact schemas. Strip large content sections to keep
       fixtures small
-- [ ] T030 [US5] Create `tests/regression/validate-golden-tasks.test.ts` — uses
+- [x] T030 [US5] Create `tests/regression/validate-golden-tasks.test.ts` — uses
       `fs.readdirSync` to iterate golden task dirs, for each dir runs
       `validate-artifact.sh` (via `child_process.execFile`) on
       spec.md/plan.md/tasks.md if they exist, asserts exit code 0, on failure
       reports specific golden task name + artifact + validation error from
       stderr/stdout
-- [ ] T031 [P] [US5] Create at least 2 additional golden tasks — can be
+- [x] T031 [P] [US5] Create at least 2 additional golden tasks — can be
       synthetic with valid structure (e.g., `002-sample-feature/spec.md` with
       minimal but valid frontmatter and required sections,
       `003-minimal-spec/spec.md` with just the required minimum). Must pass
       `validate-artifact.sh`
-- [ ] T032 [P] [US5] Create `tests/regression/README.md` — document: what golden
+- [x] T032 [P] [US5] Create `tests/regression/README.md` — document: what golden
       tasks are, how to add one (copy spec dir, verify with
       `validate-artifact.sh`, commit), minimum required artifacts, naming
       convention (NNN-description/), curation criteria (must pass all
       validation, should represent real usage patterns)
-- [ ] T033 [US5] Verify golden task tests run as part of `npm test` — check
+- [x] T033 [US5] Verify golden task tests run as part of `npm test` — check
       `vitest.config.ts` `include` patterns cover
       `tests/regression/**/*.test.ts`. If not, add the pattern. Run `npm test`
       and verify golden task tests appear in output
 
 **Verification**:
 
-- [ ] AC-5.1: `tests/regression/golden-tasks/` contains ≥3 golden task
+- [x] AC-5.1: `tests/regression/golden-tasks/` contains ≥3 golden task
       directories
-- [ ] AC-5.2: `validate-golden-tasks.test.ts` exists and iterates all golden
+- [x] AC-5.2: `validate-golden-tasks.test.ts` exists and iterates all golden
       tasks
-- [ ] AC-5.3: First golden task curated from real 001-engineering-remediation
-- [ ] AC-5.4: Test failures identify specific golden task + artifact + error
-- [ ] AC-5.5: Golden tasks run as part of `npm test`
-- [ ] AC-5.6: README.md documents the curation process
-- [ ] All tests pass
+- [x] AC-5.3: First golden task curated from real 001-engineering-remediation
+- [x] AC-5.4: Test failures identify specific golden task + artifact + error
+- [x] AC-5.5: Golden tasks run as part of `npm test`
+- [x] AC-5.6: README.md documents the curation process
+- [x] All tests pass
 
 ---
 
@@ -406,7 +406,7 @@ mode.
 
 ### Implementation
 
-- [ ] T034 [US6] Create `extension/src/autonomous/CostBudgetEnforcer.ts` — typed
+- [x] T034 [US6] Create `extension/src/autonomous/CostBudgetEnforcer.ts` — typed
       `CostBudgetConfig` interface (maxCostUsd default 10.0, maxTokensPerRun
       default 500000, enforcementMode, warningThreshold default 0.8),
       `CostSnapshot` interface (currentCostUsd, currentTokens, percentUsed,
@@ -418,29 +418,29 @@ mode.
       don't duplicate). On first warning threshold crossing, fire
       `vscode.window.showWarningMessage('Pipeline budget at X% ($Y.YY / $Z.ZZ)')`
       notification popup in addition to ledger event
-- [ ] T035 [US6] Add budget settings to ConfigManager — follow 3-step pattern:
+- [x] T035 [US6] Add budget settings to ConfigManager — follow 3-step pattern:
       (1) `CONFIG_KEYS` entries for `gofer.budgets.maxCostUsd`,
       `gofer.budgets.maxTokensPerRun`, `gofer.budgets.enforcementMode`; (2)
       `DEFAULTS` entries with 10.0, 500000, 'advisory'; (3) typed getters
       `getBudgetMaxCostUsd(): number`, `getBudgetMaxTokensPerRun(): number`,
       `getBudgetEnforcementMode(): string`. Add properties to
       `extension/package.json` contributes.configuration
-- [ ] T036 [US6] Wire CostBudgetEnforcer into ContextBuilder — in
+- [x] T036 [US6] Wire CostBudgetEnforcer into ContextBuilder — in
       `extension/src/autonomous/ContextBuilder.ts`, check budget on each context
       build. If `canProceed()` is false: advisory mode logs warning, truncate
       mode reduces context aggressively (lower budgets), blocking mode returns
       error result. Create enforcer in `initializeForWorkspace()` with config
       from ConfigManager
-- [ ] T037 [US6] Modify `extension/src/ui/ContextHealthStatusBar.ts` — extend
+- [x] T037 [US6] Modify `extension/src/ui/ContextHealthStatusBar.ts` — extend
       tooltip or status text to show budget info: "Budget: $X.XX / $Y.YY (Z%)"
       alongside existing context health. Show budget warning icon when status is
       'warning' or 'exceeded'
-- [ ] T038 [P] [US6] Wire budget events to RunLedger — in
+- [x] T038 [P] [US6] Wire budget events to RunLedger — in
       CostBudgetEnforcer.recordUsage(), when status transitions to 'warning',
       emit `budget_warning` event to RunLedger. When status transitions to
       'exceeded', emit `budget_exceeded` event. Include
       `{currentCostUsd, maxCostUsd, percentUsed}` in event data
-- [ ] T039 [US6] Create `tests/unit/autonomous/CostBudgetEnforcer.test.ts` —
+- [x] T039 [US6] Create `tests/unit/autonomous/CostBudgetEnforcer.test.ts` —
       test: initial state is 'healthy', recordUsage accumulates correctly,
       warning at 80% threshold, exceeded at 100%, canProceed false when exceeded
       in blocking mode, canProceed true when exceeded in advisory mode, reset
@@ -449,15 +449,15 @@ mode.
 
 **Verification**:
 
-- [ ] AC-6.1: maxCostUsd setting exists with default 10.0
-- [ ] AC-6.2: maxTokensPerRun setting exists with default 500000
-- [ ] AC-6.3: enforcementMode setting exists with advisory/truncate/blocking
-- [ ] AC-6.4: ContextBuilder tracks cumulative cost
-- [ ] AC-6.5: Warning at 80% threshold
-- [ ] AC-6.6: Enforcement at 100% (behavior depends on mode)
-- [ ] AC-6.7: Status bar shows budget info
-- [ ] AC-6.8: Budget events emitted to ledger
-- [ ] All unit tests pass
+- [x] AC-6.1: maxCostUsd setting exists with default 10.0
+- [x] AC-6.2: maxTokensPerRun setting exists with default 500000
+- [x] AC-6.3: enforcementMode setting exists with advisory/truncate/blocking
+- [x] AC-6.4: ContextBuilder tracks cumulative cost
+- [x] AC-6.5: Warning at 80% threshold
+- [x] AC-6.6: Enforcement at 100% (behavior depends on mode)
+- [x] AC-6.7: Status bar shows budget info
+- [x] AC-6.8: Budget events emitted to ledger
+- [x] All unit tests pass
 
 ---
 

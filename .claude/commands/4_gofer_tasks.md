@@ -535,34 +535,9 @@ At stage completion, log metrics:
 .specify/scripts/bash/log-stage.sh 4_tasks --complete --tokens [N] --compactions [N]
 ```
 
-Update pipeline state to record stage completion:
-
-```bash
-.specify/scripts/bash/pipeline-state.sh update --stage 4_tasks
-```
-
 Logs to: `.specify/logs/pipeline.jsonl`
 
 ---
-
-## Required Output Schema
-
-The tasks stage MUST produce `tasks.md` with the following structure:
-
-### Required Frontmatter
-
-```yaml
----
-feature: [Feature Name]
-plan: plan.md
-status: review
-created: [ISO date]
----
-```
-
-### Required Content
-
-- At least one task line in `- [ ] TXXX Description` format
 
 ## Key Rules
 

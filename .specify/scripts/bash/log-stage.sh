@@ -186,47 +186,10 @@ EOF
     echo "$entry" >> "$quality_log"
 }
 
-# Emit to unified run ledger (gofer-run-ledger.jsonl)
-emit_to_run_ledger() {
-    local ledger_log="$LOGS_DIR/gofer-run-ledger.jsonl"
-    local run_id=""
-
-    # Read runId from pipeline-state.json if available
-    local pipeline_state="$FEATURE_DIR/pipeline-state.json"
-    if [[ -f "$pipeline_state" ]]; then
-        if command -v jq &>/dev/null; then
-            run_id=$(jq -r '.runId // ""' "$pipeline_state" 2>/dev/null || echo "")
-        elif command -v python3 &>/dev/null; then
-            run_id=$(python3 -c "import json; d=json.load(open('$pipeline_state')); print(d.get('runId',''))" 2>/dev/null || echo "")
-        fi
-    fi
-
-    # Skip if no runId available
-    if [[ -z "$run_id" ]]; then
-        return
-    fi
-
-    local event_type=""
-    local severity="info"
-    case "$ACTION" in
-        start)    event_type="stage_start" ;;
-        complete) event_type="stage_complete" ;;
-        error)    event_type="stage_error"; severity="error" ;;
-    esac
-
-    local entry=$(cat <<EOF
-{"runId":"$run_id","timestamp":"$TIMESTAMP","eventType":"$event_type","stage":"$STAGE","feature":"$FEATURE_NAME","source":"log-stage","severity":"$severity"}
-EOF
-)
-
-    echo "$entry" >> "$ledger_log"
-}
-
 # Main execution
 main() {
     local result=$(log_pipeline_event)
     log_quality_metrics
-    emit_to_run_ledger
 
     if $JSON_OUTPUT; then
         echo "$result"

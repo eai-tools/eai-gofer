@@ -358,6 +358,63 @@ Add to end of spec.md:
 
 ---
 
+## Step 3.7: Multi-Perspective Spec Review (Optional)
+
+Before the quality checklist, optionally run multi-perspective strategies to
+stress-test the specification. **Skip this step if the spec is simple or
+time-constrained.**
+
+### Strategy #10: Spec Ambiguity Detector
+
+Spawn 3 agents that independently interpret the spec and write pseudocode.
+Compare their interpretations to find ambiguities:
+
+```
+Task: subagent_type="specify-ambiguity-detector", model="sonnet"
+Prompt: "You are Agent [1/2/3]. Read spec.md at [FEATURE_DIR]/spec.md.
+For each acceptance criterion, write pseudocode showing how you would implement it.
+Document every assumption you make. Focus on literal interpretation."
+```
+
+Run all 3 agents in parallel, then synthesize with judge:
+
+```
+Task: subagent_type="multi-perspective-judge", model="opus"
+Prompt: "Judge verdict type: ambiguity detection.
+Compare these 3 independent spec interpretations. Identify criteria where agents
+diverged — these are specification ambiguities that need clarification.
+[paste all 3 agent outputs]"
+```
+
+If the judge identifies HIGH ambiguity (>30% criteria diverge), add
+clarifications to the spec before proceeding.
+
+### Strategy #19: User Journey Stress Tester
+
+Spawn 4 persona agents to walk through user journeys and find gaps:
+
+```
+Task: subagent_type="specify-journey-stress-tester", model="haiku"
+Prompt: "You are Persona [1/2/3/4]. Walk through the user journeys in spec.md at [FEATURE_DIR]/spec.md.
+Persona 1: Power user — fast, keyboard-driven, expects batch operations
+Persona 2: First-timer — needs onboarding, clear errors, discoverable features
+Persona 3: Accessibility-dependent — screen reader, keyboard-only
+Persona 4: Adversarial — tries to break things, unexpected inputs"
+```
+
+Run all 4 personas in parallel, then synthesize with judge:
+
+```
+Task: subagent_type="multi-perspective-judge", model="sonnet"
+Prompt: "Judge verdict type: journey gap analysis.
+Synthesize 4 persona journey reports. Flag gaps found by 2+ personas as HIGH priority.
+[paste all 4 agent outputs]"
+```
+
+If HIGH priority gaps are found, add them to the spec before proceeding.
+
+---
+
 ## Step 4: Create Quality Checklist
 
 Generate `{FEATURE_DIR}/checklists/requirements.md`:
@@ -421,7 +478,8 @@ Generate 5 implementation options spanning the efficiency→innovation spectrum.
 
 ### Load Option Templates
 
-Read `.specify/templates/sequence-diagrams/option-spectrum.yaml` for option definitions:
+Read `.specify/templates/sequence-diagrams/option-spectrum.yaml` for option
+definitions:
 
 - Option 1: Minimal (95% efficiency, 10% innovation)
 - Option 2: Efficient (80% efficiency, 30% innovation)
@@ -436,7 +494,7 @@ For each option (1-5), create a sequence diagram file at:
 
 **Each option file should include:**
 
-```markdown
+````markdown
 ---
 id: {feature}-option-{N}
 optionNumber: {N}
@@ -460,9 +518,9 @@ created: {ISO-timestamp}
 
 ## Actors
 
-| Actor | Role | System/Human |
-|-------|------|--------------|
-| {Actor 1} | {Role in this option} | {Type} |
+| Actor     | Role                  | System/Human |
+| --------- | --------------------- | ------------ |
+| {Actor 1} | {Role in this option} | {Type}       |
 
 ## Sequence Diagram
 
@@ -479,6 +537,7 @@ sequenceDiagram
 
     {Gen AI touchpoints if applicable - highlighted in rect}
 ```
+````
 
 ## Gen AI Touchpoints
 
@@ -488,10 +547,10 @@ sequenceDiagram
 
 ## Scores
 
-| Metric | Score |
-|--------|-------|
-| Efficiency | {score}% |
-| Innovation | {score}% |
+| Metric     | Score             |
+| ---------- | ----------------- |
+| Efficiency | {score}%          |
+| Innovation | {score}%          |
 | Complexity | {low/medium/high} |
 
 ## Estimated Effort
@@ -505,6 +564,7 @@ sequenceDiagram
 ## Trade-offs
 
 {Explain what you gain and lose with this option}
+
 ```
 
 ### Present Options for Selection
@@ -512,15 +572,17 @@ sequenceDiagram
 After generating all 5 options, present them to the user via **AskUserQuestion**:
 
 ```
-Question: "Which implementation option best fits your needs?"
-Header: "Option"
+
+Question: "Which implementation option best fits your needs?" Header: "Option"
 Options:
-  1. "Option 1: Minimal" - "Fast delivery, basic functionality, no AI features"
-  2. "Option 2: Efficient" - "Good balance of speed and quality, minimal AI"
-  3. "Option 3: Standard (Recommended)" - "Full features, moderate AI integration"
-  4. "Option 4: Enhanced" - "Rich features, significant AI assistance"
-  5. "Option 5: Innovative" - "Cutting-edge, heavy AI/ML, longer timeline"
-```
+
+1. "Option 1: Minimal" - "Fast delivery, basic functionality, no AI features"
+2. "Option 2: Efficient" - "Good balance of speed and quality, minimal AI"
+3. "Option 3: Standard (Recommended)" - "Full features, moderate AI integration"
+4. "Option 4: Enhanced" - "Rich features, significant AI assistance"
+5. "Option 5: Innovative" - "Cutting-edge, heavy AI/ML, longer timeline"
+
+````
 
 ### Save Selection
 
@@ -532,8 +594,10 @@ After user selects an option:
    selected: true
    selectedAt: {ISO-timestamp}
    selectedBy: user
-   ```
+````
+
 3. **Reference in spec.md** - Add section:
+
    ```markdown
    ## Selected Implementation Approach
 

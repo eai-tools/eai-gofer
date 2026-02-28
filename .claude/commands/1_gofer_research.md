@@ -337,8 +337,7 @@ Before modifying existing code:
 
 ## Step 6.5: Journey Variant Generation (Optional)
 
-**If a base journey exists** at
-`.specify/specs/{feature}/journeys/base-journey.md`:
+**If a base journey exists** at `.specify/specs/{feature}/journeys/base-journey.md`:
 
 Generate industry variants to discover innovative approaches from other domains.
 
@@ -353,8 +352,7 @@ echo "Generating $VARIANT_COUNT industry variants"
 
 ### Load Industry Templates
 
-Read `.specify/templates/journey/industry-variants.yaml` for industry-specific
-patterns.
+Read `.specify/templates/journey/industry-variants.yaml` for industry-specific patterns.
 
 ### Generate Variants
 
@@ -370,7 +368,7 @@ Example: `healthcare-1.md`, `retail-2.md`, `finance-1.md`
 
 **Each variant should include:**
 
-````markdown
+```markdown
 ---
 id: {feature}-{industry}-{number}
 baseJourneyId: {feature}-journey
@@ -409,7 +407,6 @@ Key innovations from {industry} that could apply to your feature:
 sequenceDiagram
     {Industry-specific sequence diagram}
 ```
-````
 
 ## Potential Application
 
@@ -417,8 +414,7 @@ How these insights could enhance your feature:
 
 - {Specific suggestion 1}
 - {Specific suggestion 2}
-
-````
+```
 
 ### Document Innovation Summary
 
@@ -444,7 +440,7 @@ Generated {N} journey variants across 10 industries.
 | Retail | 5 | Cart recovery, recommendations |
 | Healthcare | 4 | Patient portal, telehealth |
 | ... | ... | ... |
-````
+```
 
 ### Skip Conditions
 
@@ -464,12 +460,6 @@ At stage completion, log metrics:
 .specify/scripts/bash/log-stage.sh 1_research --complete --tokens [N] --compactions [N]
 ```
 
-Update pipeline state to record stage completion:
-
-```bash
-.specify/scripts/bash/pipeline-state.sh update --stage 1_research
-```
-
 This tracks:
 
 - Stage duration
@@ -480,27 +470,6 @@ This tracks:
 Logs to: `.specify/logs/pipeline.jsonl`
 
 ---
-
-## Required Output Schema
-
-The research stage MUST produce `research.md` with the following structure:
-
-### Required Frontmatter
-
-```yaml
----
-date: [ISO timestamp]
-researcher: Claude
-feature: '[Feature Name]'
-status: complete
----
-```
-
-### Required Sections
-
-- `## Feature Summary` — Brief description of the feature
-- `## Codebase Analysis` — Where to implement, patterns, integration points
-- `## Technology Decisions` — Library/framework choices with rationale
 
 ## Important Notes
 

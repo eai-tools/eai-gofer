@@ -138,62 +138,6 @@ if $INCLUDE_TASKS && [[ -f "$TASKS" ]]; then
     docs+=("tasks.md")
 fi
 
-# Run artifact validation on found documents (non-blocking)
-VALIDATE_SCRIPT="$SCRIPT_DIR/validate-artifact.sh"
-validation_errors=()
-
-if [[ -x "$VALIDATE_SCRIPT" ]]; then
-    # Validate spec if it exists
-    if [[ -f "$FEATURE_SPEC" ]]; then
-        validate_output=$("$VALIDATE_SCRIPT" spec "$FEATURE_SPEC" --json 2>/dev/null || true)
-        if [[ -n "$validate_output" ]]; then
-            valid=$(echo "$validate_output" | grep -o '"valid":[a-z]*' | cut -d: -f2)
-            if [[ "$valid" == "false" ]]; then
-                errors=$(echo "$validate_output" | grep -o '"errors":\[[^]]*\]' | sed 's/"errors"://')
-                validation_errors+=("spec.md: $errors")
-            fi
-        fi
-    fi
-
-    # Validate plan if it exists
-    if [[ -f "$IMPL_PLAN" ]]; then
-        validate_output=$("$VALIDATE_SCRIPT" plan "$IMPL_PLAN" --json 2>/dev/null || true)
-        if [[ -n "$validate_output" ]]; then
-            valid=$(echo "$validate_output" | grep -o '"valid":[a-z]*' | cut -d: -f2)
-            if [[ "$valid" == "false" ]]; then
-                errors=$(echo "$validate_output" | grep -o '"errors":\[[^]]*\]' | sed 's/"errors"://')
-                validation_errors+=("plan.md: $errors")
-            fi
-        fi
-    fi
-
-    # Validate tasks if it exists
-    if [[ -f "$TASKS" ]]; then
-        validate_output=$("$VALIDATE_SCRIPT" tasks "$TASKS" --json 2>/dev/null || true)
-        if [[ -n "$validate_output" ]]; then
-            valid=$(echo "$validate_output" | grep -o '"valid":[a-z]*' | cut -d: -f2)
-            if [[ "$valid" == "false" ]]; then
-                errors=$(echo "$validate_output" | grep -o '"errors":\[[^]]*\]' | sed 's/"errors"://')
-                validation_errors+=("tasks.md: $errors")
-            fi
-        fi
-    fi
-fi
-
-# Read pipeline state if it exists
-PIPELINE_STATE_FILE="$FEATURE_DIR/pipeline-state.json"
-CURRENT_STAGE=""
-RUN_ID=""
-if [[ -f "$PIPELINE_STATE_FILE" ]]; then
-    if command -v jq &>/dev/null; then
-        CURRENT_STAGE=$(jq -r '.currentStage // ""' "$PIPELINE_STATE_FILE" 2>/dev/null || echo "")
-        RUN_ID=$(jq -r '.runId // ""' "$PIPELINE_STATE_FILE" 2>/dev/null || echo "")
-    elif command -v python3 &>/dev/null; then
-        CURRENT_STAGE=$(python3 -c "import json; d=json.load(open('$PIPELINE_STATE_FILE')); print(d.get('currentStage',''))" 2>/dev/null || echo "")
-        RUN_ID=$(python3 -c "import json; d=json.load(open('$PIPELINE_STATE_FILE')); print(d.get('runId',''))" 2>/dev/null || echo "")
-    fi
-fi
-
 # Output results
 if $JSON_MODE; then
     # Build JSON array of documents
@@ -203,26 +147,8 @@ if $JSON_MODE; then
         json_docs=$(printf '"%s",' "${docs[@]}")
         json_docs="[${json_docs%,}]"
     fi
-
-    # Build validation errors JSON array
-    if [[ ${#validation_errors[@]} -eq 0 ]]; then
-        json_validation="[]"
-    else
-        json_validation=$(printf '"%s",' "${validation_errors[@]}")
-        json_validation="[${json_validation%,}]"
-    fi
-
-    # Build JSON output with optional pipeline state fields
-    json_output="{\"FEATURE_DIR\":\"$FEATURE_DIR\",\"AVAILABLE_DOCS\":$json_docs,\"validationErrors\":$json_validation"
-    if [[ -n "$CURRENT_STAGE" ]]; then
-        json_output+=",\"currentStage\":\"$CURRENT_STAGE\""
-    fi
-    if [[ -n "$RUN_ID" ]]; then
-        json_output+=",\"runId\":\"$RUN_ID\""
-    fi
-    json_output+="}"
-
-    printf '%s\n' "$json_output"
+    
+    printf '{"FEATURE_DIR":"%s","AVAILABLE_DOCS":%s}\n' "$FEATURE_DIR" "$json_docs"
 else
     # Text output
     echo "FEATURE_DIR:$FEATURE_DIR"

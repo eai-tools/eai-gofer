@@ -21,7 +21,8 @@ You **MUST** consider the user input before proceeding (if not empty).
 ## When to Use This Command
 
 - **Documenting Legacy Code**: Create specs for undocumented features
-- **Understanding Before Modifying**: Generate specs before changing existing code
+- **Understanding Before Modifying**: Generate specs before changing existing
+  code
 - **Onboarding**: Help new team members understand feature behavior
 - **Compliance**: Create formal documentation for audits
 - **Refactoring Prep**: Document current behavior before refactoring
@@ -50,7 +51,7 @@ Launch parallel agents to analyze the code:
 ### Agent 1: Code Analyzer
 
 ```
-Task: subagent_type="codebase-analyzer"
+Task: subagent_type="codebase-analyzer", model="sonnet"
 Prompt: "Analyze the implementation of [TARGET CODE].
 Identify:
 - Core functionality and purpose
@@ -63,7 +64,7 @@ Identify:
 ### Agent 2: Test Analyzer
 
 ```
-Task: subagent_type="codebase-locator"
+Task: subagent_type="codebase-locator", model="haiku"
 Prompt: "Find all tests related to [TARGET CODE].
 Identify:
 - Test file locations
@@ -76,7 +77,7 @@ Identify:
 ### Agent 3: Usage Analyzer
 
 ```
-Task: subagent_type="codebase-pattern-finder"
+Task: subagent_type="codebase-pattern-finder", model="haiku"
 Prompt: "Find all usages of [TARGET CODE] in the codebase.
 Identify:
 - Who calls this code
@@ -171,19 +172,17 @@ source_files:
 
 ### Source Code
 
-| File                  | Purpose                    | Lines |
-| --------------------- | -------------------------- | ----- |
-| `path/to/main.ts`     | Core implementation        | 150   |
-| `path/to/helper.ts`   | Helper functions           | 50    |
-| `path/to/types.ts`    | Type definitions           | 30    |
+| File                | Purpose             | Lines |
+| ------------------- | ------------------- | ----- |
+| `path/to/main.ts`   | Core implementation | 150   |
+| `path/to/helper.ts` | Helper functions    | 50    |
+| `path/to/types.ts`  | Type definitions    | 30    |
 
 ## User Stories (Inferred)
 
 ### US1: [Primary User Story] (P1)
 
-**As a** [user type]
-**I want to** [action]
-**So that** [benefit]
+**As a** [user type] **I want to** [action] **So that** [benefit]
 
 **Acceptance Criteria** (from tests):
 
@@ -225,10 +224,10 @@ The code currently:
 
 ### [Entity Name]
 
-| Field  | Type   | Required | Description               |
-| ------ | ------ | -------- | ------------------------- |
-| id     | string | Yes      | Unique identifier         |
-| [field]| [type] | [Yes/No] | [From code/type analysis] |
+| Field   | Type   | Required | Description               |
+| ------- | ------ | -------- | ------------------------- |
+| id      | string | Yes      | Unique identifier         |
+| [field] | [type] | [Yes/No] | [From code/type analysis] |
 
 **Source**: `path/to/types.ts:10-25`
 
@@ -236,15 +235,15 @@ The code currently:
 
 ### Public Functions
 
-| Function       | Parameters     | Returns | Description      |
-| -------------- | -------------- | ------- | ---------------- |
-| `doSomething`  | `(input: T)`   | `R`     | [From JSDoc/code]|
+| Function      | Parameters   | Returns | Description       |
+| ------------- | ------------ | ------- | ----------------- |
+| `doSomething` | `(input: T)` | `R`     | [From JSDoc/code] |
 
 ### Events/Callbacks
 
-| Event       | Payload | When Triggered        |
-| ----------- | ------- | --------------------- |
-| `onComplete`| `Result`| After processing done |
+| Event        | Payload  | When Triggered        |
+| ------------ | -------- | --------------------- |
+| `onComplete` | `Result` | After processing done |
 
 ## Dependencies
 
@@ -260,9 +259,9 @@ The code currently:
 
 ### Covered Behaviors
 
-| Test Case                    | File                    | Status |
-| ---------------------------- | ----------------------- | ------ |
-| [Test name from test file]   | `test/feature.test.ts`  | Pass   |
+| Test Case                  | File                   | Status |
+| -------------------------- | ---------------------- | ------ |
+| [Test name from test file] | `test/feature.test.ts` | Pass   |
 
 ### Uncovered Behaviors (Gaps)
 
@@ -273,15 +272,15 @@ The code currently:
 
 ### Consumers (What Uses This)
 
-| Consumer           | How It's Used           | File              |
-| ------------------ | ----------------------- | ----------------- |
-| [Component name]   | [Usage description]     | `path/to/file.ts` |
+| Consumer         | How It's Used       | File              |
+| ---------------- | ------------------- | ----------------- |
+| [Component name] | [Usage description] | `path/to/file.ts` |
 
 ### Providers (What This Uses)
 
-| Provider        | What It Provides    | File              |
-| --------------- | ------------------- | ----------------- |
-| [Service name]  | [Functionality]     | `path/to/svc.ts`  |
+| Provider       | What It Provides | File             |
+| -------------- | ---------------- | ---------------- |
+| [Service name] | [Functionality]  | `path/to/svc.ts` |
 
 ## Known Issues / Technical Debt
 

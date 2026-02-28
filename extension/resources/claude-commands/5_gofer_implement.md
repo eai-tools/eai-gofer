@@ -250,6 +250,27 @@ Create checkpoints (git commits) at strategic points:
 3. **User stories**: In priority order (P1, P2, P3...)
 4. **Polish last**: Documentation, optimization, final tests
 
+### Minimal Changes Only
+
+**Before EVERY file modification**, verify against Constitution Principle VIII:
+
+1. Is this change directly required by the current task? If not, **do not make
+   it**.
+2. Am I modifying only the files listed in the task scope? If touching other
+   files, **stop and justify**.
+3. Am I refactoring surrounding code? If yes, **revert** — only change what the
+   task specifies.
+4. Am I adding features, documentation, or tests beyond what's specified? If
+   yes, **remove them**.
+5. Am I adding error handling for scenarios that cannot occur? If yes, **remove
+   it**.
+6. Am I creating an abstraction for a one-time operation? If yes, **inline it**.
+7. Am I gold-plating (better variable names, extra comments, type annotations on
+   unchanged code)? If yes, **revert**.
+
+**This is a per-modification check, not a per-task check.** Apply it to every
+line you write.
+
 ### For Each Task
 
 1. Read the task description and file path
@@ -257,9 +278,11 @@ Create checkpoints (git commits) at strategic points:
 3. Load relevant context (data-model, contracts, research)
 4. Implement according to plan.md architecture
 5. Follow existing codebase patterns (from research.md)
-6. **RUN FEEDBACK LOOP** (see below)
-7. Mark task complete: Change `- [ ]` to `- [X]` in tasks.md
-8. Report progress
+6. **MINIMAL CHANGE CHECK**: Verify every modification against the 7-point
+   checklist above
+7. **RUN FEEDBACK LOOP** (see below)
+8. Mark task complete: Change `- [ ]` to `- [X]` in tasks.md
+9. Report progress
 
 ### Feedback Loop (After EACH Task)
 
@@ -299,6 +322,50 @@ npm run lint
 ```
 
 **Phase Gate**: Do NOT proceed to next phase if build is broken.
+
+### Multi-Perspective Implementation Options (Optional)
+
+When facing complex implementation decisions during task execution, invoke one
+or more of the following strategies. Each spawns multiple sub-agents that
+explore different approaches, then a judge synthesizes the best result.
+
+**Trigger conditions** — use these when:
+
+| Strategy                 | Agent                            | When to Trigger                                                            | Converge Model |
+| ------------------------ | -------------------------------- | -------------------------------------------------------------------------- | -------------- |
+| #1 Variant Generator     | `implement-variant-generator`    | Multiple valid coding paradigms exist for a task (e.g., functional vs OOP) | opus           |
+| #3 Bug Triangulator      | `implement-bug-triangulator`     | Debugging a defect with unclear root cause                                 | opus           |
+| #4 Test Diversifier      | `implement-test-diversifier`     | Writing tests for critical or complex logic                                | sonnet         |
+| #8 Error Hardener        | `implement-error-hardener`       | Implementing error-prone code (I/O, external APIs, resource mgmt)          | sonnet         |
+| #11 Performance Explorer | `implement-performance-explorer` | Optimizing a hot path or resource-intensive operation                      | opus           |
+| #15 Code Review Council  | `implement-code-review-council`  | After completing a complex task, before marking done                       | opus           |
+| #17 Doc Writer           | `implement-doc-writer`           | Writing documentation for a user-facing feature                            | sonnet         |
+
+**Invocation pattern** (example for #1 Variant Generator):
+
+```
+# Diverge: Launch 3-5 agents with different approaches
+Task: subagent_type="implement-variant-generator", model="sonnet"
+  prompt="Perspective 1: Implement [task] using functional approach. Files: [list]"
+
+Task: subagent_type="implement-variant-generator", model="sonnet"
+  prompt="Perspective 2: Implement [task] using OOP approach. Files: [list]"
+
+Task: subagent_type="implement-variant-generator", model="sonnet"
+  prompt="Perspective 3: Implement [task] using event-driven approach. Files: [list]"
+
+# Converge: Judge synthesizes best approach
+Task: subagent_type="multi-perspective-judge", model="opus"
+  prompt="Synthesize 3 implementation variants for [task]. Select best approach.
+  Variant 1: [result]. Variant 2: [result]. Variant 3: [result]."
+```
+
+**Rules**:
+
+- These are OPTIONAL — only invoke when trigger conditions are met
+- Each diverge agent returns <2000 tokens; judge returns <4000 tokens
+- Do NOT use for trivial tasks (config changes, simple getters, boilerplate)
+- Prefer strategies that match the task type (debugging → #3, testing → #4)
 
 ---
 
@@ -444,26 +511,9 @@ At stage completion, log metrics:
 .specify/scripts/bash/log-stage.sh 5_implement --complete --tokens [N] --compactions [N]
 ```
 
-Update pipeline state to record stage completion:
-
-```bash
-.specify/scripts/bash/pipeline-state.sh update --stage 5_implement
-```
-
 Logs to: `.specify/logs/pipeline.jsonl`
 
 ---
-
-## Required Output Schema
-
-The implement stage produces source code files matching `plan.md` file
-structure.
-
-### Output Conventions
-
-- Source files created/modified as specified in tasks.md
-- Each completed task marked with `- [x]` in tasks.md
-- No structured artifact schema — output is the implemented code itself
 
 ## Key Rules
 

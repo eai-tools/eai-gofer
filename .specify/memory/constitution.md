@@ -145,6 +145,25 @@ All new code must achieve 80% coverage across all metrics:
 **Rationale**: High coverage provides confidence in autonomous operation.
 Test-driven development naturally achieves these thresholds.
 
+### VIII. Minimal Necessary Changes
+
+All code modifications MUST be limited to what is directly required by the
+current task:
+
+- Only modify files listed in the task scope
+- Only make changes directly required by the task specification
+- Do not refactor surrounding code that is not part of the task
+- Do not add features, documentation, or tests beyond what is specified
+- Do not add error handling for scenarios that cannot occur in the current
+  context
+- Do not create abstractions for one-time operations
+- Three similar lines of code is better than a premature abstraction
+
+**Rationale**: Minimal changes reduce review burden, prevent regressions in
+unrelated code, and keep diffs focused. AI agents are especially prone to
+over-engineering and gold-plating — this principle provides an explicit check
+against scope creep.
+
 ## Architecture Standards
 
 ### Multi-Layered System

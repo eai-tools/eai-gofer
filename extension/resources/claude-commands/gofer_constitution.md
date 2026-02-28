@@ -1,5 +1,6 @@
 ---
-description: Create or update project constitution with coding principles and guidelines
+description:
+  Create or update project constitution with coding principles and guidelines
 ---
 
 # Gofer Constitution
@@ -93,7 +94,7 @@ What would you like to update in the constitution?
 Before writing principles, understand current codebase:
 
 ```
-Task: subagent_type="codebase-pattern-finder"
+Task: subagent_type="codebase-pattern-finder", model="haiku"
 Prompt: "Analyze the codebase for existing patterns and conventions.
 Find:
 - Naming conventions (files, variables, functions)
@@ -147,13 +148,13 @@ status: active
 
 ### Naming Conventions
 
-| Element    | Convention        | Example              |
-| ---------- | ----------------- | -------------------- |
-| Files      | [kebab/camel/etc] | `user-service.ts`    |
-| Classes    | [PascalCase]      | `UserService`        |
-| Functions  | [camelCase]       | `getUserById`        |
-| Constants  | [UPPER_SNAKE]     | `MAX_RETRY_COUNT`    |
-| Variables  | [camelCase]       | `userData`           |
+| Element   | Convention        | Example           |
+| --------- | ----------------- | ----------------- |
+| Files     | [kebab/camel/etc] | `user-service.ts` |
+| Classes   | [PascalCase]      | `UserService`     |
+| Functions | [camelCase]       | `getUserById`     |
+| Constants | [UPPER_SNAKE]     | `MAX_RETRY_COUNT` |
+| Variables | [camelCase]       | `userData`        |
 
 ### Code Organization
 
@@ -208,10 +209,10 @@ UI → Application → Domain → Infrastructure
 
 ### Coverage Targets
 
-| Type        | Target | Current |
-| ----------- | ------ | ------- |
-| Unit        | 80%    | [X]%    |
-| Integration | 60%    | [X]%    |
+| Type        | Target    | Current  |
+| ----------- | --------- | -------- |
+| Unit        | 80%       | [X]%     |
+| Integration | 60%       | [X]%     |
 | E2E         | Key flows | [status] |
 
 ### Test Patterns
@@ -251,11 +252,11 @@ UI → Application → Domain → Infrastructure
 
 ### Response Time Targets
 
-| Operation   | Target    | Critical Path? |
-| ----------- | --------- | -------------- |
-| API call    | < 200ms   | Yes            |
-| Page load   | < 2s      | Yes            |
-| Background  | < 30s     | No             |
+| Operation  | Target  | Critical Path? |
+| ---------- | ------- | -------------- |
+| API call   | < 200ms | Yes            |
+| Page load  | < 2s    | Yes            |
+| Background | < 30s   | No             |
 
 ### Resource Limits
 
@@ -318,9 +319,9 @@ When violating a principle intentionally:
 
 ## Version History
 
-| Version | Date       | Changes              | Author |
-| ------- | ---------- | -------------------- | ------ |
-| 1.0     | [date]     | Initial constitution | Claude |
+| Version | Date   | Changes              | Author |
+| ------- | ------ | -------------------- | ------ |
+| 1.0     | [date] | Initial constitution | Claude |
 
 ````
 
@@ -400,7 +401,7 @@ After creating/updating, validate:
 ### Codebase Alignment Check
 
 ```
-Task: subagent_type="codebase-analyzer"
+Task: subagent_type="codebase-analyzer", model="sonnet"
 Prompt: "Check if the codebase follows these constitution principles:
 [List key principles]
 Report any violations or areas needing attention."
@@ -470,10 +471,10 @@ Before each task, verify implementation follows constitution.
 ```markdown
 ## Constitution Compliance
 
-| Principle | Status | Notes               |
-| --------- | ------ | ------------------- |
-| P1        | Pass   | -                   |
-| P2        | Pass   | -                   |
+| Principle | Status    | Notes             |
+| --------- | --------- | ----------------- |
+| P1        | Pass      | -                 |
+| P2        | Pass      | -                 |
 | P3        | Exception | ADR-NNN documents |
 ```
 

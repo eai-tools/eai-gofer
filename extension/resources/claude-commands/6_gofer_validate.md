@@ -140,7 +140,7 @@ feature context and returns structured findings.
 ### Agent 1: Correctness Validator
 
 ```
-Task: subagent_type="validation-correctness"
+Task: subagent_type="validation-correctness", model="sonnet"
 Prompt: "Validate functional correctness for feature [FEATURE_NAME].
 
 Feature directory: {FEATURE_DIR}
@@ -155,7 +155,7 @@ Return findings in your standard report format (<2000 tokens)."
 ### Agent 2: Security Validator
 
 ```
-Task: subagent_type="validation-security"
+Task: subagent_type="validation-security", model="sonnet"
 Prompt: "Validate security posture for feature [FEATURE_NAME].
 
 Scan all new/modified files (from tasks.md file paths).
@@ -166,7 +166,7 @@ Return findings with Red/Yellow/Gray severity (<2000 tokens)."
 ### Agent 3: Performance Validator
 
 ```
-Task: subagent_type="validation-performance"
+Task: subagent_type="validation-performance", model="haiku"
 Prompt: "Validate performance characteristics for feature [FEATURE_NAME].
 
 Scan all new/modified source files (from tasks.md file paths).
@@ -178,7 +178,7 @@ Return findings with complexity scores (<2000 tokens)."
 ### Agent 4: Test Quality Validator
 
 ```
-Task: subagent_type="validation-test-quality"
+Task: subagent_type="validation-test-quality", model="haiku"
 Prompt: "Validate test quality for feature [FEATURE_NAME].
 
 Scan test files related to the feature.
@@ -190,7 +190,7 @@ Return findings with mock ratio calculation (<2000 tokens)."
 ### Agent 5: Integration Validator
 
 ```
-Task: subagent_type="validation-integration"
+Task: subagent_type="validation-integration", model="sonnet"
 Prompt: "Validate integration contracts for feature [FEATURE_NAME].
 
 Feature directory: {FEATURE_DIR}
@@ -202,7 +202,7 @@ Return findings with contract compliance status (<2000 tokens)."
 ### Agent 6: Standards Validator
 
 ```
-Task: subagent_type="validation-standards"
+Task: subagent_type="validation-standards", model="sonnet"
 Prompt: "Validate standards compliance for feature [FEATURE_NAME].
 
 Feature directory: {FEATURE_DIR}
@@ -212,7 +212,39 @@ Check code hygiene: TODO/FIXME, magic numbers, unused imports.
 Return findings with severity tiers (<2000 tokens)."
 ```
 
-**Run all 6 agents in parallel.** Collect all results before proceeding.
+### Agent 7: Security Red Team (Optional — Multi-Perspective)
+
+When the feature involves security-sensitive code (authentication,
+authorization, user input handling, external APIs), run the security red team
+strategy (#13):
+
+```
+# Diverge: 3 attack perspectives
+Task: subagent_type="validate-security-red-team", model="sonnet"
+Prompt: "Perspective 1: OWASP Top 10 attack analysis for feature [FEATURE_NAME].
+Scan all new/modified files from tasks.md. Attack from OWASP perspective.
+Return findings with exploit steps (<2000 tokens)."
+
+Task: subagent_type="validate-security-red-team", model="sonnet"
+Prompt: "Perspective 2: Business logic abuse analysis for feature [FEATURE_NAME].
+Scan all new/modified files from tasks.md. Attack business logic.
+Return findings with exploit steps (<2000 tokens)."
+
+Task: subagent_type="validate-security-red-team", model="sonnet"
+Prompt: "Perspective 3: CVE search for feature [FEATURE_NAME].
+Check package.json dependencies for known CVEs.
+Return findings with advisory references (<2000 tokens)."
+
+# Converge: Judge synthesizes attack findings
+Task: subagent_type="multi-perspective-judge", model="opus"
+Prompt: "Synthesize 3 security red team perspectives for [FEATURE_NAME].
+Perspective 1 (OWASP): [result]. Perspective 2 (Business Logic): [result].
+Perspective 3 (CVE): [result].
+Identify confirmed vulnerabilities vs false positives. Prioritize by exploitability."
+```
+
+**Run all 6 core agents in parallel.** Run Agent 7 (if applicable) in parallel
+with the core agents. Collect all results before proceeding.
 
 ---
 
@@ -918,28 +950,10 @@ At stage completion, log metrics:
 .specify/scripts/bash/log-stage.sh 6_validate --complete --tokens [N] --compactions [N]
 ```
 
-Update pipeline state to record stage completion:
-
-```bash
-.specify/scripts/bash/pipeline-state.sh update --stage 6_validate
-```
-
 This also logs quality metrics (rubric scores, finding counts) to:
 `.specify/logs/quality-metrics.jsonl`
 
 ---
-
-## Required Output Schema
-
-The validate stage MUST produce `validation-report.md` with the following
-structure:
-
-### Required Content
-
-- 10-category scoring rubric (out of 100 points)
-- Per-category findings (Red/Yellow/Green)
-- Overall pass/fail determination
-- Remediation recommendations for any failed categories
 
 ## Key Rules
 

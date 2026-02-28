@@ -405,6 +405,67 @@ Generated: [ISO timestamp]
 
 ---
 
+## Step 4.7: Engineer Review Gate
+
+Run the engineer-review agent to cross-reference spec, plan, and tasks for alignment gaps:
+
+```
+Task: subagent_type="engineer-review", model="sonnet"
+Prompt: "Review alignment between spec.md, plan.md, and tasks.md in [FEATURE_DIR].
+Find every gap, inconsistency, and misalignment. Report Red/Yellow/Gray findings."
+```
+
+**If Red findings exist** (blocking):
+1. Apply fixes to tasks.md (max 3 correction iterations)
+2. Re-run engineer-review after each fix
+3. If issues persist after 3 iterations, generate escalation report and halt for human review
+
+**If only Yellow/Gray findings**: Proceed. Note recommendations for future improvement.
+
+---
+
+## Step 4.8: Multi-Perspective Task Review (Optional)
+
+After task validation, optionally run multi-perspective strategies. **Skip if time-constrained.**
+
+### Strategy #14: Cross-Cutting Concern Scanner
+
+Spawn 5 agents scanning for missing cross-cutting concerns:
+
+```
+Task: subagent_type="tasks-cross-cutting-scanner", model="haiku"
+Prompt: "Scan tasks.md at [FEATURE_DIR]/tasks.md for missing cross-cutting concerns.
+Dimension [1-5]:
+1: Logging/observability  2: Accessibility  3: Internationalization
+4: Backward compatibility  5: Documentation
+Spec: [FEATURE_DIR]/spec.md"
+```
+
+Run all 5 in parallel, then synthesize with judge:
+
+```
+Task: subagent_type="multi-perspective-judge", model="sonnet"
+Prompt: "Judge verdict type: cross-cutting concern gap analysis.
+Identify which missing concerns should be added as tasks before implementation.
+[paste all 5 agent outputs]"
+```
+
+Add HIGH priority missing tasks to tasks.md if the judge recommends them.
+
+### Strategy #18: Rollback Strategy Planner
+
+Plan rollback for each implementation phase:
+
+```
+Task: subagent_type="tasks-rollback-planner", model="sonnet"
+Prompt: "Analyze tasks.md at [FEATURE_DIR]/tasks.md.
+For each phase, design a rollback plan. Identify irreversible steps that need checkpoints."
+```
+
+Include rollback notes in the task document's "Implementation Strategy" section.
+
+---
+
 ## Step 5: Generate GitHub Issues
 
 Run the issues generator:
@@ -535,34 +596,9 @@ At stage completion, log metrics:
 .specify/scripts/bash/log-stage.sh 4_tasks --complete --tokens [N] --compactions [N]
 ```
 
-Update pipeline state to record stage completion:
-
-```bash
-.specify/scripts/bash/pipeline-state.sh update --stage 4_tasks
-```
-
 Logs to: `.specify/logs/pipeline.jsonl`
 
 ---
-
-## Required Output Schema
-
-The tasks stage MUST produce `tasks.md` with the following structure:
-
-### Required Frontmatter
-
-```yaml
----
-feature: [Feature Name]
-plan: plan.md
-status: review
-created: [ISO date]
----
-```
-
-### Required Content
-
-- At least one task line in `- [ ] TXXX Description` format
 
 ## Key Rules
 

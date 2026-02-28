@@ -104,9 +104,10 @@ export class InitializationService {
     this.logger.info('InitializationService', `Detected format: ${versionInfo.format}`);
 
     // Handle different scenarios
+    let reinitTriggered = false;
     switch (versionInfo.format) {
       case 'none':
-        await this.handleNoGofer(deps.context, workspacePath);
+        reinitTriggered = await this.handleNoGofer(deps.context, workspacePath);
         break;
 
       case 'legacy-json':
@@ -120,6 +121,17 @@ export class InitializationService {
       case 'mixed':
         await this.handleMixedFormat(deps.context, workspacePath, migrator);
         break;
+    }
+
+    // If gofer.initialize was triggered, reinitializeExtension() already created
+    // all components via a second initializeForWorkspace() call. Skip component
+    // creation to avoid duplicate command registration (gofer.showActivityDetails).
+    if (reinitTriggered) {
+      this.logger.info(
+        'InitializationService',
+        'Workspace initialization complete (via reinitialize)'
+      );
+      return { migrator };
     }
 
     // Initialize context health monitoring
@@ -140,11 +152,14 @@ export class InitializationService {
 
   /**
    * Handle workspace with no .specify folder
+   *
+   * @returns true if gofer.initialize was triggered (which calls reinitializeExtension
+   *          and creates all components), so the caller should skip component creation
    */
   private async handleNoGofer(
     context: vscode.ExtensionContext,
     workspacePath: string
-  ): Promise<void> {
+  ): Promise<boolean> {
     const autoInit = ConfigManager.getInstance().getAutoInitialize();
 
     if (autoInit) {
@@ -157,11 +172,14 @@ export class InitializationService {
 
       if (choice === 'Yes') {
         await vscode.commands.executeCommand('gofer.initialize');
+        return true; // reinitializeExtension() already created all components
       } else if (choice === "Don't ask again") {
         const config = vscode.workspace.getConfiguration('gofer');
         await config.update('autoInitialize', false, vscode.ConfigurationTarget.Global);
       }
     }
+
+    return false;
   }
 
   /**

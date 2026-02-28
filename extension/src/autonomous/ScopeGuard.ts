@@ -9,6 +9,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { Logger } from '../utils/logger';
 import type { ToolAuditLogger, ToolAuditEntry } from './ToolAuditLogger';
 
 /** Error thrown when ScopeGuard is in blocking mode and a violation occurs */
@@ -38,6 +39,7 @@ export interface ScopeViolation {
 export type ScopeEnforcementMode = 'advisory' | 'warning' | 'blocking';
 
 export class ScopeGuard {
+  private readonly scopeLogger = Logger.for('ScopeGuard');
   private protectedPatterns: string[] = [];
   private readonly workspaceRoot: string;
   private violations: ScopeViolation[] = [];
@@ -138,7 +140,9 @@ export class ScopeGuard {
           throw new ScopeViolationError(filePath, pattern, this.enforcementMode);
         }
 
-        console.warn(`[Gofer] Scope violation: ${filePath} matches protected pattern "${pattern}"`);
+        this.scopeLogger.warn(
+          `Scope violation: ${filePath} matches protected pattern "${pattern}"`
+        );
         return pattern;
       }
     }

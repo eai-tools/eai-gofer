@@ -2,6 +2,7 @@
 // (e.g. @injectable() in ./services). Without this, the extension crashes at load time.
 import 'reflect-metadata';
 import * as vscode from 'vscode';
+import * as fs from 'fs';
 import * as path from 'path';
 import { GoferMigrator } from './goferMigrator';
 import { ProgressProvider } from './progressProvider';
@@ -360,7 +361,7 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
 
   // 002 AC-3.3: Wire pipeline runId to RunLedger for correlation
   const pipelineStateManager = new PipelineStateManager(workspacePath);
-  tryWireRunId(pipelineStateManager, runLedger, workspacePath);
+  await tryWireRunId(pipelineStateManager, runLedger, workspacePath);
 
   const scopeGuard = new ScopeGuard(workspacePath);
   const configManager = ConfigManager.getInstance();
@@ -594,20 +595,20 @@ export async function deactivate(): Promise<void> {
  * 002 AC-3.3: Try to find the most recent pipeline-state.json and set its runId on RunLedger.
  * Best-effort: if no pipeline state exists, RunLedger uses '' as fallback.
  */
-function tryWireRunId(
+async function tryWireRunId(
   pipelineStateManager: PipelineStateManager,
   runLedger: RunLedger,
   workspacePath: string
-): void {
+): Promise<void> {
   try {
-    const fs = require('fs');
     const specsDir = path.join(workspacePath, '.specify', 'specs');
-    if (!fs.existsSync(specsDir)) return;
+    try {
+      await fs.promises.access(specsDir);
+    } catch {
+      return;
+    }
 
-    const entries = fs.readdirSync(specsDir, { withFileTypes: true }) as Array<{
-      isDirectory(): boolean;
-      name: string;
-    }>;
+    const entries = await fs.promises.readdir(specsDir, { withFileTypes: true });
     let latestRunId = '';
     let latestTime = 0;
 
@@ -615,9 +616,9 @@ function tryWireRunId(
       if (!entry.isDirectory() || entry.name.startsWith('_')) continue;
       const statePath = path.join(specsDir, entry.name, 'pipeline-state.json');
       try {
-        const stat = fs.statSync(statePath);
+        const stat = await fs.promises.stat(statePath);
         if (stat.mtimeMs > latestTime) {
-          const content = fs.readFileSync(statePath, 'utf-8');
+          const content = await fs.promises.readFile(statePath, 'utf-8');
           const state = JSON.parse(content);
           if (state.runId) {
             latestRunId = state.runId;

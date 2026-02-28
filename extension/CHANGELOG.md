@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.14.1] - 2026-03-01
+
+fix: prevent duplicate command registration and fix pipeline routing
+
 ## [1.14.0] - 2026-02-28
 
 Multi-perspective sub-agent strategies with diverge-converge pattern

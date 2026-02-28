@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.13.6] - 2026-02-28
+
+Fix validation findings: async I/O, reduced complexity, integration tests
+
 ## [1.13.5] - 2026-02-28
 
 Fix validation findings: async I/O, reduced complexity, integration tests

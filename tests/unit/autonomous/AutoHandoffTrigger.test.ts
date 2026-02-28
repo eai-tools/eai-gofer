@@ -766,7 +766,7 @@ describe('AutoHandoffTrigger', () => {
       monitor.emit('auto-save', createAutoSaveStatus());
       await vi.runAllTimersAsync();
 
-      expect(mockPty.write).toHaveBeenCalledWith('/7_gofer_save\r');
+      expect(mockPty.write).toHaveBeenCalledWith('/7_gofer_save');
 
       autoSaveTrigger.dispose();
     });
@@ -822,10 +822,10 @@ describe('AutoHandoffTrigger', () => {
       monitor.emit('auto-save', createAutoSaveStatus());
       await vi.runAllTimersAsync();
 
-      expect(mockPty.write).toHaveBeenCalledWith('/7_gofer_save\r');
+      expect(mockPty.write).toHaveBeenCalledWith('/7_gofer_save');
       // After checkpoint timeout + clear + delay, /8_gofer_resume is sent
-      expect(mockPty.write).toHaveBeenCalledWith('/clear\r');
-      expect(mockPty.write).toHaveBeenCalledWith('/8_gofer_resume\r');
+      expect(mockPty.write).toHaveBeenCalledWith('/clear');
+      expect(mockPty.write).toHaveBeenCalledWith('/8_gofer_resume');
 
       autoSaveTrigger.dispose();
     });
@@ -855,24 +855,27 @@ describe('AutoHandoffTrigger', () => {
       fs.writeFileSync(path.join(specDir, 'session-checkpoint.md'), '---\nstatus: test\n---\n');
 
       const mockPty = { write: vi.fn() };
-      const autoSaveTrigger = new AutoHandoffTrigger({
-        autoExecuteSave: true,
-        autoResumeAfterSave: false,
-        enableContinuousSlopReduction: false,
-        notificationCooldownMs: 120000, // 2-minute cooldown (longer than checkpoint timeout)
-      }, tmpDir);
+      const autoSaveTrigger = new AutoHandoffTrigger(
+        {
+          autoExecuteSave: true,
+          autoResumeAfterSave: false,
+          enableContinuousSlopReduction: false,
+          notificationCooldownMs: 120000, // 2-minute cooldown (longer than checkpoint timeout)
+        },
+        tmpDir
+      );
       autoSaveTrigger.setClaudePtyProcess(mockPty as unknown as IPty);
       autoSaveTrigger.connect(monitor);
 
-      // First auto-save — save/clear/resume sends 3 writes
+      // First auto-save — save/clear/resume sends 6 writes (each command + \r separately)
       monitor.emit('auto-save', createAutoSaveStatus());
       await vi.runAllTimersAsync();
-      expect(mockPty.write).toHaveBeenCalledTimes(3); // /7_gofer_save, /clear, /8_gofer_resume
+      expect(mockPty.write).toHaveBeenCalledTimes(6); // /7_gofer_save + \r, /clear + \r, /8_gofer_resume + \r
 
       // Second auto-save immediately — should be blocked by cooldown
       monitor.emit('auto-save', createAutoSaveStatus());
       await vi.runAllTimersAsync();
-      expect(mockPty.write).toHaveBeenCalledTimes(3); // unchanged
+      expect(mockPty.write).toHaveBeenCalledTimes(6); // unchanged
 
       autoSaveTrigger.dispose();
       fs.rmSync(tmpDir, { recursive: true, force: true });
@@ -955,11 +958,11 @@ describe('AutoHandoffTrigger', () => {
       await vi.runAllTimersAsync();
 
       // auto-save should have fired: /7_gofer_save sent to terminal
-      expect(mockPty.write).toHaveBeenCalledWith('/7_gofer_save\r');
+      expect(mockPty.write).toHaveBeenCalledWith('/7_gofer_save');
 
       // save/clear/resume cycle sends all three commands to the same pty
-      expect(mockPty.write).toHaveBeenCalledWith('/clear\r');
-      expect(mockPty.write).toHaveBeenCalledWith('/8_gofer_resume\r');
+      expect(mockPty.write).toHaveBeenCalledWith('/clear');
+      expect(mockPty.write).toHaveBeenCalledWith('/8_gofer_resume');
 
       // Usage logger should have recorded the auto-save event
       expect(mockLogger.logHandoff).toHaveBeenCalledWith(
@@ -1077,8 +1080,8 @@ describe('AutoHandoffTrigger', () => {
       });
       await vi.runAllTimersAsync();
 
-      // save/clear/resume sends 3 writes: /7_gofer_save, /clear, /8_gofer_resume
-      expect(mockPty.write).toHaveBeenCalledTimes(3);
+      // save/clear/resume sends 6 writes (each command + \r separately)
+      expect(mockPty.write).toHaveBeenCalledTimes(6);
 
       // Continue above threshold: 75% → 80% — should NOT fire again (edge detection)
       vi.advanceTimersByTime(200); // Past cooldown
@@ -1088,8 +1091,8 @@ describe('AutoHandoffTrigger', () => {
       });
       await vi.advanceTimersByTimeAsync(100);
 
-      // Still only 3 calls — the monitor only emits 'auto-save' on the crossing edge
-      expect(mockPty.write).toHaveBeenCalledTimes(3);
+      // Still only 6 calls — the monitor only emits 'auto-save' on the crossing edge
+      expect(mockPty.write).toHaveBeenCalledTimes(6);
 
       thresholdTrigger.dispose();
       thresholdMonitor.dispose();
@@ -1249,17 +1252,14 @@ describe('AutoHandoffTrigger', () => {
       // Simulate Claude creating the checkpoint file (what /7_gofer_save does)
       fs.writeFileSync(path.join(specDir, 'session-checkpoint.md'), '---\nstatus: paused\n---\n');
 
-      // Advance timers so the 1-second checkpoint polling interval fires
-      await vi.advanceTimersByTimeAsync(1100);
+      // Advance timers through the full save/clear/resume cycle:
+      // 500ms (save \r) + 1000ms (checkpoint poll) + 500ms (clear \r) + 2000ms (clear pause) + 500ms (resume \r) = 4500ms
+      await vi.advanceTimersByTimeAsync(5000);
 
-      expect(mockPty.write).toHaveBeenCalledWith('/7_gofer_save\r');
+      expect(mockPty.write).toHaveBeenCalledWith('/7_gofer_save');
       // After checkpoint detected, /clear and /8_gofer_resume follow
-      expect(mockPty.write).toHaveBeenCalledWith('/clear\r');
-
-      // Advance past the 2-second delay after /clear
-      await vi.advanceTimersByTimeAsync(2100);
-
-      expect(mockPty.write).toHaveBeenCalledWith('/8_gofer_resume\r');
+      expect(mockPty.write).toHaveBeenCalledWith('/clear');
+      expect(mockPty.write).toHaveBeenCalledWith('/8_gofer_resume');
 
       rapidTrigger.dispose();
       rapidMonitor.dispose();

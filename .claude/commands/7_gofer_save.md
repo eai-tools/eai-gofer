@@ -4,9 +4,9 @@ description: Save session progress with comprehensive checkpoint for resumption
 
 # Gofer Save
 
-You are creating a comprehensive progress checkpoint when the user needs to pause
-work on a feature. This is an **auxiliary command** that can be invoked anytime
-during the Gofer pipeline.
+You are creating a comprehensive progress checkpoint when the user needs to
+pause work on a feature. This is an **auxiliary command** that can be invoked
+anytime during the Gofer pipeline.
 
 ## User Input
 
@@ -36,10 +36,10 @@ Run context health check periodically during long sessions:
 .specify/scripts/bash/check-context-health.sh --json
 ```
 
-| Status   | Token Usage | Action                          |
-| -------- | ----------- | ------------------------------- |
-| Healthy  | < 50%       | Continue normally               |
-| Warning  | 50-70%      | Consider checkpoint, use sub-agents |
+| Status   | Token Usage | Action                                  |
+| -------- | ----------- | --------------------------------------- |
+| Healthy  | < 50%       | Continue normally                       |
+| Warning  | 50-70%      | Consider checkpoint, use sub-agents     |
 | Critical | > 70%       | **Save immediately**, start new session |
 
 **Why this matters**: Research shows LLMs lose accuracy as context grows.
@@ -108,7 +108,7 @@ If changes shouldn't be committed yet:
 
 Write to `{FEATURE_DIR}/session-checkpoint.md`:
 
-```markdown
+````markdown
 ---
 feature: [Feature Name]
 created: [ISO timestamp]
@@ -125,14 +125,14 @@ branch: [current branch]
 
 ### Pipeline Progress
 
-| Stage            | Status      | Artifact                 |
-| ---------------- | ----------- | ------------------------ |
-| 1_gofer_research | [done/skip] | research.md              |
-| 2_gofer_specify  | [done/skip] | spec.md                  |
-| 3_gofer_plan     | [done/skip] | plan.md, data-model.md   |
-| 4_gofer_tasks    | [done/skip] | tasks.md                 |
-| 5_gofer_implement| [current]   | [files created/modified] |
-| 6_gofer_validate | pending     | -                        |
+| Stage             | Status      | Artifact                 |
+| ----------------- | ----------- | ------------------------ |
+| 1_gofer_research  | [done/skip] | research.md              |
+| 2_gofer_specify   | [done/skip] | spec.md                  |
+| 3_gofer_plan      | [done/skip] | plan.md, data-model.md   |
+| 4_gofer_tasks     | [done/skip] | tasks.md                 |
+| 5_gofer_implement | [current]   | [files created/modified] |
+| 6_gofer_validate  | pending     | -                        |
 
 ### Active Task
 
@@ -155,13 +155,14 @@ From tasks.md:
 ```bash
 git log --oneline [session_start_commit]..HEAD
 ```
+````
 
 ### Uncommitted Changes
 
-| File          | Status   | Description                     |
-| ------------- | -------- | ------------------------------- |
-| `path/to/file`| Modified | [What was changed and why]      |
-| `path/other`  | New      | [Purpose of new file]           |
+| File           | Status   | Description                |
+| -------------- | -------- | -------------------------- |
+| `path/to/file` | Modified | [What was changed and why] |
+| `path/other`   | New      | [Purpose of new file]      |
 
 ### Files NOT to Modify (Protected)
 
@@ -221,7 +222,8 @@ git checkout [branch]
 ## Notes
 
 [Any additional context that would help future you or another agent]
-```
+
+````
 
 ---
 
@@ -233,7 +235,7 @@ Add checkpoint marker to tasks.md:
 ## Checkpoint: [ISO timestamp]
 
 Progress saved at task [TaskID]. Resume with `/8_gofer_resume`.
-```
+````
 
 ---
 
@@ -255,20 +257,42 @@ Progress saved at task [TaskID]. Resume with `/8_gofer_resume`.
   - Uncommitted: [Y] files (documented)
   - Tests: [passing/failing/not run]
 
-  To resume:
-  /8_gofer_resume
-
-  Or manually:
-  cd [repo] && git checkout [branch]
-  Read: {FEATURE_DIR}/session-checkpoint.md
-  Continue: /5_gofer_implement
+  To resume: /8_gofer_resume
 
 ================================================================
 ```
 
 ---
 
-## Step 6: Observability Logging
+## Step 6: Auto-Chain to Resume (MANDATORY)
+
+**AUTO-CHAIN (MANDATORY)**: After presenting the session summary above, you MUST
+immediately invoke the next step. Do NOT just display a "To resume" message and
+stop. Do NOT ask the user for permission. TAKE ACTION.
+
+### If the TypeScript auto-handoff is handling save/clear/resume:
+
+The extension's `AutoHandoffTrigger.sendSaveClearResume()` will handle `/clear`
+and `/8_gofer_resume` via PTY after this command completes. In that case, you do
+not need to take further action — the TypeScript code drives the sequence.
+
+### If invoked manually (via Skill tool or user command):
+
+You MUST immediately invoke `/8_gofer_resume` using the Skill tool:
+
+```
+Skill: "8_gofer_resume"
+```
+
+This ensures the pipeline continues without the user having to manually type the
+next command. While this doesn't clear context (only the TypeScript PTY flow can
+do that), it ensures continuity. If context is critically high (>70%), prepend
+your output with a recommendation that the user run `/clear` then
+`/8_gofer_resume` in a new session for maximum headroom.
+
+---
+
+## Step 7: Observability Logging
 
 ```bash
 .specify/scripts/bash/log-stage.sh 7_save --complete --tokens [N] --compactions [N]
@@ -328,6 +352,7 @@ The markdown body ensures:
 ### Handoff Size Target
 
 Aim for session-checkpoint.md to be:
+
 - **< 2,000 tokens** for critical information
 - **< 5,000 tokens** total including context
 

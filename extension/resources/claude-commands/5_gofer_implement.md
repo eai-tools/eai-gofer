@@ -51,11 +51,11 @@ Before starting implementation, assess context window health:
 
 **Evaluate thresholds (2025-2026 research-based)**:
 
-| Status   | Token Usage | Action                                        |
-| -------- | ----------- | --------------------------------------------- |
-| Healthy  | < 50%       | Proceed normally                              |
-| Warning  | 50-70%      | Use sub-agents, checkpoint every 5 tasks      |
-| Critical | > 70%       | Run `/7_gofer_save`, start new session        |
+| Status   | Token Usage | Action                                   |
+| -------- | ----------- | ---------------------------------------- |
+| Healthy  | < 50%       | Proceed normally                         |
+| Warning  | 50-70%      | Use sub-agents, checkpoint every 5 tasks |
+| Critical | > 70%       | Run `/7_gofer_save`, start new session   |
 
 ### Context Management Techniques
 
@@ -444,9 +444,26 @@ At stage completion, log metrics:
 .specify/scripts/bash/log-stage.sh 5_implement --complete --tokens [N] --compactions [N]
 ```
 
+Update pipeline state to record stage completion:
+
+```bash
+.specify/scripts/bash/pipeline-state.sh update --stage 5_implement
+```
+
 Logs to: `.specify/logs/pipeline.jsonl`
 
 ---
+
+## Required Output Schema
+
+The implement stage produces source code files matching `plan.md` file
+structure.
+
+### Output Conventions
+
+- Source files created/modified as specified in tasks.md
+- Each completed task marked with `- [x]` in tasks.md
+- No structured artifact schema — output is the implemented code itself
 
 ## Key Rules
 

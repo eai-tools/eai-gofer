@@ -43,6 +43,7 @@ import { KnowledgeGraph, type SubgraphResult } from './KnowledgeGraph';
 import { Logger } from '../services/Logger';
 import { CitationVerifier } from './CitationVerifier';
 import { ScopeGuard } from './ScopeGuard';
+import type { CostBudgetEnforcer } from './CostBudgetEnforcer';
 import { extractKeywords as tfIdfExtractKeywords } from './TfIdfUtil';
 
 /**
@@ -255,6 +256,8 @@ export class ContextBuilder extends EventEmitter {
   private citationVerifier?: CitationVerifier;
   /** T013: Optional scope guard for protected boundary checking */
   private scopeGuard?: ScopeGuard;
+  /** 002 T036: Optional cost budget enforcer for dollar/token limit tracking */
+  private costBudgetEnforcer?: CostBudgetEnforcer;
   /** T048: Optional sub-agent dispatcher for delegation recommendations */
   private subAgentDispatcher?: {
     getRecommendation(): {
@@ -372,6 +375,20 @@ export class ContextBuilder extends EventEmitter {
    */
   setScopeGuard(guard: ScopeGuard): void {
     this.scopeGuard = guard;
+  }
+
+  /**
+   * 002 T036: Wire a CostBudgetEnforcer for dollar/token budget tracking.
+   */
+  setCostBudgetEnforcer(enforcer: CostBudgetEnforcer): void {
+    this.costBudgetEnforcer = enforcer;
+  }
+
+  /**
+   * 002 T036: Get the wired CostBudgetEnforcer (if any).
+   */
+  getCostBudgetEnforcer(): CostBudgetEnforcer | undefined {
+    return this.costBudgetEnforcer;
   }
 
   /**
@@ -712,6 +729,39 @@ export class ContextBuilder extends EventEmitter {
           error: `Budget enforcement (blocking mode): ${estimatedTokens} tokens exceeds ${this.config.contextTokenLimit} limit`,
         };
       }
+    }
+
+    // 002 T036: Check cost budget before building context
+    if (this.costBudgetEnforcer && !this.costBudgetEnforcer.canProceed()) {
+      const snapshot = this.costBudgetEnforcer.getSnapshot();
+      const budgetConfig = this.costBudgetEnforcer.getConfig();
+      const msg = `Cost budget exceeded: $${snapshot.currentCostUsd.toFixed(2)} / $${budgetConfig.maxCostUsd.toFixed(2)} (${Math.round(snapshot.percentUsed)}%)`;
+
+      if (budgetConfig.enforcementMode === 'blocking') {
+        return {
+          fullContext: '',
+          sections: {},
+          loadTime: 0,
+          hintsLoadTime: 0,
+          memoriesLoadTime: 0,
+          turnNumber: this.currentTurn,
+          stage: this.currentStage,
+          loadingDecisions: [
+            {
+              source: 'budget-enforcement',
+              decision: 'blocked',
+              reason: msg,
+            },
+          ],
+          error: msg,
+        };
+      }
+      // advisory/truncate: log warning but proceed
+      loadingDecisions.push({
+        source: 'budget-enforcement',
+        decision: 'loaded',
+        reason: `Budget exceeded (${budgetConfig.enforcementMode} mode): ${msg}`,
+      });
     }
 
     // 1. Load constitution

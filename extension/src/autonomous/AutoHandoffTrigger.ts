@@ -58,9 +58,9 @@ const DEFAULT_CONFIG: AutoHandoffConfig = {
   notificationCooldownMs: 5 * 60 * 1000, // 5 minutes
   autoDismissMs: undefined,
   notifyAtWarning: false,
-  autoExecuteSave: false,
+  autoExecuteSave: true,
   autoSaveThreshold: 0.65,
-  autoResumeAfterSave: false,
+  autoResumeAfterSave: true,
   enableContinuousSlopReduction: true,
   slopScanIntervalMs: 2 * 60 * 1000, // 2 minutes
 };

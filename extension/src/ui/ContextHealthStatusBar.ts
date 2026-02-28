@@ -23,6 +23,7 @@ import {
 import { Logger } from '../utils/logger';
 import type { GoferStage, StageContextProfile } from '../autonomous/StageContextProfile';
 import { INTERVALS } from '../config/intervals';
+import type { CostSnapshot } from '../autonomous/CostBudgetEnforcer';
 
 /**
  * Masking statistics for display
@@ -110,6 +111,9 @@ export class ContextHealthStatusBar implements vscode.Disposable {
   private maskingStats: MaskingStatistics | null = null;
   private stageProfileUsage: StageProfileUsage | null = null;
   private sessionCount: number = 0;
+  /** 002 T037: Cost budget snapshot for display */
+  private budgetSnapshot: CostSnapshot | null = null;
+  private budgetMaxCostUsd: number = 0;
 
   /**
    * Creates a new ContextHealthStatusBar instance.
@@ -204,6 +208,15 @@ export class ContextHealthStatusBar implements vscode.Disposable {
   setSessionCount(count: number): void {
     this.sessionCount = count;
     // Re-render with the current status to update the suffix
+    this.updateDisplay(this.currentStatus);
+  }
+
+  /**
+   * 002 T037: Updates the cost budget snapshot for display.
+   */
+  setBudgetSnapshot(snapshot: CostSnapshot, maxCostUsd: number): void {
+    this.budgetSnapshot = snapshot;
+    this.budgetMaxCostUsd = maxCostUsd;
     this.updateDisplay(this.currentStatus);
   }
 
@@ -315,6 +328,19 @@ export class ContextHealthStatusBar implements vscode.Disposable {
       lines.push(
         `Context Health: ${status.status.toUpperCase()}`,
         `Usage: ${status.tokensUsed.toLocaleString()} / ${status.tokensLimit.toLocaleString()} tokens (${Math.round(status.utilizationPercent)}%)`
+      );
+    }
+
+    // 002 T037: Budget info in tooltip
+    if (this.budgetSnapshot && this.budgetMaxCostUsd > 0) {
+      const budgetIcon =
+        this.budgetSnapshot.status === 'exceeded'
+          ? '$(error)'
+          : this.budgetSnapshot.status === 'warning'
+            ? '$(warning)'
+            : '';
+      lines.push(
+        `Budget: $${this.budgetSnapshot.currentCostUsd.toFixed(2)} / $${this.budgetMaxCostUsd.toFixed(2)} (${Math.round(this.budgetSnapshot.percentUsed)}%) ${budgetIcon}`.trim()
       );
     }
 
@@ -477,6 +503,26 @@ export class ContextHealthStatusBar implements vscode.Disposable {
       });
 
       items.push(...this.buildStageProfileItems(this.stageProfileUsage));
+    }
+
+    // 002 T037: Cost Budget section
+    if (this.budgetSnapshot && this.budgetMaxCostUsd > 0) {
+      items.push({
+        label: '$(credit-card) Cost Budget',
+        kind: vscode.QuickPickItemKind.Separator,
+      });
+
+      const budgetIcon =
+        this.budgetSnapshot.status === 'exceeded'
+          ? '$(error)'
+          : this.budgetSnapshot.status === 'warning'
+            ? '$(warning)'
+            : '$(check)';
+      items.push({
+        label: `${budgetIcon} Budget: ${this.budgetSnapshot.status.toUpperCase()}`,
+        description: `$${this.budgetSnapshot.currentCostUsd.toFixed(2)} / $${this.budgetMaxCostUsd.toFixed(2)}`,
+        detail: `${Math.round(this.budgetSnapshot.percentUsed)}% of budget used — ${this.budgetSnapshot.currentTokens.toLocaleString()} tokens consumed`,
+      });
     }
 
     // Recommendations section

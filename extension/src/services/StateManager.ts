@@ -30,6 +30,7 @@ import { ContextBuilder } from '../autonomous/ContextBuilder';
 import { WorkspaceContextProvider } from '../autonomous/WorkspaceContextProvider';
 import { ScopeGuard } from '../autonomous/ScopeGuard';
 import { ResearchChunker } from '../autonomous/ResearchChunker';
+import { CostBudgetEnforcer } from '../autonomous/CostBudgetEnforcer';
 
 /**
  * State Manager Service
@@ -74,9 +75,10 @@ export class StateManager {
   private _consolidationTimer?: ReturnType<typeof setInterval> | null;
   private _workspaceContextProvider?: WorkspaceContextProvider;
 
-  // ScopeGuard and ResearchChunker
+  // ScopeGuard, ResearchChunker, and CostBudgetEnforcer
   private _scopeGuard?: ScopeGuard;
   private _researchChunker?: ResearchChunker;
+  private _costBudgetEnforcer?: CostBudgetEnforcer;
 
   // Flags
   private _isUpgrading = false;
@@ -280,6 +282,14 @@ export class StateManager {
 
   public set researchChunker(value: ResearchChunker | undefined) {
     this._researchChunker = value;
+  }
+
+  public get costBudgetEnforcer(): CostBudgetEnforcer | undefined {
+    return this._costBudgetEnforcer;
+  }
+
+  public set costBudgetEnforcer(value: CostBudgetEnforcer | undefined) {
+    this._costBudgetEnforcer = value;
   }
 
   // --- Flags ---

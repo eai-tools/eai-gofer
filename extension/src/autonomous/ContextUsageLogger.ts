@@ -16,8 +16,11 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import * as vscode from 'vscode';
 import { Logger } from '../utils/logger';
 import type { HealthStatus, TokenBreakdown } from './ContextHealthMonitor';
+import type { CostBudgetEnforcer, CostSnapshot } from './CostBudgetEnforcer';
+import type { ContextHealthStatusBar } from '../ui/ContextHealthStatusBar';
 
 /**
  * Log entry for context usage tracking.
@@ -213,6 +216,10 @@ export class ContextUsageLogger {
   private readonly logger: Logger;
   private readonly workspaceRoot: string;
   private initialized: boolean = false;
+  private runLedger?: import('./RunLedger').RunLedger;
+  private costBudgetEnforcer?: CostBudgetEnforcer;
+  private contextHealthStatusBar?: ContextHealthStatusBar;
+  private lastHealthStatus?: HealthStatus;
 
   /**
    * Creates a new ContextUsageLogger instance.
@@ -228,6 +235,28 @@ export class ContextUsageLogger {
       logPath: this.getLogPath(),
       enabled: this.config.enabled,
     });
+  }
+
+  /**
+   * Wire RunLedger for milestone event emission.
+   */
+  setRunLedger(ledger: import('./RunLedger').RunLedger): void {
+    this.runLedger = ledger;
+  }
+
+  /**
+   * 002 AC-6.4: Wire CostBudgetEnforcer for dollar/token budget tracking.
+   * When set, logLLMCall() forwards token counts to recordUsage().
+   */
+  setCostBudgetEnforcer(enforcer: CostBudgetEnforcer): void {
+    this.costBudgetEnforcer = enforcer;
+  }
+
+  /**
+   * 002 AC-6.7: Wire ContextHealthStatusBar for budget snapshot display.
+   */
+  setContextHealthStatusBar(statusBar: ContextHealthStatusBar): void {
+    this.contextHealthStatusBar = statusBar;
   }
 
   /**
@@ -303,6 +332,41 @@ export class ContextUsageLogger {
       eventType: 'health_check',
     };
     await this.log(entry);
+    await this.emitMilestone(input.status, input.stage);
+  }
+
+  /**
+   * Emit milestone event to RunLedger on health status transitions only.
+   * Only emits when status transitions to 'warning' or 'critical'.
+   */
+  private async emitMilestone(currentStatus: HealthStatus, stage: string): Promise<void> {
+    if (!this.runLedger) return;
+
+    const previousStatus = this.lastHealthStatus;
+    this.lastHealthStatus = currentStatus;
+
+    // Only emit on transitions to warning or critical
+    if (currentStatus === 'warning' && previousStatus !== 'warning') {
+      await this.runLedger.log({
+        runId: '',
+        timestamp: new Date().toISOString(),
+        eventType: 'health_warning',
+        stage,
+        feature: '',
+        source: 'ContextUsageLogger',
+        severity: 'warning',
+      });
+    } else if (currentStatus === 'critical' && previousStatus !== 'critical') {
+      await this.runLedger.log({
+        runId: '',
+        timestamp: new Date().toISOString(),
+        eventType: 'health_critical',
+        stage,
+        feature: '',
+        source: 'ContextUsageLogger',
+        severity: 'error',
+      });
+    }
   }
 
   /**
@@ -631,8 +695,17 @@ export class ContextUsageLogger {
 
   /**
    * 018 T072: Log an LLM call with token usage.
+   * 002 AC-6.4: Forwards token counts to CostBudgetEnforcer.recordUsage() when wired.
+   * 002 AC-6.5: Shows vscode notification on budget warning/exceeded transitions.
+   * 002 AC-6.7: Updates ContextHealthStatusBar with budget snapshot.
    */
-  async logLLMCall(sessionId: string, stage: string, inputTokens: number, outputTokens: number): Promise<void> {
+  async logLLMCall(
+    sessionId: string,
+    stage: string,
+    inputTokens: number,
+    outputTokens: number,
+    providerId?: string
+  ): Promise<void> {
     const entry: ContextUsageLogEntry = {
       timestamp: new Date().toISOString(),
       sessionId,
@@ -646,19 +719,59 @@ export class ContextUsageLogger {
       llmOutputTokens: outputTokens,
     };
     await this.log(entry);
+
+    // 002 AC-6.4: Forward to CostBudgetEnforcer for budget tracking
+    if (this.costBudgetEnforcer) {
+      const snapshot = this.costBudgetEnforcer.recordUsage(inputTokens, outputTokens, providerId);
+      this.handleBudgetSnapshot(snapshot);
+    }
+  }
+
+  /**
+   * 002 AC-6.5/6.7: Handle budget snapshot — update status bar and show notifications.
+   */
+  private handleBudgetSnapshot(snapshot: CostSnapshot): void {
+    // AC-6.7: Update status bar with current budget state
+    if (this.contextHealthStatusBar && this.costBudgetEnforcer) {
+      this.contextHealthStatusBar.setBudgetSnapshot(
+        snapshot,
+        this.costBudgetEnforcer.getConfig().maxCostUsd
+      );
+    }
+
+    // AC-6.5: Show notification on warning/exceeded
+    if (snapshot.status === 'warning') {
+      vscode.window.showWarningMessage(
+        `Gofer Budget Warning: $${snapshot.currentCostUsd.toFixed(2)} spent (${Math.round(snapshot.percentUsed)}% of budget)`
+      );
+    } else if (snapshot.status === 'exceeded') {
+      vscode.window.showErrorMessage(
+        `Gofer Budget Exceeded: $${snapshot.currentCostUsd.toFixed(2)} spent (${Math.round(snapshot.percentUsed)}% of budget)`
+      );
+    }
   }
 
   /**
    * 018 T073: Aggregate costs per stage from the log.
    */
-  async aggregateCostsByStage(): Promise<Map<string, { calls: number; inputTokens: number; outputTokens: number; totalTokens: number }>> {
+  async aggregateCostsByStage(): Promise<
+    Map<string, { calls: number; inputTokens: number; outputTokens: number; totalTokens: number }>
+  > {
     const entries = await this.readLog();
-    const costs = new Map<string, { calls: number; inputTokens: number; outputTokens: number; totalTokens: number }>();
+    const costs = new Map<
+      string,
+      { calls: number; inputTokens: number; outputTokens: number; totalTokens: number }
+    >();
 
     for (const entry of entries) {
       if (entry.eventType !== 'llm_call' && entry.eventType !== 'health_check') continue;
       const stage = entry.stage || 'unknown';
-      const current = costs.get(stage) || { calls: 0, inputTokens: 0, outputTokens: 0, totalTokens: 0 };
+      const current = costs.get(stage) || {
+        calls: 0,
+        inputTokens: 0,
+        outputTokens: 0,
+        totalTokens: 0,
+      };
       current.calls++;
       current.inputTokens += entry.llmInputTokens || 0;
       current.outputTokens += entry.llmOutputTokens || 0;

@@ -704,6 +704,356 @@ export class ContextBuilder extends EventEmitter {
     const loadingDecisions: LoadingDecision[] = [];
     let memoryCoverage: MemoryCoverage | undefined;
 
+    // Pre-check: reject build if budget enforcement blocks it
+    const budgetBlock = this.checkBudgetPreConditions(loadingDecisions);
+    if (budgetBlock) {
+      return budgetBlock;
+    }
+
+    // 1. Load constitution
+    const constitutionPath = path.join(this.workspaceRoot, '.specify', 'memory', 'constitution.md');
+
+    if (fs.existsSync(constitutionPath)) {
+      sections.constitution = fs.readFileSync(constitutionPath, 'utf-8');
+    }
+
+    // 1.5 Load research chunks (T059-T061) - chunked loading for context reduction
+    if (this.config.enableChunkedResearch && task.specId) {
+      const researchResult = await this.loadResearchChunks(task.specId, task.description);
+      if (researchResult) {
+        sections.research = researchResult.content;
+        loadingDecisions.push({
+          source: 'research',
+          decision: 'loaded',
+          reason: `Loaded ${researchResult.chunksLoaded} research chunks (${researchResult.tokensLoaded} tokens)`,
+          tokens: researchResult.tokensLoaded,
+        });
+      }
+    }
+
+    // Extract task keywords for coverage tracking
+    const taskKeywords = this.extractKeywords(task.description);
+
+    // 2-3. Load memories and calculate coverage
+    const memoryResult = await this.loadMemoriesForTask(task, sections, loadingDecisions);
+    const memoriesLoadTime = memoryResult.loadTime;
+
+    if (this.config.enableMemoryFirstLoading) {
+      memoryCoverage = this.calculateMemoryCoverage(taskKeywords, memoryResult.memories);
+    }
+
+    // 4. Load hints/research (lazy loading for gaps - T049)
+    const hintsLoadTime = await this.loadHintsAndResearch(
+      task,
+      sections,
+      loadingDecisions,
+      memoryCoverage
+    );
+
+    // 4.5 Load knowledge graph context for affected files
+    if (this.knowledgeGraph && task.affectedFiles && task.affectedFiles.length > 0) {
+      const graphContext = this.loadGraphContext(task.affectedFiles);
+      if (graphContext) {
+        // Append graph context to code section
+        sections.code = (sections.code || '') + graphContext;
+      }
+    }
+
+    // 5. Task-specific context
+    if (task.customContext) {
+      sections.taskContext = task.customContext;
+    }
+
+    // 6. Apply post-processing: masking, advisory injections, budget enforcement
+    const { maskingStats, budgetUsage } = this.applyPostProcessing(sections, task);
+
+    // Build full context (after potential truncation)
+    const fullContext = this.mergeContextSections(sections);
+    const loadTime = Date.now() - startTime;
+
+    // Emit loading decision events for logging
+    this.emitLoadingDecisions(loadingDecisions, memoryCoverage);
+
+    return {
+      fullContext,
+      sections,
+      loadTime,
+      hintsLoadTime,
+      memoriesLoadTime,
+      maskingStats,
+      turnNumber: this.currentTurn,
+      budgetUsage,
+      stage: this.currentStage,
+      memoryCoverage,
+      loadingDecisions: this.config.logLoadingDecisions ? loadingDecisions : undefined,
+    };
+  }
+
+  /**
+   * Load hints and research documents. Uses lazy loading when memory-first is enabled,
+   * only loading research for coverage gaps. Falls back to full loading otherwise.
+   */
+  private async loadHintsAndResearch(
+    task: TaskContext,
+    sections: BuiltContext['sections'],
+    loadingDecisions: LoadingDecision[],
+    memoryCoverage?: MemoryCoverage
+  ): Promise<number> {
+    const hintsStartTime = Date.now();
+
+    if (this.config.enableMemoryFirstLoading && memoryCoverage) {
+      if (memoryCoverage.coveragePercent < this.config.minMemoryCoverage * 100) {
+        const hintResult = await this.hintLoader.loadForTask({
+          affectedFiles: task.affectedFiles || [],
+          declaredHints: task.declaredHints || [],
+          includeGlobal: true,
+          includeProject: true,
+        });
+
+        if (hintResult.mergedContent) {
+          sections.hints = hintResult.mergedContent;
+          memoryCoverage.researchLoadedForGaps = true;
+          memoryCoverage.researchTriggers = memoryCoverage.uncoveredKeywords.slice(0, 5);
+
+          loadingDecisions.push({
+            source: 'research',
+            decision: 'loaded',
+            reason: `Coverage ${memoryCoverage.coveragePercent.toFixed(1)}% below threshold ${(this.config.minMemoryCoverage * 100).toFixed(1)}%`,
+            tokens: this.estimateTokens(hintResult.mergedContent),
+          });
+        }
+      } else {
+        loadingDecisions.push({
+          source: 'research',
+          decision: 'skipped',
+          reason: `Coverage ${memoryCoverage.coveragePercent.toFixed(1)}% meets threshold ${(this.config.minMemoryCoverage * 100).toFixed(1)}%`,
+        });
+      }
+    } else {
+      const hintResult = await this.hintLoader.loadForTask({
+        affectedFiles: task.affectedFiles || [],
+        declaredHints: task.declaredHints || [],
+        includeGlobal: true,
+        includeProject: true,
+      });
+
+      if (hintResult.mergedContent) {
+        sections.hints = hintResult.mergedContent;
+      }
+    }
+
+    // T031: Emit research-complete event
+    if (sections.hints) {
+      this.emit('research-complete', {
+        specId: task.specId,
+        hintsLoaded: true,
+        memoryCoverage: memoryCoverage?.coveragePercent ?? 0,
+      });
+    }
+
+    return Date.now() - hintsStartTime;
+  }
+
+  /**
+   * Load memories using the appropriate strategy (layered, priority-based, or legacy).
+   * Handles memory usage recording and citation verification.
+   */
+  private async loadMemoriesForTask(
+    task: TaskContext,
+    sections: BuiltContext['sections'],
+    loadingDecisions: LoadingDecision[]
+  ): Promise<{ memories: Memory[]; loadTime: number }> {
+    const startTime = Date.now();
+    let memories: Memory[] = [];
+
+    // T063: Use layered memory if available and enabled
+    if (this.useLayeredMemory && this.memoryLayerManager) {
+      try {
+        const layeredContent = await this.memoryLayerManager.formatAsContextSection(
+          task.description
+        );
+        if (layeredContent) {
+          sections.memories = layeredContent;
+          loadingDecisions.push({
+            source: 'memory',
+            decision: 'loaded',
+            reason: 'Loaded via MemoryLayerManager (core + recall layers)',
+            tokens: this.estimateTokens(layeredContent),
+          });
+        }
+      } catch {
+        // Fallback to standard memory loading below
+      }
+    }
+
+    if (!sections.memories && this.config.enableMemoryFirstLoading) {
+      const priorityResult = await this.memoryManager.loadByPriority({
+        limit: this.config.memoryPriorityLimit,
+        taskContext: task.description,
+        scope: 'both',
+      });
+      memories = priorityResult.memories;
+
+      loadingDecisions.push({
+        source: 'memory',
+        decision: 'loaded',
+        reason: `Loaded ${memories.length} memories by priority (${priorityResult.totalConsidered} considered)`,
+        tokens: memories.length > 0 ? this.estimateTokens(this.formatMemories(memories)) : 0,
+      });
+    } else {
+      memories = await this.loadRelevantMemories(task);
+    }
+
+    if (memories.length > 0) {
+      // T029: Record usage for each loaded memory (async, fire-and-forget)
+      for (const memory of memories) {
+        this.memoryManager.recordUsage(memory.id).catch((err) =>
+          this.logger?.error('ContextBuilder:RecordMemoryUsage', err as Error, {
+            memoryId: memory.id,
+            operation: 'record-usage',
+          })
+        );
+      }
+
+      sections.memories = this.formatMemories(memories);
+
+      // T010-T011: Verify citations and code symbols for staleness
+      if (this.citationVerifier && sections.memories) {
+        const citationResult = this.citationVerifier.verifyCitations(sections.memories);
+        if (citationResult.needsReview) {
+          sections.memories = this.citationVerifier.addStalenessWarning(
+            sections.memories,
+            citationResult
+          );
+        }
+        const missingSymbols = this.citationVerifier.verifyCodeSymbols(sections.memories);
+        if (missingSymbols.length > 0) {
+          this.logger?.warn(
+            'ContextBuilder',
+            `Missing code symbols in memories: ${missingSymbols.slice(0, 5).join(', ')}`
+          );
+        }
+      }
+    }
+
+    return { memories, loadTime: Date.now() - startTime };
+  }
+
+  /**
+   * Apply post-processing to built context sections: observation masking,
+   * advisory injections (delegation, parallel analysis), and budget enforcement.
+   */
+  private applyPostProcessing(
+    sections: BuiltContext['sections'],
+    task: TaskContext
+  ): { maskingStats?: MaskingStats; budgetUsage?: BudgetUsage } {
+    let maskingStats: MaskingStats | undefined;
+
+    // Observation masking
+    if (this.config.enableMasking) {
+      const maskResult = this.observationMasker.maskOldObservations(this.currentTurn);
+      if (maskResult.maskedCount > 0) {
+        sections.observations = maskResult.maskedContent;
+      }
+      maskingStats = {
+        maskedCount: maskResult.maskedCount,
+        tokensSaved: maskResult.tokensSaved,
+        totalObservations: this.observationMasker.getAllObservations().length,
+      };
+
+      this.observationMasker.saveCacheToDisk().catch((err) =>
+        this.logger?.error('ContextBuilder:SaveObservationCache', err as Error, {
+          operation: 'save-cache',
+        })
+      );
+    }
+
+    // Inject delegation advisory section
+    if (this.subAgentDispatcher) {
+      const delegationSection = this.subAgentDispatcher.formatAsContextSection();
+      if (delegationSection) {
+        sections.taskContext = (sections.taskContext || '') + '\n\n' + delegationSection;
+      }
+    }
+
+    // Inject parallel analysis recommendations
+    if (this.parallelAnalysisFramework) {
+      try {
+        const recommendation = this.parallelAnalysisFramework.generateRecommendations(
+          task.affectedFiles || [],
+          task.description || ''
+        );
+        if (recommendation.partitions.length > 0) {
+          const analysisSection =
+            this.parallelAnalysisFramework.formatAsContextSection(recommendation);
+          if (analysisSection) {
+            sections.taskContext = (sections.taskContext || '') + '\n\n' + analysisSection;
+          }
+        }
+      } catch {
+        // Non-fatal: parallel analysis is advisory
+      }
+    }
+
+    // Budget usage calculation and enforcement
+    let budgetUsage: BudgetUsage | undefined;
+    if (this.config.enableBudgetEnforcement) {
+      budgetUsage = this.calculateBudgetUsage(sections);
+
+      if (this.config.emitBudgetWarnings) {
+        for (const category of budgetUsage.exceededCategories) {
+          const usage = budgetUsage.usage[category as keyof typeof budgetUsage.usage];
+          const limit = budgetUsage.limits[category as keyof typeof budgetUsage.limits];
+          const percentOver = ((usage - limit) / limit) * 100;
+
+          this.emit('budget-warning', {
+            category,
+            tokensUsed: usage,
+            budgetLimit: limit,
+            percentOver,
+            stage: this.currentStage,
+          } as BudgetWarningEvent);
+        }
+      }
+
+      if (this.config.enforceBudgetCaps && budgetUsage.exceededCategories.length > 0) {
+        this.truncateOverBudgetSections(sections, budgetUsage);
+      }
+    }
+
+    return { maskingStats, budgetUsage };
+  }
+
+  /**
+   * Emit loading decision events for observability logging.
+   */
+  private emitLoadingDecisions(
+    loadingDecisions: LoadingDecision[],
+    memoryCoverage?: MemoryCoverage
+  ): void {
+    if (!this.config.logLoadingDecisions) return;
+
+    for (const decision of loadingDecisions) {
+      this.emit('loading-decision', decision);
+
+      if (this.usageLogger) {
+        this.usageLogger.logLoadingDecision({
+          source: decision.source,
+          decision: decision.decision,
+          reason: decision.reason,
+          tokensLoaded: decision.tokens,
+          memoryCoveragePercent: memoryCoverage?.coveragePercent,
+          stage: this.currentStage,
+        });
+      }
+    }
+  }
+
+  /**
+   * Pre-check budget constraints before building context.
+   * Returns a BuiltContext early-return if budget blocks the build, or null to proceed.
+   */
+  private checkBudgetPreConditions(loadingDecisions: LoadingDecision[]): BuiltContext | null {
     // 019 F3: Blocking mode pre-check — reject build if budget would be exceeded
     if (this.config.budgetEnforcementMode === 'blocking' && this.config.enableBudgetEnforcement) {
       const currentStats = this.observationMasker.getStats();
@@ -764,298 +1114,7 @@ export class ContextBuilder extends EventEmitter {
       });
     }
 
-    // 1. Load constitution
-    const constitutionPath = path.join(this.workspaceRoot, '.specify', 'memory', 'constitution.md');
-
-    if (fs.existsSync(constitutionPath)) {
-      sections.constitution = fs.readFileSync(constitutionPath, 'utf-8');
-    }
-
-    // 1.5 Load research chunks (T059-T061) - chunked loading for context reduction
-    if (this.config.enableChunkedResearch && task.specId) {
-      const researchResult = await this.loadResearchChunks(task.specId, task.description);
-      if (researchResult) {
-        sections.research = researchResult.content;
-        loadingDecisions.push({
-          source: 'research',
-          decision: 'loaded',
-          reason: `Loaded ${researchResult.chunksLoaded} research chunks (${researchResult.tokensLoaded} tokens)`,
-          tokens: researchResult.tokensLoaded,
-        });
-      }
-    }
-
-    // Extract task keywords for coverage tracking
-    const taskKeywords = this.extractKeywords(task.description);
-
-    // 2. Load memories (memory-first if enabled)
-    const memoriesStartTime = Date.now();
-    let memories: Memory[] = [];
-
-    // T063: Use layered memory if available and enabled
-    if (this.useLayeredMemory && this.memoryLayerManager) {
-      try {
-        const layeredContent = await this.memoryLayerManager.formatAsContextSection(
-          task.description
-        );
-        if (layeredContent) {
-          sections.memories = layeredContent;
-          loadingDecisions.push({
-            source: 'memory',
-            decision: 'loaded',
-            reason: 'Loaded via MemoryLayerManager (core + recall layers)',
-            tokens: this.estimateTokens(layeredContent),
-          });
-        }
-      } catch {
-        // Fallback to standard memory loading below
-      }
-    }
-
-    if (!sections.memories && this.config.enableMemoryFirstLoading) {
-      // Use loadByPriority with task context for relevance scoring
-      const priorityResult = await this.memoryManager.loadByPriority({
-        limit: this.config.memoryPriorityLimit,
-        taskContext: task.description,
-        scope: 'both',
-      });
-      memories = priorityResult.memories;
-
-      loadingDecisions.push({
-        source: 'memory',
-        decision: 'loaded',
-        reason: `Loaded ${memories.length} memories by priority (${priorityResult.totalConsidered} considered)`,
-        tokens: memories.length > 0 ? this.estimateTokens(this.formatMemories(memories)) : 0,
-      });
-    } else {
-      // Legacy: load by simple relevance
-      memories = await this.loadRelevantMemories(task);
-    }
-    const memoriesLoadTime = Date.now() - memoriesStartTime;
-
-    if (memories.length > 0) {
-      // T029: Record usage for each loaded memory (async, fire-and-forget)
-      for (const memory of memories) {
-        this.memoryManager.recordUsage(memory.id).catch((err) =>
-          this.logger?.error('ContextBuilder:RecordMemoryUsage', err as Error, {
-            memoryId: memory.id,
-            operation: 'record-usage',
-          })
-        );
-      }
-
-      sections.memories = this.formatMemories(memories);
-
-      // T010: Verify citations in formatted memories for staleness
-      // T011: Also verify code symbols referenced in memories
-      if (this.citationVerifier && sections.memories) {
-        const citationResult = this.citationVerifier.verifyCitations(sections.memories);
-        if (citationResult.needsReview) {
-          sections.memories = this.citationVerifier.addStalenessWarning(
-            sections.memories,
-            citationResult
-          );
-        }
-        const missingSymbols = this.citationVerifier.verifyCodeSymbols(sections.memories);
-        if (missingSymbols.length > 0) {
-          console.warn('[Gofer] Missing code symbols in memories:', missingSymbols.slice(0, 5));
-        }
-      }
-    }
-
-    // 3. Calculate memory coverage (T048)
-    if (this.config.enableMemoryFirstLoading) {
-      memoryCoverage = this.calculateMemoryCoverage(taskKeywords, memories);
-    }
-
-    // 4. Load hints/research (lazy loading for gaps - T049)
-    const hintsStartTime = Date.now();
-    let hintsLoadTime = 0;
-
-    if (this.config.enableMemoryFirstLoading && memoryCoverage) {
-      // Lazy loading: only load research for gaps
-      if (memoryCoverage.coveragePercent < this.config.minMemoryCoverage * 100) {
-        // Coverage below threshold - load research for uncovered topics
-        const hintResult = await this.hintLoader.loadForTask({
-          affectedFiles: task.affectedFiles || [],
-          declaredHints: task.declaredHints || [],
-          includeGlobal: true,
-          includeProject: true,
-        });
-        hintsLoadTime = Date.now() - hintsStartTime;
-
-        if (hintResult.mergedContent) {
-          sections.hints = hintResult.mergedContent;
-          memoryCoverage.researchLoadedForGaps = true;
-          memoryCoverage.researchTriggers = memoryCoverage.uncoveredKeywords.slice(0, 5);
-
-          loadingDecisions.push({
-            source: 'research',
-            decision: 'loaded',
-            reason: `Coverage ${memoryCoverage.coveragePercent.toFixed(1)}% below threshold ${(this.config.minMemoryCoverage * 100).toFixed(1)}%`,
-            tokens: this.estimateTokens(hintResult.mergedContent),
-          });
-        }
-      } else {
-        // Coverage sufficient - skip research loading
-        loadingDecisions.push({
-          source: 'research',
-          decision: 'skipped',
-          reason: `Coverage ${memoryCoverage.coveragePercent.toFixed(1)}% meets threshold ${(this.config.minMemoryCoverage * 100).toFixed(1)}%`,
-        });
-        hintsLoadTime = Date.now() - hintsStartTime;
-      }
-    } else {
-      // Legacy: always load hints
-      const hintResult = await this.hintLoader.loadForTask({
-        affectedFiles: task.affectedFiles || [],
-        declaredHints: task.declaredHints || [],
-        includeGlobal: true,
-        includeProject: true,
-      });
-      hintsLoadTime = Date.now() - hintsStartTime;
-
-      if (hintResult.mergedContent) {
-        sections.hints = hintResult.mergedContent;
-      }
-    }
-
-    // T031: Emit research-complete event when research/hints were loaded
-    if (sections.hints) {
-      this.emit('research-complete', {
-        specId: task.specId,
-        hintsLoaded: true,
-        memoryCoverage: memoryCoverage?.coveragePercent ?? 0,
-      });
-    }
-
-    // 4.5 Load knowledge graph context for affected files
-    if (this.knowledgeGraph && task.affectedFiles && task.affectedFiles.length > 0) {
-      const graphContext = this.loadGraphContext(task.affectedFiles);
-      if (graphContext) {
-        // Append graph context to code section
-        sections.code = (sections.code || '') + graphContext;
-      }
-    }
-
-    // 5. Task-specific context
-    if (task.customContext) {
-      sections.taskContext = task.customContext;
-    }
-
-    // 6. Apply observation masking (if enabled)
-    let maskingStats: MaskingStats | undefined;
-    if (this.config.enableMasking) {
-      const maskResult = this.observationMasker.maskOldObservations(this.currentTurn);
-      if (maskResult.maskedCount > 0) {
-        sections.observations = maskResult.maskedContent;
-      }
-      maskingStats = {
-        maskedCount: maskResult.maskedCount,
-        tokensSaved: maskResult.tokensSaved,
-        totalObservations: this.observationMasker.getAllObservations().length,
-      };
-
-      // T002: Persist cache to disk after masking (fire-and-forget)
-      this.observationMasker.saveCacheToDisk().catch((err) =>
-        this.logger?.error('ContextBuilder:SaveObservationCache', err as Error, {
-          operation: 'save-cache',
-        })
-      );
-    }
-
-    // T048: Inject delegation advisory section if dispatcher recommends
-    if (this.subAgentDispatcher) {
-      const delegationSection = this.subAgentDispatcher.formatAsContextSection();
-      if (delegationSection) {
-        sections.taskContext = (sections.taskContext || '') + '\n\n' + delegationSection;
-      }
-    }
-
-    // 018: Inject parallel analysis recommendations if framework is wired
-    if (this.parallelAnalysisFramework) {
-      try {
-        const recommendation = this.parallelAnalysisFramework.generateRecommendations(
-          task.affectedFiles || [],
-          task.description || ''
-        );
-        if (recommendation.partitions.length > 0) {
-          const analysisSection =
-            this.parallelAnalysisFramework.formatAsContextSection(recommendation);
-          if (analysisSection) {
-            sections.taskContext = (sections.taskContext || '') + '\n\n' + analysisSection;
-          }
-        }
-      } catch {
-        // Non-fatal: parallel analysis is advisory
-      }
-    }
-
-    // 7. Calculate budget usage (if budget enforcement enabled)
-    // Do this BEFORE merging so we can enforce caps
-    let budgetUsage: BudgetUsage | undefined;
-    if (this.config.enableBudgetEnforcement) {
-      budgetUsage = this.calculateBudgetUsage(sections);
-
-      // Emit warnings for exceeded categories
-      if (this.config.emitBudgetWarnings) {
-        for (const category of budgetUsage.exceededCategories) {
-          const usage = budgetUsage.usage[category as keyof typeof budgetUsage.usage];
-          const limit = budgetUsage.limits[category as keyof typeof budgetUsage.limits];
-          const percentOver = ((usage - limit) / limit) * 100;
-
-          this.emit('budget-warning', {
-            category,
-            tokensUsed: usage,
-            budgetLimit: limit,
-            percentOver,
-            stage: this.currentStage,
-          } as BudgetWarningEvent);
-        }
-      }
-
-      // T045: Enforce budget caps by truncating over-budget sections
-      if (this.config.enforceBudgetCaps && budgetUsage.exceededCategories.length > 0) {
-        this.truncateOverBudgetSections(sections, budgetUsage);
-      }
-    }
-
-    // Build full context (after potential truncation)
-    const fullContext = this.mergeContextSections(sections);
-    const loadTime = Date.now() - startTime;
-
-    // Emit loading decision events for logging
-    if (this.config.logLoadingDecisions) {
-      for (const decision of loadingDecisions) {
-        this.emit('loading-decision', decision);
-
-        // Log to context usage logger (Spec 012 T023)
-        if (this.usageLogger) {
-          this.usageLogger.logLoadingDecision({
-            source: decision.source,
-            decision: decision.decision,
-            reason: decision.reason,
-            tokensLoaded: decision.tokens,
-            memoryCoveragePercent: memoryCoverage?.coveragePercent,
-            stage: this.currentStage,
-          });
-        }
-      }
-    }
-
-    return {
-      fullContext,
-      sections,
-      loadTime,
-      hintsLoadTime,
-      memoriesLoadTime,
-      maskingStats,
-      turnNumber: this.currentTurn,
-      budgetUsage,
-      stage: this.currentStage,
-      memoryCoverage,
-      loadingDecisions: this.config.logLoadingDecisions ? loadingDecisions : undefined,
-    };
+    return null;
   }
 
   /**

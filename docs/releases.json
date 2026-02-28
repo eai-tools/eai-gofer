@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.14.1",
+  "latest_version": "1.14.2",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-02-28T21:06:47.976Z",
+  "last_updated": "2026-02-28T22:20:00.308Z",
   "releases": [
+    {
+      "version": "1.14.2",
+      "tag_name": "v1.14.2",
+      "published_at": "2026-02-28T22:20:00.308Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.14.2.vsix",
+      "notes": "fix: auto-handoff save/clear/resume, memory panel wiring, and session display name",
+      "prerelease": false,
+      "size_mb": 30.3
+    },
     {
       "version": "1.14.1",
       "tag_name": "v1.14.1",
@@ -83,15 +92,6 @@
       "notes": "Engineering remediation: DI framework (tsyringe), 4 service extractions from extension.ts, bounded caches, Logger bridging, type safety improvements",
       "prerelease": false,
       "size_mb": 8.4
-    },
-    {
-      "version": "1.12.2",
-      "tag_name": "v1.12.2",
-      "published_at": "2026-02-23T06:21:34.075Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.12.2.vsix",
-      "notes": "Remove dead code: spawnNewTerminalFn, sendSaveToTerminal, sendResumeToTerminal, autonomousMonitoringInterval, stability tracking, maybeNotify",
-      "prerelease": false,
-      "size_mb": 31.1
     }
   ]
 }

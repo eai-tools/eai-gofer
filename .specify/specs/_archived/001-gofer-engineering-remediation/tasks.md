@@ -102,13 +102,19 @@ graph TD
   - Verify no behavior changes (values identical)
   - Exclude 0, 1, -1 (acceptable magic numbers)
   - **COMPLETED**: All magic numbers replaced:
-    - Added time conversion constants to intervals.ts (MS_PER_MINUTE=60000, MS_PER_HOUR=3600000, MS_PER_DAY=86400000)
-    - Added UI preview limits to limits.ts (PREVIEW_CHARS_SHORT=200, MEDIUM=300, DEFAULT=500, LONG=600, EXTENDED=800, DAYS_PER_YEAR=365)
-    - Updated ContextHealthStatusBar.ts: line 430 (60000 → INTERVALS.MS_PER_MINUTE)
-    - Updated GoferActivityStatusBar.ts: line 138 (60000 → INTERVALS.MS_PER_MINUTE)
-    - Updated memoryProvider.ts: lines 315-317 (60000, 3600000, 86400000 → INTERVALS constants)
+    - Added time conversion constants to intervals.ts (MS_PER_MINUTE=60000,
+      MS_PER_HOUR=3600000, MS_PER_DAY=86400000)
+    - Added UI preview limits to limits.ts (PREVIEW_CHARS_SHORT=200, MEDIUM=300,
+      DEFAULT=500, LONG=600, EXTENDED=800, DAYS_PER_YEAR=365)
+    - Updated ContextHealthStatusBar.ts: line 430 (60000 →
+      INTERVALS.MS_PER_MINUTE)
+    - Updated GoferActivityStatusBar.ts: line 138 (60000 →
+      INTERVALS.MS_PER_MINUTE)
+    - Updated memoryProvider.ts: lines 315-317 (60000, 3600000, 86400000 →
+      INTERVALS constants)
     - Updated MemoryPanel.ts: lines 532, 535 (365 → DAYS_PER_YEAR constant)
-    - Updated ContextContentPanel.ts: replaced all preview char limits (200→SHORT, 300→MEDIUM, 500→DEFAULT, 600→LONG, 800→EXTENDED)
+    - Updated ContextContentPanel.ts: replaced all preview char limits
+      (200→SHORT, 300→MEDIUM, 500→DEFAULT, 600→LONG, 800→EXTENDED)
 
 **Checkpoint US3**: 0 magic numbers remain (except config definitions),
 extension compiles

@@ -642,8 +642,10 @@ Selected Option: Option {N} - {Name}
 Ready for next stage: /3_gofer_plan
 ```
 
-If orchestrated by `/0_business_scenario`, the orchestrator will automatically
-invoke `/3_gofer_plan` next.
+**AUTO-CHAIN (MANDATORY)**: You **MUST** immediately invoke the next pipeline
+stage by calling the Skill tool with `/3_gofer_plan`. Do NOT wait for user
+confirmation. Do NOT just print "Ready for next stage". You MUST call the Skill
+tool now.
 
 ---
 

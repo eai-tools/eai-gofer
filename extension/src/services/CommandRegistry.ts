@@ -325,6 +325,25 @@ export class CommandRegistry {
         await resumeClaudeCode();
       })
     );
+
+    // gofer.startAutonomous - Start autonomous execution for a spec
+    // Called by specCommands.ts:executeSpec() and autonomousCommands.ts dependency cascade
+    context.subscriptions.push(
+      vscode.commands.registerCommand('gofer.startAutonomous', async (spec: any) => {
+        try {
+          const { startAutonomousExecution } = await import('../autonomousCommands');
+          await startAutonomousExecution(
+            context,
+            spec,
+            _deps.progressProvider
+          );
+        } catch (error) {
+          vscode.window.showErrorMessage(
+            `Failed to start autonomous execution: ${error instanceof Error ? error.message : String(error)}`
+          );
+        }
+      })
+    );
   }
 
   /**

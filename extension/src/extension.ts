@@ -293,6 +293,7 @@ async function reinitializeExtension(context: vscode.ExtensionContext): Promise<
 
     // Clear references after disposal
     state.sharedContextBuilder = undefined;
+    state.memoryManager = undefined;
     state.clearTimers();
     state.clearMonitoringComponents();
 
@@ -356,6 +357,9 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
     state.memoryManager = new MemoryManager(context, workspacePath);
     // Wire MemoryManager to MemoryProvider so the MEMORY panel can display stored memories
     state.memoryProvider?.setMemoryManager(state.memoryManager);
+    // Register memory commands now that memoryManager is available
+    // (can't register in registerGlobalCommands because memoryManager isn't ready yet)
+    registerMemoryCommands(context, state.memoryManager);
   }
 
   // Initialize ScopeGuard, RunLedger, and ToolAuditLogger
@@ -505,11 +509,8 @@ function registerGlobalCommands(context: vscode.ExtensionContext): void {
     })
   );
 
-  // Register memory commands (deferred until memoryManager is initialized)
-  // Commands will be registered in initializeForWorkspace() when memoryManager is ready
-  if (state.memoryManager) {
-    registerMemoryCommands(context, state.memoryManager);
-  }
+  // Memory commands are registered in initializeForWorkspace() after memoryManager is created
+  // (state.memoryManager is always null at this point in the activation flow)
 
   // Register spec commands (deferred until progressProvider is initialized)
   if (state.progressProvider) {

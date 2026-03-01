@@ -474,10 +474,8 @@ After implementation complete:
 ════════════════════════════════════════════════════════════════
 ```
 
-**AUTO-CHAIN (MANDATORY)**: You **MUST** immediately invoke the next pipeline
-stage by calling the Skill tool with `/6_gofer_validate`. Do NOT wait for user
-confirmation. Do NOT just print "Ready for next stage". You MUST call the Skill
-tool now.
+If orchestrated by `/0_business_scenario`, the orchestrator will automatically
+invoke `/6_gofer_validate` next.
 
 ---
 

@@ -1,11 +1,11 @@
 ---
-id: 003-multi-perspective-agents
-title: Multi-Perspective Sub-Agent Strategies
-status: draft
+id: '003-multi-perspective-agents'
+title: 'Multi-Perspective Sub-Agent Strategies'
+status: 'draft'
 created: '2026-02-28'
-updated: '2026-02-28'
-author: Claude
-depends_on: []
+updated: '2026-03-01'
+priority: 'medium'
+assignee: 'engineer-agent'
 ---
 
 # Multi-Perspective Sub-Agent Strategies

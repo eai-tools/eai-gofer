@@ -120,7 +120,6 @@ function updateBridge(sessionId, prompt) {
       ...existing,
       timestamp: now,
       sessionId: sessionId || existing.sessionId || '',
-      displayName: existing.displayName || process.env.GOFER_DISPLAY_NAME || undefined,
       session: {
         active: true,
         lastActivity: now,

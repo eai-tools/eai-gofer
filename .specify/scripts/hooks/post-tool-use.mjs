@@ -234,7 +234,6 @@ const bridge = {
   timestamp: now,
   sessionId,
   model: usage?.model || existing.model || '',
-  displayName: process.env.GOFER_DISPLAY_NAME || existing.displayName || undefined,
   context: usage
     ? {
         totalContextTokens:

@@ -476,25 +476,13 @@ pipeline-state.json is updated atomically by each stage on completion.
 **Fallback — File-existence heuristics** (used when no pipeline-state.json
 exists):
 
-| Has This                   | Missing This | Start At             |
-| -------------------------- | ------------ | -------------------- |
-| tasks.md (unchecked)       | -            | `/5_gofer_implement` |
-| plan.md                    | tasks.md     | `/4_gofer_tasks`     |
-| spec.md AND research.md    | plan.md      | `/3_gofer_plan`      |
-| research.md                | spec.md      | `/2_gofer_specify`   |
-| spec.md only (no research) | research.md  | `/1_gofer_research`  |
-| Nothing                    | Everything   | `/1_gofer_research`  |
-
-**IMPORTANT — Prerequisite validation**:
-
-- Each stage requires ALL predecessor artifacts to exist with real content.
-- `/3_gofer_plan` requires BOTH `research.md` AND a non-template `spec.md`.
-- `/2_gofer_specify` requires `research.md`.
-- If a prerequisite is missing, route to the **earliest missing stage**.
-- A `spec.md` that only contains template placeholders (no filled-in user
-  stories, acceptance criteria, or requirements) should be treated as if it does
-  not exist. Check for actual content beyond YAML frontmatter and template
-  headings before counting it as present.
+| Has This             | Missing This | Start At             |
+| -------------------- | ------------ | -------------------- |
+| tasks.md (unchecked) | -            | `/5_gofer_implement` |
+| plan.md              | tasks.md     | `/4_gofer_tasks`     |
+| spec.md              | plan.md      | `/3_gofer_plan`      |
+| research.md          | spec.md      | `/2_gofer_specify`   |
+| Nothing              | Everything   | `/1_gofer_research`  |
 
 #### For New Features
 

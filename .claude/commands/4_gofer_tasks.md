@@ -572,10 +572,8 @@ After approval received:
 Ready for next stage: /5_gofer_implement
 ```
 
-**AUTO-CHAIN (MANDATORY)**: You **MUST** immediately invoke the next pipeline
-stage by calling the Skill tool with `/5_gofer_implement`. Do NOT wait for user
-confirmation. Do NOT just print "Ready for next stage". You MUST call the Skill
-tool now.
+If orchestrated by `/0_business_scenario`, the orchestrator will automatically
+invoke `/5_gofer_implement` next.
 
 ---
 

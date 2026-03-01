@@ -553,12 +553,3 @@ Logs to: `.specify/logs/pipeline.jsonl`
   good spec
 - **Maximum 5 open questions** - make informed decisions for the rest
 - **Log stage completion** for observability tracking
-
----
-
-## AUTO-CHAIN (MANDATORY)
-
-When research is complete and research.md has been written, you **MUST**
-immediately invoke the next pipeline stage by calling the Skill tool with
-`/2_gofer_specify`. Do NOT wait for user confirmation. Do NOT just print
-"Ready for next stage". You MUST call the Skill tool now.

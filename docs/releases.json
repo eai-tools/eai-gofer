@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.14.2",
+  "latest_version": "1.14.3",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-02-28T22:20:00.308Z",
+  "last_updated": "2026-03-01T04:38:57.845Z",
   "releases": [
+    {
+      "version": "1.14.3",
+      "tag_name": "v1.14.3",
+      "published_at": "2026-03-01T04:38:57.845Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.14.3.vsix",
+      "notes": "fix: auto-handoff save/clear/resume, memory panel wiring, and session display name",
+      "prerelease": false,
+      "size_mb": 30.3
+    },
     {
       "version": "1.14.2",
       "tag_name": "v1.14.2",
@@ -83,15 +92,6 @@
       "notes": "Fix release script: add npm install for production deps, add gh release create",
       "prerelease": false,
       "size_mb": 30.3
-    },
-    {
-      "version": "1.13.0",
-      "tag_name": "v1.13.0",
-      "published_at": "2026-02-24T23:00:00.000Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.13.0.vsix",
-      "notes": "Engineering remediation: DI framework (tsyringe), 4 service extractions from extension.ts, bounded caches, Logger bridging, type safety improvements",
-      "prerelease": false,
-      "size_mb": 8.4
     }
   ]
 }

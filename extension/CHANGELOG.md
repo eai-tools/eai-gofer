@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.14.3] - 2026-03-01
+
+fix: auto-handoff save/clear/resume, memory panel wiring, and session display name
+
 ## [1.14.2] - 2026-03-01
 
 fix: auto-handoff save/clear/resume, memory panel wiring, and session display name

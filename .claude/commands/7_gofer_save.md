@@ -257,42 +257,20 @@ Progress saved at task [TaskID]. Resume with `/8_gofer_resume`.
   - Uncommitted: [Y] files (documented)
   - Tests: [passing/failing/not run]
 
-  To resume: /8_gofer_resume
+  To resume:
+  /8_gofer_resume
+
+  Or manually:
+  cd [repo] && git checkout [branch]
+  Read: {FEATURE_DIR}/session-checkpoint.md
+  Continue: /5_gofer_implement
 
 ================================================================
 ```
 
 ---
 
-## Step 6: Auto-Chain to Resume (MANDATORY)
-
-**AUTO-CHAIN (MANDATORY)**: After presenting the session summary above, you MUST
-immediately invoke the next step. Do NOT just display a "To resume" message and
-stop. Do NOT ask the user for permission. TAKE ACTION.
-
-### If the TypeScript auto-handoff is handling save/clear/resume:
-
-The extension's `AutoHandoffTrigger.sendSaveClearResume()` will handle `/clear`
-and `/8_gofer_resume` via PTY after this command completes. In that case, you do
-not need to take further action — the TypeScript code drives the sequence.
-
-### If invoked manually (via Skill tool or user command):
-
-You MUST immediately invoke `/8_gofer_resume` using the Skill tool:
-
-```
-Skill: "8_gofer_resume"
-```
-
-This ensures the pipeline continues without the user having to manually type the
-next command. While this doesn't clear context (only the TypeScript PTY flow can
-do that), it ensures continuity. If context is critically high (>70%), prepend
-your output with a recommendation that the user run `/clear` then
-`/8_gofer_resume` in a new session for maximum headroom.
-
----
-
-## Step 7: Observability Logging
+## Step 6: Observability Logging
 
 ```bash
 .specify/scripts/bash/log-stage.sh 7_save --complete --tokens [N] --compactions [N]

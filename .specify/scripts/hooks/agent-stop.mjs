@@ -492,7 +492,6 @@ const bridge = {
   ...existing,
   timestamp: now,
   sessionId: sessionId || existing.sessionId || '',
-  displayName: existing.displayName || process.env.GOFER_DISPLAY_NAME || undefined,
   session: {
     active: true, // Session still exists, just idle
     lastActivity: now,

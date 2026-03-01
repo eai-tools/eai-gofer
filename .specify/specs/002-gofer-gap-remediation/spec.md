@@ -1,11 +1,11 @@
 ---
-id: 002-gofer-gap-remediation
-title: Gofer Engineering Gap Remediation
-status: draft
+id: '002-gofer-gap-remediation'
+title: 'Gofer Engineering Gap Remediation'
+status: 'draft'
 created: '2026-02-28'
-updated: '2026-02-28'
-author: Claude
-priority: high
+updated: '2026-03-01'
+priority: 'high'
+assignee: 'engineer-agent'
 ---
 
 # Gofer Engineering Gap Remediation

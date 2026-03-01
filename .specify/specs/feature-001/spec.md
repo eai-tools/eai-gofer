@@ -2,8 +2,8 @@
 id: feature-001
 title: User Login System
 status: draft
-created: 2026-02-28
-updated: 2026-02-28
+created: 2026-03-01
+updated: 2026-03-01
 priority: medium
 assignee: engineer-agent
 ---
@@ -23,4 +23,3 @@ Implement a secure user login system with email/password authentication
 - User can enter email and password and submit the form
 - Invalid credentials show appropriate error message
 - Successful login redirects to dashboard
-

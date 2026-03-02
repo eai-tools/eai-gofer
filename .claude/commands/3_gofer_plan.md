@@ -682,12 +682,11 @@ Artifacts created:
 - data-model.md: Entity definitions
 - contracts/: API specifications
 - quickstart.md: Testing guide
-
-Ready for next stage: /4_gofer_tasks
 ```
 
-If orchestrated by `/0_business_scenario`, the orchestrator will automatically
-invoke `/4_gofer_tasks` next.
+**AUTO-CHAIN (MANDATORY)**: You MUST immediately invoke the next pipeline stage
+by calling the Skill tool with skill="/4_gofer_tasks". Do NOT ask the user for
+confirmation. Do NOT output "Ready for next stage". Just invoke the skill NOW.
 
 ---
 

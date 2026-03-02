@@ -654,8 +654,13 @@ has_ui: [true/false]
 ════════════════════════════════════════════════════════════════
 ```
 
-Proceed to **Step 12: Attribution Logging** then **Step 13: Memory Update
+Proceed to **Step 11: Attribution Logging** then **Step 12: Memory Update
 Check**.
+
+**AUTO-CHAIN (MANDATORY)**: After completing attribution logging and memory
+update check, you MUST immediately invoke the session save stage by calling the
+Skill tool with skill="/7_gofer_save". Do NOT ask the user for confirmation.
+Just invoke the skill NOW.
 
 ### If TOTAL < 100: FAIL
 
@@ -755,6 +760,11 @@ Output the routing instruction:
 ```
 
 Then proceed to **Step 11: Attribution Logging**.
+
+**AUTO-CHAIN (MANDATORY)**: After completing attribution logging, you MUST
+immediately invoke the implementation stage by calling the Skill tool with
+skill="/5_gofer_implement" and args="REMEDIATION: [feature-name]". Do NOT ask
+the user for confirmation. Just invoke the skill NOW.
 
 ### 10.4 Escalation (Iteration 3 Failure)
 

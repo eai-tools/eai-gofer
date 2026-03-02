@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.14.5] - 2026-03-02
+
+fix: remove minLength:1 from API key schema to fix upgrade validation
+
 ## [1.14.4] - 2026-03-01
 
 Simplify pipeline auto-chaining, clean up hooks and spec metadata

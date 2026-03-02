@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.14.4",
+  "latest_version": "1.14.5",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-03-01T04:51:17.543Z",
+  "last_updated": "2026-03-02T01:13:02.641Z",
   "releases": [
+    {
+      "version": "1.14.5",
+      "tag_name": "v1.14.5",
+      "published_at": "2026-03-02T01:13:02.641Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.14.5.vsix",
+      "notes": "fix: remove minLength:1 from API key schema to fix upgrade validation",
+      "prerelease": false,
+      "size_mb": 30.3
+    },
     {
       "version": "1.14.4",
       "tag_name": "v1.14.4",
@@ -81,15 +90,6 @@
       "published_at": "2026-02-27T01:57:24.576Z",
       "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.13.3.vsix",
       "notes": "Fix PTY command submission: send carriage return separately with 500ms delay to match working pattern",
-      "prerelease": false,
-      "size_mb": 30.3
-    },
-    {
-      "version": "1.13.2",
-      "tag_name": "v1.13.2",
-      "published_at": "2026-02-25T22:59:51.331Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.13.2.vsix",
-      "notes": "Fix extension activation crash: reflect-metadata import order, command registration timing, config schema mismatch, spec loader filtering",
       "prerelease": false,
       "size_mb": 30.3
     }

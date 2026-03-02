@@ -1,5 +1,6 @@
 ---
-description: Resume work from saved session checkpoint with full context restoration
+description:
+  Resume work from saved session checkpoint with full context restoration
 ---
 
 # Gofer Resume
@@ -53,10 +54,10 @@ If multiple sessions found:
 ```markdown
 ## Saved Sessions Found
 
-| Feature         | Stage            | Last Saved          | Tasks Done |
-| --------------- | ---------------- | ------------------- | ---------- |
-| [feature-1]     | 5_implement      | 2026-01-13 14:30    | 12/25      |
-| [feature-2]     | 3_plan           | 2026-01-12 09:15    | 0/0        |
+| Feature     | Stage       | Last Saved       | Tasks Done |
+| ----------- | ----------- | ---------------- | ---------- |
+| [feature-1] | 5_implement | 2026-01-13 14:30 | 12/25      |
+| [feature-2] | 3_plan      | 2026-01-12 09:15 | 0/0        |
 
 Which feature would you like to resume?
 ```
@@ -206,57 +207,51 @@ Based on tasks.md and checkpoint:
 ## Step 6: Signal Ready to Continue
 
 ```markdown
+================================================================ CONTEXT
+RESTORED: [Feature Name]
 ================================================================
-  CONTEXT RESTORED: [Feature Name]
-================================================================
 
-  Resuming from: [checkpoint timestamp]
-  Branch: [branch name]
-  Stage: [pipeline stage]
+Resuming from: [checkpoint timestamp] Branch: [branch name] Stage: [pipeline
+stage]
 
-  Progress:
-  - Tasks completed: [X]/[Total]
-  - Current phase: [Phase name]
-  - Current task: [Task ID] - [Description]
+Progress:
 
-  Files to focus on:
-  - [Current file from checkpoint]
-  - [Next file in task list]
+- Tasks completed: [X]/[Total]
+- Current phase: [Phase name]
+- Current task: [Task ID] - [Description]
 
-  Code Status:
-  - Build: [passing/failing]
-  - Tests: [passing/failing/skipped]
-  - Changes since save: [N commits]
+Files to focus on:
 
-  Ready to continue with: /5_gofer_implement
+- [Current file from checkpoint]
+- [Next file in task list]
 
-  Or I can pick up exactly where we left off...
+Code Status:
+
+- Build: [passing/failing]
+- Tests: [passing/failing/skipped]
+- Changes since save: [N commits]
+
+Ready to continue with: /5_gofer_implement
+
+Or I can pick up exactly where we left off...
 
 ================================================================
 ```
 
 ---
 
-## Step 7: Continue Implementation
+## Step 7: Auto-Continue Pipeline
 
-Based on checkpoint state, either:
+**AUTO-CHAIN (MANDATORY)**: Based on the checkpoint stage, you MUST immediately
+invoke the appropriate pipeline stage by calling the Skill tool. Do NOT ask the
+user whether to auto-continue or manually navigate. Just invoke the skill NOW.
 
-### Option A: Auto-Continue
-
-If user says "continue" or similar:
-
-1. Load the current task details
-2. Open the file at the saved location
-3. Continue implementing from that point
-4. Follow normal `/5_gofer_implement` flow
-
-### Option B: Manual Navigation
-
-If user wants to review first:
-
-1. Show task list with current position
-2. Let user choose where to start
-3. Proceed with their selection
+- If stage was `5_implement`: invoke skill="/5_gofer_implement"
+- If stage was `4_tasks`: invoke skill="/5_gofer_implement"
+- If stage was `3_plan`: invoke skill="/4_gofer_tasks"
+- If stage was `2_specify`: invoke skill="/3_gofer_plan"
+- If stage was `1_research`: invoke skill="/2_gofer_specify"
+- If stage was `6_validate`: invoke skill="/6_gofer_validate"
 
 ---
 
@@ -343,7 +338,6 @@ Options:
 Warning: Build is currently failing.
 
 Error:
-
 ```
 
 [build error output]

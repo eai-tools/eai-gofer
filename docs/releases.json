@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.14.5",
+  "latest_version": "1.15.0",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-03-02T01:13:02.641Z",
+  "last_updated": "2026-03-02T09:03:01.927Z",
   "releases": [
+    {
+      "version": "1.15.0",
+      "tag_name": "v1.15.0",
+      "published_at": "2026-03-02T09:03:01.926Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.15.0.vsix",
+      "notes": "Pipeline auto-chain: stages 1-8 chain autonomously without stopping for approval",
+      "prerelease": false,
+      "size_mb": 30.3
+    },
     {
       "version": "1.14.5",
       "tag_name": "v1.14.5",
@@ -81,15 +90,6 @@
       "published_at": "2026-02-27T06:05:02.629Z",
       "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.13.4.vsix",
       "notes": "Fix memory leaks from leaked event listeners and untracked timers",
-      "prerelease": false,
-      "size_mb": 30.3
-    },
-    {
-      "version": "1.13.3",
-      "tag_name": "v1.13.3",
-      "published_at": "2026-02-27T01:57:24.576Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.13.3.vsix",
-      "notes": "Fix PTY command submission: send carriage return separately with 500ms delay to match working pattern",
       "prerelease": false,
       "size_mb": 30.3
     }

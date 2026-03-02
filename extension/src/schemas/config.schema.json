@@ -10,23 +10,19 @@
       "properties": {
         "anthropicApiKey": {
           "type": "string",
-          "description": "Anthropic API key for Claude models",
-          "minLength": 1
+          "description": "Anthropic API key for Claude models"
         },
         "googleApiKey": {
           "type": "string",
-          "description": "Google API key for Gemini models",
-          "minLength": 1
+          "description": "Google API key for Gemini models"
         },
         "xaiApiKey": {
           "type": "string",
-          "description": "xAI API key for Grok models",
-          "minLength": 1
+          "description": "xAI API key for Grok models"
         },
         "openaiApiKey": {
           "type": "string",
-          "description": "OpenAI API key",
-          "minLength": 1
+          "description": "OpenAI API key"
         },
         "context": {
           "type": "object",

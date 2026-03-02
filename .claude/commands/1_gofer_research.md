@@ -328,12 +328,11 @@ Key findings:
 - [Finding 1]
 - [Finding 2]
 
-Ready for next stage: /2_gofer_specify
-
 ````
 
-3. **If orchestrated by /0_business_scenario**: The orchestrator will
-automatically invoke `/2_gofer_specify` next.
+**AUTO-CHAIN (MANDATORY)**: You MUST immediately invoke the next pipeline stage
+by calling the Skill tool with skill="/2_gofer_specify". Do NOT ask the user for
+confirmation. Do NOT output "Ready for next stage". Just invoke the skill NOW.
 
 ---
 

@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.15.0] - 2026-03-02
+
+Pipeline auto-chain: stages 1-8 chain autonomously without stopping for approval
+
 ## [1.14.5] - 2026-03-02
 
 fix: remove minLength:1 from API key schema to fix upgrade validation

@@ -268,6 +268,27 @@ Progress saved at task [TaskID]. Resume with `/8_gofer_resume`.
 ================================================================
 ```
 
+**CONTEXT CLEAR REQUIRED**: The save/resume cycle requires clearing the context
+window between save and resume. You CANNOT auto-chain directly to
+`/8_gofer_resume` because `/clear` is a built-in CLI command that must reset
+context first.
+
+**What to do next**:
+
+1. **If running in PTY terminal (VS Code Gofer extension)**: The
+   AutoHandoffTrigger handles the `/clear` → `/8_gofer_resume` sequence
+   automatically. You are DONE — just STOP here. Do NOT invoke any more skills.
+2. **If running in standard terminal or Copilot chat**: Output this message and
+   STOP:
+   ```
+   Context must be cleared before resuming. Please type:
+   /clear
+   Then type:
+   /8_gofer_resume
+   ```
+   Do NOT invoke `/8_gofer_resume` directly — the whole point is to start with a
+   fresh context window.
+
 ---
 
 ## Step 6: Observability Logging

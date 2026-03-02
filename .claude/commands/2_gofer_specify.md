@@ -638,12 +638,11 @@ Checklist: {FEATURE_DIR}/checklists/requirements.md
 {If sequence diagrams generated:}
 Sequence Diagrams: {FEATURE_DIR}/sequence-diagrams/
 Selected Option: Option {N} - {Name}
-
-Ready for next stage: /3_gofer_plan
 ```
 
-If orchestrated by `/0_business_scenario`, the orchestrator will automatically
-invoke `/3_gofer_plan` next.
+**AUTO-CHAIN (MANDATORY)**: You MUST immediately invoke the next pipeline stage
+by calling the Skill tool with skill="/3_gofer_plan". Do NOT ask the user for
+confirmation. Do NOT output "Ready for next stage". Just invoke the skill NOW.
 
 ---
 

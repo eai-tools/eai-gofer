@@ -193,6 +193,13 @@ export class GoferMigrator {
   }
 
   /**
+   * Setup default AI instruction files (AGENTS.md, CLAUDE.md, copilot-instructions.md)
+   */
+  public async setupDefaultInstructions(): Promise<void> {
+    await this.resourceSyncer.setupDefaultInstructions();
+  }
+
+  /**
    * Create bash scripts from bundled resources
    */
   public async createBashScripts(): Promise<void> {
@@ -374,6 +381,8 @@ export class GoferMigrator {
         name: 'Hook scripts',
       },
       { path: path.join(this.specifyPath, 'templates'), name: 'Templates' },
+      { path: path.join(this.workspacePath, 'AGENTS.md'), name: 'AI instructions' },
+      { path: path.join(this.workspacePath, 'CLAUDE.md'), name: 'AI instructions' },
     ];
 
     for (const { path: resourcePath, name } of criticalPaths) {
@@ -458,6 +467,11 @@ export class GoferMigrator {
         if (missing.includes('Templates')) {
           reportProgress('Syncing Templates');
           await this.resourceSyncer.copyBundledTemplates();
+        }
+
+        if (missing.includes('AI instructions')) {
+          reportProgress('Generating AI instruction files');
+          await this.resourceSyncer.setupDefaultInstructions();
         }
 
         this.logger.info('GoferMigrator', 'Missing resources synced successfully');

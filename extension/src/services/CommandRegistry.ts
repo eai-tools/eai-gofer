@@ -185,6 +185,86 @@ export class CommandRegistry {
       })
     );
 
+    // gofer.regenerateInstructions - Regenerate AI instruction files
+    context.subscriptions.push(
+      vscode.commands.registerCommand('gofer.regenerateInstructions', async () => {
+        try {
+          const { ProjectDetector } = await import('./ProjectDetector');
+          const { InstructionGenerator } = await import('./InstructionGenerator');
+          const { FileUtils } = await import('../utils/fileUtils');
+          const path = await import('path');
+
+          const projectInfo = await ProjectDetector.detect(deps.workspacePath);
+          const generator = new InstructionGenerator();
+
+          const files = [
+            {
+              path: path.join(deps.workspacePath, 'AGENTS.md'),
+              generate: () => generator.generateAgentsMd(projectInfo),
+              label: 'AGENTS.md',
+            },
+            {
+              path: path.join(deps.workspacePath, 'CLAUDE.md'),
+              generate: () => generator.generateClaudeMd(projectInfo),
+              label: 'CLAUDE.md',
+            },
+            {
+              path: path.join(deps.workspacePath, '.github', 'copilot-instructions.md'),
+              generate: () => generator.generateCopilotMd(projectInfo),
+              label: 'copilot-instructions.md',
+            },
+          ];
+
+          let created = 0;
+          let skipped = 0;
+          let overwritten = 0;
+
+          for (const file of files) {
+            const exists = await FileUtils.exists(file.path);
+            if (exists) {
+              const choice = await vscode.window.showWarningMessage(
+                `${file.label} already exists. What would you like to do?`,
+                'Overwrite',
+                'Skip',
+                'Backup & Replace'
+              );
+              if (choice === 'Skip' || !choice) {
+                skipped++;
+                continue;
+              }
+              if (choice === 'Backup & Replace') {
+                const backupPath = file.path + '.bak';
+                const content = await FileUtils.readTextFile(file.path);
+                await FileUtils.writeTextFile(backupPath, content);
+              }
+              overwritten++;
+            } else {
+              created++;
+            }
+
+            const dir = path.dirname(file.path);
+            await FileUtils.ensureDirectory(dir);
+            const content = await file.generate();
+            await FileUtils.writeTextFile(file.path, content);
+          }
+
+          const parts = [];
+          if (created > 0) {
+            parts.push(`${created} created`);
+          }
+          if (overwritten > 0) {
+            parts.push(`${overwritten} overwritten`);
+          }
+          if (skipped > 0) {
+            parts.push(`${skipped} skipped`);
+          }
+          vscode.window.showInformationMessage(`AI Instructions regenerated: ${parts.join(', ')}.`);
+        } catch (error) {
+          vscode.window.showErrorMessage(`Failed to regenerate instructions: ${error}`);
+        }
+      })
+    );
+
     // NOTE: gofer.checkForUpdates and gofer.updateNow are registered in
     // registerGlobalCommands() (extension.ts) because they're referenced in
     // view/title menus and must be available immediately on activation.
@@ -332,11 +412,7 @@ export class CommandRegistry {
       vscode.commands.registerCommand('gofer.startAutonomous', async (spec: any) => {
         try {
           const { startAutonomousExecution } = await import('../autonomousCommands');
-          await startAutonomousExecution(
-            context,
-            spec,
-            _deps.progressProvider
-          );
+          await startAutonomousExecution(context, spec, _deps.progressProvider);
         } catch (error) {
           vscode.window.showErrorMessage(
             `Failed to start autonomous execution: ${error instanceof Error ? error.message : String(error)}`

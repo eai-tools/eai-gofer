@@ -222,6 +222,11 @@
         "command": "gofer.resumeSession",
         "title": "Gofer: Resume Session from Checkpoint",
         "icon": "$(debug-continue)"
+      },
+      {
+        "command": "gofer.regenerateInstructions",
+        "title": "Gofer: Regenerate AI Instructions",
+        "icon": "$(refresh)"
       }
     ],
     "keybindings": [

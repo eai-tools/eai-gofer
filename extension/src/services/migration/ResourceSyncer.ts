@@ -12,6 +12,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { Logger } from '../Logger';
+import { FileUtils } from '../../utils/fileUtils';
 import { IResourceOperations } from './UpgradeService';
 import * as yaml from 'yaml';
 
@@ -269,6 +270,45 @@ export class ResourceSyncer implements IResourceOperations {
       ['*.instructions.md'],
       false
     );
+  }
+
+  public async setupDefaultInstructions(): Promise<void> {
+    try {
+      const { ProjectDetector } = await import('../ProjectDetector');
+      const { InstructionGenerator } = await import('../InstructionGenerator');
+
+      const projectInfo = await ProjectDetector.detect(this.workspacePath);
+      const generator = new InstructionGenerator();
+
+      // AGENTS.md at workspace root
+      const agentsPath = path.join(this.workspacePath, 'AGENTS.md');
+      if (!(await FileUtils.exists(agentsPath))) {
+        const agentsContent = await generator.generateAgentsMd(projectInfo);
+        await FileUtils.writeTextFile(agentsPath, agentsContent);
+        this.logger.info('ResourceSyncer', 'Created AGENTS.md');
+      }
+
+      // CLAUDE.md at workspace root
+      const claudePath = path.join(this.workspacePath, 'CLAUDE.md');
+      if (!(await FileUtils.exists(claudePath))) {
+        const claudeContent = await generator.generateClaudeMd(projectInfo);
+        await FileUtils.writeTextFile(claudePath, claudeContent);
+        this.logger.info('ResourceSyncer', 'Created CLAUDE.md');
+      }
+
+      // .github/copilot-instructions.md
+      const copilotPath = path.join(this.workspacePath, '.github', 'copilot-instructions.md');
+      if (!(await FileUtils.exists(copilotPath))) {
+        await FileUtils.ensureDirectory(path.join(this.workspacePath, '.github'));
+        const copilotContent = await generator.generateCopilotMd(projectInfo);
+        await FileUtils.writeTextFile(copilotPath, copilotContent);
+        this.logger.info('ResourceSyncer', 'Created .github/copilot-instructions.md');
+      }
+    } catch (error) {
+      this.logger.error('ResourceSyncer', error as Error, {
+        operation: 'setupDefaultInstructions',
+      });
+    }
   }
 
   public async createBashScripts(): Promise<void> {

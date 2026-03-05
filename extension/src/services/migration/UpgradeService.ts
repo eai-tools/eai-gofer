@@ -53,6 +53,11 @@ export interface IResourceOperations {
   setupCopilotInstructions(): Promise<void>;
 
   /**
+   * Setup default AI instruction files (AGENTS.md, CLAUDE.md, copilot-instructions.md)
+   */
+  setupDefaultInstructions(): Promise<void>;
+
+  /**
    * Create bash scripts from bundled resources
    */
   createBashScripts(): Promise<void>;
@@ -208,6 +213,10 @@ export class UpgradeService {
         this.logger.info('UpgradeService', 'Setting up GitHub Copilot instructions');
         await resourceOps.setupCopilotInstructions();
 
+        progress.report({ message: 'Setting up AI instruction files...' });
+        this.logger.info('UpgradeService', 'Setting up default AI instructions');
+        await resourceOps.setupDefaultInstructions();
+
         // Create scripts and configuration
         progress.report({ message: 'Updating bash scripts...' });
         this.logger.info('UpgradeService', 'Creating bash scripts');
@@ -318,6 +327,10 @@ export class UpgradeService {
         progress.report({ message: 'Updating GitHub Copilot instructions...' });
         this.logger.info('UpgradeService', 'Setting up GitHub Copilot instructions');
         await resourceOps.setupCopilotInstructions();
+
+        progress.report({ message: 'Setting up AI instruction files...' });
+        this.logger.info('UpgradeService', 'Setting up default AI instructions');
+        await resourceOps.setupDefaultInstructions();
 
         progress.report({ message: 'Updating bash scripts...' });
         this.logger.info('UpgradeService', 'Creating bash scripts');

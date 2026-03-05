@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.16.0] - 2026-03-06
+
+feat: auto-generate AI instruction files on repository init
+
 ## [1.15.0] - 2026-03-02
 
 Pipeline auto-chain: stages 1-8 chain autonomously without stopping for approval

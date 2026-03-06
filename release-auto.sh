@@ -278,12 +278,7 @@ fi
 # Test all extension commands to ensure they don't throw undefined errors
 print_info "Testing all extension commands for runtime errors..."
 if [ -f "./test-commands.sh" ]; then
-    # Install the VSIX temporarily for testing
-    print_info "Installing VSIX for command testing..."
-    /Applications/Visual\ Studio\ Code.app/Contents/Resources/app/bin/code --install-extension "./gofer-$NEW_VERSION.vsix" --force > /dev/null 2>&1
-
-    # Wait for extension to load
-    sleep 2
+    # VSIX is already installed by test-vsix.sh above
 
     # Run command tests (non-fatal for now)
     if ./test-commands.sh 2>&1 | tee /tmp/command-test.log; then
@@ -423,6 +418,53 @@ for i in {1..6}; do
         sleep 15
     fi
 done
+
+# Post-release verification: these checks are informational only and must never
+# abort the script (release artifacts are already pushed at this point).
+set +e
+
+# Verify the VSIX file is actually downloadable
+VSIX_URL="https://eai-tools.github.io/gofer/releases/gofer-$NEW_VERSION.vsix"
+print_info "Verifying VSIX is downloadable at: $VSIX_URL"
+HTTP_STATUS=$(curl -sL -o /dev/null -w "%{http_code}" "$VSIX_URL?cachebust=$(date +%s)")
+if [ "$HTTP_STATUS" = "200" ]; then
+    print_success "VSIX file is accessible (HTTP $HTTP_STATUS)"
+else
+    print_warning "VSIX file returned HTTP $HTTP_STATUS - users may not be able to auto-update"
+    print_warning "Check GitHub Pages deployment: https://github.com/eai-tools/gofer/actions/workflows/pages.yml"
+fi
+
+# Simulate auto-updater flow (what other VSCode instances will do)
+print_info "Simulating auto-update flow for other VSCode instances..."
+RELEASES_JSON=$(curl -s "https://eai-tools.github.io/gofer/releases.json?cachebust=$(date +%s)")
+
+# Parse latest_version (try/catch guards against malformed JSON from partial deployment)
+REMOTE_VERSION=$(echo "$RELEASES_JSON" | node -e "try { const d=require('fs').readFileSync('/dev/stdin','utf8'); const j=JSON.parse(d); console.log(j.latest_version || 'MISSING'); } catch(e) { console.log('MISSING'); }" 2>/dev/null || echo "MISSING")
+# Parse download_url for this version
+REMOTE_URL=$(echo "$RELEASES_JSON" | NEW_VERSION="$NEW_VERSION" node -e "try { const d=require('fs').readFileSync('/dev/stdin','utf8'); const j=JSON.parse(d); const v=process.env.NEW_VERSION; const r=j.releases?.find(r=>r.version===v); console.log(r?.download_url || 'MISSING'); } catch(e) { console.log('MISSING'); }" 2>/dev/null || echo "MISSING")
+
+SIMULATION_PASS=true
+if [ "$REMOTE_VERSION" = "$NEW_VERSION" ]; then
+    print_success "Auto-updater will detect version $NEW_VERSION"
+else
+    print_warning "Auto-updater version mismatch: expected $NEW_VERSION, got $REMOTE_VERSION"
+    SIMULATION_PASS=false
+fi
+
+if [ "$REMOTE_URL" = "$VSIX_URL" ]; then
+    print_success "Auto-updater download URL is correct"
+else
+    print_warning "Auto-updater download URL mismatch: expected $VSIX_URL, got $REMOTE_URL"
+    SIMULATION_PASS=false
+fi
+
+if [ "$SIMULATION_PASS" = "true" ]; then
+    print_success "Auto-update simulation passed - other VSCode instances will update correctly"
+else
+    print_warning "Auto-update simulation had issues - check GitHub Pages deployment"
+fi
+
+set -e
 
 print_success "🎉 Release $NEW_VERSION complete!"
 echo ""

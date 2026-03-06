@@ -67,6 +67,8 @@ export class ProjectDetector {
     const checks: Array<{ file: string; language: string }> = [
       { file: 'tsconfig.json', language: 'typescript' },
       { file: 'pyproject.toml', language: 'python' },
+      { file: 'setup.py', language: 'python' },
+      { file: 'requirements.txt', language: 'python' },
       { file: 'go.mod', language: 'go' },
       { file: 'Cargo.toml', language: 'rust' },
       { file: 'pom.xml', language: 'java' },

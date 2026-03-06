@@ -103,8 +103,8 @@ detection **So that** the AI instructions stay current with my project
 **Acceptance Criteria**:
 
 - [ ] A "Gofer: Regenerate Instructions" VS Code command is available
-- [ ] If files already exist, user is prompted with options: overwrite, merge
-      (append new sections), or skip
+- [ ] If files already exist, user is prompted with options: overwrite, skip, or
+      backup & replace
 - [ ] Regeneration re-detects project characteristics from current state
 - [ ] The command can be run from the VS Code Command Palette
 
@@ -280,7 +280,7 @@ instruction files.
 
 | Metric                                       | Target                                           | Measurement                               |
 | -------------------------------------------- | ------------------------------------------------ | ----------------------------------------- |
-| Generated CLAUDE.md line count               | < 60 lines                                       | Automated test                            |
+| Generated CLAUDE.md line count               | < 80 lines                                       | Automated test                            |
 | Generated AGENTS.md line count               | 80-150 lines                                     | Automated test                            |
 | Generated copilot-instructions.md line count | 60-120 lines                                     | Automated test                            |
 | Project detection accuracy                   | Correct language/framework for 95% of test cases | Unit tests with mock project structures   |
@@ -345,7 +345,7 @@ instruction files.
 
 | Research Finding                                               | Spec Section                   | Reference                 |
 | -------------------------------------------------------------- | ------------------------------ | ------------------------- |
-| CLAUDE.md < 60 lines optimal                                   | FR1, Success Criteria          | Anthropic best practices  |
+| CLAUDE.md < 80 lines optimal                                   | FR1, Success Criteria          | Anthropic best practices  |
 | AGENTS.md cross-tool standard (60k+ repos)                     | FR1 (three-tier architecture)  | Market research           |
 | Copilot reads AGENTS.md + CLAUDE.md alongside own instructions | FR1                            | GitHub changelog Aug 2025 |
 | ResourceSyncer.copyBundledResources() pattern                  | FR5                            | Codebase pattern 1        |

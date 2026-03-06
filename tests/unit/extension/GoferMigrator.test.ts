@@ -5,6 +5,7 @@ import * as path from 'path';
 import * as fs from 'fs/promises';
 import * as fsSync from 'fs';
 import * as os from 'os';
+import * as vscode from 'vscode';
 
 // Mock the DI container since esbuild (vitest) doesn't emit decorator metadata
 // Create real service instances manually instead of relying on tsyringe resolution
@@ -442,6 +443,136 @@ cd specs/001-feature
 
       const info = await migrator.getVersionInfo();
       expect(info.needsUpgrade).toBe(true);
+    });
+  });
+
+  describe('syncMissingResources - AI instruction consent prompt', () => {
+    let setupDefaultInstructionsSpy: ReturnType<typeof vi.spyOn>;
+
+    beforeEach(async () => {
+      // Create full .specify structure so only AI instructions are missing
+      await fs.mkdir(path.join(workspace, '.specify/specs'), { recursive: true });
+      await fs.mkdir(path.join(workspace, '.specify/memory'), { recursive: true });
+      await fs.mkdir(path.join(workspace, '.specify/templates'), { recursive: true });
+      await fs.mkdir(path.join(workspace, '.specify/scripts/bash'), { recursive: true });
+      await fs.mkdir(path.join(workspace, '.specify/scripts/hooks'), { recursive: true });
+      await fs.mkdir(path.join(workspace, '.claude/commands'), { recursive: true });
+      await fs.mkdir(path.join(workspace, '.claude/agents'), { recursive: true });
+
+      // Create non-empty directories with placeholder files
+      await fs.writeFile(path.join(workspace, '.claude/commands/placeholder.md'), '# cmd', 'utf-8');
+      await fs.writeFile(path.join(workspace, '.claude/agents/placeholder.md'), '# agent', 'utf-8');
+      await fs.writeFile(
+        path.join(workspace, '.specify/scripts/bash/placeholder.sh'),
+        '#!/bin/bash',
+        'utf-8'
+      );
+      await fs.writeFile(
+        path.join(workspace, '.specify/scripts/hooks/post-tool-use.mjs'),
+        'export default {}',
+        'utf-8'
+      );
+      await fs.writeFile(
+        path.join(workspace, '.specify/templates/placeholder.md'),
+        '# template',
+        'utf-8'
+      );
+
+      // AGENTS.md and CLAUDE.md are intentionally NOT created (missing AI instructions)
+
+      // Mock withProgress to immediately execute the callback
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (vscode.window as any).withProgress = vi.fn(
+        async (
+          _options: unknown,
+          callback: (progress: { report: (value: unknown) => void }) => Promise<void>
+        ) => {
+          await callback({ report: vi.fn() });
+        }
+      );
+
+      // Spy on setupDefaultInstructions
+      setupDefaultInstructionsSpy = vi
+        .spyOn(resourceSyncer, 'setupDefaultInstructions')
+        .mockResolvedValue();
+    });
+
+    afterEach(() => {
+      setupDefaultInstructionsSpy.mockRestore();
+    });
+
+    it('shows prompt when AI instruction files are missing', async () => {
+      vi.mocked(vscode.window.showInformationMessage).mockResolvedValue(
+        undefined as unknown as string
+      );
+
+      await migrator.syncMissingResources();
+
+      expect(vscode.window.showInformationMessage).toHaveBeenCalledWith(
+        'Missing AI instruction files (AGENTS.md, CLAUDE.md). Generate them?',
+        'Yes',
+        'No'
+      );
+    });
+
+    it('generates files when user selects "Yes"', async () => {
+      vi.mocked(vscode.window.showInformationMessage).mockResolvedValue('Yes' as unknown as string);
+
+      await migrator.syncMissingResources();
+
+      expect(setupDefaultInstructionsSpy).toHaveBeenCalled();
+    });
+
+    it('does NOT generate files when user selects "No"', async () => {
+      vi.mocked(vscode.window.showInformationMessage).mockResolvedValue('No' as unknown as string);
+
+      await migrator.syncMissingResources();
+
+      expect(setupDefaultInstructionsSpy).not.toHaveBeenCalled();
+    });
+
+    it('does not show prompt on second call after decline', async () => {
+      // First call: user declines
+      vi.mocked(vscode.window.showInformationMessage).mockResolvedValue('No' as unknown as string);
+      await migrator.syncMissingResources();
+
+      // Reset mock call count
+      vi.mocked(vscode.window.showInformationMessage).mockClear();
+
+      // Second call: prompt should NOT appear
+      await migrator.syncMissingResources();
+
+      // showInformationMessage may be called for the final success message,
+      // but NOT with the consent prompt text
+      const calls = vi.mocked(vscode.window.showInformationMessage).mock.calls;
+      const consentCalls = calls.filter(
+        (call) => typeof call[0] === 'string' && call[0].includes('Missing AI instruction files')
+      );
+      expect(consentCalls).toHaveLength(0);
+    });
+
+    it('dismissed prompt (undefined) does not set decline flag -- prompt reappears on next call', async () => {
+      // First call: user dismisses (undefined response)
+      vi.mocked(vscode.window.showInformationMessage).mockResolvedValue(
+        undefined as unknown as string
+      );
+      await migrator.syncMissingResources();
+
+      expect(setupDefaultInstructionsSpy).not.toHaveBeenCalled();
+
+      // Reset mock call count
+      vi.mocked(vscode.window.showInformationMessage).mockClear();
+
+      // Second call: prompt should reappear since decline flag was NOT set
+      vi.mocked(vscode.window.showInformationMessage).mockResolvedValue('Yes' as unknown as string);
+      await migrator.syncMissingResources();
+
+      expect(vscode.window.showInformationMessage).toHaveBeenCalledWith(
+        'Missing AI instruction files (AGENTS.md, CLAUDE.md). Generate them?',
+        'Yes',
+        'No'
+      );
+      expect(setupDefaultInstructionsSpy).toHaveBeenCalled();
     });
   });
 });

@@ -574,5 +574,29 @@ cd specs/001-feature
       );
       expect(setupDefaultInstructionsSpy).toHaveBeenCalled();
     });
+
+    it('new GoferMigrator instance re-prompts (simulates extension restart)', async () => {
+      // First instance: user declines
+      vi.mocked(vscode.window.showInformationMessage).mockResolvedValue('No' as unknown as string);
+      await migrator.syncMissingResources();
+
+      // Create a NEW instance (simulates extension restart)
+      const freshMigrator = new GoferMigrator(workspace);
+      vi.mocked(vscode.window.showInformationMessage).mockClear();
+      setupDefaultInstructionsSpy = vi
+        .spyOn(resourceSyncer, 'setupDefaultInstructions')
+        .mockResolvedValue();
+
+      // New instance should prompt again
+      vi.mocked(vscode.window.showInformationMessage).mockResolvedValue('Yes' as unknown as string);
+      await freshMigrator.syncMissingResources();
+
+      expect(vscode.window.showInformationMessage).toHaveBeenCalledWith(
+        'Missing AI instruction files (AGENTS.md, CLAUDE.md). Generate them?',
+        'Yes',
+        'No'
+      );
+      expect(setupDefaultInstructionsSpy).toHaveBeenCalled();
+    });
   });
 });

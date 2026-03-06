@@ -166,7 +166,7 @@ describe('InstructionGenerator', () => {
   });
 
   describe('generateClaudeMd()', () => {
-    it('generates CLAUDE.md under 60 lines', async () => {
+    it('generates CLAUDE.md under 80 lines', async () => {
       const info = makeProjectInfo();
       const content = await generator.generateClaudeMd(info);
       const lineCount = content.split('\n').length;

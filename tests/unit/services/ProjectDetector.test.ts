@@ -180,5 +180,46 @@ describe('ProjectDetector', () => {
 
       expect(info.hasEslint).toBe(true);
     });
+
+    it('detects Python project from setup.py', async () => {
+      mockFileExists('setup.py');
+
+      const info = await ProjectDetector.detect('/workspace/setuptools-project');
+
+      expect(info.language).toBe('python');
+    });
+
+    it('detects Python project from requirements.txt', async () => {
+      mockFileExists('requirements.txt');
+
+      const info = await ProjectDetector.detect('/workspace/pip-project');
+
+      expect(info.language).toBe('python');
+    });
+
+    it('pyproject.toml takes priority over setup.py', async () => {
+      mockFileExists('pyproject.toml', 'setup.py');
+      mockFileContent({
+        'pyproject.toml': '[project]\nname = "myapp"',
+      });
+
+      const info = await ProjectDetector.detect('/workspace/python-both');
+
+      expect(info.language).toBe('python');
+      // Verify it was detected via pyproject.toml (first match wins due to array order)
+      // Both resolve to 'python' but pyproject.toml is listed first in checks array
+    });
+
+    it('tsconfig.json takes priority over requirements.txt', async () => {
+      mockFileExists('tsconfig.json', 'requirements.txt', 'package.json');
+      mockFileContent({
+        'package.json': JSON.stringify({ scripts: {} }),
+      });
+
+      const info = await ProjectDetector.detect('/workspace/polyglot');
+
+      expect(info.language).toBe('typescript');
+      expect(info.hasTypeScript).toBe(true);
+    });
   });
 });

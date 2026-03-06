@@ -34,6 +34,7 @@ export class GoferMigrator {
   private readonly workspacePath: string;
   private readonly specifyPath: string;
   private readonly logger: Logger;
+  private instructionPromptDeclined = false;
 
   // Injected migration services
   private readonly versionDetector: VersionDetector;
@@ -470,8 +471,20 @@ export class GoferMigrator {
         }
 
         if (missing.includes('AI instructions')) {
-          reportProgress('Generating AI instruction files');
-          await this.resourceSyncer.setupDefaultInstructions();
+          if (!this.instructionPromptDeclined) {
+            const response = await vscode.window.showInformationMessage(
+              'Missing AI instruction files (AGENTS.md, CLAUDE.md). Generate them?',
+              'Yes',
+              'No'
+            );
+            if (response === 'Yes') {
+              reportProgress('Generating AI instruction files');
+              await this.resourceSyncer.setupDefaultInstructions();
+            } else if (response === 'No') {
+              this.instructionPromptDeclined = true;
+            }
+            // If dismissed (undefined), skip this invocation but do NOT set decline flag
+          }
         }
 
         this.logger.info('GoferMigrator', 'Missing resources synced successfully');

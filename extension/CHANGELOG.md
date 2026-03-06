@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.16.2] - 2026-03-06
+
+fix: add post-release auto-update verification
+
 ## [1.16.1] - 2026-03-06
 
 Fix validation findings: add consent prompt for AI instruction generation, expand Python detection, add restart re-prompt test

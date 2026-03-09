@@ -240,6 +240,96 @@
       "lastUsed": 1772278058542,
       "usedCount": 0,
       "learnedFrom": "session:c7d61fec-18c8-439d-a5d3-dcc7066d90a1"
+    },
+    {
+      "id": "244ff8ab-183b-4ba6-a5a4-452d546d529b",
+      "category": "decision",
+      "tags": [
+        "#auto-learned",
+        "#decision",
+        "#session-958b572b"
+      ],
+      "scope": "local",
+      "content": "You need to create a seed file with 2 example business scenarios that Gofer will use as patterns to generate 50 more. I'll write this for you now based on the context.",
+      "created": 1772529561866,
+      "lastUsed": 1772529561866,
+      "usedCount": 0,
+      "learnedFrom": "session:958b572b-e832-4864-a52d-21585a250cbb"
+    },
+    {
+      "id": "dac04e38-5c06-4f78-a1bf-1c941947abaf",
+      "category": "decision",
+      "tags": [
+        "#auto-learned",
+        "#decision",
+        "#session-c55d910d"
+      ],
+      "scope": "local",
+      "content": "The pipeline is at the tail end of `/2_gofer_specify` — everything is done except choosing an implementation option. This selection drives the technical architecture in `/3_gofer_plan`.",
+      "created": 1772577323767,
+      "lastUsed": 1772577323767,
+      "usedCount": 0,
+      "learnedFrom": "session:c55d910d-8081-4b74-aeb4-b55d946371f0"
+    },
+    {
+      "id": "e7045103-bdf7-4c1c-97ae-6b81d2663f1a",
+      "category": "pattern",
+      "tags": [
+        "#auto-learned",
+        "#pattern",
+        "#session-ba068c5d"
+      ],
+      "scope": "local",
+      "content": "This follows your existing dependency flow: **Presentation → Application → Infrastructure → Domain → PayloadCMS**.",
+      "created": 1772577587947,
+      "lastUsed": 1772577626088,
+      "usedCount": 1,
+      "learnedFrom": "session:ba068c5d-f936-4b16-8ab0-1ee4d27dc89d"
+    },
+    {
+      "id": "351d9ec5-65a8-4dbd-bf08-14a8239a96e2",
+      "category": "error_resolution",
+      "tags": [
+        "#auto-learned",
+        "#error-fix",
+        "#session-ba068c5d"
+      ],
+      "scope": "local",
+      "content": "The fix is saved correctly. Let me check if there's instance caching that could return a stale remote-mode client.",
+      "created": 1772586784401,
+      "lastUsed": 1772586784401,
+      "usedCount": 0,
+      "learnedFrom": "session:ba068c5d-f936-4b16-8ab0-1ee4d27dc89d"
+    },
+    {
+      "id": "90d99e49-6689-4d75-8fc4-1f44d3c77b9e",
+      "category": "error_resolution",
+      "tags": [
+        "#auto-learned",
+        "#error-fix",
+        "#session-acf49efe"
+      ],
+      "scope": "local",
+      "content": "The fix is to either lower the thresholds or disable `perFile`. Since this is a pre-existing issue and the overall coverage is 42.67%, a realistic approach:",
+      "created": 1772948843476,
+      "lastUsed": 1772949076564,
+      "usedCount": 1,
+      "learnedFrom": "session:acf49efe-efd9-4552-98e2-3fc118833060"
+    },
+    {
+      "id": "5d492d81-db67-41b9-84ac-3c8630f7b785",
+      "category": "error_resolution",
+      "tags": [
+        "#auto-learned",
+        "#error-fix",
+        "#session-acf49efe"
+      ],
+      "scope": "local",
+      "content": "The fix is to exclude Playwright tests from the VSCode test runner.",
+      "created": 1772950482578,
+      "lastUsed": 1772950482578,
+      "usedCount": 0,
+      "learnedFrom": "session:acf49efe-efd9-4552-98e2-3fc118833060"
     }
   ]
 }

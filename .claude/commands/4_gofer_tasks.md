@@ -519,34 +519,34 @@ This creates `{FEATURE_DIR}/issues.md` with GitHub-ready issue definitions.
 
 ---
 
-## Step 6: Auto-Approve and Continue
+## Step 6: Approval Gate
+
+**IMPORTANT**: Tasks MUST be reviewed and approved before implementation begins.
 
 ### 6.1 Update Task Status
 
-Set the frontmatter status directly to `approved`:
+Set the frontmatter status to `review`:
 
 ```yaml
 ---
 feature: [Feature Name]
 spec: spec.md
 plan: plan.md
-status: approved
-approvedBy: 'auto-pipeline'
-approvedAt: '[ISO timestamp]'
+status: review # Changed from 'draft' to 'review'
 created: [ISO date]
 ---
 ```
 
-### 6.2 Display Task Summary (Informational)
+### 6.2 Present for Approval
 
-Display the task summary for visibility (no approval prompt):
+Display the task summary and request explicit approval:
 
 ```
 ════════════════════════════════════════════════════════════════
-  TASKS AUTO-APPROVED: [Feature Name]
+  TASKS READY FOR REVIEW: [Feature Name]
 ════════════════════════════════════════════════════════════════
 
-  Task Summary:
+  📋 Task Summary:
   - Total tasks: [N]
   - Tasks by story:
     - US1 (P1): [N] tasks
@@ -555,18 +555,66 @@ Display the task summary for visibility (no approval prompt):
   - Parallel opportunities: [N] tasks
   - MVP scope: Phase 1-3 (Setup + Foundation + US1)
 
-  Files created:
+  📁 Files created:
   - {FEATURE_DIR}/tasks.md
   - {FEATURE_DIR}/issues.md ([N] GitHub issues)
 
-  Proceeding to implementation...
+════════════════════════════════════════════════════════════════
+  ⚠️  APPROVAL REQUIRED BEFORE IMPLEMENTATION
+════════════════════════════════════════════════════════════════
+
+  Please review tasks.md and confirm:
+  1. Task breakdown is complete and accurate
+  2. Protected files list is correct
+  3. Phase dependencies make sense
+  4. Scope boundaries are appropriate
+
+  Reply with:
+  - "approved" or "lgtm" to proceed to implementation
+  - "modify [feedback]" to request changes
+  - "stop" to halt the pipeline
+
 ════════════════════════════════════════════════════════════════
 ```
 
-**AUTO-CHAIN (MANDATORY)**: You MUST immediately invoke the next pipeline stage
-by calling the Skill tool with skill="/5_gofer_implement". Do NOT ask the user
-for confirmation. Do NOT output "Ready for next stage". Just invoke the skill
-NOW.
+### 6.3 Handle Approval Response
+
+| Response                    | Action                                                       |
+| --------------------------- | ------------------------------------------------------------ |
+| `approved` / `lgtm` / `yes` | Update status to `approved`, proceed to `/5_gofer_implement` |
+| `modify [feedback]`         | Update tasks based on feedback, re-present for approval      |
+| `stop`                      | Halt pipeline, document reason in tasks.md                   |
+
+### 6.4 Record Approval
+
+When approved, update frontmatter:
+
+```yaml
+---
+feature: [Feature Name]
+spec: spec.md
+plan: plan.md
+status: approved
+approvedBy: '[user]'
+approvedAt: '[ISO timestamp]'
+created: [ISO date]
+---
+```
+
+---
+
+## Step 7: Continue to Implementation
+
+After approval received:
+
+```
+✓ Tasks APPROVED: {FEATURE_DIR}/tasks.md
+
+Ready for next stage: /5_gofer_implement
+```
+
+If orchestrated by `/0_business_scenario`, the orchestrator will automatically
+invoke `/5_gofer_implement` next.
 
 ---
 

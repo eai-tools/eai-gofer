@@ -654,20 +654,20 @@ has_ui: [true/false]
 ════════════════════════════════════════════════════════════════
 ```
 
-Proceed to **Step 11: Attribution Logging** then **Step 12: Memory Update
+Proceed to **Step 12: Attribution Logging** then **Step 13: Memory Update
 Check**.
 
 **AUTO-CHAIN (MANDATORY)**: After completing attribution logging and memory
 update check:
 
-1. If `{FEATURE_DIR}/problem-brief.md` exists (business-first pipeline):
-   You MUST immediately invoke stakeholder communications by calling the
-   Skill tool with skill="/7a_stakeholder_comms". This generates the business
-   deliverables package.
+1. If `{FEATURE_DIR}/problem-brief.md` exists (business-first pipeline): You
+   MUST immediately invoke stakeholder communications by calling the Skill tool
+   with skill="/7a_stakeholder_comms". This generates the business deliverables
+   package.
 
-2. If no problem-brief.md exists (engineering-first pipeline):
-   You MUST immediately invoke the session save stage by calling the
-   Skill tool with skill="/7_gofer_save".
+2. If no problem-brief.md exists (engineering-first pipeline): You MUST
+   immediately invoke the session save stage by calling the Skill tool with
+   skill="/7_gofer_save".
 
 Do NOT ask the user for confirmation. Just invoke the appropriate skill NOW.
 
@@ -769,11 +769,6 @@ Output the routing instruction:
 ```
 
 Then proceed to **Step 11: Attribution Logging**.
-
-**AUTO-CHAIN (MANDATORY)**: After completing attribution logging, you MUST
-immediately invoke the implementation stage by calling the Skill tool with
-skill="/5_gofer_implement" and args="REMEDIATION: [feature-name]". Do NOT ask
-the user for confirmation. Just invoke the skill NOW.
 
 ### 10.4 Escalation (Iteration 3 Failure)
 
@@ -940,10 +935,10 @@ Add to the end of `validation-report.md`:
 ```markdown
 ## Assumption Status (Post-Implementation)
 
-| ID | Assumption | Pre-Implementation | Post-Implementation | Evidence |
-|----|-----------|-------------------|--------------------|---------|
-| A1 | [assumption] | UNVALIDATED | VALIDATED | Tests pass |
-| A2 | [assumption] | UNVALIDATED | DISPROVEN | API limitation found |
+| ID  | Assumption   | Pre-Implementation | Post-Implementation | Evidence             |
+| --- | ------------ | ------------------ | ------------------- | -------------------- |
+| A1  | [assumption] | UNVALIDATED        | VALIDATED           | Tests pass           |
+| A2  | [assumption] | UNVALIDATED        | DISPROVEN           | API limitation found |
 
 **Disproven Assumptions**: [N] (may require post-launch monitoring)
 **Unvalidated Assumptions**: [N] (verify before full rollout)
@@ -957,19 +952,20 @@ the validation report that non-technical stakeholders can read:
 ```markdown
 ## Business Validation Summary
 
-**Problem**: [From problem-brief.md — root cause]
-**Solution**: [What was built — in plain English]
-**Quality**: [score]/100 — [All checks passed / Issues found]
+**Problem**: [From problem-brief.md — root cause] **Solution**: [What was built
+— in plain English] **Quality**: [score]/100 — [All checks passed / Issues
+found]
 
 **What This Means**:
+
 - The feature works correctly: [Yes/No]
 - It's secure: [Yes/No]
 - It's well-tested: [Yes/No]
 - It follows project standards: [Yes/No]
 - It's ready for users: [Yes/No — with caveats if any]
 
-**Assumptions Status**: [N] validated, [N] unvalidated, [N] disproven
-**Scope**: [On-target / Expanded by N%]
+**Assumptions Status**: [N] validated, [N] unvalidated, [N] disproven **Scope**:
+[On-target / Expanded by N%]
 ```
 
 ---

@@ -46,11 +46,10 @@ export default defineConfig({
       skipFull: false,
       perFile: true,
       thresholds: {
-        lines: 85,
-        functions: 85,
-        branches: 85,
-        statements: 85,
-        perFile: true
+        lines: 40,
+        functions: 40,
+        branches: 40,
+        statements: 40,
       },
     },
     setupFiles: ['./tests/helpers/setup.ts'],

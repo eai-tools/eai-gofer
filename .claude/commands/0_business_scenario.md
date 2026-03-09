@@ -11,26 +11,32 @@ scenario and route them through the **unified Gofer pipeline**.
 
 ```text
 ┌─────────────────────────────────────────────────────────────────┐
-│                    UNIFIED GOFER PIPELINE                        │
+│               UNIFIED GOFER PIPELINE (Business+Engineering)      │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                  │
-│  1. /1_gofer_research    → research.md                          │
-│     Deep codebase exploration + technology research              │
+│  0a. /0a_problem_validation → problem-brief.md, assumptions.md  │
+│      5 Whys + market research + business case validation         │
 │                         ↓ AUTO                                   │
-│  2. /2_gofer_specify     → spec.md                              │
-│     Feature specification informed by research                   │
+│  1. /1_gofer_research    → research.md                          │
+│     Deep codebase exploration + technology + market landscape     │
+│                         ↓ AUTO                                   │
+│  2. /2_gofer_specify     → spec.md, spec-summary.md             │
+│     Feature spec + plain English summary for stakeholders        │
 │                         ↓ AUTO                                   │
 │  3. /3_gofer_plan        → plan.md, data-model.md, contracts/   │
 │     Technical architecture and design                            │
 │                         ↓ AUTO                                   │
 │  4. /4_gofer_tasks       → tasks.md, issues.md                  │
-│     Dependency-ordered task breakdown                            │
+│     Dependency-ordered task breakdown + scope creep check        │
 │                         ↓ AUTO                                   │
 │  5. /5_gofer_implement   → [source code]                        │
 │     Execute tasks phase by phase                                 │
 │                         ↓ AUTO                                   │
 │  6. /6_gofer_validate    → validation-report.md                 │
-│     Verify implementation matches plan and spec                  │
+│     Verify implementation + assumption check                     │
+│                         ↓ AUTO                                   │
+│  7a. /7a_stakeholder_comms → stakeholder-comms.md               │
+│      Release notes, demo script, change mgmt, metrics            │
 │                                                                  │
 │  All artifacts go to: .specify/specs/{feature}/                 │
 └─────────────────────────────────────────────────────────────────┘
@@ -38,14 +44,16 @@ scenario and route them through the **unified Gofer pipeline**.
 
 ## Auxiliary Gofer Commands
 
-| Command               | Purpose                                    |
-| --------------------- | ------------------------------------------ |
-| `/7_gofer_save`       | Save session checkpoint mid-implementation |
-| `/8_gofer_resume`     | Resume work from saved checkpoint          |
-| `/9_gofer_tests`      | Define acceptance test cases using DSL     |
-| `/10_gofer_cloud`     | READ-ONLY cloud infrastructure analysis    |
-| `/gofer_hydrate`      | Reverse-engineer spec from existing code   |
-| `/gofer_constitution` | Create/update project constitution         |
+| Command                   | Purpose                                    |
+| ------------------------- | ------------------------------------------ |
+| `/0a_problem_validation`  | Validate business problem (5 Whys + market)|
+| `/7_gofer_save`           | Save session checkpoint mid-implementation |
+| `/7a_stakeholder_comms`   | Generate stakeholder communications package|
+| `/8_gofer_resume`         | Resume work from saved checkpoint          |
+| `/9_gofer_tests`          | Define acceptance test cases using DSL     |
+| `/10_gofer_cloud`         | READ-ONLY cloud infrastructure analysis    |
+| `/gofer_hydrate`          | Reverse-engineer spec from existing code   |
+| `/gofer_constitution`     | Create/update project constitution         |
 
 ---
 
@@ -89,14 +97,16 @@ artifacts might be for OTHER features, not what the user wants to work on now.
 
 Present these options using the AskUserQuestion tool:
 
-| Option                  | Description                                              |
-| ----------------------- | -------------------------------------------------------- |
-| **A. New Feature**      | Build something new from scratch with clear requirements |
-| **B. Modify Existing**  | Change or extend existing functionality in the codebase  |
-| **C. Fix a Bug**        | Diagnose and fix a specific issue                        |
-| **D. Explore/Research** | Understand the codebase before making changes            |
-| **E. Resume Work**      | Continue from where I left off                           |
-| **F. Setup Project**    | Initialize constitution and project guidelines           |
+| Option                     | Description                                              |
+| -------------------------- | -------------------------------------------------------- |
+| **A. Solve a Problem**     | I have a business problem — validate it and build a solution |
+| **B. New Feature**         | Build something new from scratch with clear requirements |
+| **C. Modify Existing**     | Change or extend existing functionality in the codebase  |
+| **D. Fix a Bug**           | Diagnose and fix a specific issue                        |
+| **E. Explore/Research**    | Understand the codebase before making changes            |
+| **F. Resume Work**         | Continue from where I left off                           |
+| **G. Setup Project**       | Initialize constitution and project guidelines           |
+| **H. Business Metrics**    | View portfolio metrics and delivery dashboard            |
 
 ### For Existing Codebases
 
@@ -447,7 +457,25 @@ Category: 'journey' Tags: ['#journey', '#feature-{id}', '#confirmed'] Content:
 
 Based on user selection and detected state:
 
-### Route A/B/C: New Feature, Modify Existing, or Fix Bug
+### Route A: Solve a Problem (Business-First)
+
+When the user has a business problem to solve:
+
+```
+ROUTING: GOFER PIPELINE (BUSINESS-FIRST)
+COMMAND: /0a_problem_validation
+AUTO-CHAIN: problem validation → research → specify → plan → tasks → implement → validate → stakeholder comms
+REASON: User has a business problem — validate before building
+```
+
+This starts with `/0a_problem_validation` which:
+1. Runs 5 Whys root cause analysis
+2. Researches market for existing solutions
+3. Assesses business case
+4. Checks if software is the right answer
+5. Then auto-chains through the full pipeline including `/7a_stakeholder_comms`
+
+### Route B/C/D: New Feature, Modify Existing, or Fix Bug
 
 All three scenarios use the same pipeline - the difference is in the research
 focus:
@@ -457,6 +485,9 @@ focus:
 | New Feature     | Technology research + codebase patterns                    |
 | Modify Existing | Understanding existing implementation + integration points |
 | Fix Bug         | Root cause analysis + affected code paths                  |
+
+**Note**: If a `problem-brief.md` exists for the feature (from Route A), research
+will also load market landscape findings and validated assumptions.
 
 #### Determine Starting Point
 
@@ -488,7 +519,9 @@ exists):
 
 1. Ask: **"What would you like to call this feature?"** (use AskUserQuestion)
 2. Create the spec directory: `.specify/specs/{feature-name}/`
-3. Invoke `/1_gofer_research` to start the pipeline
+3. Ask: **"Would you like to start with business problem validation?"**
+   - If yes → Invoke `/0a_problem_validation` (recommended for non-technical users)
+   - If no → Invoke `/1_gofer_research` to start the pipeline directly
 
 Output:
 
@@ -555,7 +588,7 @@ CHECKPOINT: {path to checkpoint}
 REASON: Resuming from saved session
 ```
 
-### Route F: Setup Project
+### Route G: Setup Project
 
 For new projects or establishing guidelines:
 
@@ -564,6 +597,22 @@ ROUTING: GOFER CONSTITUTION
 COMMAND: /gofer_constitution
 REASON: User wants to establish project principles
 ```
+
+### Route H: Business Metrics
+
+When the user wants to view portfolio metrics:
+
+1. Spawn the business-metrics-analyzer agent:
+
+```
+Task: subagent_type="business-metrics-analyzer", model="sonnet"
+Prompt: "Generate a business metrics dashboard for all features.
+Scan .specify/specs/ for all features and .specify/logs/ for pipeline data.
+Produce a portfolio-level dashboard with velocity, quality, and cost metrics."
+```
+
+2. Present the dashboard to the user
+3. Ask if they want to drill into a specific feature or start new work
 
 ---
 
@@ -623,25 +672,27 @@ If context window is filling up:
 
 ### Core Pipeline (Auto-Chaining)
 
-| #   | Command              | Output                 | Description              |
-| --- | -------------------- | ---------------------- | ------------------------ |
-| 1   | `/1_gofer_research`  | research.md            | Codebase + tech research |
-| 2   | `/2_gofer_specify`   | spec.md                | Feature specification    |
-| 3   | `/3_gofer_plan`      | plan.md, data-model.md | Technical architecture   |
-| 4   | `/4_gofer_tasks`     | tasks.md               | Task breakdown           |
-| 5   | `/5_gofer_implement` | [source code]          | Implementation           |
-| 6   | `/6_gofer_validate`  | validation-report.md   | Verification             |
+| #   | Command                     | Output                          | Description                |
+| --- | --------------------------- | ------------------------------- | -------------------------- |
+| 0a  | `/0a_problem_validation`    | problem-brief.md, assumptions.md| Business problem validation|
+| 1   | `/1_gofer_research`         | research.md                     | Codebase + market research |
+| 2   | `/2_gofer_specify`          | spec.md, spec-summary.md        | Spec + business summary    |
+| 3   | `/3_gofer_plan`             | plan.md, data-model.md          | Technical architecture     |
+| 4   | `/4_gofer_tasks`            | tasks.md                        | Task breakdown + scope check|
+| 5   | `/5_gofer_implement`        | [source code]                   | Implementation             |
+| 6   | `/6_gofer_validate`         | validation-report.md            | Verification + assumptions |
+| 7a  | `/7a_stakeholder_comms`     | stakeholder-comms.md            | Business communications    |
 
 ### Auxiliary Commands
 
-| Command               | Purpose                                   |
-| --------------------- | ----------------------------------------- |
-| `/7_gofer_save`       | Save session checkpoint                   |
-| `/8_gofer_resume`     | Resume from checkpoint                    |
-| `/9_gofer_tests`      | Define test cases (DSL approach)          |
-| `/10_gofer_cloud`     | Cloud infrastructure analysis (READ-ONLY) |
-| `/gofer_hydrate`      | Reverse-engineer spec from code           |
-| `/gofer_constitution` | Project principles and standards          |
+| Command               | Purpose                                    |
+| --------------------- | ------------------------------------------ |
+| `/7_gofer_save`       | Save session checkpoint                    |
+| `/8_gofer_resume`     | Resume from checkpoint                     |
+| `/9_gofer_tests`      | Define test cases (DSL approach)           |
+| `/10_gofer_cloud`     | Cloud infrastructure analysis (READ-ONLY)  |
+| `/gofer_hydrate`      | Reverse-engineer spec from code            |
+| `/gofer_constitution` | Project principles and standards           |
 
 ---
 

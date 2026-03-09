@@ -621,18 +621,73 @@ Skip sequence diagram generation if:
 
 ---
 
+## Step 5.7: Generate Plain English Spec Summary
+
+After spec.md is complete, generate a **business-readable summary** that
+non-technical stakeholders can review without understanding engineering language.
+
+### Load Template
+
+Read `.specify/templates/spec-summary-template.md`
+
+### Generate spec-summary.md
+
+Write to `{FEATURE_DIR}/spec-summary.md` using the template. Populate with:
+
+1. **Executive Summary**: 3 sentences covering what, why, and effort level
+2. **What Changes for Users**: Before/after table for each user role
+3. **Implementation Approach**: Selected option in business terms
+4. **What's Included/Excluded**: Plain English capability list
+5. **Risk Assessment**: Business risks (not technical), with mitigation
+6. **ROI Estimate**: From problem-brief.md if it exists, or estimated
+7. **Key Assumptions**: From assumptions.md, focused on business-critical ones
+8. **Decision Points**: What the consultant needs to approve before coding starts
+9. **Success Metrics**: How we'll measure if this worked
+
+### Business Trade-off Enhancement for Options
+
+When presenting the 5 implementation options (Step 5.5), enhance each option
+with business-friendly trade-offs:
+
+| Option | Business Description | Timeline | Risk | Cost |
+|--------|---------------------|----------|------|------|
+| 1 Minimal | "Solves the core problem, no frills" | 1-2 days | Low | $ |
+| 2 Efficient | "Handles edge cases, reliable" | 3-5 days | Low | $$ |
+| 3 Standard | "Full solution, some smart features" | 1-2 weeks | Med | $$$ |
+| 4 Enhanced | "Rich experience, AI-assisted" | 2-4 weeks | Med-Hi | $$$$ |
+| 5 Innovative | "Cutting-edge, autonomous" | 4-8 weeks | High | $$$$$ |
+
+Include for each option:
+
+- **What a consultant would tell their client**: One sentence summary
+- **Case study framing**: "This is how [Amazon/Stripe/etc] would approach it"
+- **Trade-off in plain English**: "You get X but it takes Y longer"
+- **Risk in business terms**: "If this fails, the impact is..."
+
+### Update Assumptions
+
+If `{FEATURE_DIR}/assumptions.md` exists:
+
+- Add any NEW assumptions identified during specification
+- Tag them with `Added During: Specification`
+- Mark type (Business/Technical/User/Data)
+
+---
+
 ## Step 6: Report and Continue
 
-After spec.md is complete:
+After spec.md and spec-summary.md are complete:
 
 ```
 ✓ Specification complete: {FEATURE_DIR}/spec.md
+✓ Business summary: {FEATURE_DIR}/spec-summary.md
 
 Summary:
 - [N] User Stories defined
 - [N] Functional Requirements
 - [N] Success Criteria
 
+Business Summary: {FEATURE_DIR}/spec-summary.md (share with stakeholders)
 Checklist: {FEATURE_DIR}/checklists/requirements.md
 
 {If sequence diagrams generated:}

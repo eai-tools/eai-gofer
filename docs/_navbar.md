@@ -1,0 +1,4 @@
+- [Home](/)
+- [Documentation](/README)
+- [Releases](releases.html)
+- [GitHub](https://github.com/eai-tools/gofer)

@@ -10,14 +10,8 @@ Get Gofer installed and run your first AI-powered pipeline in under 5 minutes.
 
 ## Step 1: Download Gofer
 
-Download the latest `.vsix` extension file from the
-[Releases page](/gofer/releases.html ':ignore').
-
-Or use the GitHub CLI:
-
-```bash
-gh release download --repo eai-tools/gofer --pattern "*.vsix"
-```
+1. Go to the [Releases page](/gofer/releases.html ':ignore')
+2. Click **Download VSIX** on the latest release
 
 ## Step 2: Install the Extension
 
@@ -25,7 +19,7 @@ gh release download --repo eai-tools/gofer --pattern "*.vsix"
 2. Press `Cmd+Shift+P` (macOS) or `Ctrl+Shift+P` (Windows/Linux)
 3. Type **"Extensions: Install from VSIX"**
 4. Select the downloaded `.vsix` file
-5. Restart VS Code
+5. Restart VS Code when prompted
 
 ## Step 3: Initialize Your Project
 
@@ -59,6 +53,18 @@ Gofer will automatically chain through all 6 stages:
 | 6. Validate  | Verifies implementation against specification              | `validation-report.md` |
 
 All artifacts are saved to `.specify/specs/{feature-name}/`.
+
+## Keeping Gofer Updated
+
+Once installed, Gofer checks for updates automatically every 24 hours. When a
+new version is available:
+
+- A notification will appear in VS Code
+- Click **Update Now** to download and install the latest version
+- You can also check manually via the Command Palette: **"Gofer: Check for
+  Updates"**
+
+The update button is also available in the Gofer sidebar panel's title bar.
 
 ## What to Expect
 

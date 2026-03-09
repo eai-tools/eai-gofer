@@ -1,55 +1,108 @@
-# Gofer Documentation
+<div class="hero-section">
+  <h1>Gofer</h1>
+  <p>Spec-driven development for AI. Let Claude Code and GitHub Copilot autonomously implement features from specifications.</p>
+  <div class="hero-buttons">
+    <a href="#/quickstart" class="hero-btn hero-btn-primary">Get Started</a>
+    <a href="releases.html" class="hero-btn hero-btn-secondary">Download Latest</a>
+  </div>
+</div>
 
-Welcome to the Gofer documentation. This directory contains guides for using,
-testing, and releasing Gofer.
+## What is Gofer?
 
-## Active Documentation
+Gofer is a VS Code extension that enables AI assistants to autonomously
+implement software features from specifications. It provides a structured
+6-stage pipeline that guides AI through research, specification, planning, task
+breakdown, implementation, and validation.
 
-### [Testing Guide](TESTING_GUIDE.md)
+**One command to rule them all:**
 
-Complete guide for testing the Gofer extension including:
+```text
+/0_business_scenario Add user authentication with OAuth2 and JWT
+```
 
-- Installing the extension
-- Verifying MCP configuration
-- Testing Language Server integration
-- Testing MCP tools with Claude Code/Copilot
-- Troubleshooting
-
-### [Release Guide](RELEASE_GUIDE.md)
-
-Instructions for maintainers on how to:
-
-- Create new releases
-- Use GitHub Actions workflow
-- Publish to GitHub releases
-- Handle version bumps
-
-### [Quality Standards](QUALITY_STANDARDS.md)
-
-Code quality standards and automated quality gates.
-
-## Archive
-
-The [archive/](archive/) folder contains historical documentation from previous
-development sessions:
-
-- **Implementation summaries** - Session notes and progress reports
-- **Architecture research** - Research documents on LSP/MCP integration
-- **Migration guides** - Legacy JSON to Gofer format migration
-- **Outdated guides** - Setup and quick reference docs superseded by main README
-
-These are kept for historical reference but may not reflect the current
+This single command automatically chains through all 6 pipeline stages,
+producing production-ready code with full traceability from requirements to
 implementation.
 
-## Main Documentation
+<div class="features">
+  <div class="feature-card">
+    <h3>6-Stage Pipeline</h3>
+    <p>Research, Specify, Plan, Tasks, Implement, Validate. Each stage produces artifacts that feed the next, ensuring nothing is missed.</p>
+  </div>
+  <div class="feature-card">
+    <h3>Works with Claude Code & Copilot</h3>
+    <p>Identical commands work in both Claude Code and GitHub Copilot. Use the same pipeline regardless of your AI assistant.</p>
+  </div>
+  <div class="feature-card">
+    <h3>MCP-Native</h3>
+    <p>Exposes 6 MCP tools that AI assistants call directly through VS Code's native Model Context Protocol support.</p>
+  </div>
+  <div class="feature-card">
+    <h3>Multi-Agent Architecture</h3>
+    <p>Parallel research agents explore your codebase simultaneously. Optional LLM Council mode uses multiple AI providers for consensus.</p>
+  </div>
+  <div class="feature-card">
+    <h3>Quality Validation</h3>
+    <p>10-category engineering rubric scored out of 100 points. Six specialist validation agents run in parallel to catch issues.</p>
+  </div>
+  <div class="feature-card">
+    <h3>Session Management</h3>
+    <p>Save and resume work across sessions. Context health monitoring prevents accuracy degradation from large context windows.</p>
+  </div>
+</div>
 
-The primary user-facing documentation is in the root [README.md](../README.md).
+## The Pipeline
 
-## Contributing
+```text
+/0_business_scenario                          (entry point)
+    |
+    v
+/1_gofer_research    --> research.md          (codebase exploration)
+    |
+    v
+/2_gofer_specify     --> spec.md              (feature specification)
+    |
+    v
+/3_gofer_plan        --> plan.md              (technical architecture)
+    |
+    v
+/4_gofer_tasks       --> tasks.md             (task breakdown)
+    |
+    v
+/5_gofer_implement   --> source code          (implementation)
+    |
+    v
+/6_gofer_validate    --> validation-report.md  (quality verification)
+```
 
-When adding new documentation:
+[Learn more about the pipeline](pipeline/README.md)
 
-1. Keep user-facing docs in the main README
-2. Put developer/testing docs in this `docs/` folder
-3. Move outdated docs to `docs/archive/` with clear naming
-4. Update this index when adding new active docs
+<div class="release-card" id="latestRelease">
+  <h3>Latest Release</h3>
+  <p>Loading...</p>
+</div>
+
+<script>
+  // Load latest release info for homepage card
+  fetch('./releases.json')
+    .then(r => r.json())
+    .then(data => {
+      const el = document.getElementById('latestRelease');
+      if (data.latest_version) {
+        el.innerHTML = `
+          <h3>Latest Release</h3>
+          <span class="version-badge">v${data.latest_version}</span>
+          <p style="margin-top: 8px">${data.releases[0].notes}</p>
+          <a href="releases.html" class="download-link">View all releases &rarr;</a>
+        `;
+      }
+    })
+    .catch(() => {
+      document.getElementById('latestRelease').innerHTML =
+        '<h3>Latest Release</h3><a href="releases.html" class="download-link">View releases &rarr;</a>';
+    });
+</script>
+
+---
+
+_Enterprise AI Pty Ltd. All rights reserved._

@@ -405,47 +405,6 @@ Generated: [ISO timestamp]
 
 ---
 
-## Step 4.6: Scope Creep Detection (If Problem Brief Exists)
-
-If `{FEATURE_DIR}/problem-brief.md` exists, run scope creep analysis BEFORE
-the engineer review gate:
-
-```
-Task: subagent_type="scope-creep-detector", model="haiku"
-Prompt: "Analyze scope creep for feature [FEATURE_NAME].
-
-Feature directory: {FEATURE_DIR}
-
-Compare tasks.md and spec.md against problem-brief.md.
-Calculate scope creep score and flag untraceable items.
-
-Return structured report (<2000 tokens)."
-```
-
-### Scope Creep Response
-
-| Creep Score | Action |
-|-------------|--------|
-| 0-10% (Healthy) | Proceed — note in task summary |
-| 11-25% (Warning) | Log warning, proceed |
-| 26-50% (Alert) | Present findings to user via AskUserQuestion, get approval |
-| 51%+ (Critical) | HALT — scope has diverged significantly, needs stakeholder review |
-
-If score >= 26%, use AskUserQuestion:
-
-**"Scope creep detected ([N]%). The following items don't trace back to the
-original problem:"**
-
-| Option | Description |
-|--------|-------------|
-| A. Keep all items | I approve the expanded scope |
-| B. Remove flagged items | Descope untraceable items |
-| C. Review each item | Let me decide item by item |
-
-Update tasks.md based on user response.
-
----
-
 ## Step 4.7: Engineer Review Gate
 
 Run the engineer-review agent to cross-reference spec, plan, and tasks for alignment gaps:

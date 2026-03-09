@@ -657,20 +657,6 @@ has_ui: [true/false]
 Proceed to **Step 12: Attribution Logging** then **Step 13: Memory Update
 Check**.
 
-**AUTO-CHAIN (MANDATORY)**: After completing attribution logging and memory
-update check:
-
-1. If `{FEATURE_DIR}/problem-brief.md` exists (business-first pipeline): You
-   MUST immediately invoke stakeholder communications by calling the Skill tool
-   with skill="/7a_stakeholder_comms". This generates the business deliverables
-   package.
-
-2. If no problem-brief.md exists (engineering-first pipeline): You MUST
-   immediately invoke the session save stage by calling the Skill tool with
-   skill="/7_gofer_save".
-
-Do NOT ask the user for confirmation. Just invoke the appropriate skill NOW.
-
 ### If TOTAL < 100: FAIL
 
 Proceed to **Step 10: Brownfield Restart**.
@@ -898,75 +884,6 @@ in a previous iteration, note it as a **repeat finding** in the description:
 ```
 
 This enables tracking of findings that persist across remediation attempts.
-
----
-
-## Step 11.5: Assumption Validation Check
-
-If `{FEATURE_DIR}/assumptions.md` exists, run assumption validation:
-
-```
-Task: subagent_type="assumption-tracker", model="haiku"
-Prompt: "Validate assumptions for feature [FEATURE_NAME] post-implementation.
-
-Feature directory: {FEATURE_DIR}
-
-Read assumptions.md and cross-reference against the implemented code and
-validation results. For each assumption:
-- Check if implementation evidence validates or disproves it
-- Check if any test failures relate to wrong assumptions
-- Update statuses based on findings
-
-Return structured report (<2000 tokens)."
-```
-
-### Update Assumptions
-
-Based on findings, update `{FEATURE_DIR}/assumptions.md`:
-
-- Technical assumptions verified by passing tests → `VALIDATED`
-- Assumptions contradicted by implementation changes → `DISPROVEN`
-- Remaining unverifiable assumptions → keep as `UNVALIDATED` with note
-
-### Include in Validation Report
-
-Add to the end of `validation-report.md`:
-
-```markdown
-## Assumption Status (Post-Implementation)
-
-| ID  | Assumption   | Pre-Implementation | Post-Implementation | Evidence             |
-| --- | ------------ | ------------------ | ------------------- | -------------------- |
-| A1  | [assumption] | UNVALIDATED        | VALIDATED           | Tests pass           |
-| A2  | [assumption] | UNVALIDATED        | DISPROVEN           | API limitation found |
-
-**Disproven Assumptions**: [N] (may require post-launch monitoring)
-**Unvalidated Assumptions**: [N] (verify before full rollout)
-```
-
-## Step 11.7: Business Summary Generation
-
-If `{FEATURE_DIR}/problem-brief.md` exists, add a **plain English summary** to
-the validation report that non-technical stakeholders can read:
-
-```markdown
-## Business Validation Summary
-
-**Problem**: [From problem-brief.md — root cause] **Solution**: [What was built
-— in plain English] **Quality**: [score]/100 — [All checks passed / Issues
-found]
-
-**What This Means**:
-
-- The feature works correctly: [Yes/No]
-- It's secure: [Yes/No]
-- It's well-tested: [Yes/No]
-- It follows project standards: [Yes/No]
-- It's ready for users: [Yes/No — with caveats if any]
-
-**Assumptions Status**: [N] validated, [N] unvalidated, [N] disproven **Scope**:
-[On-target / Expanded by N%]
-```
 
 ---
 

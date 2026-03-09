@@ -1,4 +1,4 @@
 - [Home](/)
 - [Documentation](/README)
-- [Releases](releases.html)
+- [Releases](/gofer/releases.html ':ignore')
 - [GitHub](https://github.com/eai-tools/gofer)

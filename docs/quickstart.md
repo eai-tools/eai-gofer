@@ -11,7 +11,7 @@ Get Gofer installed and run your first AI-powered pipeline in under 5 minutes.
 ## Step 1: Download Gofer
 
 Download the latest `.vsix` extension file from the
-[Releases page](releases.html).
+[Releases page](/gofer/releases.html ':ignore').
 
 Or use the GitHub CLI:
 

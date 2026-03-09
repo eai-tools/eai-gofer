@@ -39,6 +39,7 @@ operations, and other performance anti-patterns in AI-generated code.
 ### Step 1: Sync I/O Scan
 
 Search for synchronous I/O patterns:
+
 - Grep for: `readFileSync`, `writeFileSync`, `existsSync` in async functions
 - Grep for: `execSync`, `spawnSync` outside of build scripts
 - Check that constructors don't call blocking I/O
@@ -46,6 +47,7 @@ Search for synchronous I/O patterns:
 ### Step 2: Complexity Assessment
 
 For each new/modified source file:
+
 - Count decision points (if, else, switch, for, while, catch, &&, ||, ?:)
 - Calculate per-function complexity
 - Flag functions exceeding threshold
@@ -101,6 +103,7 @@ For each new/modified source file:
 ## Blocking Criteria
 
 This agent blocks validation (scores 0 in Performance Baseline) if ANY:
+
 - Synchronous I/O (`readFileSync`, `execSync`) found in async code paths
 - Function cyclomatic complexity exceeds 12 in new code
 - Unbounded loop or recursion without termination condition
@@ -108,10 +111,12 @@ This agent blocks validation (scores 0 in Performance Baseline) if ANY:
 
 ## Important Guidelines
 
-- **Build scripts are exempt** — `execSync` in build/release scripts is acceptable
+- **Build scripts are exempt** — `execSync` in build/release scripts is
+  acceptable
 - **Test files are exempt** — synchronous operations in tests are fine
 - **Focus on new/modified files** — don't audit the entire codebase
-- **AI code loves execSync** — this is the #1 performance anti-pattern in AI-generated code
+- **AI code loves execSync** — this is the #1 performance anti-pattern in
+  AI-generated code
 
 ## LLM Council Mode
 

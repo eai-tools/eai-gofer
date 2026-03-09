@@ -22,14 +22,14 @@ rework.
 
 2. **Assumption Classification**
 
-   | Type | Example | Risk Level |
-   |------|---------|------------|
-   | Business | "Users have Google accounts" | High |
-   | Technical | "API supports batch operations" | High |
-   | Data | "Average document is < 10 pages" | Medium |
-   | User Behavior | "Users prefer drag-and-drop" | Medium |
-   | Market | "No competitor offers this feature" | Low |
-   | Regulatory | "GDPR compliance not required" | High |
+   | Type          | Example                             | Risk Level |
+   | ------------- | ----------------------------------- | ---------- |
+   | Business      | "Users have Google accounts"        | High       |
+   | Technical     | "API supports batch operations"     | High       |
+   | Data          | "Average document is < 10 pages"    | Medium     |
+   | User Behavior | "Users prefer drag-and-drop"        | Medium     |
+   | Market        | "No competitor offers this feature" | Low        |
+   | Regulatory    | "GDPR compliance not required"      | High       |
 
 3. **Validation Status Tracking**
    - `[VALIDATED]` — Confirmed true through evidence

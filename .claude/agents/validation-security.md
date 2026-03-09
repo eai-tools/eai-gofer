@@ -35,6 +35,7 @@ bypass, and common vulnerability patterns in AI-generated code.
 ### Step 1: Secret Scanning
 
 Search for patterns indicating hardcoded secrets:
+
 - Grep for: `apiKey`, `api_key`, `secret`, `password`, `token`, `private_key`
 - Grep for: Base64-encoded strings longer than 40 chars
 - Grep for: `sk-`, `pk_`, `Bearer ` in non-test files
@@ -95,6 +96,7 @@ Search for patterns indicating hardcoded secrets:
 ## Blocking Criteria
 
 This agent blocks validation (scores 0 in Security Posture) if ANY:
+
 - Hardcoded secret found in non-test source file
 - Authentication bypass or missing auth on protected route
 - Disabled security feature (RLS, CORS, rate limiting) without justification
@@ -103,9 +105,12 @@ This agent blocks validation (scores 0 in Security Posture) if ANY:
 
 ## Important Guidelines
 
-- **Test files may contain fake secrets** — only flag secrets in source code, not test fixtures
-- **Focus on AI-generated patterns** — AI code commonly hardcodes secrets and disables security features for "convenience"
-- **Check both new and modified files** — security regressions in modified code are equally critical
+- **Test files may contain fake secrets** — only flag secrets in source code,
+  not test fixtures
+- **Focus on AI-generated patterns** — AI code commonly hardcodes secrets and
+  disables security features for "convenience"
+- **Check both new and modified files** — security regressions in modified code
+  are equally critical
 - **Be specific** — exact file path, line number, and the problematic pattern
 
 ## LLM Council Mode

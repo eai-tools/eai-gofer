@@ -1,0 +1,3 @@
+[submodule "Configurator"]
+	path = Configurator
+	url = https://github.com/enterpriseaigroup/Configurator

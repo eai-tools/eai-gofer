@@ -20,9 +20,9 @@ breakdown, implementation, and validation.
 /0_business_scenario Add user authentication with OAuth2 and JWT
 ```
 
-This single command automatically chains through all 6 pipeline stages,
-producing production-ready code with full traceability from requirements to
-implementation.
+This single command automatically chains through all pipeline stages, from
+business problem validation through to stakeholder communications, producing
+production-ready code with full traceability.
 
 <div class="features">
   <div class="feature-card">
@@ -54,25 +54,31 @@ implementation.
 ## The Pipeline
 
 ```text
-/0_business_scenario                          (entry point)
-    |
-    v
-/1_gofer_research    --> research.md          (codebase exploration)
-    |
-    v
-/2_gofer_specify     --> spec.md              (feature specification)
-    |
-    v
-/3_gofer_plan        --> plan.md              (technical architecture)
-    |
-    v
-/4_gofer_tasks       --> tasks.md             (task breakdown)
-    |
-    v
-/5_gofer_implement   --> source code          (implementation)
-    |
-    v
-/6_gofer_validate    --> validation-report.md  (quality verification)
+/0_business_scenario                              (entry point)
+        |
+        v
+/0a_problem_validation --> problem-brief.md        (business validation)
+        |
+        v
+/1_gofer_research    --> research.md               (codebase exploration)
+        |
+        v
+/2_gofer_specify     --> spec.md                   (feature specification)
+        |
+        v
+/3_gofer_plan        --> plan.md                   (technical architecture)
+        |
+        v
+/4_gofer_tasks       --> tasks.md                  (task breakdown)
+        |
+        v
+/5_gofer_implement   --> source code               (implementation)
+        |
+        v
+/6_gofer_validate    --> validation-report.md      (quality verification)
+        |
+        v
+/7a_stakeholder_comms --> stakeholder-comms.md     (business communications)
 ```
 
 [Learn more about the pipeline](pipeline/README.md)

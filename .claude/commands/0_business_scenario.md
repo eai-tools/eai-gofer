@@ -193,17 +193,10 @@ Based on the value type selected, suggest relevant metrics:
 
 Ask user to confirm or customize the metrics.
 
-### Optional: Competitive Research
+### Competitive Research
 
-**"Would you like me to research how leading companies solve this problem?"**
-
-| Option | Description                                |
-| ------ | ------------------------------------------ |
-| Yes    | Research competitors and document insights |
-| Skip   | Continue without competitive analysis      |
-
-If user selects Yes, note for research phase. If skipped, mark "Competitive
-Analysis: Skipped".
+Research how leading companies solve this problem. Document competitive insights
+and note them for the research phase.
 
 ### Adaptive Depth
 

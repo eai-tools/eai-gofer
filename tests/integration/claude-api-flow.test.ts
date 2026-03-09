@@ -13,10 +13,11 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { AnthropicProvider } from '../../extension/src/council/providers/AnthropicProvider';
 
-// Helper to check if API key is available
+// Helper to check if a valid API key is available
 const hasApiKey = (): boolean => {
   const key = process.env.ANTHROPIC_API_KEY;
-  return key !== undefined && key.length > 0;
+  // Must be set, non-empty, and look like a real Anthropic key
+  return key !== undefined && key.length > 10 && key.startsWith('sk-ant-');
 };
 
 describe('Claude API Flow Integration', () => {

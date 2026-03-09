@@ -128,14 +128,16 @@ Include: file paths, code snippets, conventions used."
 
 ---
 
-## Step 2.5: Multi-Perspective Research
+## Step 2.5: Multi-Perspective Research (Optional)
 
-After the core research agents complete, run additional perspective strategies
-for deeper analysis.
+After the core research agents complete, optionally run additional perspective
+strategies for deeper analysis. **Skip this step if the feature is
+straightforward or time-constrained.**
 
 ### Strategy #6: Research Perspective Multiplier
 
-Spawn 5 perspective agents to analyze from different angles:
+When the feature involves complex integration or unfamiliar territory, spawn 5
+perspective agents:
 
 ```
 Task: subagent_type="research-perspective-multiplier", model="haiku"
@@ -159,7 +161,7 @@ Synthesize these 5 research perspectives into a unified recommendation.
 
 ### Strategy #9: Dependency Evaluator
 
-When new dependencies are proposed, evaluate each one:
+When the research proposes new dependencies, evaluate each one:
 
 ```
 Task: subagent_type="research-dependency-evaluator", model="haiku"
@@ -181,7 +183,7 @@ Decide whether to adopt, find alternative, or build in-house.
 
 ### Strategy #20: Technology Horizon Scanner
 
-Scan for emerging approaches relevant to the feature:
+For features touching evolving technology areas:
 
 ```
 Task: subagent_type="research-horizon-scanner", model="sonnet"
@@ -335,9 +337,9 @@ automatically invoke `/2_gofer_specify` next.
 
 ---
 
-## LLM Council Integration
+## LLM Council Integration (Optional)
 
-When council mode is configured in `.specify/memory/council-config.yaml` for
+When council mode is enabled in `.specify/memory/council-config.yaml` for
 `research_codebase` stage:
 
 1. Each parallel agent queries ALL configured LLM providers
@@ -402,11 +404,12 @@ Before modifying existing code:
 
 ---
 
-## Step 6.5: Journey Variant Generation
+## Step 6.5: Journey Variant Generation (Optional)
 
 **If a base journey exists** at
-`.specify/specs/{feature}/journeys/base-journey.md`, generate industry variants
-to discover innovative approaches from other domains.
+`.specify/specs/{feature}/journeys/base-journey.md`:
+
+Generate industry variants to discover innovative approaches from other domains.
 
 ### Generate Variant Count
 
@@ -512,10 +515,13 @@ Generated {N} journey variants across 10 industries.
 | ... | ... | ... |
 ````
 
-### Prerequisites
+### Skip Conditions
 
-Variant generation requires a base journey. If no base journey exists (user
-skipped journey mapping), skip this step.
+Skip variant generation if:
+
+1. No base journey exists (user skipped journey mapping)
+2. Feature is purely technical (no user-facing journey)
+3. Context window is at Warning level (>50%)
 
 ---
 

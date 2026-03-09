@@ -424,9 +424,9 @@ Find every gap, inconsistency, and misalignment. Report Red/Yellow/Gray findings
 
 ---
 
-## Step 4.8: Multi-Perspective Task Review
+## Step 4.8: Multi-Perspective Task Review (Optional)
 
-After task validation, run multi-perspective strategies.
+After task validation, optionally run multi-perspective strategies. **Skip if time-constrained.**
 
 ### Strategy #14: Cross-Cutting Concern Scanner
 
@@ -577,10 +577,9 @@ invoke `/5_gofer_implement` next.
 
 ---
 
-## LLM Council Integration
+## LLM Council Integration (Optional)
 
-When council mode is configured in `.specify/memory/council-config.yaml` for
-task generation:
+When council mode is enabled for task generation:
 
 1. Multiple LLMs analyze the plan for task completeness
 2. Different perspectives on dependency ordering

@@ -12,8 +12,8 @@
       "scope": "local",
       "content": "All 6 have now reported in — all consistent with the 100/100 PASS. v1.7.0 is released and complete.",
       "created": 1770844126583,
-      "lastUsed": 1770844129296,
-      "usedCount": 1,
+      "lastUsed": 1773044033863,
+      "usedCount": 4,
       "learnedFrom": "session:d5677db6-e08e-491d-8b1d-4ff8f868cb8f"
     },
     {
@@ -240,6 +240,36 @@
       "lastUsed": 1772278058542,
       "usedCount": 0,
       "learnedFrom": "session:c7d61fec-18c8-439d-a5d3-dcc7066d90a1"
+    },
+    {
+      "id": "0c6b837f-1c06-4663-a2d3-4f8ba6449cbc",
+      "category": "pattern",
+      "tags": [
+        "#auto-learned",
+        "#pattern",
+        "#session-83b90b90"
+      ],
+      "scope": "local",
+      "content": "This is consistent with the iteration 1 assessment.",
+      "created": 1773043999215,
+      "lastUsed": 1773044024371,
+      "usedCount": 4,
+      "learnedFrom": "session:83b90b90-85b9-4181-8006-15f42899dc22"
+    },
+    {
+      "id": "2f3f5468-d9a2-45f5-94cc-ad0a7f5dbd19",
+      "category": "pattern",
+      "tags": [
+        "#auto-learned",
+        "#pattern",
+        "#session-83b90b90"
+      ],
+      "scope": "local",
+      "content": "Everything consistent with the validation report. **100/100 PASS** — feature 023-documentation-site is complete and ready for merge.",
+      "created": 1773044033861,
+      "lastUsed": 1773044033861,
+      "usedCount": 0,
+      "learnedFrom": "session:83b90b90-85b9-4181-8006-15f42899dc22"
     }
   ]
 }

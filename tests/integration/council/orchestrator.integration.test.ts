@@ -25,10 +25,15 @@ import { GoogleProvider } from '../../../extension/src/council/providers/GoogleP
 import { OpenAIProvider } from '../../../extension/src/council/providers/OpenAIProvider';
 import { LLMProvider } from '../../../extension/src/council/providers/LLMProvider';
 
-// Helper to check if API key is available
+// Helper to check if a valid API key is available
 const hasApiKey = (envVar: string): boolean => {
   const key = process.env[envVar];
-  return key !== undefined && key.length > 0;
+  if (!key || key.length < 10) return false;
+  // Validate key format per provider
+  if (envVar === 'ANTHROPIC_API_KEY') return key.startsWith('sk-ant-');
+  if (envVar === 'GOOGLE_API_KEY') return key.startsWith('AIza');
+  if (envVar === 'OPENAI_API_KEY') return key.startsWith('sk-');
+  return true;
 };
 
 // Count available provider keys

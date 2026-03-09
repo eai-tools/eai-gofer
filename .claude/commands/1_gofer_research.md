@@ -46,34 +46,7 @@ Research is typically the heaviest context stage - monitor usage.
 
 ---
 
-## Step 0.5: Load Business Context (If Available)
-
-Check if business validation artifacts exist for this feature:
-
-```bash
-ls -la .specify/specs/{feature}/problem-brief.md 2>/dev/null
-ls -la .specify/specs/{feature}/assumptions.md 2>/dev/null
-ls -la .specify/specs/{feature}/discovery.md 2>/dev/null
-```
-
-### If problem-brief.md exists (from /0a_problem_validation):
-
-1. **Load the validated problem** to focus research:
-   - Root Cause → Focus research on solving this specific root cause
-   - Stakeholder Impact → Research solutions appropriate for affected roles
-   - Market Landscape → Use build/buy decision to guide technology research
-   - Constraints → Respect budget, timeline, and regulatory limits
-   - Assumptions → Flag assumptions that research can validate or disprove
-
-2. **Load assumptions.md** for technical validation:
-   - For each `UNVALIDATED` technical assumption, use Grep/Glob to check
-   - Update assumptions to `VALIDATED` or `DISPROVEN` based on findings
-   - Write updates back to `{FEATURE_DIR}/assumptions.md`
-
-3. **Use market findings** to guide research focus:
-   - If BUILD decision: Focus on codebase patterns and integration points
-   - If HYBRID decision: Research the commercial product's API/SDK
-   - If BUY decision: Research integration requirements only
+## Step 0.5: Load Discovery Context (If Available)
 
 Check if discovery.md exists for this feature:
 
@@ -221,26 +194,6 @@ Tech stack: [relevant technologies]"
 
 This is a single agent — no judge synthesis needed. Include findings in the
 research document.
-
----
-
-## Step 2.7: Market Landscape Research (If No Problem Brief)
-
-If `problem-brief.md` does NOT exist (user skipped problem validation), still
-run a lightweight market scan to inform the spec:
-
-```
-Task: subagent_type="research-market-scanner", model="sonnet"
-Prompt: "Research the market landscape for: [FEATURE DESCRIPTION].
-Focus on: existing solutions, open-source alternatives, and build-vs-buy factors.
-Keep it brief — this is supplementary research, not a full market analysis.
-Return structured report (<2000 tokens)."
-```
-
-Add findings to a "Market Landscape" section in research.md.
-
-If `problem-brief.md` EXISTS, skip this step — market research was already done
-during problem validation.
 
 ---
 

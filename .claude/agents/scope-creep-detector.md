@@ -143,10 +143,10 @@ Evidence:
 - **Be specific** — cite exact spec items and task IDs
 - **Distinguish refinement from creep** — adding error handling to a login
   feature is refinement, adding a social login feature is creep
-- **Check P1 vs P2 accuracy** — items marked P1 that should be P2/P3 are a
-  form of scope creep
-- **Consider discovery context** — if the user explicitly asked for something
-  in discovery, it's not creep even if it's not in the problem brief
+- **Check P1 vs P2 accuracy** — items marked P1 that should be P2/P3 are a form
+  of scope creep
+- **Consider discovery context** — if the user explicitly asked for something in
+  discovery, it's not creep even if it's not in the problem brief
 - **Don't block on Gray findings** — some scope evolution is natural
 - **Write for the consultant** — they need to explain this to their client
 

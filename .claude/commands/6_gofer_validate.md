@@ -212,11 +212,9 @@ Check code hygiene: TODO/FIXME, magic numbers, unused imports.
 Return findings with severity tiers (<2000 tokens)."
 ```
 
-### Agent 7: Security Red Team (Optional — Multi-Perspective)
+### Agent 7: Security Red Team (Multi-Perspective)
 
-When the feature involves security-sensitive code (authentication,
-authorization, user input handling, external APIs), run the security red team
-strategy (#13):
+**Always run** the security red team strategy (#13) alongside the 6 core agents:
 
 ```
 # Diverge: 3 attack perspectives
@@ -243,8 +241,7 @@ Perspective 3 (CVE): [result].
 Identify confirmed vulnerabilities vs false positives. Prioritize by exploitability."
 ```
 
-**Run all 6 core agents in parallel.** Run Agent 7 (if applicable) in parallel
-with the core agents. Collect all results before proceeding.
+**Run all 7 agents in parallel.** Collect all results before proceeding.
 
 ---
 
@@ -928,9 +925,10 @@ Before completing validation, verify:
 
 ---
 
-## LLM Council Integration (Optional)
+## LLM Council Integration
 
-When council mode is enabled for `gofer_validate` stage:
+When council mode is configured in `.specify/memory/council-config.yaml` for
+`gofer_validate` stage:
 
 1. Multiple LLMs review the implementation independently
 2. Each provider scores the rubric from their perspective
@@ -960,7 +958,8 @@ This also logs quality metrics (rubric scores, finding counts) to:
 - **100/100 is the only passing score** — there is no "close enough"
 - **Agents run in parallel** — spawn all 6 at once, do not serialize
 - **Red findings block** — any Red finding in any agent zeroes that category
-- **Mutation testing is optional** — gracefully degrade when Stryker absent
+- **Mutation testing** — run when Stryker is available, gracefully degrade when
+  absent
 - **Mock ratio excludes justified mocks** — mark with `// mock-justified:`
   comment
 - **Attribution logging is mandatory** — every finding gets logged to JSONL

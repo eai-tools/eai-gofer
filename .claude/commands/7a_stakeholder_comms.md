@@ -1,5 +1,7 @@
 ---
-description: Generate stakeholder communications package including release notes, demo script, change management brief, and success metrics
+description:
+  Generate stakeholder communications package including release notes, demo
+  script, change management brief, and success metrics
 ---
 
 # Gofer Stakeholder Communications
@@ -76,8 +78,8 @@ Instead, inform the user that validation must pass first.
 
 3. **Verify validation passed**:
    - Check `validation-report.md` for `status: PASS`
-   - If FAIL: "Validation must pass before generating communications.
-     Current score: [N]/100. Run /6_gofer_validate first."
+   - If FAIL: "Validation must pass before generating communications. Current
+     score: [N]/100. Run /6_gofer_validate first."
 
 ---
 
@@ -267,7 +269,8 @@ stakeholder communications explaining what changed and why.
 
 - **Every output must be copy-pasteable** — consultants share these as-is
 - **No technical jargon** — write for business executives
-- **Connect to business case** — always reference problem-brief.md impact metrics
+- **Connect to business case** — always reference problem-brief.md impact
+  metrics
 - **Be honest about limitations** — known issues build trust
 - **Include timelines** — consultants need to plan around dates
 - **Quantify everything** — numbers > adjectives
@@ -275,9 +278,10 @@ stakeholder communications explaining what changed and why.
 
 ---
 
-## LLM Council Integration (Optional)
+## LLM Council Integration
 
-When council mode is enabled for stakeholder communications:
+When council mode is configured in `.specify/memory/council-config.yaml` for
+stakeholder communications:
 
 1. Multiple LLMs draft communications independently
 2. Chairman synthesizes best elements from each

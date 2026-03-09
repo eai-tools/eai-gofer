@@ -128,11 +128,10 @@ Include: file paths, code snippets, conventions used."
 
 ---
 
-## Step 2.5: Multi-Perspective Research (Optional)
+## Step 2.5: Multi-Perspective Research
 
-After the core research agents complete, optionally run additional perspective
-strategies for deeper analysis. **Skip this step if the feature is
-straightforward or time-constrained.**
+After the core research agents complete, run additional perspective strategies
+for deeper analysis.
 
 ### Strategy #6: Research Perspective Multiplier
 
@@ -337,9 +336,9 @@ automatically invoke `/2_gofer_specify` next.
 
 ---
 
-## LLM Council Integration (Optional)
+## LLM Council Integration
 
-When council mode is enabled in `.specify/memory/council-config.yaml` for
+When council mode is configured in `.specify/memory/council-config.yaml` for
 `research_codebase` stage:
 
 1. Each parallel agent queries ALL configured LLM providers
@@ -404,12 +403,11 @@ Before modifying existing code:
 
 ---
 
-## Step 6.5: Journey Variant Generation (Optional)
+## Step 6.5: Journey Variant Generation
 
 **If a base journey exists** at
-`.specify/specs/{feature}/journeys/base-journey.md`:
-
-Generate industry variants to discover innovative approaches from other domains.
+`.specify/specs/{feature}/journeys/base-journey.md`, generate industry variants
+to discover innovative approaches from other domains.
 
 ### Generate Variant Count
 
@@ -515,13 +513,10 @@ Generated {N} journey variants across 10 industries.
 | ... | ... | ... |
 ````
 
-### Skip Conditions
+### Prerequisites
 
-Skip variant generation if:
-
-1. No base journey exists (user skipped journey mapping)
-2. Feature is purely technical (no user-facing journey)
-3. Context window is at Warning level (>50%)
+Variant generation requires a base journey. If no base journey exists (user
+skipped journey mapping), skip this step.
 
 ---
 

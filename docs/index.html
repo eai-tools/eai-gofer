@@ -50,7 +50,31 @@
                 previousText: 'Previous',
                 nextText: 'Next',
                 crossChapter: true
-            }
+            },
+            plugins: [
+                function(hook) {
+                    hook.doneEach(function() {
+                        var el = document.getElementById('latestRelease');
+                        if (!el) return;
+                        fetch('./releases.json')
+                            .then(function(r) { return r.json(); })
+                            .then(function(data) {
+                                if (data.latest_version) {
+                                    el.innerHTML =
+                                        '<h3>Latest Release</h3>' +
+                                        '<span class="version-badge">v' + data.latest_version + '</span>' +
+                                        '<p style="margin-top: 8px">' + data.releases[0].notes.replace(/</g, '&lt;') + '</p>' +
+                                        '<a href="/gofer/releases.html" class="download-link">View all releases &rarr;</a>';
+                                }
+                            })
+                            .catch(function() {
+                                el.innerHTML =
+                                    '<h3>Latest Release</h3>' +
+                                    '<a href="/gofer/releases.html" class="download-link">View releases &rarr;</a>';
+                            });
+                    });
+                }
+            ]
         };
     </script>
     <!-- Docsify core -->

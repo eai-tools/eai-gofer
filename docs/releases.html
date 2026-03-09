@@ -115,12 +115,30 @@
     <script>
         window.$docsify = {
             name: 'Gofer',
+            nameLink: '/gofer/',
             repo: 'https://github.com/eai-tools/gofer',
-            loadSidebar: true,
-            loadNavbar: true,
+            loadSidebar: false,
+            loadNavbar: false,
             subMaxLevel: 3,
             auto2top: true,
             plugins: [
+                function(hook) {
+                    // Custom navbar for releases page with absolute links back to main site
+                    hook.ready(function() {
+                        var nav = document.createElement('nav');
+                        nav.className = 'app-nav';
+                        nav.innerHTML =
+                            '<ul>' +
+                                '<li><a href="/gofer/">Home</a></li>' +
+                                '<li><a href="/gofer/#/quickstart">Quick Start</a></li>' +
+                                '<li><a href="/gofer/#/pipeline/README">Pipeline</a></li>' +
+                                '<li class="active"><a href="/gofer/releases.html">Releases</a></li>' +
+                                '<li><a href="https://github.com/eai-tools/gofer">GitHub</a></li>' +
+                            '</ul>';
+                        var body = document.body;
+                        body.insertBefore(nav, body.firstChild);
+                    });
+                },
                 function(hook) {
                     hook.doneEach(function() {
                         var content = document.querySelector('.markdown-section');

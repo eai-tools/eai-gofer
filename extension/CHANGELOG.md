@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.16.5] - 2026-03-09
+
+Add missing Copilot Chat prompts for 0a_problem_validation and 7a_stakeholder_comms
+
 ## [1.16.4] - 2026-03-09
 
 Documentation site and mandatory pipeline steps

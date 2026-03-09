@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.16.4",
+  "latest_version": "1.16.5",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-03-09T08:16:48.865Z",
+  "last_updated": "2026-03-09T08:29:42.748Z",
   "releases": [
+    {
+      "version": "1.16.5",
+      "tag_name": "v1.16.5",
+      "published_at": "2026-03-09T08:29:42.748Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.16.5.vsix",
+      "notes": "Add missing Copilot Chat prompts for 0a_problem_validation and 7a_stakeholder_comms",
+      "prerelease": false,
+      "size_mb": 30.3
+    },
     {
       "version": "1.16.4",
       "tag_name": "v1.16.4",
@@ -80,15 +89,6 @@
       "tag_name": "v1.14.3",
       "published_at": "2026-03-01T04:38:57.845Z",
       "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.14.3.vsix",
-      "notes": "fix: auto-handoff save/clear/resume, memory panel wiring, and session display name",
-      "prerelease": false,
-      "size_mb": 30.3
-    },
-    {
-      "version": "1.14.2",
-      "tag_name": "v1.14.2",
-      "published_at": "2026-02-28T22:20:00.308Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.14.2.vsix",
       "notes": "fix: auto-handoff save/clear/resume, memory panel wiring, and session display name",
       "prerelease": false,
       "size_mb": 30.3

@@ -1,14 +1,17 @@
 # The Gofer Pipeline
 
-Gofer uses a **6-stage pipeline** that takes a feature idea from a natural
-language description all the way to validated, implemented code. Each stage
-produces artifacts that feed the next, ensuring full traceability from
-requirements to implementation.
+Gofer uses a **structured pipeline** that takes a feature idea from a natural
+language description all the way to validated, implemented code with stakeholder
+communications. Each stage produces artifacts that feed the next, ensuring full
+traceability from business problem to implementation.
 
 ## Pipeline Overview
 
 ```text
 /0_business_scenario                              (entry point)
+        |
+        v
+/0a_problem_validation --> problem-brief.md        (business validation)
         |
         v
 /1_gofer_research    --> research.md               (codebase exploration)
@@ -27,6 +30,9 @@ requirements to implementation.
         |
         v
 /6_gofer_validate    --> validation-report.md      (quality verification)
+        |
+        v
+/7a_stakeholder_comms --> stakeholder-comms.md     (business communications)
 ```
 
 ## How It Works
@@ -42,9 +48,11 @@ The recommended way to use Gofer is to run a single command:
 The orchestrator (`/0_business_scenario`) will:
 
 1. **Triage** your request to understand what you want to build
-2. **Ask a few questions** to clarify requirements (optional discovery phase)
-3. **Auto-chain** through all 6 stages sequentially
-4. **Produce working code** validated against the specification
+2. **Validate the problem** with root cause analysis and market research
+3. **Ask a few questions** to clarify requirements (optional discovery phase)
+4. **Auto-chain** through all stages sequentially
+5. **Produce working code** validated against the specification
+6. **Generate stakeholder communications** with release notes and demo script
 
 You only need to intervene at two points:
 
@@ -55,13 +63,15 @@ You only need to intervene at two points:
 
 Each stage automatically invokes the next when complete:
 
-| Stage                | Completes             | Auto-Invokes         |
-| -------------------- | --------------------- | -------------------- |
-| `/1_gofer_research`  | `research.md` written | `/2_gofer_specify`   |
-| `/2_gofer_specify`   | `spec.md` written     | `/3_gofer_plan`      |
-| `/3_gofer_plan`      | `plan.md` written     | `/4_gofer_tasks`     |
-| `/4_gofer_tasks`     | `tasks.md` approved   | `/5_gofer_implement` |
-| `/5_gofer_implement` | All tasks complete    | `/6_gofer_validate`  |
+| Stage                    | Completes                  | Auto-Invokes            |
+| ------------------------ | -------------------------- | ----------------------- |
+| `/0a_problem_validation` | `problem-brief.md` written | `/1_gofer_research`     |
+| `/1_gofer_research`      | `research.md` written      | `/2_gofer_specify`      |
+| `/2_gofer_specify`       | `spec.md` written          | `/3_gofer_plan`         |
+| `/3_gofer_plan`          | `plan.md` written          | `/4_gofer_tasks`        |
+| `/4_gofer_tasks`         | `tasks.md` approved        | `/5_gofer_implement`    |
+| `/5_gofer_implement`     | All tasks complete         | `/6_gofer_validate`     |
+| `/6_gofer_validate`      | Score = 100/100            | `/7a_stakeholder_comms` |
 
 ### Artifacts
 
@@ -69,6 +79,8 @@ All artifacts are stored in `.specify/specs/{feature-name}/`:
 
 ```text
 .specify/specs/my-feature/
+├── problem-brief.md      # Validated business problem
+├── assumptions.md        # Tracked assumptions register
 ├── research.md           # Codebase analysis
 ├── spec.md               # Feature specification
 ├── plan.md               # Implementation plan
@@ -76,19 +88,23 @@ All artifacts are stored in `.specify/specs/{feature-name}/`:
 ├── tasks.md              # Task breakdown
 ├── contracts/            # API contracts (if applicable)
 ├── validation-report.md  # Quality report
+├── stakeholder-comms.md  # Stakeholder communications
+├── business-metrics.md   # Business metrics dashboard
 └── checklists/           # Quality checklists
 ```
 
 ## Pipeline Stages
 
-| Stage     | Command                                       | Purpose                                              | Key Output             |
-| --------- | --------------------------------------------- | ---------------------------------------------------- | ---------------------- |
-| Research  | [`/1_gofer_research`](pipeline/research.md)   | Explore codebase, find patterns, research technology | `research.md`          |
-| Specify   | [`/2_gofer_specify`](pipeline/specify.md)     | Define user stories, requirements, success criteria  | `spec.md`              |
-| Plan      | [`/3_gofer_plan`](pipeline/plan.md)           | Design architecture, data models, API contracts      | `plan.md`              |
-| Tasks     | [`/4_gofer_tasks`](pipeline/tasks.md)         | Break down into ordered, executable tasks            | `tasks.md`             |
-| Implement | [`/5_gofer_implement`](pipeline/implement.md) | Execute tasks phase by phase                         | Source code            |
-| Validate  | [`/6_gofer_validate`](pipeline/validate.md)   | Verify implementation against spec                   | `validation-report.md` |
+| Stage              | Command                                                    | Purpose                                               | Key Output             |
+| ------------------ | ---------------------------------------------------------- | ----------------------------------------------------- | ---------------------- |
+| Problem Validation | [`/0a_problem_validation`](pipeline/problem-validation.md) | Validate business problem with root cause analysis    | `problem-brief.md`     |
+| Research           | [`/1_gofer_research`](pipeline/research.md)                | Explore codebase, find patterns, research technology  | `research.md`          |
+| Specify            | [`/2_gofer_specify`](pipeline/specify.md)                  | Define user stories, requirements, success criteria   | `spec.md`              |
+| Plan               | [`/3_gofer_plan`](pipeline/plan.md)                        | Design architecture, data models, API contracts       | `plan.md`              |
+| Tasks              | [`/4_gofer_tasks`](pipeline/tasks.md)                      | Break down into ordered, executable tasks             | `tasks.md`             |
+| Implement          | [`/5_gofer_implement`](pipeline/implement.md)              | Execute tasks phase by phase                          | Source code            |
+| Validate           | [`/6_gofer_validate`](pipeline/validate.md)                | Verify implementation against spec                    | `validation-report.md` |
+| Stakeholder Comms  | [`/7a_stakeholder_comms`](pipeline/stakeholder-comms.md)   | Generate release notes, demo script, business metrics | `stakeholder-comms.md` |
 
 ## Resuming Work
 

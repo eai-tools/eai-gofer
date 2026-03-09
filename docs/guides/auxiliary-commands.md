@@ -5,14 +5,15 @@ specific workflows.
 
 ## Command Overview
 
-| Command               | Purpose                         | Output                     |
-| --------------------- | ------------------------------- | -------------------------- |
-| `/7_gofer_save`       | Save session checkpoint         | `session-handoff.md`       |
-| `/8_gofer_resume`     | Resume from checkpoint          | Restores context           |
-| `/9_gofer_tests`      | Generate test cases             | `test-plan.md`, test files |
-| `/10_gofer_cloud`     | Cloud infrastructure analysis   | `cloud-analysis.md`        |
-| `/gofer_hydrate`      | Reverse-engineer spec from code | `spec.md` (hydrated)       |
-| `/gofer_constitution` | Create/update coding standards  | `constitution.md`          |
+| Command                 | Purpose                             | Output                     |
+| ----------------------- | ----------------------------------- | -------------------------- |
+| `/7_gofer_save`         | Save session checkpoint             | `session-handoff.md`       |
+| `/7a_stakeholder_comms` | Generate stakeholder communications | `stakeholder-comms.md`     |
+| `/8_gofer_resume`       | Resume from checkpoint              | Restores context           |
+| `/9_gofer_tests`        | Generate test cases                 | `test-plan.md`, test files |
+| `/10_gofer_cloud`       | Cloud infrastructure analysis       | `cloud-analysis.md`        |
+| `/gofer_hydrate`        | Reverse-engineer spec from code     | `spec.md` (hydrated)       |
+| `/gofer_constitution`   | Create/update coding standards      | `constitution.md`          |
 
 ## `/9_gofer_tests` - Test Generation
 
@@ -101,6 +102,29 @@ Creates or updates project coding standards that guide all pipeline stages.
 - `/3_gofer_plan` verifies plan alignment with principles
 - `/5_gofer_implement` enforces coding standards during implementation
 - `/6_gofer_validate` checks compliance as part of the rubric
+
+## `/7a_stakeholder_comms` - Stakeholder Communications
+
+Generates a business-ready communications package after validation passes.
+
+```text
+/7a_stakeholder_comms Feature: my-feature
+```
+
+**What it does:**
+
+- Generates executive summary, release notes, and demo script
+- Creates change management brief with phased rollout plan
+- Produces business metrics dashboard (velocity, cost, quality)
+- Reviews and updates assumption status
+- Measures scope creep against original problem brief
+
+**When to use:**
+
+- After `/6_gofer_validate` passes with 100/100
+- Runs automatically as the final pipeline stage
+
+See [Stakeholder Comms](pipeline/stakeholder-comms) for full details.
 
 ## Session Management Commands
 

@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.16.4] - 2026-03-09
+
+Documentation site and mandatory pipeline steps
+
 ## [1.16.3] - 2026-03-09
 
 Bundle all 37 pipeline agents for distribution to user projects

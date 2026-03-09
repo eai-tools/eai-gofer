@@ -353,7 +353,7 @@ DSL functions should go in: `tests/helpers/` or `tests/dsl/`
 
 ---
 
-## Step 7: Generate Test Scaffolds (Optional)
+## Step 7: Generate Test Scaffolds
 
 If user wants actual test files, generate scaffolds:
 

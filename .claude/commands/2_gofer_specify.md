@@ -358,11 +358,10 @@ Add to end of spec.md:
 
 ---
 
-## Step 3.7: Multi-Perspective Spec Review (Optional)
+## Step 3.7: Multi-Perspective Spec Review
 
-Before the quality checklist, optionally run multi-perspective strategies to
-stress-test the specification. **Skip this step if the spec is simple or
-time-constrained.**
+Before the quality checklist, run multi-perspective strategies to stress-test
+the specification.
 
 ### Strategy #10: Spec Ambiguity Detector
 
@@ -470,7 +469,7 @@ Items marked incomplete require spec updates before `/3_gofer_plan`
 
 ---
 
-## Step 5.5: Sequence Diagram Option Generation (Optional)
+## Step 5.5: Sequence Diagram Option Generation
 
 **If a base journey exists** at `{FEATURE_DIR}/journeys/base-journey.md`:
 
@@ -610,14 +609,10 @@ After user selects an option:
    See `sequence-diagrams/selected-option.md` for full details.
    ```
 
-### Skip Conditions
+### Prerequisites
 
-Skip sequence diagram generation if:
-
-1. No base journey exists (user skipped journey mapping)
-2. Feature is purely technical infrastructure (no user-facing interactions)
-3. Context window is at Warning level (>50%)
-4. User explicitly opts out during journey confirmation
+Sequence diagram generation requires a base journey. If no base journey exists
+(user skipped journey mapping), skip this step.
 
 ---
 

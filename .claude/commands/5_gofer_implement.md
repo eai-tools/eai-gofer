@@ -323,13 +323,13 @@ npm run lint
 
 **Phase Gate**: Do NOT proceed to next phase if build is broken.
 
-### Multi-Perspective Implementation Options (Optional)
+### Multi-Perspective Implementation Strategies
 
-When facing complex implementation decisions during task execution, invoke one
-or more of the following strategies. Each spawns multiple sub-agents that
-explore different approaches, then a judge synthesizes the best result.
+When facing implementation decisions during task execution, invoke the
+appropriate strategies below. Each spawns multiple sub-agents that explore
+different approaches, then a judge synthesizes the best result.
 
-**Trigger conditions** — use these when:
+**Trigger conditions** — use the matching strategy when:
 
 | Strategy                 | Agent                            | When to Trigger                                                            | Converge Model |
 | ------------------------ | -------------------------------- | -------------------------------------------------------------------------- | -------------- |
@@ -362,9 +362,8 @@ Task: subagent_type="multi-perspective-judge", model="opus"
 
 **Rules**:
 
-- These are OPTIONAL — only invoke when trigger conditions are met
+- Invoke the matching strategy when trigger conditions are met
 - Each diverge agent returns <2000 tokens; judge returns <4000 tokens
-- Do NOT use for trivial tasks (config changes, simple getters, boilerplate)
 - Prefer strategies that match the task type (debugging → #3, testing → #4)
 
 ---
@@ -492,9 +491,9 @@ If implementation was interrupted:
 
 ---
 
-## LLM Council Integration (Optional)
+## LLM Council Integration
 
-When council mode is enabled:
+When council mode is configured in `.specify/memory/council-config.yaml`:
 
 1. Complex implementation decisions go to all providers
 2. Different approaches compared

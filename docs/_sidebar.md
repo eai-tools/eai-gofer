@@ -13,4 +13,4 @@
   - [Configuration](guides/configuration.md)
   - [Session Management](guides/session-management.md)
   - [Auxiliary Commands](guides/auxiliary-commands.md)
-- [Releases](releases.html)
+- [Releases](/gofer/releases.html ':ignore')

@@ -3,7 +3,7 @@
   <p>Spec-driven development for AI. Let Claude Code and GitHub Copilot autonomously implement features from specifications.</p>
   <div class="hero-buttons">
     <a href="#/quickstart" class="hero-btn hero-btn-primary">Get Started</a>
-    <a href="releases.html" class="hero-btn hero-btn-secondary">Download Latest</a>
+    <a href="/gofer/releases.html" class="hero-btn hero-btn-secondary">Download Latest</a>
   </div>
 </div>
 
@@ -81,27 +81,6 @@ implementation.
   <h3>Latest Release</h3>
   <p>Loading...</p>
 </div>
-
-<script>
-  // Load latest release info for homepage card
-  fetch('./releases.json')
-    .then(r => r.json())
-    .then(data => {
-      const el = document.getElementById('latestRelease');
-      if (data.latest_version) {
-        el.innerHTML = `
-          <h3>Latest Release</h3>
-          <span class="version-badge">v${data.latest_version}</span>
-          <p style="margin-top: 8px">${data.releases[0].notes}</p>
-          <a href="releases.html" class="download-link">View all releases &rarr;</a>
-        `;
-      }
-    })
-    .catch(() => {
-      document.getElementById('latestRelease').innerHTML =
-        '<h3>Latest Release</h3><a href="releases.html" class="download-link">View releases &rarr;</a>';
-    });
-</script>
 
 ---
 

@@ -154,8 +154,9 @@ If `{FEATURE_DIR}/checklists/` exists:
 
 4. **If any incomplete**:
    - Display the table
-   - Log a warning: "Some checklists are incomplete — proceeding anyway."
-   - **Continue automatically** (do NOT stop for user confirmation)
+   - **STOP** and ask: "Some checklists are incomplete. Proceed anyway?
+     (yes/no)"
+   - Wait for user response
 
 5. **If all complete**: Proceed automatically
 
@@ -401,13 +402,13 @@ Task: subagent_type="multi-perspective-judge", model="opus"
 ### If Task Fails
 
 1. Report the error with context
-2. **Auto-retry once** with a modified approach
-3. **If retry also fails**:
-   - **For parallel [P] tasks**: Skip and continue others, log the failure
-   - **For sequential tasks**: Skip and continue to next task, log the failure
-   - **Only halt for critical build-breaking failures** that prevent ALL
-     subsequent tasks from executing
-4. Do NOT ask user how to proceed — continue automatically
+2. **For sequential tasks**: Halt execution
+3. **For parallel [P] tasks**: Continue others, report failed
+4. Provide debugging suggestions
+5. Ask user how to proceed:
+   - Retry the task
+   - Skip and continue
+   - Stop implementation
 
 ### If Blocked
 
@@ -468,13 +469,13 @@ After implementation complete:
   - src/routes/users.ts (new)
   - src/index.ts (modified)
 
+  Ready for next stage: /6_gofer_validate
+
 ════════════════════════════════════════════════════════════════
 ```
 
-**AUTO-CHAIN (MANDATORY)**: You MUST immediately invoke the next pipeline stage
-by calling the Skill tool with skill="/6_gofer_validate". Do NOT ask the user
-for confirmation. Do NOT output "Ready for next stage". Just invoke the skill
-NOW.
+If orchestrated by `/0_business_scenario`, the orchestrator will automatically
+invoke `/6_gofer_validate` next.
 
 ---
 

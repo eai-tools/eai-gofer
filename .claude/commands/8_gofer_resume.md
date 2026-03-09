@@ -240,18 +240,26 @@ Or I can pick up exactly where we left off...
 
 ---
 
-## Step 7: Auto-Continue Pipeline
+## Step 7: Continue Implementation
 
-**AUTO-CHAIN (MANDATORY)**: Based on the checkpoint stage, you MUST immediately
-invoke the appropriate pipeline stage by calling the Skill tool. Do NOT ask the
-user whether to auto-continue or manually navigate. Just invoke the skill NOW.
+Based on checkpoint state, either:
 
-- If stage was `5_implement`: invoke skill="/5_gofer_implement"
-- If stage was `4_tasks`: invoke skill="/5_gofer_implement"
-- If stage was `3_plan`: invoke skill="/4_gofer_tasks"
-- If stage was `2_specify`: invoke skill="/3_gofer_plan"
-- If stage was `1_research`: invoke skill="/2_gofer_specify"
-- If stage was `6_validate`: invoke skill="/6_gofer_validate"
+### Option A: Auto-Continue
+
+If user says "continue" or similar:
+
+1. Load the current task details
+2. Open the file at the saved location
+3. Continue implementing from that point
+4. Follow normal `/5_gofer_implement` flow
+
+### Option B: Manual Navigation
+
+If user wants to review first:
+
+1. Show task list with current position
+2. Let user choose where to start
+3. Proceed with their selection
 
 ---
 

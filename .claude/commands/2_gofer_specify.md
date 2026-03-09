@@ -624,7 +624,8 @@ Skip sequence diagram generation if:
 ## Step 5.7: Generate Plain English Spec Summary
 
 After spec.md is complete, generate a **business-readable summary** that
-non-technical stakeholders can review without understanding engineering language.
+non-technical stakeholders can review without understanding engineering
+language.
 
 ### Load Template
 
@@ -641,7 +642,8 @@ Write to `{FEATURE_DIR}/spec-summary.md` using the template. Populate with:
 5. **Risk Assessment**: Business risks (not technical), with mitigation
 6. **ROI Estimate**: From problem-brief.md if it exists, or estimated
 7. **Key Assumptions**: From assumptions.md, focused on business-critical ones
-8. **Decision Points**: What the consultant needs to approve before coding starts
+8. **Decision Points**: What the consultant needs to approve before coding
+   starts
 9. **Success Metrics**: How we'll measure if this worked
 
 ### Business Trade-off Enhancement for Options
@@ -649,13 +651,13 @@ Write to `{FEATURE_DIR}/spec-summary.md` using the template. Populate with:
 When presenting the 5 implementation options (Step 5.5), enhance each option
 with business-friendly trade-offs:
 
-| Option | Business Description | Timeline | Risk | Cost |
-|--------|---------------------|----------|------|------|
-| 1 Minimal | "Solves the core problem, no frills" | 1-2 days | Low | $ |
-| 2 Efficient | "Handles edge cases, reliable" | 3-5 days | Low | $$ |
-| 3 Standard | "Full solution, some smart features" | 1-2 weeks | Med | $$$ |
-| 4 Enhanced | "Rich experience, AI-assisted" | 2-4 weeks | Med-Hi | $$$$ |
-| 5 Innovative | "Cutting-edge, autonomous" | 4-8 weeks | High | $$$$$ |
+| Option       | Business Description                 | Timeline  | Risk   | Cost  |
+| ------------ | ------------------------------------ | --------- | ------ | ----- |
+| 1 Minimal    | "Solves the core problem, no frills" | 1-2 days  | Low    | $     |
+| 2 Efficient  | "Handles edge cases, reliable"       | 3-5 days  | Low    | $$    |
+| 3 Standard   | "Full solution, some smart features" | 1-2 weeks | Med    | $$$   |
+| 4 Enhanced   | "Rich experience, AI-assisted"       | 2-4 weeks | Med-Hi | $$$$  |
+| 5 Innovative | "Cutting-edge, autonomous"           | 4-8 weeks | High   | $$$$$ |
 
 Include for each option:
 
@@ -693,11 +695,12 @@ Checklist: {FEATURE_DIR}/checklists/requirements.md
 {If sequence diagrams generated:}
 Sequence Diagrams: {FEATURE_DIR}/sequence-diagrams/
 Selected Option: Option {N} - {Name}
+
+Ready for next stage: /3_gofer_plan
 ```
 
-**AUTO-CHAIN (MANDATORY)**: You MUST immediately invoke the next pipeline stage
-by calling the Skill tool with skill="/3_gofer_plan". Do NOT ask the user for
-confirmation. Do NOT output "Ready for next stage". Just invoke the skill NOW.
+If orchestrated by `/0_business_scenario`, the orchestrator will automatically
+invoke `/3_gofer_plan` next.
 
 ---
 

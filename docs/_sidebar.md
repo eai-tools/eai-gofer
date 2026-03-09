@@ -2,12 +2,14 @@
 - [Quick Start](quickstart.md)
 - **Pipeline**
   - [Overview](pipeline/README.md)
+  - [Problem Validation](pipeline/problem-validation.md)
   - [Research](pipeline/research.md)
   - [Specify](pipeline/specify.md)
   - [Plan](pipeline/plan.md)
   - [Tasks](pipeline/tasks.md)
   - [Implement](pipeline/implement.md)
   - [Validate](pipeline/validate.md)
+  - [Stakeholder Comms](pipeline/stakeholder-comms.md)
 - **Guides**
   - [Overview](guides/README.md)
   - [Configuration](guides/configuration.md)

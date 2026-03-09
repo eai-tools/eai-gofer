@@ -403,10 +403,11 @@ src/ ├── [component]/ │ ├── [file].ts │ └── [file].test.ts
 
 ---
 
-## Step 5.3: Multi-Perspective Plan Review
+## Step 5.3: Multi-Perspective Plan Review (Optional)
 
-After generating the initial plan, run multi-perspective strategies to
-stress-test architectural decisions.
+After generating the initial plan, optionally run multi-perspective strategies
+to stress-test architectural decisions. **Skip this step if the plan is
+straightforward or time-constrained.**
 
 ### Strategy #2: Solution Architecture Diverger
 
@@ -690,10 +691,9 @@ invoke `/4_gofer_tasks` next.
 
 ---
 
-## LLM Council Integration
+## LLM Council Integration (Optional)
 
-When council mode is configured in `.specify/memory/council-config.yaml` for
-`gofer_plan` stage:
+When council mode is enabled for `gofer_plan` stage:
 
 1. Technical research queries go to all configured LLM providers
 2. Different perspectives on architecture decisions

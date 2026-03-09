@@ -353,9 +353,9 @@ DSL functions should go in: `tests/helpers/` or `tests/dsl/`
 
 ---
 
-## Step 7: Generate Test Scaffolds
+## Step 7: Generate Test Scaffolds (Optional)
 
-Generate test file scaffolds from the test plan:
+If user wants actual test files, generate scaffolds:
 
 ```javascript
 // tests/integration/[feature]/[feature].test.ts

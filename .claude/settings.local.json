@@ -70,20 +70,9 @@
       "Bash(git -C /Users/douglaswross/Code/gofer log --oneline --all -- \".claude/commands/0_business_scenario.md\")",
       "Bash(ls:*)",
       "Bash(unzip:*)",
-      "Bash(.specify/scripts/bash/check-context-health.sh:*)",
-      "Bash(bash:*)",
-      "Bash(.specify/scripts/bash/pipeline-state.sh read:*)",
-      "Bash(.specify/scripts/bash/log-stage.sh 1_research:*)",
-      "WebSearch",
-      "WebFetch(domain:www.onlyoffice.com)",
-      "Bash(read file:*)",
-      "Bash(grep:*)"
+      "Bash(.specify/scripts/bash/check-context-health.sh:*)"
     ],
     "deny": [],
     "ask": []
-  },
-  "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": [
-    "claude-flow"
-  ]
+  }
 }

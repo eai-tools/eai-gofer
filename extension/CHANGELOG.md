@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.16.6] - 2026-03-10
+
+Rightsized CLAUDE.md, AGENTS.md, and copilot-instructions.md to under 60 lines each; updated instruction templates for compact generated output
+
 ## [1.16.5] - 2026-03-09
 
 Add missing Copilot Chat prompts for 0a_problem_validation and 7a_stakeholder_comms

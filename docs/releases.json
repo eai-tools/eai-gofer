@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.16.5",
+  "latest_version": "1.16.6",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-03-09T08:29:42.748Z",
+  "last_updated": "2026-03-10T03:59:55.184Z",
   "releases": [
+    {
+      "version": "1.16.6",
+      "tag_name": "v1.16.6",
+      "published_at": "2026-03-10T03:59:55.183Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.16.6.vsix",
+      "notes": "Rightsized CLAUDE.md, AGENTS.md, and copilot-instructions.md to under 60 lines each; updated instruction templates for compact generated output",
+      "prerelease": false,
+      "size_mb": 30.3
+    },
     {
       "version": "1.16.5",
       "tag_name": "v1.16.5",
@@ -81,15 +90,6 @@
       "published_at": "2026-03-01T04:51:17.542Z",
       "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.14.4.vsix",
       "notes": "Simplify pipeline auto-chaining, clean up hooks and spec metadata",
-      "prerelease": false,
-      "size_mb": 30.3
-    },
-    {
-      "version": "1.14.3",
-      "tag_name": "v1.14.3",
-      "published_at": "2026-03-01T04:38:57.845Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.14.3.vsix",
-      "notes": "fix: auto-handoff save/clear/resume, memory panel wiring, and session display name",
       "prerelease": false,
       "size_mb": 30.3
     }

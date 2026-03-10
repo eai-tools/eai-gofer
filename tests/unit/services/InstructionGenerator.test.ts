@@ -146,32 +146,28 @@ describe('InstructionGenerator', () => {
       expect(content).toContain('Follow existing code style');
     });
 
-    it('includes workflow principles from example.md content', async () => {
+    it('includes core principles and Gofer pipeline info', async () => {
       const info = makeProjectInfo();
       const content = await generator.generateAgentsMd(info);
 
-      // Verify all 6 workflow principles from example.md are present
-      expect(content).toContain('Plan First');
-      expect(content).toContain('Subagent');
-      expect(content).toContain('Self-Improvement');
-      expect(content).toContain('Verify Before Done');
-      expect(content).toContain('Demand Elegance');
-      expect(content).toContain('Autonomous Bug Fixing');
-
-      // Core principles
+      // Core principles (inline in agents-base.md)
       expect(content).toContain('Simplicity First');
       expect(content).toContain('No Laziness');
       expect(content).toContain('Minimal Impact');
+
+      // Gofer pipeline mention
+      expect(content).toContain('Gofer');
+      expect(content).toContain('/0_business_scenario');
     });
   });
 
   describe('generateClaudeMd()', () => {
-    it('generates CLAUDE.md under 80 lines', async () => {
+    it('generates CLAUDE.md under 65 lines', async () => {
       const info = makeProjectInfo();
       const content = await generator.generateClaudeMd(info);
       const lineCount = content.split('\n').length;
 
-      expect(lineCount).toBeLessThan(80);
+      expect(lineCount).toBeLessThan(65);
       expect(content).toContain('# CLAUDE.md');
       expect(content).toContain('@AGENTS.md');
     });
@@ -181,8 +177,8 @@ describe('InstructionGenerator', () => {
       const content = await generator.generateClaudeMd(info);
 
       expect(content).toContain('/0_business_scenario');
-      expect(content).toContain('/5_gofer_implement');
       expect(content).toContain('/7_gofer_save');
+      expect(content).toContain('Gofer Pipeline');
     });
 
     it('includes workflow principles (brief form)', async () => {
@@ -190,7 +186,7 @@ describe('InstructionGenerator', () => {
       const content = await generator.generateClaudeMd(info);
 
       expect(content).toContain('Plan First');
-      expect(content).toContain('Verify Before Done');
+      expect(content).toContain('Verification Before Done');
     });
   });
 
@@ -220,21 +216,23 @@ describe('InstructionGenerator', () => {
   });
 
   describe('content partitioning', () => {
-    it('AGENTS.md contains behavioral guidelines, not procedural workflows', async () => {
+    it('AGENTS.md contains code quality guidelines and Gofer pipeline', async () => {
       const info = makeProjectInfo();
       const content = await generator.generateAgentsMd(info);
 
-      // Should have principles, not specific Gofer pipeline commands
+      // Core principles and Gofer info
       expect(content).toContain('Simplicity First');
-      expect(content).not.toContain('/0_business_scenario');
+      expect(content).toContain('Gofer Pipeline');
+      expect(content).toContain('/0_business_scenario');
     });
 
-    it('CLAUDE.md contains procedural workflows and references AGENTS.md', async () => {
+    it('CLAUDE.md contains workflow orchestration and references AGENTS.md', async () => {
       const info = makeProjectInfo();
       const content = await generator.generateClaudeMd(info);
 
       expect(content).toContain('@AGENTS.md');
       expect(content).toContain('/0_business_scenario');
+      expect(content).toContain('Workflow Orchestration');
     });
   });
 });

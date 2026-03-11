@@ -334,6 +334,7 @@ export class StateManager {
     this._contextScanner = undefined;
     this._contextUsageLogger = undefined;
     this._workspaceContextProvider = undefined;
+    this._accOrchestrator = undefined;
   }
 
   /**

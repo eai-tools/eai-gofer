@@ -196,4 +196,20 @@ If issues arise:
 
 ---
 
-**Last Updated**: 2025-10-24 **Status**: Documented - Ready for implementation
+## Resolved Technical Debt
+
+### ContextBuilder Wiring (Resolved in v1.17.0 - Feature 024)
+
+Previously ~3,700 LOC of dead code: `setSharedContextBuilder()` was never
+called, leaving ContextBuilder, ObservationMasker, StageContextProfileLoader,
+SubAgentDispatcher, and MemoryLayerManager completely inactive. Claims about
+"50% context reduction from masking" were not happening.
+
+**Resolution**: Feature 024 wired all dead code paths in
+`initializeForWorkspace()`, implemented 5-stage Adaptive Context Compaction
+(ACC), and added the ACCOrchestrator that connects to ContextHealthMonitor
+threshold events.
+
+---
+
+**Last Updated**: 2026-03-11 **Status**: Documented - Ready for implementation

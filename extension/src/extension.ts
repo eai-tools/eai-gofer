@@ -14,6 +14,11 @@ import { AutoUpdater } from './autoUpdater';
 import { GoferLSPClient } from './lspClient';
 import { MemoryManager } from './autonomous/MemoryManager';
 import { ContextBuilder } from './autonomous/ContextBuilder';
+import { HintLoader } from './autonomous/HintLoader';
+import { SubAgentDispatcher } from './autonomous/SubAgentDispatcher';
+import { MemoryLayerManager } from './autonomous/MemoryLayerManager';
+import { ACCOrchestrator } from './autonomous/ACCOrchestrator';
+import { setSharedContextBuilder } from './autonomousCommands';
 import { registerMemoryCommands } from './commands/memoryCommands';
 import { registerSpecCommands } from './commands/specCommands';
 import { registerCouncilCommands } from './commands/councilCommands';
@@ -70,6 +75,10 @@ import { Logger as LegacyLogger } from './utils/logger';
 // Phase 1 Engineering Remediation: Logger service (T011-T013)
 // Keep logger as module-level for early initialization and convenience
 let logger: Logger | undefined;
+
+// Module-level reference to EventHandler deps so initializeForWorkspace can
+// mutate sharedContextBuilder after creation (enables auto-activate of config reload handlers)
+let eventHandlerDeps: EventHandlerDependencies | undefined;
 
 /**
  * Get StateManager singleton from DI container
@@ -166,8 +175,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
   const state = getState();
 
-  // Register event handlers
-  eventHandlers.registerAll({
+  // Register event handlers (store deps at module level so initializeForWorkspace
+  // can update sharedContextBuilder after creation — enables auto-activate of config reload handlers)
+  eventHandlerDeps = {
     workspacePath,
     context,
     progressProvider: state.progressProvider,
@@ -185,7 +195,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       /* Branch change handled by EventHandlers */
     },
     isUpgrading: () => state.isUpgrading,
-  });
+  };
+  eventHandlers.registerAll(eventHandlerDeps);
 
   // Initialize for the current workspace (if one is open)
   const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
@@ -362,6 +373,63 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
     registerMemoryCommands(context, state.memoryManager);
   }
 
+  // Wire shared ContextBuilder (Feature 024) — activates ~3,700 LOC of dead code
+  // Must be created AFTER MemoryManager and BEFORE CommandRegistry.registerAll()
+  if (state.memoryManager) {
+    const hintLoader = new HintLoader(workspacePath);
+    const contextBuilder = new ContextBuilder(workspacePath, state.memoryManager, hintLoader);
+    state.sharedContextBuilder = contextBuilder;
+    setSharedContextBuilder(contextBuilder);
+
+    // Wire ContextUsageLogger (exists from InitializationService)
+    if (state.contextUsageLogger) {
+      contextBuilder.setUsageLogger(state.contextUsageLogger);
+    }
+
+    // Wire AutoHandoffTrigger to ContextBuilder
+    if (state.autoHandoffTrigger) {
+      state.autoHandoffTrigger.setContextBuilder(contextBuilder);
+    }
+
+    // Update EventHandler deps so config reload handlers auto-activate
+    if (eventHandlerDeps) {
+      eventHandlerDeps.sharedContextBuilder = contextBuilder;
+    }
+
+    // Wire SubAgentDispatcher (Feature 024 - T037)
+    const subAgentDispatcher = new SubAgentDispatcher(workspacePath);
+    contextBuilder.setSubAgentDispatcher(subAgentDispatcher);
+
+    // Subscribe to utilization updates from ContextHealthMonitor
+    if (state.contextHealthMonitor) {
+      state.contextHealthMonitor.on('status-change', (_from, _to, status) => {
+        subAgentDispatcher.updateUtilization(status.utilizationPercent);
+      });
+    }
+
+    // Wire MemoryLayerManager (Feature 024 - T038)
+    const memoryLayerManager = new MemoryLayerManager(workspacePath);
+    memoryLayerManager.setMemoryManager(state.memoryManager);
+    const useLayered = vscode.workspace
+      .getConfiguration('gofer')
+      .get<boolean>('useLayeredMemory', false);
+    contextBuilder.setMemoryLayerManager(memoryLayerManager, useLayered);
+
+    // Wire ACCOrchestrator (Feature 024 - T031)
+    const accOrchestrator = new ACCOrchestrator(
+      contextBuilder,
+      contextBuilder.getObservationMasker(),
+      subAgentDispatcher,
+      null // ContextCompactor wired later when autonomous session starts
+    );
+    if (state.contextHealthMonitor) {
+      accOrchestrator.connect(state.contextHealthMonitor);
+    }
+    state.accOrchestrator = accOrchestrator;
+
+    logger?.info('Extension', 'Shared ContextBuilder wired');
+  }
+
   // Initialize ScopeGuard, RunLedger, and ToolAuditLogger
   const runLedger = new RunLedger(workspacePath);
 
@@ -377,6 +445,11 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
   scopeGuard.setToolAuditLogger(toolAuditLogger);
   state.scopeGuard = scopeGuard;
 
+  // Wire ScopeGuard to shared ContextBuilder (Feature 024)
+  if (state.sharedContextBuilder) {
+    state.sharedContextBuilder.setScopeGuard(scopeGuard);
+  }
+
   // Initialize CostBudgetEnforcer with config from settings
   const costBudgetEnforcer = new CostBudgetEnforcer(
     {
@@ -387,6 +460,11 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
     runLedger
   );
   state.costBudgetEnforcer = costBudgetEnforcer;
+
+  // Wire CostBudgetEnforcer to shared ContextBuilder (Feature 024)
+  if (state.sharedContextBuilder) {
+    state.sharedContextBuilder.setCostBudgetEnforcer(costBudgetEnforcer);
+  }
 
   // Wire RunLedger into existing loggers
   if (state.contextUsageLogger) {

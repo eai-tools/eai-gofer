@@ -95,6 +95,17 @@ export interface ContextHealthConfig {
   autoHandoffEnabled: boolean;
   /** Enable JSONL logging (default: true) */
   logToJsonl: boolean;
+  // ACC (Adaptive Context Compaction) thresholds — Feature 024
+  /** ACC stage 1: delegation advisory threshold (default: 0.70) */
+  accDelegationAdvisoryThreshold: number;
+  /** ACC stage 2: observation masking threshold (default: 0.80) */
+  accObservationMaskingThreshold: number;
+  /** ACC stage 3: fast pruning threshold (default: 0.85) */
+  accFastPruningThreshold: number;
+  /** ACC stage 4: aggressive masking threshold (default: 0.90) */
+  accAggressiveMaskingThreshold: number;
+  /** ACC stage 5: full compaction threshold (default: 0.99) */
+  accFullCompactionThreshold: number;
 }
 
 /**
@@ -107,6 +118,12 @@ export interface ContextHealthEvents {
   'auto-save': (status: ContextHealthStatus) => void;
   'handoff-recommended': (status: ContextHealthStatus) => void;
   'status-change': (from: HealthStatus, to: HealthStatus, status: ContextHealthStatus) => void;
+  // ACC (Adaptive Context Compaction) events — Feature 024
+  'acc-delegation-advisory': (status: ContextHealthStatus) => void;
+  'acc-observation-masking': (status: ContextHealthStatus) => void;
+  'acc-fast-pruning': (status: ContextHealthStatus) => void;
+  'acc-aggressive-masking': (status: ContextHealthStatus) => void;
+  'acc-full-compaction': (status: ContextHealthStatus) => void;
 }
 
 /**
@@ -145,6 +162,12 @@ const DEFAULT_CONFIG: ContextHealthConfig = {
   checkIntervalMs: TIMEOUTS.CONTEXT_HEALTH_CHECK_INTERVAL,
   autoHandoffEnabled: true,
   logToJsonl: true,
+  // ACC thresholds (Feature 024)
+  accDelegationAdvisoryThreshold: 0.7,
+  accObservationMaskingThreshold: 0.8,
+  accFastPruningThreshold: 0.85,
+  accAggressiveMaskingThreshold: 0.9,
+  accFullCompactionThreshold: 0.99,
 };
 
 /**
@@ -472,6 +495,29 @@ export class ContextHealthMonitor extends EventEmitter {
       }
 
       this.lastStatus = status.status;
+    }
+
+    // ACC threshold crossing events (Feature 024)
+    // Emitted AFTER existing events to preserve event ordering.
+    // Each fires once when the threshold is crossed (rising edge only).
+    if (status.dataSource === 'real') {
+      const accThresholds: Array<{ threshold: number; event: keyof ContextHealthEvents }> = [
+        { threshold: this.config.accDelegationAdvisoryThreshold, event: 'acc-delegation-advisory' },
+        { threshold: this.config.accObservationMaskingThreshold, event: 'acc-observation-masking' },
+        { threshold: this.config.accFastPruningThreshold, event: 'acc-fast-pruning' },
+        { threshold: this.config.accAggressiveMaskingThreshold, event: 'acc-aggressive-masking' },
+        { threshold: this.config.accFullCompactionThreshold, event: 'acc-full-compaction' },
+      ];
+
+      for (const { threshold, event } of accThresholds) {
+        if (utilizationRatio >= threshold && previousRatio < threshold) {
+          this.emit(event, status);
+          this.logger.info(`ACC event: ${event}`, {
+            threshold,
+            utilizationPercent: status.utilizationPercent,
+          });
+        }
+      }
     }
 
     this.lastUtilizationRatio = utilizationRatio;

@@ -46,8 +46,8 @@ production-ready code with full traceability.
     <p>10-category engineering rubric scored out of 100 points. Six specialist validation agents run in parallel to catch issues.</p>
   </div>
   <div class="feature-card">
-    <h3>Session Management</h3>
-    <p>Save and resume work across sessions. Context health monitoring prevents accuracy degradation from large context windows.</p>
+    <h3>Context Management</h3>
+    <p>Adaptive Context Compaction (ACC) applies 5 stages of graduated compression as context fills. Save and resume across sessions with automatic checkpoints.</p>
   </div>
 </div>
 

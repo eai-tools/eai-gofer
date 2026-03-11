@@ -184,6 +184,8 @@ describe('ACCOrchestrator (Feature 024)', () => {
     });
 
     it('should enable budget enforcement at stage 3 (85%)', () => {
+      const budgetSpy = vi.spyOn(contextBuilder, 'updateBudgetEnforcement');
+
       const orchestrator = new ACCOrchestrator(
         contextBuilder,
         contextBuilder.getObservationMasker(),
@@ -194,10 +196,7 @@ describe('ACCOrchestrator (Feature 024)', () => {
       monitor.analyzeContext(inputForUtilization(82));
       monitor.analyzeContext(inputForUtilization(87));
 
-      // Verify budget enforcement was enabled — build a context and check
-      // We can't directly check the private config, but updateBudgetEnforcement was called
-      // Instead, track that no error was thrown (method exists and works)
-      expect(true).toBe(true);
+      expect(budgetSpy).toHaveBeenCalledWith(true, 'truncate');
 
       orchestrator.dispose();
     });
@@ -237,7 +236,7 @@ describe('ACCOrchestrator (Feature 024)', () => {
       orchestrator.dispose();
     });
 
-    it('should log warning at stage 5 (99%) when no compactor', () => {
+    it('should not throw at stage 5 (99%) when no compactor', () => {
       const orchestrator = new ACCOrchestrator(
         contextBuilder,
         contextBuilder.getObservationMasker(),
@@ -246,12 +245,10 @@ describe('ACCOrchestrator (Feature 024)', () => {
       );
       orchestrator.connect(monitor);
 
-      // Should not throw
-      monitor.analyzeContext(inputForUtilization(95));
-      monitor.analyzeContext(inputForUtilization(100));
-
-      // Verify no crash — the warning is logged internally
-      expect(true).toBe(true);
+      expect(() => {
+        monitor.analyzeContext(inputForUtilization(95));
+        monitor.analyzeContext(inputForUtilization(100));
+      }).not.toThrow();
 
       orchestrator.dispose();
     });

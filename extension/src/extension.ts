@@ -293,6 +293,7 @@ async function reinitializeExtension(context: vscode.ExtensionContext): Promise<
         multiSessionWatcher: state.multiSessionWatcher,
         goferActivityStatusBar: state.goferActivityStatusBar,
         contextUsageLogger: state.contextUsageLogger,
+        accOrchestrator: state.accOrchestrator,
         progressProvider: state.progressProvider,
         constitutionProvider: state.constitutionProvider,
         memoryProvider: state.memoryProvider,

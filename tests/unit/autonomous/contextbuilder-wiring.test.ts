@@ -139,9 +139,9 @@ describe('ContextBuilder Wiring (Feature 024)', () => {
 
     it('should wire ContextUsageLogger via setUsageLogger', () => {
       const usageLogger = new ContextUsageLogger(tmpDir);
+      const spy = vi.spyOn(contextBuilder, 'setUsageLogger');
       contextBuilder.setUsageLogger(usageLogger);
-      // No throw means wiring succeeded
-      expect(true).toBe(true);
+      expect(spy).toHaveBeenCalledWith(usageLogger);
     });
   });
 
@@ -165,9 +165,9 @@ describe('ContextBuilder Wiring (Feature 024)', () => {
     });
 
     it('should accept ContextBuilder via setContextBuilder', () => {
-      // Should not throw
+      const spy = vi.spyOn(trigger, 'setContextBuilder');
       trigger.setContextBuilder(contextBuilder);
-      expect(true).toBe(true);
+      expect(spy).toHaveBeenCalledWith(contextBuilder);
     });
 
     it('should fire auto-save event at 65% with ContextBuilder wired', () => {

@@ -1,6 +1,6 @@
 ---
-generated: "2026-03-11T12:03:00Z"
-source_commit: "c3dafd7246e248e84d2ab4a50c800eb184a1e4cd"
+generated: "2026-03-11T22:14:00Z"
+source_commit: "29a322a5fd292b6346a0cf0d2ae981a59ffe4a4c"
 ---
 
 # Changelog
@@ -20,7 +20,7 @@ This changelog documents significant changes to the Gofer architecture, features
 
 ## v1.17.1 (2026-03-11)
 
-**Release Commit:** `c3dafd7246e248e84d2ab4a50c800eb184a1e4cd`
+**Release Commit:** `29a322a5fd292b6346a0cf0d2ae981a59ffe4a4c`
 
 ### Documentation
 
@@ -340,14 +340,6 @@ None - All changes backward compatible.
 
 **No Breaking Changes** - Fully backward compatible
 
-### v1.15.x → v1.16.x
-
-**No Breaking Changes** - Fully backward compatible
-
-### v1.14.x → v1.15.x
-
-**No Breaking Changes** - Fully backward compatible
-
 ### v1.9.x → v1.10.x
 
 **Breaking Changes:**
@@ -439,65 +431,6 @@ None - All changes backward compatible.
 
 ---
 
-## Migration Guide
-
-### From v1.8.x (JSON Specs) to v1.17.x
-
-**Step 1: Backup**
-```bash
-tar -czf backup-$(date +%Y%m%d).tar.gz .specify/ *.json
-```
-
-**Step 2: Upgrade Extension**
-```bash
-code --install-extension gofer-1.17.1.vsix
-```
-
-**Step 3: Run Migration**
-- Open Command Palette
-- Run: `Gofer: Upgrade to Gofer Format`
-- Converts all JSON specs to Markdown
-
-**Step 4: Verify**
-- Check `.specify/specs/` directory
-- Verify all features migrated
-- Commit to git
-
-**Data Preserved:**
-- All requirements
-- Task status
-- Dependencies
-- Metadata
-
-**New Features Available:**
-- MCP tools
-- Autonomous execution
-- Context health monitoring
-- Memory management
-- Cost tracking
-
----
-
-## Deprecation Notices
-
-### Deprecated in v1.17.x
-
-**None currently deprecated.**
-
-### Removed in v1.17.x
-
-**None removed.**
-
-### Future Deprecations (v1.18+)
-
-**Planned:**
-- Legacy file watching (chokidar 3.x) → native VSCode file watching
-- Express.js HTTP server → WebSocket-only communication
-
-**Timeline:** No removal date set
-
----
-
 ## Known Issues
 
 ### v1.17.1
@@ -509,12 +442,6 @@ code --install-extension gofer-1.17.1.vsix
 **Issue:** Context scanner occasionally misses tool calls in fast sequences
 - **Impact:** Minor (< 1% of calls)
 - **Status:** Fix planned for v1.17.2
-
-### v1.17.0
-
-**Issue:** Auto-save triggers twice on context threshold edge cases
-- **Impact:** Harmless (idempotent operation)
-- **Status:** Fixed in v1.17.1
 
 ---
 

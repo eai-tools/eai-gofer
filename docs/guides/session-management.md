@@ -64,6 +64,41 @@ The VS Code status bar shows real-time context health:
 | Yellow    | 50-70%        | Consider saving soon |
 | Red       | > 70%         | Save immediately     |
 
+## Adaptive Context Compaction (ACC)
+
+When context pressure builds, Gofer applies graduated compaction automatically
+through 5 stages. This extends effective context life without manual
+intervention.
+
+| Stage | Threshold | Action              | What Happens                                           |
+| ----- | --------- | ------------------- | ------------------------------------------------------ |
+| 1     | 70%       | Delegation advisory | Logs warning, recommends delegating to sub-agents      |
+| 2     | 80%       | Observation masking | Older tool outputs replaced with compact references    |
+| 3     | 85%       | Fast pruning        | Budget enforcement enabled, oversized sections trimmed |
+| 4     | 90%       | Aggressive masking  | All observations forced to masked tier                 |
+| 5     | 99%       | Full compaction     | LLM-based summarization of completed work              |
+
+Each stage has a 30-second cooldown to prevent rapid re-triggering. Higher
+stages always supersede lower ones. All stage actions are error-safe and will
+never crash the extension.
+
+ACC works alongside the existing auto-save system. Auto-save fires at 65% and
+creates a session checkpoint. ACC then provides additional compaction if context
+continues to grow.
+
+### How Observation Masking Works
+
+Gofer tracks tool outputs (file reads, command results, search results) as
+"observations." As context fills up:
+
+1. **Full tier** - Recent observations kept in full detail
+2. **Key-points tier** - Older observations show only key findings
+3. **Masked tier** - Old observations show a compact placeholder (~15 tokens vs
+   thousands)
+
+Masked observations can be expanded on demand via the MCP `expand_observation`
+tool if the AI needs to revisit earlier results.
+
 ## Typical Workflow
 
 ```text

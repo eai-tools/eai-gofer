@@ -15,6 +15,8 @@ import { GoferLSPClient } from './lspClient';
 import { MemoryManager } from './autonomous/MemoryManager';
 import { ContextBuilder } from './autonomous/ContextBuilder';
 import { HintLoader } from './autonomous/HintLoader';
+import { SubAgentDispatcher } from './autonomous/SubAgentDispatcher';
+import { MemoryLayerManager } from './autonomous/MemoryLayerManager';
 import { setSharedContextBuilder } from './autonomousCommands';
 import { registerMemoryCommands } from './commands/memoryCommands';
 import { registerSpecCommands } from './commands/specCommands';
@@ -392,6 +394,25 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
     if (eventHandlerDeps) {
       eventHandlerDeps.sharedContextBuilder = contextBuilder;
     }
+
+    // Wire SubAgentDispatcher (Feature 024 - T037)
+    const subAgentDispatcher = new SubAgentDispatcher(workspacePath);
+    contextBuilder.setSubAgentDispatcher(subAgentDispatcher);
+
+    // Subscribe to utilization updates from ContextHealthMonitor
+    if (state.contextHealthMonitor) {
+      state.contextHealthMonitor.on('status-change', (_from, _to, status) => {
+        subAgentDispatcher.updateUtilization(status.utilizationPercent);
+      });
+    }
+
+    // Wire MemoryLayerManager (Feature 024 - T038)
+    const memoryLayerManager = new MemoryLayerManager(workspacePath);
+    memoryLayerManager.setMemoryManager(state.memoryManager);
+    const useLayered = vscode.workspace
+      .getConfiguration('gofer')
+      .get<boolean>('useLayeredMemory', false);
+    contextBuilder.setMemoryLayerManager(memoryLayerManager, useLayered);
 
     logger?.info('Extension', 'Shared ContextBuilder wired');
   }

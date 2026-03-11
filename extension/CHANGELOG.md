@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.17.0] - 2026-03-11
+
+Wire ContextBuilder + Adaptive Context Compaction (ACC): activate 3,700 LOC of dead context management code, implement 5-stage progressive compaction at 70/80/85/90/99% thresholds
+
 ## [1.16.6] - 2026-03-10
 
 Rightsized CLAUDE.md, AGENTS.md, and copilot-instructions.md to under 60 lines each; updated instruction templates for compact generated output

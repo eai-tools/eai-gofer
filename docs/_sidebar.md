@@ -1,5 +1,6 @@
 - [Home](/)
 - [Quick Start](quickstart.md)
+- [What's New](whats-new.md)
 - **Pipeline**
   - [Overview](pipeline/README.md)
   - [Problem Validation](pipeline/problem-validation.md)

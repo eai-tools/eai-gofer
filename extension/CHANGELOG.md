@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.17.1] - 2026-03-11
+
+Fix ACCOrchestrator memory leak on reinitialize and strengthen test assertions
+
 ## [1.17.0] - 2026-03-11
 
 Wire ContextBuilder + Adaptive Context Compaction (ACC): activate 3,700 LOC of dead context management code, implement 5-stage progressive compaction at 70/80/85/90/99% thresholds

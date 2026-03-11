@@ -88,6 +88,8 @@ production-ready code with full traceability.
   <p>Loading...</p>
 </div>
 
+[See what's new in each release](whats-new.md)
+
 ---
 
 _Enterprise AI Pty Ltd. All rights reserved._

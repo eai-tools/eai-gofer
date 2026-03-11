@@ -1,6 +1,6 @@
 ---
-generated: "2026-03-11T12:03:00Z"
-source_commit: "c3dafd7246e248e84d2ab4a50c800eb184a1e4cd"
+generated: "2026-03-11T22:14:00Z"
+source_commit: "29a322a5fd292b6346a0cf0d2ae981a59ffe4a4c"
 ---
 
 # Gofer - Technical Overview
@@ -33,10 +33,11 @@ Gofer is a VSCode extension that bridges human specifications with AI implementa
 | Framework | VSCode Extension API | 1.85.0+ |
 | Build Tool | Webpack | 5.89.0 |
 | Testing | Vitest + Playwright | 3.2.4 / 1.49.1 |
-| AI SDK | Anthropic SDK | 0.67.0 |
+| AI SDK | Anthropic SDK | 0.32.1 (root), 0.67.0 (extension) |
 | Language Server | vscode-languageserver | 9.0.1 |
 | Dependency Injection | tsyringe | 4.10.0 |
 | Terminal Emulation | node-pty | 1.0.0 |
+| Schema Validation | Zod | 3.24.1 |
 
 ## Key Entry Points
 
@@ -154,3 +155,4 @@ gofer/
 - **Scope Guard** - Prevents AI from accessing protected files
 - **Cost Budget** - Tracks and enforces per-run cost limits
 - **GitHub Codespaces** - Automatic installation in Codespaces
+- **Auto-Context-Continuity (ACC)** - Automatic session save/resume at 65% context

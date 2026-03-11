@@ -626,6 +626,17 @@ export class ContextBuilder extends EventEmitter {
   }
 
   /**
+   * 024 T029: Update budget enforcement settings for ACC stage 3.
+   */
+  updateBudgetEnforcement(
+    enforceBudgetCaps: boolean,
+    mode: 'advisory' | 'truncate' | 'blocking'
+  ): void {
+    this.config.enforceBudgetCaps = enforceBudgetCaps;
+    this.config.budgetEnforcementMode = mode;
+  }
+
+  /**
    * Get the ObservationMasker instance for external access
    */
   getObservationMasker(): ObservationMasker {

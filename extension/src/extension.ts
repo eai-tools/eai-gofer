@@ -17,6 +17,7 @@ import { ContextBuilder } from './autonomous/ContextBuilder';
 import { HintLoader } from './autonomous/HintLoader';
 import { SubAgentDispatcher } from './autonomous/SubAgentDispatcher';
 import { MemoryLayerManager } from './autonomous/MemoryLayerManager';
+import { ACCOrchestrator } from './autonomous/ACCOrchestrator';
 import { setSharedContextBuilder } from './autonomousCommands';
 import { registerMemoryCommands } from './commands/memoryCommands';
 import { registerSpecCommands } from './commands/specCommands';
@@ -413,6 +414,18 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
       .getConfiguration('gofer')
       .get<boolean>('useLayeredMemory', false);
     contextBuilder.setMemoryLayerManager(memoryLayerManager, useLayered);
+
+    // Wire ACCOrchestrator (Feature 024 - T031)
+    const accOrchestrator = new ACCOrchestrator(
+      contextBuilder,
+      contextBuilder.getObservationMasker(),
+      subAgentDispatcher,
+      null // ContextCompactor wired later when autonomous session starts
+    );
+    if (state.contextHealthMonitor) {
+      accOrchestrator.connect(state.contextHealthMonitor);
+    }
+    state.accOrchestrator = accOrchestrator;
 
     logger?.info('Extension', 'Shared ContextBuilder wired');
   }

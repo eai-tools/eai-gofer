@@ -1,13 +1,13 @@
 ---
-generated: "2026-03-11T12:03:00Z"
-source_commit: "c3dafd7246e248e84d2ab4a50c800eb184a1e4cd"
+generated: "2026-03-11T22:14:00Z"
+source_commit: "29a322a5fd292b6346a0cf0d2ae981a59ffe4a4c"
 ---
 
 # Technical Documentation Index
 
 **Repository:** [eai-tools/gofer](https://github.com/eai-tools/gofer)
 **Version:** 1.17.1
-**Generated:** 2026-03-11
+**Generated:** 2026-03-11T22:14:00Z
 
 This directory contains comprehensive technical documentation for the Gofer VSCode extension project.
 
@@ -205,8 +205,8 @@ This documentation was generated automatically by analyzing the codebase. To reg
 
 ### What's Tracked
 
-- All documentation generated from commit: `c3dafd7246e248e84d2ab4a50c800eb184a1e4cd`
-- Last updated: 2026-03-11
+- All documentation generated from commit: `29a322a5fd292b6346a0cf0d2ae981a59ffe4a4c`
+- Last updated: 2026-03-11T22:14:00Z
 - Version: 1.17.1
 
 ### What to Update Manually

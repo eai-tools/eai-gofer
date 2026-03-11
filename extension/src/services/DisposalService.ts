@@ -28,6 +28,7 @@ import type { MultiSessionBridgeWatcher } from '../autonomous/MultiSessionBridge
 import type { GoferActivityStatusBar } from '../ui/GoferActivityStatusBar';
 import type { ContextBuilder } from '../autonomous/ContextBuilder';
 import type { WorkspaceContextProvider } from '../autonomous/WorkspaceContextProvider';
+import type { ACCOrchestrator } from '../autonomous/ACCOrchestrator';
 
 /**
  * Disposable resource types that can be managed
@@ -52,6 +53,7 @@ export interface ManagedResources {
   memoryManager?: MemoryManager;
   autoUpdater?: AutoUpdater;
   lspClient?: GoferLSPClient;
+  accOrchestrator?: ACCOrchestrator;
 }
 
 /**
@@ -188,6 +190,10 @@ export class DisposalService {
     if (resources.autoHandoffTrigger) {
       resources.autoHandoffTrigger.dispose();
       resources.autoHandoffTrigger = undefined;
+    }
+    if (resources.accOrchestrator) {
+      resources.accOrchestrator.dispose();
+      resources.accOrchestrator = undefined;
     }
     if (resources.contextHealthStatusBar) {
       resources.contextHealthStatusBar.dispose();

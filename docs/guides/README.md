@@ -12,7 +12,8 @@ settings, context management, and advanced options.
 ### [Session Management](guides/session-management)
 
 How to save and resume work across sessions using `/7_gofer_save` and
-`/8_gofer_resume`. Essential for long-running features and context management.
+`/8_gofer_resume`. Includes Adaptive Context Compaction (ACC) which
+automatically applies 5 stages of graduated context reduction as usage grows.
 
 ### [Auxiliary Commands](guides/auxiliary-commands)
 

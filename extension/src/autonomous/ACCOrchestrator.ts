@@ -20,6 +20,8 @@ import type { ContextHealthMonitor, ContextHealthStatus } from './ContextHealthM
 import type { ContextBuilder } from './ContextBuilder';
 import type { ObservationMasker } from './ObservationMasker';
 import type { ContextCompactor } from './ContextCompactor';
+import type { ContextBridgeWriter } from './ContextBridgeWriter';
+import type { TaskContext } from './ContextBuilder';
 import { Logger } from '../utils/logger';
 
 /** Duck-typed interface for SubAgentDispatcher (null-safe). */
@@ -35,6 +37,8 @@ export class ACCOrchestrator implements vscode.Disposable {
   private readonly disposables: Array<{ dispose(): void }> = [];
   private readonly lastStageTimestamps: Map<number, number> = new Map();
   private static readonly cooldownMs = 30000; // 30 seconds
+  private contextBridgeWriter: ContextBridgeWriter | null = null;
+  private currentTaskContext: TaskContext | null = null;
 
   constructor(
     private readonly contextBuilder: ContextBuilder,
@@ -145,6 +149,8 @@ export class ACCOrchestrator implements vscode.Disposable {
       maskedCount: result.maskedCount,
       tokensSaved: result.tokensSaved,
     });
+
+    this.refreshEnrichedContext();
   }
 
   /**
@@ -154,6 +160,8 @@ export class ACCOrchestrator implements vscode.Disposable {
     this.logger.info('ACC Stage 3: Fast pruning — enabling budget enforcement');
 
     this.contextBuilder.updateBudgetEnforcement(true, 'truncate');
+
+    this.refreshEnrichedContext();
   }
 
   /**
@@ -175,6 +183,8 @@ export class ACCOrchestrator implements vscode.Disposable {
     }
 
     this.logger.info('ACC Stage 4: Aggressive masking complete', { forcedCount });
+
+    this.refreshEnrichedContext();
   }
 
   /**
@@ -218,6 +228,49 @@ export class ACCOrchestrator implements vscode.Disposable {
       .catch((error) => {
         this.logger.warn('ACC Stage 5: Compaction failed (non-fatal)', error as Error);
       });
+  }
+
+  /**
+   * Set the context bridge writer for refreshing enriched context after compaction.
+   */
+  setContextBridgeWriter(writer: ContextBridgeWriter): void {
+    this.contextBridgeWriter = writer;
+  }
+
+  /**
+   * Set the current task context for enriched context refresh.
+   */
+  setCurrentTaskContext(task: TaskContext): void {
+    this.currentTaskContext = task;
+  }
+
+  /**
+   * Refresh the enriched-context bridge file so MCP tools serve compacted data.
+   * Fire-and-forget — errors are logged but do not block ACC stages.
+   */
+  private refreshEnrichedContext(): void {
+    if (!this.contextBridgeWriter || !this.currentTaskContext) {
+      this.logger.debug('Skipping enriched context refresh (no writer or task context)');
+      return;
+    }
+
+    this.contextBridgeWriter
+      .writeEnrichedContext(this.currentTaskContext)
+      .then(() => {
+        this.logger.debug('Enriched context refreshed after ACC stage');
+      })
+      .catch((error) => {
+        this.logger.warn('Failed to refresh enriched context (non-fatal)', error as Error);
+      });
+  }
+
+  /**
+   * Reset session state (cooldown timestamps) so ACC stages can re-trigger
+   * after a /clear or new session start.
+   */
+  resetSessionState(): void {
+    this.lastStageTimestamps.clear();
+    this.logger.debug('ACC session state reset');
   }
 
   /**

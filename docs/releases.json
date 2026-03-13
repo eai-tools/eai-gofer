@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.17.1",
+  "latest_version": "1.17.2",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-03-11T10:30:16.886Z",
+  "last_updated": "2026-03-13T02:00:11.837Z",
   "releases": [
+    {
+      "version": "1.17.2",
+      "tag_name": "v1.17.2",
+      "published_at": "2026-03-13T02:00:11.837Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.17.2.vsix",
+      "notes": "fix: wire ContinuousMemoryWriter, SlopReducer, and normal-terminal session lifecycle",
+      "prerelease": false,
+      "size_mb": 30.3
+    },
     {
       "version": "1.17.1",
       "tag_name": "v1.17.1",
@@ -81,15 +90,6 @@
       "published_at": "2026-03-05T22:36:10.856Z",
       "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.16.0.vsix",
       "notes": "feat: auto-generate AI instruction files on repository init",
-      "prerelease": false,
-      "size_mb": 30.3
-    },
-    {
-      "version": "1.15.0",
-      "tag_name": "v1.15.0",
-      "published_at": "2026-03-02T09:03:01.926Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.15.0.vsix",
-      "notes": "Pipeline auto-chain: stages 1-8 chain autonomously without stopping for approval",
       "prerelease": false,
       "size_mb": 30.3
     }

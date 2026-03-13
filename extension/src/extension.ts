@@ -18,6 +18,7 @@ import { HintLoader } from './autonomous/HintLoader';
 import { SubAgentDispatcher } from './autonomous/SubAgentDispatcher';
 import { MemoryLayerManager } from './autonomous/MemoryLayerManager';
 import { ACCOrchestrator } from './autonomous/ACCOrchestrator';
+import { ObservationBridge } from './autonomous/ObservationBridge';
 import { setSharedContextBuilder } from './autonomousCommands';
 import { registerMemoryCommands } from './commands/memoryCommands';
 import { registerSpecCommands } from './commands/specCommands';
@@ -294,6 +295,7 @@ async function reinitializeExtension(context: vscode.ExtensionContext): Promise<
         goferActivityStatusBar: state.goferActivityStatusBar,
         contextUsageLogger: state.contextUsageLogger,
         accOrchestrator: state.accOrchestrator,
+        observationBridge: state.observationBridge,
         progressProvider: state.progressProvider,
         constitutionProvider: state.constitutionProvider,
         memoryProvider: state.memoryProvider,
@@ -387,9 +389,19 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
       contextBuilder.setUsageLogger(state.contextUsageLogger);
     }
 
+    // Wire ContinuousMemoryWriter (activates automatic event-driven memory persistence)
+    const continuousMemoryWriter = new ContinuousMemoryWriter(state.memoryManager);
+    continuousMemoryWriter.connectToContextBuilder(contextBuilder);
+    state.continuousMemoryWriter = continuousMemoryWriter;
+
     // Wire AutoHandoffTrigger to ContextBuilder
     if (state.autoHandoffTrigger) {
       state.autoHandoffTrigger.setContextBuilder(contextBuilder);
+
+      // Wire SlopReducer to AutoHandoffTrigger (enables auto-reduce before save/clear/resume)
+      const { SlopReducer } = await import('./autonomous/SlopReducer');
+      const slopReducer = new SlopReducer(workspacePath);
+      state.autoHandoffTrigger.setSlopReducer(slopReducer);
     }
 
     // Update EventHandler deps so config reload handlers auto-activate
@@ -427,6 +439,36 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
       accOrchestrator.connect(state.contextHealthMonitor);
     }
     state.accOrchestrator = accOrchestrator;
+
+    // Wire ContextBridgeWriter to ACCOrchestrator (Feature 025 - Phase 4)
+    try {
+      const { ContextBridgeWriter } = await import('./autonomous/ContextBridgeWriter');
+      const contextBridgeWriter = new ContextBridgeWriter(contextBuilder, workspacePath);
+      accOrchestrator.setContextBridgeWriter(contextBridgeWriter);
+      accOrchestrator.setCurrentTaskContext({
+        taskId: 'current',
+        specId: '',
+        description: 'Active session',
+      });
+    } catch {
+      // Non-fatal: enriched context refresh is optional
+    }
+
+    // Wire ObservationBridge (Feature 025 - Phase 1)
+    const observationBridge = new ObservationBridge(contextBuilder, workspacePath);
+    if (state.multiSessionWatcher) {
+      observationBridge.connect(state.multiSessionWatcher);
+    }
+    state.observationBridge = observationBridge;
+
+    // Reset state on session transitions (Feature 025 - Phase 3)
+    if (state.multiSessionWatcher) {
+      state.multiSessionWatcher.on('session-start', () => {
+        contextBuilder.resetForNewSession();
+        accOrchestrator.resetSessionState();
+        state.contextHealthMonitor?.clearHistory();
+      });
+    }
 
     logger?.info('Extension', 'Shared ContextBuilder wired');
   }

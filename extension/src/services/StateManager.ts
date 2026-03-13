@@ -32,6 +32,7 @@ import { ScopeGuard } from '../autonomous/ScopeGuard';
 import { ResearchChunker } from '../autonomous/ResearchChunker';
 import { CostBudgetEnforcer } from '../autonomous/CostBudgetEnforcer';
 import { ACCOrchestrator } from '../autonomous/ACCOrchestrator';
+import { ObservationBridge } from '../autonomous/ObservationBridge';
 
 /**
  * State Manager Service
@@ -81,6 +82,7 @@ export class StateManager {
   private _researchChunker?: ResearchChunker;
   private _costBudgetEnforcer?: CostBudgetEnforcer;
   private _accOrchestrator?: ACCOrchestrator;
+  private _observationBridge?: ObservationBridge;
 
   // Flags
   private _isUpgrading = false;
@@ -302,6 +304,14 @@ export class StateManager {
     this._accOrchestrator = value;
   }
 
+  public get observationBridge(): ObservationBridge | undefined {
+    return this._observationBridge;
+  }
+
+  public set observationBridge(value: ObservationBridge | undefined) {
+    this._observationBridge = value;
+  }
+
   // --- Flags ---
 
   public get isUpgrading(): boolean {
@@ -335,6 +345,7 @@ export class StateManager {
     this._contextUsageLogger = undefined;
     this._workspaceContextProvider = undefined;
     this._accOrchestrator = undefined;
+    this._observationBridge = undefined;
   }
 
   /**

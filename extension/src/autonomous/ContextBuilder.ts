@@ -651,6 +651,15 @@ export class ContextBuilder extends EventEmitter {
   }
 
   /**
+   * Reset state for a new session (e.g., after /clear).
+   * Clears turn counter and observation cache so ACC can re-trigger.
+   */
+  resetForNewSession(): void {
+    this.currentTurn = 0;
+    this.observationMasker.clearCache();
+  }
+
+  /**
    * Increment the turn counter (call at start of each conversation turn)
    */
   incrementTurn(): number {

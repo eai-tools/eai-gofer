@@ -109,6 +109,7 @@ export class AutoHandoffTrigger implements vscode.Disposable {
   private contextBuilder: ContextBuilder | null = null;
   private slopReducer: SlopReducer | null = null;
   private claudePtyProcess: IPty | null = null;
+  private claudeVscodeTerminal: vscode.Terminal | null = null;
   private lastNotificationTime: number = 0;
   private currentSessionId: string = '';
   private currentStage: string = 'implement';
@@ -230,6 +231,21 @@ export class AutoHandoffTrigger implements vscode.Disposable {
    */
   setClaudePtyProcess(pty: IPty | null): void {
     this.claudePtyProcess = pty;
+  }
+
+  /**
+   * Sets the Claude Code VSCode terminal for automated commands.
+   * Used when Claude Code is launched via normal terminal (not PTY).
+   */
+  setClaudeVscodeTerminal(terminal: vscode.Terminal | null): void {
+    this.claudeVscodeTerminal = terminal;
+  }
+
+  /**
+   * Returns true if either PTY or VSCode terminal is available.
+   */
+  private hasActiveTerminal(): boolean {
+    return this.claudePtyProcess !== null || this.claudeVscodeTerminal !== null;
   }
 
   /**
@@ -503,21 +519,24 @@ export class AutoHandoffTrigger implements vscode.Disposable {
    * method that works reliably with Claude Code's PTY input handling.
    * (Matches the working METHOD 5 pattern in autonomousCommands.ts)
    */
-  private async sendPtyCommand(command: string): Promise<void> {
-    if (!this.claudePtyProcess) {
-      throw new Error('No Claude Code pty process available');
+  private async sendTerminalCommand(command: string): Promise<void> {
+    if (this.claudePtyProcess) {
+      this.claudePtyProcess.write(command);
+      await new Promise<void>((resolve) => setTimeout(resolve, 500));
+      if (!this.claudePtyProcess) {
+        throw new Error('PTY died before Enter could be sent');
+      }
+      this.claudePtyProcess.write('\r');
+    } else if (this.claudeVscodeTerminal) {
+      this.claudeVscodeTerminal.sendText(command);
+    } else {
+      throw new Error('No Claude Code terminal available');
     }
-    this.claudePtyProcess.write(command);
-    await new Promise<void>((resolve) => setTimeout(resolve, 500));
-    if (!this.claudePtyProcess) {
-      throw new Error('PTY died before Enter could be sent');
-    }
-    this.claudePtyProcess.write('\r');
   }
 
   private async sendSaveClearResume(): Promise<boolean> {
-    if (!this.claudePtyProcess) {
-      this.logger.warn('No Claude Code pty process available for save/clear/resume');
+    if (!this.hasActiveTerminal()) {
+      this.logger.warn('No Claude Code terminal available for save/clear/resume');
       return false;
     }
 
@@ -526,7 +545,7 @@ export class AutoHandoffTrigger implements vscode.Disposable {
       const checkpointsBefore = this.getCheckpointStates();
 
       // Step 1: Send /7_gofer_save
-      await this.sendPtyCommand('/7_gofer_save');
+      await this.sendTerminalCommand('/7_gofer_save');
       this.logger.info('[save/clear/resume] Step 1: Sent /7_gofer_save');
 
       // Step 2: Wait for checkpoint file to appear/update (max 90 seconds)
@@ -539,23 +558,23 @@ export class AutoHandoffTrigger implements vscode.Disposable {
         );
       }
 
-      // Step 3: Send /clear (guard against dead PTY)
-      if (!this.claudePtyProcess) {
-        this.logger.warn('[save/clear/resume] PTY died during save, aborting');
+      // Step 3: Send /clear (guard against dead terminal)
+      if (!this.hasActiveTerminal()) {
+        this.logger.warn('[save/clear/resume] Terminal died during save, aborting');
         return false;
       }
-      await this.sendPtyCommand('/clear');
+      await this.sendTerminalCommand('/clear');
       this.logger.info('[save/clear/resume] Step 3: Sent /clear');
 
       // Brief pause for clear to take effect
       await new Promise<void>((resolve) => setTimeout(resolve, 2000));
 
-      // Step 4: Send /8_gofer_resume (guard against dead PTY)
-      if (!this.claudePtyProcess) {
-        this.logger.warn('[save/clear/resume] PTY died after clear, aborting');
+      // Step 4: Send /8_gofer_resume (guard against dead terminal)
+      if (!this.hasActiveTerminal()) {
+        this.logger.warn('[save/clear/resume] Terminal died after clear, aborting');
         return false;
       }
-      await this.sendPtyCommand('/8_gofer_resume');
+      await this.sendTerminalCommand('/8_gofer_resume');
       this.logger.info('[save/clear/resume] Step 4: Sent /8_gofer_resume — context reset complete');
 
       return true;

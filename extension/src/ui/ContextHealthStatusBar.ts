@@ -800,7 +800,72 @@ export class ContextHealthStatusBar implements vscode.Disposable {
       cwd: workspaceFolder.uri,
     });
     terminal.show();
+
+    // Build enriched context before launching (same pattern as PTY mode)
+    try {
+      const { getSharedContextBuilder } = await import('../autonomousCommands');
+      const contextBuilder = getSharedContextBuilder();
+      if (contextBuilder) {
+        const { ContextBridgeWriter } = await import('../autonomous/ContextBridgeWriter');
+        const bridgeWriter = new ContextBridgeWriter(contextBuilder, workspaceFolder.uri.fsPath);
+        await Promise.race([
+          bridgeWriter.writeEnrichedContext({
+            taskId: 'current',
+            specId: '',
+            description: 'Active session',
+          }),
+          new Promise<void>((resolve) => setTimeout(resolve, 500)),
+        ]);
+      }
+    } catch {
+      /* Non-fatal: launch proceeds without enrichment */
+    }
+
     terminal.sendText(claudeCmd);
+    await vscode.commands.executeCommand('setContext', 'gofer.claudeCodeRunning', true);
+
+    // Wire terminal to AutoHandoffTrigger for save/clear/resume support
+    try {
+      const { wireClaudeTerminalToAutoHandoff } = await import('../autoHandoffBridge');
+      wireClaudeTerminalToAutoHandoff(terminal);
+    } catch {
+      // Non-fatal: auto-handoff bridge may not be available
+    }
+
+    // Clean up when terminal closes (outside try so context flag always clears)
+    const closeListener = vscode.window.onDidCloseTerminal(async (closedTerminal) => {
+      if (closedTerminal === terminal) {
+        try {
+          const { wireClaudeTerminalToAutoHandoff } = await import('../autoHandoffBridge');
+          wireClaudeTerminalToAutoHandoff(null);
+        } catch {
+          /* Non-fatal */
+        }
+
+        // Session-end cleanup: memory consolidation + KnowledgeGraph save
+        try {
+          const { getSharedMemoryManager, getSharedContextBuilder } = await import(
+            '../autonomousCommands'
+          );
+          const memoryManager = getSharedMemoryManager();
+          if (memoryManager) {
+            memoryManager.consolidate().catch(() => {});
+          }
+          const cb = getSharedContextBuilder();
+          if (cb) {
+            const graph = cb.getKnowledgeGraph();
+            if (graph) {
+              graph.save().catch(() => {});
+            }
+          }
+        } catch {
+          /* Non-fatal */
+        }
+
+        await vscode.commands.executeCommand('setContext', 'gofer.claudeCodeRunning', false);
+        closeListener.dispose();
+      }
+    });
   }
 
   /**

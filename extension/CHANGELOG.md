@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.17.2] - 2026-03-13
+
+fix: wire ContinuousMemoryWriter, SlopReducer, and normal-terminal session lifecycle
+
 ## [1.17.1] - 2026-03-11
 
 Fix ACCOrchestrator memory leak on reinitialize and strengthen test assertions

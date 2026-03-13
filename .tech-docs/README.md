@@ -1,24 +1,26 @@
 ---
-generated: "2026-03-11T12:03:00Z"
-source_commit: "c3dafd7246e248e84d2ab4a50c800eb184a1e4cd"
+generated: '2026-03-11T22:14:00Z'
+source_commit: '29a322a5fd292b6346a0cf0d2ae981a59ffe4a4c'
 ---
 
 # Technical Documentation Index
 
 **Repository:** [eai-tools/gofer](https://github.com/eai-tools/gofer)
-**Version:** 1.17.1
-**Generated:** 2026-03-11
+**Version:** 1.17.1 **Generated:** 2026-03-11T22:14:00Z
 
-This directory contains comprehensive technical documentation for the Gofer VSCode extension project.
+This directory contains comprehensive technical documentation for the Gofer
+VSCode extension project.
 
 ---
 
 ## Core Documentation
 
 ### [Overview](overview.md)
+
 Service identity, tech stack, and quick start guide.
 
 **Contents:**
+
 - Service purpose and description
 - Technology stack table
 - Key entry points
@@ -28,9 +30,11 @@ Service identity, tech stack, and quick start guide.
 ---
 
 ### [Architecture](architecture.md)
+
 Internal architecture and component breakdown.
 
 **Contents:**
+
 - System overview with Mermaid diagrams
 - Component breakdown (Extension, Language Server, Orchestrator)
 - Data flow diagrams
@@ -41,9 +45,11 @@ Internal architecture and component breakdown.
 ---
 
 ### [API Reference](api-reference.md)
+
 MCP tools, VSCode commands, and LSP endpoints.
 
 **Contents:**
+
 - 6 MCP tools (detailed parameters/responses)
 - VSCode commands (30+ commands)
 - LSP notifications and requests
@@ -53,9 +59,11 @@ MCP tools, VSCode commands, and LSP endpoints.
 ---
 
 ### [Data Model](data-model.md)
+
 File system schema and data structures.
 
 **Contents:**
+
 - Storage architecture with ER diagram
 - Specification directory structure
 - File formats (spec.md, tasks.md, plan.md)
@@ -66,9 +74,11 @@ File system schema and data structures.
 ---
 
 ### [Configuration](configuration.md)
+
 Environment variables and settings.
 
 **Contents:**
+
 - Environment variables (optional)
 - VSCode settings (50+ settings)
 - Configuration files (.vscode/mcp.json, context-profiles.yaml)
@@ -79,9 +89,11 @@ Environment variables and settings.
 ---
 
 ### [Deployment](deployment.md)
+
 Build, release, and deployment processes.
 
 **Contents:**
+
 - Build pipeline (npm, webpack, vsce)
 - CI/CD workflow (GitHub Actions)
 - Release process (release-auto.sh)
@@ -93,9 +105,11 @@ Build, release, and deployment processes.
 ---
 
 ### [Dependencies](dependencies.md)
+
 Service dependencies and integration points.
 
 **Contents:**
+
 - Upstream dependencies (VSCode, Anthropic, Google, OpenAI, Twilio, GitHub)
 - Downstream dependents (Claude Code, GitHub Copilot)
 - NPM dependencies (production + dev)
@@ -106,9 +120,11 @@ Service dependencies and integration points.
 ---
 
 ### [Changelog](changelog.md)
+
 Recent changes summary.
 
 **Contents:**
+
 - v1.17.1 - Latest release (documentation, bug fixes)
 - v1.17.0 - Major release (context accuracy, ACC)
 - Historical changes (v1.16.x - v1.9.x)
@@ -122,9 +138,11 @@ Recent changes summary.
 ## Code Review
 
 ### [Code Quality](review/code-quality.md)
+
 Code quality assessment across 6 dimensions.
 
 **Scores:**
+
 - **Readability:** 9/10
 - **Correctness:** 8/10
 - **Performance:** 8/10
@@ -135,6 +153,7 @@ Code quality assessment across 6 dimensions.
 **Overall:** 8.5/10
 
 **Key Findings:**
+
 - ✅ Strong TypeScript usage
 - ✅ Comprehensive test coverage
 - ✅ Excellent architecture
@@ -145,9 +164,11 @@ Code quality assessment across 6 dimensions.
 ---
 
 ### [Patterns & Tech Debt](review/patterns.md)
+
 Design patterns and technical debt analysis.
 
 **Patterns Identified:**
+
 1. Dependency Injection (tsyringe)
 2. Provider Pattern (VSCode TreeDataProvider)
 3. Observer Pattern (Event Emitters)
@@ -158,6 +179,7 @@ Design patterns and technical debt analysis.
 8. Repository Pattern
 
 **Anti-Patterns Found:**
+
 - God Object (extension.ts)
 - Spec parsing duplication
 - Magic number thresholds
@@ -170,22 +192,26 @@ Design patterns and technical debt analysis.
 ## Quick Navigation
 
 ### For New Developers
+
 1. Start with [Overview](overview.md) - Understand what Gofer does
 2. Read [Architecture](architecture.md) - Learn the component structure
 3. Check [Configuration](configuration.md) - Set up your environment
 4. See [Deployment](deployment.md) - Build and test locally
 
 ### For API Consumers
+
 1. Read [API Reference](api-reference.md) - MCP tools and commands
 2. Check [Data Model](data-model.md) - Spec file format
 3. Review [Configuration](configuration.md) - Settings and secrets
 
 ### For Operations
+
 1. Review [Deployment](deployment.md) - Release process
 2. Check [Dependencies](dependencies.md) - External services
 3. See [Changelog](changelog.md) - Recent changes
 
 ### For Architects
+
 1. Study [Architecture](architecture.md) - System design
 2. Review [Patterns & Tech Debt](review/patterns.md) - Design decisions
 3. Check [Code Quality](review/code-quality.md) - Quality assessment
@@ -196,7 +222,8 @@ Design patterns and technical debt analysis.
 
 ### Regenerating Documentation
 
-This documentation was generated automatically by analyzing the codebase. To regenerate:
+This documentation was generated automatically by analyzing the codebase. To
+regenerate:
 
 ```bash
 # Run the documentation generation prompt
@@ -205,8 +232,9 @@ This documentation was generated automatically by analyzing the codebase. To reg
 
 ### What's Tracked
 
-- All documentation generated from commit: `c3dafd7246e248e84d2ab4a50c800eb184a1e4cd`
-- Last updated: 2026-03-11
+- All documentation generated from commit:
+  `29a322a5fd292b6346a0cf0d2ae981a59ffe4a4c`
+- Last updated: 2026-03-11T22:14:00Z
 - Version: 1.17.1
 
 ### What to Update Manually
@@ -214,18 +242,22 @@ This documentation was generated automatically by analyzing the codebase. To reg
 When making changes, update these files if applicable:
 
 **Architecture changes:**
+
 - Update [architecture.md](architecture.md) - Component diagrams
 - Update [dependencies.md](dependencies.md) - New service dependencies
 
 **API changes:**
+
 - Update [api-reference.md](api-reference.md) - New tools/commands
 - Update [data-model.md](data-model.md) - Schema changes
 
 **Configuration changes:**
+
 - Update [configuration.md](configuration.md) - New settings
 - Update [deployment.md](deployment.md) - Build process changes
 
 **Release changes:**
+
 - Update [changelog.md](changelog.md) - New release notes
 - Bump `generated` timestamp in frontmatter
 

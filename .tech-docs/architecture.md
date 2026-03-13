@@ -1,13 +1,14 @@
 ---
-generated: "2026-03-11T12:03:00Z"
-source_commit: "c3dafd7246e248e84d2ab4a50c800eb184a1e4cd"
+generated: '2026-03-11T22:14:00Z'
+source_commit: '29a322a5fd292b6346a0cf0d2ae981a59ffe4a4c'
 ---
 
 # Architecture
 
 ## System Overview
 
-Gofer is a three-component system that enables AI assistants to autonomously implement features from specifications.
+Gofer is a three-component system that enables AI assistants to autonomously
+implement features from specifications.
 
 ```mermaid
 flowchart TB
@@ -57,38 +58,38 @@ flowchart TB
 
 **Key Modules:**
 
-| Module | File | Description |
-|--------|------|-------------|
-| Extension Entry | `extension.ts` | Main activation point, DI container setup |
-| Progress Provider | `progressProvider.ts` | Spec tree view in sidebar |
-| Constitution Provider | `constitutionProvider.ts` | Constitution tree view |
-| Memory Provider | `memoryProvider.ts` | Memory management UI |
-| Context Window Provider | `contextWindowProvider.ts` | Context health visualization |
-| LSP Client | `lspClient.ts` | Connects to language server |
-| Auto Updater | `autoUpdater.ts` | Checks for new releases |
-| Branch Spec Manager | `branchSpecManager.ts` | Git branch-aware spec filtering |
+| Module                  | File                       | Description                               |
+| ----------------------- | -------------------------- | ----------------------------------------- |
+| Extension Entry         | `extension.ts`             | Main activation point, DI container setup |
+| Progress Provider       | `progressProvider.ts`      | Spec tree view in sidebar                 |
+| Constitution Provider   | `constitutionProvider.ts`  | Constitution tree view                    |
+| Memory Provider         | `memoryProvider.ts`        | Memory management UI                      |
+| Context Window Provider | `contextWindowProvider.ts` | Context health visualization              |
+| LSP Client              | `lspClient.ts`             | Connects to language server               |
+| Auto Updater            | `autoUpdater.ts`           | Checks for new releases                   |
+| Branch Spec Manager     | `branchSpecManager.ts`     | Git branch-aware spec filtering           |
 
 **Autonomous Subsystem:**
 
-| Module | File | Description |
-|--------|------|-------------|
-| Context Builder | `autonomous/ContextBuilder.ts` | Builds context for AI prompts |
-| Memory Manager | `autonomous/MemoryManager.ts` | Manages memory compaction |
-| Context Health Monitor | `autonomous/ContextHealthMonitor.ts` | Tracks context usage |
-| Scope Guard | `autonomous/ScopeGuard.ts` | Enforces file access boundaries |
-| Cost Budget Enforcer | `autonomous/CostBudgetEnforcer.ts` | Tracks API costs |
-| ACC Orchestrator | `autonomous/ACCOrchestrator.ts` | Auto-context-continuity orchestrator |
+| Module                 | File                                 | Description                          |
+| ---------------------- | ------------------------------------ | ------------------------------------ |
+| Context Builder        | `autonomous/ContextBuilder.ts`       | Builds context for AI prompts        |
+| Memory Manager         | `autonomous/MemoryManager.ts`        | Manages memory compaction            |
+| Context Health Monitor | `autonomous/ContextHealthMonitor.ts` | Tracks context usage                 |
+| Scope Guard            | `autonomous/ScopeGuard.ts`           | Enforces file access boundaries      |
+| Cost Budget Enforcer   | `autonomous/CostBudgetEnforcer.ts`   | Tracks API costs                     |
+| ACC Orchestrator       | `autonomous/ACCOrchestrator.ts`      | Auto-context-continuity orchestrator |
 
 **Service Layer (DI Container):**
 
 ```typescript
 // services/index.ts exports
-- Logger                    // Centralized logging
-- StateManager              // Extension state
-- DisposalService           // Resource cleanup
-- EventHandlers             // Event coordination
-- InitializationService     // Startup sequence
-- CommandRegistry           // Command registration
+-Logger - // Centralized logging
+  StateManager - // Extension state
+  DisposalService - // Resource cleanup
+  EventHandlers - // Event coordination
+  InitializationService - // Startup sequence
+  CommandRegistry; // Command registration
 ```
 
 **File Count:** 140 TypeScript files
@@ -99,11 +100,11 @@ flowchart TB
 
 **Key Modules:**
 
-| Module | File | Description |
-|--------|------|-------------|
-| Server Entry | `server.ts` | LSP connection + MCP handler |
-| MCP Tool Handler | `mcp/toolHandler.ts` | Implements 6 MCP tools |
-| Gofer Loader | `utils/goferLoader.ts` | Parses spec.md files |
+| Module           | File                   | Description                  |
+| ---------------- | ---------------------- | ---------------------------- |
+| Server Entry     | `server.ts`            | LSP connection + MCP handler |
+| MCP Tool Handler | `mcp/toolHandler.ts`   | Implements 6 MCP tools       |
+| Gofer Loader     | `utils/goferLoader.ts` | Parses spec.md files         |
 
 **MCP Tools Implemented:**
 
@@ -146,15 +147,15 @@ sequenceDiagram
 
 **Key Modules:**
 
-| Module | File | Description |
-|--------|------|-------------|
-| Autonomous Orchestrator | `orchestrator/AutonomousOrchestrator_new.ts` | Main coordinator |
-| Spec Loader | `orchestrator/SpecLoader.ts` | Loads specs from filesystem |
-| Task Queue | `orchestrator/TaskQueue.ts` | Manages task execution order |
-| Engineer Agent | `agents/EngineerAgent.ts` | Code validation agent |
-| Test Agent | `agents/TestAgent.ts` | Test execution agent |
-| Logger | `utils/Logger.ts` | Logging utility |
-| Notification Service | `utils/NotificationService.ts` | WhatsApp/Email notifications |
+| Module                  | File                                         | Description                  |
+| ----------------------- | -------------------------------------------- | ---------------------------- |
+| Autonomous Orchestrator | `orchestrator/AutonomousOrchestrator_new.ts` | Main coordinator             |
+| Spec Loader             | `orchestrator/SpecLoader.ts`                 | Loads specs from filesystem  |
+| Task Queue              | `orchestrator/TaskQueue.ts`                  | Manages task execution order |
+| Engineer Agent          | `agents/EngineerAgent.ts`                    | Code validation agent        |
+| Test Agent              | `agents/TestAgent.ts`                        | Test execution agent         |
+| Logger                  | `utils/Logger.ts`                            | Logging utility              |
+| Notification Service    | `utils/NotificationService.ts`               | WhatsApp/Email notifications |
 
 **Orchestrator Flow:**
 
@@ -260,7 +261,8 @@ class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
 }
 ```
 
-**Usage:** Progress panel, constitution panel, memory panel, context window panel
+**Usage:** Progress panel, constitution panel, memory panel, context window
+panel
 
 ### 3. Observer Pattern (Event Emitters)
 
@@ -340,10 +342,10 @@ interface Spec {
 
 ```typescript
 interface Task {
-  id: string;              // FR-001
+  id: string; // FR-001
   description: string;
   status: 'pending' | 'in-progress' | 'completed' | 'failed';
-  dependencies: string[];  // [FR-002]
+  dependencies: string[]; // [FR-002]
   assignedTo?: string;
 }
 ```
@@ -352,9 +354,9 @@ interface Task {
 
 ```typescript
 interface StageProfile {
-  researchBudget: number;    // 0.15 = 15% of context
-  memoryBudget: number;      // 0.25 = 25% of context
-  codeBudget: number;        // 0.40 = 40% of context
+  researchBudget: number; // 0.15 = 15% of context
+  memoryBudget: number; // 0.25 = 25% of context
+  codeBudget: number; // 0.40 = 40% of context
   observationWindow: number; // Keep last 5 turns
 }
 ```
@@ -375,13 +377,13 @@ interface MemoryEntry {
 
 ### External Services
 
-| Service | Purpose | Configuration |
-|---------|---------|---------------|
+| Service       | Purpose                        | Configuration           |
+| ------------- | ------------------------------ | ----------------------- |
 | Anthropic API | Claude models for orchestrator | `gofer.anthropicApiKey` |
-| Google AI API | Gemini models for LLM council | `gofer.googleApiKey` |
-| OpenAI API | GPT models for LLM council | `gofer.openaiApiKey` |
-| Twilio | WhatsApp notifications | Environment variables |
-| GitHub API | Extension auto-updates | Public API |
+| Google AI API | Gemini models for LLM council  | `gofer.googleApiKey`    |
+| OpenAI API    | GPT models for LLM council     | `gofer.openaiApiKey`    |
+| Twilio        | WhatsApp notifications         | Environment variables   |
+| GitHub API    | Extension auto-updates         | Public API              |
 
 ### VSCode Integration Points
 

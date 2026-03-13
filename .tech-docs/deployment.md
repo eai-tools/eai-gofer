@@ -1,6 +1,6 @@
 ---
-generated: "2026-03-11T12:03:00Z"
-source_commit: "c3dafd7246e248e84d2ab4a50c800eb184a1e4cd"
+generated: '2026-03-11T22:14:00Z'
+source_commit: '29a322a5fd292b6346a0cf0d2ae981a59ffe4a4c'
 ---
 
 # Deployment
@@ -8,6 +8,7 @@ source_commit: "c3dafd7246e248e84d2ab4a50c800eb184a1e4cd"
 ## Deployment Model
 
 Gofer is a **VSCode extension** distributed via:
+
 1. **GitHub Releases** (primary)
 2. **VSCode Marketplace** (planned)
 3. **Manual VSIX installation**
@@ -21,6 +22,7 @@ No cloud infrastructure required - runs entirely locally in VSCode.
 ### Local Build
 
 **Prerequisites:**
+
 - Node.js 20.x
 - npm 10.x
 - Git
@@ -51,6 +53,7 @@ npx vsce package
 ```
 
 **Output:**
+
 - `extension/dist/extension.js` - Bundled extension
 - `language-server/dist/server.js` - Language server
 - `gofer-1.17.1.vsix` - Installable package
@@ -64,6 +67,7 @@ npx vsce package
 **File:** `.github/workflows/release.yml`
 
 **Trigger:**
+
 - Manual: `./release-auto.sh patch|minor|major "message"`
 - Creates git tag and GitHub release
 
@@ -126,6 +130,7 @@ jobs:
 ### Automated Release
 
 **Command:**
+
 ```bash
 ./release-auto.sh patch "Fix: Context monitoring accuracy"
 # or
@@ -135,6 +140,7 @@ jobs:
 ```
 
 **What it does:**
+
 1. Validates clean working tree
 2. Runs tests
 3. Bumps version in all `package.json` files
@@ -192,26 +198,26 @@ code .
 
 ### Extension Host
 
-**Process:** VSCode main process
-**Resources:**
+**Process:** VSCode main process **Resources:**
+
 - Memory: ~100MB baseline
 - CPU: Low (event-driven)
 - Disk: Reads `.specify/` on demand
 
 ### Language Server
 
-**Process:** Separate Node.js process
-**Communication:** stdio (JSON-RPC)
+**Process:** Separate Node.js process **Communication:** stdio (JSON-RPC)
 **Resources:**
+
 - Memory: ~50MB baseline
 - CPU: Low (request/response)
 - Lifecycle: Starts with extension, stops on deactivate
 
 ### Orchestrator (Optional)
 
-**Process:** Optional separate Node.js process
-**Communication:** Terminal emulation (node-pty)
-**Resources:**
+**Process:** Optional separate Node.js process **Communication:** Terminal
+emulation (node-pty) **Resources:**
+
 - Memory: ~150MB baseline
 - CPU: Medium (monitoring Claude Code)
 - Lifecycle: Manual start/stop via commands
@@ -267,14 +273,15 @@ fi
 
 **Status Bar Indicators:**
 
-| Indicator | Meaning |
-|-----------|---------|
-| 🟢 Gofer | Initialized, specs loaded |
-| 🟡 Gofer | Warning (context > 50%) |
-| 🔴 Gofer | Critical (context > 70%) |
-| ⚫ Gofer | Not initialized |
+| Indicator | Meaning                   |
+| --------- | ------------------------- |
+| 🟢 Gofer  | Initialized, specs loaded |
+| 🟡 Gofer  | Warning (context > 50%)   |
+| 🔴 Gofer  | Critical (context > 70%)  |
+| ⚫ Gofer  | Not initialized           |
 
 **Diagnostic Commands:**
+
 ```bash
 # Check extension activation
 Developer: Show Running Extensions
@@ -289,26 +296,28 @@ Output > Gofer Language Server
 ### Language Server Health
 
 **Check Connection:**
+
 ```typescript
 // Extension connects via LSP client
 const client = new LanguageClient('gofer', serverOptions, clientOptions);
 await client.start();
 
 // Client.state shows connection status
-client.state === State.Running // ✅ Healthy
+client.state === State.Running; // ✅ Healthy
 ```
 
 **Log Location:**
+
 - VSCode Output > Gofer Language Server
 - `.specify/logs/lsp.log`
 
 **Common Issues:**
 
-| Issue | Solution |
-|-------|----------|
-| Server not starting | Check Node.js version (20.x required) |
-| MCP tools not available | Run `Gofer: Initialize Repository` |
-| Spec parsing errors | Validate YAML frontmatter syntax |
+| Issue                   | Solution                              |
+| ----------------------- | ------------------------------------- |
+| Server not starting     | Check Node.js version (20.x required) |
+| MCP tools not available | Run `Gofer: Initialize Repository`    |
+| Spec parsing errors     | Validate YAML frontmatter syntax      |
 
 ---
 
@@ -350,20 +359,21 @@ git checkout HEAD~1 -- .specify/specs/auth-001/
 
 **Log Files:**
 
-| File | Content |
-|------|---------|
-| `task-execution.jsonl` | Task start/complete events |
-| `tool-audit.jsonl` | MCP tool calls |
-| `context-usage.jsonl` | Context window metrics |
-| `gofer-run-ledger.jsonl` | Cost and token usage |
-| `slop-reduction.jsonl` | Code quality fixes |
-| `validation-findings.jsonl` | Constitution violations |
+| File                        | Content                    |
+| --------------------------- | -------------------------- |
+| `task-execution.jsonl`      | Task start/complete events |
+| `tool-audit.jsonl`          | MCP tool calls             |
+| `context-usage.jsonl`       | Context window metrics     |
+| `gofer-run-ledger.jsonl`    | Cost and token usage       |
+| `slop-reduction.jsonl`      | Code quality fixes         |
+| `validation-findings.jsonl` | Constitution violations    |
 
 **No external telemetry sent** - all logs are local.
 
 ### Performance Metrics
 
 **Available via:**
+
 ```bash
 # Quality dashboard (CLI)
 npm run dashboard
@@ -387,6 +397,7 @@ npm run dashboard
 ### Update Verification
 
 **Auto-Updater:**
+
 1. Checks GitHub releases API
 2. Compares semver
 3. Prompts user to install
@@ -394,6 +405,7 @@ npm run dashboard
 5. Verifies file integrity (SHA256)
 
 **Security:**
+
 - Downloads only from `github.com/eai-tools/gofer`
 - Verifies release is from authenticated GitHub account
 - User must approve installation
@@ -405,11 +417,13 @@ npm run dashboard
 ### Backup Strategy
 
 **What to backup:**
+
 - `.specify/specs/` - All specifications
 - `.specify/memory/` - Constitution and memories
 - `.specify/logs/` - Execution history (optional)
 
 **Recommended:**
+
 ```bash
 # Backup command
 tar -czf gofer-backup-$(date +%Y%m%d).tar.gz .specify/
@@ -419,6 +433,7 @@ tar -xzf gofer-backup-20250115.tar.gz
 ```
 
 **Git-based backup:**
+
 - Commit `.specify/` to git (recommended)
 - Push to remote repository
 - Automatic versioning and history
@@ -426,6 +441,7 @@ tar -xzf gofer-backup-20250115.tar.gz
 ### Recovery Procedures
 
 **Corrupt spec files:**
+
 ```bash
 # 1. Check git history
 git log .specify/specs/
@@ -438,6 +454,7 @@ Gofer: Refresh Specifications
 ```
 
 **Extension crash:**
+
 ```bash
 # 1. Check VSCode logs
 Help > Toggle Developer Tools > Console
@@ -450,6 +467,7 @@ Gofer: Initialize Repository
 ```
 
 **Language server crash:**
+
 ```bash
 # Server auto-restarts on crash
 # Check logs:
@@ -466,12 +484,14 @@ Developer: Reload Window
 ### Per-Workspace Limits
 
 **Tested with:**
+
 - 100+ specifications
 - 1000+ tasks
 - 10MB+ memory storage
 - 100MB+ log files
 
 **Performance:**
+
 - Spec loading: O(n) - cached after first load
 - Task lookup: O(1) - indexed by ID
 - Memory compaction: O(n log n)
@@ -479,6 +499,7 @@ Developer: Reload Window
 ### Multi-Workspace
 
 Each VSCode workspace has independent:
+
 - Extension instance
 - Language server process
 - `.specify/` directory
@@ -491,6 +512,7 @@ Each VSCode workspace has independent:
 **Single-user focused** - not designed for multi-user collaboration.
 
 For teams:
+
 - Each developer has own VSCode instance
 - Share `.specify/` via git
 - Resolve conflicts in spec files manually
@@ -504,6 +526,7 @@ For teams:
 Gofer is a VSCode extension, not a containerized service.
 
 **However:** Works in containerized VSCode:
+
 - GitHub Codespaces ✅
 - VSCode Dev Containers ✅
 - Gitpod ✅

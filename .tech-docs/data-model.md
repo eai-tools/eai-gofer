@@ -1,13 +1,14 @@
 ---
-generated: "2026-03-11T12:03:00Z"
-source_commit: "c3dafd7246e248e84d2ab4a50c800eb184a1e4cd"
+generated: '2026-03-11T22:14:00Z'
+source_commit: '29a322a5fd292b6346a0cf0d2ae981a59ffe4a4c'
 ---
 
 # Data Model
 
 ## Storage Architecture
 
-Gofer uses a file-based storage model with structured directories and markdown files.
+Gofer uses a file-based storage model with structured directories and markdown
+files.
 
 ```mermaid
 erDiagram
@@ -80,6 +81,7 @@ erDiagram
 **Path:** `.specify/specs/{feature-id}/`
 
 **Structure:**
+
 ```
 .specify/specs/auth-001/
 ├── spec.md              # Feature specification
@@ -97,18 +99,20 @@ erDiagram
 **Format:** Markdown with YAML frontmatter
 
 **Schema:**
+
 ```yaml
 ---
-feature: string           # Unique feature ID (e.g., "auth-001")
-status: enum             # draft | in-progress | completed | archived
-created: string          # ISO date (YYYY-MM-DD)
-updated?: string         # ISO date (optional)
-tags?: string[]          # Optional tags
-priority?: enum          # low | medium | high | critical
+feature: string # Unique feature ID (e.g., "auth-001")
+status: enum # draft | in-progress | completed | archived
+created: string # ISO date (YYYY-MM-DD)
+updated?: string # ISO date (optional)
+tags?: string[] # Optional tags
+priority?: enum # low | medium | high | critical
 ---
 ```
 
 **Markdown Sections:**
+
 ```markdown
 # Feature Title
 
@@ -128,6 +132,7 @@ Brief description of the feature
 ## Protected Boundaries
 
 Files that should not be modified by this feature:
+
 - src/core/authentication.ts
 - database/migrations/001_initial.sql
 
@@ -141,6 +146,7 @@ Files that should not be modified by this feature:
 **Dependency Syntax:**
 
 Tasks can declare dependencies:
+
 ```markdown
 2. **FR-002**: Implement user model (depends on FR-001)
 3. **FR-003**: Create API endpoint (depends on FR-002, FR-005)
@@ -151,6 +157,7 @@ Tasks can declare dependencies:
 **Format:** Markdown with checkboxes
 
 **Structure:**
+
 ```markdown
 # Tasks for Feature: auth-001
 
@@ -183,6 +190,7 @@ Tasks can declare dependencies:
 ```
 
 **Status Values:**
+
 - `pending` - Not started
 - `in-progress` - Currently being worked on
 - `completed` - Done and validated
@@ -193,6 +201,7 @@ Tasks can declare dependencies:
 **Format:** Markdown
 
 **Typical Sections:**
+
 ```markdown
 # Implementation Plan: Feature Name
 
@@ -203,21 +212,25 @@ High-level design decisions
 ## Component Breakdown
 
 ### Component 1: Authentication Service
+
 - Responsibilities
 - Dependencies
 - API contracts
 
 ### Component 2: User Model
+
 - Schema design
 - Validation rules
 
 ## Implementation Phases
 
 ### Phase 1: Foundation (Est. 2 hours)
+
 1. Task FR-001
 2. Task FR-002
 
 ### Phase 2: Core Logic (Est. 4 hours)
+
 3. Task FR-003
 
 ## Testing Strategy
@@ -238,6 +251,7 @@ High-level design decisions
 **Format:** Markdown
 
 **Typical Sections:**
+
 ```markdown
 # Research: Feature Name
 
@@ -246,6 +260,7 @@ High-level design decisions
 ### Existing Patterns
 
 Found authentication pattern in:
+
 - src/auth/provider.ts
 - Uses JWT tokens
 - Stores sessions in Redis
@@ -279,37 +294,45 @@ Feature X (specs/feature-x) implemented similar pattern
 **Format:** Markdown with categories
 
 **Schema:**
+
 ```markdown
 # Project Constitution
 
 ## Code Quality
 
 ### Principle 1: Type Safety
+
 All functions must have explicit TypeScript types.
 
 **Enforcement:** gofer_validate_code checks for:
+
 - Return types on all functions
 - Parameter types
 - No use of `any` type
 
 ### Principle 2: Test Coverage
+
 Minimum 80% code coverage for all features.
 
 ## Security
 
 ### Principle 1: Input Validation
+
 All user input must be validated using Zod schemas.
 
 ### Principle 2: SQL Injection Prevention
+
 Use parameterized queries only. Raw SQL forbidden.
 
 ## Performance
 
 ### Principle 1: API Response Time
+
 All API endpoints must respond within 200ms (p95).
 ```
 
 **Categories:**
+
 - Code Quality
 - Security
 - Performance
@@ -326,16 +349,16 @@ All API endpoints must respond within 200ms (p95).
 **Format:** Markdown with YAML frontmatter
 
 **Schema:**
+
 ```yaml
 ---
-id: string              # UUID
-layer: enum             # core | recall | archival
-priority: number        # 1-10 (10 = highest)
-created: number         # Unix timestamp
-updated: number         # Unix timestamp
-tags: string[]          # ["api", "authentication"]
+id: string # UUID
+layer: enum # core | recall | archival
+priority: number # 1-10 (10 = highest)
+created: number # Unix timestamp
+updated: number # Unix timestamp
+tags: string[] # ["api", "authentication"]
 ---
-
 Memory content in markdown format...
 ```
 
@@ -363,6 +386,7 @@ Memory content in markdown format...
 **Format:** JSON Lines (one entry per compaction)
 
 **Schema:**
+
 ```json
 {
   "timestamp": 1642534800000,
@@ -382,6 +406,7 @@ Memory content in markdown format...
 **Path:** `.specify/logs/task-execution.jsonl`
 
 **Schema:**
+
 ```json
 {
   "timestamp": "2025-01-15T10:30:00Z",
@@ -401,6 +426,7 @@ Memory content in markdown format...
 **Path:** `.specify/logs/tool-audit.jsonl`
 
 **Schema:**
+
 ```json
 {
   "timestamp": "2025-01-15T10:30:00Z",
@@ -420,6 +446,7 @@ Memory content in markdown format...
 **Path:** `.specify/logs/context-usage.jsonl`
 
 **Schema:**
+
 ```json
 {
   "timestamp": "2025-01-15T10:30:00Z",
@@ -442,6 +469,7 @@ Memory content in markdown format...
 **Path:** `.specify/logs/gofer-run-ledger.jsonl`
 
 **Schema:**
+
 ```json
 {
   "runId": "run-20250115-1030",
@@ -468,6 +496,7 @@ Memory content in markdown format...
 **Path:** `.specify/logs/slop-reduction.jsonl`
 
 **Schema:**
+
 ```json
 {
   "timestamp": "2025-01-15T10:30:00Z",
@@ -510,6 +539,7 @@ Memory content in markdown format...
 ### Validation Rules
 
 **Spec Status Transitions:**
+
 ```mermaid
 stateDiagram-v2
     [*] --> draft
@@ -521,6 +551,7 @@ stateDiagram-v2
 ```
 
 **Task Status Transitions:**
+
 ```mermaid
 stateDiagram-v2
     [*] --> pending
@@ -538,12 +569,14 @@ No database migrations - file-based storage only.
 ### Format Migrations
 
 **v1.0 → v1.17 (GitHub Gofer Format)**
+
 - Migrated from JSON specs to Markdown with YAML frontmatter
 - Added `.specify/` directory structure
 - Introduced constitution.md
 - Added memory system
 
 **Migration Command:**
+
 ```bash
 # Via extension
 Gofer: Upgrade to Gofer Format

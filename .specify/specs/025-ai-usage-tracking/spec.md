@@ -1,10 +1,11 @@
 ---
-id: 025-ai-usage-tracking
-title: AI Token Usage Tracking Panel
-status: draft
-created: 2026-03-13T12:00:00Z
-updated: 2026-03-13T12:00:00Z
-author: Claude
+id: "025-ai-usage-tracking"
+title: "AI Token Usage Tracking Panel"
+status: "draft"
+created: "2026-03-13T12:00:00Z"
+updated: "2026-03-14"
+priority: "medium"
+assignee: "engineer-agent"
 ---
 
 # AI Token Usage Tracking Panel

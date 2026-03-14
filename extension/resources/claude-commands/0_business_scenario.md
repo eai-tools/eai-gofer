@@ -31,6 +31,9 @@ scenario and route them through the **unified Gofer pipeline**.
 │                         ↓ AUTO                                   │
 │  6. /6_gofer_validate    → validation-report.md                 │
 │     Verify implementation matches plan and spec                  │
+│                         ↓ AUTO                                   │
+│  6a. /6a_gofer_engineering_review → engineering-review-report.md │
+│      Post-implementation review with iterative fix cycles        │
 │                                                                  │
 │  All artifacts go to: .specify/specs/{feature}/                 │
 └─────────────────────────────────────────────────────────────────┘
@@ -496,7 +499,7 @@ Output:
 ROUTING: GOFER PIPELINE
 FEATURE: {feature-name}
 STARTING: /1_gofer_research
-AUTO-CHAIN: research → specify → plan → tasks → implement → validate
+AUTO-CHAIN: research → specify → plan → tasks → implement → validate → engineering-review
 REASON: [explanation]
 ```
 
@@ -585,6 +588,7 @@ The unified Gofer pipeline automatically chains commands:
 /3_gofer_plan completes     → auto-invokes /4_gofer_tasks
 /4_gofer_tasks completes    → auto-invokes /5_gofer_implement
 /5_gofer_implement completes→ auto-invokes /6_gofer_validate
+/6_gofer_validate completes → auto-invokes /6a_gofer_engineering_review
 ```
 
 **The user only needs to run `/0_business_scenario` once** - the orchestrator
@@ -623,14 +627,15 @@ If context window is filling up:
 
 ### Core Pipeline (Auto-Chaining)
 
-| #   | Command              | Output                 | Description              |
-| --- | -------------------- | ---------------------- | ------------------------ |
-| 1   | `/1_gofer_research`  | research.md            | Codebase + tech research |
-| 2   | `/2_gofer_specify`   | spec.md                | Feature specification    |
-| 3   | `/3_gofer_plan`      | plan.md, data-model.md | Technical architecture   |
-| 4   | `/4_gofer_tasks`     | tasks.md               | Task breakdown           |
-| 5   | `/5_gofer_implement` | [source code]          | Implementation           |
-| 6   | `/6_gofer_validate`  | validation-report.md   | Verification             |
+| #   | Command                        | Output                       | Description              |
+| --- | ------------------------------ | ---------------------------- | ------------------------ |
+| 1   | `/1_gofer_research`            | research.md                  | Codebase + tech research |
+| 2   | `/2_gofer_specify`             | spec.md                      | Feature specification    |
+| 3   | `/3_gofer_plan`                | plan.md, data-model.md       | Technical architecture   |
+| 4   | `/4_gofer_tasks`               | tasks.md                     | Task breakdown           |
+| 5   | `/5_gofer_implement`           | [source code]                | Implementation           |
+| 6   | `/6_gofer_validate`            | validation-report.md         | Verification             |
+| 6a  | `/6a_gofer_engineering_review` | engineering-review-report.md | Post-impl review + fixes |
 
 ### Auxiliary Commands
 

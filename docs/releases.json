@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.17.2",
+  "latest_version": "1.17.3",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-03-13T02:00:11.837Z",
+  "last_updated": "2026-03-14T00:59:23.383Z",
   "releases": [
+    {
+      "version": "1.17.3",
+      "tag_name": "v1.17.3",
+      "published_at": "2026-03-14T00:59:23.382Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.17.3.vsix",
+      "notes": "feat: add post-implementation engineering review stage (6a) to pipeline",
+      "prerelease": false,
+      "size_mb": 30.3
+    },
     {
       "version": "1.17.2",
       "tag_name": "v1.17.2",
@@ -81,15 +90,6 @@
       "published_at": "2026-03-06T02:52:03.078Z",
       "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.16.1.vsix",
       "notes": "Fix validation findings: add consent prompt for AI instruction generation, expand Python detection, add restart re-prompt test",
-      "prerelease": false,
-      "size_mb": 30.3
-    },
-    {
-      "version": "1.16.0",
-      "tag_name": "v1.16.0",
-      "published_at": "2026-03-05T22:36:10.856Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.16.0.vsix",
-      "notes": "feat: auto-generate AI instruction files on repository init",
       "prerelease": false,
       "size_mb": 30.3
     }

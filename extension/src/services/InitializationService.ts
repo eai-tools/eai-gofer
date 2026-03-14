@@ -238,22 +238,31 @@ export class InitializationService {
     const mcpConfigHelper = new MCPConfigHelper(workspacePath, deps.context);
     await mcpConfigHelper.autoSetup();
 
-    // Check for template updates
-    await this.checkForTemplateUpdates(workspacePath, deps.context);
+    // Check if extension version was upgraded
+    const versionUpgraded = await this.checkForTemplateUpdates(workspacePath, deps.context);
 
-    // Sync missing bundled resources
-    await migrator.syncMissingResources();
+    if (versionUpgraded) {
+      // Full resource sync: copies all commands, agents, prompts, scripts, templates
+      await migrator.upgrade({ skipConfirmation: true });
+      // Write version file only after successful upgrade to ensure retry on failure
+      await this.writeVersionFile(workspacePath);
+    } else {
+      // Only sync resources that are missing (empty/absent directories)
+      await migrator.syncMissingResources();
+    }
 
     vscode.window.setStatusBarMessage('$(notebook) Gofer - Enterprise AI ready', 3000);
   }
 
   /**
-   * Check if templates need updating
+   * Check if the extension version was upgraded since last activation.
+   *
+   * @returns true when the extension version is newer than the stored version
    */
   private async checkForTemplateUpdates(
     workspacePath: string,
     context: vscode.ExtensionContext
-  ): Promise<void> {
+  ): Promise<boolean> {
     const fs = require('fs/promises');
     const path = require('path');
 
@@ -272,16 +281,35 @@ export class InitializationService {
 
       // Compare versions using semver comparison
       if (this.compareVersions(currentVersion, storedVersion) > 0) {
-        this.logger.info('InitializationService', 'Extension version updated, checking templates', {
+        this.logger.info('InitializationService', 'Extension version updated', {
           from: storedVersion,
           to: currentVersion,
         });
-
-        // Update version file
-        await fs.writeFile(versionFilePath, currentVersion, 'utf-8');
+        return true;
       }
     } catch (error) {
       this.logger.warn('InitializationService', 'Failed to check template versions', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+
+    return false;
+  }
+
+  /**
+   * Write the current extension version to .gofer-version file.
+   * Called after successful resource sync to make the update transactional.
+   */
+  private async writeVersionFile(workspacePath: string): Promise<void> {
+    const fs = require('fs/promises');
+    const path = require('path');
+    const packageJson = require('../../package.json');
+
+    try {
+      const versionFilePath = path.join(workspacePath, '.specify', '.gofer-version');
+      await fs.writeFile(versionFilePath, packageJson.version, 'utf-8');
+    } catch (error) {
+      this.logger.warn('InitializationService', 'Failed to write version file', {
         error: error instanceof Error ? error.message : String(error),
       });
     }

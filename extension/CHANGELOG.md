@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.18.0] - 2026-03-14
+
+fix: sync bundled resources (commands, agents, prompts, scripts) to workspaces on extension version upgrade - previously new/updated resources were not copied when upgrading from e.g. 1.17.2 to 1.17.3
+
 ## [1.17.3] - 2026-03-14
 
 feat: add post-implementation engineering review stage (6a) to pipeline

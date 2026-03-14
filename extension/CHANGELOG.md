@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.17.3] - 2026-03-14
+
+feat: add post-implementation engineering review stage (6a) to pipeline
+
 ## [1.17.2] - 2026-03-13
 
 fix: wire ContinuousMemoryWriter, SlopReducer, and normal-terminal session lifecycle

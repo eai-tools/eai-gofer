@@ -35,7 +35,7 @@ scenario and route them through the **unified Gofer pipeline**.
 │                         ↓ AUTO                                   │
 │  6. /6_gofer_validate    → validation-report.md                 │
 │     Verify implementation matches plan and spec                  │
-│                         ↓ MANUAL                                 │
+│                         ↓ AUTO                                   │
 │  6a. /6a_gofer_engineering_review → engineering-review-report.md │
 │      Post-implementation review with iterative fix cycles        │
 │                                                                  │

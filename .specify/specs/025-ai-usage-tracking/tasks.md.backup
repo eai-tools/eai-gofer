@@ -6,7 +6,7 @@ status: implemented
 implementedAt: 2026-03-15T12:57:18Z
 implementedBy: Douglas Ross, Claude Sonnet 4.5
 gitCommit: b681a1d1ed26c762337c3374ee78f474bb588fab
-tasksCompleted: 64/74 (86.5%)
+tasksCompleted: 66/69 (95.7%)
 approvedBy: user
 approvedAt: 2026-03-13T16:30:00Z
 created: 2026-03-13
@@ -149,29 +149,29 @@ graph LR
   - For 'current' period: filter by sessionId from MultiSessionBridgeWatcher
   - For 'current' period: add budget fields from CostBudgetEnforcer.getSnapshot()
   - Implement 5s cache TTL (return cached if within TTL)
-- [X] T013 [Monitor-Impl] Implement FileSystemWatcher for council-usage.jsonl in `extension/src/autonomous/AIUsageMonitor.ts`
+- [ ] T013 [Monitor-Impl] Implement FileSystemWatcher for council-usage.jsonl in `extension/src/autonomous/AIUsageMonitor.ts`
   - Create RelativePattern for `.specify/logs/council-usage.jsonl`
   - Call `vscode.workspace.createFileSystemWatcher(pattern)`
   - Subscribe to `onDidChange` and `onDidCreate` events
   - On event: clear cache, call getUsageData() for all periods, emit 'usage-update'
   - Guard against duplicate watchers (check if watcher already exists)
   - Store watcher instance for later disposal
-- [X] T014 [Monitor-Impl] Implement periodic polling (5s interval) in `extension/src/autonomous/AIUsageMonitor.ts`
+- [ ] T014 [Monitor-Impl] Implement periodic polling (5s interval) in `extension/src/autonomous/AIUsageMonitor.ts`
   - `startMonitoring()`: Create setInterval calling getUsageData() every 5000ms
   - Only start polling if file watcher is active (hybrid approach)
   - Emit 'usage-update' event after each poll with trigger='polling'
   - Guard against duplicate intervals (clear existing before creating new)
   - Store interval ID for later disposal
-- [X] T015 [Monitor-Impl] Implement session detection integration in `extension/src/autonomous/AIUsageMonitor.ts`
+- [ ] T015 [Monitor-Impl] Implement session detection integration in `extension/src/autonomous/AIUsageMonitor.ts`
   - Subscribe to MultiSessionBridgeWatcher 'bridge-update' events
   - Extract sessionId from BridgeData for "Current Session" filtering
   - Emit 'usage-update' when active session changes (session ID differs)
   - Store subscription for later unsubscription
-- [X] T016 [Monitor-Impl] Implement `forceRefresh()` method in `extension/src/autonomous/AIUsageMonitor.ts`
+- [ ] T016 [Monitor-Impl] Implement `forceRefresh()` method in `extension/src/autonomous/AIUsageMonitor.ts`
   - Clear cache (set cacheTimestamp to 0)
   - Call getUsageData() for all periods
   - Emit 'usage-update' event with trigger='manual'
-- [X] T017 [Monitor-Impl] Implement `dispose()` for cleanup in `extension/src/autonomous/AIUsageMonitor.ts`
+- [ ] T017 [Monitor-Impl] Implement `dispose()` for cleanup in `extension/src/autonomous/AIUsageMonitor.ts`
   - Dispose file watcher if active: `watcher?.dispose()`
   - Clear polling interval if active: `clearInterval(pollingTimer)`
   - Unsubscribe from MultiSessionBridgeWatcher events
@@ -190,46 +190,46 @@ graph LR
 
 ### Tests for User Story 1 (TDD - Write First)
 
-- [X] T018 [P] [US1] Unit test: `getChildren()` returns correct hierarchy in `tests/unit/aiUsageProvider.test.ts`
+- [ ] T018 [P] [US1] Unit test: `getChildren()` returns correct hierarchy in `tests/unit/aiUsageProvider.test.ts`
   - Test root level: returns 3 period items (Current Session, Today, This Week)
   - Test period expansion: returns provider items for that period
   - Test provider expansion: returns token breakdown items (Input, Output)
   - Test empty data: returns empty array (not undefined)
-- [X] T019 [P] [US1] Unit test: `getTreeItem()` formats labels and icons correctly in `tests/unit/aiUsageProvider.test.ts`
+- [ ] T019 [P] [US1] Unit test: `getTreeItem()` formats labels and icons correctly in `tests/unit/aiUsageProvider.test.ts`
   - Test period item: "Current Session ($2.45)" with $(pulse) icon
   - Test provider item: "Anthropic: $1.50 (50,000 tokens)" with provider icon
   - Test token item: "Input Tokens: 30,000 ($0.09)" with arrow icon
   - Test collapsible states: Collapsed for periods/providers, None for tokens
-- [X] T020 [P] [US1] Integration test: panel updates when monitor emits 'usage-update' in `tests/integration/aiUsagePanel.test.ts`
+- [ ] T020 [P] [US1] Integration test: panel updates when monitor emits 'usage-update' in `tests/integration/aiUsagePanel.test.ts`
   - Create provider, subscribe to monitor, emit event, verify refresh called
   - Verify getChildren() called after event
   - Verify TreeView re-renders (via mock TreeDataProvider)
 
 ### Implementation for User Story 1
 
-- [X] T021 [P] [US1] Create `extension/src/aiUsageProvider.ts` class implementing TreeDataProvider
+- [ ] T021 [P] [US1] Create `extension/src/aiUsageProvider.ts` class implementing TreeDataProvider
   - Implement vscode.TreeDataProvider<AIUsageItem> interface
   - Add EventEmitter: `_onDidChangeTreeData` and `onDidChangeTreeData` property
   - Constructor: Accept AIUsageMonitor instance
   - Subscribe to monitor's 'usage-update' events → call refresh()
   - Store monitor reference for data access
-- [X] T022 [US1] Implement `getChildren(element?)` method in `extension/src/aiUsageProvider.ts`
+- [ ] T022 [US1] Implement `getChildren(element?)` method in `extension/src/aiUsageProvider.ts`
   - If element undefined (root): return time period items (Current Session, Today, This Week)
   - If element is period: get data from monitor.getUsageData(period), return provider items
   - If element is provider: return token breakdown items (Input Tokens, Output Tokens)
   - Format costs with 2 decimals, tokens with thousands separator
   - Return empty array if no data (not undefined)
-- [X] T023 [US1] Implement `getTreeItem(element)` method in `extension/src/aiUsageProvider.ts`
+- [ ] T023 [US1] Implement `getTreeItem(element)` method in `extension/src/aiUsageProvider.ts`
   - Period items: label="Current Session", description="$2.45", icon=$(pulse)
   - For 'current' period: append budget if available: "$2.45 / $10.00 (24%)"
   - Provider items: label="Anthropic", description="$1.50 (50,000 tokens)", icon provider-specific
   - Token items: label="Input Tokens", description="30,000 ($0.09)", icon=$(arrow-right)
   - Set collapsibleState: Collapsed for periods/providers, None for token items
   - Set contextValue for context menu support: 'period', 'provider', 'tokens'
-- [X] T024 [US1] Implement `refresh()` method in `extension/src/aiUsageProvider.ts`
+- [ ] T024 [US1] Implement `refresh()` method in `extension/src/aiUsageProvider.ts`
   - Fire `_onDidChangeTreeData.fire()` to trigger VSCode re-render
   - Log debug message: "AI Usage panel refreshed"
-- [X] T025 [US1] Add budget progress display to Current Session item in `extension/src/aiUsageProvider.ts`
+- [ ] T025 [US1] Add budget progress display to Current Session item in `extension/src/aiUsageProvider.ts`
   - Check if budgetLimitUsd exists in current period data
   - Format budget string: "$2.45 / $10.00 (24%)"
   - Add to Current Session description
@@ -250,31 +250,31 @@ graph LR
 
 ### Tests for User Story 2 (TDD - Write First)
 
-- [X] T026 [P] [US2] Integration test: Today aggregation excludes yesterday's data in `tests/integration/aiUsageUpdates.test.ts`
+- [ ] T026 [P] [US2] Integration test: Today aggregation excludes yesterday's data in `tests/integration/aiUsageUpdates.test.ts`
   - Create usage logs for yesterday (timestamp < today 00:00)
   - Create usage logs for today (timestamp >= today 00:00)
   - Call getUsageData('today'), verify only today's usage included
-- [X] T027 [P] [US2] Integration test: This Week aggregation includes all week data in `tests/integration/aiUsageUpdates.test.ts`
+- [ ] T027 [P] [US2] Integration test: This Week aggregation includes all week data in `tests/integration/aiUsageUpdates.test.ts`
   - Create usage logs across Monday-Sunday of current week
   - Create usage logs from last week (timestamp < Monday 00:00)
   - Call getUsageData('week'), verify only current week included
-- [X] T028 [P] [US2] Unit test: time periods are expandable/collapsible in `tests/unit/aiUsageProvider.test.ts`
+- [ ] T028 [P] [US2] Unit test: time periods are expandable/collapsible in `tests/unit/aiUsageProvider.test.ts`
   - Test Today item has collapsibleState = Collapsed
   - Test This Week item has collapsibleState = Collapsed
   - Test expanding Today item returns provider children
 
 ### Implementation for User Story 2
 
-- [X] T029 [US2] Enhance `getUsageData()` in `extension/src/autonomous/AIUsageMonitor.ts` with date filtering
+- [ ] T029 [US2] Enhance `getUsageData()` in `extension/src/autonomous/AIUsageMonitor.ts` with date filtering
   - For 'today': fromDate = start of day (new Date().setHours(0,0,0,0)), toDate = now
   - For 'week': fromDate = start of week (Monday 00:00), toDate = now
   - Use date-fns or native Date methods for date calculations
   - Pass fromDate/toDate to UsageLogger.getUsageSummary()
-- [X] T030 [US2] Add Today period item in `extension/src/aiUsageProvider.ts` getChildren()
+- [ ] T030 [US2] Add Today period item in `extension/src/aiUsageProvider.ts` getChildren()
   - Root level: add "Today" item after Current Session
   - Icon: $(calendar), description: total cost for today
   - Expansion: show provider breakdown for today's usage
-- [X] T031 [US2] Add This Week period item in `extension/src/aiUsageProvider.ts` getChildren()
+- [ ] T031 [US2] Add This Week period item in `extension/src/aiUsageProvider.ts` getChildren()
   - Root level: add "This Week" item after Today
   - Icon: $(calendar), description: total cost for this week
   - Expansion: show provider breakdown for week's usage
@@ -291,30 +291,30 @@ graph LR
 
 ### Tests for User Story 3 (TDD - Write First)
 
-- [X] T032 [P] [US3] Unit test: budget color-coding matches thresholds in `tests/unit/aiUsageProvider.test.ts`
+- [ ] T032 [P] [US3] Unit test: budget color-coding matches thresholds in `tests/unit/aiUsageProvider.test.ts`
   - Test healthy (<80%): green color, no warning icon
   - Test warning (80-100%): yellow color, warning icon
   - Test exceeded (>100%): red color, error icon
-- [X] T033 [P] [US3] Integration test: budget status updates on usage change in `tests/integration/aiUsagePanel.test.ts`
+- [ ] T033 [P] [US3] Integration test: budget status updates on usage change in `tests/integration/aiUsagePanel.test.ts`
   - Set budget limit, start at 0%, verify green
   - Add usage to 85%, verify changes to yellow
   - Add usage to 105%, verify changes to red
 
 ### Implementation for User Story 3
 
-- [X] T034 [US3] Integrate CostBudgetEnforcer in `extension/src/autonomous/AIUsageMonitor.ts` getUsageData()
+- [ ] T034 [US3] Integrate CostBudgetEnforcer in `extension/src/autonomous/AIUsageMonitor.ts` getUsageData()
   - For 'current' period: call costBudgetEnforcer.getSnapshot()
   - Extract budgetLimitUsd, percentUsed, status from snapshot
   - Add to AIUsageData: budgetLimitUsd, budgetPercentUsed, budgetStatus
   - If no budget configured, omit budget fields (undefined)
-- [X] T035 [US3] Add budget color-coding logic to `extension/src/aiUsageProvider.ts` getTreeItem()
+- [ ] T035 [US3] Add budget color-coding logic to `extension/src/aiUsageProvider.ts` getTreeItem()
   - Check budgetStatus in Current Session data
   - Set ThemeColor based on status:
     - 'healthy': new ThemeColor('charts.green')
     - 'warning': new ThemeColor('charts.yellow')
     - 'exceeded': new ThemeColor('charts.red')
   - Apply color to period item icon
-- [X] T036 [US3] Add budget warnings to Current Session item in `extension/src/aiUsageProvider.ts`
+- [ ] T036 [US3] Add budget warnings to Current Session item in `extension/src/aiUsageProvider.ts`
   - If budgetStatus === 'warning': append warning icon to description
   - If budgetStatus === 'exceeded': append error icon, change text to "BUDGET EXCEEDED"
   - Update tooltip to explain budget status
@@ -331,11 +331,11 @@ graph LR
 
 ### Tests for User Story 4 (TDD - Write First)
 
-- [X] T037 [P] [US4] Unit test: `updateDisplay()` formats text and color correctly in `tests/unit/aiUsageStatusBar.test.ts`
+- [ ] T037 [P] [US4] Unit test: `updateDisplay()` formats text and color correctly in `tests/unit/aiUsageStatusBar.test.ts`
   - Test text format: "$(dollar) AI: $2.45"
   - Test tooltip: "AI Usage: $2.45 / $10.00 (24%) - Click for details"
   - Test color green when healthy, yellow when warning, red when exceeded
-- [X] T038 [P] [US4] Unit test: config change (enabled/disabled) shows/hides status bar in `tests/unit/aiUsageStatusBar.test.ts`
+- [ ] T038 [P] [US4] Unit test: config change (enabled/disabled) shows/hides status bar in `tests/unit/aiUsageStatusBar.test.ts`
   - Enable: status bar visible
   - Disable: status bar hidden
   - Re-enable: status bar reappears
@@ -343,28 +343,28 @@ graph LR
   - Set `gofer.aiUsage.statusBar.alignment` to 'right', verify StatusBarAlignment.Right
   - Change to 'left', verify StatusBarAlignment.Left
   - Verify priority remains 99 regardless of alignment
-- [X] T039 [P] [US4] Integration test: status bar updates within 1s of usage change in `tests/integration/aiUsageUpdates.test.ts`
+- [ ] T039 [P] [US4] Integration test: status bar updates within 1s of usage change in `tests/integration/aiUsageUpdates.test.ts`
   - Start monitor, measure latency from file change to status bar update
   - Verify latency <1000ms (p95)
-- [X] T040 [P] [US4] Integration test: clicking status bar opens QuickPick with provider breakdown in `tests/integration/aiUsagePanel.test.ts`
+- [ ] T040 [P] [US4] Integration test: clicking status bar opens QuickPick with provider breakdown in `tests/integration/aiUsagePanel.test.ts`
   - Simulate status bar click
   - Verify QuickPick shown with provider list
   - Verify each provider shows cost and token count
 
 ### Implementation for User Story 4
 
-- [X] T041 [P] [US4] Create `extension/src/ui/AIUsageStatusBar.ts` class implementing Disposable
+- [ ] T041 [P] [US4] Create `extension/src/ui/AIUsageStatusBar.ts` class implementing Disposable
   - Constructor: Accept ExtensionContext, AIUsageMonitor
   - Create status bar item: alignment Left, priority 99 (next to ContextHealthStatusBar)
   - Set command: 'gofer.showAIUsage'
   - Store in context.subscriptions for auto-disposal
-- [X] T042 [US4] Implement `connect(monitor)` method in `extension/src/ui/AIUsageStatusBar.ts`
+- [ ] T042 [US4] Implement `connect(monitor)` method in `extension/src/ui/AIUsageStatusBar.ts`
   - Subscribe to monitor's 'usage-update' events
   - On event: extract current period data, call updateDisplay()
   - Read config: `gofer.aiUsage.statusBar.enabled`
   - Show/hide status bar based on config
   - Listen for config changes, update visibility dynamically
-- [X] T043 [US4] Implement `updateDisplay(data)` method in `extension/src/ui/AIUsageStatusBar.ts`
+- [ ] T043 [US4] Implement `updateDisplay(data)` method in `extension/src/ui/AIUsageStatusBar.ts`
   - Text format: `$(dollar) AI: $${data.totalCostUsd.toFixed(2)}`
   - Tooltip: `AI Usage: $${current} / $${limit} (${percent}%) - Click for details`
   - Color-code using ThemeColor based on budgetStatus:
@@ -372,12 +372,12 @@ graph LR
     - Yellow: statusBarItem.warningForeground
     - Red: statusBarItem.errorForeground
   - Call statusBarItem.show() to make visible
-- [X] T044 [US4] Register command `gofer.showAIUsage` in `extension/src/extension.ts`
+- [ ] T044 [US4] Register command `gofer.showAIUsage` in `extension/src/extension.ts`
   - Show QuickPick with provider breakdown
   - Items: each provider with label "Anthropic: $1.50 (50,000 tokens)"
   - On selection: option to focus AI Usage panel or copy cost to clipboard
   - Register command in context.subscriptions
-- [X] T045 [US4] Implement `dispose()` for cleanup in `extension/src/ui/AIUsageStatusBar.ts`
+- [ ] T045 [US4] Implement `dispose()` for cleanup in `extension/src/ui/AIUsageStatusBar.ts`
   - Dispose status bar item: statusBarItem.dispose()
   - Unsubscribe from monitor events
   - Unsubscribe from config change events
@@ -394,19 +394,19 @@ graph LR
 
 ### Tests for Integration (TDD - Write First)
 
-- [X] T046 [P] [Integration-Test] Integration test: extension activates without errors in `tests/integration/aiUsagePanel.test.ts`
+- [ ] T046 [P] [Integration-Test] Integration test: extension activates without errors in `tests/integration/aiUsagePanel.test.ts`
   - Activate extension, verify no errors logged
   - Verify AI Usage panel registered
   - Verify status bar created (if enabled)
-- [X] T047 [P] [Integration-Test] Integration test: AI TOKEN USAGE panel appears in Gofer sidebar in `tests/integration/aiUsagePanel.test.ts`
+- [ ] T047 [P] [Integration-Test] Integration test: AI TOKEN USAGE panel appears in Gofer sidebar in `tests/integration/aiUsagePanel.test.ts`
   - Open Gofer sidebar (executeCommand('workbench.view.extension.gofer'))
   - Verify goferAIUsage view visible
   - Verify Context Window panel removed (not visible)
-- [X] T048 [P] [Integration-Test] Integration test: panel displays usage data after activation in `tests/integration/aiUsagePanel.test.ts`
+- [ ] T048 [P] [Integration-Test] Integration test: panel displays usage data after activation in `tests/integration/aiUsagePanel.test.ts`
   - Activate extension with sample usage log
   - Expand Current Session item
   - Verify provider items displayed (Anthropic, OpenAI, Google)
-- [X] T049 [P] [Integration-Test] Integration test: reinitialization does not leak memory in `tests/integration/aiUsagePanel.test.ts`
+- [ ] T049 [P] [Integration-Test] Integration test: reinitialization does not leak memory in `tests/integration/aiUsagePanel.test.ts`
   - Count timers before: `process._getActiveHandles().length`
   - Initialize extension 10 times
   - Count timers after, verify increase ≤5 (expected stable growth)
@@ -424,34 +424,34 @@ graph LR
   - Message: "Replace CONTEXT WINDOW panel with AI TOKEN USAGE? You will lose token category breakdown (CLAUDE.md, Auto Memory, etc.)"
   - If 'Cancel': abort installation, log warning, return early
   - If 'Replace': proceed with T050a-T052
-- [X] T050a Update `extension/src/extension.ts` activation to remove Context Window
+- [ ] T050a Update `extension/src/extension.ts` activation to remove Context Window
   - Remove ContextWindowProvider import
   - Remove ContextWindowProvider instantiation (lines ~244-253)
   - Remove registerTreeDataProvider('goferContextWindow', ...) call
   - Remove contextWindowProvider from StateManager
-- [X] T050b Update `extension/src/extension.ts` activation to add AI Usage components
+- [ ] T050b Update `extension/src/extension.ts` activation to add AI Usage components
   - Import AIUsageMonitor, AIUsageProvider, AIUsageStatusBar
   - After UsageLogger creation: instantiate AIUsageMonitor(usageLogger, costBudgetEnforcer, multiSessionWatcher)
   - Instantiate AIUsageProvider(aiUsageMonitor)
   - Register TreeDataProvider: `vscode.window.registerTreeDataProvider('goferAIUsage', aiUsageProvider)`
   - Store in StateManager: `state.aiUsageProvider = aiUsageProvider`, `state.aiUsageMonitor = aiUsageMonitor`
   - Add to disposal: `context.subscriptions.push(aiUsageMonitor)`
-- [X] T050c Add AIUsageStatusBar registration in `extension/src/extension.ts`
+- [ ] T050c Add AIUsageStatusBar registration in `extension/src/extension.ts`
   - Instantiate AIUsageStatusBar(context, aiUsageMonitor)
   - Read config: `gofer.aiUsage.statusBar.alignment` (left or right)
   - Set alignment dynamically based on config value
   - Call statusBar.connect(aiUsageMonitor)
   - Add to disposal: `context.subscriptions.push(statusBar)`
   - Check config before showing: only create if `gofer.aiUsage.statusBar.enabled === true`
-- [X] T053 Update `extension/src/services/InitializationService.ts` wiring
+- [ ] T053 Update `extension/src/services/InitializationService.ts` wiring
   - In initializeForWorkspace(): call aiUsageMonitor.startMonitoring() after initialization
   - Add to disposables list: `disposables.push(aiUsageMonitor, aiUsageStatusBar)`
   - Ensure monitoring starts only after all data sources initialized
-- [X] T054 Add configuration change listener in `extension/src/extension.ts`
+- [ ] T054 Add configuration change listener in `extension/src/extension.ts`
   - Listen for changes to `gofer.aiUsage.statusBar.enabled`
   - On change: show/hide status bar dynamically without restart
   - Use `vscode.workspace.onDidChangeConfiguration(e => { if (e.affectsConfiguration('gofer.aiUsage')) ... })`
-- [X] T055 Update disposal logic in `extension/src/services/InitializationService.ts`
+- [ ] T055 Update disposal logic in `extension/src/services/InitializationService.ts`
   - In reinitializeExtension(): call aiUsageMonitor.stopMonitoring() before disposing
   - Clear StateManager fields: `state.aiUsageProvider = undefined`, `state.aiUsageMonitor = undefined`
   - Ensure all timers, watchers, and event subscriptions cleaned up
@@ -467,56 +467,56 @@ graph LR
 
 **Duration**: ~2-3 hours
 
-- [X] T056 [P] Register panel refresh command in `extension/src/extension.ts`
+- [ ] T056 [P] Register panel refresh command in `extension/src/extension.ts`
   - Command ID: 'gofer.refreshAIUsage'
   - Implementation: call aiUsageMonitor.forceRefresh()
   - Register in context.subscriptions
   - Add command to package.json contributes.commands
-- [X] T057 [P] Add refresh button to panel toolbar in `extension/package.json`
+- [ ] T057 [P] Add refresh button to panel toolbar in `extension/package.json`
   - Add to contributes.menus.view/title (view === goferAIUsage)
   - Icon: $(refresh), command: gofer.refreshAIUsage, group: navigation
-- [X] T058 [P] Add error handling for missing council-usage.jsonl in `extension/src/autonomous/AIUsageMonitor.ts`
+- [ ] T058 [P] Add error handling for missing council-usage.jsonl in `extension/src/autonomous/AIUsageMonitor.ts`
   - Gracefully handle file not found: return empty AIUsageData
   - Panel displays: "No AI usage data yet" (empty tree)
   - Status bar displays: "$(dollar) AI: $0.00"
   - Log info message (not error): "Usage log not found, waiting for AI calls"
-- [X] T059 [P] Add error handling for JSON parse errors in `extension/src/autonomous/AIUsageMonitor.ts`
+- [ ] T059 [P] Add error handling for JSON parse errors in `extension/src/autonomous/AIUsageMonitor.ts`
   - Catch JSON.parse errors when reading council-usage.jsonl
   - Log warning: "Failed to parse usage log entry: [error]"
   - Skip malformed entry, continue parsing remaining entries
   - Emit 'usage-update' with partial data
-- [X] T060 [P] Add error handling for missing session data in `extension/src/autonomous/AIUsageMonitor.ts`
+- [ ] T060 [P] Add error handling for missing session data in `extension/src/autonomous/AIUsageMonitor.ts`
   - If MultiSessionBridgeWatcher returns null (no active session)
   - Set 'current' period to show all-time data (no session filtering)
   - Tooltip explains: "Session ID not detected - showing all-time usage"
   - Don't throw error - graceful degradation
-- [X] T061 [P] Add logging for observability in `extension/src/autonomous/AIUsageMonitor.ts`
+- [ ] T061 [P] Add logging for observability in `extension/src/autonomous/AIUsageMonitor.ts`
   - Log when FileSystemWatcher starts: "[AIUsageMonitor] FileSystemWatcher started"
   - Log when polling fallback activates: "[AIUsageMonitor] Polling refresh triggered"
   - Log usage data updates at debug level: "[AIUsageMonitor] Usage updated: $X.XX"
   - Use Gofer's logging infrastructure (if available)
-- [X] T062 Debounce file watcher events in `extension/src/autonomous/AIUsageMonitor.ts`
+- [ ] T062 Debounce file watcher events in `extension/src/autonomous/AIUsageMonitor.ts`
   - Multiple file writes within 100ms should trigger only one event (debounce window)
   - Use setTimeout to delay event emission by 100ms (more aggressive than spec's <500ms requirement)
   - Clear timeout if another write occurs within window (debounce pattern)
   - Max latency: 200ms file write + 100ms debounce + 100ms render = 400ms (exceeds spec target)
   - Reduces redundant panel refreshes while maintaining real-time feel
   - Note: Spec requires <500ms file watch latency; this implementation achieves <400ms
-- [X] T063 Cache usage data to avoid re-parsing in `extension/src/autonomous/AIUsageMonitor.ts`
+- [ ] T063 Cache usage data to avoid re-parsing in `extension/src/autonomous/AIUsageMonitor.ts`
   - Already implemented in T012 (5s cache TTL)
   - Verify cache works: getUsageData() returns cached data within TTL
   - Verify cache clears on file change or forceRefresh()
-- [X] T064 [P] Add JSDoc comments to public methods in `extension/src/aiUsageProvider.ts`
+- [ ] T064 [P] Add JSDoc comments to public methods in `extension/src/aiUsageProvider.ts`
   - Document getChildren() parameters and return type
   - Document getTreeItem() parameters and return type
   - Document refresh() purpose and when it's called
   - Follow existing Gofer JSDoc style
-- [X] T065 [P] Add JSDoc comments to public methods in `extension/src/autonomous/AIUsageMonitor.ts`
+- [ ] T065 [P] Add JSDoc comments to public methods in `extension/src/autonomous/AIUsageMonitor.ts`
   - Document getUsageData() parameters, return type, caching behavior
   - Document startMonitoring() side effects (watchers, timers)
   - Document stopMonitoring() cleanup guarantees
   - Document events emitted and their payloads
-- [X] T066 [P] Add JSDoc comments to public methods in `extension/src/ui/AIUsageStatusBar.ts`
+- [ ] T066 [P] Add JSDoc comments to public methods in `extension/src/ui/AIUsageStatusBar.ts`
   - Document connect() integration with monitor
   - Document updateDisplay() parameters and behavior
   - Document dispose() cleanup guarantees

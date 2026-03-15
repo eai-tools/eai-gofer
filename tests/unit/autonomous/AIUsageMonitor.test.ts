@@ -36,9 +36,11 @@ vi.mock('vscode', () => {
       getConfiguration: vi.fn(() => ({
         get: vi.fn((key: string, defaultValue: unknown) => {
           if (key === 'aiUsage.polling.interval') return 5000;
+          if (key === 'aiUsage.api.pollingInterval') return 60000;
           return defaultValue;
         }),
       })),
+      onDidChangeConfiguration: vi.fn(() => ({ dispose: vi.fn() })),
     },
     RelativePattern: class {
       constructor(

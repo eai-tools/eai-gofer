@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.19.2",
+  "latest_version": "1.20.0",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-03-15T04:50:57.389Z",
+  "last_updated": "2026-03-15T08:01:18.579Z",
   "releases": [
+    {
+      "version": "1.20.0",
+      "tag_name": "v1.20.0",
+      "published_at": "2026-03-15T08:01:18.578Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.20.0.vsix",
+      "notes": "feat: provider API usage tracking (Feature 026)",
+      "prerelease": false,
+      "size_mb": 30.3
+    },
     {
       "version": "1.19.2",
       "tag_name": "v1.19.2",
@@ -81,15 +90,6 @@
       "published_at": "2026-03-11T10:16:28.423Z",
       "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.17.0.vsix",
       "notes": "Wire ContextBuilder + Adaptive Context Compaction (ACC): activate 3,700 LOC of dead context management code, implement 5-stage progressive compaction at 70/80/85/90/99% thresholds",
-      "prerelease": false,
-      "size_mb": 30.3
-    },
-    {
-      "version": "1.16.6",
-      "tag_name": "v1.16.6",
-      "published_at": "2026-03-10T03:59:55.183Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.16.6.vsix",
-      "notes": "Rightsized CLAUDE.md, AGENTS.md, and copilot-instructions.md to under 60 lines each; updated instruction templates for compact generated output",
       "prerelease": false,
       "size_mb": 30.3
     }

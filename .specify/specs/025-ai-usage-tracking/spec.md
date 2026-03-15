@@ -3,7 +3,7 @@ id: "025-ai-usage-tracking"
 title: "AI Token Usage Tracking Panel"
 status: "draft"
 created: "2026-03-13T12:00:00Z"
-updated: "2026-03-14"
+updated: "2026-03-15"
 priority: "medium"
 assignee: "engineer-agent"
 ---

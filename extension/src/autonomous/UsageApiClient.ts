@@ -301,6 +301,8 @@ export class UsageApiClient implements UsageDataSource {
 
     for (const bucket of usageResp.data ?? []) {
       totalInput += Math.max(0, bucket.input_tokens ?? 0);
+      totalInput += Math.max(0, bucket.cache_creation_input_tokens ?? 0);
+      totalInput += Math.max(0, bucket.cached_input_tokens ?? 0);
       totalOutput += Math.max(0, bucket.output_tokens ?? 0);
     }
 

@@ -153,6 +153,58 @@ describe('UsageApiClient', () => {
       expect(summary.byProvider.openai.costUsd).toBeCloseTo(1.5);
     });
 
+    it('should include cache tokens in Anthropic input total (FR-025)', async () => {
+      const anthropicUsage = {
+        data: [
+          {
+            bucket: '2026-03-15T10:00:00Z',
+            input_tokens: 1000,
+            output_tokens: 500,
+            cache_creation_input_tokens: 300,
+            cached_input_tokens: 200,
+          },
+        ],
+      };
+      const anthropicCost = { data: [{ bucket: '2026-03-15', token_cost_usd_cents: 100 }] };
+
+      let callIndex = 0;
+      const responses = [anthropicUsage, anthropicCost];
+
+      vi.mocked(https.request).mockImplementation((_opts: unknown, callback: unknown) => {
+        const respBody = JSON.stringify(responses[callIndex % responses.length]);
+        callIndex++;
+
+        const mockRes = new EventEmitter();
+        mockRes.statusCode = 200;
+        const mockReq = new EventEmitter();
+        mockReq.end = vi.fn();
+        mockReq.destroy = vi.fn();
+        mockReq.setTimeout = vi.fn();
+
+        const cb = callback as (res: typeof mockRes) => void;
+        process.nextTick(() => {
+          cb(mockRes);
+          process.nextTick(() => {
+            mockRes.emit('data', Buffer.from(respBody));
+            mockRes.emit('end');
+          });
+        });
+        return mockReq as unknown as ReturnType<typeof https.request>;
+      });
+
+      const singleKeyClient = new UsageApiClient((id) =>
+        id === 'anthropic' ? 'sk-ant-admin-test' : undefined
+      );
+
+      const summary = await singleKeyClient.getUsageSummary();
+      // 1000 input + 300 cache_creation + 200 cached = 1500 total input
+      expect(summary.totalInputTokens).toBe(1500);
+      expect(summary.totalOutputTokens).toBe(500);
+      expect(summary.byProvider.anthropic.tokens).toBe(2000); // 1500 + 500
+
+      singleKeyClient.dispose();
+    });
+
     it('should return empty summary when disposed', async () => {
       client.dispose();
       const summary = await client.getUsageSummary();

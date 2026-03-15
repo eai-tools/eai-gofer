@@ -134,8 +134,10 @@ Validation loads all artifacts and spawns 6 agents — context pressure is high.
 
 ## Step 2: Spawn 6 Specialist Validation Agents
 
-Launch all 6 agents **in parallel** using the Task tool. Each agent receives the
-feature context and returns structured findings.
+**CRITICAL**: You **MUST** launch all 6 agents **in parallel** using the Task
+tool. Do NOT perform validation work inline in the main context. The main
+context should only orchestrate, score the rubric, and review agent outputs.
+Each agent receives the feature context and returns structured findings.
 
 ### Agent 1: Correctness Validator
 
@@ -645,10 +647,10 @@ has_ui: [true/false]
 Proceed to **Step 12: Attribution Logging** then **Step 13: Memory Update
 Check**.
 
-**AUTO-CHAIN**: After completing attribution logging and memory update check,
-invoke `/6a_gofer_engineering_review` using the Skill tool to continue the
-pipeline. The engineering review stage performs post-implementation
-cross-checking with iterative fix cycles.
+**AUTO-CHAIN (MANDATORY)**: You MUST immediately invoke the next pipeline stage
+by calling the Skill tool with skill="/6a_gofer_engineering_review". Do NOT ask
+the user for confirmation. Do NOT output "Ready for next stage". Just invoke the
+skill NOW.
 
 ### If TOTAL < 100: FAIL
 

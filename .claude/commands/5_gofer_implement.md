@@ -445,9 +445,60 @@ After all tasks complete:
 
 ---
 
-## Step 11: Report and Continue
+## Step 11: Engineering Review Gate (Up to 5 cycles)
 
-After implementation complete:
+Before proceeding to validation, run an iterative engineering review to catch
+implementation issues early.
+
+### Review Cycle (repeat up to 5 times)
+
+**CRITICAL**: You **MUST** dispatch 3 review agents in parallel using the Task
+tool. Do NOT perform this review work inline in the main context.
+
+**Agent 1**: engineer-review (sonnet) — cross-check spec↔plan↔implementation
+alignment
+
+```
+Task: subagent_type="engineer-review", model="sonnet"
+Prompt: "Review alignment between spec.md, plan.md, tasks.md, and the
+implemented code in {FEATURE_DIR}. Check that all acceptance criteria are
+implemented. Report Red/Yellow/Gray findings."
+```
+
+**Agent 2**: codebase-analyzer (sonnet) — verify implementation patterns
+
+```
+Task: subagent_type="codebase-analyzer", model="sonnet"
+Prompt: "Verify that the implemented code follows existing codebase patterns
+from {FEATURE_DIR}/research.md and matches the architecture in
+{FEATURE_DIR}/plan.md. Report Red/Yellow/Gray findings."
+```
+
+**Agent 3**: validation-correctness (sonnet) — verify acceptance criteria
+coverage
+
+```
+Task: subagent_type="validation-correctness", model="sonnet"
+Prompt: "Verify that every acceptance criterion in {FEATURE_DIR}/spec.md
+has been implemented and has corresponding test coverage.
+Report Red/Yellow/Gray findings with coverage gaps."
+```
+
+**After agents return:**
+
+1. Classify findings: Red (blocking) / Yellow (should fix) / Gray
+   (informational)
+2. If NO Red or Yellow findings → PASS → proceed to auto-chain
+3. If Red or Yellow findings exist: a. Fix findings directly in implementation
+   code (Red first, then Yellow) b. Re-run build/test/lint to verify fixes c.
+   Increment cycle counter d. If cycle <= 5 → re-run review agents e. If cycle >
+   5 → log remaining findings, proceed with warnings
+
+---
+
+## Step 12: Report and Continue
+
+After implementation complete and review gate passes:
 
 ```
 ════════════════════════════════════════════════════════════════
@@ -463,19 +514,21 @@ After implementation complete:
   - Phase 4: US2 ✓
   - Phase 5: Polish ✓
 
+  Engineering Review: PASSED (cycle [N] of 5)
+
   Files created/modified:
   - src/models/user.ts (new)
   - src/services/userService.ts (new)
   - src/routes/users.ts (new)
   - src/index.ts (modified)
 
-  Ready for next stage: /6_gofer_validate
-
 ════════════════════════════════════════════════════════════════
 ```
 
-If orchestrated by `/0_business_scenario`, the orchestrator will automatically
-invoke `/6_gofer_validate` next.
+**AUTO-CHAIN (MANDATORY)**: You MUST immediately invoke the next pipeline stage
+by calling the Skill tool with skill="/6_gofer_validate". Do NOT ask the user
+for confirmation. Do NOT output "Ready for next stage". Just invoke the skill
+NOW.
 
 ---
 

@@ -78,9 +78,10 @@ Planning dispatches multiple agents — keep main context lightweight.
 
 ## Step 2: Dispatch Planning Agents
 
-Launch planning agents **in parallel** using the Task tool. Each agent reads
-source documents independently and writes its output artifact. This keeps main
-context clean while agents handle heavy content generation.
+**CRITICAL**: You **MUST** launch these agents using the Task tool. Do NOT
+perform this work inline in the main context. The main context should only
+orchestrate and review agent outputs. Each agent reads source documents
+independently and writes its output artifact.
 
 ### Agent 1: Implementation Plan Writer
 
@@ -419,9 +420,57 @@ This updates AI agent context files with new technology from this plan.
 
 ---
 
-## Step 7: Report and Continue
+## Step 7: Engineering Review Gate (Up to 5 cycles)
 
-After all artifacts are created:
+Before proceeding to the next stage, run an iterative engineering review to
+catch misalignment early.
+
+### Review Cycle (repeat up to 5 times)
+
+**You MUST dispatch 3 review agents in parallel** using the Task tool:
+
+**Agent 1**: engineer-review (sonnet) — cross-check spec↔plan alignment
+
+```
+Task: subagent_type="engineer-review", model="sonnet"
+Prompt: "Review alignment between spec.md and plan.md in {FEATURE_DIR}.
+Find every gap, inconsistency, and misalignment between the specification
+and the implementation plan. Report Red/Yellow/Gray findings."
+```
+
+**Agent 2**: codebase-analyzer (sonnet) — verify file paths and code patterns
+
+```
+Task: subagent_type="codebase-analyzer", model="sonnet"
+Prompt: "Verify that the plan at {FEATURE_DIR}/plan.md references correct
+file paths and follows existing codebase patterns from {FEATURE_DIR}/research.md.
+Report Red/Yellow/Gray findings."
+```
+
+**Agent 3**: validation-correctness (sonnet) — verify acceptance criteria
+coverage
+
+```
+Task: subagent_type="validation-correctness", model="sonnet"
+Prompt: "Verify that every acceptance criterion in {FEATURE_DIR}/spec.md
+is addressed by the plan at {FEATURE_DIR}/plan.md.
+Report Red/Yellow/Gray findings with coverage gaps."
+```
+
+**After agents return:**
+
+1. Classify findings: Red (blocking) / Yellow (should fix) / Gray
+   (informational)
+2. If NO Red or Yellow findings → PASS → proceed to auto-chain
+3. If Red or Yellow findings exist: a. Fix findings directly in plan artifacts
+   (Red first, then Yellow) b. Increment cycle counter c. If cycle <= 5 → re-run
+   review agents d. If cycle > 5 → log remaining findings, proceed with warnings
+
+---
+
+## Step 8: Report and Continue
+
+After all artifacts are created and review gate passes:
 
 ```
 ✓ Plan complete: {FEATURE_DIR}/plan.md
@@ -432,11 +481,12 @@ Artifacts created:
 - contracts/: API specifications
 - quickstart.md: Testing guide
 
-Ready for next stage: /4_gofer_tasks
+Engineering Review: PASSED (cycle [N] of 5)
 ```
 
-If orchestrated by `/0_business_scenario`, the orchestrator will automatically
-invoke `/4_gofer_tasks` next.
+**AUTO-CHAIN (MANDATORY)**: You MUST immediately invoke the next pipeline stage
+by calling the Skill tool with skill="/4_gofer_tasks". Do NOT ask the user for
+confirmation. Do NOT output "Ready for next stage". Just invoke the skill NOW.
 
 ---
 

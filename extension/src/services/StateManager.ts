@@ -33,6 +33,9 @@ import { ResearchChunker } from '../autonomous/ResearchChunker';
 import { CostBudgetEnforcer } from '../autonomous/CostBudgetEnforcer';
 import { ACCOrchestrator } from '../autonomous/ACCOrchestrator';
 import { ObservationBridge } from '../autonomous/ObservationBridge';
+import { AIUsageMonitor } from '../autonomous/AIUsageMonitor';
+import { AIUsageProvider } from '../ui/AIUsageProvider';
+import { AIUsageStatusBar } from '../ui/AIUsageStatusBar';
 
 /**
  * State Manager Service
@@ -83,6 +86,11 @@ export class StateManager {
   private _costBudgetEnforcer?: CostBudgetEnforcer;
   private _accOrchestrator?: ACCOrchestrator;
   private _observationBridge?: ObservationBridge;
+
+  // AI Usage Tracking (Feature 025)
+  private _aiUsageMonitor?: AIUsageMonitor;
+  private _aiUsageProvider?: AIUsageProvider;
+  private _aiUsageStatusBar?: AIUsageStatusBar;
 
   // Flags
   private _isUpgrading = false;
@@ -312,6 +320,32 @@ export class StateManager {
     this._observationBridge = value;
   }
 
+  // --- AI Usage Tracking (Feature 025) ---
+
+  public get aiUsageMonitor(): AIUsageMonitor | undefined {
+    return this._aiUsageMonitor;
+  }
+
+  public set aiUsageMonitor(value: AIUsageMonitor | undefined) {
+    this._aiUsageMonitor = value;
+  }
+
+  public get aiUsageProvider(): AIUsageProvider | undefined {
+    return this._aiUsageProvider;
+  }
+
+  public set aiUsageProvider(value: AIUsageProvider | undefined) {
+    this._aiUsageProvider = value;
+  }
+
+  public get aiUsageStatusBar(): AIUsageStatusBar | undefined {
+    return this._aiUsageStatusBar;
+  }
+
+  public set aiUsageStatusBar(value: AIUsageStatusBar | undefined) {
+    this._aiUsageStatusBar = value;
+  }
+
   // --- Flags ---
 
   public get isUpgrading(): boolean {
@@ -346,6 +380,9 @@ export class StateManager {
     this._workspaceContextProvider = undefined;
     this._accOrchestrator = undefined;
     this._observationBridge = undefined;
+    this._aiUsageMonitor = undefined;
+    this._aiUsageProvider = undefined;
+    this._aiUsageStatusBar = undefined;
   }
 
   /**

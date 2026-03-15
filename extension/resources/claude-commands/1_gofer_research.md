@@ -95,7 +95,9 @@ Once you have the feature description:
 
 ## Step 2: Spawn Parallel Research Agents
 
-Launch these specialized agents **in parallel** using the Task tool:
+**CRITICAL**: You **MUST** launch these agents using the Task tool. Do NOT
+perform this research work inline in the main context. The main context should
+only orchestrate and review agent outputs.
 
 ### Agent 1: Codebase Locator
 
@@ -328,12 +330,12 @@ Key findings:
 - [Finding 1]
 - [Finding 2]
 
-Ready for next stage: /2_gofer_specify
-
 ````
 
-3. **If orchestrated by /0_business_scenario**: The orchestrator will
-automatically invoke `/2_gofer_specify` next.
+**AUTO-CHAIN (MANDATORY)**: You MUST immediately invoke the next pipeline stage
+by calling the Skill tool with skill="/2_gofer_specify". Do NOT ask the user
+for confirmation. Do NOT output "Ready for next stage". Just invoke the skill
+NOW.
 
 ---
 

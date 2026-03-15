@@ -98,9 +98,9 @@ and user input.
 
 ## Step 2: Dispatch Specification Agents
 
-Delegate heavy document generation to sub-agents. The main context stays
-lightweight as an orchestrator while agents do the content generation in their
-own context windows.
+**CRITICAL**: You **MUST** delegate document generation to sub-agents using the
+Task tool. Do NOT perform this work inline in the main context. The main context
+should only orchestrate and review agent outputs.
 
 ### Agent 1: Specification Writer
 
@@ -460,12 +460,11 @@ Checklist: {FEATURE_DIR}/checklists/requirements.md
 {If sequence diagrams generated:}
 Sequence Diagrams: {FEATURE_DIR}/sequence-diagrams/
 Selected Option: Option {N} - {Name}
-
-Ready for next stage: /3_gofer_plan
 ```
 
-If orchestrated by `/0_business_scenario`, the orchestrator will automatically
-invoke `/3_gofer_plan` next.
+**AUTO-CHAIN (MANDATORY)**: You MUST immediately invoke the next pipeline stage
+by calling the Skill tool with skill="/3_gofer_plan". Do NOT ask the user for
+confirmation. Do NOT output "Ready for next stage". Just invoke the skill NOW.
 
 ---
 

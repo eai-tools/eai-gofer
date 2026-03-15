@@ -76,9 +76,9 @@ Task generation dispatches agents — keep main context lightweight.
 
 ## Step 2: Dispatch Task Generation Agents
 
-Launch task generation agents using the Task tool. The main context stays
-lightweight while agents handle heavy document generation in their own context
-windows.
+**CRITICAL**: You **MUST** launch these agents using the Task tool. Do NOT
+perform this work inline in the main context. The main context should only
+orchestrate and review agent outputs.
 
 ### Agent 1: Task Breakdown Generator
 
@@ -212,26 +212,50 @@ After both agents complete:
 
 ---
 
-## Step 4: Engineer Review Gate
+## Step 4: Engineering Review Gate (Up to 5 cycles)
 
-Run the engineer-review agent to cross-reference spec, plan, and tasks for
-alignment gaps:
+Before proceeding to the approval gate, run an iterative engineering review to
+catch misalignment early.
+
+### Review Cycle (repeat up to 5 times)
+
+**You MUST dispatch 3 review agents in parallel** using the Task tool:
+
+**Agent 1**: engineer-review (sonnet) — cross-check spec↔plan↔tasks alignment
 
 ```
 Task: subagent_type="engineer-review", model="sonnet"
-Prompt: "Review alignment between spec.md, plan.md, and tasks.md in [FEATURE_DIR].
+Prompt: "Review alignment between spec.md, plan.md, and tasks.md in {FEATURE_DIR}.
 Find every gap, inconsistency, and misalignment. Report Red/Yellow/Gray findings."
 ```
 
-**If Red findings exist** (blocking):
+**Agent 2**: codebase-analyzer (sonnet) — verify file paths and code patterns
 
-1. Apply fixes to tasks.md (max 3 correction iterations)
-2. Re-run engineer-review after each fix
-3. If issues persist after 3 iterations, generate escalation report and halt for
-   human review
+```
+Task: subagent_type="codebase-analyzer", model="sonnet"
+Prompt: "Verify that the tasks at {FEATURE_DIR}/tasks.md reference correct
+file paths and follow existing codebase patterns from {FEATURE_DIR}/research.md.
+Report Red/Yellow/Gray findings."
+```
 
-**If only Yellow/Gray findings**: Proceed. Note recommendations for future
-improvement.
+**Agent 3**: validation-correctness (sonnet) — verify acceptance criteria
+coverage
+
+```
+Task: subagent_type="validation-correctness", model="sonnet"
+Prompt: "Verify that every acceptance criterion in {FEATURE_DIR}/spec.md
+is covered by at least one task in {FEATURE_DIR}/tasks.md.
+Report Red/Yellow/Gray findings with coverage gaps."
+```
+
+**After agents return:**
+
+1. Classify findings: Red (blocking) / Yellow (should fix) / Gray
+   (informational)
+2. If NO Red or Yellow findings → PASS → proceed to approval gate
+3. If Red or Yellow findings exist: a. Fix findings directly in tasks.md (Red
+   first, then Yellow) b. Increment cycle counter c. If cycle <= 5 → re-run
+   review agents d. If cycle > 5 → log remaining findings, proceed with warnings
 
 ---
 
@@ -382,11 +406,13 @@ After approval received:
 ```
 ✓ Tasks APPROVED: {FEATURE_DIR}/tasks.md
 
-Ready for next stage: /5_gofer_implement
+Engineering Review: PASSED (cycle [N] of 5)
 ```
 
-If orchestrated by `/0_business_scenario`, the orchestrator will automatically
-invoke `/5_gofer_implement` next.
+**AUTO-CHAIN (MANDATORY)**: You MUST immediately invoke the next pipeline stage
+by calling the Skill tool with skill="/5_gofer_implement". Do NOT ask the user
+for confirmation. Do NOT output "Ready for next stage". Just invoke the skill
+NOW.
 
 ---
 

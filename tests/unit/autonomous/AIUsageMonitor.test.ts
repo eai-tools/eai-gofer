@@ -385,4 +385,60 @@ describe('AIUsageMonitor', () => {
       expect(cached).toHaveLength(3);
     });
   });
+
+  describe('setPanelVisible() (T022)', () => {
+    it('should skip polling when panel is not visible', async () => {
+      monitor.startMonitoring();
+      monitor.setPanelVisible(false);
+
+      // Advance past polling interval
+      vi.advanceTimersByTime(60000);
+
+      // getUsageSummary should not be called while hidden
+      const calls = (mockLogger.getUsageSummary as ReturnType<typeof vi.fn>).mock.calls.length;
+      monitor.setPanelVisible(false);
+      vi.advanceTimersByTime(60000);
+      const callsAfter = (mockLogger.getUsageSummary as ReturnType<typeof vi.fn>).mock.calls.length;
+
+      // No additional calls while hidden
+      expect(callsAfter).toBe(calls);
+    });
+
+    it('should trigger immediate refresh after idle threshold', async () => {
+      // Spy on forceRefresh to detect if it's called
+      const forceRefreshSpy = vi.spyOn(monitor, 'forceRefresh');
+
+      monitor.startMonitoring();
+      // Force a call to set lastApiCallTimestamp
+      await monitor.forceRefresh();
+      forceRefreshSpy.mockClear();
+
+      // Hide panel
+      monitor.setPanelVisible(false);
+
+      // Advance past idle threshold (10 minutes)
+      vi.advanceTimersByTime(10 * 60 * 1000 + 1000);
+
+      // Show panel again — should trigger immediate refresh
+      monitor.setPanelVisible(true);
+
+      expect(forceRefreshSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not refresh if idle time is under threshold', async () => {
+      monitor.startMonitoring();
+      await monitor.forceRefresh();
+      const callsBefore = (mockLogger.getUsageSummary as ReturnType<typeof vi.fn>).mock.calls
+        .length;
+
+      // Hide briefly
+      monitor.setPanelVisible(false);
+      vi.advanceTimersByTime(5000); // 5 seconds — well under 10 min threshold
+      monitor.setPanelVisible(true);
+
+      // No immediate refresh triggered
+      const callsAfter = (mockLogger.getUsageSummary as ReturnType<typeof vi.fn>).mock.calls.length;
+      expect(callsAfter).toBe(callsBefore);
+    });
+  });
 });

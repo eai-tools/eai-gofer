@@ -3,7 +3,7 @@ id: "024-wire-contextbuilder-acc"
 title: "Wire ContextBuilder + Adaptive Context Compaction (ACC)"
 status: "complete"
 created: "2026-03-11T03:00:00Z"
-updated: "2026-03-14"
+updated: "2026-03-15"
 priority: "medium"
 assignee: "engineer-agent"
 ---

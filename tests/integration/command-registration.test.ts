@@ -128,6 +128,10 @@ describe('Command Registration Validation', () => {
     );
     councilCommandsSource = readFileSync(councilCommandsPath, 'utf-8');
 
+    // Read UI status bar sources (some commands are registered in status bar constructors)
+    const aiUsageStatusBarPath = path.join(__dirname, '../../extension/src/ui/AIUsageStatusBar.ts');
+    const aiUsageStatusBarSource = readFileSync(aiUsageStatusBarPath, 'utf-8');
+
     // Combined for convenience
     allCommandSources = [
       extensionSource,
@@ -135,6 +139,7 @@ describe('Command Registration Validation', () => {
       memoryCommandsSource,
       specCommandsSource,
       councilCommandsSource,
+      aiUsageStatusBarSource,
     ].join('\n');
   });
 
@@ -349,7 +354,7 @@ describe('Command Registration Validation', () => {
     );
     expect(views).toContainEqual(
       expect.objectContaining({
-        id: 'goferContextWindow',
+        id: 'goferAIUsage',
       })
     );
     expect(views).toContainEqual(
@@ -361,7 +366,7 @@ describe('Command Registration Validation', () => {
 
   it('should register tree data providers for all views', () => {
     expect(extensionSource).toContain("registerTreeDataProvider('goferProgress'");
-    expect(extensionSource).toContain("registerTreeDataProvider('goferContextWindow'");
+    expect(extensionSource).toContain("registerTreeDataProvider('goferAIUsage'");
     expect(extensionSource).toContain("registerTreeDataProvider('goferMemory'");
   });
 
@@ -487,11 +492,10 @@ describe('Package.json Validation', () => {
     );
     expect(progressRefresh).toBeDefined();
 
-    const contextWindowRefresh = viewTitleMenus.find(
-      (menu) =>
-        menu.command === 'gofer.refreshContextWindow' && menu.when === 'view == goferContextWindow'
+    const aiUsageRefresh = viewTitleMenus.find(
+      (menu) => menu.command === 'gofer.refreshAIUsage' && menu.when === 'view == goferAIUsage'
     );
-    expect(contextWindowRefresh).toBeDefined();
+    expect(aiUsageRefresh).toBeDefined();
 
     const memoryRefresh = viewTitleMenus.find(
       (menu) => menu.command === 'gofer.refreshMemory' && menu.when === 'view == goferMemory'

@@ -9,6 +9,10 @@ import { ProgressProvider } from './progressProvider';
 import { ConstitutionProvider } from './constitutionProvider';
 import { MemoryProvider } from './memoryProvider';
 import { ContextWindowProvider } from './contextWindowProvider';
+// AI Token Usage Tracking (Feature 025)
+import { AIUsageMonitor } from './autonomous/AIUsageMonitor';
+import { AIUsageProvider } from './ui/AIUsageProvider';
+import { AIUsageStatusBar } from './ui/AIUsageStatusBar';
 import { BranchSpecManager } from './branchSpecManager';
 import { AutoUpdater } from './autoUpdater';
 import { GoferLSPClient } from './lspClient';
@@ -232,22 +236,25 @@ function registerTreeViews(context: vscode.ExtensionContext): void {
   const memoryProvider = new MemoryProvider(workspacePath);
   const contextWindowProvider = new ContextWindowProvider(workspacePath);
 
+  // AI Usage Provider (Feature 025) - replaces Context Window in sidebar
+  const aiUsageProvider = new AIUsageProvider();
+
   // Store in state
   const state = getState();
   state.progressProvider = progressProvider;
   state.constitutionProvider = constitutionProvider;
   state.memoryProvider = memoryProvider;
   state.contextWindowProvider = contextWindowProvider;
+  state.aiUsageProvider = aiUsageProvider;
 
   // Register tree data providers - MUST happen before commands are registered
   context.subscriptions.push(
     vscode.window.registerTreeDataProvider('goferProgress', progressProvider)
   );
 
-  // Context Window replaces Constitution as a sidebar panel (020)
-  // Constitution remains accessible via Command Palette (gofer.showConstitution)
+  // AI Token Usage panel replaces Context Window (Feature 025)
   context.subscriptions.push(
-    vscode.window.registerTreeDataProvider('goferContextWindow', contextWindowProvider)
+    vscode.window.registerTreeDataProvider('goferAIUsage', aiUsageProvider)
   );
 
   context.subscriptions.push(vscode.window.registerTreeDataProvider('goferMemory', memoryProvider));
@@ -256,6 +263,11 @@ function registerTreeViews(context: vscode.ExtensionContext): void {
   // Created early so command is available, connected to monitor later
   const contextHealthStatusBar = new ContextHealthStatusBar(context);
   state.contextHealthStatusBar = contextHealthStatusBar;
+
+  // Create AI usage status bar (Feature 025)
+  // Created early so command is available, connected to monitor later
+  const aiUsageStatusBar = new AIUsageStatusBar(context);
+  state.aiUsageStatusBar = aiUsageStatusBar;
 }
 
 /**
@@ -296,6 +308,9 @@ async function reinitializeExtension(context: vscode.ExtensionContext): Promise<
         contextUsageLogger: state.contextUsageLogger,
         accOrchestrator: state.accOrchestrator,
         observationBridge: state.observationBridge,
+        aiUsageMonitor: state.aiUsageMonitor,
+        aiUsageProvider: state.aiUsageProvider,
+        aiUsageStatusBar: state.aiUsageStatusBar,
         progressProvider: state.progressProvider,
         constitutionProvider: state.constitutionProvider,
         memoryProvider: state.memoryProvider,
@@ -520,6 +535,35 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
     }
   }
 
+  // Wire AIUsageMonitor (Feature 025) - needs UsageLogger, CostBudgetEnforcer, MultiSessionWatcher
+  {
+    const { getUsageLogger } = await import('./council/UsageLogger');
+    const usageLogger = getUsageLogger(workspacePath);
+    const aiUsageMonitor = new AIUsageMonitor(
+      workspacePath,
+      usageLogger,
+      costBudgetEnforcer,
+      state.multiSessionWatcher ?? undefined
+    );
+    state.aiUsageMonitor = aiUsageMonitor;
+
+    // Wire AIUsageProvider to monitor
+    if (state.aiUsageProvider) {
+      state.aiUsageProvider.setMonitor(aiUsageMonitor);
+    }
+
+    // Wire AIUsageStatusBar to monitor
+    if (state.aiUsageStatusBar) {
+      state.aiUsageStatusBar.connect(aiUsageMonitor);
+    }
+
+    // Start monitoring
+    aiUsageMonitor.startMonitoring();
+    context.subscriptions.push(aiUsageMonitor);
+
+    logger?.info('Extension', 'AIUsageMonitor wired and started');
+  }
+
   // Protected boundaries are loaded by ScopeGuard.loadFromSpec() when a spec is opened.
   // The EventHandlers' ScopeGuard diagnostics integration handles this via hookBridgeWatcher.
 
@@ -626,6 +670,15 @@ function registerGlobalCommands(context: vscode.ExtensionContext): void {
         await state.autoUpdater.manualCheck();
       } else {
         vscode.window.showErrorMessage('Auto-updater not initialized');
+      }
+    })
+  );
+
+  // gofer.refreshAIUsage - Refresh AI usage panel (must be global - referenced in view/title menu)
+  context.subscriptions.push(
+    vscode.commands.registerCommand('gofer.refreshAIUsage', async () => {
+      if (state.aiUsageMonitor) {
+        await state.aiUsageMonitor.forceRefresh();
       }
     })
   );

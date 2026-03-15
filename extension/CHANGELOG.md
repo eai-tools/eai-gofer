@@ -2,6 +2,19 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [Unreleased]
+
+feat: Provider API Usage Tracking (Feature 026)
+
+- AI Usage panel now shows real billing data from Anthropic and OpenAI APIs
+- Configure admin API keys in settings: `gofer.anthropicAdminApiKey`,
+  `gofer.openaiAdminApiKey`
+- Configurable API polling interval (default 60s):
+  `gofer.aiUsage.api.pollingInterval`
+- Graceful degradation when admin keys not configured
+- Rollback flag: set `gofer.aiUsage.useApiClient: false` to revert to local
+  JSONL data
+
 ## [1.19.2] - 2026-03-15
 
 enforce mandatory auto-chain and add engineering review gates to pipeline stages
@@ -16,11 +29,15 @@ feat: AI token usage tracking panel and pipeline sub-agent dispatch
 
 ## [1.18.1] - 2026-03-15
 
-fix: bundle missing pipeline commands (0a_problem_validation, 7a_stakeholder_comms), prompts, and scripts (pipeline-state.sh, validate-artifact.sh) so they deploy to all workspaces on version upgrade
+fix: bundle missing pipeline commands (0a_problem_validation,
+7a_stakeholder_comms), prompts, and scripts (pipeline-state.sh,
+validate-artifact.sh) so they deploy to all workspaces on version upgrade
 
 ## [1.18.0] - 2026-03-14
 
-fix: sync bundled resources (commands, agents, prompts, scripts) to workspaces on extension version upgrade - previously new/updated resources were not copied when upgrading from e.g. 1.17.2 to 1.17.3
+fix: sync bundled resources (commands, agents, prompts, scripts) to workspaces
+on extension version upgrade - previously new/updated resources were not copied
+when upgrading from e.g. 1.17.2 to 1.17.3
 
 ## [1.17.3] - 2026-03-14
 
@@ -28,7 +45,8 @@ feat: add post-implementation engineering review stage (6a) to pipeline
 
 ## [1.17.2] - 2026-03-13
 
-fix: wire ContinuousMemoryWriter, SlopReducer, and normal-terminal session lifecycle
+fix: wire ContinuousMemoryWriter, SlopReducer, and normal-terminal session
+lifecycle
 
 ## [1.17.1] - 2026-03-11
 
@@ -36,15 +54,19 @@ Fix ACCOrchestrator memory leak on reinitialize and strengthen test assertions
 
 ## [1.17.0] - 2026-03-11
 
-Wire ContextBuilder + Adaptive Context Compaction (ACC): activate 3,700 LOC of dead context management code, implement 5-stage progressive compaction at 70/80/85/90/99% thresholds
+Wire ContextBuilder + Adaptive Context Compaction (ACC): activate 3,700 LOC of
+dead context management code, implement 5-stage progressive compaction at
+70/80/85/90/99% thresholds
 
 ## [1.16.6] - 2026-03-10
 
-Rightsized CLAUDE.md, AGENTS.md, and copilot-instructions.md to under 60 lines each; updated instruction templates for compact generated output
+Rightsized CLAUDE.md, AGENTS.md, and copilot-instructions.md to under 60 lines
+each; updated instruction templates for compact generated output
 
 ## [1.16.5] - 2026-03-09
 
-Add missing Copilot Chat prompts for 0a_problem_validation and 7a_stakeholder_comms
+Add missing Copilot Chat prompts for 0a_problem_validation and
+7a_stakeholder_comms
 
 ## [1.16.4] - 2026-03-09
 
@@ -60,7 +82,8 @@ fix: add post-release auto-update verification
 
 ## [1.16.1] - 2026-03-06
 
-Fix validation findings: add consent prompt for AI instruction generation, expand Python detection, add restart re-prompt test
+Fix validation findings: add consent prompt for AI instruction generation,
+expand Python detection, add restart re-prompt test
 
 ## [1.16.0] - 2026-03-06
 
@@ -80,11 +103,13 @@ Simplify pipeline auto-chaining, clean up hooks and spec metadata
 
 ## [1.14.3] - 2026-03-01
 
-fix: auto-handoff save/clear/resume, memory panel wiring, and session display name
+fix: auto-handoff save/clear/resume, memory panel wiring, and session display
+name
 
 ## [1.14.2] - 2026-03-01
 
-fix: auto-handoff save/clear/resume, memory panel wiring, and session display name
+fix: auto-handoff save/clear/resume, memory panel wiring, and session display
+name
 
 ## [1.14.1] - 2026-03-01
 
@@ -108,11 +133,13 @@ Fix memory leaks from leaked event listeners and untracked timers
 
 ## [1.13.3] - 2026-02-27
 
-Fix PTY command submission: send carriage return separately with 500ms delay to match working pattern
+Fix PTY command submission: send carriage return separately with 500ms delay to
+match working pattern
 
 ## [1.13.2] - 2026-02-26
 
-Fix extension activation crash: reflect-metadata import order, command registration timing, config schema mismatch, spec loader filtering
+Fix extension activation crash: reflect-metadata import order, command
+registration timing, config schema mismatch, spec loader filtering
 
 ## [1.13.1] - 2026-02-24
 
@@ -120,11 +147,13 @@ Fix release script: add npm install for production deps, add gh release create
 
 ## [1.13.0] - 2026-02-24
 
-Engineering remediation: DI framework, service extraction, cache bounds, Logger bridge
+Engineering remediation: DI framework, service extraction, cache bounds, Logger
+bridge
 
 ## [1.12.2] - 2026-02-23
 
-Remove dead code: spawnNewTerminalFn, sendSaveToTerminal, sendResumeToTerminal, autonomousMonitoringInterval, stability tracking, maybeNotify
+Remove dead code: spawnNewTerminalFn, sendSaveToTerminal, sendResumeToTerminal,
+autonomousMonitoringInterval, stability tracking, maybeNotify
 
 ## [1.12.1] - 2026-02-23
 

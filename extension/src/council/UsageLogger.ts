@@ -10,6 +10,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { UsageMetrics, ProviderId, CouncilConfig } from './types';
+import type { UsageDataSource } from '../types/aiUsage';
 
 /**
  * A single usage log entry
@@ -76,7 +77,7 @@ const COST_PER_1K_TOKENS: Record<ProviderId, { input: number; output: number }> 
 /**
  * Usage Logger for tracking council costs
  */
-export class UsageLogger {
+export class UsageLogger implements UsageDataSource {
   private readonly workspacePath: string;
 
   constructor(workspacePath: string) {

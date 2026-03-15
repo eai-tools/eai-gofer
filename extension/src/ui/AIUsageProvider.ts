@@ -65,8 +65,27 @@ export class AIUsageProvider implements vscode.TreeDataProvider<AIUsageItem>, vs
   private monitor: AIUsageMonitor | null = null;
   private disposables: vscode.Disposable[] = [];
   private latestData: AIUsageData[] = [];
+  private _visible = false;
 
   constructor() {}
+
+  /**
+   * Connect to tree view to track visibility changes.
+   */
+  setTreeView(treeView: vscode.TreeView<AIUsageItem>): void {
+    treeView.onDidChangeVisibility(
+      (e) => {
+        this._visible = e.visible;
+        if (this.monitor) {
+          (this.monitor as unknown as { setPanelVisible(v: boolean): void }).setPanelVisible(
+            e.visible
+          );
+        }
+      },
+      null,
+      this.disposables
+    );
+  }
 
   /**
    * Connect to AIUsageMonitor for real-time updates.
@@ -204,6 +223,37 @@ export class AIUsageProvider implements vscode.TreeDataProvider<AIUsageItem>, vs
    * Build provider items for a period.
    */
   private getProviderItems(data: AIUsageData): AIUsageItem[] {
+    // Show error/status messages when applicable
+    if (data.error) {
+      const errorItem = new AIUsageItem(
+        this.getErrorLabel(data.error),
+        'tokens',
+        vscode.TreeItemCollapsibleState.None
+      );
+      errorItem.description = data.errorMessage;
+      errorItem.iconPath = new vscode.ThemeIcon(
+        data.error === 'api_error' ? 'warning' : 'info',
+        data.error === 'api_error' ? new vscode.ThemeColor('charts.yellow') : undefined
+      );
+      if (data.error === 'admin_key_required' || data.error === 'not_configured') {
+        errorItem.command = {
+          command: 'workbench.action.openSettings',
+          title: 'Open Settings',
+          arguments: ['gofer.anthropicAdminApiKey'],
+        };
+      }
+
+      // If we have stale data with an error, show both the error and the data
+      if (data.providers.length > 0) {
+        const lastUpdatedNote = data.lastUpdated
+          ? ` (last updated ${new Date(data.lastUpdated).toLocaleTimeString()})`
+          : '';
+        errorItem.description = (data.errorMessage ?? '') + lastUpdatedNote;
+        return [errorItem, ...this.buildProviderList(data)];
+      }
+      return [errorItem];
+    }
+
     if (data.providers.length === 0) {
       const emptyItem = new AIUsageItem(
         'No usage data',
@@ -214,6 +264,31 @@ export class AIUsageProvider implements vscode.TreeDataProvider<AIUsageItem>, vs
       return [emptyItem];
     }
 
+    return this.buildProviderList(data);
+  }
+
+  /**
+   * Get user-friendly label for error types.
+   */
+  private getErrorLabel(error: string): string {
+    switch (error) {
+      case 'admin_key_required':
+        return 'Admin API key required';
+      case 'not_configured':
+        return 'Not configured';
+      case 'api_not_available':
+        return 'Billing API not available';
+      case 'api_error':
+        return 'Unable to fetch data';
+      default:
+        return 'Error';
+    }
+  }
+
+  /**
+   * Build the sorted list of provider items.
+   */
+  private buildProviderList(data: AIUsageData): AIUsageItem[] {
     // Sort by cost descending
     const sorted = [...data.providers].sort((a, b) => b.costUsd - a.costUsd);
 

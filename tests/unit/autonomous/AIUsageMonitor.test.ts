@@ -204,6 +204,8 @@ describe('AIUsageMonitor', () => {
       expect(data.totalCostUsd).toBe(0);
       expect(data.totalTokens).toBe(0);
       expect(data.providers).toHaveLength(0);
+      expect(data.error).toBe('api_error');
+      expect(data.errorMessage).toBe('File not found');
 
       errorMonitor.dispose();
     });

@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.18.1",
+  "latest_version": "1.19.0",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-03-15T01:22:05.673Z",
+  "last_updated": "2026-03-15T01:58:42.828Z",
   "releases": [
+    {
+      "version": "1.19.0",
+      "tag_name": "v1.19.0",
+      "published_at": "2026-03-15T01:58:42.827Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.19.0.vsix",
+      "notes": "feat: AI token usage tracking panel and pipeline sub-agent dispatch",
+      "prerelease": false,
+      "size_mb": 30.3
+    },
     {
       "version": "1.18.1",
       "tag_name": "v1.18.1",
@@ -81,15 +90,6 @@
       "published_at": "2026-03-09T08:16:48.865Z",
       "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.16.4.vsix",
       "notes": "Documentation site and mandatory pipeline steps",
-      "prerelease": false,
-      "size_mb": 30.3
-    },
-    {
-      "version": "1.16.3",
-      "tag_name": "v1.16.3",
-      "published_at": "2026-03-09T04:44:23.217Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.16.3.vsix",
-      "notes": "Bundle all 37 pipeline agents for distribution to user projects",
       "prerelease": false,
       "size_mb": 30.3
     }

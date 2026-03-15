@@ -30,6 +30,9 @@ import type { ContextBuilder } from '../autonomous/ContextBuilder';
 import type { WorkspaceContextProvider } from '../autonomous/WorkspaceContextProvider';
 import type { ACCOrchestrator } from '../autonomous/ACCOrchestrator';
 import type { ObservationBridge } from '../autonomous/ObservationBridge';
+import type { AIUsageMonitor } from '../autonomous/AIUsageMonitor';
+import type { AIUsageProvider } from '../ui/AIUsageProvider';
+import type { AIUsageStatusBar } from '../ui/AIUsageStatusBar';
 
 /**
  * Disposable resource types that can be managed
@@ -56,6 +59,9 @@ export interface ManagedResources {
   lspClient?: GoferLSPClient;
   accOrchestrator?: ACCOrchestrator;
   observationBridge?: ObservationBridge;
+  aiUsageMonitor?: AIUsageMonitor;
+  aiUsageProvider?: AIUsageProvider;
+  aiUsageStatusBar?: AIUsageStatusBar;
 }
 
 /**
@@ -231,6 +237,19 @@ export class DisposalService {
     if (resources.goferActivityStatusBar) {
       resources.goferActivityStatusBar.dispose();
       resources.goferActivityStatusBar = undefined;
+    }
+    // AI Usage Tracking (Feature 025)
+    if (resources.aiUsageMonitor) {
+      resources.aiUsageMonitor.dispose();
+      resources.aiUsageMonitor = undefined;
+    }
+    if (resources.aiUsageProvider) {
+      resources.aiUsageProvider.dispose();
+      resources.aiUsageProvider = undefined;
+    }
+    if (resources.aiUsageStatusBar) {
+      resources.aiUsageStatusBar.dispose();
+      resources.aiUsageStatusBar = undefined;
     }
   }
 

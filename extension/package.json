@@ -79,6 +79,16 @@
         "icon": "$(refresh)"
       },
       {
+        "command": "gofer.refreshAIUsage",
+        "title": "Gofer: Refresh AI Usage",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "gofer.showAIUsage",
+        "title": "Gofer: Show AI Usage Details",
+        "icon": "$(graph)"
+      },
+      {
         "command": "gofer.showContextCategoryContent",
         "title": "Gofer: Show Context Category Content"
       },
@@ -281,10 +291,10 @@
           "contextualTitle": "Gofer"
         },
         {
-          "id": "goferContextWindow",
-          "name": "Context Window",
-          "icon": "$(pulse)",
-          "contextualTitle": "Context Health"
+          "id": "goferAIUsage",
+          "name": "AI Token Usage",
+          "icon": "$(graph)",
+          "contextualTitle": "AI Usage"
         },
         {
           "id": "goferMemory",
@@ -300,8 +310,8 @@
         "contents": "Welcome to Gofer!\n\nNo .specify folder found in this workspace.\n\n[Initialize Gofer](command:gofer.initialize)\n\nThis creates the folder structure for feature specifications, plans, and tasks."
       },
       {
-        "view": "goferContextWindow",
-        "contents": "No active Claude Code sessions.\n\nStart Claude Code in a terminal to see context health."
+        "view": "goferAIUsage",
+        "contents": "No AI usage data yet.\n\nUsage will appear when AI API calls are logged."
       }
     ],
     "menus": {
@@ -322,8 +332,8 @@
           "group": "navigation@3"
         },
         {
-          "command": "gofer.refreshContextWindow",
-          "when": "view == goferContextWindow",
+          "command": "gofer.refreshAIUsage",
+          "when": "view == goferAIUsage",
           "group": "navigation"
         },
         {
@@ -768,6 +778,20 @@
           ],
           "description": "How the cost budget is enforced when limits are exceeded",
           "markdownDescription": "Controls what happens when a pipeline run exceeds the configured budget.\n\n- **advisory**: Warnings logged to console and status bar — pipeline continues\n- **truncate**: Context is aggressively reduced to lower costs\n- **blocking**: Pipeline execution halts until budget is reset\n\nBudget events are logged to `.specify/logs/gofer-run-ledger.jsonl`."
+        },
+        "gofer.aiUsage.statusBar.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show AI usage cost in the status bar",
+          "markdownDescription": "Show current session AI usage cost in the VSCode status bar.\n\n- `true`: Status bar shows `$(dollar) AI: $X.XX` (default)\n- `false`: Status bar item is hidden\n\nClick the status bar item to see a detailed provider breakdown."
+        },
+        "gofer.aiUsage.polling.interval": {
+          "type": "number",
+          "default": 5000,
+          "minimum": 1000,
+          "maximum": 60000,
+          "description": "Polling interval in ms for AI usage updates (fallback when file watcher is inactive)",
+          "markdownDescription": "How often (in milliseconds) to poll for usage data updates.\n\nThis is used as a fallback when the file system watcher is not active.\n\n**Default**: 5000 (5 seconds)\n**Range**: 1000-60000"
         }
       }
     }

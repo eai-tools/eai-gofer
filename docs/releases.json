@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.19.1",
+  "latest_version": "1.19.2",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-03-15T03:28:13.930Z",
+  "last_updated": "2026-03-15T04:50:57.389Z",
   "releases": [
+    {
+      "version": "1.19.2",
+      "tag_name": "v1.19.2",
+      "published_at": "2026-03-15T04:50:57.388Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.19.2.vsix",
+      "notes": "enforce mandatory auto-chain and add engineering review gates to pipeline stages",
+      "prerelease": false,
+      "size_mb": 30.3
+    },
     {
       "version": "1.19.1",
       "tag_name": "v1.19.1",
@@ -81,15 +90,6 @@
       "published_at": "2026-03-10T03:59:55.183Z",
       "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.16.6.vsix",
       "notes": "Rightsized CLAUDE.md, AGENTS.md, and copilot-instructions.md to under 60 lines each; updated instruction templates for compact generated output",
-      "prerelease": false,
-      "size_mb": 30.3
-    },
-    {
-      "version": "1.16.5",
-      "tag_name": "v1.16.5",
-      "published_at": "2026-03-09T08:29:42.748Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.16.5.vsix",
-      "notes": "Add missing Copilot Chat prompts for 0a_problem_validation and 7a_stakeholder_comms",
       "prerelease": false,
       "size_mb": 30.3
     }

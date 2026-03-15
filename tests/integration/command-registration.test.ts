@@ -366,7 +366,7 @@ describe('Command Registration Validation', () => {
 
   it('should register tree data providers for all views', () => {
     expect(extensionSource).toContain("registerTreeDataProvider('goferProgress'");
-    expect(extensionSource).toContain("registerTreeDataProvider('goferAIUsage'");
+    expect(extensionSource).toContain("createTreeView('goferAIUsage'");
     expect(extensionSource).toContain("registerTreeDataProvider('goferMemory'");
   });
 

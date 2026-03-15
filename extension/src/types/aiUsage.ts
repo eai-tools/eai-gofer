@@ -57,6 +57,12 @@ export interface AIUsageData {
   budgetStatus?: BudgetStatus;
   /** Active session ID (only for 'current' period) */
   sessionId?: string;
+  /** Error state for this period's data */
+  error?: 'admin_key_required' | 'not_configured' | 'api_not_available' | 'api_error';
+  /** Detailed error message for display */
+  errorMessage?: string;
+  /** Unix timestamp (ms) of last successful data fetch */
+  lastUpdated?: number;
 }
 
 /**
@@ -87,6 +93,21 @@ export class AIUsageItem extends vscode.TreeItem {
     this.contextValue = contextType;
   }
 }
+
+/**
+ * Abstraction for usage data sources (file-based or API-based).
+ * Implemented by UsageLogger (local JSONL) and UsageApiClient (provider APIs).
+ */
+export interface UsageDataSource {
+  getUsageSummary(fromDate?: Date, toDate?: Date): Promise<UsageSummary>;
+}
+
+/**
+ * Re-export UsageSummary type for consumers that import from this module.
+ * The canonical definition lives in council/UsageLogger.ts.
+ */
+import type { UsageSummary } from '../council/UsageLogger';
+export type { UsageSummary };
 
 /**
  * Pricing configuration per provider

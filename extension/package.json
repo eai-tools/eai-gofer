@@ -458,6 +458,36 @@
           "markdownDescription": "Your OpenAI API key for GPT models. [Get one here](https://platform.openai.com/api-keys). Used by LLM Council feature for multi-provider execution.",
           "order": 2
         },
+        "gofer.anthropicAdminApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Anthropic Admin API Key for billing data access (starts with sk-ant-admin...)",
+          "markdownDescription": "Your Anthropic **Admin** API key for billing/usage data. [Get one here](https://console.anthropic.com/settings/keys). Required for the AI Token Usage panel to show real Anthropic spending. Admin keys start with `sk-ant-admin...`.",
+          "order": 3
+        },
+        "gofer.openaiAdminApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "OpenAI Admin API Key for billing data access",
+          "markdownDescription": "Your OpenAI **Admin** API key for billing/usage data. Required for the AI Token Usage panel to show real OpenAI spending. Needs the `api.usage.read` scope.",
+          "order": 4
+        },
+        "gofer.aiUsage.api.pollingInterval": {
+          "type": "number",
+          "default": 60000,
+          "minimum": 15000,
+          "maximum": 300000,
+          "description": "How often to poll provider billing APIs for usage data (in milliseconds)",
+          "markdownDescription": "Polling interval for provider billing APIs in milliseconds. Default: 60000 (1 minute). Minimum: 15000 (15 seconds). Maximum: 300000 (5 minutes). Anthropic recommends polling no more than once per minute.",
+          "order": 5
+        },
+        "gofer.aiUsage.useApiClient": {
+          "type": "boolean",
+          "default": true,
+          "description": "Use billing API client for usage data (set to false to revert to local JSONL)",
+          "markdownDescription": "When `true`, fetches real billing data from Anthropic/OpenAI APIs. Set to `false` to revert to reading local `.specify/logs/council-usage.jsonl`.",
+          "order": 6
+        },
         "gofer.autonomousMode": {
           "type": "boolean",
           "default": true,

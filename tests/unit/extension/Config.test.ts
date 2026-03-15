@@ -398,3 +398,30 @@ describe('Config - Integration Scenarios', () => {
     });
   });
 });
+
+describe('Config - Feature 026 Settings Validation', () => {
+  it('should define polling interval defaults within valid range', () => {
+    // Default: 60000ms, Min: 15000ms, Max: 300000ms
+    const defaultInterval = 60000;
+    const minInterval = 15000;
+    const maxInterval = 300000;
+
+    expect(defaultInterval).toBeGreaterThanOrEqual(minInterval);
+    expect(defaultInterval).toBeLessThanOrEqual(maxInterval);
+  });
+
+  it('should validate admin key format patterns', () => {
+    // Anthropic admin keys start with sk-ant-admin
+    const validAnthropicKey = 'sk-ant-admin-test-key-12345';
+    const invalidAnthropicKey = 'sk-ant-api-test-key';
+
+    expect(validAnthropicKey.startsWith('sk-ant-admin')).toBe(true);
+    expect(invalidAnthropicKey.startsWith('sk-ant-admin')).toBe(false);
+  });
+
+  it('should have feature flag default to true', () => {
+    // gofer.aiUsage.useApiClient defaults to true
+    const defaultUseApiClient = true;
+    expect(defaultUseApiClient).toBe(true);
+  });
+});

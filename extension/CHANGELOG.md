@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.20.0] - 2026-03-15
+
+feat: provider API usage tracking (Feature 026)
+
 ## [Unreleased]
 
 feat: Provider API Usage Tracking (Feature 026)

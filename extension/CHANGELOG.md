@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.19.1] - 2026-03-15
+
+fix: register onView activation events for sidebar panels
+
 ## [1.19.0] - 2026-03-15
 
 feat: AI token usage tracking panel and pipeline sub-agent dispatch

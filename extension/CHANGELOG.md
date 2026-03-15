@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.19.0] - 2026-03-15
+
+feat: AI token usage tracking panel and pipeline sub-agent dispatch
+
 ## [1.18.1] - 2026-03-15
 
 fix: bundle missing pipeline commands (0a_problem_validation, 7a_stakeholder_comms), prompts, and scripts (pipeline-state.sh, validate-artifact.sh) so they deploy to all workspaces on version upgrade

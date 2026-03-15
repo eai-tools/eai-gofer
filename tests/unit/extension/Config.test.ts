@@ -116,7 +116,7 @@ describe('Config - Constants', () => {
   describe('View IDs', () => {
     it('should define all view IDs', () => {
       expect(VIEWS.progress).toBe('goferProgress');
-      expect(VIEWS.contextWindow).toBe('goferContextWindow');
+      expect(VIEWS.aiUsage).toBe('goferAIUsage');
       expect(VIEWS.memory).toBe('goferMemory');
       expect(VIEWS.container).toBe('gofer');
     });

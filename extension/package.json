@@ -33,7 +33,10 @@
     "playwright"
   ],
   "activationEvents": [
-    "onStartupFinished"
+    "onStartupFinished",
+    "onView:goferProgress",
+    "onView:goferAIUsage",
+    "onView:goferMemory"
   ],
   "main": "./dist/extension.js",
   "contributes": {

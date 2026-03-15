@@ -1,5 +1,7 @@
 ---
-description: Validate business problem using 5 Whys analysis, stakeholder impact mapping, and market landscape research before any solution design
+description:
+  Validate business problem using 5 Whys analysis, stakeholder impact mapping,
+  and market landscape research before any solution design
 ---
 
 # Gofer Problem Validation
@@ -54,13 +56,13 @@ Use the AskUserQuestion tool:
 
 **"What business problem are you trying to solve?"**
 
-| Option | Description                                           |
-| ------ | ----------------------------------------------------- |
-| Custom | Describe the problem in your own words (Recommended)  |
+| Option | Description                                          |
+| ------ | ---------------------------------------------------- |
+| Custom | Describe the problem in your own words (Recommended) |
 
-Encourage the user to describe the PROBLEM, not the SOLUTION. If they describe
-a solution ("I need a dashboard"), probe deeper: "What problem would the
-dashboard solve?"
+Encourage the user to describe the PROBLEM, not the SOLUTION. If they describe a
+solution ("I need a dashboard"), probe deeper: "What problem would the dashboard
+solve?"
 
 ---
 
@@ -69,8 +71,8 @@ dashboard solve?"
 Once you have the problem statement:
 
 1. **Generate a short name** (2-4 words) for the feature
-2. Run `.specify/scripts/bash/create-new-feature.sh --json "$DESCRIPTION"`
-   with `--short-name "your-short-name"` to create the feature directory
+2. Run `.specify/scripts/bash/create-new-feature.sh --json "$DESCRIPTION"` with
+   `--short-name "your-short-name"` to create the feature directory
 3. Parse JSON output for FEATURE_DIR and BRANCH_NAME
 
 ---
@@ -88,12 +90,12 @@ Present back to the user:
 
 **"Let me make sure I understand the problem correctly:"**
 
-| Element          | My Understanding        |
-| ---------------- | ----------------------- |
-| Core Problem     | [extracted]             |
-| Who's Affected   | [extracted]             |
-| Current Impact   | [extracted or "unknown"]|
-| Implied Solution | [extracted or "none"]   |
+| Element          | My Understanding         |
+| ---------------- | ------------------------ |
+| Core Problem     | [extracted]              |
+| Who's Affected   | [extracted]              |
+| Current Impact   | [extracted or "unknown"] |
+| Implied Solution | [extracted or "none"]    |
 
 Use AskUserQuestion: "Is this correct? Would you like to adjust anything?"
 
@@ -155,17 +157,17 @@ Use AskUserQuestion to confirm the root cause:
 
 **"Based on my analysis, the root cause appears to be:"**
 
-| Element         | Finding                                       |
-| --------------- | --------------------------------------------- |
-| Stated Problem  | [What user said]                              |
-| Root Cause      | [From 5 Whys]                                 |
-| Gap             | [How far stated problem is from root cause]   |
+| Element        | Finding                                     |
+| -------------- | ------------------------------------------- |
+| Stated Problem | [What user said]                            |
+| Root Cause     | [From 5 Whys]                               |
+| Gap            | [How far stated problem is from root cause] |
 
-| Option                                  | Description                   |
-| --------------------------------------- | ----------------------------- |
-| A. Root cause is correct                | Proceed with this root cause  |
-| B. Root cause needs adjustment          | Let me clarify further        |
-| C. I want to solve the symptom, not root| Focus on the stated problem   |
+| Option                                   | Description                  |
+| ---------------------------------------- | ---------------------------- |
+| A. Root cause is correct                 | Proceed with this root cause |
+| B. Root cause needs adjustment           | Let me clarify further       |
+| C. I want to solve the symptom, not root | Focus on the stated problem  |
 
 ### 6.2 Present Market Findings
 
@@ -173,8 +175,8 @@ Use AskUserQuestion to get build/buy decision:
 
 **"I found these existing solutions in the market:"**
 
-| Option | Description                                                   |
-| ------ | ------------------------------------------------------------- |
+| Option           | Description                                              |
+| ---------------- | -------------------------------------------------------- |
 | A. Build custom  | No existing solution fits — we should build from scratch |
 | B. Buy/subscribe | [Solution X] looks like a good fit — investigate further |
 | C. Hybrid        | Use [Solution X] as foundation, customize on top         |

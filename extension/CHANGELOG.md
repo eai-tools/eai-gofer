@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.19.2] - 2026-03-15
+
+enforce mandatory auto-chain and add engineering review gates to pipeline stages
+
 ## [1.19.1] - 2026-03-15
 
 fix: register onView activation events for sidebar panels

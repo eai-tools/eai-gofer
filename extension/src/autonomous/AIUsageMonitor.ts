@@ -229,17 +229,17 @@ export class AIUsageMonitor extends EventEmitter implements vscode.Disposable {
 
       return data;
     } catch (error) {
-      this.logger.warn('Failed to fetch usage data', {
-        period,
-        error: error instanceof Error ? error.message : String(error),
-      });
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      this.logger.warn('Failed to fetch usage data', { period, error: errorMsg });
 
-      // Return empty data on error
+      // Return empty data with error state for UI display
       return {
         period,
         totalCostUsd: 0,
         totalTokens: 0,
         providers: [],
+        error: 'api_error',
+        errorMessage: errorMsg,
       };
     }
   }

@@ -253,9 +253,12 @@ function registerTreeViews(context: vscode.ExtensionContext): void {
   );
 
   // AI Token Usage panel replaces Context Window (Feature 025)
-  context.subscriptions.push(
-    vscode.window.registerTreeDataProvider('goferAIUsage', aiUsageProvider)
-  );
+  // Use createTreeView for visibility tracking (T032)
+  const aiUsageTreeView = vscode.window.createTreeView('goferAIUsage', {
+    treeDataProvider: aiUsageProvider,
+  });
+  aiUsageProvider.setTreeView(aiUsageTreeView);
+  context.subscriptions.push(aiUsageTreeView);
 
   context.subscriptions.push(vscode.window.registerTreeDataProvider('goferMemory', memoryProvider));
 
@@ -535,13 +538,33 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
     }
   }
 
-  // Wire AIUsageMonitor (Feature 025) - needs UsageLogger, CostBudgetEnforcer, MultiSessionWatcher
+  // Wire AIUsageMonitor - UsageApiClient for billing APIs, UsageLogger for council session logs
   {
-    const { getUsageLogger } = await import('./council/UsageLogger');
-    const usageLogger = getUsageLogger(workspacePath);
+    const goferConfig = vscode.workspace.getConfiguration('gofer');
+    const useApiClient = goferConfig.get<boolean>('aiUsage.useApiClient', true);
+
+    let dataSource: import('./types/aiUsage').UsageDataSource;
+    if (useApiClient) {
+      const { UsageApiClient } = await import('./autonomous/UsageApiClient');
+      dataSource = new UsageApiClient((providerId) => {
+        const config = vscode.workspace.getConfiguration('gofer');
+        switch (providerId) {
+          case 'anthropic':
+            return config.get<string>('anthropicAdminApiKey') || undefined;
+          case 'openai':
+            return config.get<string>('openaiAdminApiKey') || undefined;
+          default:
+            return undefined;
+        }
+      });
+    } else {
+      const { getUsageLogger } = await import('./council/UsageLogger');
+      dataSource = getUsageLogger(workspacePath);
+    }
+
     const aiUsageMonitor = new AIUsageMonitor(
       workspacePath,
-      usageLogger,
+      dataSource,
       costBudgetEnforcer,
       state.multiSessionWatcher ?? undefined
     );
@@ -560,6 +583,15 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
     // Start monitoring
     aiUsageMonitor.startMonitoring();
     context.subscriptions.push(aiUsageMonitor);
+
+    // Validate admin key formats on startup (T028)
+    const anthropicAdminKey = goferConfig.get<string>('anthropicAdminApiKey');
+    if (anthropicAdminKey && !anthropicAdminKey.startsWith('sk-ant-admin')) {
+      logger?.warn(
+        'Extension',
+        'Anthropic admin API key may be invalid (expected prefix: sk-ant-admin)'
+      );
+    }
 
     logger?.info('Extension', 'AIUsageMonitor wired and started');
   }

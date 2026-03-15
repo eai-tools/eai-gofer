@@ -15,10 +15,17 @@ import * as vscode from 'vscode';
 import { EventEmitter } from 'events';
 import { Logger } from '../utils/logger';
 import { COST_PER_1K_TOKENS, isPricingStale, calculateCost } from '../config/pricing';
-import type { AIUsageData, UsagePeriod, ProviderUsage, UsageUpdateEvent } from '../types/aiUsage';
-import type { UsageLogger, UsageSummary } from '../council/UsageLogger';
+import type {
+  AIUsageData,
+  UsagePeriod,
+  ProviderUsage,
+  UsageUpdateEvent,
+  UsageDataSource,
+} from '../types/aiUsage';
+import type { UsageSummary } from '../council/UsageLogger';
 import type { CostBudgetEnforcer } from './CostBudgetEnforcer';
 import type { MultiSessionBridgeWatcher } from './MultiSessionBridgeWatcher';
+import { UsageApiClient } from './UsageApiClient';
 
 /**
  * AIUsageMonitor aggregates AI usage data and emits update events.
@@ -38,13 +45,21 @@ export class AIUsageMonitor extends EventEmitter implements vscode.Disposable {
   private cacheTimestamp = 0;
   private static readonly CACHE_TTL_MS = 5000;
   private static readonly DEBOUNCE_MS = 100;
+  private static readonly IDLE_THRESHOLD_MS = 10 * 60 * 1000; // 10 minutes
 
   /** Session subscription cleanup */
   private sessionListenerCleanup: (() => void) | null = null;
 
+  /** Config change listener disposable */
+  private configChangeDisposable: vscode.Disposable | null = null;
+
+  /** Panel visibility and idle tracking */
+  private panelVisible = true;
+  private lastApiCallTimestamp = 0;
+
   constructor(
     private readonly workspacePath: string,
-    private readonly usageLogger: UsageLogger,
+    private readonly dataSource: UsageDataSource,
     private readonly costBudgetEnforcer?: CostBudgetEnforcer,
     private readonly multiSessionWatcher?: MultiSessionBridgeWatcher
   ) {
@@ -55,6 +70,18 @@ export class AIUsageMonitor extends EventEmitter implements vscode.Disposable {
         'Pricing data may be stale (>90 days old). Consider updating config/pricing.ts'
       );
     }
+
+    // Listen for admin API key config changes (T021)
+    this.configChangeDisposable = vscode.workspace.onDidChangeConfiguration((e) => {
+      if (
+        e.affectsConfiguration('gofer.anthropicAdminApiKey') ||
+        e.affectsConfiguration('gofer.openaiAdminApiKey') ||
+        e.affectsConfiguration('gofer.aiUsage.api.pollingInterval')
+      ) {
+        this.logger.info('Admin API key or polling config changed, refreshing');
+        this.forceRefresh();
+      }
+    });
   }
 
   /**
@@ -143,6 +170,23 @@ export class AIUsageMonitor extends EventEmitter implements vscode.Disposable {
   }
 
   /**
+   * Set panel visibility state. When panel becomes visible after idle,
+   * triggers immediate refresh.
+   */
+  setPanelVisible(visible: boolean): void {
+    const wasHidden = !this.panelVisible;
+    this.panelVisible = visible;
+
+    if (visible && wasHidden) {
+      const idleMs = Date.now() - this.lastApiCallTimestamp;
+      if (this.lastApiCallTimestamp > 0 && idleMs > AIUsageMonitor.IDLE_THRESHOLD_MS) {
+        this.logger.info('Panel visible after idle, triggering immediate refresh');
+        this.forceRefresh();
+      }
+    }
+  }
+
+  /**
    * Dispose all resources.
    */
   dispose(): void {
@@ -152,6 +196,11 @@ export class AIUsageMonitor extends EventEmitter implements vscode.Disposable {
     this.stopMonitoring();
     this.cachedData.clear();
     this.removeAllListeners();
+
+    if (this.configChangeDisposable) {
+      this.configChangeDisposable.dispose();
+      this.configChangeDisposable = null;
+    }
 
     this.logger.debug('AIUsageMonitor disposed');
   }
@@ -165,7 +214,8 @@ export class AIUsageMonitor extends EventEmitter implements vscode.Disposable {
     const { fromDate, toDate } = this.getDateRange(period);
 
     try {
-      const summary = await this.usageLogger.getUsageSummary(fromDate, toDate);
+      const summary = await this.dataSource.getUsageSummary(fromDate, toDate);
+      this.lastApiCallTimestamp = Date.now();
       const data = this.mapSummaryToUsageData(period, summary);
 
       // Add budget info for current session
@@ -271,13 +321,15 @@ export class AIUsageMonitor extends EventEmitter implements vscode.Disposable {
 
   /**
    * Set up FileSystemWatcher for council-usage.jsonl.
+   * Only used when data source is file-based (UsageLogger).
    */
   private setupFileWatcher(): void {
+    // Skip file watching when using API client
+    if (this.dataSource instanceof UsageApiClient) return;
     // Guard against duplicate watchers
     if (this.watcher) return;
 
     try {
-      const logPath = this.usageLogger.getLogPath();
       const pattern = new vscode.RelativePattern(
         this.workspacePath,
         '.specify/logs/council-usage.jsonl'
@@ -297,16 +349,23 @@ export class AIUsageMonitor extends EventEmitter implements vscode.Disposable {
   }
 
   /**
-   * Set up periodic polling as fallback.
+   * Set up periodic polling.
+   * Uses API polling interval (60s default) for UsageApiClient,
+   * file polling interval (5s default) for UsageLogger.
    */
   private setupPolling(): void {
     // Guard against duplicate intervals
     if (this.pollingTimer) return;
 
     const config = vscode.workspace.getConfiguration('gofer');
-    const interval = config.get<number>('aiUsage.polling.interval', 5000);
+    const interval =
+      this.dataSource instanceof UsageApiClient
+        ? config.get<number>('aiUsage.api.pollingInterval', 60000)
+        : config.get<number>('aiUsage.polling.interval', 5000);
 
     this.pollingTimer = setInterval(() => {
+      // Skip polling when panel is not visible (T022)
+      if (!this.panelVisible) return;
       this.handleFileChange('polling');
     }, interval);
 

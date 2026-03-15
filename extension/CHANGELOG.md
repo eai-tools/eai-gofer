@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.20.1] - 2026-03-15
+
+fix: validation remediation for Feature 026 - remove AI slop, add visibility tests
+
 ## [1.20.0] - 2026-03-15
 
 feat: provider API usage tracking (Feature 026)

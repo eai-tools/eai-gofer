@@ -11,8 +11,7 @@
 import * as https from 'https';
 import type { UsageDataSource } from '../types/aiUsage';
 import type { UsageSummary } from '../council/UsageLogger';
-
-// ── Anthropic API response types ────────────────────────────────
+import { Logger } from '../utils/logger';
 
 interface AnthropicUsageBucket {
   bucket: string;
@@ -36,8 +35,6 @@ interface AnthropicCostBucket {
 interface AnthropicCostResponse {
   data: AnthropicCostBucket[];
 }
-
-// ── OpenAI API response types ───────────────────────────────────
 
 interface OpenAIUsageResult {
   object: string;
@@ -77,8 +74,6 @@ interface OpenAICostResponse {
   data: OpenAICostBucket[];
 }
 
-// ── Error types ─────────────────────────────────────────────────
-
 interface ProviderApiError {
   provider: 'anthropic' | 'openai';
   statusCode?: number;
@@ -86,18 +81,12 @@ interface ProviderApiError {
   isRetryable: boolean;
 }
 
-// ── Cache types ─────────────────────────────────────────────────
-
 interface CacheEntry {
   summary: Partial<UsageSummary>;
   timestamp: number;
 }
 
-// ── Public types ────────────────────────────────────────────────
-
 export type AdminKeyGetter = (providerId: 'anthropic' | 'openai') => string | undefined;
-
-// ── Date/time helpers ───────────────────────────────────────────
 
 function toUnixSeconds(date: Date): number {
   return Math.floor(date.getTime() / 1000);
@@ -108,8 +97,6 @@ function getBucketWidth(fromDate: Date, toDate: Date): '1h' | '1d' {
   const oneDayMs = 24 * 60 * 60 * 1000;
   return diffMs <= oneDayMs ? '1h' : '1d';
 }
-
-// ── HTTP helper ─────────────────────────────────────────────────
 
 function httpsGet(
   url: string,
@@ -172,6 +159,7 @@ function httpsGet(
  * Implements UsageDataSource for transparent swap with UsageLogger.
  */
 export class UsageApiClient implements UsageDataSource {
+  private readonly logger = Logger.for('UsageApiClient');
   private readonly cache = new Map<string, CacheEntry>();
   private disposed = false;
   private static readonly REQUEST_TIMEOUT_MS = 10000;
@@ -241,8 +229,6 @@ export class UsageApiClient implements UsageDataSource {
 
     return this.mergeSummaries(results, from, to);
   }
-
-  // ── Anthropic API methods ───────────────────────────────────
 
   private async fetchAnthropicData(
     adminKey: string,
@@ -337,8 +323,6 @@ export class UsageApiClient implements UsageDataSource {
     };
   }
 
-  // ── OpenAI API methods ──────────────────────────────────────
-
   private async fetchOpenAIData(
     adminKey: string,
     fromDate: Date,
@@ -420,7 +404,7 @@ export class UsageApiClient implements UsageDataSource {
       for (const result of bucket.results ?? []) {
         totalCostUsd += Math.max(0, result.amount?.value ?? 0);
         if (result.amount?.currency && result.amount.currency !== 'usd') {
-          console.warn(`[gofer] OpenAI cost currency is ${result.amount.currency}, expected usd`);
+          this.logger.warn(`OpenAI cost currency is ${result.amount.currency}, expected usd`);
         }
       }
     }
@@ -438,8 +422,6 @@ export class UsageApiClient implements UsageDataSource {
       },
     };
   }
-
-  // ── Retry logic ─────────────────────────────────────────────
 
   private async retryWithBackoff<T>(fn: () => Promise<T>): Promise<T> {
     let lastError: unknown;
@@ -463,8 +445,6 @@ export class UsageApiClient implements UsageDataSource {
     throw lastError;
   }
 
-  // ── Cache ───────────────────────────────────────────────────
-
   private getCachedData(provider: string): Partial<UsageSummary> | undefined {
     const entry = this.cache.get(provider);
     if (!entry) {
@@ -476,8 +456,6 @@ export class UsageApiClient implements UsageDataSource {
     }
     return entry.summary;
   }
-
-  // ── Aggregation ─────────────────────────────────────────────
 
   private mergeSummaries(
     partials: Partial<UsageSummary>[],
@@ -513,13 +491,13 @@ export class UsageApiClient implements UsageDataSource {
     return merged;
   }
 
-  // ── Logging ─────────────────────────────────────────────────
-
-  private logSuccess(provider: string, durationMs: number, bucketCount: number): void {}
+  private logSuccess(provider: string, durationMs: number, bucketCount: number): void {
+    this.logger.debug(`${provider} billing API: ${bucketCount} buckets in ${durationMs}ms`);
+  }
 
   private logError(provider: string, err: unknown): void {
     const apiErr = err as ProviderApiError;
     const statusInfo = apiErr.statusCode ? ` (HTTP ${apiErr.statusCode})` : '';
-    console.error(`[gofer] ${provider} billing API error${statusInfo}: ${apiErr.message ?? err}`);
+    this.logger.error(`${provider} billing API error${statusInfo}: ${apiErr.message ?? err}`);
   }
 }

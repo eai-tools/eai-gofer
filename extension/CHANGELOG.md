@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.18.1] - 2026-03-15
+
+fix: bundle missing pipeline commands (0a_problem_validation, 7a_stakeholder_comms), prompts, and scripts (pipeline-state.sh, validate-artifact.sh) so they deploy to all workspaces on version upgrade
+
 ## [1.18.0] - 2026-03-14
 
 fix: sync bundled resources (commands, agents, prompts, scripts) to workspaces on extension version upgrade - previously new/updated resources were not copied when upgrading from e.g. 1.17.2 to 1.17.3

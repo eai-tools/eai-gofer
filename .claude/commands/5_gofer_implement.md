@@ -281,7 +281,18 @@ line you write.
 6. **MINIMAL CHANGE CHECK**: Verify every modification against the 7-point
    checklist above
 7. **RUN FEEDBACK LOOP** (see below)
-8. Mark task complete: Change `- [ ]` to `- [X]` in tasks.md
+8. **CRITICAL: Mark task complete** using the automation script:
+   ```bash
+   .specify/scripts/bash/mark-task-complete.sh {FEATURE_DIR} {TASK_ID}
+   # Example: .specify/scripts/bash/mark-task-complete.sh .specify/specs/025-ai-usage-tracking T001
+   ```
+   This automatically:
+   - Changes `- [ ] T001` to `- [X] T001` in tasks.md
+   - Updates tasksCompleted count in frontmatter
+   - Provides progress feedback
+
+   **IMPORTANT**: You MUST run this script after completing EVERY task. Do NOT skip this step.
+
 9. Report progress
 
 ### Feedback Loop (After EACH Task)
@@ -570,7 +581,8 @@ Logs to: `.specify/logs/pipeline.jsonl`
 
 ## Key Rules
 
-- ALWAYS mark tasks complete in tasks.md as you finish them
+- **CRITICAL**: ALWAYS mark tasks complete using `.specify/scripts/bash/mark-task-complete.sh` after finishing each task
+- If the automation script fails, manually edit tasks.md to change `- [ ]` to `- [X]` for the completed task
 - Use absolute paths for all file operations
 - Follow existing codebase patterns from research.md
 - Follow architecture from plan.md
@@ -578,3 +590,4 @@ Logs to: `.specify/logs/pipeline.jsonl`
 - Stop on errors for sequential tasks
 - Implementation must match specification
 - Log stage completion for observability tracking
+- **POST-IMPLEMENTATION**: If feature was implemented outside the pipeline (by other developers), run codebase-analyzer agent to sync tasks.md with actual implementation state

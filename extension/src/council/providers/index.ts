@@ -27,3 +27,9 @@ export {
 export { AnthropicProvider } from './AnthropicProvider';
 export { GoogleProvider } from './GoogleProvider';
 export { OpenAIProvider } from './OpenAIProvider';
+
+// CLI provider implementations
+export { ClaudeCodeCLIProvider } from './cli/ClaudeCodeCLIProvider';
+export { CodexCLIProvider } from './cli/CodexCLIProvider';
+export { CLIProviderAdapter } from './cli/CLIProviderAdapter';
+export { CLIHealthChecker } from './cli/CLIHealthChecker';

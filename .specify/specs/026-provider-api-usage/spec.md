@@ -1,10 +1,11 @@
 ---
-id: 026-provider-api-usage
-title: Provider API Usage Tracking
-status: draft
-created: 2026-03-15
-author: Claude
-feature_branch: 026-provider-api-usage
+id: "026-provider-api-usage"
+title: "Provider API Usage Tracking"
+status: "draft"
+created: "2026-03-15"
+updated: "2026-03-17"
+priority: "medium"
+assignee: "engineer-agent"
 ---
 
 # Feature Specification: Provider API Usage Tracking

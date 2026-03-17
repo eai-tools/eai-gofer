@@ -38,11 +38,15 @@ import type {
   TerminalState,
   TerminalRole,
 } from './types';
+import type { LLMProvider } from '../council/providers/LLMProvider';
 
 export class AutonomousDriver {
   private workspacePath: string;
   private progressProvider: any; // ProgressProvider interface
   private options: DriverOptions;
+  private provider?: LLMProvider; // R7: Fixed type from 'any' to 'LLMProvider' for type safety
+  // NOTE: Provider parameter available for future autonomous→CLI integration
+  // Currently autonomous mode uses pty-based execution, provider would enable direct API calls
 
   // Module instances
   private terminalManager: TerminalManager;
@@ -73,12 +77,14 @@ export class AutonomousDriver {
     workspacePath: string,
     progressProvider: any,
     memoryManager: MemoryManager,
-    options: DriverOptions
+    options: DriverOptions,
+    provider?: LLMProvider // R7: Typed as LLMProvider (optional for backward compatibility)
   ) {
     this.workspacePath = workspacePath;
     this.progressProvider = progressProvider;
     this.memoryManager = memoryManager;
     this.options = options;
+    this.provider = provider;
 
     // Initialize modules
     this.terminalManager = new TerminalManager();
@@ -722,7 +728,6 @@ export class AutonomousDriver {
       );
 
       panel.webview.html = this.getMemorySuggestionHtml(suggestedMemory);
-    } else {
     }
   }
 

@@ -17,9 +17,14 @@
 export type ProviderStatus = 'available' | 'unavailable' | 'rate_limited' | 'unknown';
 
 /**
+ * CLI provider identifiers
+ */
+export type CLIProviderId = 'claude-cli' | 'codex-cli';
+
+/**
  * Supported provider identifiers
  */
-export type ProviderId = 'anthropic' | 'google' | 'openai';
+export type ProviderId = 'anthropic' | 'google' | 'openai' | 'claude-cli' | 'codex-cli';
 
 /**
  * Rate limiting configuration for a provider
@@ -438,6 +443,8 @@ export const PROVIDER_NAMES: Record<ProviderId, string> = {
   anthropic: 'Anthropic Claude',
   google: 'Google Gemini',
   openai: 'OpenAI GPT',
+  'claude-cli': 'Claude Code CLI',
+  'codex-cli': 'Codex CLI',
 };
 
 /**
@@ -447,4 +454,6 @@ export const DEFAULT_MODELS: Record<ProviderId, string> = {
   anthropic: 'claude-opus-4-5-20251101',
   google: 'gemini-3-flash-preview',
   openai: 'gpt-5.2',
+  'claude-cli': 'claude-opus-4',
+  'codex-cli': 'gpt-5',
 };

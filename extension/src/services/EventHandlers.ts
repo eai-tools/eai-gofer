@@ -202,6 +202,15 @@ export class EventHandlers {
         if (e.affectsConfiguration('gofer.stageDetectionStalenessMinutes')) {
           this.reloadStalenessThreshold(deps);
         }
+
+        // T033: Reload CLI provider when settings change
+        if (
+          e.affectsConfiguration('gofer.cliProvider') ||
+          e.affectsConfiguration('gofer.claudeCodeCommand') ||
+          e.affectsConfiguration('gofer.codexCommand')
+        ) {
+          this.reloadCLIProvider(deps);
+        }
       })
     );
 
@@ -273,6 +282,34 @@ export class EventHandlers {
     this.logger.info('EventHandlers', 'Staleness threshold reloaded', {
       minutes: newMinutes,
     });
+  }
+
+  /**
+   * T033: Reload CLI provider when settings change
+   */
+  private async reloadCLIProvider(deps: EventHandlerDependencies): Promise<void> {
+    try {
+      // Clear cached providers
+      const { getProviderFactory } = await import('../council/providers/ProviderFactory');
+      const factory = getProviderFactory();
+      factory.clearProviders();
+
+      const config = vscode.workspace.getConfiguration('gofer');
+      const providerType = config.get<string>('cliProvider', 'auto');
+
+      this.logger.info('EventHandlers', 'CLI provider setting changed', {
+        provider: providerType,
+      });
+
+      // Show notification to user
+      vscode.window.showInformationMessage(
+        `CLI provider setting changed to "${providerType}". New provider will be used on next autonomous session.`
+      );
+    } catch (error) {
+      this.logger.error('EventHandlers', error as Error, {
+        operation: 'reloadCLIProvider',
+      });
+    }
   }
 
   /**

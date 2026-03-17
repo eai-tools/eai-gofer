@@ -67,6 +67,8 @@ export const CONFIG_KEYS = {
   openaiApiKey: 'gofer.openaiApiKey',
   claudeCodeMode: 'gofer.claudeCodeMode',
   claudeCodeCommand: 'gofer.claudeCodeCommand',
+  cliProvider: 'gofer.cliProvider',
+  codexCommand: 'gofer.codexCommand',
   autoInitialize: 'gofer.autoInitialize',
   preferredAi: 'gofer.preferredAI',
   autoUpdateCheck: 'gofer.autoUpdateCheck',
@@ -88,6 +90,8 @@ export const CONFIG_KEYS = {
 export const DEFAULTS = {
   claudeCodeMode: 'standard' as const,
   claudeCodeCommand: 'claude',
+  cliProvider: 'auto' as const,
+  codexCommand: 'codex',
   autoInitialize: false,
   preferredAi: 'claude',
   autoUpdateCheck: true,
@@ -347,6 +351,26 @@ export class ConfigManager {
     return this.config.get<'advisory' | 'truncate' | 'blocking'>(
       CONFIG_KEYS.budgetEnforcementMode.replace('gofer.', ''),
       DEFAULTS.budgetEnforcementMode as 'advisory'
+    );
+  }
+
+  /**
+   * Get preferred CLI provider setting (T009)
+   */
+  public getPreferredCLIProvider(): 'claude' | 'codex' | 'auto' {
+    return this.config.get<'claude' | 'codex' | 'auto'>(
+      CONFIG_KEYS.cliProvider.replace('gofer.', ''),
+      DEFAULTS.cliProvider
+    );
+  }
+
+  /**
+   * Get Codex CLI command (T010)
+   */
+  public getCodexCommand(): string {
+    return this.config.get<string>(
+      CONFIG_KEYS.codexCommand.replace('gofer.', ''),
+      DEFAULTS.codexCommand
     );
   }
 

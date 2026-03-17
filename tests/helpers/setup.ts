@@ -143,6 +143,11 @@ vi.mock('vscode', () => {
     ProgressLocation: {
       Notification: 15,
     },
+    ConfigurationTarget: {
+      Global: 1,
+      Workspace: 2,
+      WorkspaceFolder: 3,
+    },
     env: {
       openExternal: vi.fn(),
     },

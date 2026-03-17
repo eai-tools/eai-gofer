@@ -20,8 +20,19 @@ export class MCPConfigHelper {
 
   /**
    * Create or update .vscode/mcp.json with Gofer MCP server configuration
+   * T042: Only create if provider supports MCP
    */
   async createOrUpdateConfig(): Promise<void> {
+    // T042: Check if current provider supports MCP
+    const goferConfig = vscode.workspace.getConfiguration('gofer');
+    const cliProvider = goferConfig.get<'claude' | 'codex' | 'auto'>('cliProvider', 'auto');
+
+    // Only create MCP config for Claude CLI or auto mode
+    if (cliProvider === 'codex') {
+      this.logger.warn('Skipping MCP setup - Codex CLI does not support MCP servers');
+      return;
+    }
+
     const vscodeDir = path.join(this.workspacePath, '.vscode');
     const mcpConfigPath = path.join(vscodeDir, 'mcp.json');
 

@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.20.2",
+  "latest_version": "1.20.4",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-03-15T08:30:42.395Z",
+  "last_updated": "2026-03-17T21:22:12.381Z",
   "releases": [
+    {
+      "version": "1.20.4",
+      "tag_name": "v1.20.4",
+      "published_at": "2026-03-17T21:22:12.381Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.20.4.vsix",
+      "notes": "fix: Add cross-platform support for Codespaces/Linux - replaced node-pty with node-pty-prebuilt-multiarch to include linux-x64 native binaries",
+      "prerelease": false,
+      "size_mb": 10.2
+    },
     {
       "version": "1.20.2",
       "tag_name": "v1.20.2",
@@ -81,15 +90,6 @@
       "published_at": "2026-03-14T00:59:23.382Z",
       "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.17.3.vsix",
       "notes": "feat: add post-implementation engineering review stage (6a) to pipeline",
-      "prerelease": false,
-      "size_mb": 30.3
-    },
-    {
-      "version": "1.17.2",
-      "tag_name": "v1.17.2",
-      "published_at": "2026-03-13T02:00:11.837Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.17.2.vsix",
-      "notes": "fix: wire ContinuousMemoryWriter, SlopReducer, and normal-terminal session lifecycle",
       "prerelease": false,
       "size_mb": 30.3
     }

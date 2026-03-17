@@ -93,6 +93,8 @@ const COST_PER_1K_TOKENS: Record<ProviderId, { input: number; output: number }> 
   anthropic: { input: 0.003, output: 0.015 },
   google: { input: 0.00025, output: 0.0005 },
   openai: { input: 0.005, output: 0.015 },
+  'claude-cli': { input: 0.003, output: 0.015 },
+  'codex-cli': { input: 0.005, output: 0.015 },
 };
 
 /**

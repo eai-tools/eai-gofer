@@ -285,6 +285,51 @@
       "lastUsed": 1773550658572,
       "usedCount": 0,
       "learnedFrom": "session:2013a11e-8bd1-43c2-9649-a726446ab709"
+    },
+    {
+      "id": "9d24b9ea-9c7c-4350-a743-a6390b918a85",
+      "category": "pattern",
+      "tags": [
+        "#auto-learned",
+        "#pattern",
+        "#session-2013a11e"
+      ],
+      "scope": "local",
+      "content": "Those are late-arriving agent notifications from the earlier validation run — all consistent with the findings already addressed.",
+      "created": 1773563513696,
+      "lastUsed": 1773563631190,
+      "usedCount": 3,
+      "learnedFrom": "session:2013a11e-8bd1-43c2-9649-a726446ab709"
+    },
+    {
+      "id": "fcb03637-e068-49d0-acd3-32dfc36d098d",
+      "category": "file_knowledge",
+      "tags": [
+        "#auto-learned",
+        "#files",
+        "#session-236f5b2b"
+      ],
+      "scope": "local",
+      "content": "cat .specify/logs/council-usage.jsonl | head -1 | python3 -c \"import sys, json; entry = json.",
+      "created": 1773620034567,
+      "lastUsed": 1773620034567,
+      "usedCount": 0,
+      "learnedFrom": "session:236f5b2b-ba76-4f38-bc01-29f488a9a535"
+    },
+    {
+      "id": "d56cc75b-cced-4146-ae25-61c3a72d7348",
+      "category": "error_resolution",
+      "tags": [
+        "#auto-learned",
+        "#error-fix",
+        "#session-236f5b2b"
+      ],
+      "scope": "local",
+      "content": "The fix is working! The parser now correctly reads Claude Code conversation logs:",
+      "created": 1773712756566,
+      "lastUsed": 1773712756566,
+      "usedCount": 0,
+      "learnedFrom": "session:236f5b2b-ba76-4f38-bc01-29f488a9a535"
     }
   ]
 }

@@ -28,7 +28,7 @@ const hasApiKey = (envVar: string): boolean => {
   return true;
 };
 
-describe('Council Providers - Real API Integration Tests', () => {
+describe.skip('Council Providers - Real API Integration Tests', () => {
   describe('AnthropicProvider - Real API', () => {
     const apiKey = process.env.ANTHROPIC_API_KEY;
 

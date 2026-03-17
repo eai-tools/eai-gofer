@@ -14,3 +14,7 @@ webpack.config.js
 !language-server/node_modules/**
 # Exclude Language Server source
 language-server/src/**
+# Exclude all node_modules by default
+node_modules/**
+# But keep node-pty-prebuilt-multiarch with all platform binaries
+!node_modules/node-pty-prebuilt-multiarch/**

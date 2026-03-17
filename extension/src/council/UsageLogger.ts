@@ -11,6 +11,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { UsageMetrics, ProviderId, CouncilConfig } from './types';
 import type { UsageDataSource } from '../types/aiUsage';
+import { Logger } from '../utils/logger';
 
 /**
  * A single usage log entry
@@ -72,6 +73,8 @@ const COST_PER_1K_TOKENS: Record<ProviderId, { input: number; output: number }> 
   anthropic: { input: 0.003, output: 0.015 },
   google: { input: 0.00025, output: 0.0005 },
   openai: { input: 0.005, output: 0.015 },
+  'claude-cli': { input: 0.003, output: 0.015 },
+  'codex-cli': { input: 0.005, output: 0.015 },
 };
 
 /**
@@ -79,6 +82,7 @@ const COST_PER_1K_TOKENS: Record<ProviderId, { input: number; output: number }> 
  */
 export class UsageLogger implements UsageDataSource {
   private readonly workspacePath: string;
+  private readonly logger = Logger.for('UsageLogger');
 
   constructor(workspacePath: string) {
     this.workspacePath = workspacePath;
@@ -185,6 +189,7 @@ export class UsageLogger implements UsageDataSource {
    */
   async getUsageSummary(fromDate?: Date, toDate?: Date): Promise<UsageSummary> {
     const logPath = this.getLogPath();
+    this.logger.info(`getUsageSummary: logPath=${logPath}, fromDate=${fromDate?.toISOString()}, toDate=${toDate?.toISOString()}`);
 
     const summary: UsageSummary = {
       totalSessions: 0,
@@ -201,11 +206,13 @@ export class UsageLogger implements UsageDataSource {
     };
 
     if (!fs.existsSync(logPath)) {
+      this.logger.warn(`getUsageSummary: log file does not exist at ${logPath}`);
       return summary;
     }
 
     const content = fs.readFileSync(logPath, 'utf-8');
     const lines = content.split('\n').filter((line) => line.trim());
+    this.logger.info(`getUsageSummary: found ${lines.length} entries in log file`);
 
     let totalDuration = 0;
     let firstTimestamp = '';
@@ -278,6 +285,7 @@ export class UsageLogger implements UsageDataSource {
       summary.toDate = lastTimestamp || new Date().toISOString();
     }
 
+    this.logger.info(`getUsageSummary: returning summary with totalCost=$${summary.totalCostUsd.toFixed(2)}, sessions=${summary.totalSessions}, providers=${Object.keys(summary.byProvider).join(',')}`);
     return summary;
   }
 

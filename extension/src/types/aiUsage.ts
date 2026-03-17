@@ -68,7 +68,14 @@ export interface AIUsageData {
 /**
  * Context value types for tree view items
  */
-export type AIUsageItemContext = 'period' | 'provider' | 'tokens';
+export type AIUsageItemContext =
+  | 'period'
+  | 'provider'
+  | 'tokens'
+  | 'user-info'
+  | 'all-projects'
+  | 'separator'
+  | 'provider-summary';
 
 /**
  * Tree view item for display in VSCode TreeDataProvider
@@ -79,7 +86,7 @@ export class AIUsageItem extends vscode.TreeItem {
   /** Child items (for internal tree building) */
   children?: AIUsageItem[];
   /** Underlying data for this item */
-  usageData?: AIUsageData | ProviderUsage;
+  usageData?: AIUsageData | ProviderUsage | any;
   /** Period this item belongs to */
   period?: UsagePeriod;
 

@@ -1,26 +1,33 @@
 import * as vscode from 'vscode';
-import Anthropic from '@anthropic-ai/sdk';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import type { LLMProvider } from './council/providers/LLMProvider';
 
 /**
- * Bridge between the orchestrator and Claude Code.
- * Monitors .claude-input.txt and automatically sends prompts to Claude,
+ * Bridge between the orchestrator and AI CLI providers.
+ * Monitors .claude-input.txt and automatically sends prompts to the AI provider,
  * then writes responses to .claude-output.txt.
  */
 export class ClaudeCodeBridge {
-  private anthropic: Anthropic;
+  private provider: LLMProvider;
   private workspacePath: string;
   private context: vscode.ExtensionContext;
-  private conversationHistory: Anthropic.MessageParam[] = [];
+  private conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }> = [];
   private isProcessing = false;
 
-  constructor(workspacePath: string, apiKey: string, context: vscode.ExtensionContext) {
+  constructor(
+    workspacePath: string,
+    provider: LLMProvider,
+    context: vscode.ExtensionContext,
+    initialHistory?: Array<{ role: 'user' | 'assistant'; content: string }>
+  ) {
     this.workspacePath = workspacePath;
     this.context = context;
-    this.anthropic = new Anthropic({
-      apiKey: apiKey,
-    });
+    this.provider = provider;
+    // R1: Restore conversation history on provider switch
+    if (initialHistory) {
+      this.conversationHistory = initialHistory;
+    }
   }
 
   async start(): Promise<void> {}
@@ -30,7 +37,7 @@ export class ClaudeCodeBridge {
   }
 
   /**
-   * Process a prompt from the orchestrator and send it to Claude
+   * Process a prompt from the orchestrator and send it to the AI provider
    */
   async processPrompt(prompt: string): Promise<string> {
     if (this.isProcessing) {
@@ -44,11 +51,11 @@ export class ClaudeCodeBridge {
       return await vscode.window.withProgress(
         {
           location: vscode.ProgressLocation.Notification,
-          title: 'Claude is processing...',
+          title: 'AI provider is processing...',
           cancellable: false,
         },
         async (progress) => {
-          progress.report({ message: 'Sending prompt to Claude...' });
+          progress.report({ message: 'Sending prompt to AI provider...' });
 
           // Add user message to history
           this.conversationHistory.push({
@@ -56,19 +63,21 @@ export class ClaudeCodeBridge {
             content: prompt,
           });
 
-          // Call Claude API
-          const response = await this.anthropic.messages.create({
-            model: 'claude-opus-4-5-20251101',
-            max_tokens: 8096,
-            messages: this.conversationHistory,
-            system: this.getSystemPrompt(),
+          // Build conversation context for provider
+          const conversationContext = this.conversationHistory
+            .map(msg => `${msg.role}: ${msg.content}`)
+            .join('\n\n');
+
+          // Call provider via abstraction
+          const response = await this.provider.query({
+            prompt: conversationContext,
+            systemPrompt: this.getSystemPrompt(),
+            maxTokens: 8096,
+            temperature: 0.7,
           });
 
-          // Extract text response
-          const textContent = response.content
-            .filter((block: any): block is Anthropic.TextBlock => block.type === 'text')
-            .map((block: any) => block.text)
-            .join('\n');
+          // Extract response content
+          const textContent = response.content;
 
           // Add assistant response to history
           this.conversationHistory.push({
@@ -87,7 +96,7 @@ export class ClaudeCodeBridge {
   }
 
   /**
-   * Send a question to Claude and get an answer
+   * Send a question to the AI provider and get an answer
    */
   async askQuestion(question: string): Promise<string> {
     const prompt = `Question from the orchestrator: ${question}\n\nPlease provide a brief, direct answer.`;
@@ -103,10 +112,10 @@ export class ClaudeCodeBridge {
   }
 
   /**
-   * Get the system prompt for Claude
+   * Get the system prompt for the AI provider
    */
   private getSystemPrompt(): string {
-    return `You are Claude Code, an AI software engineer working within a VSCode environment.
+    return `You are an AI software engineer working within a VSCode environment.
 
 You are part of an automated spec-driven development system. You receive tasks from an orchestrator that:
 1. Breaks down specifications into individual tasks
@@ -139,7 +148,7 @@ Work autonomously but ask for help when needed.`;
   /**
    * Get conversation history for debugging
    */
-  getConversationHistory(): Anthropic.MessageParam[] {
+  getConversationHistory(): Array<{ role: 'user' | 'assistant'; content: string }> {
     return [...this.conversationHistory];
   }
 

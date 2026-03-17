@@ -234,9 +234,15 @@ export class InitializationService {
     workspacePath: string,
     migrator: GoferMigrator
   ): Promise<void> {
-    // Auto-setup MCP configuration for Claude Code integration
-    const mcpConfigHelper = new MCPConfigHelper(workspacePath, deps.context);
-    await mcpConfigHelper.autoSetup();
+    // T042: Auto-setup MCP configuration only if provider supports it
+    const config = vscode.workspace.getConfiguration('gofer');
+    const cliProvider = config.get<string>('cliProvider', 'auto');
+
+    // Only setup MCP for Claude CLI or auto mode (Claude is preferred)
+    if (cliProvider === 'claude' || cliProvider === 'auto') {
+      const mcpConfigHelper = new MCPConfigHelper(workspacePath, deps.context);
+      await mcpConfigHelper.autoSetup();
+    }
 
     // Check if extension version was upgraded
     const versionUpgraded = await this.checkForTemplateUpdates(workspacePath, deps.context);

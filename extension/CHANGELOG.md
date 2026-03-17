@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.20.4] - 2026-03-18
+
+fix: Add cross-platform support for Codespaces/Linux - replaced node-pty with node-pty-prebuilt-multiarch to include linux-x64 native binaries
+
 ## [1.20.2] - 2026-03-15
 
 fix: engineering review - aggregate cache tokens (FR-025) and propagate error states to UI

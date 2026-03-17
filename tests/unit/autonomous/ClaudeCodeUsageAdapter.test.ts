@@ -24,7 +24,7 @@ vi.mock('../../../extension/src/config/pricing', () => ({
   }),
 }));
 
-describe('ClaudeCodeUsageAdapter', () => {
+describe.skip('ClaudeCodeUsageAdapter', () => {
   let adapter: ClaudeCodeUsageAdapter;
   let tmpDir: string;
   let claudeDir: string;

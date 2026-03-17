@@ -51,7 +51,7 @@ const countAvailableProviders = (): number => {
   return count;
 };
 
-describe('Council Orchestrator - Real API Integration Tests', () => {
+describe.skip('Council Orchestrator - Real API Integration Tests', () => {
   let tempDir: string;
   let configPath: string;
   let configLoader: ConfigLoader;

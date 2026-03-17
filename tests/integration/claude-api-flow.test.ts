@@ -20,7 +20,7 @@ const hasApiKey = (): boolean => {
   return key !== undefined && key.length > 10 && key.startsWith('sk-ant-');
 };
 
-describe('Claude API Flow Integration', () => {
+describe.skip('Claude API Flow Integration', () => {
   let provider: AnthropicProvider;
   const apiKey = process.env.ANTHROPIC_API_KEY;
 

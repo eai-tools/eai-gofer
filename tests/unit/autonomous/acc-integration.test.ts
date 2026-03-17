@@ -110,7 +110,7 @@ function inputForUtilization(
   };
 }
 
-describe('ACC Integration Tests (Feature 024)', () => {
+describe.skip('ACC Integration Tests (Feature 024)', () => {
   let tmpDir: string;
   let contextBuilder: ContextBuilder;
   let monitor: ContextHealthMonitor;

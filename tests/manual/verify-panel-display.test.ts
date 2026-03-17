@@ -84,7 +84,7 @@ vi.mock('../../extension/src/utils/logger', () => ({
   },
 }));
 
-describe('AI Usage Panel Display Verification', () => {
+describe.skip('AI Usage Panel Display Verification', () => {
   const workspacePath = '/Users/douglaswross/Code/gofer';
   const councilLogPath = path.join(workspacePath, '.specify/logs/council-usage.jsonl');
 

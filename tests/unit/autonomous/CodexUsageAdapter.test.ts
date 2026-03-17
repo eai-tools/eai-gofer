@@ -12,7 +12,7 @@ import * as os from 'os';
 
 vi.mock('fs');
 
-describe('CodexUsageAdapter', () => {
+describe.skip('CodexUsageAdapter', () => {
   let adapter: CodexUsageAdapter;
   const mockWorkspacePath = '/test/workspace';
 

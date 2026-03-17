@@ -93,9 +93,15 @@ export class AIUsageProvider implements vscode.TreeDataProvider<AIUsageItem>, vs
    * @param monitor - AIUsageMonitor instance to subscribe to
    */
   setMonitor(monitor: AIUsageMonitor): void {
+    this.logger.info('[setMonitor] Monitor connected');
     this.monitor = monitor;
 
     const onUpdate = (event: UsageUpdateEvent): void => {
+      this.logger.info('[setMonitor.onUpdate] Received usage-update event:', {
+        trigger: event.trigger,
+        periodCount: event.periods.length,
+        totalCosts: event.periods.map(p => `${p.period}: $${p.totalCostUsd.toFixed(2)}`),
+      });
       this.latestData = event.periods;
       this.refresh();
     };
@@ -131,9 +137,39 @@ export class AIUsageProvider implements vscode.TreeDataProvider<AIUsageItem>, vs
    * @returns Array of child items
    */
   async getChildren(element?: AIUsageItem): Promise<AIUsageItem[]> {
-    // Root level: return time period items
+    // Root level: return user info + all projects + workspace period items
     if (!element) {
-      return this.getPeriodItems();
+      const items: AIUsageItem[] = [];
+
+      // Add user account info at top
+      const userItem = await this.getUserAccountItem();
+      if (userItem) {
+        items.push(userItem);
+      }
+
+      // Add all-projects aggregate
+      const allProjectsItem = await this.getAllProjectsItem();
+      if (allProjectsItem) {
+        items.push(allProjectsItem);
+      }
+
+      // Add separator (visual only, using disabled item)
+      if (items.length > 0) {
+        const separator = new AIUsageItem('─────────────────', 'separator', vscode.TreeItemCollapsibleState.None);
+        separator.description = '';
+        items.push(separator);
+      }
+
+      // Add workspace period items
+      const periodItems = await this.getPeriodItems();
+      items.push(...periodItems);
+
+      return items;
+    }
+
+    // All Projects level: return per-project or per-provider breakdown
+    if (element.contextType === 'all-projects') {
+      return this.getAllProjectsChildren();
     }
 
     // Period level: return provider items
@@ -168,14 +204,33 @@ export class AIUsageProvider implements vscode.TreeDataProvider<AIUsageItem>, vs
   private async getPeriodItems(): Promise<AIUsageItem[]> {
     // Use latest data from events, or fetch from monitor
     let periodData = this.latestData;
+    this.logger.info('[getPeriodItems] Start:', {
+      latestDataLength: this.latestData.length,
+      hasMonitor: !!this.monitor,
+    });
+
+    // If no monitor is set, the extension may not have initialized properly
+    if (!this.monitor) {
+      this.logger.error('[getPeriodItems] CRITICAL: No monitor set! Extension initialization may have failed.');
+      this.logger.error('[getPeriodItems] Check the Output > Gofer logs for "Workspace initialization failed"');
+      return [];
+    }
 
     if (periodData.length === 0 && this.monitor) {
       // Load from monitor if no event data yet
+      this.logger.info('[getPeriodItems] No cached data, fetching from monitor');
       const periods: AIUsageData[] = [];
       for (const period of ['current', 'today', 'week'] as UsagePeriod[]) {
         try {
-          periods.push(await this.monitor.getUsageData(period));
-        } catch {
+          const data = await this.monitor.getUsageData(period);
+          this.logger.info(`[getPeriodItems] Got data for ${period}:`, {
+            totalCost: data.totalCostUsd,
+            totalTokens: data.totalTokens,
+            providersCount: data.providers.length,
+          });
+          periods.push(data);
+        } catch (error) {
+          this.logger.warn(`[getPeriodItems] Failed to load ${period}`, { error });
           // Skip periods that fail to load
         }
       }
@@ -183,8 +238,14 @@ export class AIUsageProvider implements vscode.TreeDataProvider<AIUsageItem>, vs
     }
 
     if (periodData.length === 0) {
+      this.logger.warn('[getPeriodItems] No period data available');
       return [];
     }
+
+    this.logger.info('[getPeriodItems] Creating items from data:', {
+      periodCount: periodData.length,
+      totalCosts: periodData.map(d => `${d.period}: $${d.totalCostUsd.toFixed(2)}`),
+    });
 
     return periodData.map((data) => this.createPeriodItem(data));
   }
@@ -415,5 +476,175 @@ export class AIUsageProvider implements vscode.TreeDataProvider<AIUsageItem>, vs
    */
   private formatTokenCount(tokens: number): string {
     return tokens.toLocaleString();
+  }
+
+  /**
+   * Get user account item (top-level informational).
+   */
+  private async getUserAccountItem(): Promise<AIUsageItem | null> {
+    if (!this.monitor) {
+      return null;
+    }
+
+    try {
+      // Get user from ClaudeCodeUsageAdapter
+      const { getClaudeCodeAdapter } = await import('../autonomous/ClaudeCodeUsageAdapter');
+      const adapter = getClaudeCodeAdapter((this.monitor as any).workspacePath);
+      const userEmail = await adapter.getCurrentUser();
+
+      if (!userEmail) {
+        return null;
+      }
+
+      const item = new AIUsageItem(
+        `👤 Logged in as: ${userEmail}`,
+        'user-info',
+        vscode.TreeItemCollapsibleState.None
+      );
+      item.description = '';
+      item.iconPath = new vscode.ThemeIcon('account');
+      item.tooltip = `Anthropic Account: ${userEmail}`;
+
+      return item;
+    } catch (error) {
+      this.logger.warn('Failed to get user account info');
+      return null;
+    }
+  }
+
+  /**
+   * Get all-projects aggregate item.
+   */
+  private async getAllProjectsItem(): Promise<AIUsageItem | null> {
+    if (!this.monitor) {
+      return null;
+    }
+
+    try {
+      // Get all projects usage from adapter
+      const { getClaudeCodeAdapter } = await import('../autonomous/ClaudeCodeUsageAdapter');
+      const adapter = getClaudeCodeAdapter((this.monitor as any).workspacePath);
+
+      // Get last 30 days
+      const monthAgo = new Date();
+      monthAgo.setDate(monthAgo.getDate() - 30);
+
+      const allUsage = await adapter.getAllProjectsUsage(monthAgo);
+
+      if (allUsage.length === 0) {
+        return null;
+      }
+
+      // Aggregate total cost and tokens
+      const totalCost = allUsage.reduce((sum, u) => sum + u.costUsd, 0);
+      const totalTokens = allUsage.reduce((sum, u) => sum + u.totalTokens, 0);
+      const projectCount = new Set(allUsage.map((u) => u.projectName)).size;
+
+      const item = new AIUsageItem(
+        '📊 All Projects (last 30 days)',
+        'all-projects',
+        vscode.TreeItemCollapsibleState.Collapsed
+      );
+      item.description = `$${totalCost.toFixed(2)} (${this.formatTokenCount(totalTokens)} tokens)`;
+      item.iconPath = new vscode.ThemeIcon('folder-library');
+      item.tooltip = `${projectCount} projects, ${allUsage.length} conversations`;
+      item.usageData = allUsage; // Store raw usage for children
+
+      return item;
+    } catch (error) {
+      this.logger.warn('Failed to get all projects usage');
+      return null;
+    }
+  }
+
+  /**
+   * Get children for all-projects item (per-provider breakdown).
+   */
+  private async getAllProjectsChildren(): Promise<AIUsageItem[]> {
+    const allProjectsItem = (await this.getAllProjectsItem());
+    if (!allProjectsItem || !allProjectsItem.usageData) {
+      return [];
+    }
+
+    const allUsage = allProjectsItem.usageData as any[];
+
+    // Aggregate by provider
+    const providerStats = new Map<string, { cost: number; tokens: number; count: number }>();
+
+    for (const usage of allUsage) {
+      const provider = usage.provider || 'unknown';
+      const existing = providerStats.get(provider);
+
+      if (existing) {
+        existing.cost += usage.costUsd;
+        existing.tokens += usage.totalTokens;
+        existing.count++;
+      } else {
+        providerStats.set(provider, {
+          cost: usage.costUsd,
+          tokens: usage.totalTokens,
+          count: 1,
+        });
+      }
+    }
+
+    // Create provider items
+    const items: AIUsageItem[] = [];
+
+    for (const [provider, stats] of providerStats) {
+      const item = new AIUsageItem(
+        this.formatProviderNameEnhanced(provider),
+        'provider-summary',
+        vscode.TreeItemCollapsibleState.None
+      );
+      item.description = `$${stats.cost.toFixed(2)} (${this.formatTokenCount(stats.tokens)} tokens)`;
+      item.iconPath = new vscode.ThemeIcon(this.getProviderIcon(provider));
+      item.tooltip = `${stats.count} conversations`;
+
+      items.push(item);
+    }
+
+    // Sort by cost descending
+    items.sort((a, b) => {
+      const aDesc = typeof a.description === 'string' ? a.description : '';
+      const bDesc = typeof b.description === 'string' ? b.description : '';
+      const aCost = parseFloat(aDesc.split('$')[1] || '0');
+      const bCost = parseFloat(bDesc.split('$')[1] || '0');
+      return bCost - aCost;
+    });
+
+    return items;
+  }
+
+  /**
+   * Format provider name with enhanced detection.
+   */
+  private formatProviderNameEnhanced(provider: string): string {
+    const names: Record<string, string> = {
+      'claude-code': 'Claude Code',
+      codex: 'Codex CLI',
+      copilot: 'GitHub Copilot',
+      anthropic: 'Anthropic',
+      openai: 'OpenAI',
+      google: 'Google',
+      unknown: 'Unknown',
+    };
+    return names[provider] ?? provider.charAt(0).toUpperCase() + provider.slice(1);
+  }
+
+  /**
+   * Get icon for provider.
+   */
+  private getProviderIcon(provider: string): string {
+    const icons: Record<string, string> = {
+      'claude-code': 'symbol-class',
+      codex: 'terminal',
+      copilot: 'github',
+      anthropic: 'symbol-class',
+      openai: 'symbol-interface',
+      google: 'symbol-method',
+      unknown: 'question',
+    };
+    return icons[provider] ?? 'symbol-misc';
   }
 }

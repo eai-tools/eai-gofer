@@ -203,6 +203,24 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   };
   eventHandlers.registerAll(eventHandlerDeps);
 
+  // Watch for CLI provider config changes (AC 4: Immediate provider switching)
+  // R6: Watch all CLI-related settings per contracts/events.md:53-56
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeConfiguration(async (e) => {
+      if (
+        e.affectsConfiguration('gofer.cliProvider') ||
+        e.affectsConfiguration('gofer.claudeCodeCommand') ||
+        e.affectsConfiguration('gofer.codexCommand')
+      ) {
+        logger?.info('Extension', 'CLI provider setting changed - reloading extension');
+        await reinitializeExtension(context);
+        vscode.window.showInformationMessage(
+          'Gofer: CLI provider changed. Extension reloaded.'
+        );
+      }
+    })
+  );
+
   // Initialize for the current workspace (if one is open)
   const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
   if (!workspaceFolder) {
@@ -539,9 +557,12 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
   }
 
   // Wire AIUsageMonitor - UsageApiClient for billing APIs, UsageLogger for council session logs
-  {
+  // Default to UsageLogger (false) so auto-discovery works out of the box
+  // CRITICAL: Wrapped in try-catch so AI Usage Panel works even if other init steps fail
+  try {
     const goferConfig = vscode.workspace.getConfiguration('gofer');
-    const useApiClient = goferConfig.get<boolean>('aiUsage.useApiClient', true);
+    const useApiClient = goferConfig.get<boolean>('aiUsage.useApiClient', false);
+    logger?.info('Extension', `[AIUsage] useApiClient = ${useApiClient} (false = UsageLogger, true = UsageApiClient)`);
 
     let dataSource: import('./types/aiUsage').UsageDataSource;
     if (useApiClient) {
@@ -573,6 +594,9 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
     // Wire AIUsageProvider to monitor
     if (state.aiUsageProvider) {
       state.aiUsageProvider.setMonitor(aiUsageMonitor);
+      logger?.info('Extension', '[AIUsage] setMonitor() called on AIUsageProvider');
+    } else {
+      logger?.warn('Extension', '[AIUsage] CRITICAL: state.aiUsageProvider is null!');
     }
 
     // Wire AIUsageStatusBar to monitor
@@ -593,7 +617,51 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
       );
     }
 
-    logger?.info('Extension', 'AIUsageMonitor wired and started');
+    logger?.info('Extension', 'AIUsageMonitor wired and started successfully');
+
+    // Auto-discover Claude Code usage (OpenUsage-style)
+    const { getClaudeCodeAdapter } = await import('./autonomous/ClaudeCodeUsageAdapter');
+    const claudeAdapter = getClaudeCodeAdapter(workspacePath);
+
+    if (await claudeAdapter.isClaudeCodeInstalled()) {
+      logger?.info('Extension', 'Claude Code detected - enabling auto-discovery');
+
+      // Initial sync
+      const synced = await claudeAdapter.syncToCouncilLog();
+      if (synced > 0) {
+        logger?.info('Extension', `Auto-discovered ${synced} Claude Code sessions`);
+        // Force refresh to show new data
+        aiUsageMonitor.forceRefresh();
+      }
+
+      // Periodic sync every 5 minutes
+      const syncInterval = setInterval(async () => {
+        try {
+          const newEntries = await claudeAdapter.syncToCouncilLog();
+          if (newEntries > 0) {
+            logger?.info('Extension', `Auto-synced ${newEntries} new sessions`);
+            aiUsageMonitor.forceRefresh();
+          }
+        } catch (err) {
+          logger?.warn('Extension', 'Auto-sync failed', { error: err });
+        }
+      }, 5 * 60 * 1000); // 5 minutes
+
+      // Cleanup on dispose
+      context.subscriptions.push({
+        dispose: () => clearInterval(syncInterval),
+      });
+    } else {
+      logger?.info('Extension', 'Claude Code not detected - skipping auto-discovery');
+    }
+  } catch (error) {
+    const err = error instanceof Error ? error : new Error(String(error));
+    logger?.error('Extension', err, {
+      message: '[AIUsage] CRITICAL: Failed to initialize AIUsageMonitor',
+    });
+    vscode.window.showErrorMessage(
+      `Gofer: AI Usage Panel initialization failed. Check Output > Gofer for details.`
+    );
   }
 
   // Protected boundaries are loaded by ScopeGuard.loadFromSpec() when a spec is opened.
@@ -619,6 +687,111 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
       setUpgradeState,
     };
     commandRegistry.registerAll(context, commandDeps);
+  }
+
+  // T035: CLI Provider Health Check on Activation
+  // Check selected CLI provider and show notifications for issues
+  try {
+    const { CLIHealthChecker } = await import('./council/providers/cli/CLIHealthChecker');
+    const config = vscode.workspace.getConfiguration('gofer');
+    const preference = config.get<'claude' | 'codex' | 'auto'>('cliProvider', 'auto');
+
+    let cliType: 'claude' | 'codex' | null = null;
+
+    if (preference === 'auto') {
+      // Auto-detect to show helpful errors for both CLIs
+      const claudeCommand = config.get<string>('claudeCodeCommand', 'claude');
+      const claudeResult = await CLIHealthChecker.check('claude', claudeCommand);
+
+      if (!claudeResult.available || !claudeResult.authenticated) {
+        // Try Codex as fallback
+        const codexCommand = config.get<string>('codexCommand', 'codex');
+        const codexResult = await CLIHealthChecker.check('codex', codexCommand);
+
+        if (!codexResult.available) {
+          // Neither CLI is available - show comprehensive error
+          const message =
+            'No CLI provider found for autonomous mode. Install one:\n' +
+            '• Claude Code CLI: npm install -g @anthropic/claude-code\n' +
+            '• Codex CLI: npm install -g @openai/codex-cli';
+
+          vscode.window
+            .showWarningMessage(message, 'View Settings')
+            .then((selection) => {
+              if (selection === 'View Settings') {
+                vscode.commands.executeCommand(
+                  'workbench.action.openSettings',
+                  'gofer.cliProvider'
+                );
+              }
+            });
+        } else if (!codexResult.authenticated) {
+          // Codex found but not authenticated
+          vscode.window
+            .showWarningMessage(
+              `Codex CLI found but not authenticated. ${codexResult.authInstructions}`,
+              'View Settings'
+            )
+            .then((selection) => {
+              if (selection === 'View Settings') {
+                vscode.commands.executeCommand(
+                  'workbench.action.openSettings',
+                  'gofer.cliProvider'
+                );
+              }
+            });
+        }
+      }
+      // Note: Claude authentication check is already handled by line 706 condition
+    } else {
+      // Specific provider selected - check only that one
+      cliType = preference;
+      const cliCommand = config.get<string>(
+        cliType === 'claude' ? 'claudeCodeCommand' : 'codexCommand',
+        cliType === 'claude' ? 'claude' : 'codex'
+      );
+
+      const result = await CLIHealthChecker.check(cliType, cliCommand);
+
+      if (!result.available) {
+        vscode.window
+          .showErrorMessage(
+            `${cliType} CLI not found. ${result.installInstructions}`,
+            'View Settings'
+          )
+          .then((selection) => {
+            if (selection === 'View Settings') {
+              vscode.commands.executeCommand(
+                'workbench.action.openSettings',
+                'gofer.cliProvider'
+              );
+            }
+          });
+      } else if (!result.authenticated) {
+        vscode.window
+          .showWarningMessage(
+            `${cliType} CLI found but not authenticated. ${result.authInstructions}`,
+            'View Settings'
+          )
+          .then((selection) => {
+            if (selection === 'View Settings') {
+              vscode.commands.executeCommand(
+                'workbench.action.openSettings',
+                'gofer.cliProvider'
+              );
+            }
+          });
+      } else if (!result.compatible) {
+        vscode.window.showWarningMessage(
+          `${cliType} version incompatible. ${result.installInstructions}`
+        );
+      }
+    }
+  } catch (error) {
+    // Non-fatal: CLI health check is optional
+    logger?.debug('Extension', 'CLI health check failed (non-critical)', {
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 
   logger?.info('Extension', 'Workspace initialization complete');
@@ -712,6 +885,19 @@ function registerGlobalCommands(context: vscode.ExtensionContext): void {
       if (state.aiUsageMonitor) {
         await state.aiUsageMonitor.forceRefresh();
       }
+    })
+  );
+
+  // gofer.debugAIUsage - Debug AI usage auto-discovery
+  context.subscriptions.push(
+    vscode.commands.registerCommand('gofer.debugAIUsage', async () => {
+      const workspaceFolders = vscode.workspace.workspaceFolders;
+      if (!workspaceFolders || workspaceFolders.length === 0) {
+        vscode.window.showErrorMessage('No workspace folder open');
+        return;
+      }
+      const { debugAIUsageCommand } = await import('./commands/debugAIUsage');
+      await debugAIUsageCommand(workspaceFolders[0].uri.fsPath);
     })
   );
 

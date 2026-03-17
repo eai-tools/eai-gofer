@@ -215,6 +215,11 @@ export class AIUsageMonitor extends EventEmitter implements vscode.Disposable {
 
     try {
       const summary = await this.dataSource.getUsageSummary(fromDate, toDate);
+      this.logger.info(`fetchUsageData(${period}): summary =`, {
+        totalCost: summary.totalCostUsd,
+        totalTokens: summary.totalInputTokens + summary.totalOutputTokens,
+        providers: Object.keys(summary.byProvider),
+      });
       this.lastApiCallTimestamp = Date.now();
       const data = this.mapSummaryToUsageData(period, summary);
 

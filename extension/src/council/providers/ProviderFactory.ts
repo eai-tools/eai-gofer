@@ -16,16 +16,21 @@ import { ProviderId, ProviderConfig, PROVIDER_NAMES, DEFAULT_MODELS } from '../t
 type ProviderConstructor = new (apiKey: string, model: string) => LLMProvider;
 
 /**
+ * Type for CLI provider constructor functions
+ */
+type CLIProviderConstructor = new (cliCommand: string, model: string) => LLMProvider;
+
+/**
  * Registry of provider constructors
  * Populated by individual provider modules when they're imported
  */
-const providerRegistry = new Map<ProviderId, ProviderConstructor>();
+const providerRegistry = new Map<ProviderId, ProviderConstructor | CLIProviderConstructor>();
 
 /**
  * Register a provider constructor
  * Called by each provider module during initialization
  */
-export function registerProvider(id: ProviderId, constructor: ProviderConstructor): void {
+export function registerProvider(id: ProviderId, constructor: ProviderConstructor | CLIProviderConstructor): void {
   providerRegistry.set(id, constructor);
 }
 
@@ -193,6 +198,170 @@ export class ProviderFactory {
    */
   static getDisplayName(providerId: ProviderId): string {
     return PROVIDER_NAMES[providerId] ?? providerId;
+  }
+
+  /**
+   * Create a CLI provider instance (T026, enhanced in T038)
+   * @param cliType - 'claude' or 'codex'
+   * @param command - Optional custom CLI command path
+   * @returns LLMProvider instance
+   * @throws ProviderError if provider not registered or CLI not available
+   */
+  public async createCLIProvider(
+    cliType: 'claude' | 'codex',
+    command?: string
+  ): Promise<LLMProvider> {
+    const providerId = `${cliType}-cli` as ProviderId;
+
+    // Check if provider is registered
+    const Constructor = providerRegistry.get(providerId);
+    if (!Constructor) {
+      throw notConfiguredError(providerId);
+    }
+
+    // Get command from config or use provided
+    const config = vscode.workspace.getConfiguration('gofer');
+    const cliCommand = command || (
+      cliType === 'claude'
+        ? config.get<string>('claudeCodeCommand', 'claude')
+        : config.get<string>('codexCommand', 'codex')
+    );
+
+    // T038: Health check with actionable error messages
+    const { CLIHealthChecker } = await import('./cli/CLIHealthChecker');
+    const healthResult = await CLIHealthChecker.check(cliType, cliCommand);
+
+    if (!healthResult.available) {
+      throw new Error(
+        `${cliType} CLI not found.\n${healthResult.installInstructions || ''}`
+      );
+    }
+
+    if (!healthResult.compatible) {
+      throw new Error(
+        `${cliType} version ${healthResult.version} is incompatible.\n${healthResult.installInstructions || ''}`
+      );
+    }
+
+    if (!healthResult.authenticated) {
+      throw new Error(
+        `${cliType} CLI not authenticated.\n${healthResult.authInstructions || ''}`
+      );
+    }
+
+    // Get model from defaults
+    const model = DEFAULT_MODELS[providerId];
+
+    // R1: Preserve conversation history across provider switches
+    // Check if there's an existing CLI provider with conversation history
+    let conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }> = [];
+    for (const [existingId, existingProvider] of this.providers.entries()) {
+      // Only extract history from CLI providers (claude-cli or codex-cli)
+      if (
+        (existingId === 'claude-cli' || existingId === 'codex-cli') &&
+        typeof (existingProvider as any).getConversationHistory === 'function'
+      ) {
+        conversationHistory = (existingProvider as any).getConversationHistory();
+        break; // Only need one history (all CLI providers share the same conversation)
+      }
+    }
+
+    // Create provider (CLI providers use command as first param, not API key)
+    const provider = new Constructor(cliCommand, model);
+
+    // R1: Restore conversation history if switching providers
+    if (conversationHistory.length > 0 && typeof (provider as any).setConversationHistory === 'function') {
+      (provider as any).setConversationHistory(conversationHistory);
+    }
+
+    // Cache and return
+    this.providers.set(providerId, provider);
+    return provider;
+  }
+
+  /**
+   * Auto-detect available CLI provider (T027, enhanced in T038)
+   * Uses CLIHealthChecker for comprehensive detection
+   * @returns 'claude' if Claude CLI available, 'codex' if only Codex available, null if neither
+   */
+  public async autoDetectCLI(): Promise<'claude' | 'codex' | null> {
+    const { CLIHealthChecker } = await import('./cli/CLIHealthChecker');
+    const config = vscode.workspace.getConfiguration('gofer');
+
+    // Check Claude first (preferred for backward compatibility)
+    const claudeCommand = config.get<string>('claudeCodeCommand', 'claude');
+    const claudeResult = await CLIHealthChecker.check('claude', claudeCommand);
+
+    if (claudeResult.available && claudeResult.authenticated && claudeResult.compatible) {
+      return 'claude';
+    }
+
+    // Check Codex second
+    const codexCommand = config.get<string>('codexCommand', 'codex');
+    const codexResult = await CLIHealthChecker.check('codex', codexCommand);
+
+    if (codexResult.available && codexResult.authenticated && codexResult.compatible) {
+      return 'codex';
+    }
+
+    // Neither available
+    return null;
+  }
+
+  /**
+   * Get CLI provider based on user preference with auto-detection (T028, enhanced in T038)
+   * Uses 'auto' setting to detect available CLI
+   * Provides comprehensive error messages with installation and auth instructions
+   *
+   * @returns LLMProvider instance
+   * @throws Error if no CLI provider found with actionable instructions
+   */
+  public async getCLIProvider(): Promise<LLMProvider> {
+    const { CLIHealthChecker } = await import('./cli/CLIHealthChecker');
+    const config = vscode.workspace.getConfiguration('gofer');
+    const preference = config.get<'claude' | 'codex' | 'auto'>('cliProvider', 'auto');
+
+    let cliType: 'claude' | 'codex';
+
+    if (preference === 'auto') {
+      // Auto-detect with detailed error messages
+      const detected = await this.autoDetectCLI();
+      if (!detected) {
+        // Check both CLIs to provide specific guidance
+        const claudeCommand = config.get<string>('claudeCodeCommand', 'claude');
+        const codexCommand = config.get<string>('codexCommand', 'codex');
+
+        const claudeResult = await CLIHealthChecker.check('claude', claudeCommand);
+        const codexResult = await CLIHealthChecker.check('codex', codexCommand);
+
+        // Build comprehensive error message
+        let errorMsg = 'No CLI provider available for autonomous mode.\n\n';
+
+        if (!claudeResult.available) {
+          errorMsg += `Claude CLI: ${claudeResult.installInstructions}\n`;
+        } else if (!claudeResult.authenticated) {
+          errorMsg += `Claude CLI: ${claudeResult.authInstructions}\n`;
+        } else if (!claudeResult.compatible) {
+          errorMsg += `Claude CLI: ${claudeResult.errorMessage}\n`;
+        }
+
+        if (!codexResult.available) {
+          errorMsg += `Codex CLI: ${codexResult.installInstructions}\n`;
+        } else if (!codexResult.authenticated) {
+          errorMsg += `Codex CLI: ${codexResult.authInstructions}\n`;
+        } else if (!codexResult.compatible) {
+          errorMsg += `Codex CLI: ${codexResult.errorMessage}\n`;
+        }
+
+        throw new Error(errorMsg);
+      }
+      cliType = detected;
+    } else {
+      // Specific provider selected - health check will happen in createCLIProvider
+      cliType = preference;
+    }
+
+    return this.createCLIProvider(cliType);
   }
 }
 

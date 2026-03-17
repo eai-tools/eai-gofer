@@ -330,6 +330,36 @@
       "lastUsed": 1773712756566,
       "usedCount": 0,
       "learnedFrom": "session:236f5b2b-ba76-4f38-bc01-29f488a9a535"
+    },
+    {
+      "id": "a3de0a9a-c918-4a07-8074-2fc600e0e7e9",
+      "category": "error_resolution",
+      "tags": [
+        "#auto-learned",
+        "#error-fix",
+        "#session-f7516fb4"
+      ],
+      "scope": "local",
+      "content": "The fix is now deployed. Let me document this critical fix in the project memory for future reference:",
+      "created": 1773783086317,
+      "lastUsed": 1773788229654,
+      "usedCount": 2,
+      "learnedFrom": "session:f7516fb4-93b5-4a99-b58e-d79b82a51220"
+    },
+    {
+      "id": "567f204a-de1a-4d5c-b0d9-cfd7f722958b",
+      "category": "error_resolution",
+      "tags": [
+        "#auto-learned",
+        "#error-fix",
+        "#session-f7516fb4"
+      ],
+      "scope": "local",
+      "content": "The fix is now **live on GitHub** and **documented in project memory**.",
+      "created": 1773783098212,
+      "lastUsed": 1773788321106,
+      "usedCount": 2,
+      "learnedFrom": "session:f7516fb4-93b5-4a99-b58e-d79b82a51220"
     }
   ]
 }

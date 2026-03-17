@@ -13,7 +13,8 @@ module.exports = {
     vscode: 'commonjs vscode',
     // Exclude native modules
     'fsevents': 'commonjs fsevents',
-    'node-pty': 'commonjs node-pty'
+    'node-pty': 'commonjs node-pty',
+    'node-pty-prebuilt-multiarch': 'commonjs node-pty-prebuilt-multiarch'
   },
   resolve: {
     extensions: ['.ts', '.js'],

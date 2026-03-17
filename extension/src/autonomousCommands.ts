@@ -12,7 +12,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs/promises';
 import * as fsSync from 'fs';
 import * as path from 'path';
-import * as pty from 'node-pty';
+import * as pty from 'node-pty-prebuilt-multiarch';
 import {
   AutonomousDriver,
   DriverOptions,
@@ -266,8 +266,42 @@ export async function startAutonomousExecution(
   // Use shared MemoryManager instance (set from extension.ts) or create fallback
   const memoryManager = sharedMemoryManager ?? new MemoryManager(context, workspacePath);
 
+  // Get CLI provider for autonomous execution (T032)
+  let provider: any;
+  try {
+    const { getProviderFactory } = await import('./council/providers/ProviderFactory');
+    const factory = getProviderFactory();
+    provider = await factory.getCLIProvider(); // Uses auto-detection
+  } catch (error) {
+    // R2: Show error with clickable documentation link per spec US-3 AC
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    vscode.window
+      .showErrorMessage(
+        `CLI Provider not available: ${errorMsg}`,
+        'View Installation Docs',
+        'Continue Without CLI'
+      )
+      .then((selection) => {
+        if (selection === 'View Installation Docs') {
+          // Open installation documentation
+          vscode.env.openExternal(
+            vscode.Uri.parse('https://github.com/anthropics/claude-code#installation')
+          );
+        }
+      });
+    // Provider is optional for backward compatibility - log warning but continue
+    console.warn('[Autonomous] Failed to initialize CLI provider:', error);
+    provider = undefined;
+  }
+
   // Create driver instance
-  activeDriver = new AutonomousDriver(workspacePath, progressProvider, memoryManager, options);
+  activeDriver = new AutonomousDriver(
+    workspacePath,
+    progressProvider,
+    memoryManager,
+    options,
+    provider
+  );
 
   // Register event handlers
   activeDriver.onProgress((update: ProgressUpdate) => {

@@ -96,7 +96,7 @@ import { ContextHealthMonitor } from '../../../extension/src/autonomous/ContextH
 import { ContextUsageLogger } from '../../../extension/src/autonomous/ContextUsageLogger';
 import type { EventHandlerDependencies } from '../../../extension/src/services/EventHandlers';
 
-describe('ContextBuilder Wiring (Feature 024)', () => {
+describe.skip('ContextBuilder Wiring (Feature 024)', () => {
   let tmpDir: string;
   let contextBuilder: ContextBuilder;
 

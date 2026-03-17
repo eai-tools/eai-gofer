@@ -250,6 +250,30 @@ vi.mock('node-pty', () => {
   };
 });
 
+// Mock node-pty-prebuilt-multiarch (native module)
+vi.mock('node-pty-prebuilt-multiarch', () => {
+  const mockPtyProcess = {
+    onData: vi.fn(() => {
+      // Store callback for later invocation if needed
+      return;
+    }),
+    onExit: vi.fn(() => {
+      // Store callback for later invocation if needed
+      return;
+    }),
+    write: vi.fn(),
+    kill: vi.fn(),
+    pid: 12345,
+  };
+
+  return {
+    default: {
+      spawn: vi.fn(() => mockPtyProcess),
+    },
+    spawn: vi.fn(() => mockPtyProcess),
+  };
+});
+
 // Set fallback environment variables ONLY if not already set
 // This allows real API keys from .env or shell to take precedence
 if (!process.env.ANTHROPIC_API_KEY) {

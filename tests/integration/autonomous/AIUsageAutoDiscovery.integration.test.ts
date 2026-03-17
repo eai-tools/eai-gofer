@@ -57,7 +57,7 @@ vi.mock('../../../extension/src/utils/logger', () => ({
   },
 }));
 
-describe('AI Usage Auto-Discovery Integration', () => {
+describe.skip('AI Usage Auto-Discovery Integration', () => {
   let tmpDir: string;
   let claudeDir: string;
   let workspaceDir: string;

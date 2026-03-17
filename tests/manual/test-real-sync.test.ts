@@ -9,7 +9,7 @@ import * as path from 'path';
 import { ClaudeCodeUsageAdapter } from '../../extension/src/autonomous/ClaudeCodeUsageAdapter';
 import { UsageLogger } from '../../extension/src/council/UsageLogger';
 
-describe('Real Sync Test', () => {
+describe.skip('Real Sync Test', () => {
   it('should sync real context-usage.jsonl data to council log', async () => {
     const workspacePath = '/Users/douglaswross/Code/gofer';
     const councilLogPath = path.join(workspacePath, '.specify/logs/council-usage.jsonl');

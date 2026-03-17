@@ -2,7 +2,7 @@
   "name": "gofer",
   "displayName": "Gofer (Enterprise AI) [PREVIEW]",
   "description": "Spec-driven development for AI. Exposes 6 MCP tools that let Claude Code and GitHub Copilot autonomously implement features from specifications.",
-  "version": "1.20.2",
+  "version": "1.20.3",
   "publisher": "EnterpriseAI",
   "icon": "icon.png",
   "author": {
@@ -205,6 +205,10 @@
         "command": "gofer.startClaudeCode",
         "title": "Gofer: Start Claude Code Terminal",
         "icon": "$(play)"
+      },
+      {
+        "command": "gofer.debugAIUsage",
+        "title": "Gofer: Debug AI Usage Panel"
       },
       {
         "command": "gofer.stopClaudeCode",
@@ -533,6 +537,26 @@
           "description": "Custom command to launch Claude Code (only used when mode is 'custom')",
           "markdownDescription": "Custom command used when `gofer.claudeCodeMode` is set to `custom`.\n\nExamples:\n- `claude-skip` (shell alias)\n- `/usr/local/bin/claude --flag` (full path with flags)"
         },
+        "gofer.cliProvider": {
+          "type": "string",
+          "enum": [
+            "claude",
+            "codex",
+            "auto"
+          ],
+          "enumDescriptions": [
+            "Use Claude Code CLI",
+            "Use Codex CLI",
+            "Auto-detect installed CLI"
+          ],
+          "default": "auto",
+          "description": "AI CLI provider for autonomous mode"
+        },
+        "gofer.codexCommand": {
+          "type": "string",
+          "default": "codex",
+          "description": "Custom path to Codex CLI executable"
+        },
         "gofer.claudeTerminalName": {
           "type": "string",
           "default": "Claude",
@@ -830,8 +854,8 @@
     }
   },
   "scripts": {
-    "postinstall": "npx @electron/rebuild -f -w node-pty -v 37.6.0 || echo 'Warning: Failed to rebuild node-pty'",
-    "rebuild-native": "npx @electron/rebuild -f -w node-pty -v 37.6.0",
+    "postinstall": "echo 'Using prebuilt node-pty-prebuilt-multiarch, skipping rebuild'",
+    "rebuild-native": "echo 'Using prebuilt node-pty-prebuilt-multiarch, skipping rebuild'",
     "vscode:prepublish": "npm run prepare-language-server && npm run rebuild-native && npm run package",
     "prepare-language-server": "cd ../language-server && npm run build && cd ../extension && rm -rf language-server && cp -r ../language-server language-server && rm -rf language-server/src",
     "compile": "webpack",
@@ -883,13 +907,16 @@
     "fix-path": "^4.0.0",
     "graphlib": "^2.1.8",
     "jszip": "^3.10.1",
-    "node-pty": "^1.0.0",
+    "node-pty-prebuilt-multiarch": "^0.10.1-pre.5",
     "openai": "^4.104.0",
+    "reflect-metadata": "^0.2.2",
+    "tsyringe": "^4.10.0",
     "twilio": "^5.3.0",
     "uuid": "^10.0.0",
     "vscode-languageclient": "^9.0.1",
-    "reflect-metadata": "^0.2.2",
-    "tsyringe": "^4.10.0",
     "ws": "^8.18.0"
+  },
+  "optionalDependencies": {
+    "@achingbrain/node-pty-prebuilt-multiarch": "*"
   }
 }

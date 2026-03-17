@@ -24,7 +24,7 @@ import type { TaskContext } from './ContextBuilder';
 import { Logger } from '../utils/logger';
 import { CheckpointValidator } from './CheckpointValidator';
 import type { SlopReducer, WorkspaceReduceResult } from './SlopReducer';
-import type { IPty } from 'node-pty';
+import type { IPty } from 'node-pty-prebuilt-multiarch';
 
 /**
  * Configuration for auto-handoff trigger.

@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.21.0] - 2026-03-18
+
+feat: automatic context management via sub-agent dispatch + @lydell/node-pty migration
+
 ## [1.20.7] - 2026-03-18
 
 fix: Remove electron-rebuild to preserve cross-platform node-pty binaries for Codespaces

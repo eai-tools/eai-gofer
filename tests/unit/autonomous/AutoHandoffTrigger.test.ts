@@ -12,7 +12,7 @@ import {
   ContextHealthMonitor,
   type ContextHealthStatus,
 } from '../../../extension/src/autonomous/ContextHealthMonitor';
-import type { IPty } from 'node-pty';
+// Removed: import type { IPty } from 'node-pty' - no longer using PTY
 import * as os from 'os';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -752,80 +752,80 @@ describe('AutoHandoffTrigger', () => {
     });
 
     it('should send /7_gofer_save to pty when auto-save event fires', async () => {
-      const mockPty = { write: vi.fn() };
+      const mockPty = { sendText: vi.fn() };
       const autoSaveTrigger = new AutoHandoffTrigger({
         autoExecuteSave: true,
         autoResumeAfterSave: false,
         enableContinuousSlopReduction: false,
         notificationCooldownMs: 1000,
       });
-      autoSaveTrigger.setClaudePtyProcess(mockPty as unknown as IPty);
+      autoSaveTrigger.setClaudeVscodeTerminal(mockPty as unknown as vscode.Terminal);
       autoSaveTrigger.connect(monitor);
 
       // Emit auto-save event directly
       monitor.emit('auto-save', createAutoSaveStatus());
       await vi.runAllTimersAsync();
 
-      expect(mockPty.write).toHaveBeenCalledWith('/7_gofer_save');
+      expect(mockPty.sendText).toHaveBeenCalledWith('/7_gofer_save');
 
       autoSaveTrigger.dispose();
     });
 
     it('should not send save when autoExecuteSave is disabled', async () => {
-      const mockPty = { write: vi.fn() };
+      const mockPty = { sendText: vi.fn() };
       const autoSaveTrigger = new AutoHandoffTrigger({
         autoExecuteSave: false,
         enableContinuousSlopReduction: false,
         notificationCooldownMs: 1000,
       });
-      autoSaveTrigger.setClaudePtyProcess(mockPty as unknown as IPty);
+      autoSaveTrigger.setClaudeVscodeTerminal(mockPty as unknown as vscode.Terminal);
       autoSaveTrigger.connect(monitor);
 
       monitor.emit('auto-save', createAutoSaveStatus());
       await vi.runAllTimersAsync();
 
-      expect(mockPty.write).not.toHaveBeenCalled();
+      expect(mockPty.sendText).not.toHaveBeenCalled();
 
       autoSaveTrigger.dispose();
     });
 
     it('should not send save for estimated data source', async () => {
-      const mockPty = { write: vi.fn() };
+      const mockPty = { sendText: vi.fn() };
       const autoSaveTrigger = new AutoHandoffTrigger({
         autoExecuteSave: true,
         enableContinuousSlopReduction: false,
         notificationCooldownMs: 1000,
       });
-      autoSaveTrigger.setClaudePtyProcess(mockPty as unknown as IPty);
+      autoSaveTrigger.setClaudeVscodeTerminal(mockPty as unknown as vscode.Terminal);
       autoSaveTrigger.connect(monitor);
 
       const estimatedStatus = { ...createAutoSaveStatus(), dataSource: 'estimated' as const };
       monitor.emit('auto-save', estimatedStatus);
       await vi.runAllTimersAsync();
 
-      expect(mockPty.write).not.toHaveBeenCalled();
+      expect(mockPty.sendText).not.toHaveBeenCalled();
 
       autoSaveTrigger.dispose();
     });
 
     it('should send save/clear/resume cycle to pty when autoExecuteSave is enabled', async () => {
-      const mockPty = { write: vi.fn() };
+      const mockPty = { sendText: vi.fn() };
       const autoSaveTrigger = new AutoHandoffTrigger({
         autoExecuteSave: true,
         autoResumeAfterSave: true,
         enableContinuousSlopReduction: false,
         notificationCooldownMs: 1000,
       });
-      autoSaveTrigger.setClaudePtyProcess(mockPty as unknown as IPty);
+      autoSaveTrigger.setClaudeVscodeTerminal(mockPty as unknown as vscode.Terminal);
       autoSaveTrigger.connect(monitor);
 
       monitor.emit('auto-save', createAutoSaveStatus());
       await vi.runAllTimersAsync();
 
-      expect(mockPty.write).toHaveBeenCalledWith('/7_gofer_save');
+      expect(mockPty.sendText).toHaveBeenCalledWith('/7_gofer_save');
       // After checkpoint timeout + clear + delay, /8_gofer_resume is sent
-      expect(mockPty.write).toHaveBeenCalledWith('/clear');
-      expect(mockPty.write).toHaveBeenCalledWith('/8_gofer_resume');
+      expect(mockPty.sendText).toHaveBeenCalledWith('/clear');
+      expect(mockPty.sendText).toHaveBeenCalledWith('/8_gofer_resume');
 
       autoSaveTrigger.dispose();
     });
@@ -854,7 +854,7 @@ describe('AutoHandoffTrigger', () => {
       fs.mkdirSync(specDir, { recursive: true });
       fs.writeFileSync(path.join(specDir, 'session-checkpoint.md'), '---\nstatus: test\n---\n');
 
-      const mockPty = { write: vi.fn() };
+      const mockPty = { sendText: vi.fn() };
       const autoSaveTrigger = new AutoHandoffTrigger(
         {
           autoExecuteSave: true,
@@ -864,25 +864,25 @@ describe('AutoHandoffTrigger', () => {
         },
         tmpDir
       );
-      autoSaveTrigger.setClaudePtyProcess(mockPty as unknown as IPty);
+      autoSaveTrigger.setClaudeVscodeTerminal(mockPty as unknown as vscode.Terminal);
       autoSaveTrigger.connect(monitor);
 
-      // First auto-save — save/clear/resume sends 6 writes (each command + \r separately)
+      // First auto-save — save/clear/resume sends 3 commands
       monitor.emit('auto-save', createAutoSaveStatus());
       await vi.runAllTimersAsync();
-      expect(mockPty.write).toHaveBeenCalledTimes(6); // /7_gofer_save + \r, /clear + \r, /8_gofer_resume + \r
+      expect(mockPty.sendText).toHaveBeenCalledTimes(3); // /7_gofer_save, /clear, /8_gofer_resume
 
       // Second auto-save immediately — should be blocked by cooldown
       monitor.emit('auto-save', createAutoSaveStatus());
       await vi.runAllTimersAsync();
-      expect(mockPty.write).toHaveBeenCalledTimes(6); // unchanged
+      expect(mockPty.sendText).toHaveBeenCalledTimes(3); // unchanged
 
       autoSaveTrigger.dispose();
       fs.rmSync(tmpDir, { recursive: true, force: true });
     });
 
     it('should log auto-save event to usage logger', async () => {
-      const mockPty = { write: vi.fn() };
+      const mockPty = { sendText: vi.fn() };
       const mockLogger = {
         logHandoff: vi.fn().mockResolvedValue(undefined),
       };
@@ -892,7 +892,7 @@ describe('AutoHandoffTrigger', () => {
         enableContinuousSlopReduction: false,
         notificationCooldownMs: 1000,
       });
-      autoSaveTrigger.setClaudePtyProcess(mockPty as unknown as IPty);
+      autoSaveTrigger.setClaudeVscodeTerminal(mockPty as unknown as vscode.Terminal);
       autoSaveTrigger.setUsageLogger(mockLogger as unknown as ContextUsageLogger);
       autoSaveTrigger.setSessionContext('auto-save-session', 'implement', 'T005');
       autoSaveTrigger.connect(monitor);
@@ -920,7 +920,7 @@ describe('AutoHandoffTrigger', () => {
 
   describe('end-to-end threshold crossing at 65%', () => {
     it('should trigger auto-save when context crosses from below 65% to above 65%', async () => {
-      const mockPty = { write: vi.fn() };
+      const mockPty = { sendText: vi.fn() };
       const mockLogger = { logHandoff: vi.fn().mockResolvedValue(undefined) };
 
       // Create monitor with auto-save threshold at 65%
@@ -936,7 +936,7 @@ describe('AutoHandoffTrigger', () => {
         enableContinuousSlopReduction: false,
         notificationCooldownMs: 1000,
       });
-      thresholdTrigger.setClaudePtyProcess(mockPty as unknown as IPty);
+      thresholdTrigger.setClaudeVscodeTerminal(mockPty as unknown as vscode.Terminal);
       thresholdTrigger.setUsageLogger(mockLogger as unknown as ContextUsageLogger);
       thresholdTrigger.setSessionContext('threshold-test', 'implement', 'T010');
       thresholdTrigger.connect(thresholdMonitor);
@@ -948,7 +948,7 @@ describe('AutoHandoffTrigger', () => {
       });
       await vi.advanceTimersByTimeAsync(100);
 
-      expect(mockPty.write).not.toHaveBeenCalled();
+      expect(mockPty.sendText).not.toHaveBeenCalled();
 
       // Step 2: Context crosses 65% threshold (jump to 66%)
       thresholdMonitor.analyzeContext({
@@ -958,11 +958,11 @@ describe('AutoHandoffTrigger', () => {
       await vi.runAllTimersAsync();
 
       // auto-save should have fired: /7_gofer_save sent to terminal
-      expect(mockPty.write).toHaveBeenCalledWith('/7_gofer_save');
+      expect(mockPty.sendText).toHaveBeenCalledWith('/7_gofer_save');
 
       // save/clear/resume cycle sends all three commands to the same pty
-      expect(mockPty.write).toHaveBeenCalledWith('/clear');
-      expect(mockPty.write).toHaveBeenCalledWith('/8_gofer_resume');
+      expect(mockPty.sendText).toHaveBeenCalledWith('/clear');
+      expect(mockPty.sendText).toHaveBeenCalledWith('/8_gofer_resume');
 
       // Usage logger should have recorded the auto-save event
       expect(mockLogger.logHandoff).toHaveBeenCalledWith(
@@ -980,7 +980,7 @@ describe('AutoHandoffTrigger', () => {
     });
 
     it('should NOT trigger auto-save when context stays below 65%', async () => {
-      const mockPty = { write: vi.fn() };
+      const mockPty = { sendText: vi.fn() };
 
       const thresholdMonitor = new ContextHealthMonitor({
         autoSaveThreshold: 0.65,
@@ -992,7 +992,7 @@ describe('AutoHandoffTrigger', () => {
         enableContinuousSlopReduction: false,
         notificationCooldownMs: 1000,
       });
-      thresholdTrigger.setClaudePtyProcess(mockPty as unknown as IPty);
+      thresholdTrigger.setClaudeVscodeTerminal(mockPty as unknown as vscode.Terminal);
       thresholdTrigger.connect(thresholdMonitor);
 
       // Context at 40%
@@ -1009,14 +1009,14 @@ describe('AutoHandoffTrigger', () => {
       });
       await vi.advanceTimersByTimeAsync(100);
 
-      expect(mockPty.write).not.toHaveBeenCalled();
+      expect(mockPty.sendText).not.toHaveBeenCalled();
 
       thresholdTrigger.dispose();
       thresholdMonitor.dispose();
     });
 
     it('should NOT trigger auto-save for estimated data even above 65%', async () => {
-      const mockPty = { write: vi.fn() };
+      const mockPty = { sendText: vi.fn() };
 
       const thresholdMonitor = new ContextHealthMonitor({
         autoSaveThreshold: 0.65,
@@ -1028,7 +1028,7 @@ describe('AutoHandoffTrigger', () => {
         enableContinuousSlopReduction: false,
         notificationCooldownMs: 1000,
       });
-      thresholdTrigger.setClaudePtyProcess(mockPty as unknown as IPty);
+      thresholdTrigger.setClaudeVscodeTerminal(mockPty as unknown as vscode.Terminal);
       thresholdTrigger.connect(thresholdMonitor);
 
       // Estimated data at 50% then 80% — should NOT trigger because dataSource is estimated
@@ -1044,14 +1044,14 @@ describe('AutoHandoffTrigger', () => {
       });
       await vi.advanceTimersByTimeAsync(100);
 
-      expect(mockPty.write).not.toHaveBeenCalled();
+      expect(mockPty.sendText).not.toHaveBeenCalled();
 
       thresholdTrigger.dispose();
       thresholdMonitor.dispose();
     });
 
     it('should only trigger auto-save ONCE per threshold crossing (edge detection)', async () => {
-      const mockPty = { write: vi.fn() };
+      const mockPty = { sendText: vi.fn() };
 
       const thresholdMonitor = new ContextHealthMonitor({
         autoSaveThreshold: 0.65,
@@ -1064,7 +1064,7 @@ describe('AutoHandoffTrigger', () => {
         enableContinuousSlopReduction: false,
         notificationCooldownMs: 100, // Short cooldown so it doesn't interfere
       });
-      thresholdTrigger.setClaudePtyProcess(mockPty as unknown as IPty);
+      thresholdTrigger.setClaudeVscodeTerminal(mockPty as unknown as vscode.Terminal);
       thresholdTrigger.connect(thresholdMonitor);
 
       // Cross threshold: 50% → 75%
@@ -1080,8 +1080,8 @@ describe('AutoHandoffTrigger', () => {
       });
       await vi.runAllTimersAsync();
 
-      // save/clear/resume sends 6 writes (each command + \r separately)
-      expect(mockPty.write).toHaveBeenCalledTimes(6);
+      // save/clear/resume sends 3 commands
+      expect(mockPty.sendText).toHaveBeenCalledTimes(3);
 
       // Continue above threshold: 75% → 80% — should NOT fire again (edge detection)
       vi.advanceTimersByTime(200); // Past cooldown
@@ -1091,8 +1091,8 @@ describe('AutoHandoffTrigger', () => {
       });
       await vi.advanceTimersByTimeAsync(100);
 
-      // Still only 6 calls — the monitor only emits 'auto-save' on the crossing edge
-      expect(mockPty.write).toHaveBeenCalledTimes(6);
+      // Still only 3 calls — the monitor only emits 'auto-save' on the crossing edge
+      expect(mockPty.sendText).toHaveBeenCalledTimes(3);
 
       thresholdTrigger.dispose();
       thresholdMonitor.dispose();
@@ -1200,7 +1200,7 @@ describe('AutoHandoffTrigger', () => {
 
     it('should catch 65% threshold with 2s polling when context grows rapidly', async () => {
       let utilization = 54000; // Start at 45%
-      const mockPty = { write: vi.fn() };
+      const mockPty = { sendText: vi.fn() };
       const mockLogger = { logHandoff: vi.fn().mockResolvedValue(undefined) };
 
       // Create temp workspace with spec structure for checkpoint file detection
@@ -1222,7 +1222,7 @@ describe('AutoHandoffTrigger', () => {
         tmpDir
       );
 
-      rapidTrigger.setClaudePtyProcess(mockPty as unknown as IPty);
+      rapidTrigger.setClaudeVscodeTerminal(mockPty as unknown as vscode.Terminal);
       rapidTrigger.setUsageLogger(mockLogger as unknown as ContextUsageLogger);
       rapidTrigger.setSessionContext('rapid-test', 'implement', 'T010');
       rapidTrigger.connect(rapidMonitor);
@@ -1256,10 +1256,10 @@ describe('AutoHandoffTrigger', () => {
       // 500ms (save \r) + 1000ms (checkpoint poll) + 500ms (clear \r) + 2000ms (clear pause) + 500ms (resume \r) = 4500ms
       await vi.advanceTimersByTimeAsync(5000);
 
-      expect(mockPty.write).toHaveBeenCalledWith('/7_gofer_save');
+      expect(mockPty.sendText).toHaveBeenCalledWith('/7_gofer_save');
       // After checkpoint detected, /clear and /8_gofer_resume follow
-      expect(mockPty.write).toHaveBeenCalledWith('/clear');
-      expect(mockPty.write).toHaveBeenCalledWith('/8_gofer_resume');
+      expect(mockPty.sendText).toHaveBeenCalledWith('/clear');
+      expect(mockPty.sendText).toHaveBeenCalledWith('/8_gofer_resume');
 
       rapidTrigger.dispose();
       rapidMonitor.dispose();

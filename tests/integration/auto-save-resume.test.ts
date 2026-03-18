@@ -15,7 +15,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import type { IPty } from 'node-pty';
+// Removed: import type { IPty } from 'node-pty' - no longer using PTY
 
 // Mock Logger
 vi.mock('../../extension/src/utils/logger', () => ({
@@ -76,7 +76,7 @@ describe('Auto-Save/Resume Integration', () => {
     fs.mkdirSync(specDir, { recursive: true });
 
     // Create mocks
-    mockPty = { write: vi.fn() };
+    mockPty = { sendText: vi.fn() };
     mockLogger = { logHandoff: vi.fn().mockResolvedValue(undefined) };
 
     // Set up monitor and trigger
@@ -95,7 +95,7 @@ describe('Auto-Save/Resume Integration', () => {
       tmpDir
     );
 
-    trigger.setClaudePtyProcess(mockPty as unknown as IPty);
+    trigger.setClaudeVscodeTerminal(mockPty as unknown as typeof vscode.Terminal.prototype);
     trigger.setUsageLogger(mockLogger as unknown as ContextUsageLogger);
     trigger.setSessionContext('integration-test', 'implement', 'T001');
     trigger.connect(monitor);
@@ -123,18 +123,18 @@ describe('Auto-Save/Resume Integration', () => {
     monitor.checkHealth();
 
     // Verify /7_gofer_save was sent (command and \r as separate writes)
-    expect(mockPty.write).toHaveBeenCalledWith('/7_gofer_save');
+    expect(mockPty.sendText).toHaveBeenCalledWith('/7_gofer_save');
 
     // Allow 500ms for the \r to be sent after the command
     await vi.advanceTimersByTimeAsync(600);
 
     // /clear and /8_gofer_resume should NOT have been sent yet (no checkpoint file)
-    expect(mockPty.write).not.toHaveBeenCalledWith('/clear');
-    expect(mockPty.write).not.toHaveBeenCalledWith('/8_gofer_resume');
+    expect(mockPty.sendText).not.toHaveBeenCalledWith('/clear');
+    expect(mockPty.sendText).not.toHaveBeenCalledWith('/8_gofer_resume');
 
     // Advance 2 seconds — still no checkpoint file
     await vi.advanceTimersByTimeAsync(2000);
-    expect(mockPty.write).not.toHaveBeenCalledWith('/clear');
+    expect(mockPty.sendText).not.toHaveBeenCalledWith('/clear');
 
     // Simulate Claude finishing the save — create checkpoint file
     fs.writeFileSync(
@@ -146,12 +146,12 @@ describe('Auto-Save/Resume Integration', () => {
     await vi.advanceTimersByTimeAsync(1100);
 
     // NOW /clear should have been sent (command and \r as separate writes)
-    expect(mockPty.write).toHaveBeenCalledWith('/clear');
+    expect(mockPty.sendText).toHaveBeenCalledWith('/clear');
 
     // Advance past the 500ms PTY delay + 2-second delay after /clear
     await vi.advanceTimersByTimeAsync(2600);
 
-    expect(mockPty.write).toHaveBeenCalledWith('/8_gofer_resume');
+    expect(mockPty.sendText).toHaveBeenCalledWith('/8_gofer_resume');
   });
 
   it('should detect updated checkpoint file (not just new ones)', async () => {
@@ -174,8 +174,8 @@ describe('Auto-Save/Resume Integration', () => {
     utilization = 80000;
     monitor.checkHealth();
 
-    expect(mockPty.write).toHaveBeenCalledWith('/7_gofer_save');
-    expect(mockPty.write).not.toHaveBeenCalledWith('/clear');
+    expect(mockPty.sendText).toHaveBeenCalledWith('/7_gofer_save');
+    expect(mockPty.sendText).not.toHaveBeenCalledWith('/clear');
 
     // Advance past 500ms PTY delay + 2 seconds for polling
     await vi.advanceTimersByTimeAsync(2600);
@@ -189,12 +189,12 @@ describe('Auto-Save/Resume Integration', () => {
     // Advance to let polling detect the update
     await vi.advanceTimersByTimeAsync(1100);
 
-    expect(mockPty.write).toHaveBeenCalledWith('/clear');
+    expect(mockPty.sendText).toHaveBeenCalledWith('/clear');
 
     // Advance past the 500ms PTY delay + 2-second delay after /clear
     await vi.advanceTimersByTimeAsync(2600);
 
-    expect(mockPty.write).toHaveBeenCalledWith('/8_gofer_resume');
+    expect(mockPty.sendText).toHaveBeenCalledWith('/8_gofer_resume');
   });
 
   it('should timeout and still send /clear + /8_gofer_resume after 90 seconds (graceful degradation)', async () => {
@@ -210,19 +210,19 @@ describe('Auto-Save/Resume Integration', () => {
     utilization = 80000;
     monitor.checkHealth();
 
-    expect(mockPty.write).toHaveBeenCalledWith('/7_gofer_save');
+    expect(mockPty.sendText).toHaveBeenCalledWith('/7_gofer_save');
 
     // Never create a checkpoint file — simulate save failure/hang
     // Advance past the 90-second timeout (+ 500ms PTY delays)
     await vi.advanceTimersByTimeAsync(91500);
 
     // Should still send /clear (graceful degradation)
-    expect(mockPty.write).toHaveBeenCalledWith('/clear');
+    expect(mockPty.sendText).toHaveBeenCalledWith('/clear');
 
     // Advance past the 500ms PTY delay + 2-second delay after /clear
     await vi.advanceTimersByTimeAsync(2600);
 
-    expect(mockPty.write).toHaveBeenCalledWith('/8_gofer_resume');
+    expect(mockPty.sendText).toHaveBeenCalledWith('/8_gofer_resume');
   });
 
   it('should not trigger on non-real data sources', async () => {
@@ -237,7 +237,7 @@ describe('Auto-Save/Resume Integration', () => {
     await vi.advanceTimersByTimeAsync(5000);
 
     // Should NOT have sent save or resume
-    expect(mockPty.write).not.toHaveBeenCalled();
+    expect(mockPty.sendText).not.toHaveBeenCalled();
   });
 
   it('should respect cooldown between auto-save triggers', async () => {
@@ -260,12 +260,12 @@ describe('Auto-Save/Resume Integration', () => {
     // + 2s delay after /clear + 500ms PTY delay (resume \r) + buffer
     await vi.advanceTimersByTimeAsync(6000);
 
-    expect(mockPty.write).toHaveBeenCalledWith('/7_gofer_save');
-    expect(mockPty.write).toHaveBeenCalledWith('/clear');
-    expect(mockPty.write).toHaveBeenCalledWith('/8_gofer_resume');
+    expect(mockPty.sendText).toHaveBeenCalledWith('/7_gofer_save');
+    expect(mockPty.sendText).toHaveBeenCalledWith('/clear');
+    expect(mockPty.sendText).toHaveBeenCalledWith('/8_gofer_resume');
 
     // Reset mocks and try to trigger again immediately (should be blocked by cooldown)
-    mockPty.write.mockClear();
+    mockPty.sendText.mockClear();
 
     // Force another health check at same level
     // Need a new monitor since the threshold was already crossed
@@ -285,7 +285,7 @@ describe('Auto-Save/Resume Integration', () => {
       tmpDir
     );
 
-    trigger2.setClaudePtyProcess(mockPty as unknown as IPty);
+    trigger2.setClaudeVscodeTerminal(mockPty as unknown as typeof vscode.Terminal.prototype);
     trigger2.connect(monitor2);
 
     monitor2.setContextProvider(() => ({
@@ -302,7 +302,7 @@ describe('Auto-Save/Resume Integration', () => {
     await vi.advanceTimersByTimeAsync(5000);
 
     // Should be blocked by cooldown
-    expect(mockPty.write).not.toHaveBeenCalled();
+    expect(mockPty.sendText).not.toHaveBeenCalled();
 
     trigger2.dispose();
     monitor2.dispose();
@@ -327,7 +327,7 @@ describe('Auto-Save/Resume Integration', () => {
     utilization = 80000;
     monitor.checkHealth();
 
-    expect(mockPty.write).toHaveBeenCalledWith('/7_gofer_save');
+    expect(mockPty.sendText).toHaveBeenCalledWith('/7_gofer_save');
 
     // Allow 500ms PTY delay for \r
     await vi.advanceTimersByTimeAsync(600);
@@ -338,11 +338,11 @@ describe('Auto-Save/Resume Integration', () => {
     await vi.advanceTimersByTimeAsync(1100);
 
     // Should still detect it and send /clear
-    expect(mockPty.write).toHaveBeenCalledWith('/clear');
+    expect(mockPty.sendText).toHaveBeenCalledWith('/clear');
 
     // Advance past the 500ms PTY delay + 2-second delay after /clear
     await vi.advanceTimersByTimeAsync(2600);
 
-    expect(mockPty.write).toHaveBeenCalledWith('/8_gofer_resume');
+    expect(mockPty.sendText).toHaveBeenCalledWith('/8_gofer_resume');
   });
 });

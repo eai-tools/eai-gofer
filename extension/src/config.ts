@@ -68,6 +68,7 @@ export const CONFIG_KEYS = {
   claudeCodeMode: 'gofer.claudeCodeMode',
   claudeCodeCommand: 'gofer.claudeCodeCommand',
   cliProvider: 'gofer.cliProvider',
+  defaultCLI: 'gofer.defaultCLI',
   codexCommand: 'gofer.codexCommand',
   autoInitialize: 'gofer.autoInitialize',
   preferredAi: 'gofer.preferredAI',
@@ -91,6 +92,7 @@ export const DEFAULTS = {
   claudeCodeMode: 'standard' as const,
   claudeCodeCommand: 'claude',
   cliProvider: 'auto' as const,
+  defaultCLI: 'auto' as const,
   codexCommand: 'codex',
   autoInitialize: false,
   preferredAi: 'claude',
@@ -361,6 +363,16 @@ export class ConfigManager {
     return this.config.get<'claude' | 'codex' | 'auto'>(
       CONFIG_KEYS.cliProvider.replace('gofer.', ''),
       DEFAULTS.cliProvider
+    );
+  }
+
+  /**
+   * Get default CLI for Gofer command routing (T004)
+   */
+  public getDefaultCLI(): 'claude' | 'copilot' | 'codex' | 'auto' {
+    return this.config.get<'claude' | 'copilot' | 'codex' | 'auto'>(
+      'defaultCLI',
+      DEFAULTS.defaultCLI
     );
   }
 

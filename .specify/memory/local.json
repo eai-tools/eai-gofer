@@ -360,6 +360,21 @@
       "lastUsed": 1773788321106,
       "usedCount": 2,
       "learnedFrom": "session:f7516fb4-93b5-4a99-b58e-d79b82a51220"
+    },
+    {
+      "id": "ad7ec1ff-4c9c-42a2-9b96-dda9b913bd6e",
+      "category": "file_knowledge",
+      "tags": [
+        "#auto-learned",
+        "#files",
+        "#session-bd4a11cf"
+      ],
+      "scope": "local",
+      "content": "- .specify/specs/028-cross-platform-command-parity/issues.md (293KB, GitHub-ready)",
+      "created": 1773821309496,
+      "lastUsed": 1773821309496,
+      "usedCount": 0,
+      "learnedFrom": "session:bd4a11cf-f9c2-44d8-ad20-0acbc283028e"
     }
   ]
 }

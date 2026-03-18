@@ -1,5 +1,5 @@
 {
-  "timestamp": 1773794471919,
+  "timestamp": 1773818643402,
   "specId": "",
   "taskId": "current",
   "sections": {
@@ -9,17 +9,11 @@
   },
   "memoryCoverage": {
     "coveredKeywords": [],
-    "uncoveredKeywords": [
-      "act",
-      "ses"
-    ],
+    "uncoveredKeywords": ["act", "ses"],
     "coveragePercent": 0,
     "memoriesLoaded": 10,
     "researchLoadedForGaps": true,
-    "researchTriggers": [
-      "act",
-      "ses"
-    ]
+    "researchTriggers": ["act", "ses"]
   },
   "budgetUsage": {
     "stage": "implement",
@@ -28,8 +22,8 @@
       "memory": 409,
       "constitution": 2665,
       "code": 0,
-      "conversation": 145,
-      "total": 4123
+      "conversation": 144,
+      "total": 4122
     },
     "limits": {
       "research": 12000,

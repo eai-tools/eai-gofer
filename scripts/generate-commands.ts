@@ -132,11 +132,8 @@ class FileSystemHelpers {
 async function main(): Promise<void> {
   const args = parseArgs();
 
-  console.log('🚀 Gofer Command Generator');
-  console.log('Feature: 028-cross-platform-command-parity\n');
 
   if (args.dryRun) {
-    console.log('⚠️  DRY RUN MODE: No files will be written\n');
   }
 
   // Determine which platforms to generate
@@ -148,7 +145,6 @@ async function main(): Promise<void> {
     platforms.push('copilot');
   }
 
-  console.log(`📋 Platforms: ${platforms.join(', ')}\n`);
 
   // TODO: Implement generation logic
   // 1. Scan .claude/commands/ directory for reference commands
@@ -157,7 +153,6 @@ async function main(): Promise<void> {
   // 4. Write files (unless --dry-run)
   // 5. Report summary
 
-  console.log('✅ Generation complete!');
 }
 
 // Run if invoked directly

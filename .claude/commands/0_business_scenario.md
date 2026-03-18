@@ -596,9 +596,7 @@ handles everything else automatically.
 
 ---
 
-## Step 5: Handle Interruptions & Automatic Context Management
-
-### User-Initiated Pause
+## Step 5: Handle Interruptions
 
 If the user needs to pause:
 
@@ -606,47 +604,11 @@ If the user needs to pause:
 2. Document current state
 3. User can resume later with `/8_gofer_resume`
 
-### Automatic Context Management (Pipeline Stages)
+If context window is filling up:
 
-**IMPORTANT**: Each pipeline stage (`/5_gofer_implement`, `/6_gofer_validate`, etc.) now includes automatic sub-agent dispatch when context fills:
-
-- Stages monitor context health automatically
-- At 70% threshold: stage saves checkpoint and spawns continuation sub-agent
-- Sub-agent starts with fresh 200k context, loads checkpoint, continues
-- **NO manual intervention required** - fully automatic
-
-This means `/0_business_scenario` can orchestrate the ENTIRE pipeline end-to-end without stopping for context issues.
-
-### How It Works
-
-```
-/0_business_scenario invokes /1_gofer_research
-  → /1 auto-chains to /2_gofer_specify
-  → /2 auto-chains to /3_gofer_plan
-  → /3 auto-chains to /4_gofer_tasks
-  → /4 auto-chains to /5_gofer_implement
-
-  → /5 executes tasks...
-     ├─ Task 1, 2, 3... (context 45%)
-     ├─ Task 4, 5, 6... (context 68%)
-     ├─ Task 7... (context 72% - THRESHOLD!)
-     │
-     ├─ /5 saves checkpoint
-     ├─ /5 spawns sub-agent
-     │  └─ Sub-agent: fresh context (0%)
-     │     └─ Sub-agent loads checkpoint (3%)
-     │        └─ Sub-agent continues tasks 8, 9, 10... (15%)
-     │           └─ Task 11, 12, 13... (30%)
-     │              └─ Completes → returns to /5
-     │
-     └─ /5 receives results, auto-chains to /6_gofer_validate
-
-  → /6 validates implementation
-  → /6 auto-chains to /6a_gofer_engineering_review
-  → Pipeline complete
-```
-
-**Key insight**: Sub-agents get fresh 200k context. Checkpoints are tiny (~2-5k tokens). This enables recursive continuation without manual intervention.
+1. Save progress with `/7_gofer_save`
+2. Recommend user start new conversation
+3. User runs `/8_gofer_resume` in new session
 
 ---
 

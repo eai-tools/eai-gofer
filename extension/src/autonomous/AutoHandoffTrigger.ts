@@ -24,7 +24,7 @@ import type { TaskContext } from './ContextBuilder';
 import { Logger } from '../utils/logger';
 import { CheckpointValidator } from './CheckpointValidator';
 import type { SlopReducer, WorkspaceReduceResult } from './SlopReducer';
-import type { IPty } from 'node-pty-prebuilt-multiarch';
+// Removed: import type { IPty } from 'node-pty-prebuilt-multiarch' - no longer needed without PTY support
 
 /**
  * Configuration for auto-handoff trigger.
@@ -108,7 +108,7 @@ export class AutoHandoffTrigger implements vscode.Disposable {
   private usageLogger: ContextUsageLogger | null = null;
   private contextBuilder: ContextBuilder | null = null;
   private slopReducer: SlopReducer | null = null;
-  private claudePtyProcess: IPty | null = null;
+  // Removed: private claudePtyProcess: IPty | null = null - PTY support removed
   private claudeVscodeTerminal: vscode.Terminal | null = null;
   private lastNotificationTime: number = 0;
   private currentSessionId: string = '';
@@ -226,26 +226,20 @@ export class AutoHandoffTrigger implements vscode.Disposable {
     this.startContinuousSlopScanning();
   }
 
-  /**
-   * Sets the Claude Code pty process for sending commands.
-   */
-  setClaudePtyProcess(pty: IPty | null): void {
-    this.claudePtyProcess = pty;
-  }
+  // Removed: setClaudePtyProcess() - PTY support removed
 
   /**
    * Sets the Claude Code VSCode terminal for automated commands.
-   * Used when Claude Code is launched via normal terminal (not PTY).
    */
   setClaudeVscodeTerminal(terminal: vscode.Terminal | null): void {
     this.claudeVscodeTerminal = terminal;
   }
 
   /**
-   * Returns true if either PTY or VSCode terminal is available.
+   * Returns true if VSCode terminal is available.
    */
   private hasActiveTerminal(): boolean {
-    return this.claudePtyProcess !== null || this.claudeVscodeTerminal !== null;
+    return this.claudeVscodeTerminal !== null;
   }
 
   /**
@@ -514,20 +508,12 @@ export class AutoHandoffTrigger implements vscode.Disposable {
    *   4. /8_gofer_resume — reloads from checkpoint into fresh context
    */
   /**
-   * Sends a command to the Claude Code PTY by writing the text first,
-   * then sending \r separately after a 500ms delay. This is the only
-   * method that works reliably with Claude Code's PTY input handling.
-   * (Matches the working METHOD 5 pattern in autonomousCommands.ts)
+   * Sends a command to the Claude Code terminal.
+   *
+   * Uses terminal.sendText() which automatically appends Enter.
    */
   private async sendTerminalCommand(command: string): Promise<void> {
-    if (this.claudePtyProcess) {
-      this.claudePtyProcess.write(command);
-      await new Promise<void>((resolve) => setTimeout(resolve, 500));
-      if (!this.claudePtyProcess) {
-        throw new Error('PTY died before Enter could be sent');
-      }
-      this.claudePtyProcess.write('\r');
-    } else if (this.claudeVscodeTerminal) {
+    if (this.claudeVscodeTerminal) {
       this.claudeVscodeTerminal.sendText(command);
     } else {
       throw new Error('No Claude Code terminal available');

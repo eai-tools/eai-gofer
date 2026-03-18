@@ -22,11 +22,13 @@ export function setAutoHandoffTrigger(trigger: AutoHandoffTrigger | undefined): 
 /**
  * Wire a Claude Code PTY process to AutoHandoffTrigger for automated
  * context save/resume (called from autonomousCommands.ts).
+ *
+ * @deprecated PTY support removed in feature/001-remove-pty-dependency.
+ * Use wireClaudeTerminalToAutoHandoff() for normal terminal support.
  */
-export function wireClaudePtyToAutoHandoff(pty: any): void {
-  if (autoHandoffInstance) {
-    autoHandoffInstance.setClaudePtyProcess(pty);
-  }
+export function wireClaudePtyToAutoHandoff(_pty: any): void {
+  // No-op: PTY support removed. AutoHandoffTrigger now only supports VSCode terminals.
+  // Context monitoring happens via HookBridgeWatcher + file system monitoring.
 }
 
 /**

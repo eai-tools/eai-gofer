@@ -107,15 +107,7 @@ export function isUpgradeInProgress(): boolean {
   return getState().isUpgrading;
 }
 
-/**
- * Wire the Claude Code pty process to AutoHandoffTrigger for automated save/resume.
- * @deprecated Use wireClaudePtyToAutoHandoff from './autoHandoffBridge' directly.
- * Kept for backward compatibility.
- */
-export function wireClaudePtyToAutoHandoff(pty: any): void {
-  const { wireClaudePtyToAutoHandoff: wire } = require('./autoHandoffBridge');
-  wire(pty);
-}
+// Removed: wireClaudePtyToAutoHandoff() - PTY support removed (feature 001-remove-pty-dependency)
 
 /**
  * Extension activation
@@ -214,9 +206,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       ) {
         logger?.info('Extension', 'CLI provider setting changed - reloading extension');
         await reinitializeExtension(context);
-        vscode.window.showInformationMessage(
-          'Gofer: CLI provider changed. Extension reloaded.'
-        );
+        vscode.window.showInformationMessage('Gofer: CLI provider changed. Extension reloaded.');
       }
     })
   );
@@ -562,7 +552,10 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
   try {
     const goferConfig = vscode.workspace.getConfiguration('gofer');
     const useApiClient = goferConfig.get<boolean>('aiUsage.useApiClient', false);
-    logger?.info('Extension', `[AIUsage] useApiClient = ${useApiClient} (false = UsageLogger, true = UsageApiClient)`);
+    logger?.info(
+      'Extension',
+      `[AIUsage] useApiClient = ${useApiClient} (false = UsageLogger, true = UsageApiClient)`
+    );
 
     let dataSource: import('./types/aiUsage').UsageDataSource;
     if (useApiClient) {
@@ -635,17 +628,20 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
       }
 
       // Periodic sync every 5 minutes
-      const syncInterval = setInterval(async () => {
-        try {
-          const newEntries = await claudeAdapter.syncToCouncilLog();
-          if (newEntries > 0) {
-            logger?.info('Extension', `Auto-synced ${newEntries} new sessions`);
-            aiUsageMonitor.forceRefresh();
+      const syncInterval = setInterval(
+        async () => {
+          try {
+            const newEntries = await claudeAdapter.syncToCouncilLog();
+            if (newEntries > 0) {
+              logger?.info('Extension', `Auto-synced ${newEntries} new sessions`);
+              aiUsageMonitor.forceRefresh();
+            }
+          } catch (err) {
+            logger?.warn('Extension', 'Auto-sync failed', { error: err });
           }
-        } catch (err) {
-          logger?.warn('Extension', 'Auto-sync failed', { error: err });
-        }
-      }, 5 * 60 * 1000); // 5 minutes
+        },
+        5 * 60 * 1000
+      ); // 5 minutes
 
       // Cleanup on dispose
       context.subscriptions.push({
@@ -715,16 +711,11 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
             '• Claude Code CLI: npm install -g @anthropic/claude-code\n' +
             '• Codex CLI: npm install -g @openai/codex-cli';
 
-          vscode.window
-            .showWarningMessage(message, 'View Settings')
-            .then((selection) => {
-              if (selection === 'View Settings') {
-                vscode.commands.executeCommand(
-                  'workbench.action.openSettings',
-                  'gofer.cliProvider'
-                );
-              }
-            });
+          vscode.window.showWarningMessage(message, 'View Settings').then((selection) => {
+            if (selection === 'View Settings') {
+              vscode.commands.executeCommand('workbench.action.openSettings', 'gofer.cliProvider');
+            }
+          });
         } else if (!codexResult.authenticated) {
           // Codex found but not authenticated
           vscode.window
@@ -761,10 +752,7 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
           )
           .then((selection) => {
             if (selection === 'View Settings') {
-              vscode.commands.executeCommand(
-                'workbench.action.openSettings',
-                'gofer.cliProvider'
-              );
+              vscode.commands.executeCommand('workbench.action.openSettings', 'gofer.cliProvider');
             }
           });
       } else if (!result.authenticated) {
@@ -775,10 +763,7 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
           )
           .then((selection) => {
             if (selection === 'View Settings') {
-              vscode.commands.executeCommand(
-                'workbench.action.openSettings',
-                'gofer.cliProvider'
-              );
+              vscode.commands.executeCommand('workbench.action.openSettings', 'gofer.cliProvider');
             }
           });
       } else if (!result.compatible) {

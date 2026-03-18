@@ -18,3 +18,5 @@ language-server/src/**
 node_modules/**
 # But keep node-pty-prebuilt-multiarch with all platform binaries
 !node_modules/node-pty-prebuilt-multiarch/**
+# Exclude platform-specific build artifacts (electron-rebuild creates these for current platform only)
+node_modules/node-pty-prebuilt-multiarch/build/**

@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.20.7",
+  "latest_version": "1.21.0",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-03-18T00:13:02.062Z",
+  "last_updated": "2026-03-18T00:57:14.027Z",
   "releases": [
+    {
+      "version": "1.21.0",
+      "tag_name": "v1.21.0",
+      "published_at": "2026-03-18T00:57:14.027Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.21.0.vsix",
+      "notes": "feat: automatic context management via sub-agent dispatch + @lydell/node-pty migration",
+      "prerelease": false,
+      "size_mb": 10.1
+    },
     {
       "version": "1.20.7",
       "tag_name": "v1.20.7",
@@ -81,15 +90,6 @@
       "published_at": "2026-03-15T03:28:13.930Z",
       "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.19.1.vsix",
       "notes": "fix: register onView activation events for sidebar panels",
-      "prerelease": false,
-      "size_mb": 30.3
-    },
-    {
-      "version": "1.19.0",
-      "tag_name": "v1.19.0",
-      "published_at": "2026-03-15T01:58:42.827Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.19.0.vsix",
-      "notes": "feat: AI token usage tracking panel and pipeline sub-agent dispatch",
       "prerelease": false,
       "size_mb": 30.3
     }

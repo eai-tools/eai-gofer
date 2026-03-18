@@ -71,18 +71,16 @@ describe('AutoHandoffTrigger terminal abstraction', () => {
     expect(trigger.getConfig().enabled).toBe(true);
   });
 
-  it('both PTY and terminal setters work independently', () => {
-    const mockPty = { write: vi.fn() } as any;
+  it('terminal setter works correctly', () => {
     const mockTerminal = { sendText: vi.fn() } as any;
 
-    trigger.setClaudePtyProcess(mockPty);
+    // Set terminal
     trigger.setClaudeVscodeTerminal(mockTerminal);
 
-    // Clear PTY, terminal should still be active
-    trigger.setClaudePtyProcess(null);
+    // Clear terminal
     trigger.setClaudeVscodeTerminal(null);
 
-    // No crashes expected
+    // No crashes expected (PTY support removed in feature/001-remove-pty-dependency)
     expect(true).toBe(true);
   });
 });

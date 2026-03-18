@@ -1,0 +1,164 @@
+{
+  "version": 1,
+  "observations": [
+    {
+      "timestamp": 1773792785802,
+      "turnNumber": 1,
+      "type": "file_read",
+      "originalContent": "File content 0",
+      "metadata": {
+        "path": "/file0.ts"
+      },
+      "summary": "Read file 0",
+      "id": "bd6fbd25-e302-42db-9424-03f13c6d95ff",
+      "contentHash": "c28de6d5a9919e5752f80b34cabb47a2d8c2f2bf8f020de82dbd348da13f278a",
+      "tokenEstimate": 4,
+      "masked": false,
+      "decayTier": "key-points",
+      "keyPointsContent": "File content 0",
+      "keyPointsAt": 1773792785811
+    },
+    {
+      "timestamp": 1773792785802,
+      "turnNumber": 2,
+      "type": "file_read",
+      "originalContent": "File content 1",
+      "metadata": {
+        "path": "/file1.ts"
+      },
+      "summary": "Read file 1",
+      "id": "198a5b83-fbb6-4f34-93f1-35d883fc8843",
+      "contentHash": "e3d59ebc30cec4a8a0bdb87089fec15cc5f38c7403e4c9c07b69490cab99787c",
+      "tokenEstimate": 4,
+      "masked": false,
+      "decayTier": "key-points",
+      "keyPointsContent": "File content 1",
+      "keyPointsAt": 1773792785811
+    },
+    {
+      "timestamp": 1773792785802,
+      "turnNumber": 3,
+      "type": "file_read",
+      "originalContent": "File content 2",
+      "metadata": {
+        "path": "/file2.ts"
+      },
+      "summary": "Read file 2",
+      "id": "abc07dea-83bd-4d72-ae17-4432ac2cef70",
+      "contentHash": "0918b2e74cacf1f5c298cc71d5832615d8e39b5aa3d3768faea9a0f9cf0dc025",
+      "tokenEstimate": 4,
+      "masked": false,
+      "decayTier": "key-points",
+      "keyPointsContent": "File content 2",
+      "keyPointsAt": 1773792785811
+    },
+    {
+      "timestamp": 1773792785802,
+      "turnNumber": 4,
+      "type": "file_read",
+      "originalContent": "File content 3",
+      "metadata": {
+        "path": "/file3.ts"
+      },
+      "summary": "Read file 3",
+      "id": "a8913661-e814-4d05-bea0-4b55ae0ba5da",
+      "contentHash": "49c2929414bc2e4c87c4a0dfad1d5118ae84c179f5a8b2847e38bcdcc95a3add",
+      "tokenEstimate": 4,
+      "masked": false,
+      "decayTier": "key-points",
+      "keyPointsContent": "File content 3",
+      "keyPointsAt": 1773792785811
+    },
+    {
+      "timestamp": 1773792785802,
+      "turnNumber": 5,
+      "type": "file_read",
+      "originalContent": "File content 4",
+      "metadata": {
+        "path": "/file4.ts"
+      },
+      "summary": "Read file 4",
+      "id": "bb4ba285-e73d-4951-b080-7698caccce33",
+      "contentHash": "c495136432e81438195966468a54a523bc64fe4da7216b0afd7c58a401c5e400",
+      "tokenEstimate": 4,
+      "masked": false,
+      "decayTier": "full"
+    },
+    {
+      "timestamp": 1773792785802,
+      "turnNumber": 6,
+      "type": "file_read",
+      "originalContent": "File content 5",
+      "metadata": {
+        "path": "/file5.ts"
+      },
+      "summary": "Read file 5",
+      "id": "7fedf6db-0796-46a8-88d2-68ae2b998670",
+      "contentHash": "11d904ad4443e0a5ee750aa3ef8c55acd96134263e2b2c77a237954dadc01f2f",
+      "tokenEstimate": 4,
+      "masked": false,
+      "decayTier": "full"
+    },
+    {
+      "timestamp": 1773792785802,
+      "turnNumber": 7,
+      "type": "file_read",
+      "originalContent": "File content 6",
+      "metadata": {
+        "path": "/file6.ts"
+      },
+      "summary": "Read file 6",
+      "id": "da0b4fb8-ee5e-44d4-a4a4-56cc587a9b12",
+      "contentHash": "3854965438e22a9b1642ec96b9ff31c645ddf6d0454807d18e701c2c280d9f44",
+      "tokenEstimate": 4,
+      "masked": false,
+      "decayTier": "full"
+    },
+    {
+      "timestamp": 1773792785802,
+      "turnNumber": 8,
+      "type": "file_read",
+      "originalContent": "File content 7",
+      "metadata": {
+        "path": "/file7.ts"
+      },
+      "summary": "Read file 7",
+      "id": "e45ed976-9d41-4ac5-820f-33c0966d0c70",
+      "contentHash": "11e498ff71f69c6864c825f541fe475cbe3b886c445a3c2e01783ea8e13bdb19",
+      "tokenEstimate": 4,
+      "masked": false,
+      "decayTier": "full"
+    },
+    {
+      "timestamp": 1773792785802,
+      "turnNumber": 9,
+      "type": "file_read",
+      "originalContent": "File content 8",
+      "metadata": {
+        "path": "/file8.ts"
+      },
+      "summary": "Read file 8",
+      "id": "4330391f-03bc-4700-8895-958f1427cfff",
+      "contentHash": "58738775792278d9b0abd521c2f0c9edf3ef04ee85176358db6bc1c68e18a683",
+      "tokenEstimate": 4,
+      "masked": false,
+      "decayTier": "full"
+    },
+    {
+      "timestamp": 1773792785802,
+      "turnNumber": 10,
+      "type": "file_read",
+      "originalContent": "File content 9",
+      "metadata": {
+        "path": "/file9.ts"
+      },
+      "summary": "Read file 9",
+      "id": "8a77a1b6-cdc2-4d9f-8a59-2ddcca39e8aa",
+      "contentHash": "828554f847442b81f4de23737ec42770d7085b2c992ac45a858c820198c8b800",
+      "tokenEstimate": 4,
+      "masked": false,
+      "decayTier": "full"
+    }
+  ],
+  "lastSaved": 1773792785821
+}

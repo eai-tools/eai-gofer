@@ -1,0 +1,218 @@
+/**
+ * Command Metadata Extractor for Cross-Platform Command Parity
+ * Feature 028: Extracts metadata from platform-specific command files
+ */
+
+import * as fs from 'fs';
+import * as yaml from 'js-yaml';
+import { PlatformType, CommandMetadata, CommandInvocationSyntax } from './types/CrossPlatformTypes';
+
+/**
+ * Extracts command metadata from platform-specific files
+ *
+ * Supports:
+ * - Claude CLI (.claude/commands)
+ * - Copilot Chat (.github/prompts)
+ * - Codex CLI (.system/skills)
+ */
+export class CommandMetadataExtractor {
+  /**
+   * Extract metadata from a Claude CLI command file
+   */
+  public extractFromClaudeCommand(filePath: string): CommandMetadata {
+    const content = fs.readFileSync(filePath, 'utf8');
+    const { frontmatter, body } = this.parseMarkdownWithFrontmatter(content);
+
+    const name = this.extractCommandNameFromPath(filePath, '.md');
+    const description =
+      (frontmatter.description as string) || this.extractDescriptionFromBody(body);
+
+    const supportsAutoChain = body.includes('AUTO-CHAIN') || body.includes('Skill tool');
+    const supportsParallelAgents =
+      body.includes('Task tool') ||
+      body.includes('Task: subagent_type=') ||
+      body.includes('parallel agents');
+
+    return {
+      name,
+      description,
+      platform: 'claude',
+      filePath,
+      frontmatter,
+      content: body,
+      supportsAutoChain,
+      supportsParallelAgents,
+      invocationSyntax: this.getInvocationSyntax('claude', name),
+      extractedAt: new Date(),
+    };
+  }
+
+  /**
+   * Extract metadata from a Copilot Chat prompt file
+   */
+  public extractFromCopilotPrompt(filePath: string): CommandMetadata {
+    const content = fs.readFileSync(filePath, 'utf8');
+    const { frontmatter, body } = this.parseMarkdownWithFrontmatter(content);
+
+    const name = this.extractCommandNameFromPath(filePath, '.prompt.md');
+    const description = (frontmatter.description as string) || name;
+
+    const supportsAutoChain =
+      body.includes('Next Command:') || body.includes('continue the pipeline');
+    const supportsParallelAgents =
+      body.includes('@agent spawn') ||
+      body.includes('Multi-Agent Delegation') ||
+      body.includes('delegation syntax');
+
+    return {
+      name,
+      description,
+      platform: 'copilot',
+      filePath,
+      frontmatter,
+      content: body,
+      supportsAutoChain,
+      supportsParallelAgents,
+      invocationSyntax: this.getInvocationSyntax('copilot', name),
+      extractedAt: new Date(),
+    };
+  }
+
+  /**
+   * Extract metadata from a Codex CLI skill file
+   */
+  public extractFromCodexSkill(filePath: string): CommandMetadata {
+    const content = fs.readFileSync(filePath, 'utf8');
+    const { frontmatter, body } = this.parseMarkdownWithFrontmatter(content);
+
+    const name = (frontmatter.name as string) || 'unknown';
+    const description = (frontmatter.description as string) || name;
+
+    const supportsAutoChain =
+      body.includes('Next Steps') ||
+      body.includes('To continue the pipeline') ||
+      body.includes('Run:');
+    const supportsParallelAgents =
+      body.includes('Multi-Perspective Analysis') ||
+      body.includes('parallel perspectives') ||
+      body.includes('separate Codex CLI sessions');
+
+    return {
+      name,
+      description,
+      platform: 'codex',
+      filePath,
+      frontmatter,
+      content: body,
+      supportsAutoChain,
+      supportsParallelAgents,
+      invocationSyntax: this.getInvocationSyntax('codex', name),
+      extractedAt: new Date(),
+    };
+  }
+
+  /**
+   * Validate command invocation syntax for a platform
+   */
+  public validateInvocationSyntax(invocation: string, platform: PlatformType): boolean {
+    const syntax = this.getInvocationSyntax(platform, '.*');
+    const regex = new RegExp(syntax.pattern);
+    return regex.test(invocation);
+  }
+
+  /**
+   * Parse markdown file with YAML frontmatter
+   */
+  private parseMarkdownWithFrontmatter(content: string): {
+    frontmatter: Record<string, unknown>;
+    body: string;
+  } {
+    const frontmatterRegex = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/;
+    const match = content.match(frontmatterRegex);
+
+    if (match) {
+      const yamlContent = match[1];
+      const body = match[2];
+
+      try {
+        const frontmatter = yaml.load(yamlContent) as Record<string, unknown>;
+        return { frontmatter: frontmatter || {}, body };
+      } catch {
+        return { frontmatter: {}, body: content };
+      }
+    }
+
+    return { frontmatter: {}, body: content };
+  }
+
+  /**
+   * Extract command name from file path
+   */
+  private extractCommandNameFromPath(filePath: string, extension: string): string {
+    const filename = filePath.split('/').pop() || '';
+    return filename.replace(extension, '');
+  }
+
+  /**
+   * Extract description from markdown body
+   */
+  private extractDescriptionFromBody(body: string): string {
+    const h1Match = body.match(/^#\s+(.+)$/m);
+    if (h1Match) {
+      return h1Match[1];
+    }
+
+    const lines = body.split('\n');
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (trimmed && !trimmed.startsWith('#') && !trimmed.startsWith('---')) {
+        return trimmed;
+      }
+    }
+
+    return 'No description available';
+  }
+
+  /**
+   * Get invocation syntax for a platform and command
+   */
+  private getInvocationSyntax(
+    platform: PlatformType,
+    commandName: string
+  ): CommandInvocationSyntax {
+    if (platform === 'claude') {
+      return {
+        platform: 'claude',
+        prefix: '/',
+        example: '/' + commandName,
+        pattern: '^/' + commandName + '(\\s+.*)?$',
+        supportsArguments: true,
+        argumentFormat: 'space-separated after command',
+      };
+    }
+
+    if (platform === 'copilot') {
+      return {
+        platform: 'copilot',
+        prefix: '#',
+        example: '#' + commandName,
+        pattern: '^#' + commandName + '(\\s+.*)?$',
+        supportsArguments: true,
+        argumentFormat: 'space-separated after command',
+      };
+    }
+
+    if (platform === 'codex') {
+      return {
+        platform: 'codex',
+        prefix: '$ $',
+        example: '$ $ ' + commandName,
+        pattern: '^\\$\\s+\\$\\s+' + commandName + '(\\s+.*)?$',
+        supportsArguments: true,
+        argumentFormat: 'space-separated after command',
+      };
+    }
+
+    throw new Error('Unknown platform: ' + platform);
+  }
+}

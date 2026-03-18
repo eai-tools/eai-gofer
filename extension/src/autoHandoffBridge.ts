@@ -1,5 +1,5 @@
 /**
- * Bridge module for wiring Claude Code PTY to AutoHandoffTrigger.
+ * Bridge module for wiring Claude Code terminal to AutoHandoffTrigger.
  *
  * Extracted from extension.ts to break the circular dependency:
  *   extension.ts → autonomousCommands.ts → extension.ts
@@ -17,18 +17,6 @@ let autoHandoffInstance: AutoHandoffTrigger | undefined;
  */
 export function setAutoHandoffTrigger(trigger: AutoHandoffTrigger | undefined): void {
   autoHandoffInstance = trigger;
-}
-
-/**
- * Wire a Claude Code PTY process to AutoHandoffTrigger for automated
- * context save/resume (called from autonomousCommands.ts).
- *
- * @deprecated PTY support removed in feature/001-remove-pty-dependency.
- * Use wireClaudeTerminalToAutoHandoff() for normal terminal support.
- */
-export function wireClaudePtyToAutoHandoff(_pty: any): void {
-  // No-op: PTY support removed. AutoHandoffTrigger now only supports VSCode terminals.
-  // Context monitoring happens via HookBridgeWatcher + file system monitoring.
 }
 
 /**

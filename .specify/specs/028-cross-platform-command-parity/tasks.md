@@ -124,28 +124,28 @@ be implemented.
 
 ### Foundational Tasks
 
-- [ ] T008 [P] Implement `PlatformDetector` class in
+- [x] T008 [P] Implement `PlatformDetector` class in
       `extension/src/council/PlatformDetector.ts` with detectPlatform(),
       isPlatformAvailable(), getDefaultPlatform(), getDetectionContext()
-- [ ] T009 Implement platform detection logic: check execution context (VSCode
+- [x] T009 Implement platform detection logic: check execution context (VSCode
       extension host + directory presence), fallback to
       ConfigManager.getInstance().getDefaultCLI(), cache detection result
-- [ ] T010 [P] Implement `CommandMetadataExtractor` class in
+- [x] T010 [P] Implement `CommandMetadataExtractor` class in
       `extension/src/council/CommandMetadataExtractor.ts` with
       extractFromClaudeCommand(), extractFromCopilotPrompt(),
       extractFromCodexSkill()
-- [ ] T011 Parse YAML frontmatter and extract name/description from command
+- [x] T011 Parse YAML frontmatter and extract name/description from command
       files in CommandMetadataExtractor
-- [ ] T011a [P] Implement validateInvocationSyntax() in CommandMetadataExtractor
+- [x] T011a [P] Implement validateInvocationSyntax() in CommandMetadataExtractor
       to enforce platform-specific syntax rules per data-model.md:82-86 (Claude
       "/" prefix, Codex "$ $" prefix, Copilot "#" prefix)
-- [ ] T012 [P] Implement `SkillDirectoryManager` interface and
+- [x] T012 [P] Implement `SkillDirectoryManager` interface and
       DefaultSkillDirectoryManager in
       `extension/src/council/SkillDirectoryManager.ts` with findCommand(),
       listCommands(), getCommandMetadata(), watchDirectories()
-- [ ] T013 Implement multi-directory search with priority: .claude/commands/ >
+- [x] T013 Implement multi-directory search with priority: .claude/commands/ >
       .system/skills/ > .github/prompts/ in SkillDirectoryManager
-- [ ] T014 Extend `ProviderFactory.autoDetectCLI()` in
+- [x] T014 Extend `ProviderFactory.autoDetectCLI()` in
       `extension/src/council/providers/ProviderFactory.ts` to check
       `gofer.defaultCLI` setting before running detection
 - [ ] T015 If preferred CLI unavailable, show error with installation

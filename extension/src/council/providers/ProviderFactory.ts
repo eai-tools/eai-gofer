@@ -30,7 +30,10 @@ const providerRegistry = new Map<ProviderId, ProviderConstructor | CLIProviderCo
  * Register a provider constructor
  * Called by each provider module during initialization
  */
-export function registerProvider(id: ProviderId, constructor: ProviderConstructor | CLIProviderConstructor): void {
+export function registerProvider(
+  id: ProviderId,
+  constructor: ProviderConstructor | CLIProviderConstructor
+): void {
   providerRegistry.set(id, constructor);
 }
 
@@ -221,20 +224,18 @@ export class ProviderFactory {
 
     // Get command from config or use provided
     const config = vscode.workspace.getConfiguration('gofer');
-    const cliCommand = command || (
-      cliType === 'claude'
+    const cliCommand =
+      command ||
+      (cliType === 'claude'
         ? config.get<string>('claudeCodeCommand', 'claude')
-        : config.get<string>('codexCommand', 'codex')
-    );
+        : config.get<string>('codexCommand', 'codex'));
 
     // T038: Health check with actionable error messages
     const { CLIHealthChecker } = await import('./cli/CLIHealthChecker');
     const healthResult = await CLIHealthChecker.check(cliType, cliCommand);
 
     if (!healthResult.available) {
-      throw new Error(
-        `${cliType} CLI not found.\n${healthResult.installInstructions || ''}`
-      );
+      throw new Error(`${cliType} CLI not found.\n${healthResult.installInstructions || ''}`);
     }
 
     if (!healthResult.compatible) {
@@ -244,9 +245,7 @@ export class ProviderFactory {
     }
 
     if (!healthResult.authenticated) {
-      throw new Error(
-        `${cliType} CLI not authenticated.\n${healthResult.authInstructions || ''}`
-      );
+      throw new Error(`${cliType} CLI not authenticated.\n${healthResult.authInstructions || ''}`);
     }
 
     // Get model from defaults
@@ -270,7 +269,10 @@ export class ProviderFactory {
     const provider = new Constructor(cliCommand, model);
 
     // R1: Restore conversation history if switching providers
-    if (conversationHistory.length > 0 && typeof (provider as any).setConversationHistory === 'function') {
+    if (
+      conversationHistory.length > 0 &&
+      typeof (provider as any).setConversationHistory === 'function'
+    ) {
       (provider as any).setConversationHistory(conversationHistory);
     }
 
@@ -280,15 +282,57 @@ export class ProviderFactory {
   }
 
   /**
-   * Auto-detect available CLI provider (T027, enhanced in T038)
+   * Auto-detect available CLI provider (T027, enhanced in T038, T014)
    * Uses CLIHealthChecker for comprehensive detection
+   * Enhanced for T014: Checks gofer.defaultCLI setting before auto-detection
    * @returns 'claude' if Claude CLI available, 'codex' if only Codex available, null if neither
    */
   public async autoDetectCLI(): Promise<'claude' | 'codex' | null> {
     const { CLIHealthChecker } = await import('./cli/CLIHealthChecker');
     const config = vscode.workspace.getConfiguration('gofer');
 
-    // Check Claude first (preferred for backward compatibility)
+    // T014: Check gofer.defaultCLI setting first
+    const defaultCLI = config.get<'claude' | 'copilot' | 'codex' | 'auto'>('defaultCLI', 'auto');
+
+    // If user explicitly set defaultCLI (not 'auto'), honor that preference
+    if (defaultCLI !== 'auto') {
+      // Copilot is not a CLI tool for autonomous mode, fall back to Claude/Codex
+      if (defaultCLI === 'copilot') {
+        // Copilot Chat doesn't have a CLI we can exec, try Claude then Codex
+        const claudeCommand = config.get<string>('claudeCodeCommand', 'claude');
+        const claudeResult = await CLIHealthChecker.check('claude', claudeCommand);
+        if (claudeResult.available && claudeResult.authenticated && claudeResult.compatible) {
+          return 'claude';
+        }
+
+        const codexCommand = config.get<string>('codexCommand', 'codex');
+        const codexResult = await CLIHealthChecker.check('codex', codexCommand);
+        if (codexResult.available && codexResult.authenticated && codexResult.compatible) {
+          return 'codex';
+        }
+
+        return null;
+      }
+
+      // For Claude or Codex explicit preference, check if available
+      if (defaultCLI === 'claude') {
+        const claudeCommand = config.get<string>('claudeCodeCommand', 'claude');
+        const claudeResult = await CLIHealthChecker.check('claude', claudeCommand);
+        if (claudeResult.available && claudeResult.authenticated && claudeResult.compatible) {
+          return 'claude';
+        }
+        // Fallback to auto-detection if explicit preference not available
+      } else if (defaultCLI === 'codex') {
+        const codexCommand = config.get<string>('codexCommand', 'codex');
+        const codexResult = await CLIHealthChecker.check('codex', codexCommand);
+        if (codexResult.available && codexResult.authenticated && codexResult.compatible) {
+          return 'codex';
+        }
+        // Fallback to auto-detection if explicit preference not available
+      }
+    }
+
+    // Auto-detection fallback: Check Claude first (preferred for backward compatibility)
     const claudeCommand = config.get<string>('claudeCodeCommand', 'claude');
     const claudeResult = await CLIHealthChecker.check('claude', claudeCommand);
 

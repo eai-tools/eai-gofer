@@ -231,13 +231,10 @@ else
     exit 1
 fi
 
-# Rebuild node-pty for VSCode's Electron version
-print_info "Rebuilding node-pty for Electron 37 (MODULE_VERSION 136)..."
-if npx @electron/rebuild -f -w node-pty -v 37.6.0 2>&1; then
-    print_success "node-pty rebuilt successfully"
-else
-    print_warning "Failed to rebuild node-pty - VSIX may not work in VSCode"
-fi
+# Skip rebuilding - we use node-pty-prebuilt-multiarch with cross-platform binaries
+# Rebuilding would create a single-platform binary that breaks Linux/Codespaces
+print_info "Using prebuilt node-pty-prebuilt-multiarch binaries (cross-platform)..."
+print_success "Skipping rebuild to preserve multi-platform support"
 
 # Run vsce package and capture both success and failure
 if npx @vscode/vsce package --out "gofer-$NEW_VERSION.vsix" 2>&1; then
@@ -258,6 +255,44 @@ else
     print_error "VSIX file was not created: extension/gofer-$NEW_VERSION.vsix"
     exit 1
 fi
+
+# Validate VSIX contains cross-platform binaries (critical for Codespaces/Linux)
+print_info "Validating cross-platform binary support..."
+VSIX_FILE="./gofer-$NEW_VERSION.vsix"
+
+# Check for linux-x64 prebuilds (required for Codespaces)
+if unzip -l "$VSIX_FILE" | grep -q "prebuilds/linux-x64/node.abi"; then
+    print_success "✓ Linux x64 binaries present"
+else
+    print_error "✗ CRITICAL: Linux x64 binaries missing - extension will fail in Codespaces!"
+    print_error "  Check that node-pty-prebuilt-multiarch is installed correctly"
+    exit 1
+fi
+
+# Check for darwin binaries (required for macOS)
+if unzip -l "$VSIX_FILE" | grep -q "prebuilds/darwin-x64/node.abi\|prebuilds/darwin-arm64/node.abi"; then
+    print_success "✓ macOS binaries present"
+else
+    print_warning "⚠ macOS binaries missing"
+fi
+
+# CRITICAL: Ensure no platform-specific build artifacts are included
+if unzip -l "$VSIX_FILE" | grep -q "build/Release/pty.node"; then
+    print_error "✗ CRITICAL: Platform-specific build/Release/pty.node detected!"
+    print_error "  This will break cross-platform support. The electron-rebuild step"
+    print_error "  created a single-platform binary that was included in the VSIX."
+    print_error "  Fix: Remove electron-rebuild step or exclude build/ in .vscodeignore"
+
+    # Show which binary was included
+    print_error ""
+    print_error "  Included binary:"
+    unzip -l "$VSIX_FILE" | grep "build/Release/pty.node"
+    exit 1
+else
+    print_success "✓ No platform-specific build artifacts (cross-platform support intact)"
+fi
+
+print_success "Cross-platform validation passed"
 
 # Test VSIX activation before releasing
 print_info "Running VSIX pre-flight tests including activation..."

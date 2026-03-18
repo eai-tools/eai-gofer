@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.20.5",
+  "latest_version": "1.20.6",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-03-17T23:53:18.615Z",
+  "last_updated": "2026-03-18T00:00:03.863Z",
   "releases": [
+    {
+      "version": "1.20.6",
+      "tag_name": "v1.20.6",
+      "published_at": "2026-03-18T00:00:03.862Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.20.6.vsix",
+      "notes": "fix: Add cross-platform support for Codespaces/Linux - replaced node-pty with node-pty-prebuilt-multiarch",
+      "prerelease": false,
+      "size_mb": 10.2
+    },
     {
       "version": "1.20.5",
       "tag_name": "v1.20.5",
@@ -81,15 +90,6 @@
       "published_at": "2026-03-15T01:22:05.673Z",
       "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.18.1.vsix",
       "notes": "fix: bundle missing pipeline commands (0a_problem_validation, 7a_stakeholder_comms), prompts, and scripts (pipeline-state.sh, validate-artifact.sh) so they deploy to all workspaces on version upgrade",
-      "prerelease": false,
-      "size_mb": 30.3
-    },
-    {
-      "version": "1.18.0",
-      "tag_name": "v1.18.0",
-      "published_at": "2026-03-14T05:11:52.056Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.18.0.vsix",
-      "notes": "fix: sync bundled resources (commands, agents, prompts, scripts) to workspaces on extension version upgrade - previously new/updated resources were not copied when upgrading from e.g. 1.17.2 to 1.17.3",
       "prerelease": false,
       "size_mb": 30.3
     }

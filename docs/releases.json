@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.21.0",
+  "latest_version": "1.22.0",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-03-18T00:57:14.027Z",
+  "last_updated": "2026-03-18T06:45:54.553Z",
   "releases": [
+    {
+      "version": "1.22.0",
+      "tag_name": "v1.22.0",
+      "published_at": "2026-03-18T06:45:54.552Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.22.0.vsix",
+      "notes": "Remove PTY terminal dependency, use native VSCode terminal API",
+      "prerelease": false,
+      "size_mb": 10.1
+    },
     {
       "version": "1.21.0",
       "tag_name": "v1.21.0",
@@ -81,15 +90,6 @@
       "published_at": "2026-03-15T04:50:57.388Z",
       "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.19.2.vsix",
       "notes": "enforce mandatory auto-chain and add engineering review gates to pipeline stages",
-      "prerelease": false,
-      "size_mb": 30.3
-    },
-    {
-      "version": "1.19.1",
-      "tag_name": "v1.19.1",
-      "published_at": "2026-03-15T03:28:13.930Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.19.1.vsix",
-      "notes": "fix: register onView activation events for sidebar panels",
       "prerelease": false,
       "size_mb": 30.3
     }

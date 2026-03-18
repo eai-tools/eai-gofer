@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.22.0] - 2026-03-18
+
+Remove PTY terminal dependency, use native VSCode terminal API
+
 ## [1.21.0] - 2026-03-18
 
 feat: automatic context management via sub-agent dispatch + @lydell/node-pty migration

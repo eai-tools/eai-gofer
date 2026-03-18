@@ -12,7 +12,6 @@ import * as vscode from 'vscode';
 import * as fs from 'fs/promises';
 import * as fsSync from 'fs';
 import * as path from 'path';
-import * as pty from 'node-pty-prebuilt-multiarch';
 import {
   AutonomousDriver,
   DriverOptions,

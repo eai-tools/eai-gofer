@@ -79,34 +79,34 @@ command file format documentation.
 
 ### Setup Tasks
 
-- [ ] T001 [P] Create `.system/skills/` directory with README.md at
+- [x] T001 [P] Create `.system/skills/` directory with README.md at
       `/Users/douglaswross/Code/gofer/.system/skills/README.md` explaining Codex
       CLI integration
-- [ ] T002 [P] Add `gofer.defaultCLI` VSCode setting to `extension/package.json`
+- [x] T002 [P] Add `gofer.defaultCLI` VSCode setting to `extension/package.json`
       with enum ["claude", "copilot", "codex", "auto"], default "auto", order 27
-- [ ] T003 Add CONFIG_KEYS entry `defaultCLI: 'gofer.defaultCLI'` and DEFAULTS
+- [x] T003 Add CONFIG_KEYS entry `defaultCLI: 'gofer.defaultCLI'` and DEFAULTS
       entry `defaultCLI: 'auto'` in `extension/src/config.ts`
-- [ ] T004 Add ConfigManager getter `getDefaultCLI()` in
+- [x] T004 Add ConfigManager getter `getDefaultCLI()` in
       `extension/src/config.ts` with key `'defaultCLI'` (strip prefix per
       convention)
-- [ ] T005 [P] Define TypeScript types in
+- [x] T005 [P] Define TypeScript types in
       `extension/src/council/types/CrossPlatformTypes.ts`: PlatformType,
       CommandMetadata, PlatformDetectionContext, CommandInvocationSyntax
-- [ ] T006 [P] Create `scripts/generate-commands.ts` skeleton with CLI parser
+- [x] T006 [P] Create `scripts/generate-commands.ts` skeleton with CLI parser
       and file system helpers
-- [ ] T007 [P] Create
+- [x] T007 [P] Create
       `.specify/specs/028-cross-platform-command-parity/command-formats.md` file
-- [ ] T007a Write command format comparison table in `command-formats.md`
+- [x] T007a Write command format comparison table in `command-formats.md`
       documenting YAML frontmatter differences, AUTO-CHAIN syntax variations,
       file structure per platform (Claude .md, Codex SKILL.md in subdirectories,
       Copilot .prompt.md)
 
 **Verification**:
 
-- [ ] Settings UI shows `gofer.defaultCLI` dropdown with four options
-- [ ] ConfigManager.getInstance().getDefaultCLI() returns 'auto' by default
-- [ ] TypeScript compiles without errors
-- [ ] `.system/skills/README.md` explains Codex skill discovery
+- [x] Settings UI shows `gofer.defaultCLI` dropdown with four options
+- [x] ConfigManager.getInstance().getDefaultCLI() returns 'auto' by default
+- [x] TypeScript compiles without errors
+- [x] `.system/skills/README.md` explains Codex skill discovery
 
 ---
 

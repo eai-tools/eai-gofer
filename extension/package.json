@@ -552,6 +552,25 @@
           "default": "auto",
           "description": "AI CLI provider for autonomous mode"
         },
+        "gofer.defaultCLI": {
+          "type": "string",
+          "enum": [
+            "claude",
+            "copilot",
+            "codex",
+            "auto"
+          ],
+          "enumDescriptions": [
+            "Use Claude Code CLI for all Gofer commands",
+            "Use GitHub Copilot Chat for all Gofer commands",
+            "Use OpenAI Codex CLI for all Gofer commands",
+            "Auto-detect which CLI is installed and active"
+          ],
+          "default": "auto",
+          "description": "Default AI CLI for Gofer command routing",
+          "markdownDescription": "Choose which AI platform to use for Gofer slash commands (research, specify, plan, tasks, implement, validate).\n\n- **Claude**: Use `.claude/commands/*.md` files\n- **Copilot**: Use `.github/prompts/*.prompt.md` files\n- **Codex**: Use `.system/skills/*/SKILL.md` files\n- **Auto**: Automatically detect which CLI is active\n\nThis enables complete feature parity across all three AI platforms.",
+          "order": 27
+        },
         "gofer.codexCommand": {
           "type": "string",
           "default": "codex",

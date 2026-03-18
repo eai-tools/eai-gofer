@@ -29,7 +29,7 @@ import {
 import { Logger } from './services/Logger';
 import type { ProgressProvider } from './progressProvider';
 import type { EnrichedContextBridge } from './autonomous/ContextBridgeWriter';
-import { wireClaudePtyToAutoHandoff } from './autoHandoffBridge';
+// Removed: import { wireClaudePtyToAutoHandoff } - no longer needed without PTY support
 
 // Shared singleton instances (set from extension.ts)
 let sharedMemoryManager: MemoryManager | undefined;
@@ -149,7 +149,6 @@ let terminalCloseListener: vscode.Disposable | null = null;
 let autonomousResponder: ClaudeCodeAutonomousResponder | null = null;
 let idleDetectionInterval: NodeJS.Timeout | null = null; // Fast idle detection (5-10 seconds)
 let comprehensiveCheckInterval: NodeJS.Timeout | null = null; // Slow comprehensive check (60 seconds)
-let ptyProcess: pty.IPty | null = null;
 let isAutonomousMonitoringPaused = false; // Track pause state
 let lastIdleCheckTime = 0; // Track last idle check to avoid duplicate responses
 
@@ -1011,10 +1010,9 @@ export async function launchClaudeCode(specId: string): Promise<void> {
     const claudeArgs = autonomousMode ? ['--dangerously-skip-permissions'] : [];
     outputChannel.appendLine(`   Claude args: ${claudeArgs.join(' ') || '(none)'}`);
 
-    ptyProcess = pty.spawn('claude', claudeArgs, {
-      name: 'xterm-256color',
-      cols: 120,
-      rows: 30,
+    // Create a normal terminal (no PTY capture needed - HookBridgeWatcher monitors context via file system)
+    claudeTerminal = vscode.window.createTerminal({
+      name: `Claude Code: ${specId}`,
       cwd: workspacePath,
       env: {
         ...process.env,
@@ -1022,103 +1020,12 @@ export async function launchClaudeCode(specId: string): Promise<void> {
         CLAUDE_AUTOCOMPACT_PCT_OVERRIDE: '70',
         // Pass terminal display name so hooks can include it in bridge data
         GOFER_DISPLAY_NAME: `Claude Code: ${specId}`,
-      } as any,
-    });
-
-    // Wire pty to AutoHandoffTrigger for automated save/resume
-    wireClaudePtyToAutoHandoff(ptyProcess);
-
-    // Capture output and feed to autonomous responder
-    if (autonomousMode && apiKey && autonomousResponder) {
-      const responder = autonomousResponder; // Capture for closure
-      ptyProcess.onData((data) => {
-        responder.addTerminalOutput(data);
-      });
-      outputChannel.appendLine('   ✓ Output capture enabled');
-    }
-
-    // Observation tracking: buffer terminal output and track as observations (Spec 013 T036-T037)
-    if (sharedContextBuilder) {
-      let observationBuffer = '';
-      const contextBuilder = sharedContextBuilder; // Capture for closure
-      ptyProcess.onData((data) => {
-        observationBuffer += data;
-        if (observationBuffer.length >= 2000) {
-          contextBuilder.trackObservation(
-            'command_output',
-            observationBuffer,
-            { source: 'claude-code-terminal', specId },
-            `Terminal output chunk (${observationBuffer.length} chars)`
-          );
-          contextBuilder.incrementTurn();
-          observationBuffer = '';
-        }
-      });
-      outputChannel.appendLine('   ✓ Observation tracking enabled');
-    }
-
-    ptyProcess.onExit(() => {
-      ptyProcess = null;
-      // Clear the PTY reference in AutoHandoffTrigger to prevent writes to dead process
-      wireClaudePtyToAutoHandoff(null);
-    });
-
-    // Create event emitters for pty interface
-    const writeEmitter = new vscode.EventEmitter<string>();
-    const closeEmitter = new vscode.EventEmitter<number | void>();
-
-    // Forward pty output to terminal display - NO FILTERING
-    // Let xterm.js (VSCode's terminal engine) handle ANSI sequences naturally
-    // including ESC[2K (clear line) and \r (carriage return) for spinners
-    ptyProcess.onData((data) => {
-      writeEmitter.fire(data);
-    });
-
-    ptyProcess.onExit(({ exitCode }) => {
-      closeEmitter.fire(exitCode);
-    });
-
-    // Create terminal backed by the pty process using ExtensionTerminalOptions
-    // This gives us both good formatting AND output capture
-    const terminalOptions: vscode.ExtensionTerminalOptions = {
-      name: `Claude Code: ${specId}`,
-      pty: {
-        onDidWrite: writeEmitter.event,
-        onDidClose: closeEmitter.event,
-        open: () => {
-          // Pty already started, nothing to do
-        },
-        close: () => {
-          if (ptyProcess) {
-            ptyProcess.kill();
-          }
-        },
-        handleInput: (data: string) => {
-          if (ptyProcess) {
-            ptyProcess.write(data);
-          }
-        },
-        setDimensions: (dimensions: vscode.TerminalDimensions) => {
-          // CRITICAL: Without this callback, ANSI escape sequences don't work properly!
-          // The terminal needs dimensions (cols/rows) to calculate cursor positions
-          // for sequences like \r (carriage return) and \x1b[2K (clear line).
-          // This enables spinners to overwrite the same line instead of creating new lines.
-          if (ptyProcess) {
-            ptyProcess.resize(dimensions.columns, dimensions.rows);
-            if (outputChannel) {
-              outputChannel.appendLine(
-                `   ℹ Terminal resized to ${dimensions.columns}x${dimensions.rows}`
-              );
-            }
-          }
-        },
       },
-    };
+    });
 
-    // Create the terminal
-    claudeTerminal = vscode.window.createTerminal(terminalOptions);
-
-    outputChannel.appendLine('   ✓ Terminal created with pty backend');
+    outputChannel.appendLine(
+      '   ✓ Terminal created (normal mode - HookBridgeWatcher monitors context)'
+    );
 
     outputChannel.appendLine('[3/6] Setting up terminal close listener...');
     const closeListener = vscode.window.onDidCloseTerminal(async (closedTerminal) => {
@@ -1162,66 +1069,23 @@ export async function launchClaudeCode(specId: string): Promise<void> {
     outputChannel.appendLine('[4/6] Showing terminal...');
     claudeTerminal.show();
 
-    outputChannel.appendLine('[5/6] Claude Code process already started via pty');
-    outputChannel.appendLine('      Terminal is capturing output for autonomous answering');
+    outputChannel.appendLine('[5/6] Launching Claude Code...');
 
-    outputChannel.appendLine('[6/6] Waiting for Claude Code to fully initialize...');
-    outputChannel.appendLine('      Claude Code needs 8-10 seconds to start its interactive mode');
-    outputChannel.appendLine('      Will send /5_gofer_implement after 8 seconds...\n');
+    // Build the claude command
+    const claudeCommand = claudeArgs.length > 0 ? `claude ${claudeArgs.join(' ')}` : 'claude';
+    outputChannel.appendLine(`   → Launching: ${claudeCommand}`);
 
-    // Wait for the actual ">" prompt before sending commands
-    let promptDetected = false;
-    const ptyRef = ptyProcess; // Capture reference for closure
-    const promptListener = ptyProcess.onData((data: string) => {
-      // Look for the ">" prompt character indicating Claude Code is ready
-      if (!promptDetected && ptyRef && data.includes('>')) {
-        promptDetected = true;
-        outputChannel?.appendLine('✓ Claude Code prompt detected, determining command...');
+    // Send the command to the terminal
+    claudeTerminal.sendText(claudeCommand);
+    outputChannel.appendLine('   ✓ Command sent to terminal');
 
-        // Check for override command first (used by auto-resume workflow)
-        let initialCommand: string;
-        if (overrideInitialCommand) {
-          initialCommand = overrideInitialCommand;
-          outputChannel?.appendLine(`   → Using override command: ${initialCommand}`);
-          overrideInitialCommand = undefined; // Clear after use
-        } else {
-          // Dynamically determine command based on workspace state
-          initialCommand = determineInitialCommand(specId, workspacePath);
-          outputChannel?.appendLine(`   → State detection chose: ${initialCommand}`);
-        }
-
-        // Build the full command with memory injection (memory-system-integration-sweep)
-        // If we have cached enriched context, prepend memory context to the command
-        let fullCommand = initialCommand;
-        if (cachedEnrichedContext) {
-          const memoryInjection = formatMemoryInjection(cachedEnrichedContext);
-          if (memoryInjection) {
-            // Inject memories as context before the command
-            // Format: "Context from previous sessions:\n<memories>\n...\n</memories>\n\nNow execute: /5_gofer_implement"
-            fullCommand = `Context from previous sessions:\n${memoryInjection}\n\nNow execute: ${initialCommand}`;
-            outputChannel?.appendLine(
-              `   → Memory context injected (${memoryInjection.length} chars)`
-            );
-          }
-        }
-
-        // METHOD 5 (WORKING): Write command first, then send \r separately with 500ms delay
-        // This is the only method that works reliably with Claude Code
-        ptyRef.write(fullCommand);
-        outputChannel?.appendLine(
-          `  → Typed command: ${fullCommand.substring(0, 100)}${fullCommand.length > 100 ? '...' : ''}`
-        );
-
-        setTimeout(() => {
-          ptyRef.write('\r');
-          outputChannel?.appendLine('  → Sent Enter key (\\r) after 500ms delay');
-          outputChannel?.appendLine('\n✓ Command execution complete\n');
-        }, 500);
-
-        // Dispose the listener after sending command
-        setTimeout(() => promptListener.dispose(), 1000);
-      }
-    });
+    outputChannel.appendLine('[6/6] Claude Code launched');
+    outputChannel.appendLine(
+      '      HookBridgeWatcher will monitor context health via .specify/hooks/context-bridge.json'
+    );
+    outputChannel.appendLine(
+      '      Context warnings will appear as notifications at 65% and 70% thresholds\n'
+    );
 
     outputChannel.appendLine('\n' + '='.repeat(80));
     outputChannel.appendLine('Terminal launched. Monitoring for command execution...');
@@ -1428,10 +1292,13 @@ async function attemptQuestionResponse(
     // Get Claude's decision with full context
     const response = await autonomousResponder.getAutonomousResponse(workspacePath, context);
 
-    if (response && ptyProcess) {
-      // Send ESC + response + Enter directly to pty
-      await autonomousResponder.sendResponseToPty(ptyProcess, response);
-      return true;
+    if (response) {
+      // TODO (Phase 3): Implement notification-based workflow for autonomous responses
+      // Normal terminals don't support programmatic input like PTY
+      // Will show notification with response and let user copy/paste or click to send
+      outputChannel?.appendLine(`   Autonomous response ready: ${response.substring(0, 100)}...`);
+      outputChannel?.appendLine('   Note: Notification workflow not yet implemented (Phase 3)');
+      return false; // Changed from true since we can't auto-send yet
     }
 
     return false;
@@ -1465,10 +1332,11 @@ function stopAutonomousMonitoring(): void {
 }
 
 /**
- * Pause Claude Code terminal by sending ESC and pausing autonomous monitoring
+ * Pause Claude Code terminal by pausing autonomous monitoring
+ * Note: Cannot send ESC to normal terminal (no PTY support)
  */
 export async function pauseClaudeCode(): Promise<void> {
-  if (!ptyProcess) {
+  if (!claudeTerminal) {
     vscode.window.showWarningMessage('No Claude Code terminal is currently running');
     return;
   }
@@ -1478,20 +1346,25 @@ export async function pauseClaudeCode(): Promise<void> {
   }
 
   try {
-    // Send ESC character to the terminal (ASCII 27 / 0x1B)
-    ptyProcess.write('\x1B');
-    outputChannel.appendLine('[PAUSE] Sent ESC signal to Claude Code terminal');
-
     // Pause autonomous monitoring
     isAutonomousMonitoringPaused = true;
     await vscode.commands.executeCommand('setContext', 'gofer.autonomousMonitoringPaused', true);
     outputChannel.appendLine('[PAUSE] Autonomous monitoring paused');
 
-    vscode.window.showInformationMessage('Claude Code paused (terminal + autonomous monitoring)');
+    vscode.window
+      .showInformationMessage(
+        'Autonomous monitoring paused. Press ESC manually in the terminal to pause Claude Code.',
+        'Show Terminal'
+      )
+      .then((selection) => {
+        if (selection === 'Show Terminal' && claudeTerminal) {
+          claudeTerminal.show();
+        }
+      });
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);
-    outputChannel.appendLine(`[ERROR] Failed to send pause signal: ${errorMsg}`);
-    vscode.window.showErrorMessage(`Failed to pause Claude Code: ${errorMsg}`);
+    outputChannel.appendLine(`[ERROR] Failed to pause monitoring: ${errorMsg}`);
+    vscode.window.showErrorMessage(`Failed to pause monitoring: ${errorMsg}`);
   }
 }
 
@@ -1499,7 +1372,7 @@ export async function pauseClaudeCode(): Promise<void> {
  * Resume Claude Code autonomous monitoring
  */
 export async function resumeClaudeCode(): Promise<void> {
-  if (!ptyProcess) {
+  if (!claudeTerminal) {
     vscode.window.showWarningMessage('No Claude Code terminal is currently running');
     return;
   }
@@ -1533,16 +1406,7 @@ export async function stopClaudeCode(): Promise<void> {
   isAutonomousMonitoringPaused = false;
   await vscode.commands.executeCommand('setContext', 'gofer.autonomousMonitoringPaused', false);
 
-  // Kill pty process to release resources
-  if (ptyProcess) {
-    try {
-      ptyProcess.kill();
-    } catch {
-      // Process may already be terminated - safe to ignore
-    }
-    ptyProcess = null;
-  }
-
+  // Dispose terminal to release resources
   if (claudeTerminal) {
     claudeTerminal.dispose();
     claudeTerminal = null;
@@ -1583,13 +1447,8 @@ export function getActiveDriver(): AutonomousDriver | null {
   return activeDriver;
 }
 
-/**
- * Get the active Claude Code pty process for sending commands.
- * Used by AutoHandoffTrigger to send commands to the terminal.
- */
-export function getClaudePtyProcess(): pty.IPty | null {
-  return ptyProcess;
-}
+// Removed: getClaudePtyProcess() - no longer needed without PTY support
+// AutoHandoffTrigger will use notification-based workflow instead (Phase 3)
 
 /**
  * Spawn a new Claude Code terminal with an optional initial command.

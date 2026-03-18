@@ -41,21 +41,76 @@ If missing, prompt user to run the prerequisite stage.
 
 ---
 
-## Step 1: Context Health Check
+## Step 1: Context Health Check & Auto-Dispatch Setup
 
 Before starting implementation, assess context window health:
 
 ```bash
-.specify/scripts/bash/check-context-health.sh
+.specify/scripts/bash/check-context-health.sh --json
 ```
 
 **Evaluate thresholds (2025-2026 research-based)**:
 
-| Status   | Token Usage | Action                                   |
-| -------- | ----------- | ---------------------------------------- |
-| Healthy  | < 50%       | Proceed normally                         |
-| Warning  | 50-70%      | Use sub-agents, checkpoint every 5 tasks |
-| Critical | > 70%       | Run `/7_gofer_save`, start new session   |
+| Status   | Token Usage | Action                                              |
+| -------- | ----------- | --------------------------------------------------- |
+| Healthy  | < 50%       | Proceed normally                                    |
+| Warning  | 50-70%      | Use sub-agents, checkpoint every 5 tasks            |
+| Critical | > 70%       | **AUTO-DISPATCH**: Save checkpoint, spawn sub-agent |
+
+### Automatic Context Management (CRITICAL)
+
+**When context reaches 70% threshold during implementation**:
+
+1. **DO NOT** tell user to start new session manually
+2. **DO NOT** wait for user intervention
+3. **AUTOMATICALLY** execute sub-agent dispatch:
+
+```markdown
+**CONTEXT THRESHOLD REACHED - INITIATING AUTO-DISPATCH**
+
+1. Saving checkpoint with /7_gofer_save...
+   [Invoke Skill tool: skill="/7_gofer_save"]
+
+2. Current state:
+   - Tasks completed: [N]/[Total]
+   - Current phase: [Phase name]
+   - Next task: [TaskID]
+
+3. Spawning continuation sub-agent with fresh context...
+   [Invoke Task tool with instructions below]
+
+4. This session will receive sub-agent results and continue orchestration.
+```
+
+**Sub-Agent Dispatch Pattern**:
+
+```
+Task: subagent_type="general-purpose", model="sonnet"
+Prompt: "You are resuming a paused Gofer implementation session.
+
+CRITICAL INSTRUCTIONS:
+1. Immediately invoke the Skill tool with skill='/8_gofer_resume' to load the checkpoint
+2. /8_gofer_resume will restore full context including:
+   - Feature directory
+   - Completed tasks
+   - Current progress
+   - Next steps
+3. After checkpoint loads, CONTINUE implementation from where it stopped
+4. Execute remaining tasks following the plan in tasks.md
+5. If context reaches 70% again, repeat this auto-dispatch pattern
+6. When all tasks complete, invoke /6_gofer_validate
+
+DO NOT ask user for confirmation - this is automatic continuation.
+Begin now by invoking /8_gofer_resume."
+```
+
+**Key Rules**:
+- Check context health after every 3 tasks completed
+- When 70% reached: auto-dispatch immediately
+- Sub-agent continues with fresh 200k context
+- No `/clear` command needed - Task tool provides clean context
+- Sub-agent can spawn another sub-agent if needed (recursive)
+- Original session monitors sub-agent completion
 
 ### Context Management Techniques
 
@@ -71,18 +126,10 @@ During implementation, use these techniques to preserve context quality:
    - Re-read files only when actively editing
    - Avoid keeping full file contents in context
 
-3. **Periodic Checkpoints**
-   - Every 5 completed tasks, check context health
-   - If Warning status: Run `/7_gofer_save`
-   - This enables resumption with fresh context
-
-**If compaction needed**:
-
-```bash
-/7_gofer_save  # Creates comprehensive checkpoint
-# Start new Claude Code session
-/8_gofer_resume  # Restores state with clean context
-```
+3. **Periodic Context Checks**
+   - Every 3 completed tasks, run: `.specify/scripts/bash/check-context-health.sh --json`
+   - Parse `usagePercent` from JSON output
+   - If >= 70%: trigger auto-dispatch immediately
 
 ---
 
@@ -282,7 +329,8 @@ line you write.
    checklist above
 7. **RUN FEEDBACK LOOP** (see below)
 8. Mark task complete: Change `- [ ]` to `- [X]` in tasks.md
-9. Report progress
+9. **CONTEXT HEALTH CHECK**: Every 3 tasks, check context and auto-dispatch if needed (see Step 1)
+10. Report progress
 
 ### Feedback Loop (After EACH Task)
 
@@ -371,6 +419,33 @@ Task: subagent_type="multi-perspective-judge", model="opus"
 
 ## Step 8: Progress Tracking
 
+### After Every 3 Tasks: Context Health Check
+
+```bash
+.specify/scripts/bash/check-context-health.sh --json
+```
+
+Parse the JSON response:
+- If `usagePercent >= 70`: **TRIGGER AUTO-DISPATCH** (see Step 1)
+- If `usagePercent >= 50`: Use sub-agents for exploration
+- If `usagePercent < 50`: Continue normally
+
+**Auto-Dispatch Trigger Example**:
+
+```
+✓ T003 Implement user service - DONE
+✓ T004 Add validation logic - DONE
+✓ T005 Create API routes - DONE
+
+[Running context health check...]
+Context: 72% (144,000 / 200,000 tokens)
+Status: CRITICAL - Initiating auto-dispatch
+
+Saving checkpoint...
+Spawning continuation sub-agent...
+[Task tool invocation with /8_gofer_resume instructions]
+```
+
 ### After Each Task
 
 ```
@@ -390,6 +465,8 @@ Task: subagent_type="multi-perspective-judge", model="opus"
     - src/config.ts
     - package.json
     - tsconfig.json
+
+  Context Health: 45% (90,000 / 200,000 tokens) - HEALTHY
 
   → Starting Phase 2: Foundational
 ═══════════════════════════════════════

@@ -311,7 +311,7 @@ prompts.
       into constructor, call router.routeCommand() before executing command
 - [x] T057 Update MCP Tool Handler in `language-server/src/mcp/toolHandler.ts`
       to implement multi-directory skill search with priority
-- [ ] T057a [US-2] Implement auto-chain failure detection and error messaging in
+- [x] T057a [US-2] Implement auto-chain failure detection and error messaging in
       CrossPlatformCommandRouter: detect when AI doesn't invoke next stage after
       "AUTO-CHAIN (MANDATORY)", show clear error "Auto-chain failed at [stage]:
       expected next command not invoked. Run /[next-stage] manually."

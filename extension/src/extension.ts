@@ -663,6 +663,24 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
   // Protected boundaries are loaded by ScopeGuard.loadFromSpec() when a spec is opened.
   // The EventHandlers' ScopeGuard diagnostics integration handles this via hookBridgeWatcher.
 
+  // Initialize CrossPlatformCommandRouter for cross-platform command parity (Feature 028)
+  const { CrossPlatformCommandRouter } = await import('./council/CrossPlatformCommandRouter');
+  const crossPlatformCommandRouter = new CrossPlatformCommandRouter(workspacePath);
+  state.crossPlatformCommandRouter = crossPlatformCommandRouter;
+
+  // Register settings watcher for gofer.defaultCLI changes (clears router cache on change)
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeConfiguration((e) => {
+      if (e.affectsConfiguration('gofer.defaultCLI')) {
+        crossPlatformCommandRouter.clearCache();
+        logger?.debug(
+          'Extension',
+          'CrossPlatformCommandRouter cache cleared due to settings change'
+        );
+      }
+    })
+  );
+
   // Register workspace commands using CommandRegistry
   if (migrator) {
     const commandRegistry = getContainer().resolve(CommandRegistry);
@@ -679,6 +697,7 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
       scopeGuard: state.scopeGuard,
       researchChunker: state.researchChunker,
       autoUpdater: state.autoUpdater,
+      crossPlatformCommandRouter: state.crossPlatformCommandRouter,
       isUpgrading: () => state.isUpgrading,
       setUpgradeState,
     };

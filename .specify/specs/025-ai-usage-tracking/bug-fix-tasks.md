@@ -2,8 +2,10 @@
 feature: '025-ai-usage-tracking-bug-fix'
 spec: 'bug-fix-spec.md'
 plan: 'bug-fix-plan.md'
-status: review
+status: implemented
 created: '2026-03-19T00:00:00Z'
+approvedBy: 'user'
+approvedAt: '2026-03-19T15:00:00Z'
 ---
 
 # Tasks: AI Token Cost Calculation Bug Fixes
@@ -15,9 +17,9 @@ created: '2026-03-19T00:00:00Z'
 
 ## Overview
 
-**Total Tasks**: 28 tasks across 5 implementation phases **Parallel
+**Total Tasks**: 29 tasks across 6 implementation phases **Parallel
 Opportunities**: ~10 tasks marked [P] for concurrent execution **Implementation
-Phases**: Foundation → High-Impact → Supporting → Cleanup → Verification
+Phases**: Setup → Foundation → High-Impact → Supporting → Cleanup → Verification
 
 **Bug Summary**:
 
@@ -45,11 +47,14 @@ Phases**: Foundation → High-Impact → Supporting → Cleanup → Verification
 
 ```mermaid
 graph TD
-    P1[Phase 1: Foundation] --> P2[Phase 2: High-Impact]
+    P0[Phase 0: Setup] --> P1[Phase 1: Foundation]
+    P1 --> P2[Phase 2: High-Impact]
     P2 --> P3[Phase 3: Supporting]
     P3 --> P4[Phase 4: Cleanup]
     P4 --> P5[Phase 5: Verification]
 
+    P0 -.->|Test directories| P1
+    P0 -.->|CHANGELOG.md| P5
     P1 -.->|MODEL_PRICING table| P2
     P1 -.->|getPricingForModel| P2
     P1 -.->|calculateCost signature| P2
@@ -59,6 +64,30 @@ graph TD
 ```
 
 **Legend**: Solid arrows = phase dependency, dotted arrows = key deliverable
+
+---
+
+## Phase 0: Setup & Infrastructure
+
+**Goal**: Create necessary directories and files for test infrastructure.
+
+**Verification**:
+
+- [ ] All required directories exist
+- [ ] Test structure follows existing patterns
+
+### Tasks
+
+- [x] T000 [P] Create test infrastructure directories and baseline files -
+      Create `/Users/douglaswross/Code/gofer/tests/unit/config/` directory -
+      Create
+      `/Users/douglaswross/Code/gofer/.specify/specs/025-ai-usage-tracking/invoice-validation/`
+      directory - Create `/Users/douglaswross/Code/gofer/CHANGELOG.md` with
+      initial structure - Verify directory structure matches existing test
+      patterns
+
+**Phase 0 Completion Checkpoint**: All infrastructure directories exist, ready
+for test file creation
 
 ---
 
@@ -103,10 +132,10 @@ code.
       modelId?)) with implementation using getPricingForModel() when modelId
       provided, else COST_PER_1K_TOKENS for backward compatibility
 
-- [ ] T005 [P] Add unit tests for getPricingForModel() in
-      `/Users/douglaswross/Code/gofer/tests/unit/config/pricing.test.ts` (Test
-      exact match: getPricingForModel('claude-sonnet-4-5', 'anthropic') returns
-      {input: 0.003, output: 0.015}; Test prefix match:
+- [ ] T005 [P] CREATE new unit test file for getPricingForModel() at
+      `/Users/douglaswross/Code/gofer/tests/unit/config/pricing.test.ts` (NEW
+      FILE - Test exact match: getPricingForModel('claude-sonnet-4-5',
+      'anthropic') returns {input: 0.003, output: 0.015}; Test prefix match:
       getPricingForModel('claude-sonnet-4-5-20250929', 'anthropic') returns
       Sonnet rates; Test fallback to provider default:
       getPricingForModel('unknown-model', 'anthropic') returns Sonnet rates;
@@ -114,12 +143,13 @@ code.
       DEFAULT_PROVIDER rates) - tests MUST fail before implementation
 
 - [ ] T006 [P] Add unit tests for calculateCost() backward compatibility in
-      `/Users/douglaswross/Code/gofer/tests/unit/config/pricing.test.ts` (Test
-      without modelId parameter: calculateCost(100000, 50000, 'anthropic') uses
-      COST_PER_1K_TOKENS; Test with modelId parameter: calculateCost(100000,
-      50000, 'anthropic', 'claude-haiku-3-5') uses MODEL_PRICING; Verify costs
-      differ: Haiku calculation should be ~12x cheaper than provider-level
-      calculation) - tests MUST fail before implementation
+      `/Users/douglaswross/Code/gofer/tests/unit/config/pricing.test.ts` (ADD TO
+      FILE created in T005 - Test without modelId parameter:
+      calculateCost(100000, 50000, 'anthropic') uses COST_PER_1K_TOKENS; Test
+      with modelId parameter: calculateCost(100000, 50000, 'anthropic',
+      'claude-haiku-3-5') uses MODEL_PRICING; Verify costs differ: Haiku
+      calculation should be ~12x cheaper than provider-level calculation) -
+      tests MUST fail before implementation
 
 **Phase 1 Completion Checkpoint**: All existing tests pass, new model-based
 pricing functions work correctly, backward compatibility verified
@@ -161,13 +191,13 @@ Codex CLI users).
       'openai'), With: calculateCost(inputTokens, outputTokens, 'openai',
       model))
 
-- [ ] T010 [P] Add integration tests for model-based costs in
+- [ ] T010 [P] CREATE new integration test file for model-based cost accuracy at
       `/Users/douglaswross/Code/gofer/tests/integration/autonomous/AIUsageAccuracy.integration.test.ts`
-      (Test Opus vs Sonnet vs Haiku costs for same token count - should differ
-      by 20x; Test GPT-4 vs GPT-3.5 costs for same token count - should differ
-      by 60x; Verify 100K input + 50K output Haiku 3.5 = $0.0875 not $0.45;
-      Verify 100K input + 50K output Opus 4.6 = $5.25 not $0.45) - tests MUST
-      fail before implementation
+      (NEW FILE - Test Opus vs Sonnet vs Haiku costs for same token count -
+      should differ by 20x; Test GPT-4 vs GPT-3.5 costs for same token count -
+      should differ by 60x; Verify 100K input + 50K output Haiku 3.5 = $0.0875
+      not $0.45; Verify 100K input + 50K output Opus 4.6 = $5.25 not $0.45) -
+      tests MUST fail before implementation
 
 - [ ] T011 [P] Manual verification with real conversation logs (Parse actual
       Claude Code logs with known models, calculate costs using new logic,
@@ -204,21 +234,22 @@ models, integration tests pass, real log parsing produces expected costs
       include modelId in log entry data)
 
 - [ ] T014 Add model field to UsageLogEntry interface in
-      `/Users/douglaswross/Code/gofer/extension/src/types/aiUsage.ts` (Add
-      model?: string field to interface, update parsers to handle optional model
-      field)
+      `/Users/douglaswross/Code/gofer/extension/src/council/UsageLogger.ts`
+      (CORRECT FILE PATH - Add model?: string field to UsageLogEntry interface
+      (line 19), update parsers to handle optional model field in JSONL log
+      entries)
 
 - [ ] T015 [P] Update all recordUsage() call sites to pass model when available
       (Search codebase for recordUsage() calls, pass model parameter where
       source data includes model ID, use undefined/omit parameter where model
       not available for backward compatibility)
 
-- [ ] T016 [P] Add integration tests for model propagation in
+- [ ] T016 [P] CREATE new integration test file for model propagation at
       `/Users/douglaswross/Code/gofer/tests/integration/autonomous/ModelPropagation.integration.test.ts`
-      (Verify model flows from adapter → recordUsage() → calculateCost() → log
-      entry; Verify council-usage.jsonl entries include model field; Verify
-      budget tracking uses model-specific rates) - tests MUST fail before
-      implementation
+      (NEW FILE - Verify model flows from adapter → recordUsage() →
+      calculateCost() → log entry; Verify council-usage.jsonl entries include
+      model field; Verify budget tracking uses model-specific rates) - tests
+      MUST fail before implementation
 
 **Phase 3 Completion Checkpoint**: Budget tracking shows accurate per-model
 costs, usage logs include model field, end-to-end flow uses correct rates
@@ -313,17 +344,17 @@ pass, no hardcoded rates outside pricing.ts, DRY principle satisfied
       https://openai.com/pricing, Google https://ai.google.dev/pricing)
 
 - [ ] T027 [P] Add migration notes to CHANGELOG.md in
-      `/Users/douglaswross/Code/gofer/CHANGELOG.md` (Document breaking changes:
-      None, backward compatible; Document new features: Model-based pricing,
-      getPricingForModel() helper; Document fixes: Hardcoded provider strings,
-      provider-level pricing; Document migration: Existing code continues to
-      work, gradually update call sites)
+      `/Users/douglaswross/Code/gofer/CHANGELOG.md` (ADD TO FILE created in
+      T000 - Document breaking changes: None, backward compatible; Document new
+      features: Model-based pricing, getPricingForModel() helper; Document
+      fixes: Hardcoded provider strings, provider-level pricing; Document
+      migration: Existing code continues to work, gradually update call sites)
 
 - [ ] T028 [P] Update feature validation report in
-      `/Users/douglaswross/Code/gofer/.specify/specs/025-ai-usage-tracking/validation-report.md`
-      if exists (Document cost accuracy improvement: 1100% error → <1% error;
-      Document bug fixes completed; Update success metrics: Cost accuracy within
-      1% achieved)
+      `/Users/douglaswross/Code/gofer/.specify/specs/025-ai-usage-tracking/VALIDATION-REPORT.md`
+      (CORRECT FILENAME - uppercase; Document cost accuracy improvement: 1100%
+      error → <1% error; Document bug fixes completed; Update success metrics:
+      Cost accuracy within 1% achieved)
 
 **Phase 5 Completion Checkpoint**: Mean cost error <1% vs actual invoices, no
 individual conversation >5% error, formula confirmed correct, documentation
@@ -525,24 +556,21 @@ extension/src/
 │   └── ContextUsageLogger.ts         [T013] Add modelId parameter, forward to tracking
 │
 ├── council/
-│   └── UsageLogger.ts                [T018] Remove duplicate, import from pricing.ts
-│
-├── types/
-│   └── aiUsage.ts                    [T014] Add optional model field to UsageLogEntry
+│   └── UsageLogger.ts                [T014, T018] Add model field to UsageLogEntry, remove duplicate
 │
 tests/
 ├── unit/config/
-│   └── pricing.test.ts               [T005-T006] Unit tests for pricing functions
+│   └── pricing.test.ts               [T000, T005-T006] NEW test file created, unit tests for pricing
 │
 └── integration/autonomous/
-    ├── AIUsageAccuracy.integration.test.ts  [T010] Model cost accuracy tests
-    └── ModelPropagation.integration.test.ts [T016] End-to-end propagation tests
+    ├── AIUsageAccuracy.integration.test.ts  [T010] NEW test file, model cost accuracy tests
+    └── ModelPropagation.integration.test.ts [T016] NEW test file, end-to-end propagation tests
 
 .specify/specs/025-ai-usage-tracking/
-├── invoice-validation/               [T022-T023] Invoice comparison results
-└── validation-report.md              [T028] Feature validation report
+├── invoice-validation/               [T000, T022-T023] NEW directory created, invoice comparison results
+└── VALIDATION-REPORT.md              [T028] Update feature validation report (uppercase filename)
 
-CHANGELOG.md                          [T027] Migration notes and release info
+CHANGELOG.md                          [T000, T027] NEW file created, migration notes and release info
 ```
 
 **Total Files Modified**: 7 core files + 4 test files + 2 documentation files =
@@ -552,10 +580,11 @@ CHANGELOG.md                          [T027] Migration notes and release info
 
 ## Summary Statistics
 
-**Total Task Count**: 28 tasks
+**Total Task Count**: 29 tasks
 
 **Tasks Per Phase**:
 
+- Phase 0 (Setup): 1 task
 - Phase 1 (Foundation): 6 tasks
 - Phase 2 (High-Impact): 5 tasks
 - Phase 3 (Supporting): 5 tasks
@@ -564,13 +593,14 @@ CHANGELOG.md                          [T027] Migration notes and release info
 
 **Parallel Opportunity Count**: 10 tasks marked [P]
 
+- Phase 0: 1 parallel task (T000)
 - Phase 1: 2 parallel tasks (T005-T006)
 - Phase 2: 2 parallel tasks (T010-T011)
 - Phase 3: 2 parallel tasks (T015-T016)
 - Phase 4: 2 parallel tasks (T020-T021)
 - Phase 5: 3 parallel tasks (T026-T028)
 
-**Plan Phase Coverage**: 5/5 phases covered (100%)
+**Plan Phase Coverage**: 6/6 phases covered (100%)
 
 **Acceptance Criteria Coverage**: 32/32 criteria covered (100%)
 

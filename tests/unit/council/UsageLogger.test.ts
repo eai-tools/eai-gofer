@@ -20,10 +20,12 @@ vi.mock('fs', async () => {
   const actual = await vi.importActual('fs');
   return {
     ...actual,
-    existsSync: vi.fn(),
-    mkdirSync: vi.fn(),
-    appendFileSync: vi.fn(),
-    readFileSync: vi.fn(),
+    promises: {
+      access: vi.fn(),
+      mkdir: vi.fn(),
+      appendFile: vi.fn(),
+      readFile: vi.fn(),
+    },
   };
 });
 
@@ -51,7 +53,9 @@ describe('UsageLogger', () => {
 
   describe('appendUsageLog', () => {
     it('should create directory if not exists', async () => {
-      vi.mocked(fs.existsSync).mockReturnValue(false);
+      vi.mocked(fs.promises.access).mockRejectedValue(new Error('ENOENT'));
+      vi.mocked(fs.promises.mkdir).mockResolvedValue(undefined);
+      vi.mocked(fs.promises.appendFile).mockResolvedValue(undefined);
 
       const entry: UsageLogEntry = {
         timestamp: '2024-01-01T00:00:00.000Z',
@@ -68,13 +72,14 @@ describe('UsageLogger', () => {
 
       await logger.appendUsageLog(entry);
 
-      expect(fs.mkdirSync).toHaveBeenCalledWith(path.dirname(logger.getLogPath()), {
+      expect(fs.promises.mkdir).toHaveBeenCalledWith(path.dirname(logger.getLogPath()), {
         recursive: true,
       });
     });
 
     it('should append entry as JSONL', async () => {
-      vi.mocked(fs.existsSync).mockReturnValue(true);
+      vi.mocked(fs.promises.access).mockResolvedValue(undefined);
+      vi.mocked(fs.promises.appendFile).mockResolvedValue(undefined);
 
       const entry: UsageLogEntry = {
         timestamp: '2024-01-01T00:00:00.000Z',
@@ -91,7 +96,7 @@ describe('UsageLogger', () => {
 
       await logger.appendUsageLog(entry);
 
-      expect(fs.appendFileSync).toHaveBeenCalledWith(
+      expect(fs.promises.appendFile).toHaveBeenCalledWith(
         logger.getLogPath(),
         JSON.stringify(entry) + '\n',
         'utf-8'
@@ -181,7 +186,7 @@ describe('UsageLogger', () => {
 
   describe('getUsageSummary', () => {
     it('should return empty summary when log file does not exist', async () => {
-      vi.mocked(fs.existsSync).mockReturnValue(false);
+      vi.mocked(fs.promises.access).mockRejectedValue(new Error('ENOENT'));
 
       const summary = await logger.getUsageSummary();
 
@@ -190,7 +195,7 @@ describe('UsageLogger', () => {
     });
 
     it('should aggregate usage from log file', async () => {
-      vi.mocked(fs.existsSync).mockReturnValue(true);
+      vi.mocked(fs.promises.access).mockResolvedValue(undefined);
 
       const logContent = [
         JSON.stringify({
@@ -219,7 +224,7 @@ describe('UsageLogger', () => {
         }),
       ].join('\n');
 
-      vi.mocked(fs.readFileSync).mockReturnValue(logContent);
+      vi.mocked(fs.promises.readFile).mockResolvedValue(logContent);
 
       const summary = await logger.getUsageSummary();
 
@@ -232,7 +237,7 @@ describe('UsageLogger', () => {
     });
 
     it('should filter by date range', async () => {
-      vi.mocked(fs.existsSync).mockReturnValue(true);
+      vi.mocked(fs.promises.access).mockResolvedValue(undefined);
 
       const logContent = [
         JSON.stringify({
@@ -261,7 +266,7 @@ describe('UsageLogger', () => {
         }),
       ].join('\n');
 
-      vi.mocked(fs.readFileSync).mockReturnValue(logContent);
+      vi.mocked(fs.promises.readFile).mockResolvedValue(logContent);
 
       const summary = await logger.getUsageSummary(new Date('2024-01-10'), new Date('2024-01-20'));
 

@@ -97,11 +97,7 @@ export class CodexUsageAdapter implements CLIUsageAdapter {
   /**
    * Parse Codex history file and extract usage entries
    */
-  async parseLogFile(
-    logFilePath: string,
-    fromDate?: Date,
-    toDate?: Date
-  ): Promise<UsageEntry[]> {
+  async parseLogFile(logFilePath: string, fromDate?: Date, toDate?: Date): Promise<UsageEntry[]> {
     const usageEntries: UsageEntry[] = [];
 
     try {
@@ -141,11 +137,7 @@ export class CodexUsageAdapter implements CLIUsageAdapter {
 
       return usageEntries;
     } catch (error) {
-      this.logger.error(
-        'Failed to parse Codex history file',
-        error as Error,
-        { logFilePath }
-      );
+      this.logger.error('Failed to parse Codex history file', error as Error, { logFilePath });
       return [];
     }
   }
@@ -155,8 +147,7 @@ export class CodexUsageAdapter implements CLIUsageAdapter {
    */
   extractUsage(logEntry: string | object): UsageEntry | null {
     try {
-      const entry: CodexLogEntry =
-        typeof logEntry === 'string' ? JSON.parse(logEntry) : logEntry;
+      const entry: CodexLogEntry = typeof logEntry === 'string' ? JSON.parse(logEntry) : logEntry;
 
       // Extract token usage (support both formats)
       let inputTokens = 0;
@@ -176,9 +167,11 @@ export class CodexUsageAdapter implements CLIUsageAdapter {
         return null;
       }
 
-      // Calculate cost using pricing config
-      const model = entry.model || 'gpt-4o';
-      const costUsd = calculateCost(inputTokens, outputTokens, 'openai');
+      // Extract model (Bug #2 fix - T008)
+      const model = entry.model || 'gpt-4-turbo';
+
+      // Calculate cost using detected model (Bug #2 fix - T009)
+      const costUsd = calculateCost(inputTokens, outputTokens, 'openai', model);
 
       return {
         timestamp: entry.timestamp,

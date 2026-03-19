@@ -105,7 +105,7 @@ code.
 
 ### Tasks
 
-- [ ] T001 Create MODEL_PRICING table in
+- [x] T001 Create MODEL_PRICING table in
       `/Users/douglaswross/Code/gofer/extension/src/config/pricing.ts` with 60+
       model entries (Anthropic: Opus 4.6/4.5 $5/$25/M, Sonnet 4.5/4 $3/$15/M,
       Haiku 4.5 $1/$5/M, Haiku 3.5 $0.25/$1.25/M; OpenAI: GPT-4 $30/$60/M,
@@ -114,25 +114,25 @@ code.
       Flash $0.075/$0.30/M, Gemini Pro $0.50/$1.50/M) including dated variants
       with prefix keys
 
-- [ ] T002 Add DEFAULT_MODELS mapping in
+- [x] T002 Add DEFAULT_MODELS mapping in
       `/Users/douglaswross/Code/gofer/extension/src/config/pricing.ts`
       (anthropic → 'claude-sonnet-4-5', openai → 'gpt-4-turbo', google →
       'gemini-1.5-flash')
 
-- [ ] T003 Add getPricingForModel(modelId: string, providerId: string) helper
+- [x] T003 Add getPricingForModel(modelId: string, providerId: string) helper
       function in
       `/Users/douglaswross/Code/gofer/extension/src/config/pricing.ts` with
       exact match → prefix match → DEFAULT_MODELS fallback → COST_PER_1K_TOKENS
       fallback hierarchy, logging warnings when fallback used
 
-- [ ] T004 Update calculateCost() signature in
+- [x] T004 Update calculateCost() signature in
       `/Users/douglaswross/Code/gofer/extension/src/config/pricing.ts` to accept
       optional modelId parameter (Old: calculateCost(inputTokens, outputTokens,
       providerId?), New: calculateCost(inputTokens, outputTokens, providerId?,
       modelId?)) with implementation using getPricingForModel() when modelId
       provided, else COST_PER_1K_TOKENS for backward compatibility
 
-- [ ] T005 [P] CREATE new unit test file for getPricingForModel() at
+- [x] T005 [P] CREATE new unit test file for getPricingForModel() at
       `/Users/douglaswross/Code/gofer/tests/unit/config/pricing.test.ts` (NEW
       FILE - Test exact match: getPricingForModel('claude-sonnet-4-5',
       'anthropic') returns {input: 0.003, output: 0.015}; Test prefix match:
@@ -142,7 +142,7 @@ code.
       Test ultimate fallback: getPricingForModel('unknown', 'unknown') returns
       DEFAULT_PROVIDER rates) - tests MUST fail before implementation
 
-- [ ] T006 [P] Add unit tests for calculateCost() backward compatibility in
+- [x] T006 [P] Add unit tests for calculateCost() backward compatibility in
       `/Users/douglaswross/Code/gofer/tests/unit/config/pricing.test.ts` (ADD TO
       FILE created in T005 - Test without modelId parameter:
       calculateCost(100000, 50000, 'anthropic') uses COST_PER_1K_TOKENS; Test

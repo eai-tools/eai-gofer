@@ -213,36 +213,36 @@ expected output structure.
 - [x] T027 [US-1] Implement validation logic in
       CommandGenerator.validateGeneratedCommand() to check YAML validity,
       required fields present
-- [ ] T028 [US-1] Run generator script
+- [x] T028 [US-1] Run generator script
       `npm run generate-commands -- --platform codex` to create 16 Codex skills
       in `.system/skills/[command-name]/SKILL.md`
-- [ ] T029 [P] [US-1] Create `.system/skills/0-business-scenario/SKILL.md`
+- [x] T029 [P] [US-1] Create `.system/skills/0-business-scenario/SKILL.md`
       (generated)
-- [ ] T030 [P] [US-1] Create `.system/skills/0a-problem-validation/SKILL.md`
+- [x] T030 [P] [US-1] Create `.system/skills/0a-problem-validation/SKILL.md`
       (generated)
-- [ ] T031 [P] [US-1] Create `.system/skills/1-gofer-research/SKILL.md`
+- [x] T031 [P] [US-1] Create `.system/skills/1-gofer-research/SKILL.md`
       (generated)
-- [ ] T032 [P] [US-1] Create `.system/skills/2-gofer-specify/SKILL.md`
+- [x] T032 [P] [US-1] Create `.system/skills/2-gofer-specify/SKILL.md`
       (generated)
-- [ ] T033 [P] [US-1] Create `.system/skills/3-gofer-plan/SKILL.md` (generated)
-- [ ] T034 [P] [US-1] Create `.system/skills/4-gofer-tasks/SKILL.md` (generated)
-- [ ] T035 [P] [US-1] Create `.system/skills/5-gofer-implement/SKILL.md`
+- [x] T033 [P] [US-1] Create `.system/skills/3-gofer-plan/SKILL.md` (generated)
+- [x] T034 [P] [US-1] Create `.system/skills/4-gofer-tasks/SKILL.md` (generated)
+- [x] T035 [P] [US-1] Create `.system/skills/5-gofer-implement/SKILL.md`
       (generated)
-- [ ] T036 [P] [US-1] Create `.system/skills/6-gofer-validate/SKILL.md`
+- [x] T036 [P] [US-1] Create `.system/skills/6-gofer-validate/SKILL.md`
       (generated)
-- [ ] T037 [P] [US-1] Create
+- [x] T037 [P] [US-1] Create
       `.system/skills/6a-gofer-engineering-review/SKILL.md` (generated)
-- [ ] T038 [P] [US-1] Create `.system/skills/7-gofer-save/SKILL.md` (generated)
-- [ ] T039 [P] [US-1] Create `.system/skills/7a-stakeholder-comms/SKILL.md`
+- [x] T038 [P] [US-1] Create `.system/skills/7-gofer-save/SKILL.md` (generated)
+- [x] T039 [P] [US-1] Create `.system/skills/7a-stakeholder-comms/SKILL.md`
       (generated)
-- [ ] T040 [P] [US-1] Create `.system/skills/8-gofer-resume/SKILL.md`
+- [x] T040 [P] [US-1] Create `.system/skills/8-gofer-resume/SKILL.md`
       (generated)
-- [ ] T041 [P] [US-1] Create `.system/skills/9-gofer-tests/SKILL.md` (generated)
-- [ ] T042 [P] [US-1] Create `.system/skills/10-gofer-cloud/SKILL.md`
+- [x] T041 [P] [US-1] Create `.system/skills/9-gofer-tests/SKILL.md` (generated)
+- [x] T042 [P] [US-1] Create `.system/skills/10-gofer-cloud/SKILL.md`
       (generated)
-- [ ] T043 [P] [US-1] Create `.system/skills/gofer-constitution/SKILL.md`
+- [x] T043 [P] [US-1] Create `.system/skills/gofer-constitution/SKILL.md`
       (generated)
-- [ ] T044 [P] [US-1] Create `.system/skills/gofer-hydrate/SKILL.md` (generated)
+- [x] T044 [P] [US-1] Create `.system/skills/gofer-hydrate/SKILL.md` (generated)
 - [ ] T045 [US-1] Verify Codex CLI auto-completion lists all 16 skills after
       directory scan with `codex skills list` command
 
@@ -271,7 +271,7 @@ prompts.
 
 ### Tests for User Story 2
 
-- [ ] T044 [P] [US-2] Unit test in
+- [x] T044 [P] [US-2] Unit test in
       `tests/unit/council/CrossPlatformCommandRouter.test.ts` for routing to
       correct platform directory
 - [ ] T045 [P] [US-2] Unit test in

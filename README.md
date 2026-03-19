@@ -98,6 +98,52 @@ This automatically:
 | `/gofer_constitution`  | Project coding principles                |
 | `/gofer_hydrate`       | Reverse-engineer spec from code          |
 
+## Platform Capabilities
+
+Gofer supports **three AI platforms** with varying levels of feature parity:
+
+| Feature                    | Claude Code¹ | Copilot Chat² | Codex CLI³  | Notes                           |
+| -------------------------- | ------------ | ------------- | ----------- | ------------------------------- |
+| **Core Commands**          |              |               |             |                                 |
+| All 16 Gofer commands      | ✅           | ✅            | ✅          | Identical command names         |
+| Auto-chaining pipeline     | ✅           | ⚠️⁴           | ✅          | Full pipeline automation        |
+| Command output artifacts   | ✅           | ✅            | ✅          | research.md, spec.md, etc.      |
+| **Advanced Features**      |              |               |             |                                 |
+| MCP server integration     | ✅           | ✗             | ✗           | Direct tool calling             |
+| Parallel agent spawning⁵   | ✅           | ⚠️⁴           | ✅          | 6 concurrent validation agents  |
+| Conversation preservation  | ✅           | ✅            | ✅          | Checkpoint save/resume          |
+| Context health monitoring  | ✅           | ✅            | ✅          | Auto-save prompts at 70%        |
+| Autonomous mode execution  | ✅           | ✗             | ✅          | Fully unattended runs           |
+| **Performance**            |              |               |             |                                 |
+| Validation time (6 agents) | <60s         | 90-120s⁴      | <60s        | Parallel vs sequential          |
+| Auto-chain overhead        | <5s          | <5s           | <5s         | Stage transitions               |
+| Context window             | 200k tokens  | 128k tokens   | 100k tokens | Claude Opus 4.6 / GPT-4 / Codex |
+
+**Footnotes:**
+
+1. **Claude Code**: [Setup Guide](docs/setup-claude-code.md) - Full feature
+   support with MCP tools
+2. **Copilot Chat**: [Setup Guide](docs/setup-copilot-chat.md) - Core features +
+   2026+ enhancements
+3. **Codex CLI**: [Setup Guide](docs/setup-codex-cli.md) - Full feature support
+   via skill system
+4. **⚠️ Copilot 2026+**: Auto-chaining and parallel agents require GitHub
+   Copilot 2026 or later. Pre-2026 versions use
+   [manual workflow](docs/legacy-workflow.md) (sequential, ~90-120s validation)
+5. **Parallel Agents**: Uses `Task` tool (Claude Code), terminal multiplexing
+   (Codex), or multi-agent delegation (Copilot 2026+)
+
+### Setup Guides
+
+Choose your platform and follow the setup guide:
+
+- 🟣 **[Claude Code Setup](docs/setup-claude-code.md)** - Recommended for full
+  feature support
+- 🟢 **[GitHub Copilot Chat Setup](docs/setup-copilot-chat.md)** - Best if you
+  already have Copilot
+- 🔵 **[OpenAI Codex CLI Setup](docs/setup-codex-cli.md)** - Alternative with
+  skill-based execution
+
 **Alternative: MCP Tools for AI Assistants**
 
 AI can also call MCP tools directly:

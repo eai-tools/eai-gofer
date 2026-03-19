@@ -1,0 +1,379 @@
+/**
+ * Command Generator for Cross-Platform Command Parity
+ * Feature 028: Generates Codex and Copilot command files from Claude CLI reference
+ */
+
+import * as fs from 'fs';
+import * as path from 'path';
+import * as yaml from 'js-yaml';
+import { CommandMetadata, PlatformType } from './types/CrossPlatformTypes';
+import { CommandMetadataExtractor } from './CommandMetadataExtractor';
+
+/**
+ * Generates platform-specific command files from Claude CLI reference implementation
+ */
+export class CommandGenerator {
+  private extractor: CommandMetadataExtractor;
+
+  constructor(private workspacePath: string) {
+    this.extractor = new CommandMetadataExtractor();
+  }
+
+  /**
+   * Generate commands for a specific platform
+   *
+   * @param platform Target platform (codex or copilot)
+   * @param dryRun If true, preview changes without writing files
+   * @returns Array of generated file paths
+   */
+  public async generateCommands(
+    platform: 'codex' | 'copilot',
+    dryRun: boolean = false
+  ): Promise<string[]> {
+    const claudeCommandsDir = path.join(this.workspacePath, '.claude', 'commands');
+
+    if (!fs.existsSync(claudeCommandsDir)) {
+      throw new Error('Claude commands directory not found: ' + claudeCommandsDir);
+    }
+
+    // Find all Claude command files
+    const commandFiles = fs
+      .readdirSync(claudeCommandsDir)
+      .filter((file) => file.endsWith('.md'))
+      .map((file) => path.join(claudeCommandsDir, file));
+
+    const generatedPaths: string[] = [];
+
+    for (const commandFile of commandFiles) {
+      try {
+        const metadata = this.extractor.extractFromClaudeCommand(commandFile);
+        const outputPath = await this.generateCommand(metadata, platform, dryRun);
+        generatedPaths.push(outputPath);
+      } catch (error) {
+        console.error('Failed to generate command from ' + commandFile + ':', error);
+      }
+    }
+
+    return generatedPaths;
+  }
+
+  /**
+   * Generate a single command file for target platform
+   *
+   * @param sourceMetadata Metadata from Claude CLI command
+   * @param platform Target platform
+   * @param dryRun If true, preview without writing
+   * @returns Generated file path
+   */
+  public async generateCommand(
+    sourceMetadata: CommandMetadata,
+    platform: 'codex' | 'copilot',
+    dryRun: boolean = false
+  ): Promise<string> {
+    if (platform === 'codex') {
+      return this.generateCodexSkill(sourceMetadata, dryRun);
+    } else {
+      return this.generateCopilotPrompt(sourceMetadata, dryRun);
+    }
+  }
+
+  /**
+   * Generate a Codex CLI skill file
+   *
+   * @param sourceMetadata Source metadata from Claude command
+   * @param dryRun Preview mode
+   * @returns Output file path
+   */
+  public async generateCodexSkill(
+    sourceMetadata: CommandMetadata,
+    dryRun: boolean = false
+  ): Promise<string> {
+    const skillDir = path.join(this.workspacePath, '.system', 'skills', sourceMetadata.name);
+    const skillPath = path.join(skillDir, 'SKILL.md');
+
+    // Transform content for Codex
+    const transformedContent = this.transformContent(sourceMetadata.content, 'claude', 'codex');
+
+    // Build YAML frontmatter
+    const frontmatter = {
+      name: sourceMetadata.name,
+      description: sourceMetadata.description,
+      arguments: [
+        {
+          name: 'feature',
+          description: 'Feature name or description',
+          required: false,
+        },
+      ],
+      result_schema: {
+        type: 'object',
+        properties: {
+          output: {
+            type: 'string',
+            description: 'Path to generated artifact or execution summary',
+          },
+          status: {
+            type: 'string',
+            enum: ['success', 'error'],
+          },
+        },
+      },
+    };
+
+    // Inject platform-specific sections
+    const enhancedContent = this.injectPlatformSections(
+      transformedContent,
+      'codex',
+      sourceMetadata.name
+    );
+
+    // Build complete skill file
+    const skillContent = '---\n' + yaml.dump(frontmatter) + '---\n\n' + enhancedContent;
+
+    // Validate generated content
+    this.validateGeneratedCommand(skillContent, 'codex');
+
+    if (!dryRun) {
+      // Create directory if needed
+      if (!fs.existsSync(skillDir)) {
+        fs.mkdirSync(skillDir, { recursive: true });
+      }
+
+      // Write skill file
+      fs.writeFileSync(skillPath, skillContent, 'utf8');
+    }
+
+    return skillPath;
+  }
+
+  /**
+   * Generate a Copilot Chat prompt file
+   *
+   * @param sourceMetadata Source metadata from Claude command
+   * @param dryRun Preview mode
+   * @returns Output file path
+   */
+  public async generateCopilotPrompt(
+    sourceMetadata: CommandMetadata,
+    dryRun: boolean = false
+  ): Promise<string> {
+    const promptsDir = path.join(this.workspacePath, '.github', 'prompts');
+    const promptPath = path.join(promptsDir, sourceMetadata.name + '.prompt.md');
+
+    // Transform content for Copilot
+    const transformedContent = this.transformContent(sourceMetadata.content, 'claude', 'copilot');
+
+    // Build YAML frontmatter
+    const frontmatter = {
+      name: sourceMetadata.name,
+      description: sourceMetadata.description,
+      agent: 'copilot-workspace',
+      tools: ['Read', 'Grep', 'Glob', 'Bash', 'WebSearch'],
+      'argument-hint': 'feature-name-or-description',
+    };
+
+    // Inject platform-specific sections
+    const enhancedContent = this.injectPlatformSections(
+      transformedContent,
+      'copilot',
+      sourceMetadata.name
+    );
+
+    // Build complete prompt file
+    const promptContent = '---\n' + yaml.dump(frontmatter) + '---\n\n' + enhancedContent;
+
+    // Validate generated content
+    this.validateGeneratedCommand(promptContent, 'copilot');
+
+    if (!dryRun) {
+      // Create directory if needed
+      if (!fs.existsSync(promptsDir)) {
+        fs.mkdirSync(promptsDir, { recursive: true });
+      }
+
+      // Write prompt file
+      fs.writeFileSync(promptPath, promptContent, 'utf8');
+    }
+
+    return promptPath;
+  }
+
+  /**
+   * Transform content from one platform to another
+   *
+   * @param content Original content
+   * @param fromPlatform Source platform
+   * @param toPlatform Target platform
+   * @returns Transformed content
+   */
+  public transformContent(
+    content: string,
+    fromPlatform: PlatformType,
+    toPlatform: PlatformType
+  ): string {
+    let transformed = content;
+
+    // Remove Claude-specific AUTO-CHAIN sections (replace with platform-specific)
+    transformed = transformed.replace(/\*\*AUTO-CHAIN[^]*?(?=\n##|\n---|\n\*\*|$)/g, '');
+
+    // Transform Skill tool invocations (Claude-specific)
+    if (fromPlatform === 'claude' && toPlatform !== 'claude') {
+      // Remove Skill tool invocation instructions
+      transformed = transformed.replace(
+        /by calling the Skill tool with skill="[^"]+"/g,
+        'by running the next command'
+      );
+      transformed = transformed.replace(/Skill tool/g, 'next command');
+    }
+
+    // Transform Task tool references (Claude-specific)
+    if (fromPlatform === 'claude' && toPlatform === 'codex') {
+      // Add simulation instructions for parallel agents
+      transformed = transformed.replace(
+        /Task: subagent_type="([^"]+)"/g,
+        '**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the $1 analysis in each.'
+      );
+    }
+
+    // Transform command invocation syntax
+    if (toPlatform === 'codex') {
+      // Replace /command with $ $command
+      transformed = transformed.replace(/\/(\d+_gofer_\w+)/g, '$ $$1');
+      transformed = transformed.replace(/\/(gofer_\w+)/g, '$ $$1');
+    } else if (toPlatform === 'copilot') {
+      // Replace /command with #command
+      transformed = transformed.replace(/\/(\d+_gofer_\w+)/g, '#$1');
+      transformed = transformed.replace(/\/(gofer_\w+)/g, '#$1');
+    }
+
+    return transformed;
+  }
+
+  /**
+   * Inject platform-specific sections (auto-chain, parallel agents)
+   *
+   * @param content Base content
+   * @param platform Target platform
+   * @param commandName Command name
+   * @returns Enhanced content
+   */
+  public injectPlatformSections(
+    content: string,
+    platform: 'codex' | 'copilot',
+    commandName: string
+  ): string {
+    // Determine next command in pipeline
+    const nextCommand = this.getNextCommand(commandName);
+
+    if (!nextCommand) {
+      return content; // No next command (end of pipeline)
+    }
+
+    let autoChainSection = '';
+
+    if (platform === 'codex') {
+      autoChainSection = `
+
+## Pipeline Continuation
+
+This completes the ${commandName} stage. To continue the Gofer pipeline:
+
+**Next Command:** \`$ $${nextCommand}\`
+
+The next stage will use the artifacts generated by this command and continue the implementation workflow.
+
+**Note:** Codex CLI does not support automatic command chaining. You must manually run each stage command to progress through the pipeline.
+`;
+    } else if (platform === 'copilot') {
+      autoChainSection = `
+
+## Pipeline Continuation
+
+This completes the ${commandName} stage. To continue the Gofer pipeline:
+
+**Next Command:** \`#${nextCommand}\`
+
+The next stage will read the artifacts from this stage and continue the workflow automatically.
+
+**Note:** Copilot Chat supports context preservation. Your conversation history will be maintained as you progress through pipeline stages.
+`;
+    }
+
+    // Inject before any "Key Rules" or at end
+    if (content.includes('## Key Rules')) {
+      return content.replace('## Key Rules', autoChainSection + '\n## Key Rules');
+    } else {
+      return content + autoChainSection;
+    }
+  }
+
+  /**
+   * Validate generated command content
+   *
+   * @param content Generated file content
+   * @param platform Target platform
+   */
+  public validateGeneratedCommand(content: string, platform: 'codex' | 'copilot'): void {
+    // Check for YAML frontmatter
+    const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
+    if (!frontmatterMatch) {
+      throw new Error('Generated command missing YAML frontmatter');
+    }
+
+    // Parse YAML
+    try {
+      const frontmatter = yaml.load(frontmatterMatch[1]) as Record<string, unknown>;
+
+      // Check required fields
+      if (!frontmatter.name) {
+        throw new Error('Generated command missing required field: name');
+      }
+      if (!frontmatter.description) {
+        throw new Error('Generated command missing required field: description');
+      }
+
+      // Platform-specific validation
+      if (platform === 'codex') {
+        if (!frontmatter.result_schema) {
+          throw new Error('Codex skill missing required field: result_schema');
+        }
+      }
+    } catch (error) {
+      throw new Error('Generated command has invalid YAML: ' + error);
+    }
+
+    // Check content has body
+    const body = content.split('---\n')[2];
+    if (!body || body.trim().length === 0) {
+      throw new Error('Generated command has empty body');
+    }
+  }
+
+  /**
+   * Get next command in pipeline sequence
+   *
+   * @param currentCommand Current command name
+   * @returns Next command name or null if end of pipeline
+   */
+  private getNextCommand(currentCommand: string): string | null {
+    const pipeline = [
+      '0_business_scenario',
+      '0a_problem_validation',
+      '1_gofer_research',
+      '2_gofer_specify',
+      '3_gofer_plan',
+      '4_gofer_tasks',
+      '5_gofer_implement',
+      '6_gofer_validate',
+      '6a_gofer_engineering_review',
+    ];
+
+    const currentIndex = pipeline.indexOf(currentCommand);
+    if (currentIndex >= 0 && currentIndex < pipeline.length - 1) {
+      return pipeline[currentIndex + 1];
+    }
+
+    // Special commands don't have next in pipeline
+    return null;
+  }
+}

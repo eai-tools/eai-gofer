@@ -1,4 +1,4 @@
-# ADR-004: Cache Eviction Strategy
+B# ADR-004: Cache Eviction Strategy
 
 **Status**: Accepted
 **Date**: 2026-02-24

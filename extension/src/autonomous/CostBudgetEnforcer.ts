@@ -8,16 +8,7 @@
 
 import { Logger } from '../utils/logger';
 import type { RunLedger } from './RunLedger';
-
-/**
- * Cost per 1000 tokens by provider (USD).
- * Re-exported from council/UsageLogger rates.
- */
-export const COST_PER_1K_TOKENS: Record<string, { input: number; output: number }> = {
-  anthropic: { input: 0.003, output: 0.015 },
-  google: { input: 0.00025, output: 0.0005 },
-  openai: { input: 0.005, output: 0.015 },
-};
+import { calculateCost } from '../config/pricing';
 
 /** Default provider used when providerId is not specified */
 const DEFAULT_PROVIDER = 'anthropic';
@@ -64,12 +55,12 @@ export class CostBudgetEnforcer {
   /**
    * Record token usage and return the updated cost snapshot.
    * Emits ledger events on status transitions.
+   *
+   * @param modelId - Optional model identifier for model-specific pricing (Bug #2/#3 fix)
    */
-  recordUsage(inputTokens: number, outputTokens: number, providerId?: string): CostSnapshot {
+  recordUsage(inputTokens: number, outputTokens: number, providerId?: string, modelId?: string): CostSnapshot {
     const provider = providerId ?? DEFAULT_PROVIDER;
-    const rates = COST_PER_1K_TOKENS[provider] ?? COST_PER_1K_TOKENS[DEFAULT_PROVIDER];
-
-    const cost = (inputTokens * rates.input + outputTokens * rates.output) / 1000;
+    const cost = calculateCost(inputTokens, outputTokens, provider, modelId);
     this.currentCostUsd += cost;
     this.currentTokens += inputTokens + outputTokens;
 

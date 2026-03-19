@@ -37,6 +37,7 @@
     "ci:test": "npm run typecheck && npm run test:ci",
     "ci:build": "npm run build:all",
     "dashboard": "tsx scripts/quality-dashboard.ts",
+    "generate-commands": "ts-node scripts/generate-commands.ts",
     "prepare": "husky"
   },
   "dependencies": {

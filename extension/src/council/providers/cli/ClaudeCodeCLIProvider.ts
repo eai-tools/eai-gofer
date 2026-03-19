@@ -100,7 +100,64 @@ export class ClaudeCodeCLIProvider extends CLIProviderAdapter {
   public supportsWebSearch(): boolean {
     return false;
   }
+
+  /**
+   * Translate Claude-specific error messages into standard format (T074)
+   *
+   * @param error - Raw error message from Claude CLI
+   * @returns Normalized error message
+   */
+  public translateError(error: string): string {
+    // Authentication errors
+    if (error.includes('API key') || error.includes('authentication') || error.includes('401')) {
+      return 'Authentication failed: Invalid or missing API key. Please check your Anthropic API key in settings.';
+    }
+
+    // Rate limiting
+    if (error.includes('rate limit') || error.includes('429')) {
+      return 'Rate limit exceeded: Too many requests. Please wait a moment and try again.';
+    }
+
+    // Model not found
+    if (error.includes('model') && (error.includes('not found') || error.includes('invalid'))) {
+      return `Model not available: The requested model is not accessible. Please check your model configuration.`;
+    }
+
+    // Token limit exceeded
+    if (error.includes('token') && error.includes('limit')) {
+      return 'Token limit exceeded: The request exceeds the maximum token limit. Please reduce the prompt size.';
+    }
+
+    // Network errors
+    if (
+      error.includes('network') ||
+      error.includes('connection') ||
+      error.includes('ECONNREFUSED')
+    ) {
+      return 'Network error: Unable to connect to Claude API. Please check your internet connection.';
+    }
+
+    // Timeout errors
+    if (error.includes('timeout') || error.includes('ETIMEDOUT')) {
+      return 'Request timeout: The request took too long to complete. Please try again.';
+    }
+
+    // Command not found
+    if (error.includes('command not found') || error.includes('ENOENT')) {
+      return 'Claude CLI not found: Please install Claude Code CLI using: npm install -g @anthropic-ai/claude-code';
+    }
+
+    // Default: Return sanitized error (remove file paths and internal details)
+    const sanitized = error
+      .replace(/\/[^\s]+/g, '[PATH]')
+      .replace(/Error: /g, '')
+      .trim();
+    return `Claude error: ${sanitized}`;
+  }
 }
 
 // Register provider in factory
-registerProvider('claude-cli', ClaudeCodeCLIProvider as unknown as new (apiKey: string, model: string) => CLIProviderAdapter);
+registerProvider(
+  'claude-cli',
+  ClaudeCodeCLIProvider as unknown as new (apiKey: string, model: string) => CLIProviderAdapter
+);

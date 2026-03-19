@@ -553,18 +553,18 @@ complete for accurate data)
 
 ### Implementation for User Story 7
 
-- [ ] T085 [P] [US-7] Update README.md in
+- [x] T085 [P] [US-7] Update README.md in
       `/Users/douglaswross/Code/gofer/README.md` with Platform Capabilities
       section: comparison table (Feature × Platform matrix), rows for 16
       commands + MCP + autonomous mode + context + auto-chain + parallel agents,
       columns for Claude/Copilot/Codex, cells with ✓/⚠/✗ status and footnotes
-- [ ] T086 [P] [US-7] Create `docs/setup-claude-code.md` with Claude Code CLI
+- [x] T086 [P] [US-7] Create `docs/setup-claude-code.md` with Claude Code CLI
       installation and configuration guide
-- [ ] T087 [P] [US-7] Create `docs/setup-copilot-chat.md` with Copilot Chat
+- [x] T087 [P] [US-7] Create `docs/setup-copilot-chat.md` with Copilot Chat
       installation and prompt usage guide
-- [ ] T088 [P] [US-7] Create `docs/setup-codex-cli.md` with Codex CLI
+- [x] T088 [P] [US-7] Create `docs/setup-codex-cli.md` with Codex CLI
       installation and skill discovery guide
-- [ ] T089 [P] [US-7] Link setup guides from README capability matrix
+- [x] T089 [P] [US-7] Link setup guides from README capability matrix
 
 **Verification Checklist**:
 

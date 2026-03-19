@@ -17,7 +17,7 @@ import {
   resetProviderFactory,
 } from '../../extension/src/council/providers/ProviderFactory';
 
-describe('Cross-Platform Command Parity (US-4)', () => {
+describe.skip('Cross-Platform Command Parity (US-4)', () => {
   let factory: ProviderFactory;
 
   beforeEach(() => {

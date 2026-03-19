@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.22.0",
+  "latest_version": "1.22.1",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-03-18T06:45:54.553Z",
+  "last_updated": "2026-03-19T06:07:45.817Z",
   "releases": [
+    {
+      "version": "1.22.1",
+      "tag_name": "v1.22.1",
+      "published_at": "2026-03-19T06:07:45.816Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.22.1.vsix",
+      "notes": "Fix AI usage tracking bugs #2/#3 + security/performance fixes\n\n- Bug fix #2: Model-specific pricing (getPricingForModel with 4-tier fallback)\n- Bug fix #3: Model detection in adapters (modelId propagation to CostBudgetEnforcer)\n- Security fix: XSS prevention in MemoryPanel (HTML escaping)\n- Performance fix: Async I/O in UsageLogger (fs.promises)\n- Integration tests: AIUsageAccuracy (11), ModelPropagation (11)\n- All 40 bug fix tests passing\n- Validation score: 100/100 after fixes",
+      "prerelease": false,
+      "size_mb": 10.1
+    },
     {
       "version": "1.22.0",
       "tag_name": "v1.22.0",
@@ -81,15 +90,6 @@
       "published_at": "2026-03-15T08:01:18.578Z",
       "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.20.0.vsix",
       "notes": "feat: provider API usage tracking (Feature 026)",
-      "prerelease": false,
-      "size_mb": 30.3
-    },
-    {
-      "version": "1.19.2",
-      "tag_name": "v1.19.2",
-      "published_at": "2026-03-15T04:50:57.388Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.19.2.vsix",
-      "notes": "enforce mandatory auto-chain and add engineering review gates to pipeline stages",
       "prerelease": false,
       "size_mb": 30.3
     }

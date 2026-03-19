@@ -12,6 +12,7 @@ import * as path from 'path';
 import { UsageMetrics, ProviderId, CouncilConfig } from './types';
 import type { UsageDataSource } from '../types/aiUsage';
 import { Logger } from '../utils/logger';
+import { calculateCost } from '../config/pricing';
 
 /**
  * A single usage log entry
@@ -65,17 +66,6 @@ export interface UsageSummary {
   fromDate: string;
   toDate: string;
 }
-
-/**
- * Estimated cost per 1000 tokens by provider (in USD)
- */
-const COST_PER_1K_TOKENS: Record<ProviderId, { input: number; output: number }> = {
-  anthropic: { input: 0.003, output: 0.015 },
-  google: { input: 0.00025, output: 0.0005 },
-  openai: { input: 0.005, output: 0.015 },
-  'claude-cli': { input: 0.003, output: 0.015 },
-  'codex-cli': { input: 0.005, output: 0.015 },
-};
 
 /**
  * Usage Logger for tracking council costs
@@ -151,9 +141,7 @@ export class UsageLogger implements UsageDataSource {
     let totalCost = 0;
 
     for (const provider of enabledProviders) {
-      const rates = COST_PER_1K_TOKENS[provider.providerId];
-      const providerCost =
-        (estimatedInputTokens / 1000) * rates.input + (estimatedOutputTokens / 1000) * rates.output;
+      const providerCost = calculateCost(estimatedInputTokens, estimatedOutputTokens, provider.providerId);
 
       breakdown[provider.providerId] = providerCost;
       totalCost += providerCost;

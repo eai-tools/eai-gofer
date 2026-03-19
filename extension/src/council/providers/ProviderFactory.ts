@@ -9,6 +9,7 @@ import * as vscode from 'vscode';
 import { LLMProvider } from './LLMProvider';
 import { ProviderError, notConfiguredError } from './ProviderError';
 import { ProviderId, ProviderConfig, PROVIDER_NAMES, DEFAULT_MODELS } from '../types';
+import { redactCredentials, type ConversationMessage } from './CredentialRedactor';
 
 /**
  * Type for provider constructor functions
@@ -251,9 +252,11 @@ export class ProviderFactory {
     // Get model from defaults
     const model = DEFAULT_MODELS[providerId];
 
-    // R1: Preserve conversation history across provider switches
+    // T068: Preserve conversation history across provider switches with credential redaction
     // Check if there's an existing CLI provider with conversation history
-    let conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }> = [];
+    let conversationHistory: ConversationMessage[] = [];
+    let hasPreviousProvider = false;
+
     for (const [existingId, existingProvider] of this.providers.entries()) {
       // Only extract history from CLI providers (claude-cli or codex-cli)
       if (
@@ -261,19 +264,38 @@ export class ProviderFactory {
         typeof (existingProvider as any).getConversationHistory === 'function'
       ) {
         conversationHistory = (existingProvider as any).getConversationHistory();
+        hasPreviousProvider = true;
         break; // Only need one history (all CLI providers share the same conversation)
       }
     }
 
+    // T068: Redact credentials before transferring history
+    if (conversationHistory.length > 0) {
+      conversationHistory = redactCredentials(conversationHistory);
+    }
+
+    // T070: Format normalization (both providers use same format already)
+    // This is a placeholder for future format conversion if needed
+    // Current format: { role: 'user' | 'assistant', content: string }
+    // Works for both Claude and Codex
+
     // Create provider (CLI providers use command as first param, not API key)
     const provider = new Constructor(cliCommand, model);
 
-    // R1: Restore conversation history if switching providers
+    // Restore conversation history if switching providers
     if (
       conversationHistory.length > 0 &&
       typeof (provider as any).setConversationHistory === 'function'
     ) {
       (provider as any).setConversationHistory(conversationHistory);
+    }
+
+    // T069: Show notification when switching providers with history preservation
+    if (hasPreviousProvider && conversationHistory.length > 0) {
+      const providerName = cliType === 'claude' ? 'Claude Code' : 'Codex';
+      vscode.window.showInformationMessage(
+        `Switching to ${providerName} - conversation history preserved (${conversationHistory.length} messages)`
+      );
     }
 
     // Cache and return

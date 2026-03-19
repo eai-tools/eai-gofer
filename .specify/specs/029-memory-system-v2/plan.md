@@ -763,15 +763,15 @@ doc-skipping logic.
 
 **Files Modified**:
 
-- `extension/src/config/ConfigManager.ts` - Add coverageThreshold setting (lines
-  45-60)
+- `extension/src/config.ts` - Add coverageThreshold setting to existing
+  ConfigManager class (lines 45-60)
 - `extension/package.json` - Add gofer.memory.coverageThreshold config
   (default: 30)
 
 **Implementation**:
 
 ```typescript
-// ConfigManager.ts - Add coverage threshold setting
+// config.ts - Add coverage threshold setting to existing ConfigManager class
 export class ConfigManager {
   getCoverageThreshold(): number {
     return this.config.get<number>('memory.coverageThreshold', 30);

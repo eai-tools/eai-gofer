@@ -290,16 +290,16 @@ prompts.
       `extension/src/council/CrossPlatformCommandRouter.ts` with routeCommand(),
       loadSkillForPlatform(), detectPlatform(), getCommandPath(),
       listCommands(), isCommandAvailable(), getCommandSyntax()
-- [ ] T049 [US-2] Implement command routing with priority: .claude/commands/ >
+- [x] T049 [US-2] Implement command routing with priority: .claude/commands/ >
       .system/skills/ > .github/prompts/ in CrossPlatformCommandRouter
-- [ ] T050 [US-2] Implement path sanitization to prevent traversal attacks in
+- [x] T050 [US-2] Implement path sanitization to prevent traversal attacks in
       CrossPlatformCommandRouter
-- [ ] T051 [P] [US-2] Implement enhanceCopilotPrompt() in CommandGenerator to
+- [x] T051 [P] [US-2] Implement enhanceCopilotPrompt() in CommandGenerator to
       preserve existing YAML frontmatter, inject AUTO-CHAIN section, add
       backward compatibility notes
-- [ ] T052 [US-2] Add auto-chain instructions to Copilot prompt template: "Type
+- [x] T052 [US-2] Add auto-chain instructions to Copilot prompt template: "Type
       `/[next-command]` in next message"
-- [ ] T053 [US-2] Run generator script
+- [x] T053 [US-2] Run generator script
       `npm run generate-commands -- --platform copilot` to enhance 16 Copilot
       prompts in `.github/prompts/[command].prompt.md`
 - [ ] T054 Update `extension/src/extension.ts` activation to initialize

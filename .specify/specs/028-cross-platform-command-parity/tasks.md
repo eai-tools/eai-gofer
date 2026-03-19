@@ -243,7 +243,7 @@ expected output structure.
 - [x] T043 [P] [US-1] Create `.system/skills/gofer-constitution/SKILL.md`
       (generated)
 - [x] T044 [P] [US-1] Create `.system/skills/gofer-hydrate/SKILL.md` (generated)
-- [ ] T045 [US-1] Verify Codex CLI auto-completion lists all 16 skills after
+- [x] T045 [US-1] Verify Codex CLI auto-completion lists all 16 skills after
       directory scan with `codex skills list` command
 
 **Verification Checklist**:
@@ -274,7 +274,7 @@ prompts.
 - [x] T044 [P] [US-2] Unit test in
       `tests/unit/council/CrossPlatformCommandRouter.test.ts` for routing to
       correct platform directory
-- [ ] T045 [P] [US-2] Unit test in
+- [x] T045 [P] [US-2] Unit test in
       `tests/unit/council/CrossPlatformCommandRouter.test.ts` for priority
       fallback (Claude > Codex > Copilot)
 - [ ] T046 [P] [US-2] Unit test in
@@ -286,7 +286,7 @@ prompts.
 
 ### Implementation for User Story 2
 
-- [ ] T048 [P] [US-2] Implement `CrossPlatformCommandRouter` class in
+- [x] T048 [P] [US-2] Implement `CrossPlatformCommandRouter` class in
       `extension/src/council/CrossPlatformCommandRouter.ts` with routeCommand(),
       loadSkillForPlatform(), detectPlatform(), getCommandPath(),
       listCommands(), isCommandAvailable(), getCommandSyntax()

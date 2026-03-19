@@ -537,6 +537,16 @@ export class MemoryPanel {
             }
         }
 
+        // HTML escape function for XSS protection
+        function escapeHtml(str: string): string {
+            return str
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
         // Handle messages from extension
         window.addEventListener('message', event => {
             const message = event.data;
@@ -561,20 +571,20 @@ export class MemoryPanel {
                                 <div class="memory-header">
                                     <div class="memory-meta">
                                         <div>
-                                            <span class="memory-category">\${memory.category}</span>
-                                            <span class="memory-scope \${memory.scope}">\${memory.scope}</span>
+                                            <span class="memory-category">\${escapeHtml(memory.category)}</span>
+                                            <span class="memory-scope \${memory.scope}">\${escapeHtml(memory.scope)}</span>
                                         </div>
                                         <div class="memory-tags">
-                                            \${memory.tags.map(tag => \`<span class="memory-tag">\${tag}</span>\`).join('')}
+                                            \${memory.tags.map(tag => \`<span class="memory-tag">\${escapeHtml(tag)}</span>\`).join('')}
                                         </div>
                                     </div>
                                 </div>
-                                <div class="memory-content">\${memory.content}</div>
+                                <div class="memory-content">\${escapeHtml(memory.content)}</div>
                                 <div class="memory-footer">
                                     <div class="memory-stats">
                                         <span>Created: \${formatDate(memory.created)}</span>
                                         <span>Used: \${memory.usedCount} times</span>
-                                        <span>From: \${memory.learnedFrom}</span>
+                                        <span>From: \${escapeHtml(memory.learnedFrom)}</span>
                                     </div>
                                     <div class="memory-actions">
                                         <button class="secondary" onclick="recordUsage('\${memory.id}')">Use</button>

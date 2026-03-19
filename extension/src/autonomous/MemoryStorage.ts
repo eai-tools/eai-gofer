@@ -128,6 +128,7 @@ export class MemoryStorage {
   /**
    * Rebuild the in-memory index by reading the entire JSONL file.
    * Last-writer-wins for duplicate IDs (handles updates).
+   * T009: Deserializes flat layer fields back into layers object.
    */
   async rebuildIndex(): Promise<void> {
     this.index.clear();
@@ -148,7 +149,9 @@ export class MemoryStorage {
             continue;
           }
 
-          this.indexMemory(record as unknown as Memory);
+          // T009: Deserialize memory from JSONL (reconstructs layers from flat fields)
+          const memory = this.deserializeMemoryFromJSONL(record);
+          this.indexMemory(memory);
         } catch {
           // Skip invalid lines — don't crash on corruption
           console.warn('[MemoryStorage] Skipping invalid JSONL line');
@@ -199,6 +202,55 @@ export class MemoryStorage {
   }
 
   // --------------------------------------------------------------------------
+  // Serialization Helpers (T009: Layered storage)
+  // --------------------------------------------------------------------------
+
+  /**
+   * T009: Serialize Memory for JSONL storage by flattening layers.
+   * Extracts abstract/overview into flat fields, excludes detail function.
+   */
+  private serializeMemoryForJSONL(memory: Memory): Record<string, unknown> {
+    const serialized: Record<string, unknown> = { ...memory };
+
+    // If layers exist, flatten abstract/overview into top-level fields
+    if (memory.layers) {
+      // Store abstract and overview as flat fields for JSONL
+      (serialized as any)._layerAbstract = memory.layers.abstract;
+      (serialized as any)._layerOverview = memory.layers.overview;
+
+      // Remove the layers object (it contains a function we can't serialize)
+      delete serialized.layers;
+    }
+
+    return serialized;
+  }
+
+  /**
+   * T009: Deserialize Memory from JSONL by reconstructing layers.
+   * Rebuilds layers object from flat _layerAbstract/_layerOverview fields.
+   * Note: detail function will be added by lazy loading logic (T017).
+   */
+  private deserializeMemoryFromJSONL(record: Record<string, unknown>): Memory {
+    const memory = { ...record } as unknown as Memory;
+
+    // If flat layer fields exist, reconstruct layers object
+    if (record._layerAbstract && record._layerOverview) {
+      memory.layers = {
+        abstract: record._layerAbstract as string,
+        overview: record._layerOverview as string,
+        // T017: detail will be lazy-loaded from notePath or content
+        detail: async () => memory.content, // Fallback to content for now
+      };
+
+      // Clean up flat fields from memory object
+      delete (memory as any)._layerAbstract;
+      delete (memory as any)._layerOverview;
+    }
+
+    return memory;
+  }
+
+  // --------------------------------------------------------------------------
   // Write Operations
   // --------------------------------------------------------------------------
 
@@ -209,6 +261,7 @@ export class MemoryStorage {
    * Append a memory to the JSONL file and update the index.
    * Returns the memory with a generated hash-based ID.
    * 019 C10: Automatically promotes entries exceeding 500 chars to markdown notes.
+   * T009: Flattens layers.abstract/overview for JSONL storage (detail excluded as function).
    */
   async append(memory: Omit<Memory, 'id' | 'created'>): Promise<Memory> {
     await this.ensureInitialized();
@@ -229,8 +282,11 @@ export class MemoryStorage {
       fullMemory = await this.autoPromoteToMarkdown(fullMemory);
     }
 
+    // T009: Serialize memory for JSONL (flatten layers, exclude detail function)
+    const serialized = this.serializeMemoryForJSONL(fullMemory);
+
     // Append to JSONL (atomic for small payloads on POSIX)
-    const line = JSON.stringify(fullMemory) + '\n';
+    const line = JSON.stringify(serialized) + '\n';
     await fs.appendFile(this.jsonlPath, line, 'utf-8');
 
     // Update index
@@ -241,6 +297,7 @@ export class MemoryStorage {
 
   /**
    * Update a memory by appending a new version (last-writer-wins).
+   * T009: Flattens layers.abstract/overview for JSONL storage.
    */
   async update(id: string, updates: Partial<Memory>): Promise<Memory | null> {
     await this.ensureInitialized();
@@ -254,8 +311,11 @@ export class MemoryStorage {
       id, // Preserve original ID
     };
 
+    // T009: Serialize memory for JSONL (flatten layers, exclude detail function)
+    const serialized = this.serializeMemoryForJSONL(updated);
+
     // Append updated version to JSONL
-    const line = JSON.stringify(updated) + '\n';
+    const line = JSON.stringify(serialized) + '\n';
     await fs.appendFile(this.jsonlPath, line, 'utf-8');
 
     // Update index

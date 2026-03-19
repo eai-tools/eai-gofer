@@ -9,7 +9,7 @@ import {
   formatGoferURI,
   GoferURIResolver,
   type GoferURI,
-} from '../../../extension/src/autonomous/memory/GoferURI';
+} from '../../../src/autonomous/memory/GoferURI';
 import * as path from 'path';
 import * as os from 'os';
 
@@ -52,7 +52,7 @@ describe('GoferURI Parser', () => {
       const scopes: Array<GoferURI['scope']> = ['specs', 'memory', 'agent', 'session', 'user'];
 
       for (const scope of scopes) {
-        const result = parseGoferURI(`gofer://${scope}/test.md`);
+        const result = parseGoferURI(\`gofer://\${scope}/test.md\`);
         expect(result.scope).toBe(scope);
       }
     });

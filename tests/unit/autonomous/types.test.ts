@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import type { ContextLayer } from '../../../extension/src/autonomous/types';
+import type { ContextLayer } from '../../../src/autonomous/types';
 
 describe('ContextLayer', () => {
   it('should validate L0 tier (abstract) structure', () => {
@@ -54,7 +54,7 @@ describe('ContextLayer', () => {
   it('should support realistic memory content structure', async () => {
     const layer: ContextLayer = {
       abstract: 'Authentication pattern using JWT tokens with 15-minute expiry',
-      overview: `
+      overview: \`
 ## Authentication Pattern
 
 **Approach**: JWT tokens with refresh token rotation
@@ -62,8 +62,8 @@ describe('ContextLayer', () => {
 **Storage**: HttpOnly cookies for security
 
 See details for implementation code.
-      `.trim(),
-      detail: async () => `
+      \`.trim(),
+      detail: async () => \`
 // Full implementation details with code examples
 class AuthService {
   async login(credentials) {
@@ -73,7 +73,7 @@ class AuthService {
     // ... detailed implementation
   }
 }
-      `.trim(),
+      \`.trim(),
     };
 
     expect(layer.abstract.length).toBeLessThan(500);

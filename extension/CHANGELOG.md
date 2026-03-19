@@ -2,6 +2,18 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.22.1] - 2026-03-19
+
+Fix AI usage tracking bugs #2/#3 + security/performance fixes
+
+- Bug fix #2: Model-specific pricing (getPricingForModel with 4-tier fallback)
+- Bug fix #3: Model detection in adapters (modelId propagation to CostBudgetEnforcer)
+- Security fix: XSS prevention in MemoryPanel (HTML escaping)
+- Performance fix: Async I/O in UsageLogger (fs.promises)
+- Integration tests: AIUsageAccuracy (11), ModelPropagation (11)
+- All 40 bug fix tests passing
+- Validation score: 100/100 after fixes
+
 ## [1.22.0] - 2026-03-18
 
 Remove PTY terminal dependency, use native VSCode terminal API

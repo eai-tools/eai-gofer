@@ -132,8 +132,11 @@ class FileSystemHelpers {
 async function main(): Promise<void> {
   const args = parseArgs();
 
+  console.log('🚀 Gofer Command Generator');
+  console.log('Feature: 028-cross-platform-command-parity\n');
 
   if (args.dryRun) {
+    console.log('⚠️  DRY RUN MODE: No files will be written\n');
   }
 
   // Determine which platforms to generate
@@ -145,14 +148,47 @@ async function main(): Promise<void> {
     platforms.push('copilot');
   }
 
+  console.log(`📋 Platforms: ${platforms.join(', ')}\n`);
 
-  // TODO: Implement generation logic
-  // 1. Scan .claude/commands/ directory for reference commands
-  // 2. Extract metadata from each command
-  // 3. Generate platform-specific files
-  // 4. Write files (unless --dry-run)
-  // 5. Report summary
+  // Get workspace path (parent of scripts directory)
+  const workspacePath = path.resolve(__dirname, '..');
 
+  // Import CommandGenerator (dynamically to avoid compilation issues)
+  const { CommandGenerator } = await import(
+    '../extension/src/council/CommandGenerator'
+  );
+
+  const generator = new CommandGenerator(workspacePath);
+
+  let totalGenerated = 0;
+
+  for (const platform of platforms) {
+    console.log(`\n🔨 Generating ${platform} commands...\n`);
+
+    try {
+      const generatedPaths = await generator.generateCommands(
+        platform,
+        args.dryRun
+      );
+
+      console.log(`✅ Generated ${generatedPaths.length} commands for ${platform}:\n`);
+
+      generatedPaths.forEach((filePath) => {
+        const relativePath = path.relative(workspacePath, filePath);
+        console.log(`   - ${relativePath}`);
+        if (args.verbose) {
+          console.log(`     Full path: ${filePath}`);
+        }
+      });
+
+      totalGenerated += generatedPaths.length;
+    } catch (error) {
+      console.error(`❌ Failed to generate ${platform} commands:`, error);
+      process.exit(1);
+    }
+  }
+
+  console.log(`\n✅ Generation complete! Total commands generated: ${totalGenerated}`);
 }
 
 // Run if invoked directly

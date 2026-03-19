@@ -56,6 +56,7 @@ export class StateManager {
   private _autoUpdater?: AutoUpdater;
   private _lspClient?: GoferLSPClient;
   private _memoryManager?: MemoryManager;
+  private _crossPlatformCommandRouter?: import('../council/CrossPlatformCommandRouter').CrossPlatformCommandRouter;
 
   // Context Health Monitoring (Spec 012)
   private _contextHealthMonitor?: ContextHealthMonitor;
@@ -162,6 +163,18 @@ export class StateManager {
 
   public set memoryManager(value: MemoryManager | undefined) {
     this._memoryManager = value;
+  }
+
+  public get crossPlatformCommandRouter():
+    | import('../council/CrossPlatformCommandRouter').CrossPlatformCommandRouter
+    | undefined {
+    return this._crossPlatformCommandRouter;
+  }
+
+  public set crossPlatformCommandRouter(
+    value: import('../council/CrossPlatformCommandRouter').CrossPlatformCommandRouter | undefined
+  ) {
+    this._crossPlatformCommandRouter = value;
   }
 
   // --- Context Health Monitoring ---

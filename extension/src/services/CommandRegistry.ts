@@ -47,6 +47,7 @@ export interface CommandDependencies {
   autoUpdater?: AutoUpdater;
   contextScanner?: ClaudeCodeContextScanner;
   multiSessionWatcher?: MultiSessionBridgeWatcher;
+  crossPlatformCommandRouter?: import('../council/CrossPlatformCommandRouter').CrossPlatformCommandRouter;
   isUpgrading: () => boolean;
   setUpgradeState: (state: boolean) => void;
 }

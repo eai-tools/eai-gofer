@@ -72,7 +72,7 @@ export const DEFAULT_MODELS: Record<string, string> = {
  * Timestamp when pricing data was last updated.
  * Used by isPricingStale() to warn when rates may be outdated.
  */
-export const PRICING_LAST_UPDATED = new Date('2026-03-15').getTime();
+export const PRICING_LAST_UPDATED = new Date('2026-03-19').getTime();
 
 /**
  * Default provider used when providerId is not specified

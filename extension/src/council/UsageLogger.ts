@@ -93,13 +93,15 @@ export class UsageLogger implements UsageDataSource {
     const logDir = path.dirname(logPath);
 
     // Ensure directory exists
-    if (!fs.existsSync(logDir)) {
-      fs.mkdirSync(logDir, { recursive: true });
+    try {
+      await fs.promises.access(logDir);
+    } catch {
+      await fs.promises.mkdir(logDir, { recursive: true });
     }
 
     // Append entry as JSONL (one JSON object per line)
     const line = JSON.stringify(entry) + '\n';
-    fs.appendFileSync(logPath, line, 'utf-8');
+    await fs.promises.appendFile(logPath, line, 'utf-8');
   }
 
   /**
@@ -193,12 +195,14 @@ export class UsageLogger implements UsageDataSource {
       toDate: toDate?.toISOString() ?? new Date().toISOString(),
     };
 
-    if (!fs.existsSync(logPath)) {
+    try {
+      await fs.promises.access(logPath);
+    } catch {
       this.logger.warn(`getUsageSummary: log file does not exist at ${logPath}`);
       return summary;
     }
 
-    const content = fs.readFileSync(logPath, 'utf-8');
+    const content = await fs.promises.readFile(logPath, 'utf-8');
     const lines = content.split('\n').filter((line) => line.trim());
     this.logger.info(`getUsageSummary: found ${lines.length} entries in log file`);
 

@@ -77,6 +77,9 @@ export interface Memory {
 
   /** ID of newer memory that supersedes this one (set during conflict resolution) */
   supersededBy?: string;
+
+  /** T003 (Feature 029): Tiered context layers for progressive loading (L0/L1/L2) */
+  layers?: import('./types').ContextLayer;
 }
 
 // ============================================================================

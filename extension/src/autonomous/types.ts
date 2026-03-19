@@ -5,6 +5,25 @@
 import type { CompactionSummary } from './compaction';
 
 // ============================================================================
+// Memory System - Tiered Context Loading (Feature 029)
+// ============================================================================
+
+/**
+ * ContextLayer provides tiered access to memory and spec content,
+ * enabling progressive loading based on relevance signals.
+ */
+export interface ContextLayer {
+  /** L0 tier: One-sentence summary (~100 tokens / ~400 chars) */
+  abstract: string;
+
+  /** L1 tier: Key points and navigation (~2k tokens / ~8000 chars) */
+  overview: string;
+
+  /** L2 tier: Lazy-loaded full content (unlimited, async for file I/O) */
+  detail: () => Promise<string>;
+}
+
+// ============================================================================
 // Session Management
 // ============================================================================
 

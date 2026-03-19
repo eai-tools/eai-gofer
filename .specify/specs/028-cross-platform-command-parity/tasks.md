@@ -198,19 +198,19 @@ expected output structure.
 
 ### Implementation for User Story 1
 
-- [ ] T023 [P] [US-1] Implement `CommandGenerator` class in
+- [x] T023 [P] [US-1] Implement `CommandGenerator` class in
       `extension/src/council/CommandGenerator.ts` with generateCommands(),
       generateCommand(), transformContent(), injectPlatformSections(),
       validateGeneratedCommand()
-- [ ] T024 [US-1] Implement generateCodexSkill() in CommandGenerator to
+- [x] T024 [US-1] Implement generateCodexSkill() in CommandGenerator to
       transform YAML frontmatter: description → name + description, inject
       auto-chain instructions, implement transformContent() method to apply
       platform-specific substitutions, create directory structure
-- [ ] T025 [P] [US-1] Create Codex skill template in CommandGenerator with
+- [x] T025 [P] [US-1] Create Codex skill template in CommandGenerator with
       frontmatter, AUTO-CHAIN section, platform-specific syntax
-- [ ] T026 [US-1] Add auto-chain instructions to Codex skill template: "Run
+- [x] T026 [US-1] Add auto-chain instructions to Codex skill template: "Run
       `$ $[next-command]`"
-- [ ] T027 [US-1] Implement validation logic in
+- [x] T027 [US-1] Implement validation logic in
       CommandGenerator.validateGeneratedCommand() to check YAML validity,
       required fields present
 - [ ] T028 [US-1] Run generator script

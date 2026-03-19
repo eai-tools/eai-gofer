@@ -170,7 +170,7 @@ Codex CLI users).
 
 ### Tasks
 
-- [ ] T007 Update ClaudeCodeUsageAdapter.ts line 198 in
+- [x] T007 Update ClaudeCodeUsageAdapter.ts line 198 in
       `/Users/douglaswross/Code/gofer/extension/src/autonomous/ClaudeCodeUsageAdapter.ts`
       to pass provider and model variables (Replace: calculateCost(inputTokens +
       cacheCreationTokens, outputTokens, 'anthropic'), With:
@@ -178,14 +178,14 @@ Codex CLI users).
       model)) - variables already available at provider (line 174) and model
       (line 200), no new detection logic needed
 
-- [ ] T008 Add model extraction to CodexUsageAdapter.ts parseHistoryEntry method
+- [x] T008 Add model extraction to CodexUsageAdapter.ts parseHistoryEntry method
       in
       `/Users/douglaswross/Code/gofer/extension/src/autonomous/CodexUsageAdapter.ts`
       (Extract model from Codex history.json: entry.model ||
       entry.request?.model || 'gpt-4-turbo', store in local variable before
       calculateCost() call)
 
-- [ ] T009 Update CodexUsageAdapter.ts line 181 in
+- [x] T009 Update CodexUsageAdapter.ts line 181 in
       `/Users/douglaswross/Code/gofer/extension/src/autonomous/CodexUsageAdapter.ts`
       to pass model parameter (Replace: calculateCost(inputTokens, outputTokens,
       'openai'), With: calculateCost(inputTokens, outputTokens, 'openai',

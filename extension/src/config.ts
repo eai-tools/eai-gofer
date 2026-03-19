@@ -387,6 +387,51 @@ export class ConfigManager {
   }
 
   /**
+   * Get human-readable display name for CLI platform (T075)
+   *
+   * @param platform Platform identifier
+   * @returns Display name (e.g., "Claude Code", "GitHub Copilot Chat")
+   */
+  public getCLIDisplayName(platform: 'claude' | 'copilot' | 'codex' | 'auto'): string {
+    const displayNames: Record<'claude' | 'copilot' | 'codex' | 'auto', string> = {
+      claude: 'Claude Code',
+      copilot: 'GitHub Copilot Chat',
+      codex: 'OpenAI Codex CLI',
+      auto: 'Auto-Detect',
+    };
+
+    return displayNames[platform];
+  }
+
+  /**
+   * Check if a CLI platform directory exists in workspace (T076)
+   *
+   * @param platform Platform to check
+   * @param workspacePath Workspace root path
+   * @returns True if platform directory exists
+   */
+  public isPlatformEnabled(
+    platform: 'claude' | 'copilot' | 'codex',
+    workspacePath: string
+  ): boolean {
+    const fs = require('fs');
+    const path = require('path');
+
+    const platformPaths: Record<'claude' | 'copilot' | 'codex', string> = {
+      claude: path.join(workspacePath, '.claude', 'commands'),
+      copilot: path.join(workspacePath, '.github', 'prompts'),
+      codex: path.join(workspacePath, '.system', 'skills'),
+    };
+
+    try {
+      const fullPath = platformPaths[platform];
+      return fs.existsSync(fullPath) && fs.statSync(fullPath).isDirectory();
+    } catch {
+      return false;
+    }
+  }
+
+  /**
    * Get all configuration as object
    */
   public getAll(): Record<string, unknown> {

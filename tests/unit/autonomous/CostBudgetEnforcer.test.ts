@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import {
   CostBudgetEnforcer,
-  COST_PER_1K_TOKENS,
   BUDGET_DEFAULTS,
 } from '../../../extension/src/autonomous/CostBudgetEnforcer';
+import { COST_PER_1K_TOKENS } from '../../../extension/src/config/pricing';
 import { RunLedger } from '../../../extension/src/autonomous/RunLedger';
 
 // Mock RunLedger

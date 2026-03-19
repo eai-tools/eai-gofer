@@ -595,8 +595,10 @@ preparation.
       `package.json` (added to root package.json)
 - [x] T092 [P] Add CI/CD check in `.github/workflows/ci.yml` to verify generated files
       are in sync with Claude commands (block merge if drift detected)
-- [ ] T093 Run full test suite: `npm test -- cross-platform-parity.test.ts`,
+- [x] T093 Run full test suite: `npm test -- cross-platform-parity.test.ts`,
       `npm test -- validation-parallel.test.ts`, all unit and integration tests
+      ✅ 2,109 tests passed, 7/7 performance tests passed, 5 pre-existing failures
+      (4 Phase 6 conversation history mocking, 1 CostBudgetEnforcer)
 - [ ] T094 Manual verification: Set `gofer.defaultCLI` to "codex", run command,
       verify routes to Codex skill
 - [ ] T095 Manual verification: Set `gofer.defaultCLI` to "copilot", run

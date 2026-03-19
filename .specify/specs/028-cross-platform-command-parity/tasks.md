@@ -398,34 +398,35 @@ Claude, verify full context preserved.
 
 ### Tests for User Story 4
 
-- [ ] T066 [P] [US-4] Integration test in
+- [x] T066 [P] [US-4] Integration test in
       `tests/integration/cross-platform-parity.test.ts` for context preservation
       across provider switches
-- [ ] T067 [P] [US-4] Security test in
+- [x] T067 [P] [US-4] Security test in
       `tests/unit/council/providers/ProviderFactory.test.ts` for credential
       redaction before provider switch
 
 ### Implementation for User Story 4
 
-- [ ] T068 [US-4] Implement conversation history preservation in
+- [x] T068 [US-4] Implement conversation history preservation in
       `ProviderFactory.getCLIProvider()` in
       `extension/src/council/providers/ProviderFactory.ts`: call
       getConversationHistory() from old provider, normalize format (JSONL ↔
       JSON), apply ObservationMasker to redact credentials, call
       setConversationHistory() on new provider
-- [ ] T069 [US-4] Show notification: "Switching to [provider] - conversation
+- [x] T069 [US-4] Show notification: "Switching to [provider] - conversation
       history preserved" when provider switches
-- [ ] T070 [P] [US-4] Add history normalization adapter in ProviderFactory to
+- [x] T070 [P] [US-4] Add history normalization adapter in ProviderFactory to
       convert between Claude JSONL and Codex JSON formats
 
 **Verification Checklist**:
 
-- [ ] History preservation redacts credentials (API keys, tokens)
-- [ ] History format normalized (JSONL ↔ JSON)
-- [ ] Full context preserved across Claude → Codex → Claude transitions
-- [ ] User sees notification on provider switch
-- [ ] Security tests verify no credential leakage
-- [ ] All tests pass with 80%+ coverage
+- [x] History preservation redacts credentials (API keys, tokens)
+- [x] History format normalized (JSONL ↔ JSON)
+- [x] Full context preserved across Claude → Codex → Claude transitions
+- [x] User sees notification on provider switch
+- [x] Security tests verify no credential leakage (CredentialRedactor 17/17
+      tests pass)
+- [ ] All tests pass with 80%+ coverage (5 integration tests need refactoring)
 
 **Checkpoint**: User Story 4 complete - Conversation history preserved across
 provider switches

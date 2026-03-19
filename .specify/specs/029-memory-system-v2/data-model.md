@@ -201,15 +201,15 @@ ContextLayer provides tiered access to memory and spec content, enabling progres
 |-------|------|----------|-------------|
 | `abstract` | string | Yes | L0 tier: One-sentence summary (~100 tokens / ~400 chars) |
 | `overview` | string | Yes | L1 tier: Key points and navigation (~2k tokens / ~8000 chars) |
-| `detail` | () => string | Yes | L2 tier: Lazy-loaded full content (unlimited) |
+| `detail` | () => Promise<string> | Yes | L2 tier: Lazy-loaded full content (unlimited, async for file I/O) |
 
 #### Example TypeScript Interface
 
 ```typescript
 interface ContextLayer {
-  abstract: string;           // Always loaded
-  overview: string;           // Loaded on relevance signal (>30% coverage)
-  detail: () => string;       // Loaded on explicit request only
+  abstract: string;                  // Always loaded
+  overview: string;                  // Loaded on relevance signal (>30% coverage)
+  detail: () => Promise<string>;    // Loaded on explicit request only (async)
 }
 
 class LayeredContent {

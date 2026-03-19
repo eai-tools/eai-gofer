@@ -698,13 +698,16 @@ export class ContextUsageLogger {
    * 002 AC-6.4: Forwards token counts to CostBudgetEnforcer.recordUsage() when wired.
    * 002 AC-6.5: Shows vscode notification on budget warning/exceeded transitions.
    * 002 AC-6.7: Updates ContextHealthStatusBar with budget snapshot.
+   *
+   * @param modelId - Optional model identifier for model-specific pricing (Bug #2/#3 fix)
    */
   async logLLMCall(
     sessionId: string,
     stage: string,
     inputTokens: number,
     outputTokens: number,
-    providerId?: string
+    providerId?: string,
+    modelId?: string
   ): Promise<void> {
     const entry: ContextUsageLogEntry = {
       timestamp: new Date().toISOString(),
@@ -722,7 +725,7 @@ export class ContextUsageLogger {
 
     // 002 AC-6.4: Forward to CostBudgetEnforcer for budget tracking
     if (this.costBudgetEnforcer) {
-      const snapshot = this.costBudgetEnforcer.recordUsage(inputTokens, outputTokens, providerId);
+      const snapshot = this.costBudgetEnforcer.recordUsage(inputTokens, outputTokens, providerId, modelId);
       this.handleBudgetSnapshot(snapshot);
     }
   }

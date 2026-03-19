@@ -194,10 +194,15 @@ export class ClaudeCodeUsageAdapter {
 
           const totalTokens = inputTokens + outputTokens + cacheCreationTokens + cacheReadTokens;
 
-          // Calculate cost (use Anthropic pricing for now, can be refined per-provider)
-          const cost = calculateCost(inputTokens + cacheCreationTokens, outputTokens, 'anthropic');
-
           const model = entry.message?.model || 'unknown';
+
+          // Calculate cost using detected provider and model (Bug #2 fix)
+          const cost = calculateCost(
+            inputTokens + cacheCreationTokens,
+            outputTokens,
+            provider,
+            model
+          );
 
           usageEntries.push({
             conversationId,
@@ -259,7 +264,11 @@ export class ClaudeCodeUsageAdapter {
         path: path.join(projectsDir, name),
       }));
     } catch (error) {
-      this.logger.error('Failed to read projects directory', error instanceof Error ? error : new Error(String(error)), { projectsDir });
+      this.logger.error(
+        'Failed to read projects directory',
+        error instanceof Error ? error : new Error(String(error)),
+        { projectsDir }
+      );
       return [];
     }
   }
@@ -480,7 +489,10 @@ export class ClaudeCodeUsageAdapter {
       this.logger.info('Synced usage to council log', { entriesAdded });
       return entriesAdded;
     } catch (error) {
-      this.logger.error('Failed to sync to council log', error instanceof Error ? error : new Error(String(error)));
+      this.logger.error(
+        'Failed to sync to council log',
+        error instanceof Error ? error : new Error(String(error))
+      );
       return 0;
     }
   }

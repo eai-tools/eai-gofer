@@ -3,7 +3,8 @@ name: 10_gofer_cloud
 description:
   READ-ONLY cloud infrastructure analysis for Azure, AWS, GCP deployments
 agent: agent
-tools: ['terminal']
+tools:
+  - terminal
 argument-hint:
   Which cloud platform and what to analyze (resources, security, costs)
 ---

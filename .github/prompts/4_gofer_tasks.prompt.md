@@ -426,6 +426,18 @@ Logs to: `.specify/logs/pipeline.jsonl`
 
 ---
 
+## Pipeline Continuation
+
+This completes the 4_gofer_tasks stage. To continue the Gofer pipeline:
+
+**Next Command:** `#5_gofer_implement`
+
+The next stage will read the artifacts from this stage and continue the workflow
+automatically.
+
+**Note:** Copilot Chat supports context preservation. Your conversation history
+will be maintained as you progress through pipeline stages.
+
 ## Key Rules
 
 - Use absolute paths for all file references

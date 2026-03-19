@@ -302,14 +302,14 @@ prompts.
 - [x] T053 [US-2] Run generator script
       `npm run generate-commands -- --platform copilot` to enhance 16 Copilot
       prompts in `.github/prompts/[command].prompt.md`
-- [ ] T054 Update `extension/src/extension.ts` activation to initialize
+- [x] T054 Update `extension/src/extension.ts` activation to initialize
       CrossPlatformCommandRouter after ConfigManager creation
-- [ ] T055 Register settings watcher for `gofer.defaultCLI` changes in
+- [x] T055 Register settings watcher for `gofer.defaultCLI` changes in
       extension.ts, call router.clearCache() on change
-- [ ] T056 Wire router to `AutonomousCommands` in
+- [x] T056 Wire router to `AutonomousCommands` in
       `extension/src/autonomousCommands.ts`: inject CrossPlatformCommandRouter
       into constructor, call router.routeCommand() before executing command
-- [ ] T057 Update MCP Tool Handler in `language-server/src/mcp/toolHandler.ts`
+- [x] T057 Update MCP Tool Handler in `language-server/src/mcp/toolHandler.ts`
       to implement multi-directory skill search with priority
 - [ ] T057a [US-2] Implement auto-chain failure detection and error messaging in
       CrossPlatformCommandRouter: detect when AI doesn't invoke next stage after

@@ -37,7 +37,30 @@ jobs:
       
     - name: TypeScript Type Check
       run: npm run typecheck
-      
+
+    - name: Verify Generated Commands in Sync
+      run: |
+        # Generate commands for Codex and Copilot from Claude templates
+        npm run generate-commands
+
+        # Check if any files changed (would indicate drift)
+        if ! git diff --quiet --exit-code .system/skills/ .github/prompts/; then
+          echo "❌ ERROR: Generated command files are out of sync!"
+          echo ""
+          echo "The following files have changes after generation:"
+          git diff --name-only .system/skills/ .github/prompts/
+          echo ""
+          echo "This means the generated Codex/Copilot commands don't match Claude templates."
+          echo ""
+          echo "To fix:"
+          echo "1. Run: npm run generate-commands"
+          echo "2. Commit the updated files"
+          echo "3. Push your changes"
+          exit 1
+        fi
+
+        echo "✅ All generated command files are in sync with Claude templates"
+
     - name: Run Tests with Coverage
       run: npm run test:coverage-report
       

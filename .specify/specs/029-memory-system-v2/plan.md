@@ -187,20 +187,20 @@ structure.
 
 - `extension/src/autonomous/MemoryManager.ts` - Add ContextLayer interface
   (lines 30-45)
-- `extension/src/autonomous/types.ts` - Extend Memory type with optional layers
-  field
+- `extension/src/autonomous/memory.ts` - Extend Memory interface with optional
+  layers field (lines 19-79)
 
 **Implementation**:
 
 ```typescript
-// New interface in types.ts
+// New interface in MemoryManager.ts
 export interface ContextLayer {
   abstract: string; // L0: ~100 tokens, one-sentence summary
   overview: string; // L1: ~2k tokens, key points + navigation
   detail: () => Promise<string>; // L2: lazy-loaded full content
 }
 
-// Extended Memory type
+// Extended Memory interface in memory.ts (lines 19-79)
 export interface Memory {
   id: string;
   content: string;
@@ -629,6 +629,107 @@ progress visible, non-destructive.
 
 ---
 
+#### Task 2.5: Coverage-Based Context Optimization for Research Stage
+
+**Description**: Implement keyword coverage calculation to skip loading research
+documents when memory coverage is sufficient (FR-004).
+
+**Files Modified**:
+
+- `extension/src/autonomous/ContextBuilder.ts` - Add calculateCoverage() method
+  (new 80 LOC)
+- `.claude/commands/1_gofer_research.md` - Add coverage check instructions
+  (lines 40-60)
+
+**Implementation**:
+
+```typescript
+// ContextBuilder.ts
+async calculateCoverage(
+  keywords: string[],
+  memories: Memory[]
+): Promise<number> {
+  // Extract keywords from all memories
+  const memoryKeywords = new Set<string>();
+  for (const memory of memories) {
+    const extracted = this.keywordExtractor.extract(memory.content, 20);
+    extracted.forEach(kw => memoryKeywords.add(kw.toLowerCase()));
+  }
+
+  // Calculate coverage percentage
+  const covered = keywords.filter(kw =>
+    memoryKeywords.has(kw.toLowerCase())
+  ).length;
+
+  return keywords.length > 0 ? (covered / keywords.length) * 100 : 0;
+}
+
+async buildContextWithCoverageOptimization(
+  taskContext: string,
+  researchDocs: string[]
+): Promise<string> {
+  const sections: string[] = [];
+
+  // 1. Load memories from all scopes
+  const memories = await this.memoryManager.loadByPriority({
+    taskContext,
+    limit: 20,
+    scope: 'all',
+  });
+
+  // 2. Extract keywords from task context
+  const keywords = this.keywordExtractor.extract(taskContext, 30);
+
+  // 3. Calculate coverage
+  const coverage = await this.calculateCoverage(
+    keywords.map(k => k.word),
+    memories
+  );
+
+  this.emit('coverage-calculated', { coverage, threshold: 30 });
+
+  // 4. Decision: skip research docs if coverage >= 30%
+  if (coverage >= 30) {
+    this.emit('loading-decision', {
+      source: 'research-docs',
+      decision: 'skipped',
+      reason: `Coverage ${coverage.toFixed(1)}% >= 30% threshold`,
+      tokens: 0,
+    });
+
+    // Only load memories, skip research docs
+    sections.push(await this.formatMemories(memories, 40000));
+  } else {
+    this.emit('loading-decision', {
+      source: 'research-docs',
+      decision: 'loaded',
+      reason: `Coverage ${coverage.toFixed(1)}% < 30% threshold`,
+      tokens: Math.ceil(researchDocs.join('').length / 4),
+    });
+
+    // Load both memories and research docs
+    sections.push(await this.formatMemories(memories, 10000));
+    sections.push(researchDocs.join('\n\n'));
+  }
+
+  return sections.join('\n\n');
+}
+```
+
+**Tests**:
+
+- `tests/unit/autonomous/ContextBuilder.test.ts` - Coverage calculation with
+  various keyword overlap percentages
+- Coverage < 30%: research docs loaded
+- Coverage >= 30%: research docs skipped, memories only
+- Edge case: zero keywords (default to loading docs)
+- Verify coverage events emitted to context-usage.jsonl
+
+**Verification**: Research stage skips docs when memory coverage sufficient,
+context token usage reduced by 30-60% in high-coverage scenarios.
+
+---
+
 **Phase 2 Completion Criteria**:
 
 - ✅ L0/L1/L2 layers auto-generate at save time
@@ -652,22 +753,51 @@ new patterns.
 #### Task 3.1: SubAgentContextFactory - Validation Agent Contexts
 
 **Description**: Generate targeted context sections for validation agents
-filtered by category.
+filtered by category. Includes configurable coverage threshold for FR-004
+doc-skipping logic.
 
 **Files Created**:
 
 - `extension/src/autonomous/SubAgentContextFactory.ts` (new, ~400 LOC)
 - `tests/unit/autonomous/SubAgentContextFactory.test.ts` (new, ~250 LOC)
 
+**Files Modified**:
+
+- `extension/src/config/ConfigManager.ts` - Add coverageThreshold setting (lines
+  45-60)
+- `extension/package.json` - Add gofer.memory.coverageThreshold config
+  (default: 30)
+
 **Implementation**:
 
 ```typescript
+// ConfigManager.ts - Add coverage threshold setting
+export class ConfigManager {
+  getCoverageThreshold(): number {
+    return this.config.get<number>('memory.coverageThreshold', 30);
+  }
+}
+
+// package.json contribution
+"gofer.memory.coverageThreshold": {
+  "type": "number",
+  "default": 30,
+  "minimum": 0,
+  "maximum": 100,
+  "description": "Keyword coverage percentage threshold for skipping research docs (FR-004). If memory coverage >= threshold, research docs are skipped."
+}
+
 export class SubAgentContextFactory {
+  private coverageThreshold: number;
+
   constructor(
     private memoryManager: MemoryManager,
     private contextBuilder: ContextBuilder,
-    private uriResolver: GoferURIResolver
-  ) {}
+    private uriResolver: GoferURIResolver,
+    private configManager: ConfigManager
+  ) {
+    this.coverageThreshold = configManager.getCoverageThreshold();
+  }
 
   async buildValidationContext(
     category:
@@ -682,12 +812,7 @@ export class SubAgentContextFactory {
   ): Promise<string> {
     const sections: string[] = [];
 
-    // 1. Load spec overview (L1 tier)
-    const specURI = `gofer://specs/${featureDir}/spec.md`;
-    const specOverview = await this.loadLayerWithBudget(specURI, 'L1', 2000);
-    sections.push(`## Spec Overview\n\n${specOverview}`);
-
-    // 2. Load prioritized memories for this category
+    // 1. Load prioritized memories for this category FIRST
     const memories = await this.memoryManager.loadByPriority({
       taskContext: `Validate ${category} for feature`,
       limit: 10,
@@ -695,14 +820,52 @@ export class SubAgentContextFactory {
       tags: [`#${category}`, '#validation'],
     });
 
-    // Filter to top 5-10 by token budget
-    const memoryContext = await this.formatMemories(
-      memories,
-      tokenBudget - 2000
+    // 2. Calculate keyword coverage (FR-004)
+    const keywords = this.contextBuilder.keywordExtractor.extract(
+      `Validate ${category} for feature in ${featureDir}`,
+      30
     );
-    sections.push(`## Past Validation Patterns\n\n${memoryContext}`);
+    const coverage = await this.contextBuilder.calculateCoverage(
+      keywords.map(k => k.word),
+      memories
+    );
 
-    // 3. Add validation criteria for this category
+    // 3. Decision: skip spec docs if coverage >= threshold (FR-004)
+    if (coverage >= this.coverageThreshold) {
+      // HIGH COVERAGE: Skip spec overview, use memories only
+      this.contextBuilder.emit('loading-decision', {
+        source: `spec-${featureDir}`,
+        decision: 'skipped',
+        reason: `Coverage ${coverage.toFixed(1)}% >= ${this.coverageThreshold}% threshold`,
+        tokens: 0,
+        layer: 'L1',
+      });
+
+      // Use full token budget for memories
+      const memoryContext = await this.formatMemories(memories, tokenBudget);
+      sections.push(`## Past Validation Patterns (${coverage.toFixed(1)}% coverage)\n\n${memoryContext}`);
+    } else {
+      // LOW COVERAGE: Load both spec and memories
+      this.contextBuilder.emit('loading-decision', {
+        source: `spec-${featureDir}`,
+        decision: 'loaded',
+        reason: `Coverage ${coverage.toFixed(1)}% < ${this.coverageThreshold}% threshold`,
+        tokens: 2000,
+        layer: 'L1',
+      });
+
+      const specURI = `gofer://specs/${featureDir}/spec.md`;
+      const specOverview = await this.loadLayerWithBudget(specURI, 'L1', 2000);
+      sections.push(`## Spec Overview\n\n${specOverview}`);
+
+      const memoryContext = await this.formatMemories(
+        memories,
+        tokenBudget - 2000
+      );
+      sections.push(`## Past Validation Patterns (${coverage.toFixed(1)}% coverage)\n\n${memoryContext}`);
+    }
+
+    // 4. Add validation criteria for this category (always included)
     const criteria = this.getValidationCriteria(category);
     sections.push(`## Validation Criteria\n\n${criteria}`);
 
@@ -1162,6 +1325,173 @@ automatically.
 
 ---
 
+#### Task 3.8: Memory Citation Tracking for Validation Agents
+
+**Description**: Implement verification mechanism to ensure validation agents
+actually use injected memories (US-P1-01 AC-6).
+
+**Files Created**:
+
+- `extension/src/autonomous/MemoryCitationTracker.ts` (new, ~200 LOC)
+- `tests/unit/autonomous/MemoryCitationTracker.test.ts` (new, ~150 LOC)
+
+**Files Modified**:
+
+- `.claude/commands/6_gofer_validate.md` - Add citation tracking instructions
+  (lines 180-200)
+- `extension/src/autonomous/ValidationPatternExtractor.ts` - Add citation
+  verification (lines 90-120)
+
+**Implementation**:
+
+```typescript
+// MemoryCitationTracker.ts
+export class MemoryCitationTracker {
+  constructor(private logger: Logger) {}
+
+  /**
+   * Track which memories were injected into a sub-agent context
+   */
+  trackInjectedMemories(
+    agentType: string,
+    agentCategory: string,
+    memoryIds: string[]
+  ): void {
+    const tracking = {
+      agentType,
+      agentCategory,
+      memoryIds,
+      timestamp: Date.now(),
+    };
+
+    this.logger.info('Memory injection tracked', tracking);
+  }
+
+  /**
+   * Verify that validation report cites the injected memories
+   * Returns: { cited: string[], missing: string[], citationRate: number }
+   */
+  async verifyMemoryCitations(
+    reportPath: string,
+    injectedMemoryIds: string[]
+  ): Promise<{
+    cited: string[];
+    missing: string[];
+    citationRate: number;
+  }> {
+    const reportContent = await fs.readFile(reportPath, 'utf-8');
+
+    const cited: string[] = [];
+    const missing: string[] = [];
+
+    for (const memoryId of injectedMemoryIds) {
+      // Check if memory ID or its content appears in the report
+      // Memory citations format: "Per memory mem-001234..." or "[mem-001234]"
+      const patterns = [
+        `mem-${memoryId}`,
+        `memory ${memoryId}`,
+        `[${memoryId}]`,
+      ];
+
+      const wasCited = patterns.some(pattern =>
+        reportContent.toLowerCase().includes(pattern.toLowerCase())
+      );
+
+      if (wasCited) {
+        cited.push(memoryId);
+      } else {
+        missing.push(memoryId);
+      }
+    }
+
+    const citationRate =
+      injectedMemoryIds.length > 0
+        ? (cited.length / injectedMemoryIds.length) * 100
+        : 0;
+
+    return { cited, missing, citationRate };
+  }
+
+  /**
+   * Log citation metrics to observability system
+   */
+  logCitationMetrics(
+    agentCategory: string,
+    cited: string[],
+    missing: string[],
+    citationRate: number
+  ): void {
+    this.logger.info('Memory citation metrics', {
+      agentCategory,
+      citedCount: cited.length,
+      missingCount: missing.length,
+      citationRate: `${citationRate.toFixed(1)}%`,
+      status: citationRate >= 50 ? 'PASS' : 'WARNING',
+    });
+  }
+}
+
+// Integration in 6_gofer_validate.md
+## Step 6: Verify Memory Citations (NEW - AC-6)
+
+After validation agents complete, verify they used injected memories:
+
+1. For each validation agent category (correctness, security, etc.):
+   - Retrieve list of injected memory IDs from tracking
+   - Parse validation report for memory citations
+   - Calculate citation rate: (cited / injected) * 100
+
+2. Invoke MemoryCitationTracker.verifyMemoryCitations():
+
+const tracker = new MemoryCitationTracker(logger);
+const { cited, missing, citationRate } = await tracker.verifyMemoryCitations(
+  validationReportPath,
+  injectedMemoryIds
+);
+
+tracker.logCitationMetrics(category, cited, missing, citationRate);
+
+// Warning if citation rate < 50%
+if (citationRate < 50) {
+  logger.warn(`Low memory usage: only ${citationRate.toFixed(1)}% of injected memories cited`);
+}
+
+3. Aggregate citation rates across all 6 validation agents
+4. Log to `.specify/logs/memory-usage.jsonl`:
+
+{
+  "event": "validation_memory_usage",
+  "timestamp": "2026-03-19T23:00:00Z",
+  "feature": "029-memory-system-v2",
+  "citationRates": {
+    "correctness": 75.0,
+    "security": 60.0,
+    "performance": 50.0,
+    "integration": 80.0,
+    "test-quality": 70.0,
+    "standards": 85.0
+  },
+  "overallCitationRate": 70.0,
+  "status": "PASS"
+}
+
+```
+
+**Tests**:
+
+- `tests/unit/autonomous/MemoryCitationTracker.test.ts` - Citation verification
+  with various formats
+- 100% citation rate: all memories cited
+- 0% citation rate: no memories cited
+- Partial citation: some cited, some missing
+- Log metrics to observability system
+- Integration test: End-to-end validation with citation tracking
+
+**Verification**: Validation agents cite ≥50% of injected memories, citation
+metrics logged to observability system, warnings issued for low usage rates.
+
+---
+
 **Phase 3 Completion Criteria**:
 
 - ✅ Validation agents receive 5-10 prioritized memories (category-specific)
@@ -1184,14 +1514,15 @@ automatically.
 
 #### Task 4.1: Enhanced Loading Decision Events
 
-**Description**: Emit structured events for each memory loading decision.
+**Description**: Emit structured events for each memory loading decision,
+including coverage calculations (US-P2-02 AC-5).
 
 **Files Modified**:
 
 - `extension/src/autonomous/ContextBuilder.ts` - Add emitLoadingDecision()
   (lines 724-788)
-- `extension/src/autonomous/ContextUsageLogger.ts` - Add memory event types
-  (lines 214-250)
+- `extension/src/autonomous/ContextUsageLogger.ts` - Add memory event types and
+  coverage logging (lines 214-280)
 
 **Implementation**:
 
@@ -1204,6 +1535,8 @@ interface LoadingDecision {
   tokens?: number;
   layer?: 'L0' | 'L1' | 'L2';
   priorityScore?: number;
+  coverage?: number;       // NEW: Keyword coverage percentage
+  coverageThreshold?: number; // NEW: Configured threshold
 }
 
 private emitLoadingDecision(decision: LoadingDecision): void {
@@ -1219,6 +1552,22 @@ async buildContext(taskContext: string): Promise<string> {
     taskContext,
     limit: 10,
     scope: 'local',
+  });
+
+  // Calculate and log coverage (US-P2-02 AC-5)
+  const keywords = this.keywordExtractor.extract(taskContext, 30);
+  const coverage = await this.calculateCoverage(
+    keywords.map(k => k.word),
+    memories
+  );
+
+  this.contextLogger.logCoverageCalculation({
+    taskContext,
+    keywordCount: keywords.length,
+    memoryCount: memories.length,
+    coverage,
+    threshold: this.configManager.getCoverageThreshold(),
+    timestamp: new Date().toISOString(),
   });
 
   for (const memory of memories) {
@@ -1255,16 +1604,34 @@ async logLoadingDecision(decision: LoadingDecision): Promise<void> {
     ...decision,
   });
 }
+
+async logCoverageCalculation(data: {
+  taskContext: string;
+  keywordCount: number;
+  memoryCount: number;
+  coverage: number;
+  threshold: number;
+  timestamp: string;
+}): Promise<void> {
+  await this.appendToLog({
+    eventType: 'coverage_calculation',
+    ...data,
+  });
+}
 ```
 
 **Tests**:
 
 - `tests/unit/autonomous/ContextBuilder.test.ts` - Verify events emitted
-- Verify loaded events include priority score, tokens, layer
+- Verify loaded events include priority score, tokens, layer, coverage
 - Verify skipped events include reason (budget, coverage, etc.)
+- Verify coverage_calculation events logged to context-usage.jsonl (US-P2-02
+  AC-5)
+- Verify coverage events include threshold, keyword count, memory count
 - Verify events logged to context-usage.jsonl
 
-**Verification**: Unit tests pass, events captured in logs.
+**Verification**: Unit tests pass, events captured in logs, coverage
+calculations logged with threshold and keyword details.
 
 ---
 
@@ -1662,6 +2029,7 @@ describe('End-to-End Pipeline with Memory System', () => {
     await runCommand('/5_gofer_implement', featureDir);
 
     // Stage 6: Validate (with memory injection)
+    const injectedMemoryIds: string[] = [];
     const validationContext = await contextFactory.buildValidationContext(
       'security',
       featureDir,
@@ -1669,7 +2037,38 @@ describe('End-to-End Pipeline with Memory System', () => {
     );
     expect(validationContext).toContain('Past Validation Patterns'); // Memories injected
 
+    // Track which memories were injected
+    const injectedMemories = await memoryManager.loadByPriority({
+      taskContext: 'Validate security for feature',
+      limit: 10,
+      scope: 'local',
+      tags: ['#security', '#validation'],
+    });
+    injectedMemoryIds.push(...injectedMemories.map((m) => m.id));
+
     await runCommand('/6_gofer_validate', featureDir);
+
+    // CRITICAL ASSERTION (US-P1-01 AC-6): Verify agents actually used memories
+    const citationTracker = new MemoryCitationTracker(logger);
+    const validationReportPath = `${featureDir}/validation-report.md`;
+    const { cited, missing, citationRate } =
+      await citationTracker.verifyMemoryCitations(
+        validationReportPath,
+        injectedMemoryIds
+      );
+
+    // Assert at least 50% of injected memories were cited
+    expect(citationRate).toBeGreaterThanOrEqual(50);
+    expect(cited.length).toBeGreaterThan(0); // At least one memory cited
+    expect(missing.length).toBeLessThan(injectedMemoryIds.length); // Not all missing
+
+    // Verify citation tracking logged
+    const citationLog = await readMemoryUsageLog();
+    const securityCitation = citationLog.find(
+      (e) => e.event === 'validation_memory_usage' && e.citationRates?.security
+    );
+    expect(securityCitation).toBeDefined();
+    expect(securityCitation.citationRates.security).toBeGreaterThanOrEqual(50);
 
     // Verify extraction after validation
     const validationMemories = await memoryManager.search({
@@ -1719,12 +2118,17 @@ describe('End-to-End Pipeline with Memory System', () => {
 **Tests**:
 
 - Full pipeline completes with memory injection and extraction
+- **CRITICAL (US-P1-01 AC-6)**: Validation agents cite ≥50% of injected memories
+- Citation tracking logs to memory-usage.jsonl with per-category rates
 - Context token usage <50k at stage 5
 - Memories reused across features
 - Repeated mistakes avoided (pattern learned)
+- Coverage calculations logged to context-usage.jsonl (US-P2-02 AC-5)
 - Run time: ~10-15 minutes for full pipeline test
 
-**Verification**: E2E tests pass, memory system integrated end-to-end.
+**Verification**: E2E tests pass, memory system integrated end-to-end, agents
+demonstrably use injected memories (citation rate ≥50%), coverage metrics
+logged.
 
 ---
 

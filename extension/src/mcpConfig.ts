@@ -20,16 +20,27 @@ export class MCPConfigHelper {
 
   /**
    * Create or update .vscode/mcp.json with Gofer MCP server configuration
-   * T042: Only create if provider supports MCP
+   * T042, T083: Only create if provider supports MCP (Claude only)
    */
   async createOrUpdateConfig(): Promise<void> {
-    // T042: Check if current provider supports MCP
+    // T083: Check if current provider supports MCP (Claude only)
     const goferConfig = vscode.workspace.getConfiguration('gofer');
+    const defaultCLI = goferConfig.get<'claude' | 'copilot' | 'codex' | 'auto'>(
+      'defaultCLI',
+      'auto'
+    );
     const cliProvider = goferConfig.get<'claude' | 'codex' | 'auto'>('cliProvider', 'auto');
 
-    // Only create MCP config for Claude CLI or auto mode
-    if (cliProvider === 'codex') {
-      this.logger.warn('Skipping MCP setup - Codex CLI does not support MCP servers');
+    // MCP is only supported by Claude Code CLI
+    const effectiveProvider = defaultCLI !== 'auto' ? defaultCLI : cliProvider;
+
+    if (effectiveProvider === 'codex') {
+      this.logger.info('Skipping MCP setup - Codex CLI does not support MCP servers');
+      return;
+    }
+
+    if (effectiveProvider === 'copilot') {
+      this.logger.info('Skipping MCP setup - GitHub Copilot Chat does not support MCP servers');
       return;
     }
 

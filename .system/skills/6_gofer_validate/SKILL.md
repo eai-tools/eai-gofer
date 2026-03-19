@@ -267,6 +267,71 @@ with the core agents. Collect all results before proceeding.
 
 ---
 
+## Codex CLI: Parallel Validation Workflow
+
+**Since Codex CLI does not support the Task tool**, you must run 6 validation
+skills concurrently in separate terminal sessions to achieve parallel execution.
+
+### Setup: Open 6 Terminal Windows
+
+1. Open 6 Codex CLI terminal sessions side-by-side
+2. Navigate each to the project directory
+3. Label terminals: Correctness, Security, Performance, Test-Quality,
+   Integration, Standards
+
+### Execute Agents Concurrently
+
+In each terminal, run the corresponding validation skill with the feature name:
+
+**Terminal 1 (Correctness):**
+
+```bash
+$ $validation-correctness <feature-name>
+```
+
+**Terminal 2 (Security):**
+
+```bash
+$ $validation-security <feature-name>
+```
+
+**Terminal 3 (Performance):**
+
+```bash
+$ $validation-performance <feature-name>
+```
+
+**Terminal 4 (Test-Quality):**
+
+```bash
+$ $validation-test-quality <feature-name>
+```
+
+**Terminal 5 (Integration):**
+
+```bash
+$ $validation-integration <feature-name>
+```
+
+**Terminal 6 (Standards):**
+
+```bash
+$ $validation-standards <feature-name>
+```
+
+### Collect Results
+
+Once all 6 agents complete:
+
+1. Copy each agent's findings from its terminal
+2. Proceed to Step 3 (Automated Checks) with all findings collected
+3. Use findings for rubric scoring in Step 8
+
+**Expected Timeline:** ~45-60 seconds for all 6 agents when run concurrently (vs
+90s+ sequential)
+
+---
+
 ## Step 3: Run Automated Checks
 
 Execute verification commands and capture results:

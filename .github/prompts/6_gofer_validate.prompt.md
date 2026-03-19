@@ -955,6 +955,18 @@ This also logs quality metrics (rubric scores, finding counts) to:
 
 ---
 
+## Pipeline Continuation
+
+This completes the 6_gofer_validate stage. To continue the Gofer pipeline:
+
+**Next Command:** `#6a_gofer_engineering_review`
+
+The next stage will read the artifacts from this stage and continue the workflow
+automatically.
+
+**Note:** Copilot Chat supports context preservation. Your conversation history
+will be maintained as you progress through pipeline stages.
+
 ## Key Rules
 
 - **100/100 is the only passing score** — there is no "close enough"

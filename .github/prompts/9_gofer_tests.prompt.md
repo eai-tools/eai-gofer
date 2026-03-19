@@ -1,5 +1,5 @@
 ---
-description:
+description: >-
   Define acceptance test cases using DSL approach before or during
   implementation
 ---

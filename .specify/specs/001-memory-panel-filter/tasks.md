@@ -200,23 +200,23 @@ make tests pass (TDD Green phase).
 
 ### Tasks
 
-- [ ] T012 Implement `excludeSystemMemories` filter in
+- [x] T012 Implement `excludeSystemMemories` filter in
       `/Users/douglaswross/Code/gofer/extension/src/autonomous/MemoryStorage.ts`
       at line ~390: Add filter BEFORE existing category filter:
       `if (query.excludeSystemMemories) { results = results.filter((e) => !e.tags.includes('#auto')); }`
-- [ ] T013 Update `MemoryManager.search()` in
+- [x] T013 Update `MemoryManager.search()` in
       `/Users/douglaswross/Code/gofer/extension/src/autonomous/MemoryManager.ts:404-453`
       to forward `excludeSystemMemories` flag to `storage.query()` (no logic
       changes, just parameter pass-through)
-- [ ] T014 Run unit tests and verify ALL tests PASS (Green phase of TDD):
+- [x] T014 Run unit tests and verify ALL tests PASS (Green phase of TDD):
       `cd extension && npm test -- MemoryStorage.filter.test.ts`
-- [ ] T015 Add integration test in
+- [x] T015 Add integration test in
       `/Users/douglaswross/Code/gofer/tests/integration/memory-panel-filtering.test.ts`:
       MemoryManager.search() respects `excludeSystemMemories` flag end-to-end
       (Arrange: Initialize MemoryManager with test storage, Act: Call
       `manager.search({ excludeSystemMemories: true })`, Assert:
       SearchResult.memories contains only user memories)
-- [ ] T016 Verify test coverage ≥80% for MemoryStorage.query() and
+- [x] T016 Verify test coverage ≥80% for MemoryStorage.query() and
       MemoryManager.search(): `cd extension && npm test -- --coverage`
 
 **Dependencies**: Phase 2 (tests written and failing)

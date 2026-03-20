@@ -1,26 +1,45 @@
 # Gofer - Claude Code Instructions
 
-**Release rule**: ALWAYS use `./release-auto.sh patch|minor|major "message"`. NEVER manually edit versions, tags, or package.json.
+**Release rule**: ALWAYS use `./release-auto.sh patch|minor|major "message"`.
+NEVER manually edit versions, tags, or package.json.
 
-**Project**: TypeScript VSCode extension monorepo (`extension/`, `language-server/`, `docs/`). Webpack build, Vitest tests, vsce packaging. Specs in `.specify/specs/{feature}/`. Commands in `.claude/commands/`. Agents in `.claude/agents/`.
+**Project**: TypeScript VSCode extension monorepo (`extension/`,
+`language-server/`, `docs/`). Webpack build, Vitest tests, vsce packaging. Specs
+in `.specify/specs/{feature}/`. Commands in `.claude/commands/`. Agents in
+`.claude/agents/`.
 
-**Commands**: `npm install` | `cd extension && npm run compile` | `npm test` | `npm run lint && npm run format` | `./release-auto.sh patch "msg"`
+**Commands**: `npm install` | `cd extension && npm run compile` | `npm test` |
+`npm run lint && npm run format` | `./release-auto.sh patch "msg"`
 
-**Pipeline**: Run `/0_business_scenario` once - auto-chains: research -> specify -> plan -> tasks -> implement -> validate. Six validation agents score on a 100-point rubric.
+**Pipeline**: Run `/0_business_scenario` once - auto-chains: research -> specify
+-> plan -> tasks -> implement -> validate. Six validation agents score on a
+100-point rubric.
 
 ## Workflow Orchestration
 
-**1. Plan Node Default**: Enter plan mode for ANY non-trivial task (3+ steps or architectural decisions). If something goes sideways, STOP and re-plan immediately. Write detailed specs upfront to reduce ambiguity.
+**1. Plan Node Default**: Enter plan mode for ANY non-trivial task (3+ steps or
+architectural decisions). If something goes sideways, STOP and re-plan
+immediately. Write detailed specs upfront to reduce ambiguity.
 
-**2. Subagent Strategy**: Use subagents liberally to keep main context clean. Offload research, exploration, and parallel analysis. One task per subagent for focused execution.
+**2. Subagent Strategy**: Use subagents liberally to keep main context clean.
+Offload research, exploration, and parallel analysis. One task per subagent for
+focused execution.
 
-**3. Self-Improvement Loop**: After ANY correction from the user, update `tasks/lessons.md` with the pattern. Write rules that prevent the same mistake. Review lessons at session start.
+**3. Self-Improvement Loop**: After ANY correction from the user, update
+`tasks/lessons.md` with the pattern. Write rules that prevent the same mistake.
+Review lessons at session start.
 
-**4. Verification Before Done**: Never mark a task complete without proving it works. Diff behavior between main and your changes. Ask: "Would a staff engineer approve this?" Run tests, check logs, demonstrate correctness.
+**4. Verification Before Done**: Never mark a task complete without proving it
+works. Diff behavior between main and your changes. Ask: "Would a staff engineer
+approve this?" Run tests, check logs, demonstrate correctness.
 
-**5. Demand Elegance (Balanced)**: For non-trivial changes, pause and ask "is there a more elegant way?" If a fix feels hacky, implement the elegant solution. Skip for simple, obvious fixes.
+**5. Demand Elegance (Balanced)**: For non-trivial changes, pause and ask "is
+there a more elegant way?" If a fix feels hacky, implement the elegant solution.
+Skip for simple, obvious fixes.
 
-**6. Autonomous Bug Fixing**: When given a bug report, just fix it. Point at logs, errors, failing tests - then resolve them. Go fix failing CI without being told how.
+**6. Autonomous Bug Fixing**: When given a bug report, just fix it. Point at
+logs, errors, failing tests - then resolve them. Go fix failing CI without being
+told how.
 
 ## Task Management
 
@@ -33,6 +52,23 @@
 
 ## Core Principles
 
-- **Simplicity First**: Make every change as simple as possible. Impact minimal code.
-- **No Laziness**: Find root causes. No temporary fixes. Senior developer standards.
-- **Minimal Impact**: Changes should only touch what's necessary. Avoid introducing bugs.
+- **Simplicity First**: Make every change as simple as possible. Impact minimal
+  code.
+- **No Laziness**: Find root causes. No temporary fixes. Senior developer
+  standards.
+- **Minimal Impact**: Changes should only touch what's necessary. Avoid
+  introducing bugs.
+
+## Active Technologies
+
+- TypeScript 5.x (strict mode, noImplicitAny, strictNullChecks) + VSCode
+  Extension API, Webview API, fs/promises for JSONL storage
+  (001-memory-panel-filter)
+- JSONL file format (`memories.jsonl`) with in-memory index for fast queries
+  (001-memory-panel-filter)
+
+## Recent Changes
+
+- 001-memory-panel-filter: Added TypeScript 5.x (strict mode, noImplicitAny,
+  strictNullChecks) + VSCode Extension API, Webview API, fs/promises for JSONL
+  storage

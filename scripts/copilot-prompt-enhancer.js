@@ -75,7 +75,6 @@ The next stage will read the artifacts from this stage and continue the workflow
 
   // Check if Pipeline Continuation already exists
   if (body.includes('## Pipeline Continuation')) {
-    console.log(`  ℹ️  Pipeline Continuation section already exists, skipping...`);
     return body;
   }
 
@@ -92,7 +91,6 @@ The next stage will read the artifacts from this stage and continue the workflow
 
 function enhanceCopilotPrompt(promptFilePath) {
   const fileName = path.basename(promptFilePath, '.prompt.md');
-  console.log(`\nEnhancing: ${fileName}`);
 
   // Read existing prompt file
   const content = fs.readFileSync(promptFilePath, 'utf8');
@@ -114,13 +112,10 @@ function enhanceCopilotPrompt(promptFilePath) {
   // Write enhanced file back
   fs.writeFileSync(promptFilePath, enhancedContent, 'utf8');
 
-  console.log(`  ✅ Enhanced successfully`);
   return true;
 }
 
 function main() {
-  console.log('🔧 Copilot Prompt Enhancer\n');
-  console.log('Enhancing existing Copilot prompts with auto-chain sections...\n');
 
   if (!fs.existsSync(copilotPromptsDir)) {
     console.error(`❌ Copilot prompts directory not found: ${copilotPromptsDir}`);
@@ -133,7 +128,6 @@ function main() {
     .filter((file) => file.endsWith('.prompt.md'))
     .map((file) => path.join(copilotPromptsDir, file));
 
-  console.log(`Found ${promptFiles.length} Copilot prompt files\n`);
 
   let successCount = 0;
   let failureCount = 0;
@@ -152,15 +146,11 @@ function main() {
     }
   }
 
-  console.log(`\n📊 Results:`);
-  console.log(`  ✅ Successfully enhanced: ${successCount}`);
-  console.log(`  ❌ Failed: ${failureCount}`);
 
   if (failureCount > 0) {
     process.exit(1);
   }
 
-  console.log(`\n✨ Copilot prompt enhancement complete!`);
 }
 
 main();

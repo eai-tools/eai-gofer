@@ -134,10 +134,19 @@ Validation loads all artifacts and spawns 6 agents — context pressure is high.
 
 ## Step 2: Spawn 6 Specialist Validation Agents
 
-**Claude Code only**: Launch all 6 agents **in parallel** using the Task tool.
-In Copilot Chat, perform these validations inline sequentially — run each
-validation check one at a time and collect findings. Each agent description
-below explains what to check.
+### Execution Strategy by Platform
+
+**Claude Code CLI**: Launch all 6 agents **in parallel** using the Task tool.
+Fastest execution (~45-60s total).
+
+**GitHub Copilot Chat (2026+)**: If multi-agent delegation is available, spawn 6
+parallel validation tasks. Check Copilot release notes for this capability.
+
+**GitHub Copilot Chat (2025 and earlier)**: Perform validations inline
+sequentially — run each validation check one at a time and collect findings
+(~90s+ total). See "Legacy Workflow" section for detailed sequential process.
+
+Each agent description below explains what to check.
 
 ### Agent 1: Correctness Validator
 
@@ -954,18 +963,6 @@ This also logs quality metrics (rubric scores, finding counts) to:
 `.specify/logs/quality-metrics.jsonl`
 
 ---
-
-## Pipeline Continuation
-
-This completes the 6_gofer_validate stage. To continue the Gofer pipeline:
-
-**Next Command:** `#6a_gofer_engineering_review`
-
-The next stage will read the artifacts from this stage and continue the workflow
-automatically.
-
-**Note:** Copilot Chat supports context preservation. Your conversation history
-will be maintained as you progress through pipeline stages.
 
 ## Key Rules
 

@@ -11,7 +11,7 @@
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { MemoryStorage } from '../../../extension/src/autonomous/MemoryStorage';
-import type { Memory } from '../../../extension/src/autonomous/types';
+import type { Memory } from '../../../extension/src/autonomous/memory';
 import * as path from 'path';
 
 describe('MemoryStorage.query() - excludeSystemMemories filter', () => {

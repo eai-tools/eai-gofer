@@ -384,6 +384,11 @@ export class MemoryStorage {
   query(query: MemoryQuery): Memory[] {
     let results = Array.from(this.index.values());
 
+    // Exclude system-generated memories (tagged with #auto)
+    if (query.excludeSystemMemories) {
+      results = results.filter((e) => !e.tags.includes('#auto'));
+    }
+
     // Filter by type
     if (query.type) {
       results = results.filter((e) => e.type === query.type);

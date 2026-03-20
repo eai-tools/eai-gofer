@@ -171,8 +171,6 @@ function generateCodexSkill(commandFile) {
 }
 
 function main() {
-  console.log('🚀 Codex Skill Generator');
-  console.log('Feature: 028-cross-platform-command-parity\n');
 
   // Find all Claude command files
   const commandFiles = fs
@@ -181,7 +179,6 @@ function main() {
     .map((file) => path.join(claudeCommandsDir, file))
     .sort();
 
-  console.log(`📋 Found ${commandFiles.length} Claude commands to transform\n`);
 
   const generatedPaths = [];
 
@@ -190,14 +187,12 @@ function main() {
       const skillPath = generateCodexSkill(commandFile);
       const relativePath = path.relative(workspaceRoot, skillPath);
       generatedPaths.push(relativePath);
-      console.log(`✅ Generated: ${relativePath}`);
     } catch (error) {
       const commandName = path.basename(commandFile);
       console.error(`❌ Failed to generate ${commandName}:`, error.message);
     }
   }
 
-  console.log(`\n✅ Generation complete! Generated ${generatedPaths.length} Codex skills`);
 }
 
 // Run if invoked directly

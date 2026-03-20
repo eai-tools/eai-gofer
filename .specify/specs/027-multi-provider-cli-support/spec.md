@@ -3,7 +3,7 @@ id: '027-multi-provider-cli-support'
 title: 'Multi-Provider CLI Support'
 status: 'draft'
 created: '2026-03-16'
-updated: '2026-03-18'
+updated: '2026-03-19'
 priority: 'medium'
 assignee: 'engineer-agent'
 ---

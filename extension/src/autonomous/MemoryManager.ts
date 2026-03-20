@@ -149,7 +149,8 @@ export class MemoryManager implements IMemoryManager {
         }
       }
       // Follow back-references
-      for (const backRef of (memory as Memory & { backReferences?: string[] }).backReferences || []) {
+      for (const backRef of (memory as Memory & { backReferences?: string[] }).backReferences ||
+        []) {
         if (!visited.has(backRef)) {
           queue.push({ id: backRef, depth: depth + 1 });
         }
@@ -277,22 +278,32 @@ export class MemoryManager implements IMemoryManager {
         if (allMemories.length > 1) {
           const recent = allMemories.slice(-20);
           const contentWords = new Set(
-            newMemory.content.toLowerCase().split(/\W+/).filter((w: string) => w.length >= 3)
+            newMemory.content
+              .toLowerCase()
+              .split(/\W+/)
+              .filter((w: string) => w.length >= 3)
           );
           const scored = recent
             .filter((m) => m.id !== newMemory.id)
             .map((m) => {
               const mWords = new Set(
-                m.content.toLowerCase().split(/\W+/).filter((w: string) => w.length >= 3)
+                m.content
+                  .toLowerCase()
+                  .split(/\W+/)
+                  .filter((w: string) => w.length >= 3)
               );
               let intersection = 0;
               for (const w of contentWords) {
-                if (mWords.has(w)) { intersection++; }
+                if (mWords.has(w)) {
+                  intersection++;
+                }
               }
               const union = contentWords.size + mWords.size - intersection;
               let similarity = union === 0 ? 0 : intersection / union;
               // Category bonus
-              if (m.category === newMemory.category) { similarity += 0.1; }
+              if (m.category === newMemory.category) {
+                similarity += 0.1;
+              }
               return { memoryId: m.id, similarity };
             })
             .filter((s) => s.similarity > 0.05)
@@ -306,10 +317,13 @@ export class MemoryManager implements IMemoryManager {
             for (const link of scored) {
               const targetMemory = this.storage.get(link.memoryId);
               if (targetMemory) {
-                const backRefs: string[] = (targetMemory as Memory & { backReferences?: string[] }).backReferences || [];
+                const backRefs: string[] =
+                  (targetMemory as Memory & { backReferences?: string[] }).backReferences || [];
                 if (!backRefs.includes(newMemory.id)) {
                   backRefs.push(newMemory.id);
-                  await this.storage.update(link.memoryId, { backReferences: backRefs } as Partial<Memory>);
+                  await this.storage.update(link.memoryId, {
+                    backReferences: backRefs,
+                  } as Partial<Memory>);
                 }
               }
             }
@@ -344,12 +358,16 @@ export class MemoryManager implements IMemoryManager {
           const excess = count - MemoryManager.MAX_MEMORY_COUNT;
           const allLocal = this.storage.getAll('local');
           // Sort by priority (lowest first), then by lastUsed (oldest first)
-          const sortedForArchive = allLocal
-            .sort((a, b) => (a.priorityIndex ?? 0) - (b.priorityIndex ?? 0) || a.lastUsed - b.lastUsed);
-          const toArchive = sortedForArchive.slice(0, excess).map(m => m.id);
+          const sortedForArchive = allLocal.sort(
+            (a, b) => (a.priorityIndex ?? 0) - (b.priorityIndex ?? 0) || a.lastUsed - b.lastUsed
+          );
+          const toArchive = sortedForArchive.slice(0, excess).map((m) => m.id);
           if (toArchive.length > 0) {
             await this.storage.archive(toArchive);
-            this.logger.info('Auto-archived low-priority memories', { archived: toArchive.length, remaining: this.storage.count() });
+            this.logger.info('Auto-archived low-priority memories', {
+              archived: toArchive.length,
+              remaining: this.storage.count(),
+            });
           }
         }
       } catch {
@@ -416,6 +434,9 @@ export class MemoryManager implements IMemoryManager {
     if (scope === 'global' || scope === 'both') {
       // Global memories: load and filter in-memory (legacy path)
       let globalMemories = await this.loadGlobal();
+      if (query.excludeSystemMemories) {
+        globalMemories = globalMemories.filter((m) => !m.tags.includes('#auto'));
+      }
       if (query.keywords) {
         const keywords = query.keywords.toLowerCase();
         globalMemories = globalMemories.filter(
@@ -600,7 +621,12 @@ export class MemoryManager implements IMemoryManager {
   /**
    * 019 C2: Usage reason types for audit logging.
    */
-  static readonly UsageReasons = ['context_load', 'user_recall', 'search_match', 'consolidation'] as const;
+  static readonly UsageReasons = [
+    'context_load',
+    'user_recall',
+    'search_match',
+    'consolidation',
+  ] as const;
 
   /**
    * Update usage statistics for a memory.
@@ -614,8 +640,8 @@ export class MemoryManager implements IMemoryManager {
    */
   async recordUsage(
     id: string,
-    reason?: typeof MemoryManager.UsageReasons[number],
-    source?: string,
+    reason?: (typeof MemoryManager.UsageReasons)[number],
+    source?: string
   ): Promise<void> {
     // Try JSONL storage first (local memories)
     await this.ensureStorageReady();

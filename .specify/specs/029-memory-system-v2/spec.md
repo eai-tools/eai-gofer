@@ -1,10 +1,11 @@
 ---
-id: 029-memory-system-v2
-title: Memory System v2 - Agent Memory Architecture
-status: draft
-created: 2026-03-19T22:00:00Z
-updated: 2026-03-19T22:00:00Z
-author: Claude Sonnet 4.5
+id: '029-memory-system-v2'
+title: 'Memory System v2 - Agent Memory Architecture'
+status: 'draft'
+created: '2026-03-19T22:00:00Z'
+updated: '2026-03-19'
+priority: 'medium'
+assignee: 'engineer-agent'
 ---
 
 # Feature Specification: Memory System v2

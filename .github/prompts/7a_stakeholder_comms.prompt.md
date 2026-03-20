@@ -1,5 +1,5 @@
 ---
-description: >-
+description:
   Generate stakeholder communications package including release notes, demo
   script, change management brief, and success metrics
 ---

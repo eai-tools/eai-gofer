@@ -1,10 +1,11 @@
 ---
-id: 028-cross-platform-command-parity
-title: Cross-Platform Command Parity
-status: draft
-created: 2026-03-18
-updated: 2026-03-18
-author: Claude
+id: '028-cross-platform-command-parity'
+title: 'Cross-Platform Command Parity'
+status: 'draft'
+created: '2026-03-18'
+updated: '2026-03-19'
+priority: 'medium'
+assignee: 'engineer-agent'
 ---
 
 # Feature Specification: Cross-Platform Command Parity

@@ -375,6 +375,21 @@
       "lastUsed": 1773821309496,
       "usedCount": 0,
       "learnedFrom": "session:bd4a11cf-f9c2-44d8-ad20-0acbc283028e"
+    },
+    {
+      "id": "1c52aa82-d9bf-4bf3-912f-6e97311101e6",
+      "category": "file_knowledge",
+      "tags": [
+        "#auto-learned",
+        "#files",
+        "#session-58bc1688"
+      ],
+      "scope": "local",
+      "content": "- .specify/specs/001-memory-panel-filter/issues.md (GitHub-ready issues)",
+      "created": 1773958592423,
+      "lastUsed": 1773958592423,
+      "usedCount": 0,
+      "learnedFrom": "session:58bc1688-0c20-4d2d-b173-7c5f727ae876"
     }
   ]
 }

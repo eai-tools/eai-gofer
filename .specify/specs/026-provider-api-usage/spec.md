@@ -3,7 +3,7 @@ id: '026-provider-api-usage'
 title: 'Provider API Usage Tracking'
 status: 'draft'
 created: '2026-03-15'
-updated: '2026-03-18'
+updated: '2026-03-19'
 priority: 'medium'
 assignee: 'engineer-agent'
 ---

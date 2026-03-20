@@ -209,6 +209,14 @@ export interface MemoryQuery {
 
   /** Exclude stale memories */
   excludeStale?: boolean;
+
+  /**
+   * Exclude system-generated memories (tagged with #auto).
+   * When true, filters out all memories containing the '#auto' tag.
+   * Used by Memory Panel to show only user-created memories by default.
+   * @default false
+   */
+  excludeSystemMemories?: boolean;
 }
 
 /**

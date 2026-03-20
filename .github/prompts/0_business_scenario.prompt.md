@@ -2,11 +2,7 @@
 name: 0_business_scenario
 description: Triage business scenario and orchestrate the unified Gofer pipeline
 agent: agent
-tools:
-  - search/codebase
-  - terminal
-  - editFile
-  - runCommand
+tools: ['search/codebase', 'terminal', 'editFile', 'runCommand']
 argument-hint: Describe the business scenario or feature you want to build
 ---
 
@@ -96,15 +92,3 @@ Please describe:
 
 Once you understand the request, begin with `/1_gofer_research` to explore the
 codebase and technology requirements.
-
-## Pipeline Continuation
-
-This completes the 0_business_scenario stage. To continue the Gofer pipeline:
-
-**Next Command:** `#0a_problem_validation`
-
-The next stage will read the artifacts from this stage and continue the workflow
-automatically.
-
-**Note:** Copilot Chat supports context preservation. Your conversation history
-will be maintained as you progress through pipeline stages.

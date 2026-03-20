@@ -242,36 +242,36 @@ Telemetry), US3 (Persistent Filter Preference)
 
 ### Implementation Tasks
 
-- [ ] T017 [US1] [US3] Add instance variable to MemoryPanel class in
+- [x] T017 [US1] [US3] Add instance variable to MemoryPanel class in
       `/Users/douglaswross/Code/gofer/extension/src/ui/MemoryPanel.ts` after
       line 19: `private showSystemMemories: boolean = false;` (default to false
       = hide system memories by default per FR-001)
-- [ ] T018 [US1] Modify `getHtmlContent()` in
+- [x] T018 [US1] Modify `getHtmlContent()` in
       `/Users/douglaswross/Code/gofer/extension/src/ui/MemoryPanel.ts:175-184`
       to filter memories before building dropdowns (after
       `const allMemories = await this.memoryManager.load('both');` add:
       `const visibleMemories = this.showSystemMemories ? allMemories : allMemories.filter(m => !m.tags.includes('#auto'));`,
       then replace `allMemories` with `visibleMemories` in category/tag
       extraction at lines 180, 183-184)
-- [ ] T019 [P] [US1] [US2] Add HTML checkbox toggle to webview template in
+- [x] T019 [P] [US1] [US2] Add HTML checkbox toggle to webview template in
       `/Users/douglaswross/Code/gofer/extension/src/ui/MemoryPanel.ts` after
       results-info div (~line 220-285 in toolbar section): Insert checkbox with
       label "Show system memories" and CSS styling matching VSCode theme
-- [ ] T020 [P] [US2] Wire checkbox onchange event to postMessage in
+- [x] T020 [P] [US2] Wire checkbox onchange event to postMessage in
       `/Users/douglaswross/Code/gofer/extension/src/ui/MemoryPanel.ts` webview
       script section: Add JavaScript listener that posts `toggleSystemMemories`
       command with checkbox state
-- [ ] T021 [US2] Add message handler for 'toggleSystemMemories' command in
+- [x] T021 [US2] Add message handler for 'toggleSystemMemories' command in
       `handleMessage()` in
       `/Users/douglaswross/Code/gofer/extension/src/ui/MemoryPanel.ts` at line
       ~104: Insert new case that sets
       `this.showSystemMemories = message.showSystemMemories` and calls
       `await this.update()` to rebuild webview with new filter state
-- [ ] T022 [US1] Update 'search' message handler in
+- [x] T022 [US1] Update 'search' message handler in
       `/Users/douglaswross/Code/gofer/extension/src/ui/MemoryPanel.ts:106-111`
       to include `excludeSystemMemories` in MemoryQuery: Add to query object:
       `excludeSystemMemories: !this.showSystemMemories`
-- [ ] T023 [US1] Add empty state rendering in
+- [x] T023 [US1] Add empty state rendering in
       `/Users/douglaswross/Code/gofer/extension/src/ui/MemoryPanel.ts` webview
       template: Check filtered results count, if count === 0 and
       !showSystemMemories, display empty state HTML with guidance message: "No
@@ -281,19 +281,19 @@ Telemetry), US3 (Persistent Filter Preference)
 
 ### Test Tasks
 
-- [ ] T024 [P] [US2] Write integration test in
+- [x] T024 [P] [US2] Write integration test in
       `/Users/douglaswross/Code/gofer/tests/unit/ui/MemoryPanel.test.ts`: Toggle
       change triggers search refresh (simulate toggle change, verify postMessage
       called with correct command, verify webview updated with filtered results)
-- [ ] T025 [P] [US1] Write integration test in
+- [x] T025 [P] [US1] Write integration test in
       `/Users/douglaswross/Code/gofer/tests/unit/ui/MemoryPanel.test.ts`:
       Category dropdown excludes system categories when toggle OFF (load
       memories with "auto_decision" and "pattern" categories, verify dropdown
       options with toggle OFF shows only "pattern", toggle ON shows both)
-- [ ] T026 [P] [US1] Write integration test in
+- [x] T026 [P] [US1] Write integration test in
       `/Users/douglaswross/Code/gofer/tests/unit/ui/MemoryPanel.test.ts`: Tag
       dropdown excludes "#auto" when toggle OFF
-- [ ] T027 [US1] Write E2E test in
+- [x] T027 [US1] Write E2E test in
       `/Users/douglaswross/Code/gofer/tests/integration/memory-panel-filtering.test.ts`:
       Create user memory via "Gofer: Remember", verify it appears with system
       memories hidden, toggle system memories ON, verify system memories now

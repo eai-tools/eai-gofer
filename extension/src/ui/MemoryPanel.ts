@@ -17,6 +17,7 @@ export class MemoryPanel {
   private readonly panel: vscode.WebviewPanel;
   private readonly memoryManager: MemoryManager;
   private disposables: vscode.Disposable[] = [];
+  private showSystemMemories: boolean = false;
 
   /**
    * Creates or shows the MemoryPanel.
@@ -108,6 +109,7 @@ export class MemoryPanel {
           category: message.category || undefined,
           tags: message.tags || undefined,
           scope: message.scope === 'all' ? 'both' : (message.scope as 'local' | 'global'),
+          excludeSystemMemories: !this.showSystemMemories,
         };
         const result = await this.memoryManager.search(query);
         this.panel.webview.postMessage({
@@ -116,6 +118,12 @@ export class MemoryPanel {
           count: result.count,
           searchTime: result.searchTime,
         });
+        break;
+      }
+
+      case 'toggleSystemMemories': {
+        this.showSystemMemories = message.showSystemMemories;
+        await this.update();
         break;
       }
 
@@ -176,11 +184,16 @@ export class MemoryPanel {
     // Load all memories initially
     const allMemories = await this.memoryManager.load('both');
 
+    // Filter memories based on toggle state
+    const visibleMemories = this.showSystemMemories
+      ? allMemories
+      : allMemories.filter((m) => !m.tags.includes('#auto'));
+
     // Get unique categories for filter dropdown
-    const categories = Array.from(new Set(allMemories.map((m) => m.category))).sort();
+    const categories = Array.from(new Set(visibleMemories.map((m) => m.category))).sort();
 
     // Get unique tags for filter dropdown
-    const allTags = allMemories.flatMap((m) => m.tags);
+    const allTags = visibleMemories.flatMap((m) => m.tags);
     const uniqueTags = Array.from(new Set(allTags)).sort();
 
     return `<!DOCTYPE html>
@@ -279,6 +292,22 @@ export class MemoryPanel {
         .results-info {
             color: var(--vscode-descriptionForeground);
             font-size: 13px;
+        }
+
+        .filter-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .filter-toggle input[type="checkbox"] {
+            cursor: pointer;
+        }
+
+        .filter-toggle label {
+            cursor: pointer;
+            color: var(--vscode-foreground);
         }
 
         .memory-list {
@@ -435,7 +464,16 @@ export class MemoryPanel {
 
     <div class="toolbar">
         <div class="results-info" id="resultsInfo">
-            ${allMemories.length} ${allMemories.length === 1 ? 'memory' : 'memories'}
+            ${visibleMemories.length} ${visibleMemories.length === 1 ? 'memory' : 'memories'}
+        </div>
+        <div class="filter-toggle">
+            <input
+                type="checkbox"
+                id="showSystemMemoriesToggle"
+                ${this.showSystemMemories ? 'checked' : ''}
+                onchange="toggleSystemMemories()"
+            />
+            <label for="showSystemMemoriesToggle">Show system memories</label>
         </div>
         <div>
             <button class="secondary" onclick="refresh()">Refresh</button>
@@ -444,7 +482,7 @@ export class MemoryPanel {
     </div>
 
     <div id="memoryList" class="memory-list">
-        ${this.renderMemories(allMemories)}
+        ${this.renderMemories(visibleMemories)}
     </div>
 
     <script>
@@ -513,6 +551,14 @@ export class MemoryPanel {
         function refresh() {
             vscode.postMessage({
                 command: 'refresh'
+            });
+        }
+
+        function toggleSystemMemories() {
+            const checked = document.getElementById('showSystemMemoriesToggle').checked;
+            vscode.postMessage({
+                command: 'toggleSystemMemories',
+                showSystemMemories: checked
             });
         }
 
@@ -616,12 +662,17 @@ export class MemoryPanel {
    */
   private renderMemories(memories: Memory[]): string {
     if (memories.length === 0) {
+      const emptyMessage = this.showSystemMemories ? 'No memories yet' : 'No user memories yet';
+      const helpText = this.showSystemMemories
+        ? 'Use the "Gofer: Remember" command to create your first memory'
+        : 'Create your first memory with "Gofer: Remember" command. System memories are hidden. Toggle "Show system memories" to see telemetry.';
+
       return `
                 <div class="empty-state">
                     <div class="empty-state-icon">📚</div>
-                    <div>No memories yet</div>
+                    <div>${emptyMessage}</div>
                     <div style="margin-top: 10px; font-size: 12px;">
-                        Use the "Gofer: Remember" command to create your first memory
+                        ${helpText}
                     </div>
                 </div>
             `;

@@ -435,7 +435,9 @@ export class MemoryManager implements IMemoryManager {
       // Global memories: load and filter in-memory (legacy path)
       let globalMemories = await this.loadGlobal();
       if (query.excludeSystemMemories) {
-        globalMemories = globalMemories.filter((m) => !m.tags.includes('#auto'));
+        globalMemories = globalMemories.filter(
+          (m) => Array.isArray(m.tags) && !m.tags.includes('#auto')
+        );
       }
       if (query.keywords) {
         const keywords = query.keywords.toLowerCase();

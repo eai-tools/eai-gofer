@@ -380,13 +380,28 @@ export class MemoryStorage {
 
   /**
    * Query memories with filters. Returns matching memories sorted by priority.
+   *
+   * Applies filters in sequence:
+   * 1. excludeSystemMemories - removes memories tagged with #auto
+   * 2. category - filters by exact category match
+   * 3. tags - filters memories containing all specified tags
+   * 4. scope - filters by global or local scope
+   * 5. query - text search in content field
+   *
+   * @param query - Filter criteria and search parameters
+   * @param query.excludeSystemMemories - When true, excludes #auto tagged memories
+   * @param query.category - Filter by exact category name
+   * @param query.tags - Array of tags (memory must have all)
+   * @param query.scope - Filter by 'global' or 'local' scope
+   * @param query.query - Text search term for content field
+   * @returns Array of matching memories sorted by (importance DESC, lastAccessed DESC)
    */
   query(query: MemoryQuery): Memory[] {
     let results = Array.from(this.index.values());
 
     // Exclude system-generated memories (tagged with #auto)
     if (query.excludeSystemMemories) {
-      results = results.filter((e) => !e.tags.includes('#auto'));
+      results = results.filter((e) => Array.isArray(e.tags) && !e.tags.includes('#auto'));
     }
 
     // Filter by type

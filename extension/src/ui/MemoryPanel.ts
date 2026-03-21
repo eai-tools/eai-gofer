@@ -18,6 +18,7 @@ export class MemoryPanel {
   private readonly memoryManager: MemoryManager;
   private disposables: vscode.Disposable[] = [];
   private showSystemMemories: boolean = false;
+  private updateDebounceTimer: NodeJS.Timeout | undefined;
 
   /**
    * Creates or shows the MemoryPanel.
@@ -79,6 +80,12 @@ export class MemoryPanel {
   public dispose(): void {
     MemoryPanel.currentPanel = undefined;
 
+    // Clear any pending debounced updates
+    if (this.updateDebounceTimer) {
+      clearTimeout(this.updateDebounceTimer);
+      this.updateDebounceTimer = undefined;
+    }
+
     this.panel.dispose();
 
     while (this.disposables.length) {
@@ -123,7 +130,18 @@ export class MemoryPanel {
 
       case 'toggleSystemMemories': {
         this.showSystemMemories = message.showSystemMemories;
-        await this.update();
+
+        // Debounce rapid toggle clicks to prevent race conditions
+        if (this.updateDebounceTimer) {
+          clearTimeout(this.updateDebounceTimer);
+        }
+
+        this.updateDebounceTimer = setTimeout(() => {
+          this.update().catch((err) => {
+            console.error('Failed to update memory panel after toggle:', err);
+          });
+          this.updateDebounceTimer = undefined;
+        }, 100); // 100ms debounce
         break;
       }
 

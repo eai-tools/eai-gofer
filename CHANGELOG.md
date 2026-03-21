@@ -11,15 +11,32 @@ and this project adheres to
 
 ### Added
 
-- **Cross-Platform Command Parity** (feature 028): All 16 Gofer commands now available across Claude Code, GitHub Copilot Chat, and OpenAI Codex CLI
-  - New `gofer.defaultCLI` setting to choose preferred AI platform (`claude`, `copilot`, `codex`, or `auto`)
-  - Automatic command routing to `.claude/commands/`, `.github/prompts/`, or `.system/skills/` based on selected platform
-  - Command generation script creates Codex skills and Copilot prompts from Claude command templates
+- **Memory Panel Usability Fix** (feature 001): Filter system telemetry from
+  user memories
+  - New toggle control to show/hide system-generated memories (auto_decision,
+    discovery)
+  - Category and tag dropdowns now filter based on toggle state
+  - Default view excludes #auto tagged memories (533 system entries → 0 visible
+    by default)
+  - Search results respect filter state
+  - UI-level filtering preserves all data without storage migration
+  - 100% test coverage with 0% mock ratio (11 feature tests: 4 unit, 3
+    integration, 4 UI)
+
+- **Cross-Platform Command Parity** (feature 028): All 16 Gofer commands now
+  available across Claude Code, GitHub Copilot Chat, and OpenAI Codex CLI
+  - New `gofer.defaultCLI` setting to choose preferred AI platform (`claude`,
+    `copilot`, `codex`, or `auto`)
+  - Automatic command routing to `.claude/commands/`, `.github/prompts/`, or
+    `.system/skills/` based on selected platform
+  - Command generation script creates Codex skills and Copilot prompts from
+    Claude command templates
   - Parallel agent spawning for validation stage (<60s vs 90-120s sequential)
   - Conversation history preservation when switching between providers
   - Comprehensive platform capabilities documentation with setup guides
 
 **New Commands Available on All Platforms:**
+
 - `/0_business_scenario` - Main orchestrator (full pipeline)
 - `/0a_problem_validation` - Validate business problem
 - `/1_gofer_research` - Codebase + technology research
@@ -38,15 +55,21 @@ and this project adheres to
 - `/gofer_hydrate` - Reverse-engineer spec from code
 
 **Platform-Specific Features:**
+
 - MCP server integration: Claude Code only
-- Parallel validation agents: Claude Code (Task tool), Codex CLI (terminal multiplexing), Copilot 2026+ (multi-agent delegation)
+- Parallel validation agents: Claude Code (Task tool), Codex CLI (terminal
+  multiplexing), Copilot 2026+ (multi-agent delegation)
 - Autonomous mode: Claude Code and Codex CLI only
 - Auto-chaining pipeline: All platforms (manual in pre-2026 Copilot)
 
 **Documentation:**
-- [Setup Guide: Claude Code](docs/setup-claude-code.md) - Full feature support with MCP tools
-- [Setup Guide: GitHub Copilot Chat](docs/setup-copilot-chat.md) - Core features + 2026+ enhancements
-- [Setup Guide: OpenAI Codex CLI](docs/setup-codex-cli.md) - Full feature support via skill system
+
+- [Setup Guide: Claude Code](docs/setup-claude-code.md) - Full feature support
+  with MCP tools
+- [Setup Guide: GitHub Copilot Chat](docs/setup-copilot-chat.md) - Core
+  features + 2026+ enhancements
+- [Setup Guide: OpenAI Codex CLI](docs/setup-codex-cli.md) - Full feature
+  support via skill system
 - Platform capabilities comparison matrix in README
 
 ### Fixed

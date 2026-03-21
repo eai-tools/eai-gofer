@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.22.1",
+  "latest_version": "1.23.0",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-03-19T06:07:45.817Z",
+  "last_updated": "2026-03-21T06:38:10.211Z",
   "releases": [
+    {
+      "version": "1.23.0",
+      "tag_name": "v1.23.0",
+      "published_at": "2026-03-21T06:38:10.210Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.23.0.vsix",
+      "notes": "Add Memory Panel system memory filtering (feature 001)",
+      "prerelease": false,
+      "size_mb": 10.1
+    },
     {
       "version": "1.22.1",
       "tag_name": "v1.22.1",
@@ -81,15 +90,6 @@
       "published_at": "2026-03-15T08:16:12.093Z",
       "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.20.1.vsix",
       "notes": "fix: validation remediation for Feature 026 - remove AI slop, add visibility tests",
-      "prerelease": false,
-      "size_mb": 30.3
-    },
-    {
-      "version": "1.20.0",
-      "tag_name": "v1.20.0",
-      "published_at": "2026-03-15T08:01:18.578Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.20.0.vsix",
-      "notes": "feat: provider API usage tracking (Feature 026)",
       "prerelease": false,
       "size_mb": 30.3
     }

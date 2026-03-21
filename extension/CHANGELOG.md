@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.23.0] - 2026-03-21
+
+Add Memory Panel system memory filtering (feature 001)
+
 ## [1.22.1] - 2026-03-19
 
 Fix AI usage tracking bugs #2/#3 + security/performance fixes

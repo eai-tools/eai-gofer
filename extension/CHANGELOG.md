@@ -2,6 +2,20 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.25.0] - 2026-03-22
+
+feat: automatic Codex global CLI symlink creation
+
+Enables Codex CLI to access Gofer skills from any directory without manual symlink creation.
+
+Key features:
+- Automatic symlink creation during install/upgrade
+- Platform-aware (Windows junctions, Unix symlinks)
+- Non-blocking error handling
+- Updated documentation with troubleshooting guide
+
+This achieves true CLI feature parity - Codex now works globally like Claude Code.
+
 ## [1.24.0] - 2026-03-22
 
 feat: multi-CLI support for Codex, Gemini, and Copilot

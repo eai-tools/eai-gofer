@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.23.0",
+  "latest_version": "1.24.0",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-03-21T06:38:10.211Z",
+  "last_updated": "2026-03-22T07:05:58.244Z",
   "releases": [
+    {
+      "version": "1.24.0",
+      "tag_name": "v1.24.0",
+      "published_at": "2026-03-22T07:05:58.243Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.24.0.vsix",
+      "notes": "feat: multi-CLI support for Codex, Gemini, and Copilot",
+      "prerelease": false,
+      "size_mb": 10.1
+    },
     {
       "version": "1.23.0",
       "tag_name": "v1.23.0",
@@ -81,15 +90,6 @@
       "published_at": "2026-03-15T08:30:42.394Z",
       "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.20.2.vsix",
       "notes": "fix: engineering review - aggregate cache tokens (FR-025) and propagate error states to UI",
-      "prerelease": false,
-      "size_mb": 30.3
-    },
-    {
-      "version": "1.20.1",
-      "tag_name": "v1.20.1",
-      "published_at": "2026-03-15T08:16:12.093Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.20.1.vsix",
-      "notes": "fix: validation remediation for Feature 026 - remove AI slop, add visibility tests",
       "prerelease": false,
       "size_mb": 30.3
     }

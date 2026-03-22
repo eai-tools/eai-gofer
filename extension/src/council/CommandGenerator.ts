@@ -88,7 +88,7 @@ export class CommandGenerator {
     sourceMetadata: CommandMetadata,
     dryRun: boolean = false
   ): Promise<string> {
-    const skillDir = path.join(this.workspacePath, '.system', 'skills', sourceMetadata.name);
+    const skillDir = path.join(this.workspacePath, '.agents', 'skills', sourceMetadata.name);
     const skillPath = path.join(skillDir, 'SKILL.md');
 
     // Transform content for Codex

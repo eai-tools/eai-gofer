@@ -358,7 +358,7 @@ describe('Cross-Platform Feature Parity (US-6)', () => {
 
       expect(claudePath).toContain('.claude/commands');
       expect(copilotPath).toContain('.github/prompts');
-      expect(codexPath).toContain('.system/skills');
+      expect(codexPath).toContain('.agents/skills');
     });
 
     it('should provide correct command syntax for each platform', () => {

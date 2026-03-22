@@ -58,6 +58,11 @@ export interface IResourceOperations {
   setupCodexSkills(): Promise<void>;
 
   /**
+   * Setup global Codex CLI symlink for access from any directory
+   */
+  setupCodexGlobalSymlink(): Promise<void>;
+
+  /**
    * Setup default AI instruction files (AGENTS.md, CLAUDE.md, copilot-instructions.md)
    */
   setupDefaultInstructions(): Promise<void>;
@@ -222,6 +227,10 @@ export class UpgradeService {
         this.logger.info('UpgradeService', 'Generating Codex CLI skills from Claude commands');
         await resourceOps.setupCodexSkills();
 
+        progress.report({ message: 'Enabling Codex CLI global access...' });
+        this.logger.info('UpgradeService', 'Setting up global Codex CLI symlink');
+        await resourceOps.setupCodexGlobalSymlink();
+
         progress.report({ message: 'Setting up AI instruction files...' });
         this.logger.info('UpgradeService', 'Setting up default AI instructions');
         await resourceOps.setupDefaultInstructions();
@@ -340,6 +349,10 @@ export class UpgradeService {
         progress.report({ message: 'Generating Codex CLI skills...' });
         this.logger.info('UpgradeService', 'Generating Codex CLI skills from Claude commands');
         await resourceOps.setupCodexSkills();
+
+        progress.report({ message: 'Enabling Codex CLI global access...' });
+        this.logger.info('UpgradeService', 'Setting up global Codex CLI symlink');
+        await resourceOps.setupCodexGlobalSymlink();
 
         progress.report({ message: 'Setting up AI instruction files...' });
         this.logger.info('UpgradeService', 'Setting up default AI instructions');

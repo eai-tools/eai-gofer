@@ -201,6 +201,13 @@ export class GoferMigrator {
   }
 
   /**
+   * Setup global Codex CLI symlink for access from any directory
+   */
+  public async setupCodexGlobalSymlink(): Promise<void> {
+    await this.resourceSyncer.setupCodexGlobalSymlink();
+  }
+
+  /**
    * Setup default AI instruction files (AGENTS.md, CLAUDE.md, copilot-instructions.md)
    */
   public async setupDefaultInstructions(): Promise<void> {
@@ -326,6 +333,7 @@ export class GoferMigrator {
     await this.resourceSyncer.setupClaudeCommands();
     await this.resourceSyncer.setupClaudeAgents();
     await this.resourceSyncer.setupCodexSkills(); // Generate Codex skills from Claude commands
+    await this.resourceSyncer.setupCodexGlobalSymlink(); // Enable global Codex CLI access
     await this.resourceSyncer.createBashScripts();
     await this.resourceSyncer.createNodeScripts();
     await this.resourceSyncer.createVSCodeSettings();
@@ -459,6 +467,8 @@ export class GoferMigrator {
           // Also regenerate Codex skills when Claude commands are synced
           reportProgress('Generating Codex skills');
           await this.resourceSyncer.setupCodexSkills();
+          reportProgress('Enabling Codex global access');
+          await this.resourceSyncer.setupCodexGlobalSymlink();
         }
 
         if (missing.includes('Claude agents')) {

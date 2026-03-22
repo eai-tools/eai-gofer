@@ -116,9 +116,16 @@ When Gofer initializes or upgrades your workspace:
 
 1. **Claude commands** are copied from bundled resources → `.claude/commands/`
 2. **Codex skills** are generated from Claude commands → `.agents/skills/`
-3. **Gemini skills** use the same `.agents/skills/` directory (Gemini
+3. **Codex global symlink** is created → `~/.codex/skills/{workspace-name}`
+   links to `.agents/skills/`
+4. **Gemini skills** use the same `.agents/skills/` directory (Gemini
    auto-discovers)
-4. **Copilot prompts** are copied from bundled resources → `.github/prompts/`
+5. **Copilot prompts** are copied from bundled resources → `.github/prompts/`
+
+**Codex Global Access:** The extension automatically creates a symlink in
+`~/.codex/skills/` pointing to your workspace's `.agents/skills/` directory.
+This enables Codex to access Gofer skills from any directory, not just the
+workspace directory.
 
 ### Platform Detection Priority
 
@@ -152,17 +159,20 @@ $ $0_business_scenario "Add user authentication"
 
 ## Feature Parity Matrix
 
-| Feature                         | Claude    | Codex       | Gemini       | Copilot   |
-| ------------------------------- | --------- | ----------- | ------------ | --------- |
-| **Gofer Pipeline**              | ✅ Full   | ✅ Full     | ✅ Full      | ✅ Full   |
-| **Task Tool (Parallel Agents)** | ✅ Yes    | ❌ No\*     | ✅ Yes (MCP) | ❌ No\*   |
-| **Auto-Chaining**               | ✅ Yes    | ❌ Manual   | ❌ Manual    | ✅ Yes    |
-| **Memory/Context**              | ✅ Yes    | ✅ Yes      | ✅ Yes       | ✅ Yes    |
-| **Max Context Window**          | 200k      | 128k        | 2M†          | 128k      |
-| **VSCode Integration**          | ✅ Native | ❌ CLI only | ❌ CLI only  | ✅ Native |
+| Feature                         | Claude    | Codex         | Gemini       | Copilot   |
+| ------------------------------- | --------- | ------------- | ------------ | --------- |
+| **Gofer Pipeline**              | ✅ Full   | ✅ Full       | ✅ Full      | ✅ Full   |
+| **Global CLI Access**           | ✅ Native | ✅ Symlinked‡ | ✅ Native    | ✅ Native |
+| **Task Tool (Parallel Agents)** | ✅ Yes    | ❌ No\*       | ✅ Yes (MCP) | ❌ No\*   |
+| **Auto-Chaining**               | ✅ Yes    | ❌ Manual     | ❌ Manual    | ✅ Yes    |
+| **Memory/Context**              | ✅ Yes    | ✅ Yes        | ✅ Yes       | ✅ Yes    |
+| **Max Context Window**          | 200k      | 128k          | 2M†          | 128k      |
+| **VSCode Integration**          | ✅ Native | ❌ CLI only   | ❌ CLI only  | ✅ Native |
 
 \*Codex and Copilot commands include notes about manual workflow when Task tool
-is unavailable †Gemini 1.5 Pro supports up to 2M tokens
+is unavailable †Gemini 1.5 Pro supports up to 2M tokens ‡Codex global access
+enabled via automatic symlink (`~/.codex/skills/{workspace-name}` →
+`.agents/skills/`)
 
 ---
 
@@ -253,6 +263,38 @@ ls -la .agents/skills/
 # Verify Codex is looking in the right directory
 cd your-workspace
 codex "List files in .agents/skills/"
+```
+
+### Codex: Global Access Issues
+
+**Problem:** Codex skills only work from workspace directory
+
+**Solution:**
+
+The extension automatically creates a global symlink at
+`~/.codex/skills/{workspace-name}` during installation. If you encounter issues:
+
+```bash
+# Check if symlink exists
+ls -la ~/.codex/skills/
+
+# Verify symlink points to correct location
+readlink ~/.codex/skills/{workspace-name}
+
+# If symlink is missing or incorrect, trigger upgrade
+# In VSCode: Cmd+Shift+P → "Gofer: Upgrade Templates"
+
+# Or manually create symlink (replace {workspace-name} and {workspace-path})
+mkdir -p ~/.codex/skills
+ln -s "{workspace-path}/.agents/skills" ~/.codex/skills/{workspace-name}
+```
+
+**Windows Users:** Windows requires `junction` points instead of symlinks. The
+extension handles this automatically, but if manual creation is needed:
+
+```cmd
+# Windows Command Prompt (run as Administrator)
+mklink /J "%USERPROFILE%\.codex\skills\{workspace-name}" "{workspace-path}\.agents\skills"
 ```
 
 ### Gemini: Skills Not Discovered

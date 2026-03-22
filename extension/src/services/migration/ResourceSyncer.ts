@@ -11,6 +11,7 @@ import { injectable } from 'tsyringe';
 import * as vscode from 'vscode';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import * as os from 'os';
 import { Logger } from '../Logger';
 import { FileUtils } from '../../utils/fileUtils';
 import { IResourceOperations } from './UpgradeService';
@@ -290,6 +291,117 @@ export class ResourceSyncer implements IResourceOperations {
         operation: 'setupCodexSkills',
       });
       throw error;
+    }
+  }
+
+  /**
+   * Setup global Codex symlink for CLI access from any directory
+   *
+   * Creates symlink: ~/.codex/skills/{project-name} -> {workspace}/.agents/skills
+   * This enables Codex CLI to discover Gofer skills globally without needing
+   * to be run from the workspace directory.
+   */
+  public async setupCodexGlobalSymlink(): Promise<void> {
+    this.logger.info('ResourceSyncer', 'Setting up global Codex CLI symlink');
+
+    try {
+      // Get workspace folder name for symlink name
+      const workspaceName = path.basename(this.workspacePath);
+      const homeDir = os.homedir();
+      const codexSkillsDir = path.join(homeDir, '.codex', 'skills');
+      const symlinkPath = path.join(codexSkillsDir, workspaceName);
+      const targetPath = path.join(this.workspacePath, '.agents', 'skills');
+
+      // Check if source directory exists
+      const sourceExists = await FileUtils.exists(targetPath);
+      if (!sourceExists) {
+        this.logger.warn('ResourceSyncer', 'Codex skills directory does not exist yet', {
+          path: targetPath,
+        });
+        return;
+      }
+
+      // Ensure ~/.codex/skills directory exists
+      await fs.mkdir(codexSkillsDir, { recursive: true });
+
+      // Check if symlink already exists
+      let needsCreation = true;
+      try {
+        const stats = await fs.lstat(symlinkPath);
+        if (stats.isSymbolicLink()) {
+          // Verify it points to the correct target
+          const currentTarget = await fs.readlink(symlinkPath);
+          const resolvedCurrent = path.resolve(path.dirname(symlinkPath), currentTarget);
+          const resolvedTarget = path.resolve(targetPath);
+
+          if (resolvedCurrent === resolvedTarget) {
+            this.logger.info(
+              'ResourceSyncer',
+              'Codex global symlink already exists and is correct',
+              {
+                symlink: symlinkPath,
+                target: targetPath,
+              }
+            );
+            needsCreation = false;
+          } else {
+            // Symlink exists but points to wrong location, remove it
+            this.logger.info('ResourceSyncer', 'Removing outdated Codex symlink', {
+              current: currentTarget,
+              new: targetPath,
+            });
+            await fs.unlink(symlinkPath);
+          }
+        } else {
+          // Path exists but is not a symlink (file/directory), remove it
+          this.logger.warn('ResourceSyncer', 'Path exists but is not a symlink, removing', {
+            path: symlinkPath,
+          });
+          await fs.rm(symlinkPath, { recursive: true, force: true });
+        }
+      } catch (error: unknown) {
+        // Symlink doesn't exist, which is fine
+        if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+          throw error;
+        }
+      }
+
+      // Create symlink if needed
+      if (needsCreation) {
+        // Windows requires 'junction' type for directories without admin privileges
+        // Unix systems use default 'dir' symlink
+        const symlinkType = process.platform === 'win32' ? 'junction' : 'dir';
+
+        await fs.symlink(targetPath, symlinkPath, symlinkType);
+
+        this.logger.info('ResourceSyncer', 'Created global Codex CLI symlink', {
+          symlink: symlinkPath,
+          target: targetPath,
+          type: symlinkType,
+        });
+
+        // Show success message to user
+        void vscode.window.showInformationMessage(
+          `Codex CLI global access enabled: Skills available as "$ $0_business_scenario" from any directory`,
+          'Dismiss'
+        );
+      }
+    } catch (error) {
+      // Non-blocking error: Log but don't throw
+      // Users can still use Codex from the workspace directory
+      this.logger.error('ResourceSyncer', error as Error, {
+        operation: 'setupCodexGlobalSymlink',
+        note: 'Codex CLI will still work from workspace directory',
+      });
+
+      // Show user-friendly error (Windows admin rights, permission issues, etc.)
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error creating symlink';
+
+      void vscode.window.showWarningMessage(
+        `Could not enable Codex CLI global access: ${errorMessage}. You can still use Codex from the workspace directory.`,
+        'Dismiss'
+      );
     }
   }
 

@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.24.0] - 2026-03-22
+
+feat: multi-CLI support for Codex, Gemini, and Copilot
+
 ## [1.23.0] - 2026-03-21
 
 Add Memory Panel system memory filtering (feature 001)

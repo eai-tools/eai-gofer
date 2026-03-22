@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.24.0",
+  "latest_version": "1.25.0",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-03-22T07:05:58.244Z",
+  "last_updated": "2026-03-22T11:12:49.014Z",
   "releases": [
+    {
+      "version": "1.25.0",
+      "tag_name": "v1.25.0",
+      "published_at": "2026-03-22T11:12:49.013Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.25.0.vsix",
+      "notes": "feat: automatic Codex global CLI symlink creation\n\nEnables Codex CLI to access Gofer skills from any directory without manual symlink creation.\n\nKey features:\n- Automatic symlink creation during install/upgrade\n- Platform-aware (Windows junctions, Unix symlinks)\n- Non-blocking error handling\n- Updated documentation with troubleshooting guide\n\nThis achieves true CLI feature parity - Codex now works globally like Claude Code.",
+      "prerelease": false,
+      "size_mb": 10.1
+    },
     {
       "version": "1.24.0",
       "tag_name": "v1.24.0",
@@ -83,15 +92,6 @@
       "notes": "fix: Add cross-platform support for Codespaces/Linux - replaced node-pty with node-pty-prebuilt-multiarch to include linux-x64 native binaries",
       "prerelease": false,
       "size_mb": 10.2
-    },
-    {
-      "version": "1.20.2",
-      "tag_name": "v1.20.2",
-      "published_at": "2026-03-15T08:30:42.394Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.20.2.vsix",
-      "notes": "fix: engineering review - aggregate cache tokens (FR-025) and propagate error states to UI",
-      "prerelease": false,
-      "size_mb": 30.3
     }
   ]
 }

@@ -46,7 +46,7 @@ describe('Command Generation Integration (US-3)', () => {
 
     it('should have 6-terminal workflow in Codex validation skill', async () => {
       // Read Codex validation skill
-      const codexSkillPath = path.join(process.cwd(), '.system/skills/6_gofer_validate/SKILL.md');
+      const codexSkillPath = path.join(process.cwd(), '.agents/skills/6_gofer_validate/SKILL.md');
 
       const content = await fs.readFile(codexSkillPath, 'utf-8');
 
@@ -142,7 +142,7 @@ describe('Command Generation Integration (US-3)', () => {
     it('should have consistent agent naming across all platforms', async () => {
       // Read all three platform validation files
       const claudePath = path.join(process.cwd(), '.claude/commands/6_gofer_validate.md');
-      const codexPath = path.join(process.cwd(), '.system/skills/6_gofer_validate/SKILL.md');
+      const codexPath = path.join(process.cwd(), '.agents/skills/6_gofer_validate/SKILL.md');
       const copilotPath = path.join(
         process.cwd(),
         'extension/resources/copilot-prompts/6_gofer_validate.prompt.md'
@@ -174,7 +174,7 @@ describe('Command Generation Integration (US-3)', () => {
 
     it('should document performance expectations consistently', async () => {
       // Read validation files for performance timing checks
-      const codexPath = path.join(process.cwd(), '.system/skills/6_gofer_validate/SKILL.md');
+      const codexPath = path.join(process.cwd(), '.agents/skills/6_gofer_validate/SKILL.md');
       const legacyPath = path.join(process.cwd(), 'docs/legacy-workflow.md');
 
       const [codexContent, legacyContent] = await Promise.all([
@@ -213,7 +213,7 @@ describe('Command Generation Integration (US-3)', () => {
 
       // Read all platform validation files
       const claudePath = path.join(process.cwd(), '.claude/commands/6_gofer_validate.md');
-      const codexPath = path.join(process.cwd(), '.system/skills/6_gofer_validate/SKILL.md');
+      const codexPath = path.join(process.cwd(), '.agents/skills/6_gofer_validate/SKILL.md');
       const copilotPath = path.join(
         process.cwd(),
         'extension/resources/copilot-prompts/6_gofer_validate.prompt.md'

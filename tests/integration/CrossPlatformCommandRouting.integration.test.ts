@@ -61,7 +61,7 @@ describe('Cross-Platform Command Routing with Default CLI (T072)', () => {
       return (
         pathStr.includes('.claude/commands') ||
         pathStr.includes('.github/prompts') ||
-        pathStr.includes('.system/skills')
+        pathStr.includes('.agents/skills')
       );
     });
 
@@ -210,7 +210,7 @@ describe('Cross-Platform Command Routing with Default CLI (T072)', () => {
 
       vi.mocked(fs.existsSync).mockImplementation((filePath: string) => {
         const pathStr = String(filePath);
-        return pathStr.includes('.system/skills') || pathStr.includes('.github/prompts');
+        return pathStr.includes('.agents/skills') || pathStr.includes('.github/prompts');
       });
 
       const detector = PlatformDetector.getInstance(testWorkspacePath);
@@ -357,7 +357,7 @@ describe('Cross-Platform Command Routing with Default CLI (T072)', () => {
 
       expect(platform).toBe('codex');
       // Verify path resolution matches Codex
-      expect(router.getCommandPath('1_gofer_research', 'codex')).toContain('.system/skills');
+      expect(router.getCommandPath('1_gofer_research', 'codex')).toContain('.agents/skills');
     });
 
     it('should auto-detect and route to highest priority platform when defaultCLI is "auto"', () => {

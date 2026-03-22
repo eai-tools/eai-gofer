@@ -390,6 +390,21 @@
       "lastUsed": 1773958592423,
       "usedCount": 0,
       "learnedFrom": "session:58bc1688-0c20-4d2d-b173-7c5f727ae876"
+    },
+    {
+      "id": "2d7d839f-0505-451c-b978-1b2d5d3ebc57",
+      "category": "decision",
+      "tags": [
+        "#auto-learned",
+        "#decision",
+        "#session-bf5aa6af"
+      ],
+      "scope": "local",
+      "content": "**VSCode priority**: Workspace settings override global settings, so Gofer will use the workspace key.",
+      "created": 1774130804339,
+      "lastUsed": 1774130804339,
+      "usedCount": 0,
+      "learnedFrom": "session:bf5aa6af-6abf-4ecc-adf1-34e12bdcba8f"
     }
   ]
 }

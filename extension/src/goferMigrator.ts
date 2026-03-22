@@ -194,6 +194,13 @@ export class GoferMigrator {
   }
 
   /**
+   * Setup Codex CLI skills (generated from Claude commands)
+   */
+  public async setupCodexSkills(): Promise<void> {
+    await this.resourceSyncer.setupCodexSkills();
+  }
+
+  /**
    * Setup default AI instruction files (AGENTS.md, CLAUDE.md, copilot-instructions.md)
    */
   public async setupDefaultInstructions(): Promise<void> {
@@ -318,6 +325,7 @@ export class GoferMigrator {
     await this.resourceSyncer.copyBundledTemplates();
     await this.resourceSyncer.setupClaudeCommands();
     await this.resourceSyncer.setupClaudeAgents();
+    await this.resourceSyncer.setupCodexSkills(); // Generate Codex skills from Claude commands
     await this.resourceSyncer.createBashScripts();
     await this.resourceSyncer.createNodeScripts();
     await this.resourceSyncer.createVSCodeSettings();
@@ -448,6 +456,9 @@ export class GoferMigrator {
         if (missing.includes('Claude commands')) {
           reportProgress('Syncing Claude commands');
           await this.resourceSyncer.setupClaudeCommands();
+          // Also regenerate Codex skills when Claude commands are synced
+          reportProgress('Generating Codex skills');
+          await this.resourceSyncer.setupCodexSkills();
         }
 
         if (missing.includes('Claude agents')) {

@@ -272,6 +272,27 @@ export class ResourceSyncer implements IResourceOperations {
     );
   }
 
+  public async setupCodexSkills(): Promise<void> {
+    this.logger.info('ResourceSyncer', 'Generating Codex CLI skills from Claude commands');
+
+    try {
+      const { CommandGenerator } = await import('../../council/CommandGenerator');
+      const generator = new CommandGenerator(this.workspacePath);
+
+      // Generate all Codex skills from Claude commands
+      const generatedPaths = await generator.generateCommands('codex', false);
+
+      this.logger.info('ResourceSyncer', `Generated ${generatedPaths.length} Codex skills`, {
+        paths: generatedPaths,
+      });
+    } catch (error) {
+      this.logger.error('ResourceSyncer', error as Error, {
+        operation: 'setupCodexSkills',
+      });
+      throw error;
+    }
+  }
+
   public async setupDefaultInstructions(): Promise<void> {
     try {
       const { ProjectDetector } = await import('../ProjectDetector');

@@ -14,7 +14,7 @@ import { PlatformType, PlatformDetectionContext } from './types/CrossPlatformTyp
  *
  * Detection priority:
  * 1. User setting (gofer.defaultCLI) if explicitly set
- * 2. Directory presence (.claude/commands/, .github/prompts/, .system/skills/)
+ * 2. Directory presence (.claude/commands/, .github/prompts/, .agents/skills/)
  * 3. Execution context (VSCode extension host)
  * 4. Fallback to 'auto'
  */
@@ -74,7 +74,7 @@ export class PlatformDetector {
       case 'copilot':
         return this.hasDirectory('.github/prompts');
       case 'codex':
-        return this.hasDirectory('.system/skills');
+        return this.hasDirectory('.agents/skills');
       default:
         return false;
     }
@@ -121,7 +121,7 @@ export class PlatformDetector {
     // Check directory availability
     const hasClaudeDirectory = this.hasDirectory('.claude/commands');
     const hasCopilotDirectory = this.hasDirectory('.github/prompts');
-    const hasCodexDirectory = this.hasDirectory('.system/skills');
+    const hasCodexDirectory = this.hasDirectory('.agents/skills');
 
     // Determine platform
     let platform: PlatformType | 'auto' = 'auto';

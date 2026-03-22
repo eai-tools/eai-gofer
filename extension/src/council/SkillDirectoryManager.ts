@@ -49,7 +49,7 @@ export interface SkillDirectoryManager {
  *
  * Searches multiple directories with priority:
  * 1. .claude/commands/ (Claude CLI - highest priority)
- * 2. .system/skills/  (Codex CLI)
+ * 2. .agents/skills/  (Codex CLI)
  * 3. .github/prompts/ (Copilot Chat - lowest priority)
  */
 export class DefaultSkillDirectoryManager implements SkillDirectoryManager {
@@ -154,10 +154,10 @@ export class DefaultSkillDirectoryManager implements SkillDirectoryManager {
     claudeWatcher.onDidDelete(() => this.onDirectoryChange(callback));
     watchers.push(claudeWatcher);
 
-    // Watch .system/skills/
+    // Watch .agents/skills/
     const codexPattern = new vscode.RelativePattern(
       this.workspacePath,
-      '.system/skills/*/SKILL.md'
+      '.agents/skills/*/SKILL.md'
     );
     const codexWatcher = vscode.workspace.createFileSystemWatcher(codexPattern);
     codexWatcher.onDidChange(() => this.onDirectoryChange(callback));
@@ -232,7 +232,7 @@ export class DefaultSkillDirectoryManager implements SkillDirectoryManager {
    * Search for skill in Codex CLI directory
    */
   private searchCodexSkills(commandName: string): CommandMetadata | null {
-    const codexDir = path.join(this.workspacePath, '.system/skills');
+    const codexDir = path.join(this.workspacePath, '.agents/skills');
     if (!fs.existsSync(codexDir)) {
       return null;
     }
@@ -301,7 +301,7 @@ export class DefaultSkillDirectoryManager implements SkillDirectoryManager {
    * Get all skills from Codex CLI directory
    */
   private getAllCodexSkills(): CommandMetadata[] {
-    const codexDir = path.join(this.workspacePath, '.system/skills');
+    const codexDir = path.join(this.workspacePath, '.agents/skills');
     if (!fs.existsSync(codexDir)) {
       return [];
     }

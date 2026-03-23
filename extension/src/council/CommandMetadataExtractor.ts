@@ -4,6 +4,7 @@
  */
 
 import * as fs from 'fs';
+import { promises as fsPromises } from 'fs';
 import * as yaml from 'js-yaml';
 import { PlatformType, CommandMetadata, CommandInvocationSyntax } from './types/CrossPlatformTypes';
 
@@ -17,10 +18,23 @@ import { PlatformType, CommandMetadata, CommandInvocationSyntax } from './types/
  */
 export class CommandMetadataExtractor {
   /**
-   * Extract metadata from a Claude CLI command file
+   * Extract metadata from a Claude CLI command file (async version)
    */
-  public extractFromClaudeCommand(filePath: string): CommandMetadata {
+  public async extractFromClaudeCommand(filePath: string): Promise<CommandMetadata> {
+    const content = await fsPromises.readFile(filePath, 'utf8');
+    return this.parseClaudeCommandContent(content, filePath);
+  }
+
+  /**
+   * Extract metadata from a Claude CLI command file (sync version)
+   * Note: Prefer async version when possible to avoid blocking event loop
+   */
+  public extractFromClaudeCommandSync(filePath: string): CommandMetadata {
     const content = fs.readFileSync(filePath, 'utf8');
+    return this.parseClaudeCommandContent(content, filePath);
+  }
+
+  private parseClaudeCommandContent(content: string, filePath: string): CommandMetadata {
     const { frontmatter, body } = this.parseMarkdownWithFrontmatter(content);
 
     const name = this.extractCommandNameFromPath(filePath, '.md');
@@ -48,10 +62,23 @@ export class CommandMetadataExtractor {
   }
 
   /**
-   * Extract metadata from a Copilot Chat prompt file
+   * Extract metadata from a Copilot Chat prompt file (async version)
    */
-  public extractFromCopilotPrompt(filePath: string): CommandMetadata {
+  public async extractFromCopilotPrompt(filePath: string): Promise<CommandMetadata> {
+    const content = await fsPromises.readFile(filePath, 'utf8');
+    return this.parseCopilotPromptContent(content, filePath);
+  }
+
+  /**
+   * Extract metadata from a Copilot Chat prompt file (sync version)
+   * Note: Prefer async version when possible to avoid blocking event loop
+   */
+  public extractFromCopilotPromptSync(filePath: string): CommandMetadata {
     const content = fs.readFileSync(filePath, 'utf8');
+    return this.parseCopilotPromptContent(content, filePath);
+  }
+
+  private parseCopilotPromptContent(content: string, filePath: string): CommandMetadata {
     const { frontmatter, body } = this.parseMarkdownWithFrontmatter(content);
 
     const name = this.extractCommandNameFromPath(filePath, '.prompt.md');
@@ -79,10 +106,23 @@ export class CommandMetadataExtractor {
   }
 
   /**
-   * Extract metadata from a Codex CLI skill file
+   * Extract metadata from a Codex CLI skill file (async version)
    */
-  public extractFromCodexSkill(filePath: string): CommandMetadata {
+  public async extractFromCodexSkill(filePath: string): Promise<CommandMetadata> {
+    const content = await fsPromises.readFile(filePath, 'utf8');
+    return this.parseCodexSkillContent(content, filePath);
+  }
+
+  /**
+   * Extract metadata from a Codex CLI skill file (sync version)
+   * Note: Prefer async version when possible to avoid blocking event loop
+   */
+  public extractFromCodexSkillSync(filePath: string): CommandMetadata {
     const content = fs.readFileSync(filePath, 'utf8');
+    return this.parseCodexSkillContent(content, filePath);
+  }
+
+  private parseCodexSkillContent(content: string, filePath: string): CommandMetadata {
     const { frontmatter, body } = this.parseMarkdownWithFrontmatter(content);
 
     const name = (frontmatter.name as string) || 'unknown';

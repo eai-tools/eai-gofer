@@ -219,7 +219,7 @@ export class DefaultSkillDirectoryManager implements SkillDirectoryManager {
     const filePath = path.join(claudeDir, `${commandName}.md`);
     if (fs.existsSync(filePath)) {
       try {
-        return this.extractor.extractFromClaudeCommand(filePath);
+        return this.extractor.extractFromClaudeCommandSync(filePath);
       } catch {
         return null;
       }
@@ -240,7 +240,7 @@ export class DefaultSkillDirectoryManager implements SkillDirectoryManager {
     const skillPath = path.join(codexDir, commandName, 'SKILL.md');
     if (fs.existsSync(skillPath)) {
       try {
-        return this.extractor.extractFromCodexSkill(skillPath);
+        return this.extractor.extractFromCodexSkillSync(skillPath);
       } catch {
         return null;
       }
@@ -261,7 +261,7 @@ export class DefaultSkillDirectoryManager implements SkillDirectoryManager {
     const filePath = path.join(copilotDir, `${commandName}.prompt.md`);
     if (fs.existsSync(filePath)) {
       try {
-        return this.extractor.extractFromCopilotPrompt(filePath);
+        return this.extractor.extractFromCopilotPromptSync(filePath);
       } catch {
         return null;
       }
@@ -286,7 +286,7 @@ export class DefaultSkillDirectoryManager implements SkillDirectoryManager {
         .map((file) => {
           try {
             const filePath = path.join(claudeDir, file);
-            return this.extractor.extractFromClaudeCommand(filePath);
+            return this.extractor.extractFromClaudeCommandSync(filePath);
           } catch {
             return null;
           }
@@ -317,7 +317,7 @@ export class DefaultSkillDirectoryManager implements SkillDirectoryManager {
           try {
             const skillPath = path.join(codexDir, subdir, 'SKILL.md');
             if (fs.existsSync(skillPath)) {
-              return this.extractor.extractFromCodexSkill(skillPath);
+              return this.extractor.extractFromCodexSkillSync(skillPath);
             }
             return null;
           } catch {
@@ -346,7 +346,7 @@ export class DefaultSkillDirectoryManager implements SkillDirectoryManager {
         .map((file) => {
           try {
             const filePath = path.join(copilotDir, file);
-            return this.extractor.extractFromCopilotPrompt(filePath);
+            return this.extractor.extractFromCopilotPromptSync(filePath);
           } catch {
             return null;
           }

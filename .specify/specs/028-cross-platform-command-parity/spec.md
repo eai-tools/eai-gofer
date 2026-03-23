@@ -22,7 +22,7 @@ vendor lock-in despite claims of multi-provider support.
 
 Cross-Platform Command Parity closes this gap by creating platform-specific
 command files (`.system/skills/` for Codex, enhanced `.github/prompts/` for
-Copilot) and implementing intelligent routing so all 18 Gofer commands work
+Copilot) and implementing intelligent routing so all 16 Gofer commands work
 identically regardless of which AI assistant a user chooses. This includes
 critical features like auto-chaining (seamless pipeline progression through 7
 stages), parallel agent spawning (6 validation agents running concurrently), and
@@ -37,7 +37,7 @@ developers use different AI assistants but need consistent workflows.
 
 ### User Story 1 - Codex CLI Full Command Access (Priority: P1)
 
-As a **Codex CLI user**, I want to access all 18 Gofer commands through Codex's
+As a **Codex CLI user**, I want to access all 16 Gofer commands through Codex's
 native skill system, so that I can run the complete Gofer pipeline without
 switching to Claude Code CLI.
 

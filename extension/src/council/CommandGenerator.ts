@@ -135,12 +135,10 @@ export class CommandGenerator {
 
     if (!dryRun) {
       // Create directory if needed
-      if (!fs.existsSync(skillDir)) {
-        fs.mkdirSync(skillDir, { recursive: true });
-      }
+      await fs.promises.mkdir(skillDir, { recursive: true });
 
       // Write skill file
-      fs.writeFileSync(skillPath, skillContent, 'utf8');
+      await fs.promises.writeFile(skillPath, skillContent, 'utf8');
     }
 
     return skillPath;
@@ -187,12 +185,10 @@ export class CommandGenerator {
 
     if (!dryRun) {
       // Create directory if needed
-      if (!fs.existsSync(promptsDir)) {
-        fs.mkdirSync(promptsDir, { recursive: true });
-      }
+      await fs.promises.mkdir(promptsDir, { recursive: true });
 
       // Write prompt file
-      fs.writeFileSync(promptPath, promptContent, 'utf8');
+      await fs.promises.writeFile(promptPath, promptContent, 'utf8');
     }
 
     return promptPath;

@@ -76,7 +76,7 @@ describe('Cross-Platform Feature Parity', () => {
 
       expect(claudePath).toContain('.claude/commands');
       expect(copilotPath).toContain('.github/prompts');
-      expect(codexPath).toContain('.agents/skills');
+      expect(codexPath).toContain('.system/skills');
     });
 
     it('should provide correct command syntax for each platform', () => {
@@ -96,7 +96,7 @@ describe('Cross-Platform Feature Parity', () => {
     });
 
     it('should verify Codex skills directory exists with all skills', () => {
-      const codexSkillsDir = path.join(workspacePath, '.agents/skills');
+      const codexSkillsDir = path.join(workspacePath, '.system/skills');
       expect(fs.existsSync(codexSkillsDir)).toBe(true);
 
       // Verify all commands have corresponding SKILL.md files

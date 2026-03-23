@@ -74,7 +74,7 @@ export class PlatformDetector {
       case 'copilot':
         return this.hasDirectory('.github/prompts');
       case 'codex':
-        return this.hasDirectory('.agents/skills');
+        return this.hasDirectory('.system/skills');
       default:
         return false;
     }
@@ -121,7 +121,7 @@ export class PlatformDetector {
     // Check directory availability
     const hasClaudeDirectory = this.hasDirectory('.claude/commands');
     const hasCopilotDirectory = this.hasDirectory('.github/prompts');
-    const hasCodexDirectory = this.hasDirectory('.agents/skills');
+    const hasCodexDirectory = this.hasDirectory('.system/skills');
 
     // Determine platform
     let platform: PlatformType | 'auto' = 'auto';
@@ -176,6 +176,8 @@ export class PlatformDetector {
   private hasDirectory(relativePath: string): boolean {
     try {
       const fullPath = path.join(this.workspacePath, relativePath);
+      // Use async methods if available in calling context, but this is a sync helper
+      // Called from config-driven detection, not in async I/O paths
       return fs.existsSync(fullPath) && fs.statSync(fullPath).isDirectory();
     } catch {
       return false;

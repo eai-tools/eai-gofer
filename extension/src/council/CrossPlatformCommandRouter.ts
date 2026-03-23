@@ -126,7 +126,7 @@ export class CrossPlatformCommandRouter {
 
     const platformPaths: Record<PlatformType, string> = {
       claude: path.join(this.workspacePath, '.claude', 'commands', `${commandName}.md`),
-      codex: path.join(this.workspacePath, '.agents', 'skills', commandName, 'SKILL.md'),
+      codex: path.join(this.workspacePath, '.system', 'skills', commandName, 'SKILL.md'),
       copilot: path.join(this.workspacePath, '.github', 'prompts', `${commandName}.prompt.md`),
     };
 
@@ -150,7 +150,7 @@ export class CrossPlatformCommandRouter {
     }
 
     // Scan Codex skills
-    const codexDir = path.join(this.workspacePath, '.agents', 'skills');
+    const codexDir = path.join(this.workspacePath, '.system', 'skills');
     if (fs.existsSync(codexDir)) {
       fs.readdirSync(codexDir).forEach((dir) => {
         const skillPath = path.join(codexDir, dir, 'SKILL.md');

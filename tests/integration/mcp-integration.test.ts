@@ -4,7 +4,7 @@
  *
  * Tests verify:
  * - T084: MCP Tool Handler multi-directory search
- * - Priority fallback (.claude/commands/ > .agents/skills/ > .github/prompts/)
+ * - Priority fallback (.claude/commands/ > .system/skills/ > .github/prompts/)
  * - Graceful degradation when MCP not available
  * - MCP initialization skipped for non-Claude providers
  */
@@ -113,7 +113,7 @@ describe('MCP Integration (T084)', () => {
     it('should prioritize .claude/commands/ directory first', () => {
       const platforms = [
         { name: 'claude', path: '.claude/commands', priority: 1 },
-        { name: 'codex', path: '.agents/skills', priority: 2 },
+        { name: 'codex', path: '.system/skills', priority: 2 },
         { name: 'copilot', path: '.github/prompts', priority: 3 },
       ];
 
@@ -122,7 +122,7 @@ describe('MCP Integration (T084)', () => {
       expect(platforms[0].priority).toBe(1);
     });
 
-    it('should fall back to .agents/skills/ if .claude/commands/ not found', () => {
+    it('should fall back to .system/skills/ if .claude/commands/ not found', () => {
       const platforms = [
         { name: 'claude', exists: false },
         { name: 'codex', exists: true },
@@ -176,17 +176,17 @@ describe('MCP Integration (T084)', () => {
 
   describe('Multi-Directory Search', () => {
     it('should search command directories in priority order', () => {
-      const searchOrder = ['.claude/commands', '.agents/skills', '.github/prompts'];
+      const searchOrder = ['.claude/commands', '.system/skills', '.github/prompts'];
 
       expect(searchOrder[0]).toBe('.claude/commands');
-      expect(searchOrder[1]).toBe('.agents/skills');
+      expect(searchOrder[1]).toBe('.system/skills');
       expect(searchOrder[2]).toBe('.github/prompts');
     });
 
     it('should stop search after first match', () => {
       const directories = [
         { path: '.claude/commands', found: true },
-        { path: '.agents/skills', found: true },
+        { path: '.system/skills', found: true },
         { path: '.github/prompts', found: true },
       ];
 

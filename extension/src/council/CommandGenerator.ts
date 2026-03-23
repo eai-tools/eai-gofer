@@ -46,7 +46,7 @@ export class CommandGenerator {
 
     for (const commandFile of commandFiles) {
       try {
-        const metadata = this.extractor.extractFromClaudeCommand(commandFile);
+        const metadata = await this.extractor.extractFromClaudeCommand(commandFile);
         const outputPath = await this.generateCommand(metadata, platform, dryRun);
         generatedPaths.push(outputPath);
       } catch (error) {

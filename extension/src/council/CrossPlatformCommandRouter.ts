@@ -96,13 +96,13 @@ export class CrossPlatformCommandRouter {
    * @param platform Target platform
    * @returns Full command file content
    */
-  public loadSkillForPlatform(commandName: string, platform: PlatformType): string {
+  public async loadSkillForPlatform(commandName: string, platform: PlatformType): Promise<string> {
     const commandPath = this.getCommandPath(commandName, platform);
     if (!fs.existsSync(commandPath)) {
       throw new Error(`Command "${commandName}" not found for platform "${platform}"`);
     }
 
-    return fs.readFileSync(commandPath, 'utf8');
+    return await fs.promises.readFile(commandPath, 'utf8');
   }
 
   /**

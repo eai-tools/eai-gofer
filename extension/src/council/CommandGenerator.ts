@@ -32,13 +32,15 @@ export class CommandGenerator {
   ): Promise<string[]> {
     const claudeCommandsDir = path.join(this.workspacePath, '.claude', 'commands');
 
-    if (!fs.existsSync(claudeCommandsDir)) {
+    try {
+      await fs.promises.access(claudeCommandsDir);
+    } catch {
       throw new Error('Claude commands directory not found: ' + claudeCommandsDir);
     }
 
     // Find all Claude command files
-    const commandFiles = fs
-      .readdirSync(claudeCommandsDir)
+    const files = await fs.promises.readdir(claudeCommandsDir);
+    const commandFiles = files
       .filter((file) => file.endsWith('.md'))
       .map((file) => path.join(claudeCommandsDir, file));
 
@@ -88,7 +90,7 @@ export class CommandGenerator {
     sourceMetadata: CommandMetadata,
     dryRun: boolean = false
   ): Promise<string> {
-    const skillDir = path.join(this.workspacePath, '.agents', 'skills', sourceMetadata.name);
+    const skillDir = path.join(this.workspacePath, '.system', 'skills', sourceMetadata.name);
     const skillPath = path.join(skillDir, 'SKILL.md');
 
     // Transform content for Codex

@@ -1,9 +1,9 @@
 ---
 id: '028-cross-platform-command-parity'
 title: 'Cross-Platform Command Parity'
-status: 'draft'
+status: 'complete'
 created: '2026-03-18'
-updated: '2026-03-19'
+updated: '2026-03-27'
 priority: 'medium'
 assignee: 'engineer-agent'
 ---

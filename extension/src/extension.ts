@@ -23,7 +23,7 @@ import { SubAgentDispatcher } from './autonomous/SubAgentDispatcher';
 import { MemoryLayerManager } from './autonomous/MemoryLayerManager';
 import { ACCOrchestrator } from './autonomous/ACCOrchestrator';
 import { ObservationBridge } from './autonomous/ObservationBridge';
-import { setSharedContextBuilder } from './autonomousCommands';
+import { setSharedContextBuilder, setSharedCrossPlatformCommandRouter } from './autonomousCommands';
 import { registerMemoryCommands } from './commands/memoryCommands';
 import { registerSpecCommands } from './commands/specCommands';
 import { registerCouncilCommands } from './commands/councilCommands';
@@ -56,6 +56,7 @@ import {
   EventHandlers,
   InitializationService,
   CommandRegistry,
+  OptionalToolInstaller,
   StateManager,
   type EventHandlerDependencies,
   type InitializationDependencies,
@@ -91,6 +92,18 @@ let eventHandlerDeps: EventHandlerDependencies | undefined;
  */
 function getState(): StateManager {
   return getContainer().resolve(StateManager);
+}
+
+async function showOptionalToolPrompt(workspacePath: string): Promise<void> {
+  try {
+    const installer = getContainer().resolve(OptionalToolInstaller);
+    await installer.promptForRecommendedTools(workspacePath);
+  } catch (error) {
+    logger?.warn('Extension', 'Failed to show optional tool prompt', {
+      workspacePath,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
 }
 
 /**
@@ -667,6 +680,7 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
   const { CrossPlatformCommandRouter } = await import('./council/CrossPlatformCommandRouter');
   const crossPlatformCommandRouter = new CrossPlatformCommandRouter(workspacePath);
   state.crossPlatformCommandRouter = crossPlatformCommandRouter;
+  setSharedCrossPlatformCommandRouter(crossPlatformCommandRouter);
 
   // Register settings watcher for gofer.defaultCLI changes (clears router cache on change)
   context.subscriptions.push(
@@ -820,21 +834,60 @@ function registerGlobalCommands(context: vscode.ExtensionContext): void {
       const workspacePath = workspaceFolder.uri.fsPath;
       const migrator = new GoferMigrator(workspacePath);
 
-      await vscode.window.withProgress(
-        {
-          location: vscode.ProgressLocation.Notification,
-          title: 'Initializing Gofer...',
-          cancellable: false,
-        },
-        async () => {
-          // Use upgrade with skipConfirmation to initialize fresh structure
-          await migrator.upgrade({ skipConfirmation: true });
-          await migrator.syncMissingResources();
-          // Trigger workspace reinitialization to activate all features
-          await reinitializeExtension(context);
-          vscode.window.showInformationMessage('✅ Gofer initialized successfully!');
+      try {
+        await vscode.window.withProgress(
+          {
+            location: vscode.ProgressLocation.Notification,
+            title: 'Initializing Gofer...',
+            cancellable: false,
+          },
+          async () => {
+            // Use upgrade with skipConfirmation to initialize fresh structure
+            await migrator.upgrade({ skipConfirmation: true });
+            await migrator.syncMissingResources();
+            // Trigger workspace reinitialization to activate all features
+            await reinitializeExtension(context);
+            vscode.window.showInformationMessage('✅ Gofer initialized successfully!');
+            await showOptionalToolPrompt(workspacePath);
+          }
+        );
+      } catch (error) {
+        vscode.window.showErrorMessage(
+          `Failed to initialize Gofer: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('gofer.installOptionalTools', async () => {
+      const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+      if (!workspaceFolder) {
+        vscode.window.showErrorMessage('No workspace folder open');
+        return;
+      }
+
+      const workspacePath = workspaceFolder.uri.fsPath;
+      const migrator = new GoferMigrator(workspacePath);
+
+      try {
+        const format = await migrator.detectFormat();
+        if (format === 'none') {
+          vscode.window.showWarningMessage(
+            'Initialize Gofer before installing optional developer tools.'
+          );
+          return;
         }
-      );
+
+        await migrator.syncMissingResources();
+
+        const installer = getContainer().resolve(OptionalToolInstaller);
+        await installer.promptForToolSelection(workspacePath);
+      } catch (error) {
+        vscode.window.showErrorMessage(
+          `Failed to launch optional tools installer: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
     })
   );
 
@@ -886,8 +939,8 @@ function registerGlobalCommands(context: vscode.ExtensionContext): void {
   // gofer.refreshAIUsage - Refresh AI usage panel (must be global - referenced in view/title menu)
   context.subscriptions.push(
     vscode.commands.registerCommand('gofer.refreshAIUsage', async () => {
-      if (state.aiUsageMonitor) {
-        await state.aiUsageMonitor.forceRefresh();
+      if (state.aiUsageProvider) {
+        await state.aiUsageProvider.manualRefresh();
       }
     })
   );

@@ -43,7 +43,7 @@ export interface PlatformDetectionContext {
   hasCopilotDirectory: boolean;
 
   /**
-   * Codex CLI directory exists (.agents/skills/)
+   * Codex CLI directory exists (.system/skills/)
    */
   hasCodexDirectory: boolean;
 

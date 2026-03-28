@@ -9,19 +9,16 @@ suite('ConstitutionProvider Test Suite', () => {
   let tempDir: string;
   let constitutionProvider: ConstitutionProvider;
 
-  suiteSetup(async () => {
+  setup(async () => {
     // Create temporary directory for tests
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'constitution-provider-test-'));
-  });
-
-  suiteTeardown(async () => {
-    // Clean up temporary directory
-    await fs.rmdir(tempDir, { recursive: true }).catch(() => {});
-  });
-
-  setup(async () => {
     // Create fresh constitution provider for each test
     constitutionProvider = new ConstitutionProvider(tempDir);
+  });
+
+  teardown(async () => {
+    // Clean up temporary directory
+    await fs.rmdir(tempDir, { recursive: true }).catch(() => {});
   });
 
   suite('Constitution File Parsing', () => {
@@ -45,8 +42,8 @@ suite('ConstitutionProvider Test Suite', () => {
 
       // Check first article
       const firstArticle = articles[0];
-      assert.ok(firstArticle.label.includes('I.'));
-      assert.ok(firstArticle.label.includes('Test-Driven Development'));
+      assert.ok(firstArticle.label.toString().includes('Article 1'));
+      assert.ok(firstArticle.label.toString().includes('Test-Driven Development'));
     });
 
     test('should parse sections within articles', async () => {
@@ -162,8 +159,8 @@ suite('ConstitutionProvider Test Suite', () => {
         const firstArticle = articles[0];
         const secondArticle = articles[1];
 
-        assert.ok(firstArticle.label.includes('I.'));
-        assert.ok(secondArticle.label.includes('II.'));
+        assert.ok(firstArticle.label.toString().includes('Article 1'));
+        assert.ok(secondArticle.label.toString().includes('Article 2'));
       }
     });
   });
@@ -257,7 +254,7 @@ Some random text here.
 
     const constitutionContent = `# Project Constitution
 
-## I. Test-Driven Development (NON-NEGOTIABLE)
+### I. Test-Driven Development (NON-NEGOTIABLE)
 
 All code must be developed using test-driven development (TDD) methodology.
 
@@ -271,7 +268,7 @@ All code must be developed using test-driven development (TDD) methodology.
 
 No exceptions to this rule. All production code requires tests.
 
-## II. MCP-First Architecture
+### II. MCP-First Architecture
 
 All AI tooling must prioritize Model Context Protocol (MCP) integration.
 
@@ -287,7 +284,7 @@ All AI tooling must prioritize Model Context Protocol (MCP) integration.
 - Consistent tool discovery
 - Better error handling and validation
 
-## III. Code Quality Standards
+### III. Code Quality Standards
 
 Maintain high code quality through automated tooling and manual review.
 
@@ -315,7 +312,7 @@ Maintain high code quality through automated tooling and manual review.
 
     const constitutionContent = `# Project Constitution
 
-## I. Article with Long Content
+### I. Article with Long Content
 
 ${longContent}
 

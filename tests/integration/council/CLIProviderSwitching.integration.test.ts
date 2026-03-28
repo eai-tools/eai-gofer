@@ -232,7 +232,9 @@ describe('CLI Provider Switching Integration', () => {
       // Action: Try to get provider (should throw)
       const factory = getProviderFactory();
 
-      await expect(factory.getCLIProvider()).rejects.toThrow('CLI not found');
+      await expect(factory.getCLIProvider()).rejects.toThrow(
+        'Preferred Claude Code CLI is unavailable'
+      );
     });
 
     it('should handle CLI not installed', async () => {
@@ -255,7 +257,7 @@ describe('CLI Provider Switching Integration', () => {
       // Action: Get provider (should throw)
       const factory = getProviderFactory();
 
-      await expect(factory.getCLIProvider()).rejects.toThrow('CLI not found');
+      await expect(factory.getCLIProvider()).rejects.toThrow('Preferred Codex CLI is unavailable');
     });
   });
 

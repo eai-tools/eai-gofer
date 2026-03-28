@@ -14,7 +14,7 @@ import { PlatformType, PlatformDetectionContext } from './types/CrossPlatformTyp
  *
  * Detection priority:
  * 1. User setting (gofer.defaultCLI) if explicitly set
- * 2. Directory presence (.claude/commands/, .github/prompts/, .agents/skills/)
+ * 2. Directory presence (.claude/commands/, .github/prompts/, .system/skills/)
  * 3. Execution context (VSCode extension host)
  * 4. Fallback to 'auto'
  */

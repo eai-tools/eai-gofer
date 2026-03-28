@@ -21,7 +21,7 @@ export const MCP_CONFIG_FILE = '.vscode/mcp.json';
 
 // GitHub constants
 export const GITHUB_OWNER = 'eai-tools';
-export const GITHUB_REPO = 'gofer-templates';
+export const GITHUB_REPO = 'gofer';
 export const GITHUB_API_BASE = 'https://api.github.com';
 
 // Language Server constants
@@ -42,6 +42,7 @@ export const MCP_TOOLS = {
 // Commands
 export const COMMANDS = {
   initialize: 'gofer.initialize',
+  installOptionalTools: 'gofer.installOptionalTools',
   upgrade: 'gofer.upgrade',
   checkVersion: 'gofer.checkVersion',
   refreshSpecs: 'gofer.refreshSpecs',

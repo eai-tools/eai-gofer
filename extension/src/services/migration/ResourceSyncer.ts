@@ -297,7 +297,7 @@ export class ResourceSyncer implements IResourceOperations {
   /**
    * Setup global Codex symlink for CLI access from any directory
    *
-   * Creates symlink: ~/.codex/skills/{project-name} -> {workspace}/.agents/skills
+   * Creates symlink: ~/.codex/skills/{project-name} -> {workspace}/.system/skills
    * This enables Codex CLI to discover Gofer skills globally without needing
    * to be run from the workspace directory.
    */
@@ -310,7 +310,7 @@ export class ResourceSyncer implements IResourceOperations {
       const homeDir = os.homedir();
       const codexSkillsDir = path.join(homeDir, '.codex', 'skills');
       const symlinkPath = path.join(codexSkillsDir, workspaceName);
-      const targetPath = path.join(this.workspacePath, '.agents', 'skills');
+      const targetPath = path.join(this.workspacePath, '.system', 'skills');
 
       // Check if source directory exists
       const sourceExists = await FileUtils.exists(targetPath);
@@ -455,6 +455,16 @@ export class ResourceSyncer implements IResourceOperations {
       'scripts/node',
       ['*.js'],
       true
+    );
+  }
+
+  public async createPowerShellScripts(): Promise<void> {
+    await this.copyBundledResources(
+      'PowerShell scripts',
+      'powershell-scripts',
+      'scripts/powershell',
+      ['*.ps1'],
+      false
     );
   }
 

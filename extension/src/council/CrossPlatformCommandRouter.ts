@@ -26,7 +26,7 @@ export interface CommandRoutingResult {
 /**
  * Routes commands across different AI platforms with priority fallback
  *
- * Priority: .claude/commands/ > .agents/skills/ > .github/prompts/
+ * Priority: .claude/commands/ > .system/skills/ > .github/prompts/
  *
  * Security: Validates all paths to prevent directory traversal attacks
  */
@@ -64,22 +64,35 @@ export class CrossPlatformCommandRouter {
       return this.routingCache.get(cacheKey)!;
     }
 
-    // Detect platform
-    const platform = targetPlatform || this.platformDetector.getDefaultPlatform();
+    const searchOrder = targetPlatform
+      ? [targetPlatform]
+      : this.getPlatformSearchOrder(this.platformDetector.getDefaultPlatform());
 
-    // Find command with priority fallback
-    const metadata = this.skillDirectoryManager.findCommand(commandName);
+    let metadata: CommandMetadata | null = null;
+    let selectedPlatform: PlatformType | null = null;
+
+    for (const platform of searchOrder) {
+      metadata = this.getMetadataForPlatform(commandName, platform);
+      if (metadata) {
+        selectedPlatform = platform;
+        break;
+      }
+    }
+
     if (!metadata) {
+      if (targetPlatform) {
+        throw new Error(`Command "${commandName}" not found for platform "${targetPlatform}"`);
+      }
       throw new Error(`Command "${commandName}" not found in any platform directory`);
     }
 
     // Build routing result
     const result: CommandRoutingResult = {
       commandName,
-      platform: metadata.platform,
+      platform: selectedPlatform ?? metadata.platform,
       filePath: metadata.filePath,
       metadata,
-      syntax: this.getCommandSyntax(commandName, metadata.platform),
+      syntax: this.getCommandSyntax(commandName, selectedPlatform ?? metadata.platform),
       isAvailable: true,
     };
 
@@ -247,5 +260,32 @@ export class CrossPlatformCommandRouter {
    */
   private isCacheValid(): boolean {
     return Date.now() < this.cacheExpiry;
+  }
+
+  private getPlatformSearchOrder(preferred: PlatformType | 'auto'): PlatformType[] {
+    const defaultPriority: PlatformType[] = ['claude', 'codex', 'copilot'];
+    if (preferred === 'auto') {
+      return defaultPriority;
+    }
+    return [preferred, ...defaultPriority.filter((platform) => platform !== preferred)];
+  }
+
+  private getMetadataForPlatform(commandName: string, platform: PlatformType): CommandMetadata | null {
+    const commandPath = this.getCommandPath(commandName, platform);
+    if (!fs.existsSync(commandPath)) {
+      return null;
+    }
+
+    try {
+      if (platform === 'claude') {
+        return this.metadataExtractor.extractFromClaudeCommandSync(commandPath);
+      }
+      if (platform === 'codex') {
+        return this.metadataExtractor.extractFromCodexSkillSync(commandPath);
+      }
+      return this.metadataExtractor.extractFromCopilotPromptSync(commandPath);
+    } catch {
+      return null;
+    }
   }
 }

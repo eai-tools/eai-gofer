@@ -378,7 +378,7 @@ describe('Cross-Platform Feature Parity', () => {
       expect(claudePath).toMatch(/\.claude\/commands/);
 
       const codexPath = router.getCommandPath(testCommand, 'codex');
-      expect(codexPath).toMatch(/\.agents\/skills/);
+      expect(codexPath).toMatch(/\.system\/skills/);
 
       const copilotPath = router.getCommandPath(testCommand, 'copilot');
       expect(copilotPath).toMatch(/\.github\/prompts/);
@@ -389,17 +389,17 @@ describe('Cross-Platform Feature Parity', () => {
       expect(router.isCommandAvailable('nonexistent_command')).toBe(false);
     });
 
-    it('should load command content for available commands', () => {
+    it('should load command content for available commands', async () => {
       const testCommand = '1_gofer_research';
-      const content = router.loadSkillForPlatform(testCommand, 'claude');
+      const content = await router.loadSkillForPlatform(testCommand, 'claude');
 
       expect(content).toBeDefined();
       expect(content.length).toBeGreaterThan(0);
       expect(content).toContain('#');
     });
 
-    it('should throw error for unavailable commands', () => {
-      expect(() => router.loadSkillForPlatform('nonexistent_command', 'claude')).toThrow();
+    it('should throw error for unavailable commands', async () => {
+      await expect(router.loadSkillForPlatform('nonexistent_command', 'claude')).rejects.toThrow();
     });
   });
 });

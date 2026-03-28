@@ -701,6 +701,97 @@ export class ContextBuilder extends EventEmitter {
   }
 
   /**
+   * T059: Build tiered memory context using L0/L1/L2 layer selection.
+   *
+   * Selects the appropriate layer tier based on relevance:
+   * - L0 (abstract): Default for low-relevance memories
+   * - L1 (overview): When coverage > threshold (configurable, default 30%)
+   * - L2 (detail): On explicit request or for highest-priority memories
+   *
+   * T060: Coverage calculated using existing TF-IDF + trigram similarity.
+   * T061: Layer selected based on coverage threshold.
+   * T062: Returns structured result with coverage metrics and formatted output.
+   *
+   * @param taskDescription - Task description for keyword extraction
+   * @param layer - Force specific layer ('auto' uses coverage-based selection)
+   * @param coverageThreshold - Override coverage threshold (0-100, default 30)
+   * @returns Tiered context with selected layer, memories, and coverage info
+   */
+  async buildTieredMemoryContext(
+    taskDescription: string,
+    layer: 'auto' | 'abstract' | 'overview' | 'detail' = 'auto',
+    coverageThreshold: number = 30
+  ): Promise<{
+    selectedLayer: 'abstract' | 'overview' | 'detail';
+    memories: Memory[];
+    coveragePercent: number;
+    formattedContext: string;
+    tokenCount: number;
+  }> {
+    const taskKeywords = this.extractKeywords(taskDescription);
+    const priorityResult = await this.memoryManager.loadByPriority({
+      limit: 10,
+      taskContext: taskDescription,
+      scope: 'both',
+    });
+    const memories = priorityResult.memories;
+
+    // T060: Calculate coverage
+    const coverage = this.calculateMemoryCoverage(taskKeywords, memories);
+
+    // T061: Select layer based on coverage
+    let selectedLayer: 'abstract' | 'overview' | 'detail';
+    if (layer !== 'auto') {
+      selectedLayer = layer;
+    } else if (coverage.coveragePercent >= coverageThreshold) {
+      selectedLayer = 'overview'; // L1: sufficient coverage
+    } else {
+      selectedLayer = 'abstract'; // L0: insufficient coverage, use compact form
+    }
+
+    // Format memories using the selected layer
+    const formattedContext = this.formatMemoriesWithLayer(memories, selectedLayer);
+    const tokenCount = this.estimateTokens(formattedContext);
+
+    return {
+      selectedLayer,
+      memories,
+      coveragePercent: coverage.coveragePercent,
+      formattedContext,
+      tokenCount,
+    };
+  }
+
+  /**
+   * Format memories using the specified ContextLayer tier.
+   * Falls back to content truncation when layers are unavailable.
+   */
+  private formatMemoriesWithLayer(
+    memories: Memory[],
+    layer: 'abstract' | 'overview' | 'detail'
+  ): string {
+    if (memories.length === 0) return '';
+
+    const lines: string[] = [];
+    for (const m of memories) {
+      let text: string;
+      if (layer === 'abstract' && m.layers?.abstract) {
+        text = m.layers.abstract;
+      } else if (layer === 'overview' && m.layers?.overview) {
+        text = m.layers.overview;
+      } else if (layer === 'overview' && m.layers?.abstract) {
+        text = m.layers.abstract; // fallback to L0
+      } else {
+        // Fallback: truncate content for abstract, use full for others
+        const maxChars = layer === 'abstract' ? 150 : 2000;
+        text = m.content.length > maxChars ? `${m.content.slice(0, maxChars)}...` : m.content;
+      }
+      lines.push(`[${m.category}] ${text}`);
+    }
+    return lines.join('\n\n');
+  }
+
+  /**
    * Build complete context for a task
    *
    * With memory-first loading enabled (default), the build order is:

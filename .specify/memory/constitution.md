@@ -287,3 +287,65 @@ In conflicts between this document and other practices:
 - **Spec Kit**: See `.specify/templates/` for specification and task templates
 
 **Version**: 2.0.0 | **Ratified**: 2025-10-22 | **Last Amended**: 2025-10-22
+
+---
+
+## gofer:// URI Conventions (Feature 029 - Memory System v2)
+
+**Version Added**: 2.1.0 | **Feature**: 029-memory-system-v2
+
+The `gofer://` URI scheme provides uniform resource access across memory,
+specs, agents, and sessions without coupling code to filesystem paths.
+
+### URI Format
+
+```
+gofer://{scope}/{path}[#{fragment}]
+```
+
+### Scopes
+
+| Scope     | Filesystem Mapping                          | Example                                         |
+| --------- | ------------------------------------------- | ----------------------------------------------- |
+| `specs`   | `.specify/specs/{path}`                     | `gofer://specs/029-memory-system-v2/spec.md`    |
+| `memory`  | `.specify/memory/{path}`                    | `gofer://memory/core/task-context.md`           |
+| `agent`   | `.claude/agents/{path}`                     | `gofer://agent/validation-security.md`          |
+| `session` | `.specify/specs/{path}` (feature-scoped)    | `gofer://session/029-memory-system-v2/tasks.md` |
+| `user`    | `~/.claude/projects/memory/{path}`          | `gofer://user/global-patterns.md`               |
+
+### Security Requirements
+
+- **Path traversal MUST be blocked**: `../` sequences and URL-encoded variants
+  (`%2e%2e`) are rejected
+- **Absolute paths MUST be rejected**: double-slash URIs creating `/path` are blocked
+- **Scope MUST be validated**: only the 5 defined scopes are accepted
+- Implementation: `GoferURIResolver.resolve()` in
+  `extension/src/autonomous/memory/GoferURI.ts`
+
+### Usage by Sub-Agents
+
+Sub-agents reference resources via gofer:// URIs to enable location-independent
+access. When an agent receives `gofer://memory/core/task-context.md`, the
+extension resolves it to the current workspace path.
+
+**Example in agent prompt**:
+```
+Load the following contexts before starting:
+- Past patterns: gofer://memory/patterns/auth.md
+- Spec: gofer://specs/029-memory-system-v2/spec.md#requirements
+- Constitution: gofer://memory/constitution.md
+```
+
+### Glob Pattern Support
+
+Use `*` for single-level matching:
+```
+gofer://specs/029-*/research.md     # All 029 research docs
+gofer://agent/validation-*.md       # All validation agents
+```
+
+### Implementation
+
+- **Parser**: `parseGoferURI()` in `GoferURI.ts`
+- **Resolver**: `GoferURIResolver.resolve()` and `resolveGlob()`
+- **Integration**: `MemoryManager.loadByURI()` for memory scope

@@ -76,6 +76,8 @@ interface CitationVerifierLike {
 export class MemoryConsolidator {
   private citationVerifier: CitationVerifierLike | null = null;
   private logger = Logger.for('MemoryConsolidator');
+  /** T083: Track processed sessions to avoid re-extraction */
+  private processedSessionIds = new Set<string>();
 
   constructor(
     private storage: MemoryStorage,
@@ -85,6 +87,117 @@ export class MemoryConsolidator {
   /** T034: Wire CitationVerifier for enhanced staleness checking */
   setCitationVerifier(verifier: CitationVerifierLike): void {
     this.citationVerifier = verifier;
+  }
+
+  /**
+   * T081: Extract patterns from pipeline runs in pipeline.jsonl.
+   *
+   * Reads stage_complete events from pipeline.jsonl and extracts
+   * validation_pattern and lesson memories from referenced report files.
+   * T083: Uses session ID tracking to avoid re-extracting the same run.
+   *
+   * Non-blocking: errors are caught and swallowed (AC-4).
+   *
+   * @returns Number of memories extracted
+   */
+  async extractFromPipelineRuns(): Promise<number> {
+    const pipelineLogPath = path.join(this.workspaceRoot, '.specify', 'logs', 'pipeline.jsonl');
+    let extracted = 0;
+
+    try {
+      const content = await fs.readFile(pipelineLogPath, 'utf-8');
+      const lines = content.trim().split('\n').filter(Boolean);
+
+      for (const line of lines) {
+        try {
+          const event = JSON.parse(line) as Record<string, unknown>;
+          // T082: Only process stage_complete events
+          if (event.event !== 'stage_complete') continue;
+
+          const sessionId = String(event.sessionId ?? '');
+          const stage = String(event.stage ?? '');
+
+          // T083: Idempotency - skip already-processed sessions
+          const key = `${sessionId}-${stage}`;
+          if (this.processedSessionIds.has(key)) continue;
+          this.processedSessionIds.add(key);
+
+          // Look for validation or engineering review reports
+          const reportPath = event.reportPath as string | undefined;
+          if (!reportPath) continue;
+
+          const absPath = path.isAbsolute(reportPath)
+            ? reportPath
+            : path.join(this.workspaceRoot, reportPath);
+
+          const reportContent = await fs.readFile(absPath, 'utf-8').catch(() => null);
+          if (!reportContent) continue;
+
+          // Extract Red/Yellow patterns from the report
+          const count = await this.extractPatternsFromReport(reportContent, sessionId);
+          extracted += count;
+        } catch {
+          // Non-blocking per AC-4
+        }
+      }
+    } catch {
+      // pipeline.jsonl may not exist yet - that's OK
+    }
+
+    if (extracted > 0) {
+      this.logger.info('Extracted patterns from pipeline runs', { count: extracted });
+    }
+    return extracted;
+  }
+
+  /**
+   * Extract Red/Yellow patterns from a report string and save as memories.
+   * Reuses ValidationPatternExtractor logic inline to avoid circular deps.
+   */
+  private async extractPatternsFromReport(
+    reportContent: string,
+    featureId: string
+  ): Promise<number> {
+    const lines = reportContent.split('\n');
+    let count = 0;
+
+    for (const line of lines) {
+      const isRed = /\*\*red\*\*:/i.test(line) || /^-\s*red:/i.test(line);
+      const isYellow = /\*\*yellow\*\*:/i.test(line) || /^-\s*yellow:/i.test(line);
+
+      if (!isRed && !isYellow) continue;
+
+      const description = line
+        .replace(/^#+\s*/, '')
+        .replace(/^\s*[-*]\s*/, '')
+        .replace(/\*\*/g, '')
+        .replace(/\b(red|yellow)\b:?\s*/i, '')
+        .trim();
+
+      if (description.length < 10) continue;
+
+      const category = isRed ? 'validation_pattern' : 'lesson';
+      const tags = isRed
+        ? ['#validation_pattern', '#severity:red', '#auto_extracted']
+        : ['#lesson', '#severity:yellow', '#auto_extracted'];
+
+      try {
+        await this.storage.append({
+          category,
+          tags,
+          scope: 'local',
+          content: description,
+          lastUsed: Date.now(),
+          usedCount: 0,
+          learnedFrom: featureId,
+        });
+        count++;
+      } catch {
+        // Non-blocking
+      }
+    }
+
+    return count;
   }
 
   /**

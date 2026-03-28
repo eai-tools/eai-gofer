@@ -136,6 +136,11 @@
         "icon": "$(arrow-up)"
       },
       {
+        "command": "gofer.queryMemoryUsage",
+        "title": "Gofer: Query Memory Usage",
+        "icon": "$(graph)"
+      },
+      {
         "command": "gofer.viewCompactionHistory",
         "title": "Gofer: View Compaction History",
         "icon": "$(history)"

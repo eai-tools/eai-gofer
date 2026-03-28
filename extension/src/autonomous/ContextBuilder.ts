@@ -278,6 +278,8 @@ export class ContextBuilder extends EventEmitter {
   };
   /** T063: Whether to use layered memory instead of direct memory/observation access */
   private useLayeredMemory = false;
+  /** T092: Track last loading decisions for getLoadingSummary() */
+  private lastLoadingDecisions: LoadingDecision[] = [];
   /** 018: Optional parallel analysis framework for sub-agent partition recommendations */
   private parallelAnalysisFramework?: {
     generateRecommendations(
@@ -792,6 +794,37 @@ export class ContextBuilder extends EventEmitter {
   }
 
   /**
+   * T092: Get a summary of loading decisions from the last buildContext() call.
+   *
+   * Useful for inline annotations and the queryMemoryUsage command.
+   *
+   * @returns Summary string with loaded/skipped decision counts and token usage
+   */
+  getLoadingSummary(): string {
+    if (this.lastLoadingDecisions.length === 0) {
+      return 'No loading decisions recorded yet.';
+    }
+
+    const loaded = this.lastLoadingDecisions.filter((d) => d.decision === 'loaded');
+    const skipped = this.lastLoadingDecisions.filter((d) => d.decision === 'skipped');
+    const totalTokens = loaded.reduce((sum, d) => sum + (d.tokens ?? 0), 0);
+
+    const lines = [
+      `Loaded: ${loaded.length} sources (${totalTokens} tokens)`,
+      `Skipped: ${skipped.length} sources`,
+    ];
+
+    for (const d of loaded) {
+      lines.push(`  ✓ ${d.source}: ${d.reason ?? ''} (${d.tokens ?? 0} tokens)`);
+    }
+    for (const d of skipped) {
+      lines.push(`  ✗ ${d.source}: ${d.reason ?? ''}`);
+    }
+
+    return lines.join('\n');
+  }
+
+  /**
    * Build complete context for a task
    *
    * With memory-first loading enabled (default), the build order is:
@@ -884,6 +917,8 @@ export class ContextBuilder extends EventEmitter {
 
     // Emit loading decision events for logging
     this.emitLoadingDecisions(loadingDecisions, memoryCoverage);
+    // T092: Store for getLoadingSummary()
+    this.lastLoadingDecisions = loadingDecisions;
 
     return {
       fullContext,

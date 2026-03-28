@@ -77,30 +77,30 @@ export class CrossPlatformCommandRouter {
 
   /**
    * Get command file path for current platform
-   * Resolves command name to absolute file path
+   * Resolves command name to absolute file path for a given platform
    *
    * @param commandName - Command to locate
-   * @returns Promise<string> - Absolute path to command file
-   * @throws CommandNotFoundError if command doesn't exist
+   * @param platform - Target platform ('claude' | 'codex' | 'copilot')
+   * @returns string - Absolute path to command file
    */
-  async getCommandPath(commandName: string): Promise<string>;
+  getCommandPath(commandName: string, platform: PlatformType): string;
 
   /**
-   * List all available commands for current platform
+   * List all available command names across all platforms
    * Used for command discovery and auto-completion
    *
-   * @returns Promise<CommandMetadata[]> - Array of command metadata
+   * @returns Promise<string[]> - Array of command names (sorted)
    */
-  async listCommands(): Promise<CommandMetadata[]>;
+  async listCommands(): Promise<string[]>;
 
   /**
-   * Validate command availability on current platform
-   * Checks if command file exists and is readable
+   * Validate command availability on any platform
+   * Checks if command file exists via SkillDirectoryManager
    *
    * @param commandName - Command to validate
-   * @returns Promise<boolean> - true if command is available
+   * @returns boolean - true if command is available on any platform
    */
-  async isCommandAvailable(commandName: string): Promise<boolean>;
+  isCommandAvailable(commandName: string): boolean;
 
   /**
    * Get platform-specific command syntax

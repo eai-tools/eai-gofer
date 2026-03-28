@@ -136,8 +136,8 @@ export class MemoryConsolidator {
           // Extract Red/Yellow patterns from the report
           const count = await this.extractPatternsFromReport(reportContent, sessionId);
           extracted += count;
-        } catch {
-          // Non-blocking per AC-4
+        } catch (err) {
+          this.logger.debug('Pattern extraction skipped (non-blocking)', err);
         }
       }
     } catch {
@@ -192,8 +192,8 @@ export class MemoryConsolidator {
           learnedFrom: featureId,
         });
         count++;
-      } catch {
-        // Non-blocking
+      } catch (err) {
+        this.logger.debug('Memory append failed (non-blocking)', err);
       }
     }
 
@@ -310,16 +310,24 @@ export class MemoryConsolidator {
     const staleUpdates: Array<Promise<unknown>> = [];
     let flaggedStale = 0;
 
-    for (const memory of memories) {
-      if (memory.citations && memory.citations.length > 0 && !memory.stale) {
-        const isStale = await this.checkCitationStaleness(memory);
-        if (isStale) {
-          staleUpdates.push(this.storage.update(memory.id, { stale: true }));
-          flaggedStale++;
-        }
+    // Batch all citation-staleness checks with Promise.all to avoid N+1 sequential I/O
+    const memoriesWithCitations = memories.filter(
+      (m) => m.citations && m.citations.length > 0 && !m.stale
+    );
+    const stalenessResults = await Promise.all(
+      memoriesWithCitations.map((m) =>
+        this.checkCitationStaleness(m).then((isStale) => ({ memory: m, isStale }))
+      )
+    );
+    for (const { memory, isStale } of stalenessResults) {
+      if (isStale) {
+        staleUpdates.push(this.storage.update(memory.id, { stale: true }));
+        flaggedStale++;
       }
+    }
 
-      // T034: Enhanced staleness via CitationVerifier — check content references
+    // T034: Enhanced staleness via CitationVerifier — check content references
+    for (const memory of memories) {
       if (this.citationVerifier && !memory.stale) {
         const result = this.citationVerifier.verifyCitations(memory.content);
         if (result.needsReview && result.staleCount && result.totalCount) {

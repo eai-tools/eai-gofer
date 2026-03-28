@@ -87,8 +87,8 @@ describe('Cross-Platform Feature Parity', () => {
       expect(router.getCommandSyntax(testCommand, 'codex')).toBe('$ $1_gofer_research');
     });
 
-    it('should list all available commands', () => {
-      const availableCommands = router.listCommands();
+    it('should list all available commands', async () => {
+      const availableCommands = await router.listCommands();
 
       expect(availableCommands.length).toBeGreaterThanOrEqual(16);
       expect(availableCommands).toContain('1_gofer_research');

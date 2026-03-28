@@ -177,58 +177,58 @@ includes 5-10 memories tagged #security, verify citation rate ≥50%
 
 ### Implementation Tasks
 
-- [ ] T027 [US-P1-01] Create SubAgentContextFactory in
+- [x] T027 [US-P1-01] Create SubAgentContextFactory in
       `/Users/douglaswross/Code/gofer/extension/src/autonomous/memory/SubAgentContextFactory.ts`
       (~400 LOC, per plan.md Task 3.1)
-- [ ] T028 [US-P1-01] [P] Implement buildValidationContext() method for 6
+- [x] T028 [US-P1-01] [P] Implement buildValidationContext() method for 6
       categories
       (correctness/security/performance/integration/test-quality/standards) in
       SubAgentContextFactory.ts (per FR-016)
-- [ ] T029 [US-P1-01] [P] Add category-specific filtering logic (tags + category
+- [x] T029 [US-P1-01] [P] Add category-specific filtering logic (tags + category
       matching) in SubAgentContextFactory.ts (per AC-1, AC-2)
-- [ ] T030 [US-P1-01] [P] Implement token budget enforcement (5k-10k per agent)
+- [x] T030 [US-P1-01] [P] Implement token budget enforcement (5k-10k per agent)
       in SubAgentContextFactory.ts (per AC-3)
-- [ ] T031 [US-P1-01] [P] Add formatMemories() method with L1 layer selection in
+- [x] T031 [US-P1-01] [P] Add formatMemories() method with L1 layer selection in
       SubAgentContextFactory.ts (per AC-3, plan.md lines 875-901)
-- [ ] T032 [US-P1-01] Add configurable coverage threshold in
+- [x] T032 [US-P1-01] Add configurable coverage threshold in
       `/Users/douglaswross/Code/gofer/extension/src/config.ts` ConfigManager
       class (per plan.md Task 3.1, lines 766-788)
-- [ ] T033 [US-P1-01] Add gofer.memory.coverageThreshold setting to
+- [x] T033 [US-P1-01] Add gofer.memory.coverageThreshold setting to
       `/Users/douglaswross/Code/gofer/extension/package.json` (default: 30, per
       FR-004)
-- [ ] T034 [US-P1-01] [P] Create unit test
+- [x] T034 [US-P1-01] [P] Create unit test
       `/Users/douglaswross/Code/gofer/tests/unit/autonomous/SubAgentContextFactory.test.ts`
       for validation context generation (~250 LOC)
-- [ ] T035 [US-P1-01] [P] Verify category filtering (security memories for
+- [x] T035 [US-P1-01] [P] Verify category filtering (security memories for
       security agent) in SubAgentContextFactory.test.ts
-- [ ] T036 [US-P1-01] [P] Verify token budget enforcement in
+- [x] T036 [US-P1-01] [P] Verify token budget enforcement in
       SubAgentContextFactory.test.ts (stops at 5k-10k)
-- [ ] T037 [US-P1-01] Update
+- [x] T037 [US-P1-01] Update
       `/Users/douglaswross/Code/gofer/.claude/commands/6_gofer_validate.md` with
       memory injection instructions (lines 136-180, per plan.md Task 3.3)
-- [ ] T038 [US-P1-01] Add SubAgentContextFactory invocation before Task tool
+- [x] T038 [US-P1-01] Add SubAgentContextFactory invocation before Task tool
       dispatch in 6_gofer_validate.md (per plan.md lines 997-1040)
-- [ ] T039 [US-P1-01] [P] Create integration test
+- [x] T039 [US-P1-01] [P] Create integration test
       `/Users/douglaswross/Code/gofer/tests/integration/commands/validate.integration.test.ts`
       for validation with memory injection
 
 ### Memory Citation Tracking Tasks (AC-6)
 
-- [ ] T040 [US-P1-01] Create MemoryCitationTracker in
+- [x] T040 [US-P1-01] Create MemoryCitationTracker in
       `/Users/douglaswross/Code/gofer/extension/src/autonomous/memory/MemoryCitationTracker.ts`
       (~200 LOC, per plan.md Task 3.8)
-- [ ] T041 [US-P1-01] [P] Implement trackInjectedMemories() method in
+- [x] T041 [US-P1-01] [P] Implement trackInjectedMemories() method in
       MemoryCitationTracker.ts (per plan.md lines 1353-1368)
-- [ ] T042 [US-P1-01] [P] Implement verifyMemoryCitations() method with pattern
+- [x] T042 [US-P1-01] [P] Implement verifyMemoryCitations() method with pattern
       matching in MemoryCitationTracker.ts (per plan.md lines 1374-1414)
-- [ ] T043 [US-P1-01] [P] Implement logCitationMetrics() method in
+- [x] T043 [US-P1-01] [P] Implement logCitationMetrics() method in
       MemoryCitationTracker.ts (per plan.md lines 1418-1432)
-- [ ] T044 [US-P1-01] Update 6_gofer_validate.md with citation verification step
+- [x] T044 [US-P1-01] Update 6_gofer_validate.md with citation verification step
       (lines 180-200, per plan.md Task 3.8)
-- [ ] T045 [US-P1-01] [P] Create unit test
+- [x] T045 [US-P1-01] [P] Create unit test
       `/Users/douglaswross/Code/gofer/tests/unit/autonomous/MemoryCitationTracker.test.ts`
       for citation verification (~150 LOC)
-- [ ] T046 [US-P1-01] [P] Verify citation tracking logs to
+- [x] T046 [US-P1-01] [P] Verify citation tracking logs to
       `/Users/douglaswross/Code/gofer/.specify/logs/memory-usage.jsonl` with
       per-category rates (per plan.md lines 1461-1477)
 

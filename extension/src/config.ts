@@ -86,6 +86,7 @@ export const CONFIG_KEYS = {
   budgetMaxCostUsd: 'gofer.budgets.maxCostUsd',
   budgetMaxTokensPerRun: 'gofer.budgets.maxTokensPerRun',
   budgetEnforcementMode: 'gofer.budgets.enforcementMode',
+  memoryCoverageThreshold: 'gofer.memory.coverageThreshold',
 } as const;
 
 // Default values
@@ -110,6 +111,7 @@ export const DEFAULTS = {
   budgetMaxCostUsd: 10.0,
   budgetMaxTokensPerRun: 500_000,
   budgetEnforcementMode: 'advisory',
+  memoryCoverageThreshold: 30,
 } as const;
 
 // File patterns
@@ -354,6 +356,17 @@ export class ConfigManager {
     return this.config.get<'advisory' | 'truncate' | 'blocking'>(
       CONFIG_KEYS.budgetEnforcementMode.replace('gofer.', ''),
       DEFAULTS.budgetEnforcementMode as 'advisory'
+    );
+  }
+
+  /**
+   * T032: Get memory coverage threshold for tiered loading (0-100, default 30)
+   * When memory coverage exceeds this %, skip research docs and load memories only.
+   */
+  public getMemoryCoverageThreshold(): number {
+    return this.config.get<number>(
+      CONFIG_KEYS.memoryCoverageThreshold.replace('gofer.', ''),
+      DEFAULTS.memoryCoverageThreshold
     );
   }
 

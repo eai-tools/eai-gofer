@@ -131,6 +131,11 @@
         "icon": "$(library)"
       },
       {
+        "command": "gofer.migrateMemoriesToLayered",
+        "title": "Gofer: Migrate Memories to Layered Format",
+        "icon": "$(arrow-up)"
+      },
+      {
         "command": "gofer.viewCompactionHistory",
         "title": "Gofer: View Compaction History",
         "icon": "$(history)"
@@ -859,6 +864,14 @@
           ],
           "description": "How the cost budget is enforced when limits are exceeded",
           "markdownDescription": "Controls what happens when a pipeline run exceeds the configured budget.\n\n- **advisory**: Warnings logged to console and status bar — pipeline continues\n- **truncate**: Context is aggressively reduced to lower costs\n- **blocking**: Pipeline execution halts until budget is reset\n\nBudget events are logged to `.specify/logs/gofer-run-ledger.jsonl`."
+        },
+        "gofer.memory.coverageThreshold": {
+          "type": "number",
+          "default": 30,
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Memory coverage threshold (0-100%)",
+          "markdownDescription": "**Memory Coverage Threshold** for tiered context loading (Feature 029).\n\nWhen memory coverage of task keywords meets or exceeds this percentage, research documents are skipped and memories are loaded exclusively, reducing context tokens by 30-60%.\n\n- `30` (default): Skip research docs when 30%+ of task keywords are covered by existing memories\n- Lower values: More aggressive memory-first loading\n- Higher values: Research docs loaded more often"
         },
         "gofer.aiUsage.statusBar.enabled": {
           "type": "boolean",

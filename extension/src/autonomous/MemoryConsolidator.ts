@@ -261,69 +261,14 @@ export class MemoryConsolidator {
     }
 
     // Step 2: Flag stale memories (cited files changed)
-    for (const memory of allMemories) {
-      if (memory.citations && memory.citations.length > 0 && !memory.stale) {
-        const isStale = await this.checkCitationStaleness(memory);
-        if (isStale) {
-          await this.storage.update(memory.id, { stale: true });
-          flaggedStale++;
-        }
-      }
-
-      // T034: Enhanced staleness via CitationVerifier — check content references
-      if (this.citationVerifier && !memory.stale) {
-        const result = this.citationVerifier.verifyCitations(memory.content);
-        if (result.needsReview && result.staleCount && result.totalCount) {
-          const staleRatio = result.staleCount / result.totalCount;
-          if (staleRatio > 0.5) {
-            // >50% stale citations — reduce priority by 2
-            const newPriority = Math.max(0, (memory.priorityIndex ?? 5) - 2);
-            await this.storage.update(memory.id, {
-              stale: true,
-              priorityIndex: newPriority,
-            });
-            flaggedStale++;
-          }
-        }
-      }
-    }
+    const now = Date.now();
+    flaggedStale = await this.compactStaleMemories(allMemories);
 
     // Step 3: Compact old low-use memories
-    const now = Date.now();
-    const compactionAge = COMPACTION_AGE_DAYS * 24 * 60 * 60 * 1000;
-    for (const memory of allMemories) {
-      if (toArchive.includes(memory.id)) continue; // Already being archived
-
-      const age = now - memory.created;
-      const usage = memory.usedCount ?? 0;
-
-      if (age > compactionAge && usage < COMPACTION_MIN_USES) {
-        // Compact: truncate content to first 200 chars + "[compacted]" marker
-        if (memory.content.length > 200) {
-          const compactedContent = memory.content.substring(0, 200) + '... [compacted]';
-          await this.storage.update(memory.id, {
-            content: compactedContent,
-            compactedFrom: memory.id,
-          });
-          compacted++;
-        }
-      }
-    }
+    compacted = await this.applyCompression(allMemories, toArchive, now);
 
     // Step 4: Apply priority decay to inactive memories
-    const decayAge = DECAY_INACTIVE_DAYS * 24 * 60 * 60 * 1000;
-    for (const memory of allMemories) {
-      if (toArchive.includes(memory.id)) continue;
-
-      const timeSinceUse = now - memory.lastUsed;
-      const currentPriority = memory.priorityIndex ?? 0;
-
-      if (timeSinceUse > decayAge && currentPriority > 0) {
-        const newPriority = Math.max(0, currentPriority - DECAY_AMOUNT);
-        await this.storage.update(memory.id, { priorityIndex: newPriority });
-        decayed++;
-      }
-    }
+    decayed = await this.applyPriorityDecay(allMemories, toArchive, now);
 
     // Step 5: Archive
     let archived = 0;
@@ -351,6 +296,103 @@ export class MemoryConsolidator {
     );
 
     return result;
+  }
+
+  // --------------------------------------------------------------------------
+  // Consolidation Helpers
+  // --------------------------------------------------------------------------
+
+  /**
+   * Step 2: Flag stale memories whose cited files have changed.
+   * Batches storage.update() calls with Promise.all to avoid N+1 pattern.
+   */
+  private async compactStaleMemories(memories: Memory[]): Promise<number> {
+    const staleUpdates: Array<Promise<unknown>> = [];
+    let flaggedStale = 0;
+
+    for (const memory of memories) {
+      if (memory.citations && memory.citations.length > 0 && !memory.stale) {
+        const isStale = await this.checkCitationStaleness(memory);
+        if (isStale) {
+          staleUpdates.push(this.storage.update(memory.id, { stale: true }));
+          flaggedStale++;
+        }
+      }
+
+      // T034: Enhanced staleness via CitationVerifier — check content references
+      if (this.citationVerifier && !memory.stale) {
+        const result = this.citationVerifier.verifyCitations(memory.content);
+        if (result.needsReview && result.staleCount && result.totalCount) {
+          const staleRatio = result.staleCount / result.totalCount;
+          if (staleRatio > 0.5) {
+            const newPriority = Math.max(0, (memory.priorityIndex ?? 5) - 2);
+            staleUpdates.push(
+              this.storage.update(memory.id, { stale: true, priorityIndex: newPriority })
+            );
+            flaggedStale++;
+          }
+        }
+      }
+    }
+
+    await Promise.all(staleUpdates);
+    return flaggedStale;
+  }
+
+  /**
+   * Step 3: Compact old low-use memories by truncating content.
+   * Uses Promise.all to batch storage.update() calls.
+   */
+  private async applyCompression(
+    memories: Memory[],
+    toArchive: string[],
+    now: number
+  ): Promise<number> {
+    const compactionAge = COMPACTION_AGE_DAYS * 24 * 60 * 60 * 1000;
+    const staleMemories = memories.filter((memory) => {
+      if (toArchive.includes(memory.id)) return false;
+      const age = now - memory.created;
+      const usage = memory.usedCount ?? 0;
+      return age > compactionAge && usage < COMPACTION_MIN_USES && memory.content.length > 200;
+    });
+
+    await Promise.all(
+      staleMemories.map((memory) =>
+        this.storage.update(memory.id, {
+          content: memory.content.substring(0, 200) + '... [compacted]',
+          compactedFrom: memory.id,
+        })
+      )
+    );
+
+    return staleMemories.length;
+  }
+
+  /**
+   * Step 4: Apply priority decay to inactive memories.
+   * Uses Promise.all to batch storage.update() calls.
+   */
+  private async applyPriorityDecay(
+    memories: Memory[],
+    toArchive: string[],
+    now: number
+  ): Promise<number> {
+    const decayAge = DECAY_INACTIVE_DAYS * 24 * 60 * 60 * 1000;
+    const decayMemories = memories.filter((memory) => {
+      if (toArchive.includes(memory.id)) return false;
+      const timeSinceUse = now - memory.lastUsed;
+      const currentPriority = memory.priorityIndex ?? 0;
+      return timeSinceUse > decayAge && currentPriority > 0;
+    });
+
+    await Promise.all(
+      decayMemories.map((memory) => {
+        const newPriority = Math.max(0, (memory.priorityIndex ?? 0) - DECAY_AMOUNT);
+        return this.storage.update(memory.id, { priorityIndex: newPriority });
+      })
+    );
+
+    return decayMemories.length;
   }
 
   // --------------------------------------------------------------------------

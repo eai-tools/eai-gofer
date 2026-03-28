@@ -371,15 +371,15 @@ gofer://specs/029-\*/research.md, verify scoped search.
 
 ### Implementation Tasks
 
-- [ ] T066 [US-P1-04] Document URI conventions in
+- [x] T066 [US-P1-04] Document URI conventions in
       `/Users/douglaswross/Code/gofer/.specify/memory/constitution.md` (per
       AC-6)
-- [ ] T067 [US-P1-04] [P] Add URI resolver examples to SubAgentContextFactory
+- [x] T067 [US-P1-04] [P] Add URI resolver examples to SubAgentContextFactory
       (using gofer:// for spec loading per plan.md line 857)
-- [ ] T068 [US-P1-04] [P] Update validation/research agent prompts with gofer://
+- [x] T068 [US-P1-04] [P] Update validation/research agent prompts with gofer://
       URI examples in
       `/Users/douglaswross/Code/gofer/.claude/agents/validation-*.md` files
-- [ ] T069 [US-P1-04] [P] Create integration test for URI-based context building
+- [x] T069 [US-P1-04] [P] Create integration test for URI-based context building
       in SubAgentContextFactory.test.ts (verify scope resolution, glob patterns)
 
 **Checkpoint**: gofer:// URIs work end-to-end for memory and spec discovery

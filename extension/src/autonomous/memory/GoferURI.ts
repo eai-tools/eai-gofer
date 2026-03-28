@@ -76,9 +76,7 @@ export function parseGoferURI(uri: string): GoferURI {
   // Validate scope
   const validScopes = ['specs', 'memory', 'agent', 'session', 'user'];
   if (!validScopes.includes(scope)) {
-    throw new Error(
-      `Invalid scope '${scope}': must be one of ${validScopes.join(', ')}`
-    );
+    throw new Error(`Invalid scope '${scope}': must be one of ${validScopes.join(', ')}`);
   }
 
   return {
@@ -158,9 +156,7 @@ export class GoferURIResolver {
 
     // Security: Reject absolute paths (double-slash in URI creates /path after parsing)
     if (path.isAbsolute(decodedPath)) {
-      throw new Error(
-        `Path traversal detected: '${parsed.path}' escapes scope '${parsed.scope}'`
-      );
+      throw new Error(`Path traversal detected: '${parsed.path}' escapes scope '${parsed.scope}'`);
     }
 
     // Resolve path
@@ -169,11 +165,8 @@ export class GoferURIResolver {
     // Security: Prevent path traversal (catches ../ sequences)
     const normalized = path.normalize(fullPath);
     const normalizedBase = path.normalize(basePath);
-    if (!normalized.startsWith(normalizedBase + path.sep) &&
-        normalized !== normalizedBase) {
-      throw new Error(
-        `Path traversal detected: '${parsed.path}' escapes scope '${parsed.scope}'`
-      );
+    if (!normalized.startsWith(normalizedBase + path.sep) && normalized !== normalizedBase) {
+      throw new Error(`Path traversal detected: '${parsed.path}' escapes scope '${parsed.scope}'`);
     }
 
     return normalized;
@@ -207,19 +200,20 @@ export class GoferURIResolver {
     }
 
     // For glob patterns, use simple directory traversal
-    // (In production, this would use a glob library like 'fast-glob')
     // Decode percent-encoded characters before path traversal check (mirrors resolve())
     const decodedGlobPath = decodeURIComponent(parsed.path);
-    if (decodedGlobPath !== parsed.path) {
-      // Re-check for traversal after decoding
-      const testPath = path.normalize(path.join(basePath, decodedGlobPath));
-      if (!testPath.startsWith(path.normalize(basePath) + path.sep) && testPath !== path.normalize(basePath)) {
-        return [];
-      }
+    const resolvedGlobPath = path.normalize(path.join(basePath, decodedGlobPath));
+    // Always verify containment, not just when encoding was present
+    if (!resolvedGlobPath.startsWith(basePath + path.sep) && resolvedGlobPath !== basePath) {
+      return [];
     }
-    const globPath = path.join(basePath, decodedGlobPath);
+    const globPath = resolvedGlobPath;
     const dirPath = path.dirname(globPath);
     const filePattern = path.basename(globPath);
+
+    // Hoist RegExp compilation outside the loop
+    const regexPattern = filePattern.replace(/\./g, '\\.').replace(/\*/g, '.*').replace(/\?/g, '.');
+    const fileRegex = new RegExp(`^${regexPattern}$`);
 
     try {
       const entries = await fs.readdir(dirPath, { withFileTypes: true });
@@ -228,8 +222,7 @@ export class GoferURIResolver {
       for (const entry of entries) {
         const entryPath = path.join(dirPath, entry.name);
 
-        // Simple wildcard matching (basic implementation)
-        if (this.matchesPattern(entry.name, filePattern)) {
+        if (fileRegex.test(entry.name)) {
           // Security: Verify path doesn't escape scope
           const normalized = path.normalize(entryPath);
           const normalizedBase = path.normalize(basePath);
@@ -243,21 +236,6 @@ export class GoferURIResolver {
     } catch {
       return []; // Directory doesn't exist
     }
-  }
-
-  /**
-   * Simple wildcard pattern matching (basic implementation)
-   * In production, use a proper glob library
-   */
-  private matchesPattern(name: string, pattern: string): boolean {
-    // Convert glob pattern to regex
-    const regexPattern = pattern
-      .replace(/\./g, '\\.')
-      .replace(/\*/g, '.*')
-      .replace(/\?/g, '.');
-
-    const regex = new RegExp(`^${regexPattern}$`);
-    return regex.test(name);
   }
 
   /**

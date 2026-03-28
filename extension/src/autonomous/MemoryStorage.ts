@@ -71,6 +71,12 @@ export class MemoryStorage {
   /** Serialises concurrent appendFile calls to prevent JSONL corruption (NFR-017) */
   private writeQueue: Promise<void> = Promise.resolve();
 
+  /** Routes all jsonlPath writes through the write queue to prevent concurrent corruption */
+  private enqueueWrite(line: string): Promise<void> {
+    this.writeQueue = this.writeQueue.then(() => fs.appendFile(this.jsonlPath, line, 'utf-8'));
+    return this.writeQueue;
+  }
+
   constructor(workspaceRoot: string) {
     this.memoryDir = path.join(workspaceRoot, '.specify', 'memory');
     this.jsonlPath = path.join(this.memoryDir, JSONL_FILENAME);
@@ -290,8 +296,7 @@ export class MemoryStorage {
 
     // Serialise all JSONL writes through a queue to prevent concurrent corruption (NFR-017)
     const line = JSON.stringify(serialized) + '\n';
-    this.writeQueue = this.writeQueue.then(() => fs.appendFile(this.jsonlPath, line, 'utf-8'));
-    await this.writeQueue;
+    await this.enqueueWrite(line);
 
     // Update index
     this.indexMemory(fullMemory);
@@ -320,7 +325,7 @@ export class MemoryStorage {
 
     // Append updated version to JSONL
     const line = JSON.stringify(serialized) + '\n';
-    await fs.appendFile(this.jsonlPath, line, 'utf-8');
+    await this.enqueueWrite(line);
 
     // Update index
     this.indexMemory(updated);
@@ -338,7 +343,7 @@ export class MemoryStorage {
 
     // Append tombstone
     const tombstone = JSON.stringify({ id, _deleted: true }) + '\n';
-    await fs.appendFile(this.jsonlPath, tombstone, 'utf-8');
+    await this.enqueueWrite(tombstone);
 
     // Remove from index
     this.index.delete(id);
@@ -507,10 +512,10 @@ export class MemoryStorage {
     const lines = toArchive.map((m) => JSON.stringify(m)).join('\n') + '\n';
     await fs.appendFile(this.archivePath, lines, 'utf-8');
 
-    // Append tombstones to active JSONL
+    // Append tombstones to active JSONL (via write queue to prevent concurrent corruption)
     const tombstones =
       toArchive.map((m) => JSON.stringify({ id: m.id, _deleted: true })).join('\n') + '\n';
-    await fs.appendFile(this.jsonlPath, tombstones, 'utf-8');
+    await this.enqueueWrite(tombstones);
 
     return toArchive.length;
   }

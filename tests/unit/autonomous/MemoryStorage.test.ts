@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { MemoryStorage } from '../../../extension/src/autonomous/MemoryStorage';
 import * as fs from 'fs/promises';
 
-vi.mock('fs/promises');
+vi.mock('fs/promises'); // mock-justified: filesystem I/O boundary — no real FS in unit tests
 
 describe('MemoryStorage', () => {
   let storage: MemoryStorage;
@@ -24,10 +24,9 @@ describe('MemoryStorage', () => {
   describe('initialize', () => {
     it('should create memory directory on initialize', async () => {
       await storage.initialize();
-      expect(fs.mkdir).toHaveBeenCalledWith(
-        expect.stringContaining('.specify/memory'),
-        { recursive: true }
-      );
+      expect(fs.mkdir).toHaveBeenCalledWith(expect.stringContaining('.specify/memory'), {
+        recursive: true,
+      });
     });
 
     it('should handle empty state gracefully', async () => {
@@ -117,8 +116,8 @@ describe('MemoryStorage', () => {
       vi.mocked(fs.access).mockResolvedValue(undefined);
       vi.mocked(fs.readFile).mockResolvedValue(
         '{"id":"good","category":"test","tags":[],"scope":"local","content":"ok","created":1,"lastUsed":1,"usedCount":0,"learnedFrom":"t"}\n' +
-        'INVALID JSON LINE\n' +
-        '{"id":"good2","category":"test","tags":[],"scope":"local","content":"ok2","created":2,"lastUsed":2,"usedCount":0,"learnedFrom":"t"}\n'
+          'INVALID JSON LINE\n' +
+          '{"id":"good2","category":"test","tags":[],"scope":"local","content":"ok2","created":2,"lastUsed":2,"usedCount":0,"learnedFrom":"t"}\n'
       );
 
       await storage.initialize();
@@ -169,6 +168,36 @@ describe('MemoryStorage', () => {
 
       expect(storage.get(memory.id)).toEqual(memory);
       expect(storage.count()).toBe(1);
+    });
+
+    it('should serialize concurrent append calls and produce correct JSONL', async () => {
+      vi.mocked(fs.access).mockResolvedValue(undefined);
+      vi.mocked(fs.readFile).mockResolvedValue('');
+      await storage.initialize();
+
+      vi.mocked(fs.appendFile).mockResolvedValue(undefined);
+
+      const base = {
+        tags: ['#test'],
+        scope: 'local' as const,
+        lastUsed: Date.now(),
+        usedCount: 0,
+        learnedFrom: 'test',
+      };
+      const [m1, m2, m3] = await Promise.all([
+        storage.append({ ...base, category: 'c1', content: 'content-c1' }),
+        storage.append({ ...base, category: 'c2', content: 'content-c2' }),
+        storage.append({ ...base, category: 'c3', content: 'content-c3' }),
+      ]);
+
+      // All 3 should have been written
+      expect(fs.appendFile).toHaveBeenCalledTimes(3);
+      // Each call should have been for different memories
+      const calls = vi.mocked(fs.appendFile).mock.calls;
+      const writtenIds = calls.map((call) => JSON.parse((call[1] as string).trim()).id);
+      expect(writtenIds).toContain(m1.id);
+      expect(writtenIds).toContain(m2.id);
+      expect(writtenIds).toContain(m3.id);
     });
   });
 
@@ -262,7 +291,7 @@ describe('MemoryStorage', () => {
       vi.mocked(fs.access).mockResolvedValue(undefined);
       vi.mocked(fs.readFile).mockResolvedValue(
         '{"id":"arc-1","category":"test","tags":[],"scope":"local","content":"to archive","created":1000,"lastUsed":1000,"usedCount":0,"learnedFrom":"t"}\n' +
-        '{"id":"arc-2","category":"test","tags":[],"scope":"local","content":"keep this","created":2000,"lastUsed":2000,"usedCount":0,"learnedFrom":"t"}\n'
+          '{"id":"arc-2","category":"test","tags":[],"scope":"local","content":"keep this","created":2000,"lastUsed":2000,"usedCount":0,"learnedFrom":"t"}\n'
       );
       await storage.initialize();
 
@@ -287,8 +316,8 @@ describe('MemoryStorage', () => {
       vi.mocked(fs.access).mockResolvedValue(undefined);
       vi.mocked(fs.readFile).mockResolvedValue(
         '{"id":"c1","category":"test","tags":[],"scope":"local","content":"keep","created":1000,"lastUsed":1000,"usedCount":0,"learnedFrom":"t"}\n' +
-        '{"id":"c1","_deleted":true}\n' +
-        '{"id":"c2","category":"test","tags":[],"scope":"local","content":"active","created":2000,"lastUsed":2000,"usedCount":0,"learnedFrom":"t"}\n'
+          '{"id":"c1","_deleted":true}\n' +
+          '{"id":"c2","category":"test","tags":[],"scope":"local","content":"active","created":2000,"lastUsed":2000,"usedCount":0,"learnedFrom":"t"}\n'
       );
       await storage.initialize();
 

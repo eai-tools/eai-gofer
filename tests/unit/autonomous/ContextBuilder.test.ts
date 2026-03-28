@@ -1241,4 +1241,108 @@ describe('ContextBuilder', () => {
       expect(builder).toBeDefined();
     });
   });
+
+  // T063-T065: Tiered Context Loading (Feature 029)
+  describe('T059: buildTieredMemoryContext()', () => {
+    it('T063: returns overview layer when coverage exceeds threshold', async () => {
+      const builder = new ContextBuilder(tempDir, memoryManager, hintLoader);
+      // Mock memories with layers and relevant content
+      const memories = [
+        {
+          id: 'mem-1',
+          category: 'api_patterns',
+          tags: ['#auth', '#jwt'],
+          scope: 'local' as const,
+          content: 'JWT authentication with refresh token rotation.',
+          created: Date.now(),
+          lastUsed: Date.now(),
+          usedCount: 3,
+          learnedFrom: 'feature-001',
+          priorityScore: 80,
+          combinedScore: 80,
+          layers: {
+            abstract: 'JWT auth pattern.',
+            overview: 'JWT authentication uses access/refresh token pairs for secure sessions.',
+            detail: async () => 'Full JWT auth documentation...',
+          },
+        },
+      ];
+
+      vi.mocked(memoryManager.loadByPriority).mockResolvedValueOnce({
+        memories,
+        totalConsidered: 1,
+        loadTime: 5,
+        filtered: false,
+      });
+
+      const result = await builder.buildTieredMemoryContext(
+        'Implement JWT authentication with refresh tokens',
+        'auto',
+        30
+      );
+
+      expect(result.memories).toHaveLength(1);
+      expect(result.selectedLayer).toMatch(/abstract|overview/);
+      expect(result.formattedContext).toBeDefined();
+      expect(result.tokenCount).toBeGreaterThan(0);
+    });
+
+    it('T063: returns abstract layer (L0) as default for auto selection', async () => {
+      const builder = new ContextBuilder(tempDir, memoryManager, hintLoader);
+      vi.mocked(memoryManager.loadByPriority).mockResolvedValueOnce({
+        memories: [],
+        totalConsidered: 0,
+        loadTime: 5,
+        filtered: false,
+      });
+
+      const result = await builder.buildTieredMemoryContext(
+        'Completely new task with no matching memories',
+        'auto',
+        30
+      );
+
+      expect(result.selectedLayer).toBe('abstract');
+      expect(result.memories).toHaveLength(0);
+    });
+
+    it('T063: respects forced layer selection', async () => {
+      const builder = new ContextBuilder(tempDir, memoryManager, hintLoader);
+      vi.mocked(memoryManager.loadByPriority).mockResolvedValue({
+        memories: [],
+        totalConsidered: 0,
+        loadTime: 5,
+        filtered: false,
+      });
+
+      const detailResult = await builder.buildTieredMemoryContext(
+        'Task description',
+        'detail',
+        30
+      );
+      expect(detailResult.selectedLayer).toBe('detail');
+
+      const abstractResult = await builder.buildTieredMemoryContext(
+        'Task description',
+        'abstract',
+        30
+      );
+      expect(abstractResult.selectedLayer).toBe('abstract');
+    });
+
+    it('T064: returns coveragePercent in result', async () => {
+      const builder = new ContextBuilder(tempDir, memoryManager, hintLoader);
+      vi.mocked(memoryManager.loadByPriority).mockResolvedValueOnce({
+        memories: [],
+        totalConsidered: 0,
+        loadTime: 5,
+        filtered: false,
+      });
+
+      const result = await builder.buildTieredMemoryContext('Test task', 'auto', 30);
+      expect(typeof result.coveragePercent).toBe('number');
+      expect(result.coveragePercent).toBeGreaterThanOrEqual(0);
+      expect(result.coveragePercent).toBeLessThanOrEqual(100);
+    });
+  });
 });

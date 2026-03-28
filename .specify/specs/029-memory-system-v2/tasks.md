@@ -322,22 +322,22 @@ verify full content. Compare stage 5 context with/without tiered loading.
 
 ### Implementation Tasks
 
-- [ ] T059 [US-P1-03] Extend ContextBuilder with tiered loading in
+- [x] T059 [US-P1-03] Extend ContextBuilder with tiered loading in
       `/Users/douglaswross/Code/gofer/extension/src/autonomous/ContextBuilder.ts`
       (lines 816-875, per plan.md Task 2.5)
-- [ ] T060 [US-P1-03] [P] Implement calculateCoverage() method in
+- [x] T060 [US-P1-03] [P] Implement calculateCoverage() method in
       ContextBuilder.ts using TF-IDF + trigram similarity (threshold 0.3, per
       FR-004)
-- [ ] T061 [US-P1-03] [P] Add relevance-based layer selection (L0 default, L1
+- [x] T061 [US-P1-03] [P] Add relevance-based layer selection (L0 default, L1
       on >30% coverage, L2 on explicit request) in ContextBuilder.ts (per AC-2)
-- [ ] T062 [US-P1-03] [P] Implement spec artifact tiered loading (research.md,
+- [x] T062 [US-P1-03] [P] Implement spec artifact tiered loading (research.md,
       spec.md, plan.md) in ContextBuilder.ts (per AC-3)
-- [ ] T063 [US-P1-03] [P] Create unit test
+- [x] T063 [US-P1-03] [P] Create unit test
       `/Users/douglaswross/Code/gofer/tests/unit/autonomous/ContextBuilder.test.ts`
       for tiered loading logic
-- [ ] T064 [US-P1-03] [P] Verify coverage calculation with various keyword
+- [x] T064 [US-P1-03] [P] Verify coverage calculation with various keyword
       overlap percentages in ContextBuilder.test.ts
-- [ ] T065 [US-P1-03] [P] Verify 30-60% token reduction in stage 5 context in
+- [x] T065 [US-P1-03] [P] Verify 30-60% token reduction in stage 5 context in
       integration test (per AC-6, NFR-001)
 
 **Checkpoint**: Context loading uses L0/L1/L2 tiers, stage 5 context <50k tokens

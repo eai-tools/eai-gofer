@@ -287,6 +287,7 @@ describe('CLIProviderAdapter', () => {
       await queryExpect;
 
       expect(markUnavailableSpy).toHaveBeenCalled();
+      expect(provider.isAvailable()).toBe(false);
     });
   });
 });

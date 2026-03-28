@@ -7,15 +7,20 @@ version: 1.0
 
 # Quickstart Testing Guide: Multi-Provider CLI Support
 
-**Feature**: Enable Gofer to work seamlessly with multiple AI CLI providers (Claude Code CLI and Codex CLI) with zero feature parity gaps. Users can switch providers via VSCode settings dropdown, and all Gofer features work identically regardless of provider choice.
+**Feature**: Enable Gofer to work seamlessly with multiple AI CLI providers
+(Claude Code CLI and Codex CLI) with zero feature parity gaps. Users can switch
+providers via VSCode settings dropdown, and all Gofer features work identically
+regardless of provider choice.
 
-**Testing Timeline**: ~2-3 hours for full manual test suite. Automated tests run in <10 minutes.
+**Testing Timeline**: ~2-3 hours for full manual test suite. Automated tests run
+in <10 minutes.
 
 ---
 
 ## Prerequisites
 
-Before testing Multi-Provider CLI Support, ensure the following are installed and configured:
+Before testing Multi-Provider CLI Support, ensure the following are installed
+and configured:
 
 ### Required
 
@@ -52,6 +57,7 @@ Before testing Multi-Provider CLI Support, ensure the following are installed an
 ### VSCode Extension Setup
 
 1. **Clone Gofer Repository**:
+
    ```bash
    git clone https://github.com/anthropics/gofer.git
    cd gofer
@@ -59,6 +65,7 @@ Before testing Multi-Provider CLI Support, ensure the following are installed an
    ```
 
 2. **Build Extension**:
+
    ```bash
    cd extension
    npm install
@@ -90,7 +97,8 @@ Before testing Multi-Provider CLI Support, ensure the following are installed an
    - `Claude Code CLI`
    - `Codex CLI`
 
-**Expected Result**: Dropdown visible with all three options. Default is "Auto-detect".
+**Expected Result**: Dropdown visible with all three options. Default is
+"Auto-detect".
 
 ### Step 2: Verify Auto-Detection on Startup
 
@@ -101,13 +109,15 @@ Before testing Multi-Provider CLI Support, ensure the following are installed an
 
 2. **With Both CLIs installed**:
    - Auto-detection prefers Claude CLI (tested first)
-   - Output shows: `✓ Auto-detected: Claude Code CLI available (Codex also available)`
+   - Output shows:
+     `✓ Auto-detected: Claude Code CLI available (Codex also available)`
 
 3. **With Neither CLI installed**:
    - Output shows: `✗ No AI CLI found. Install Claude Code or Codex.`
    - VSCode notification appears with installation links
 
-**Expected Result**: Provider auto-detected and logged. Notification only appears if no CLI found.
+**Expected Result**: Provider auto-detected and logged. Notification only
+appears if no CLI found.
 
 ### Step 3: Manually Select Provider
 
@@ -115,9 +125,11 @@ Before testing Multi-Provider CLI Support, ensure the following are installed an
 2. Navigate to: **Extensions > Gofer > CLI Provider**
 3. Click dropdown
 4. Select **Claude Code CLI** or **Codex CLI**
-5. Confirm notification appears: "Provider changed to: Claude Code CLI. No reload required."
+5. Confirm notification appears: "Provider changed to: Claude Code CLI. No
+   reload required."
 
-**Expected Result**: Selection persists (survives VSCode reload). No VSCode restart needed.
+**Expected Result**: Selection persists (survives VSCode reload). No VSCode
+restart needed.
 
 ### Step 4: Verify Provider Status in Settings UI
 
@@ -127,7 +139,8 @@ Before testing Multi-Provider CLI Support, ensure the following are installed an
    - ✓ Available (green checkmark) = CLI installed and authenticated
    - ✗ Not Found (red X) = CLI not installed or authentication failed
 
-**Expected Result**: Status indicator reflects actual CLI availability (green if installed, red if missing).
+**Expected Result**: Status indicator reflects actual CLI availability (green if
+installed, red if missing).
 
 ---
 
@@ -138,6 +151,7 @@ Before testing Multi-Provider CLI Support, ensure the following are installed an
 **Objective**: Verify VSCode settings dropdown appears and selections persist.
 
 **Acceptance Criteria**:
+
 - [ ] Dropdown appears in VSCode settings under "Gofer > CLI Provider"
 - [ ] Dropdown offers three options: Claude Code CLI, Codex CLI, Auto-detect
 - [ ] Default setting is "Auto-detect"
@@ -164,7 +178,8 @@ Before testing Multi-Provider CLI Support, ensure the following are installed an
 
 4. **Test notification on change**:
    - Change setting to "Codex CLI"
-   - **Expected**: VSCode notification appears: "Provider changed to Codex CLI. No reload required."
+   - **Expected**: VSCode notification appears: "Provider changed to Codex CLI.
+     No reload required."
    - Dismiss notification
    - Change setting back to "Auto-detect"
    - **Expected**: Another notification appears
@@ -178,6 +193,7 @@ Before testing Multi-Provider CLI Support, ensure the following are installed an
 **Objective**: Verify auto-detection identifies available CLIs correctly.
 
 **Acceptance Criteria**:
+
 - [ ] Auto-detect checks for Claude CLI first, then Codex CLI
 - [ ] If neither CLI found, error message lists both with installation commands
 - [ ] Health check runs on extension activation
@@ -202,7 +218,9 @@ Before testing Multi-Provider CLI Support, ensure the following are installed an
    - Uninstall both CLIs
    - Reload VSCode
    - Check output and notifications
-   - **Expected**: Error notification: "No AI CLI found. Install Claude Code (`npm install -g @anthropic/claude-code`) or Codex (`npm install -g @openai/codex-cli`)"
+   - **Expected**: Error notification: "No AI CLI found. Install Claude Code
+     (`npm install -g @anthropic/claude-code`) or Codex
+     (`npm install -g @openai/codex-cli`)"
 
 4. **Version check on health check**:
    - Reinstall Claude: `npm install -g @anthropic/claude-code`
@@ -215,13 +233,16 @@ Before testing Multi-Provider CLI Support, ensure the following are installed an
 
 ### Test Scenario 3: Provider Switching (User Story 2)
 
-**Objective**: Verify seamless switching between providers without workflow disruption.
+**Objective**: Verify seamless switching between providers without workflow
+disruption.
 
 **Prerequisites**:
+
 - Both Claude Code CLI and Codex CLI installed
 - Both CLIs authenticated (ANTHROPIC_API_KEY and OPENAI_API_KEY set)
 
 **Acceptance Criteria**:
+
 - [ ] Switching providers requires exactly 1 click (dropdown change)
 - [ ] Pipeline stages work identically on both providers
 - [ ] Autonomous mode works identically on both providers
@@ -245,11 +266,13 @@ Before testing Multi-Provider CLI Support, ensure the following are installed an
    - Confirm notification appears
    - Run same command again: `Gofer: Start Research`
    - Provide same prompt
-   - **Expected**: Same output structure as Claude version (both produce spec.md)
+   - **Expected**: Same output structure as Claude version (both produce
+     spec.md)
 
 3. **Compare outputs**:
    - Both stages produce valid markdown spec files
-   - Both include same sections (Overview, User Stories, Acceptance Criteria, etc.)
+   - Both include same sections (Overview, User Stories, Acceptance Criteria,
+     etc.)
    - Quality and depth similar across providers
    - No errors unique to either provider
 
@@ -268,10 +291,12 @@ Before testing Multi-Provider CLI Support, ensure the following are installed an
 **Objective**: Verify all 7 pipeline stages work identically on both providers.
 
 **Prerequisites**:
+
 - Both CLIs installed and authenticated
 - Test feature selected and ready
 
 **Acceptance Criteria**:
+
 - [ ] `/0_business_scenario` returns same business case on both CLIs
 - [ ] `/1_gofer_research` produces identical research structure
 - [ ] `/2_gofer_specify` produces identical specification format
@@ -296,7 +321,8 @@ Before testing Multi-Provider CLI Support, ensure the following are installed an
 
 3. **Compare outputs**:
    - Both files valid markdown
-   - Both include same sections (Technology Decisions, Constraints, Open Questions)
+   - Both include same sections (Technology Decisions, Constraints, Open
+     Questions)
    - Both include proper markdown formatting
    - Quality comparable
    - No provider-specific errors
@@ -319,10 +345,12 @@ Before testing Multi-Provider CLI Support, ensure the following are installed an
 **Objective**: Verify autonomous mode works with both providers.
 
 **Prerequisites**:
+
 - Both CLIs installed
 - Simple test task available (e.g., write a short function)
 
 **Acceptance Criteria**:
+
 - [ ] Autonomous mode executes with Claude CLI
 - [ ] Autonomous mode executes with Codex CLI
 - [ ] No errors specific to either provider
@@ -360,6 +388,7 @@ Before testing Multi-Provider CLI Support, ensure the following are installed an
 **Objective**: Verify clear error messages when selected CLI is not installed.
 
 **Acceptance Criteria**:
+
 - [ ] Error includes installation command
 - [ ] Error includes clickable link to docs
 - [ ] Setting change takes effect without reload
@@ -373,7 +402,8 @@ Before testing Multi-Provider CLI Support, ensure the following are installed an
    - Run command: `Gofer: Start Research`
 
 2. **Capture error**:
-   - **Expected**: Error notification: "Codex CLI not found. Install with: `npm install -g @openai/codex-cli` or switch provider in settings"
+   - **Expected**: Error notification: "Codex CLI not found. Install with:
+     `npm install -g @openai/codex-cli` or switch provider in settings"
    - Error includes installation command
    - Error suggests fallback action
 
@@ -392,6 +422,7 @@ Before testing Multi-Provider CLI Support, ensure the following are installed an
 **Objective**: Verify clear error messages when provider authentication fails.
 
 **Acceptance Criteria**:
+
 - [ ] Error message includes authentication steps
 - [ ] Error suggests fix: set API key or run login command
 - [ ] Error is provider-specific and actionable
@@ -408,7 +439,8 @@ Before testing Multi-Provider CLI Support, ensure the following are installed an
    - Provide prompt
 
 3. **Capture error**:
-   - **Expected**: Error: "Claude CLI found but not authenticated. Set ANTHROPIC_API_KEY or run `claude login`"
+   - **Expected**: Error: "Claude CLI found but not authenticated. Set
+     ANTHROPIC_API_KEY or run `claude login`"
    - Error is clear and actionable
    - Error includes authentication method
 
@@ -426,6 +458,7 @@ Before testing Multi-Provider CLI Support, ensure the following are installed an
 **Objective**: Verify MCP servers only work with Claude CLI.
 
 **Acceptance Criteria**:
+
 - [ ] MCP servers activate when Claude CLI selected
 - [ ] MCP servers gracefully fail when Codex selected
 - [ ] Error message explains provider limitation
@@ -440,7 +473,8 @@ Before testing Multi-Provider CLI Support, ensure the following are installed an
 2. **With Codex CLI**:
    - Set provider: "Codex CLI"
    - Run same workflow
-   - **Expected**: Error or graceful degradation: "MCP servers require Claude CLI. Switch provider or use alternative approach"
+   - **Expected**: Error or graceful degradation: "MCP servers require Claude
+     CLI. Switch provider or use alternative approach"
 
 **Result**: ✓ PASS / ✗ FAIL (or N/A if not using MCP)
 
@@ -451,6 +485,7 @@ Before testing Multi-Provider CLI Support, ensure the following are installed an
 **Objective**: Verify web search only works with Codex CLI.
 
 **Acceptance Criteria**:
+
 - [ ] Web search works when Codex CLI selected
 - [ ] Web search unavailable when Claude CLI selected
 - [ ] Clear notification about provider limitation
@@ -465,7 +500,8 @@ Before testing Multi-Provider CLI Support, ensure the following are installed an
 2. **With Claude CLI**:
    - Set provider: "Claude Code CLI"
    - Run same workflow
-   - **Expected**: Notification: "Web search not available with Claude CLI. Switch to Codex or use alternative approach"
+   - **Expected**: Notification: "Web search not available with Claude CLI.
+     Switch to Codex or use alternative approach"
 
 **Result**: ✓ PASS / ✗ FAIL (or N/A if not using web search)
 
@@ -476,6 +512,7 @@ Before testing Multi-Provider CLI Support, ensure the following are installed an
 **Objective**: Verify token usage tracked separately for each provider.
 
 **Acceptance Criteria**:
+
 - [ ] AI Usage panel shows provider name alongside token counts
 - [ ] Token usage tracked separately per provider
 - [ ] Usage logs parsed correctly from both CLIs
@@ -504,7 +541,8 @@ Before testing Multi-Provider CLI Support, ensure the following are installed an
 
 4. **Export usage report**:
    - Click: "Export Usage Data"
-   - **Expected**: CSV includes "Provider" column with "Claude Code CLI" and "Codex CLI" entries
+   - **Expected**: CSV includes "Provider" column with "Claude Code CLI" and
+     "Codex CLI" entries
 
 **Result**: ✓ PASS / ✗ FAIL
 
@@ -517,12 +555,14 @@ Before testing Multi-Provider CLI Support, ensure the following are installed an
 **Purpose**: Test individual provider adapters and components in isolation.
 
 **Test Command**:
+
 ```bash
 cd /path/to/gofer
 npm test -- --testPathPattern="provider|cli" --coverage
 ```
 
 **Test Files to Run**:
+
 - `tests/unit/providers/ClaudeCodeCLIProvider.test.ts`
 - `tests/unit/providers/CodexCLIProvider.test.ts`
 - `tests/unit/providers/CLIProviderAdapter.test.ts`
@@ -530,6 +570,7 @@ npm test -- --testPathPattern="provider|cli" --coverage
 - `tests/unit/autonomous/ClaudeCodeUsageAdapter.test.ts`
 
 **Expected Coverage**:
+
 - [ ] Provider interface implementation: 100%
 - [ ] Auto-detection logic: 100%
 - [ ] Error handling: 100%
@@ -542,21 +583,25 @@ npm test -- --testPathPattern="provider|cli" --coverage
 
 ### Integration Tests
 
-**Purpose**: Test provider switching, fallback behavior, and multi-stage workflows.
+**Purpose**: Test provider switching, fallback behavior, and multi-stage
+workflows.
 
 **Test Command**:
+
 ```bash
 cd /path/to/gofer
 npm test -- --testPathPattern="integration.*provider|integration.*cli" --coverage
 ```
 
 **Test Files to Run**:
+
 - `tests/integration/autonomous/AIUsageAutoDiscovery.integration.test.ts`
 - `tests/integration/providers/ProviderSwitching.integration.test.ts`
 - `tests/integration/providers/ProviderFailover.integration.test.ts`
 - `tests/integration/autonomous/AutonomousMode.integration.test.ts`
 
 **Test Scenarios**:
+
 - [ ] Switch provider via settings and trigger command
 - [ ] Auto-detection finds correct CLI
 - [ ] Error handling for missing CLI
@@ -573,6 +618,7 @@ npm test -- --testPathPattern="integration.*provider|integration.*cli" --coverag
 **Purpose**: Test full pipeline execution with both providers.
 
 **Setup**:
+
 ```bash
 cd /path/to/gofer/extension
 npm run compile  # Build extension
@@ -586,7 +632,8 @@ npm run compile  # Build extension
 3. Let it chain through all 7 stages automatically
 4. Verify all outputs valid and complete
 
-**Expected Result**: All 7 stages complete successfully. No errors. Output files created.
+**Expected Result**: All 7 stages complete successfully. No errors. Output files
+created.
 
 **Test Sequence 2: Full Pipeline with Codex**:
 
@@ -595,7 +642,8 @@ npm run compile  # Build extension
 3. Let it chain through all 7 stages
 4. Verify all outputs valid and complete
 
-**Expected Result**: All 7 stages complete successfully. No errors. Output files created.
+**Expected Result**: All 7 stages complete successfully. No errors. Output files
+created.
 
 **Test Sequence 3: Provider Switching Mid-Pipeline**:
 
@@ -605,7 +653,8 @@ npm run compile  # Build extension
 4. Let pipeline continue (stage 3 onward with Codex)
 5. Verify final outputs valid
 
-**Expected Result**: Pipeline continues without errors. Final outputs include contributions from both providers.
+**Expected Result**: Pipeline continues without errors. Final outputs include
+contributions from both providers.
 
 ---
 
@@ -614,12 +663,14 @@ npm run compile  # Build extension
 **Purpose**: Verify provider switching doesn't introduce significant latency.
 
 **Test Command**:
+
 ```bash
 cd /path/to/gofer
 npm test -- --testPathPattern="performance|benchmark" --coverage
 ```
 
 **Success Criteria**:
+
 - [ ] Provider switching completes in <500ms
 - [ ] Auto-detection completes in <2 seconds
 - [ ] CLI queries complete within 2x API latency
@@ -629,40 +680,44 @@ npm test -- --testPathPattern="performance|benchmark" --coverage
 
 ### Backward Compatibility Tests
 
-**Purpose**: Verify existing Gofer workflows still work with default "Auto-detect" setting.
+**Purpose**: Verify existing Gofer workflows still work with default
+"Auto-detect" setting.
 
 **Test Command**:
+
 ```bash
 cd /path/to/gofer
 npm test -- --testPathPattern="backward.*compat" --coverage
 ```
 
 **Test Strategy**:
+
 1. Run all existing integration tests with default settings (Auto-detect)
 2. Verify 100% pass rate
 3. Verify no warnings about deprecated APIs
 
-**Success Criteria**: All existing tests pass without modification. Zero breaking changes.
+**Success Criteria**: All existing tests pass without modification. Zero
+breaking changes.
 
 ---
 
 ## Key Files Table
 
-| File | Purpose | Testing Focus |
-|------|---------|----------------|
-| `extension/package.json` | VSCode settings schema | Dropdown appears, default value correct |
-| `extension/src/config.ts` | Configuration getters | `getPreferredCLIProvider()`, `getCodexCommand()` |
-| `extension/src/council/providers/LLMProvider.ts` | Provider interface | Implemented correctly by CLI adapters |
-| `extension/src/council/providers/ProviderFactory.ts` | Provider creation | `createCLIProvider()` method works |
-| `extension/src/providers/cli/CLIProviderAdapter.ts` | Base CLI adapter (NEW) | Health checks, error handling, interface compliance |
-| `extension/src/providers/cli/ClaudeCodeCLIProvider.ts` | Claude CLI implementation (NEW) | CLI spawning, output parsing, authentication |
-| `extension/src/providers/cli/CodexCLIProvider.ts` | Codex CLI implementation (NEW) | CLI spawning, output parsing, authentication |
-| `extension/src/claudeCodeBridge.ts` | Bridge to CLI | Uses `LLMProvider` interface, not SDK |
-| `extension/src/autonomous/AutonomousDriver.ts` | Autonomous orchestration | Accepts `LLMProvider` via DI |
-| `extension/src/autonomous/TerminalManager.ts` | Terminal spawning | Reused for CLI process management |
-| `extension/src/autonomous/ClaudeCodeUsageAdapter.ts` | Usage log parsing | Claude and Codex log parsing |
-| `tests/unit/autonomous/ClaudeCodeUsageAdapter.test.ts` | Usage adapter tests | Token count parsing for both CLIs |
-| `tests/integration/autonomous/AIUsageAutoDiscovery.integration.test.ts` | Auto-discovery tests | Provider detection and fallback |
+| File                                                                    | Purpose                         | Testing Focus                                       |
+| ----------------------------------------------------------------------- | ------------------------------- | --------------------------------------------------- |
+| `extension/package.json`                                                | VSCode settings schema          | Dropdown appears, default value correct             |
+| `extension/src/config.ts`                                               | Configuration getters           | `getPreferredCLIProvider()`, `getCodexCommand()`    |
+| `extension/src/council/providers/LLMProvider.ts`                        | Provider interface              | Implemented correctly by CLI adapters               |
+| `extension/src/council/providers/ProviderFactory.ts`                    | Provider creation               | `createCLIProvider()` method works                  |
+| `extension/src/providers/cli/CLIProviderAdapter.ts`                     | Base CLI adapter (NEW)          | Health checks, error handling, interface compliance |
+| `extension/src/providers/cli/ClaudeCodeCLIProvider.ts`                  | Claude CLI implementation (NEW) | CLI spawning, output parsing, authentication        |
+| `extension/src/providers/cli/CodexCLIProvider.ts`                       | Codex CLI implementation (NEW)  | CLI spawning, output parsing, authentication        |
+| `extension/src/claudeCodeBridge.ts`                                     | Bridge to CLI                   | Uses `LLMProvider` interface, not SDK               |
+| `extension/src/autonomous/AutonomousDriver.ts`                          | Autonomous orchestration        | Accepts `LLMProvider` via DI                        |
+| `extension/src/autonomous/TerminalManager.ts`                           | Terminal spawning               | Reused for CLI process management                   |
+| `extension/src/autonomous/ClaudeCodeUsageAdapter.ts`                    | Usage log parsing               | Claude and Codex log parsing                        |
+| `tests/unit/autonomous/ClaudeCodeUsageAdapter.test.ts`                  | Usage adapter tests             | Token count parsing for both CLIs                   |
+| `tests/integration/autonomous/AIUsageAutoDiscovery.integration.test.ts` | Auto-discovery tests            | Provider detection and fallback                     |
 
 ---
 
@@ -670,21 +725,26 @@ npm test -- --testPathPattern="backward.*compat" --coverage
 
 ### Issue 1: CLI Not Found Despite Installation
 
-**Symptom**: Error message "Claude Code CLI not found" even after `npm install -g @anthropic/claude-code`
+**Symptom**: Error message "Claude Code CLI not found" even after
+`npm install -g @anthropic/claude-code`
 
 **Diagnosis**:
+
 1. Verify CLI installed: `which claude` or `which codex`
 2. Check PATH includes npm global directory: `npm config get prefix`
 3. Verify installation: `claude --version` or `codex --version`
 
 **Solutions**:
+
 1. **Reinstall CLI**:
+
    ```bash
    npm uninstall -g @anthropic/claude-code
    npm install -g @anthropic/claude-code
    ```
 
 2. **Check npm global path**:
+
    ```bash
    # On macOS/Linux:
    echo $PATH
@@ -714,12 +774,14 @@ npm test -- --testPathPattern="backward.*compat" --coverage
 **Claude CLI Authentication**:
 
 1. **Check API key**:
+
    ```bash
    echo $ANTHROPIC_API_KEY
    # Should output a non-empty string
    ```
 
 2. **Set API key**:
+
    ```bash
    export ANTHROPIC_API_KEY="sk-ant-..."
    # Or in VSCode settings:
@@ -727,6 +789,7 @@ npm test -- --testPathPattern="backward.*compat" --coverage
    ```
 
 3. **Use login method**:
+
    ```bash
    claude login
    # Follow prompts to authenticate
@@ -741,16 +804,19 @@ npm test -- --testPathPattern="backward.*compat" --coverage
 **Codex CLI Authentication**:
 
 1. **Check OpenAI API key**:
+
    ```bash
    echo $OPENAI_API_KEY
    ```
 
 2. **Set API key**:
+
    ```bash
    export OPENAI_API_KEY="sk-..."
    ```
 
 3. **Use login method**:
+
    ```bash
    codex login
    # Follow prompts to authenticate with ChatGPT account
@@ -768,13 +834,15 @@ npm test -- --testPathPattern="backward.*compat" --coverage
 **Symptom**: Changed provider via settings, but old provider still used
 
 **Diagnosis**:
+
 1. Check VSCode output for setting change detection
 2. Verify setting was saved (VSCode shows modified indicator)
 
 **Solutions**:
 
 1. **Save settings explicitly**:
-   - Edit settings.json directly: `Ctrl+Shift+P` > "Preferences: Open Settings (JSON)"
+   - Edit settings.json directly: `Ctrl+Shift+P` > "Preferences: Open Settings
+     (JSON)"
    - Save file: `Ctrl+S`
 
 2. **Reload VSCode**:
@@ -795,13 +863,17 @@ npm test -- --testPathPattern="backward.*compat" --coverage
 
 ### Issue 4: Auto-Detection Always Picks Same Provider
 
-**Symptom**: Both CLIs installed, but auto-detection always picks Claude (or always Codex)
+**Symptom**: Both CLIs installed, but auto-detection always picks Claude (or
+always Codex)
 
-**Root Cause**: Auto-detection is working correctly (prefers Claude if both available)
+**Root Cause**: Auto-detection is working correctly (prefers Claude if both
+available)
 
-**If you want to use Codex**: Explicitly set `gofer.cliProvider` to "Codex CLI" in settings
+**If you want to use Codex**: Explicitly set `gofer.cliProvider` to "Codex CLI"
+in settings
 
 **If auto-detection not working**:
+
 1. Check both CLIs available: `claude --version && codex --version`
 2. Check output: `View > Output > Gofer`
 3. Should show: "✓ Auto-detected: Claude Code CLI (Codex also available)"
@@ -813,7 +885,9 @@ npm test -- --testPathPattern="backward.*compat" --coverage
 **Symptom**: Error "Failed to parse CLI response" or garbled output
 
 **Diagnosis**:
+
 1. Run CLI directly and check output format:
+
    ```bash
    claude --version
    codex --version
@@ -829,6 +903,7 @@ npm test -- --testPathPattern="backward.*compat" --coverage
 **Solutions**:
 
 1. **Upgrade CLI**:
+
    ```bash
    npm install -g @anthropic/claude-code@latest
    npm install -g @openai/codex-cli@latest
@@ -856,7 +931,9 @@ npm test -- --testPathPattern="backward.*compat" --coverage
 **Symptom**: AI Usage panel empty or shows 0 tokens after running commands
 
 **Diagnosis**:
+
 1. Check usage log files exist:
+
    ```bash
    # Claude logs:
    cat ~/.claude/history.jsonl
@@ -920,6 +997,7 @@ npm test -- --testPathPattern="backward.*compat" --coverage
    - If fails, check Issue #2 (Authentication)
 
 4. **Verify both CLIs work independently**:
+
    ```bash
    # Test Claude directly:
    claude --prompt "hello"
@@ -932,13 +1010,15 @@ npm test -- --testPathPattern="backward.*compat" --coverage
 
 ### Issue 8: VSCode Memory/Performance Issues
 
-**Symptom**: VSCode becomes slow or unresponsive after multiple provider switches
+**Symptom**: VSCode becomes slow or unresponsive after multiple provider
+switches
 
 **Root Cause**: Possible resource leak from terminal processes
 
 **Solutions**:
 
 1. **Kill lingering processes**:
+
    ```bash
    # Kill any orphaned Claude processes:
    pkill -f "claude"
@@ -966,15 +1046,18 @@ npm test -- --testPathPattern="backward.*compat" --coverage
 
 **Symptom**: Claude and Codex produce different markdown structure or quality
 
-**Expected Behavior**: Outputs may differ in wording/examples, but structure should be identical
+**Expected Behavior**: Outputs may differ in wording/examples, but structure
+should be identical
 
 **What's Expected**:
+
 - Both produce valid markdown files
 - Both include same sections (Overview, Requirements, etc.)
 - Both use same heading levels and formatting
 - Quality comparable (both high-quality responses)
 
 **What's NOT Expected**:
+
 - Different file structure (one has sections other lacks)
 - Different markdown formatting (inconsistent heading levels)
 - Provider-specific errors only on one CLI
@@ -1006,6 +1089,7 @@ npm test -- --testPathPattern="backward.*compat" --coverage
 Use this checklist to track completion of all test scenarios:
 
 ### Manual Tests
+
 - [ ] Scenario 1: Provider Selection
 - [ ] Scenario 2: Auto-Detection
 - [ ] Scenario 3: Provider Switching
@@ -1018,6 +1102,7 @@ Use this checklist to track completion of all test scenarios:
 - [ ] Scenario 10: Usage Tracking
 
 ### Automated Tests
+
 - [ ] Unit Tests: All passing
 - [ ] Integration Tests: All passing
 - [ ] E2E Tests: Full pipeline success
@@ -1025,12 +1110,14 @@ Use this checklist to track completion of all test scenarios:
 - [ ] Backward Compatibility: Existing tests pass
 
 ### Settings & Configuration
+
 - [ ] Dropdown visible in VSCode Settings
 - [ ] Default value is "Auto-detect"
 - [ ] Setting persists across restarts
 - [ ] Provider status indicator shows correctly
 
 ### Error Cases
+
 - [ ] Missing Claude CLI: Error message clear
 - [ ] Missing Codex CLI: Error message clear
 - [ ] Neither CLI installed: Both install commands shown
@@ -1038,6 +1125,7 @@ Use this checklist to track completion of all test scenarios:
 - [ ] CLI version incompatible: Helpful upgrade message
 
 ### Documentation
+
 - [ ] Quickstart guide complete
 - [ ] Common issues documented
 - [ ] Test commands working
@@ -1047,11 +1135,11 @@ Use this checklist to track completion of all test scenarios:
 
 ## Sign-Off
 
-**Testing Completed By**: ________________
-**Date**: ________________
+**Testing Completed By**: ******\_\_\_\_****** **Date**: ******\_\_\_\_******
 **Overall Result**: ✓ PASS / ✗ FAIL
 
 **Pass Criteria**:
+
 - All 10 manual test scenarios pass
 - All automated tests pass (unit, integration, E2E, perf)
 - All 5 configuration tests pass
@@ -1059,18 +1147,19 @@ Use this checklist to track completion of all test scenarios:
 - Feature parity verified on both providers
 
 **Failed Scenarios** (if any):
+
 ```
 [Document any failures here]
 ```
 
 **Notes**:
+
 ```
 [Any additional observations or issues encountered]
 ```
 
 ---
 
-**Feature Ready for Release**: YES / NO
-**Known Limitations**:
-- [List any limitations or workarounds]
+**Feature Ready for Release**: YES / NO **Known Limitations**:
 
+- [List any limitations or workarounds]

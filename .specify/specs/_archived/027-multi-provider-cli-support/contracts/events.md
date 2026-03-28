@@ -8,18 +8,20 @@ status: draft
 
 # Event Contracts: Multi-Provider CLI Support
 
-This document specifies event-based contracts for Multi-Provider CLI Support, defining VSCode configuration change events, provider state change events, and coordination mechanisms for runtime provider switching.
+This document specifies event-based contracts for Multi-Provider CLI Support,
+defining VSCode configuration change events, provider state change events, and
+coordination mechanisms for runtime provider switching.
 
 ## Event Overview
 
-| Event | Type | Trigger | User Stories Served | Purpose |
-|-------|------|---------|---------------------|---------|
-| **onDidChangeConfiguration** | VSCode Event | Settings change | US-1, US-2 | Detect provider selection changes |
-| **onCLIProviderChanged** | Custom Event | Provider switch | US-2 | Notify components of active provider change |
-| **onCLIProviderAvailabilityChanged** | Custom Event | Health check | US-3 | Track provider availability status |
-| **onCLIProcessError** | Custom Event | CLI failure | US-3 | Handle CLI process errors gracefully |
-| **onProviderSwitchCompleted** | Custom Event | Switch done | US-2 | Confirm provider switch succeeded |
-| **onUsageDataUpdated** | Custom Event | Usage tracked | US-5 | Notify usage panel of new data |
+| Event                                | Type         | Trigger         | User Stories Served | Purpose                                     |
+| ------------------------------------ | ------------ | --------------- | ------------------- | ------------------------------------------- |
+| **onDidChangeConfiguration**         | VSCode Event | Settings change | US-1, US-2          | Detect provider selection changes           |
+| **onCLIProviderChanged**             | Custom Event | Provider switch | US-2                | Notify components of active provider change |
+| **onCLIProviderAvailabilityChanged** | Custom Event | Health check    | US-3                | Track provider availability status          |
+| **onCLIProcessError**                | Custom Event | CLI failure     | US-3                | Handle CLI process errors gracefully        |
+| **onProviderSwitchCompleted**        | Custom Event | Switch done     | US-2                | Confirm provider switch succeeded           |
+| **onUsageDataUpdated**               | Custom Event | Usage tracked   | US-5                | Notify usage panel of new data              |
 
 ---
 
@@ -27,11 +29,14 @@ This document specifies event-based contracts for Multi-Provider CLI Support, de
 
 ### Event: onDidChangeConfiguration
 
-**Description**: VSCode built-in event fired when workspace settings change. Used to detect changes to `gofer.cliProvider` setting and trigger provider reinitialization.
+**Description**: VSCode built-in event fired when workspace settings change.
+Used to detect changes to `gofer.cliProvider` setting and trigger provider
+reinitialization.
 
 **Event Source**: `vscode.workspace.onDidChangeConfiguration`
 
 **Serves**:
+
 - FR-004 (Immediate provider switching without reload)
 - US-2 (Transparent provider switching - no manual reconfiguration)
 
@@ -43,19 +48,25 @@ This document specifies event-based contracts for Multi-Provider CLI Support, de
 /**
  * Listen for CLI provider setting changes and reinitialize provider
  */
-function registerCLIProviderConfigWatcher(context: vscode.ExtensionContext): void {
-  const disposable = vscode.workspace.onDidChangeConfiguration(async (event) => {
-    // Only react to CLI provider setting changes
-    if (event.affectsConfiguration('gofer.cliProvider')) {
-      await handleCLIProviderChange();
-    }
+function registerCLIProviderConfigWatcher(
+  context: vscode.ExtensionContext
+): void {
+  const disposable = vscode.workspace.onDidChangeConfiguration(
+    async (event) => {
+      // Only react to CLI provider setting changes
+      if (event.affectsConfiguration('gofer.cliProvider')) {
+        await handleCLIProviderChange();
+      }
 
-    // Also watch for CLI command changes
-    if (event.affectsConfiguration('gofer.claudeCodeCommand') ||
-        event.affectsConfiguration('gofer.codexCommand')) {
-      await handleCLIProviderChange();
+      // Also watch for CLI command changes
+      if (
+        event.affectsConfiguration('gofer.claudeCodeCommand') ||
+        event.affectsConfiguration('gofer.codexCommand')
+      ) {
+        await handleCLIProviderChange();
+      }
     }
-  });
+  );
 
   context.subscriptions.push(disposable);
 }
@@ -99,14 +110,19 @@ async function handleCLIProviderChange(): Promise<void> {
     );
   } catch (error) {
     // Handle provider initialization failure
-    vscode.window.showErrorMessage(
-      `Failed to switch CLI provider: ${error instanceof Error ? error.message : String(error)}`,
-      'View Settings'
-    ).then((selection) => {
-      if (selection === 'View Settings') {
-        vscode.commands.executeCommand('workbench.action.openSettings', 'gofer.cliProvider');
-      }
-    });
+    vscode.window
+      .showErrorMessage(
+        `Failed to switch CLI provider: ${error instanceof Error ? error.message : String(error)}`,
+        'View Settings'
+      )
+      .then((selection) => {
+        if (selection === 'View Settings') {
+          vscode.commands.executeCommand(
+            'workbench.action.openSettings',
+            'gofer.cliProvider'
+          );
+        }
+      });
   }
 }
 ```
@@ -122,20 +138,24 @@ interface ConfigurationChangeEvent {
    * Check if a configuration setting was affected
    * @param section - Setting key (e.g., 'gofer.cliProvider')
    */
-  affectsConfiguration(section: string, scope?: vscode.ConfigurationScope): boolean;
+  affectsConfiguration(
+    section: string,
+    scope?: vscode.ConfigurationScope
+  ): boolean;
 }
 ```
 
 ### Behavior
 
-| Condition | Action | Notification |
-|-----------|--------|--------------|
-| Valid provider selected | Switch to new provider | ✓ "CLI provider switched to {name}" |
-| Invalid provider (not installed) | Keep current provider | ✗ "Failed to switch: {error}" |
-| Auto-detect → specific provider | Detect and switch | ✓ "CLI provider switched to {detected}" |
-| No provider available | Revert to previous | ✗ "No CLI provider found. Install Claude or Codex." |
+| Condition                        | Action                 | Notification                                        |
+| -------------------------------- | ---------------------- | --------------------------------------------------- |
+| Valid provider selected          | Switch to new provider | ✓ "CLI provider switched to {name}"                 |
+| Invalid provider (not installed) | Keep current provider  | ✗ "Failed to switch: {error}"                       |
+| Auto-detect → specific provider  | Detect and switch      | ✓ "CLI provider switched to {detected}"             |
+| No provider available            | Revert to previous     | ✗ "No CLI provider found. Install Claude or Codex." |
 
 **Serves**:
+
 - FR-004: Provider changes apply immediately
 - NFR-001: Provider switching completes in <500ms
 
@@ -143,13 +163,16 @@ interface ConfigurationChangeEvent {
 
 ## 2. Custom Event: onCLIProviderChanged
 
-**Description**: Custom event emitted when active CLI provider changes, allowing downstream components (AutonomousDriver, ClaudeCodeBridge, UsageLogger) to update their dependencies.
+**Description**: Custom event emitted when active CLI provider changes, allowing
+downstream components (AutonomousDriver, ClaudeCodeBridge, UsageLogger) to
+update their dependencies.
 
 **Event Type**: `vscode.EventEmitter<CLIProviderChangedEvent>`
 
 **Location**: `extension/src/providers/cli/CLIProviderEvents.ts`
 
 **Serves**:
+
 - FR-004 (Immediate switching)
 - FR-005 (History maintenance during switch)
 - US-2 (Transparent switching)
@@ -183,7 +206,8 @@ export interface CLIProviderChangedEvent {
 /**
  * Event emitter for CLI provider events
  */
-export const cliProviderEventEmitter = new vscode.EventEmitter<CLIProviderChangedEvent>();
+export const cliProviderEventEmitter =
+  new vscode.EventEmitter<CLIProviderChangedEvent>();
 
 /**
  * Event listener registration
@@ -236,7 +260,9 @@ export class AutonomousDriver {
     });
   }
 
-  private async handleProviderChange(event: CLIProviderChangedEvent): Promise<void> {
+  private async handleProviderChange(
+    event: CLIProviderChangedEvent
+  ): Promise<void> {
     // Get new provider instance from factory
     const factory = getProviderFactory();
     const newProvider = factory.getProvider(event.providerId);
@@ -270,7 +296,9 @@ export class ClaudeCodeBridge {
     });
   }
 
-  private async handleProviderChange(event: CLIProviderChangedEvent): Promise<void> {
+  private async handleProviderChange(
+    event: CLIProviderChangedEvent
+  ): Promise<void> {
     // Get new provider instance
     const factory = getProviderFactory();
     this.provider = factory.getProvider(event.providerId);
@@ -327,6 +355,7 @@ export class UsageLogger {
 ```
 
 **Serves**:
+
 - FR-005: Maintain history during provider switch
 - US-2: Transparent switching without disruption
 
@@ -334,11 +363,14 @@ export class UsageLogger {
 
 ## 3. Custom Event: onCLIProviderAvailabilityChanged
 
-**Description**: Event emitted when CLI provider availability status changes (e.g., CLI becomes unavailable, authentication expires, version incompatibility detected).
+**Description**: Event emitted when CLI provider availability status changes
+(e.g., CLI becomes unavailable, authentication expires, version incompatibility
+detected).
 
 **Event Type**: `vscode.EventEmitter<CLIProviderAvailabilityChangedEvent>`
 
 **Serves**:
+
 - FR-011 (Installation error handling)
 - FR-012 (Authentication error handling)
 - US-3 (Auto-detection and helpful errors)
@@ -375,7 +407,8 @@ export interface CLIProviderAvailabilityChangedEvent {
 /**
  * Event emitter for availability changes
  */
-export const availabilityEventEmitter = new vscode.EventEmitter<CLIProviderAvailabilityChangedEvent>();
+export const availabilityEventEmitter =
+  new vscode.EventEmitter<CLIProviderAvailabilityChangedEvent>();
 
 /**
  * Event listener registration
@@ -396,9 +429,10 @@ function emitAvailabilityChanged(
   providerId: ProviderId,
   healthResult: CLIHealthResult
 ): void {
-  const status: ProviderStatus = healthResult.available && healthResult.authenticated
-    ? 'available'
-    : 'unavailable';
+  const status: ProviderStatus =
+    healthResult.available && healthResult.authenticated
+      ? 'available'
+      : 'unavailable';
 
   availabilityEventEmitter.fire({
     eventType: 'availability-changed',
@@ -425,9 +459,15 @@ function emitAvailabilityChanged(
 onCLIProviderAvailabilityChanged((event) => {
   // Update settings description to show status
   if (event.status === 'available') {
-    updateSettingDescription('gofer.cliProvider', `✓ ${event.providerId} is available`);
+    updateSettingDescription(
+      'gofer.cliProvider',
+      `✓ ${event.providerId} is available`
+    );
   } else {
-    updateSettingDescription('gofer.cliProvider', `✗ ${event.providerId}: ${event.errorMessage}`);
+    updateSettingDescription(
+      'gofer.cliProvider',
+      `✗ ${event.providerId}: ${event.errorMessage}`
+    );
   }
 });
 ```
@@ -462,6 +502,7 @@ onCLIProviderAvailabilityChanged((event) => {
 ```
 
 **Serves**:
+
 - FR-011: Display installation instructions
 - FR-012: Display authentication instructions
 - US-3: Helpful error notifications
@@ -470,11 +511,13 @@ onCLIProviderAvailabilityChanged((event) => {
 
 ## 4. Custom Event: onCLIProcessError
 
-**Description**: Event emitted when CLI process encounters an error (spawn failure, timeout, exit code non-zero).
+**Description**: Event emitted when CLI process encounters an error (spawn
+failure, timeout, exit code non-zero).
 
 **Event Type**: `vscode.EventEmitter<CLIProcessErrorEvent>`
 
 **Serves**:
+
 - FR-013 (Graceful CLI process failure handling)
 - US-3 (Helpful errors)
 
@@ -516,7 +559,8 @@ export interface CLIProcessErrorEvent {
 /**
  * Event emitter for CLI process errors
  */
-export const processErrorEventEmitter = new vscode.EventEmitter<CLIProcessErrorEvent>();
+export const processErrorEventEmitter =
+  new vscode.EventEmitter<CLIProcessErrorEvent>();
 
 /**
  * Event listener registration
@@ -593,6 +637,7 @@ onCLIProcessError(async (event) => {
 ```
 
 **Serves**:
+
 - FR-013: Graceful error handling with retry
 - NFR-005: Error validation and logging
 
@@ -600,11 +645,13 @@ onCLIProcessError(async (event) => {
 
 ## 5. Custom Event: onProviderSwitchCompleted
 
-**Description**: Event emitted when provider switch has completed successfully and all dependent components have been notified.
+**Description**: Event emitted when provider switch has completed successfully
+and all dependent components have been notified.
 
 **Event Type**: `vscode.EventEmitter<ProviderSwitchCompletedEvent>`
 
 **Serves**:
+
 - FR-004 (Immediate switching)
 - US-2 (Transparent switching)
 
@@ -634,7 +681,8 @@ export interface ProviderSwitchCompletedEvent {
 /**
  * Event emitter for switch completion
  */
-export const switchCompletedEventEmitter = new vscode.EventEmitter<ProviderSwitchCompletedEvent>();
+export const switchCompletedEventEmitter =
+  new vscode.EventEmitter<ProviderSwitchCompletedEvent>();
 
 /**
  * Event listener registration
@@ -659,7 +707,11 @@ async function handleCLIProviderChange(): Promise<void> {
     // ... switch provider logic ...
 
     // Track components that were notified
-    componentsUpdated.push('AutonomousDriver', 'ClaudeCodeBridge', 'UsageLogger');
+    componentsUpdated.push(
+      'AutonomousDriver',
+      'ClaudeCodeBridge',
+      'UsageLogger'
+    );
 
     // Emit completion event
     switchCompletedEventEmitter.fire({
@@ -691,17 +743,20 @@ onProviderSwitchCompleted((event) => {
 ```
 
 **Serves**:
+
 - NFR-001: Provider switching completes in <500ms
 
 ---
 
 ## 6. Custom Event: onUsageDataUpdated
 
-**Description**: Event emitted when CLI usage data is updated (new log entries parsed, provider switched, usage aggregated).
+**Description**: Event emitted when CLI usage data is updated (new log entries
+parsed, provider switched, usage aggregated).
 
 **Event Type**: `vscode.EventEmitter<UsageDataUpdatedEvent>`
 
 **Serves**:
+
 - FR-017 (Token usage tracking)
 - FR-020 (Display in usage panel)
 - US-5 (Usage tracking across providers)
@@ -736,7 +791,8 @@ export interface UsageDataUpdatedEvent {
 /**
  * Event emitter for usage data updates
  */
-export const usageDataEventEmitter = new vscode.EventEmitter<UsageDataUpdatedEvent>();
+export const usageDataEventEmitter =
+  new vscode.EventEmitter<UsageDataUpdatedEvent>();
 
 /**
  * Event listener registration
@@ -756,7 +812,11 @@ export const onUsageDataUpdated = usageDataEventEmitter.event;
 function emitUsageDataUpdated(
   providerId: ProviderId,
   newEntries: UsageEntry[],
-  aggregateTotals: { totalInputTokens: number; totalOutputTokens: number; totalCostUsd: number }
+  aggregateTotals: {
+    totalInputTokens: number;
+    totalOutputTokens: number;
+    totalCostUsd: number;
+  }
 ): void {
   usageDataEventEmitter.fire({
     eventType: 'usage-updated',
@@ -809,6 +869,7 @@ onUsageDataUpdated((event) => {
 ```
 
 **Serves**:
+
 - FR-017: Track usage separately per provider
 - FR-020: Display provider name in panel
 - US-5: Aggregate usage across providers
@@ -891,27 +952,28 @@ If persistent failure:
 
 ### Total Events: 6
 
-| # | Event | Type | Trigger | Listeners |
-|---|-------|------|---------|-----------|
-| 1 | onDidChangeConfiguration | VSCode Built-in | Settings change | 1 (handleCLIProviderChange) |
-| 2 | onCLIProviderChanged | Custom EventEmitter | Provider switch | 3 (Driver, Bridge, Logger) |
-| 3 | onCLIProviderAvailabilityChanged | Custom EventEmitter | Health check | 2 (Settings UI, Notifications) |
-| 4 | onCLIProcessError | Custom EventEmitter | CLI failure | 2 (Error logger, Retry handler) |
-| 5 | onProviderSwitchCompleted | Custom EventEmitter | Switch done | 1 (Performance monitor) |
-| 6 | onUsageDataUpdated | Custom EventEmitter | Usage tracked | 2 (Usage panel, Budget monitor) |
+| #   | Event                            | Type                | Trigger         | Listeners                       |
+| --- | -------------------------------- | ------------------- | --------------- | ------------------------------- |
+| 1   | onDidChangeConfiguration         | VSCode Built-in     | Settings change | 1 (handleCLIProviderChange)     |
+| 2   | onCLIProviderChanged             | Custom EventEmitter | Provider switch | 3 (Driver, Bridge, Logger)      |
+| 3   | onCLIProviderAvailabilityChanged | Custom EventEmitter | Health check    | 2 (Settings UI, Notifications)  |
+| 4   | onCLIProcessError                | Custom EventEmitter | CLI failure     | 2 (Error logger, Retry handler) |
+| 5   | onProviderSwitchCompleted        | Custom EventEmitter | Switch done     | 1 (Performance monitor)         |
+| 6   | onUsageDataUpdated               | Custom EventEmitter | Usage tracked   | 2 (Usage panel, Budget monitor) |
 
 ### User Stories Served
 
-| Event | US-1 | US-2 | US-3 | US-4 | US-5 |
-|-------|------|------|------|------|------|
-| onDidChangeConfiguration | ✓ | ✓ | | | |
-| onCLIProviderChanged | | ✓ | | | |
-| onCLIProviderAvailabilityChanged | | | ✓ | | |
-| onCLIProcessError | | | ✓ | | |
-| onProviderSwitchCompleted | | ✓ | | | |
-| onUsageDataUpdated | | | | | ✓ |
+| Event                            | US-1 | US-2 | US-3 | US-4 | US-5 |
+| -------------------------------- | ---- | ---- | ---- | ---- | ---- |
+| onDidChangeConfiguration         | ✓    | ✓    |      |      |      |
+| onCLIProviderChanged             |      | ✓    |      |      |      |
+| onCLIProviderAvailabilityChanged |      |      | ✓    |      |      |
+| onCLIProcessError                |      |      | ✓    |      |      |
+| onProviderSwitchCompleted        |      | ✓    |      |      |      |
+| onUsageDataUpdated               |      |      |      |      | ✓    |
 
 **Legend**:
+
 - US-1: Provider Selection
 - US-2: Transparent Provider Switching
 - US-3: Auto-Detection and Helpful Errors
@@ -920,9 +982,9 @@ If persistent failure:
 
 ### Functional Requirements Served
 
-**Provider Switching**: FR-004 (immediate switching via config events)
-**History Maintenance**: FR-005 (onCLIProviderChanged preserves history)
-**Error Handling**: FR-011, FR-012, FR-013 (availability and process error events)
+**Provider Switching**: FR-004 (immediate switching via config events) **History
+Maintenance**: FR-005 (onCLIProviderChanged preserves history) **Error
+Handling**: FR-011, FR-012, FR-013 (availability and process error events)
 **Usage Tracking**: FR-017, FR-020 (onUsageDataUpdated)
 
 ---
@@ -988,7 +1050,9 @@ describe('Provider Switch Integration', () => {
     onCLIProviderChanged(() => events.push('provider-changed'));
     onProviderSwitchCompleted(() => events.push('switch-completed'));
 
-    await vscode.workspace.getConfiguration('gofer').update('cliProvider', 'codex', vscode.ConfigurationTarget.Global);
+    await vscode.workspace
+      .getConfiguration('gofer')
+      .update('cliProvider', 'codex', vscode.ConfigurationTarget.Global);
 
     // Wait for async event handling
     await sleep(100);
@@ -1004,13 +1068,17 @@ describe('Provider Switch Integration', () => {
 describe('Provider Switch E2E', () => {
   it('should switch from Claude to Codex and maintain functionality', async () => {
     // Start with Claude
-    await vscode.workspace.getConfiguration('gofer').update('cliProvider', 'claude', vscode.ConfigurationTarget.Global);
+    await vscode.workspace
+      .getConfiguration('gofer')
+      .update('cliProvider', 'claude', vscode.ConfigurationTarget.Global);
 
     // Run pipeline stage
     const claudeResult = await runPipelineStage('gofer_plan');
 
     // Switch to Codex
-    await vscode.workspace.getConfiguration('gofer').update('cliProvider', 'codex', vscode.ConfigurationTarget.Global);
+    await vscode.workspace
+      .getConfiguration('gofer')
+      .update('cliProvider', 'codex', vscode.ConfigurationTarget.Global);
 
     // Run same pipeline stage
     const codexResult = await runPipelineStage('gofer_plan');
@@ -1079,9 +1147,12 @@ export function deactivate() {
 ## Backward Compatibility
 
 All custom events are new additions and do not affect existing functionality:
+
 - No breaking changes to existing event listeners
-- VSCode `onDidChangeConfiguration` listener is additive (checks specific settings)
+- VSCode `onDidChangeConfiguration` listener is additive (checks specific
+  settings)
 - Event emitters follow VSCode EventEmitter pattern for consistency
 - Dispose pattern ensures cleanup during deactivation
 
-Default behavior (auto-detection preferring Claude) maintains backward compatibility with existing hardcoded Claude CLI dependency.
+Default behavior (auto-detection preferring Claude) maintains backward
+compatibility with existing hardcoded Claude CLI dependency.

@@ -11,6 +11,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import type { ScoredMemory } from '../memory';
+import { Logger } from '../../utils/logger';
 
 // ============================================================================
 // Types
@@ -50,6 +51,7 @@ export class MemoryCitationTracker {
   private readonly logPath: string;
   private readonly sessions = new Map<string, CitationTrackingEntry>();
   private static readonly MAX_SESSIONS = 500;
+  private readonly logger = Logger.for('MemoryCitationTracker');
 
   constructor(workspaceRoot: string) {
     this.logPath = path.join(workspaceRoot, '.specify', 'logs', 'memory-usage.jsonl');
@@ -148,8 +150,8 @@ export class MemoryCitationTracker {
     try {
       await fs.mkdir(path.dirname(this.logPath), { recursive: true });
       await fs.appendFile(this.logPath, JSON.stringify(record) + '\n', 'utf-8');
-    } catch {
-      // Non-blocking: citation logging failure must not crash the pipeline
+    } catch (err) {
+      this.logger.debug('Citation logging failed (non-blocking)', err);
     }
   }
 

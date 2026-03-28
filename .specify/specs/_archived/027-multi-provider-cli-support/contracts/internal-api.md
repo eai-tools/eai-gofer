@@ -63,19 +63,13 @@ export abstract class CLIProviderAdapter extends BaseLLMProvider {
 
   // Session state
   protected conversationHistory: ConversationMessage[];
-  protected activeProcess: IPty | null;
 
   /**
    * Constructor
    * @param cliCommand - CLI command to spawn (e.g., "claude", "codex")
-   * @param model - Model identifier
-   * @param terminalManager - Terminal process manager
+   * @param _model - Model identifier (unused at base level, subclasses provide model)
    */
-  constructor(
-    cliCommand: string,
-    model: string,
-    terminalManager: TerminalManager
-  );
+  constructor(cliCommand: string, _model?: string);
 
   /**
    * Query provider via CLI process
@@ -164,7 +158,6 @@ export interface CLIQueryOptions {
 export interface ConversationMessage {
   role: 'user' | 'assistant' | 'system';
   content: string;
-  timestamp: string;
 }
 ```
 

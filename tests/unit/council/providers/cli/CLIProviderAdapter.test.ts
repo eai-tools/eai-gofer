@@ -4,13 +4,22 @@
  * Tests for the abstract CLI provider base class.
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { CLIProviderAdapter, ParsedCLIOutput } from '../../../../../extension/src/council/providers/cli/CLIProviderAdapter';
-import { ProviderError } from '../../../../../extension/src/council/providers/ProviderError';
+import {
+  CLIProviderAdapter,
+  ParsedCLIOutput,
+} from '../../../../../extension/src/council/providers/cli/CLIProviderAdapter';
+import {
+  ProviderError,
+  ProviderErrorCode,
+} from '../../../../../extension/src/council/providers/ProviderError';
 import type { ProviderId, QueryRequest } from '../../../../../extension/src/council/types';
 
 // Mock child_process at module level for execFile mocking
 vi.mock('child_process', async () => {
+  // mock-justified: CLI process execution boundary — execFile cannot run real CLIs in unit tests
   const actual = await vi.importActual('child_process');
   return {
     ...actual,
@@ -202,21 +211,15 @@ describe('CLIProviderAdapter', () => {
         return {} as any;
       });
 
-      await expect(
-        provider['spawnCLI']('test prompt')
-      ).rejects.toThrow(ProviderError);
+      await expect(provider['spawnCLI']('test prompt')).rejects.toThrow(ProviderError);
 
-      await expect(
-        provider['spawnCLI']('test prompt')
-      ).rejects.toThrow("command 'test-cli' not found");
+      await expect(provider['spawnCLI']('test prompt')).rejects.toThrow(
+        "command 'test-cli' not found"
+      );
     });
 
     it('should throw ProviderError on timeout', async () => {
-      const error = new Error('Command timeout');
-
-      await expect(
-        provider['spawnCLI']('test prompt', { timeout: 1 })
-      ).rejects.toThrow();
+      await expect(provider['spawnCLI']('test prompt', { timeout: 1 })).rejects.toThrow();
     });
   });
 
@@ -224,6 +227,66 @@ describe('CLIProviderAdapter', () => {
     it('should return prompt as default argument', () => {
       const args = provider['buildCLIArgs']('test prompt');
       expect(args).toEqual(['test prompt']);
+    });
+  });
+
+  describe('retry logic (FR-013)', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('should retry on retryable error and succeed on second attempt', async () => {
+      provider.markAvailable();
+      const spawnSpy = vi
+        .spyOn(provider as any, 'spawnCLI')
+        .mockRejectedValueOnce(
+          new ProviderError('transient failure', ProviderErrorCode.TIMEOUT, 'claude-cli')
+        )
+        .mockResolvedValueOnce('Success response');
+
+      const queryPromise = provider.query({ prompt: 'Hello', maxTokens: 1000, temperature: 0 });
+
+      await vi.runAllTimersAsync();
+      const result = await queryPromise;
+
+      expect(result.content).toBe('Success response');
+      expect(spawnSpy).toHaveBeenCalledTimes(2);
+    });
+
+    it('should not retry when error is not retryable', async () => {
+      provider.markAvailable();
+      const spawnSpy = vi
+        .spyOn(provider as any, 'spawnCLI')
+        .mockRejectedValue(
+          new ProviderError('not configured', ProviderErrorCode.NOT_CONFIGURED, 'claude-cli')
+        );
+
+      await expect(
+        provider.query({ prompt: 'Hello', maxTokens: 1000, temperature: 0 })
+      ).rejects.toThrow(ProviderError);
+
+      expect(spawnSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should mark provider unavailable after exhausting retries', async () => {
+      provider.markAvailable();
+      vi.spyOn(provider as any, 'spawnCLI').mockRejectedValue(
+        new ProviderError('transient failure', ProviderErrorCode.TIMEOUT, 'claude-cli')
+      );
+      const markUnavailableSpy = vi.spyOn(provider, 'markUnavailable');
+
+      const queryPromise = provider.query({ prompt: 'Hello', maxTokens: 1000, temperature: 0 });
+      // Attach rejection handler immediately to prevent unhandled rejection during timer advance
+      const queryExpect = expect(queryPromise).rejects.toThrow(ProviderError);
+
+      await vi.runAllTimersAsync();
+      await queryExpect;
+
+      expect(markUnavailableSpy).toHaveBeenCalled();
     });
   });
 });

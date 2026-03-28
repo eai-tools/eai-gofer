@@ -54,9 +54,9 @@ interface Memory {
   tags: string[];
   citations?: Citation[];
   priority: number;             // 0-100 score
-  created: Date;
-  lastUsed?: Date;
-  usageCount: number;
+  created: number;
+  lastUsed?: number;
+  usedCount: number;
   relatedMemories?: string[];   // IDs of related memories
 }
 
@@ -162,7 +162,7 @@ interface MemorySaveInput {
   metadata?: Record<string, unknown>;
 }
 
-async save(memory: MemorySaveInput): Promise<string>  // Returns memory ID
+async save(memory: MemorySaveInput): Promise<Memory>  // Returns saved Memory object
 ```
 
 **Auto-Generation Logic**:
@@ -250,7 +250,7 @@ consolidation).
 **Signature**:
 
 ```typescript
-async saveImmediate(memory: MemorySaveInput): Promise<string>
+async saveImmediate(memory: MemorySaveInput): Promise<Memory>
 ```
 
 **Behavior**:

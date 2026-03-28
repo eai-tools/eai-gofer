@@ -10,6 +10,7 @@
 
 import type { MemoryManager } from '../MemoryManager';
 import type { Memory } from '../memory';
+import { Logger } from '../../utils/logger';
 
 // ============================================================================
 // Types
@@ -44,6 +45,8 @@ export interface ExtractedPattern {
  * ```
  */
 export class ValidationPatternExtractor {
+  private readonly logger = Logger.for('ValidationPatternExtractor');
+
   constructor(private readonly memoryManager: MemoryManager) {}
 
   /**
@@ -53,10 +56,7 @@ export class ValidationPatternExtractor {
    * @param featureId - Feature ID for provenance tracking
    * @returns Array of created memories (non-blocking: errors per pattern are caught)
    */
-  async extractFromValidationReport(
-    reportContent: string,
-    featureId: string
-  ): Promise<Memory[]> {
+  async extractFromValidationReport(reportContent: string, featureId: string): Promise<Memory[]> {
     const patterns = this.parseValidationReport(reportContent);
     const created: Memory[] = [];
 
@@ -64,8 +64,8 @@ export class ValidationPatternExtractor {
       try {
         const memory = await this.savePattern(pattern, featureId);
         created.push(memory);
-      } catch {
-        // Non-blocking: individual pattern save failures don't stop extraction
+      } catch (err) {
+        this.logger.debug('Memory save failed (non-blocking)', err);
       }
     }
 
@@ -112,10 +112,7 @@ export class ValidationPatternExtractor {
   /**
    * T048/T049: Extract findings from markdown-formatted reports.
    */
-  private extractMarkdownFindings(
-    content: string,
-    severity: 'red' | 'yellow'
-  ): ExtractedPattern[] {
+  private extractMarkdownFindings(content: string, severity: 'red' | 'yellow'): ExtractedPattern[] {
     const patterns: ExtractedPattern[] = [];
     const lines = content.split('\n');
     const label = severity === 'red' ? 'red' : 'yellow';
@@ -226,9 +223,7 @@ export class ValidationPatternExtractor {
 
     const content = [
       pattern.description,
-      pattern.affectedFiles.length > 0
-        ? `Affected files: ${pattern.affectedFiles.join(', ')}`
-        : '',
+      pattern.affectedFiles.length > 0 ? `Affected files: ${pattern.affectedFiles.join(', ')}` : '',
     ]
       .filter(Boolean)
       .join('\n');

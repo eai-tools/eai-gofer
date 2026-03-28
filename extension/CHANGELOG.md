@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.26.0] - 2026-03-28
+
+Add multi-provider CLI support, cross-platform command parity, AI usage tracking, and memory system v2
+
 ## [1.25.0] - 2026-03-22
 
 feat: automatic Codex global CLI symlink creation

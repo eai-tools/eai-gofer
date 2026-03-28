@@ -40,6 +40,7 @@ import { telemetry } from './telemetryIntegration';
 import type { ContextUsageLogger } from './ContextUsageLogger';
 import { MemoryStorage } from './MemoryStorage';
 import { MemoryConsolidator, type ConsolidationResult } from './MemoryConsolidator';
+import { GoferURIResolver, parseGoferURI } from './memory/GoferURI';
 
 /**
  * Current schema version for StoredMemories.
@@ -162,6 +163,7 @@ export class MemoryManager implements IMemoryManager {
   /**
    * Initialize the JSONL storage backend.
    * Migrates from legacy local.json if needed.
+   * T022: Also migrates pre-layered memories to layered format (schemaVersion 2).
    * Call this once after construction.
    */
   async initializeStorage(): Promise<void> {
@@ -174,12 +176,45 @@ export class MemoryManager implements IMemoryManager {
       this.logger.info('JSONL storage initialized', {
         memoryCount: this.storage.count(),
       });
+      // T022: Migrate pre-layered memories to schemaVersion 2
+      await this.migrateToLayered();
     } catch (error) {
       this.logger.error(
         'Failed to initialize JSONL storage, falling back to legacy',
         error instanceof Error ? error : undefined
       );
     }
+  }
+
+  /**
+   * T022: Migrate memories that lack ContextLayer fields to schemaVersion 2.
+   *
+   * Uses simple truncation (not LLM) for abstract/overview generation to avoid
+   * blocking the extension startup on API calls.  Memories with existing layers
+   * are left untouched.  The migration is idempotent.
+   */
+  async migrateToLayered(): Promise<number> {
+    const all = this.storage.getAll('local');
+    let migrated = 0;
+    for (const memory of all) {
+      if (!memory.layers) {
+        const abstract = memory.content.slice(0, 100) + (memory.content.length > 100 ? '...' : '');
+        const overview =
+          memory.content.slice(0, 2000) + (memory.content.length > 2000 ? '...' : '');
+        await this.storage.update(memory.id, {
+          layers: {
+            abstract,
+            overview,
+            detail: async (): Promise<string> => memory.content,
+          },
+        });
+        migrated++;
+      }
+    }
+    if (migrated > 0) {
+      this.logger.info('Migrated memories to layered format', { count: migrated });
+    }
+    return migrated;
   }
 
   /**
@@ -1241,5 +1276,58 @@ export class MemoryManager implements IMemoryManager {
     };
 
     await this.context.globalState.update('gofer.memories', stored);
+  }
+
+  /**
+   * Load memories by gofer:// URI with optional layer selection.
+   * T019: URI-based memory loading with scope mapping.
+   * T020: Layer selection logic (L0/L1/L2).
+   *
+   * @param uriString - gofer:// URI (e.g., gofer://memory/core/task-context.md)
+   * @param layer - Which layer to load (default: 'overview')
+   * @returns Array of memories matching the URI scope
+   */
+  async loadByURI(
+    uriString: string,
+    layer: 'abstract' | 'overview' | 'detail' = 'overview'
+  ): Promise<Memory[]> {
+    const parsed = parseGoferURI(uriString);
+
+    let memories: Memory[];
+
+    switch (parsed.scope) {
+      case 'memory': {
+        await this.ensureStorageReady();
+        memories = this.storage.getAll('local');
+        break;
+      }
+      case 'specs':
+        return [];
+      case 'session': {
+        await this.ensureStorageReady();
+        const all = this.storage.getAll('local');
+        memories = all.filter((m) => m.learnedFrom === parsed.path);
+        break;
+      }
+      case 'user': {
+        memories = await this.loadGlobal();
+        break;
+      }
+      case 'agent':
+        return [];
+      default:
+        return [];
+    }
+
+    switch (layer) {
+      case 'abstract':
+        return memories.filter((m) => m.layers?.abstract !== undefined);
+      case 'overview':
+        return memories.filter(
+          (m) => m.layers?.overview !== undefined || m.layers?.abstract !== undefined
+        );
+      case 'detail':
+        return memories;
+    }
   }
 }

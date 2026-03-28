@@ -72,6 +72,7 @@ export class VersionDetector {
     const hasTemplates = await this.hasDirectory(specifyPath, 'templates');
     const hasJsonSpecs = await this.hasJsonSpecs(specifyPath);
 
+
     // Gofer format has specs/, memory/, templates/
     const isGofer = hasSpecs && hasMemory && hasTemplates;
 
@@ -218,7 +219,8 @@ export class VersionDetector {
   private async hasJsonSpecs(specifyPath: string): Promise<boolean> {
     try {
       const files = await fs.readdir(specifyPath);
-      return files.some((f) => f.endsWith('.json') && f !== 'spec-schema.json');
+      const hasJson = files.some((f) => f.endsWith('.json') && f !== 'spec-schema.json');
+      return hasJson;
     } catch {
       return false;
     }

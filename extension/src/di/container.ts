@@ -25,6 +25,7 @@ import { DisposalService } from '../services/DisposalService';
 import { EventHandlers } from '../services/EventHandlers';
 import { InitializationService } from '../services/InitializationService';
 import { CommandRegistry } from '../services/CommandRegistry';
+import { OptionalToolInstaller } from '../services/OptionalToolInstaller';
 import { StateManager } from '../services/StateManager';
 import { VersionDetector } from '../services/migration/VersionDetector';
 import { UpgradeService } from '../services/migration/UpgradeService';
@@ -53,6 +54,7 @@ export function registerServices(): void {
   container.registerSingleton(EventHandlers);
   container.registerSingleton(InitializationService);
   container.registerSingleton(CommandRegistry);
+  container.registerSingleton(OptionalToolInstaller);
   container.registerSingleton(StateManager); // T025: State management
 
   // Phase 4: GoferMigrator.ts extracted services (T026-T030)

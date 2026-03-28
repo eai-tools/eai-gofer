@@ -60,6 +60,7 @@ told how.
   introducing bugs.
 
 ## Active Technologies
+- [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS (028-cross-platform-command-parity)
 
 - TypeScript 5.x (strict mode, noImplicitAny, strictNullChecks) + VSCode
   Extension API, Webview API, fs/promises for JSONL storage

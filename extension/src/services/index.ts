@@ -13,4 +13,9 @@ export {
   type InitializedComponents,
 } from './InitializationService';
 export { CommandRegistry, type CommandDependencies } from './CommandRegistry';
+export {
+  OptionalToolInstaller,
+  type OptionalToolId,
+  type OptionalToolRecommendation,
+} from './OptionalToolInstaller';
 export { StateManager } from './StateManager';

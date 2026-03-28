@@ -236,8 +236,12 @@ export class CommandGenerator {
     // Transform command invocation syntax
     if (toPlatform === 'codex') {
       // Replace /command with $ $command
-      transformed = transformed.replace(/\/(\d+_gofer_\w+)/g, '$ $$1');
-      transformed = transformed.replace(/\/(gofer_\w+)/g, '$ $$1');
+      transformed = transformed.replace(/\/(\d+_gofer_\w+)/g, (_match, command: string) => {
+        return `$ $${command}`;
+      });
+      transformed = transformed.replace(/\/(gofer_\w+)/g, (_match, command: string) => {
+        return `$ $${command}`;
+      });
     } else if (toPlatform === 'copilot') {
       // Replace /command with #command
       transformed = transformed.replace(/\/(\d+_gofer_\w+)/g, '#$1');

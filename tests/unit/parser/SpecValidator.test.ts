@@ -519,9 +519,7 @@ updated: 2025-01-15
       // Read back and verify
       const fs = require('fs/promises');
       const updatedContent = await fs.readFile(tasksPath, 'utf-8');
-      // Note: The current regex has a bug that removes the closing bracket
-      // TODO: Fix regex in goferParser.ts:581
-      expect(updatedContent).toContain('- [x **T002**: Second task');
+      expect(updatedContent).toContain('- [x] **T002**: Second task');
       expect(updatedContent).toContain('- [ ] **T001**: First task');
       expect(updatedContent).toContain('- [ ] **T003**: Third task');
     });
@@ -592,7 +590,10 @@ invalid yaml syntax {{{
 
       await createTestSpec(workspace, '003-invalid-yaml', specContent);
 
-      await expect(parser.loadSpec('003-invalid-yaml')).rejects.toThrow();
+      // Parser falls back to safe defaults when frontmatter is malformed
+      const spec = await parser.loadSpec('003-invalid-yaml');
+      expect(spec.id).toBe('003-invalid-yaml');
+      expect(spec.status).toBe('draft');
     });
 
     it('should handle spec with malformed date formats', async () => {

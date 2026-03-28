@@ -75,7 +75,8 @@ export type AIUsageItemContext =
   | 'user-info'
   | 'all-projects'
   | 'separator'
-  | 'provider-summary';
+  | 'provider-summary'
+  | 'loading';
 
 /**
  * Tree view item for display in VSCode TreeDataProvider

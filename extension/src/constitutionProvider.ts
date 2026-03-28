@@ -68,14 +68,15 @@ export class ConstitutionProvider implements vscode.TreeDataProvider<Constitutio
   private loadError: string | null = null;
   private version: string = '';
   private lastUpdated: string = '';
+  private loadingPromise: Promise<void> | null = null;
 
   constructor(workspacePath: string) {
     this.constitutionPath = path.join(workspacePath, '.specify', 'memory', 'constitution.md');
-    this.loadConstitution();
+    this.loadingPromise = this.loadConstitution();
   }
 
   refresh(): void {
-    this.loadConstitution();
+    this.loadingPromise = this.loadConstitution();
     this._onDidChangeTreeData.fire();
   }
 
@@ -84,6 +85,12 @@ export class ConstitutionProvider implements vscode.TreeDataProvider<Constitutio
   }
 
   async getChildren(element?: ConstitutionItem): Promise<ConstitutionItem[]> {
+    // Wait for initial load to complete
+    if (this.loadingPromise) {
+      await this.loadingPromise;
+      this.loadingPromise = null;
+    }
+
     // Check for load errors
     if (this.loadError && !element) {
       const errorItem = new ConstitutionItem(

@@ -2,6 +2,7 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as os from 'os';
 import { ProgressProvider } from '../../progressProvider.js';
 import { ConstitutionProvider } from '../../constitutionProvider.js';
 import { GoferParser } from '../../goferParser.js';
@@ -22,12 +23,14 @@ suite('Performance Tests', () => {
   let performanceTestDir: string;
 
   suiteSetup(async () => {
-    const workspaceFolders = vscode.workspace.workspaceFolders;
-    if (!workspaceFolders || workspaceFolders.length === 0) {
-      throw new Error('No workspace folder available for testing');
-    }
-    testWorkspacePath = workspaceFolders[0].uri.fsPath;
+    testWorkspacePath = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'gofer-perf-test-'));
     performanceTestDir = path.join(testWorkspacePath, 'perf-test');
+  });
+
+  suiteTeardown(async () => {
+    if (fs.existsSync(testWorkspacePath)) {
+      fs.rmSync(testWorkspacePath, { recursive: true, force: true });
+    }
   });
 
   setup(async () => {
@@ -168,11 +171,18 @@ This spec has ${tasksPerSpec} tasks for performance testing.
 
       // Test ProgressProvider performance
       const providerStartTime = Date.now();
-      const progressProvider = new ProgressProvider(specifyDir);
+      const progressProvider = new ProgressProvider(performanceTestDir, undefined, 0);
+      progressProvider.getChildren(); // Trigger load
+      
+      // Wait for provider to load
+      await new Promise(resolve => setTimeout(resolve, 50));
+      while ((progressProvider as any).isLoading || progressProvider.isDebouncing()) {
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
       
       // Simulate tree view rendering
       const rootItems = await progressProvider.getChildren();
-      assert.ok(rootItems.length === specCount, `Should have ${specCount} root items`);
+      assert.ok(rootItems.length === specCount, `Should have ${specCount} root items, but got ${rootItems.length}`);
 
       let totalTasks = 0;
       for (const rootItem of rootItems) {
@@ -356,9 +366,28 @@ ${i > 10 ? `- Complex dependency on: complex-deps-${(i - 5).toString().padStart(
       assert.ok(dependencyParseTime < 8000, `Dependency parsing should take < 8 seconds, took ${dependencyParseTime}ms`);
       
       // Verify dependency structure
-      const totalTasks = specsWithDeps.reduce((sum, spec) => sum + (spec.tasks?.length || 0), 0);
-      console.log(`Total tasks parsed: ${totalTasks}`);
-      assert.ok(totalTasks >= 1500, 'Should parse all tasks correctly');
+      const totalTasksParsed = specsWithDeps.reduce((sum, spec) => sum + (spec.tasks?.length || 0), 0);
+      console.log(`Total tasks parsed: ${totalTasksParsed}`);
+      assert.ok(totalTasksParsed >= 1500, `Should parse all tasks correctly, but got ${totalTasksParsed}`);
+
+      // Test ProgressProvider performance with dependencies
+      const progressProvider = new ProgressProvider(performanceTestDir, undefined, 0);
+      progressProvider.getChildren(); // Trigger load
+      
+      // Wait for provider to load
+      await new Promise(resolve => setTimeout(resolve, 50));
+      while ((progressProvider as any).isLoading || progressProvider.isDebouncing()) {
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+      
+      const rootItems = await progressProvider.getChildren();
+      let totalTasksInProvider = 0;
+      for (const rootItem of rootItems) {
+        const tasks = await progressProvider.getChildren(rootItem);
+        totalTasksInProvider += tasks.length;
+      }
+      console.log(`Total tasks in provider: ${totalTasksInProvider}`);
+      assert.ok(totalTasksInProvider >= 1500, `Provider should show all tasks, but got ${totalTasksInProvider}`);
 
       // Test dependency resolution performance (simulated)
       const resolutionStartTime = Date.now();
@@ -491,7 +520,7 @@ ${Array.from({ length: 30 }, (_, k) => `- [ ] #T${i}${j}${k.toString().padStart(
 
         // Parse specs to simulate workload
         const parser = new GoferParser(tempDir);
-        const provider = new ProgressProvider(path.join(tempDir, '.specify'));
+        const provider = new ProgressProvider(tempDir, undefined, 0);
         
         const specs = await provider.getChildren();
         workloadResults.push(specs.length);
@@ -549,11 +578,12 @@ status: "draft"
 ---
 
 # Concurrent Test ${i}
-
-${Array.from({ length: 10 }, (_, j) => `- [ ] #T${i}${j.toString().padStart(2, '0')} Task ${j + 1} (deps: ${j > 0 ? `T${i}${(j - 1).toString().padStart(2, '0')}` : 'none'})`).join('\n')}
 `;
         
         fs.writeFileSync(specFile, specContent);
+
+        const tasksContent = `# Tasks\n${Array.from({ length: 10 }, (_, j) => `- [ ] #T${i}${j.toString().padStart(2, '0')} Task ${j + 1} (deps: ${j > 0 ? `T${i}${(j - 1).toString().padStart(2, '0')}` : 'none'})`).join('\n')}\n`;
+        fs.writeFileSync(path.join(specDir, 'tasks.md'), tasksContent);
         specPaths.push(specFile);
       }
 

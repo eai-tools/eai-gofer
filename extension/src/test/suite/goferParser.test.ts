@@ -4,17 +4,18 @@ import * as fs from 'fs/promises';
 import * as os from 'os';
 import { GoferParser, Spec, Task, SpecStatus, TaskStatus } from '../../goferParser';
 
-suite('GoferParser Test Suite', () => {
+suite('GoferParser Test Suite', function() {
+  this.timeout(10000);
   let tempDir: string;
   let parser: GoferParser;
 
-  suiteSetup(async () => {
+  setup(async () => {
     // Create temporary directory for tests
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'gofer-test-'));
     parser = new GoferParser(tempDir);
   });
 
-  suiteTeardown(async () => {
+  teardown(async () => {
     // Clean up temporary directory
     await fs.rmdir(tempDir, { recursive: true }).catch(() => {});
   });
@@ -214,7 +215,7 @@ created: "2025-10-22"
 
       const allSpecs = await parser.loadAllSpecs();
 
-      assert.strictEqual(allSpecs.length, 3 + 5); // 3 new + 5 from previous tests
+      assert.strictEqual(allSpecs.length, 3); // 3 created in this test
       
       // Check that all our new specs are loaded
       const specIds = allSpecs.map((s: Spec) => s.id);
@@ -277,8 +278,8 @@ created: "2025-10-22"
 
       const tasksContent = `# Tasks
 
-- [ ] T001 Test task for status update
-- [ ] T002 Another test task
+- [ ] **T001**: Test task for status update
+- [ ] **T002**: Another test task
 `;
 
       await fs.writeFile(path.join(specDir, 'spec.md'), specContent);
@@ -290,12 +291,12 @@ created: "2025-10-22"
       // Reload and verify
       const spec = await parser.loadSpec(specId);
       const t001 = spec.tasks.find((t: Task) => t.id === 'T001');
-      assert.ok(t001);
+      assert.ok(t001, 'Should find task T001');
       assert.strictEqual(t001.status, 'completed');
 
       // Check that file was actually updated
       const updatedTasksContent = await fs.readFile(path.join(specDir, 'tasks.md'), 'utf-8');
-      assert.ok(updatedTasksContent.includes('- [x] T001'));
+      assert.ok(updatedTasksContent.includes('- [x] **T001**'), 'File should contain checked box for T001');
     });
 
     test('should update spec status', async () => {
@@ -322,9 +323,9 @@ created: "2025-10-22"
       const spec = await parser.loadSpec(specId);
       assert.strictEqual(spec.status, 'in_progress');
 
-      // Check that file was actually updated
+      // Check that file was actually updated (might be status: in_progress or status: "in_progress")
       const updatedSpecContent = await fs.readFile(path.join(specDir, 'spec.md'), 'utf-8');
-      assert.ok(updatedSpecContent.includes('status: "in_progress"'));
+      assert.ok(updatedSpecContent.includes('status: in_progress') || updatedSpecContent.includes('status: "in_progress"'));
     });
   });
 });

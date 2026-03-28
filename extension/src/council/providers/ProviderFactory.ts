@@ -10,6 +10,7 @@ import { LLMProvider } from './LLMProvider';
 import { ProviderError, notConfiguredError } from './ProviderError';
 import { ProviderId, ProviderConfig, PROVIDER_NAMES, DEFAULT_MODELS } from '../types';
 import { redactCredentials, type ConversationMessage } from './CredentialRedactor';
+import { Logger } from '../../utils/logger';
 
 /**
  * Type for provider constructor functions
@@ -43,6 +44,7 @@ export function registerProvider(
  */
 export class ProviderFactory {
   private readonly providers = new Map<ProviderId, LLMProvider>();
+  private readonly logger = Logger.for('ProviderFactory');
 
   /**
    * Get the API key for a provider from VSCode settings
@@ -136,13 +138,13 @@ export class ProviderFactory {
           errors.push(error);
         }
         // Log but don't throw - we want to create as many providers as possible
-        console.warn(`Failed to create provider ${config.providerId}:`, error);
+        this.logger.warn(`Failed to create provider ${config.providerId}`, { error });
       }
     }
 
     // If we have errors but also have providers, just warn
     if (errors.length > 0 && providers.length > 0) {
-      console.warn(`Some providers failed to initialize:`, errors);
+      this.logger.warn('Some providers failed to initialize', { errors });
     }
 
     return providers;
@@ -162,7 +164,7 @@ export class ProviderFactory {
           available.push(provider);
         }
       } catch (error) {
-        console.warn(`Health check failed for ${provider.id}:`, error);
+        this.logger.warn(`Health check failed for ${provider.id}`, { error });
       }
     }
 
@@ -234,19 +236,33 @@ export class ProviderFactory {
     // T038: Health check with actionable error messages
     const { CLIHealthChecker } = await import('./cli/CLIHealthChecker');
     const healthResult = await CLIHealthChecker.check(cliType, cliCommand);
+    const providerDisplayName = this.getCLIProviderDisplayName(cliType);
 
     if (!healthResult.available) {
-      throw new Error(`${cliType} CLI not found.\n${healthResult.installInstructions || ''}`);
+      this.logger.warn(`${providerDisplayName} CLI not found`, {
+        cliCommand,
+        installInstructions: healthResult.installInstructions,
+      });
+      throw new Error(`${providerDisplayName} CLI not found.\n${healthResult.installInstructions || ''}`);
     }
 
     if (!healthResult.compatible) {
+      this.logger.warn(`${providerDisplayName} CLI version is incompatible`, {
+        cliCommand,
+        version: healthResult.version,
+        errorMessage: healthResult.errorMessage,
+      });
       throw new Error(
-        `${cliType} version ${healthResult.version} is incompatible.\n${healthResult.installInstructions || ''}`
+        `${providerDisplayName} version ${healthResult.version} is incompatible.\n${healthResult.installInstructions || ''}`
       );
     }
 
     if (!healthResult.authenticated) {
-      throw new Error(`${cliType} CLI not authenticated.\n${healthResult.authInstructions || ''}`);
+      this.logger.warn(`${providerDisplayName} CLI is not authenticated`, {
+        cliCommand,
+        authInstructions: healthResult.authInstructions,
+      });
+      throw new Error(`${providerDisplayName} CLI not authenticated.\n${healthResult.authInstructions || ''}`);
     }
 
     // Get model from defaults
@@ -303,6 +319,66 @@ export class ProviderFactory {
     return provider;
   }
 
+  private getCLIProviderDisplayName(cliType: 'claude' | 'codex'): string {
+    return cliType === 'claude' ? 'Claude Code' : 'Codex';
+  }
+
+  private isHealthyCLI(result: {
+    available: boolean;
+    authenticated: boolean;
+    compatible: boolean;
+  }): boolean {
+    return result.available && result.authenticated && result.compatible;
+  }
+
+  private buildPreferredCLIUnavailableMessage(
+    preferred: 'claude' | 'codex',
+    preferredHealth: {
+      available: boolean;
+      authenticated: boolean;
+      compatible: boolean;
+      installInstructions?: string;
+      authInstructions?: string;
+      errorMessage?: string;
+    },
+    fallback: {
+      cliType: 'claude' | 'codex';
+      healthy: boolean;
+      installInstructions?: string;
+      authInstructions?: string;
+    }
+  ): string {
+    const preferredName = this.getCLIProviderDisplayName(preferred);
+    const fallbackName = this.getCLIProviderDisplayName(fallback.cliType);
+
+    const details: string[] = [`Preferred ${preferredName} CLI is unavailable.`];
+
+    if (!preferredHealth.available) {
+      details.push(preferredHealth.installInstructions || `${preferredName} CLI is not installed.`);
+    } else if (!preferredHealth.authenticated) {
+      details.push(preferredHealth.authInstructions || `${preferredName} CLI is not authenticated.`);
+    } else if (!preferredHealth.compatible) {
+      details.push(preferredHealth.errorMessage || `${preferredName} CLI version is incompatible.`);
+    }
+
+    if (fallback.healthy) {
+      details.push(
+        `Fallback available: ${fallbackName} CLI. Set gofer.cliProvider to "${fallback.cliType}" or "auto".`
+      );
+    } else {
+      details.push(
+        `No compatible fallback CLI was detected. Install or authenticate either CLI and retry.`
+      );
+      if (fallback.installInstructions) {
+        details.push(`Fallback install: ${fallback.installInstructions}`);
+      } else if (fallback.authInstructions) {
+        details.push(`Fallback auth: ${fallback.authInstructions}`);
+      }
+    }
+
+    return details.join('\n');
+  }
+
   /**
    * Auto-detect available CLI provider (T027, enhanced in T038, T014)
    * Uses CLIHealthChecker for comprehensive detection
@@ -320,16 +396,22 @@ export class ProviderFactory {
     if (defaultCLI !== 'auto') {
       // Copilot is not a CLI tool for autonomous mode, fall back to Claude/Codex
       if (defaultCLI === 'copilot') {
+        this.logger.info(
+          'gofer.defaultCLI is set to Copilot; evaluating CLI-capable fallbacks for autonomous mode'
+        );
+
         // Copilot Chat doesn't have a CLI we can exec, try Claude then Codex
         const claudeCommand = config.get<string>('claudeCodeCommand', 'claude');
         const claudeResult = await CLIHealthChecker.check('claude', claudeCommand);
-        if (claudeResult.available && claudeResult.authenticated && claudeResult.compatible) {
+        if (this.isHealthyCLI(claudeResult)) {
+          this.logger.info('Auto-detected Claude Code CLI');
           return 'claude';
         }
 
         const codexCommand = config.get<string>('codexCommand', 'codex');
         const codexResult = await CLIHealthChecker.check('codex', codexCommand);
-        if (codexResult.available && codexResult.authenticated && codexResult.compatible) {
+        if (this.isHealthyCLI(codexResult)) {
+          this.logger.info('Auto-detected Codex CLI');
           return 'codex';
         }
 
@@ -340,16 +422,28 @@ export class ProviderFactory {
       if (defaultCLI === 'claude') {
         const claudeCommand = config.get<string>('claudeCodeCommand', 'claude');
         const claudeResult = await CLIHealthChecker.check('claude', claudeCommand);
-        if (claudeResult.available && claudeResult.authenticated && claudeResult.compatible) {
+        if (this.isHealthyCLI(claudeResult)) {
+          this.logger.info('Using Claude Code CLI (user preference)');
           return 'claude';
         }
+        this.logger.warn('Preferred Claude Code CLI is unavailable, falling back to auto-detection', {
+          installInstructions: claudeResult.installInstructions,
+          authInstructions: claudeResult.authInstructions,
+          errorMessage: claudeResult.errorMessage,
+        });
         // Fallback to auto-detection if explicit preference not available
       } else if (defaultCLI === 'codex') {
         const codexCommand = config.get<string>('codexCommand', 'codex');
         const codexResult = await CLIHealthChecker.check('codex', codexCommand);
-        if (codexResult.available && codexResult.authenticated && codexResult.compatible) {
+        if (this.isHealthyCLI(codexResult)) {
+          this.logger.info('Using Codex CLI (user preference)');
           return 'codex';
         }
+        this.logger.warn('Preferred Codex CLI is unavailable, falling back to auto-detection', {
+          installInstructions: codexResult.installInstructions,
+          authInstructions: codexResult.authInstructions,
+          errorMessage: codexResult.errorMessage,
+        });
         // Fallback to auto-detection if explicit preference not available
       }
     }
@@ -358,7 +452,8 @@ export class ProviderFactory {
     const claudeCommand = config.get<string>('claudeCodeCommand', 'claude');
     const claudeResult = await CLIHealthChecker.check('claude', claudeCommand);
 
-    if (claudeResult.available && claudeResult.authenticated && claudeResult.compatible) {
+    if (this.isHealthyCLI(claudeResult)) {
+      this.logger.info('Auto-detected Claude Code CLI');
       return 'claude';
     }
 
@@ -366,11 +461,13 @@ export class ProviderFactory {
     const codexCommand = config.get<string>('codexCommand', 'codex');
     const codexResult = await CLIHealthChecker.check('codex', codexCommand);
 
-    if (codexResult.available && codexResult.authenticated && codexResult.compatible) {
+    if (this.isHealthyCLI(codexResult)) {
+      this.logger.info('Auto-detected Codex CLI');
       return 'codex';
     }
 
     // Neither available
+    this.logger.warn('No CLI provider detected during auto-detection');
     return null;
   }
 
@@ -387,47 +484,83 @@ export class ProviderFactory {
     const config = vscode.workspace.getConfiguration('gofer');
     const preference = config.get<'claude' | 'codex' | 'auto'>('cliProvider', 'auto');
 
-    let cliType: 'claude' | 'codex';
+    if (preference !== 'auto') {
+      try {
+        const provider = await this.createCLIProvider(preference);
+        this.logger.info(`Using ${this.getCLIProviderDisplayName(preference)} CLI (user preference)`);
+        return provider;
+      } catch (error) {
+        const preferredCommand = config.get<string>(
+          preference === 'claude' ? 'claudeCodeCommand' : 'codexCommand',
+          preference
+        );
+        const preferredHealth = await CLIHealthChecker.check(preference, preferredCommand);
 
-    if (preference === 'auto') {
-      // Auto-detect with detailed error messages
-      const detected = await this.autoDetectCLI();
-      if (!detected) {
-        // Check both CLIs to provide specific guidance
-        const claudeCommand = config.get<string>('claudeCodeCommand', 'claude');
-        const codexCommand = config.get<string>('codexCommand', 'codex');
+        const fallbackType = preference === 'claude' ? 'codex' : 'claude';
+        const fallbackCommand = config.get<string>(
+          fallbackType === 'claude' ? 'claudeCodeCommand' : 'codexCommand',
+          fallbackType
+        );
+        const fallbackHealth = await CLIHealthChecker.check(fallbackType, fallbackCommand);
+        const fallbackHealthy = this.isHealthyCLI(fallbackHealth);
 
-        const claudeResult = await CLIHealthChecker.check('claude', claudeCommand);
-        const codexResult = await CLIHealthChecker.check('codex', codexCommand);
+        const guidance = this.buildPreferredCLIUnavailableMessage(preference, preferredHealth, {
+          cliType: fallbackType,
+          healthy: fallbackHealthy,
+          installInstructions: fallbackHealth.installInstructions,
+          authInstructions: fallbackHealth.authInstructions,
+        });
 
-        // Build comprehensive error message
-        let errorMsg = 'No CLI provider available for autonomous mode.\n\n';
+        this.logger.warn(`Preferred ${this.getCLIProviderDisplayName(preference)} CLI unavailable`, {
+          error,
+          preferredCommand,
+          preferredHealth,
+          fallbackType,
+          fallbackHealthy,
+        });
 
-        if (!claudeResult.available) {
-          errorMsg += `Claude CLI: ${claudeResult.installInstructions}\n`;
-        } else if (!claudeResult.authenticated) {
-          errorMsg += `Claude CLI: ${claudeResult.authInstructions}\n`;
-        } else if (!claudeResult.compatible) {
-          errorMsg += `Claude CLI: ${claudeResult.errorMessage}\n`;
-        }
-
-        if (!codexResult.available) {
-          errorMsg += `Codex CLI: ${codexResult.installInstructions}\n`;
-        } else if (!codexResult.authenticated) {
-          errorMsg += `Codex CLI: ${codexResult.authInstructions}\n`;
-        } else if (!codexResult.compatible) {
-          errorMsg += `Codex CLI: ${codexResult.errorMessage}\n`;
-        }
-
-        throw new Error(errorMsg);
+        throw new Error(guidance);
       }
-      cliType = detected;
-    } else {
-      // Specific provider selected - health check will happen in createCLIProvider
-      cliType = preference;
     }
 
-    return this.createCLIProvider(cliType);
+    // Auto-detect with detailed error messages
+    const detected = await this.autoDetectCLI();
+    if (!detected) {
+      // Check both CLIs to provide specific guidance
+      const claudeCommand = config.get<string>('claudeCodeCommand', 'claude');
+      const codexCommand = config.get<string>('codexCommand', 'codex');
+
+      const claudeResult = await CLIHealthChecker.check('claude', claudeCommand);
+      const codexResult = await CLIHealthChecker.check('codex', codexCommand);
+
+      // Build comprehensive error message
+      let errorMsg = 'No CLI provider available for autonomous mode.\n\n';
+
+      if (!claudeResult.available) {
+        errorMsg += `Claude CLI: ${claudeResult.installInstructions}\n`;
+      } else if (!claudeResult.authenticated) {
+        errorMsg += `Claude CLI: ${claudeResult.authInstructions}\n`;
+      } else if (!claudeResult.compatible) {
+        errorMsg += `Claude CLI: ${claudeResult.errorMessage}\n`;
+      }
+
+      if (!codexResult.available) {
+        errorMsg += `Codex CLI: ${codexResult.installInstructions}\n`;
+      } else if (!codexResult.authenticated) {
+        errorMsg += `Codex CLI: ${codexResult.authInstructions}\n`;
+      } else if (!codexResult.compatible) {
+        errorMsg += `Codex CLI: ${codexResult.errorMessage}\n`;
+      }
+
+      this.logger.warn('No CLI provider available for autonomous mode', {
+        claudeResult,
+        codexResult,
+      });
+      throw new Error(errorMsg);
+    }
+
+    this.logger.info(`Auto-detected ${this.getCLIProviderDisplayName(detected)} CLI`);
+    return this.createCLIProvider(detected);
   }
 }
 

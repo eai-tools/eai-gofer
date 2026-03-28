@@ -1,7 +1,7 @@
 ---
 id: '025-ai-usage-tracking-bug-fix'
 title: 'AI Token Cost Calculation Bug Fixes'
-status: draft
+status: complete
 created: '2026-03-19T18:00:00Z'
 updated: '2026-03-19T18:00:00Z'
 author: Claude

@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.25.0",
+  "latest_version": "1.26.0",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-03-22T11:12:49.014Z",
+  "last_updated": "2026-03-28T09:40:13.645Z",
   "releases": [
+    {
+      "version": "1.26.0",
+      "tag_name": "v1.26.0",
+      "published_at": "2026-03-28T09:40:13.644Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.26.0.vsix",
+      "notes": "Add multi-provider CLI support, cross-platform command parity, AI usage tracking, and memory system v2",
+      "prerelease": false,
+      "size_mb": 10.1
+    },
     {
       "version": "1.25.0",
       "tag_name": "v1.25.0",
@@ -81,15 +90,6 @@
       "published_at": "2026-03-17T23:53:18.614Z",
       "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.20.5.vsix",
       "notes": "fix: Add cross-platform support for Codespaces/Linux - replaced node-pty with node-pty-prebuilt-multiarch",
-      "prerelease": false,
-      "size_mb": 10.2
-    },
-    {
-      "version": "1.20.4",
-      "tag_name": "v1.20.4",
-      "published_at": "2026-03-17T21:22:12.381Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.20.4.vsix",
-      "notes": "fix: Add cross-platform support for Codespaces/Linux - replaced node-pty with node-pty-prebuilt-multiarch to include linux-x64 native binaries",
       "prerelease": false,
       "size_mb": 10.2
     }

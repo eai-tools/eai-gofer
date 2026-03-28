@@ -11,27 +11,32 @@ document_type: data-model
 
 ## Executive Summary
 
-This document defines the data structures for Feature 027 (Multi-Provider CLI Support). The feature enables Gofer to work with multiple AI CLI providers (Claude Code CLI and Codex CLI) through a unified abstraction layer.
+This document defines the data structures for Feature 027 (Multi-Provider CLI
+Support). The feature enables Gofer to work with multiple AI CLI providers
+(Claude Code CLI and Codex CLI) through a unified abstraction layer.
 
-**Key principle**: CLI providers implement the existing `LLMProvider` interface through an **adapter pattern**, enabling transparent provider switching without changes to downstream consumers (autonomous mode, validation, pipeline stages).
+**Key principle**: CLI providers implement the existing `LLMProvider` interface
+through an **adapter pattern**, enabling transparent provider switching without
+changes to downstream consumers (autonomous mode, validation, pipeline stages).
 
 ---
 
 ## Entity Overview
 
-| Entity | Purpose | Location | Created/Modified | Scope |
-|--------|---------|----------|------------------|-------|
-| `CLIProviderAdapter` | Base adapter for CLI providers | `extension/src/providers/cli/CLIProviderAdapter.ts` | NEW | Feature 027 |
-| `ClaudeCodeCLIProvider` | Claude CLI implementation | `extension/src/providers/cli/ClaudeCodeCLIProvider.ts` | NEW | Feature 027 |
-| `CodexCLIProvider` | Codex CLI implementation | `extension/src/providers/cli/CodexCLIProvider.ts` | NEW | Feature 027 |
-| `CLIProviderConfig` | Provider configuration wrapper | Same as adapter files | NEW | Feature 027 |
-| `CLIProviderMetadata` | Provider capability/status info | Same as adapter files | NEW | Feature 027 |
-| `CLIProcessState` | CLI process lifecycle tracking | Same as adapter files | NEW | Feature 027 |
-| `CLIOutputParser` | Provider-specific output parsers | Same as adapter files | NEW | Feature 027 |
-| `LLMProvider` (existing) | Abstract provider contract | `extension/src/council/providers/LLMProvider.ts` | UNCHANGED | Feature 025 |
-| `ProviderFactory` (existing) | Provider instantiation registry | `extension/src/council/providers/ProviderFactory.ts` | EXTENDED | Feature 025 |
+| Entity                       | Purpose                          | Location                                               | Created/Modified | Scope       |
+| ---------------------------- | -------------------------------- | ------------------------------------------------------ | ---------------- | ----------- |
+| `CLIProviderAdapter`         | Base adapter for CLI providers   | `extension/src/providers/cli/CLIProviderAdapter.ts`    | NEW              | Feature 027 |
+| `ClaudeCodeCLIProvider`      | Claude CLI implementation        | `extension/src/providers/cli/ClaudeCodeCLIProvider.ts` | NEW              | Feature 027 |
+| `CodexCLIProvider`           | Codex CLI implementation         | `extension/src/providers/cli/CodexCLIProvider.ts`      | NEW              | Feature 027 |
+| `CLIProviderConfig`          | Provider configuration wrapper   | Same as adapter files                                  | NEW              | Feature 027 |
+| `CLIProviderMetadata`        | Provider capability/status info  | Same as adapter files                                  | NEW              | Feature 027 |
+| `CLIProcessState`            | CLI process lifecycle tracking   | Same as adapter files                                  | NEW              | Feature 027 |
+| `CLIOutputParser`            | Provider-specific output parsers | Same as adapter files                                  | NEW              | Feature 027 |
+| `LLMProvider` (existing)     | Abstract provider contract       | `extension/src/council/providers/LLMProvider.ts`       | UNCHANGED        | Feature 025 |
+| `ProviderFactory` (existing) | Provider instantiation registry  | `extension/src/council/providers/ProviderFactory.ts`   | EXTENDED         | Feature 025 |
 
-**Total new entities**: 7 | **Total modified entities**: 1 | **Total unchanged contracts**: 1
+**Total new entities**: 7 | **Total modified entities**: 1 | **Total unchanged
+contracts**: 1
 
 ---
 
@@ -39,30 +44,34 @@ This document defines the data structures for Feature 027 (Multi-Provider CLI Su
 
 ### 1.1 CLIProviderConfig
 
-**Purpose**: Encapsulates CLI provider configuration from VSCode settings and environment, following the `ConfigManager` pattern.
+**Purpose**: Encapsulates CLI provider configuration from VSCode settings and
+environment, following the `ConfigManager` pattern.
 
-**Scope**: In-memory configuration object, derived from VSCode settings on demand.
+**Scope**: In-memory configuration object, derived from VSCode settings on
+demand.
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `providerId` | `'claude-cli' \| 'codex-cli'` | Yes | Unique CLI provider identifier |
-| `command` | `string` | Yes | CLI command to execute (e.g., `"claude"`, `"codex"`) |
-| `commandPath` | `string \| undefined` | No | Custom path to CLI binary (overrides PATH lookup) |
-| `defaultModel` | `string` | Yes | Default model for queries (e.g., `"claude-opus-4-6"`, `"gpt-5.4"`) |
-| `authMethod` | `'api-key' \| 'session' \| 'config-file'` | Yes | Authentication method used by CLI |
-| `configPath` | `string` | Yes | Path to CLI config file (e.g., `~/.claude/config.json`) |
-| `logPath` | `string` | Yes | Path to CLI usage logs (e.g., `~/.claude/history.jsonl`) |
-| `versionCheckArgs` | `string[]` | Yes | Arguments for version check (e.g., `["--version"]`) |
-| `minVersion` | `string` | Yes | Minimum required CLI version (e.g., `"1.0.0"`) |
-| `capabilities` | `CLIProviderCapabilities` | Yes | Provider-specific feature support |
+| Field              | Type                                      | Required | Description                                                        |
+| ------------------ | ----------------------------------------- | -------- | ------------------------------------------------------------------ |
+| `providerId`       | `'claude-cli' \| 'codex-cli'`             | Yes      | Unique CLI provider identifier                                     |
+| `command`          | `string`                                  | Yes      | CLI command to execute (e.g., `"claude"`, `"codex"`)               |
+| `commandPath`      | `string \| undefined`                     | No       | Custom path to CLI binary (overrides PATH lookup)                  |
+| `defaultModel`     | `string`                                  | Yes      | Default model for queries (e.g., `"claude-opus-4-6"`, `"gpt-5.4"`) |
+| `authMethod`       | `'api-key' \| 'session' \| 'config-file'` | Yes      | Authentication method used by CLI                                  |
+| `configPath`       | `string`                                  | Yes      | Path to CLI config file (e.g., `~/.claude/config.json`)            |
+| `logPath`          | `string`                                  | Yes      | Path to CLI usage logs (e.g., `~/.claude/history.jsonl`)           |
+| `versionCheckArgs` | `string[]`                                | Yes      | Arguments for version check (e.g., `["--version"]`)                |
+| `minVersion`       | `string`                                  | Yes      | Minimum required CLI version (e.g., `"1.0.0"`)                     |
+| `capabilities`     | `CLIProviderCapabilities`                 | Yes      | Provider-specific feature support                                  |
 
 **Validation Rules**:
+
 - `command` must be a valid executable name or absolute path
 - `commandPath`, if provided, must point to an executable file
 - `minVersion` must follow semver format (x.y.z)
 - `configPath` and `logPath` must expand `~` to user home directory
 
 **Usage Pattern**:
+
 ```typescript
 const config = CLIProviderConfig.forProvider('claude-cli', configManager);
 if (await config.isAvailable()) {
@@ -74,29 +83,30 @@ if (await config.isAvailable()) {
 
 ### 1.2 CLIProviderCapabilities
 
-**Purpose**: Declare provider-specific features for graceful degradation and feature detection.
+**Purpose**: Declare provider-specific features for graceful degradation and
+feature detection.
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `streaming` | `boolean` | Yes | Supports streaming responses via stdout |
-| `fileOperations` | `boolean` | Yes | Supports file read/write/edit operations |
-| `toolUse` | `boolean` | Yes | Supports external tool invocation |
-| `mcpServers` | `boolean` | Yes | Supports MCP server integration (Claude-specific) |
-| `webSearch` | `boolean` | Yes | Supports web search queries (Codex-specific) |
-| `multiTurn` | `boolean` | Yes | Supports conversation history management |
-| `contextWindow` | `number` | Yes | Maximum context window size in tokens |
+| Field            | Type      | Required | Description                                       |
+| ---------------- | --------- | -------- | ------------------------------------------------- |
+| `streaming`      | `boolean` | Yes      | Supports streaming responses via stdout           |
+| `fileOperations` | `boolean` | Yes      | Supports file read/write/edit operations          |
+| `toolUse`        | `boolean` | Yes      | Supports external tool invocation                 |
+| `mcpServers`     | `boolean` | Yes      | Supports MCP server integration (Claude-specific) |
+| `webSearch`      | `boolean` | Yes      | Supports web search queries (Codex-specific)      |
+| `multiTurn`      | `boolean` | Yes      | Supports conversation history management          |
+| `contextWindow`  | `number`  | Yes      | Maximum context window size in tokens             |
 
 **Capability Matrix** (from research.md):
 
-| Capability | Claude Code CLI | Codex CLI | Notes |
-|-----------|----------------|-----------|-------|
-| `streaming` | `true` | `true` | Both support stdout streaming |
-| `fileOperations` | `true` | `true` | Common capability |
-| `toolUse` | `true` | `true` | Both support tool invocation |
-| `mcpServers` | `true` | `false` | Claude-specific (FR-014) |
-| `webSearch` | `false` | `true` | Codex-specific (FR-015) |
-| `multiTurn` | `true` | `true` | Both support conversation history |
-| `contextWindow` | `200000` | `128000` | Model-specific limits |
+| Capability       | Claude Code CLI | Codex CLI | Notes                             |
+| ---------------- | --------------- | --------- | --------------------------------- |
+| `streaming`      | `true`          | `true`    | Both support stdout streaming     |
+| `fileOperations` | `true`          | `true`    | Common capability                 |
+| `toolUse`        | `true`          | `true`    | Both support tool invocation      |
+| `mcpServers`     | `true`          | `false`   | Claude-specific (FR-014)          |
+| `webSearch`      | `false`         | `true`    | Codex-specific (FR-015)           |
+| `multiTurn`      | `true`          | `true`    | Both support conversation history |
+| `contextWindow`  | `200000`        | `128000`  | Model-specific limits             |
 
 ---
 
@@ -104,19 +114,20 @@ if (await config.isAvailable()) {
 
 **Purpose**: Runtime status and availability information for a CLI provider.
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `providerId` | `'claude-cli' \| 'codex-cli'` | Yes | Provider identifier |
-| `name` | `string` | Yes | Human-readable name (e.g., `"Claude Code CLI"`) |
-| `installedVersion` | `string \| undefined` | No | Detected CLI version (undefined if not installed) |
-| `isInstalled` | `boolean` | Yes | CLI binary is available on system PATH or commandPath |
-| `isAuthenticated` | `boolean` | Yes | CLI authentication is configured and valid |
-| `isAvailable` | `boolean` | Yes | CLI is ready to use (installed + authenticated) |
-| `lastHealthCheck` | `number` | Yes | Unix timestamp (ms) of last health check |
-| `healthCheckError` | `string \| undefined` | No | Error message from last health check (if failed) |
-| `capabilities` | `CLIProviderCapabilities` | Yes | Provider-specific features |
+| Field              | Type                          | Required | Description                                           |
+| ------------------ | ----------------------------- | -------- | ----------------------------------------------------- |
+| `providerId`       | `'claude-cli' \| 'codex-cli'` | Yes      | Provider identifier                                   |
+| `name`             | `string`                      | Yes      | Human-readable name (e.g., `"Claude Code CLI"`)       |
+| `installedVersion` | `string \| undefined`         | No       | Detected CLI version (undefined if not installed)     |
+| `isInstalled`      | `boolean`                     | Yes      | CLI binary is available on system PATH or commandPath |
+| `isAuthenticated`  | `boolean`                     | Yes      | CLI authentication is configured and valid            |
+| `isAvailable`      | `boolean`                     | Yes      | CLI is ready to use (installed + authenticated)       |
+| `lastHealthCheck`  | `number`                      | Yes      | Unix timestamp (ms) of last health check              |
+| `healthCheckError` | `string \| undefined`         | No       | Error message from last health check (if failed)      |
+| `capabilities`     | `CLIProviderCapabilities`     | Yes      | Provider-specific features                            |
 
 **Validation Rules**:
+
 - `isAvailable` = `isInstalled && isAuthenticated`
 - `installedVersion` must match semver format if defined
 - `lastHealthCheck` must be within last 60 seconds for fresh data
@@ -130,30 +141,32 @@ if (await config.isAvailable()) {
 
 **Purpose**: Track lifecycle and status of spawned CLI processes.
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `processId` | `number \| undefined` | No | OS process ID (undefined if not running) |
-| `status` | `CLIProcessStatus` | Yes | Current process status (see state machine) |
-| `pty` | `IPty \| undefined` | No | Node-pty terminal instance (if active) |
-| `commandQueue` | `string[]` | Yes | Queued commands waiting to be sent to stdin |
-| `outputBuffer` | `string` | Yes | Accumulated stdout/stderr output |
-| `startedAt` | `number \| undefined` | No | Unix timestamp (ms) when process started |
-| `lastActivityAt` | `number` | Yes | Unix timestamp (ms) of last I/O activity |
-| `exitCode` | `number \| undefined` | No | Process exit code (undefined if still running) |
-| `error` | `ProviderError \| undefined` | No | Error object if process failed |
+| Field            | Type                         | Required | Description                                    |
+| ---------------- | ---------------------------- | -------- | ---------------------------------------------- |
+| `processId`      | `number \| undefined`        | No       | OS process ID (undefined if not running)       |
+| `status`         | `CLIProcessStatus`           | Yes      | Current process status (see state machine)     |
+| `pty`            | `IPty \| undefined`          | No       | Node-pty terminal instance (if active)         |
+| `commandQueue`   | `string[]`                   | Yes      | Queued commands waiting to be sent to stdin    |
+| `outputBuffer`   | `string`                     | Yes      | Accumulated stdout/stderr output               |
+| `startedAt`      | `number \| undefined`        | No       | Unix timestamp (ms) when process started       |
+| `lastActivityAt` | `number`                     | Yes      | Unix timestamp (ms) of last I/O activity       |
+| `exitCode`       | `number \| undefined`        | No       | Process exit code (undefined if still running) |
+| `error`          | `ProviderError \| undefined` | No       | Error object if process failed                 |
 
 **CLIProcessStatus Enum**:
+
 ```typescript
 type CLIProcessStatus =
-  | 'idle'          // Not running, ready to start
-  | 'spawning'      // Process creation in progress
-  | 'running'       // Active and accepting commands
-  | 'waiting'       // Waiting for response to complete
-  | 'error'         // Process failed or crashed
-  | 'terminated';   // Process exited gracefully
+  | 'idle' // Not running, ready to start
+  | 'spawning' // Process creation in progress
+  | 'running' // Active and accepting commands
+  | 'waiting' // Waiting for response to complete
+  | 'error' // Process failed or crashed
+  | 'terminated'; // Process exited gracefully
 ```
 
 **Validation Rules**:
+
 - If `status === 'running'`, `processId` and `pty` must be defined
 - If `status === 'terminated'`, `exitCode` must be defined
 - If `status === 'error'`, `error` must be defined
@@ -166,13 +179,18 @@ type CLIProcessStatus =
 
 ### 1.5 CLIOutputParser
 
-**Purpose**: Provider-specific logic for parsing CLI stdout/stderr into structured responses.
+**Purpose**: Provider-specific logic for parsing CLI stdout/stderr into
+structured responses.
 
 **Interface Contract**:
+
 ```typescript
 interface CLIOutputParser {
   parseResponse(output: string): QueryResponse;
-  parseTokenUsage(output: string): { inputTokens: number; outputTokens: number };
+  parseTokenUsage(output: string): {
+    inputTokens: number;
+    outputTokens: number;
+  };
   parseError(output: string): ProviderError;
   isResponseComplete(output: string): boolean;
 }
@@ -180,31 +198,34 @@ interface CLIOutputParser {
 
 **Claude Code CLI Parser**:
 
-| Method | Input | Output | Description |
-|--------|-------|--------|-------------|
-| `parseResponse` | Markdown output | `QueryResponse` | Extracts text from markdown blocks |
-| `parseTokenUsage` | Output with usage footer | `{ inputTokens, outputTokens }` | Parses usage from footer annotations |
-| `parseError` | Error message text | `ProviderError` | Maps error text to ProviderError type |
-| `isResponseComplete` | Partial output | `boolean` | Detects `---` separator or prompt return |
+| Method               | Input                    | Output                          | Description                              |
+| -------------------- | ------------------------ | ------------------------------- | ---------------------------------------- |
+| `parseResponse`      | Markdown output          | `QueryResponse`                 | Extracts text from markdown blocks       |
+| `parseTokenUsage`    | Output with usage footer | `{ inputTokens, outputTokens }` | Parses usage from footer annotations     |
+| `parseError`         | Error message text       | `ProviderError`                 | Maps error text to ProviderError type    |
+| `isResponseComplete` | Partial output           | `boolean`                       | Detects `---` separator or prompt return |
 
 **Claude Output Format** (from research.md):
+
 ```markdown
 <response text>
 
 ---
+
 Usage: 12,500 input tokens, 3,400 output tokens
 ```
 
 **Codex CLI Parser**:
 
-| Method | Input | Output | Description |
-|--------|-------|--------|-------------|
-| `parseResponse` | TUI-formatted output | `QueryResponse` | Extracts content from TUI structure |
-| `parseTokenUsage` | JSON status line | `{ inputTokens, outputTokens }` | Parses JSON metadata |
-| `parseError` | Exit code + stderr | `ProviderError` | Maps exit codes to error types |
-| `isResponseComplete` | Partial output | `boolean` | Detects JSON close bracket or prompt |
+| Method               | Input                | Output                          | Description                          |
+| -------------------- | -------------------- | ------------------------------- | ------------------------------------ |
+| `parseResponse`      | TUI-formatted output | `QueryResponse`                 | Extracts content from TUI structure  |
+| `parseTokenUsage`    | JSON status line     | `{ inputTokens, outputTokens }` | Parses JSON metadata                 |
+| `parseError`         | Exit code + stderr   | `ProviderError`                 | Maps exit codes to error types       |
+| `isResponseComplete` | Partial output       | `boolean`                       | Detects JSON close bracket or prompt |
 
 **Codex Output Format** (from research.md):
+
 ```json
 {
   "type": "response",
@@ -214,17 +235,22 @@ Usage: 12,500 input tokens, 3,400 output tokens
 ```
 
 **Validation Rules**:
-- `parseResponse` must handle incomplete output gracefully (buffer until complete)
-- `parseTokenUsage` must return `{ inputTokens: 0, outputTokens: 0 }` if parsing fails
+
+- `parseResponse` must handle incomplete output gracefully (buffer until
+  complete)
+- `parseTokenUsage` must return `{ inputTokens: 0, outputTokens: 0 }` if parsing
+  fails
 - `parseError` must never throw exceptions (return generic error if unparseable)
 
 ---
 
 ### 1.6 CLIProviderAdapter (Base Class)
 
-**Purpose**: Abstract base class implementing `LLMProvider` interface with shared CLI logic.
+**Purpose**: Abstract base class implementing `LLMProvider` interface with
+shared CLI logic.
 
 **Abstract Methods** (must be implemented by subclasses):
+
 ```typescript
 abstract getParser(): CLIOutputParser;
 abstract getConfig(): CLIProviderConfig;
@@ -233,6 +259,7 @@ abstract formatSystemPrompt(systemPrompt: string): string;
 ```
 
 **Concrete Methods** (shared implementation):
+
 ```typescript
 async query(request: QueryRequest): Promise<QueryResponse>;
 async healthCheck(): Promise<boolean>;
@@ -241,7 +268,9 @@ isRateLimited(): boolean;
 ```
 
 **Implementation Strategy**:
-- `query()` spawns CLI process via TerminalManager, sends formatted prompt, captures output
+
+- `query()` spawns CLI process via TerminalManager, sends formatted prompt,
+  captures output
 - `healthCheck()` runs version check and auth verification
 - `isAvailable()` returns cached metadata status
 - `isRateLimited()` checks exit codes and error messages for rate limit signals
@@ -252,18 +281,19 @@ isRateLimited(): boolean;
 
 **Purpose**: Claude Code CLI implementation of `LLMProvider` interface.
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `id` | `'claude-cli'` | Yes | Provider ID (from LLMProvider interface) |
-| `name` | `'Claude Code CLI'` | Yes | Human-readable name |
-| `model` | `string` | Yes | Current model (e.g., `"claude-opus-4-6"`) |
-| `status` | `ProviderStatus` | Yes | Provider status (from LLMProvider interface) |
-| `config` | `CLIProviderConfig` | Yes | Configuration instance |
-| `metadata` | `CLIProviderMetadata` | Yes | Runtime metadata |
-| `processState` | `CLIProcessState` | Yes | Process tracking |
-| `parser` | `ClaudeCodeOutputParser` | Yes | Output parser instance |
+| Field          | Type                     | Required | Description                                  |
+| -------------- | ------------------------ | -------- | -------------------------------------------- |
+| `id`           | `'claude-cli'`           | Yes      | Provider ID (from LLMProvider interface)     |
+| `name`         | `'Claude Code CLI'`      | Yes      | Human-readable name                          |
+| `model`        | `string`                 | Yes      | Current model (e.g., `"claude-opus-4-6"`)    |
+| `status`       | `ProviderStatus`         | Yes      | Provider status (from LLMProvider interface) |
+| `config`       | `CLIProviderConfig`      | Yes      | Configuration instance                       |
+| `metadata`     | `CLIProviderMetadata`    | Yes      | Runtime metadata                             |
+| `processState` | `CLIProcessState`        | Yes      | Process tracking                             |
+| `parser`       | `ClaudeCodeOutputParser` | Yes      | Output parser instance                       |
 
 **Specific Behavior**:
+
 - Command format: `claude --prompt "<prompt>" --model <model>`
 - Authentication: Checks `ANTHROPIC_API_KEY` env var or `~/.claude/config.json`
 - Output parsing: Markdown with `---` separator and usage footer
@@ -276,18 +306,19 @@ isRateLimited(): boolean;
 
 **Purpose**: Codex CLI implementation of `LLMProvider` interface.
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `id` | `'codex-cli'` | Yes | Provider ID |
-| `name` | `'Codex CLI'` | Yes | Human-readable name |
-| `model` | `string` | Yes | Current model (e.g., `"gpt-5.4"`) |
-| `status` | `ProviderStatus` | Yes | Provider status |
-| `config` | `CLIProviderConfig` | Yes | Configuration instance |
-| `metadata` | `CLIProviderMetadata` | Yes | Runtime metadata |
-| `processState` | `CLIProcessState` | Yes | Process tracking |
-| `parser` | `CodexOutputParser` | Yes | Output parser instance |
+| Field          | Type                  | Required | Description                       |
+| -------------- | --------------------- | -------- | --------------------------------- |
+| `id`           | `'codex-cli'`         | Yes      | Provider ID                       |
+| `name`         | `'Codex CLI'`         | Yes      | Human-readable name               |
+| `model`        | `string`              | Yes      | Current model (e.g., `"gpt-5.4"`) |
+| `status`       | `ProviderStatus`      | Yes      | Provider status                   |
+| `config`       | `CLIProviderConfig`   | Yes      | Configuration instance            |
+| `metadata`     | `CLIProviderMetadata` | Yes      | Runtime metadata                  |
+| `processState` | `CLIProcessState`     | Yes      | Process tracking                  |
+| `parser`       | `CodexOutputParser`   | Yes      | Output parser instance            |
 
 **Specific Behavior**:
+
 - Command format: `codex exec "<prompt>"` or `codex` (TUI mode)
 - Authentication: ChatGPT session or `OPENAI_API_KEY` env var
 - Output parsing: JSON response with structured fields
@@ -359,20 +390,20 @@ isRateLimited(): boolean;
 
 ### 2.2 Dependency Graph
 
-| Consumer | Depends On | Cardinality | Description |
-|----------|-----------|-------------|-------------|
-| `ProviderFactory` | `ClaudeCodeCLIProvider` | 1:1 | Factory creates instances on demand |
-| `ProviderFactory` | `CodexCLIProvider` | 1:1 | Factory creates instances on demand |
-| `ClaudeCodeCLIProvider` | `CLIProviderAdapter` | 1:1 | Extends base adapter |
-| `CodexCLIProvider` | `CLIProviderAdapter` | 1:1 | Extends base adapter |
-| `CLIProviderAdapter` | `LLMProvider` | 1:1 | Implements interface contract |
-| `CLIProviderAdapter` | `CLIProviderConfig` | 1:1 | Configuration composition |
-| `CLIProviderAdapter` | `CLIProviderMetadata` | 1:1 | Metadata composition |
-| `CLIProviderAdapter` | `CLIProcessState` | 1:1 | Process tracking composition |
-| `CLIProviderAdapter` | `CLIOutputParser` | 1:1 | Output parsing composition |
-| `CLIProviderAdapter` | `TerminalManager` | 1:1 | Terminal spawning (existing service) |
-| `AutonomousDriver` | `LLMProvider` | 1:1 | Receives provider via DI |
-| `ValidationAgents` | `LLMProvider` | 1:many | Each agent uses provider interface |
+| Consumer                | Depends On              | Cardinality | Description                          |
+| ----------------------- | ----------------------- | ----------- | ------------------------------------ |
+| `ProviderFactory`       | `ClaudeCodeCLIProvider` | 1:1         | Factory creates instances on demand  |
+| `ProviderFactory`       | `CodexCLIProvider`      | 1:1         | Factory creates instances on demand  |
+| `ClaudeCodeCLIProvider` | `CLIProviderAdapter`    | 1:1         | Extends base adapter                 |
+| `CodexCLIProvider`      | `CLIProviderAdapter`    | 1:1         | Extends base adapter                 |
+| `CLIProviderAdapter`    | `LLMProvider`           | 1:1         | Implements interface contract        |
+| `CLIProviderAdapter`    | `CLIProviderConfig`     | 1:1         | Configuration composition            |
+| `CLIProviderAdapter`    | `CLIProviderMetadata`   | 1:1         | Metadata composition                 |
+| `CLIProviderAdapter`    | `CLIProcessState`       | 1:1         | Process tracking composition         |
+| `CLIProviderAdapter`    | `CLIOutputParser`       | 1:1         | Output parsing composition           |
+| `CLIProviderAdapter`    | `TerminalManager`       | 1:1         | Terminal spawning (existing service) |
+| `AutonomousDriver`      | `LLMProvider`           | 1:1         | Receives provider via DI             |
+| `ValidationAgents`      | `LLMProvider`           | 1:many      | Each agent uses provider interface   |
 
 **Relationship Count**: 12 relationships (7 internal, 5 external)
 
@@ -383,7 +414,9 @@ isRateLimited(): boolean;
 ### 3.1 CLIProviderConfig Validation
 
 ```typescript
-function validateCLIProviderConfig(config: CLIProviderConfig): ValidationResult {
+function validateCLIProviderConfig(
+  config: CLIProviderConfig
+): ValidationResult {
   const errors: string[] = [];
 
   // Command validation
@@ -414,16 +447,26 @@ function validateCLIProviderConfig(config: CLIProviderConfig): ValidationResult 
 ### 3.2 CLIProviderMetadata Validation
 
 ```typescript
-function validateCLIProviderMetadata(metadata: CLIProviderMetadata): ValidationResult {
+function validateCLIProviderMetadata(
+  metadata: CLIProviderMetadata
+): ValidationResult {
   const errors: string[] = [];
 
   // Availability consistency
-  if (metadata.isAvailable && (!metadata.isInstalled || !metadata.isAuthenticated)) {
-    errors.push('isAvailable requires both isInstalled and isAuthenticated to be true');
+  if (
+    metadata.isAvailable &&
+    (!metadata.isInstalled || !metadata.isAuthenticated)
+  ) {
+    errors.push(
+      'isAvailable requires both isInstalled and isAuthenticated to be true'
+    );
   }
 
   // Version format
-  if (metadata.installedVersion && !/^\d+\.\d+\.\d+/.test(metadata.installedVersion)) {
+  if (
+    metadata.installedVersion &&
+    !/^\d+\.\d+\.\d+/.test(metadata.installedVersion)
+  ) {
     errors.push('installedVersion must follow semver format');
   }
 
@@ -528,21 +571,26 @@ stateDiagram-v2
 
 **State Definitions**:
 
-| State | isAvailable | isInstalled | isAuthenticated | Description |
-|-------|------------|------------|----------------|-------------|
-| `unknown` | `false` | `false` | `false` | Initial state before health check |
-| `checking` | `false` | `false` | `false` | Health check in progress |
-| `unavailable_not_installed` | `false` | `false` | `false` | CLI binary not found on PATH |
-| `unavailable_not_authenticated` | `false` | `true` | `false` | CLI installed but auth missing |
-| `available` | `true` | `true` | `true` | Ready to use |
+| State                           | isAvailable | isInstalled | isAuthenticated | Description                       |
+| ------------------------------- | ----------- | ----------- | --------------- | --------------------------------- |
+| `unknown`                       | `false`     | `false`     | `false`         | Initial state before health check |
+| `checking`                      | `false`     | `false`     | `false`         | Health check in progress          |
+| `unavailable_not_installed`     | `false`     | `false`     | `false`         | CLI binary not found on PATH      |
+| `unavailable_not_authenticated` | `false`     | `true`      | `false`         | CLI installed but auth missing    |
+| `available`                     | `true`      | `true`      | `true`          | Ready to use                      |
 
 **Transition Rules**:
+
 - `unknown → checking`: Triggered on extension activation or manual refresh
-- `checking → unavailable_not_installed`: Version check command fails (exit code 127 or ENOENT)
-- `checking → unavailable_not_authenticated`: Version succeeds but auth check fails (exit code 1 or auth error message)
+- `checking → unavailable_not_installed`: Version check command fails (exit code
+  127 or ENOENT)
+- `checking → unavailable_not_authenticated`: Version succeeds but auth check
+  fails (exit code 1 or auth error message)
 - `checking → available`: Both version and auth checks succeed
-- `available → checking`: Triggered by periodic health check (60s interval) or config change
-- `unavailable_* → checking`: Triggered when user manually retries or config changes
+- `available → checking`: Triggered by periodic health check (60s interval) or
+  config change
+- `unavailable_* → checking`: Triggered when user manually retries or config
+  changes
 
 ---
 
@@ -597,21 +645,23 @@ stateDiagram-v2
 
 **State Definitions**:
 
-| State | processId | pty | exitCode | error | Description |
-|-------|----------|-----|----------|-------|-------------|
-| `idle` | `undefined` | `undefined` | `undefined` | `undefined` | No active process |
-| `spawning` | `undefined` | `defined` | `undefined` | `undefined` | Creating process |
-| `running` | `defined` | `defined` | `undefined` | `undefined` | Active, ready for commands |
-| `waiting` | `defined` | `defined` | `undefined` | `undefined` | Waiting for response |
-| `error` | `defined/undefined` | `defined/undefined` | `defined/undefined` | `defined` | Process failed |
-| `terminated` | `defined` | `undefined` | `defined` | `undefined` | Process exited gracefully |
+| State        | processId           | pty                 | exitCode            | error       | Description                |
+| ------------ | ------------------- | ------------------- | ------------------- | ----------- | -------------------------- |
+| `idle`       | `undefined`         | `undefined`         | `undefined`         | `undefined` | No active process          |
+| `spawning`   | `undefined`         | `defined`           | `undefined`         | `undefined` | Creating process           |
+| `running`    | `defined`           | `defined`           | `undefined`         | `undefined` | Active, ready for commands |
+| `waiting`    | `defined`           | `defined`           | `undefined`         | `undefined` | Waiting for response       |
+| `error`      | `defined/undefined` | `defined/undefined` | `defined/undefined` | `defined`   | Process failed             |
+| `terminated` | `defined`           | `undefined`         | `defined`           | `undefined` | Process exited gracefully  |
 
 **Transition Rules**:
+
 - `idle → spawning`: Triggered when `query()` is called
 - `spawning → running`: Process starts successfully (processId assigned)
 - `spawning → error`: Spawn fails (e.g., command not found, permission denied)
 - `running → waiting`: Command sent to stdin, awaiting response
-- `waiting → running`: Partial response received but not complete (parser returns false from `isResponseComplete`)
+- `waiting → running`: Partial response received but not complete (parser
+  returns false from `isResponseComplete`)
 - `waiting → idle`: Response complete AND process exits cleanly (exit code 0)
 - `waiting → error`: Process crashes (exit code non-zero) OR timeout (60s)
 - `error → idle`: Error handled, provider ready for next query
@@ -624,6 +674,7 @@ stateDiagram-v2
 ### 5.1 VSCode Settings Storage
 
 **Provider Selection**:
+
 ```json
 {
   "gofer.cliProvider": {
@@ -641,6 +692,7 @@ stateDiagram-v2
 ```
 
 **Custom CLI Paths**:
+
 ```json
 {
   "gofer.claudeCodeCommand": {
@@ -658,7 +710,8 @@ stateDiagram-v2
 
 **Storage Scope**: User or workspace settings (VSCode `scope: 'resource'`)
 
-**Access Pattern**: Read via `ConfigManager.getPreferredCLIProvider()`, `ConfigManager.getClaudeCodeCommand()`, `ConfigManager.getCodexCommand()`
+**Access Pattern**: Read via `ConfigManager.getPreferredCLIProvider()`,
+`ConfigManager.getClaudeCodeCommand()`, `ConfigManager.getCodexCommand()`
 
 ---
 
@@ -667,6 +720,7 @@ stateDiagram-v2
 **Cache Location**: In-memory only (no disk persistence)
 
 **Cache Structure**:
+
 ```typescript
 class ProviderMetadataCache {
   private cache: Map<ProviderId, CLIProviderMetadata> = new Map();
@@ -692,6 +746,7 @@ class ProviderMetadataCache {
 ```
 
 **Cache Invalidation**:
+
 - Automatic: After 60 seconds (health check TTL)
 - Manual: On VSCode settings change (`onDidChangeConfiguration`)
 - Manual: On user-triggered refresh command
@@ -701,6 +756,7 @@ class ProviderMetadataCache {
 ### 5.3 CLI Usage Logs (Existing Files)
 
 **Claude Code CLI**:
+
 - **Format**: JSONL (JSON Lines)
 - **Location**: `~/.claude/history.jsonl`
 - **Parser**: `ClaudeCodeUsageAdapter` (existing, from Feature 026)
@@ -716,6 +772,7 @@ class ProviderMetadataCache {
   ```
 
 **Codex CLI**:
+
 - **Format**: JSON (single object with array)
 - **Location**: `~/.codex/history.json`
 - **Parser**: `CodexUsageAdapter` (NEW, follows ClaudeCodeUsageAdapter pattern)
@@ -735,6 +792,7 @@ class ProviderMetadataCache {
   ```
 
 **Usage Tracking Integration** (from spec.md FR-017 to FR-020):
+
 - `UsageLogger` extended with CLI log adapters
 - `AIUsagePanel` displays provider name alongside token counts
 - Token usage tracked separately per provider
@@ -744,22 +802,23 @@ class ProviderMetadataCache {
 
 ## 6. Entity-to-UserStory Mapping
 
-| Entity | User Story | Requirements | Description |
-|--------|-----------|-------------|-------------|
-| **CLIProviderConfig** | US1 (Provider Selection) | FR-002 | Stores user's provider choice from dropdown |
-| **CLIProviderConfig** | US3 (Auto-Detection) | FR-003 | Enables auto-detection logic via config |
-| **CLIProviderMetadata** | US3 (Auto-Detection) | FR-011, FR-012 | Provides availability status for error messages |
-| **CLIProviderMetadata** | US1 (Provider Selection) | FR-006 | Displays status indicator in settings UI |
-| **CLIProviderCapabilities** | US4 (Feature Degradation) | FR-014, FR-015, FR-016 | Declares provider-specific features (MCP, web search) |
-| **CLIProcessState** | US2 (Transparent Switching) | FR-004, FR-013 | Tracks process for immediate provider changes |
-| **CLIOutputParser** | US2 (Transparent Switching) | FR-007, FR-008, FR-009, FR-010 | Enables identical behavior across providers |
-| **ClaudeCodeCLIProvider** | US2 (Transparent Switching) | FR-007 to FR-010 | Implements provider abstraction for Claude |
-| **CodexCLIProvider** | US2 (Transparent Switching) | FR-007 to FR-010 | Implements provider abstraction for Codex |
-| **CLIProviderAdapter** | US2 (Transparent Switching) | FR-001, FR-005 | Base abstraction for provider-agnostic workflows |
-| **CLIProviderConfig.logPath** | US5 (Usage Tracking) | FR-017, FR-018, FR-019 | Points to usage logs for parsing |
-| **CLIProviderMetadata.healthCheckError** | US3 (Auto-Detection) | FR-011, FR-012 | Provides actionable error messages |
+| Entity                                   | User Story                  | Requirements                   | Description                                           |
+| ---------------------------------------- | --------------------------- | ------------------------------ | ----------------------------------------------------- |
+| **CLIProviderConfig**                    | US1 (Provider Selection)    | FR-002                         | Stores user's provider choice from dropdown           |
+| **CLIProviderConfig**                    | US3 (Auto-Detection)        | FR-003                         | Enables auto-detection logic via config               |
+| **CLIProviderMetadata**                  | US3 (Auto-Detection)        | FR-011, FR-012                 | Provides availability status for error messages       |
+| **CLIProviderMetadata**                  | US1 (Provider Selection)    | FR-006                         | Displays status indicator in settings UI              |
+| **CLIProviderCapabilities**              | US4 (Feature Degradation)   | FR-014, FR-015, FR-016         | Declares provider-specific features (MCP, web search) |
+| **CLIProcessState**                      | US2 (Transparent Switching) | FR-004, FR-013                 | Tracks process for immediate provider changes         |
+| **CLIOutputParser**                      | US2 (Transparent Switching) | FR-007, FR-008, FR-009, FR-010 | Enables identical behavior across providers           |
+| **ClaudeCodeCLIProvider**                | US2 (Transparent Switching) | FR-007 to FR-010               | Implements provider abstraction for Claude            |
+| **CodexCLIProvider**                     | US2 (Transparent Switching) | FR-007 to FR-010               | Implements provider abstraction for Codex             |
+| **CLIProviderAdapter**                   | US2 (Transparent Switching) | FR-001, FR-005                 | Base abstraction for provider-agnostic workflows      |
+| **CLIProviderConfig.logPath**            | US5 (Usage Tracking)        | FR-017, FR-018, FR-019         | Points to usage logs for parsing                      |
+| **CLIProviderMetadata.healthCheckError** | US3 (Auto-Detection)        | FR-011, FR-012                 | Provides actionable error messages                    |
 
 **Coverage Summary**:
+
 - **User Story 1** (Provider Selection): 3 entities (Config, Metadata, Adapter)
 - **User Story 2** (Transparent Switching): 7 entities (all core abstractions)
 - **User Story 3** (Auto-Detection): 3 entities (Config, Metadata, Adapter)
@@ -908,7 +967,10 @@ type CLIProcessStatus =
  */
 interface CLIOutputParser {
   parseResponse(output: string): QueryResponse;
-  parseTokenUsage(output: string): { inputTokens: number; outputTokens: number };
+  parseTokenUsage(output: string): {
+    inputTokens: number;
+    outputTokens: number;
+  };
   parseError(output: string): ProviderError;
   isResponseComplete(output: string): boolean;
 }
@@ -933,9 +995,14 @@ class ClaudeCodeOutputParser implements CLIOutputParser {
     };
   }
 
-  parseTokenUsage(output: string): { inputTokens: number; outputTokens: number } {
+  parseTokenUsage(output: string): {
+    inputTokens: number;
+    outputTokens: number;
+  } {
     // Parse footer: "Usage: 12,500 input tokens, 3,400 output tokens"
-    const usageMatch = output.match(/Usage: ([\d,]+) input tokens, ([\d,]+) output tokens/);
+    const usageMatch = output.match(
+      /Usage: ([\d,]+) input tokens, ([\d,]+) output tokens/
+    );
     if (!usageMatch) {
       return { inputTokens: 0, outputTokens: 0 };
     }
@@ -954,7 +1021,11 @@ class ClaudeCodeOutputParser implements CLIOutputParser {
     if (output.includes('rate limit')) {
       return new ProviderError('Rate limited', 'claude-cli', true);
     }
-    return new ProviderError('CLI error: ' + output.slice(0, 200), 'claude-cli', false);
+    return new ProviderError(
+      'CLI error: ' + output.slice(0, 200),
+      'claude-cli',
+      false
+    );
   }
 
   isResponseComplete(output: string): boolean {
@@ -978,11 +1049,18 @@ class CodexOutputParser implements CLIOutputParser {
         providerId: 'codex-cli',
       };
     } catch (err) {
-      throw new ProviderError('Failed to parse Codex response', 'codex-cli', false);
+      throw new ProviderError(
+        'Failed to parse Codex response',
+        'codex-cli',
+        false
+      );
     }
   }
 
-  parseTokenUsage(output: string): { inputTokens: number; outputTokens: number } {
+  parseTokenUsage(output: string): {
+    inputTokens: number;
+    outputTokens: number;
+  } {
     try {
       const json = JSON.parse(output);
       return {
@@ -996,12 +1074,20 @@ class CodexOutputParser implements CLIOutputParser {
 
   parseError(output: string): ProviderError {
     if (output.includes('authentication') || output.includes('login')) {
-      return new ProviderError('Not authenticated. Run: codex login', 'codex-cli', true);
+      return new ProviderError(
+        'Not authenticated. Run: codex login',
+        'codex-cli',
+        true
+      );
     }
     if (output.includes('rate limit')) {
       return new ProviderError('Rate limited', 'codex-cli', true);
     }
-    return new ProviderError('Codex error: ' + output.slice(0, 200), 'codex-cli', false);
+    return new ProviderError(
+      'Codex error: ' + output.slice(0, 200),
+      'codex-cli',
+      false
+    );
   }
 
   isResponseComplete(output: string): boolean {
@@ -1015,24 +1101,28 @@ class CodexOutputParser implements CLIOutputParser {
 
 ## 8. Summary Statistics
 
-| Aspect | Count |
-|--------|-------|
-| **New Entity Definitions** | 7 (Config, Capabilities, Metadata, ProcessState, Parser, ClaudeCLI, CodexCLI) |
-| **Extended Existing Classes** | 1 (ProviderFactory) |
-| **Unchanged Contracts** | 1 (LLMProvider interface) |
-| **Total Relationships** | 12 (7 internal composition, 5 external dependencies) |
+| Aspect                           | Count                                                                           |
+| -------------------------------- | ------------------------------------------------------------------------------- |
+| **New Entity Definitions**       | 7 (Config, Capabilities, Metadata, ProcessState, Parser, ClaudeCLI, CodexCLI)   |
+| **Extended Existing Classes**    | 1 (ProviderFactory)                                                             |
+| **Unchanged Contracts**          | 1 (LLMProvider interface)                                                       |
+| **Total Relationships**          | 12 (7 internal composition, 5 external dependencies)                            |
 | **Entities with State Machines** | 2 (CLIProviderMetadata: availability states, CLIProcessState: lifecycle states) |
-| **New Configuration Settings** | 3 (gofer.cliProvider, gofer.claudeCodeCommand, gofer.codexCommand) |
-| **Provider-Specific Parsers** | 2 (ClaudeCodeOutputParser, CodexOutputParser) |
-| **User Stories Covered** | 5 (all user stories from spec.md) |
+| **New Configuration Settings**   | 3 (gofer.cliProvider, gofer.claudeCodeCommand, gofer.codexCommand)              |
+| **Provider-Specific Parsers**    | 2 (ClaudeCodeOutputParser, CodexOutputParser)                                   |
+| **User Stories Covered**         | 5 (all user stories from spec.md)                                               |
 
 **Key Data Flow**:
-- VSCode Settings → ConfigManager → CLIProviderConfig → CLIProviderAdapter → LLMProvider Interface → Downstream Consumers
+
+- VSCode Settings → ConfigManager → CLIProviderConfig → CLIProviderAdapter →
+  LLMProvider Interface → Downstream Consumers
 
 **Principles**:
+
 - ✅ Adapter pattern bridges CLI workflow to API-like interface
 - ✅ No changes to existing LLMProvider interface (backward compatible)
-- ✅ Provider-agnostic consumers (AutonomousDriver, ValidationAgents use same interface)
+- ✅ Provider-agnostic consumers (AutonomousDriver, ValidationAgents use same
+  interface)
 - ✅ Graceful degradation for provider-specific features (capability flags)
 - ✅ In-memory metadata caching with 60s TTL
 - ✅ Separate parsers per provider (clean separation of concerns)
@@ -1100,16 +1190,19 @@ class CodexOutputParser implements CLIOutputParser {
 ### 10.1 Example: Claude Code CLI Response
 
 **Input** (CLI stdout):
+
 ```markdown
 Here is a detailed analysis of the data model:
 
 The data structures follow consistent patterns...
 
 ---
+
 Usage: 12,500 input tokens, 3,400 output tokens
 ```
 
 **Parsed Output** (QueryResponse):
+
 ```typescript
 {
   text: 'Here is a detailed analysis of the data model:\n\nThe data structures follow consistent patterns...',
@@ -1123,6 +1216,7 @@ Usage: 12,500 input tokens, 3,400 output tokens
 ### 10.2 Example: Codex CLI Response
 
 **Input** (CLI stdout):
+
 ```json
 {
   "type": "response",
@@ -1136,6 +1230,7 @@ Usage: 12,500 input tokens, 3,400 output tokens
 ```
 
 **Parsed Output** (QueryResponse):
+
 ```typescript
 {
   text: 'The data model uses a clear entity-relationship structure...',
@@ -1149,6 +1244,7 @@ Usage: 12,500 input tokens, 3,400 output tokens
 ### 10.3 Example: Health Check Metadata
 
 **Claude Code CLI** (available):
+
 ```typescript
 {
   providerId: 'claude-cli',
@@ -1172,6 +1268,7 @@ Usage: 12,500 input tokens, 3,400 output tokens
 ```
 
 **Codex CLI** (not authenticated):
+
 ```typescript
 {
   providerId: 'codex-cli',

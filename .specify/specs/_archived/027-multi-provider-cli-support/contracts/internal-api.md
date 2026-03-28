@@ -8,32 +8,36 @@ status: draft
 
 # Internal API Contracts: Multi-Provider CLI Support
 
-This document specifies internal TypeScript API contracts for Multi-Provider CLI Support, extending Gofer's LLM provider abstraction to support CLI-based providers (Claude Code CLI and Codex CLI) alongside existing API providers.
+This document specifies internal TypeScript API contracts for Multi-Provider CLI
+Support, extending Gofer's LLM provider abstraction to support CLI-based
+providers (Claude Code CLI and Codex CLI) alongside existing API providers.
 
 ## Contract Overview
 
-| Contract | Type | User Stories Served | Purpose |
-|----------|------|---------------------|---------|
-| **CLIProviderAdapter** | Interface | US-1, US-2, US-3 | Base adapter translating CLI I/O to LLMProvider interface |
-| **ClaudeCodeCLIProvider** | Class | US-1, US-2, US-3 | Claude CLI-specific implementation |
-| **CodexCLIProvider** | Class | US-1, US-2, US-3 | Codex CLI-specific implementation |
-| **ProviderFactory.createCLIProvider()** | Method | US-1, US-2 | Factory method for CLI provider instantiation |
-| **ConfigManager CLI Getters** | Methods | US-1, US-4 | Settings access for provider selection and configuration |
-| **CLIHealthChecker** | Interface | US-3 | Provider availability and version detection |
-| **CLIOutputParser** | Interface | US-2, US-5 | Provider-specific output parsing |
-| **CLIUsageAdapter** | Interface | US-5 | Token usage tracking from CLI logs |
+| Contract                                | Type      | User Stories Served | Purpose                                                   |
+| --------------------------------------- | --------- | ------------------- | --------------------------------------------------------- |
+| **CLIProviderAdapter**                  | Interface | US-1, US-2, US-3    | Base adapter translating CLI I/O to LLMProvider interface |
+| **ClaudeCodeCLIProvider**               | Class     | US-1, US-2, US-3    | Claude CLI-specific implementation                        |
+| **CodexCLIProvider**                    | Class     | US-1, US-2, US-3    | Codex CLI-specific implementation                         |
+| **ProviderFactory.createCLIProvider()** | Method    | US-1, US-2          | Factory method for CLI provider instantiation             |
+| **ConfigManager CLI Getters**           | Methods   | US-1, US-4          | Settings access for provider selection and configuration  |
+| **CLIHealthChecker**                    | Interface | US-3                | Provider availability and version detection               |
+| **CLIOutputParser**                     | Interface | US-2, US-5          | Provider-specific output parsing                          |
+| **CLIUsageAdapter**                     | Interface | US-5                | Token usage tracking from CLI logs                        |
 
 ---
 
 ## 1. CLIProviderAdapter Interface
 
-**Description**: Abstract base adapter implementing LLMProvider interface for CLI-based providers. Manages terminal I/O, process spawning, and output parsing.
+**Description**: Abstract base adapter implementing LLMProvider interface for
+CLI-based providers. Manages terminal I/O, process spawning, and output parsing.
 
 **Location**: `extension/src/providers/cli/CLIProviderAdapter.ts`
 
 **Extends**: `BaseLLMProvider` (from LLMProvider.ts)
 
 **Serves**:
+
 - FR-001 (Provider abstraction for CLI)
 - FR-013 (CLI process failure handling)
 - NFR-007 (LLMProvider interface compatibility)
@@ -100,10 +104,7 @@ export abstract class CLIProviderAdapter extends BaseLLMProvider {
    * @returns Promise<string> - Raw CLI output
    * @throws ProviderError on spawn failure or timeout
    */
-  protected spawnCLI(
-    prompt: string,
-    options: CLIQueryOptions
-  ): Promise<string>;
+  protected spawnCLI(prompt: string, options: CLIQueryOptions): Promise<string>;
 
   /**
    * Parse CLI output to extract content and usage
@@ -169,14 +170,14 @@ export interface ConversationMessage {
 
 ### Error Conditions
 
-| Condition | Error Type | Message Template | Recovery |
-|-----------|-----------|------------------|----------|
-| CLI not found | NOT_CONFIGURED | "{CLI} not found. Install with: {installCommand}" | Install CLI |
-| CLI spawn failure | UNAVAILABLE | "Failed to spawn {CLI}: {error}" | Check PATH, permissions |
-| Authentication failure | NOT_CONFIGURED | "{CLI} not authenticated. Set {envVar} or run {loginCommand}" | Configure auth |
-| Process timeout | TIMEOUT | "CLI query timed out after {timeoutMs}ms" | Retry with longer timeout |
-| Output parse failure | INVALID_RESPONSE | "Failed to parse {CLI} output: {parseError}" | Check CLI version compatibility |
-| Exit code non-zero | API_ERROR | "{CLI} exited with code {exitCode}: {stderr}" | Check CLI logs, retry |
+| Condition              | Error Type       | Message Template                                              | Recovery                        |
+| ---------------------- | ---------------- | ------------------------------------------------------------- | ------------------------------- |
+| CLI not found          | NOT_CONFIGURED   | "{CLI} not found. Install with: {installCommand}"             | Install CLI                     |
+| CLI spawn failure      | UNAVAILABLE      | "Failed to spawn {CLI}: {error}"                              | Check PATH, permissions         |
+| Authentication failure | NOT_CONFIGURED   | "{CLI} not authenticated. Set {envVar} or run {loginCommand}" | Configure auth                  |
+| Process timeout        | TIMEOUT          | "CLI query timed out after {timeoutMs}ms"                     | Retry with longer timeout       |
+| Output parse failure   | INVALID_RESPONSE | "Failed to parse {CLI} output: {parseError}"                  | Check CLI version compatibility |
+| Exit code non-zero     | API_ERROR        | "{CLI} exited with code {exitCode}: {stderr}"                 | Check CLI logs, retry           |
 
 ---
 
@@ -189,6 +190,7 @@ export interface ConversationMessage {
 **Extends**: `CLIProviderAdapter`
 
 **Serves**:
+
 - FR-001 (Claude CLI support)
 - FR-007 (Pipeline stage execution)
 - FR-018 (Claude log parsing)
@@ -253,14 +255,14 @@ registerProvider('claude-cli' as ProviderId, ClaudeCodeCLIProvider);
 
 ### CLI-Specific Behavior
 
-| Aspect | Implementation |
-|--------|----------------|
-| **Command Template** | `{cliCommand} --model {model} --prompt "{prompt}"` |
-| **Output Format** | Markdown with `---` separators, code blocks |
-| **Authentication** | `ANTHROPIC_API_KEY` env var or `~/.claude/config.json` |
-| **Version Check** | `claude --version` → parse "Claude Code version X.Y.Z" |
-| **Log Format** | JSONL at `~/.claude/history.jsonl` |
-| **Min Version** | 1.0.0 |
+| Aspect               | Implementation                                         |
+| -------------------- | ------------------------------------------------------ |
+| **Command Template** | `{cliCommand} --model {model} --prompt "{prompt}"`     |
+| **Output Format**    | Markdown with `---` separators, code blocks            |
+| **Authentication**   | `ANTHROPIC_API_KEY` env var or `~/.claude/config.json` |
+| **Version Check**    | `claude --version` → parse "Claude Code version X.Y.Z" |
+| **Log Format**       | JSONL at `~/.claude/history.jsonl`                     |
+| **Min Version**      | 1.0.0                                                  |
 
 ---
 
@@ -273,6 +275,7 @@ registerProvider('claude-cli' as ProviderId, ClaudeCodeCLIProvider);
 **Extends**: `CLIProviderAdapter`
 
 **Serves**:
+
 - FR-001 (Codex CLI support)
 - FR-007 (Pipeline stage execution)
 - FR-019 (Codex log parsing)
@@ -337,14 +340,14 @@ registerProvider('codex-cli' as ProviderId, CodexCLIProvider);
 
 ### CLI-Specific Behavior
 
-| Aspect | Implementation |
-|--------|----------------|
+| Aspect               | Implementation                                          |
+| -------------------- | ------------------------------------------------------- |
 | **Command Template** | `{cliCommand} exec --model {model} --prompt "{prompt}"` |
-| **Output Format** | JSON responses or TUI-formatted text |
-| **Authentication** | ChatGPT session or `OPENAI_API_KEY` env var |
-| **Version Check** | `codex --version` → parse "Codex version X.Y.Z" |
-| **Log Format** | JSON at `~/.codex/history.json` |
-| **Min Version** | 2.0.0 |
+| **Output Format**    | JSON responses or TUI-formatted text                    |
+| **Authentication**   | ChatGPT session or `OPENAI_API_KEY` env var             |
+| **Version Check**    | `codex --version` → parse "Codex version X.Y.Z"         |
+| **Log Format**       | JSON at `~/.codex/history.json`                         |
+| **Min Version**      | 2.0.0                                                   |
 
 ---
 
@@ -352,9 +355,11 @@ registerProvider('codex-cli' as ProviderId, CodexCLIProvider);
 
 **Description**: Factory methods for creating and auto-detecting CLI providers.
 
-**Location**: `extension/src/council/providers/ProviderFactory.ts` (extend existing)
+**Location**: `extension/src/council/providers/ProviderFactory.ts` (extend
+existing)
 
 **Serves**:
+
 - FR-002 (Provider selection from settings)
 - FR-003 (Auto-detection)
 - FR-004 (Provider switching)
@@ -497,6 +502,7 @@ async isCLIAvailable(cliType: 'claude' | 'codex'): Promise<boolean> {
 ```
 
 **Serves**:
+
 - FR-003: Auto-detection via `autoDetectCLI()`
 - NFR-003: Auto-detection completes in <2s via parallel checks
 - US-3: Helpful errors with installation commands
@@ -510,6 +516,7 @@ async isCLIAvailable(cliType: 'claude' | 'codex'): Promise<boolean> {
 **Location**: `extension/src/config.ts` (extend existing ConfigManager)
 
 **Serves**:
+
 - FR-002 (Provider selection setting)
 - FR-004 (Provider switching)
 - US-1 (Settings dropdown)
@@ -611,6 +618,7 @@ public getCLIProviderName(cliType: 'claude' | 'codex'): string {
 ```
 
 **Serves**:
+
 - FR-002: Dropdown setting for provider selection
 - FR-004: Immediate effect on setting change
 - US-1: Acceptance criteria - settings dropdown with 3 options
@@ -624,6 +632,7 @@ public getCLIProviderName(cliType: 'claude' | 'codex'): string {
 **Location**: `extension/src/providers/cli/CLIHealthChecker.ts`
 
 **Serves**:
+
 - FR-011 (Installation error messages)
 - FR-012 (Authentication error messages)
 - US-3 (Auto-detection and helpful errors)
@@ -777,6 +786,7 @@ static getAuthInstructions(cliType: 'claude' | 'codex'): string {
 ```
 
 **Serves**:
+
 - FR-011: Clear installation error messages
 - FR-012: Clear authentication error messages
 - NFR-006: Version compatibility checks
@@ -791,6 +801,7 @@ static getAuthInstructions(cliType: 'claude' | 'codex'): string {
 **Location**: `extension/src/providers/cli/CLIOutputParser.ts`
 
 **Serves**:
+
 - FR-013 (Graceful handling of CLI output)
 - NFR-005 (Output validation)
 - US-2 (Transparent provider switching - output normalization)
@@ -859,12 +870,14 @@ export class CodexOutputParser implements CLIOutputParser {
 ### Implementation Notes
 
 **Claude Output Parser**:
+
 - Format: Markdown with `---` separators
 - Usage: Extract from log file after query (not in stdout)
 - Error Detection: Check for "Error:" prefix or stderr
 - Fallback: Regex-based extraction if structured parsing fails
 
 **Codex Output Parser**:
+
 - Format: JSON responses or TUI-formatted text
 - Usage: Parse from JSON response or log file
 - Error Detection: Check for `error` field in JSON or exit code
@@ -879,6 +892,7 @@ export class CodexOutputParser implements CLIOutputParser {
 **Location**: `extension/src/autonomous/cli/CLIUsageAdapter.ts`
 
 **Serves**:
+
 - FR-017 (Token usage tracking per provider)
 - FR-018 (Claude log parsing)
 - FR-019 (Codex log parsing)
@@ -970,18 +984,22 @@ export class CodexUsageAdapter implements CLIUsageAdapter {
 ### Implementation Details
 
 **ClaudeCodeUsageAdapter**:
+
 - Log format: JSONL (one JSON object per line)
 - Log location: `~/.claude/history.jsonl`
-- Entry structure: `{ timestamp, model, usage: { input_tokens, output_tokens }, ... }`
+- Entry structure:
+  `{ timestamp, model, usage: { input_tokens, output_tokens }, ... }`
 - Extend existing `ClaudeCodeUsageAdapter` pattern from Feature 026
 
 **CodexUsageAdapter**:
+
 - Log format: JSON (single array of objects)
 - Log location: `~/.codex/history.json`
 - Entry structure: `{ timestamp, model, tokens: { prompt, completion }, ... }`
 - Parse JSON array, map to `UsageEntry` format
 
 **Serves**:
+
 - FR-017: Separate tracking per provider via `providerId` field
 - FR-018: Claude JSONL parsing
 - FR-019: Codex JSON parsing
@@ -1003,8 +1021,8 @@ export type ProviderId =
   | 'anthropic'
   | 'google'
   | 'openai'
-  | 'claude-cli'  // NEW
-  | 'codex-cli';  // NEW
+  | 'claude-cli' // NEW
+  | 'codex-cli'; // NEW
 ```
 
 ### Extend PROVIDER_NAMES Map
@@ -1014,8 +1032,8 @@ export const PROVIDER_NAMES: Record<ProviderId, string> = {
   anthropic: 'Anthropic Claude',
   google: 'Google Gemini',
   openai: 'OpenAI GPT',
-  'claude-cli': 'Claude Code CLI',  // NEW
-  'codex-cli': 'Codex CLI',          // NEW
+  'claude-cli': 'Claude Code CLI', // NEW
+  'codex-cli': 'Codex CLI', // NEW
 };
 ```
 
@@ -1026,8 +1044,8 @@ export const DEFAULT_MODELS: Record<ProviderId, string> = {
   anthropic: 'claude-opus-4-5-20251101',
   google: 'gemini-3-flash-preview',
   openai: 'gpt-5.2',
-  'claude-cli': 'claude-opus-4-5-20251101',  // NEW
-  'codex-cli': 'gpt-5.4',                    // NEW
+  'claude-cli': 'claude-opus-4-5-20251101', // NEW
+  'codex-cli': 'gpt-5.4', // NEW
 };
 ```
 
@@ -1037,16 +1055,16 @@ export const DEFAULT_MODELS: Record<ProviderId, string> = {
 
 ### Total Contracts: 8
 
-| # | Contract | Type | Interfaces/Methods |
-|---|----------|------|--------------------|
-| 1 | CLIProviderAdapter | Abstract Class | 11 methods |
-| 2 | ClaudeCodeCLIProvider | Class | 3 methods + constructor |
-| 3 | CodexCLIProvider | Class | 3 methods + constructor |
-| 4 | ProviderFactory Extensions | Methods | 4 new methods |
-| 5 | ConfigManager CLI Getters | Methods | 3 new methods |
-| 6 | CLIHealthChecker | Static Class | 6 methods |
-| 7 | CLIOutputParser | Interface + Implementations | 3 methods × 2 parsers |
-| 8 | CLIUsageAdapter | Interface + Implementations | 3 methods × 2 adapters |
+| #   | Contract                   | Type                        | Interfaces/Methods      |
+| --- | -------------------------- | --------------------------- | ----------------------- |
+| 1   | CLIProviderAdapter         | Abstract Class              | 11 methods              |
+| 2   | ClaudeCodeCLIProvider      | Class                       | 3 methods + constructor |
+| 3   | CodexCLIProvider           | Class                       | 3 methods + constructor |
+| 4   | ProviderFactory Extensions | Methods                     | 4 new methods           |
+| 5   | ConfigManager CLI Getters  | Methods                     | 3 new methods           |
+| 6   | CLIHealthChecker           | Static Class                | 6 methods               |
+| 7   | CLIOutputParser            | Interface + Implementations | 3 methods × 2 parsers   |
+| 8   | CLIUsageAdapter            | Interface + Implementations | 3 methods × 2 adapters  |
 
 ### Total Interfaces: 14
 
@@ -1068,18 +1086,19 @@ export const DEFAULT_MODELS: Record<ProviderId, string> = {
 
 ### User Stories Served
 
-| Contract | US-1 | US-2 | US-3 | US-4 | US-5 |
-|----------|------|------|------|------|------|
-| CLIProviderAdapter | ✓ | ✓ | ✓ | | |
-| ClaudeCodeCLIProvider | ✓ | ✓ | ✓ | | |
-| CodexCLIProvider | ✓ | ✓ | ✓ | | |
-| ProviderFactory | ✓ | ✓ | ✓ | | |
-| ConfigManager | ✓ | | | ✓ | |
-| CLIHealthChecker | | | ✓ | | |
-| CLIOutputParser | | ✓ | | | |
-| CLIUsageAdapter | | | | | ✓ |
+| Contract              | US-1 | US-2 | US-3 | US-4 | US-5 |
+| --------------------- | ---- | ---- | ---- | ---- | ---- |
+| CLIProviderAdapter    | ✓    | ✓    | ✓    |      |      |
+| ClaudeCodeCLIProvider | ✓    | ✓    | ✓    |      |      |
+| CodexCLIProvider      | ✓    | ✓    | ✓    |      |      |
+| ProviderFactory       | ✓    | ✓    | ✓    |      |      |
+| ConfigManager         | ✓    |      |      | ✓    |      |
+| CLIHealthChecker      |      |      | ✓    |      |      |
+| CLIOutputParser       |      | ✓    |      |      |      |
+| CLIUsageAdapter       |      |      |      |      | ✓    |
 
 **Legend**:
+
 - US-1: Provider Selection
 - US-2: Transparent Provider Switching
 - US-3: Auto-Detection and Helpful Errors
@@ -1088,12 +1107,14 @@ export const DEFAULT_MODELS: Record<ProviderId, string> = {
 
 ### Functional Requirements Served
 
-**Core Abstraction**: FR-001 (CLI support), FR-002 (settings), FR-003 (auto-detect)
-**Provider Switching**: FR-004 (immediate switching), FR-005 (history maintenance), FR-006 (backward compat)
-**Feature Parity**: FR-007 (pipelines), FR-008 (autonomous), FR-009 (validation), FR-010 (council)
-**Error Handling**: FR-011 (install errors), FR-012 (auth errors), FR-013 (process failures)
-**Provider-Specific**: FR-014 (MCP), FR-015 (web search), FR-016 (notifications)
-**Usage Tracking**: FR-017 (separate tracking), FR-018 (Claude logs), FR-019 (Codex logs), FR-020 (display)
+**Core Abstraction**: FR-001 (CLI support), FR-002 (settings), FR-003
+(auto-detect) **Provider Switching**: FR-004 (immediate switching), FR-005
+(history maintenance), FR-006 (backward compat) **Feature Parity**: FR-007
+(pipelines), FR-008 (autonomous), FR-009 (validation), FR-010 (council) **Error
+Handling**: FR-011 (install errors), FR-012 (auth errors), FR-013 (process
+failures) **Provider-Specific**: FR-014 (MCP), FR-015 (web search), FR-016
+(notifications) **Usage Tracking**: FR-017 (separate tracking), FR-018 (Claude
+logs), FR-019 (Codex logs), FR-020 (display)
 
 ---
 
@@ -1129,6 +1150,7 @@ export const DEFAULT_MODELS: Record<ProviderId, string> = {
 ## Backward Compatibility
 
 All contracts maintain backward compatibility:
+
 - Existing `LLMProvider` interface unchanged
 - Existing API providers (Anthropic, Google, OpenAI) unchanged
 - `BaseLLMProvider` extended, not modified
@@ -1136,4 +1158,5 @@ All contracts maintain backward compatibility:
 - `ConfigManager` adds getters, doesn't change existing
 - New `ProviderId` values added to union without breaking existing code
 
-Default setting (`gofer.cliProvider: 'auto'`) preserves existing behavior by preferring Claude CLI if installed, matching current hardcoded dependency.
+Default setting (`gofer.cliProvider: 'auto'`) preserves existing behavior by
+preferring Claude CLI if installed, matching current hardcoded dependency.

@@ -59,16 +59,16 @@ graph TD
 
 **Duration**: 1 day
 
-- [ ] T001 [P] Create
+- [x] T001 [P] Create
       `/Users/douglaswross/Code/gofer/extension/src/autonomous/memory/`
       directory structure
-- [ ] T002 [P] Add ContextLayer interface to
+- [x] T002 [P] Add ContextLayer interface to
       `/Users/douglaswross/Code/gofer/extension/src/autonomous/types.ts`
       (L0/L1/L2 structure per data-model.md lines 194-265)
-- [ ] T003 [P] Extend Memory interface in
+- [x] T003 [P] Extend Memory interface in
       `/Users/douglaswross/Code/gofer/extension/src/autonomous/memory.ts` with
       optional layers field (lines 19-79)
-- [ ] T004 [P] Create unit test
+- [x] T004 [P] Create unit test
       `/Users/douglaswross/Code/gofer/tests/unit/autonomous/types.test.ts` for
       ContextLayer validation
 
@@ -91,23 +91,23 @@ all user stories
 
 ### Infrastructure Tasks
 
-- [ ] T005 Implement GoferURI parser in
+- [x] T005 Implement GoferURI parser in
       `/Users/douglaswross/Code/gofer/extension/src/autonomous/memory/GoferURI.ts`
       (~200 LOC, per plan.md Task 1.2)
-- [ ] T006 Implement GoferURIResolver with scope mapping
+- [x] T006 Implement GoferURIResolver with scope mapping
       (specs/memory/agent/session/user) in GoferURI.ts (per data-model.md lines
       268-393)
-- [ ] T007 [P] Create unit test
+- [x] T007 [P] Create unit test
       `/Users/douglaswross/Code/gofer/tests/unit/autonomous/GoferURI.test.ts`
       for URI parsing and resolution (~150 LOC)
 - [ ] T008 [P] Add contract tests for path traversal prevention and glob
       patterns in GoferURI.test.ts (per FR-002)
-- [ ] T009 Update JSONL schema in
+- [x] T009 Update JSONL schema in
       `/Users/douglaswross/Code/gofer/extension/src/autonomous/MemoryStorage.ts`
       with abstract/overview fields (lines 166-272, per plan.md Task 1.3)
-- [ ] T010 [P] Implement layer save/load logic in MemoryStorage.ts (backward
+- [x] T010 [P] Implement layer save/load logic in MemoryStorage.ts (backward
       compatible, per plan.md Task 1.3)
-- [ ] T011 [P] Create unit test
+- [x] T011 [P] Create unit test
       `/Users/douglaswross/Code/gofer/tests/unit/autonomous/MemoryStorage.test.ts`
       for layered JSONL schema
 - [ ] T012 Implement LLMExtractor in
@@ -120,9 +120,9 @@ all user stories
 - [ ] T015 [P] Create unit test
       `/Users/douglaswross/Code/gofer/tests/unit/autonomous/LLMExtractor.test.ts`
       with mocked Claude API responses
-- [ ] T016 Extend MemoryStorage.save() with automatic layer generation in
+- [x] T016 Extend MemoryStorage.save() with automatic layer generation in
       MemoryStorage.ts (lines 166-272, per plan.md Task 2.1)
-- [ ] T017 Implement lazy L2 detail loading in MemoryStorage.load() (lines
+- [x] T017 Implement lazy L2 detail loading in MemoryStorage.load() (lines
       240-270, per plan.md Task 2.2)
 - [ ] T018 [P] Add integration test
       `/Users/douglaswross/Code/gofer/tests/integration/autonomous/MemoryStorage.integration.test.ts`

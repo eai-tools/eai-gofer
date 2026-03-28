@@ -57,6 +57,10 @@ vi.mock('../../../extension/src/utils/logger', () => ({
   },
 }));
 
+// TODO: Re-enable when fixed. Two issues:
+// 1. Line 143: `isClaudeCodeInstalled()` is async — needs `await`
+// 2. `syncToCouncilLog()` fixture format may not match adapter's expected schema
+// See: extension/src/autonomous/ClaudeCodeUsageAdapter.ts syncToCouncilLog() line 404
 describe.skip('AI Usage Auto-Discovery Integration', () => {
   let tmpDir: string;
   let claudeDir: string;

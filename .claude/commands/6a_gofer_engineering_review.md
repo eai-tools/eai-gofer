@@ -394,6 +394,28 @@ resolved_findings: [N]
 
 ---
 
+## Step 8.5: Pattern Extraction (Feature 029 - US-P1-02)
+
+After engineering review completes, extract findings as persistent memories.
+
+**T057**: Run EngineeringReviewExtractor after review completion:
+
+```typescript
+const extractor = new EngineeringReviewExtractor(memoryManager);
+const newMemories = await extractor.extractFromEngineeringReview(
+  reviewReportContent,
+  featureId
+);
+```
+
+**Extraction mapping**:
+- Red findings → `validation_pattern` memories with `#engineering_review` tag
+- Yellow findings → `lesson` memories with `#engineering_review` tag
+
+**This is non-blocking**: if extraction fails, log and continue.
+
+---
+
 ## Step 9: Observability Logging
 
 Log stage completion:

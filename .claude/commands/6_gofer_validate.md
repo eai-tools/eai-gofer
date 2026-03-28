@@ -132,48 +132,6 @@ Validation loads all artifacts and spawns 6 agents — context pressure is high.
 
 ---
 
-## Step 1.5: Memory Injection (Feature 029 - Sub-Agent Memory)
-
-Before dispatching validation agents, build memory context for each category.
-This step injects relevant past patterns into each agent's prompt, improving
-citation rates and pattern-aware validation.
-
-**If SubAgentContextFactory is available in the extension**:
-
-```typescript
-// For each of the 6 validation categories:
-const factory = new SubAgentContextFactory(memoryManager);
-const contexts = await Promise.all([
-  factory.buildValidationContext('correctness', taskDescription),
-  factory.buildValidationContext('security', taskDescription),
-  factory.buildValidationContext('performance', taskDescription),
-  factory.buildValidationContext('integration', taskDescription),
-  factory.buildValidationContext('test-quality', taskDescription),
-  factory.buildValidationContext('standards', taskDescription),
-]);
-```
-
-**Token budget**: 5k-10k tokens per agent (enforced by SubAgentContextFactory)
-
-**If memory context is available**, prepend to each agent's prompt:
-```
-{contexts[agentIndex].formattedContext}
-```
-
-**Citation tracking**: Use MemoryCitationTracker to track which memories were
-injected. After each agent completes, verify citations in the report:
-```typescript
-const tracker = new MemoryCitationTracker(workspaceRoot);
-const runId = tracker.trackInjectedMemories(memories, agentCategory);
-// ... agent runs ...
-const rate = tracker.verifyMemoryCitations(runId, agentReport);
-await tracker.logCitationMetrics(runId, rate);
-```
-
-Target citation rate: ≥50% (AC-6 from US-P1-01)
-
----
-
 ## Step 2: Spawn 6 Specialist Validation Agents
 
 **CRITICAL**: You **MUST** launch all 6 agents **in parallel** using the Task
@@ -858,39 +816,6 @@ Output:
 Log every finding to `.specify/logs/validation-findings.jsonl`.
 
 ### Finding Format
-
----
-
-## Step 11.5: Pattern Extraction (Feature 029 - US-P1-02)
-
-After validation completes, extract findings as persistent memories.
-
-**T056**: After agents complete, run ValidationPatternExtractor:
-
-```typescript
-const extractor = new ValidationPatternExtractor(memoryManager);
-const newMemories = await extractor.extractFromValidationReport(
-  validationReportContent,
-  featureId
-);
-// newMemories are saved automatically by extractFromValidationReport()
-```
-
-**Extraction mapping**:
-- Red findings → `validation_pattern` memories tagged `#validation_pattern #severity:red`
-- Yellow findings → `lesson` memories tagged `#lesson #severity:yellow`
-
-**This is non-blocking**: if extraction fails, log the error and continue.
-
-**T044: Citation verification** summary should be included in the validation report:
-```
-## Memory Citations
-- Injected: N memories across 6 agents
-- Cited: M memories (R% citation rate)
-- Target: ≥50% (US-P1-01 AC-6)
-```
-
----
 
 For each finding from all agents and automated checks, append a JSON line:
 

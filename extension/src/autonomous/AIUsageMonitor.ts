@@ -366,7 +366,7 @@ export class AIUsageMonitor extends EventEmitter implements vscode.Disposable {
     const interval =
       this.dataSource instanceof UsageApiClient
         ? config.get<number>('aiUsage.api.pollingInterval', 60000)
-        : config.get<number>('aiUsage.polling.interval', 5000);
+        : config.get<number>('aiUsage.polling.interval', 3600000);
 
     this.pollingTimer = setInterval(() => {
       // Skip polling when panel is not visible (T022)

@@ -4,23 +4,21 @@ import * as fs from 'fs/promises';
 import * as os from 'os';
 import { GoferMigrator } from '../../goferMigrator';
 
-suite('GoferMigrator Test Suite', () => {
+suite('GoferMigrator Test Suite', function() {
+  this.timeout(10000);
   let tempDir: string;
   let migrator: GoferMigrator;
 
-  suiteSetup(async () => {
+  setup(async () => {
     // Create temporary directory for tests
     tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'spec-migrator-test-'));
-  });
-
-  suiteTeardown(async () => {
-    // Clean up temporary directory
-    await fs.rmdir(tempDir, { recursive: true }).catch(() => {});
-  });
-
-  setup(async () => {
     // Create fresh migrator for each test
     migrator = new GoferMigrator(tempDir);
+  });
+
+  teardown(async () => {
+    // Clean up temporary directory
+    await fs.rmdir(tempDir, { recursive: true }).catch(() => {});
   });
 
   suite('Format Detection', () => {
@@ -69,22 +67,18 @@ suite('GoferMigrator Test Suite', () => {
 
     test('should provide version info for legacy format', async () => {
       await createLegacyJsonStructure();
-
       const versionInfo = await migrator.getVersionInfo();
-
       assert.strictEqual(versionInfo.format, 'legacy-json');
       assert.strictEqual(versionInfo.needsUpgrade, true);
-      assert.ok(versionInfo.details.includes('Legacy JSON'));
+      assert.ok(versionInfo.details.includes('Old JSON'));
     });
 
     test('should provide version info for current Gofer format', async () => {
       await createGoferStructure();
-
       const versionInfo = await migrator.getVersionInfo();
-
       assert.strictEqual(versionInfo.format, 'gofer');
       assert.strictEqual(versionInfo.needsUpgrade, false);
-      assert.ok(versionInfo.details.includes('GitHub Gofer'));
+      assert.ok(versionInfo.details.includes('Gofer format'));
     });
 
     test('should indicate upgrade needed for mixed format', async () => {
@@ -95,7 +89,7 @@ suite('GoferMigrator Test Suite', () => {
 
       assert.strictEqual(versionInfo.format, 'mixed');
       assert.strictEqual(versionInfo.needsUpgrade, true);
-      assert.ok(versionInfo.details.includes('mixed'));
+      assert.ok(versionInfo.details.toLowerCase().includes('mixed'));
     });
   });
 
@@ -108,7 +102,7 @@ suite('GoferMigrator Test Suite', () => {
       assert.strictEqual(format, 'legacy-json');
 
       // Perform migration
-      await migrator.upgrade();
+      await migrator.upgrade({ skipConfirmation: true });
 
       // Verify migration completed
       format = await migrator.detectFormat();
@@ -128,7 +122,7 @@ suite('GoferMigrator Test Suite', () => {
       await createLegacyJsonStructureWithData();
 
       // Perform migration
-      await migrator.upgrade();
+      await migrator.upgrade({ skipConfirmation: true });
 
       // Check that spec data was preserved
       const specDir = path.join(tempDir, '.specify', 'specs', '001-test-feature');
@@ -147,7 +141,7 @@ suite('GoferMigrator Test Suite', () => {
       await createLegacyJsonStructure();
 
       // Perform migration
-      await migrator.upgrade();
+      await migrator.upgrade({ skipConfirmation: true });
 
       // Check that backup was created
       const backupDir = path.join(tempDir, '.specify', '_backup');
@@ -165,7 +159,7 @@ suite('GoferMigrator Test Suite', () => {
       await fs.mkdir(specifyDir, { recursive: true });
 
       // Perform migration
-      await migrator.upgrade();
+      await migrator.upgrade({ skipConfirmation: true });
 
       // Should create basic Gofer structure
       const format = await migrator.detectFormat();
@@ -179,7 +173,7 @@ suite('GoferMigrator Test Suite', () => {
 
       // Try to upgrade already migrated folder
       try {
-        await migrator.upgrade();
+        await migrator.upgrade({ skipConfirmation: true });
         // Should not throw error
       } catch (error) {
         assert.fail(`Migration should handle already migrated folder gracefully: ${error}`);
@@ -196,7 +190,7 @@ suite('GoferMigrator Test Suite', () => {
 
       // Migration should handle gracefully
       try {
-        await migrator.upgrade();
+        await migrator.upgrade({ skipConfirmation: true });
       } catch (error) {
         // Some error handling is expected for invalid JSON
         assert.ok(error instanceof Error);

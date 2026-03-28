@@ -323,7 +323,18 @@ export class GoferParser {
       return { frontmatter, content: bodyContent };
     }
 
-    const frontmatter = yaml.parse(match[1]) as YAMLFrontmatter;
+    let frontmatter: YAMLFrontmatter;
+    try {
+      frontmatter = yaml.parse(match[1]) as YAMLFrontmatter;
+    } catch (error) {
+      this.logger.error('Failed to parse YAML frontmatter:', error as Error);
+      // Return minimal valid frontmatter on failure
+      frontmatter = {
+        status: 'draft',
+        created: new Date().toISOString(),
+        updated: new Date().toISOString(),
+      };
+    }
     const bodyContent = match[2].trim();
 
     return { frontmatter, content: bodyContent };
@@ -353,7 +364,7 @@ export class GoferParser {
 
     for (const line of lines) {
       // Match task line with **T001** prefix: - [ ] **T001**: Description
-      let taskMatch = line.match(/^-\s+\[([x ])\]\s+\*\*([A-Z]\d+)\*\*:\s+(.+)$/);
+      let taskMatch = line.match(/^-\s+\[([xX \-!b>])\]\s+\*\*([A-Z]\d+)\*\*:\s+(.+)$/);
       if (taskMatch) {
         // Save previous task if exists
         if (currentTask && currentTask.id) {
@@ -364,7 +375,7 @@ export class GoferParser {
         currentTask = {
           id,
           description: description.trim(),
-          status: checkbox === 'x' ? 'completed' : 'pending',
+          status: this.parseCheckboxStatus(checkbox),
           dependencies: [],
           parallel: false,
           attempts: 0,
@@ -373,7 +384,7 @@ export class GoferParser {
       }
 
       // Match task line with #T001 prefix: - [ ] #T001 Description
-      taskMatch = line.match(/^-\s+\[([x ])\]\s+#(T\d+)\s+(.+)$/);
+      taskMatch = line.match(/^-\s+\[([xX \-!b>])\]\s+#(T\d+)\s+(.+)$/);
       if (taskMatch) {
         // Save previous task if exists
         if (currentTask && currentTask.id) {
@@ -384,7 +395,7 @@ export class GoferParser {
         currentTask = {
           id: taskId,
           description: description.trim(),
-          status: checkbox === 'x' ? 'completed' : 'pending',
+          status: this.parseCheckboxStatus(checkbox),
           dependencies: [],
           parallel: false,
           attempts: 0,
@@ -394,7 +405,7 @@ export class GoferParser {
 
       // Match task line with T001 prefix (no #): - [ ] T001 Description
       // Also handles inline tags like [P] and [US1]: - [ ] T001 [P] [US1] Description
-      taskMatch = line.match(/^-\s+\[([xX ])\]\s+(T\d+)\s+(.+)$/);
+      taskMatch = line.match(/^-\s+\[([xX \-!b>])\]\s+(T\d+)\s+(.+)$/);
       if (taskMatch) {
         // Save previous task if exists
         if (currentTask && currentTask.id) {
@@ -406,9 +417,18 @@ export class GoferParser {
         // Extract inline tags ([P], [US1], etc.) and check for parallel marker
         const hasParallelTag = fullDescription.includes('[P]');
 
-        // Remove inline tags from description for cleaner display
-        // Note: Don't include taskId here as getTaskDescription() adds it in the tree view
+        // Extract dependencies from description if present: (deps: T001, T002)
+        const depsMatch = fullDescription.match(/\(deps:\s*([^)]+)\)/i);
+        const inlineDeps = depsMatch
+          ? depsMatch[1]
+              .split(',')
+              .map((d) => d.trim())
+              .filter((d) => d.toLowerCase() !== 'none')
+          : [];
+
+        // Remove inline tags and dependencies from description for cleaner display
         const cleanDescription = fullDescription
+          .replace(/\(deps:\s*[^)]+\)/gi, '')
           .replace(/\[P\]\s*/g, '')
           .replace(/\[US\d+\]\s*/g, '')
           .trim();
@@ -416,8 +436,8 @@ export class GoferParser {
         currentTask = {
           id: taskId,
           description: cleanDescription,
-          status: checkbox.toLowerCase() === 'x' ? 'completed' : 'pending',
-          dependencies: [],
+          status: this.parseCheckboxStatus(checkbox),
+          dependencies: inlineDeps,
           parallel: hasParallelTag,
           attempts: 0,
         };
@@ -425,19 +445,34 @@ export class GoferParser {
       }
 
       // Match task line with #N prefix: - [ ] #1 Description
-      taskMatch = line.match(/^-\s+\[([x ])\]\s+#(\d+)\s+(.+)$/);
+      taskMatch = line.match(/^-\s+\[([xX \-!b>])\]\s+#(\d+)\s+(.+)$/);
       if (taskMatch) {
         // Save previous task if exists
         if (currentTask && currentTask.id) {
           tasks.push(this.completeTask(currentTask, taskIndex++));
         }
 
-        const [, checkbox, taskNum, description] = taskMatch;
+        const [, checkbox, taskNum, fullDescription] = taskMatch;
+
+        // Extract dependencies from description if present
+        const depsMatch = fullDescription.match(/\(deps:\s*([^)]+)\)/i);
+        const inlineDeps = depsMatch
+          ? depsMatch[1]
+              .split(',')
+              .map((d) => d.trim())
+              .filter((d) => d.toLowerCase() !== 'none')
+          : [];
+
+        // Clean description
+        const cleanDescription = fullDescription
+          .replace(/\(deps:\s*[^)]+\)/gi, '')
+          .trim();
+
         currentTask = {
           id: `T${taskNum.padStart(3, '0')}`,
-          description: description.trim(),
-          status: checkbox === 'x' ? 'completed' : 'pending',
-          dependencies: [],
+          description: cleanDescription,
+          status: this.parseCheckboxStatus(checkbox),
+          dependencies: inlineDeps,
           parallel: false,
           attempts: 0,
         };
@@ -588,6 +623,28 @@ export class GoferParser {
   }
 
   /**
+   * Parse task checkbox marker into task status
+   */
+  private parseCheckboxStatus(checkbox: string): TaskStatus {
+    const marker = checkbox.trim().toLowerCase();
+
+    switch (marker) {
+      case 'x':
+        return 'completed';
+      case '-':
+        return 'in_progress';
+      case '>':
+        return 'testing';
+      case '!':
+        return 'failed';
+      case 'b':
+        return 'blocked';
+      default:
+        return 'pending';
+    }
+  }
+
+  /**
    * Parse spec status from string
    */
   private parseSpecStatus(status: string): SpecStatus {
@@ -616,11 +673,22 @@ export class GoferParser {
     const tasksPath = path.join(this.workspacePath, '.specify', 'specs', specId, 'tasks.md');
     let content = await fs.readFile(tasksPath, 'utf-8');
 
-    // Find task line and update checkbox
-    const taskRegex = new RegExp(`^(-\\s+\\[)[x ]\\](\\s+\\*\\*${taskId}\\*\\*:.+)$`, 'gm');
-    const checkbox = status === 'completed' ? 'x' : ' ';
+    const escapedTaskId = taskId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const taskRegex = new RegExp(
+      `^(\\s*-\\s+)\\[[xX \\-!bB>]\\](\\s+(?:\\*\\*${escapedTaskId}\\*\\*:?|#${escapedTaskId}\\b|${escapedTaskId}\\b).*)$`,
+      'gm'
+    );
 
-    content = content.replace(taskRegex, `$1${checkbox}$2`);
+    const checkboxByStatus: Record<TaskStatus, string> = {
+      pending: ' ',
+      in_progress: '-',
+      testing: '>',
+      completed: 'x',
+      failed: '!',
+      blocked: 'b',
+    };
+
+    content = content.replace(taskRegex, `$1[${checkboxByStatus[status]}]$2`);
 
     await fs.writeFile(tasksPath, content, 'utf-8');
   }
@@ -633,9 +701,28 @@ export class GoferParser {
     let content = await fs.readFile(specPath, 'utf-8');
 
     // Update status in frontmatter
-    content = content.replace(/^status:\s*.+$/m, `status: ${status}`);
+    // Handles both status: "value" and status: value
+    content = content.replace(/^(status:\s*["']?)[^"'\n\r]+(["']?)\s*$/m, `$1${status}$2`);
+
     // Update timestamp
-    content = content.replace(/^updated:\s*.+$/m, `updated: ${new Date().toISOString()}`);
+    const now = new Date().toISOString();
+    const frontmatterMatch = content.match(/^---\s*\n([\s\S]*?)\n---/);
+    if (frontmatterMatch) {
+      const frontmatter = frontmatterMatch[1];
+      let updatedFrontmatter: string;
+
+      if (/^updated:\s*.+$/m.test(frontmatter)) {
+        updatedFrontmatter = frontmatter.replace(
+          /^(updated:\s*["']?)[^"'\n\r]+(["']?)\s*$/m,
+          `$1${now}$2`
+        );
+      } else {
+        updatedFrontmatter = `${frontmatter}\nupdated: ${now}`;
+      }
+
+      const rebuiltFrontmatter = `---\n${updatedFrontmatter}\n---`;
+      content = content.replace(/^---\s*\n[\s\S]*?\n---/, rebuiltFrontmatter);
+    }
 
     await fs.writeFile(specPath, content, 'utf-8');
   }

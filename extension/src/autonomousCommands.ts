@@ -29,6 +29,7 @@ import {
 import { Logger } from './services/Logger';
 import type { ProgressProvider } from './progressProvider';
 import type { EnrichedContextBridge } from './autonomous/ContextBridgeWriter';
+import { CrossPlatformCommandRouter } from './council/CrossPlatformCommandRouter';
 // Removed: import { wireClaudePtyToAutoHandoff } - no longer needed without PTY support
 
 // Shared singleton instances (set from extension.ts)
@@ -36,6 +37,7 @@ let sharedMemoryManager: MemoryManager | undefined;
 let sharedContextBuilder: ContextBuilder | undefined;
 let sharedMemoryHookManager: MemoryHookManager | undefined;
 let sharedLogger: Logger | undefined;
+let sharedCrossPlatformCommandRouter: CrossPlatformCommandRouter | undefined;
 
 // Cached enriched context from bridge file (for memory injection)
 let cachedEnrichedContext: EnrichedContextBridge | undefined;
@@ -61,6 +63,11 @@ export function setSharedMemoryHookManager(mhm: MemoryHookManager): void {
 /** Set the shared Logger instance */
 export function setSharedLogger(logger: Logger): void {
   sharedLogger = logger;
+}
+
+/** Set the shared CrossPlatformCommandRouter instance */
+export function setSharedCrossPlatformCommandRouter(router: CrossPlatformCommandRouter): void {
+  sharedCrossPlatformCommandRouter = router;
 }
 
 /** Get the shared MemoryManager (for testing) */
@@ -897,6 +904,29 @@ function determineInitialCommand(specId: string, workspacePath: string): string 
   return '/0_business_scenario';
 }
 
+function resolveInitialCommand(specId: string, workspacePath: string): string {
+  const rawCommand = overrideInitialCommand ?? determineInitialCommand(specId, workspacePath);
+
+  try {
+    const router = sharedCrossPlatformCommandRouter;
+    if (!router) {
+      return rawCommand;
+    }
+
+    const commandName = rawCommand.replace(/^[/#]\s*/, '').replace(/^\$\s+\$\s+/, '').trim();
+    if (!commandName) {
+      return rawCommand;
+    }
+
+    // launchClaudeCode always runs in Claude terminal, so we validate via router
+    // but keep Claude invocation syntax for execution.
+    router.routeCommand(commandName, 'claude');
+    return router.getCommandSyntax(commandName, 'claude');
+  } catch {
+    return rawCommand;
+  }
+}
+
 /**
  * Launch Claude Code in integrated VSCode terminal
  */
@@ -929,6 +959,9 @@ export async function launchClaudeCode(specId: string): Promise<void> {
     if (!workspacePath) {
       throw new Error('No workspace folder found');
     }
+
+    const initialCommand = resolveInitialCommand(specId, workspacePath);
+    overrideInitialCommand = undefined;
 
     // T056: Create git stash safety checkpoint before risky operations
     try {
@@ -1078,6 +1111,9 @@ export async function launchClaudeCode(specId: string): Promise<void> {
     // Send the command to the terminal
     claudeTerminal.sendText(claudeCommand);
     outputChannel.appendLine('   ✓ Command sent to terminal');
+    outputChannel.appendLine(`   → Initial command: ${initialCommand}`);
+    claudeTerminal.sendText(initialCommand);
+    outputChannel.appendLine('   ✓ Initial command sent to terminal');
 
     outputChannel.appendLine('[6/6] Claude Code launched');
     outputChannel.appendLine(

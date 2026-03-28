@@ -14,7 +14,7 @@ import { PlatformType, CommandMetadata, CommandInvocationSyntax } from './types/
  * Supports:
  * - Claude CLI (.claude/commands)
  * - Copilot Chat (.github/prompts)
- * - Codex CLI (.agents/skills)
+ * - Codex CLI (.system/skills)
  */
 export class CommandMetadataExtractor {
   /**

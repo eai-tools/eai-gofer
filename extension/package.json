@@ -47,6 +47,11 @@
         "icon": "$(rocket)"
       },
       {
+        "command": "gofer.installOptionalTools",
+        "title": "Gofer: Install Optional Developer Tools",
+        "icon": "$(tools)"
+      },
+      {
         "command": "gofer.upgrade",
         "title": "Gofer: Upgrade to Gofer Format",
         "icon": "$(arrow-up)"
@@ -863,11 +868,11 @@
         },
         "gofer.aiUsage.polling.interval": {
           "type": "number",
-          "default": 5000,
+          "default": 3600000,
           "minimum": 1000,
-          "maximum": 60000,
+          "maximum": 7200000,
           "description": "Polling interval in ms for AI usage updates (fallback when file watcher is inactive)",
-          "markdownDescription": "How often (in milliseconds) to poll for usage data updates.\n\nThis is used as a fallback when the file system watcher is not active.\n\n**Default**: 5000 (5 seconds)\n**Range**: 1000-60000"
+          "markdownDescription": "How often (in milliseconds) to poll for usage data updates.\n\nThis is used as a fallback when the file system watcher is not active.\n\n**Default**: 3600000 (1 hour)\n**Range**: 1000-7200000"
         }
       }
     }

@@ -1,9 +1,9 @@
 ---
 id: '025-ai-usage-tracking'
 title: 'AI Token Usage Tracking Panel'
-status: 'draft'
+status: 'complete'
 created: '2026-03-13T12:00:00Z'
-updated: '2026-03-19'
+updated: '2026-03-27'
 priority: 'medium'
 assignee: 'engineer-agent'
 ---
@@ -18,6 +18,11 @@ Google) directly within the VSCode Gofer sidebar. This feature replaces the
 existing CONTEXT WINDOW section with a comprehensive AI TOKEN USAGE panel that
 enables cost awareness and budget control during AI-assisted development
 sessions.
+
+**Performance Optimization**: To reduce resource consumption, the panel uses
+hourly background updates with manual refresh capability instead of continuous
+polling, while maintaining immediate updates via FileSystemWatcher when files
+change.
 
 **Problem Addressed**: Developers using AI coding assistants lack visibility
 into their AI API costs across providers, making it difficult to manage budgets
@@ -93,6 +98,20 @@ the status bar **So that** I can monitor costs without opening the full panel
       breakdown
 - [ ] Status bar can be enabled/disabled via configuration
 
+### US5: Manual Panel Refresh (P1)
+
+**As a** developer viewing AI usage data **I want to** manually refresh the
+panel on demand **So that** I can get the latest usage data without waiting for
+the automatic hourly update
+
+**Acceptance Criteria**:
+
+- [ ] Panel toolbar includes a refresh button/icon
+- [ ] Command palette includes "Gofer: Refresh AI Usage" command
+- [ ] Manual refresh updates panel within 1 second
+- [ ] Refresh is available even when automatic updates are disabled
+- [ ] Refresh button shows loading state during update
+
 ## Functional Requirements
 
 ### FR1: Panel Registration and Display
@@ -115,18 +134,22 @@ opened **Integration**: `extension/package.json:284-287` (view registration),
 ### FR2: Real-Time Cost Tracking
 
 **Description**: Track and display AI API costs across providers with <1 second
-update latency.
+update latency via FileSystemWatcher, with hourly background updates as
+fallback.
 
 **Details**:
 
 - Monitor `.specify/logs/council-usage.jsonl` for new usage entries
-- Use FileSystemWatcher for immediate updates (<500ms latency)
-- Fall back to 5-second polling if file watcher fails
+- Use FileSystemWatcher for immediate updates (<500ms latency) when files change
+- Fall back to 1-hour polling for automatic updates when FileSystemWatcher is
+  unavailable or inactive
+- Manual refresh always available via command or panel toolbar button
 - Calculate costs using existing pricing data from CostBudgetEnforcer
 - Support providers: Anthropic, OpenAI, Google (extensible for future providers)
 
-**Validation**: Panel updates within 1 second after AI API call is logged
-**Integration**: `extension/src/council/UsageLogger.ts` (data source),
+**Validation**: Panel updates within 1 second after AI API call is logged (via
+FileSystemWatcher), or on manual refresh **Integration**:
+`extension/src/council/UsageLogger.ts` (data source),
 `extension/src/autonomous/CostBudgetEnforcer.ts` (pricing data)
 
 ### FR3: Provider Breakdown Display
@@ -222,7 +245,8 @@ sessions **Integration**:
 
 ### FR8: Panel Refresh and Updates
 
-**Description**: Automatic panel updates using event-driven architecture.
+**Description**: Automatic panel updates using event-driven architecture with
+optimized polling frequency.
 
 **Details**:
 
@@ -231,26 +255,50 @@ sessions **Integration**:
 - On event: Fire `onDidChangeTreeData` → VSCode re-renders TreeView
 - Hybrid update mechanism:
   - Primary: FileSystemWatcher on council-usage.jsonl (<500ms)
-  - Fallback: Periodic polling every 5s
+  - Fallback: Periodic polling every 1 hour (3600s) for background updates
+  - Manual: Refresh command/button triggers immediate update
 - Guard against duplicate timers (memory leak prevention)
 
 **Validation**: Panel refreshes within 1s when council-usage.jsonl is updated
-**Integration**: Follow
+via FileSystemWatcher, or immediately on manual refresh **Integration**: Follow
 `extension/src/autonomous/ContextHealthMonitor.ts:560-584` (EventEmitter
 pattern), `extension/src/autonomous/HookBridgeWatcher.ts:76-150`
 (FileSystemWatcher pattern)
+
+### FR9: Manual Refresh Control
+
+**Description**: User can manually trigger panel refresh via command or toolbar
+action.
+
+**Details**:
+
+- Panel toolbar includes refresh button with icon (e.g., `$(sync)`)
+- Command: `gofer.refreshAIUsage` registered in package.json
+- Command palette: "Gofer: Refresh AI Usage"
+- Refresh triggers immediate data reload from usage logs
+- Loading state indicator during refresh operation
+- Refresh available regardless of automatic update settings
+
+**Validation**: Manual refresh completes within 1 second and updates panel
+display **Integration**: Follow command registration pattern from
+`extension/src/extension.ts`, toolbar registration in `package.json`
 
 ## Non-Functional Requirements
 
 ### Performance
 
 - **Panel update latency**: <1 second from AI API call to panel display update
+  (via FileSystemWatcher)
 - **File watch latency**: <500ms from log file write to panel refresh event
-- **Polling interval**: 5 seconds (fallback only when file watcher is inactive)
+- **Polling interval**: 3600 seconds (1 hour) for automatic background updates
+  when FileSystemWatcher is unavailable
+- **Manual refresh latency**: <1 second from user action to panel update
 - **Tree rendering**: <100ms for typical session data (3 providers, 3 time
   periods)
 - **Memory usage**: No memory leaks from timers/watchers (guard against
   duplicates)
+- **Resource efficiency**: Reduced CPU/disk I/O from hourly polling vs
+  continuous 5s polling
 
 ### Security
 
@@ -281,14 +329,16 @@ pattern), `extension/src/autonomous/HookBridgeWatcher.ts:76-150`
 
 ## Success Criteria
 
-| Metric                   | Target                  | Measurement                                                           |
-| ------------------------ | ----------------------- | --------------------------------------------------------------------- |
-| **Cost display latency** | <1 second               | Time from AI API call logged to panel update rendered                 |
-| **Provider coverage**    | 3+ providers            | Support Anthropic, OpenAI, Google at minimum                          |
-| **Cost accuracy**        | Within 1%               | Compare calculated costs to actual provider invoices                  |
-| **Update reliability**   | >99% successful updates | File watch events trigger panel refresh without failures              |
-| **Memory stability**     | No leaks                | Extension can run for 24+ hours without timer/watcher accumulation    |
-| **User adoption**        | 60%+ of Gofer users     | Percentage of users who view AI Usage panel weekly (future telemetry) |
+| Metric                   | Target                  | Measurement                                                               |
+| ------------------------ | ----------------------- | ------------------------------------------------------------------------- |
+| **Cost display latency** | <1 second               | Time from AI API call logged to panel update rendered (FileSystemWatcher) |
+| **Provider coverage**    | 3+ providers            | Support Anthropic, OpenAI, Google at minimum                              |
+| **Cost accuracy**        | Within 1%               | Compare calculated costs to actual provider invoices                      |
+| **Update reliability**   | >99% successful updates | File watch events trigger panel refresh without failures                  |
+| **Memory stability**     | No leaks                | Extension can run for 24+ hours without timer/watcher accumulation        |
+| **Resource usage**       | 99% reduction           | Polling overhead reduced from 720 polls/hour (5s) to 1 poll/hour          |
+| **Manual refresh**       | <1 second               | User-triggered refresh completes within 1 second                          |
+| **User adoption**        | 60%+ of Gofer users     | Percentage of users who view AI Usage panel weekly (future telemetry)     |
 
 ## Assumptions
 
@@ -383,9 +433,11 @@ The following are explicitly NOT included in this feature:
 | 3+ provider support                    | Success Criteria, FR2             | From discovery provider coverage goal               |
 | 1% cost accuracy                       | Success Criteria, FR7             | From discovery cost accuracy target                 |
 | Memory leak prevention                 | FR8, NFR Performance              | Guard against duplicate timers                      |
-| Hybrid update mechanism (watch + poll) | FR8, NFR Performance              | File watch + 5s polling fallback                    |
+| Hybrid update mechanism (watch + poll) | FR8, FR9, NFR Performance         | File watch + 1-hour polling + manual refresh        |
 | Status bar optional                    | FR6, US4                          | Optional status bar item                            |
 | Budget color-coding                    | FR5                               | Green/yellow/red based on threshold                 |
+| Manual refresh capability              | FR9, US5                          | User-triggered refresh for on-demand updates        |
+| Resource optimization                  | Overview, NFR Performance         | Hourly polling reduces CPU/disk I/O overhead        |
 
 ## Implementation Notes
 

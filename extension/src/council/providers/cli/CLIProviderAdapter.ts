@@ -62,12 +62,15 @@ export abstract class CLIProviderAdapter extends BaseLLMProvider {
   // Mutex to prevent concurrent query execution (R16: Race condition protection)
   private queryLock: Promise<void> = Promise.resolve();
 
+  private static readonly MAX_RETRIES = 2;
+  private static readonly RETRY_BASE_DELAY_MS = 1000;
+
   /**
    * Constructor
    * @param cliCommand - CLI command to spawn (e.g., "claude", "codex")
-   * @param model - Model identifier
+   * @param _model - Model identifier (unused at base level, subclasses provide model)
    */
-  constructor(cliCommand: string, model: string) {
+  constructor(cliCommand: string, _model: string) {
     super();
     this.cliCommand = cliCommand;
   }
@@ -125,54 +128,58 @@ export abstract class CLIProviderAdapter extends BaseLLMProvider {
       // Format prompt for CLI
       const formattedPrompt = this.formatPrompt(request);
 
-      // Spawn CLI and capture output
-      const rawOutput = await this.spawnCLI(formattedPrompt, {
-        timeout: CLI_QUERY_TIMEOUT_MS,
-      });
-
-      // Parse output
-      const parsed = this.parseOutput(rawOutput);
-
-      if (parsed.error) {
-        throw new ProviderError(
-          `${this.name} error: ${parsed.error}`,
-          ProviderErrorCode.API_ERROR,
-          this.id
-        );
+      // Retry loop for transient errors (FR-013)
+      let lastError: ProviderError | null = null;
+      for (let attempt = 0; attempt <= CLIProviderAdapter.MAX_RETRIES; attempt++) {
+        try {
+          const rawOutput = await this.spawnCLI(formattedPrompt, {
+            timeout: CLI_QUERY_TIMEOUT_MS,
+          });
+          const parsed = this.parseOutput(rawOutput);
+          if (parsed.error) {
+            throw new ProviderError(
+              `${this.name} error: ${parsed.error}`,
+              ProviderErrorCode.API_ERROR,
+              this.id
+            );
+          }
+          // Success — break out of retry loop
+          // Update conversation history (protected by mutex)
+          this.conversationHistory.push(
+            { role: 'user', content: request.prompt },
+            { role: 'assistant', content: parsed.content }
+          );
+          this.updateRateLimit();
+          return {
+            content: parsed.content,
+            usage: {
+              inputTokens: parsed.usage.inputTokens,
+              outputTokens: parsed.usage.outputTokens,
+            },
+            model: this.model,
+            providerId: this.id,
+          };
+        } catch (err) {
+          const provErr =
+            err instanceof ProviderError
+              ? err
+              : new ProviderError(
+                  `${this.name} query failed: ${err instanceof Error ? err.message : String(err)}`,
+                  ProviderErrorCode.API_ERROR,
+                  this.id
+                );
+          if (!provErr.retryable || attempt === CLIProviderAdapter.MAX_RETRIES) {
+            lastError = provErr;
+            break;
+          }
+          // Exponential backoff before retry
+          await new Promise<void>((resolve) =>
+            setTimeout(resolve, CLIProviderAdapter.RETRY_BASE_DELAY_MS * Math.pow(2, attempt))
+          );
+        }
       }
-
-      // Update conversation history (now protected by mutex)
-      this.conversationHistory.push(
-        { role: 'user', content: request.prompt },
-        { role: 'assistant', content: parsed.content }
-      );
-
-      // Update rate limit
-      this.updateRateLimit();
-
-      // Return response
-      return {
-        content: parsed.content,
-        usage: {
-          inputTokens: parsed.usage.inputTokens,
-          outputTokens: parsed.usage.outputTokens,
-        },
-        model: this.model,
-        providerId: this.id,
-      };
-    } catch (error) {
-      if (error instanceof ProviderError) {
-        throw error;
-      }
-
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      this.markUnavailable(errorMessage);
-
-      throw new ProviderError(
-        `${this.name} query failed: ${errorMessage}`,
-        ProviderErrorCode.API_ERROR,
-        this.id
-      );
+      this.markUnavailable(lastError!.message);
+      throw lastError!;
     } finally {
       // Release lock for next query
       releaseLock!();

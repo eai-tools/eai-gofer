@@ -68,6 +68,9 @@ export class MemoryStorage {
   /** T016: Current token usage in the in-memory index */
   private currentTokenUsage = 0;
 
+  /** Serialises concurrent appendFile calls to prevent JSONL corruption (NFR-017) */
+  private writeQueue: Promise<void> = Promise.resolve();
+
   constructor(workspaceRoot: string) {
     this.memoryDir = path.join(workspaceRoot, '.specify', 'memory');
     this.jsonlPath = path.join(this.memoryDir, JSONL_FILENAME);
@@ -285,9 +288,10 @@ export class MemoryStorage {
     // T009: Serialize memory for JSONL (flatten layers, exclude detail function)
     const serialized = this.serializeMemoryForJSONL(fullMemory);
 
-    // Append to JSONL (atomic for small payloads on POSIX)
+    // Serialise all JSONL writes through a queue to prevent concurrent corruption (NFR-017)
     const line = JSON.stringify(serialized) + '\n';
-    await fs.appendFile(this.jsonlPath, line, 'utf-8');
+    this.writeQueue = this.writeQueue.then(() => fs.appendFile(this.jsonlPath, line, 'utf-8'));
+    await this.writeQueue;
 
     // Update index
     this.indexMemory(fullMemory);

@@ -19,7 +19,7 @@ import { PlatformType, PlatformDetectionContext } from './types/CrossPlatformTyp
  * 4. Fallback to 'auto'
  */
 export class PlatformDetector {
-  private static instance: PlatformDetector;
+  private static instance: PlatformDetector | undefined;
   private cachedDetection: PlatformDetectionContext | null = null;
   private cacheExpiry: number = 0;
   private readonly CACHE_TTL_MS = 60000; // 1 minute cache
@@ -40,7 +40,7 @@ export class PlatformDetector {
    * Reset singleton (for testing)
    */
   public static resetInstance(): void {
-    PlatformDetector.instance = null as any;
+    PlatformDetector.instance = undefined;
   }
 
   /**

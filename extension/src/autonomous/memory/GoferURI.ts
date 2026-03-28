@@ -208,7 +208,16 @@ export class GoferURIResolver {
 
     // For glob patterns, use simple directory traversal
     // (In production, this would use a glob library like 'fast-glob')
-    const globPath = path.join(basePath, parsed.path);
+    // Decode percent-encoded characters before path traversal check (mirrors resolve())
+    const decodedGlobPath = decodeURIComponent(parsed.path);
+    if (decodedGlobPath !== parsed.path) {
+      // Re-check for traversal after decoding
+      const testPath = path.normalize(path.join(basePath, decodedGlobPath));
+      if (!testPath.startsWith(path.normalize(basePath) + path.sep) && testPath !== path.normalize(basePath)) {
+        return [];
+      }
+    }
+    const globPath = path.join(basePath, decodedGlobPath);
     const dirPath = path.dirname(globPath);
     const filePattern = path.basename(globPath);
 
@@ -223,7 +232,8 @@ export class GoferURIResolver {
         if (this.matchesPattern(entry.name, filePattern)) {
           // Security: Verify path doesn't escape scope
           const normalized = path.normalize(entryPath);
-          if (normalized.startsWith(path.normalize(basePath))) {
+          const normalizedBase = path.normalize(basePath);
+          if (normalized.startsWith(normalizedBase + path.sep) || normalized === normalizedBase) {
             matches.push(entryPath);
           }
         }

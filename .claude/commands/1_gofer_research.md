@@ -93,6 +93,32 @@ Once you have the feature description:
 
 ---
 
+## Step 1.5: Memory Injection (Feature 029 - US-P2-01)
+
+Before spawning research agents, load past codebase patterns from memory
+to avoid redundant research and surface relevant prior work.
+
+**If SubAgentContextFactory is available**:
+
+```typescript
+const factory = new SubAgentContextFactory(memoryManager);
+const ctx = await factory.buildResearchContext(featureDescription);
+// ctx.formattedContext contains relevant codebase_pattern, integration_point memories
+```
+
+**Inject into each research agent's prompt**:
+```
+{factory.getResearchGuidance()}
+{ctx.formattedContext}
+```
+
+**Token budget**: 5k-10k tokens (enforced by SubAgentContextFactory)
+
+**Write-back** (T075): After research completes, save new patterns discovered
+as `codebase_pattern` memories for future use.
+
+---
+
 ## Step 2: Spawn Parallel Research Agents
 
 **CRITICAL**: You **MUST** launch these agents using the Task tool. Do NOT

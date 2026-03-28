@@ -139,6 +139,12 @@ describe('Command Registration Validation', () => {
     );
     const migrateMemoriesSource = readFileSync(migrateMemoriesPath, 'utf-8');
 
+    const queryMemoryUsagePath = path.join(
+      __dirname,
+      '../../extension/src/commands/queryMemoryUsage.ts'
+    );
+    const queryMemoryUsageSource = readFileSync(queryMemoryUsagePath, 'utf-8');
+
     // Combined for convenience
     allCommandSources = [
       extensionSource,
@@ -148,6 +154,7 @@ describe('Command Registration Validation', () => {
       councilCommandsSource,
       aiUsageStatusBarSource,
       migrateMemoriesSource,
+      queryMemoryUsageSource,
     ].join('\n');
   });
 

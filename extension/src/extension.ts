@@ -25,6 +25,7 @@ import { ACCOrchestrator } from './autonomous/ACCOrchestrator';
 import { ObservationBridge } from './autonomous/ObservationBridge';
 import { setSharedContextBuilder, setSharedCrossPlatformCommandRouter } from './autonomousCommands';
 import { registerMemoryCommands } from './commands/memoryCommands';
+import { registerMigrateMemoriesCommand } from './commands/migrateMemories';
 import { registerSpecCommands } from './commands/specCommands';
 import { registerCouncilCommands } from './commands/councilCommands';
 // Context Health Monitoring (Spec 012)
@@ -413,6 +414,8 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
     // Register memory commands now that memoryManager is available
     // (can't register in registerGlobalCommands because memoryManager isn't ready yet)
     registerMemoryCommands(context, state.memoryManager);
+    // T024: Register migration command (Feature 029 - Memory System v2)
+    registerMigrateMemoriesCommand(context, state.memoryManager);
   }
 
   // Wire shared ContextBuilder (Feature 024) — activates ~3,700 LOC of dead code

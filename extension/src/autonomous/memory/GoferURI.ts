@@ -153,12 +153,24 @@ export class GoferURIResolver {
       throw new Error(`Unknown scope: ${parsed.scope}`);
     }
 
-    // Resolve path
-    const fullPath = path.join(basePath, parsed.path);
+    // Security: Decode URL encoding before traversal check to prevent %2e%2e attacks
+    const decodedPath = decodeURIComponent(parsed.path);
 
-    // Security: Prevent path traversal
+    // Security: Reject absolute paths (double-slash in URI creates /path after parsing)
+    if (path.isAbsolute(decodedPath)) {
+      throw new Error(
+        `Path traversal detected: '${parsed.path}' escapes scope '${parsed.scope}'`
+      );
+    }
+
+    // Resolve path
+    const fullPath = path.join(basePath, decodedPath);
+
+    // Security: Prevent path traversal (catches ../ sequences)
     const normalized = path.normalize(fullPath);
-    if (!normalized.startsWith(path.normalize(basePath))) {
+    const normalizedBase = path.normalize(basePath);
+    if (!normalized.startsWith(normalizedBase + path.sep) &&
+        normalized !== normalizedBase) {
       throw new Error(
         `Path traversal detected: '${parsed.path}' escapes scope '${parsed.scope}'`
       );

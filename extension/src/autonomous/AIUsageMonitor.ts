@@ -369,6 +369,8 @@ export class AIUsageMonitor extends EventEmitter implements vscode.Disposable {
     if (this.pollingTimer) return;
 
     const config = vscode.workspace.getConfiguration('gofer');
+    // API data-source polls at 60s (not 1h) because filesystem watching is
+    // inapplicable for HTTP endpoints. The 1h default applies to the FileSystemWatcher path.
     const interval =
       this.dataSource instanceof UsageApiClient
         ? config.get<number>('aiUsage.api.pollingInterval', 60000)

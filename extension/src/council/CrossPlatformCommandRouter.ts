@@ -10,6 +10,7 @@ import { PlatformDetector } from './PlatformDetector';
 import { DefaultSkillDirectoryManager } from './SkillDirectoryManager';
 import { CommandMetadataExtractor } from './CommandMetadataExtractor';
 import { CommandMetadata, PlatformType } from './types/CrossPlatformTypes';
+import { Logger } from '../utils/logger';
 
 /**
  * Command routing result
@@ -37,6 +38,7 @@ export class CrossPlatformCommandRouter {
   private routingCache: Map<string, CommandRoutingResult>;
   private cacheExpiry: number;
   private readonly CACHE_TTL_MS = 60000; // 1 minute
+  private readonly logger = Logger.for('CrossPlatformCommandRouter');
 
   constructor(private workspacePath: string) {
     this.platformDetector = PlatformDetector.getInstance(workspacePath);
@@ -68,6 +70,8 @@ export class CrossPlatformCommandRouter {
       ? [targetPlatform]
       : this.getPlatformSearchOrder(this.platformDetector.getDefaultPlatform());
 
+    this.logger.debug('Routing command', { commandName, searchOrder, targetPlatform });
+
     let metadata: CommandMetadata | null = null;
     let selectedPlatform: PlatformType | null = null;
 
@@ -75,11 +79,13 @@ export class CrossPlatformCommandRouter {
       metadata = this.getMetadataForPlatform(commandName, platform);
       if (metadata) {
         selectedPlatform = platform;
+        this.logger.debug('Platform selected', { commandName, selectedPlatform, reason: targetPlatform ? 'explicit' : 'priority-fallback' });
         break;
       }
     }
 
     if (!metadata) {
+      this.logger.debug('Command not found', { commandName, targetPlatform });
       if (targetPlatform) {
         throw new Error(`Command "${commandName}" not found for platform "${targetPlatform}"`);
       }

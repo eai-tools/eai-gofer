@@ -111,8 +111,13 @@ export class MemoryManager implements IMemoryManager {
         if (extracted > 0) {
           this.logger.info('Extracted pipeline patterns during consolidation', { extracted });
         }
-      } catch {
-        // Non-fatal: consolidation is best-effort
+      } catch (err) {
+        // Non-fatal: consolidation is best-effort, will retry next cycle (NFR-018)
+        this.logger.error(
+          'Consolidation cycle failed, will retry next interval',
+          err instanceof Error ? err : undefined,
+          { error: err instanceof Error ? err.message : String(err) }
+        );
       }
     }, MemoryManager.CONSOLIDATION_INTERVAL_MS);
     this.logger.info('Consolidation timer started (30 min interval)');

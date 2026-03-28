@@ -142,6 +142,12 @@ export class AIUsageMonitor extends EventEmitter implements vscode.Disposable {
    * Emits 'usage-update' event with fresh data.
    */
   async forceRefresh(): Promise<void> {
+    // Cancel any pending debounce to prevent stale data overwriting fresh results
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+      this.debounceTimer = null;
+    }
+
     this.cacheTimestamp = 0;
     this.cachedData.clear();
 

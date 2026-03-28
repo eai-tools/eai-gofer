@@ -54,10 +54,9 @@ export abstract class CLIProviderAdapter extends BaseLLMProvider {
   abstract readonly id: ProviderId;
   abstract readonly name: string;
   abstract readonly model: string;
-  abstract readonly cliCommand: string;
+  protected readonly cliCommand: string;
 
   // Protected dependencies
-  protected terminalManager: TerminalManager;
   protected outputParser: CLIOutputParser;
   protected usageAdapter: CLIUsageAdapter;
 
@@ -206,14 +205,9 @@ export class ClaudeCodeCLIProvider extends CLIProviderAdapter {
   /**
    * Constructor
    * @param cliCommand - Command to execute (from ConfigManager.getClaudeCodeCommand())
-   * @param model - Model identifier (default: 'claude-opus-4-5-20251101')
-   * @param terminalManager - Terminal manager instance
+   * @param _model - Model identifier (default: 'claude-opus-4-5-20251101', unused at base level)
    */
-  constructor(
-    cliCommand: string = 'claude',
-    model: string = 'claude-opus-4-5-20251101',
-    terminalManager: TerminalManager
-  );
+  constructor(cliCommand: string = 'claude', _model?: string);
 
   /**
    * Query Claude CLI

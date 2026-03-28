@@ -57,6 +57,8 @@ description: Test command
 # Test
 
 Body`);
+    // Default: all paths inaccessible
+    vi.mocked(fs.promises.access).mockRejectedValue(new Error('ENOENT'));
 
     ConfigManager.getInstance().refresh();
   });
@@ -65,79 +67,82 @@ Body`);
     vi.clearAllMocks();
   });
 
-  it('routes to preferred platform when available', () => {
+  it('routes to preferred platform when available', async () => {
     mockConfig['defaultCLI'] = 'copilot';
     ConfigManager.getInstance().refresh();
 
-    vi.mocked(fs.existsSync).mockImplementation((p: fs.PathLike) =>
+    vi.mocked(fs.promises.access).mockImplementation((p) =>
       String(p).includes('.github/prompts/1_gofer_research.prompt.md')
+        ? Promise.resolve()
+        : Promise.reject(new Error('ENOENT'))
     );
 
     const router = new CrossPlatformCommandRouter(workspacePath);
-    const result = router.routeCommand('1_gofer_research');
+    const result = await router.routeCommand('1_gofer_research');
 
     expect(result.platform).toBe('copilot');
     expect(result.filePath).toContain('.github/prompts/1_gofer_research.prompt.md');
     expect(result.syntax).toBe('#1_gofer_research');
   });
 
-  it('falls back by priority Claude > Codex > Copilot when auto', () => {
+  it('falls back by priority Claude > Codex > Copilot when auto', async () => {
     mockConfig['defaultCLI'] = 'auto';
     ConfigManager.getInstance().refresh();
 
-    vi.mocked(fs.existsSync).mockImplementation((p: fs.PathLike) => {
-      const path = String(p);
-      return (
-        path.includes('.claude/commands/1_gofer_research.md') ||
-        path.includes('.system/skills/1_gofer_research/SKILL.md') ||
-        path.includes('.github/prompts/1_gofer_research.prompt.md')
-      );
+    vi.mocked(fs.promises.access).mockImplementation((p) => {
+      const pathStr = String(p);
+      return pathStr.includes('.claude/commands/1_gofer_research.md') ||
+        pathStr.includes('.system/skills/1_gofer_research/SKILL.md') ||
+        pathStr.includes('.github/prompts/1_gofer_research.prompt.md')
+        ? Promise.resolve()
+        : Promise.reject(new Error('ENOENT'));
     });
 
     const router = new CrossPlatformCommandRouter(workspacePath);
-    const result = router.routeCommand('1_gofer_research');
+    const result = await router.routeCommand('1_gofer_research');
 
     expect(result.platform).toBe('claude');
     expect(result.syntax).toBe('/1_gofer_research');
   });
 
-  it('falls back from unavailable preferred codex to claude', () => {
+  it('falls back from unavailable preferred codex to claude', async () => {
     mockConfig['defaultCLI'] = 'codex';
     ConfigManager.getInstance().refresh();
 
-    vi.mocked(fs.existsSync).mockImplementation((p: fs.PathLike) => {
-      const path = String(p);
-      return path.includes('.claude/commands/1_gofer_research.md');
-    });
+    vi.mocked(fs.promises.access).mockImplementation((p) =>
+      String(p).includes('.claude/commands/1_gofer_research.md')
+        ? Promise.resolve()
+        : Promise.reject(new Error('ENOENT'))
+    );
 
     const router = new CrossPlatformCommandRouter(workspacePath);
-    const result = router.routeCommand('1_gofer_research');
+    const result = await router.routeCommand('1_gofer_research');
 
     expect(result.platform).toBe('claude');
     expect(result.filePath).toContain('.claude/commands/1_gofer_research.md');
   });
 
-  it('respects explicit targetPlatform override without fallback', () => {
+  it('respects explicit targetPlatform override without fallback', async () => {
     mockConfig['defaultCLI'] = 'claude';
     ConfigManager.getInstance().refresh();
-    vi.mocked(fs.existsSync).mockReturnValue(false);
+    // access already mocked to reject by default in beforeEach
 
     const router = new CrossPlatformCommandRouter(workspacePath);
-    expect(() => router.routeCommand('1_gofer_research', 'copilot')).toThrow(
+    await expect(router.routeCommand('1_gofer_research', 'copilot')).rejects.toThrow(
       'Command "1_gofer_research" not found for platform "copilot"'
     );
   });
 
-  it('rejects path traversal command names (T046)', () => {
+  it('rejects path traversal command names (T046)', async () => {
     const router = new CrossPlatformCommandRouter(workspacePath);
 
-    expect(() => router.routeCommand('../../../etc/passwd')).toThrow(
+    await expect(router.routeCommand('../../../etc/passwd')).rejects.toThrow(
       'Invalid command name: "../../../etc/passwd" (path traversal not allowed)'
     );
-    expect(() => router.routeCommand('..\\..\\windows\\system32')).toThrow(
+    await expect(router.routeCommand('..\\..\\windows\\system32')).rejects.toThrow(
       'Invalid command name: "..\\..\\windows\\system32" (path traversal not allowed)'
     );
-    expect(() => router.routeCommand('/absolute/path')).toThrow(
+    await expect(router.routeCommand('/absolute/path')).rejects.toThrow(
       'Invalid command name: "/absolute/path" (path traversal not allowed)'
     );
   });

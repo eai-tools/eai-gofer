@@ -904,7 +904,7 @@ function determineInitialCommand(specId: string, workspacePath: string): string 
   return '/0_business_scenario';
 }
 
-function resolveInitialCommand(specId: string, workspacePath: string): string {
+async function resolveInitialCommand(specId: string, workspacePath: string): Promise<string> {
   const rawCommand = overrideInitialCommand ?? determineInitialCommand(specId, workspacePath);
 
   try {
@@ -913,14 +913,17 @@ function resolveInitialCommand(specId: string, workspacePath: string): string {
       return rawCommand;
     }
 
-    const commandName = rawCommand.replace(/^[/#]\s*/, '').replace(/^\$\s+\$\s+/, '').trim();
+    const commandName = rawCommand
+      .replace(/^[/#]\s*/, '')
+      .replace(/^\$\s+\$\s+/, '')
+      .trim();
     if (!commandName) {
       return rawCommand;
     }
 
     // launchClaudeCode always runs in Claude terminal, so we validate via router
     // but keep Claude invocation syntax for execution.
-    router.routeCommand(commandName, 'claude');
+    await router.routeCommand(commandName, 'claude');
     return router.getCommandSyntax(commandName, 'claude');
   } catch {
     return rawCommand;
@@ -960,7 +963,7 @@ export async function launchClaudeCode(specId: string): Promise<void> {
       throw new Error('No workspace folder found');
     }
 
-    const initialCommand = resolveInitialCommand(specId, workspacePath);
+    const initialCommand = await resolveInitialCommand(specId, workspacePath);
     overrideInitialCommand = undefined;
 
     // T056: Create git stash safety checkpoint before risky operations

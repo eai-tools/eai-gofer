@@ -106,6 +106,11 @@ export class MemoryManager implements IMemoryManager {
           archived: result.archived,
           decayed: result.decayed,
         });
+        // T084: Extract patterns from recent pipeline runs
+        const extracted = await this.consolidator.extractFromPipelineRuns();
+        if (extracted > 0) {
+          this.logger.info('Extracted pipeline patterns during consolidation', { extracted });
+        }
       } catch {
         // Non-fatal: consolidation is best-effort
       }

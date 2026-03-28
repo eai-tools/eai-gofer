@@ -410,18 +410,18 @@ patterns from feature 027, verify agent references prior patterns in output
 
 ### Implementation Tasks
 
-- [ ] T070 [US-P2-01] Implement buildResearchContext() in
+- [x] T070 [US-P2-01] Implement buildResearchContext() in
       SubAgentContextFactory.ts (lines 150-220, per plan.md Task 3.2)
-- [ ] T071 [US-P2-01] [P] Add codebase_pattern and integration_point filtering
+- [x] T071 [US-P2-01] [P] Add codebase_pattern and integration_point filtering
       in buildResearchContext() (per AC-2)
-- [ ] T072 [US-P2-01] [P] Implement getResearchGuidance() for agent-specific
+- [x] T072 [US-P2-01] [P] Implement getResearchGuidance() for agent-specific
       guidance in SubAgentContextFactory.ts (per plan.md lines 958-968)
-- [ ] T073 [US-P2-01] Update
+- [x] T073 [US-P2-01] Update
       `/Users/douglaswross/Code/gofer/.claude/commands/1_gofer_research.md` with
       memory injection instructions (lines 96-140, per plan.md Task 3.3)
-- [ ] T074 [US-P2-01] [P] Create unit test for research context generation in
+- [x] T074 [US-P2-01] [P] Create unit test for research context generation in
       SubAgentContextFactory.test.ts
-- [ ] T075 [US-P2-01] [P] Verify write-back of new codebase_pattern memories
+- [x] T075 [US-P2-01] [P] Verify write-back of new codebase_pattern memories
       after research completes (per AC-5)
 
 **Checkpoint**: Research agents receive and use past codebase patterns
@@ -452,16 +452,16 @@ skipped.
 
 ### Implementation Tasks
 
-- [ ] T076 [US-P2-02] Enhance calculateCoverage() with coverage logging in
+- [x] T076 [US-P2-02] Enhance calculateCoverage() with coverage logging in
       ContextBuilder.ts (per plan.md Task 4.1, lines 1558-1571)
-- [ ] T077 [US-P2-02] [P] Add coverage decision logic (IF coverage >= 30%: skip
+- [x] T077 [US-P2-02] [P] Add coverage decision logic (IF coverage >= 30%: skip
       research docs, load memories only) in ContextBuilder.ts (per AC-3)
-- [ ] T078 [US-P2-02] [P] Implement logCoverageCalculation() in
+- [x] T078 [US-P2-02] [P] Implement logCoverageCalculation() in
       `/Users/douglaswross/Code/gofer/extension/src/autonomous/ContextUsageLogger.ts`
       (per plan.md lines 1608-1620)
-- [ ] T079 [US-P2-02] [P] Create unit test for coverage calculation with various
+- [x] T079 [US-P2-02] [P] Create unit test for coverage calculation with various
       thresholds in ContextBuilder.test.ts
-- [ ] T080 [US-P2-02] [P] Verify coverage events logged to context-usage.jsonl
+- [x] T080 [US-P2-02] [P] Verify coverage events logged to context-usage.jsonl
       with matched/total keyword counts (per AC-5)
 
 **Checkpoint**: Coverage calculation skips research docs when memories adequate
@@ -492,22 +492,22 @@ review issues. Wait for consolidation. Verify 5 new memories extracted.
 
 ### Implementation Tasks
 
-- [ ] T081 [US-P2-03] Enhance MemoryConsolidator with extractFromPipelineRuns()
+- [x] T081 [US-P2-03] Enhance MemoryConsolidator with extractFromPipelineRuns()
       in
       `/Users/douglaswross/Code/gofer/extension/src/autonomous/MemoryConsolidator.ts`
       (lines 76-150, per plan.md Task 3.7)
-- [ ] T082 [US-P2-03] [P] Read pipeline.jsonl events (stage_complete) in
+- [x] T082 [US-P2-03] [P] Read pipeline.jsonl events (stage_complete) in
       MemoryConsolidator.ts (per AC-2)
-- [ ] T083 [US-P2-03] [P] Implement idempotency check (avoid re-extracting same
+- [x] T083 [US-P2-03] [P] Implement idempotency check (avoid re-extracting same
       session) in MemoryConsolidator.ts (per plan.md lines 1274-1279)
-- [ ] T084 [US-P2-03] Update MemoryManager consolidation timer with extraction
+- [x] T084 [US-P2-03] Update MemoryManager consolidation timer with extraction
       call in
       `/Users/douglaswross/Code/gofer/extension/src/autonomous/MemoryManager.ts`
       (lines 96-114, per plan.md lines 1295-1311)
-- [ ] T085 [US-P2-03] [P] Create unit test
+- [x] T085 [US-P2-03] [P] Create unit test
       `/Users/douglaswross/Code/gofer/tests/unit/autonomous/MemoryConsolidator.test.ts`
       for pipeline extraction
-- [ ] T086 [US-P2-03] [P] Verify non-blocking behavior (consolidation failure
+- [x] T086 [US-P2-03] [P] Verify non-blocking behavior (consolidation failure
       doesn't crash extension per AC-4)
 
 **Checkpoint**: Consolidation automatically extracts patterns from pipeline runs
@@ -539,29 +539,29 @@ events for each memory with decision (loaded/skipped) and reason.
 
 ### Implementation Tasks
 
-- [ ] T087 [US-P2-04] Implement enhanced loading decision events in
+- [x] T087 [US-P2-04] Implement enhanced loading decision events in
       ContextBuilder.ts (lines 724-788, per plan.md Task 4.1)
-- [ ] T088 [US-P2-04] [P] Add emitLoadingDecision() method with LoadingDecision
+- [x] T088 [US-P2-04] [P] Add emitLoadingDecision() method with LoadingDecision
       interface in ContextBuilder.ts (per plan.md lines 1530-1545)
-- [ ] T089 [US-P2-04] [P] Implement logLoadingDecision() in
+- [x] T089 [US-P2-04] [P] Implement logLoadingDecision() in
       ContextUsageLogger.ts (per plan.md lines 1600-1606)
-- [ ] T090 [US-P2-04] Update MemoryTreeProvider in
+- [x] T090 [US-P2-04] Update MemoryTreeProvider in
       `/Users/douglaswross/Code/gofer/extension/src/memoryProvider.ts` with last
       loaded tracking (add lastLoadedMap field, update getChildren() to include
       loading metadata per plan.md Task 4.2)
-- [ ] T091 [US-P2-04] [P] Add tooltip rendering to MemoryTreeProvider items
+- [x] T091 [US-P2-04] [P] Add tooltip rendering to MemoryTreeProvider items
       showing last loaded timestamp, reason, tokens, and layer (extend
       MemoryTreeItem creation in memoryProvider.ts per plan.md Task 4.2)
-- [ ] T092 [US-P2-04] [P] Implement getLoadingSummary() in ContextBuilder.ts for
+- [x] T092 [US-P2-04] [P] Implement getLoadingSummary() in ContextBuilder.ts for
       inline annotations (lines 1600-1650, per plan.md Task 4.3)
-- [ ] T093 [US-P2-04] Create queryMemoryUsage command in
+- [x] T093 [US-P2-04] Create queryMemoryUsage command in
       `/Users/douglaswross/Code/gofer/extension/src/commands/queryMemoryUsage.ts`
       (~200 LOC, per plan.md Task 4.4)
-- [ ] T094 [US-P2-04] [P] Register queryMemoryUsage command in extension.ts
+- [x] T094 [US-P2-04] [P] Register queryMemoryUsage command in extension.ts
       (line 210)
-- [ ] T095 [US-P2-04] [P] Create integration test
+- [x] T095 [US-P2-04] [P] Create integration test
       `/Users/douglaswross/Code/gofer/tests/integration/commands/queryMemoryUsage.integration.test.ts`
-- [ ] T096 [US-P2-04] [P] Verify events logged to context-usage.jsonl with all
+- [x] T096 [US-P2-04] [P] Verify events logged to context-usage.jsonl with all
       required fields (source, decision, reason, tokens, layer per AC-1)
 
 **Checkpoint**: Memory loading decisions observable via logs, UI, and CLI

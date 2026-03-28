@@ -9,11 +9,7 @@
  */
 
 import { BaseLLMProvider } from '../LLMProvider';
-import {
-  ProviderId,
-  QueryRequest,
-  QueryResponse,
-} from '../../types';
+import { ProviderId, QueryRequest, QueryResponse } from '../../types';
 import { ProviderError, ProviderErrorCode } from '../ProviderError';
 import { promisify } from 'util';
 import { execFile as execFileCallback } from 'child_process';
@@ -221,10 +217,7 @@ export abstract class CLIProviderAdapter extends BaseLLMProvider {
    * @returns Promise<string> - Raw CLI output
    * @throws ProviderError on spawn failure or timeout
    */
-  protected async spawnCLI(
-    prompt: string,
-    options: { timeout?: number } = {}
-  ): Promise<string> {
+  protected async spawnCLI(prompt: string, options: { timeout?: number } = {}): Promise<string> {
     const command = this.getCLICommand();
     const args = this.buildCLIArgs(prompt);
 
@@ -317,23 +310,19 @@ export abstract class CLIProviderAdapter extends BaseLLMProvider {
   protected mapExitCodeToError(exitCode: number, stderr: string): ProviderError {
     // Common exit codes
     if (exitCode === 127) {
-      return new ProviderError(
-        `${this.name} not found`,
-        ProviderErrorCode.NOT_CONFIGURED,
-        this.id
-      );
+      return new ProviderError(`${this.name} not found`, ProviderErrorCode.NOT_CONFIGURED, this.id);
     }
 
     if (exitCode === 1) {
       return new ProviderError(
-        `${this.name} error: ${stderr}`,
+        `${this.name} error: ${stderr.slice(0, 200)}`,
         ProviderErrorCode.API_ERROR,
         this.id
       );
     }
 
     return new ProviderError(
-      `${this.name} exited with code ${exitCode}: ${stderr}`,
+      `${this.name} exited with code ${exitCode}: ${stderr.slice(0, 200)}`,
       ProviderErrorCode.API_ERROR,
       this.id
     );

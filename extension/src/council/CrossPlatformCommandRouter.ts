@@ -56,7 +56,10 @@ export class CrossPlatformCommandRouter {
    * @returns Routing result with file path and metadata
    * @throws Error if command not found or path validation fails
    */
-  public routeCommand(commandName: string, targetPlatform?: PlatformType): CommandRoutingResult {
+  public async routeCommand(
+    commandName: string,
+    targetPlatform?: PlatformType
+  ): Promise<CommandRoutingResult> {
     // Validate command name to prevent path traversal
     this.validateCommandName(commandName);
 
@@ -76,7 +79,7 @@ export class CrossPlatformCommandRouter {
     let selectedPlatform: PlatformType | null = null;
 
     for (const platform of searchOrder) {
-      metadata = this.getMetadataForPlatform(commandName, platform);
+      metadata = await this.getMetadataForPlatform(commandName, platform);
       if (metadata) {
         selectedPlatform = platform;
         this.logger.debug('Platform selected', {
@@ -165,35 +168,39 @@ export class CrossPlatformCommandRouter {
    *
    * @returns Array of command names
    */
-  public listCommands(): string[] {
+  public async listCommands(): Promise<string[]> {
     const commands = new Set<string>();
+
+    const tryReadDir = (dir: string): Promise<string[]> => fs.promises.readdir(dir).catch(() => []);
 
     // Scan Claude commands
     const claudeDir = path.join(this.workspacePath, '.claude', 'commands');
-    if (fs.existsSync(claudeDir)) {
-      fs.readdirSync(claudeDir)
-        .filter((file) => file.endsWith('.md'))
-        .forEach((file) => commands.add(path.basename(file, '.md')));
-    }
+    const claudeFiles = await tryReadDir(claudeDir);
+    claudeFiles
+      .filter((file) => file.endsWith('.md'))
+      .forEach((file) => commands.add(path.basename(file, '.md')));
 
     // Scan Codex skills
     const codexDir = path.join(this.workspacePath, '.system', 'skills');
-    if (fs.existsSync(codexDir)) {
-      fs.readdirSync(codexDir).forEach((dir) => {
+    const codexDirs = await tryReadDir(codexDir);
+    const codexChecks = await Promise.all(
+      codexDirs.map(async (dir) => {
         const skillPath = path.join(codexDir, dir, 'SKILL.md');
-        if (fs.existsSync(skillPath)) {
-          commands.add(dir);
-        }
-      });
-    }
+        const exists = await fs.promises
+          .access(skillPath)
+          .then(() => true)
+          .catch(() => false);
+        return exists ? dir : null;
+      })
+    );
+    codexChecks.filter(Boolean).forEach((dir) => commands.add(dir as string));
 
     // Scan Copilot prompts
     const copilotDir = path.join(this.workspacePath, '.github', 'prompts');
-    if (fs.existsSync(copilotDir)) {
-      fs.readdirSync(copilotDir)
-        .filter((file) => file.endsWith('.prompt.md'))
-        .forEach((file) => commands.add(path.basename(file, '.prompt.md')));
-    }
+    const copilotFiles = await tryReadDir(copilotDir);
+    copilotFiles
+      .filter((file) => file.endsWith('.prompt.md'))
+      .forEach((file) => commands.add(path.basename(file, '.prompt.md')));
 
     return Array.from(commands).sort();
   }
@@ -284,12 +291,16 @@ export class CrossPlatformCommandRouter {
     return [preferred, ...defaultPriority.filter((platform) => platform !== preferred)];
   }
 
-  private getMetadataForPlatform(
+  private async getMetadataForPlatform(
     commandName: string,
     platform: PlatformType
-  ): CommandMetadata | null {
+  ): Promise<CommandMetadata | null> {
     const commandPath = this.getCommandPath(commandName, platform);
-    if (!fs.existsSync(commandPath)) {
+    const exists = await fs.promises
+      .access(commandPath)
+      .then(() => true)
+      .catch(() => false);
+    if (!exists) {
       return null;
     }
 

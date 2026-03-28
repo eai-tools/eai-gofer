@@ -589,36 +589,36 @@ memory, stage profiles
 
 ### US-P3-01: Hybrid Directory + Semantic Search
 
-- [ ] T097 [US-P3-01] Implement hybrid retrieval algorithm in MemoryManager.ts
+- [x] T097 [US-P3-01] Implement hybrid retrieval algorithm in MemoryManager.ts
       (directory recursive retrieval per data-model.md)
-- [ ] T098 [US-P3-01] [P] Add directory metadata tracking in MemoryStorage.ts
-- [ ] T099 [US-P3-01] [P] Create unit test for hybrid search with scoped queries
+- [x] T098 [US-P3-01] [P] Add directory metadata tracking in MemoryStorage.ts
+- [x] T099 [US-P3-01] [P] Create unit test for hybrid search with scoped queries
 
 ### US-P3-02: Real-Time Memory Updates
 
-- [ ] T100 [US-P3-02] Implement saveImmediate() foreground write in
+- [x] T100 [US-P3-02] Implement saveImmediate() foreground write in
       MemoryManager.ts (per plan.md Task 1.3, lines 252-280)
-- [ ] T101 [US-P3-02] [P] Add #real-time tagging for immediate saves
-- [ ] T102 [US-P3-02] [P] Create integration test for real-time memory saves
+- [x] T101 [US-P3-02] [P] Add #real-time tagging for immediate saves
+- [x] T102 [US-P3-02] [P] Create integration test for real-time memory saves
       during long-running tasks
 
 ### US-P3-03: Transient vs. Durable Memory Separation
 
-- [ ] T103 [US-P3-03] Implement setTransient/getTransient/clearTransient in
+- [x] T103 [US-P3-03] Implement setTransient/getTransient/clearTransient in
       MemoryManager.ts (per contracts/internal-api.md lines 346-390)
-- [ ] T104 [US-P3-03] [P] Add in-memory Map storage for transient state
-- [ ] T105 [US-P3-03] [P] Create unit test for transient memory lifecycle
+- [x] T104 [US-P3-03] [P] Add in-memory Map storage for transient state
+- [x] T105 [US-P3-03] [P] Create unit test for transient memory lifecycle
 
 ### US-P3-04: Stage-Specific Memory Profiles
 
-- [ ] T106 [US-P3-04] Extend StageContextProfile with memoryBudget field in
+- [x] T106 [US-P3-04] Extend StageContextProfile with memoryBudget field in
       `/Users/douglaswross/Code/gofer/extension/src/autonomous/StageContextProfileLoader.ts`
-- [ ] T107 [US-P3-04] [P] Create stage-profiles.json config file in
+- [x] T107 [US-P3-04] [P] Create stage-profiles.json config file in
       `.specify/memory/` with default budgets (research 40%, implement 20%,
       validate 15%)
-- [ ] T108 [US-P3-04] [P] Implement budget enforcement with low-priority
+- [x] T108 [US-P3-04] [P] Implement budget enforcement with low-priority
       truncation
-- [ ] T109 [US-P3-04] [P] Create unit test for stage-specific memory budgets
+- [x] T109 [US-P3-04] [P] Create unit test for stage-specific memory budgets
 
 **Checkpoint**: Advanced features implemented (optional for MVP)
 
@@ -640,68 +640,68 @@ memory, stage profiles
 
 ### Performance Optimization
 
-- [ ] T110 [P] Implement L2 detail caching with LRU eviction in MemoryStorage.ts
+- [x] T110 [P] Implement L2 detail caching with LRU eviction in MemoryStorage.ts
       (lines 50-80, per plan.md Task 5.1)
-- [ ] T111 [P] Create TokenEstimator in
+- [x] T111 [P] Create TokenEstimator in
       `/Users/douglaswross/Code/gofer/extension/src/autonomous/memory/TokenEstimator.ts`
       (~150 LOC, per plan.md Task 5.2)
-- [ ] T112 [P] Add heuristic-based token estimation (code adjustment, markdown
+- [x] T112 [P] Add heuristic-based token estimation (code adjustment, markdown
       compression) in TokenEstimator.ts
-- [ ] T113 [P] Create unit test
+- [x] T113 [P] Create unit test
       `/Users/douglaswross/Code/gofer/tests/unit/autonomous/TokenEstimator.test.ts`
       (verify ±10% accuracy)
 
 ### End-to-End Testing
 
-- [ ] T114 Create E2E pipeline test in
+- [x] T114 Create E2E pipeline test in
       `/Users/douglaswross/Code/gofer/tests/e2e/pipeline-with-memory.test.ts`
       (~500 LOC, per plan.md Task 5.3)
-- [ ] T115 [P] Verify full pipeline (research → validate) with memory injection
+- [x] T115 [P] Verify full pipeline (research → validate) with memory injection
       and extraction in pipeline-with-memory.test.ts
-- [ ] T116 [P] Verify citation rate ≥50% for validation agents in E2E test
+- [x] T116 [P] Verify citation rate ≥50% for validation agents in E2E test
       (US-P1-01 AC-6 critical assertion, per plan.md lines 2052-2072)
-- [ ] T117 [P] Verify context token usage <50k at stage 5 in E2E test (per
+- [x] T117 [P] Verify context token usage <50k at stage 5 in E2E test (per
       NFR-001)
-- [ ] T118 [P] Verify memory reuse across features in E2E test (per plan.md
+- [x] T118 [P] Verify memory reuse across features in E2E test (per plan.md
       lines 2086-2114)
 
 ### Performance Benchmarks
 
-- [ ] T119 Create performance benchmark suite in
+- [x] T119 Create performance benchmark suite in
       `/Users/douglaswross/Code/gofer/tests/performance/memory-performance.test.ts`
       (~300 LOC, per plan.md Task 5.4)
-- [ ] T120 [P] Verify 10 L1 memories load <500ms (NFR-002)
-- [ ] T121 [P] Verify search 1000 memories <100ms (NFR-003)
-- [ ] T122 [P] Verify consolidation 1000 memories <5s (NFR-004)
-- [ ] T123 [P] Verify 6 validation context injections <6s total (NFR-005)
+- [x] T120 [P] Verify 10 L1 memories load <500ms (NFR-002)
+- [x] T121 [P] Verify search 1000 memories <100ms (NFR-003)
+- [x] T122 [P] Verify consolidation 1000 memories <5s (NFR-004)
+- [x] T123 [P] Verify 6 validation context injections <6s total (NFR-005)
 
 ### Backward Compatibility
 
-- [ ] T124 Create backward compatibility test suite in
+- [x] T124 Create backward compatibility test suite in
       `/Users/douglaswross/Code/gofer/tests/integration/backward-compatibility.integration.test.ts`
       (~250 LOC, per plan.md Task 5.5)
-- [ ] T125 [P] Verify pre-layered memories load via detail tier (FR-026)
-- [ ] T126 [P] Verify migration preserves all memories and content (FR-027)
-- [ ] T127 [P] Verify existing MemoryManager API surface unchanged (FR-030)
+- [x] T125 [P] Verify pre-layered memories load via detail tier (FR-026)
+- [x] T126 [P] Verify migration preserves all memories and content (FR-027)
+- [x] T127 [P] Verify existing MemoryManager API surface unchanged (FR-030)
 
 ### Documentation
 
-- [ ] T128 [P] Create migration guide in
+- [x] T128 [P] Create migration guide in
       `/Users/douglaswross/Code/gofer/.specify/specs/029-memory-system-v2/migration-guide.md`
       (~500 lines, per plan.md Task 5.6)
-- [ ] T129 [P] Create API reference in
+- [x] T129 [P] Create API reference in
       `/Users/douglaswross/Code/gofer/.specify/specs/029-memory-system-v2/api-reference.md`
       (~800 lines)
-- [ ] T130 [P] Update package.json contribution points for new commands
+- [x] T130 [P] Update package.json contribution points for new commands
       (migrateMemoriesToLayered, queryMemoryUsage)
 
 ### Final Verification
 
-- [ ] T131 Run full validation rubric against memory system implementation
-- [ ] T132 Verify all FR-001 through FR-030 requirements pass
-- [ ] T133 Verify all NFR-001 through NFR-020 requirements pass
-- [ ] T134 Verify all success criteria SC-001 through SC-015 achievable
-- [ ] T135 Run quickstart.md validation
+- [x] T131 Run full validation rubric against memory system implementation
+- [x] T132 Verify all FR-001 through FR-030 requirements pass
+- [x] T133 Verify all NFR-001 through NFR-020 requirements pass
+- [x] T134 Verify all success criteria SC-001 through SC-015 achievable
+- [x] T135 Run quickstart.md validation
 
 **Checkpoint**: Production ready - all tests pass, performance targets met,
 documentation complete

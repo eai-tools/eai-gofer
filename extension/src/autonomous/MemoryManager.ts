@@ -1335,4 +1335,35 @@ export class MemoryManager implements IMemoryManager {
         return memories;
     }
   }
+
+  /**
+   * T100 (US-P3-02): Save a memory immediately (foreground write).
+   * For #real-time tagged memories that must persist before continuing.
+   */
+  async saveImmediate(memory: Omit<Memory, 'id' | 'created'>): Promise<Memory> {
+    await this.ensureStorageReady();
+    return this.storage.append(memory);
+  }
+
+  /** T104: In-memory transient state store (not persisted to disk) */
+  private readonly transientStore = new Map<string, unknown>();
+
+  /** T103: Store transient (non-persistent) session state */
+  setTransient(key: string, value: unknown): void {
+    this.transientStore.set(key, value);
+  }
+
+  /** T103: Retrieve transient session state */
+  getTransient(key: string): unknown {
+    return this.transientStore.get(key);
+  }
+
+  /** T103: Clear transient state (key = specific key, undefined = clear all) */
+  clearTransient(key?: string): void {
+    if (key !== undefined) {
+      this.transientStore.delete(key);
+    } else {
+      this.transientStore.clear();
+    }
+  }
 }

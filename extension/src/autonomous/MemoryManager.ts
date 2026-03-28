@@ -728,20 +728,19 @@ export class MemoryManager implements IMemoryManager {
    * 019 C2: Log memory usage to audit JSONL file.
    */
   private logUsageAudit(id: string, reason: string, source?: string): void {
-    try {
-      const logDir = path.join(this.workspaceRoot, '.specify', 'logs');
-      const logPath = path.join(logDir, 'memory-usage-audit.jsonl');
-      const entry = {
-        timestamp: new Date().toISOString(),
-        memoryId: id,
-        reason,
-        source: source || 'unknown',
-      };
-      fs.mkdirSync(logDir, { recursive: true });
-      fs.appendFileSync(logPath, JSON.stringify(entry) + '\n');
-    } catch {
-      // Best-effort audit logging
-    }
+    const logDir = path.join(this.workspaceRoot, '.specify', 'logs');
+    const logPath = path.join(logDir, 'memory-usage-audit.jsonl');
+    const entry = {
+      timestamp: new Date().toISOString(),
+      memoryId: id,
+      reason,
+      source: source || 'unknown',
+    };
+    // Fire-and-forget audit log — non-blocking, errors are non-fatal
+    fsPromises
+      .mkdir(logDir, { recursive: true })
+      .then(() => fsPromises.appendFile(logPath, JSON.stringify(entry) + '\n'))
+      .catch((err) => this.logger.debug('Audit log write failed', err));
   }
 
   /**
@@ -1189,11 +1188,15 @@ export class MemoryManager implements IMemoryManager {
    */
   private async loadLocal(): Promise<Memory[]> {
     try {
-      if (!fs.existsSync(this.localMemoryPath)) {
+      const exists = await fsPromises
+        .access(this.localMemoryPath)
+        .then(() => true)
+        .catch(() => false);
+      if (!exists) {
         return [];
       }
 
-      const data = fs.readFileSync(this.localMemoryPath, 'utf-8');
+      const data = await fsPromises.readFile(this.localMemoryPath, 'utf-8');
       const stored: StoredMemories = JSON.parse(data);
 
       // Validate schema
@@ -1267,11 +1270,9 @@ export class MemoryManager implements IMemoryManager {
 
     // Ensure directory exists
     const dir = path.dirname(this.localMemoryPath);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
+    await fsPromises.mkdir(dir, { recursive: true });
 
-    fs.writeFileSync(this.localMemoryPath, JSON.stringify(stored, null, 2));
+    await fsPromises.writeFile(this.localMemoryPath, JSON.stringify(stored, null, 2));
   }
 
   /**

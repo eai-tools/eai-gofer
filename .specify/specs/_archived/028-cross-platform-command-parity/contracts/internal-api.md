@@ -48,45 +48,32 @@ dispatches commands to the appropriate directory (`.claude/commands/`,
  * Detects current AI platform and routes to appropriate command implementation
  */
 export class CrossPlatformCommandRouter {
-  private readonly configManager: ConfigManager;
-  private readonly platformDetector: PlatformDetector;
-  private readonly skillDirectoryManager: SkillDirectoryManager;
+  private readonly workspacePath: string;
 
   /**
    * Constructor
-   * @param configManager - Configuration manager for settings access
-   * @param platformDetector - Platform detection service
-   * @param skillDirectoryManager - Multi-directory skill loader
+   * @param workspacePath - Workspace root path
    */
-  constructor(
-    configManager: ConfigManager,
-    platformDetector: PlatformDetector,
-    skillDirectoryManager: SkillDirectoryManager
-  );
+  constructor(workspacePath: string);
 
   /**
    * Detect current AI platform
    * Uses execution context, file structure, and user settings
    *
-   * @returns Promise<'claude' | 'copilot' | 'codex'> - Detected platform
-   * @throws PlatformDetectionError if platform cannot be determined
+   * @returns PlatformType | 'auto' - Detected platform (synchronous)
    */
-  async detectPlatform(): Promise<'claude' | 'copilot' | 'codex'>;
+  detectPlatform(): PlatformType | 'auto';
 
   /**
    * Route command invocation to platform-specific implementation
-   * Main entry point for command execution
+   * Main entry point for command routing
    *
    * @param commandName - Command to execute (e.g., "0_business_scenario")
    * @param args - Command arguments
-   * @returns Promise<CommandExecutionResult> - Execution result with output and metadata
+   * @returns CommandRoutingResult - Routing result with metadata (synchronous)
    * @throws CommandNotFoundError if command doesn't exist for platform
-   * @throws CommandExecutionError if command fails
    */
-  async routeCommand(
-    commandName: string,
-    args?: string
-  ): Promise<CommandExecutionResult>;
+  routeCommand(commandName: string, args?: string): CommandRoutingResult;
 
   /**
    * Get command file path for current platform

@@ -9,6 +9,7 @@
 import type { MemoryManager } from '../MemoryManager';
 import type { Memory } from '../memory';
 import { ValidationPatternExtractor } from './ValidationPatternExtractor';
+import { Logger } from '../../utils/logger';
 
 // ============================================================================
 // EngineeringReviewExtractor
@@ -29,6 +30,7 @@ import { ValidationPatternExtractor } from './ValidationPatternExtractor';
  */
 export class EngineeringReviewExtractor {
   private readonly validationExtractor: ValidationPatternExtractor;
+  private readonly logger = Logger.for('EngineeringReviewExtractor');
 
   constructor(private readonly memoryManager: MemoryManager) {
     this.validationExtractor = new ValidationPatternExtractor(memoryManager);
@@ -44,10 +46,7 @@ export class EngineeringReviewExtractor {
    * @param featureId - Feature ID for provenance
    * @returns Array of created memories
    */
-  async extractFromEngineeringReview(
-    reviewContent: string,
-    featureId: string
-  ): Promise<Memory[]> {
+  async extractFromEngineeringReview(reviewContent: string, featureId: string): Promise<Memory[]> {
     // Parse findings using the same logic as validation reports
     const patterns = this.validationExtractor.parseValidationReport(reviewContent);
 
@@ -71,17 +70,26 @@ export class EngineeringReviewExtractor {
 
         const memory = await this.memoryManager.save({
           category,
-          tags: [baseTag, severityTag, `#${pattern.category}`, '#engineering_review', '#auto_extracted'],
+          tags: [
+            baseTag,
+            severityTag,
+            `#${pattern.category}`,
+            '#engineering_review',
+            '#auto_extracted',
+          ],
           scope: 'local',
           content,
           lastUsed: Date.now(),
           usedCount: 0,
           learnedFrom: featureId,
-          agentId: pattern.agentId === 'validation-agent' ? 'engineer-review' : (pattern.agentId || 'engineer-review'),
+          agentId:
+            pattern.agentId === 'validation-agent'
+              ? 'engineer-review'
+              : pattern.agentId || 'engineer-review',
         });
         created.push(memory);
-      } catch {
-        // Non-blocking
+      } catch (err) {
+        this.logger.debug('Memory save failed (non-blocking)', err);
       }
     }
 

@@ -79,7 +79,11 @@ export class CrossPlatformCommandRouter {
       metadata = this.getMetadataForPlatform(commandName, platform);
       if (metadata) {
         selectedPlatform = platform;
-        this.logger.debug('Platform selected', { commandName, selectedPlatform, reason: targetPlatform ? 'explicit' : 'priority-fallback' });
+        this.logger.debug('Platform selected', {
+          commandName,
+          selectedPlatform,
+          reason: targetPlatform ? 'explicit' : 'priority-fallback',
+        });
         break;
       }
     }
@@ -117,7 +121,11 @@ export class CrossPlatformCommandRouter {
    */
   public async loadSkillForPlatform(commandName: string, platform: PlatformType): Promise<string> {
     const commandPath = this.getCommandPath(commandName, platform);
-    if (!fs.existsSync(commandPath)) {
+    const exists = await fs.promises
+      .access(commandPath)
+      .then(() => true)
+      .catch(() => false);
+    if (!exists) {
       throw new Error(`Command "${commandName}" not found for platform "${platform}"`);
     }
 
@@ -276,7 +284,10 @@ export class CrossPlatformCommandRouter {
     return [preferred, ...defaultPriority.filter((platform) => platform !== preferred)];
   }
 
-  private getMetadataForPlatform(commandName: string, platform: PlatformType): CommandMetadata | null {
+  private getMetadataForPlatform(
+    commandName: string,
+    platform: PlatformType
+  ): CommandMetadata | null {
     const commandPath = this.getCommandPath(commandName, platform);
     if (!fs.existsSync(commandPath)) {
       return null;

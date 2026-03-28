@@ -283,7 +283,7 @@ describe('MemoryStorage', () => {
   });
 
   describe('compact', () => {
-    it('should rewrite JSONL with only active memories', async () => {
+    it('should rewrite JSONL with only active memories, excluding tombstoned entries', async () => {
       vi.mocked(fs.access).mockResolvedValue(undefined);
       vi.mocked(fs.readFile).mockResolvedValue(
         '{"id":"c1","category":"test","tags":[],"scope":"local","content":"keep","created":1000,"lastUsed":1000,"usedCount":0,"learnedFrom":"t"}\n' +
@@ -292,21 +292,28 @@ describe('MemoryStorage', () => {
       );
       await storage.initialize();
 
-      // After index rebuild, c1 should be gone (tombstone), c2 active
-      // Wait — actually our rebuildIndex doesn't handle _deleted. Let me check...
-      // The current implementation just indexes by ID, so c1 will have _deleted
-      // In practice, the index only has c2 since c1 tombstone has no 'id' match
-      // Actually tombstones DO have id. Need to handle this in rebuildIndex.
+      // After rebuildIndex: c1 is tombstoned (deleted from index), c2 is active
+      // compact() should write only c2's data — tombstone removes c1 from the index
+      let writtenContent = '';
+      vi.mocked(fs.writeFile).mockImplementation(async (_path, data) => {
+        writtenContent = data as string;
+      });
 
-      // For now, test that compact writes only active index entries
       await storage.compact();
 
+      // Verify atomic write pattern
       expect(fs.writeFile).toHaveBeenCalledWith(
         expect.stringContaining('.tmp'),
         expect.any(String),
         'utf-8'
       );
       expect(fs.rename).toHaveBeenCalled();
+
+      // Verify c1 is excluded (tombstoned) and c2 is included
+      const writtenLines = writtenContent.split('\n').filter((l) => l.trim().length > 0);
+      const writtenIds = writtenLines.map((l) => (JSON.parse(l) as { id: string }).id);
+      expect(writtenIds).not.toContain('c1');
+      expect(writtenIds).toContain('c2');
     });
   });
 });

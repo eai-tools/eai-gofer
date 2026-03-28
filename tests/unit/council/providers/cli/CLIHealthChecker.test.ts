@@ -126,8 +126,13 @@ describe('CLIHealthChecker', () => {
 
         const result = await CLIHealthChecker.check('claude', 'claude');
 
-        // If detectVersion succeeds, authenticated should be based on env var
-        expect(result.authenticated === true || result.available === false).toBe(true);
+        // If CLI is available, authenticated should reflect API key presence
+        if (result.available) {
+          expect(result.authenticated).toBe(true);
+        } else {
+          // CLI binary not present in this environment — that's fine for CI
+          expect(result.available).toBe(false);
+        }
       } finally {
         if (originalEnv) {
           process.env.ANTHROPIC_API_KEY = originalEnv;

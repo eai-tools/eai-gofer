@@ -49,6 +49,7 @@ export interface CitationTrackingEntry {
 export class MemoryCitationTracker {
   private readonly logPath: string;
   private readonly sessions = new Map<string, CitationTrackingEntry>();
+  private static readonly MAX_SESSIONS = 500;
 
   constructor(workspaceRoot: string) {
     this.logPath = path.join(workspaceRoot, '.specify', 'logs', 'memory-usage.jsonl');
@@ -72,6 +73,13 @@ export class MemoryCitationTracker {
       citationRate: 0,
       category: agentCategory,
     };
+    // Evict oldest entries if map exceeds limit
+    if (this.sessions.size >= MemoryCitationTracker.MAX_SESSIONS) {
+      const oldestKey = this.sessions.keys().next().value;
+      if (oldestKey !== undefined) {
+        this.sessions.delete(oldestKey);
+      }
+    }
     this.sessions.set(runId, entry);
     return runId;
   }

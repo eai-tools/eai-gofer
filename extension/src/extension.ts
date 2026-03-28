@@ -752,9 +752,11 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
             '• Claude Code CLI: npm install -g @anthropic/claude-code\n' +
             '• Codex CLI: npm install -g @openai/codex-cli';
 
-          vscode.window.showWarningMessage(message, 'View Settings').then((selection) => {
+          vscode.window.showWarningMessage(message, 'View Settings', 'Install Guide').then((selection) => {
             if (selection === 'View Settings') {
               vscode.commands.executeCommand('workbench.action.openSettings', 'gofer.cliProvider');
+            } else if (selection === 'Install Guide') {
+              vscode.env.openExternal(vscode.Uri.parse('https://docs.gofer.dev/setup'));
             }
           });
         } else if (!codexResult.authenticated) {
@@ -818,6 +820,62 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
     logger?.debug('Extension', 'CLI health check failed (non-critical)', {
       error: error instanceof Error ? error.message : String(error),
     });
+  }
+
+  // T035: Show persistent provider status in status bar (US3: Settings UI shows ✓/✗ status)
+  try {
+    const config = vscode.workspace.getConfiguration('gofer');
+    const preference = config.get<'claude' | 'codex' | 'auto'>('cliProvider', 'auto');
+    const { CLIHealthChecker } = await import('./council/providers/cli/CLIHealthChecker');
+
+    let statusIcon = '$(warning)';
+    let statusText = 'No CLI';
+    let statusTooltip = 'No AI CLI provider found. Open settings to configure.';
+
+    if (preference !== 'auto') {
+      const cmd = config.get<string>(
+        preference === 'claude' ? 'claudeCodeCommand' : 'codexCommand',
+        preference
+      );
+      const result = await CLIHealthChecker.check(preference, cmd);
+      if (result.available && result.authenticated) {
+        statusIcon = '$(check)';
+        statusText = preference === 'claude' ? 'Claude' : 'Codex';
+        statusTooltip = `${statusText} CLI ready`;
+      } else if (result.available) {
+        statusIcon = '$(warning)';
+        statusText = preference === 'claude' ? 'Claude' : 'Codex';
+        statusTooltip = `${statusText} CLI found but not authenticated`;
+      }
+    } else {
+      const claudeCmd = config.get<string>('claudeCodeCommand', 'claude');
+      const claudeResult = await CLIHealthChecker.check('claude', claudeCmd);
+      if (claudeResult.available && claudeResult.authenticated) {
+        statusIcon = '$(check)';
+        statusText = 'Claude';
+        statusTooltip = 'Claude CLI ready (auto-detected)';
+      } else {
+        const codexCmd = config.get<string>('codexCommand', 'codex');
+        const codexResult = await CLIHealthChecker.check('codex', codexCmd);
+        if (codexResult.available && codexResult.authenticated) {
+          statusIcon = '$(check)';
+          statusText = 'Codex';
+          statusTooltip = 'Codex CLI ready (auto-detected)';
+        }
+      }
+    }
+
+    const providerStatusBar = vscode.window.createStatusBarItem(
+      vscode.StatusBarAlignment.Right,
+      99
+    );
+    providerStatusBar.text = `${statusIcon} ${statusText}`;
+    providerStatusBar.tooltip = statusTooltip;
+    providerStatusBar.command = 'workbench.action.openSettings';
+    providerStatusBar.show();
+    context.subscriptions.push(providerStatusBar);
+  } catch {
+    // Non-fatal: status bar is cosmetic
   }
 
   logger?.info('Extension', 'Workspace initialization complete');

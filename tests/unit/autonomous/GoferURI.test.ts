@@ -13,7 +13,7 @@ import {
 import * as path from 'path';
 import * as os from 'os';
 
-describe.skip('GoferURI Parser', () => {
+describe('GoferURI Parser', () => {
   describe('parseGoferURI', () => {
     it('should parse simple memory URI', () => {
       const result = parseGoferURI('gofer://memory/core/task-context.md');
@@ -52,7 +52,7 @@ describe.skip('GoferURI Parser', () => {
       const scopes: Array<GoferURI['scope']> = ['specs', 'memory', 'agent', 'session', 'user'];
 
       for (const scope of scopes) {
-        const result = parseGoferURI(`gofer://\${scope}/test.md`);
+        const result = parseGoferURI(`gofer://${scope}/test.md`);
         expect(result.scope).toBe(scope);
       }
     });
@@ -108,7 +108,7 @@ describe.skip('GoferURI Parser', () => {
   });
 });
 
-describe.skip('GoferURIResolver', () => {
+describe('GoferURIResolver', () => {
   let resolver: GoferURIResolver;
   const workspaceRoot = '/Users/test/Code/gofer';
   const userHome = os.homedir();

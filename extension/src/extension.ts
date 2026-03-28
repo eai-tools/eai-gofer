@@ -26,6 +26,7 @@ import { ObservationBridge } from './autonomous/ObservationBridge';
 import { setSharedContextBuilder, setSharedCrossPlatformCommandRouter } from './autonomousCommands';
 import { registerMemoryCommands } from './commands/memoryCommands';
 import { registerMigrateMemoriesCommand } from './commands/migrateMemories';
+import { registerQueryMemoryUsageCommand } from './commands/queryMemoryUsage';
 import { registerSpecCommands } from './commands/specCommands';
 import { registerCouncilCommands } from './commands/councilCommands';
 // Context Health Monitoring (Spec 012)
@@ -416,6 +417,8 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
     registerMemoryCommands(context, state.memoryManager);
     // T024: Register migration command (Feature 029 - Memory System v2)
     registerMigrateMemoriesCommand(context, state.memoryManager);
+    // T094: Register queryMemoryUsage command (Feature 029 - Memory System v2)
+    // contextBuilder is available after ContextBuilder wiring below
   }
 
   // Wire shared ContextBuilder (Feature 024) — activates ~3,700 LOC of dead code
@@ -425,6 +428,8 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
     const contextBuilder = new ContextBuilder(workspacePath, state.memoryManager, hintLoader);
     state.sharedContextBuilder = contextBuilder;
     setSharedContextBuilder(contextBuilder);
+    // T094: Register queryMemoryUsage command now that contextBuilder is available
+    registerQueryMemoryUsageCommand(context, contextBuilder, workspacePath);
 
     // Wire ContextUsageLogger (exists from InitializationService)
     if (state.contextUsageLogger) {

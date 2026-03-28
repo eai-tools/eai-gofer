@@ -117,6 +117,51 @@ handling:
 7. **Learning**: Human responses are saved and reused for similar future
    questions
 
+### 🔀 AI Provider Selection
+
+Gofer works with **Claude Code CLI** and **OpenAI Codex CLI** through a unified
+provider abstraction. All pipeline stages, autonomous mode, and validation
+agents work identically on both providers.
+
+#### Selecting a Provider
+
+Open VSCode Settings (`Cmd/Ctrl+,`) and search for **`gofer.cliProvider`**:
+
+| Value    | Description                                       |
+| -------- | ------------------------------------------------- |
+| `auto`   | Auto-detect: uses Claude if installed, else Codex |
+| `claude` | Always use Claude Code CLI                        |
+| `codex`  | Always use OpenAI Codex CLI                       |
+
+Provider changes apply **immediately** without reloading VSCode.
+
+#### Install Claude Code CLI
+
+```bash
+npm install -g @anthropic-ai/claude-code
+claude --version
+export ANTHROPIC_API_KEY="sk-ant-..."
+```
+
+#### Install OpenAI Codex CLI
+
+```bash
+npm install -g @openai/codex-cli
+codex --version
+export OPENAI_API_KEY="sk-proj-..."
+```
+
+#### Auto-Detection
+
+When set to `auto`, Gofer checks for `claude` first, then `codex`. The first
+available CLI is used. If neither is found, a notification shows installation
+instructions for both.
+
+For full details, see the
+[Multi-Provider CLI Support guide](https://github.com/your-org/gofer/blob/main/docs/multi-provider-cli-support.md).
+
+---
+
 ### 🏛️ LLM Council Mode (New!)
 
 Gofer supports an optional multi-LLM council pattern that enables parallel

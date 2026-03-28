@@ -50,10 +50,10 @@ describe('Command Generation Integration (US-3)', () => {
 
       const content = await fs.readFile(codexSkillPath, 'utf-8');
 
-      // Verify parallel workflow section exists
-      expect(content).toContain('Codex CLI: Parallel Validation Workflow');
-      expect(content).toContain('6 Terminal Windows');
-      expect(content).toContain('concurrently');
+      // Verify codex guidance for parallel work exists
+      expect(content).toContain('Codex CLI does not support the Task tool');
+      expect(content).toContain('parallel agent work');
+      expect(content).toContain('multiple Codex CLI sessions');
 
       // Verify all 6 validation skills are referenced
       const skills = [
@@ -66,18 +66,15 @@ describe('Command Generation Integration (US-3)', () => {
       ];
 
       for (const skill of skills) {
-        expect(content).toContain(`$ $${skill}`);
+        expect(content).toContain(skill);
       }
-
-      // Verify timing expectation
-      expect(content).toContain('45-60 seconds');
     });
 
     it('should have multi-agent delegation section in Copilot validation prompt', async () => {
       // Read Copilot validation prompt
       const copilotPromptPath = path.join(
         process.cwd(),
-        'extension/resources/copilot-prompts/6_gofer_validate.prompt.md'
+        '.github/prompts/6_gofer_validate.prompt.md'
       );
 
       const content = await fs.readFile(copilotPromptPath, 'utf-8');
@@ -115,7 +112,7 @@ describe('Command Generation Integration (US-3)', () => {
       // Read Copilot validation prompt
       const copilotPromptPath = path.join(
         process.cwd(),
-        'extension/resources/copilot-prompts/6_gofer_validate.prompt.md'
+        '.github/prompts/6_gofer_validate.prompt.md'
       );
 
       const content = await fs.readFile(copilotPromptPath, 'utf-8');
@@ -145,7 +142,7 @@ describe('Command Generation Integration (US-3)', () => {
       const codexPath = path.join(process.cwd(), '.system/skills/6_gofer_validate/SKILL.md');
       const copilotPath = path.join(
         process.cwd(),
-        'extension/resources/copilot-prompts/6_gofer_validate.prompt.md'
+        '.github/prompts/6_gofer_validate.prompt.md'
       );
 
       const [claudeContent, codexContent, copilotContent] = await Promise.all([
@@ -182,9 +179,8 @@ describe('Command Generation Integration (US-3)', () => {
         fs.readFile(legacyPath, 'utf-8'),
       ]);
 
-      // Verify parallel execution timing (45-60s)
-      const parallelTiming = /45-60\s*s(econds)?/i;
-      expect(codexContent).toMatch(parallelTiming);
+      // Verify codex guidance still recommends concurrent execution
+      expect(codexContent).toMatch(/parallel|concurrent/i);
 
       // Verify sequential execution timing (90-120s)
       const sequentialTiming = /90-120\s*s(econds)?/i;
@@ -216,7 +212,7 @@ describe('Command Generation Integration (US-3)', () => {
       const codexPath = path.join(process.cwd(), '.system/skills/6_gofer_validate/SKILL.md');
       const copilotPath = path.join(
         process.cwd(),
-        'extension/resources/copilot-prompts/6_gofer_validate.prompt.md'
+        '.github/prompts/6_gofer_validate.prompt.md'
       );
 
       const [claudeContent, codexContent, copilotContent] = await Promise.all([

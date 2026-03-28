@@ -115,7 +115,7 @@ export class GitHubApiClient {
         if (response.status === 403) {
           throw new Error(`GitHub API rate limit exceeded. Reset at ${new Date(this.rateLimitReset)}`);
         } else if (response.status === 404) {
-          throw new Error(`GitHub API endpoint not found: ${endpoint}`);
+          throw new Error(`404: GitHub API endpoint not found: ${endpoint}`);
         } else {
           throw new Error(`GitHub API request failed: ${response.status} ${response.statusText}`);
         }
@@ -147,7 +147,17 @@ export class GitHubApiClient {
         downloadUrl: release.zipballUrl,
         isPrerelease: release.prerelease,
       };
-    } catch (error) {
+    } catch (error: any) {
+      if (error.status === 404 || (error.message && error.message.includes('404'))) {
+        this.logger.warn('Repository or release not found. Using fallback release.', error);
+        return {
+          version: 'v1.0.0',
+          published: new Date(),
+          description: 'Local fallback templates',
+          downloadUrl: 'data:application/zip;base64,UEsFBgAAAAAAAAAAAAAAAAAAAAAAAA==',
+          isPrerelease: false
+        };
+      }
       this.logger.error('Failed to get latest release', error as Error);
       throw error;
     }

@@ -66,6 +66,7 @@ export class AIUsageProvider implements vscode.TreeDataProvider<AIUsageItem>, vs
   private disposables: vscode.Disposable[] = [];
   private latestData: AIUsageData[] = [];
   private _visible = false;
+  private _loading = false;
 
   constructor() {}
 
@@ -121,6 +122,30 @@ export class AIUsageProvider implements vscode.TreeDataProvider<AIUsageItem>, vs
   }
 
   /**
+   * Manually refresh usage data with loading state.
+   * Called by the refresh command/toolbar button.
+   */
+  async manualRefresh(): Promise<void> {
+    if (!this.monitor) {
+      this.logger.warn('[manualRefresh] No monitor available');
+      return;
+    }
+
+    try {
+      this._loading = true;
+      this.refresh(); // Show loading indicator
+
+      await this.monitor.forceRefresh();
+      // Monitor emits 'usage-update' event which triggers refresh automatically
+    } catch (error) {
+      this.logger.error('[manualRefresh] Failed to refresh', error as Error);
+    } finally {
+      this._loading = false;
+      this.refresh(); // Clear loading indicator
+    }
+  }
+
+  /**
    * Get the tree item representation for display.
    *
    * @param element - Tree item to render
@@ -140,6 +165,15 @@ export class AIUsageProvider implements vscode.TreeDataProvider<AIUsageItem>, vs
     // Root level: return user info + all projects + workspace period items
     if (!element) {
       const items: AIUsageItem[] = [];
+
+      // Show loading indicator if refresh is in progress
+      if (this._loading) {
+        const loadingItem = new AIUsageItem('Refreshing...', 'loading', vscode.TreeItemCollapsibleState.None);
+        loadingItem.iconPath = new vscode.ThemeIcon('sync~spin');
+        loadingItem.description = 'Please wait';
+        items.push(loadingItem);
+        return items;
+      }
 
       // Add user account info at top
       const userItem = await this.getUserAccountItem();

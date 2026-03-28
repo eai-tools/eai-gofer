@@ -70,7 +70,7 @@ describe('Config - Constants', () => {
     });
 
     it('should have correct GitHub repo', () => {
-      expect(GITHUB_REPO).toBe('gofer-templates');
+      expect(GITHUB_REPO).toBe('gofer');
     });
 
     it('should have GitHub API base URL', () => {

@@ -2,6 +2,7 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as os from 'os';
 import {
   GitHubApiClient,
   downloadLatestTemplates,
@@ -21,14 +22,16 @@ suite('E2E GitHub API Tests', () => {
 
   suiteSetup(async () => {
     // Initialize test workspace
-    const workspaceFolders = vscode.workspace.workspaceFolders;
-    if (!workspaceFolders || workspaceFolders.length === 0) {
-      throw new Error('No workspace folder available for testing');
-    }
-    testWorkspacePath = workspaceFolders[0].uri.fsPath;
+    testWorkspacePath = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'gofer-e2e-test-'));
 
     // Initialize GitHub API client
     apiClient = GitHubApiClient.getInstance();
+  });
+
+  suiteTeardown(async () => {
+    if (fs.existsSync(testWorkspacePath)) {
+      fs.rmSync(testWorkspacePath, { recursive: true, force: true });
+    }
   });
 
   suite('GitHub API Connectivity', () => {

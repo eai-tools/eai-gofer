@@ -222,6 +222,13 @@ export class GoferMigrator {
   }
 
   /**
+   * Create PowerShell scripts from bundled resources
+   */
+  public async createPowerShellScripts(): Promise<void> {
+    await this.resourceSyncer.createPowerShellScripts();
+  }
+
+  /**
    * Create Node.js scripts from bundled resources
    */
   public async createNodeScripts(): Promise<void> {
@@ -335,6 +342,7 @@ export class GoferMigrator {
     await this.resourceSyncer.setupCodexSkills(); // Generate Codex skills from Claude commands
     await this.resourceSyncer.setupCodexGlobalSymlink(); // Enable global Codex CLI access
     await this.resourceSyncer.createBashScripts();
+    await this.resourceSyncer.createPowerShellScripts();
     await this.resourceSyncer.createNodeScripts();
     await this.resourceSyncer.createVSCodeSettings();
 
@@ -393,6 +401,10 @@ export class GoferMigrator {
       { path: path.join(this.workspacePath, '.claude', 'commands'), name: 'Claude commands' },
       { path: path.join(this.workspacePath, '.claude', 'agents'), name: 'Claude agents' },
       { path: path.join(this.specifyPath, 'scripts', 'bash'), name: 'Bash scripts' },
+      {
+        path: path.join(this.specifyPath, 'scripts', 'powershell', 'install-optional-tools.ps1'),
+        name: 'PowerShell scripts',
+      },
       {
         path: path.join(this.specifyPath, 'scripts', 'hooks', 'post-tool-use.mjs'),
         name: 'Hook scripts',
@@ -479,6 +491,11 @@ export class GoferMigrator {
         if (missing.includes('Bash scripts')) {
           reportProgress('Syncing Bash scripts');
           await this.resourceSyncer.createBashScripts();
+        }
+
+        if (missing.includes('PowerShell scripts')) {
+          reportProgress('Syncing PowerShell scripts');
+          await this.resourceSyncer.createPowerShellScripts();
         }
 
         if (missing.includes('Hook scripts')) {

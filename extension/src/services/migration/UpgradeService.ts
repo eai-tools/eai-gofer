@@ -73,6 +73,11 @@ export interface IResourceOperations {
   createBashScripts(): Promise<void>;
 
   /**
+   * Create PowerShell scripts from bundled resources
+   */
+  createPowerShellScripts(): Promise<void>;
+
+  /**
    * Create Node.js scripts from bundled resources
    */
   createNodeScripts(): Promise<void>;
@@ -240,6 +245,10 @@ export class UpgradeService {
         this.logger.info('UpgradeService', 'Creating bash scripts');
         await resourceOps.createBashScripts();
 
+        progress.report({ message: 'Updating PowerShell scripts...' });
+        this.logger.info('UpgradeService', 'Creating PowerShell scripts');
+        await resourceOps.createPowerShellScripts();
+
         progress.report({ message: 'Updating Node.js scripts...' });
         this.logger.info('UpgradeService', 'Creating Node.js scripts');
         await resourceOps.createNodeScripts();
@@ -361,6 +370,10 @@ export class UpgradeService {
         progress.report({ message: 'Updating bash scripts...' });
         this.logger.info('UpgradeService', 'Creating bash scripts');
         await resourceOps.createBashScripts();
+
+        progress.report({ message: 'Updating PowerShell scripts...' });
+        this.logger.info('UpgradeService', 'Creating PowerShell scripts');
+        await resourceOps.createPowerShellScripts();
 
         progress.report({ message: 'Updating Node.js scripts...' });
         this.logger.info('UpgradeService', 'Creating Node.js scripts');

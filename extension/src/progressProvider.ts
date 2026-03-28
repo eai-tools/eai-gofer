@@ -208,9 +208,9 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
   private loadSequence: number = 0; // Sequence number to track load operations
   private hasStartedInitialLoad: boolean = false; // Track if initial load started
   private refreshDebounceTimer: ReturnType<typeof setTimeout> | null = null;
-  private static readonly REFRESH_DEBOUNCE_MS = 2000; // 2 second debounce
+  private readonly debounceMs: number;
 
-  constructor(workspacePath: string, branchSpecManager?: any) {
+  constructor(workspacePath: string, branchSpecManager?: any, debounceMs: number = 2000) {
     // Initialize debug channel once
     if (!debugChannel) {
       debugChannel = vscode.window.createOutputChannel('Gofer Debug');
@@ -219,6 +219,7 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
 
     this.workspacePath = workspacePath;
     this.branchSpecManager = branchSpecManager;
+    this.debounceMs = debounceMs;
     this.parser = new GoferParser(workspacePath, branchSpecManager);
     this.specLoader = new SpecLoader(workspacePath);
     this.dependencyGraph = new DependencyGraph(workspacePath);
@@ -253,6 +254,13 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
     this.dependencyGraph = new DependencyGraph(workspacePath);
   }
 
+  /**
+   * Check if a refresh is currently debouncing
+   */
+  isDebouncing(): boolean {
+    return this.refreshDebounceTimer !== null;
+  }
+
   refresh(): void {
     // Debounce rapid refreshes to prevent tree flickering.
     // Multiple callers (git state changes, file watchers, hook events) can
@@ -264,7 +272,7 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
     this.refreshDebounceTimer = setTimeout(() => {
       this.refreshDebounceTimer = null;
       this.triggerLoad();
-    }, ProgressProvider.REFRESH_DEBOUNCE_MS);
+    }, this.debounceMs);
   }
 
   /**

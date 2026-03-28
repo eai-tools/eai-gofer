@@ -132,6 +132,13 @@ describe('Command Registration Validation', () => {
     const aiUsageStatusBarPath = path.join(__dirname, '../../extension/src/ui/AIUsageStatusBar.ts');
     const aiUsageStatusBarSource = readFileSync(aiUsageStatusBarPath, 'utf-8');
 
+    // Read additional command files (Feature 029)
+    const migrateMemoriesPath = path.join(
+      __dirname,
+      '../../extension/src/commands/migrateMemories.ts'
+    );
+    const migrateMemoriesSource = readFileSync(migrateMemoriesPath, 'utf-8');
+
     // Combined for convenience
     allCommandSources = [
       extensionSource,
@@ -140,6 +147,7 @@ describe('Command Registration Validation', () => {
       specCommandsSource,
       councilCommandsSource,
       aiUsageStatusBarSource,
+      migrateMemoriesSource,
     ].join('\n');
   });
 

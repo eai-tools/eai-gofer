@@ -100,7 +100,7 @@ all user stories
 - [x] T007 [P] Create unit test
       `/Users/douglaswross/Code/gofer/tests/unit/autonomous/GoferURI.test.ts`
       for URI parsing and resolution (~150 LOC)
-- [ ] T008 [P] Add contract tests for path traversal prevention and glob
+- [x] T008 [P] Add contract tests for path traversal prevention and glob
       patterns in GoferURI.test.ts (per FR-002)
 - [x] T009 Update JSONL schema in
       `/Users/douglaswross/Code/gofer/extension/src/autonomous/MemoryStorage.ts`
@@ -110,45 +110,45 @@ all user stories
 - [x] T011 [P] Create unit test
       `/Users/douglaswross/Code/gofer/tests/unit/autonomous/MemoryStorage.test.ts`
       for layered JSONL schema
-- [ ] T012 Implement LLMExtractor in
+- [x] T012 Implement LLMExtractor in
       `/Users/douglaswross/Code/gofer/extension/src/autonomous/memory/LLMExtractor.ts`
       (~250 LOC, Claude Haiku-based summarization per plan.md Task 2.1)
-- [ ] T013 [P] Add generateAbstract() method to LLMExtractor (one-sentence, ~100
+- [x] T013 [P] Add generateAbstract() method to LLMExtractor (one-sentence, ~100
       tokens per FR-001)
-- [ ] T014 [P] Add generateOverview() method to LLMExtractor (key points, ~2k
+- [x] T014 [P] Add generateOverview() method to LLMExtractor (key points, ~2k
       tokens per FR-001)
-- [ ] T015 [P] Create unit test
+- [x] T015 [P] Create unit test
       `/Users/douglaswross/Code/gofer/tests/unit/autonomous/LLMExtractor.test.ts`
       with mocked Claude API responses
 - [x] T016 Extend MemoryStorage.save() with automatic layer generation in
       MemoryStorage.ts (lines 166-272, per plan.md Task 2.1)
 - [x] T017 Implement lazy L2 detail loading in MemoryStorage.load() (lines
       240-270, per plan.md Task 2.2)
-- [ ] T018 [P] Add integration test
+- [x] T018 [P] Add integration test
       `/Users/douglaswross/Code/gofer/tests/integration/autonomous/MemoryStorage.integration.test.ts`
       for lazy L2 loading performance (<500ms for 10 memories per NFR-002)
-- [ ] T019 Integrate GoferURI with MemoryManager by adding loadByURI() method in
+- [x] T019 Integrate GoferURI with MemoryManager by adding loadByURI() method in
       `/Users/douglaswross/Code/gofer/extension/src/autonomous/MemoryManager.ts`
       (lines 400-450, per plan.md Task 1.4)
-- [ ] T020 [P] Add layer selection logic to MemoryManager.loadByURI() (L0/L1/L2
+- [x] T020 [P] Add layer selection logic to MemoryManager.loadByURI() (L0/L1/L2
       per plan.md Task 1.4)
-- [ ] T021 [P] Create integration test
+- [x] T021 [P] Create integration test
       `/Users/douglaswross/Code/gofer/tests/integration/autonomous/MemoryManager.integration.test.ts`
       for URI-based loading with all layers
 
 ### Migration and Compatibility Tasks
 
-- [ ] T022 Implement backward compatible migration logic in
+- [x] T022 Implement backward compatible migration logic in
       MemoryManager.initialize() (lines 96-130, per plan.md Task 2.3)
-- [ ] T023 [P] Create migration command in
+- [x] T023 [P] Create migration command in
       `/Users/douglaswross/Code/gofer/extension/src/commands/migrateMemories.ts`
       (~150 LOC, per plan.md Task 2.4)
-- [ ] T024 [P] Register migrateMemoriesToLayered command in
+- [x] T024 [P] Register migrateMemoriesToLayered command in
       `/Users/douglaswross/Code/gofer/extension/src/extension.ts` (line 200)
-- [ ] T025 [P] Create integration test
+- [x] T025 [P] Create integration test
       `/Users/douglaswross/Code/gofer/tests/integration/commands/migrateMemories.integration.test.ts`
       for migration command
-- [ ] T026 [P] Add backward compatibility test for loading pre-layered memories
+- [x] T026 [P] Add backward compatibility test for loading pre-layered memories
       (fallback to detail tier per FR-026)
 
 **Checkpoint**: Foundation ready - L0/L1/L2 loading works, gofer:// URIs

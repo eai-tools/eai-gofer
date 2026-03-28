@@ -259,37 +259,37 @@ validation_pattern memories created with correct tags and citations
 
 ### Implementation Tasks
 
-- [ ] T047 [US-P1-02] Create ValidationPatternExtractor in
+- [x] T047 [US-P1-02] Create ValidationPatternExtractor in
       `/Users/douglaswross/Code/gofer/extension/src/autonomous/memory/ValidationPatternExtractor.ts`
       (~300 LOC, per plan.md Task 3.4)
-- [ ] T048 [US-P1-02] [P] Implement extractFromValidationReport() method with
+- [x] T048 [US-P1-02] [P] Implement extractFromValidationReport() method with
       Red → validation_pattern mapping in ValidationPatternExtractor.ts (per
       FR-006, AC-2)
-- [ ] T049 [US-P1-02] [P] Add Yellow → lesson mapping logic in
+- [x] T049 [US-P1-02] [P] Add Yellow → lesson mapping logic in
       ValidationPatternExtractor.ts (per FR-006, AC-3)
-- [ ] T050 [US-P1-02] [P] Implement parseValidationReport() method for YAML +
+- [x] T050 [US-P1-02] [P] Implement parseValidationReport() method for YAML +
       markdown parsing in ValidationPatternExtractor.ts (per plan.md lines
       1115-1119)
-- [ ] T051 [US-P1-02] [P] Create unit test
+- [x] T051 [US-P1-02] [P] Create unit test
       `/Users/douglaswross/Code/gofer/tests/unit/autonomous/ValidationPatternExtractor.test.ts`
       for extraction logic (~200 LOC)
-- [ ] T052 [US-P1-02] [P] Verify memory metadata includes agentId, featureId,
+- [x] T052 [US-P1-02] [P] Verify memory metadata includes agentId, featureId,
       severity in ValidationPatternExtractor.test.ts (per AC-4)
-- [ ] T053 [US-P1-02] Create EngineeringReviewExtractor in
+- [x] T053 [US-P1-02] Create EngineeringReviewExtractor in
       `/Users/douglaswross/Code/gofer/extension/src/autonomous/memory/EngineeringReviewExtractor.ts`
       (~200 LOC, per plan.md Task 3.5)
-- [ ] T054 [US-P1-02] [P] Implement extractFromEngineeringReview() method in
+- [x] T054 [US-P1-02] [P] Implement extractFromEngineeringReview() method in
       EngineeringReviewExtractor.ts (per FR-007)
-- [ ] T055 [US-P1-02] [P] Create unit test
+- [x] T055 [US-P1-02] [P] Create unit test
       `/Users/douglaswross/Code/gofer/tests/unit/autonomous/EngineeringReviewExtractor.test.ts`
       for engineering review extraction (~150 LOC)
-- [ ] T056 [US-P1-02] Update
+- [x] T056 [US-P1-02] Update
       `/Users/douglaswross/Code/gofer/.claude/commands/6_gofer_validate.md` with
       extraction step after validation (lines 250-270, per plan.md Task 3.6)
-- [ ] T057 [US-P1-02] Update
+- [x] T057 [US-P1-02] Update
       `/Users/douglaswross/Code/gofer/.claude/commands/6a_gofer_engineering_review.md`
       with extraction step (lines 100-120, per plan.md Task 3.6)
-- [ ] T058 [US-P1-02] [P] Create integration test for extraction integration in
+- [x] T058 [US-P1-02] [P] Create integration test for extraction integration in
       validate.test.ts (verify extraction triggered, memories saved,
       non-blocking on failure per AC-5)
 

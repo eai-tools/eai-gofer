@@ -18,12 +18,11 @@ result_schema:
         - error
 ---
 
-
 # Gofer Save
 
-You are creating a comprehensive progress checkpoint when the user needs to pause
-work on a feature. This is an **auxiliary command** that can be invoked anytime
-during the Gofer pipeline.
+You are creating a comprehensive progress checkpoint when the user needs to
+pause work on a feature. This is an **auxiliary command** that can be invoked
+anytime during the Gofer pipeline.
 
 ## User Input
 
@@ -53,10 +52,10 @@ Run context health check periodically during long sessions:
 .specify/scripts/bash/check-context-health.sh --json
 ```
 
-| Status   | Token Usage | Action                          |
-| -------- | ----------- | ------------------------------- |
-| Healthy  | < 50%       | Continue normally               |
-| Warning  | 50-70%      | Consider checkpoint, use sub-agents |
+| Status   | Token Usage | Action                                  |
+| -------- | ----------- | --------------------------------------- |
+| Healthy  | < 50%       | Continue normally                       |
+| Warning  | 50-70%      | Consider checkpoint, use sub-agents     |
 | Critical | > 70%       | **Save immediately**, start new session |
 
 **Why this matters**: Research shows LLMs lose accuracy as context grows.
@@ -106,7 +105,7 @@ git diff --stat
 git add [specific files]
 git commit -m "WIP: [Feature] - [Current state description]
 
-Checkpoint created by $ $1
+Checkpoint created by $ $7_gofer_save
 Stage: [current pipeline stage]
 Next: [what needs to happen next]"
 ```
@@ -125,7 +124,7 @@ If changes shouldn't be committed yet:
 
 Write to `{FEATURE_DIR}/session-checkpoint.md`:
 
-```markdown
+````markdown
 ---
 feature: [Feature Name]
 created: [ISO timestamp]
@@ -142,14 +141,14 @@ branch: [current branch]
 
 ### Pipeline Progress
 
-| Stage            | Status      | Artifact                 |
-| ---------------- | ----------- | ------------------------ |
-| 1_gofer_research | [done/skip] | research.md              |
-| 2_gofer_specify  | [done/skip] | spec.md                  |
-| 3_gofer_plan     | [done/skip] | plan.md, data-model.md   |
-| 4_gofer_tasks    | [done/skip] | tasks.md                 |
-| 5_gofer_implement| [current]   | [files created/modified] |
-| 6_gofer_validate | pending     | -                        |
+| Stage             | Status      | Artifact                 |
+| ----------------- | ----------- | ------------------------ |
+| 1_gofer_research  | [done/skip] | research.md              |
+| 2_gofer_specify   | [done/skip] | spec.md                  |
+| 3_gofer_plan      | [done/skip] | plan.md, data-model.md   |
+| 4_gofer_tasks     | [done/skip] | tasks.md                 |
+| 5_gofer_implement | [current]   | [files created/modified] |
+| 6_gofer_validate  | pending     | -                        |
 
 ### Active Task
 
@@ -172,13 +171,14 @@ From tasks.md:
 ```bash
 git log --oneline [session_start_commit]..HEAD
 ```
+````
 
 ### Uncommitted Changes
 
-| File          | Status   | Description                     |
-| ------------- | -------- | ------------------------------- |
-| `path/to/file`| Modified | [What was changed and why]      |
-| `path/other`  | New      | [Purpose of new file]           |
+| File           | Status   | Description                |
+| -------------- | -------- | -------------------------- |
+| `path/to/file` | Modified | [What was changed and why] |
+| `path/other`   | New      | [Purpose of new file]      |
 
 ### Files NOT to Modify (Protected)
 
@@ -213,7 +213,7 @@ From tasks.md Protected Files section:
 ```bash
 cd [repo path]
 git checkout [branch]
-$ $1
+$ $8_gofer_resume
 ```
 
 ### Manual Resume Steps
@@ -221,7 +221,7 @@ $ $1
 1. Read this checkpoint file
 2. Check `tasks.md` for current task
 3. Review `plan.md` for architecture context
-4. Continue with `$ $1`
+4. Continue with `$ $5_gofer_implement`
 
 ### Context to Load First
 
@@ -238,7 +238,8 @@ $ $1
 ## Notes
 
 [Any additional context that would help future you or another agent]
-```
+
+````
 
 ---
 
@@ -249,8 +250,8 @@ Add checkpoint marker to tasks.md:
 ```markdown
 ## Checkpoint: [ISO timestamp]
 
-Progress saved at task [TaskID]. Resume with `$ $1`.
-```
+Progress saved at task [TaskID]. Resume with `$ $8_gofer_resume`.
+````
 
 ---
 
@@ -273,12 +274,12 @@ Progress saved at task [TaskID]. Resume with `$ $1`.
   - Tests: [passing/failing/not run]
 
   To resume:
-  $ $1
+  $ $8_gofer_resume
 
   Or manually:
   cd [repo] && git checkout [branch]
   Read: {FEATURE_DIR}/session-checkpoint.md
-  Continue: $ $1
+  Continue: $ $5_gofer_implement
 
 ================================================================
 ```
@@ -345,6 +346,7 @@ The markdown body ensures:
 ### Handoff Size Target
 
 Aim for session-checkpoint.md to be:
+
 - **< 2,000 tokens** for critical information
 - **< 5,000 tokens** total including context
 
@@ -356,8 +358,8 @@ This ensures the resume session starts with clean context.
 
 This command works with:
 
-- `$ $1` - Paired resume command
-- `$ $1` - Can resume implementation
-- `$ $1` - Can validate partial progress
+- `$ $8_gofer_resume` - Paired resume command
+- `$ $5_gofer_implement` - Can resume implementation
+- `$ $6_gofer_validate` - Can validate partial progress
 - `/0_business_scenario` - Detects saved sessions
 - `check-context-health.sh` - Triggers save at thresholds

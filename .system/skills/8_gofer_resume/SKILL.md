@@ -1,6 +1,7 @@
 ---
 name: 8_gofer_resume
-description: Resume work from saved session checkpoint with full context restoration
+description:
+  Resume work from saved session checkpoint with full context restoration
 arguments:
   - name: feature
     description: Feature name or description
@@ -18,12 +19,11 @@ result_schema:
         - error
 ---
 
-
 # Gofer Resume
 
 You are resuming previously saved work by restoring full context and continuing
 implementation. This is an **auxiliary command** that restores state from
-`$ $1`.
+`$ $7_gofer_save`.
 
 ## User Input
 
@@ -70,10 +70,10 @@ If multiple sessions found:
 ```markdown
 ## Saved Sessions Found
 
-| Feature         | Stage            | Last Saved          | Tasks Done |
-| --------------- | ---------------- | ------------------- | ---------- |
-| [feature-1]     | 5_implement      | 2026-01-13 14:30    | 12/25      |
-| [feature-2]     | 3_plan           | 2026-01-12 09:15    | 0/0        |
+| Feature     | Stage       | Last Saved       | Tasks Done |
+| ----------- | ----------- | ---------------- | ---------- |
+| [feature-1] | 5_implement | 2026-01-13 14:30 | 12/25      |
+| [feature-2] | 3_plan      | 2026-01-12 09:15 | 0/0        |
 
 Which feature would you like to resume?
 ```
@@ -223,31 +223,33 @@ Based on tasks.md and checkpoint:
 ## Step 6: Signal Ready to Continue
 
 ```markdown
+================================================================ CONTEXT
+RESTORED: [Feature Name]
 ================================================================
-  CONTEXT RESTORED: [Feature Name]
-================================================================
 
-  Resuming from: [checkpoint timestamp]
-  Branch: [branch name]
-  Stage: [pipeline stage]
+Resuming from: [checkpoint timestamp] Branch: [branch name] Stage: [pipeline
+stage]
 
-  Progress:
-  - Tasks completed: [X]/[Total]
-  - Current phase: [Phase name]
-  - Current task: [Task ID] - [Description]
+Progress:
 
-  Files to focus on:
-  - [Current file from checkpoint]
-  - [Next file in task list]
+- Tasks completed: [X]/[Total]
+- Current phase: [Phase name]
+- Current task: [Task ID] - [Description]
 
-  Code Status:
-  - Build: [passing/failing]
-  - Tests: [passing/failing/skipped]
-  - Changes since save: [N commits]
+Files to focus on:
 
-  Ready to continue with: $ $1
+- [Current file from checkpoint]
+- [Next file in task list]
 
-  Or I can pick up exactly where we left off...
+Code Status:
+
+- Build: [passing/failing]
+- Tests: [passing/failing/skipped]
+- Changes since save: [N commits]
+
+Ready to continue with: $ $5_gofer_implement
+
+Or I can pick up exactly where we left off...
 
 ================================================================
 ```
@@ -265,7 +267,7 @@ If user says "continue" or similar:
 1. Load the current task details
 2. Open the file at the saved location
 3. Continue implementing from that point
-4. Follow normal `$ $1` flow
+4. Follow normal `$ $5_gofer_implement` flow
 
 ### Option B: Manual Navigation
 
@@ -282,7 +284,7 @@ If user wants to review first:
 ### Pattern 1: Quick Resume (Same Day)
 
 ```
-$ $1
+$ $8_gofer_resume
 
 > Continue the user management feature from this morning
 
@@ -295,7 +297,7 @@ $ $1
 ### Pattern 2: Full Context Restore (Days Later)
 
 ```
-$ $1 .specify/specs/auth-feature/
+$ $8_gofer_resume .specify/specs/auth-feature/
 
 # Claude:
 1. Reads full checkpoint
@@ -308,7 +310,7 @@ $ $1 .specify/specs/auth-feature/
 ### Pattern 3: Recovery Mode (No Checkpoint)
 
 ```
-$ $1
+$ $8_gofer_resume
 
 # Claude:
 1. No checkpoint found
@@ -360,7 +362,6 @@ Options:
 Warning: Build is currently failing.
 
 Error:
-
 ```
 
 [build error output]
@@ -392,8 +393,8 @@ Would you like me to:
 
 This command works with:
 
-- `$ $1` - Paired save command
-- `$ $1` - Continues implementation
+- `$ $7_gofer_save` - Paired save command
+- `$ $5_gofer_implement` - Continues implementation
 - `/0_business_scenario` - Can route to resume
 - All other Gofer commands - Can be invoked after resume
 

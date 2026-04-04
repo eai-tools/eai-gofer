@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.26.1] - 2026-04-04
+
+Stabilize engineering baseline, fix task-state progression, and remove legacy spec regeneration
+
 ## [1.26.0] - 2026-03-28
 
 Add multi-provider CLI support, cross-platform command parity, AI usage tracking, and memory system v2

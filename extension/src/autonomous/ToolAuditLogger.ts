@@ -87,7 +87,7 @@ export class ToolAuditLogger {
   }
 
   private async ensureDirectory(): Promise<void> {
-    if (this.dirInitialized) return;
+    if (this.dirInitialized) {return;}
     const dir = path.dirname(this.logPath);
     await fs.promises.mkdir(dir, { recursive: true });
     this.dirInitialized = true;

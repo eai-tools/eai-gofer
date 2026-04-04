@@ -33,7 +33,7 @@ export class OrchestratorProcess {
       ...process.env,
       ANTHROPIC_API_KEY: this.apiKey,
       WORKSPACE_DIR: this.workspacePath,
-      SPEC_DIR: '.specify',
+      SPEC_DIR: path.join('.specify', 'specs'),
     };
 
     // Start the orchestrator process

@@ -5,8 +5,8 @@
  */
 
 import * as vscode from 'vscode';
-import { getProviderFactory, ProviderFactory } from '../council/providers';
-import { PROVIDER_NAMES, DEFAULT_MODELS } from '../council/types';
+import { getProviderFactory } from '../council/providers';
+import { PROVIDER_NAMES } from '../council/types';
 import { getUsageLogger } from '../council/UsageLogger';
 
 /**

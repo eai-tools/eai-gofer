@@ -12,6 +12,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as yaml from 'yaml';
+import type { BranchSpecManager } from './branchSpecManager';
 import { Logger } from './utils/logger';
 import { TIMEOUTS } from './config/timeouts';
 
@@ -56,8 +57,10 @@ export interface YAMLFrontmatter {
   // Modern format (preferred)
   id?: string;
   title?: string;
+  branch?: string;
   status: string;
   created: string;
+  input?: string;
   updated: string;
   priority?: string;
   assignee?: string;
@@ -76,7 +79,7 @@ export class GoferParser {
 
   constructor(
     private workspacePath: string,
-    private branchSpecManager?: any
+    private branchSpecManager?: BranchSpecManager
   ) {}
 
   /**
@@ -205,8 +208,13 @@ export class GoferParser {
       const tasksContent = await fs.readFile(tasksPath, 'utf-8');
       tasks = this.parseTasks(tasksContent);
     } catch {
-      // Tasks file is optional
-      this.logger.debug(`No tasks.md found for spec ${specId}`);
+      const inlineTasks = this.extractTasksSection(content);
+      if (inlineTasks) {
+        tasks = this.parseTasks(inlineTasks);
+      } else {
+        // Tasks file is optional
+        this.logger.debug(`No tasks found for spec ${specId}`);
+      }
     }
 
     // Parse plan.md (optional)
@@ -244,9 +252,11 @@ export class GoferParser {
    * Status: Draft
    * Input: User description: "Build a feature"
    */
-  private parseSpecHeader(content: string): { metadata: any; content: string } {
+  private parseSpecHeader(
+    content: string
+  ): { metadata: Partial<YAMLFrontmatter> & { title?: string }; content: string } {
     const lines = content.split('\n');
-    const metadata: any = {};
+    const metadata: Partial<YAMLFrontmatter> & { title?: string } = {};
     let contentStartIndex = 0;
 
     // Extract title from first line
@@ -513,6 +523,14 @@ export class GoferParser {
   }
 
   /**
+   * Extract an inline ## Tasks section from spec.md for backward compatibility.
+   */
+  private extractTasksSection(content: string): string | null {
+    const tasksMatch = content.match(/^##\s+Tasks\s*\n([\s\S]*?)(?=^##\s+|\Z)/m);
+    return tasksMatch?.[1].trim() || null;
+  }
+
+  /**
    * Complete task object with required fields
    */
   private completeTask(partial: Partial<Task>, index: number): Task {
@@ -655,6 +673,7 @@ export class GoferParser {
       case 'ready':
         return 'ready';
       case 'in_progress':
+      case 'in-progress':
       case 'in progress':
         return 'in_progress';
       case 'completed':

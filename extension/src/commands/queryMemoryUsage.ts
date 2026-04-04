@@ -38,7 +38,7 @@ async function queryMemoryUsageCommand(
     placeHolder: 'Choose memory usage view',
   });
 
-  if (!choice) return;
+  if (!choice) {return;}
 
   if (choice === 'Current Session Summary') {
     if (!contextBuilder) {

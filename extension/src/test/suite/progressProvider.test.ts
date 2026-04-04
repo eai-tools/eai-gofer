@@ -2,7 +2,6 @@ import * as assert from 'assert';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import * as os from 'os';
-import * as vscode from 'vscode';
 import { ProgressProvider } from '../../progressProvider';
 
 suite('ProgressProvider Test Suite', function() {
@@ -27,7 +26,7 @@ suite('ProgressProvider Test Suite', function() {
     const specifyDir = path.join(tempDir, '.specify');
     try {
       await fs.rmdir(specifyDir, { recursive: true });
-    } catch (e) {
+    } catch (_e) {
       // Ignore if it doesn't exist
     }
 
@@ -41,7 +40,7 @@ suite('ProgressProvider Test Suite', function() {
     await new Promise(resolve => setTimeout(resolve, 50));
 
     // Wait until both isLoading and isDebouncing are false
-    while ((provider as any).isLoading || provider.isDebouncing()) {
+    while (provider.isLoadingSpecs() || provider.isDebouncing()) {
       await new Promise(resolve => setTimeout(resolve, 50));
     }
   }
@@ -277,11 +276,11 @@ Test specification for ${title}.
     const specDir = path.join(tempDir, '.specify', 'specs', id);
     const taskLines = tasks.map(task => {
       let checkbox = '[ ]';
-      if (task.status === 'completed') checkbox = '[x]';
-      else if (task.status === 'in_progress') checkbox = '[-]';
-      else if (task.status === 'failed') checkbox = '[!]';
-      else if (task.status === 'blocked') checkbox = '[b]';
-      else if (task.status === 'testing') checkbox = '[>]';
+      if (task.status === 'completed') {checkbox = '[x]';}
+      else if (task.status === 'in_progress') {checkbox = '[-]';}
+      else if (task.status === 'failed') {checkbox = '[!]';}
+      else if (task.status === 'blocked') {checkbox = '[b]';}
+      else if (task.status === 'testing') {checkbox = '[>]';}
       return `- ${checkbox} ${task.id} ${task.desc}`;
     });
 

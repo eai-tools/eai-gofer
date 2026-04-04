@@ -99,7 +99,7 @@ export class ValidationPatternExtractor {
     const seen = new Set<string>();
     return patterns.filter((p) => {
       const key = `${p.severity}:${p.description.slice(0, 50)}`;
-      if (seen.has(key)) return false;
+      if (seen.has(key)) {return false;}
       seen.add(key);
       return true;
     });
@@ -194,11 +194,11 @@ export class ValidationPatternExtractor {
   /** Infer memory category from description and surrounding context */
   private inferCategory(description: string, context: string): string {
     const combined = (description + ' ' + context).toLowerCase();
-    if (/security|auth|jwt|csrf|xss|injection/.test(combined)) return 'security';
-    if (/performance|cache|latency|timeout|slow/.test(combined)) return 'performance';
-    if (/test|coverage|mock|assertion/.test(combined)) return 'test_quality';
-    if (/integration|api|contract|interface/.test(combined)) return 'integration';
-    if (/type|typescript|lint|style|convention/.test(combined)) return 'standards';
+    if (/security|auth|jwt|csrf|xss|injection/.test(combined)) {return 'security';}
+    if (/performance|cache|latency|timeout|slow/.test(combined)) {return 'performance';}
+    if (/test|coverage|mock|assertion/.test(combined)) {return 'test_quality';}
+    if (/integration|api|contract|interface/.test(combined)) {return 'integration';}
+    if (/type|typescript|lint|style|convention/.test(combined)) {return 'standards';}
     return 'correctness';
   }
 

@@ -102,7 +102,7 @@ export class ResearchSummarizer {
         const summary = useLLM
           ? await this.summarizeChunk(chunk)
           : this.deterministicSummarize(chunk);
-        if (!summary) continue;
+        if (!summary) {continue;}
 
         await this.memoryManager.save({
           category: 'discovery',
@@ -215,7 +215,7 @@ export class ResearchSummarizer {
 
     for (const line of lines) {
       const trimmed = line.trim();
-      if (!trimmed) continue;
+      if (!trimmed) {continue;}
       // Keep headings
       if (trimmed.startsWith('#')) {
         summaryParts.push(trimmed);
@@ -293,7 +293,7 @@ export class ResearchSummarizer {
     const indexResult = await this.researchChunker.indexResearchFile(specId);
     const chunks = indexResult.chunks;
 
-    if (chunks.length === 0) return '';
+    if (chunks.length === 0) {return '';}
 
     // Extract keywords from each chunk
     const chunkKeywords: Array<{ chunk: ResearchChunk; keywords: string[] }> = chunks.map(
@@ -309,13 +309,13 @@ export class ResearchSummarizer {
     const used = new Set<string>();
 
     for (let i = 0; i < chunkKeywords.length; i++) {
-      if (used.has(chunkKeywords[i].chunk.id)) continue;
+      if (used.has(chunkKeywords[i].chunk.id)) {continue;}
       used.add(chunkKeywords[i].chunk.id);
 
       const group = { representative: chunkKeywords[i].chunk, merged: [] as ResearchChunk[] };
 
       for (let j = i + 1; j < chunkKeywords.length; j++) {
-        if (used.has(chunkKeywords[j].chunk.id)) continue;
+        if (used.has(chunkKeywords[j].chunk.id)) {continue;}
 
         const similarity = computeDocumentSimilarity(
           chunkKeywords[i].chunk.content,

@@ -34,12 +34,11 @@ import {
   type GoferStage,
   type StageContextProfile,
   DEFAULT_PROFILES,
-  calculateBudgetSummary,
 } from './StageContextProfile';
 import { StageContextProfileLoader } from './StageContextProfileLoader';
-import { ResearchChunker, type ScoredChunk } from './ResearchChunker';
+import { ResearchChunker } from './ResearchChunker';
 import type { ContextUsageLogger } from './ContextUsageLogger';
-import { KnowledgeGraph, type SubgraphResult } from './KnowledgeGraph';
+import { KnowledgeGraph } from './KnowledgeGraph';
 import { Logger } from '../services/Logger';
 import { CitationVerifier } from './CitationVerifier';
 import { ScopeGuard } from './ScopeGuard';
@@ -598,9 +597,9 @@ export class ContextBuilder extends EventEmitter {
       content: string | undefined,
       maxTokens: number
     ): string | undefined => {
-      if (!content) return content;
+      if (!content) {return content;}
       const currentTokens = this.estimateTokens(content);
-      if (currentTokens <= maxTokens) return content;
+      if (currentTokens <= maxTokens) {return content;}
       const maxChars = maxTokens * 4;
       return (
         content.slice(0, maxChars) +
@@ -772,7 +771,7 @@ export class ContextBuilder extends EventEmitter {
     memories: Memory[],
     layer: 'abstract' | 'overview' | 'detail'
   ): string {
-    if (memories.length === 0) return '';
+    if (memories.length === 0) {return '';}
 
     const lines: string[] = [];
     for (const m of memories) {
@@ -1177,7 +1176,7 @@ export class ContextBuilder extends EventEmitter {
     loadingDecisions: LoadingDecision[],
     memoryCoverage?: MemoryCoverage
   ): void {
-    if (!this.config.logLoadingDecisions) return;
+    if (!this.config.logLoadingDecisions) {return;}
 
     for (const decision of loadingDecisions) {
       this.emit('loading-decision', decision);
@@ -1738,7 +1737,6 @@ export class ContextBuilder extends EventEmitter {
     let clearedCount = 0;
 
     // Get all observations and selectively clear
-    const stats = this.observationMasker.getStats();
     const allObservations = this.observationMasker
       .getObservationsByFoldLevel('expanded')
       .concat(this.observationMasker.getObservationsByFoldLevel('summary'))

@@ -17,6 +17,28 @@ import { FileUtils } from '../../utils/fileUtils';
 import { IResourceOperations } from './UpgradeService';
 import * as yaml from 'yaml';
 
+interface LegacyJsonTask {
+  id?: string;
+  title?: string;
+  description?: string;
+  dependencies?: string[];
+  status?: string;
+}
+
+interface LegacyAcceptanceCriterion {
+  description?: string;
+}
+
+interface LegacyJsonSpec {
+  title?: string;
+  status?: string;
+  priority?: string;
+  description?: string;
+  userStories?: string[];
+  tasks?: LegacyJsonTask[];
+  acceptanceCriteria?: LegacyAcceptanceCriterion[];
+}
+
 /**
  * Resource Syncer Service
  *
@@ -55,6 +77,24 @@ export class ResourceSyncer implements IResourceOperations {
     }
 
     return extensionPath || '';
+  }
+
+  /**
+   * Resolve extension version without relying on CommonJS require().
+   */
+  private async getExtensionVersion(): Promise<string> {
+    const extensionVersion = vscode.extensions.getExtension('EnterpriseAI.gofer')?.packageJSON
+      ?.version;
+
+    if (typeof extensionVersion === 'string' && extensionVersion.length > 0) {
+      return extensionVersion;
+    }
+
+    const packageJsonPath = path.join(this.getExtensionPath(), 'package.json');
+    const packageJsonContent = await fs.readFile(packageJsonPath, 'utf-8');
+    const packageJson = JSON.parse(packageJsonContent) as { version?: string };
+
+    return packageJson.version ?? 'unknown';
   }
 
   /**
@@ -161,9 +201,8 @@ export class ResourceSyncer implements IResourceOperations {
     }
 
     // Save version
-    const packageJson = require('../../../package.json');
     const versionFilePath = path.join(this.specifyPath, '.gofer-version');
-    await fs.writeFile(versionFilePath, packageJson.version);
+    await fs.writeFile(versionFilePath, await this.getExtensionVersion());
 
     this.logger.info('ResourceSyncer', 'Gofer CLI resources installed successfully');
   }
@@ -185,44 +224,54 @@ export class ResourceSyncer implements IResourceOperations {
     this.logger.info('ResourceSyncer', 'Migrating JSON specs to Markdown');
 
     try {
-      const files = await fs.readdir(this.specifyPath);
-      const jsonFiles = files.filter((f) => f.endsWith('.json') && f !== 'spec-schema.json');
+      let specNumber = 1;
+      let migratedCount = 0;
+      const backupDir = path.join(this.specifyPath, '_backup');
+      await fs.mkdir(backupDir, { recursive: true });
 
-      if (jsonFiles.length === 0) {
-        this.logger.debug('ResourceSyncer', 'No JSON specs found to migrate');
-        return;
+      const rootBundlePath = path.join(this.workspacePath, 'specs.json');
+      if (await FileUtils.exists(rootBundlePath)) {
+        const bundleContent = await fs.readFile(rootBundlePath, 'utf-8');
+        const bundle = JSON.parse(bundleContent);
+        const bundledSpecs = Array.isArray(bundle?.specs) ? bundle.specs : [];
+
+        for (const spec of bundledSpecs) {
+          const specId = this.resolveLegacySpecId(spec, specNumber);
+          await this.writeMigratedSpec(spec, specId);
+          specNumber++;
+          migratedCount++;
+        }
+
+        await fs.copyFile(rootBundlePath, path.join(backupDir, 'specs.json'));
+        await fs.unlink(rootBundlePath);
       }
 
-      let specNumber = 1;
+      const files = await fs.readdir(this.specifyPath);
+      const jsonFiles = files.filter((f) => f.endsWith('.json') && f !== 'spec-schema.json');
 
       for (const jsonFile of jsonFiles) {
         const jsonPath = path.join(this.specifyPath, jsonFile);
         const content = await fs.readFile(jsonPath, 'utf-8');
-        const spec = JSON.parse(content);
+        const parsed = JSON.parse(content);
 
-        // Generate spec ID
-        const specId =
-          spec.id || `${specNumber.toString().padStart(3, '0')}-${this.slugify(spec.title)}`;
-
-        // Create spec directory
-        const specDir = path.join(this.specifyPath, 'specs', specId);
-        await fs.mkdir(specDir, { recursive: true });
-
-        // Convert to Markdown
-        const markdown = this.convertJsonToMarkdown(spec, specId);
-
-        // Write spec.md
-        await fs.writeFile(path.join(specDir, 'spec.md'), markdown);
-
-        // Backup original JSON
-        const backupDir = path.join(this.specifyPath, '_backup');
-        await fs.mkdir(backupDir, { recursive: true });
         await fs.copyFile(jsonPath, path.join(backupDir, jsonFile));
 
-        specNumber++;
+        if (this.isLegacySpecDocument(parsed)) {
+          const specId = this.resolveLegacySpecId(parsed, specNumber);
+          await this.writeMigratedSpec(parsed, specId);
+          specNumber++;
+          migratedCount++;
+        }
+
+        await fs.unlink(jsonPath);
       }
 
-      this.logger.info('ResourceSyncer', `Migrated ${jsonFiles.length} JSON specs to Markdown`);
+      if (migratedCount === 0) {
+        this.logger.debug('ResourceSyncer', 'No JSON specs found to migrate');
+        return;
+      }
+
+      this.logger.info('ResourceSyncer', `Migrated ${migratedCount} JSON specs to Markdown`);
     } catch (error) {
       this.logger.error('ResourceSyncer', error as Error, { operation: 'migrateJsonSpecs' });
     }
@@ -1068,23 +1117,26 @@ AI agents validate code against the constitution before implementation.
   /**
    * Convert JSON spec to Markdown with YAML frontmatter
    */
-  private convertJsonToMarkdown(spec: any, specId: string): string {
+  private convertJsonToMarkdown(spec: LegacyJsonSpec, specId: string): string {
     const now = new Date().toISOString().split('T')[0];
+    const title = spec.title || specId;
+    const frontmatterLines = [
+      '---',
+      `id: "${this.escapeYamlString(specId)}"`,
+      `title: "${this.escapeYamlString(title)}"`,
+      `status: "${this.escapeYamlString(spec.status || 'draft')}"`,
+      `created: "${now}"`,
+      `updated: "${now}"`,
+      `priority: "${this.escapeYamlString(spec.priority || 'medium')}"`,
+      'assignee: "engineer-agent"',
+      '---',
+      '',
+    ];
 
-    const frontmatter = {
-      id: specId,
-      title: spec.title || specId,
-      status: spec.status || 'draft',
-      created: now,
-      updated: now,
-      priority: spec.priority || 'medium',
-      assignee: 'engineer-agent',
-    };
+    let markdown = `${frontmatterLines.join('\n')}`;
 
-    const yamlStr = yaml.stringify(frontmatter);
-    let markdown = `---\n${yamlStr}---\n\n`;
-
-    markdown += `# Feature Overview\n\n${spec.description || spec.title}\n\n`;
+    markdown += `# ${title}\n\n`;
+    markdown += `## Feature Overview\n\n${spec.description || title}\n\n`;
 
     if (spec.userStories && spec.userStories.length > 0) {
       markdown += `## User Stories\n\n`;
@@ -1096,7 +1148,7 @@ AI agents validate code against the constitution before implementation.
 
     if (spec.tasks && spec.tasks.length > 0) {
       markdown += `## Functional Requirements\n\n`;
-      spec.tasks.forEach((task: any, i: number) => {
+      spec.tasks.forEach((task: LegacyJsonTask, i: number) => {
         markdown += `${i + 1}. **FR-${(i + 1).toString().padStart(3, '0')}**: ${task.description}\n`;
       });
       markdown += `\n`;
@@ -1104,13 +1156,109 @@ AI agents validate code against the constitution before implementation.
 
     if (spec.acceptanceCriteria && spec.acceptanceCriteria.length > 0) {
       markdown += `## Success Criteria\n\n`;
-      spec.acceptanceCriteria.forEach((ac: any) => {
+      spec.acceptanceCriteria.forEach((ac: LegacyAcceptanceCriterion) => {
         markdown += `- ${ac.description}\n`;
       });
       markdown += `\n`;
     }
 
     return markdown;
+  }
+
+  /**
+   * Write migrated spec artifacts.
+   */
+  private async writeMigratedSpec(spec: LegacyJsonSpec, specId: string): Promise<void> {
+    const specDir = path.join(this.specifyPath, 'specs', specId);
+    await fs.mkdir(specDir, { recursive: true });
+    await fs.writeFile(path.join(specDir, 'spec.md'), this.convertJsonToMarkdown(spec, specId));
+
+    if (Array.isArray(spec.tasks) && spec.tasks.length > 0) {
+      await fs.writeFile(path.join(specDir, 'tasks.md'), this.convertJsonTasksToMarkdown(spec.tasks));
+    }
+  }
+
+  /**
+   * Convert legacy JSON tasks to Gofer tasks.md format.
+   */
+  private convertJsonTasksToMarkdown(tasks: LegacyJsonTask[]): string {
+    const lines = ['# Tasks', ''];
+
+    tasks.forEach((task, index) => {
+      const taskId = task.id || `T${(index + 1).toString().padStart(3, '0')}`;
+      const description = task.description || task.title || `Task ${index + 1}`;
+      const dependencies = Array.isArray(task.dependencies) ? task.dependencies : [];
+      const dependencyText = dependencies.length > 0 ? dependencies.join(', ') : 'none';
+      const checkbox = this.mapTaskStatusToCheckbox(task.status);
+
+      lines.push(`- [${checkbox}] #${taskId} ${description} (deps: ${dependencyText})`);
+    });
+
+    lines.push('');
+    return lines.join('\n');
+  }
+
+  /**
+   * Determine whether a parsed JSON document represents a legacy spec.
+   */
+  private isLegacySpecDocument(value: unknown): value is Record<string, unknown> {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      return false;
+    }
+
+    return (
+      'id' in value ||
+      'title' in value ||
+      'description' in value ||
+      'tasks' in value ||
+      'acceptanceCriteria' in value
+    );
+  }
+
+  /**
+   * Resolve a stable spec ID for a legacy JSON document.
+   */
+  private resolveLegacySpecId(spec: Record<string, unknown>, specNumber: number): string {
+    const id = typeof spec.id === 'string' ? spec.id : null;
+    if (id && id.length > 0) {
+      return id;
+    }
+
+    const title = typeof spec.title === 'string' ? spec.title : `spec-${specNumber}`;
+    return `${specNumber.toString().padStart(3, '0')}-${this.slugify(title)}`;
+  }
+
+  /**
+   * Escape a YAML double-quoted scalar.
+   */
+  private escapeYamlString(value: string): string {
+    return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+  }
+
+  /**
+   * Map legacy task status to Gofer checkbox syntax.
+   */
+  private mapTaskStatusToCheckbox(status: unknown): string {
+    if (typeof status !== 'string') {
+      return ' ';
+    }
+
+    switch (status.toLowerCase()) {
+      case 'completed':
+        return 'x';
+      case 'in_progress':
+      case 'in-progress':
+      case 'in progress':
+        return '-';
+      case 'testing':
+        return '>';
+      case 'failed':
+        return '!';
+      case 'blocked':
+        return 'b';
+      default:
+        return ' ';
+    }
   }
 
   /**

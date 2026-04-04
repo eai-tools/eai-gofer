@@ -189,7 +189,7 @@ export class AutonomousLLMProvider {
 
     try {
       // Dynamic import to avoid requiring the SDK at module load time
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
+       
       const { default: Anthropic } = require('@anthropic-ai/sdk');
       this.client = new Anthropic({ apiKey: this.config.apiKey }) as AnthropicClient;
       return this.client;

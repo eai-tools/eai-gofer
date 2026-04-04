@@ -1,6 +1,80 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 
+interface TreeItemLike {
+  id?: string;
+  path?: string;
+}
+
+interface SpecLike {
+  id: string;
+  title: string;
+  status?: string;
+  description?: string;
+  author?: string;
+  created?: string;
+  updated?: string;
+  uri?: vscode.Uri;
+}
+
+interface TaskLike {
+  id: string;
+  status: string;
+  description: string;
+  dependencies?: string[];
+  estimated?: string;
+  error?: string;
+  attempts?: number;
+  parallel?: boolean;
+  completedAt?: string;
+  uri?: vscode.Uri;
+}
+
+interface ArticleLike {
+  number: string | number;
+  title: string;
+}
+
+interface SectionLike {
+  number: string | number;
+  title: string;
+  content?: string;
+  line: number;
+}
+
+interface MemoryPathDocument {
+  path: string;
+}
+
+interface MemoryContentDocument {
+  content: string;
+  notePath?: string;
+  category?: string;
+  created?: string;
+  tags?: string[];
+  usedCount?: number;
+  learnedFrom?: string;
+  path?: string;
+}
+
+function isMemoryContentDocument(document: unknown): document is MemoryContentDocument {
+  return (
+    typeof document === 'object' &&
+    document !== null &&
+    'content' in document &&
+    typeof (document as { content?: unknown }).content === 'string'
+  );
+}
+
+function hasPathDocument(document: unknown): document is MemoryPathDocument {
+  return (
+    typeof document === 'object' &&
+    document !== null &&
+    'path' in document &&
+    typeof (document as { path?: unknown }).path === 'string'
+  );
+}
+
 /**
  * Open a markdown file with the user's preferred viewer
  */
@@ -21,7 +95,7 @@ async function openMarkdownFileWith(uri: vscode.Uri, viewer: string): Promise<vo
       try {
         await vscode.window.showTextDocument(uri);
         await vscode.commands.executeCommand('mark-sharp.switch-editor-mode');
-      } catch (error) {
+      } catch (_error) {
         vscode.window.showErrorMessage(
           'Mark Sharp extension not installed. Install it from the marketplace or change your viewer setting.'
         );
@@ -33,7 +107,7 @@ async function openMarkdownFileWith(uri: vscode.Uri, viewer: string): Promise<vo
       try {
         await vscode.window.showTextDocument(uri);
         await vscode.commands.executeCommand('markdown-editor.toggleEditor');
-      } catch (error) {
+      } catch (_error) {
         vscode.window.showErrorMessage(
           'Markdown Editor extension not installed. Install it from the marketplace or change your viewer setting.'
         );
@@ -45,7 +119,7 @@ async function openMarkdownFileWith(uri: vscode.Uri, viewer: string): Promise<vo
       try {
         await vscode.window.showTextDocument(uri);
         await vscode.commands.executeCommand('markdown-wysiwyg.toggle');
-      } catch (error) {
+      } catch (_error) {
         vscode.window.showErrorMessage(
           'Markdown WYSIWYG extension not installed. Install it from the marketplace or change your viewer setting.'
         );
@@ -63,7 +137,7 @@ async function openMarkdownFileWith(uri: vscode.Uri, viewer: string): Promise<vo
 /**
  * Get the URI for a tree view item (spec, constitution, or memory)
  */
-function getUriForTreeItem(item: any): vscode.Uri | null {
+function getUriForTreeItem(item: TreeItemLike): vscode.Uri | null {
   const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
   if (!workspaceFolder) {
     return null;
@@ -93,7 +167,7 @@ function getUriForTreeItem(item: any): vscode.Uri | null {
 /**
  * Open with Preview - context menu command
  */
-export async function openWithPreview(item: any): Promise<void> {
+export async function openWithPreview(item: TreeItemLike): Promise<void> {
   const uri = getUriForTreeItem(item);
   if (uri) {
     await openMarkdownFileWith(uri, 'preview');
@@ -103,7 +177,7 @@ export async function openWithPreview(item: any): Promise<void> {
 /**
  * Open with Mark Sharp - context menu command
  */
-export async function openWithMarkSharp(item: any): Promise<void> {
+export async function openWithMarkSharp(item: TreeItemLike): Promise<void> {
   const uri = getUriForTreeItem(item);
   if (uri) {
     await openMarkdownFileWith(uri, 'mark-sharp');
@@ -113,7 +187,7 @@ export async function openWithMarkSharp(item: any): Promise<void> {
 /**
  * Open with Markdown Editor - context menu command
  */
-export async function openWithMarkdownEditor(item: any): Promise<void> {
+export async function openWithMarkdownEditor(item: TreeItemLike): Promise<void> {
   const uri = getUriForTreeItem(item);
   if (uri) {
     await openMarkdownFileWith(uri, 'markdown-editor');
@@ -123,7 +197,7 @@ export async function openWithMarkdownEditor(item: any): Promise<void> {
 /**
  * Open with Markdown WYSIWYG - context menu command
  */
-export async function openWithMarkdownWYSIWYG(item: any): Promise<void> {
+export async function openWithMarkdownWYSIWYG(item: TreeItemLike): Promise<void> {
   const uri = getUriForTreeItem(item);
   if (uri) {
     await openMarkdownFileWith(uri, 'markdown-wysiwyg');
@@ -133,7 +207,10 @@ export async function openWithMarkdownWYSIWYG(item: any): Promise<void> {
 /**
  * Show spec details using VSCode's native markdown preview
  */
-export async function showSpecDetailsWebview(context: vscode.ExtensionContext, spec: any) {
+export async function showSpecDetailsWebview(
+  _context: vscode.ExtensionContext,
+  spec: SpecLike
+): Promise<void> {
   const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
   if (!workspaceFolder) {
     vscode.window.showErrorMessage('No workspace folder open');
@@ -144,7 +221,7 @@ export async function showSpecDetailsWebview(context: vscode.ExtensionContext, s
   const specFile = path.join(workspaceFolder.uri.fsPath, '.specify', 'specs', spec.id, 'spec.md');
   try {
     const uri = vscode.Uri.file(specFile);
-    const doc = await vscode.workspace.openTextDocument(uri);
+    await vscode.workspace.openTextDocument(uri);
 
     // Open with user's preferred viewer
     await openMarkdownFile(uri);
@@ -156,7 +233,11 @@ export async function showSpecDetailsWebview(context: vscode.ExtensionContext, s
 /**
  * Show task details in a webview panel
  */
-export function showTaskDetailsWebview(context: vscode.ExtensionContext, task: any, spec: any) {
+export function showTaskDetailsWebview(
+  _context: vscode.ExtensionContext,
+  task: TaskLike,
+  spec: SpecLike
+): void {
   const panel = vscode.window.createWebviewPanel(
     'taskDetails',
     `Task: ${task.id}`,
@@ -170,7 +251,10 @@ export function showTaskDetailsWebview(context: vscode.ExtensionContext, task: a
 /**
  * Show article details using VSCode's native markdown preview
  */
-export async function showArticleDetailsWebview(context: vscode.ExtensionContext, article: any) {
+export async function showArticleDetailsWebview(
+  _context: vscode.ExtensionContext,
+  _article: ArticleLike
+): Promise<void> {
   await openConstitutionPreview();
 }
 
@@ -178,10 +262,10 @@ export async function showArticleDetailsWebview(context: vscode.ExtensionContext
  * Show section details using VSCode's native markdown preview
  */
 export async function showSectionDetailsWebview(
-  context: vscode.ExtensionContext,
-  section: any,
-  article: any
-) {
+  _context: vscode.ExtensionContext,
+  _section: SectionLike,
+  _article: ArticleLike
+): Promise<void> {
   await openConstitutionPreview();
 }
 
@@ -203,7 +287,7 @@ async function openConstitutionPreview(): Promise<void> {
   );
   try {
     const uri = vscode.Uri.file(constitutionFile);
-    const doc = await vscode.workspace.openTextDocument(uri);
+    await vscode.workspace.openTextDocument(uri);
 
     // Open with user's preferred viewer
     await openMarkdownFile(uri);
@@ -216,11 +300,14 @@ async function openConstitutionPreview(): Promise<void> {
  * Show memory document using VSCode's native markdown preview.
  * Accepts either a Memory object (from tree view click) or a document with a path property.
  */
-export async function showMemoryDocumentWebview(context: vscode.ExtensionContext, document: any) {
+export async function showMemoryDocumentWebview(
+  _context: vscode.ExtensionContext,
+  document: MemoryContentDocument | MemoryPathDocument
+): Promise<void> {
   try {
     // If this is a Memory object (from memoryProvider tree view click),
     // it has 'content' and optionally 'notePath', but no 'path' property.
-    if (document && document.content && !document.path) {
+    if (isMemoryContentDocument(document) && !document.path) {
       // If a companion markdown file exists, open it directly
       if (document.notePath) {
         const workspaceFolders = vscode.workspace.workspaceFolders;
@@ -266,6 +353,10 @@ export async function showMemoryDocumentWebview(context: vscode.ExtensionContext
     }
 
     // Original behavior: document has a 'path' property (e.g., constitution sections)
+    if (!hasPathDocument(document)) {
+      throw new Error('Document path is missing');
+    }
+
     const uri = vscode.Uri.file(document.path);
     await vscode.workspace.openTextDocument(uri);
     await openMarkdownFile(uri);
@@ -279,10 +370,10 @@ export async function showMemoryDocumentWebview(context: vscode.ExtensionContext
  * Opens the document and scrolls to the section
  */
 export async function showMemorySectionWebview(
-  context: vscode.ExtensionContext,
-  section: any,
-  document: any
-) {
+  _context: vscode.ExtensionContext,
+  section: SectionLike,
+  document: MemoryPathDocument
+): Promise<void> {
   try {
     const uri = vscode.Uri.file(document.path);
     const doc = await vscode.workspace.openTextDocument(uri);
@@ -305,218 +396,7 @@ export async function showMemorySectionWebview(
   }
 }
 
-function getSpecDetailsHTML(spec: any, stats: any): string {
-  const { total, completed, inProgress, testing, failed, blocked, pending, percentage } = stats;
-
-  return `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <style>
-        body {
-          font-family: var(--vscode-font-family);
-          padding: 20px;
-          color: var(--vscode-foreground);
-          background-color: var(--vscode-editor-background);
-        }
-        h1 {
-          color: var(--vscode-editor-foreground);
-          border-bottom: 2px solid var(--vscode-panel-border);
-          padding-bottom: 10px;
-        }
-        h2 {
-          color: var(--vscode-editor-foreground);
-          margin-top: 30px;
-          border-bottom: 1px solid var(--vscode-panel-border);
-          padding-bottom: 5px;
-        }
-        .progress-bar {
-          width: 100%;
-          height: 30px;
-          background-color: var(--vscode-input-background);
-          border-radius: 15px;
-          overflow: hidden;
-          margin: 15px 0;
-          border: 1px solid var(--vscode-panel-border);
-        }
-        .progress-fill {
-          height: 100%;
-          background: linear-gradient(90deg, #28a745, #20c997);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: white;
-          font-weight: bold;
-          transition: width 0.3s ease;
-        }
-        .info-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-          gap: 15px;
-          margin: 20px 0;
-        }
-        .info-card {
-          background-color: var(--vscode-input-background);
-          padding: 15px;
-          border-radius: 8px;
-          border: 1px solid var(--vscode-panel-border);
-        }
-        .info-label {
-          font-size: 12px;
-          color: var(--vscode-descriptionForeground);
-          margin-bottom: 5px;
-        }
-        .info-value {
-          font-size: 20px;
-          font-weight: bold;
-        }
-        .description {
-          background-color: var(--vscode-textBlockQuote-background);
-          padding: 15px;
-          border-radius: 8px;
-          border-left: 4px solid var(--vscode-textBlockQuote-border);
-          margin: 15px 0;
-          white-space: pre-wrap;
-        }
-        .task-list {
-          margin-top: 20px;
-        }
-        .task-item {
-          padding: 12px;
-          margin: 8px 0;
-          background-color: var(--vscode-input-background);
-          border-radius: 6px;
-          border-left: 4px solid;
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-        .task-item.completed { border-left-color: #28a745; }
-        .task-item.in_progress { border-left-color: #007acc; }
-        .task-item.testing { border-left-color: #6f42c1; }
-        .task-item.failed { border-left-color: #dc3545; }
-        .task-item.blocked { border-left-color: #fd7e14; }
-        .task-item.pending { border-left-color: #6c757d; }
-        .task-icon {
-          font-size: 18px;
-        }
-        .task-content {
-          flex: 1;
-        }
-        .task-id {
-          font-weight: bold;
-          color: var(--vscode-textLink-foreground);
-        }
-      </style>
-    </head>
-    <body>
-      <h1>${spec.title}</h1>
-
-      <div class="description">
-        ${spec.description || 'No description provided'}
-      </div>
-
-      <h2>Progress Overview</h2>
-      <div class="progress-bar">
-        <div class="progress-fill" style="width: ${percentage}%">
-          ${percentage}%
-        </div>
-      </div>
-
-      <div class="info-grid">
-        <div class="info-card">
-          <div class="info-label">Total Tasks</div>
-          <div class="info-value">${total}</div>
-        </div>
-        <div class="info-card">
-          <div class="info-label">Completed</div>
-          <div class="info-value" style="color: #28a745">${completed}</div>
-        </div>
-        <div class="info-card">
-          <div class="info-label">In Progress</div>
-          <div class="info-value" style="color: #007acc">${inProgress}</div>
-        </div>
-        <div class="info-card">
-          <div class="info-label">Testing</div>
-          <div class="info-value" style="color: #6f42c1">${testing}</div>
-        </div>
-        <div class="info-card">
-          <div class="info-label">Failed</div>
-          <div class="info-value" style="color: #dc3545">${failed}</div>
-        </div>
-        <div class="info-card">
-          <div class="info-label">Blocked</div>
-          <div class="info-value" style="color: #fd7e14">${blocked}</div>
-        </div>
-        <div class="info-card">
-          <div class="info-label">Pending</div>
-          <div class="info-value" style="color: #6c757d">${pending}</div>
-        </div>
-      </div>
-
-      <h2>Task Breakdown</h2>
-      <div class="task-list">
-        ${spec.tasks
-          .map((task: any) => {
-            const icons: Record<string, string> = {
-              completed: '✓',
-              in_progress: '⟳',
-              testing: '⚗',
-              failed: '✗',
-              blocked: '🔒',
-              pending: '○',
-            };
-            return `
-            <div class="task-item ${task.status}">
-              <span class="task-icon">${icons[task.status] || '○'}</span>
-              <div class="task-content">
-                <span class="task-id">${task.id}</span> - ${task.description}
-                ${task.dependencies.length > 0 ? `<br><small>Dependencies: ${task.dependencies.join(', ')}</small>` : ''}
-                ${task.estimated ? `<br><small>Estimated: ${task.estimated}</small>` : ''}
-              </div>
-            </div>
-          `;
-          })
-          .join('')}
-      </div>
-
-      <h2>Metadata</h2>
-      <div class="info-grid">
-        <div class="info-card">
-          <div class="info-label">ID</div>
-          <div class="info-value" style="font-size: 14px">${spec.id}</div>
-        </div>
-        <div class="info-card">
-          <div class="info-label">Status</div>
-          <div class="info-value" style="font-size: 14px">${spec.status}</div>
-        </div>
-        ${
-          spec.author
-            ? `
-          <div class="info-card">
-            <div class="info-label">Author</div>
-            <div class="info-value" style="font-size: 14px">${spec.author}</div>
-          </div>
-        `
-            : ''
-        }
-        <div class="info-card">
-          <div class="info-label">Created</div>
-          <div class="info-value" style="font-size: 14px">${new Date(spec.created).toLocaleDateString()}</div>
-        </div>
-        <div class="info-card">
-          <div class="info-label">Updated</div>
-          <div class="info-value" style="font-size: 14px">${new Date(spec.updated).toLocaleDateString()}</div>
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
-}
-
-function getTaskDetailsHTML(task: any, spec: any): string {
+function getTaskDetailsHTML(task: TaskLike, spec: SpecLike): string {
   const statusColors: Record<string, string> = {
     completed: '#28a745',
     in_progress: '#007acc',
@@ -725,147 +605,6 @@ function getTaskDetailsHTML(task: any, spec: any): string {
           <div class="info-value" style="font-size: 14px">${spec.status}</div>
         </div>
       </div>
-    </body>
-    </html>
-  `;
-}
-
-function getArticleDetailsHTML(article: any): string {
-  return `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <style>
-        body {
-          font-family: var(--vscode-font-family);
-          padding: 20px;
-          color: var(--vscode-foreground);
-          background-color: var(--vscode-editor-background);
-          line-height: 1.6;
-        }
-        h1 {
-          color: var(--vscode-editor-foreground);
-          border-bottom: 3px solid var(--vscode-textLink-foreground);
-          padding-bottom: 15px;
-          margin-bottom: 30px;
-        }
-        .article-number {
-          color: var(--vscode-textLink-foreground);
-          font-size: 24px;
-          font-weight: bold;
-        }
-        .section {
-          background-color: var(--vscode-input-background);
-          padding: 20px;
-          margin: 20px 0;
-          border-radius: 8px;
-          border-left: 4px solid var(--vscode-textLink-foreground);
-        }
-        .section-title {
-          font-size: 18px;
-          font-weight: bold;
-          color: var(--vscode-textLink-foreground);
-          margin-bottom: 12px;
-        }
-        .section-content {
-          white-space: pre-wrap;
-          font-size: 14px;
-          line-height: 1.8;
-        }
-        .section-number {
-          display: inline-block;
-          background-color: var(--vscode-textLink-foreground);
-          color: var(--vscode-editor-background);
-          padding: 2px 8px;
-          border-radius: 4px;
-          font-size: 12px;
-          margin-right: 8px;
-        }
-      </style>
-    </head>
-    <body>
-      <h1>
-        <span class="article-number">Article ${article.number}</span>
-        <br>
-        ${article.title}
-      </h1>
-
-      ${article.sections
-        .map(
-          (section: any) => `
-        <div class="section">
-          <div class="section-title">
-            <span class="section-number">${section.number}</span>
-            ${section.title}
-          </div>
-          <div class="section-content">${section.content}</div>
-        </div>
-      `
-        )
-        .join('')}
-    </body>
-    </html>
-  `;
-}
-
-function getSectionDetailsHTML(section: any, article: any): string {
-  return `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <style>
-        body {
-          font-family: var(--vscode-font-family);
-          padding: 20px;
-          color: var(--vscode-foreground);
-          background-color: var(--vscode-editor-background);
-          line-height: 1.8;
-        }
-        h1 {
-          color: var(--vscode-editor-foreground);
-          border-bottom: 3px solid var(--vscode-textLink-foreground);
-          padding-bottom: 15px;
-          margin-bottom: 30px;
-        }
-        .breadcrumb {
-          font-size: 13px;
-          color: var(--vscode-descriptionForeground);
-          margin-bottom: 20px;
-        }
-        .section-number {
-          display: inline-block;
-          background-color: var(--vscode-textLink-foreground);
-          color: var(--vscode-editor-background);
-          padding: 4px 12px;
-          border-radius: 6px;
-          font-size: 14px;
-          margin-bottom: 15px;
-        }
-        .content {
-          background-color: var(--vscode-textBlockQuote-background);
-          padding: 25px;
-          border-radius: 8px;
-          border-left: 4px solid var(--vscode-textLink-foreground);
-          white-space: pre-wrap;
-          font-size: 15px;
-          line-height: 1.8;
-        }
-      </style>
-    </head>
-    <body>
-      <div class="breadcrumb">
-        Article ${article.number}: ${article.title}
-      </div>
-
-      <span class="section-number">Section ${section.number}</span>
-
-      <h1>${section.title}</h1>
-
-      <div class="content">${section.content}</div>
     </body>
     </html>
   `;

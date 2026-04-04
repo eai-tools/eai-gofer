@@ -16,6 +16,15 @@ import {
   resetProviderFactory,
 } from '../../../../extension/src/council/providers/ProviderFactory';
 
+function runProviderFixtureTest(
+  name: string,
+  fn: () => Promise<void> | void
+): void {
+  if (process.env.RUN_PROVIDER_FACTORY_FIXTURE_TESTS === '1') {
+    it(name, fn);
+  }
+}
+
 describe('ProviderFactory Security (US-4)', () => {
   let factory: ProviderFactory;
 
@@ -206,7 +215,7 @@ describe('ProviderFactory Security (US-4)', () => {
       }
     });
 
-    it.skip('should handle conversation history without credentials', async () => {
+    runProviderFixtureTest('should handle conversation history without credentials', async () => {
       const cleanHistory = [
         { role: 'user' as const, content: 'What is TypeScript?' },
         {

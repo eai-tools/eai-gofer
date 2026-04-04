@@ -10,6 +10,13 @@ import * as path from 'path';
 import * as fs from 'fs/promises';
 import { Logger } from './utils/logger';
 
+interface MCPWorkspaceConfig {
+  mcp?: {
+    servers?: Record<string, unknown>;
+  };
+  [key: string]: unknown;
+}
+
 export class MCPConfigHelper {
   private readonly logger = Logger.for('McpConfig');
 
@@ -80,7 +87,7 @@ export class MCPConfigHelper {
     };
 
     // Check if file already exists
-    let existingConfig: any = {};
+    let existingConfig: MCPWorkspaceConfig = {};
     try {
       const content = await fs.readFile(mcpConfigPath, 'utf-8');
       existingConfig = JSON.parse(content);

@@ -141,9 +141,9 @@ export class ResearchGraphBuilder {
 
           // Determine type from context
           let type: ResearchEntity['type'] = 'pattern';
-          if (currentSection.toLowerCase().includes('decision')) type = 'decision';
-          else if (name.match(/Service|Manager|Handler|Provider|Factory/)) type = 'class';
-          else if (name.match(/^(get|set|create|update|delete|load|save|init)/i)) type = 'function';
+          if (currentSection.toLowerCase().includes('decision')) {type = 'decision';}
+          else if (name.match(/Service|Manager|Handler|Provider|Factory/)) {type = 'class';}
+          else if (name.match(/^(get|set|create|update|delete|load|save|init)/i)) {type = 'function';}
 
           // Find related file paths nearby
           const relatedFiles = this.extractNearbyFilePaths(content, content.indexOf(match[0]));

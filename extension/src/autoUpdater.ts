@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as https from 'https';
+import * as fsSync from 'fs';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
@@ -8,6 +9,16 @@ import { promisify } from 'util';
 import { Logger } from './services/Logger';
 
 const execAsync = promisify(exec);
+
+interface ReleaseRecord {
+  version: string;
+  download_url?: string;
+}
+
+interface ReleaseIndex {
+  latest_version?: string;
+  releases?: ReleaseRecord[];
+}
 
 /**
  * Auto-updater for extensions distributed via GitHub Releases
@@ -58,15 +69,15 @@ export class AutoUpdater {
   /**
    * Check for updates from GitHub Releases
    */
-  async checkForUpdates(context: vscode.ExtensionContext): Promise<void> {
+  async checkForUpdates(_context: vscode.ExtensionContext): Promise<void> {
     try {
       const latestVersion = await this.getLatestVersion();
 
       if (this.isNewerVersion(latestVersion, this.currentVersion)) {
         await this.promptUpdate(latestVersion);
       }
-    } catch (error) {
-      console.error('Update check failed:', error);
+    } catch (_error) {
+      console.error('Update check failed');
       // Don't show error popups for automatic checks to avoid spamming users
       // Only show errors for manual checks
     }
@@ -155,7 +166,7 @@ export class AutoUpdater {
    */
   private downloadFile(url: string, destPath: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      const file = require('fs').createWriteStream(destPath);
+      const file = fsSync.createWriteStream(destPath);
 
       https
         .get(url, { headers: { userAgent: 'VSCode-Extension-Updater' } }, (response) => {
@@ -181,7 +192,7 @@ export class AutoUpdater {
           });
         })
         .on('error', (err) => {
-          require('fs').unlink(destPath, () => {});
+          fsSync.unlink(destPath, () => {});
           reject(err);
         });
     });
@@ -211,10 +222,10 @@ export class AutoUpdater {
 
           res.on('end', () => {
             try {
-              const releaseData = JSON.parse(data);
+              const releaseData = JSON.parse(data) as ReleaseIndex;
 
               // Find the specific version in releases array
-              const release = releaseData.releases?.find((r: any) => r.version === version);
+              const release = releaseData.releases?.find((r) => r.version === version);
 
               if (release && release.download_url) {
                 resolve(release.download_url);
@@ -241,7 +252,7 @@ export class AutoUpdater {
       // Use VS Code's built-in extension installation
       const vsixUri = vscode.Uri.file(vsixPath);
       await vscode.commands.executeCommand('workbench.extensions.installExtension', vsixUri);
-    } catch (error) {
+    } catch (_error) {
       // Fallback: Try the CLI approach with better error handling
 
       try {
@@ -273,7 +284,7 @@ export class AutoUpdater {
         }
 
         // Install the extension using CLI
-        const { stdout, stderr } = await execAsync(
+        const { stderr } = await execAsync(
           `"${codeCommand}" --install-extension "${vsixPath}" --force`
         );
 

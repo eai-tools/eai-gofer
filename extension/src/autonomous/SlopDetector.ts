@@ -128,7 +128,7 @@ export class SlopDetector {
     let filesScanned = 0;
 
     const walk = (dir: string): void => {
-      if (filesScanned >= maxFiles) return;
+      if (filesScanned >= maxFiles) {return;}
 
       let entries: fs.Dirent[];
       try {
@@ -138,7 +138,7 @@ export class SlopDetector {
       }
 
       for (const entry of entries) {
-        if (filesScanned >= maxFiles) return;
+        if (filesScanned >= maxFiles) {return;}
 
         const fullPath = path.join(dir, entry.name);
 

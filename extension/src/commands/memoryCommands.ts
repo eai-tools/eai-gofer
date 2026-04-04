@@ -173,7 +173,7 @@ async function rememberCommand(memoryManager: MemoryManager): Promise<void> {
       : [];
 
     // Save memory
-    const saved = await memoryManager.save({
+    await memoryManager.save({
       category,
       tags,
       scope: scopeChoice.value,
@@ -603,7 +603,7 @@ async function createHintFileCommand(context: vscode.ExtensionContext): Promise<
       if (overwrite !== 'Yes') {
         return;
       }
-    } catch (error) {
+    } catch (_error) {
       // File doesn't exist, continue
     }
 
@@ -629,7 +629,7 @@ async function createHintFileCommand(context: vscode.ExtensionContext): Promise<
         '# Hint Title',
         `# ${hintName.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}`
       );
-    } catch (error) {
+    } catch (_error) {
       vscode.window.showErrorMessage('Failed to load hint template. Creating basic template.');
       templateContent = `---
 title: ${hintName.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}

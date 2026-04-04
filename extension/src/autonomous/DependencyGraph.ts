@@ -258,9 +258,6 @@ export class DependencyGraph implements IDependencyGraph {
       );
     }
 
-    // Get all nodes if no specific IDs provided
-    const nodesToSort = specIds || this.graph.nodes();
-
     // Topological sort (graphlib returns in reverse order, so reverse it)
     let order = alg.topsort(this.graph).reverse();
 

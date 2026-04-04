@@ -551,7 +551,7 @@ export class WorkspaceContextProvider {
    * 019 F2: Check if a transition is backward (regression).
    */
   private isBackwardTransition(from: GoferStage, to: GoferStage): boolean {
-    if (from === 'unknown' || to === 'unknown') return false;
+    if (from === 'unknown' || to === 'unknown') {return false;}
     const fromIdx = WorkspaceContextProvider.STAGE_ORDER.indexOf(from);
     const toIdx = WorkspaceContextProvider.STAGE_ORDER.indexOf(to);
     return toIdx < fromIdx;

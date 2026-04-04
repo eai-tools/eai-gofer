@@ -13,6 +13,7 @@ import * as path from 'path';
 import { Logger } from './Logger';
 import { GoferMigrator } from '../goferMigrator';
 import { validateFeatureName } from '../utils/commandInputValidator';
+import type { Spec } from '../goferParser';
 import type { ProgressProvider } from '../progressProvider';
 import type { ConstitutionProvider } from '../constitutionProvider';
 import type { MemoryProvider } from '../memoryProvider';
@@ -50,6 +51,45 @@ export interface CommandDependencies {
   crossPlatformCommandRouter?: import('../council/CrossPlatformCommandRouter').CrossPlatformCommandRouter;
   isUpgrading: () => boolean;
   setUpgradeState: (state: boolean) => void;
+}
+
+interface TreeViewCommandItem {
+  uri?: vscode.Uri;
+  id?: string;
+  path?: string;
+}
+
+interface SpecCommandItem {
+  id?: string;
+  spec?: { id?: string };
+  label?: string;
+}
+
+interface ConstitutionArticleCommand {
+  number: string | number;
+  title: string;
+}
+
+interface ConstitutionSectionCommand {
+  number: string | number;
+  title: string;
+  content?: string;
+  line: number;
+}
+
+interface MemoryDocumentCommand {
+  path: string;
+}
+
+interface MemoryContentCommand {
+  content: string;
+  notePath?: string;
+  category?: string;
+  created?: string;
+  tags?: string[];
+  usedCount?: number;
+  learnedFrom?: string;
+  path?: string;
 }
 
 /**
@@ -131,7 +171,7 @@ export class CommandRegistry {
             cancellable: false,
           },
           async () => {
-            await (deps.migrator as any).fixSpecPathReferences();
+            await deps.migrator.fixSpecPathReferences();
             vscode.window.showInformationMessage(
               'Spec paths fixed! All scripts now use .specify/specs/ instead of specs/',
               'OK'
@@ -296,7 +336,7 @@ export class CommandRegistry {
           },
         });
 
-        if (!specName) return;
+        if (!specName) {return;}
 
         const specsPath = path.join(deps.workspacePath, '.specify', 'specs', specName.trim());
         const specFile = path.join(specsPath, 'spec.md');
@@ -328,7 +368,7 @@ export class CommandRegistry {
     context.subscriptions.push(
       vscode.commands.registerCommand('gofer.openSpec', async (uri?: vscode.Uri) => {
         const specFile = uri?.fsPath || '';
-        if (!specFile) return;
+        if (!specFile) {return;}
 
         try {
           const doc = await vscode.workspace.openTextDocument(specFile);
@@ -344,8 +384,8 @@ export class CommandRegistry {
    * Register memory-related commands
    */
   private registerMemoryCommands(
-    context: vscode.ExtensionContext,
-    deps: CommandDependencies
+    _context: vscode.ExtensionContext,
+    _deps: CommandDependencies
   ): void {
     // Memory commands are registered separately in registerMemoryCommands
     // This is a placeholder for future consolidation
@@ -360,7 +400,7 @@ export class CommandRegistry {
   ): void {
     // gofer.startClaudeCode - Launch Claude Code for a spec
     context.subscriptions.push(
-      vscode.commands.registerCommand('gofer.startClaudeCode', async (item: any) => {
+      vscode.commands.registerCommand('gofer.startClaudeCode', async (item?: SpecCommandItem) => {
         try {
           const { launchClaudeCode } = await import('../autonomousCommands');
 
@@ -410,15 +450,39 @@ export class CommandRegistry {
     // gofer.startAutonomous - Start autonomous execution for a spec
     // Called by specCommands.ts:executeSpec() and autonomousCommands.ts dependency cascade
     context.subscriptions.push(
-      vscode.commands.registerCommand('gofer.startAutonomous', async (spec: any) => {
-        try {
-          const { startAutonomousExecution } = await import('../autonomousCommands');
-          await startAutonomousExecution(context, spec, _deps.progressProvider);
-        } catch (error) {
-          vscode.window.showErrorMessage(
-            `Failed to start autonomous execution: ${error instanceof Error ? error.message : String(error)}`
-          );
+      vscode.commands.registerCommand(
+        'gofer.startAutonomous',
+        async (spec: Spec) => {
+          try {
+            const { startAutonomousExecution } = await import('../autonomousCommands');
+            await startAutonomousExecution(context, spec, _deps.progressProvider);
+          } catch (error) {
+            vscode.window.showErrorMessage(
+              `Failed to start autonomous execution: ${error instanceof Error ? error.message : String(error)}`
+            );
+          }
         }
+      )
+    );
+
+    context.subscriptions.push(
+      vscode.commands.registerCommand('gofer.stopAutonomous', async () => {
+        const { stopAutonomousExecution } = await import('../autonomousCommands');
+        await stopAutonomousExecution();
+      })
+    );
+
+    context.subscriptions.push(
+      vscode.commands.registerCommand('gofer.pauseAutonomous', async () => {
+        const { pauseAutonomousExecution } = await import('../autonomousCommands');
+        await pauseAutonomousExecution();
+      })
+    );
+
+    context.subscriptions.push(
+      vscode.commands.registerCommand('gofer.resumeAutonomous', async () => {
+        const { resumeAutonomousExecution } = await import('../autonomousCommands');
+        await resumeAutonomousExecution();
       })
     );
   }
@@ -468,7 +532,7 @@ export class CommandRegistry {
         'gofer.showContextCategoryContent',
         async (sessionId: string, categoryName: string) => {
           const workspacePath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-          if (!workspacePath) return;
+          if (!workspacePath) {return;}
 
           const { ContextContentPanel } = await import('../ui/ContextContentPanel');
           const panel = ContextContentPanel.createOrShow(context.extensionUri, workspacePath);
@@ -485,7 +549,7 @@ export class CommandRegistry {
 
     // Show details commands
     context.subscriptions.push(
-      vscode.commands.registerCommand('gofer.showSpecDetails', async (item: any) => {
+      vscode.commands.registerCommand('gofer.showSpecDetails', async (item?: TreeViewCommandItem) => {
         if (item?.uri) {
           const doc = await vscode.workspace.openTextDocument(item.uri);
           await vscode.window.showTextDocument(doc);
@@ -494,7 +558,7 @@ export class CommandRegistry {
     );
 
     context.subscriptions.push(
-      vscode.commands.registerCommand('gofer.showTaskDetails', async (item: any) => {
+      vscode.commands.registerCommand('gofer.showTaskDetails', async (item?: TreeViewCommandItem) => {
         if (item?.uri) {
           const doc = await vscode.workspace.openTextDocument(item.uri);
           await vscode.window.showTextDocument(doc);
@@ -506,34 +570,40 @@ export class CommandRegistry {
     context.subscriptions.push(
       vscode.commands.registerCommand(
         'gofer.showSectionDetails',
-        async (section: any, article: any) => {
+        async (section: ConstitutionSectionCommand, article: ConstitutionArticleCommand) => {
           const { showSectionDetailsWebview } = await import('../webviewHelpers');
-          showSectionDetailsWebview(context, section, article);
+          await showSectionDetailsWebview(context, section, article);
         }
       )
     );
 
     // gofer.showArticleDetails - Constitution article view
     context.subscriptions.push(
-      vscode.commands.registerCommand('gofer.showArticleDetails', async (article: any) => {
-        const { showArticleDetailsWebview } = await import('../webviewHelpers');
-        showArticleDetailsWebview(context, article);
-      })
+      vscode.commands.registerCommand(
+        'gofer.showArticleDetails',
+        async (article: ConstitutionArticleCommand) => {
+          const { showArticleDetailsWebview } = await import('../webviewHelpers');
+          await showArticleDetailsWebview(context, article);
+        }
+      )
     );
 
     // gofer.showMemoryDocument - Memory document view
     context.subscriptions.push(
-      vscode.commands.registerCommand('gofer.showMemoryDocument', async (document: any) => {
-        const { showMemoryDocumentWebview } = await import('../webviewHelpers');
-        await showMemoryDocumentWebview(context, document);
-      })
+      vscode.commands.registerCommand(
+        'gofer.showMemoryDocument',
+        async (document: MemoryContentCommand | MemoryDocumentCommand) => {
+          const { showMemoryDocumentWebview } = await import('../webviewHelpers');
+          await showMemoryDocumentWebview(context, document);
+        }
+      )
     );
 
     // gofer.showMemorySection - Memory section view
     context.subscriptions.push(
       vscode.commands.registerCommand(
         'gofer.showMemorySection',
-        async (section: any, document: any) => {
+        async (section: ConstitutionSectionCommand, document: MemoryDocumentCommand) => {
           const { showMemorySectionWebview } = await import('../webviewHelpers');
           await showMemorySectionWebview(context, section, document);
         }
@@ -542,31 +612,40 @@ export class CommandRegistry {
 
     // Open With... context menu commands
     context.subscriptions.push(
-      vscode.commands.registerCommand('gofer.openWithPreview', async (item: any) => {
+      vscode.commands.registerCommand('gofer.openWithPreview', async (item: TreeViewCommandItem) => {
         const { openWithPreview } = await import('../webviewHelpers');
         await openWithPreview(item);
       })
     );
 
     context.subscriptions.push(
-      vscode.commands.registerCommand('gofer.openWithMarkSharp', async (item: any) => {
+      vscode.commands.registerCommand(
+        'gofer.openWithMarkSharp',
+        async (item: TreeViewCommandItem) => {
         const { openWithMarkSharp } = await import('../webviewHelpers');
         await openWithMarkSharp(item);
-      })
+        }
+      )
     );
 
     context.subscriptions.push(
-      vscode.commands.registerCommand('gofer.openWithMarkdownEditor', async (item: any) => {
+      vscode.commands.registerCommand(
+        'gofer.openWithMarkdownEditor',
+        async (item: TreeViewCommandItem) => {
         const { openWithMarkdownEditor } = await import('../webviewHelpers');
         await openWithMarkdownEditor(item);
-      })
+        }
+      )
     );
 
     context.subscriptions.push(
-      vscode.commands.registerCommand('gofer.openWithMarkdownWYSIWYG', async (item: any) => {
+      vscode.commands.registerCommand(
+        'gofer.openWithMarkdownWYSIWYG',
+        async (item: TreeViewCommandItem) => {
         const { openWithMarkdownWYSIWYG } = await import('../webviewHelpers');
         await openWithMarkdownWYSIWYG(item);
-      })
+        }
+      )
     );
   }
 

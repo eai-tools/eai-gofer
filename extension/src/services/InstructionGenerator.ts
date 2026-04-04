@@ -68,7 +68,7 @@ export class InstructionGenerator {
   /**
    * T022/T025: Generate CLAUDE.md content from project info.
    */
-  public async generateClaudeMd(projectInfo: ProjectInfo): Promise<string> {
+  public async generateClaudeMd(_projectInfo: ProjectInfo): Promise<string> {
     const base = await this.loadTemplate('base', 'claude-base.md');
     const workflowFragment = await this.loadTemplate('workflow', 'principles.md');
     const goferFragment = await this.loadTemplate('gofer', 'gofer-claude.md');

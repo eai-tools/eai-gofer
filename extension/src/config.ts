@@ -1,4 +1,10 @@
 import * as vscode from 'vscode';
+import packageJson from '../package.json';
+
+export interface ResourceSnapshotConfig {
+  enabled: boolean;
+  intervalMs: number;
+}
 
 /**
  * Extension configuration constants and settings management
@@ -9,7 +15,7 @@ import * as vscode from 'vscode';
 export const EXTENSION_NAME = 'gofer';
 export const EXTENSION_DISPLAY_NAME = 'Gofer (Enterprise AI)';
 // Read version from package.json to keep it in sync
-export const EXTENSION_VERSION = require('../../package.json').version;
+export const EXTENSION_VERSION = packageJson.version;
 
 // File and folder constants
 export const SPECIFY_FOLDER = '.specify';
@@ -82,6 +88,12 @@ export const CONFIG_KEYS = {
   contextWindowAutoExecuteSave: 'gofer.contextWindow.autoExecuteSave',
   contextWindowAutoSaveThreshold: 'gofer.contextWindow.autoSaveThreshold',
   contextWindowAutoResumeAfterSave: 'gofer.contextWindow.autoResumeAfterSave',
+  contextWindowContinuousSlopReductionEnabled:
+    'gofer.contextWindow.continuousSlopReduction.enabled',
+  contextWindowContinuousSlopReductionIntervalMs:
+    'gofer.contextWindow.continuousSlopReduction.intervalMs',
+  diagnosticsResourceSnapshotsEnabled: 'gofer.diagnostics.resourceSnapshots.enabled',
+  diagnosticsResourceSnapshotsIntervalMs: 'gofer.diagnostics.resourceSnapshots.intervalMs',
   scopeGuardMode: 'gofer.scopeGuard.mode',
   budgetMaxCostUsd: 'gofer.budgets.maxCostUsd',
   budgetMaxTokensPerRun: 'gofer.budgets.maxTokensPerRun',
@@ -107,6 +119,10 @@ export const DEFAULTS = {
   contextWindowAutoExecuteSave: true,
   contextWindowAutoSaveThreshold: 0.65,
   contextWindowAutoResumeAfterSave: true,
+  contextWindowContinuousSlopReductionEnabled: false,
+  contextWindowContinuousSlopReductionIntervalMs: 2 * 60 * 1000,
+  diagnosticsResourceSnapshotsEnabled: true,
+  diagnosticsResourceSnapshotsIntervalMs: 5 * 60 * 1000,
   scopeGuardMode: 'warning',
   budgetMaxCostUsd: 10.0,
   budgetMaxTokensPerRun: 500_000,
@@ -320,6 +336,42 @@ export class ConfigManager {
   }
 
   /**
+   * Get continuous slop reduction enabled setting.
+   */
+  public getContinuousSlopReductionEnabled(): boolean {
+    return this.config.get<boolean>(
+      CONFIG_KEYS.contextWindowContinuousSlopReductionEnabled.replace('gofer.', ''),
+      DEFAULTS.contextWindowContinuousSlopReductionEnabled
+    );
+  }
+
+  /**
+   * Get continuous slop reduction interval in milliseconds.
+   */
+  public getContinuousSlopReductionIntervalMs(): number {
+    return this.config.get<number>(
+      CONFIG_KEYS.contextWindowContinuousSlopReductionIntervalMs.replace('gofer.', ''),
+      DEFAULTS.contextWindowContinuousSlopReductionIntervalMs
+    );
+  }
+
+  /**
+   * Get resource snapshot diagnostics settings.
+   */
+  public getResourceSnapshotConfig(): ResourceSnapshotConfig {
+    return {
+      enabled: this.config.get<boolean>(
+        CONFIG_KEYS.diagnosticsResourceSnapshotsEnabled.replace('gofer.', ''),
+        DEFAULTS.diagnosticsResourceSnapshotsEnabled
+      ),
+      intervalMs: this.config.get<number>(
+        CONFIG_KEYS.diagnosticsResourceSnapshotsIntervalMs.replace('gofer.', ''),
+        DEFAULTS.diagnosticsResourceSnapshotsIntervalMs
+      ),
+    };
+  }
+
+  /**
    * Get ScopeGuard enforcement mode
    */
   public getScopeGuardMode(): 'advisory' | 'warning' | 'blocking' {
@@ -464,6 +516,10 @@ export class ConfigManager {
       contextWindowAutoExecuteSave: this.getContextWindowAutoExecuteSave(),
       contextWindowAutoSaveThreshold: this.getContextWindowAutoSaveThreshold(),
       contextWindowAutoResumeAfterSave: this.getContextWindowAutoResumeAfterSave(),
+      contextWindowContinuousSlopReductionEnabled: this.getContinuousSlopReductionEnabled(),
+      contextWindowContinuousSlopReductionIntervalMs:
+        this.getContinuousSlopReductionIntervalMs(),
+      resourceSnapshotConfig: this.getResourceSnapshotConfig(),
       scopeGuardMode: this.getScopeGuardMode(),
       budgetMaxCostUsd: this.getBudgetMaxCostUsd(),
       budgetMaxTokensPerRun: this.getBudgetMaxTokensPerRun(),

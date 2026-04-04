@@ -49,6 +49,11 @@ interface IndexEntry {
   memory: Memory;
 }
 
+interface SerializedMemoryRecord extends Memory {
+  _layerAbstract?: string;
+  _layerOverview?: string;
+}
+
 // ============================================================================
 // MemoryStorage Class
 // ============================================================================
@@ -92,7 +97,7 @@ export class MemoryStorage {
    * Initialize storage: migrate from legacy if needed, build index from JSONL.
    */
   async initialize(): Promise<void> {
-    if (this.initialized) return;
+    if (this.initialized) {return;}
 
     await fs.mkdir(this.memoryDir, { recursive: true });
 
@@ -124,7 +129,7 @@ export class MemoryStorage {
         memories = (parsed as StoredMemories).memories;
       }
 
-      if (memories.length === 0) return;
+      if (memories.length === 0) {return;}
 
       // Write each memory as a JSONL line
       const lines = memories.map((m) => JSON.stringify(m)).join('\n') + '\n';
@@ -150,7 +155,7 @@ export class MemoryStorage {
       for (const line of lines) {
         try {
           const record = JSON.parse(line) as Record<string, unknown>;
-          if (!record.id) continue;
+          if (!record.id) {continue;}
 
           // Handle tombstone records (deleted memories)
           if (record._deleted) {
@@ -219,19 +224,19 @@ export class MemoryStorage {
    * Extracts abstract/overview into flat fields, excludes detail function.
    */
   private serializeMemoryForJSONL(memory: Memory): Record<string, unknown> {
-    const serialized: Record<string, unknown> = { ...memory };
+    const serialized: SerializedMemoryRecord = { ...memory };
 
     // If layers exist, flatten abstract/overview into top-level fields
     if (memory.layers) {
       // Store abstract and overview as flat fields for JSONL
-      (serialized as any)._layerAbstract = memory.layers.abstract;
-      (serialized as any)._layerOverview = memory.layers.overview;
+      serialized._layerAbstract = memory.layers.abstract;
+      serialized._layerOverview = memory.layers.overview;
 
       // Remove the layers object (it contains a function we can't serialize)
       delete serialized.layers;
     }
 
-    return serialized;
+    return serialized as unknown as Record<string, unknown>;
   }
 
   /**
@@ -240,7 +245,7 @@ export class MemoryStorage {
    * Note: detail function will be added by lazy loading logic (T017).
    */
   private deserializeMemoryFromJSONL(record: Record<string, unknown>): Memory {
-    const memory = { ...record } as unknown as Memory;
+    const memory = { ...record } as unknown as SerializedMemoryRecord;
 
     // If flat layer fields exist, reconstruct layers object
     if (record._layerAbstract && record._layerOverview) {
@@ -252,8 +257,8 @@ export class MemoryStorage {
       };
 
       // Clean up flat fields from memory object
-      delete (memory as any)._layerAbstract;
-      delete (memory as any)._layerOverview;
+      delete memory._layerAbstract;
+      delete memory._layerOverview;
     }
 
     return memory;
@@ -312,7 +317,7 @@ export class MemoryStorage {
     await this.ensureInitialized();
 
     const existing = this.index.get(id);
-    if (!existing) return null;
+    if (!existing) {return null;}
 
     const updated: Memory = {
       ...existing.memory,
@@ -339,7 +344,7 @@ export class MemoryStorage {
   async remove(id: string): Promise<boolean> {
     await this.ensureInitialized();
 
-    if (!this.index.has(id)) return false;
+    if (!this.index.has(id)) {return false;}
 
     // Append tombstone
     const tombstone = JSON.stringify({ id, _deleted: true }) + '\n';
@@ -368,7 +373,7 @@ export class MemoryStorage {
    */
   async getWithFullContent(id: string): Promise<Memory | null> {
     const memory = this.get(id);
-    if (!memory) return null;
+    if (!memory) {return null;}
 
     // If memory has a notePath and content looks truncated, read from markdown
     if (memory.notePath && memory.content.endsWith('[see markdown note]')) {
@@ -506,7 +511,7 @@ export class MemoryStorage {
       }
     }
 
-    if (toArchive.length === 0) return 0;
+    if (toArchive.length === 0) {return 0;}
 
     // Append to archive JSONL
     const lines = toArchive.map((m) => JSON.stringify(m)).join('\n') + '\n';

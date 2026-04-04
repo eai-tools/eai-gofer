@@ -124,6 +124,52 @@ describe('ConfigManager (T071)', () => {
     });
   });
 
+  describe('context window and diagnostics configuration', () => {
+    it('should return continuous slop reduction defaults', () => {
+      expect(configManager.getContinuousSlopReductionEnabled()).toBe(false);
+      expect(configManager.getContinuousSlopReductionIntervalMs()).toBe(
+        DEFAULTS.contextWindowContinuousSlopReductionIntervalMs
+      );
+    });
+
+    it('should return configured continuous slop reduction values', () => {
+      mockConfig['contextWindow.continuousSlopReduction.enabled'] = true;
+      mockConfig['contextWindow.continuousSlopReduction.intervalMs'] = 180000;
+      configManager.refresh();
+
+      expect(configManager.getContinuousSlopReductionEnabled()).toBe(true);
+      expect(configManager.getContinuousSlopReductionIntervalMs()).toBe(180000);
+    });
+
+    it('should return resource snapshot configuration', () => {
+      mockConfig['diagnostics.resourceSnapshots.enabled'] = false;
+      mockConfig['diagnostics.resourceSnapshots.intervalMs'] = 900000;
+      configManager.refresh();
+
+      expect(configManager.getResourceSnapshotConfig()).toEqual({
+        enabled: false,
+        intervalMs: 900000,
+      });
+    });
+
+    it('should include new settings in getAll()', () => {
+      mockConfig['contextWindow.continuousSlopReduction.enabled'] = true;
+      mockConfig['contextWindow.continuousSlopReduction.intervalMs'] = 180000;
+      mockConfig['diagnostics.resourceSnapshots.enabled'] = false;
+      mockConfig['diagnostics.resourceSnapshots.intervalMs'] = 900000;
+      configManager.refresh();
+
+      expect(configManager.getAll()).toMatchObject({
+        contextWindowContinuousSlopReductionEnabled: true,
+        contextWindowContinuousSlopReductionIntervalMs: 180000,
+        resourceSnapshotConfig: {
+          enabled: false,
+          intervalMs: 900000,
+        },
+      });
+    });
+  });
+
   describe('T075: getCLIDisplayName()', () => {
     it('should return "Claude Code" for claude platform', () => {
       const displayName = configManager.getCLIDisplayName('claude');

@@ -17,17 +17,12 @@ export class AutonomousOrchestrator {
   private ipcPath: string;
 
   constructor(specsDir: string) {
-    this.specLoader = new SpecLoader(specsDir);
+    const normalizedSpecsDir = this.normalizeSpecsPath(specsDir);
+    const specifyPath = path.dirname(normalizedSpecsDir);
+
+    this.specLoader = new SpecLoader(normalizedSpecsDir);
     this.taskQueue = new TaskQueue();
-    // specsDir is .specify/specs. We want .specify/ipc/status.json
-    // Assuming specsDir is like /path/to/.specify
-    this.ipcPath = path.join(specsDir, '..', '.specify', 'ipc', 'status.json');
-    // Ensure dir exists
-    // (This path manipulation assumes specsDir ends in .specify.
-    // If strict, we might need a workspaceRoot passed in)
-    if (specsDir.endsWith('.specify')) {
-      this.ipcPath = path.join(specsDir, 'ipc', 'status.json');
-    }
+    this.ipcPath = path.join(specifyPath, 'ipc', 'status.json');
   }
 
   async start(): Promise<void> {
@@ -96,5 +91,28 @@ export class AutonomousOrchestrator {
       pending_input: '',
     };
     await fs.writeFile(this.ipcPath, JSON.stringify(status, null, 2));
+  }
+
+  private normalizeSpecsPath(specsDir: string): string {
+    const normalizedInput = path.normalize(specsDir);
+    const normalizedSpecsSuffix = `${path.sep}specs`;
+
+    if (
+      normalizedInput.endsWith(normalizedSpecsSuffix) ||
+      normalizedInput === 'specs' ||
+      normalizedInput.endsWith(`.specify${normalizedSpecsSuffix}`)
+    ) {
+      return normalizedInput;
+    }
+
+    if (
+      normalizedInput.endsWith('.specify') ||
+      normalizedInput.endsWith(`${path.sep}.specify`) ||
+      path.basename(normalizedInput) === '.specify'
+    ) {
+      return path.join(normalizedInput, 'specs');
+    }
+
+    return path.join(normalizedInput, '.specify', 'specs');
   }
 }

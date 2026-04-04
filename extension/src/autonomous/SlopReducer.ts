@@ -139,9 +139,9 @@ export class SlopReducer {
         let currentLine: string | null = line;
 
         for (const pattern of FIX_PATTERNS) {
-          if (currentLine === null) break;
-          if (!pattern.fix) continue; // detection-only pattern
-          if (!pattern.regex.test(currentLine)) continue;
+          if (currentLine === null) {break;}
+          if (!pattern.fix) {continue;} // detection-only pattern
+          if (!pattern.regex.test(currentLine)) {continue;}
 
           const originalSnippet = currentLine.trim().substring(0, 120);
           const fixedLine = pattern.fix(currentLine);
@@ -195,7 +195,7 @@ export class SlopReducer {
     };
 
     const walk = (dir: string): void => {
-      if (result.filesScanned >= maxFiles) return;
+      if (result.filesScanned >= maxFiles) {return;}
 
       let entries: fs.Dirent[];
       try {
@@ -205,7 +205,7 @@ export class SlopReducer {
       }
 
       for (const entry of entries) {
-        if (result.filesScanned >= maxFiles) return;
+        if (result.filesScanned >= maxFiles) {return;}
         const fullPath = path.join(dir, entry.name);
 
         if (entry.isDirectory()) {
@@ -218,8 +218,8 @@ export class SlopReducer {
           }
           walk(fullPath);
         } else if (entry.isFile()) {
-          if (!this.isEligibleFile(fullPath)) continue;
-          if (this.isTestFile(fullPath)) continue;
+          if (!this.isEligibleFile(fullPath)) {continue;}
+          if (this.isTestFile(fullPath)) {continue;}
           result.filesScanned++;
 
           const fileResult = this.reduceFile(fullPath);

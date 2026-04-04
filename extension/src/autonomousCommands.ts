@@ -28,8 +28,10 @@ import {
 } from './autonomous/ClaudeCodeAutonomousResponder';
 import { Logger } from './services/Logger';
 import type { ProgressProvider } from './progressProvider';
+import type { Spec } from './goferParser';
 import type { EnrichedContextBridge } from './autonomous/ContextBridgeWriter';
 import { CrossPlatformCommandRouter } from './council/CrossPlatformCommandRouter';
+import type { LLMProvider } from './council/providers/LLMProvider';
 // Removed: import { wireClaudePtyToAutoHandoff } - no longer needed without PTY support
 
 // Shared singleton instances (set from extension.ts)
@@ -44,6 +46,23 @@ let cachedEnrichedContext: EnrichedContextBridge | undefined;
 
 // Override command for next terminal spawn (used by auto-resume workflow)
 let overrideInitialCommand: string | undefined;
+
+interface ReadableShellExecution {
+  read():
+    | Iterable<string>
+    | AsyncIterable<string>
+    | Promise<Iterable<string> | AsyncIterable<string> | undefined>
+    | undefined;
+}
+
+function isReadableShellExecution(execution: unknown): execution is ReadableShellExecution {
+  return (
+    typeof execution === 'object' &&
+    execution !== null &&
+    'read' in execution &&
+    typeof (execution as { read?: unknown }).read === 'function'
+  );
+}
 
 /** Set the shared MemoryManager instance */
 export function setSharedMemoryManager(mm: MemoryManager): void {
@@ -164,7 +183,7 @@ let lastIdleCheckTime = 0; // Track last idle check to avoid duplicate responses
  */
 export async function startAutonomousExecution(
   context: vscode.ExtensionContext,
-  spec: any,
+  spec: Spec,
   progressProvider: ProgressProvider | undefined
 ): Promise<void> {
   // Validate spec parameter early
@@ -272,7 +291,7 @@ export async function startAutonomousExecution(
   const memoryManager = sharedMemoryManager ?? new MemoryManager(context, workspacePath);
 
   // Get CLI provider for autonomous execution (T032)
-  let provider: any;
+  let provider: LLMProvider | undefined;
   try {
     const { getProviderFactory } = await import('./council/providers/ProviderFactory');
     const factory = getProviderFactory();
@@ -683,7 +702,7 @@ interface DependencyCheckResult {
  * @returns Check result indicating if execution can proceed
  */
 async function checkDependenciesBeforeExecution(
-  spec: any,
+  spec: Spec,
   progressProvider: ProgressProvider
 ): Promise<DependencyCheckResult> {
   const dependencyGraph = progressProvider.getDependencyGraph();
@@ -1190,12 +1209,8 @@ async function startAutonomousMonitoring(specId: string, workspacePath: string):
   outputChannel?.appendLine('   Watching for "(esc)" prompt in terminal output');
   outputChannel?.appendLine('   Will send questions to Claude 3.5 Haiku with full context\n');
 
-  let escDetectedTime: number | null = null;
-  const ESC_WAIT_TIME = 5000; // Wait 5 seconds after detecting "(esc)"
-  let outputBuffer = '';
-
   // Use shell integration to monitor command execution
-  const shellIntegrationListener = vscode.window.onDidChangeTerminalShellIntegration((e) => {
+  vscode.window.onDidChangeTerminalShellIntegration((e) => {
     if (e.terminal !== claudeTerminal) {
       return;
     }
@@ -1208,23 +1223,25 @@ async function startAutonomousMonitoring(specId: string, workspacePath: string):
     outputChannel?.appendLine('   ✓ Shell integration activated');
 
     // Listen for command execution
-    const executionListener = vscode.window.onDidEndTerminalShellExecution((event) => {
+    vscode.window.onDidEndTerminalShellExecution(async (event) => {
       if (event.terminal !== claudeTerminal) {
         return;
       }
 
       // Get the execution output if available
-      if (event.execution && typeof event.execution === 'object') {
-        const execution = event.execution as any;
-        if (execution.read && typeof execution.read === 'function') {
-          execution.read().then((stream: any) => {
-            if (stream) {
-              for (const data of stream) {
-                outputBuffer += data;
-                autonomousResponder?.addTerminalOutput(data);
-              }
+      if (isReadableShellExecution(event.execution)) {
+        try {
+          const stream = await event.execution.read();
+          if (stream) {
+            const outputStream = stream as AsyncIterable<string> | Iterable<string>;
+            for await (const data of outputStream) {
+              autonomousResponder?.addTerminalOutput(data);
             }
-          });
+          }
+        } catch (error) {
+          outputChannel?.appendLine(
+            `   Failed to read terminal execution output: ${error instanceof Error ? error.message : String(error)}`
+          );
         }
       }
     });

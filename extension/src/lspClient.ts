@@ -5,6 +5,7 @@
  * for communication
  */
 
+import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import {
@@ -26,8 +27,6 @@ export class GoferLSPClient {
     // Get the path to the language server
     // In production VSIX: language-server is copied into extension directory
     // In development: language-server is in parent directory
-    const fs = require('fs');
-
     // Log extension path for debugging
     const extensionPath = this.context.extensionPath;
     this.outputChannel.appendLine(`Extension path: ${extensionPath}`);
@@ -141,7 +140,7 @@ export class GoferLSPClient {
   /**
    * Send a custom request to the Language Server
    */
-  async sendRequest<T>(method: string, params?: any): Promise<T> {
+  async sendRequest<T>(method: string, params?: unknown): Promise<T> {
     if (!this.client) {
       throw new Error('Language Server not started');
     }
@@ -157,7 +156,7 @@ export class GoferLSPClient {
   /**
    * Send a notification to the Language Server (no response expected)
    */
-  sendNotification(method: string, params?: any): void {
+  sendNotification(method: string, params?: unknown): void {
     if (!this.client) {
       throw new Error('Language Server not started');
     }
@@ -174,27 +173,30 @@ export class GoferLSPClient {
     }
 
     // Handle task progress notifications
-    this.client.onNotification('gofer/taskProgress', (params: any) => {
-      this.outputChannel.appendLine(
-        `Task progress: ${params.specId}/${params.taskId} → ${params.status}`
-      );
+    this.client.onNotification(
+      'gofer/taskProgress',
+      (params: { specId: string; taskId: string; status: string }) => {
+        this.outputChannel.appendLine(
+          `Task progress: ${params.specId}/${params.taskId} → ${params.status}`
+        );
 
-      // Trigger UI refresh
-      vscode.commands.executeCommand('gofer.refreshSpecs');
-    });
+        // Trigger UI refresh
+        vscode.commands.executeCommand('gofer.refreshSpecs');
+      }
+    );
   }
 
   /**
    * LSP Custom Methods
    */
 
-  async getSpecs(): Promise<any> {
+  async getSpecs(): Promise<unknown> {
     return this.sendRequest('gofer/getSpecs', {
       workspaceRoot: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath,
     });
   }
 
-  async executeTask(specId: string, taskId: string, context?: any): Promise<any> {
+  async executeTask(specId: string, taskId: string, context?: unknown): Promise<unknown> {
     return this.sendRequest('gofer/executeTask', {
       specId,
       taskId,
@@ -202,7 +204,7 @@ export class GoferLSPClient {
     });
   }
 
-  async updateTaskStatus(specId: string, taskId: string, status: string): Promise<any> {
+  async updateTaskStatus(specId: string, taskId: string, status: string): Promise<unknown> {
     return this.sendRequest('gofer/updateTaskStatus', {
       specId,
       taskId,

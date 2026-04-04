@@ -26,6 +26,8 @@ export interface RateLimitResult {
   error?: string;
 }
 
+type RateLimitDecoratorTarget = object;
+
 /**
  * Request record for tracking
  */
@@ -307,15 +309,15 @@ export { globalRateLimiter };
  * }
  * ```
  */
-export function rateLimit(operation: string, keyExtractor?: (...args: any[]) => string) {
+export function rateLimit(operation: string, keyExtractor?: (...args: unknown[]) => string) {
   return function (
-    target: any,
+    target: RateLimitDecoratorTarget,
     propertyKey: string,
     descriptor: PropertyDescriptor
   ): PropertyDescriptor {
     const originalMethod = descriptor.value;
 
-    descriptor.value = async function (...args: any[]) {
+    descriptor.value = async function (...args: unknown[]) {
       const key = keyExtractor ? keyExtractor(...args) : 'default';
       return await globalRateLimiter.execute(
         operation,

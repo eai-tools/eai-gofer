@@ -62,7 +62,7 @@ suite('E2E GitHub API Tests', () => {
       try {
         const results = await Promise.all(promises);
         // Should either succeed or handle rate limiting gracefully
-        const successCount = results.filter((r: any) => r.success === true).length;
+        const successCount = results.filter((result) => result.success === true).length;
         assert.ok(successCount > 0, 'At least some requests should succeed');
       } catch (error) {
         // Rate limiting should be handled gracefully, not throw
@@ -269,7 +269,7 @@ suite('E2E GitHub API Tests', () => {
         // Check if .specify directory was created in workspace
         const workspacePath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
         if (workspacePath) {
-          const specifyPath = path.join(workspacePath, '.specify');
+          path.join(workspacePath, '.specify');
           // Don't assert existence as it depends on workspace state
           // Just verify command executed successfully
         }

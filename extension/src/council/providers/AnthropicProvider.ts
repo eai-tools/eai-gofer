@@ -8,7 +8,6 @@ import Anthropic from '@anthropic-ai/sdk';
 import { BaseLLMProvider } from './LLMProvider';
 import {
   ProviderError,
-  ProviderErrorCode,
   authenticationError,
   rateLimitError,
   apiError,

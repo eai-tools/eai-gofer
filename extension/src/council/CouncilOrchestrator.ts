@@ -14,7 +14,6 @@ import { ConfigLoader } from './ConfigLoader';
 import { ResponseAggregator, AggregatedResponses } from './ResponseAggregator';
 import {
   buildSynthesisPrompt,
-  createBasicSynthesis,
   extractConsensusPoints,
   detectConflicts,
 } from './synthesis';
@@ -24,12 +23,9 @@ import {
   CouncilConfig,
   CouncilResult,
   CouncilSession,
-  CouncilMode,
   QueryRequest,
-  QueryResponse,
   UsageMetrics,
   AnonymizedOpinion,
-  ProviderId,
   SessionStatus,
   Synthesis,
   PeerReview,
@@ -322,7 +318,7 @@ export class CouncilOrchestrator {
    * Log synthesis results for debugging
    */
   logSynthesis(session: CouncilSession): void {
-    const { synthesis, members } = session;
+    const { synthesis } = session;
     if (!synthesis) {
       return;
     }

@@ -106,7 +106,7 @@ export class MultiSessionBridgeWatcher extends EventEmitter implements vscode.Di
 
   /** Get the most recently active session */
   getFocusedSession(): BridgeData | null {
-    if (!this.focusedSessionId) return null;
+    if (!this.focusedSessionId) {return null;}
     return this.sessions.get(this.focusedSessionId) ?? null;
   }
 
@@ -118,7 +118,7 @@ export class MultiSessionBridgeWatcher extends EventEmitter implements vscode.Di
   /** Check if any session has real data */
   hasRealData(): boolean {
     for (const data of this.sessions.values()) {
-      if (data.context !== null) return true;
+      if (data.context !== null) {return true;}
     }
     return false;
   }
@@ -154,7 +154,7 @@ export class MultiSessionBridgeWatcher extends EventEmitter implements vscode.Di
 
   private onPerSessionChange(uri: vscode.Uri): void {
     const sessionId = this.extractSessionIdFromUri(uri);
-    if (!sessionId) return;
+    if (!sessionId) {return;}
 
     try {
       const raw = fs.readFileSync(uri.fsPath, 'utf-8');
@@ -167,7 +167,7 @@ export class MultiSessionBridgeWatcher extends EventEmitter implements vscode.Di
 
   private onPerSessionDelete(uri: vscode.Uri): void {
     const sessionId = this.extractSessionIdFromUri(uri);
-    if (!sessionId) return;
+    if (!sessionId) {return;}
     this.removeSession(sessionId, 'inactive');
   }
 
@@ -279,7 +279,7 @@ export class MultiSessionBridgeWatcher extends EventEmitter implements vscode.Di
   }
 
   private cleanupBridgeFile(sessionId: string): void {
-    if (sessionId === '__legacy__') return;
+    if (sessionId === '__legacy__') {return;}
     try {
       const filePath = path.join(this.hooksDir, `${PER_SESSION_PREFIX}${sessionId}.json`);
       if (fs.existsSync(filePath)) {
@@ -382,7 +382,7 @@ export class MultiSessionBridgeWatcher extends EventEmitter implements vscode.Di
 
   private initialScan(): void {
     try {
-      if (!fs.existsSync(this.hooksDir)) return;
+      if (!fs.existsSync(this.hooksDir)) {return;}
 
       const files = fs.readdirSync(this.hooksDir);
 
@@ -390,7 +390,7 @@ export class MultiSessionBridgeWatcher extends EventEmitter implements vscode.Di
       for (const file of files) {
         if (file.startsWith(PER_SESSION_PREFIX) && file.endsWith('.json')) {
           const sessionId = file.slice(PER_SESSION_PREFIX.length, -5);
-          if (!sessionId) continue;
+          if (!sessionId) {continue;}
           try {
             const filePath = path.join(this.hooksDir, file);
             const raw = fs.readFileSync(filePath, 'utf-8');

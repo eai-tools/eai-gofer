@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.26.2] - 2026-04-05
+
+Gate specification behind proposal review and keep task progress in sync
+
 ## [1.26.1] - 2026-04-04
 
 Stabilize engineering baseline, fix task-state progression, and remove legacy spec regeneration

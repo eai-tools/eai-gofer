@@ -18,9 +18,12 @@ scenario and route them through the **unified Gofer pipeline**.
 │                    UNIFIED GOFER PIPELINE                        │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                  │
-│  1. /1_gofer_research    → research.md                          │
-│     Deep codebase exploration + technology research              │
-│                         ↓ AUTO                                   │
+│  1. /1_gofer_research    → research.md, proposal-review.md      │
+│     Deep codebase exploration + business/technology synthesis    │
+│                         ↓ REVIEW                                 │
+│  1a. User approval gate   → approved proposal-review.md          │
+│      Confirm scenarios, architecture, options, and changes       │
+│                         ↓ AUTO AFTER APPROVAL                    │
 │  2. /2_gofer_specify     → spec.md                              │
 │     Feature specification informed by research                   │
 │                         ↓ AUTO                                   │
@@ -63,8 +66,10 @@ When the user provides a business scenario:
 1. **Understand** - What are they trying to build?
 2. **Clarify** - Ask questions if scope is unclear
 3. **Initialize** - Start with `/1_gofer_research` to explore codebase
-4. **Auto-Chain** - Progress through pipeline stages automatically
-5. **Complete** - Deliver implemented, validated feature
+4. **Review First** - Pause after research so the user can discuss scope and
+   architecture
+5. **Continue** - Only specify after `proposal-review.md` is approved
+6. **Complete** - Deliver implemented, validated feature
 
 ## Starting the Pipeline
 
@@ -72,8 +77,9 @@ Based on the user's input, you should:
 
 1. **Create the feature directory** using the setup script
 2. **Begin with research** to understand codebase context
-3. **Progress automatically** through each stage
-4. **Checkpoint** if context gets heavy (>50% usage)
+3. **Pause after research** for a proposal review and approval
+4. **Progress automatically after approval** through the remaining stages
+5. **Checkpoint** if context gets heavy (>50% usage)
 
 ## User Input
 
@@ -91,4 +97,5 @@ Please describe:
 ```
 
 Once you understand the request, begin with `/1_gofer_research` to explore the
-codebase and technology requirements.
+codebase, produce `proposal-review.md`, and stop for user feedback before
+specification begins.

@@ -18,7 +18,6 @@ result_schema:
         - error
 ---
 
-
 # Gofer Orchestrator
 
 You are the Gofer orchestrator. Your job is to understand the user's business
@@ -31,9 +30,12 @@ scenario and route them through the **unified Gofer pipeline**.
 │                    UNIFIED GOFER PIPELINE                        │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                  │
-│  1. $ $1    → research.md                          │
-│     Deep codebase exploration + technology research              │
-│                         ↓ AUTO                                   │
+│  1. $ $1    → research.md, proposal-review.md      │
+│     Deep codebase exploration + business/technology synthesis    │
+│                         ↓ REVIEW                                 │
+│  1a. User approval gate   → approved proposal-review.md          │
+│      Confirm scenarios, architecture, options, and changes      │
+│                         ↓ AUTO AFTER APPROVAL                    │
 │  2. $ $1     → spec.md                              │
 │     Feature specification informed by research                   │
 │                         ↓ AUTO                                   │
@@ -58,14 +60,14 @@ scenario and route them through the **unified Gofer pipeline**.
 
 ## Auxiliary Gofer Commands
 
-| Command               | Purpose                                    |
-| --------------------- | ------------------------------------------ |
-| `$ $1`       | Save session checkpoint mid-implementation |
-| `$ $1`     | Resume work from saved checkpoint          |
-| `$ $1`      | Define acceptance test cases using DSL     |
-| `$ $1`     | READ-ONLY cloud infrastructure analysis    |
-| `$ $1`      | Reverse-engineer spec from existing code   |
-| `$ $1` | Create/update project constitution         |
+| Command | Purpose                                    |
+| ------- | ------------------------------------------ |
+| `$ $1`  | Save session checkpoint mid-implementation |
+| `$ $1`  | Resume work from saved checkpoint          |
+| `$ $1`  | Define acceptance test cases using DSL     |
+| `$ $1`  | READ-ONLY cloud infrastructure analysis    |
+| `$ $1`  | Reverse-engineer spec from existing code   |
+| `$ $1`  | Create/update project constitution         |
 
 ---
 
@@ -86,15 +88,16 @@ ls -la .specify/memory/constitution.md 2>/dev/null
 
 ### What to Look For
 
-| Artifact                | Location                    | Indicates               |
-| ----------------------- | --------------------------- | ----------------------- |
-| `spec.md`               | `.specify/specs/{feature}/` | Feature specified       |
-| `research.md`           | `.specify/specs/{feature}/` | Research complete       |
-| `plan.md`               | `.specify/specs/{feature}/` | Planning complete       |
-| `tasks.md`              | `.specify/specs/{feature}/` | Ready for implement     |
-| `session-checkpoint.md` | `.specify/specs/{feature}/` | Work paused (resumable) |
-| `validation-report.md`  | `.specify/specs/{feature}/` | Feature validated       |
-| `constitution.md`       | `.specify/memory/`          | Project principles set  |
+| Artifact                | Location                    | Indicates                    |
+| ----------------------- | --------------------------- | ---------------------------- |
+| `spec.md`               | `.specify/specs/{feature}/` | Feature specified            |
+| `research.md`           | `.specify/specs/{feature}/` | Research complete            |
+| `proposal-review.md`    | `.specify/specs/{feature}/` | Research reviewed / approved |
+| `plan.md`               | `.specify/specs/{feature}/` | Planning complete            |
+| `tasks.md`              | `.specify/specs/{feature}/` | Ready for implement          |
+| `session-checkpoint.md` | `.specify/specs/{feature}/` | Work paused (resumable)      |
+| `validation-report.md`  | `.specify/specs/{feature}/` | Feature validated            |
+| `constitution.md`       | `.specify/memory/`          | Project principles set       |
 
 Report what you found before proceeding.
 
@@ -496,13 +499,14 @@ pipeline-state.json is updated atomically by each stage on completion.
 **Fallback — File-existence heuristics** (used when no pipeline-state.json
 exists):
 
-| Has This             | Missing This | Start At             |
-| -------------------- | ------------ | -------------------- |
-| tasks.md (unchecked) | -            | `$ $1` |
-| plan.md              | tasks.md     | `$ $1`     |
-| spec.md              | plan.md      | `$ $1`      |
-| research.md          | spec.md      | `$ $1`   |
-| Nothing              | Everything   | `$ $1`  |
+| Has This                                  | Missing This                | Start At |
+| ----------------------------------------- | --------------------------- | -------- |
+| tasks.md (unchecked)                      | -                           | `$ $1`   |
+| plan.md                                   | tasks.md                    | `$ $1`   |
+| spec.md                                   | plan.md                     | `$ $1`   |
+| research.md + approved proposal-review.md | spec.md                     | `$ $1`   |
+| research.md                               | approved proposal-review.md | `$ $1`   |
+| Nothing                                   | Everything                  | `$ $1`   |
 
 #### For New Features
 
@@ -516,7 +520,8 @@ Output:
 ROUTING: GOFER PIPELINE
 FEATURE: {feature-name}
 STARTING: $ $1
-AUTO-CHAIN: research → specify → plan → tasks → implement → validate → engineering-review
+AUTO-CHAIN: research → proposal review → specify → plan → tasks → implement → validate → engineering-review
+APPROVAL GATE: proposal-review.md must be approved before specification begins
 REASON: [explanation]
 ```
 
@@ -545,7 +550,7 @@ Start with `$ $1` without auto-chaining:
 ```
 ROUTING: GOFER RESEARCH (STANDALONE)
 COMMAND: $ $1
-AUTO-CHAIN: disabled (ask to continue after research)
+AUTO-CHAIN: disabled until proposal-review.md is approved
 REASON: User wants to explore the codebase first
 ```
 
@@ -600,7 +605,8 @@ After determining the route:
 The unified Gofer pipeline automatically chains commands:
 
 ```text
-$ $1 completes → auto-invokes $ $1
+$ $1 completes → stops for proposal review and approval
+Approved proposal-review.md → auto-invokes specification stage
 $ $1 completes  → auto-invokes $ $1
 $ $1 completes     → auto-invokes $ $1
 $ $1 completes    → auto-invokes $ $1
@@ -642,28 +648,29 @@ If context window is filling up:
 
 ## Quick Reference: All Gofer Commands
 
-### Core Pipeline (Auto-Chaining)
+### Core Pipeline (Approval-Gated)
 
-| #   | Command                        | Output                       | Description              |
-| --- | ------------------------------ | ---------------------------- | ------------------------ |
-| 1   | `$ $1`            | research.md                  | Codebase + tech research |
-| 2   | `$ $1`             | spec.md                      | Feature specification    |
-| 3   | `$ $1`                | plan.md, data-model.md       | Technical architecture   |
-| 4   | `$ $1`               | tasks.md                     | Task breakdown           |
-| 5   | `$ $1`           | [source code]                | Implementation           |
-| 6   | `$ $1`            | validation-report.md         | Verification             |
-| 6a  | `/6a_gofer_engineering_review` | engineering-review-report.md | Post-impl review + fixes |
+| #   | Command                        | Output                          | Description                         |
+| --- | ------------------------------ | ------------------------------- | ----------------------------------- |
+| 1   | `$ $1`                         | research.md, proposal-review.md | Research + review prep              |
+| 1a  | User approval gate             | approved proposal-review.md     | Business and architecture alignment |
+| 2   | `$ $1`                         | spec.md                         | Feature specification               |
+| 3   | `$ $1`                         | plan.md, data-model.md          | Technical architecture              |
+| 4   | `$ $1`                         | tasks.md                        | Task breakdown                      |
+| 5   | `$ $1`                         | [source code]                   | Implementation                      |
+| 6   | `$ $1`                         | validation-report.md            | Verification                        |
+| 6a  | `/6a_gofer_engineering_review` | engineering-review-report.md    | Post-impl review + fixes            |
 
 ### Auxiliary Commands
 
-| Command               | Purpose                                   |
-| --------------------- | ----------------------------------------- |
-| `$ $1`       | Save session checkpoint                   |
-| `$ $1`     | Resume from checkpoint                    |
-| `$ $1`      | Define test cases (DSL approach)          |
-| `$ $1`     | Cloud infrastructure analysis (READ-ONLY) |
-| `$ $1`      | Reverse-engineer spec from code           |
-| `$ $1` | Project principles and standards          |
+| Command | Purpose                                   |
+| ------- | ----------------------------------------- |
+| `$ $1`  | Save session checkpoint                   |
+| `$ $1`  | Resume from checkpoint                    |
+| `$ $1`  | Define test cases (DSL approach)          |
+| `$ $1`  | Cloud infrastructure analysis (READ-ONLY) |
+| `$ $1`  | Reverse-engineer spec from code           |
+| `$ $1`  | Project principles and standards          |
 
 ---
 
@@ -675,13 +682,14 @@ Log orchestrator routing:
 .specify/scripts/bash/log-stage.sh 0_orchestrator --route [command] --feature [name]
 ```
 
-
 ## Pipeline Continuation
 
 This completes the 0_business_scenario stage. To continue the Gofer pipeline:
 
 **Next Command:** `$ $0a_problem_validation`
 
-The next stage will use the artifacts generated by this command and continue the implementation workflow.
+The next stage will use the artifacts generated by this command and continue the
+implementation workflow.
 
-**Note:** Codex CLI does not support automatic command chaining. You must manually run each stage command to progress through the pipeline.
+**Note:** Codex CLI does not support automatic command chaining. You must
+manually run each stage command to progress through the pipeline.

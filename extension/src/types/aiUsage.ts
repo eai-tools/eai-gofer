@@ -7,6 +7,8 @@
  */
 
 import * as vscode from 'vscode';
+import type { ConversationUsage } from '../autonomous/ClaudeCodeUsageAdapter';
+import type { UsageSummary } from '../council/UsageLogger';
 
 /**
  * Supported AI provider identifiers
@@ -87,7 +89,7 @@ export class AIUsageItem extends vscode.TreeItem {
   /** Child items (for internal tree building) */
   children?: AIUsageItem[];
   /** Underlying data for this item */
-  usageData?: AIUsageData | ProviderUsage | any;
+  usageData?: AIUsageData | ProviderUsage | UsageSummary | ConversationUsage[];
   /** Period this item belongs to */
   period?: UsagePeriod;
 
@@ -114,7 +116,6 @@ export interface UsageDataSource {
  * Re-export UsageSummary type for consumers that import from this module.
  * The canonical definition lives in council/UsageLogger.ts.
  */
-import type { UsageSummary } from '../council/UsageLogger';
 export type { UsageSummary };
 
 /**

@@ -48,7 +48,7 @@ export class TokenEstimator {
    * @returns Estimated token count
    */
   estimate(content: string): number {
-    if (!content) return 0;
+    if (!content) {return 0;}
 
     // Split content into code and prose sections
     const codeBlockRe = /```[\s\S]*?```/g;
@@ -77,7 +77,7 @@ export class TokenEstimator {
    * Estimate tokens for prose/markdown content.
    */
   estimateProse(content: string): number {
-    if (!content) return 0;
+    if (!content) {return 0;}
     // Markdown overhead: headings, bullets, bold add ~5% more tokens
     const isMarkdown = /^[#*\-]|\*\*|`[^`]/.test(content);
     const baseTokens = content.length / BASE_CHARS_PER_TOKEN;
@@ -88,7 +88,7 @@ export class TokenEstimator {
    * Estimate tokens for code content (higher density than prose).
    */
   estimateCode(content: string): number {
-    if (!content) return 0;
+    if (!content) {return 0;}
     return content.length / CODE_CHARS_PER_TOKEN;
   }
 

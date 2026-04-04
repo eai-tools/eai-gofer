@@ -7,6 +7,7 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as fsSync from 'fs';
 import * as fs from 'fs/promises';
 import { ProgressProvider } from '../progressProvider';
 import type { Spec } from '../goferParser';
@@ -251,7 +252,7 @@ async function executeSpec(spec: Spec): Promise<void> {
  *
  * @returns Selected spec object with id, or undefined if cancelled
  */
-export async function showSpecPicker(): Promise<any | undefined> {
+export async function showSpecPicker(): Promise<Spec | undefined> {
   // Get workspace path
   const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
   if (!workspaceFolder) {
@@ -262,16 +263,14 @@ export async function showSpecPicker(): Promise<any | undefined> {
   let workspacePath = workspaceFolder.uri.fsPath;
 
   // Check if .specify/specs exists, if not check parent directory
-  const fs = require('fs');
-  const path = require('path');
   const specsPath = path.join(workspacePath, '.specify', 'specs');
 
-  if (!fs.existsSync(specsPath)) {
+  if (!fsSync.existsSync(specsPath)) {
     // Try parent directory
     const parentPath = path.dirname(workspacePath);
     const parentSpecsPath = path.join(parentPath, '.specify', 'specs');
 
-    if (fs.existsSync(parentSpecsPath)) {
+    if (fsSync.existsSync(parentSpecsPath)) {
       workspacePath = parentPath;
     }
   }

@@ -4,6 +4,7 @@ import 'reflect-metadata';
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
+import packageJson from '../package.json';
 import { GoferMigrator } from './goferMigrator';
 import { ProgressProvider } from './progressProvider';
 import { ConstitutionProvider } from './constitutionProvider';
@@ -13,7 +14,7 @@ import { ContextWindowProvider } from './contextWindowProvider';
 import { AIUsageMonitor } from './autonomous/AIUsageMonitor';
 import { AIUsageProvider } from './ui/AIUsageProvider';
 import { AIUsageStatusBar } from './ui/AIUsageStatusBar';
-import { BranchSpecManager } from './branchSpecManager';
+import { ResourceDiagnostics } from './autonomous/ResourceDiagnostics';
 import { AutoUpdater } from './autoUpdater';
 import { GoferLSPClient } from './lspClient';
 import { MemoryManager } from './autonomous/MemoryManager';
@@ -23,18 +24,17 @@ import { SubAgentDispatcher } from './autonomous/SubAgentDispatcher';
 import { MemoryLayerManager } from './autonomous/MemoryLayerManager';
 import { ACCOrchestrator } from './autonomous/ACCOrchestrator';
 import { ObservationBridge } from './autonomous/ObservationBridge';
-import { setSharedContextBuilder, setSharedCrossPlatformCommandRouter } from './autonomousCommands';
+import {
+  setSharedContextBuilder,
+  setSharedCrossPlatformCommandRouter,
+  setSharedMemoryManager,
+} from './autonomousCommands';
 import { registerMemoryCommands } from './commands/memoryCommands';
 import { registerMigrateMemoriesCommand } from './commands/migrateMemories';
 import { registerQueryMemoryUsageCommand } from './commands/queryMemoryUsage';
 import { registerSpecCommands } from './commands/specCommands';
 import { registerCouncilCommands } from './commands/councilCommands';
 // Context Health Monitoring (Spec 012)
-import { ContextHealthMonitor } from './autonomous/ContextHealthMonitor';
-import { AutoHandoffTrigger } from './autonomous/AutoHandoffTrigger';
-import { ContextUsageLogger } from './autonomous/ContextUsageLogger';
-import { WorkspaceContextProvider } from './autonomous/WorkspaceContextProvider';
-import { ResearchChunker } from './autonomous/ResearchChunker';
 import { ContextHealthStatusBar } from './ui/ContextHealthStatusBar';
 // Real Context Monitoring (Spec 014)
 import { ContinuousMemoryWriter } from './autonomous/ContinuousMemoryWriter';
@@ -45,11 +45,7 @@ import { CostBudgetEnforcer } from './autonomous/CostBudgetEnforcer';
 import { PipelineStateManager } from './autonomous/PipelineStateManager';
 import { ConfigManager } from './config';
 // Hook-based monitoring
-import { HookBridgeWatcher } from './autonomous/HookBridgeWatcher';
-import { MultiSessionBridgeWatcher } from './autonomous/MultiSessionBridgeWatcher';
 // Context Window Accuracy (Feature 023)
-import { ClaudeCodeContextScanner } from './autonomous/ClaudeCodeContextScanner';
-import { GoferActivityStatusBar } from './ui/GoferActivityStatusBar';
 // Dependency Injection (Phase 3 - Engineering Remediation)
 import { registerServices, getContainer } from './di';
 import {
@@ -61,9 +57,7 @@ import {
   OptionalToolInstaller,
   StateManager,
   type EventHandlerDependencies,
-  type InitializationDependencies,
   type CommandDependencies,
-  type ManagedResources,
 } from './services';
 import { Logger as LegacyLogger } from './utils/logger';
 // Note: stopClaudeCode is imported dynamically in deactivate() to avoid
@@ -147,7 +141,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   await vscode.commands.executeCommand('setContext', 'gofer.claudeCodeRunning', false);
 
   // Setup auto-updater (using GitHub Pages API for private repo)
-  const packageJson = require('../package.json');
   const autoUpdater = new AutoUpdater(
     'eai-tools/gofer', // GitHub repo
     packageJson.version, // Current version
@@ -337,6 +330,7 @@ async function reinitializeExtension(context: vscode.ExtensionContext): Promise<
         aiUsageMonitor: state.aiUsageMonitor,
         aiUsageProvider: state.aiUsageProvider,
         aiUsageStatusBar: state.aiUsageStatusBar,
+        resourceDiagnostics: state.resourceDiagnostics,
         progressProvider: state.progressProvider,
         constitutionProvider: state.constitutionProvider,
         memoryProvider: state.memoryProvider,
@@ -385,6 +379,7 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
   logger?.info('Extension', 'Initializing workspace', { workspacePath });
 
   const state = getState();
+  const configManager = ConfigManager.getInstance();
 
   // Resolve InitializationService and initialize workspace
   const initService = getContainer().resolve(InitializationService);
@@ -407,9 +402,18 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
   state.branchSpecManager = components.branchSpecManager;
   const migrator = components.migrator;
 
+  const resourceDiagnostics = new ResourceDiagnostics(
+    workspacePath,
+    configManager.getResourceSnapshotConfig()
+  );
+  resourceDiagnostics.start();
+  resourceDiagnostics.captureSnapshot('workspace-initialized');
+  state.resourceDiagnostics = resourceDiagnostics;
+
   // Initialize MemoryManager for memory commands (if not already initialized)
   if (!state.memoryManager && state.branchSpecManager) {
     state.memoryManager = new MemoryManager(context, workspacePath);
+    setSharedMemoryManager(state.memoryManager);
     // Wire MemoryManager to MemoryProvider so the MEMORY panel can display stored memories
     state.memoryProvider?.setMemoryManager(state.memoryManager);
     // Register memory commands now that memoryManager is available
@@ -528,7 +532,6 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
   await tryWireRunId(pipelineStateManager, runLedger, workspacePath);
 
   const scopeGuard = new ScopeGuard(workspacePath);
-  const configManager = ConfigManager.getInstance();
   scopeGuard.setEnforcementMode(configManager.getScopeGuardMode());
 
   const toolAuditLogger = new ToolAuditLogger(workspacePath, runLedger);
@@ -1072,6 +1075,7 @@ export async function deactivate(): Promise<void> {
       branchSpecManager: state.branchSpecManager,
       memoryManager: state.memoryManager,
       autoUpdater: state.autoUpdater,
+      resourceDiagnostics: state.resourceDiagnostics,
     },
     workspacePath
   );
@@ -1131,7 +1135,7 @@ async function tryWireRunId(
     let latestTime = 0;
 
     for (const entry of entries) {
-      if (!entry.isDirectory() || entry.name.startsWith('_')) continue;
+      if (!entry.isDirectory() || entry.name.startsWith('_')) {continue;}
       const statePath = path.join(specsDir, entry.name, 'pipeline-state.json');
       try {
         const stat = await fs.promises.stat(statePath);

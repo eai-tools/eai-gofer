@@ -119,12 +119,12 @@ export class CodexUsageAdapter implements CLIUsageAdapter {
 
       for (const session of historyData.sessions) {
         const entry = this.extractUsage(session);
-        if (!entry) continue;
+        if (!entry) {continue;}
 
         // Apply date filters
         const timestamp = new Date(entry.timestamp);
-        if (fromDate && timestamp < fromDate) continue;
-        if (toDate && timestamp > toDate) continue;
+        if (fromDate && timestamp < fromDate) {continue;}
+        if (toDate && timestamp > toDate) {continue;}
 
         usageEntries.push(entry);
       }

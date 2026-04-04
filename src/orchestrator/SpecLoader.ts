@@ -228,17 +228,22 @@ export class SpecLoader {
     try {
       const content = await fs.readFile(tasksPath, 'utf-8');
       const tasks: Task[] = [];
+      let generatedTaskId = 0;
 
-      // Parse task lines (simple implementation)
+      // Accept canonical Gofer task IDs while remaining compatible with older
+      // bare checklist lines used in legacy tests and fixtures.
       const lines = content.split('\n');
       for (const line of lines) {
-        const taskMatch = line.match(/^- \[([x ])\] (.+)/);
-        if (taskMatch) {
-          const isCompleted = taskMatch[1] === 'x';
-          const description = taskMatch[2];
+        const explicitTaskMatch = line.match(
+          /^- \[([xX ])\]\s+(?:\*\*(T\d+)\*\*:?\s*|#?(T\d+)\b\s*)(.*)$/
+        );
+        if (explicitTaskMatch) {
+          const isCompleted = explicitTaskMatch[1].toLowerCase() === 'x';
+          const taskId = explicitTaskMatch[2] || explicitTaskMatch[3];
+          const description = explicitTaskMatch[4];
 
           tasks.push({
-            id: `task-${tasks.length + 1}`,
+            id: taskId,
             specId,
             description,
             status: (isCompleted ? 'completed' : 'pending') as TaskStatus,
@@ -246,7 +251,27 @@ export class SpecLoader {
             deliveryPrompt: description,
             attemptCount: 0,
           });
+          continue;
         }
+
+        const bareTaskMatch = line.match(/^- \[([xX ])\]\s+(.+)$/);
+        if (!bareTaskMatch) {
+          continue;
+        }
+
+        generatedTaskId += 1;
+        const isCompleted = bareTaskMatch[1].toLowerCase() === 'x';
+        const description = bareTaskMatch[2];
+
+        tasks.push({
+          id: `task-${generatedTaskId}`,
+          specId,
+          description,
+          status: (isCompleted ? 'completed' : 'pending') as TaskStatus,
+          dependencies: [],
+          deliveryPrompt: description,
+          attemptCount: 0,
+        });
       }
 
       return tasks;

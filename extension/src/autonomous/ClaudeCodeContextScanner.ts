@@ -219,7 +219,7 @@ export class ClaudeCodeContextScanner {
     // Topic files (everything except MEMORY.md)
     const allMemoryFiles = this.listMdFiles(memoryDir);
     for (const p of allMemoryFiles) {
-      if (path.basename(p) === 'MEMORY.md') continue;
+      if (path.basename(p) === 'MEMORY.md') {continue;}
       const bytes = this.safeFileBytes(p);
       if (bytes > 0) {
         files.push(this.fileInfo(p, bytes));

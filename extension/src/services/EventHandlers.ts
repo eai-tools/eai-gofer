@@ -9,7 +9,6 @@
 
 import { injectable } from 'tsyringe';
 import * as vscode from 'vscode';
-import * as path from 'path';
 import { Logger } from './Logger';
 import { ConfigManager } from '../config';
 import type { ProgressProvider } from '../progressProvider';
@@ -117,7 +116,7 @@ export class EventHandlers {
       let branchChangeTimer: ReturnType<typeof setTimeout> | null = null;
 
       const disposable = repo.state.onDidChange(() => {
-        if (branchChangeTimer) return; // Already scheduled
+        if (branchChangeTimer) {return;} // Already scheduled
 
         branchChangeTimer = setTimeout(() => {
           branchChangeTimer = null;
@@ -221,7 +220,7 @@ export class EventHandlers {
    * Reload observation preserve patterns from config
    */
   private reloadObservationPatterns(deps: EventHandlerDependencies): void {
-    if (!deps.sharedContextBuilder) return;
+    if (!deps.sharedContextBuilder) {return;}
 
     const newPatterns = vscode.workspace
       .getConfiguration('gofer')
@@ -251,7 +250,7 @@ export class EventHandlers {
    * Reload layered memory setting from config
    */
   private reloadLayeredMemorySetting(deps: EventHandlerDependencies): void {
-    if (!deps.sharedContextBuilder) return;
+    if (!deps.sharedContextBuilder) {return;}
 
     const useLayered = vscode.workspace
       .getConfiguration('gofer')
@@ -271,7 +270,7 @@ export class EventHandlers {
    * Reload staleness threshold from config
    */
   private reloadStalenessThreshold(deps: EventHandlerDependencies): void {
-    if (!deps.workspaceContextProvider) return;
+    if (!deps.workspaceContextProvider) {return;}
 
     const newMinutes = vscode.workspace
       .getConfiguration('gofer')
@@ -287,7 +286,7 @@ export class EventHandlers {
   /**
    * T033: Reload CLI provider when settings change
    */
-  private async reloadCLIProvider(deps: EventHandlerDependencies): Promise<void> {
+  private async reloadCLIProvider(_deps: EventHandlerDependencies): Promise<void> {
     try {
       // Clear cached providers
       const { getProviderFactory } = await import('../council/providers/ProviderFactory');
@@ -325,11 +324,11 @@ export class EventHandlers {
         const config = ConfigManager.getInstance();
         config.refresh();
 
-        if (!config.getSlopReductionEnabled()) return;
+        if (!config.getSlopReductionEnabled()) {return;}
 
         const filePath = doc.uri.fsPath;
-        if (!slopReducer.isEligibleFile(filePath)) return;
-        if (slopReducer.isTestFile(filePath)) return;
+        if (!slopReducer.isEligibleFile(filePath)) {return;}
+        if (slopReducer.isTestFile(filePath)) {return;}
 
         slopReducer.reduceFile(filePath);
       })
@@ -353,7 +352,7 @@ export class EventHandlers {
 
     deps.hookBridgeWatcher.on('bridge-update', () => {
       const violations = scopeGuard.getViolations();
-      if (violations.length === 0) return;
+      if (violations.length === 0) {return;}
 
       const diagMap = new Map<string, vscode.Diagnostic[]>();
 

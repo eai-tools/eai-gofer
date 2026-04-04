@@ -99,7 +99,7 @@ export class RunLedger {
   }
 
   private async ensureDirectory(): Promise<void> {
-    if (this.initialized) return;
+    if (this.initialized) {return;}
     const logDir = path.dirname(this.logPath);
     await fs.promises.mkdir(logDir, { recursive: true });
     this.initialized = true;

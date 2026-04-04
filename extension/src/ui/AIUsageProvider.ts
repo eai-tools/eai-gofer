@@ -12,6 +12,7 @@
 import * as vscode from 'vscode';
 import { Logger } from '../utils/logger';
 import type { AIUsageMonitor } from '../autonomous/AIUsageMonitor';
+import type { ConversationUsage } from '../autonomous/ClaudeCodeUsageAdapter';
 import {
   AIUsageItem,
   type AIUsageData,
@@ -39,6 +40,11 @@ const PROVIDER_ICONS: Record<string, string> = {
   google: 'symbol-method',
 };
 
+interface CachedValue<T> {
+  loadedAt: number;
+  value: T;
+}
+
 /**
  * AIUsageProvider implements vscode.TreeDataProvider for the AI TOKEN USAGE panel.
  *
@@ -55,6 +61,9 @@ const PROVIDER_ICONS: Record<string, string> = {
  *     ...
  */
 export class AIUsageProvider implements vscode.TreeDataProvider<AIUsageItem>, vscode.Disposable {
+  private static readonly allProjectsCacheTtlMs = 10 * 60 * 1000;
+  private static readonly userAccountCacheTtlMs = 10 * 60 * 1000;
+
   private readonly logger = Logger.for('AIUsageProvider');
 
   private _onDidChangeTreeData: vscode.EventEmitter<AIUsageItem | undefined | null | void> =
@@ -67,6 +76,8 @@ export class AIUsageProvider implements vscode.TreeDataProvider<AIUsageItem>, vs
   private latestData: AIUsageData[] = [];
   private _visible = false;
   private _loading = false;
+  private allProjectsUsageCache: CachedValue<ConversationUsage[]> | null = null;
+  private userAccountCache: CachedValue<string | null> | null = null;
 
   constructor() {}
 
@@ -96,6 +107,7 @@ export class AIUsageProvider implements vscode.TreeDataProvider<AIUsageItem>, vs
   setMonitor(monitor: AIUsageMonitor): void {
     this.logger.info('[setMonitor] Monitor connected');
     this.monitor = monitor;
+    this.invalidateExpensiveCaches();
 
     const onUpdate = (event: UsageUpdateEvent): void => {
       this.logger.info('[setMonitor.onUpdate] Received usage-update event:', {
@@ -103,6 +115,7 @@ export class AIUsageProvider implements vscode.TreeDataProvider<AIUsageItem>, vs
         periodCount: event.periods.length,
         totalCosts: event.periods.map(p => `${p.period}: $${p.totalCostUsd.toFixed(2)}`),
       });
+      this.invalidateExpensiveCaches();
       this.latestData = event.periods;
       this.refresh();
     };
@@ -133,6 +146,7 @@ export class AIUsageProvider implements vscode.TreeDataProvider<AIUsageItem>, vs
 
     try {
       this._loading = true;
+      this.invalidateExpensiveCaches();
       this.refresh(); // Show loading indicator
 
       await this.monitor.forceRefresh();
@@ -512,6 +526,78 @@ export class AIUsageProvider implements vscode.TreeDataProvider<AIUsageItem>, vs
     return tokens.toLocaleString();
   }
 
+  private invalidateExpensiveCaches(): void {
+    this.allProjectsUsageCache = null;
+    this.userAccountCache = null;
+  }
+
+  private getMonitorWorkspacePath(): string | null {
+    return this.monitor?.getWorkspacePath() ?? null;
+  }
+
+  private isCacheFresh<T>(cache: CachedValue<T> | null, ttlMs: number): cache is CachedValue<T> {
+    return cache !== null && Date.now() - cache.loadedAt < ttlMs;
+  }
+
+  private async getCachedUserAccount(): Promise<string | null> {
+    if (this.isCacheFresh(this.userAccountCache, AIUsageProvider.userAccountCacheTtlMs)) {
+      return this.userAccountCache.value;
+    }
+
+    const workspacePath = this.getMonitorWorkspacePath();
+    if (!workspacePath) {
+      return null;
+    }
+
+    const { getClaudeCodeAdapter } = await import('../autonomous/ClaudeCodeUsageAdapter');
+    const adapter = getClaudeCodeAdapter(workspacePath);
+    const userEmail = await adapter.getCurrentUser();
+
+    this.userAccountCache = {
+      loadedAt: Date.now(),
+      value: userEmail,
+    };
+
+    return userEmail;
+  }
+
+  private async getCachedAllProjectsUsage(
+    forceRefresh: boolean = false
+  ): Promise<ConversationUsage[] | null> {
+    if (
+      !forceRefresh &&
+      this.isCacheFresh(this.allProjectsUsageCache, AIUsageProvider.allProjectsCacheTtlMs)
+    ) {
+      return this.allProjectsUsageCache.value;
+    }
+
+    const workspacePath = this.getMonitorWorkspacePath();
+    if (!workspacePath) {
+      return null;
+    }
+
+    const { getClaudeCodeAdapter } = await import('../autonomous/ClaudeCodeUsageAdapter');
+    const adapter = getClaudeCodeAdapter(workspacePath);
+    const monthAgo = new Date();
+    monthAgo.setDate(monthAgo.getDate() - 30);
+
+    const startTime = performance.now();
+    const allUsage = await adapter.getAllProjectsUsage(monthAgo);
+    const durationMs = Number((performance.now() - startTime).toFixed(1));
+
+    this.allProjectsUsageCache = {
+      loadedAt: Date.now(),
+      value: allUsage,
+    };
+
+    this.logger.info('[allProjects] Refreshed cached usage', {
+      conversationCount: allUsage.length,
+      durationMs,
+    });
+
+    return allUsage;
+  }
+
   /**
    * Get user account item (top-level informational).
    */
@@ -521,10 +607,7 @@ export class AIUsageProvider implements vscode.TreeDataProvider<AIUsageItem>, vs
     }
 
     try {
-      // Get user from ClaudeCodeUsageAdapter
-      const { getClaudeCodeAdapter } = await import('../autonomous/ClaudeCodeUsageAdapter');
-      const adapter = getClaudeCodeAdapter((this.monitor as any).workspacePath);
-      const userEmail = await adapter.getCurrentUser();
+      const userEmail = await this.getCachedUserAccount();
 
       if (!userEmail) {
         return null;
@@ -540,7 +623,7 @@ export class AIUsageProvider implements vscode.TreeDataProvider<AIUsageItem>, vs
       item.tooltip = `Anthropic Account: ${userEmail}`;
 
       return item;
-    } catch (error) {
+    } catch {
       this.logger.warn('Failed to get user account info');
       return null;
     }
@@ -555,17 +638,9 @@ export class AIUsageProvider implements vscode.TreeDataProvider<AIUsageItem>, vs
     }
 
     try {
-      // Get all projects usage from adapter
-      const { getClaudeCodeAdapter } = await import('../autonomous/ClaudeCodeUsageAdapter');
-      const adapter = getClaudeCodeAdapter((this.monitor as any).workspacePath);
+      const allUsage = await this.getCachedAllProjectsUsage();
 
-      // Get last 30 days
-      const monthAgo = new Date();
-      monthAgo.setDate(monthAgo.getDate() - 30);
-
-      const allUsage = await adapter.getAllProjectsUsage(monthAgo);
-
-      if (allUsage.length === 0) {
+      if (!allUsage || allUsage.length === 0) {
         return null;
       }
 
@@ -585,7 +660,7 @@ export class AIUsageProvider implements vscode.TreeDataProvider<AIUsageItem>, vs
       item.usageData = allUsage; // Store raw usage for children
 
       return item;
-    } catch (error) {
+    } catch {
       this.logger.warn('Failed to get all projects usage');
       return null;
     }
@@ -595,12 +670,10 @@ export class AIUsageProvider implements vscode.TreeDataProvider<AIUsageItem>, vs
    * Get children for all-projects item (per-provider breakdown).
    */
   private async getAllProjectsChildren(): Promise<AIUsageItem[]> {
-    const allProjectsItem = (await this.getAllProjectsItem());
-    if (!allProjectsItem || !allProjectsItem.usageData) {
+    const allUsage = await this.getCachedAllProjectsUsage();
+    if (!allUsage || allUsage.length === 0) {
       return [];
     }
-
-    const allUsage = allProjectsItem.usageData as any[];
 
     // Aggregate by provider
     const providerStats = new Map<string, { cost: number; tokens: number; count: number }>();

@@ -24,6 +24,8 @@ export interface PerformanceMetrics {
   gcCount: number;
 }
 
+type DecoratorTarget = { constructor: { name: string } };
+
 /**
  * Debounced function executor
  */
@@ -34,7 +36,7 @@ export class Debouncer {
   /**
    * Debounce a function call
    */
-  public debounce<T extends any[]>(
+  public debounce<T extends unknown[]>(
     key: string,
     fn: (...args: T) => void | Promise<void>,
     delayMs: number
@@ -153,7 +155,7 @@ export class SmartCache<T> {
   /**
    * Set value in cache
    */
-  public set(key: string, value: T, customTtlMs?: number): void {
+  public set(key: string, value: T, _customTtlMs?: number): void {
     const now = Date.now();
     const size = this.estimateSize(value);
 
@@ -603,8 +605,8 @@ export class ThrottledFileWatcher {
 export class PerformanceOptimizer {
   private static instance: PerformanceOptimizer;
   private debouncer = new Debouncer();
-  private cache = new SmartCache<any>();
-  private lazyLoader = new LazyLoader<any>();
+  private cache = new SmartCache<unknown>();
+  private lazyLoader = new LazyLoader<unknown>();
   private monitor = PerformanceMonitor.getInstance();
   private fileWatcher = new ThrottledFileWatcher();
   private logger = Logger.for('PerformanceOptimizer');
@@ -628,14 +630,14 @@ export class PerformanceOptimizer {
   /**
    * Get the cache
    */
-  public getCache(): SmartCache<any> {
+  public getCache(): SmartCache<unknown> {
     return this.cache;
   }
 
   /**
    * Get the lazy loader
    */
-  public getLazyLoader(): LazyLoader<any> {
+  public getLazyLoader(): LazyLoader<unknown> {
     return this.lazyLoader;
   }
 
@@ -682,7 +684,7 @@ export class PerformanceOptimizer {
    */
   public getPerformanceReport(): {
     monitor: ReturnType<PerformanceMonitor['getStats']>;
-    cache: ReturnType<SmartCache<any>['getStats']>;
+    cache: ReturnType<SmartCache<unknown>['getStats']>;
     debouncer: { pendingCount: number };
     memory: NodeJS.MemoryUsage;
   } {
@@ -710,11 +712,11 @@ export class PerformanceOptimizer {
  * Decorator for automatic performance monitoring
  */
 export function withPerformanceMonitoring(operationName?: string) {
-  return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
+  return function (target: DecoratorTarget, propertyName: string, descriptor: PropertyDescriptor) {
     const method = descriptor.value;
     const name = operationName || `${target.constructor.name}.${propertyName}`;
     
-    descriptor.value = function (...args: any[]) {
+    descriptor.value = function (...args: unknown[]) {
       const monitor = PerformanceMonitor.getInstance();
       return monitor.timeOperation(name, () => method.apply(this, args));
     };

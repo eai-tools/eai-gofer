@@ -112,10 +112,18 @@ suite('GoferMigrator Test Suite', function() {
       const specsDir = path.join(tempDir, '.specify', 'specs');
       const memoryDir = path.join(tempDir, '.specify', 'memory');
       const templatesDir = path.join(tempDir, '.specify', 'templates');
+      const originalSpecJson = path.join(tempDir, '.specify', '001-test.json');
+      const originalConfigJson = path.join(tempDir, '.specify', 'config.json');
+      const backupSpecJson = path.join(tempDir, '.specify', '_backup', '001-test.json');
+      const backupConfigJson = path.join(tempDir, '.specify', '_backup', 'config.json');
 
       assert.ok(await directoryExists(specsDir));
       assert.ok(await directoryExists(memoryDir));
       assert.ok(await directoryExists(templatesDir));
+      assert.ok(!(await fileExists(originalSpecJson)));
+      assert.ok(!(await fileExists(originalConfigJson)));
+      assert.ok(await fileExists(backupSpecJson));
+      assert.ok(await fileExists(backupConfigJson));
     });
 
     test('should preserve data during migration', async () => {

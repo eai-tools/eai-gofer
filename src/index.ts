@@ -13,7 +13,7 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  const specDir = process.env.SPEC_DIR || path.join(process.cwd(), '.specify');
+  const specDir = process.env.SPEC_DIR || path.join(process.cwd(), '.specify', 'specs');
   const workspaceDir = process.env.WORKSPACE_DIR || process.cwd();
 
   const whatsappConfig = {

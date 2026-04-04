@@ -23,6 +23,10 @@ export interface QuestionContext {
   tasksPath?: string;
 }
 
+interface PtyWritable {
+  write(data: string): void;
+}
+
 export class ClaudeCodeAutonomousResponder {
   private anthropic: Anthropic | null = null;
   private outputChannel: vscode.OutputChannel;
@@ -67,7 +71,7 @@ export class ClaudeCodeAutonomousResponder {
           );
           this.terminalBuffer.push(status.last_output);
         }
-      } catch (e) {
+    } catch (_error) {
         // Siltently fail if IPC read fails
       }
     });
@@ -874,7 +878,7 @@ Provide specific, actionable recommendations.`
    * Send response directly to pty process
    * Used when we have direct access to node-pty
    */
-  async sendResponseToPty(ptyProcess: any, response: string): Promise<void> {
+  async sendResponseToPty(ptyProcess: PtyWritable, response: string): Promise<void> {
     try {
       this.outputChannel.appendLine('⌨️  Sending response to Claude Code...');
 

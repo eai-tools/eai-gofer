@@ -1,6 +1,5 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import * as vscode from 'vscode';
 import { getWorkspacePaths, VALIDATION } from '../config';
 import { Logger } from './logger';
 
@@ -261,7 +260,7 @@ export class FileUtils {
             await search(fullPath, depth + 1);
           }
         }
-      } catch (error) {
+      } catch (_error) {
         // Skip directories we can't read
       }
     }
@@ -289,7 +288,7 @@ export class FileUtils {
             await calculateSize(path.join(currentPath, entry));
           }
         }
-      } catch (error) {
+      } catch (_error) {
         // Skip files/directories we can't access
       }
     }

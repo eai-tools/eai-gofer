@@ -86,7 +86,7 @@ export class CostBudgetEnforcer {
   /** Whether the pipeline can continue given current budget status */
   canProceed(): boolean {
     const snapshot = this.getSnapshot();
-    if (snapshot.status !== 'exceeded') return true;
+    if (snapshot.status !== 'exceeded') {return true;}
     // In blocking mode, exceeded = stop
     return this.config.enforcementMode !== 'blocking';
   }
@@ -133,7 +133,7 @@ export class CostBudgetEnforcer {
     severity: 'warning' | 'error',
     snapshot: CostSnapshot
   ): void {
-    if (!this.runLedger) return;
+    if (!this.runLedger) {return;}
     this.runLedger
       .log({
         runId: '',

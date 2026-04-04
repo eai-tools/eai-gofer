@@ -1,7 +1,6 @@
 ---
 name: 6a_gofer_engineering_review
-description:
-  Post-implementation engineering review with iterative fix cycles (up to 5)
+description: Post-implementation engineering review with iterative fix cycles (up to 5)
 arguments:
   - name: feature
     description: Feature name or description
@@ -19,13 +18,14 @@ result_schema:
         - error
 ---
 
+
 # Gofer Engineering Review
 
 You are performing a **post-implementation engineering review** that
 cross-checks the actual code against spec, research, tasks, and validation
-artifacts. This stage runs **after** `$ $6_gofer_validate` passes and performs
-1-5 iterative "review → fix → re-review" cycles until all findings are resolved
-or 5 cycles complete.
+artifacts. This stage runs **after** `$ $6_gofer_validate` passes and performs 1-5
+iterative "review → fix → re-review" cycles until all findings are resolved or 5
+cycles complete.
 
 ## User Input
 

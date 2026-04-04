@@ -21,6 +21,10 @@ type ProviderConstructor = new (apiKey: string, model: string) => LLMProvider;
  * Type for CLI provider constructor functions
  */
 type CLIProviderConstructor = new (cliCommand: string, model: string) => LLMProvider;
+type CLIProviderWithHistory = LLMProvider & {
+  getConversationHistory(): ConversationMessage[];
+  setConversationHistory(history: ConversationMessage[]): void;
+};
 
 /**
  * Registry of provider constructors
@@ -45,6 +49,13 @@ export function registerProvider(
 export class ProviderFactory {
   private readonly providers = new Map<ProviderId, LLMProvider>();
   private readonly logger = Logger.for('ProviderFactory');
+
+  private isCLIProviderWithHistory(provider: LLMProvider): provider is CLIProviderWithHistory {
+    return (
+      typeof (provider as Partial<CLIProviderWithHistory>).getConversationHistory === 'function' &&
+      typeof (provider as Partial<CLIProviderWithHistory>).setConversationHistory === 'function'
+    );
+  }
 
   /**
    * Get the API key for a provider from VSCode settings
@@ -277,9 +288,9 @@ export class ProviderFactory {
       // Only extract history from CLI providers (claude-cli or codex-cli)
       if (
         (existingId === 'claude-cli' || existingId === 'codex-cli') &&
-        typeof (existingProvider as any).getConversationHistory === 'function'
+        this.isCLIProviderWithHistory(existingProvider)
       ) {
-        conversationHistory = (existingProvider as any).getConversationHistory();
+        conversationHistory = existingProvider.getConversationHistory();
         hasPreviousProvider = true;
         break; // Only need one history (all CLI providers share the same conversation)
       }
@@ -299,11 +310,8 @@ export class ProviderFactory {
     const provider = new Constructor(cliCommand, model);
 
     // Restore conversation history if switching providers
-    if (
-      conversationHistory.length > 0 &&
-      typeof (provider as any).setConversationHistory === 'function'
-    ) {
-      (provider as any).setConversationHistory(conversationHistory);
+    if (conversationHistory.length > 0 && this.isCLIProviderWithHistory(provider)) {
+      provider.setConversationHistory(conversationHistory);
     }
 
     // T069: Show notification when switching providers with history preservation

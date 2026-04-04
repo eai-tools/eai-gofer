@@ -30,30 +30,30 @@ const STOPWORDS = new Set([
  * Not a full Porter stemmer, but sufficient for keyword matching.
  */
 function stem(word: string): string {
-  if (word.length <= 4) return word;
+  if (word.length <= 4) {return word;}
   // Order matters: longest suffixes first
-  if (word.endsWith('ation')) return word.slice(0, -5);
-  if (word.endsWith('tion')) return word.slice(0, -4);
-  if (word.endsWith('sion')) return word.slice(0, -4);
-  if (word.endsWith('ment')) return word.slice(0, -4);
-  if (word.endsWith('ness')) return word.slice(0, -4);
-  if (word.endsWith('able')) return word.slice(0, -4);
-  if (word.endsWith('ible')) return word.slice(0, -4);
-  if (word.endsWith('ting')) return word.slice(0, -3);
-  if (word.endsWith('ing')) return word.slice(0, -3);
-  if (word.endsWith('ies')) return word.slice(0, -3) + 'y';
-  if (word.endsWith('ous')) return word.slice(0, -3);
-  if (word.endsWith('ive')) return word.slice(0, -3);
-  if (word.endsWith('ful')) return word.slice(0, -3);
-  if (word.endsWith('ist')) return word.slice(0, -3);
-  if (word.endsWith('est')) return word.slice(0, -3);
-  if (word.endsWith('ity')) return word.slice(0, -3);
-  if (word.endsWith('ly')) return word.slice(0, -2);
-  if (word.endsWith('er')) return word.slice(0, -2);
-  if (word.endsWith('ed')) return word.slice(0, -2);
-  if (word.endsWith('es')) return word.slice(0, -2);
-  if (word.endsWith('al')) return word.slice(0, -2);
-  if (word.endsWith('s') && !word.endsWith('ss')) return word.slice(0, -1);
+  if (word.endsWith('ation')) {return word.slice(0, -5);}
+  if (word.endsWith('tion')) {return word.slice(0, -4);}
+  if (word.endsWith('sion')) {return word.slice(0, -4);}
+  if (word.endsWith('ment')) {return word.slice(0, -4);}
+  if (word.endsWith('ness')) {return word.slice(0, -4);}
+  if (word.endsWith('able')) {return word.slice(0, -4);}
+  if (word.endsWith('ible')) {return word.slice(0, -4);}
+  if (word.endsWith('ting')) {return word.slice(0, -3);}
+  if (word.endsWith('ing')) {return word.slice(0, -3);}
+  if (word.endsWith('ies')) {return word.slice(0, -3) + 'y';}
+  if (word.endsWith('ous')) {return word.slice(0, -3);}
+  if (word.endsWith('ive')) {return word.slice(0, -3);}
+  if (word.endsWith('ful')) {return word.slice(0, -3);}
+  if (word.endsWith('ist')) {return word.slice(0, -3);}
+  if (word.endsWith('est')) {return word.slice(0, -3);}
+  if (word.endsWith('ity')) {return word.slice(0, -3);}
+  if (word.endsWith('ly')) {return word.slice(0, -2);}
+  if (word.endsWith('er')) {return word.slice(0, -2);}
+  if (word.endsWith('ed')) {return word.slice(0, -2);}
+  if (word.endsWith('es')) {return word.slice(0, -2);}
+  if (word.endsWith('al')) {return word.slice(0, -2);}
+  if (word.endsWith('s') && !word.endsWith('ss')) {return word.slice(0, -1);}
   return word;
 }
 
@@ -149,7 +149,7 @@ export function computeDocumentSimilarity(
 
   // Collect all terms
   const allTerms = new Set([...tfA.keys(), ...tfB.keys()]);
-  if (allTerms.size === 0) return 0;
+  if (allTerms.size === 0) {return 0;}
 
   // Build TF-IDF vectors
   let dotProduct = 0;
@@ -171,7 +171,7 @@ export function computeDocumentSimilarity(
     magnitudeB += weightB * weightB;
   }
 
-  if (magnitudeA === 0 || magnitudeB === 0) return 0;
+  if (magnitudeA === 0 || magnitudeB === 0) {return 0;}
   return dotProduct / (Math.sqrt(magnitudeA) * Math.sqrt(magnitudeB));
 }
 

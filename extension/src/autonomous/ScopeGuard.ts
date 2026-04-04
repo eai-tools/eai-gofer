@@ -86,7 +86,7 @@ export class ScopeGuard {
       const boundaryMatch = content.match(
         /## Protected Boundaries\s*\n([\s\S]*?)(?=\n##|\n---|\n$)/
       );
-      if (!boundaryMatch) return;
+      if (!boundaryMatch) {return;}
 
       const section = boundaryMatch[1];
       const lines = section.split('\n');
@@ -159,7 +159,7 @@ export class ScopeGuard {
     protectedPattern: string,
     outcome: ToolAuditEntry['outcome']
   ): void {
-    if (!this.auditLogger) return;
+    if (!this.auditLogger) {return;}
     this.auditLogger
       .logCheck({
         timestamp: new Date().toISOString(),
@@ -280,19 +280,19 @@ export class ScopeGuard {
         const depCount =
           Object.keys(pkg.dependencies || {}).length +
           Object.keys(pkg.devDependencies || {}).length;
-        if (depCount > 5) return true;
+        if (depCount > 5) {return true;}
       }
       // Check for existing source files
       const srcDir = path.join(this.workspaceRoot, 'src');
       if (fs.existsSync(srcDir)) {
         const entries = fs.readdirSync(srcDir, { withFileTypes: true });
         const sourceFiles = entries.filter((e) => e.isFile() && /\.(ts|js|tsx|jsx)$/.test(e.name));
-        if (sourceFiles.length > 3) return true;
+        if (sourceFiles.length > 3) {return true;}
       }
       // Check for test directories
       const testDirs = ['tests', 'test', '__tests__', 'spec'];
       for (const dir of testDirs) {
-        if (fs.existsSync(path.join(this.workspaceRoot, dir))) return true;
+        if (fs.existsSync(path.join(this.workspaceRoot, dir))) {return true;}
       }
     } catch {
       // Cannot determine — assume greenfield

@@ -10,13 +10,11 @@
  */
 
 import * as vscode from 'vscode';
-import * as fs from 'fs';
 import * as fsPromises from 'fs/promises';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import {
   type Memory,
-  type MemoryType,
   type StoredMemories,
   type MemoryQuery,
   type MemorySearchResult,
@@ -32,15 +30,14 @@ import {
   isValidLength,
   isValidTag,
   isValidCategory,
-  ValidationError,
 } from './validation';
-import { validateMemory, validateStoredMemories, formatValidationErrors } from './schemaValidator';
+import { validateStoredMemories, formatValidationErrors } from './schemaValidator';
 import { Logger } from '../utils/logger';
 import { telemetry } from './telemetryIntegration';
 import type { ContextUsageLogger } from './ContextUsageLogger';
 import { MemoryStorage } from './MemoryStorage';
 import { MemoryConsolidator, type ConsolidationResult } from './MemoryConsolidator';
-import { GoferURIResolver, parseGoferURI } from './memory/GoferURI';
+import { parseGoferURI } from './memory/GoferURI';
 
 /**
  * Current schema version for StoredMemories.
@@ -146,12 +143,12 @@ export class MemoryManager implements IMemoryManager {
 
     while (queue.length > 0) {
       const { id, depth } = queue.shift()!;
-      if (visited.has(id) || depth > maxDepth) continue;
+      if (visited.has(id) || depth > maxDepth) {continue;}
       visited.add(id);
 
       const memory = this.storage.get(id);
-      if (!memory) continue;
-      if (id !== startId) result.push(memory);
+      if (!memory) {continue;}
+      if (id !== startId) {result.push(memory);}
 
       // Follow forward links (relatedMemories)
       for (const link of memory.relatedMemories || []) {
@@ -668,7 +665,7 @@ export class MemoryManager implements IMemoryManager {
   /**
    * 019 C2: Usage reason types for audit logging.
    */
-  static readonly UsageReasons = [
+  static readonly usageReasons = [
     'context_load',
     'user_recall',
     'search_match',
@@ -687,7 +684,7 @@ export class MemoryManager implements IMemoryManager {
    */
   async recordUsage(
     id: string,
-    reason?: (typeof MemoryManager.UsageReasons)[number],
+    reason?: (typeof MemoryManager.usageReasons)[number],
     source?: string
   ): Promise<void> {
     // Try JSONL storage first (local memories)

@@ -4,11 +4,10 @@ import { SpecLoader } from '../../src/orchestrator/SpecLoader';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
-// Skip this test suite - SpecLoader persistence not fully implemented
-// TODO: Fix when SpecLoader task persistence is complete
-describe.skip('SpecLoader - Task Persistence', () => {
+describe('SpecLoader - Task Persistence', () => {
   let specLoader: SpecLoader;
-  const testSpecDir = '/tmp/test-specs';
+  const testWorkspaceDir = '/tmp/test-specs-workspace';
+  const testSpecDir = path.join(testWorkspaceDir, '.specify', 'specs');
 
   beforeEach(async () => {
     specLoader = new SpecLoader(testSpecDir);
@@ -20,7 +19,7 @@ describe.skip('SpecLoader - Task Persistence', () => {
 
   afterEach(async () => {
     // Cleanup
-    await fs.rm(testSpecDir, { recursive: true, force: true });
+    await fs.rm(testWorkspaceDir, { recursive: true, force: true });
   });
 
   describe('updateTaskStatus', () => {

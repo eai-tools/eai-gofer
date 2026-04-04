@@ -71,7 +71,9 @@ export class ConstitutionProvider implements vscode.TreeDataProvider<Constitutio
   private loadingPromise: Promise<void> | null = null;
 
   constructor(workspacePath: string) {
-    this.constitutionPath = path.join(workspacePath, '.specify', 'memory', 'constitution.md');
+    const specifyRoot =
+      path.basename(workspacePath) === '.specify' ? workspacePath : path.join(workspacePath, '.specify');
+    this.constitutionPath = path.join(specifyRoot, 'memory', 'constitution.md');
     this.loadingPromise = this.loadConstitution();
   }
 
@@ -168,7 +170,7 @@ export class ConstitutionProvider implements vscode.TreeDataProvider<Constitutio
       // Check if the constitution file exists
       try {
         await fs.access(this.constitutionPath);
-      } catch (error) {
+      } catch (_error) {
         this.loadError = `Constitution file not found at ${this.constitutionPath}`;
         this.articles = [];
         return;
@@ -226,6 +228,29 @@ export class ConstitutionProvider implements vscode.TreeDataProvider<Constitutio
         currentArticle = {
           number: this.romanToNumber(principleMatch[1]),
           title: principleMatch[2].trim(),
+          sections: [],
+        };
+        sectionCounter = 1;
+        continue;
+      }
+
+      // Match article headers: ## Article 1: Title
+      const articleMatch = line.match(/^##\s+Article\s+(\d+):\s+(.+)$/i);
+      if (articleMatch) {
+        if (currentSection && currentArticle) {
+          currentSection.content = sectionContent.join('\n').trim();
+          currentArticle.sections.push(currentSection);
+          currentSection = null;
+          sectionContent = [];
+        }
+
+        if (currentArticle) {
+          this.articles.push(currentArticle);
+        }
+
+        currentArticle = {
+          number: Number(articleMatch[1]),
+          title: articleMatch[2].trim(),
           sections: [],
         };
         sectionCounter = 1;

@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { GoferParser, Spec, Task, SpecStatus, TaskStatus } from './goferParser';
 import { SpecLoader } from './autonomous/SpecLoader';
 import { DependencyGraph } from './autonomous/DependencyGraph';
+import type { BranchSpecManager } from './branchSpecManager';
 import { Logger } from './utils/logger';
 
 // Debug output channel for initialization troubleshooting
@@ -200,7 +201,7 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
   private parser: GoferParser;
   private specs: Spec[] = [];
   private loadError: string | null = null;
-  private branchSpecManager: any;
+  private branchSpecManager?: BranchSpecManager;
   private specLoader: SpecLoader;
   private dependencyGraph: DependencyGraph;
   private workspacePath: string;
@@ -210,7 +211,11 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
   private refreshDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly debounceMs: number;
 
-  constructor(workspacePath: string, branchSpecManager?: any, debounceMs: number = 2000) {
+  constructor(
+    workspacePath: string,
+    branchSpecManager?: BranchSpecManager,
+    debounceMs: number = 2000
+  ) {
     // Initialize debug channel once
     if (!debugChannel) {
       debugChannel = vscode.window.createOutputChannel('Gofer Debug');
@@ -245,7 +250,7 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
    * Update the workspace path and branch spec manager, recreating the parser.
    * This fixes the bug where the parser retained stale references from construction.
    */
-  updateWorkspace(workspacePath: string, branchSpecManager?: any): void {
+  updateWorkspace(workspacePath: string, branchSpecManager?: BranchSpecManager): void {
     this.log(`updateWorkspace called: path=${workspacePath}, hasBranchMgr=${!!branchSpecManager}`);
     this.workspacePath = workspacePath;
     this.branchSpecManager = branchSpecManager;
@@ -259,6 +264,10 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
    */
   isDebouncing(): boolean {
     return this.refreshDebounceTimer !== null;
+  }
+
+  isLoadingSpecs(): boolean {
+    return this.isLoading;
   }
 
   refresh(): void {

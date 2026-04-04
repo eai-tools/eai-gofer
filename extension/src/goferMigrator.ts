@@ -426,7 +426,7 @@ export class GoferMigrator {
           }
         }
         // If it's a file, it exists (post-tool-use.mjs)
-      } catch (error) {
+    } catch (_error) {
         // Path doesn't exist
         missing.push(name);
       }

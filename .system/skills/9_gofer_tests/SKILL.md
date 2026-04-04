@@ -20,6 +20,7 @@ result_schema:
         - error
 ---
 
+
 # Gofer Tests
 
 You are defining acceptance test cases for a feature using a Domain Specific

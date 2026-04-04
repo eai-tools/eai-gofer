@@ -505,9 +505,9 @@ export class ObservationMasker {
     // T021: Count per-tier stats
     const tierCounts = { full: 0, keyPoints: 0, masked: 0 };
     for (const obs of this.cache.values()) {
-      if (obs.decayTier === 'full') tierCounts.full++;
-      else if (obs.decayTier === 'key-points') tierCounts.keyPoints++;
-      else tierCounts.masked++;
+      if (obs.decayTier === 'full') {tierCounts.full++;}
+      else if (obs.decayTier === 'key-points') {tierCounts.keyPoints++;}
+      else {tierCounts.masked++;}
     }
 
     this.logger.info('Observations masked', {
@@ -570,8 +570,8 @@ export class ObservationMasker {
 
     let enhanced = 0;
     for (const observation of this.cache.values()) {
-      if (observation.decayTier !== 'key-points') continue;
-      if (this.llmProvider.isRateLimited()) break;
+      if (observation.decayTier !== 'key-points') {continue;}
+      if (this.llmProvider.isRateLimited()) {break;}
 
       try {
         const prompt = `Summarize this ${observation.type} observation concisely. Preserve key facts, file paths, decisions, and error details. Keep under 200 words.\n\n${observation.originalContent.slice(0, 3000)}`;
@@ -591,7 +591,7 @@ export class ObservationMasker {
   /** Extract first 3 + last 2 lines from file content. */
   private extractFileKeyPoints(content: string): string {
     const lines = content.split('\n');
-    if (lines.length <= 5) return content;
+    if (lines.length <= 5) {return content;}
     const first = lines.slice(0, 3);
     const last = lines.slice(-2);
     return [...first, `  ... (${lines.length - 5} lines omitted) ...`, ...last].join('\n');
@@ -600,7 +600,7 @@ export class ObservationMasker {
   /** Extract first 5 + last 5 lines from command output. */
   private extractCommandKeyPoints(content: string): string {
     const lines = content.split('\n');
-    if (lines.length <= 10) return content;
+    if (lines.length <= 10) {return content;}
     const first = lines.slice(0, 5);
     const last = lines.slice(-5);
     return [...first, `  ... (${lines.length - 10} lines omitted) ...`, ...last].join('\n');
@@ -611,7 +611,7 @@ export class ObservationMasker {
     const lines = content.split('\n');
     const filePaths = lines.filter((l) => l.match(/^[\/\w].*\.(ts|js|md|json|yaml)/));
     const count = lines.length;
-    if (filePaths.length === 0) return this.extractCommandKeyPoints(content);
+    if (filePaths.length === 0) {return this.extractCommandKeyPoints(content);}
     return `Found ${count} results in ${filePaths.length} files:\n${filePaths.slice(0, 10).join('\n')}`;
   }
 
@@ -1078,7 +1078,7 @@ export class ObservationMasker {
     for (const observation of this.cache.values()) {
       // Only persist file_read observations with file path metadata
       const filePath = observation.metadata?.filePath as string | undefined;
-      if (!filePath) continue;
+      if (!filePath) {continue;}
 
       const entry: ObservationManifestEntry = {
         filePath,

@@ -52,6 +52,15 @@ export interface ProviderStats {
   conversationCount: number;
 }
 
+interface ConversationMetadata {
+  message?: {
+    model?: string;
+  };
+  source?: string;
+  type?: string;
+  version?: string;
+}
+
 /**
  * Claude Code Usage Adapter
  *
@@ -108,7 +117,7 @@ export class ClaudeCodeUsageAdapter {
 
       const settings = JSON.parse(await fs.promises.readFile(settingsPath, 'utf-8'));
       return settings.email || settings.user || null;
-    } catch (error) {
+    } catch (_error) {
       this.logger.warn('Failed to read user from settings');
       return null;
     }
@@ -117,7 +126,7 @@ export class ClaudeCodeUsageAdapter {
   /**
    * Detect provider from conversation metadata.
    */
-  private detectProvider(entry: any): 'claude-code' | 'codex' | 'copilot' | 'unknown' {
+  private detectProvider(entry: ConversationMetadata): 'claude-code' | 'codex' | 'copilot' | 'unknown' {
     // Check version field for Claude Code
     if (entry.version && entry.version.includes('claude')) {
       return 'claude-code';
@@ -175,15 +184,15 @@ export class ClaudeCodeUsageAdapter {
           }
 
           // Skip non-assistant entries (no usage data)
-          if (entry.type !== 'assistant') continue;
+          if (entry.type !== 'assistant') {continue;}
 
           // Skip entries without usage data (usage is at entry.message.usage in Claude Code format)
-          if (!entry.message?.usage) continue;
+          if (!entry.message?.usage) {continue;}
 
           // Parse timestamp
           const timestamp = new Date(entry.timestamp);
-          if (fromDate && timestamp < fromDate) continue;
-          if (toDate && timestamp > toDate) continue;
+          if (fromDate && timestamp < fromDate) {continue;}
+          if (toDate && timestamp > toDate) {continue;}
 
           // Extract token usage from entry.message.usage (Claude Code format)
           const usage = entry.message.usage;
@@ -218,12 +227,12 @@ export class ClaudeCodeUsageAdapter {
             provider,
             model,
           });
-        } catch (err) {
+          } catch (_err) {
           // Skip malformed lines
           continue;
         }
       }
-    } catch (error) {
+    } catch (_error) {
       this.logger.warn('Failed to parse conversation file', { filePath });
     }
 
@@ -239,7 +248,7 @@ export class ClaudeCodeUsageAdapter {
       return files
         .filter((file) => file.endsWith('.jsonl'))
         .map((file) => path.join(projectDir, file));
-    } catch (error) {
+    } catch (_error) {
       this.logger.warn('Failed to read project directory', { projectDir });
       return [];
     }
@@ -455,7 +464,7 @@ export class ClaudeCodeUsageAdapter {
       // Collect new entries
       for (const entry of usage) {
         const key = `${entry.conversationId}:${entry.timestamp}`;
-        if (existingConversationIds.has(key)) continue;
+        if (existingConversationIds.has(key)) {continue;}
 
         // Format as UsageLogEntry for compatibility with UsageLogger
         const councilEntry = {

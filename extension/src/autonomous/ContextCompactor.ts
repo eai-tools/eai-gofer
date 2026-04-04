@@ -464,7 +464,7 @@ Summary:`;
 
     // Header with counts
     let header = `Completed ${completedCount} tasks`;
-    if (failedCount > 0) header += `, ${failedCount} failed`;
+    if (failedCount > 0) {header += `, ${failedCount} failed`;}
     lines.push(header + '.');
 
     // 019 T054: Extract first line of each task description for context
@@ -629,7 +629,7 @@ Summary:`;
     }
 
     const shouldTrigger = await this.shouldCompact(session);
-    if (!shouldTrigger) return false;
+    if (!shouldTrigger) {return false;}
 
     this.lastCompactionTime = Date.now();
     const summary = await this.compact(session);

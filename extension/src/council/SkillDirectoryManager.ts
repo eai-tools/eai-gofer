@@ -6,7 +6,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { CommandMetadata, PlatformType } from './types/CrossPlatformTypes';
+import { CommandMetadata } from './types/CrossPlatformTypes';
 import { CommandMetadataExtractor } from './CommandMetadataExtractor';
 
 /**

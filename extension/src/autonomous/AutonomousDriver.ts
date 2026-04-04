@@ -27,7 +27,6 @@ import type { Memory } from './memory';
 import type { CompactionSummary } from './compaction';
 import type {
   AutonomousSession,
-  SessionStatus,
   DriverOptions,
   ProgressUpdate,
   ProgressCallback,
@@ -40,9 +39,23 @@ import type {
 } from './types';
 import type { LLMProvider } from '../council/providers/LLMProvider';
 
+interface ProgressProviderLike {
+  getSpec(specId: string): SessionSpecLike | undefined;
+  updateTaskStatus(
+    specId: string,
+    taskId: string,
+    status: import('./types').TaskStatus
+  ): Promise<void>;
+  refresh(): void;
+}
+
+interface SessionSpecLike {
+  tasks: unknown[];
+}
+
 export class AutonomousDriver {
   private workspacePath: string;
-  private progressProvider: any; // ProgressProvider interface
+  private progressProvider: ProgressProviderLike;
   private options: DriverOptions;
   private provider?: LLMProvider; // R7: Fixed type from 'any' to 'LLMProvider' for type safety
   // NOTE: Provider parameter available for future autonomous→CLI integration
@@ -75,7 +88,7 @@ export class AutonomousDriver {
 
   constructor(
     workspacePath: string,
-    progressProvider: any,
+    progressProvider: ProgressProviderLike,
     memoryManager: MemoryManager,
     options: DriverOptions,
     provider?: LLMProvider // R7: Typed as LLMProvider (optional for backward compatibility)
@@ -288,7 +301,7 @@ export class AutonomousDriver {
   /**
    * Create new session instance
    */
-  private async createSession(specId: string, spec: any): Promise<AutonomousSession> {
+  private async createSession(specId: string, spec: SessionSpecLike): Promise<AutonomousSession> {
     const sessionId = `session-${Date.now()}-${Math.random().toString(36).substring(7)}`;
 
     return {
@@ -1265,7 +1278,7 @@ export class AutonomousDriver {
 
     <div class="info">
         <strong>ℹ️ What is context compaction?</strong><br>
-        When the context window reaches ${Math.round((this.contextCompactor as any).threshold * 100)}% capacity,
+        When the context window reaches ${Math.round(this.contextCompactor.getThreshold())}% capacity,
         Gofer automatically summarizes completed tasks to free up space for new work.
         The last ${summary.preservedTasks.length} tasks are kept in full detail.
         <br><br>

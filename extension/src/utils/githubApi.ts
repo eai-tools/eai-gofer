@@ -37,6 +37,17 @@ export interface ReleaseInfo {
   isPrerelease: boolean;
 }
 
+interface GitHubRepositoryInfo {
+  description: string;
+  name: string;
+  stargazers_count: number;
+  updated_at: string;
+}
+
+interface GitHubApiError extends Error {
+  status?: number;
+}
+
 /**
  * GitHub API client with rate limiting and error handling
  */
@@ -147,9 +158,10 @@ export class GitHubApiClient {
         downloadUrl: release.zipballUrl,
         isPrerelease: release.prerelease,
       };
-    } catch (error: any) {
-      if (error.status === 404 || (error.message && error.message.includes('404'))) {
-        this.logger.warn('Repository or release not found. Using fallback release.', error);
+    } catch (error) {
+      const apiError = error as GitHubApiError;
+      if (apiError.status === 404 || apiError.message.includes('404')) {
+        this.logger.warn('Repository or release not found. Using fallback release.', apiError);
         return {
           version: 'v1.0.0',
           published: new Date(),
@@ -284,7 +296,9 @@ export class GitHubApiClient {
    */
   public async getRepositoryInfo(): Promise<{ name: string; description: string; stars: number; lastUpdated: Date }> {
     try {
-      const repo = await this.makeRequest<any>(`/repos/${GITHUB_OWNER}/${GITHUB_REPO}`);
+      const repo = await this.makeRequest<GitHubRepositoryInfo>(
+        `/repos/${GITHUB_OWNER}/${GITHUB_REPO}`
+      );
       
       return {
         name: repo.name,
@@ -303,7 +317,7 @@ export class GitHubApiClient {
    */
   public async testConnection(): Promise<{ success: boolean; rateLimit: number; error?: string }> {
     try {
-      await this.makeRequest<any>('/rate_limit');
+      await this.makeRequest<Record<string, unknown>>('/rate_limit');
       
       return {
         success: true,

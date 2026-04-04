@@ -14,9 +14,12 @@ scenario and route them through the **unified Gofer pipeline**.
 │                    UNIFIED GOFER PIPELINE                        │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                  │
-│  1. /1_gofer_research    → research.md                          │
-│     Deep codebase exploration + technology research              │
-│                         ↓ AUTO                                   │
+│  1. /1_gofer_research    → research.md, proposal-review.md      │
+│     Deep codebase exploration + business/technology synthesis    │
+│                         ↓ REVIEW                                 │
+│  1a. User approval gate   → approved proposal-review.md          │
+│      Confirm scenarios, architecture, options, and changes       │
+│                         ↓ AUTO AFTER APPROVAL                    │
 │  2. /2_gofer_specify     → spec.md                              │
 │     Feature specification informed by research                   │
 │                         ↓ AUTO                                   │
@@ -69,15 +72,16 @@ ls -la .specify/memory/constitution.md 2>/dev/null
 
 ### What to Look For
 
-| Artifact                | Location                    | Indicates               |
-| ----------------------- | --------------------------- | ----------------------- |
-| `spec.md`               | `.specify/specs/{feature}/` | Feature specified       |
-| `research.md`           | `.specify/specs/{feature}/` | Research complete       |
-| `plan.md`               | `.specify/specs/{feature}/` | Planning complete       |
-| `tasks.md`              | `.specify/specs/{feature}/` | Ready for implement     |
-| `session-checkpoint.md` | `.specify/specs/{feature}/` | Work paused (resumable) |
-| `validation-report.md`  | `.specify/specs/{feature}/` | Feature validated       |
-| `constitution.md`       | `.specify/memory/`          | Project principles set  |
+| Artifact                | Location                    | Indicates                    |
+| ----------------------- | --------------------------- | ---------------------------- |
+| `spec.md`               | `.specify/specs/{feature}/` | Feature specified            |
+| `research.md`           | `.specify/specs/{feature}/` | Research complete            |
+| `proposal-review.md`    | `.specify/specs/{feature}/` | Research reviewed / approved |
+| `plan.md`               | `.specify/specs/{feature}/` | Planning complete            |
+| `tasks.md`              | `.specify/specs/{feature}/` | Ready for implement          |
+| `session-checkpoint.md` | `.specify/specs/{feature}/` | Work paused (resumable)      |
+| `validation-report.md`  | `.specify/specs/{feature}/` | Feature validated            |
+| `constitution.md`       | `.specify/memory/`          | Project principles set       |
 
 Report what you found before proceeding.
 
@@ -479,13 +483,14 @@ pipeline-state.json is updated atomically by each stage on completion.
 **Fallback — File-existence heuristics** (used when no pipeline-state.json
 exists):
 
-| Has This             | Missing This | Start At             |
-| -------------------- | ------------ | -------------------- |
-| tasks.md (unchecked) | -            | `/5_gofer_implement` |
-| plan.md              | tasks.md     | `/4_gofer_tasks`     |
-| spec.md              | plan.md      | `/3_gofer_plan`      |
-| research.md          | spec.md      | `/2_gofer_specify`   |
-| Nothing              | Everything   | `/1_gofer_research`  |
+| Has This                                  | Missing This                | Start At             |
+| ----------------------------------------- | --------------------------- | -------------------- |
+| tasks.md (unchecked)                      | -                           | `/5_gofer_implement` |
+| plan.md                                   | tasks.md                    | `/4_gofer_tasks`     |
+| spec.md                                   | plan.md                     | `/3_gofer_plan`      |
+| research.md + approved proposal-review.md | spec.md                     | `/2_gofer_specify`   |
+| research.md                               | approved proposal-review.md | `/1_gofer_research`  |
+| Nothing                                   | Everything                  | `/1_gofer_research`  |
 
 #### For New Features
 
@@ -499,7 +504,8 @@ Output:
 ROUTING: GOFER PIPELINE
 FEATURE: {feature-name}
 STARTING: /1_gofer_research
-AUTO-CHAIN: research → specify → plan → tasks → implement → validate → engineering-review
+AUTO-CHAIN: research → proposal review → specify → plan → tasks → implement → validate → engineering-review
+APPROVAL GATE: proposal-review.md must be approved before `/2_gofer_specify`
 REASON: [explanation]
 ```
 
@@ -528,7 +534,7 @@ Start with `/1_gofer_research` without auto-chaining:
 ```
 ROUTING: GOFER RESEARCH (STANDALONE)
 COMMAND: /1_gofer_research
-AUTO-CHAIN: disabled (ask to continue after research)
+AUTO-CHAIN: disabled until proposal-review.md is approved
 REASON: User wants to explore the codebase first
 ```
 
@@ -583,7 +589,8 @@ After determining the route:
 The unified Gofer pipeline automatically chains commands:
 
 ```text
-/1_gofer_research completes → auto-invokes /2_gofer_specify
+/1_gofer_research completes → stops for proposal review and approval
+Approved proposal-review.md → auto-invokes /2_gofer_specify
 /2_gofer_specify completes  → auto-invokes /3_gofer_plan
 /3_gofer_plan completes     → auto-invokes /4_gofer_tasks
 /4_gofer_tasks completes    → auto-invokes /5_gofer_implement
@@ -625,17 +632,18 @@ If context window is filling up:
 
 ## Quick Reference: All Gofer Commands
 
-### Core Pipeline (Auto-Chaining)
+### Core Pipeline (Approval-Gated)
 
-| #   | Command                        | Output                       | Description              |
-| --- | ------------------------------ | ---------------------------- | ------------------------ |
-| 1   | `/1_gofer_research`            | research.md                  | Codebase + tech research |
-| 2   | `/2_gofer_specify`             | spec.md                      | Feature specification    |
-| 3   | `/3_gofer_plan`                | plan.md, data-model.md       | Technical architecture   |
-| 4   | `/4_gofer_tasks`               | tasks.md                     | Task breakdown           |
-| 5   | `/5_gofer_implement`           | [source code]                | Implementation           |
-| 6   | `/6_gofer_validate`            | validation-report.md         | Verification             |
-| 6a  | `/6a_gofer_engineering_review` | engineering-review-report.md | Post-impl review + fixes |
+| #   | Command                        | Output                          | Description                         |
+| --- | ------------------------------ | ------------------------------- | ----------------------------------- |
+| 1   | `/1_gofer_research`            | research.md, proposal-review.md | Research + review prep              |
+| 1a  | User approval gate             | approved proposal-review.md     | Business and architecture alignment |
+| 2   | `/2_gofer_specify`             | spec.md                         | Feature specification               |
+| 3   | `/3_gofer_plan`                | plan.md, data-model.md          | Technical architecture              |
+| 4   | `/4_gofer_tasks`               | tasks.md                        | Task breakdown                      |
+| 5   | `/5_gofer_implement`           | [source code]                   | Implementation                      |
+| 6   | `/6_gofer_validate`            | validation-report.md            | Verification                        |
+| 6a  | `/6a_gofer_engineering_review` | engineering-review-report.md    | Post-impl review + fixes            |
 
 ### Auxiliary Commands
 

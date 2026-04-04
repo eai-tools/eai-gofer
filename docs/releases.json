@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.26.1",
+  "latest_version": "1.26.2",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-04-04T03:40:10.326Z",
+  "last_updated": "2026-04-04T23:50:24.880Z",
   "releases": [
+    {
+      "version": "1.26.2",
+      "tag_name": "v1.26.2",
+      "published_at": "2026-04-04T23:50:24.879Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.26.2.vsix",
+      "notes": "Gate specification behind proposal review and keep task progress in sync",
+      "prerelease": false,
+      "size_mb": 10.2
+    },
     {
       "version": "1.26.1",
       "tag_name": "v1.26.1",
@@ -83,15 +92,6 @@
       "notes": "fix: Remove electron-rebuild to preserve cross-platform node-pty binaries for Codespaces",
       "prerelease": false,
       "size_mb": 10.1
-    },
-    {
-      "version": "1.20.6",
-      "tag_name": "v1.20.6",
-      "published_at": "2026-03-18T00:00:03.862Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.20.6.vsix",
-      "notes": "fix: Add cross-platform support for Codespaces/Linux - replaced node-pty with node-pty-prebuilt-multiarch",
-      "prerelease": false,
-      "size_mb": 10.2
     }
   ]
 }

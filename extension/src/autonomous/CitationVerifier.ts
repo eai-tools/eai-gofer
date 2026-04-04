@@ -25,14 +25,8 @@ export interface CitationVerificationResult {
   needsReview: boolean;
 }
 
-/** File extensions to look for in memory content */
-const FILE_EXTENSIONS = /\.(?:ts|tsx|js|jsx|py|md|json|yaml|yml|sh|css|html|go|rs|java|rb|toml|xml|sql|graphql)(?:\b|$)/;
-
 /** Pattern to match file paths in text */
 const FILE_PATH_PATTERN = /(?:^|\s|['"`(])([.\/\w-]+(?:\/[\w.-]+)+\.(?:ts|tsx|js|jsx|py|md|json|yaml|yml|sh|css|html|go|rs|java|rb|toml|xml|sql|graphql))\b/g;
-
-/** Pattern to match bare filenames like "extension.ts" or "config.json" */
-const BARE_FILE_PATTERN = /(?:^|\s|['"`(])([\w-]+\.(?:ts|tsx|js|jsx|py|md|json|yaml|yml))\b/g;
 
 /** Pattern to match code symbol references (Fix 12: C6) */
 const CODE_SYMBOL_PATTERN = /\b(?:function|class|interface|type|enum)\s+(\w+)/g;
@@ -139,7 +133,7 @@ export class CitationVerifier {
    */
   verifyCodeSymbols(content: string): string[] {
     const symbols = this.extractCodeSymbols(content);
-    if (symbols.length === 0) return [];
+    if (symbols.length === 0) {return [];}
 
     const missingSymbols: string[] = [];
 
@@ -157,7 +151,7 @@ export class CitationVerifier {
    */
   async verifyCodeSymbolsAsync(content: string): Promise<string[]> {
     const symbols = this.extractCodeSymbols(content);
-    if (symbols.length === 0) return [];
+    if (symbols.length === 0) {return [];}
 
     const missingSymbols: string[] = [];
     for (const symbol of symbols) {
@@ -173,7 +167,7 @@ export class CitationVerifier {
    * 018 T037: Add [STALE] prefix to content with stale code symbol citations.
    */
   addSymbolStalenessWarnings(content: string, missingSymbols: string[]): string {
-    if (missingSymbols.length === 0) return content;
+    if (missingSymbols.length === 0) {return content;}
     let result = content;
     for (const symbol of missingSymbols) {
       // Add [STALE] prefix before backtick-quoted symbols
@@ -186,7 +180,7 @@ export class CitationVerifier {
    * 018 T036: Resolve relative file paths in citations.
    */
   resolveRelativePath(filePath: string): string {
-    if (path.isAbsolute(filePath)) return filePath;
+    if (path.isAbsolute(filePath)) {return filePath;}
     return path.resolve(this.workspaceRoot, filePath);
   }
 
@@ -195,7 +189,7 @@ export class CitationVerifier {
    * Returns true on first match (short-circuits).
    */
   private findSymbolInDirectory(symbol: string, dirPath: string, depth: number = 0): boolean {
-    if (depth > 5) return false; // Limit recursion depth
+    if (depth > 5) {return false;} // Limit recursion depth
 
     let entries: fs.Dirent[];
     try {
@@ -236,7 +230,7 @@ export class CitationVerifier {
    * 018 T035: Async version of findSymbolInDirectory.
    */
   private async findSymbolInDirectoryAsync(symbol: string, dirPath: string, depth: number = 0): Promise<boolean> {
-    if (depth > 5) return false;
+    if (depth > 5) {return false;}
 
     let entries: fs.Dirent[];
     try {
@@ -324,7 +318,7 @@ export class CitationVerifier {
    * More reliable than string-includes for symbol verification.
    */
   private findSymbolWithAST(symbol: string, dirPath: string, depth: number = 0): boolean {
-    if (depth > 5) return false;
+    if (depth > 5) {return false;}
 
     let entries: fs.Dirent[];
     try {
@@ -362,7 +356,7 @@ export class CitationVerifier {
    */
   verifyCodeSymbolsWithAST(content: string): string[] {
     const symbols = this.extractCodeSymbols(content);
-    if (symbols.length === 0) return [];
+    if (symbols.length === 0) {return [];}
 
     const missingSymbols: string[] = [];
     for (const symbol of symbols) {

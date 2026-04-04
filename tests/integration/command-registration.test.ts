@@ -242,8 +242,7 @@ describe('Command Registration Validation', () => {
     expect(missingCommands).toEqual([]);
   });
 
-  it.skip('should register all autonomous execution commands', () => {
-    // TODO: Re-enable when autonomous execution feature is implemented
+  it('should register all autonomous execution commands', () => {
     const autonomousCommands = [
       'gofer.startAutonomous',
       'gofer.stopAutonomous',
@@ -259,7 +258,7 @@ describe('Command Registration Validation', () => {
         'm'
       );
 
-      if (!registrationPattern.test(extensionSource)) {
+      if (!registrationPattern.test(allCommandSources)) {
         missingCommands.push(command);
       }
     }

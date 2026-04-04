@@ -35,6 +35,9 @@ export interface UsageMetrics {
   taskCount: number;
 }
 
+type TelemetryContext = Record<string, unknown>;
+type TelemetryDecoratorTarget = { constructor: { name: string } };
+
 /**
  * Privacy-compliant telemetry collector
  */
@@ -141,7 +144,7 @@ export class TelemetryCollector {
   /**
    * Track feature usage
    */
-  public trackFeature(featureName: string, context?: Record<string, any>): void {
+  public trackFeature(featureName: string, context?: TelemetryContext): void {
     this.trackEvent('feature.used', {
       featureName,
       ...this.sanitizeProperties(context),
@@ -154,7 +157,7 @@ export class TelemetryCollector {
   public trackError(
     errorType: string,
     errorMessage?: string,
-    context?: Record<string, any>
+    context?: TelemetryContext
   ): void {
     this.trackEvent('error.occurred', {
       errorType,
@@ -169,7 +172,7 @@ export class TelemetryCollector {
   public trackPerformance(
     metricName: string,
     value: number,
-    context?: Record<string, any>
+    context?: TelemetryContext
   ): void {
     this.trackEvent('performance.measured', {
       metricName,
@@ -183,7 +186,7 @@ export class TelemetryCollector {
   public trackUserAction(
     action: string,
     target?: string,
-    context?: Record<string, any>
+    context?: TelemetryContext
   ): void {
     const properties: Record<string, string | number | boolean> = {
       action,
@@ -340,7 +343,7 @@ export class TelemetryCollector {
    */
   private updateMetrics(
     eventName: string,
-    properties?: Record<string, any>,
+    properties?: TelemetryContext,
     measurements?: Record<string, number>
   ): void {
     if (eventName === 'command.executed' && properties?.commandName) {
@@ -370,7 +373,9 @@ export class TelemetryCollector {
   /**
    * Sanitize properties to remove sensitive data
    */
-  private sanitizeProperties(properties?: Record<string, any>): Record<string, string | number | boolean> | undefined {
+  private sanitizeProperties(
+    properties?: TelemetryContext
+  ): Record<string, string | number | boolean> | undefined {
     if (!properties) {
       return undefined;
     }
@@ -527,7 +532,7 @@ export function trackCommandWithTiming<T>(
  */
 export function trackFeatureUsage(
   featureName: string,
-  context?: Record<string, any>
+  context?: TelemetryContext
 ): void {
   const telemetry = TelemetryCollector.getInstance();
   telemetry.trackFeature(featureName, context);
@@ -539,7 +544,7 @@ export function trackFeatureUsage(
 export function trackUserInteraction(
   action: string,
   target?: string,
-  context?: Record<string, any>
+  context?: TelemetryContext
 ): void {
   const telemetry = TelemetryCollector.getInstance();
   telemetry.trackUserAction(action, target, context);
@@ -549,11 +554,15 @@ export function trackUserInteraction(
  * Decorator for automatic command tracking
  */
 export function withTelemetry(commandName?: string) {
-  return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
+  return function (
+    target: TelemetryDecoratorTarget,
+    propertyName: string,
+    descriptor: PropertyDescriptor
+  ) {
     const method = descriptor.value;
     const name = commandName || `${target.constructor.name}.${propertyName}`;
     
-    descriptor.value = function (...args: any[]) {
+    descriptor.value = function (...args: unknown[]) {
       return trackCommandWithTiming(name, () => method.apply(this, args));
     };
     

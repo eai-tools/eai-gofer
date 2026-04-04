@@ -174,8 +174,12 @@ export abstract class CLIProviderAdapter extends BaseLLMProvider {
           );
         }
       }
-      this.markUnavailable(lastError!.message);
-      throw lastError!;
+      if (!lastError) {
+        throw new Error(`${this.name} query failed without an error`);
+      }
+
+      this.markUnavailable(lastError.message);
+      throw lastError;
     } finally {
       // Release lock for next query
       releaseLock!();

@@ -12,7 +12,6 @@
  * @see spec 017 T066: Parallel analysis framework
  */
 
-import * as fs from 'fs';
 import * as path from 'path';
 import { Logger } from '../utils/logger';
 
@@ -118,7 +117,7 @@ export class ParallelAnalysisFramework {
    * Format recommendations as a context section for ContextBuilder.
    */
   formatAsContextSection(recommendation: AnalysisRecommendation): string {
-    if (recommendation.partitions.length === 0) return '';
+    if (recommendation.partitions.length === 0) {return '';}
 
     const lines = [
       '## Parallel Analysis Recommendations',
@@ -150,7 +149,7 @@ export class ParallelAnalysisFramework {
       // Group by top-level directory under src/
       const parts = dir.split(path.sep);
       const groupKey = parts.length >= 2 ? parts.slice(0, 2).join('/') : dir;
-      if (!groups[groupKey]) groups[groupKey] = [];
+      if (!groups[groupKey]) {groups[groupKey] = [];}
       groups[groupKey].push(file);
     }
     return groups;
@@ -166,7 +165,7 @@ export class ParallelAnalysisFramework {
           break;
         }
       }
-      if (!groups[group]) groups[group] = [];
+      if (!groups[group]) {groups[group] = [];}
       groups[group].push(file);
     }
     return groups;
@@ -182,8 +181,8 @@ export class ParallelAnalysisFramework {
     const sortedDirs = Object.entries(dirGroups).sort((a, b) => b[1].length - a[1].length);
 
     for (const [dir, files] of sortedDirs) {
-      if (partitions.length >= this.config.maxPartitions) break;
-      if (files.length < this.config.minFilesPerPartition) continue;
+      if (partitions.length >= this.config.maxPartitions) {break;}
+      if (files.length < this.config.minFilesPerPartition) {continue;}
 
       partitions.push({
         agentType: priority <= 2 ? 'codebase-analyzer' : 'codebase-locator',
@@ -210,7 +209,7 @@ export class ParallelAnalysisFramework {
     let priority = 1;
 
     for (const [typeName, files] of Object.entries(typeGroups)) {
-      if (partitions.length >= this.config.maxPartitions) break;
+      if (partitions.length >= this.config.maxPartitions) {break;}
 
       const agentType = typeName === 'test' ? 'codebase-pattern-finder' :
         typeName === 'source' ? 'codebase-analyzer' : 'codebase-locator';
@@ -276,7 +275,7 @@ export class ParallelAnalysisFramework {
     taskDescription: string
   ): string {
     const recommendation = this.generateRecommendations(affectedFiles, taskDescription);
-    if (recommendation.partitions.length === 0) return '';
+    if (recommendation.partitions.length === 0) {return '';}
 
     const lines: string[] = [
       '## Parallel Analysis Dispatch',

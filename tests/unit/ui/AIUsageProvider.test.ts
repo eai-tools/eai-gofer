@@ -121,7 +121,7 @@ function createMockMonitor(data?: AIUsageData[]): EventEmitter & {
   return mock;
 }
 
-describe.skip('AIUsageProvider', () => {
+describe('AIUsageProvider', () => {
   let provider: AIUsageProvider;
   let mockMonitor: ReturnType<typeof createMockMonitor>;
 

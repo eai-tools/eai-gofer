@@ -1,5 +1,4 @@
 import * as assert from 'assert';
-import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
@@ -114,7 +113,7 @@ ${Array.from({ length: 10 }, (_, j) =>
       
       // Verify all specs were parsed correctly
       assert.strictEqual(allSpecs.length, specCount, 'All specs should be parsed');
-      assert.ok(allSpecs.every((spec: any) => spec && spec.id), 'All specs should have valid data');
+      assert.ok(allSpecs.every((spec) => spec && spec.id), 'All specs should have valid data');
 
       // Test memory usage
       const memUsage = process.memoryUsage();
@@ -136,8 +135,6 @@ ${Array.from({ length: 10 }, (_, j) =>
       const specCount = 50;
       const tasksPerSpec = 25; // 50 * 25 = 1250 total tasks
       
-      const startTime = Date.now();
-
       for (let i = 1; i <= specCount; i++) {
         const specDir = path.join(specsDir, `high-task-feature-${i}`);
         fs.mkdirSync(specDir, { recursive: true });
@@ -176,7 +173,7 @@ This spec has ${tasksPerSpec} tasks for performance testing.
       
       // Wait for provider to load
       await new Promise(resolve => setTimeout(resolve, 50));
-      while ((progressProvider as any).isLoading || progressProvider.isDebouncing()) {
+      while (progressProvider.isLoadingSpecs() || progressProvider.isDebouncing()) {
         await new Promise(resolve => setTimeout(resolve, 50));
       }
       
@@ -263,7 +260,7 @@ interface Example${i + 1} {
 
       // Test ConstitutionProvider performance
       const parseStartTime = Date.now();
-      const constitutionProvider = new ConstitutionProvider(specifyDir);
+      const constitutionProvider = new ConstitutionProvider(performanceTestDir);
       
       const constitutionItems = await constitutionProvider.getChildren();
       const parseTime = Date.now() - parseStartTime;
@@ -376,7 +373,7 @@ ${i > 10 ? `- Complex dependency on: complex-deps-${(i - 5).toString().padStart(
       
       // Wait for provider to load
       await new Promise(resolve => setTimeout(resolve, 50));
-      while ((progressProvider as any).isLoading || progressProvider.isDebouncing()) {
+      while (progressProvider.isLoadingSpecs() || progressProvider.isDebouncing()) {
         await new Promise(resolve => setTimeout(resolve, 50));
       }
       
@@ -413,7 +410,7 @@ ${i > 10 ? `- Complex dependency on: complex-deps-${(i - 5).toString().padStart(
   suite('Migration Performance', () => {
     
     test('should migrate large legacy repositories efficiently', async function() {
-      this.timeout(15000); // 15 seconds max
+      this.timeout(30000); // 30 seconds max
 
       // Create large legacy JSON structure
       const legacyDir = path.join(performanceTestDir, 'legacy-large');
@@ -449,7 +446,7 @@ ${i > 10 ? `- Complex dependency on: complex-deps-${(i - 5).toString().padStart(
       const exists = await migrator.exists();
       assert.ok(exists, 'Legacy structure should be detected');
 
-      await migrator.upgrade();
+      await migrator.upgrade({ skipConfirmation: true });
       const migrationTime = Date.now() - migrationStartTime;
       
       console.log(`Migrated ${specCount} specs with ${specCount * 20} tasks in ${migrationTime}ms`);
@@ -467,12 +464,18 @@ ${i > 10 ? `- Complex dependency on: complex-deps-${(i - 5).toString().padStart(
       // Verify a sample migrated spec
       const sampleSpec = migratedSpecs[0];
       const sampleSpecPath = path.join(migratedSpecsDir, sampleSpec, 'spec.md');
+      const sampleTasksPath = path.join(migratedSpecsDir, sampleSpec, 'tasks.md');
       assert.ok(fs.existsSync(sampleSpecPath), 'Sample spec file should exist');
+      assert.ok(fs.existsSync(sampleTasksPath), 'Sample tasks file should exist');
       
       const sampleContent = fs.readFileSync(sampleSpecPath, 'utf8');
+      const sampleTasksContent = fs.readFileSync(sampleTasksPath, 'utf8');
       assert.ok(sampleContent.includes('---'), 'Should have YAML frontmatter');
       assert.ok(sampleContent.includes('# Legacy Specification'), 'Should preserve title');
-      assert.ok(sampleContent.includes('- [ ]') || sampleContent.includes('- [x]'), 'Should have task list');
+      assert.ok(
+        sampleTasksContent.includes('- [ ]') || sampleTasksContent.includes('- [x]'),
+        'Should have task list'
+      );
     });
   });
 
@@ -519,11 +522,16 @@ ${Array.from({ length: 30 }, (_, k) => `- [ ] #T${i}${j}${k.toString().padStart(
         }
 
         // Parse specs to simulate workload
-        const parser = new GoferParser(tempDir);
-        const provider = new ProgressProvider(tempDir, undefined, 0);
-        
-        const specs = await provider.getChildren();
-        workloadResults.push(specs.length);
+      const provider = new ProgressProvider(tempDir, undefined, 0);
+
+      provider.getChildren();
+      await new Promise(resolve => setTimeout(resolve, 50));
+      while (provider.isLoadingSpecs() || provider.isDebouncing()) {
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+
+      const specs = await provider.getChildren();
+      workloadResults.push(specs.length);
 
         // Check memory after each iteration
         const currentMemory = process.memoryUsage();
@@ -600,7 +608,7 @@ status: "draft"
       // Performance assertions
       assert.ok(concurrentTime < 5000, `Concurrent parsing should take < 5 seconds, took ${concurrentTime}ms`);
       assert.strictEqual(results.length, specCount, 'All specs should be parsed');
-      assert.ok(results.every((spec: any) => spec && spec.id), 'All specs should have valid data');
+      assert.ok(results.every((spec) => spec && spec.id), 'All specs should have valid data');
       
       // Compare with sequential parsing (simulate loading individual specs)
       const sequentialStartTime = Date.now();

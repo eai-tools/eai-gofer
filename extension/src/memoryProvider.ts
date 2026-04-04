@@ -317,10 +317,10 @@ export class MemoryProvider implements vscode.TreeDataProvider<MemoryTreeItem> {
     const hours = Math.floor(diff / INTERVALS.MS_PER_HOUR);
     const days = Math.floor(diff / INTERVALS.MS_PER_DAY);
 
-    if (minutes < 1) return 'just now';
-    if (minutes < 60) return `${minutes}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    if (days < 30) return `${days}d ago`;
+    if (minutes < 1) {return 'just now';}
+    if (minutes < 60) {return `${minutes}m ago`;}
+    if (hours < 24) {return `${hours}h ago`;}
+    if (days < 30) {return `${days}d ago`;}
     return `${Math.floor(days / 30)}mo ago`;
   }
 }

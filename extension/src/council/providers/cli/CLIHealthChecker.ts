@@ -110,7 +110,7 @@ export class CLIHealthChecker {
       // Extract version from output (e.g., "claude 1.2.0" or "version 1.2.0")
       const versionMatch = stdout.match(/(\d+\.\d+\.\d+)/);
       return versionMatch ? versionMatch[1] : stdout.trim();
-    } catch (error) {
+    } catch (_error) {
       // Command not found or other error
       return null;
     }
@@ -203,7 +203,7 @@ export class CLIHealthChecker {
     // Parse version strings
     const parseVersion = (v: string): number[] => {
       const match = v.match(/(\d+)\.(\d+)\.(\d+)/);
-      if (!match) return [0, 0, 0];
+      if (!match) {return [0, 0, 0];}
       return [parseInt(match[1], 10), parseInt(match[2], 10), parseInt(match[3], 10)];
     };
 
@@ -212,8 +212,8 @@ export class CLIHealthChecker {
 
     // Compare major, minor, patch
     for (let i = 0; i < 3; i++) {
-      if (current[i] > minimum[i]) return true;
-      if (current[i] < minimum[i]) return false;
+      if (current[i] > minimum[i]) {return true;}
+      if (current[i] < minimum[i]) {return false;}
     }
 
     // Versions are equal

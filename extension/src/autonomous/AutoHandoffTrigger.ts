@@ -23,7 +23,7 @@ import type { ContextBuilder } from './ContextBuilder';
 import type { TaskContext } from './ContextBuilder';
 import { Logger } from '../utils/logger';
 import { CheckpointValidator } from './CheckpointValidator';
-import type { SlopReducer, WorkspaceReduceResult } from './SlopReducer';
+import type { SlopReducer } from './SlopReducer';
 // Removed: import type { IPty } from 'node-pty-prebuilt-multiarch' - no longer needed without PTY support
 
 /**
@@ -61,7 +61,7 @@ const DEFAULT_CONFIG: AutoHandoffConfig = {
   autoExecuteSave: true,
   autoSaveThreshold: 0.65,
   autoResumeAfterSave: true,
-  enableContinuousSlopReduction: true,
+  enableContinuousSlopReduction: false,
   slopScanIntervalMs: 2 * 60 * 1000, // 2 minutes
 };
 
@@ -292,9 +292,9 @@ export class AutoHandoffTrigger implements vscode.Disposable {
    * 4. Show confirmation notification
    */
   private async executeAutoSave(status: ContextHealthStatus): Promise<void> {
-    if (!this.config.enabled) return;
-    if (this.isInCooldown()) return;
-    if (this.pendingNotification) return;
+    if (!this.config.enabled) {return;}
+    if (this.isInCooldown()) {return;}
+    if (this.pendingNotification) {return;}
 
     this.pendingNotification = true;
     this.lastNotificationTime = Date.now();
@@ -454,9 +454,9 @@ export class AutoHandoffTrigger implements vscode.Disposable {
    * 3. Show notification summarizing what was done
    */
   private async autoReduceSlop(status: ContextHealthStatus): Promise<void> {
-    if (!this.config.enabled) return;
-    if (this.isInCooldown()) return;
-    if (this.pendingNotification) return;
+    if (!this.config.enabled) {return;}
+    if (this.isInCooldown()) {return;}
+    if (this.pendingNotification) {return;}
 
     this.pendingNotification = true;
     this.lastNotificationTime = Date.now();
@@ -907,9 +907,9 @@ export class AutoHandoffTrigger implements vscode.Disposable {
       const tiers = { full: 0, keyPoints: 0, masked: 0 };
       let totalObsTokens = 0;
       for (const obs of allObs) {
-        if (obs.decayTier === 'full') tiers.full++;
-        else if (obs.decayTier === 'key-points') tiers.keyPoints++;
-        else tiers.masked++;
+        if (obs.decayTier === 'full') {tiers.full++;}
+        else if (obs.decayTier === 'key-points') {tiers.keyPoints++;}
+        else {tiers.masked++;}
         totalObsTokens += obs.tokenEstimate;
       }
       lines.push(
@@ -952,7 +952,7 @@ export class AutoHandoffTrigger implements vscode.Disposable {
    * Returns null if no entries exist.
    */
   private readFailedApproaches(): string | null {
-    if (!this.workspaceRoot) return null;
+    if (!this.workspaceRoot) {return null;}
     const filePath = path.join(this.workspaceRoot, '.specify/logs/failed-approaches.jsonl');
     return this.readJsonlEntries(filePath, (entry: Record<string, unknown>) => {
       const approach = entry.approach || 'Unknown approach';
@@ -966,7 +966,7 @@ export class AutoHandoffTrigger implements vscode.Disposable {
    * Returns null if no entries exist.
    */
   private readSessionMemories(): string | null {
-    if (!this.workspaceRoot) return null;
+    if (!this.workspaceRoot) {return null;}
     const filePath = path.join(this.workspaceRoot, '.specify/logs/session-memory.jsonl');
     return this.readJsonlEntries(filePath, (entry: Record<string, unknown>) => {
       const type = entry.type || 'learning';
@@ -985,10 +985,10 @@ export class AutoHandoffTrigger implements vscode.Disposable {
     formatter: (entry: Record<string, unknown>) => string
   ): string | null {
     try {
-      if (!fs.existsSync(filePath)) return null;
+      if (!fs.existsSync(filePath)) {return null;}
       const content = fs.readFileSync(filePath, 'utf-8');
       const lines = content.split('\n').filter((line) => line.trim().length > 0);
-      if (lines.length === 0) return null;
+      if (lines.length === 0) {return null;}
 
       const formatted: string[] = [];
       for (const line of lines) {

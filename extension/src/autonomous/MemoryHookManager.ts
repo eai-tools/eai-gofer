@@ -219,7 +219,7 @@ export class MemoryHookManager {
         tokenEstimate: formatted.tokenEstimate,
         hasRelevant: memories.length > 0,
       };
-    } catch (error) {
+    } catch (_error) {
       return {
         formattedContext: '',
         memories: [],

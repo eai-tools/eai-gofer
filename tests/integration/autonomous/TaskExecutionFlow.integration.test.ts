@@ -1,65 +1,91 @@
-/**
- * Integration Test: Task Selection → Context Building → Terminal Execution
- *
- * NOTE: These tests require a real VSCode environment and will be implemented
- * when Phase 5 (Integration Tests) is fully executed with @vscode/test-electron.
- *
- * Tests the complete autonomous execution flow:
- * 1. Task selection from tasks.md
- * 2. Context building (spec, plan, tasks)
- * 3. Terminal launch and command execution
- * 4. Progress monitoring
- *
- * This validates the entire autonomous workflow end-to-end.
- */
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import * as fs from 'fs/promises';
+import * as os from 'os';
+import * as path from 'path';
+import { AutonomousOrchestrator } from '../../../src/orchestrator/AutonomousOrchestrator_new';
+import { SpecLoader } from '../../../src/orchestrator/SpecLoader';
 
-import { describe, it, expect } from 'vitest';
+describe('Integration: Task Execution Flow', () => {
+  let workspaceDir: string;
+  let specifyDir: string;
+  let specsDir: string;
+  const specId = '001-task-flow';
 
-describe.skip('Integration: Task Execution Flow (Requires VSCode)', () => {
-  it('should execute Play button workflow end-to-end', () => {
-    // Placeholder for future implementation
-    expect(true).toBe(true);
+  beforeEach(async () => {
+    workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), 'gofer-task-flow-'));
+    specifyDir = path.join(workspaceDir, '.specify');
+    specsDir = path.join(specifyDir, 'specs');
+    await fs.mkdir(path.join(specsDir, specId), { recursive: true });
   });
 
-  it('should select correct next task for execution', () => {
-    // Placeholder for future implementation
-    expect(true).toBe(true);
+  afterEach(async () => {
+    await fs.rm(workspaceDir, { recursive: true, force: true });
   });
 
-  it('should build complete context for task execution', () => {
-    // Placeholder for future implementation
-    expect(true).toBe(true);
+  async function writeSpec(tasksContent: string): Promise<void> {
+    const specDir = path.join(specsDir, specId);
+    const specContent = `---
+id: ${specId}
+title: Task Flow Spec
+status: draft
+created: 2026-04-04
+updated: 2026-04-04
+---
+
+# Task Flow Spec
+
+Verify task execution updates tasks.md as work completes.
+`;
+
+    await fs.writeFile(path.join(specDir, 'spec.md'), specContent, 'utf-8');
+    await fs.writeFile(path.join(specDir, 'tasks.md'), tasksContent, 'utf-8');
+  }
+
+  it('loads real task IDs from tasks.md instead of synthetic sequential IDs', async () => {
+    await writeSpec(`# Tasks
+
+- [ ] T001 First task
+- [ ] #T002 Second task
+- [x] **T003**: Third task`);
+
+    const loader = new SpecLoader(specsDir);
+    const spec = await loader.loadSpec(specId);
+
+    expect(spec.tasks.map((task) => task.id)).toEqual(['T001', 'T002', 'T003']);
+    expect(spec.tasks.map((task) => task.status)).toEqual(['pending', 'pending', 'completed']);
   });
 
-  it('should handle task dependencies correctly', () => {
-    // Placeholder for future implementation
-    expect(true).toBe(true);
+  it('marks pending tasks complete when the orchestrator runs from a .specify path', async () => {
+    await writeSpec(`# Tasks
+
+- [ ] T001 First task
+- [ ] #T002 Second task`);
+
+    const orchestrator = new AutonomousOrchestrator(specifyDir);
+    await orchestrator.start();
+
+    const updatedTasks = await fs.readFile(path.join(specsDir, specId, 'tasks.md'), 'utf-8');
+    expect(updatedTasks).toContain('- [x] #T001 First task');
+    expect(updatedTasks).toContain('- [x] #T002 Second task');
+
+    const ipcStatus = JSON.parse(
+      await fs.readFile(path.join(specifyDir, 'ipc', 'status.json'), 'utf-8')
+    ) as { state?: string; last_output?: string };
+    expect(ipcStatus.state).toBe('awaiting_input');
+    expect(ipcStatus.last_output).toContain('Task T002');
   });
 
-  it('should monitor terminal output during execution', () => {
-    // Placeholder for future implementation
-    expect(true).toBe(true);
-  });
+  it('preserves completed tasks and updates remaining pending tasks when given a specs path', async () => {
+    await writeSpec(`# Tasks
 
-  it('should mark task as completed after successful execution', () => {
-    // Placeholder for future implementation
-    expect(true).toBe(true);
-  });
+- [x] #T001 Already done
+- [ ] T002 Remaining work`);
 
-  it('should handle errors during task execution', () => {
-    // Placeholder for future implementation
-    expect(true).toBe(true);
+    const orchestrator = new AutonomousOrchestrator(specsDir);
+    await orchestrator.start();
+
+    const updatedTasks = await fs.readFile(path.join(specsDir, specId, 'tasks.md'), 'utf-8');
+    expect(updatedTasks).toContain('- [x] #T001 Already done');
+    expect(updatedTasks).toContain('- [x] #T002 Remaining work');
   });
 });
-
-/**
- * Implementation Plan (Phase 5):
- *
- * 1. Set up VSCode test environment with terminal access
- * 2. Create test workspace with specs and tasks
- * 3. Trigger autonomous execution via commands
- * 4. Monitor terminal output and task status
- * 5. Verify task completion and error handling
- *
- * Expected Coverage Gain: +12-18pp
- */

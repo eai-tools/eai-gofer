@@ -33,6 +33,7 @@ import type { ObservationBridge } from '../autonomous/ObservationBridge';
 import type { AIUsageMonitor } from '../autonomous/AIUsageMonitor';
 import type { AIUsageProvider } from '../ui/AIUsageProvider';
 import type { AIUsageStatusBar } from '../ui/AIUsageStatusBar';
+import type { ResourceDiagnostics } from '../autonomous/ResourceDiagnostics';
 
 /**
  * Disposable resource types that can be managed
@@ -62,6 +63,7 @@ export interface ManagedResources {
   aiUsageMonitor?: AIUsageMonitor;
   aiUsageProvider?: AIUsageProvider;
   aiUsageStatusBar?: AIUsageStatusBar;
+  resourceDiagnostics?: ResourceDiagnostics;
 }
 
 /**
@@ -250,6 +252,10 @@ export class DisposalService {
     if (resources.aiUsageStatusBar) {
       resources.aiUsageStatusBar.dispose();
       resources.aiUsageStatusBar = undefined;
+    }
+    if (resources.resourceDiagnostics) {
+      resources.resourceDiagnostics.dispose();
+      resources.resourceDiagnostics = undefined;
     }
   }
 

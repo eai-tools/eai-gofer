@@ -230,7 +230,7 @@ export class MemoryLayerManager {
    * @returns Number of memories demoted
    */
   async demoteMemories(currentTask?: string): Promise<number> {
-    if (!this.memoryManager) return 0;
+    if (!this.memoryManager) {return 0;}
 
     try {
       const recall = await this.getRecallMemory(50); // Get more than usual for demotion candidates
@@ -262,7 +262,7 @@ export class MemoryLayerManager {
     let demoted = 0;
 
     for (const mem of candidates) {
-      if (this.llmProvider!.isRateLimited()) break;
+      if (this.llmProvider!.isRateLimited()) {break;}
 
       try {
         const prompt = `Rate the relevance of this memory to the current task on a scale of 0-10. Return ONLY a number.\n\nTask: ${currentTask.slice(0, 500)}\n\nMemory: ${mem.content.slice(0, 500)}`;
@@ -307,7 +307,7 @@ export class MemoryLayerManager {
   /**
    * Format all layers as a context section for ContextBuilder.
    */
-  async formatAsContextSection(taskContext?: string): Promise<string> {
+  async formatAsContextSection(_taskContext?: string): Promise<string> {
     const core = await this.getCoreMemory();
     const recall = await this.getRecallMemory();
 

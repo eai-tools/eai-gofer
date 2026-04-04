@@ -142,7 +142,7 @@ export class ContextWindowProvider
    * Session-level tree items with health icons and utilization.
    */
   private getSessionItems(): ContextWindowItem[] {
-    if (!this.watcher) return [];
+    if (!this.watcher) {return [];}
 
     const sessions = this.watcher.getSessions();
     const items: ContextWindowItem[] = [];
@@ -190,9 +190,9 @@ export class ContextWindowProvider
    * Falls back to the old percentage-based estimates if no scanner is set.
    */
   private getCategoryItems(sessionId: string): ContextWindowItem[] {
-    if (!this.watcher) return [];
+    if (!this.watcher) {return [];}
     const data = this.watcher.getSessions().get(sessionId);
-    if (!data?.context) return [];
+    if (!data?.context) {return [];}
 
     const totalContextTokens = data.context.totalContextTokens;
 
@@ -344,10 +344,10 @@ export class ContextWindowProvider
   }
 
   private formatModel(model: string): string {
-    if (!model) return 'unknown';
-    if (model.includes('opus')) return 'Opus';
-    if (model.includes('sonnet')) return 'Sonnet';
-    if (model.includes('haiku')) return 'Haiku';
+    if (!model) {return 'unknown';}
+    if (model.includes('opus')) {return 'Opus';}
+    if (model.includes('sonnet')) {return 'Sonnet';}
+    if (model.includes('haiku')) {return 'Haiku';}
     return model.split('-').slice(0, 2).join(' ');
   }
 
@@ -359,8 +359,8 @@ export class ContextWindowProvider
   }
 
   private getHealthColor(utilization: number): string {
-    if (utilization > 70) return 'charts.red';
-    if (utilization > 50) return 'charts.yellow';
+    if (utilization > 70) {return 'charts.red';}
+    if (utilization > 50) {return 'charts.yellow';}
     return 'charts.green';
   }
 

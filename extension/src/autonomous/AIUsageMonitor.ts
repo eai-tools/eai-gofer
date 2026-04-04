@@ -14,7 +14,7 @@
 import * as vscode from 'vscode';
 import { EventEmitter } from 'events';
 import { Logger } from '../utils/logger';
-import { COST_PER_1K_TOKENS, isPricingStale, calculateCost } from '../config/pricing';
+import { isPricingStale } from '../config/pricing';
 import type {
   AIUsageData,
   UsagePeriod,
@@ -43,9 +43,9 @@ export class AIUsageMonitor extends EventEmitter implements vscode.Disposable {
   /** Cached usage data by period */
   private cachedData: Map<UsagePeriod, AIUsageData> = new Map();
   private cacheTimestamp = 0;
-  private static readonly CACHE_TTL_MS = 5000;
-  private static readonly DEBOUNCE_MS = 100;
-  private static readonly IDLE_THRESHOLD_MS = 10 * 60 * 1000; // 10 minutes
+  private static readonly cacheTtlMs = 5000;
+  private static readonly debounceMs = 100;
+  private static readonly idleThresholdMs = 10 * 60 * 1000; // 10 minutes
 
   /** Session subscription cleanup */
   private sessionListenerCleanup: (() => void) | null = null;
@@ -127,7 +127,7 @@ export class AIUsageMonitor extends EventEmitter implements vscode.Disposable {
     const now = Date.now();
 
     // Return cached data if within TTL
-    if (now - this.cacheTimestamp < AIUsageMonitor.CACHE_TTL_MS && this.cachedData.has(period)) {
+    if (now - this.cacheTimestamp < AIUsageMonitor.cacheTtlMs && this.cachedData.has(period)) {
       return this.cachedData.get(period)!;
     }
 
@@ -176,6 +176,13 @@ export class AIUsageMonitor extends EventEmitter implements vscode.Disposable {
   }
 
   /**
+   * Get the workspace path associated with this monitor.
+   */
+  getWorkspacePath(): string {
+    return this.workspacePath;
+  }
+
+  /**
    * Set panel visibility state. When panel becomes visible after idle,
    * triggers immediate refresh.
    */
@@ -185,7 +192,7 @@ export class AIUsageMonitor extends EventEmitter implements vscode.Disposable {
 
     if (visible && wasHidden) {
       const idleMs = Date.now() - this.lastApiCallTimestamp;
-      if (this.lastApiCallTimestamp > 0 && idleMs > AIUsageMonitor.IDLE_THRESHOLD_MS) {
+      if (this.lastApiCallTimestamp > 0 && idleMs > AIUsageMonitor.idleThresholdMs) {
         this.logger.info('Panel visible after idle, triggering immediate refresh');
         this.forceRefresh();
       }
@@ -196,7 +203,7 @@ export class AIUsageMonitor extends EventEmitter implements vscode.Disposable {
    * Dispose all resources.
    */
   dispose(): void {
-    if (this.disposed) return;
+    if (this.disposed) {return;}
     this.disposed = true;
 
     this.stopMonitoring();
@@ -336,9 +343,9 @@ export class AIUsageMonitor extends EventEmitter implements vscode.Disposable {
    */
   private setupFileWatcher(): void {
     // Skip file watching when using API client
-    if (this.dataSource instanceof UsageApiClient) return;
+    if (this.dataSource instanceof UsageApiClient) {return;}
     // Guard against duplicate watchers
-    if (this.watcher) return;
+    if (this.watcher) {return;}
 
     try {
       const pattern = new vscode.RelativePattern(
@@ -366,7 +373,7 @@ export class AIUsageMonitor extends EventEmitter implements vscode.Disposable {
    */
   private setupPolling(): void {
     // Guard against duplicate intervals
-    if (this.pollingTimer) return;
+    if (this.pollingTimer) {return;}
 
     const config = vscode.workspace.getConfiguration('gofer');
     // API data-source polls at 60s (not 1h) because filesystem watching is
@@ -378,7 +385,7 @@ export class AIUsageMonitor extends EventEmitter implements vscode.Disposable {
 
     this.pollingTimer = setInterval(() => {
       // Skip polling when panel is not visible (T022)
-      if (!this.panelVisible) return;
+      if (!this.panelVisible) {return;}
       this.handleFileChange('polling');
     }, interval);
 
@@ -389,7 +396,7 @@ export class AIUsageMonitor extends EventEmitter implements vscode.Disposable {
    * Set up session change listener.
    */
   private setupSessionListener(): void {
-    if (!this.multiSessionWatcher || this.sessionListenerCleanup) return;
+    if (!this.multiSessionWatcher || this.sessionListenerCleanup) {return;}
 
     const onBridgeUpdate = () => {
       this.handleFileChange('session-change');
@@ -408,10 +415,10 @@ export class AIUsageMonitor extends EventEmitter implements vscode.Disposable {
 
   /**
    * Handle file change with debouncing.
-   * Multiple writes within DEBOUNCE_MS trigger only one update.
+   * Multiple writes within debounceMs trigger only one update.
    */
   private handleFileChange(trigger: UsageUpdateEvent['trigger']): void {
-    if (this.disposed) return;
+    if (this.disposed) {return;}
 
     // Debounce rapid changes
     if (this.debounceTimer) {
@@ -444,7 +451,7 @@ export class AIUsageMonitor extends EventEmitter implements vscode.Disposable {
         trigger,
         totalCost: periods.find((p) => p.period === 'current')?.totalCostUsd ?? 0,
       });
-    }, AIUsageMonitor.DEBOUNCE_MS);
+    }, AIUsageMonitor.debounceMs);
   }
 
   // --- Cleanup Methods ---

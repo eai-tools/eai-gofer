@@ -20,7 +20,7 @@ import type { BridgeData } from './HookBridgeWatcher';
 import { Logger } from '../utils/logger';
 
 /** Maps Claude Code tool names to ObservationType */
-// eslint-disable-next-line @typescript-eslint/naming-convention
+ 
 const TOOL_TYPE_MAP = new Map<string, ObservationType>([
   ['Read', 'file_read'],
   ['Bash', 'command_output'],

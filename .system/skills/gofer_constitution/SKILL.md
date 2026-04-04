@@ -1,7 +1,6 @@
 ---
 name: gofer_constitution
-description:
-  Create or update project constitution with coding principles and guidelines
+description: Create or update project constitution with coding principles and guidelines
 arguments:
   - name: feature
     description: Feature name or description
@@ -18,6 +17,7 @@ result_schema:
         - success
         - error
 ---
+
 
 # Gofer Constitution
 

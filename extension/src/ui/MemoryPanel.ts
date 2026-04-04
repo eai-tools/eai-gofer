@@ -9,6 +9,16 @@ import * as vscode from 'vscode';
 import { type MemoryManager } from '../autonomous/MemoryManager';
 import { type Memory, type MemoryQuery } from '../autonomous/memory';
 
+interface MemoryPanelMessage {
+  command: string;
+  keywords?: string;
+  category?: string;
+  id?: string;
+  tags?: string[];
+  scope?: 'all' | 'local' | 'global';
+  showSystemMemories?: boolean;
+}
+
 /**
  * MemoryPanel manages the webview for displaying and searching memories.
  */
@@ -108,7 +118,7 @@ export class MemoryPanel {
    *
    * @param message - Message from webview
    */
-  private async handleMessage(message: { command: string; [key: string]: any }): Promise<void> {
+  private async handleMessage(message: MemoryPanelMessage): Promise<void> {
     switch (message.command) {
       case 'search': {
         const query: MemoryQuery = {
@@ -129,7 +139,7 @@ export class MemoryPanel {
       }
 
       case 'toggleSystemMemories': {
-        this.showSystemMemories = message.showSystemMemories;
+        this.showSystemMemories = message.showSystemMemories ?? false;
 
         // Debounce rapid toggle clicks to prevent race conditions
         if (this.updateDebounceTimer) {
@@ -146,6 +156,11 @@ export class MemoryPanel {
       }
 
       case 'delete': {
+        if (!message.id) {
+          vscode.window.showErrorMessage('No memory ID provided');
+          break;
+        }
+
         try {
           await this.memoryManager.forget(message.id);
           vscode.window.showInformationMessage('Memory deleted');
@@ -158,6 +173,10 @@ export class MemoryPanel {
       }
 
       case 'recordUsage': {
+        if (!message.id) {
+          break;
+        }
+
         try {
           await this.memoryManager.recordUsage(message.id);
         } catch (error) {
@@ -167,7 +186,8 @@ export class MemoryPanel {
       }
 
       case 'clearScope': {
-        const scopeLabel = message.scope === 'all' ? 'all memories' : `${message.scope} memories`;
+        const scope = message.scope ?? 'all';
+        const scopeLabel = scope === 'all' ? 'all memories' : `${scope} memories`;
         const confirmed = await vscode.window.showWarningMessage(
           `Are you sure you want to clear ${scopeLabel}? This cannot be undone.`,
           { modal: true },
@@ -176,7 +196,7 @@ export class MemoryPanel {
 
         if (confirmed === 'Clear') {
           try {
-            const count = await this.memoryManager.clear(message.scope);
+            const count = await this.memoryManager.clear(scope);
             vscode.window.showInformationMessage(`Cleared ${count} ${scopeLabel}`);
             this.panel.webview.postMessage({ command: 'refresh' });
           } catch (error) {

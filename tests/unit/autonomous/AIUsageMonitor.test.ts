@@ -135,6 +135,10 @@ describe('AIUsageMonitor', () => {
   });
 
   describe('getUsageData()', () => {
+    it('should expose the workspace path', () => {
+      expect(monitor.getWorkspacePath()).toBe('/workspace');
+    });
+
     it('should return aggregated data for current session', async () => {
       const data = await monitor.getUsageData('current');
 

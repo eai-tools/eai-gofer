@@ -190,7 +190,7 @@ export class SubAgentDispatcher {
   truncateResult(result: string, maxTokens?: number): string {
     const budget = maxTokens ?? this.currentRecommendation?.tokenBudget ?? 2000;
     const maxChars = budget * 4; // ~4 chars per token
-    if (result.length <= maxChars) return result;
+    if (result.length <= maxChars) {return result;}
 
     const headSize = Math.floor(maxChars * 0.7);
     const tailSize = Math.floor(maxChars * 0.2);

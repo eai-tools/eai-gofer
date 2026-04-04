@@ -214,7 +214,7 @@ export class ErrorRecovery {
 
           return error;
         }
-      } catch (err) {
+    } catch (_err) {
         const attempt: RetryAttempt = {
           attemptNumber,
           timestamp: new Date().toISOString(),

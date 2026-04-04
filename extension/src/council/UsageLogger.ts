@@ -9,7 +9,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { UsageMetrics, ProviderId, CouncilConfig } from './types';
+import { UsageMetrics, CouncilConfig } from './types';
 import type { UsageDataSource } from '../types/aiUsage';
 import { Logger } from '../utils/logger';
 import { calculateCost } from '../config/pricing';

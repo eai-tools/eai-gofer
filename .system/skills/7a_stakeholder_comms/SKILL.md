@@ -20,6 +20,7 @@ result_schema:
         - error
 ---
 
+
 # Gofer Stakeholder Communications
 
 You are generating a **stakeholder communications package** after a feature has

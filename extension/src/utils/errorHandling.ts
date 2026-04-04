@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { Logger, LogLevel } from './logger';
+import { Logger } from './logger';
 import { ConfigManager } from '../config';
 
 /**
@@ -28,11 +28,13 @@ export enum ErrorCategory {
 export interface ErrorContext {
   component: string;
   operation: string;
-  data?: any;
+  data?: unknown;
   timestamp: Date;
   userAction?: string;
   recovery?: ErrorRecoveryStrategy;
 }
+
+type ErrorHandlingDecoratorTarget = { constructor: { name: string } };
 
 export interface ErrorRecoveryStrategy {
   type: 'retry' | 'fallback' | 'ignore' | 'manual';
@@ -569,10 +571,14 @@ export function withErrorHandling(
   category: ErrorCategory = ErrorCategory.unknown,
   userMessage?: string
 ) {
-  return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
+  return function (
+    target: ErrorHandlingDecoratorTarget,
+    propertyName: string,
+    descriptor: PropertyDescriptor
+  ) {
     const method = descriptor.value;
     
-    descriptor.value = async function (...args: any[]) {
+    descriptor.value = async function (...args: unknown[]) {
       try {
         return await method.apply(this, args);
       } catch (error) {

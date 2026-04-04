@@ -36,6 +36,7 @@ import { ObservationBridge } from '../autonomous/ObservationBridge';
 import { AIUsageMonitor } from '../autonomous/AIUsageMonitor';
 import { AIUsageProvider } from '../ui/AIUsageProvider';
 import { AIUsageStatusBar } from '../ui/AIUsageStatusBar';
+import { ResourceDiagnostics } from '../autonomous/ResourceDiagnostics';
 
 /**
  * State Manager Service
@@ -92,6 +93,7 @@ export class StateManager {
   private _aiUsageMonitor?: AIUsageMonitor;
   private _aiUsageProvider?: AIUsageProvider;
   private _aiUsageStatusBar?: AIUsageStatusBar;
+  private _resourceDiagnostics?: ResourceDiagnostics;
 
   // Flags
   private _isUpgrading = false;
@@ -359,6 +361,14 @@ export class StateManager {
     this._aiUsageStatusBar = value;
   }
 
+  public get resourceDiagnostics(): ResourceDiagnostics | undefined {
+    return this._resourceDiagnostics;
+  }
+
+  public set resourceDiagnostics(value: ResourceDiagnostics | undefined) {
+    this._resourceDiagnostics = value;
+  }
+
   // --- Flags ---
 
   public get isUpgrading(): boolean {
@@ -396,6 +406,7 @@ export class StateManager {
     this._aiUsageMonitor = undefined;
     this._aiUsageProvider = undefined;
     this._aiUsageStatusBar = undefined;
+    this._resourceDiagnostics = undefined;
   }
 
   /**

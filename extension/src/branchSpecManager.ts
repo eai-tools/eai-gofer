@@ -212,7 +212,7 @@ export class BranchSpecManager {
   private async ensureDirectory(dirPath: string): Promise<void> {
     try {
       await fs.mkdir(dirPath, { recursive: true });
-    } catch (error) {
+    } catch (_error) {
       // Directory might already exist
     }
   }

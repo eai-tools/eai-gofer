@@ -7,7 +7,10 @@
 
 import Ajv from 'ajv';
 import type { ValidateFunction, ErrorObject } from 'ajv';
-import { type Memory } from './memory';
+
+type ValidationErrorObject = ErrorObject & {
+  dataPath?: string;
+};
 
 /**
  * Configured ajv instance with strict validation rules.
@@ -221,7 +224,8 @@ export function formatValidationErrors(errors: ErrorObject[] | null | undefined)
 
   return errors
     .map((err) => {
-      const path = (err as any).instancePath || (err as any).dataPath || 'root';
+      const validationError = err as ValidationErrorObject;
+      const path = validationError.instancePath || validationError.dataPath || 'root';
       const message = err.message || 'validation failed';
       return `${path}: ${message}`;
     })

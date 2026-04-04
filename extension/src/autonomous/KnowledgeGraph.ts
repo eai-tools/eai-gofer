@@ -109,7 +109,7 @@ export class KnowledgeGraph {
    * Persist graph to disk.
    */
   async save(): Promise<void> {
-    if (!this.dirty) return;
+    if (!this.dirty) {return;}
 
     const dir = path.dirname(this.graphPath);
     await fs.mkdir(dir, { recursive: true });
@@ -214,14 +214,14 @@ export class KnowledgeGraph {
    */
   querySubgraph(startNodeId: string, maxDepth: number = DEFAULT_BFS_DEPTH): SubgraphResult {
     const result: SubgraphResult = { nodes: [], edges: [] };
-    if (!this.graph.hasNode(startNodeId)) return result;
+    if (!this.graph.hasNode(startNodeId)) {return result;}
 
     const visited = new Set<string>();
     const queue: Array<{ id: string; depth: number }> = [{ id: startNodeId, depth: 0 }];
 
     while (queue.length > 0) {
       const { id, depth } = queue.shift()!;
-      if (visited.has(id)) continue;
+      if (visited.has(id)) {continue;}
       visited.add(id);
 
       const nodeData = this.graph.node(id) as GraphNode;
@@ -229,7 +229,7 @@ export class KnowledgeGraph {
         result.nodes.push({ id, data: nodeData });
       }
 
-      if (depth >= maxDepth) continue;
+      if (depth >= maxDepth) {continue;}
 
       // Follow outgoing edges
       const successors = this.graph.successors(id);
@@ -271,7 +271,7 @@ export class KnowledgeGraph {
    */
   querySubgraphWeighted(startNodeId: string, maxDepth: number = DEFAULT_BFS_DEPTH): SubgraphResult {
     const result: SubgraphResult = { nodes: [], edges: [] };
-    if (!this.graph.hasNode(startNodeId)) return result;
+    if (!this.graph.hasNode(startNodeId)) {return result;}
 
     const visited = new Set<string>();
     // Priority queue: sorted by cumulative weight descending
@@ -281,7 +281,7 @@ export class KnowledgeGraph {
 
     while (pq.length > 0) {
       const current = pq.shift()!;
-      if (visited.has(current.id)) continue;
+      if (visited.has(current.id)) {continue;}
       visited.add(current.id);
 
       const nodeData = this.graph.node(current.id) as GraphNode;
@@ -289,7 +289,7 @@ export class KnowledgeGraph {
         result.nodes.push({ id: current.id, data: nodeData });
       }
 
-      if (current.depth >= maxDepth) continue;
+      if (current.depth >= maxDepth) {continue;}
 
       // Follow outgoing edges, weighted
       const successors = this.graph.successors(current.id);
@@ -348,19 +348,19 @@ export class KnowledgeGraph {
 
     for (const id of this.graph.nodes()) {
       const data = this.graph.node(id) as GraphNode;
-      if (!data) continue;
+      if (!data) {continue;}
       // Build text from node name, path, and metadata
       const parts = [data.name];
-      if (data.path) parts.push(data.path);
+      if (data.path) {parts.push(data.path);}
       if (data.metadata) {
         for (const val of Object.values(data.metadata)) {
-          if (typeof val === 'string') parts.push(val);
+          if (typeof val === 'string') {parts.push(val);}
         }
       }
       corpus.push({ id, text: parts.join(' ') });
     }
 
-    if (corpus.length === 0) return [];
+    if (corpus.length === 0) {return [];}
 
     const ranked = computeCorpusSimilarity(queryText, corpus, minSimilarity);
     return ranked.map((r) => ({
@@ -379,9 +379,9 @@ export class KnowledgeGraph {
 
     for (const id of this.graph.nodes()) {
       const data = this.graph.node(id) as GraphNode;
-      if (!data) continue;
+      if (!data) {continue;}
 
-      if (nodeType && data.type !== nodeType) continue;
+      if (nodeType && data.type !== nodeType) {continue;}
 
       if (data.name.toLowerCase().includes(lowerQuery) || id.toLowerCase().includes(lowerQuery)) {
         results.push({ id, data });
@@ -503,7 +503,7 @@ export class KnowledgeGraph {
 
     for (const id of this.graph.nodes()) {
       const data = this.graph.node(id) as GraphNode;
-      if (!data) continue;
+      if (!data) {continue;}
       const key = `${data.type}:${data.name}`;
       const existing = nodesByName.get(key) || [];
       existing.push(id);
@@ -512,7 +512,7 @@ export class KnowledgeGraph {
 
     let mergedCount = 0;
     for (const [, ids] of nodesByName) {
-      if (ids.length <= 1) continue;
+      if (ids.length <= 1) {continue;}
 
       // Keep the node with the most recent lastSeen
       const sorted = ids
@@ -560,7 +560,7 @@ export class KnowledgeGraph {
    * Evict least-recently-used nodes when the graph exceeds MAX_NODES.
    */
   private evictIfNeeded(): void {
-    if (this.graph.nodeCount() < MAX_NODES) return;
+    if (this.graph.nodeCount() < MAX_NODES) {return;}
 
     // Collect all nodes with lastSeen
     const nodes: Array<{ id: string; lastSeen: number }> = [];

@@ -18,6 +18,7 @@ result_schema:
         - error
 ---
 
+
 # Gofer Hydrate
 
 You are analyzing existing code and generating a compliant specification
@@ -179,8 +180,8 @@ source_files:
 # [Feature Title]
 
 > This specification was reverse-engineered from existing code using
-> `$ $gofer_hydrate`. It reflects the **current implementation**, not
-> necessarily the original requirements.
+> `$ $gofer_hydrate`. It reflects the **current implementation**, not necessarily
+> the original requirements.
 
 ## Overview
 

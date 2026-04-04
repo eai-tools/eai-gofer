@@ -95,6 +95,15 @@ vi.mock('vscode', () => ({
   },
 }));
 
+function runSdkMockingTest(
+  name: string,
+  fn: () => Promise<void> | void
+): void {
+  if (process.env.RUN_CLAUDE_RESPONDER_SDK_TESTS === '1') {
+    it(name, fn);
+  }
+}
+
 describe('ClaudeCodeAutonomousResponder', () => {
   let responder: ClaudeCodeAutonomousResponder;
   let mockPtyProcess: any;
@@ -187,7 +196,7 @@ Which approach should I use?
       // TODO: Fix Anthropic API mocking - these tests need refactoring
       // The mock isn't being picked up correctly in getAutonomousResponse
       // Feature is fully functional in production (v3.1.0) - tests need fixing separately
-      it.skip('should generate CONTINUE_IMPLEMENT action when tasks are incomplete', async () => {
+      runSdkMockingTest('should generate CONTINUE_IMPLEMENT action when tasks are incomplete', async () => {
         // Setup mock response
         mockCreate.mockResolvedValue({
           content: [{ type: 'text', text: 'ACTION: CONTINUE_IMPLEMENT' }],
@@ -214,7 +223,7 @@ Which approach should I use?
         );
       });
 
-      it.skip('should generate ENGINEERING_REVIEW action at 40-80% completion', async () => {
+      runSdkMockingTest('should generate ENGINEERING_REVIEW action at 40-80% completion', async () => {
         // Setup mock response
         mockCreate.mockResolvedValue({
           content: [{ type: 'text', text: 'ACTION: ENGINEERING_REVIEW' }],
@@ -235,7 +244,7 @@ Which approach should I use?
         expect(response).toContain('specification');
       });
 
-      it.skip('should generate PERFORMANCE_REVIEW action at >70% completion', async () => {
+      runSdkMockingTest('should generate PERFORMANCE_REVIEW action at >70% completion', async () => {
         // Setup mock response
         mockCreate.mockResolvedValue({
           content: [{ type: 'text', text: 'ACTION: PERFORMANCE_REVIEW' }],
@@ -256,7 +265,7 @@ Which approach should I use?
         expect(response).toContain('architecture');
       });
 
-      it.skip('should answer direct questions with appropriate response', async () => {
+      runSdkMockingTest('should answer direct questions with appropriate response', async () => {
         // Setup mock response
         mockCreate.mockResolvedValue({
           content: [{ type: 'text', text: '1' }],
@@ -296,47 +305,49 @@ Which approach should I use?
       });
     });
 
-    describe('Response Formatting', () => {
-      it.skip('should add newline to text responses for terminal submission', async () => {
-        // Setup mock response
-        mockCreate.mockResolvedValue({
-          content: [{ type: 'text', text: 'Test answer' }],
-          usage: { input_tokens: 100, output_tokens: 20 },
+    if (process.env.RUN_CLAUDE_RESPONDER_SDK_TESTS === '1') {
+      describe('Response Formatting', () => {
+        it('should add newline to text responses for terminal submission', async () => {
+          // Setup mock response
+          mockCreate.mockResolvedValue({
+            content: [{ type: 'text', text: 'Test answer' }],
+            usage: { input_tokens: 100, output_tokens: 20 },
+          });
+
+          vi.mocked(fs.readFile).mockResolvedValue('Test content' as any);
+
+          const context: QuestionContext = {
+            specId: '001-test-spec',
+            question: 'Test question',
+            terminalOutput: 'Test question?\n>',
+          };
+
+          const response = await responder.getAutonomousResponse('/test/workspace', context);
+
+          expect(response).toBe('Test answer\n');
         });
 
-        vi.mocked(fs.readFile).mockResolvedValue('Test content' as any);
+        it('should convert CONTINUE_IMPLEMENT to /5_gofer_implement command', async () => {
+          // Setup mock response
+          mockCreate.mockResolvedValue({
+            content: [{ type: 'text', text: 'ACTION: CONTINUE_IMPLEMENT' }],
+            usage: { input_tokens: 100, output_tokens: 20 },
+          });
 
-        const context: QuestionContext = {
-          specId: '001-test-spec',
-          question: 'Test question',
-          terminalOutput: 'Test question?\n>',
-        };
+          vi.mocked(fs.readFile).mockResolvedValue('Test content' as any);
 
-        const response = await responder.getAutonomousResponse('/test/workspace', context);
+          const context: QuestionContext = {
+            specId: '001-test-spec',
+            question: 'haiku-will-analyze',
+            terminalOutput: 'Ready for next task\n>',
+          };
 
-        expect(response).toBe('Test answer\n');
-      });
+          const response = await responder.getAutonomousResponse('/test/workspace', context);
 
-      it.skip('should convert CONTINUE_IMPLEMENT to /5_gofer_implement command', async () => {
-        // Setup mock response
-        mockCreate.mockResolvedValue({
-          content: [{ type: 'text', text: 'ACTION: CONTINUE_IMPLEMENT' }],
-          usage: { input_tokens: 100, output_tokens: 20 },
+          expect(response).toBe('/5_gofer_implement\n');
         });
-
-        vi.mocked(fs.readFile).mockResolvedValue('Test content' as any);
-
-        const context: QuestionContext = {
-          specId: '001-test-spec',
-          question: 'haiku-will-analyze',
-          terminalOutput: 'Ready for next task\n>',
-        };
-
-        const response = await responder.getAutonomousResponse('/test/workspace', context);
-
-        expect(response).toBe('/5_gofer_implement\n');
       });
-    });
+    }
 
     describe('PTY Response Sending', () => {
       it('should send numbered choices without ESC key', async () => {
@@ -398,7 +409,7 @@ Which approach should I use?
 
   describe('T043: Context Loading', () => {
     // TODO: Fix Anthropic API mocking for these tests
-    it.skip('should load all context files through getAutonomousResponse', async () => {
+    runSdkMockingTest('should load all context files through getAutonomousResponse', async () => {
       // Setup mock response
       mockCreate.mockResolvedValue({
         content: [{ type: 'text', text: '1' }],
@@ -450,7 +461,7 @@ Which approach should I use?
       expect(userMessage.content).toContain(mockTasks);
     });
 
-    it.skip('should handle missing context files gracefully', async () => {
+    runSdkMockingTest('should handle missing context files gracefully', async () => {
       // Setup mock response
       mockCreate.mockResolvedValue({
         content: [{ type: 'text', text: '1' }],

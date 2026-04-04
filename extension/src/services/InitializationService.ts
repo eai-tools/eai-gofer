@@ -157,8 +157,8 @@ export class InitializationService {
    *          and creates all components), so the caller should skip component creation
    */
   private async handleNoGofer(
-    context: vscode.ExtensionContext,
-    workspacePath: string
+    _context: vscode.ExtensionContext,
+    _workspacePath: string
   ): Promise<boolean> {
     const autoInit = ConfigManager.getInstance().getAutoInitialize();
 
@@ -267,7 +267,7 @@ export class InitializationService {
    */
   private async checkForTemplateUpdates(
     workspacePath: string,
-    context: vscode.ExtensionContext
+    _context: vscode.ExtensionContext
   ): Promise<boolean> {
     const fs = require('fs/promises');
     const path = require('path');
@@ -342,6 +342,9 @@ export class InitializationService {
         autoExecuteSave: ConfigManager.getInstance().getContextWindowAutoExecuteSave(),
         autoSaveThreshold: ConfigManager.getInstance().getContextWindowAutoSaveThreshold(),
         autoResumeAfterSave: ConfigManager.getInstance().getContextWindowAutoResumeAfterSave(),
+        enableContinuousSlopReduction:
+          ConfigManager.getInstance().getContinuousSlopReductionEnabled(),
+        slopScanIntervalMs: ConfigManager.getInstance().getContinuousSlopReductionIntervalMs(),
       };
       const autoHandoffTrigger = new AutoHandoffTrigger(autoHandoffConfig, workspacePath);
       setAutoHandoffTrigger(autoHandoffTrigger);
@@ -534,8 +537,8 @@ export class InitializationService {
       const aPart = aParts[i] || 0;
       const bPart = bParts[i] || 0;
 
-      if (aPart > bPart) return 1;
-      if (aPart < bPart) return -1;
+      if (aPart > bPart) {return 1;}
+      if (aPart < bPart) {return -1;}
     }
 
     return 0;

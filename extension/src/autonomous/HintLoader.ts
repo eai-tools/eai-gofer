@@ -8,6 +8,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
+import type { FileSystemWatcher } from 'vscode';
 import { type HintFile, type HintQuery, type HintLoadResult } from './hint';
 import { Logger } from '../utils/logger';
 import { telemetry } from './telemetryIntegration';
@@ -27,7 +28,7 @@ export class HintLoader {
   private readonly hintsDir: string;
   private hintCache: Map<string, HintFile> = new Map();
   private cacheValid: boolean = false;
-  private watcher: any | undefined; // FileSystemWatcher, but avoid direct vscode dependency for tests
+  private watcher: FileSystemWatcher | undefined;
   private readonly logger: Logger;
 
   /**
@@ -107,8 +108,6 @@ export class HintLoader {
    */
   classifyHint(filePath: string): ['global' | 'project' | 'directory', number] {
     const relativePath = path.relative(this.hintsDir, filePath);
-    const filename = path.basename(filePath);
-
     // Check if it's global.md at root of hints directory
     if (relativePath === 'global.md') {
       return ['global', 1];
@@ -396,20 +395,21 @@ export class HintLoader {
 
       const watchPattern = new vscode.RelativePattern(this.hintsDir, '**/*.md');
 
-      this.watcher = vscode.workspace.createFileSystemWatcher(watchPattern);
+      const watcher = vscode.workspace.createFileSystemWatcher(watchPattern);
+      this.watcher = watcher;
 
-      this.watcher.onDidCreate(() => {
+      watcher.onDidCreate(() => {
         this.invalidateCache();
       });
 
-      this.watcher.onDidChange(() => {
+      watcher.onDidChange(() => {
         this.invalidateCache();
       });
 
-      this.watcher.onDidDelete(() => {
+      watcher.onDidDelete(() => {
         this.invalidateCache();
       });
-    } catch (error) {
+    } catch (_error) {
       // In test environment, vscode is not available - skip watcher setup
       console.warn('[HintLoader] Could not setup file watcher (not in VSCode environment)');
     }

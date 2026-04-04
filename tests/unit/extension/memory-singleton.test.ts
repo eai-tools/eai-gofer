@@ -49,16 +49,22 @@ describe('Extension wiring (T049-T050)', () => {
   // to the new service files. These tests are skipped until the wiring
   // is restored in a future remediation task.
 
-  it.skip('should import ContextBuilder in extension.ts', () => {
-    // TODO: Restore ContextBuilder wiring in InitializationService or extension.ts
+  it('should import ContextBuilder in extension.ts', () => {
+    const filePath = path.resolve(__dirname, '../../../extension/src/extension.ts');
+    const source = fs.readFileSync(filePath, 'utf-8');
+    expect(source).toContain("import { ContextBuilder } from './autonomous/ContextBuilder';");
   });
 
-  it.skip('should create shared ContextBuilder in registerCommands', () => {
-    // TODO: Restore ContextBuilder creation with workspacePath, memoryManager
+  it('should create shared ContextBuilder in registerCommands', () => {
+    const filePath = path.resolve(__dirname, '../../../extension/src/extension.ts');
+    const source = fs.readFileSync(filePath, 'utf-8');
+    expect(source).toContain('const contextBuilder = new ContextBuilder(');
   });
 
-  it.skip('should call setSharedMemoryManager from extension.ts', () => {
-    // TODO: Restore setSharedMemoryManager wiring
+  it('should call setSharedMemoryManager from extension.ts', () => {
+    const filePath = path.resolve(__dirname, '../../../extension/src/extension.ts');
+    const source = fs.readFileSync(filePath, 'utf-8');
+    expect(source).toContain('setSharedMemoryManager(state.memoryManager);');
   });
 
   it('should call setSharedContextBuilder from extension.ts', () => {

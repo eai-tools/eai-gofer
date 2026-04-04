@@ -12,10 +12,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import type { BridgeData } from '../autonomous/HookBridgeWatcher';
-import type {
-  ClaudeCodeContextScanner,
-  CategoryBreakdown,
-} from '../autonomous/ClaudeCodeContextScanner';
+import type { ClaudeCodeContextScanner } from '../autonomous/ClaudeCodeContextScanner';
 import { LIMITS } from '../config/limits';
 
 /** Max bytes to read from any single file */
@@ -539,7 +536,7 @@ export interface TranscriptEntry {
 
 /** Read and parse transcript JSONL for a session */
 export function readTranscript(sessionId: string): TranscriptEntry[] {
-  if (!sessionId) return [];
+  if (!sessionId) {return [];}
   const homedir = require('os').homedir();
   // Claude Code stores transcripts by project path hash
   const projectDir = process.env.CLAUDE_PROJECT_DIR || '';
@@ -567,14 +564,14 @@ export function readTranscript(sessionId: string): TranscriptEntry[] {
       const raw = fs.readFileSync(filePath, 'utf-8');
       const entries: TranscriptEntry[] = [];
       for (const line of raw.split('\n')) {
-        if (!line.trim()) continue;
+        if (!line.trim()) {continue;}
         try {
           entries.push(JSON.parse(line));
         } catch {
           /* skip malformed */
         }
       }
-      if (entries.length > 0) return entries;
+      if (entries.length > 0) {return entries;}
     } catch {
       /* try next */
     }
@@ -585,8 +582,8 @@ export function readTranscript(sessionId: string): TranscriptEntry[] {
 
 /** Extract text from message content (string or content blocks) */
 function extractText(content: string | Array<{ type: string; text?: string }> | undefined): string {
-  if (!content) return '';
-  if (typeof content === 'string') return content;
+  if (!content) {return '';}
+  if (typeof content === 'string') {return content;}
   if (Array.isArray(content)) {
     return content
       .filter((b) => b.type === 'text' && b.text)
@@ -978,7 +975,7 @@ function renderSystemCommands(commands: Array<{ text: string; timestamp?: string
 }
 
 function formatByteSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024) {return `${bytes} B`;}
   return `${(bytes / 1024).toFixed(1)} KB`;
 }
 

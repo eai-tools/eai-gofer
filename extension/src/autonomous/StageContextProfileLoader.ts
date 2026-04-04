@@ -117,8 +117,6 @@ export class StageContextProfileLoader {
 
     const configPath = this.getConfigPath();
     const warnings: string[] = [];
-    let usedDefaults = false;
-
     try {
       // Check if config file exists
       await fs.promises.access(configPath);
@@ -163,8 +161,6 @@ export class StageContextProfileLoader {
         this.defaultStage = 'implement';
         this.configVersion = '1.0';
         this.lastLoadTime = Date.now();
-        usedDefaults = true;
-
         return {
           profiles,
           defaultStage: this.defaultStage,

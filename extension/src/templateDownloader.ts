@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import * as fs from 'fs/promises';
 import * as path from 'path';
 import { Logger } from './utils/logger';
 import { FileUtils } from './utils/fileUtils';
@@ -43,6 +44,13 @@ export interface DownloadOptions {
   progress?: (update: TemplateDownloadProgress) => void;
 }
 
+interface DirectoryStructureNode {
+  name: string;
+  path: string;
+  type: 'file' | 'directory';
+  children?: DirectoryStructureNode[];
+}
+
 /**
  * ZIP file extraction utilities using JSZip
  */
@@ -61,9 +69,8 @@ class ZipExtractor {
     } = {}
   ): Promise<string[]> {
     try {
-      // Dynamically import JSZip to avoid bundling issues
-      const jsZip = require('jszip');
-      const zip = new jsZip();
+      const { default: JSZip } = await import('jszip');
+      const zip = new JSZip();
 
       this.logger.debug(`Extracting ZIP archive (${zipBuffer.byteLength} bytes) to ${targetDir}`);
 
@@ -105,7 +112,7 @@ class ZipExtractor {
 
         // Write file
         const buffer = Buffer.from(content);
-        await require('fs/promises').writeFile(filePath, buffer);
+        await fs.writeFile(filePath, buffer);
 
         extractedFiles.push(filePath);
         processed++;
@@ -203,7 +210,7 @@ export class TemplateDownloader {
 
       // Extract to cache
       await FileUtils.ensureDirectory(cachedPath);
-      const extractedFiles = await ZipExtractor.extractZip(zipBuffer, cachedPath, {
+      await ZipExtractor.extractZip(zipBuffer, cachedPath, {
         progress: (update) => {
           progress?.({
             stage: 'extracting',
@@ -328,7 +335,7 @@ export class TemplateDownloader {
     const structure = await FileUtils.getDirectoryStructure(rootDir, 5);
     const templateDirs: string[] = [];
 
-    function findTemplates(dir: any): void {
+    function findTemplates(dir: DirectoryStructureNode): void {
       if (dir.name === 'templates' && dir.type === 'directory' && dir.children) {
         for (const child of dir.children) {
           if (child.type === 'directory') {
@@ -374,7 +381,7 @@ export class TemplateDownloader {
   /**
    * Recursively copy directory structure
    */
-  private async copyStructure(source: any, targetBase: string): Promise<void> {
+  private async copyStructure(source: DirectoryStructureNode, targetBase: string): Promise<void> {
     if (source.type === 'file') {
       const targetPath = path.join(targetBase, path.basename(source.path));
       await FileUtils.copyFile(source.path, targetPath);
@@ -522,6 +529,8 @@ export async function downloadTemplatesWithProgress(
       cancellable: false,
     },
     async (progress) => {
+      let lastReportedProgress = 0;
+
       return new Promise((resolve, reject) => {
         downloader
           .downloadLatestTemplates(workspacePath, {
@@ -529,13 +538,18 @@ export async function downloadTemplatesWithProgress(
             progress: (update) => {
               progress.report({
                 message: update.message,
-                increment: update.progress ? update.progress - (progress as any).value : undefined,
+                increment:
+                  update.progress !== undefined
+                    ? update.progress - lastReportedProgress
+                    : undefined,
               });
 
-              if (update.stage === 'complete') {
-                resolve(update as any);
-              } else if (update.stage === 'error') {
-                reject(update.error);
+              if (update.progress !== undefined) {
+                lastReportedProgress = update.progress;
+              }
+
+              if (update.stage === 'error') {
+                reject(update.error ?? new Error(update.message));
               }
 
               // Call user's progress callback

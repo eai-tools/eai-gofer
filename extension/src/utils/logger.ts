@@ -1,4 +1,6 @@
 import * as vscode from 'vscode';
+import * as fs from 'fs/promises';
+import * as path from 'path';
 import { ConfigManager } from '../config';
 
 /**
@@ -19,7 +21,7 @@ export interface LogEntry {
   level: LogLevel;
   component: string;
   message: string;
-  data?: any;
+  data?: unknown;
   error?: Error;
 }
 
@@ -112,7 +114,7 @@ export class ConsoleLogger implements LoggerOutput {
     const timestamp = entry.timestamp.toISOString();
     const component = `[${entry.component}]`;
 
-    const args: any[] = [`${timestamp} ${component} ${entry.message}`];
+    const args: unknown[] = [`${timestamp} ${component} ${entry.message}`];
 
     if (entry.data) {
       args.push('\nData:', entry.data);
@@ -165,9 +167,6 @@ export class FileLogger implements LoggerOutput {
     this.isWriting = true;
 
     try {
-      const fs = require('fs/promises');
-      const path = require('path');
-
       // Ensure directory exists
       await fs.mkdir(path.dirname(this.filePath), { recursive: true });
 
@@ -285,35 +284,35 @@ export class Logger {
   /**
    * Log a debug message
    */
-  public debug(message: string, data?: any): void {
+  public debug(message: string, data?: unknown): void {
     this.log(LogLevel.debug, message, data);
   }
 
   /**
    * Log an info message
    */
-  public info(message: string, data?: any): void {
+  public info(message: string, data?: unknown): void {
     this.log(LogLevel.info, message, data);
   }
 
   /**
    * Log a warning message
    */
-  public warn(message: string, data?: any, error?: Error): void {
+  public warn(message: string, data?: unknown, error?: Error): void {
     this.log(LogLevel.warn, message, data, error);
   }
 
   /**
    * Log an error message
    */
-  public error(message: string, error?: Error, data?: any): void {
+  public error(message: string, error?: Error, data?: unknown): void {
     this.log(LogLevel.error, message, data, error);
   }
 
   /**
    * Log an exception with full context
    */
-  public exception(error: Error, context?: string, data?: any): void {
+  public exception(error: Error, context?: string, data?: unknown): void {
     const message = context ? `${context}: ${error.message}` : error.message;
     this.log(LogLevel.error, message, data, error);
   }
@@ -321,7 +320,7 @@ export class Logger {
   /**
    * Core logging method
    */
-  private log(level: LogLevel, message: string, data?: any, error?: Error): void {
+  private log(level: LogLevel, message: string, data?: unknown, error?: Error): void {
     if (level < this.minLevel) {
       return;
     }
@@ -376,7 +375,6 @@ export function initializeLogging(context: vscode.ExtensionContext): Logger {
   // Add file logging for diagnostics
   const config = ConfigManager.getInstance();
   if (config.getTelemetryEnabled()) {
-    const path = require('path');
     const logPath = path.join(context.globalStorageUri.fsPath, 'logs', 'gofer.log');
     const fileLogger = new FileLogger(logPath);
     logger.addOutput(fileLogger);
@@ -414,7 +412,7 @@ export class PerformanceTimer {
   /**
    * End the timer and log the duration
    */
-  public end(data?: any): number {
+  public end(data?: unknown): number {
     const duration = performance.now() - this.startTime;
     this.logger.debug(`Completed: ${this.operation} (${duration.toFixed(2)}ms)`, data);
     return duration;
@@ -439,7 +437,7 @@ export function createTimer(operation: string, logger?: Logger): PerformanceTime
 /**
  * Async function wrapper with automatic error logging
  */
-export function withErrorLogging<T extends any[], R>(
+export function withErrorLogging<T extends unknown[], R>(
   fn: (...args: T) => Promise<R>,
   operation: string,
   logger?: Logger
@@ -459,7 +457,7 @@ export function withErrorLogging<T extends any[], R>(
 /**
  * Function wrapper with automatic error logging
  */
-export function withSyncErrorLogging<T extends any[], R>(
+export function withSyncErrorLogging<T extends unknown[], R>(
   fn: (...args: T) => R,
   operation: string,
   logger?: Logger

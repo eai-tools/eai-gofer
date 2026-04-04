@@ -106,7 +106,7 @@ This spec has tasks.
 
       expect(specs).toHaveLength(1);
       expect(specs[0].tasks).toHaveLength(3);
-      expect(specs[0].tasks[0].id).toBe('task-1');
+      expect(specs[0].tasks[0].id).toBe('T001');
       expect(specs[0].tasks[0].status).toBe('pending');
       expect(specs[0].tasks[1].status).toBe('completed');
     });

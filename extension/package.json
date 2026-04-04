@@ -824,6 +824,20 @@
           "description": "Automatically execute /8_gofer_resume after /7_gofer_save completes",
           "markdownDescription": "When enabled, automatically sends `/8_gofer_resume` to Claude Code terminal immediately after `/7_gofer_save`.\n\n**Default**: Enabled (automatic resume after save)\n\n**How it works**:\n1. Context reaches auto-save threshold (65%)\n2. `/7_gofer_save` executes automatically (saves session state)\n3. `/8_gofer_resume` executes immediately after (loads fresh context)\n4. Claude Code continues with clean context window\n\n**Benefits**:\n- Zero-interruption context continuity\n- Automatic context refresh without manual intervention\n- Maintains full session state across save/resume cycle\n\n**Note**: Only works when `autoExecuteSave` is also enabled. Both commands execute in the same Claude Code session sequentially."
         },
+        "gofer.contextWindow.continuousSlopReduction.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable periodic background workspace-wide slop scans",
+          "markdownDescription": "When enabled, Gofer periodically runs `SlopReducer.reduceWorkspace()` across the entire workspace.\n\n**Default**: Disabled\n\nThis is disabled by default because repeated whole-workspace scans across many open VS Code windows can add cumulative CPU and disk pressure. Manual and save-triggered slop reduction paths remain available."
+        },
+        "gofer.contextWindow.continuousSlopReduction.intervalMs": {
+          "type": "number",
+          "default": 120000,
+          "minimum": 60000,
+          "maximum": 1800000,
+          "description": "Interval in milliseconds for background slop scans",
+          "markdownDescription": "How often Gofer runs the background workspace-wide slop scan when `continuousSlopReduction.enabled` is turned on.\n\n**Default**: 120000 (2 minutes)\n**Range**: 60000-1800000"
+        },
         "gofer.scopeGuard.mode": {
           "type": "string",
           "default": "warning",
@@ -891,6 +905,20 @@
           "maximum": 7200000,
           "description": "Polling interval in ms for AI usage updates (fallback when file watcher is inactive)",
           "markdownDescription": "How often (in milliseconds) to poll for usage data updates.\n\nThis is used as a fallback when the file system watcher is not active.\n\n**Default**: 3600000 (1 hour)\n**Range**: 1000-7200000"
+        },
+        "gofer.diagnostics.resourceSnapshots.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Write lightweight Gofer resource snapshots to the output log",
+          "markdownDescription": "When enabled, Gofer periodically logs lightweight resource snapshots including RSS, heap usage, active handles, and uptime.\n\nThese snapshots help attribute future long-running VS Code slowdowns or crashes without adding significant overhead."
+        },
+        "gofer.diagnostics.resourceSnapshots.intervalMs": {
+          "type": "number",
+          "default": 300000,
+          "minimum": 60000,
+          "maximum": 3600000,
+          "description": "Interval in milliseconds for Gofer resource snapshots",
+          "markdownDescription": "How often Gofer logs a resource snapshot when diagnostics are enabled.\n\n**Default**: 300000 (5 minutes)\n**Range**: 60000-3600000"
         }
       }
     }

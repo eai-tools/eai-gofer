@@ -14,12 +14,17 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import type { AutonomousSession, ProgressUpdate, TaskStatus } from './types';
 
+interface ProgressProviderLike {
+  updateTaskStatus(specId: string, taskId: string, status: TaskStatus): Promise<void>;
+  refresh(): void;
+}
+
 export class ProgressReporter {
   private workspacePath: string;
-  private progressProvider: any; // ProgressProvider interface
+  private progressProvider: ProgressProviderLike;
   private statusBarItem: vscode.StatusBarItem;
 
-  constructor(workspacePath: string, progressProvider: any) {
+  constructor(workspacePath: string, progressProvider: ProgressProviderLike) {
     this.workspacePath = workspacePath;
     this.progressProvider = progressProvider;
     this.statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
@@ -133,7 +138,6 @@ export class ProgressReporter {
     }
 
     // Elapsed time
-    const elapsedMin = Math.round(update.elapsedTime / 60000);
     tooltipParts.push(`Elapsed: ${this.formatDuration(update.elapsedTime)}`);
 
     // Estimated time remaining
@@ -205,7 +209,7 @@ export class ProgressReporter {
   /**
    * Validate session data integrity
    */
-  private validateSession(session: any): void {
+  private validateSession(session: Partial<AutonomousSession>): void {
     // Required fields
     if (!session.sessionId) {
       throw new Error('Invalid session data: missing sessionId');

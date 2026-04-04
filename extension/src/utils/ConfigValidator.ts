@@ -7,7 +7,7 @@
  * Engineering Remediation Phase 5 - T039 (US8 - Security)
  */
 
-import Ajv, { type ValidateFunction } from 'ajv';
+import Ajv, { type ErrorObject, type ValidateFunction } from 'ajv';
 import * as vscode from 'vscode';
 import { Logger } from '../services/Logger';
 import configSchema from '../schemas/config.schema.json';
@@ -149,7 +149,7 @@ export class ConfigValidator {
    * @param error - AJV validation error
    * @returns Formatted error message
    */
-  private formatError(error: any): string {
+  private formatError(error: ErrorObject): string {
     const path = error.instancePath || 'root';
     const message = error.message || 'validation failed';
     const keyword = error.keyword;

@@ -340,7 +340,7 @@ export class ContextUsageLogger {
    * Only emits when status transitions to 'warning' or 'critical'.
    */
   private async emitMilestone(currentStatus: HealthStatus, stage: string): Promise<void> {
-    if (!this.runLedger) return;
+    if (!this.runLedger) {return;}
 
     const previousStatus = this.lastHealthStatus;
     this.lastHealthStatus = currentStatus;
@@ -767,7 +767,7 @@ export class ContextUsageLogger {
     >();
 
     for (const entry of entries) {
-      if (entry.eventType !== 'llm_call' && entry.eventType !== 'health_check') continue;
+      if (entry.eventType !== 'llm_call' && entry.eventType !== 'health_check') {continue;}
       const stage = entry.stage || 'unknown';
       const current = costs.get(stage) || {
         calls: 0,

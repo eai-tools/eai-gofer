@@ -42,7 +42,7 @@ export class VersionDetector {
       await fs.access(specifyPath);
       return true;
     } catch {
-      return false;
+      return this.hasRootLegacySpecBundle(workspacePath);
     }
   }
 
@@ -59,10 +59,11 @@ export class VersionDetector {
    * @returns Format type detected
    */
   public async detectFormat(workspacePath: string): Promise<FormatType> {
+    const hasRootLegacyBundle = await this.hasRootLegacySpecBundle(workspacePath);
     const exists = await this.exists(workspacePath);
     if (!exists) {
       this.logger.debug('VersionDetector', 'No .specify folder found', { workspacePath });
-      return 'none';
+      return hasRootLegacyBundle ? 'legacy-json' : 'none';
     }
 
     const specifyPath = path.join(workspacePath, '.specify');
@@ -77,9 +78,9 @@ export class VersionDetector {
     const isGofer = hasSpecs && hasMemory && hasTemplates;
 
     // Legacy format has JSON files in root
-    const isLegacy = hasJsonSpecs && !hasSpecs;
+    const isLegacy = !hasSpecs && (hasJsonSpecs || hasRootLegacyBundle);
 
-    if (isGofer && hasJsonSpecs) {
+    if (isGofer && (hasJsonSpecs || hasRootLegacyBundle)) {
       this.logger.info('VersionDetector', 'Mixed format detected', { workspacePath });
       return 'mixed'; // Has both formats
     } else if (isGofer) {
@@ -221,6 +222,19 @@ export class VersionDetector {
       const files = await fs.readdir(specifyPath);
       const hasJson = files.some((f) => f.endsWith('.json') && f !== 'spec-schema.json');
       return hasJson;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Check for legacy root-level specs.json bundle.
+   */
+  private async hasRootLegacySpecBundle(workspacePath: string): Promise<boolean> {
+    try {
+      const bundlePath = path.join(workspacePath, 'specs.json');
+      const stat = await fs.stat(bundlePath);
+      return stat.isFile();
     } catch {
       return false;
     }

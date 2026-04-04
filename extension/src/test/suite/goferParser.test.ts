@@ -2,7 +2,7 @@ import * as assert from 'assert';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import * as os from 'os';
-import { GoferParser, Spec, Task, SpecStatus, TaskStatus } from '../../goferParser';
+import { GoferParser, Spec, Task } from '../../goferParser';
 
 suite('GoferParser Test Suite', function() {
   this.timeout(10000);

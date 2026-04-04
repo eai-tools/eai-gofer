@@ -86,7 +86,7 @@ export class CheckpointValidator {
     for (const section of criticalSections) {
       // Match the section heading
       const headingIdx = content.indexOf(`## ${section}`);
-      if (headingIdx === -1) continue;
+      if (headingIdx === -1) {continue;}
 
       // Find where the content after the heading starts (skip heading line + blank lines)
       const afterHeading = content.slice(headingIdx + `## ${section}`.length);

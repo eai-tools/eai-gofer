@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.26.0",
+  "latest_version": "1.26.1",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-03-28T09:40:13.645Z",
+  "last_updated": "2026-04-04T03:40:10.326Z",
   "releases": [
+    {
+      "version": "1.26.1",
+      "tag_name": "v1.26.1",
+      "published_at": "2026-04-04T03:40:10.325Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.26.1.vsix",
+      "notes": "Stabilize engineering baseline, fix task-state progression, and remove legacy spec regeneration",
+      "prerelease": false,
+      "size_mb": 10.1
+    },
     {
       "version": "1.26.0",
       "tag_name": "v1.26.0",
@@ -80,15 +89,6 @@
       "tag_name": "v1.20.6",
       "published_at": "2026-03-18T00:00:03.862Z",
       "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.20.6.vsix",
-      "notes": "fix: Add cross-platform support for Codespaces/Linux - replaced node-pty with node-pty-prebuilt-multiarch",
-      "prerelease": false,
-      "size_mb": 10.2
-    },
-    {
-      "version": "1.20.5",
-      "tag_name": "v1.20.5",
-      "published_at": "2026-03-17T23:53:18.614Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.20.5.vsix",
       "notes": "fix: Add cross-platform support for Codespaces/Linux - replaced node-pty with node-pty-prebuilt-multiarch",
       "prerelease": false,
       "size_mb": 10.2

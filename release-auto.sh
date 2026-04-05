@@ -387,7 +387,8 @@ $RELEASE_NOTES
 
 🤖 Generated with release-auto.sh
 
-Co-Authored-By: Claude <noreply@anthropic.com>"
+Co-Authored-By: Claude <noreply@anthropic.com>
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>"
 
 # Tag
 git tag "v$NEW_VERSION"

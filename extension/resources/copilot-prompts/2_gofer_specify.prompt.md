@@ -1,5 +1,14 @@
 ---
+name: 2_gofer_specify
 description: Create feature specification informed by codebase research
+agent: copilot-workspace
+tools:
+  - Read
+  - Grep
+  - Glob
+  - Bash
+  - WebSearch
+argument-hint: feature-name-or-description
 ---
 
 # Gofer Specify
@@ -20,10 +29,10 @@ You **MUST** consider the user input before proceeding (if not empty).
 This command expects:
 
 - Feature directory already created at `.specify/specs/{feature}/`
-- `research.md` completed from `/1_gofer_research`
-- `proposal-review.md` approved from `/1_gofer_research`
+- `research.md` completed from `#1_gofer_research`
+- `proposal-review.md` approved from `#1_gofer_research`
 
-If these don't exist, prompt user to run `/1_gofer_research` first.
+If these don't exist, prompt user to run `#1_gofer_research` first.
 
 ---
 
@@ -57,10 +66,11 @@ Before starting specification, assess context window health:
 1. **Run setup script**:
 
    ```bash
-   .specify/scripts/bash/check-prerequisites.sh --json
+   .specify/scripts/bash/check-prerequisites.sh --json --paths-only
    ```
 
-   Parse JSON for FEATURE_DIR
+   Parse JSON for FEATURE_DIR. Use `--paths-only` because specification runs
+   before planning, so `plan.md` must NOT be required at this stage.
 
 2. **Scan research.md** from FEATURE_DIR (do NOT load full content into main
    context — agents will read it directly):
@@ -88,7 +98,7 @@ Before starting specification, assess context window health:
 `proposal-review.md` is the approval gate between research and specification.
 
 - If `proposal-review.md` is missing: STOP and tell the user to run
-  `/1_gofer_research` so the review can be created.
+  `#1_gofer_research` so the review can be created.
 - If `proposal-review.md` exists but `status` is not `approved`: STOP and tell
   the user to finish the review conversation before writing `spec.md`.
 - If `proposal-review.md` is approved: capture the approved business scenario,
@@ -131,9 +141,9 @@ If proposal-review.md exists and is approved, also pass this mapping:
 
 ## Step 2: Dispatch Specification Agents
 
-**Claude Code only**: Delegate heavy document generation to sub-agents using the
-Task tool. In Copilot Chat, perform specification writing inline by reading the
-research and generating the spec directly.
+**CRITICAL**: You **MUST** delegate document generation to sub-agents using the
+Task tool. Do NOT perform this work inline in the main context. The main context
+should only orchestrate and review agent outputs.
 
 ### Agent 1: Specification Writer
 
@@ -508,14 +518,6 @@ Sequence Diagrams: {FEATURE_DIR}/sequence-diagrams/
 Selected Option: Option {N} - {Name}
 ```
 
-## Next Steps (Manual Chaining — Copilot Chat)
-
-Specification is complete. To continue the pipeline, run the next stage:
-
-```
-/3_gofer_plan
-```
-
 ---
 
 ## Guidelines
@@ -523,7 +525,7 @@ Specification is complete. To continue the pipeline, run the next stage:
 ### Quick Guidelines
 
 - Focus on **WHAT** users need and **WHY**
-- Avoid HOW to implement (that's for /3_gofer_plan)
+- Avoid HOW to implement (that's for #3_gofer_plan)
 - Written for business stakeholders, not developers
 - **Use research findings** to inform requirements
 
@@ -554,3 +556,15 @@ At stage completion, log metrics:
 ```
 
 Logs to: `.specify/logs/pipeline.jsonl`
+
+## Pipeline Continuation
+
+This completes the 2_gofer_specify stage. To continue the Gofer pipeline:
+
+**Next Command:** `#3_gofer_plan`
+
+The next stage will read the artifacts from this stage and continue the workflow
+automatically.
+
+**Note:** Copilot Chat supports context preservation. Your conversation history
+will be maintained as you progress through pipeline stages.

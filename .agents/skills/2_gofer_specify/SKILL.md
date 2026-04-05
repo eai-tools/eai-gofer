@@ -36,10 +36,10 @@ You **MUST** consider the user input before proceeding (if not empty).
 This command expects:
 
 - Feature directory already created at `.specify/specs/{feature}/`
-- `research.md` completed from `$ $1`
-- `proposal-review.md` approved from `$ $1`
+- `research.md` completed from `$ $1_gofer_research`
+- `proposal-review.md` approved from `$ $1_gofer_research`
 
-If these don't exist, prompt user to run `$ $1` first.
+If these don't exist, prompt user to run `$ $1_gofer_research` first.
 
 ---
 
@@ -73,10 +73,11 @@ Before starting specification, assess context window health:
 1. **Run setup script**:
 
    ```bash
-   .specify/scripts/bash/check-prerequisites.sh --json
+   .specify/scripts/bash/check-prerequisites.sh --json --paths-only
    ```
 
-   Parse JSON for FEATURE_DIR
+   Parse JSON for FEATURE_DIR. Use `--paths-only` because specification runs
+   before planning, so `plan.md` must NOT be required at this stage.
 
 2. **Scan research.md** from FEATURE_DIR (do NOT load full content into main
    context — agents will read it directly):
@@ -103,8 +104,8 @@ Before starting specification, assess context window health:
 
 `proposal-review.md` is the approval gate between research and specification.
 
-- If `proposal-review.md` is missing: STOP and tell the user to run `$ $1` so
-  the review can be created.
+- If `proposal-review.md` is missing: STOP and tell the user to run
+  `$ $1_gofer_research` so the review can be created.
 - If `proposal-review.md` exists but `status` is not `approved`: STOP and tell
   the user to finish the review conversation before writing `spec.md`.
 - If `proposal-review.md` is approved: capture the approved business scenario,
@@ -531,7 +532,7 @@ Selected Option: Option {N} - {Name}
 ### Quick Guidelines
 
 - Focus on **WHAT** users need and **WHY**
-- Avoid HOW to implement (that's for $ $1)
+- Avoid HOW to implement (that's for $ $3_gofer_plan)
 - Written for business stakeholders, not developers
 - **Use research findings** to inform requirements
 

@@ -65,6 +65,18 @@ Task: subagent_type="validation-correctness"
       expect(transformed).not.toContain('/2_gofer_specify');
     });
 
+    it('transforms stage commands with alpha suffixes (for example 6a)', () => {
+      const content = 'Run /6a_gofer_engineering_review after validation.';
+
+      const codexTransformed = generator.transformContent(content, 'claude', 'codex');
+      expect(codexTransformed).toContain('$ $6a_gofer_engineering_review');
+      expect(codexTransformed).not.toContain('/6a_gofer_engineering_review');
+
+      const copilotTransformed = generator.transformContent(content, 'claude', 'copilot');
+      expect(copilotTransformed).toContain('#6a_gofer_engineering_review');
+      expect(copilotTransformed).not.toContain('/6a_gofer_engineering_review');
+    });
+
     it('converts task tool mentions for codex', () => {
       const transformed = generator.transformContent(sampleMetadata.content, 'claude', 'codex');
       expect(transformed).toContain('Codex CLI does not support the Task tool');
@@ -117,7 +129,11 @@ Task: subagent_type="validation-correctness"
 
     it('does not inject continuation for terminal pipeline stage', () => {
       const base = 'Final stage content';
-      const enhanced = generator.injectPlatformSections(base, 'codex', '6a_gofer_engineering_review');
+      const enhanced = generator.injectPlatformSections(
+        base,
+        'codex',
+        '6a_gofer_engineering_review'
+      );
       expect(enhanced).toBe(base);
     });
   });
@@ -152,7 +168,14 @@ body`;
       ] as never);
 
       const extractSpy = vi
-        .spyOn((generator as unknown as { extractor: { extractFromClaudeCommand: (p: string) => Promise<CommandMetadata> } }).extractor, 'extractFromClaudeCommand')
+        .spyOn(
+          (
+            generator as unknown as {
+              extractor: { extractFromClaudeCommand: (p: string) => Promise<CommandMetadata> };
+            }
+          ).extractor,
+          'extractFromClaudeCommand'
+        )
         .mockResolvedValue(sampleMetadata);
       const generateSpy = vi
         .spyOn(generator, 'generateCommand')

@@ -1,6 +1,7 @@
 ---
 name: 6a_gofer_engineering_review
-description: Post-implementation engineering review with iterative fix cycles (up to 5)
+description:
+  Post-implementation engineering review with iterative fix cycles (up to 5)
 arguments:
   - name: feature
     description: Feature name or description
@@ -18,14 +19,13 @@ result_schema:
         - error
 ---
 
-
 # Gofer Engineering Review
 
 You are performing a **post-implementation engineering review** that
 cross-checks the actual code against spec, research, tasks, and validation
-artifacts. This stage runs **after** `$ $6_gofer_validate` passes and performs 1-5
-iterative "review → fix → re-review" cycles until all findings are resolved or 5
-cycles complete.
+artifacts. This stage runs **after** `$ $6_gofer_validate` passes and performs
+1-5 iterative "review → fix → re-review" cycles until all findings are resolved
+or 5 cycles complete.
 
 ## User Input
 
@@ -352,7 +352,7 @@ resolved_findings: [N]
   4. $ $4_gofer_tasks ✓
   5. $ $5_gofer_implement ✓
   6. $ $6_gofer_validate ✓
-  6a. /6a_gofer_engineering_review ✓
+  6a. $ $6a_gofer_engineering_review ✓
 
   The feature is ready for review and merge.
 ════════════════════════════════════════════════════════════════
@@ -381,7 +381,7 @@ resolved_findings: [N]
   4. $ $4_gofer_tasks ✓
   5. $ $5_gofer_implement ✓
   6. $ $6_gofer_validate ✓
-  6a. /6a_gofer_engineering_review ✓ (warnings)
+  6a. $ $6a_gofer_engineering_review ✓ (warnings)
 
   The feature is ready for review and merge (review Gray findings).
 ════════════════════════════════════════════════════════════════

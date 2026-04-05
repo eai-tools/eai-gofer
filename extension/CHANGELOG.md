@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.27.0] - 2026-04-05
+
+EnterpriseAI messaging + cross-platform flow parity
+
 ## [1.26.2] - 2026-04-05
 
 Gate specification behind proposal review and keep task progress in sync

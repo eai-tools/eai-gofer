@@ -34,7 +34,7 @@ scenario and route them through the **unified Gofer pipeline**.
 │     Deep codebase exploration + business/technology synthesis    │
 │                         ↓ REVIEW                                 │
 │  1a. User approval gate   → approved proposal-review.md          │
-│      Confirm scenarios, architecture, options, and changes      │
+│      Confirm scenarios, architecture, options, and changes       │
 │                         ↓ AUTO AFTER APPROVAL                    │
 │  2. $ $2_gofer_specify     → spec.md                              │
 │     Feature specification informed by research                   │
@@ -51,7 +51,7 @@ scenario and route them through the **unified Gofer pipeline**.
 │  6. $ $6_gofer_validate    → validation-report.md                 │
 │     Verify implementation matches plan and spec                  │
 │                         ↓ AUTO                                   │
-│  6a. /6a_gofer_engineering_review → engineering-review-report.md │
+│  6a. $ $6a_gofer_engineering_review → engineering-review-report.md │
 │      Post-implementation review with iterative fix cycles        │
 │                                                                  │
 │  All artifacts go to: .specify/specs/{feature}/                 │
@@ -606,12 +606,12 @@ The unified Gofer pipeline automatically chains commands:
 
 ```text
 $ $1_gofer_research completes → stops for proposal review and approval
-Approved proposal-review.md   → auto-invokes $ $2_gofer_specify
+Approved proposal-review.md → auto-invokes $ $2_gofer_specify
 $ $2_gofer_specify completes  → auto-invokes $ $3_gofer_plan
 $ $3_gofer_plan completes     → auto-invokes $ $4_gofer_tasks
 $ $4_gofer_tasks completes    → auto-invokes $ $5_gofer_implement
 $ $5_gofer_implement completes→ auto-invokes $ $6_gofer_validate
-$ $6_gofer_validate completes → auto-invokes /6a_gofer_engineering_review
+$ $6_gofer_validate completes → auto-invokes $ $6a_gofer_engineering_review
 ```
 
 **The user only needs to run `/0_business_scenario` once** - the orchestrator
@@ -641,6 +641,9 @@ If context window is filling up:
 - **ALWAYS ask what the user wants to do** - don't assume existing artifacts are
   relevant
 - Show existing features and let user choose to continue OR start new
+- Technology architecture decisions must be asked **one-by-one** with a
+  discussion loop so users can ask clarifying questions before finalizing each
+  answer
 - Document the routing decision for debugging
 - If user seems confused, default to research first
 
@@ -650,16 +653,16 @@ If context window is filling up:
 
 ### Core Pipeline (Approval-Gated)
 
-| #   | Command                        | Output                          | Description                         |
-| --- | ------------------------------ | ------------------------------- | ----------------------------------- |
-| 1   | `$ $1_gofer_research`          | research.md, proposal-review.md | Research + review prep              |
-| 1a  | User approval gate             | approved proposal-review.md     | Business and architecture alignment |
-| 2   | `$ $2_gofer_specify`           | spec.md                         | Feature specification               |
-| 3   | `$ $3_gofer_plan`              | plan.md, data-model.md          | Technical architecture              |
-| 4   | `$ $4_gofer_tasks`             | tasks.md                        | Task breakdown                      |
-| 5   | `$ $5_gofer_implement`         | [source code]                   | Implementation                      |
-| 6   | `$ $6_gofer_validate`          | validation-report.md            | Verification                        |
-| 6a  | `/6a_gofer_engineering_review` | engineering-review-report.md    | Post-impl review + fixes            |
+| #   | Command                          | Output                          | Description                         |
+| --- | -------------------------------- | ------------------------------- | ----------------------------------- |
+| 1   | `$ $1_gofer_research`            | research.md, proposal-review.md | Research + review prep              |
+| 1a  | User approval gate               | approved proposal-review.md     | Business and architecture alignment |
+| 2   | `$ $2_gofer_specify`             | spec.md                         | Feature specification               |
+| 3   | `$ $3_gofer_plan`                | plan.md, data-model.md          | Technical architecture              |
+| 4   | `$ $4_gofer_tasks`               | tasks.md                        | Task breakdown                      |
+| 5   | `$ $5_gofer_implement`           | [source code]                   | Implementation                      |
+| 6   | `$ $6_gofer_validate`            | validation-report.md            | Verification                        |
+| 6a  | `$ $6a_gofer_engineering_review` | engineering-review-report.md    | Post-impl review + fixes            |
 
 ### Auxiliary Commands
 

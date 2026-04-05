@@ -2,246 +2,245 @@ name: Gofer CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop, 'feature/*', 'hotfix/*' ]
+    branches: [main, develop, 'feature/*', 'hotfix/*']
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
 
 env:
   NODE_VERSION: '20.x'
-  
+
 jobs:
   # Job 1: Code Quality & Testing
   quality-gates:
     name: Code Quality Gates
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    
+
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-        
-    - name: Install Dependencies
-      run: npm ci
-      
-    - name: Run ESLint
-      run: npm run lint
-      
-    - name: Check Code Formatting
-      run: npm run format:check
-      
-    - name: TypeScript Type Check
-      run: npm run typecheck
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-    - name: Verify Generated Commands in Sync
-      run: |
-        # Generate commands for Codex and Copilot from Claude templates
-        npm run generate-commands
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
 
-        # Check if any files changed (would indicate drift)
-        if ! git diff --quiet --exit-code .system/skills/ .github/prompts/; then
-          echo "❌ ERROR: Generated command files are out of sync!"
-          echo ""
-          echo "The following files have changes after generation:"
-          git diff --name-only .system/skills/ .github/prompts/
-          echo ""
-          echo "This means the generated Codex/Copilot commands don't match Claude templates."
-          echo ""
-          echo "To fix:"
-          echo "1. Run: npm run generate-commands"
-          echo "2. Commit the updated files"
-          echo "3. Push your changes"
-          exit 1
-        fi
+      - name: Install Dependencies
+        run: npm ci
 
-        echo "✅ All generated command files are in sync with Claude templates"
+      - name: Run ESLint
+        run: npm run lint
 
-    - name: Run Tests with Coverage
-      run: npm run test:coverage-report
-      
-    - name: Generate Coverage Summary
-      id: coverage
-      run: |
-        # Generate coverage summary for PR comment
-        COVERAGE_SUMMARY=$(npx vitest run --coverage --reporter=json 2>&1 | tail -20 || true)
-        echo "summary<<EOF" >> $GITHUB_OUTPUT
-        echo "$COVERAGE_SUMMARY" >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
-        
-    - name: Generate Quality Metrics Report
-      run: |
-        mkdir -p quality-reports
-        
-        # Generate ESLint report in JSON format
-        npx eslint src/ --ext .ts,.js --format json --output-file quality-reports/eslint-report.json || true
-        
-        # Generate ESLint HTML report
-        npx eslint src/ --ext .ts,.js --format html --output-file quality-reports/eslint-report.html || true
-        
-        # Generate test results summary
-        npm run test:coverage-report > quality-reports/test-summary.txt 2>&1 || true
-        
-        # Create quality metrics summary
-        echo "# Quality Metrics Report" > quality-reports/metrics-summary.md
-        echo "Generated on: $(date)" >> quality-reports/metrics-summary.md
-        echo "Commit: ${{ github.sha }}" >> quality-reports/metrics-summary.md
-        echo "Branch: ${{ github.ref_name }}" >> quality-reports/metrics-summary.md
-        echo "" >> quality-reports/metrics-summary.md
-        
-        # Count ESLint issues
-        if [ -f "quality-reports/eslint-report.json" ]; then
-          errors=$(cat quality-reports/eslint-report.json | jq '[.[].messages[] | select(.severity == 2)] | length')
-          warnings=$(cat quality-reports/eslint-report.json | jq '[.[].messages[] | select(.severity == 1)] | length')
-          echo "## ESLint Results" >> quality-reports/metrics-summary.md
-          echo "- Errors: $errors" >> quality-reports/metrics-summary.md
-          echo "- Warnings: $warnings" >> quality-reports/metrics-summary.md
+      - name: Check Code Formatting
+        run: npm run format:check
+
+      - name: TypeScript Type Check
+        run: npm run typecheck
+
+      - name: Verify Generated Commands in Sync
+        run: |
+          # Generate commands for Codex/Copilot from Claude templates and sync .agents mirror
+          npm run generate-commands
+
+          # Check if any files changed (would indicate drift)
+          if ! git diff --quiet --exit-code .system/skills/ .agents/skills/ .github/prompts/; then
+            echo "❌ ERROR: Generated command files are out of sync!"
+            echo ""
+            echo "The following files have changes after generation:"
+            git diff --name-only .system/skills/ .agents/skills/ .github/prompts/
+            echo ""
+            echo "This means generated Codex/Gemini/Copilot command artifacts don't match Claude templates."
+            echo ""
+            echo "To fix:"
+            echo "1. Run: npm run generate-commands"
+            echo "2. Commit the updated files"
+            echo "3. Push your changes"
+            exit 1
+          fi
+
+          echo "✅ All generated command files are in sync with Claude templates"
+
+      - name: Run Tests with Coverage
+        run: npm run test:coverage-report
+
+      - name: Generate Coverage Summary
+        id: coverage
+        run: |
+          # Generate coverage summary for PR comment
+          COVERAGE_SUMMARY=$(npx vitest run --coverage --reporter=json 2>&1 | tail -20 || true)
+          echo "summary<<EOF" >> $GITHUB_OUTPUT
+          echo "$COVERAGE_SUMMARY" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Generate Quality Metrics Report
+        run: |
+          mkdir -p quality-reports
+
+          # Generate ESLint report in JSON format
+          npx eslint src/ --ext .ts,.js --format json --output-file quality-reports/eslint-report.json || true
+
+          # Generate ESLint HTML report
+          npx eslint src/ --ext .ts,.js --format html --output-file quality-reports/eslint-report.html || true
+
+          # Generate test results summary
+          npm run test:coverage-report > quality-reports/test-summary.txt 2>&1 || true
+
+          # Create quality metrics summary
+          echo "# Quality Metrics Report" > quality-reports/metrics-summary.md
+          echo "Generated on: $(date)" >> quality-reports/metrics-summary.md
+          echo "Commit: ${{ github.sha }}" >> quality-reports/metrics-summary.md
+          echo "Branch: ${{ github.ref_name }}" >> quality-reports/metrics-summary.md
           echo "" >> quality-reports/metrics-summary.md
-        fi
-        
-        # Extract test results
-        if [ -f "quality-reports/test-summary.txt" ]; then
-          echo "## Test Results" >> quality-reports/metrics-summary.md
-          grep -E "Test Files|Tests" quality-reports/test-summary.txt >> quality-reports/metrics-summary.md || true
-          echo "" >> quality-reports/metrics-summary.md
-        fi
-        
-    - name: Comment PR with Test Results
-      if: github.event_name == 'pull_request'
-      uses: actions/github-script@v7
-      with:
-        script: |
-          const fs = require('fs');
-          
-          let comment = '## 🧪 Test & Quality Report\n\n';
-          
-          // Add test summary
-          if (fs.existsSync('quality-reports/test-summary.txt')) {
-            const testSummary = fs.readFileSync('quality-reports/test-summary.txt', 'utf8');
-            const testLines = testSummary.split('\n').filter(line => 
-              line.includes('Test Files') || line.includes('Tests') || line.includes('Duration')
-            );
-            comment += '### Test Results\n```\n' + testLines.join('\n') + '\n```\n\n';
-          }
-          
-          // Add ESLint summary
-          if (fs.existsSync('quality-reports/eslint-report.json')) {
-            const eslintData = JSON.parse(fs.readFileSync('quality-reports/eslint-report.json', 'utf8'));
-            const errors = eslintData.flatMap(f => f.messages).filter(m => m.severity === 2).length;
-            const warnings = eslintData.flatMap(f => f.messages).filter(m => m.severity === 1).length;
-            
-            comment += '### ESLint Results\n';
-            comment += `- ❌ Errors: ${errors}\n`;
-            comment += `- ⚠️ Warnings: ${warnings}\n\n`;
-          }
-          
-          // Add link to detailed reports
-          comment += `### 📊 Detailed Reports\n`;
-          comment += `View full quality reports in the [Actions artifacts](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})\n`;
-          
-          // Post comment
-          await github.rest.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: comment
-          });
-        
 
-    - name: Upload Coverage Reports
-      uses: codecov/codecov-action@v4
-      with:
-        files: ./coverage/lcov.info
-        fail_ci_if_error: false
-        verbose: true
-        
-    - name: Upload Coverage HTML Report
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: coverage-report-${{ github.run_number }}
-        path: coverage/
-        retention-days: 30
-        
-    - name: Upload Quality Reports
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: quality-reports-${{ github.run_number }}
-        path: quality-reports/
-        retention-days: 30
-  
+          # Count ESLint issues
+          if [ -f "quality-reports/eslint-report.json" ]; then
+            errors=$(cat quality-reports/eslint-report.json | jq '[.[].messages[] | select(.severity == 2)] | length')
+            warnings=$(cat quality-reports/eslint-report.json | jq '[.[].messages[] | select(.severity == 1)] | length')
+            echo "## ESLint Results" >> quality-reports/metrics-summary.md
+            echo "- Errors: $errors" >> quality-reports/metrics-summary.md
+            echo "- Warnings: $warnings" >> quality-reports/metrics-summary.md
+            echo "" >> quality-reports/metrics-summary.md
+          fi
+
+          # Extract test results
+          if [ -f "quality-reports/test-summary.txt" ]; then
+            echo "## Test Results" >> quality-reports/metrics-summary.md
+            grep -E "Test Files|Tests" quality-reports/test-summary.txt >> quality-reports/metrics-summary.md || true
+            echo "" >> quality-reports/metrics-summary.md
+          fi
+
+      - name: Comment PR with Test Results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            let comment = '## 🧪 Test & Quality Report\n\n';
+
+            // Add test summary
+            if (fs.existsSync('quality-reports/test-summary.txt')) {
+              const testSummary = fs.readFileSync('quality-reports/test-summary.txt', 'utf8');
+              const testLines = testSummary.split('\n').filter(line => 
+                line.includes('Test Files') || line.includes('Tests') || line.includes('Duration')
+              );
+              comment += '### Test Results\n```\n' + testLines.join('\n') + '\n```\n\n';
+            }
+
+            // Add ESLint summary
+            if (fs.existsSync('quality-reports/eslint-report.json')) {
+              const eslintData = JSON.parse(fs.readFileSync('quality-reports/eslint-report.json', 'utf8'));
+              const errors = eslintData.flatMap(f => f.messages).filter(m => m.severity === 2).length;
+              const warnings = eslintData.flatMap(f => f.messages).filter(m => m.severity === 1).length;
+              
+              comment += '### ESLint Results\n';
+              comment += `- ❌ Errors: ${errors}\n`;
+              comment += `- ⚠️ Warnings: ${warnings}\n\n`;
+            }
+
+            // Add link to detailed reports
+            comment += `### 📊 Detailed Reports\n`;
+            comment += `View full quality reports in the [Actions artifacts](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})\n`;
+
+            // Post comment
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+
+      - name: Upload Coverage Reports
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage/lcov.info
+          fail_ci_if_error: false
+          verbose: true
+
+      - name: Upload Coverage HTML Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report-${{ github.run_number }}
+          path: coverage/
+          retention-days: 30
+
+      - name: Upload Quality Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: quality-reports-${{ github.run_number }}
+          path: quality-reports/
+          retention-days: 30
+
   # Job 2: Build and Test Core Components
   test:
     name: Build & Test
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: quality-gates
-    
+
     strategy:
       matrix:
         component: [orchestrator, extension, language-server]
-    
+
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-        
-    - name: Install Dependencies (Root)
-      run: npm ci
-      
-    - name: Install Extension Dependencies
-      if: matrix.component == 'extension'
-      run: |
-        cd extension
-        npm ci
-        
-    - name: Install Language Server Dependencies
-      if: matrix.component == 'language-server'
-      run: |
-        cd language-server
-        npm ci
-        
-    - name: Build Orchestrator
-      if: matrix.component == 'orchestrator'
-      run: npm run build
-      
-    - name: Build Extension
-      if: matrix.component == 'extension'
-      run: |
-        cd extension
-        npm run compile
-        
-    - name: Build Language Server
-      if: matrix.component == 'language-server'
-      run: |
-        cd language-server
-        npm run build || tsc
-        
-    - name: Run Unit Tests
-      if: matrix.component == 'orchestrator'
-      run: npm test
-      env:
-        CI: true
-        
-    - name: Upload Test Results
-      if: matrix.component == 'orchestrator'
-      uses: actions/upload-artifact@v4
-      with:
-        name: unit-test-results
-        path: |
-          test-results/
-          coverage/
-        retention-days: 7
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Dependencies (Root)
+        run: npm ci
+
+      - name: Install Extension Dependencies
+        if: matrix.component == 'extension'
+        run: |
+          cd extension
+          npm ci
+
+      - name: Install Language Server Dependencies
+        if: matrix.component == 'language-server'
+        run: |
+          cd language-server
+          npm ci
+
+      - name: Build Orchestrator
+        if: matrix.component == 'orchestrator'
+        run: npm run build
+
+      - name: Build Extension
+        if: matrix.component == 'extension'
+        run: |
+          cd extension
+          npm run compile
+
+      - name: Build Language Server
+        if: matrix.component == 'language-server'
+        run: |
+          cd language-server
+          npm run build || tsc
+
+      - name: Run Unit Tests
+        if: matrix.component == 'orchestrator'
+        run: npm test
+        env:
+          CI: true
+
+      - name: Upload Test Results
+        if: matrix.component == 'orchestrator'
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-results
+          path: |
+            test-results/
+            coverage/
+          retention-days: 7
 
   # Job 2: E2E Tests
   e2e-tests:
@@ -249,97 +248,97 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: test
-    
+
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-        
-    - name: Install Dependencies
-      run: npm ci
-      
-    - name: Install Playwright
-      run: npx playwright install --with-deps chromium
-      
-    - name: Build Project
-      run: npm run build
-      
-    - name: Run E2E Tests
-      run: npx playwright test tests/e2e/basic-framework.spec.ts --timeout=30000 --reporter=line
-      env:
-        CI: true
-        
-    - name: Upload E2E Test Results
-      if: failure()
-      uses: actions/upload-artifact@v4
-      with:
-        name: e2e-test-results
-        path: |
-          test-results/
-          playwright-report/
-        retention-days: 7
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Install Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Build Project
+        run: npm run build
+
+      - name: Run E2E Tests
+        run: npx playwright test tests/e2e/basic-framework.spec.ts --timeout=30000 --reporter=line
+        env:
+          CI: true
+
+      - name: Upload E2E Test Results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-results
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
 
   # Job 3: Linting and Code Quality
   lint:
     name: Lint & Format Check
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    
+
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-        
-    - name: Install Dependencies
-      run: npm ci
-      
-    - name: TypeScript Type Check
-      run: npx tsc --noEmit
-      
-    - name: Check Extension Types
-      run: |
-        cd extension
-        npm ci
-        npx tsc --noEmit
-        
-    - name: Check Language Server Types
-      run: |
-        cd language-server
-        npm ci
-        npx tsc --noEmit
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: TypeScript Type Check
+        run: npx tsc --noEmit
+
+      - name: Check Extension Types
+        run: |
+          cd extension
+          npm ci
+          npx tsc --noEmit
+
+      - name: Check Language Server Types
+        run: |
+          cd language-server
+          npm ci
+          npx tsc --noEmit
 
   # Job 4: Security Audit
   security:
     name: Security Audit
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    
+
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-        
-    - name: Install Dependencies
-      run: npm ci
-      
-    - name: Run Security Audit
-      run: npm audit --audit-level=moderate
-      continue-on-error: true
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Security Audit
+        run: npm audit --audit-level=moderate
+        continue-on-error: true
 
   # Job 5: Package Extension (on main branch)
   package:
@@ -348,44 +347,44 @@ jobs:
     timeout-minutes: 10
     needs: [test, e2e-tests, lint]
     if: github.ref == 'refs/heads/main'
-    
+
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-        
-    - name: Install Dependencies
-      run: |
-        npm ci
-        cd extension
-        npm ci
-        cd ../language-server
-        npm ci
-        
-    - name: Build All Components
-      run: |
-        npm run build
-        cd extension
-        npm run compile
-        cd ../language-server
-        npm run build || tsc
-        
-    - name: Package Extension
-      run: |
-        cd extension
-        npx @vscode/vsce package
-        
-    - name: Upload Extension Package
-      uses: actions/upload-artifact@v4
-      with:
-        name: vscode-extension
-        path: extension/*.vsix
-        retention-days: 30
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: |
+          npm ci
+          cd extension
+          npm ci
+          cd ../language-server
+          npm ci
+
+      - name: Build All Components
+        run: |
+          npm run build
+          cd extension
+          npm run compile
+          cd ../language-server
+          npm run build || tsc
+
+      - name: Package Extension
+        run: |
+          cd extension
+          npx @vscode/vsce package
+
+      - name: Upload Extension Package
+        uses: actions/upload-artifact@v4
+        with:
+          name: vscode-extension
+          path: extension/*.vsix
+          retention-days: 30
 
   # Job 6: Test Coverage Report
   coverage:
@@ -393,31 +392,31 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: test
-    
+
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-        
-    - name: Install Dependencies
-      run: npm ci
-      
-    - name: Run Tests with Coverage
-      run: npm run test:coverage || npm test
-      env:
-        CI: true
-        
-    - name: Upload Coverage Reports
-      uses: actions/upload-artifact@v4
-      with:
-        name: coverage-report
-        path: coverage/
-        retention-days: 14
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Tests with Coverage
+        run: npm run test:coverage || npm test
+        env:
+          CI: true
+
+      - name: Upload Coverage Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 14
 
   # Job 7: Deployment Preparation (main branch only)
   deploy-prep:
@@ -426,25 +425,25 @@ jobs:
     timeout-minutes: 5
     needs: [test, e2e-tests, lint, security, package]
     if: github.ref == 'refs/heads/main'
-    
+
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4
-      
-    - name: Create Release Summary
-      run: |
-        echo "# Gofer Build Summary" > release-summary.md
-        echo "**Branch**: ${{ github.ref_name }}" >> release-summary.md
-        echo "**Commit**: ${{ github.sha }}" >> release-summary.md
-        echo "**Build Date**: $(date)" >> release-summary.md
-        echo "**Tests**: ✅ Unit Tests + E2E Tests Passed" >> release-summary.md
-        echo "**Linting**: ✅ TypeScript + Code Quality Checks Passed" >> release-summary.md
-        echo "**Security**: ✅ Security Audit Completed" >> release-summary.md
-        echo "**Extension**: ✅ VSCode Extension Packaged" >> release-summary.md
-        
-    - name: Upload Release Summary
-      uses: actions/upload-artifact@v4
-      with:
-        name: release-summary
-        path: release-summary.md
-        retention-days: 30
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Create Release Summary
+        run: |
+          echo "# Gofer Build Summary" > release-summary.md
+          echo "**Branch**: ${{ github.ref_name }}" >> release-summary.md
+          echo "**Commit**: ${{ github.sha }}" >> release-summary.md
+          echo "**Build Date**: $(date)" >> release-summary.md
+          echo "**Tests**: ✅ Unit Tests + E2E Tests Passed" >> release-summary.md
+          echo "**Linting**: ✅ TypeScript + Code Quality Checks Passed" >> release-summary.md
+          echo "**Security**: ✅ Security Audit Completed" >> release-summary.md
+          echo "**Extension**: ✅ VSCode Extension Packaged" >> release-summary.md
+
+      - name: Upload Release Summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-summary
+          path: release-summary.md
+          retention-days: 30

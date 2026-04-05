@@ -1,9 +1,11 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env tsx
 /**
  * Command Generator for Cross-Platform Parity
  *
- * Generates Codex CLI skills and enhances Copilot Chat prompts from Claude CLI reference implementation.
- * This ensures all 16 Gofer commands work identically across Claude, Copilot, and Codex platforms.
+ * Generates Codex CLI skills and Copilot Chat prompts from Claude CLI reference implementation,
+ * then mirrors Codex skills into .agents/skills for Gemini CLI and Copilot CLI compatibility.
+ * This ensures Gofer command flow stays aligned across Claude, Copilot VSCode, Copilot CLI,
+ * Codex CLI, and Gemini CLI.
  *
  * Usage:
  *   npm run generate-commands               # Generate all commands
@@ -16,6 +18,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
 
 /**
  * CLI arguments
@@ -80,6 +83,39 @@ Examples:
 }
 
 /**
+ * Mirror generated Codex skills to .agents/skills for Copilot CLI and Gemini CLI.
+ */
+function syncCodexSkillsToAgents(
+  workspacePath: string,
+  dryRun: boolean,
+  verbose: boolean
+): void {
+  const codexSkillsDir = path.join(workspacePath, '.system', 'skills');
+  const agentsSkillsDir = path.join(workspacePath, '.agents', 'skills');
+
+  if (!fs.existsSync(codexSkillsDir)) {
+    throw new Error(`Codex skills directory not found: ${codexSkillsDir}`);
+  }
+
+  if (dryRun) {
+    if (verbose) {
+      console.log(
+        `[dry-run] Would sync ${path.relative(workspacePath, codexSkillsDir)} -> ${path.relative(workspacePath, agentsSkillsDir)}`
+      );
+    }
+    return;
+  }
+
+  fs.rmSync(agentsSkillsDir, { recursive: true, force: true });
+  fs.mkdirSync(path.dirname(agentsSkillsDir), { recursive: true });
+  fs.cpSync(codexSkillsDir, agentsSkillsDir, { recursive: true });
+
+  if (verbose) {
+    console.log(`Synced Codex skills to ${path.relative(workspacePath, agentsSkillsDir)}`);
+  }
+}
+
+/**
  * File system helpers
  */
 class FileSystemHelpers {
@@ -132,10 +168,6 @@ class FileSystemHelpers {
 async function main(): Promise<void> {
   const args = parseArgs();
 
-
-  if (args.dryRun) {
-  }
-
   // Determine which platforms to generate
   const platforms: Array<'codex' | 'copilot'> = [];
   if (args.platform === 'codex' || args.platform === 'all' || !args.platform) {
@@ -147,17 +179,16 @@ async function main(): Promise<void> {
 
 
   // Get workspace path (parent of scripts directory)
-  const workspacePath = path.resolve(__dirname, '..');
+  const scriptPath = fileURLToPath(import.meta.url);
+  const scriptDir = path.dirname(scriptPath);
+  const workspacePath = path.resolve(scriptDir, '..');
 
   // Import CommandGenerator (dynamically to avoid compilation issues)
   const { CommandGenerator } = await import(
-    '../extension/src/council/CommandGenerator'
+    '../extension/src/council/CommandGenerator.ts'
   );
 
   const generator = new CommandGenerator(workspacePath);
-
-  let totalGenerated = 0;
-
   for (const platform of platforms) {
 
     try {
@@ -166,14 +197,13 @@ async function main(): Promise<void> {
         args.dryRun
       );
 
+      if (platform === 'codex') {
+        syncCodexSkillsToAgents(workspacePath, args.dryRun, args.verbose);
+      }
 
-      generatedPaths.forEach((filePath) => {
-        const relativePath = path.relative(workspacePath, filePath);
-        if (args.verbose) {
-        }
-      });
-
-      totalGenerated += generatedPaths.length;
+      if (args.verbose) {
+        console.log(`Generated ${generatedPaths.length} ${platform} command files`);
+      }
     } catch (error) {
       console.error(`❌ Failed to generate ${platform} commands:`, error);
       process.exit(1);
@@ -183,7 +213,10 @@ async function main(): Promise<void> {
 }
 
 // Run if invoked directly
-if (require.main === module) {
+const scriptPath = fileURLToPath(import.meta.url);
+const invokedPath = process.argv[1] ? path.resolve(process.argv[1]) : '';
+
+if (invokedPath === scriptPath) {
   main().catch((error) => {
     console.error('❌ Generation failed:', error.message);
     process.exit(1);

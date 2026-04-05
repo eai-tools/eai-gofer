@@ -1,7 +1,7 @@
 {
   "name": "gofer",
-  "displayName": "Gofer (Enterprise AI) [PREVIEW]",
-  "description": "Spec-driven development for AI. Exposes 6 MCP tools that let Claude Code and GitHub Copilot autonomously implement features from specifications.",
+  "displayName": "Gofer for EnterpriseAI Platform [PREVIEW]",
+  "description": "EnterpriseAI platform workflow in VS Code: initialize .specify, run the Gofer pipeline, and guide Claude/Copilot/Codex/Gemini from business scenario to validated delivery.",
   "version": "1.26.2",
   "publisher": "EnterpriseAI",
   "icon": "icon.png",
@@ -25,9 +25,14 @@
   "keywords": [
     "spec-driven",
     "gofer",
+    "enterpriseai",
+    "enterprise-ai",
+    "platform",
     "github",
     "claude",
     "copilot",
+    "codex",
+    "gemini",
     "ai",
     "testing",
     "playwright"
@@ -329,7 +334,7 @@
     "viewsWelcome": [
       {
         "view": "goferProgress",
-        "contents": "Welcome to Gofer!\n\nNo .specify folder found in this workspace.\n\n[Initialize Gofer](command:gofer.initialize)\n\nThis creates the folder structure for feature specifications, plans, and tasks."
+        "contents": "Welcome to Gofer for the EnterpriseAI platform.\n\nNo `.specify` workspace was found yet.\n\n[Initialize Gofer](command:gofer.initialize)\n\nGetting started:\n1. Initialize the workspace\n2. Open your AI chat/CLI and run `/0_business_scenario` (or `#0_business_scenario` in Copilot)\n3. Approve `proposal-review.md`, then continue through spec → plan → tasks → implement → validate\n\nUse **Gofer: Install Optional Developer Tools** if your preferred CLI is not installed."
       },
       {
         "view": "goferAIUsage",

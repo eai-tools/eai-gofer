@@ -625,6 +625,9 @@ If context window is filling up:
 - **ALWAYS ask what the user wants to do** - don't assume existing artifacts are
   relevant
 - Show existing features and let user choose to continue OR start new
+- Technology architecture decisions must be asked **one-by-one** with a
+  discussion loop so users can ask clarifying questions before finalizing each
+  answer
 - Document the routing decision for debugging
 - If user seems confused, default to research first
 

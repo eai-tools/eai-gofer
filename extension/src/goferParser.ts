@@ -96,7 +96,10 @@ export class GoferParser {
         this.logger.debug('Using branchSpecManager to get spec paths...');
         const getPathsPromise = this.branchSpecManager.getAllSpecPaths();
         const timeoutPromise = new Promise<string[]>((_, reject) => {
-          setTimeout(() => reject(new Error('getAllSpecPaths timed out')), TIMEOUTS.SPEC_DIR_DISCOVERY_TIMEOUT);
+          setTimeout(
+            () => reject(new Error('getAllSpecPaths timed out')),
+            TIMEOUTS.SPEC_DIR_DISCOVERY_TIMEOUT
+          );
         });
         specsDirs = await Promise.race([getPathsPromise, timeoutPromise]);
       } else {
@@ -252,9 +255,10 @@ export class GoferParser {
    * Status: Draft
    * Input: User description: "Build a feature"
    */
-  private parseSpecHeader(
-    content: string
-  ): { metadata: Partial<YAMLFrontmatter> & { title?: string }; content: string } {
+  private parseSpecHeader(content: string): {
+    metadata: Partial<YAMLFrontmatter> & { title?: string };
+    content: string;
+  } {
     const lines = content.split('\n');
     const metadata: Partial<YAMLFrontmatter> & { title?: string } = {};
     let contentStartIndex = 0;
@@ -373,8 +377,11 @@ export class GoferParser {
     let taskIndex = 0;
 
     for (const line of lines) {
-      // Match task line with **T001** prefix: - [ ] **T001**: Description
-      let taskMatch = line.match(/^-\s+\[([xX \-!b>])\]\s+\*\*([A-Z]\d+)\*\*:\s+(.+)$/);
+      // Match task line with bold ID: - [ ] **T001**: Description
+      // Supports suffix IDs like T001a and optional colon after ID.
+      let taskMatch = line.match(
+        /^\s*-\s+\[([xX \-!bB>~])\]\s+\*\*(T\d+[A-Za-z0-9]*)\*\*:?\s+(.+)$/
+      );
       if (taskMatch) {
         // Save previous task if exists
         if (currentTask && currentTask.id) {
@@ -393,8 +400,30 @@ export class GoferParser {
         continue;
       }
 
+      // Match task line with [T001] prefix: - [ ] [T001] Description
+      // Used by some generated tasks.md variants.
+      taskMatch = line.match(/^\s*-\s+\[([xX \-!bB>~])\]\s+\[(T\d+[A-Za-z0-9]*)\]\s+(.+)$/);
+      if (taskMatch) {
+        // Save previous task if exists
+        if (currentTask && currentTask.id) {
+          tasks.push(this.completeTask(currentTask, taskIndex++));
+        }
+
+        const [, checkbox, taskId, description] = taskMatch;
+        currentTask = {
+          id: taskId,
+          description: description.trim(),
+          status: this.parseCheckboxStatus(checkbox),
+          dependencies: [],
+          parallel: false,
+          attempts: 0,
+        };
+        continue;
+      }
+
       // Match task line with #T001 prefix: - [ ] #T001 Description
-      taskMatch = line.match(/^-\s+\[([xX \-!b>])\]\s+#(T\d+)\s+(.+)$/);
+      // Supports suffix IDs like T001a.
+      taskMatch = line.match(/^\s*-\s+\[([xX \-!bB>~])\]\s+#(T\d+[A-Za-z0-9]*)\s+(.+)$/);
       if (taskMatch) {
         // Save previous task if exists
         if (currentTask && currentTask.id) {
@@ -414,8 +443,8 @@ export class GoferParser {
       }
 
       // Match task line with T001 prefix (no #): - [ ] T001 Description
-      // Also handles inline tags like [P] and [US1]: - [ ] T001 [P] [US1] Description
-      taskMatch = line.match(/^-\s+\[([xX \-!b>])\]\s+(T\d+)\s+(.+)$/);
+      // Supports suffix IDs (T001a), optional colon (T001:), and inline tags.
+      taskMatch = line.match(/^\s*-\s+\[([xX \-!bB>~])\]\s+(T\d+[A-Za-z0-9]*):?\s+(.+)$/);
       if (taskMatch) {
         // Save previous task if exists
         if (currentTask && currentTask.id) {
@@ -455,7 +484,7 @@ export class GoferParser {
       }
 
       // Match task line with #N prefix: - [ ] #1 Description
-      taskMatch = line.match(/^-\s+\[([xX \-!b>])\]\s+#(\d+)\s+(.+)$/);
+      taskMatch = line.match(/^\s*-\s+\[([xX \-!bB>~])\]\s+#(\d+):?\s+(.+)$/);
       if (taskMatch) {
         // Save previous task if exists
         if (currentTask && currentTask.id) {
@@ -474,9 +503,7 @@ export class GoferParser {
           : [];
 
         // Clean description
-        const cleanDescription = fullDescription
-          .replace(/\(deps:\s*[^)]+\)/gi, '')
-          .trim();
+        const cleanDescription = fullDescription.replace(/\(deps:\s*[^)]+\)/gi, '').trim();
 
         currentTask = {
           id: `T${taskNum.padStart(3, '0')}`,
@@ -650,6 +677,7 @@ export class GoferParser {
       case 'x':
         return 'completed';
       case '-':
+      case '~':
         return 'in_progress';
       case '>':
         return 'testing';
@@ -694,7 +722,7 @@ export class GoferParser {
 
     const escapedTaskId = taskId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const taskRegex = new RegExp(
-      `^(\\s*-\\s+)\\[[xX \\-!bB>]\\](\\s+(?:\\*\\*${escapedTaskId}\\*\\*:?|#${escapedTaskId}\\b|${escapedTaskId}\\b).*)$`,
+      `^(\\s*-\\s+)\\[[xX \\-!bB>~]\\](\\s+(?:\\*\\*${escapedTaskId}\\*\\*:?|\\[${escapedTaskId}\\]|#${escapedTaskId}(?::|\\b)|${escapedTaskId}(?::|\\b)).*)$`,
       'gm'
     );
 

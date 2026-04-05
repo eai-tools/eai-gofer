@@ -1,11 +1,24 @@
 # Gofer VSCode Extension
 
-**Transform any repository into a spec-driven development workspace with
-AI-powered automation.**
+**EnterpriseAI platform delivery workflow inside VS Code.**
 
-Gofer is a VSCode extension that provides seamless integration with the
-spec-driven development system, enabling developers to manage specifications,
-track progress, and leverage AI assistance through Claude Code integration.
+Gofer turns a repository into an EnterpriseAI spec-delivery workspace so teams
+can run the full pipeline end-to-end: business scenario → research →
+specification → planning → tasks → implementation → validation.
+
+It supports cross-CLI workflows with Claude, GitHub Copilot, Codex, and Gemini
+while keeping all artifacts in `.specify/specs/{feature}/`.
+
+## ⚡ Quick Start in VS Code
+
+1. Open Command Palette (`Cmd/Ctrl+Shift+P`) and run **Gofer: Initialize
+   Repository**.
+2. Optional: run **Gofer: Install Optional Developer Tools** to install/update
+   Claude/Codex/Gemini CLIs.
+3. Start with `#0_business_scenario` in Copilot Chat (or `/0_business_scenario`
+   in slash-command CLIs).
+4. Approve `proposal-review.md`, then continue through spec → plan → tasks →
+   implement → validate.
 
 ---
 

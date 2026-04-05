@@ -4,7 +4,7 @@ import * as fs from 'fs/promises';
 import * as os from 'os';
 import { ProgressProvider } from '../../progressProvider';
 
-suite('ProgressProvider Test Suite', function() {
+suite('ProgressProvider Test Suite', function () {
   // Increase timeout for all tests in this suite to handle debounce
   this.timeout(10000);
 
@@ -37,11 +37,11 @@ suite('ProgressProvider Test Suite', function() {
   // Helper to wait for tree update
   async function waitForTreeUpdate(provider: ProgressProvider): Promise<void> {
     // Force a small delay to allow async triggerLoad to set isLoading = true
-    await new Promise(resolve => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 50));
 
     // Wait until both isLoading and isDebouncing are false
     while (provider.isLoadingSpecs() || provider.isDebouncing()) {
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await new Promise((resolve) => setTimeout(resolve, 50));
     }
   }
 
@@ -51,7 +51,7 @@ suite('ProgressProvider Test Suite', function() {
       await progressProvider.getChildren();
       // Wait for load to complete
       await waitForTreeUpdate(progressProvider);
-      
+
       const children = await progressProvider.getChildren();
       // Should return empty array to show Welcome View
       assert.strictEqual(children.length, 0);
@@ -69,7 +69,10 @@ suite('ProgressProvider Test Suite', function() {
       const children = await progressProvider.getChildren();
 
       assert.strictEqual(children.length, 1);
-      assert.ok(children[0].label.includes('No specs found'), `Expected 'No specs found' but got '${children[0].label}'`);
+      assert.ok(
+        children[0].label.includes('No specs found'),
+        `Expected 'No specs found' but got '${children[0].label}'`
+      );
     });
 
     test('should display specs as top-level items', async () => {
@@ -80,32 +83,38 @@ suite('ProgressProvider Test Suite', function() {
       await progressProvider.getChildren();
       progressProvider.refresh();
       await waitForTreeUpdate(progressProvider);
-      
+
       const children = await progressProvider.getChildren();
 
       assert.strictEqual(children.length, 2);
-      assert.ok(children[0].label.includes('Login Feature'), `Expected label to include 'Login Feature' but got '${children[0].label}'`);
-      assert.ok(children[1].label.includes('Authentication'), `Expected label to include 'Authentication' but got '${children[1].label}'`);
+      assert.ok(
+        children[0].label.includes('Login Feature'),
+        `Expected label to include 'Login Feature' but got '${children[0].label}'`
+      );
+      assert.ok(
+        children[1].label.includes('Authentication'),
+        `Expected label to include 'Authentication' but got '${children[1].label}'`
+      );
     });
 
     test('should display tasks as children of specs', async () => {
       await createTestSpecWithTasks('003-profile', 'User Profile', 'in_progress', [
         { id: 'T001', desc: 'Create profile model', status: 'completed' },
         { id: 'T002', desc: 'Add profile API', status: 'in_progress' },
-        { id: 'T003', desc: 'Write tests', status: 'pending' }
+        { id: 'T003', desc: 'Write tests', status: 'pending' },
       ]);
 
       await progressProvider.getChildren();
       progressProvider.refresh();
       await waitForTreeUpdate(progressProvider);
-      
+
       const children = await progressProvider.getChildren();
       assert.strictEqual(children.length, 1);
 
       const specItem = children[0];
       const taskChildren = await progressProvider.getChildren(specItem);
       assert.strictEqual(taskChildren.length, 3);
-      
+
       assert.ok(taskChildren[0].label.includes('Create profile model'));
       assert.ok(taskChildren[1].label.includes('Add profile API'));
       assert.ok(taskChildren[2].label.includes('Write tests'));
@@ -119,13 +128,13 @@ suite('ProgressProvider Test Suite', function() {
         { id: 'T002', desc: 'Add email notifications', status: 'completed' },
         { id: 'T003', desc: 'Add SMS notifications', status: 'in_progress' },
         { id: 'T004', desc: 'Add push notifications', status: 'pending' },
-        { id: 'T005', desc: 'Error handling', status: 'failed' }
+        { id: 'T005', desc: 'Error handling', status: 'failed' },
       ]);
 
       await progressProvider.getChildren();
       progressProvider.refresh();
       await waitForTreeUpdate(progressProvider);
-      
+
       const children = await progressProvider.getChildren();
       const specItem = children[0];
 
@@ -137,25 +146,62 @@ suite('ProgressProvider Test Suite', function() {
       assert.ok(description.includes('40%')); // 2/5 completed
     });
 
+    test('should calculate progress with suffixed and bracketed task IDs', async () => {
+      const specId = '004a-progress-id-formats';
+      const specDir = path.join(tempDir, '.specify', 'specs', specId);
+      await fs.mkdir(specDir, { recursive: true });
+
+      const specContent = `---
+id: "${specId}"
+title: "Progress ID Formats"
+status: "in_progress"
+created: "2025-10-22"
+---
+
+# Progress ID Formats
+`;
+
+      const tasksContent = `# Tasks
+
+- [x] [T001a] Completed bracketed suffix task
+- [x] T002b Completed suffixed task
+- [ ] T003 Pending plain task
+- [ ] #4 Pending numeric task
+`;
+
+      await fs.writeFile(path.join(specDir, 'spec.md'), specContent);
+      await fs.writeFile(path.join(specDir, 'tasks.md'), tasksContent);
+
+      await progressProvider.getChildren();
+      progressProvider.refresh();
+      await waitForTreeUpdate(progressProvider);
+
+      const children = await progressProvider.getChildren();
+      const specItem = children[0];
+      assert.ok(specItem.description, 'Spec should have a description');
+      const description = typeof specItem.description === 'string' ? specItem.description : '';
+      assert.ok(description.includes('50%'), `Expected 50% but got "${description}"`);
+    });
+
     test('should show correct icons for different spec statuses', async () => {
       await createTestSpecWithTasks('005-completed', 'Completed Feature', 'completed', [
         { id: 'T001', desc: 'Task 1', status: 'completed' },
-        { id: 'T002', desc: 'Task 2', status: 'completed' }
+        { id: 'T002', desc: 'Task 2', status: 'completed' },
       ]);
 
       await createTestSpecWithTasks('006-failed', 'Failed Feature', 'in_progress', [
         { id: 'T001', desc: 'Task 1', status: 'completed' },
-        { id: 'T002', desc: 'Task 2', status: 'failed' }
+        { id: 'T002', desc: 'Task 2', status: 'failed' },
       ]);
 
       await progressProvider.getChildren();
       progressProvider.refresh();
       await waitForTreeUpdate(progressProvider);
-      
+
       const children = await progressProvider.getChildren();
 
-      const completedSpec = children.find(c => c.label.toString().includes('Completed Feature'));
-      const failedSpec = children.find(c => c.label.toString().includes('Failed Feature'));
+      const completedSpec = children.find((c) => c.label.toString().includes('Completed Feature'));
+      const failedSpec = children.find((c) => c.label.toString().includes('Failed Feature'));
 
       assert.ok(completedSpec);
       assert.ok(failedSpec);
@@ -169,13 +215,13 @@ suite('ProgressProvider Test Suite', function() {
         { id: 'T001', desc: 'Completed task', status: 'completed' },
         { id: 'T002', desc: 'In progress task', status: 'in_progress' },
         { id: 'T003', desc: 'Failed task', status: 'failed' },
-        { id: 'T004', desc: 'Pending task', status: 'pending' }
+        { id: 'T004', desc: 'Pending task', status: 'pending' },
       ]);
 
       await progressProvider.getChildren();
       progressProvider.refresh();
       await waitForTreeUpdate(progressProvider);
-      
+
       const children = await progressProvider.getChildren();
       const specItem = children[0];
       const taskChildren = await progressProvider.getChildren(specItem);
@@ -188,13 +234,13 @@ suite('ProgressProvider Test Suite', function() {
   suite('Context Values', () => {
     test('should set correct context values for specs and tasks', async () => {
       await createTestSpecWithTasks('008-context', 'Context Test', 'in_progress', [
-        { id: 'T001', desc: 'Test task', status: 'pending' }
+        { id: 'T001', desc: 'Test task', status: 'pending' },
       ]);
 
       await progressProvider.getChildren();
       progressProvider.refresh();
       await waitForTreeUpdate(progressProvider);
-      
+
       const children = await progressProvider.getChildren();
       assert.ok(children.length > 0, 'Should have children');
       const specItem = children[0];
@@ -210,7 +256,7 @@ suite('ProgressProvider Test Suite', function() {
       // Initially no specs - trigger load and wait
       await progressProvider.getChildren();
       await waitForTreeUpdate(progressProvider);
-      
+
       let children = await progressProvider.getChildren();
       assert.strictEqual(children.length, 0, 'Expected 0 items (welcome view) initially');
 
@@ -221,7 +267,7 @@ suite('ProgressProvider Test Suite', function() {
       progressProvider.refresh();
       // refresh() triggers async load, wait for it
       await waitForTreeUpdate(progressProvider);
-      
+
       children = await progressProvider.getChildren();
       assert.strictEqual(children.length, 1, 'Expected 1 item after adding a spec');
       assert.ok(children[0].label.includes('Refresh Test'));
@@ -233,11 +279,14 @@ suite('ProgressProvider Test Suite', function() {
       // Create a spec directory with invalid spec.md
       const specDir = path.join(tempDir, '.specify', 'specs', '010-corrupted');
       await fs.mkdir(specDir, { recursive: true });
-      await fs.writeFile(path.join(specDir, 'spec.md'), 'This is not valid markdown with frontmatter');
+      await fs.writeFile(
+        path.join(specDir, 'spec.md'),
+        'This is not valid markdown with frontmatter'
+      );
 
       progressProvider.refresh();
       await waitForTreeUpdate(progressProvider);
-      
+
       const children = await progressProvider.getChildren();
 
       // Should show error or valid children depending on partial success
@@ -266,21 +315,27 @@ Test specification for ${title}.
   }
 
   async function createTestSpecWithTasks(
-    id: string, 
-    title: string, 
-    status: string, 
-    tasks: Array<{id: string, desc: string, status: string}>
+    id: string,
+    title: string,
+    status: string,
+    tasks: Array<{ id: string; desc: string; status: string }>
   ): Promise<void> {
     await createTestSpec(id, title, status);
 
     const specDir = path.join(tempDir, '.specify', 'specs', id);
-    const taskLines = tasks.map(task => {
+    const taskLines = tasks.map((task) => {
       let checkbox = '[ ]';
-      if (task.status === 'completed') {checkbox = '[x]';}
-      else if (task.status === 'in_progress') {checkbox = '[-]';}
-      else if (task.status === 'failed') {checkbox = '[!]';}
-      else if (task.status === 'blocked') {checkbox = '[b]';}
-      else if (task.status === 'testing') {checkbox = '[>]';}
+      if (task.status === 'completed') {
+        checkbox = '[x]';
+      } else if (task.status === 'in_progress') {
+        checkbox = '[-]';
+      } else if (task.status === 'failed') {
+        checkbox = '[!]';
+      } else if (task.status === 'blocked') {
+        checkbox = '[b]';
+      } else if (task.status === 'testing') {
+        checkbox = '[>]';
+      }
       return `- ${checkbox} ${task.id} ${task.desc}`;
     });
 

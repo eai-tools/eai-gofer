@@ -4,7 +4,7 @@ import * as fs from 'fs/promises';
 import * as os from 'os';
 import { GoferParser, Spec, Task } from '../../goferParser';
 
-suite('GoferParser Test Suite', function() {
+suite('GoferParser Test Suite', function () {
   this.timeout(10000);
   let tempDir: string;
   let parser: GoferParser;
@@ -189,13 +189,64 @@ created: "2025-10-22"
       assert.ok(t002);
       assert.strictEqual(t002.status, 'completed');
     });
+
+    test('should parse bracketed IDs, suffixed IDs, and modern checkbox markers', async () => {
+      const specDir = path.join(tempDir, '.specify', 'specs', '005-extended-task-formats');
+      await fs.mkdir(specDir, { recursive: true });
+
+      const specContent = `---
+id: "005-extended-task-formats"
+title: "Extended Task Formats"
+status: "draft"
+created: "2025-10-22"
+---
+
+# Extended Task Formats
+`;
+
+      const tasksContent = `# Tasks
+
+- [x] [T001] Bracketed completed task
+- [~] T002a In progress suffixed task
+- [ ] **T003b**: Bold suffixed task
+- [ ] T004: Colon format task
+- [ ] #T005c Hash-prefixed suffixed task
+- [ ] #6 Numeric task format
+`;
+
+      await fs.writeFile(path.join(specDir, 'spec.md'), specContent);
+      await fs.writeFile(path.join(specDir, 'tasks.md'), tasksContent);
+
+      const spec = await parser.loadSpec('005-extended-task-formats');
+      assert.strictEqual(spec.tasks.length, 6);
+
+      const t001 = spec.tasks.find((t: Task) => t.id === 'T001');
+      assert.ok(t001);
+      assert.strictEqual(t001.status, 'completed');
+
+      const t002a = spec.tasks.find((t: Task) => t.id === 'T002a');
+      assert.ok(t002a);
+      assert.strictEqual(t002a.status, 'in_progress');
+
+      const t003b = spec.tasks.find((t: Task) => t.id === 'T003b');
+      assert.ok(t003b);
+
+      const t004 = spec.tasks.find((t: Task) => t.id === 'T004');
+      assert.ok(t004);
+
+      const t005c = spec.tasks.find((t: Task) => t.id === 'T005c');
+      assert.ok(t005c);
+
+      const t006 = spec.tasks.find((t: Task) => t.id === 'T006');
+      assert.ok(t006);
+    });
   });
 
   suite('Multiple Specs Loading', () => {
     test('should load all specs from directory', async () => {
       // Create multiple spec directories
       const specs = ['006-spec-a', '007-spec-b', '008-spec-c'];
-      
+
       for (const specId of specs) {
         const specDir = path.join(tempDir, '.specify', 'specs', specId);
         await fs.mkdir(specDir, { recursive: true });
@@ -216,7 +267,7 @@ created: "2025-10-22"
       const allSpecs = await parser.loadAllSpecs();
 
       assert.strictEqual(allSpecs.length, 3); // 3 created in this test
-      
+
       // Check that all our new specs are loaded
       const specIds = allSpecs.map((s: Spec) => s.id);
       for (const specId of specs) {
@@ -253,7 +304,7 @@ created: "2025-10-22"
       await fs.writeFile(path.join(brokenSpecDir, 'README.md'), 'This is not a spec.md');
 
       const allSpecs = await parser.loadAllSpecs();
-      
+
       // Should load other specs but skip the broken one
       const brokenSpec = allSpecs.find((s: Spec) => s.id === '010-broken-spec');
       assert.strictEqual(brokenSpec, undefined);
@@ -296,7 +347,10 @@ created: "2025-10-22"
 
       // Check that file was actually updated
       const updatedTasksContent = await fs.readFile(path.join(specDir, 'tasks.md'), 'utf-8');
-      assert.ok(updatedTasksContent.includes('- [x] **T001**'), 'File should contain checked box for T001');
+      assert.ok(
+        updatedTasksContent.includes('- [x] **T001**'),
+        'File should contain checked box for T001'
+      );
     });
 
     test('should update spec status', async () => {
@@ -325,7 +379,56 @@ created: "2025-10-22"
 
       // Check that file was actually updated (might be status: in_progress or status: "in_progress")
       const updatedSpecContent = await fs.readFile(path.join(specDir, 'spec.md'), 'utf-8');
-      assert.ok(updatedSpecContent.includes('status: in_progress') || updatedSpecContent.includes('status: "in_progress"'));
+      assert.ok(
+        updatedSpecContent.includes('status: in_progress') ||
+          updatedSpecContent.includes('status: "in_progress"')
+      );
+    });
+
+    test('should update suffixed and bracketed task IDs', async () => {
+      const specId = '013-task-status-suffix-test';
+      const specDir = path.join(tempDir, '.specify', 'specs', specId);
+      await fs.mkdir(specDir, { recursive: true });
+
+      const specContent = `---
+id: "${specId}"
+title: "Task Suffix Status Update Test"
+status: "draft"
+created: "2025-10-22"
+---
+
+# Task Suffix Status Update Test
+`;
+
+      const tasksContent = `# Tasks
+
+- [ ] [T001a] Bracketed suffix task
+- [ ] T002b Plain suffix task
+`;
+
+      await fs.writeFile(path.join(specDir, 'spec.md'), specContent);
+      await fs.writeFile(path.join(specDir, 'tasks.md'), tasksContent);
+
+      await parser.updateTaskStatus(specId, 'T001a', 'completed');
+      await parser.updateTaskStatus(specId, 'T002b', 'in_progress');
+
+      const spec = await parser.loadSpec(specId);
+      const t001a = spec.tasks.find((t: Task) => t.id === 'T001a');
+      const t002b = spec.tasks.find((t: Task) => t.id === 'T002b');
+      assert.ok(t001a, 'Should find task T001a');
+      assert.ok(t002b, 'Should find task T002b');
+      assert.strictEqual(t001a.status, 'completed');
+      assert.strictEqual(t002b.status, 'in_progress');
+
+      const updatedTasksContent = await fs.readFile(path.join(specDir, 'tasks.md'), 'utf-8');
+      assert.ok(
+        updatedTasksContent.includes('- [x] [T001a]'),
+        'File should contain checked box for bracketed T001a'
+      );
+      assert.ok(
+        updatedTasksContent.includes('- [-] T002b'),
+        'File should contain in-progress box for suffixed T002b'
+      );
     });
   });
 });

@@ -2,7 +2,7 @@
   "name": "gofer",
   "displayName": "Gofer for EnterpriseAI Platform [PREVIEW]",
   "description": "EnterpriseAI platform workflow in VS Code: initialize .specify, run the Gofer pipeline, and guide Claude/Copilot/Codex/Gemini from business scenario to validated delivery.",
-  "version": "1.27.0",
+  "version": "1.27.1",
   "publisher": "EnterpriseAI",
   "icon": "icon.png",
   "author": {

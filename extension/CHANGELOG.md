@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [1.27.1] - 2026-04-05
+
+Fix Gofer panel task completion progress updates
+
 ## [1.27.0] - 2026-04-05
 
 EnterpriseAI messaging + cross-platform flow parity

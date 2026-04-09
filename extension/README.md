@@ -135,19 +135,20 @@ handling:
 
 ### 🔀 AI Provider Selection
 
-Gofer works with **Claude Code CLI** and **OpenAI Codex CLI** through a unified
-provider abstraction. All pipeline stages, autonomous mode, and validation
-agents work identically on both providers.
+Gofer supports CLI routing preferences for **Claude Code**, **Codex**, **Copilot
+CLI**, and **Gemini CLI**.
 
 #### Selecting a Provider
 
 Open VSCode Settings (`Cmd/Ctrl+,`) and search for **`gofer.cliProvider`**:
 
-| Value    | Description                                       |
-| -------- | ------------------------------------------------- |
-| `auto`   | Auto-detect: uses Claude if installed, else Codex |
-| `claude` | Always use Claude Code CLI                        |
-| `codex`  | Always use OpenAI Codex CLI                       |
+| Value     | Description                                                             |
+| --------- | ----------------------------------------------------------------------- |
+| `auto`    | Auto-detect: uses Claude if installed, else Codex                       |
+| `claude`  | Always use Claude Code CLI                                              |
+| `codex`   | Always use OpenAI Codex CLI                                             |
+| `copilot` | Prefer Copilot CLI routing (autonomous tasks use Claude/Codex fallback) |
+| `gemini`  | Prefer Gemini CLI routing (autonomous tasks use Claude/Codex fallback)  |
 
 Provider changes apply **immediately** without reloading VSCode.
 

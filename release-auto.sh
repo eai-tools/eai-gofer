@@ -215,6 +215,16 @@ else
     exit 1
 fi
 
+# Ensure language-server dependencies are installed before prepublish build.
+print_info "Installing language-server dependencies..."
+if (cd ../language-server && npm install 2>&1); then
+    print_success "Language-server dependencies installed"
+else
+    print_error "Failed to install language-server dependencies"
+    cd ..
+    exit 1
+fi
+
 # Ensure language-server is up to date
 print_info "Syncing language-server files..."
 rsync -av --delete ../language-server/ ./language-server/ \

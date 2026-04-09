@@ -113,6 +113,23 @@ export interface BudgetSummary {
   };
 }
 
+export interface StageConcisenessWarningResult {
+  warning: boolean;
+  conversationBudget: number;
+  minimumConversationBudget: number;
+  message?: string;
+}
+
+export interface ContextBudgetWarning {
+  warning: boolean;
+  stage?: string;
+  utilizationRatio: number;
+  criticalThresholdRatio: number;
+  message: string;
+}
+
+const DEFAULT_MINIMUM_CONVERSATION_BUDGET = 0.15;
+
 /**
  * Validates a GoferStage string.
  *
@@ -190,6 +207,51 @@ export function calculateBudgetSummary(profile: StageContextProfile): BudgetSumm
       memory: profile.memoryBudget,
       code: profile.codeBudget,
     },
+  };
+}
+
+export function evaluateStageConcisenessThreshold(
+  profile: StageContextProfile,
+  minimumConversationBudget: number = DEFAULT_MINIMUM_CONVERSATION_BUDGET
+): StageConcisenessWarningResult {
+  const summary = calculateBudgetSummary(profile);
+  const warning = summary.conversationBudget < minimumConversationBudget;
+  const message = warning
+    ? `Conciseness threshold reached for ${profile.stage}: conversation budget ${summary.conversationBudget.toFixed(
+        2
+      )} is below ${minimumConversationBudget.toFixed(2)}.`
+    : undefined;
+
+  return {
+    warning,
+    conversationBudget: summary.conversationBudget,
+    minimumConversationBudget,
+    message,
+  };
+}
+
+export function buildContextBudgetWarning(
+  stage: string | undefined,
+  utilizationPercent: number,
+  criticalThresholdRatio: number
+): ContextBudgetWarning {
+  const normalizedThreshold =
+    criticalThresholdRatio > 0 && criticalThresholdRatio <= 1 ? criticalThresholdRatio : 0.7;
+  const utilizationRatio = Math.max(0, utilizationPercent / 100);
+  const warning = utilizationRatio >= normalizedThreshold;
+  const stageLabel = stage ?? 'current stage';
+  const message = warning
+    ? `Context budget warning: ${stageLabel} reached ${utilizationPercent.toFixed(1)}% (critical ${(
+        normalizedThreshold * 100
+      ).toFixed(0)}%). Keep stage outputs concise and deterministic.`
+    : `Context budget healthy for ${stageLabel}: ${utilizationPercent.toFixed(1)}% used.`;
+
+  return {
+    warning,
+    stage,
+    utilizationRatio,
+    criticalThresholdRatio: normalizedThreshold,
+    message,
   };
 }
 

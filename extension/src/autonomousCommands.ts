@@ -32,6 +32,12 @@ import type { Spec } from './goferParser';
 import type { EnrichedContextBridge } from './autonomous/ContextBridgeWriter';
 import { CrossPlatformCommandRouter } from './council/CrossPlatformCommandRouter';
 import type { LLMProvider } from './council/providers/LLMProvider';
+import { getWorkflowProfile } from './config/workflowProfile';
+import { createReferenceFallbackEventHandlers } from './services/enterpriseai/events/ReferenceFallbackEvents';
+import {
+  resolveEnterpriseAiReferences,
+  type EnterpriseAiReferenceType,
+} from './services/enterpriseai/internalApi/ResolveEnterpriseAiReferences';
 // Removed: import { wireClaudePtyToAutoHandoff } - no longer needed without PTY support
 
 // Shared singleton instances (set from extension.ts)
@@ -177,6 +183,30 @@ let idleDetectionInterval: NodeJS.Timeout | null = null; // Fast idle detection 
 let comprehensiveCheckInterval: NodeJS.Timeout | null = null; // Slow comprehensive check (60 seconds)
 let isAutonomousMonitoringPaused = false; // Track pause state
 let lastIdleCheckTime = 0; // Track last idle check to avoid duplicate responses
+
+const ENTERPRISE_AI_REFERENCE_COMMANDS = new Set<string>([
+  '0_business_scenario',
+  '1_gofer_research',
+  '2_gofer_specify',
+  '3_gofer_plan',
+  '4_gofer_tasks',
+  '5_gofer_implement',
+  '6_gofer_validate',
+  '6a_gofer_engineering_review',
+  '7a_stakeholder_comms',
+]);
+
+const ENTERPRISE_AI_REFERENCE_TYPES: readonly string[] = [
+  'eai-cli',
+  'vertical-template',
+  'deployment-repo',
+];
+
+const ENTERPRISE_AI_EXTERNAL_REFERENCE_URLS: Readonly<Record<EnterpriseAiReferenceType, string>> = {
+  'eai-cli': 'https://github.com/eai-tools/eai-cli',
+  'vertical-template': 'https://github.com/eai-tools/Vertical-Template',
+  'deployment-repo': 'https://github.com/EAI-Website/com.enterpriseaigroup',
+};
 
 /**
  * Start autonomous execution for a spec
@@ -925,26 +955,83 @@ function determineInitialCommand(specId: string, workspacePath: string): string 
 
 async function resolveInitialCommand(specId: string, workspacePath: string): Promise<string> {
   const rawCommand = overrideInitialCommand ?? determineInitialCommand(specId, workspacePath);
+  const workflowProfile = getWorkflowProfile();
+  const commandName = rawCommand
+    .replace(/^[/#]\s*/, '')
+    .replace(/^\$\s+\$\s+/, '')
+    .trim();
+  if (!commandName) {
+    return rawCommand;
+  }
+
+  if (workflowProfile === 'enterpriseai' && ENTERPRISE_AI_REFERENCE_COMMANDS.has(commandName)) {
+    const fallbackEvents = createReferenceFallbackEventHandlers((notice) => {
+      const message = `[EnterpriseAI] ${notice.message}`;
+      outputChannel?.appendLine(`   ⚠ ${message}`);
+      sharedLogger?.info('autonomousCommands', 'EnterpriseAI fallback reference notice emitted', {
+        runId: notice.runId,
+        fallbackPath: notice.fallbackPath,
+        unavailableExternalReferences: notice.unavailableExternalReferences,
+      });
+    });
+    fallbackEvents.consume((payload) => {
+      sharedLogger?.info(
+        'autonomousCommands',
+        'EnterpriseAI references resolved for command launch',
+        {
+          commandName,
+          runId: payload.runId,
+          unavailableExternalReferences: payload.unavailableExternalReferences,
+          fallbackPath: payload.fallbackPath,
+        }
+      );
+    });
+
+    const goferConfig = vscode.workspace.getConfiguration('gofer');
+    const useExternalReferences = goferConfig.get<boolean>(
+      'enterpriseAiUseExternalReferences',
+      false
+    );
+    await resolveEnterpriseAiReferences(
+      {
+        runId: `launch-${specId}-${commandName}`,
+        referenceTypes: ENTERPRISE_AI_REFERENCE_TYPES,
+        externalReferencesEnabled: useExternalReferences,
+        fallbackPath: '.specify/references/eai/',
+      },
+      {
+        workspaceRoot: workspacePath,
+        externalReferenceResolver: useExternalReferences
+          ? (referenceType) => ENTERPRISE_AI_EXTERNAL_REFERENCE_URLS[referenceType]
+          : undefined,
+        eventPublisher: (payload) => {
+          fallbackEvents.publish(payload);
+        },
+      }
+    );
+  }
+
+  const router = sharedCrossPlatformCommandRouter;
+  if (!router) {
+    return rawCommand;
+  }
 
   try {
-    const router = sharedCrossPlatformCommandRouter;
-    if (!router) {
-      return rawCommand;
-    }
-
-    const commandName = rawCommand
-      .replace(/^[/#]\s*/, '')
-      .replace(/^\$\s+\$\s+/, '')
-      .trim();
-    if (!commandName) {
-      return rawCommand;
-    }
-
     // launchClaudeCode always runs in Claude terminal, so we validate via router
     // but keep Claude invocation syntax for execution.
-    await router.routeCommand(commandName, 'claude');
+    await router.routeCommand(commandName, 'claude', workflowProfile);
+    await router.loadSkillForPlatform(commandName, 'claude', workflowProfile);
     return router.getCommandSyntax(commandName, 'claude');
-  } catch {
+  } catch (error) {
+    sharedLogger?.warn(
+      'autonomousCommands',
+      'Falling back to raw command after routing compatibility check failure',
+      {
+        commandName,
+        workflowProfile,
+        error: error instanceof Error ? error.message : String(error),
+      }
+    );
     return rawCommand;
   }
 }
@@ -1349,7 +1436,7 @@ async function attemptQuestionResponse(
     const response = await autonomousResponder.getAutonomousResponse(workspacePath, context);
 
     if (response) {
-      // TODO (Phase 3): Implement notification-based workflow for autonomous responses
+      // Phase 3 follow-up: implement notification-based workflow for autonomous responses.
       // Normal terminals don't support programmatic input like PTY
       // Will show notification with response and let user copy/paste or click to send
       outputChannel?.appendLine(`   Autonomous response ready: ${response.substring(0, 100)}...`);

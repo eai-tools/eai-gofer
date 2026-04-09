@@ -25,6 +25,12 @@ vi.mock('vscode', () => ({
 
 vi.mock('fs');
 
+function createFsError(code: string): NodeJS.ErrnoException {
+  const error = new Error(code) as NodeJS.ErrnoException;
+  error.code = code;
+  return error;
+}
+
 describe('CrossPlatformCommandRouter', () => {
   const workspacePath = '/test/workspace';
   let mockConfig: Record<string, unknown>;
@@ -57,8 +63,15 @@ description: Test command
 # Test
 
 Body`);
+    vi.mocked(fs.promises.readFile).mockResolvedValue(`---
+description: Test command
+---
+
+# Test
+
+Body`);
     // Default: all paths inaccessible
-    vi.mocked(fs.promises.access).mockRejectedValue(new Error('ENOENT'));
+    vi.mocked(fs.promises.access).mockRejectedValue(createFsError('ENOENT'));
 
     ConfigManager.getInstance().refresh();
   });
@@ -74,7 +87,7 @@ Body`);
     vi.mocked(fs.promises.access).mockImplementation((p) =>
       String(p).includes('.github/prompts/1_gofer_research.prompt.md')
         ? Promise.resolve()
-        : Promise.reject(new Error('ENOENT'))
+        : Promise.reject(createFsError('ENOENT'))
     );
 
     const router = new CrossPlatformCommandRouter(workspacePath);
@@ -95,7 +108,7 @@ Body`);
         pathStr.includes('.system/skills/1_gofer_research/SKILL.md') ||
         pathStr.includes('.github/prompts/1_gofer_research.prompt.md')
         ? Promise.resolve()
-        : Promise.reject(new Error('ENOENT'));
+        : Promise.reject(createFsError('ENOENT'));
     });
 
     const router = new CrossPlatformCommandRouter(workspacePath);
@@ -112,7 +125,7 @@ Body`);
     vi.mocked(fs.promises.access).mockImplementation((p) =>
       String(p).includes('.claude/commands/1_gofer_research.md')
         ? Promise.resolve()
-        : Promise.reject(new Error('ENOENT'))
+        : Promise.reject(createFsError('ENOENT'))
     );
 
     const router = new CrossPlatformCommandRouter(workspacePath);

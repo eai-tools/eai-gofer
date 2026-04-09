@@ -1,13 +1,16 @@
 # Gofer VSCode Extension
 
-**EnterpriseAI platform delivery workflow inside VS Code.**
+**EnterpriseAI-first vertical app delivery workflow inside VS Code (additive to
+standard Gofer).**
 
 Gofer turns a repository into an EnterpriseAI spec-delivery workspace so teams
 can run the full pipeline end-to-end: business scenario → research →
 specification → planning → tasks → implementation → validation.
 
 It supports cross-CLI workflows with Claude, GitHub Copilot, Codex, and Gemini
-while keeping all artifacts in `.specify/specs/{feature}/`.
+while keeping all artifacts in `.specify/specs/{feature}/`. Set
+`gofer.workflowProfile=enterpriseai` to prioritize EnterpriseAI guidance without
+removing standard or multi-platform behavior.
 
 ## ⚡ Quick Start in VS Code
 
@@ -1265,6 +1268,7 @@ Configure the extension through VS Code settings:
 
 ```json
 {
+  "gofer.workflowProfile": "standard",
   "gofer.markdownViewer": "preview",
   "gofer.autoRefresh": true,
   "gofer.showNotifications": true,
@@ -1277,15 +1281,16 @@ Configure the extension through VS Code settings:
 
 ### Settings Reference
 
-| Setting                     | Default     | Description                                                                        |
-| --------------------------- | ----------- | ---------------------------------------------------------------------------------- |
-| `gofer.markdownViewer`      | `"preview"` | Markdown viewer: "preview", "mark-sharp", "markdown-editor", or "markdown-wysiwyg" |
-| `gofer.autoRefresh`         | `true`      | Auto-refresh panels on file changes                                                |
-| `gofer.showNotifications`   | `true`      | Show update and status notifications                                               |
-| `gofer.telemetryEnabled`    | `false`     | Enable anonymous usage analytics                                                   |
-| `gofer.templateSource`      | `"github"`  | Template source: "github" or "bundled"                                             |
-| `gofer.updateCheckInterval` | `86400000`  | Update check interval in milliseconds                                              |
-| `gofer.branchSpecificSpecs` | `true`      | Reload specs when switching branches                                               |
+| Setting                     | Default      | Description                                                                              |
+| --------------------------- | ------------ | ---------------------------------------------------------------------------------------- |
+| `gofer.workflowProfile`     | `"standard"` | Workflow mode: `"standard"` (baseline) or `"enterpriseai"` (EnterpriseAI-first guidance) |
+| `gofer.markdownViewer`      | `"preview"`  | Markdown viewer: "preview", "mark-sharp", "markdown-editor", or "markdown-wysiwyg"       |
+| `gofer.autoRefresh`         | `true`       | Auto-refresh panels on file changes                                                      |
+| `gofer.showNotifications`   | `true`       | Show update and status notifications                                                     |
+| `gofer.telemetryEnabled`    | `false`      | Enable anonymous usage analytics                                                         |
+| `gofer.templateSource`      | `"github"`   | Template source: "github" or "bundled"                                                   |
+| `gofer.updateCheckInterval` | `86400000`   | Update check interval in milliseconds                                                    |
+| `gofer.branchSpecificSpecs` | `true`       | Reload specs when switching branches                                                     |
 
 ## 🔧 Troubleshooting
 

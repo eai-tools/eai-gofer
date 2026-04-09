@@ -1,6 +1,11 @@
 ---
 name: 5_gofer_implement
 description: Execute tasks from tasks.md to implement the feature
+gofer:
+  workflowProfile: enterpriseai
+  canonicalSource: .claude/commands/5_gofer_implement.md
+  canonicalChecksum: eb5a1c746a736135386d22167366a10f203342e1a56284064a75e6fa20344163
+  metadataSource: scripts/generate-commands.ts
 arguments:
   - name: feature
     description: Feature name or description
@@ -265,6 +270,30 @@ Create checkpoints (git commits) at strategic points:
 2. **Foundational next**: Shared components blocking user stories
 3. **User stories**: In priority order (P1, P2, P3...)
 4. **Polish last**: Documentation, optimization, final tests
+
+### EnterpriseAI Deployment Preflight Gate (Manifest/Config)
+
+For deployment tasks in `gofer.workflowProfile=enterpriseai`, apply mandatory
+deployment preflight checks (manifest/config gate) before marking the task
+complete.
+
+1. Resolve required deployment files from the task contract (minimum:
+   `manifest.yml` and `config.json`).
+2. Verify required files exist before any deploy command runs.
+3. Run deployment validation command syntax before deploy:
+   - `eai-cli validate`
+4. Only allow deployment task completion when readiness passes, or when the task
+   explicitly allows non-blocking completion.
+
+```bash
+# EnterpriseAI deployment preflight (MANDATORY)
+test -f manifest.yml && test -f config.json
+eai-cli validate
+# Only then run deploy commands such as:
+eai-cli deploy --env <environment>
+```
+
+If preflight fails, keep task incomplete and report missing files to the user.
 
 ### Minimal Changes Only
 

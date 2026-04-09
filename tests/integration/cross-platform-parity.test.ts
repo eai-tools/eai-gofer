@@ -366,6 +366,52 @@ describe('Cross-Platform Feature Parity', () => {
     });
   });
 
+  describe('US-006: Canonical Mirror Parity Assertions', () => {
+    it('should propagate canonical metadata into Codex and Copilot mirrors', () => {
+      const commandName = '1_gofer_research';
+      const codexPath = router.getCommandPath(commandName, 'codex');
+      const copilotPath = router.getCommandPath(commandName, 'copilot');
+
+      const codexContent = fs.readFileSync(codexPath, 'utf8');
+      const copilotContent = fs.readFileSync(copilotPath, 'utf8');
+
+      expect(codexContent).toContain('gofer:');
+      expect(codexContent).toMatch(/workflowProfile:\s*(standard|enterpriseai)/);
+      expect(codexContent).toContain(`canonicalSource: .claude/commands/${commandName}.md`);
+      expect(codexContent).toContain('metadataSource: scripts/generate-commands.ts');
+
+      expect(copilotContent).toContain('gofer:');
+      expect(copilotContent).toMatch(/workflowProfile:\s*(standard|enterpriseai)/);
+      expect(copilotContent).toContain(`canonicalSource: .claude/commands/${commandName}.md`);
+      expect(copilotContent).toContain('metadataSource: scripts/generate-commands.ts');
+    });
+
+    it('should keep .agents skills in parity with .system skills without manual mirror edits', () => {
+      const codexSkillsDir = path.join(workspacePath, '.system', 'skills');
+      const commandDirs = fs.readdirSync(codexSkillsDir).filter((entry) => {
+        return fs.existsSync(path.join(codexSkillsDir, entry, 'SKILL.md'));
+      });
+
+      expect(commandDirs.length).toBeGreaterThan(0);
+
+      commandDirs.forEach((commandName) => {
+        const codexSkillPath = path.join(codexSkillsDir, commandName, 'SKILL.md');
+        const agentSkillPath = path.join(
+          workspacePath,
+          '.agents',
+          'skills',
+          commandName,
+          'SKILL.md'
+        );
+
+        expect(fs.existsSync(agentSkillPath)).toBe(true);
+        expect(fs.readFileSync(agentSkillPath, 'utf8')).toBe(
+          fs.readFileSync(codexSkillPath, 'utf8')
+        );
+      });
+    });
+  });
+
   describe('Cross-Platform Command Router', () => {
     it('should instantiate without errors', () => {
       expect(() => new CrossPlatformCommandRouter(workspacePath)).not.toThrow();

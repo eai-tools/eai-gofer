@@ -2,6 +2,7 @@ import * as assert from 'assert';
 import * as path from 'path';
 import * as fs from 'fs/promises';
 import * as os from 'os';
+import * as vscode from 'vscode';
 import { ProgressProvider } from '../../progressProvider';
 
 suite('ProgressProvider Test Suite', function () {
@@ -17,11 +18,15 @@ suite('ProgressProvider Test Suite', function () {
   });
 
   suiteTeardown(async () => {
+    await setWorkflowProfile('standard');
+
     // Clean up temporary directory
     await fs.rmdir(tempDir, { recursive: true }).catch(() => {});
   });
 
   setup(async () => {
+    await setWorkflowProfile('standard');
+
     // Clean up .specify directory from previous tests
     const specifyDir = path.join(tempDir, '.specify');
     try {
@@ -29,6 +34,9 @@ suite('ProgressProvider Test Suite', function () {
     } catch (_e) {
       // Ignore if it doesn't exist
     }
+
+    await fs.rm(path.join(tempDir, 'manifest.yml'), { force: true });
+    await fs.rm(path.join(tempDir, 'config.json'), { force: true });
 
     // Create fresh progress provider for each test with 0ms debounce for faster testing
     progressProvider = new ProgressProvider(tempDir, undefined, 0);
@@ -294,7 +302,138 @@ created: "2025-10-22"
     });
   });
 
+  suite('EnterpriseAI deployment readiness gate', () => {
+    test('should block deployment task completion when required deployment files are missing', async () => {
+      const specId = '011-enterpriseai-deploy-gate-blocked';
+      await setWorkflowProfile('enterpriseai');
+      await createTestSpecWithTasks(specId, 'EnterpriseAI Deploy Gate', 'in_progress', [
+        { id: 'T001', desc: 'Deploy vertical app to EnterpriseAI production', status: 'pending' },
+      ]);
+
+      await progressProvider.getChildren();
+      progressProvider.refresh();
+      await waitForTreeUpdate(progressProvider);
+
+      await assert.rejects(
+        async () => {
+          await progressProvider.updateTaskStatus(specId, 'T001', 'completed');
+        },
+        (error: unknown): boolean =>
+          error instanceof Error &&
+          error.message.includes('IMPL_DEPLOYMENT_VALIDATION_FAILED') &&
+          error.message.includes('manifest.yml') &&
+          error.message.includes('config.json')
+      );
+
+      const tasksPath = path.join(tempDir, '.specify', 'specs', specId, 'tasks.md');
+      const tasksContent = await fs.readFile(tasksPath, 'utf-8');
+      assert.ok(tasksContent.includes('- [ ] T001 Deploy vertical app to EnterpriseAI production'));
+    });
+
+    test('should allow deployment task completion when required deployment files exist', async () => {
+      const specId = '012-enterpriseai-deploy-gate-pass';
+      await setWorkflowProfile('enterpriseai');
+      await createTestSpecWithTasks(specId, 'EnterpriseAI Deploy Gate Pass', 'in_progress', [
+        { id: 'T001', desc: 'Deploy vertical app to EnterpriseAI production', status: 'pending' },
+      ]);
+
+      await fs.writeFile(path.join(tempDir, 'manifest.yml'), 'name: app\n');
+      await fs.writeFile(path.join(tempDir, 'config.json'), '{"env":"prod"}\n');
+
+      await progressProvider.getChildren();
+      progressProvider.refresh();
+      await waitForTreeUpdate(progressProvider);
+
+      await progressProvider.updateTaskStatus(specId, 'T001', 'completed');
+
+      const tasksPath = path.join(tempDir, '.specify', 'specs', specId, 'tasks.md');
+      const tasksContent = await fs.readFile(tasksPath, 'utf-8');
+      assert.ok(tasksContent.includes('- [x] T001 Deploy vertical app to EnterpriseAI production'));
+    });
+
+    test('should block completion for deployment readiness tasks identified by manifest keywords', async () => {
+      const specId = '013-enterpriseai-deploy-manifest-keyword';
+      await setWorkflowProfile('enterpriseai');
+      await createTestSpecWithTasks(specId, 'EnterpriseAI Manifest Gate', 'in_progress', [
+        {
+          id: 'T001',
+          desc: 'Validate manifest and config for production release',
+          status: 'pending',
+        },
+      ]);
+
+      await progressProvider.getChildren();
+      progressProvider.refresh();
+      await waitForTreeUpdate(progressProvider);
+
+      await assert.rejects(
+        async () => {
+          await progressProvider.updateTaskStatus(specId, 'T001', 'completed');
+        },
+        (error: unknown): boolean =>
+          error instanceof Error &&
+          error.message.includes('IMPL_DEPLOYMENT_VALIDATION_FAILED') &&
+          error.message.includes('manifest.yml')
+      );
+    });
+
+    test('should allow non-deployment release tasks without deployment artifacts', async () => {
+      const specId = '014-enterpriseai-release-notes';
+      await setWorkflowProfile('enterpriseai');
+      await createTestSpecWithTasks(specId, 'EnterpriseAI Release Notes', 'in_progress', [
+        {
+          id: 'T001',
+          desc: 'Publish release notes for EnterpriseAI stakeholders',
+          status: 'pending',
+        },
+      ]);
+
+      await progressProvider.getChildren();
+      progressProvider.refresh();
+      await waitForTreeUpdate(progressProvider);
+
+      await progressProvider.updateTaskStatus(specId, 'T001', 'completed');
+
+      const tasksPath = path.join(tempDir, '.specify', 'specs', specId, 'tasks.md');
+      const tasksContent = await fs.readFile(tasksPath, 'utf-8');
+      assert.ok(
+        tasksContent.includes('- [x] T001 Publish release notes for EnterpriseAI stakeholders')
+      );
+    });
+
+    test('should serialize concurrent provider task updates for deployment tasks', async () => {
+      const specId = '015-enterpriseai-concurrent-provider-updates';
+      await setWorkflowProfile('enterpriseai');
+      await createTestSpecWithTasks(specId, 'EnterpriseAI Concurrent Updates', 'in_progress', [
+        { id: 'T001', desc: 'Deploy service A to EnterpriseAI production', status: 'pending' },
+        { id: 'T002', desc: 'Deploy service B to EnterpriseAI production', status: 'pending' },
+      ]);
+
+      await fs.writeFile(path.join(tempDir, 'manifest.yml'), 'name: app\n');
+      await fs.writeFile(path.join(tempDir, 'config.json'), '{"env":"prod"}\n');
+
+      await progressProvider.getChildren();
+      progressProvider.refresh();
+      await waitForTreeUpdate(progressProvider);
+
+      await Promise.all([
+        progressProvider.updateTaskStatus(specId, 'T001', 'completed'),
+        progressProvider.updateTaskStatus(specId, 'T002', 'completed'),
+      ]);
+
+      const tasksPath = path.join(tempDir, '.specify', 'specs', specId, 'tasks.md');
+      const tasksContent = await fs.readFile(tasksPath, 'utf-8');
+      assert.ok(tasksContent.includes('- [x] T001 Deploy service A to EnterpriseAI production'));
+      assert.ok(tasksContent.includes('- [x] T002 Deploy service B to EnterpriseAI production'));
+    });
+  });
+
   // Helper functions
+  async function setWorkflowProfile(profile: 'standard' | 'enterpriseai'): Promise<void> {
+    const configuration = vscode.workspace.getConfiguration('gofer');
+    await configuration.update('workflowProfile', profile, vscode.ConfigurationTarget.Global);
+  }
+
   async function createTestSpec(id: string, title: string, status: string): Promise<void> {
     const specDir = path.join(tempDir, '.specify', 'specs', id);
     await fs.mkdir(specDir, { recursive: true });

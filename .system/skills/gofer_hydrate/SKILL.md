@@ -1,6 +1,11 @@
 ---
 name: gofer_hydrate
 description: Reverse-engineer specification from existing code (Hydration)
+gofer:
+  workflowProfile: standard
+  canonicalSource: .claude/commands/gofer_hydrate.md
+  canonicalChecksum: 6981b19710e2386426a0b651eeaa43c3b9690d39a24e0fa507f9766612ecd94a
+  metadataSource: scripts/generate-commands.ts
 arguments:
   - name: feature
     description: Feature name or description
@@ -17,7 +22,6 @@ result_schema:
         - success
         - error
 ---
-
 
 # Gofer Hydrate
 
@@ -180,8 +184,8 @@ source_files:
 # [Feature Title]
 
 > This specification was reverse-engineered from existing code using
-> `$ $gofer_hydrate`. It reflects the **current implementation**, not necessarily
-> the original requirements.
+> `$ $gofer_hydrate`. It reflects the **current implementation**, not
+> necessarily the original requirements.
 
 ## Overview
 

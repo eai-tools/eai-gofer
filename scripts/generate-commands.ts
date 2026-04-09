@@ -25,6 +25,7 @@ import { fileURLToPath } from 'url';
  */
 interface GenerateCommandsArgs {
   platform?: 'codex' | 'copilot' | 'all';
+  workflowProfile: 'standard' | 'enterpriseai' | 'auto';
   dryRun: boolean;
   verbose: boolean;
 }
@@ -35,6 +36,7 @@ interface GenerateCommandsArgs {
 function parseArgs(): GenerateCommandsArgs {
   const args = process.argv.slice(2);
   const result: GenerateCommandsArgs = {
+    workflowProfile: 'auto',
     dryRun: false,
     verbose: false,
   };
@@ -48,6 +50,10 @@ function parseArgs(): GenerateCommandsArgs {
       case '--dry-run':
         result.dryRun = true;
         break;
+      case '--workflow-profile':
+      case '--profile':
+        result.workflowProfile = args[++i] as 'standard' | 'enterpriseai' | 'auto';
+        break;
       case '--verbose':
       case '-v':
         result.verbose = true;
@@ -57,6 +63,12 @@ function parseArgs(): GenerateCommandsArgs {
         printUsage();
         process.exit(0);
     }
+  }
+
+  if (!['standard', 'enterpriseai', 'auto'].includes(result.workflowProfile)) {
+    throw new Error(
+      `Invalid --workflow-profile value "${result.workflowProfile}". Use standard, enterpriseai, or auto.`
+    );
   }
 
   return result;
@@ -71,6 +83,7 @@ Usage: npm run generate-commands [options]
 
 Options:
   --platform <type>   Generate for specific platform: codex, copilot, or all (default: all)
+  --workflow-profile  Metadata workflow profile: standard, enterpriseai, or auto (default: auto)
   --dry-run          Preview changes without writing files
   --verbose, -v      Show detailed generation output
   --help, -h         Show this help message
@@ -78,8 +91,69 @@ Options:
 Examples:
   npm run generate-commands                        # Generate all commands
   npm run generate-commands -- --platform codex    # Generate only Codex skills
+  npm run generate-commands -- --workflow-profile enterpriseai
   npm run generate-commands -- --dry-run           # Preview without writing
   `);
+}
+
+interface NonDestructiveSyncStats {
+  copied: number;
+  updated: number;
+  unchanged: number;
+}
+
+function normalizePathForOutput(filePath: string): string {
+  return filePath.replace(/\\/g, '/');
+}
+
+function syncDirectoryNonDestructive(
+  sourcePath: string,
+  targetPath: string,
+  dryRun: boolean,
+  verbose: boolean,
+  stats: NonDestructiveSyncStats
+): void {
+  const entries = fs.readdirSync(sourcePath, { withFileTypes: true });
+
+  for (const entry of entries) {
+    const sourceEntry = path.join(sourcePath, entry.name);
+    const targetEntry = path.join(targetPath, entry.name);
+
+    if (entry.isDirectory()) {
+      if (!dryRun) {
+        fs.mkdirSync(targetEntry, { recursive: true });
+      }
+      syncDirectoryNonDestructive(sourceEntry, targetEntry, dryRun, verbose, stats);
+      continue;
+    }
+
+    const targetExists = fs.existsSync(targetEntry);
+    const sourceContent = fs.readFileSync(sourceEntry, 'utf8');
+    const targetContent = targetExists ? fs.readFileSync(targetEntry, 'utf8') : null;
+
+    if (targetExists && targetContent === sourceContent) {
+      stats.unchanged++;
+      continue;
+    }
+
+    if (targetExists) {
+      stats.updated++;
+    } else {
+      stats.copied++;
+    }
+
+    if (!dryRun) {
+      fs.mkdirSync(path.dirname(targetEntry), { recursive: true });
+      fs.writeFileSync(targetEntry, sourceContent, 'utf8');
+    }
+
+    if (verbose) {
+      const operation = targetExists ? 'updated' : 'copied';
+      console.log(
+        `${dryRun ? '[dry-run] ' : ''}${operation} ${normalizePathForOutput(targetEntry)}`
+      );
+    }
+  }
 }
 
 /**
@@ -100,65 +174,24 @@ function syncCodexSkillsToAgents(
   if (dryRun) {
     if (verbose) {
       console.log(
-        `[dry-run] Would sync ${path.relative(workspacePath, codexSkillsDir)} -> ${path.relative(workspacePath, agentsSkillsDir)}`
+        `[dry-run] Would non-destructively sync ${normalizePathForOutput(path.relative(workspacePath, codexSkillsDir))} -> ${normalizePathForOutput(path.relative(workspacePath, agentsSkillsDir))}`
       );
     }
-    return;
+  } else {
+    fs.mkdirSync(agentsSkillsDir, { recursive: true });
   }
 
-  fs.rmSync(agentsSkillsDir, { recursive: true, force: true });
-  fs.mkdirSync(path.dirname(agentsSkillsDir), { recursive: true });
-  fs.cpSync(codexSkillsDir, agentsSkillsDir, { recursive: true });
+  const stats: NonDestructiveSyncStats = {
+    copied: 0,
+    updated: 0,
+    unchanged: 0,
+  };
+  syncDirectoryNonDestructive(codexSkillsDir, agentsSkillsDir, dryRun, verbose, stats);
 
   if (verbose) {
-    console.log(`Synced Codex skills to ${path.relative(workspacePath, agentsSkillsDir)}`);
-  }
-}
-
-/**
- * File system helpers
- */
-class FileSystemHelpers {
-  /**
-   * Ensure directory exists, create if not
-   */
-  static ensureDirectory(dirPath: string): void {
-    if (!fs.existsSync(dirPath)) {
-      fs.mkdirSync(dirPath, { recursive: true });
-    }
-  }
-
-  /**
-   * Read file with error handling
-   */
-  static readFile(filePath: string): string {
-    try {
-      return fs.readFileSync(filePath, 'utf8');
-    } catch (error) {
-      throw new Error(`Failed to read file ${filePath}: ${error}`);
-    }
-  }
-
-  /**
-   * Write file with error handling
-   */
-  static writeFile(filePath: string, content: string): void {
-    try {
-      fs.writeFileSync(filePath, content, 'utf8');
-    } catch (error) {
-      throw new Error(`Failed to write file ${filePath}: ${error}`);
-    }
-  }
-
-  /**
-   * List files in directory matching pattern
-   */
-  static listFiles(dirPath: string, pattern: RegExp): string[] {
-    try {
-      return fs.readdirSync(dirPath).filter((file) => pattern.test(file));
-    } catch (error) {
-      throw new Error(`Failed to list files in ${dirPath}: ${error}`);
-    }
+    console.log(
+      `Synced Codex skills to ${normalizePathForOutput(path.relative(workspacePath, agentsSkillsDir))} (copied=${stats.copied}, updated=${stats.updated}, unchanged=${stats.unchanged})`
+    );
   }
 }
 
@@ -167,6 +200,8 @@ class FileSystemHelpers {
  */
 async function main(): Promise<void> {
   const args = parseArgs();
+  const workflowProfileOverride =
+    args.workflowProfile === 'auto' ? undefined : args.workflowProfile;
 
   // Determine which platforms to generate
   const platforms: Array<'codex' | 'copilot'> = [];
@@ -189,12 +224,21 @@ async function main(): Promise<void> {
   );
 
   const generator = new CommandGenerator(workspacePath);
+  if (args.verbose) {
+    console.log(
+      `Using workflow profile metadata: ${workflowProfileOverride ?? 'auto-detected per canonical source'}`
+    );
+  }
   for (const platform of platforms) {
 
     try {
       const generatedPaths = await generator.generateCommands(
         platform,
-        args.dryRun
+        args.dryRun,
+        {
+          workflowProfileOverride,
+          metadataSource: 'scripts/generate-commands.ts',
+        }
       );
 
       if (platform === 'codex') {
@@ -223,4 +267,4 @@ if (invokedPath === scriptPath) {
   });
 }
 
-export { GenerateCommandsArgs, FileSystemHelpers };
+export { GenerateCommandsArgs };

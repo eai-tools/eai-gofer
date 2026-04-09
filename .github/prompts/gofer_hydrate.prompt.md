@@ -16,6 +16,7 @@ gofer:
   metadataSource: scripts/generate-commands.ts
 ---
 
+
 # Gofer Hydrate
 
 You are analyzing existing code and generating a compliant specification

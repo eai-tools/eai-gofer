@@ -562,11 +562,15 @@
           "enum": [
             "claude",
             "codex",
+            "copilot",
+            "gemini",
             "auto"
           ],
           "enumDescriptions": [
             "Use Claude Code CLI",
             "Use Codex CLI",
+            "Use GitHub Copilot CLI (autonomous tasks use Claude/Codex fallback)",
+            "Use Gemini CLI (autonomous tasks use Claude/Codex fallback)",
             "Auto-detect installed CLI"
           ],
           "default": "auto",

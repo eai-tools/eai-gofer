@@ -105,6 +105,42 @@ describe('CLI Provider Switching Integration Tests (R8)', () => {
       expect(provider.name).toBe('Codex CLI');
     });
 
+    it('should fall back to CLI-capable provider when Copilot is configured', async () => {
+      const vscode = await import('vscode');
+      vi.mocked(vscode.workspace.getConfiguration).mockReturnValue({
+        get: vi.fn((key: string, defaultValue?: any) => {
+          if (key === 'cliProvider') return 'copilot';
+          if (key === 'defaultCLI') return 'copilot';
+          if (key === 'claudeCodeCommand') return 'claude';
+          if (key === 'codexCommand') return 'codex';
+          return defaultValue;
+        }),
+      } as any);
+
+      const provider = await factory.getCLIProvider();
+
+      expect(provider).toBeDefined();
+      expect(provider.id).toBe('claude-cli');
+    });
+
+    it('should fall back to CLI-capable provider when Gemini is configured', async () => {
+      const vscode = await import('vscode');
+      vi.mocked(vscode.workspace.getConfiguration).mockReturnValue({
+        get: vi.fn((key: string, defaultValue?: any) => {
+          if (key === 'cliProvider') return 'gemini';
+          if (key === 'defaultCLI') return 'auto';
+          if (key === 'claudeCodeCommand') return 'claude';
+          if (key === 'codexCommand') return 'codex';
+          return defaultValue;
+        }),
+      } as any);
+
+      const provider = await factory.getCLIProvider();
+
+      expect(provider).toBeDefined();
+      expect(provider.id).toBe('claude-cli');
+    });
+
     it('should auto-detect Claude CLI when set to auto', async () => {
       const vscode = await import('vscode');
       vi.mocked(vscode.workspace.getConfiguration).mockReturnValue({

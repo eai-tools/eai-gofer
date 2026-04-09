@@ -32,11 +32,14 @@ export class MCPConfigHelper {
   async createOrUpdateConfig(): Promise<void> {
     // T083: Check if current provider supports MCP (Claude only)
     const goferConfig = vscode.workspace.getConfiguration('gofer');
-    const defaultCLI = goferConfig.get<'claude' | 'copilot' | 'codex' | 'auto'>(
+    const defaultCLI = goferConfig.get<'claude' | 'copilot' | 'codex' | 'gemini' | 'auto'>(
       'defaultCLI',
       'auto'
     );
-    const cliProvider = goferConfig.get<'claude' | 'codex' | 'auto'>('cliProvider', 'auto');
+    const cliProvider = goferConfig.get<'claude' | 'codex' | 'copilot' | 'gemini' | 'auto'>(
+      'cliProvider',
+      'auto'
+    );
 
     // MCP is only supported by Claude Code CLI
     const effectiveProvider = defaultCLI !== 'auto' ? defaultCLI : cliProvider;
@@ -48,6 +51,11 @@ export class MCPConfigHelper {
 
     if (effectiveProvider === 'copilot') {
       this.logger.info('Skipping MCP setup - GitHub Copilot Chat does not support MCP servers');
+      return;
+    }
+
+    if (effectiveProvider === 'gemini') {
+      this.logger.info('Skipping MCP setup - Gemini CLI does not support MCP servers');
       return;
     }
 

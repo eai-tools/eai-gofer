@@ -10,6 +10,11 @@ tools:
   - Bash
   - WebSearch
 argument-hint: feature-name-or-description
+gofer:
+  workflowProfile: standard
+  canonicalSource: .claude/commands/6a_gofer_engineering_review.md
+  canonicalChecksum: 2939e3cdca072653df75dddc19cb4d158dab078f0e76889c5808ff30cb981368
+  metadataSource: scripts/generate-commands.ts
 ---
 
 # Gofer Engineering Review

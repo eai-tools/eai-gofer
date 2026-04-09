@@ -24,6 +24,7 @@ import { SubAgentDispatcher } from './autonomous/SubAgentDispatcher';
 import { MemoryLayerManager } from './autonomous/MemoryLayerManager';
 import { ACCOrchestrator } from './autonomous/ACCOrchestrator';
 import { ObservationBridge } from './autonomous/ObservationBridge';
+import { ArchitectureDecisionGate } from './services/enterpriseai/governance/ArchitectureDecisionGate';
 import {
   setSharedContextBuilder,
   setSharedCrossPlatformCommandRouter,
@@ -77,6 +78,9 @@ import { Logger as LegacyLogger } from './utils/logger';
 // Phase 1 Engineering Remediation: Logger service (T011-T013)
 // Keep logger as module-level for early initialization and convenience
 let logger: Logger | undefined;
+
+const ENTERPRISEAI_ONBOARDING_MESSAGE =
+  '✅ Gofer initialized with EnterpriseAI-first guidance. Standard and multi-platform workflows remain fully supported.';
 
 // Module-level reference to EventHandler deps so initializeForWorkspace can
 // mutate sharedContextBuilder after creation (enables auto-activate of config reload handlers)
@@ -480,11 +484,13 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
     contextBuilder.setMemoryLayerManager(memoryLayerManager, useLayered);
 
     // Wire ACCOrchestrator (Feature 024 - T031)
+    const architectureDecisionGate = new ArchitectureDecisionGate();
     const accOrchestrator = new ACCOrchestrator(
       contextBuilder,
       contextBuilder.getObservationMasker(),
       subAgentDispatcher,
-      null // ContextCompactor wired later when autonomous session starts
+      null, // ContextCompactor wired later when autonomous session starts
+      architectureDecisionGate
     );
     if (state.contextHealthMonitor) {
       accOrchestrator.connect(state.contextHealthMonitor);
@@ -755,13 +761,18 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
             '• Claude Code CLI: npm install -g @anthropic/claude-code\n' +
             '• Codex CLI: npm install -g @openai/codex-cli';
 
-          vscode.window.showWarningMessage(message, 'View Settings', 'Install Guide').then((selection) => {
-            if (selection === 'View Settings') {
-              vscode.commands.executeCommand('workbench.action.openSettings', 'gofer.cliProvider');
-            } else if (selection === 'Install Guide') {
-              vscode.env.openExternal(vscode.Uri.parse('https://docs.gofer.dev/setup'));
-            }
-          });
+          vscode.window
+            .showWarningMessage(message, 'View Settings', 'Install Guide')
+            .then((selection) => {
+              if (selection === 'View Settings') {
+                vscode.commands.executeCommand(
+                  'workbench.action.openSettings',
+                  'gofer.cliProvider'
+                );
+              } else if (selection === 'Install Guide') {
+                vscode.env.openExternal(vscode.Uri.parse('https://docs.gofer.dev/setup'));
+              }
+            });
         } else if (!codexResult.authenticated) {
           // Codex found but not authenticated
           vscode.window
@@ -916,7 +927,7 @@ function registerGlobalCommands(context: vscode.ExtensionContext): void {
             await migrator.syncMissingResources();
             // Trigger workspace reinitialization to activate all features
             await reinitializeExtension(context);
-            vscode.window.showInformationMessage('✅ Gofer initialized successfully!');
+            vscode.window.showInformationMessage(ENTERPRISEAI_ONBOARDING_MESSAGE);
             await showOptionalToolPrompt(workspacePath);
           }
         );
@@ -1135,7 +1146,9 @@ async function tryWireRunId(
     let latestTime = 0;
 
     for (const entry of entries) {
-      if (!entry.isDirectory() || entry.name.startsWith('_')) {continue;}
+      if (!entry.isDirectory() || entry.name.startsWith('_')) {
+        continue;
+      }
       const statePath = path.join(specsDir, entry.name, 'pipeline-state.json');
       try {
         const stat = await fs.promises.stat(statePath);

@@ -4,7 +4,7 @@ description: Triage business scenario and orchestrate the unified Gofer pipeline
 gofer:
   workflowProfile: enterpriseai
   canonicalSource: .claude/commands/0_business_scenario.md
-  canonicalChecksum: 3e0c98b4ecd7dc9c130f62b46312d5481650ffd36cd9533d4dd670cbd1c93e4d
+  canonicalChecksum: e4e2cb9bdd9689a1dd5c81a63c55bb7cfa570060897292cb2e005f57db2cda4e
   metadataSource: scripts/generate-commands.ts
 arguments:
   - name: feature

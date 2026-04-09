@@ -42,10 +42,7 @@ export class CLIHealthChecker {
    * @param cliCommand - Command to execute
    * @returns Promise<CLIHealthResult>
    */
-  static async check(
-    cliType: 'claude' | 'codex',
-    cliCommand: string
-  ): Promise<CLIHealthResult> {
+  static async check(cliType: 'claude' | 'codex', cliCommand: string): Promise<CLIHealthResult> {
     const result: CLIHealthResult = {
       available: false,
       version: null,
@@ -113,6 +110,25 @@ export class CLIHealthChecker {
     } catch (_error) {
       // Command not found or other error
       return null;
+    }
+  }
+
+  /**
+   * Check whether a CLI supports a given subcommand.
+   * Useful for CLIs that expose features as nested commands (e.g. "gh copilot").
+   *
+   * @param cliCommand - Root command to execute
+   * @param args - Subcommand and flags
+   * @returns Promise<boolean> - true when the command executes successfully
+   */
+  static async supportsSubcommand(cliCommand: string, args: string[]): Promise<boolean> {
+    try {
+      await execFile(cliCommand, args, {
+        timeout: CLI_HEALTH_CHECK_TIMEOUT_MS,
+      });
+      return true;
+    } catch {
+      return false;
     }
   }
 
@@ -203,7 +219,9 @@ export class CLIHealthChecker {
     // Parse version strings
     const parseVersion = (v: string): number[] => {
       const match = v.match(/(\d+)\.(\d+)\.(\d+)/);
-      if (!match) {return [0, 0, 0];}
+      if (!match) {
+        return [0, 0, 0];
+      }
       return [parseInt(match[1], 10), parseInt(match[2], 10), parseInt(match[3], 10)];
     };
 
@@ -212,8 +230,12 @@ export class CLIHealthChecker {
 
     // Compare major, minor, patch
     for (let i = 0; i < 3; i++) {
-      if (current[i] > minimum[i]) {return true;}
-      if (current[i] < minimum[i]) {return false;}
+      if (current[i] > minimum[i]) {
+        return true;
+      }
+      if (current[i] < minimum[i]) {
+        return false;
+      }
     }
 
     // Versions are equal

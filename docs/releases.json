@@ -1,8 +1,17 @@
 {
-  "latest_version": "2.0.3",
+  "latest_version": "2.0.4",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-04-09T13:52:41.343Z",
+  "last_updated": "2026-04-09T14:28:14.636Z",
   "releases": [
+    {
+      "version": "2.0.4",
+      "tag_name": "v2.0.4",
+      "published_at": "2026-04-09T14:28:14.636Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-2.0.4.vsix",
+      "notes": "Fix cross-platform resource sync and Copilot provider detection",
+      "prerelease": false,
+      "size_mb": 10.3
+    },
     {
       "version": "2.0.3",
       "tag_name": "v2.0.3",
@@ -81,15 +90,6 @@
       "published_at": "2026-03-28T09:40:13.644Z",
       "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.26.0.vsix",
       "notes": "Add multi-provider CLI support, cross-platform command parity, AI usage tracking, and memory system v2",
-      "prerelease": false,
-      "size_mb": 10.1
-    },
-    {
-      "version": "1.25.0",
-      "tag_name": "v1.25.0",
-      "published_at": "2026-03-22T11:12:49.013Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.25.0.vsix",
-      "notes": "feat: automatic Codex global CLI symlink creation\n\nEnables Codex CLI to access Gofer skills from any directory without manual symlink creation.\n\nKey features:\n- Automatic symlink creation during install/upgrade\n- Platform-aware (Windows junctions, Unix symlinks)\n- Non-blocking error handling\n- Updated documentation with troubleshooting guide\n\nThis achieves true CLI feature parity - Codex now works globally like Claude Code.",
       "prerelease": false,
       "size_mb": 10.1
     }

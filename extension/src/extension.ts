@@ -88,6 +88,7 @@ interface CopilotAvailabilityContext {
   viaPreferredAI: boolean;
   viaExtension: boolean;
   viaCliBinary: boolean;
+  viaGitHubCliSubcommand: boolean;
 }
 
 // Module-level reference to EventHandler deps so initializeForWorkspace can
@@ -104,7 +105,10 @@ function getState(): StateManager {
 
 async function resolveCopilotAvailability(
   config: vscode.WorkspaceConfiguration,
-  cliHealthChecker: { detectVersion(cliCommand: string): Promise<string | null> }
+  cliHealthChecker: {
+    detectVersion(cliCommand: string): Promise<string | null>;
+    supportsSubcommand(cliCommand: string, args: string[]): Promise<boolean>;
+  }
 ): Promise<CopilotAvailabilityContext> {
   const defaultCLI = config.get<'claude' | 'copilot' | 'codex' | 'gemini' | 'auto'>(
     'defaultCLI',
@@ -117,16 +121,21 @@ async function resolveCopilotAvailability(
   const viaDefaultCLI = defaultCLI === 'copilot';
   const viaPreferredAI = preferredAI === 'copilot';
   const shouldCheckCopilotCli = !viaDefaultCLI && !viaPreferredAI && !viaExtension;
-  const viaCliBinary = shouldCheckCopilotCli
-    ? (await cliHealthChecker.detectVersion('copilot')) !== null
-    : false;
+  const viaCliBinary =
+    shouldCheckCopilotCli && (await cliHealthChecker.detectVersion('copilot')) !== null;
+  const viaGitHubCliSubcommand =
+    shouldCheckCopilotCli && !viaCliBinary
+      ? await cliHealthChecker.supportsSubcommand('gh', ['copilot', '--help'])
+      : false;
 
   return {
-    available: viaDefaultCLI || viaPreferredAI || viaExtension || viaCliBinary,
+    available:
+      viaDefaultCLI || viaPreferredAI || viaExtension || viaCliBinary || viaGitHubCliSubcommand,
     viaDefaultCLI,
     viaPreferredAI,
     viaExtension,
     viaCliBinary,
+    viaGitHubCliSubcommand,
   };
 }
 

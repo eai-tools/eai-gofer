@@ -6,7 +6,7 @@ description: >-
 gofer:
   workflowProfile: enterpriseai
   canonicalSource: .claude/commands/7a_stakeholder_comms.md
-  canonicalChecksum: 6b373dc4ff21b55de324084d1f8d784d6ce73558ea05248a4e3f7ba0f36ddc5c
+  canonicalChecksum: 614805e0df61680b9b8e3a73f946bf3d44f33af43af0df260871ac6a6431a98c
   metadataSource: scripts/generate-commands.ts
 arguments:
   - name: feature

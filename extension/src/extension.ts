@@ -740,11 +740,26 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
   try {
     const { CLIHealthChecker } = await import('./council/providers/cli/CLIHealthChecker');
     const config = vscode.workspace.getConfiguration('gofer');
-    const preference = config.get<'claude' | 'codex' | 'auto'>('cliProvider', 'auto');
+    const preference = config.get<'claude' | 'codex' | 'copilot' | 'gemini' | 'auto'>(
+      'cliProvider',
+      'auto'
+    );
+    const defaultCLI = config.get<'claude' | 'copilot' | 'codex' | 'gemini' | 'auto'>(
+      'defaultCLI',
+      'auto'
+    );
 
-    let cliType: 'claude' | 'codex' | null = null;
-
-    if (preference === 'auto') {
+    if (preference === 'copilot' || preference === 'gemini') {
+      logger?.debug(
+        'Extension',
+        `Skipping autonomous CLI health check for gofer.cliProvider=${preference}`
+      );
+    } else if (preference === 'auto' && (defaultCLI === 'copilot' || defaultCLI === 'gemini')) {
+      logger?.debug(
+        'Extension',
+        `Skipping autonomous CLI health check for gofer.defaultCLI=${defaultCLI}`
+      );
+    } else if (preference === 'auto') {
       // Auto-detect to show helpful errors for both CLIs
       const claudeCommand = config.get<string>('claudeCodeCommand', 'claude');
       const claudeResult = await CLIHealthChecker.check('claude', claudeCommand);
@@ -793,7 +808,7 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
       // Note: Claude authentication check is already handled by line 706 condition
     } else {
       // Specific provider selected - check only that one
-      cliType = preference;
+      const cliType: 'claude' | 'codex' = preference;
       const cliCommand = config.get<string>(
         cliType === 'claude' ? 'claudeCodeCommand' : 'codexCommand',
         cliType === 'claude' ? 'claude' : 'codex'
@@ -839,14 +854,27 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
   // T035: Show persistent provider status in status bar (US3: Settings UI shows ✓/✗ status)
   try {
     const config = vscode.workspace.getConfiguration('gofer');
-    const preference = config.get<'claude' | 'codex' | 'auto'>('cliProvider', 'auto');
+    const preference = config.get<'claude' | 'codex' | 'copilot' | 'gemini' | 'auto'>(
+      'cliProvider',
+      'auto'
+    );
+    const defaultCLI = config.get<'claude' | 'copilot' | 'codex' | 'gemini' | 'auto'>(
+      'defaultCLI',
+      'auto'
+    );
     const { CLIHealthChecker } = await import('./council/providers/cli/CLIHealthChecker');
 
     let statusIcon = '$(warning)';
     let statusText = 'No CLI';
     let statusTooltip = 'No AI CLI provider found. Open settings to configure.';
 
-    if (preference !== 'auto') {
+    if (preference === 'copilot' || preference === 'gemini') {
+      statusIcon = '$(check)';
+      statusText = preference === 'copilot' ? 'Copilot' : 'Gemini';
+      statusTooltip =
+        `${statusText} selected for command routing. ` +
+        'Autonomous mode uses Claude/Codex fallback when required.';
+    } else if (preference !== 'auto') {
       const cmd = config.get<string>(
         preference === 'claude' ? 'claudeCodeCommand' : 'codexCommand',
         preference
@@ -861,6 +889,12 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
         statusText = preference === 'claude' ? 'Claude' : 'Codex';
         statusTooltip = `${statusText} CLI found but not authenticated`;
       }
+    } else if (defaultCLI === 'copilot' || defaultCLI === 'gemini') {
+      statusIcon = '$(check)';
+      statusText = defaultCLI === 'copilot' ? 'Copilot' : 'Gemini';
+      statusTooltip =
+        `${statusText} selected via gofer.defaultCLI. ` +
+        'Autonomous mode uses Claude/Codex fallback when required.';
     } else {
       const claudeCmd = config.get<string>('claudeCodeCommand', 'claude');
       const claudeResult = await CLIHealthChecker.check('claude', claudeCmd);

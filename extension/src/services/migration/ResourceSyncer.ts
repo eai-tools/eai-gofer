@@ -15,6 +15,7 @@ import * as os from 'os';
 import { Logger } from '../Logger';
 import { FileUtils } from '../../utils/fileUtils';
 import { IResourceOperations } from './UpgradeService';
+import { getWorkflowProfile } from '../../config/workflowProfile';
 import * as yaml from 'yaml';
 
 interface LegacyJsonTask {
@@ -37,6 +38,16 @@ interface LegacyJsonSpec {
   userStories?: string[];
   tasks?: LegacyJsonTask[];
   acceptanceCriteria?: LegacyAcceptanceCriterion[];
+}
+
+interface NonDestructiveSyncSummary {
+  copied: number;
+  updated: number;
+  unchanged: number;
+}
+
+function isNodeErrorWithCode(error: unknown): error is NodeJS.ErrnoException {
+  return typeof error === 'object' && error !== null && 'code' in error;
 }
 
 /**
@@ -133,6 +144,8 @@ export class ResourceSyncer implements IResourceOperations {
       try {
         const files = await fs.readdir(sourcePath);
         let copiedCount = 0;
+        let updatedCount = 0;
+        let unchangedCount = 0;
 
         for (const file of files) {
           // Check if file matches any pattern
@@ -146,22 +159,24 @@ export class ResourceSyncer implements IResourceOperations {
           if (matches) {
             const source = path.join(sourcePath, file);
             const target = path.join(targetPath, file);
-            await fs.copyFile(source, target);
+            const action = await this.upsertFileFromSource(source, target, makeExecutable);
 
-            // Make executable if requested
-            if (makeExecutable) {
-              await fs.chmod(target, 0o755);
+            if (action === 'copied') {
+              copiedCount++;
+            } else if (action === 'updated') {
+              updatedCount++;
+            } else {
+              unchangedCount++;
             }
-
-            copiedCount++;
-            this.logger.debug('ResourceSyncer', `Copied: ${file}`);
+            this.logger.debug('ResourceSyncer', `${action}: ${file}`);
           }
         }
 
-        this.logger.info(
-          'ResourceSyncer',
-          `Successfully copied ${copiedCount} ${resourceType} files`
-        );
+        this.logger.info('ResourceSyncer', `Successfully synced ${resourceType} files`, {
+          copied: copiedCount,
+          updated: updatedCount,
+          unchanged: unchangedCount,
+        });
       } catch (error) {
         this.logger.error('ResourceSyncer', error as Error, {
           operation: `copy ${resourceType}`,
@@ -186,8 +201,15 @@ export class ResourceSyncer implements IResourceOperations {
     try {
       existingConstitution = await fs.readFile(constitutionPath, 'utf-8');
       this.logger.debug('ResourceSyncer', 'Backed up existing constitution');
-    } catch {
-      // No existing constitution - that's fine
+    } catch (error: unknown) {
+      if (isNodeErrorWithCode(error) && error.code === 'ENOENT') {
+        this.logger.debug('ResourceSyncer', 'No existing constitution found to preserve');
+      } else {
+        this.logger.error('ResourceSyncer', error as Error, {
+          operation: 'installGoferCLI.readExistingConstitution',
+        });
+        throw error;
+      }
     }
 
     // Create structure and resources
@@ -300,8 +322,8 @@ export class ResourceSyncer implements IResourceOperations {
   public async setupCopilotPrompts(): Promise<void> {
     const promptsDir = path.join(this.workspacePath, '.github', 'prompts');
 
-    // Clean up old deprecated prompts first
-    await this.cleanupOldCopilotPrompts(promptsDir);
+    // Migration safety: audit deprecated prompts but do not delete user files.
+    await this.cleanupOldCopilotPrompts(promptsDir, false);
 
     await this.copyBundledResources(
       'Copilot prompts',
@@ -328,12 +350,17 @@ export class ResourceSyncer implements IResourceOperations {
     try {
       const { CommandGenerator } = await import('../../council/CommandGenerator');
       const generator = new CommandGenerator(this.workspacePath);
+      const workflowProfile = this.resolveWorkflowProfileForGeneration();
 
       // Generate all Codex skills from Claude commands
-      const generatedPaths = await generator.generateCommands('codex', false);
+      const generatedPaths = await generator.generateCommands('codex', false, {
+        workflowProfileOverride: workflowProfile,
+        metadataSource: 'extension/src/services/migration/ResourceSyncer.ts',
+      });
 
       this.logger.info('ResourceSyncer', `Generated ${generatedPaths.length} Codex skills`, {
         paths: generatedPaths,
+        workflowProfile,
       });
 
       await this.syncCodexSkillsToAgents();
@@ -357,9 +384,8 @@ export class ResourceSyncer implements IResourceOperations {
       return;
     }
 
-    await fs.rm(agentsSkillsPath, { recursive: true, force: true });
-    await fs.mkdir(path.dirname(agentsSkillsPath), { recursive: true });
-    await fs.cp(codexSkillsPath, agentsSkillsPath, { recursive: true });
+    await fs.mkdir(agentsSkillsPath, { recursive: true });
+    const summary = await this.syncDirectoryNonDestructive(codexSkillsPath, agentsSkillsPath);
 
     this.logger.info(
       'ResourceSyncer',
@@ -367,8 +393,92 @@ export class ResourceSyncer implements IResourceOperations {
       {
         source: codexSkillsPath,
         target: agentsSkillsPath,
+        summary,
       }
     );
+  }
+
+  private resolveWorkflowProfileForGeneration(): 'standard' | 'enterpriseai' {
+    try {
+      return getWorkflowProfile();
+    } catch (error: unknown) {
+      this.logger.warn(
+        'ResourceSyncer',
+        `Unable to read workflow profile from configuration, defaulting to standard: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
+      return 'standard';
+    }
+  }
+
+  private async upsertFileFromSource(
+    sourcePath: string,
+    targetPath: string,
+    makeExecutable: boolean = false
+  ): Promise<'copied' | 'updated' | 'unchanged'> {
+    const sourceContent = await fs.readFile(sourcePath);
+    const targetExists = await FileUtils.exists(targetPath);
+
+    if (targetExists) {
+      const targetContent = await fs.readFile(targetPath);
+      if (Buffer.compare(sourceContent, targetContent) === 0) {
+        if (makeExecutable) {
+          await fs.chmod(targetPath, 0o755);
+        }
+        return 'unchanged';
+      }
+    } else {
+      await fs.mkdir(path.dirname(targetPath), { recursive: true });
+    }
+
+    await fs.writeFile(targetPath, sourceContent);
+    if (makeExecutable) {
+      await fs.chmod(targetPath, 0o755);
+    }
+
+    return targetExists ? 'updated' : 'copied';
+  }
+
+  private async syncDirectoryNonDestructive(
+    sourcePath: string,
+    targetPath: string
+  ): Promise<NonDestructiveSyncSummary> {
+    const summary: NonDestructiveSyncSummary = {
+      copied: 0,
+      updated: 0,
+      unchanged: 0,
+    };
+
+    const entries = await fs.readdir(sourcePath, { withFileTypes: true });
+    await fs.mkdir(targetPath, { recursive: true });
+
+    for (const entry of entries) {
+      const sourceEntryPath = path.join(sourcePath, entry.name);
+      const targetEntryPath = path.join(targetPath, entry.name);
+
+      if (entry.isDirectory()) {
+        const childSummary = await this.syncDirectoryNonDestructive(
+          sourceEntryPath,
+          targetEntryPath
+        );
+        summary.copied += childSummary.copied;
+        summary.updated += childSummary.updated;
+        summary.unchanged += childSummary.unchanged;
+        continue;
+      }
+
+      const action = await this.upsertFileFromSource(sourceEntryPath, targetEntryPath);
+      if (action === 'copied') {
+        summary.copied++;
+      } else if (action === 'updated') {
+        summary.updated++;
+      } else {
+        summary.unchanged++;
+      }
+    }
+
+    return summary;
   }
 
   /**
@@ -561,8 +671,20 @@ export class ResourceSyncer implements IResourceOperations {
         const existingContent = await fs.readFile(settingsPath, 'utf-8');
         settings = JSON.parse(existingContent);
         this.logger.debug('ResourceSyncer', 'Loaded existing settings');
-      } catch {
-        this.logger.info('ResourceSyncer', 'No existing settings found, creating new');
+      } catch (error: unknown) {
+        if (isNodeErrorWithCode(error) && error.code === 'ENOENT') {
+          this.logger.info('ResourceSyncer', 'No existing settings found, creating new');
+        } else if (error instanceof SyntaxError) {
+          this.logger.warn(
+            'ResourceSyncer',
+            `Existing settings.json is invalid JSON, recreating defaults: ${error.message}`
+          );
+        } else {
+          this.logger.error('ResourceSyncer', error as Error, {
+            operation: 'createVSCodeSettings.readExistingSettings',
+          });
+          throw error;
+        }
       }
 
       // Add Gofer specific settings
@@ -703,8 +825,15 @@ export class ResourceSyncer implements IResourceOperations {
             await fs.writeFile(specFile, specContent);
             this.logger.debug('ResourceSyncer', `Updated ${specDir.name}/spec.md`);
           }
-        } catch {
-          this.logger.debug('ResourceSyncer', `No spec.md found for ${specDir.name}`);
+        } catch (error: unknown) {
+          if (isNodeErrorWithCode(error) && (error.code === 'ENOENT' || error.code === 'ENOTDIR')) {
+            this.logger.debug('ResourceSyncer', `No spec.md found for ${specDir.name}`);
+          } else {
+            this.logger.error('ResourceSyncer', error as Error, {
+              operation: 'fixExistingSpecs.readSpec',
+              spec: specDir.name,
+            });
+          }
         }
 
         // Fix tasks.md - ensure it has checkbox task list
@@ -748,8 +877,15 @@ export class ResourceSyncer implements IResourceOperations {
               }
             }
           }
-        } catch {
-          this.logger.debug('ResourceSyncer', `No tasks.md found for ${specDir.name}`);
+        } catch (error: unknown) {
+          if (isNodeErrorWithCode(error) && (error.code === 'ENOENT' || error.code === 'ENOTDIR')) {
+            this.logger.debug('ResourceSyncer', `No tasks.md found for ${specDir.name}`);
+          } else {
+            this.logger.error('ResourceSyncer', error as Error, {
+              operation: 'fixExistingSpecs.readTasks',
+              spec: specDir.name,
+            });
+          }
         }
       }
 
@@ -774,9 +910,12 @@ export class ResourceSyncer implements IResourceOperations {
       // Check if gofer.tasks.md exists
       try {
         await fs.access(tasksCommandPath);
-      } catch {
-        this.logger.debug('ResourceSyncer', 'gofer.tasks.md not found, skipping check');
-        return;
+      } catch (error: unknown) {
+        if (isNodeErrorWithCode(error) && error.code === 'ENOENT') {
+          this.logger.debug('ResourceSyncer', 'gofer.tasks.md not found, skipping check');
+          return;
+        }
+        throw error;
       }
 
       let content = await fs.readFile(tasksCommandPath, 'utf-8');
@@ -928,8 +1067,15 @@ AI agents validate code against the constitution before implementation.
       try {
         gitignoreContent = await fs.readFile(gitignorePath, 'utf-8');
         this.logger.debug('ResourceSyncer', 'Found existing .gitignore');
-      } catch {
-        this.logger.info('ResourceSyncer', 'No .gitignore found, creating new one');
+      } catch (error: unknown) {
+        if (isNodeErrorWithCode(error) && error.code === 'ENOENT') {
+          this.logger.info('ResourceSyncer', 'No .gitignore found, creating new one');
+        } else {
+          this.logger.error('ResourceSyncer', error as Error, {
+            operation: 'updateGitignore.readExisting',
+          });
+          throw error;
+        }
       }
 
       const missingEntries = requiredEntries.filter((entry) => !gitignoreContent.includes(entry));
@@ -1022,8 +1168,20 @@ AI agents validate code against the constitution before implementation.
         const existing = await fs.readFile(settingsPath, 'utf-8');
         settings = JSON.parse(existing);
         this.logger.debug('ResourceSyncer', 'Loaded existing settings.json');
-      } catch {
-        this.logger.info('ResourceSyncer', 'No existing settings.json, creating new');
+      } catch (error: unknown) {
+        if (isNodeErrorWithCode(error) && error.code === 'ENOENT') {
+          this.logger.info('ResourceSyncer', 'No existing settings.json, creating new');
+        } else if (error instanceof SyntaxError) {
+          this.logger.warn(
+            'ResourceSyncer',
+            `Existing .claude/settings.json is invalid JSON, recreating hooks config: ${error.message}`
+          );
+        } else {
+          this.logger.error('ResourceSyncer', error as Error, {
+            operation: 'installHooksConfig.readSettings',
+          });
+          throw error;
+        }
       }
 
       // Always overwrite hooks to ensure latest format
@@ -1082,8 +1240,19 @@ AI agents validate code against the constitution before implementation.
           }
         }
         this.logger.info('ResourceSyncer', `Successfully copied ${copiedCount} hook scripts`);
-      } catch {
-        this.logger.debug('ResourceSyncer', `No bundled hook scripts found at ${bundledHooksPath}`);
+      } catch (error: unknown) {
+        if (isNodeErrorWithCode(error) && error.code === 'ENOENT') {
+          this.logger.debug(
+            'ResourceSyncer',
+            `No bundled hook scripts found at ${bundledHooksPath}`
+          );
+        } else {
+          this.logger.error('ResourceSyncer', error as Error, {
+            operation: 'copyHookScripts.readBundledHooks',
+            source: bundledHooksPath,
+          });
+          throw error;
+        }
       }
     } catch (error) {
       this.logger.error('ResourceSyncer', error as Error, { operation: 'copyHookScripts' });
@@ -1103,7 +1272,10 @@ AI agents validate code against the constitution before implementation.
   /**
    * Clean up old deprecated Copilot prompt files
    */
-  private async cleanupOldCopilotPrompts(promptsDir: string): Promise<void> {
+  private async cleanupOldCopilotPrompts(
+    promptsDir: string,
+    deleteDeprecated: boolean = false
+  ): Promise<void> {
     try {
       this.logger.info('ResourceSyncer', 'Checking for deprecated prompts');
 
@@ -1120,20 +1292,35 @@ AI agents validate code against the constitution before implementation.
         'gofer.prompt.md',
       ];
 
-      let deletedCount = 0;
+      let impactedCount = 0;
       for (const file of deprecatedPatterns) {
         const filePath = path.join(promptsDir, file);
-        try {
+        const exists = await FileUtils.exists(filePath);
+        if (!exists) {
+          continue;
+        }
+
+        if (deleteDeprecated) {
           await fs.unlink(filePath);
-          deletedCount++;
+          impactedCount++;
           this.logger.debug('ResourceSyncer', `Deleted deprecated: ${file}`);
-        } catch {
-          // File doesn't exist, that's fine
+        } else {
+          impactedCount++;
+          this.logger.warn(
+            'ResourceSyncer',
+            `Deprecated prompt retained for migration safety: ${file}`
+          );
         }
       }
 
-      if (deletedCount > 0) {
-        this.logger.info('ResourceSyncer', `Cleaned up ${deletedCount} deprecated prompt files`);
+      if (impactedCount > 0) {
+        this.logger.info(
+          'ResourceSyncer',
+          `${deleteDeprecated ? 'Deleted' : 'Detected'} ${impactedCount} deprecated prompt files`,
+          {
+            destructive: deleteDeprecated,
+          }
+        );
       }
     } catch (error) {
       this.logger.error('ResourceSyncer', error as Error, {

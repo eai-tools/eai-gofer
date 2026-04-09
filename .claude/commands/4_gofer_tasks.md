@@ -74,6 +74,27 @@ Task generation dispatches agents — keep main context lightweight.
 
 ---
 
+## Step 1.5: Ordered Runnable Task-Generation Guidance
+
+Task output MUST be executable in listed order, not just logically grouped.
+
+- Enforce prerequisite-first sequencing for runnable work (scaffold before
+  deploy, validation before completion gates).
+- Include explicit dependency links (`dependsOn`) for any non-trivial runnable
+  task chain.
+- Include command snippets for runnable tasks so users can execute tasks
+  directly.
+- When `gofer.workflowProfile=enterpriseai`, require ordering that covers:
+  integration map checks -> Vertical Template scaffolding -> `eai-cli scaffold`
+  tasks -> deployment convention tasks -> deployment readiness validation ->
+  pinned `eai-cli major.minor` deployment tasks.
+- For enterpriseai runnable snippets, include explicit EAI CLI syntax examples:
+  - `eai-cli scaffold --template vertical --name <app-name>`
+  - `eai-cli validate`
+  - `eai-cli deploy --env <environment>`
+
+---
+
 ## Step 2: Dispatch Task Generation Agents
 
 **CRITICAL**: You **MUST** launch these agents using the Task tool. Do NOT
@@ -104,6 +125,21 @@ Task Organization (REQUIRED structure):
 3. Phase 3+: User Stories — One phase per story in priority order (P1 first)
 4. Final Phase: Polish — Cross-cutting concerns, documentation
 
+Ordered Runnable Guidance (MANDATORY):
+- Tasks must be runnable in the listed order without hidden dependencies
+- Any task that executes commands MUST include a runnable command snippet
+- Runnable deployment tasks MUST explicitly depend on prerequisite scaffold tasks
+- For enterpriseai profile, deployment tasks MUST pin `eai-cli` to major.minor
+  and reference deployment conventions
+- For enterpriseai profile, include explicit command syntax for scaffold,
+  validation, and deploy tasks:
+  - `eai-cli scaffold --template vertical --name <app-name>`
+  - `eai-cli validate`
+  - `eai-cli deploy --env <environment>`
+- EnterpriseAI deployment tasks MUST depend on readiness validation tasks
+  (manifest/config preflight) before any `eai-cli deploy --env <environment>`
+  command can appear
+
 Task Format (REQUIRED for every task):
 - [ ] [TaskID] [P?] [Story?] Description with exact file path
 Where:
@@ -132,6 +168,10 @@ Validation checks before writing:
 - Every data model entity has implementing tasks
 - Every API contract endpoint has implementing tasks
 - Task file paths match plan.md File Structure section
+- Ordered runnable checks pass (scaffold before deploy, validation before
+  completion, command snippets included)
+- EnterpriseAI runnable command syntax checks pass (`eai-cli scaffold`,
+  `eai-cli validate`, `eai-cli deploy --env`)
 
 Write the complete task breakdown to {FEATURE_DIR}/tasks.md.
 

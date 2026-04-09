@@ -1,6 +1,11 @@
 ---
 name: 2_gofer_specify
 description: Create feature specification informed by codebase research
+gofer:
+  workflowProfile: enterpriseai
+  canonicalSource: .claude/commands/2_gofer_specify.md
+  canonicalChecksum: 2157a198e9e611e56ff2290fa0befb8133a0c7f6d0d2ae6291eceaf382e8e45f
+  metadataSource: scripts/generate-commands.ts
 arguments:
   - name: feature
     description: Feature name or description
@@ -144,6 +149,36 @@ If proposal-review.md exists and is approved, also pass this mapping:
 | Key Decisions and Why         | Requirements, NFRs            | Preserve decision rationale in business terms      |
 | User Feedback and Overrides   | Requirements, Scope, Glossary | Apply approved user changes before finalizing spec |
 
+## Step 1.75: EnterpriseAI Integration Map Requirements
+
+When `gofer.workflowProfile=enterpriseai`, the generated spec MUST include an
+explicit **EnterpriseAI Integration Map** section.
+
+- Map connections between the vertical app, EnterpriseAI services, and
+  deployment target.
+- Include reference anchors/paths for `eai-cli`, `vertical-template`, and
+  `deployment-repo` guidance sources.
+- If competitive analysis is enabled, include `market-analysis.md` traceability
+  indicators (for example `referencedInSpec=true`).
+- Keep this additive: standard profile outputs remain unchanged.
+
+---
+
+## Step 1.8: Market Analysis Reference Requirements
+
+When competitive analysis is enabled for the run, the generated `spec.md` MUST
+contain explicit references to `market-analysis.md`:
+
+- Add at least one direct path/link reference to `market-analysis.md` in
+  supporting inputs or dependencies.
+- Record traceability indicator(s) showing market analysis was consumed by spec
+  generation (for example `referencedInSpec=true`).
+- Include EnterpriseAI-selected direction rationale sourced from
+  `market-analysis.md`.
+
+When competitive analysis is disabled, `spec.md` must explicitly note the skip
+state while preserving the rest of the specification flow.
+
 ---
 
 ## Step 2: Dispatch Specification Agents
@@ -180,6 +215,11 @@ Generate the COMPLETE spec.md following this structure:
 9. Out of Scope — Clear boundaries
 10. Glossary — Key terms
 11. Research Traceability — Matrix mapping each research finding to a spec section
+12. EnterpriseAI Integration Map (when workflow profile is enterpriseai):
+    - Show `Vertical App -> EAI Services -> Deployment Target`
+    - Include guidance references for `eai-cli`, `vertical-template`, and `deployment-repo`
+    - Include explicit `market-analysis.md` reference(s) and traceability indicator(s) when
+      competitive analysis is enabled
 
 If discovery.md exists, use it to:
 - Use Problem Statement for Overview motivation
@@ -192,6 +232,8 @@ If proposal-review.md exists and status is approved, use it to:
 - Reflect the approved architecture direction in Assumptions, Dependencies, and NFR framing
 - Carry forward any approved user overrides before finalizing requirements
 - Place non-selected options in Out of Scope or Assumptions where appropriate
+- When `gofer.workflowProfile=enterpriseai`, include EnterpriseAI Integration
+  Map requirements in the resulting spec
 
 Rules:
 - Focus on WHAT and WHY, never HOW to implement
@@ -201,6 +243,10 @@ Rules:
 - Reference ALL integration points from research.md in Dependencies
 - Honor the approved direction in proposal-review.md over unapproved alternatives
 - Each functional requirement must include Validation and Integration references
+- For `gofer.workflowProfile=enterpriseai`, enforce the EnterpriseAI
+  Integration Map requirements and reference indicators
+- When competitive analysis is enabled, require explicit `market-analysis.md`
+  references and EnterpriseAI-selected direction rationale sourced from that artifact
 
 Write the complete specification to {FEATURE_DIR}/spec.md.
 
@@ -267,6 +313,8 @@ After both agents complete:
    - Dependencies reference correct codebase components from research
    - Approved scenario and architecture choices from proposal-review.md are
      reflected
+   - `market-analysis.md` is explicitly referenced when competitive analysis is
+     enabled
    - Research traceability matrix is complete
 
 2. **Check research coverage** — From the validator agent:

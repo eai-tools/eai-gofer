@@ -12,6 +12,7 @@
 import { describe, it, expect } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { CommandGenerator } from '../../extension/src/council/CommandGenerator';
 
 describe('Command Generation Integration (US-3)', () => {
   describe('T061: Parallel Agent Instructions in Validation Commands', () => {
@@ -140,10 +141,7 @@ describe('Command Generation Integration (US-3)', () => {
       // Read all three platform validation files
       const claudePath = path.join(process.cwd(), '.claude/commands/6_gofer_validate.md');
       const codexPath = path.join(process.cwd(), '.system/skills/6_gofer_validate/SKILL.md');
-      const copilotPath = path.join(
-        process.cwd(),
-        '.github/prompts/6_gofer_validate.prompt.md'
-      );
+      const copilotPath = path.join(process.cwd(), '.github/prompts/6_gofer_validate.prompt.md');
 
       const [claudeContent, codexContent, copilotContent] = await Promise.all([
         fs.readFile(claudePath, 'utf-8'),
@@ -210,10 +208,7 @@ describe('Command Generation Integration (US-3)', () => {
       // Read all platform validation files
       const claudePath = path.join(process.cwd(), '.claude/commands/6_gofer_validate.md');
       const codexPath = path.join(process.cwd(), '.system/skills/6_gofer_validate/SKILL.md');
-      const copilotPath = path.join(
-        process.cwd(),
-        '.github/prompts/6_gofer_validate.prompt.md'
-      );
+      const copilotPath = path.join(process.cwd(), '.github/prompts/6_gofer_validate.prompt.md');
 
       const [claudeContent, codexContent, copilotContent] = await Promise.all([
         fs.readFile(claudePath, 'utf-8'),
@@ -229,6 +224,60 @@ describe('Command Generation Integration (US-3)', () => {
         expect(claudeContent).toMatch(categoryPattern);
         expect(codexContent).toMatch(categoryPattern);
         expect(copilotContent).toMatch(categoryPattern);
+      }
+    });
+
+    it('regenerates mirrors from canonical sources with no manual mirror edits required', async () => {
+      const fixtureRoot = path.join(
+        process.cwd(),
+        'tests',
+        'integration',
+        '.command-generation-fixture'
+      );
+      const canonicalCommand = '1_gofer_research.md';
+      const canonicalPath = path.join(process.cwd(), '.claude', 'commands', canonicalCommand);
+      const canonicalContent = await fs.readFile(canonicalPath, 'utf-8');
+
+      await fs.rm(fixtureRoot, { recursive: true, force: true });
+      await fs.mkdir(path.join(fixtureRoot, '.claude', 'commands'), { recursive: true });
+      await fs.writeFile(
+        path.join(fixtureRoot, '.claude', 'commands', canonicalCommand),
+        canonicalContent,
+        'utf-8'
+      );
+
+      try {
+        const generator = new CommandGenerator(fixtureRoot);
+        await generator.generateCommands('codex', false, {
+          workflowProfileOverride: 'enterpriseai',
+          metadataSource: 'scripts/generate-commands.ts',
+        });
+        await generator.generateCommands('copilot', false, {
+          workflowProfileOverride: 'enterpriseai',
+          metadataSource: 'scripts/generate-commands.ts',
+        });
+
+        const generatedCodex = await fs.readFile(
+          path.join(fixtureRoot, '.system', 'skills', '1_gofer_research', 'SKILL.md'),
+          'utf-8'
+        );
+        const generatedCopilot = await fs.readFile(
+          path.join(fixtureRoot, '.github', 'prompts', '1_gofer_research.prompt.md'),
+          'utf-8'
+        );
+        const repoCodex = await fs.readFile(
+          path.join(process.cwd(), '.system', 'skills', '1_gofer_research', 'SKILL.md'),
+          'utf-8'
+        );
+        const repoCopilot = await fs.readFile(
+          path.join(process.cwd(), '.github', 'prompts', '1_gofer_research.prompt.md'),
+          'utf-8'
+        );
+
+        expect(generatedCodex).toBe(repoCodex);
+        expect(generatedCopilot).toBe(repoCopilot);
+      } finally {
+        await fs.rm(fixtureRoot, { recursive: true, force: true });
       }
     });
   });

@@ -5,9 +5,17 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { createHash } from 'crypto';
 import * as yaml from 'js-yaml';
 import { CommandMetadata, PlatformType } from './types/CrossPlatformTypes';
 import { CommandMetadataExtractor } from './CommandMetadataExtractor';
+
+export type CommandWorkflowProfile = 'standard' | 'enterpriseai';
+
+export interface CommandGenerationOptions {
+  workflowProfileOverride?: CommandWorkflowProfile;
+  metadataSource?: string;
+}
 
 /**
  * Generates platform-specific command files from Claude CLI reference implementation
@@ -28,7 +36,8 @@ export class CommandGenerator {
    */
   public async generateCommands(
     platform: 'codex' | 'copilot',
-    dryRun: boolean = false
+    dryRun: boolean = false,
+    options: CommandGenerationOptions = {}
   ): Promise<string[]> {
     const claudeCommandsDir = path.join(this.workspacePath, '.claude', 'commands');
 
@@ -49,7 +58,8 @@ export class CommandGenerator {
     for (const commandFile of commandFiles) {
       try {
         const metadata = await this.extractor.extractFromClaudeCommand(commandFile);
-        const outputPath = await this.generateCommand(metadata, platform, dryRun);
+        const enrichedMetadata = this.enrichMetadata(metadata, options);
+        const outputPath = await this.generateCommand(enrichedMetadata, platform, dryRun);
         generatedPaths.push(outputPath);
       } catch (error) {
         console.error('Failed to generate command from ' + commandFile + ':', error);
@@ -96,10 +106,13 @@ export class CommandGenerator {
     // Transform content for Codex
     const transformedContent = this.transformContent(sourceMetadata.content, 'claude', 'codex');
 
+    const goferMetadata = this.getGoferMetadata(sourceMetadata);
+
     // Build YAML frontmatter
     const frontmatter = {
       name: sourceMetadata.name,
       description: sourceMetadata.description,
+      gofer: goferMetadata,
       arguments: [
         {
           name: 'feature',
@@ -163,6 +176,8 @@ export class CommandGenerator {
     // Transform content for Copilot
     const transformedContent = this.transformContent(sourceMetadata.content, 'claude', 'copilot');
 
+    const goferMetadata = this.getGoferMetadata(sourceMetadata);
+
     // Build YAML frontmatter
     const frontmatter = {
       name: sourceMetadata.name,
@@ -170,6 +185,7 @@ export class CommandGenerator {
       agent: 'copilot-workspace',
       tools: ['Read', 'Grep', 'Glob', 'Bash', 'WebSearch'],
       'argument-hint': 'feature-name-or-description',
+      gofer: goferMetadata,
     };
 
     // Inject platform-specific sections
@@ -377,5 +393,107 @@ The next stage will read the artifacts from this stage and continue the workflow
 
     // Special commands don't have next in pipeline
     return null;
+  }
+
+  private enrichMetadata(
+    sourceMetadata: CommandMetadata,
+    options: CommandGenerationOptions
+  ): CommandMetadata {
+    const sourceFrontmatter = this.asRecord(sourceMetadata.frontmatter);
+    const existingGoferMetadata = this.asRecord(sourceFrontmatter.gofer);
+    const workflowProfile =
+      options.workflowProfileOverride ??
+      this.resolveWorkflowProfile(sourceMetadata, existingGoferMetadata);
+    const canonicalSource = this.normalizeRelativePath(
+      path.relative(this.workspacePath, sourceMetadata.filePath)
+    );
+    const canonicalChecksum = createHash('sha256')
+      .update(sourceMetadata.content, 'utf8')
+      .digest('hex');
+
+    const goferMetadata: Record<string, unknown> = {
+      ...existingGoferMetadata,
+      workflowProfile,
+      canonicalSource,
+      canonicalChecksum,
+      metadataSource:
+        options.metadataSource ??
+        this.readString(existingGoferMetadata.metadataSource) ??
+        'scripts/generate-commands.ts',
+    };
+
+    return {
+      ...sourceMetadata,
+      frontmatter: {
+        ...sourceFrontmatter,
+        workflowProfile,
+        canonicalSource,
+        canonicalChecksum,
+        gofer: goferMetadata,
+      },
+    };
+  }
+
+  private getGoferMetadata(sourceMetadata: CommandMetadata): Record<string, unknown> {
+    const frontmatter = this.asRecord(sourceMetadata.frontmatter);
+    const frontmatterGofer = this.asRecord(frontmatter.gofer);
+    const workflowProfile =
+      this.readWorkflowProfile(frontmatterGofer.workflowProfile) ??
+      this.readWorkflowProfile(frontmatter.workflowProfile) ??
+      this.resolveWorkflowProfile(sourceMetadata, frontmatterGofer);
+    const canonicalSource =
+      this.readString(frontmatterGofer.canonicalSource) ??
+      this.readString(frontmatter.canonicalSource) ??
+      this.normalizeRelativePath(path.relative(this.workspacePath, sourceMetadata.filePath));
+    const canonicalChecksum =
+      this.readString(frontmatterGofer.canonicalChecksum) ??
+      this.readString(frontmatter.canonicalChecksum) ??
+      createHash('sha256').update(sourceMetadata.content, 'utf8').digest('hex');
+    const metadataSource =
+      this.readString(frontmatterGofer.metadataSource) ?? 'scripts/generate-commands.ts';
+
+    return {
+      workflowProfile,
+      canonicalSource,
+      canonicalChecksum,
+      metadataSource,
+    };
+  }
+
+  private resolveWorkflowProfile(
+    sourceMetadata: CommandMetadata,
+    goferMetadata: Record<string, unknown>
+  ): CommandWorkflowProfile {
+    const explicitProfile =
+      this.readWorkflowProfile(goferMetadata.workflowProfile) ??
+      this.readWorkflowProfile(sourceMetadata.frontmatter.workflowProfile);
+    if (explicitProfile) {
+      return explicitProfile;
+    }
+
+    return /enterpriseai/i.test(sourceMetadata.content) ||
+      /enterpriseai/i.test(sourceMetadata.description)
+      ? 'enterpriseai'
+      : 'standard';
+  }
+
+  private asRecord(value: unknown): Record<string, unknown> {
+    return typeof value === 'object' && value !== null ? (value as Record<string, unknown>) : {};
+  }
+
+  private readString(value: unknown): string | undefined {
+    return typeof value === 'string' && value.trim().length > 0 ? value.trim() : undefined;
+  }
+
+  private readWorkflowProfile(value: unknown): CommandWorkflowProfile | undefined {
+    if (value === 'enterpriseai' || value === 'standard') {
+      return value;
+    }
+
+    return undefined;
+  }
+
+  private normalizeRelativePath(filePath: string): string {
+    return filePath.replace(/\\/g, '/');
   }
 }

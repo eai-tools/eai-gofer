@@ -76,6 +76,7 @@ export interface YAMLFrontmatter {
  */
 export class GoferParser {
   private readonly logger = Logger.for('GoferParser');
+  private readonly taskUpdateLocks: Map<string, Promise<void>> = new Map();
 
   constructor(
     private workspacePath: string,
@@ -717,33 +718,61 @@ export class GoferParser {
    * Update task status in tasks.md file
    */
   async updateTaskStatus(specId: string, taskId: string, status: TaskStatus): Promise<void> {
-    const tasksPath = path.join(this.workspacePath, '.specify', 'specs', specId, 'tasks.md');
-    let content = await fs.readFile(tasksPath, 'utf-8');
+    this.validateSpecId(specId);
+    await this.runTaskUpdateInOrder(specId, async (): Promise<void> => {
+      const tasksPath = path.join(this.workspacePath, '.specify', 'specs', specId, 'tasks.md');
+      let content = await fs.readFile(tasksPath, 'utf-8');
 
-    const escapedTaskId = taskId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const taskRegex = new RegExp(
-      `^(\\s*-\\s+)\\[[xX \\-!bB>~]\\](\\s+(?:\\*\\*${escapedTaskId}\\*\\*:?|\\[${escapedTaskId}\\]|#${escapedTaskId}(?::|\\b)|${escapedTaskId}(?::|\\b)).*)$`,
-      'gm'
+      const escapedTaskId = taskId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const taskRegex = new RegExp(
+        `^(\\s*-\\s+)\\[[xX \\-!bB>~]\\](\\s+(?:\\*\\*${escapedTaskId}\\*\\*:?|\\[${escapedTaskId}\\]|#${escapedTaskId}(?::|\\b)|${escapedTaskId}(?::|\\b)).*)$`,
+        'gm'
+      );
+
+      const checkboxByStatus: Record<TaskStatus, string> = {
+        pending: ' ',
+        in_progress: '-',
+        testing: '>',
+        completed: 'x',
+        failed: '!',
+        blocked: 'b',
+      };
+
+      content = content.replace(taskRegex, `$1[${checkboxByStatus[status]}]$2`);
+
+      await fs.writeFile(tasksPath, content, 'utf-8');
+    });
+  }
+
+  private async runTaskUpdateInOrder(
+    specId: string,
+    operation: () => Promise<void>
+  ): Promise<void> {
+    const priorLock = this.taskUpdateLocks.get(specId) ?? Promise.resolve();
+    const currentUpdate = (async (): Promise<void> => {
+      await priorLock;
+      await operation();
+    })();
+    const completionSignal = currentUpdate.then(
+      (): void => undefined,
+      (): void => undefined
     );
+    this.taskUpdateLocks.set(specId, completionSignal);
 
-    const checkboxByStatus: Record<TaskStatus, string> = {
-      pending: ' ',
-      in_progress: '-',
-      testing: '>',
-      completed: 'x',
-      failed: '!',
-      blocked: 'b',
-    };
-
-    content = content.replace(taskRegex, `$1[${checkboxByStatus[status]}]$2`);
-
-    await fs.writeFile(tasksPath, content, 'utf-8');
+    try {
+      await currentUpdate;
+    } finally {
+      if (this.taskUpdateLocks.get(specId) === completionSignal) {
+        this.taskUpdateLocks.delete(specId);
+      }
+    }
   }
 
   /**
    * Update spec status in spec.md frontmatter
    */
   async updateSpecStatus(specId: string, status: SpecStatus): Promise<void> {
+    this.validateSpecId(specId);
     const specPath = path.join(this.workspacePath, '.specify', 'specs', specId, 'spec.md');
     let content = await fs.readFile(specPath, 'utf-8');
 

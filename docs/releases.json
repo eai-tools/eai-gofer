@@ -1,8 +1,17 @@
 {
-  "latest_version": "2.0.1",
+  "latest_version": "2.0.2",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-04-09T11:16:35.930Z",
+  "last_updated": "2026-04-09T11:40:04.198Z",
   "releases": [
+    {
+      "version": "2.0.2",
+      "tag_name": "v2.0.2",
+      "published_at": "2026-04-09T11:40:04.197Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-2.0.2.vsix",
+      "notes": "Fix Copilot/Gemini CLI provider compatibility",
+      "prerelease": false,
+      "size_mb": 10.3
+    },
     {
       "version": "2.0.1",
       "tag_name": "v2.0.1",
@@ -81,15 +90,6 @@
       "published_at": "2026-03-22T07:05:58.243Z",
       "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.24.0.vsix",
       "notes": "feat: multi-CLI support for Codex, Gemini, and Copilot",
-      "prerelease": false,
-      "size_mb": 10.1
-    },
-    {
-      "version": "1.23.0",
-      "tag_name": "v1.23.0",
-      "published_at": "2026-03-21T06:38:10.210Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.23.0.vsix",
-      "notes": "Add Memory Panel system memory filtering (feature 001)",
       "prerelease": false,
       "size_mb": 10.1
     }

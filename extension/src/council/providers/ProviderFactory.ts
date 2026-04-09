@@ -7,9 +7,14 @@
 
 import * as vscode from 'vscode';
 import { LLMProvider } from './LLMProvider';
-import { ProviderError, notConfiguredError } from './ProviderError';
+import { ProviderError, notConfiguredError, wrapError } from './ProviderError';
 import { ProviderId, ProviderConfig, PROVIDER_NAMES, DEFAULT_MODELS } from '../types';
 import { redactCredentials, type ConversationMessage } from './CredentialRedactor';
+import {
+  getCLIProviderDisplayName,
+  ProviderFactoryCliResolver,
+} from './ProviderFactoryCliResolver';
+import { type WorkflowProfile, getWorkflowProfile } from '../../config/workflowProfile';
 import { Logger } from '../../utils/logger';
 
 /**
@@ -49,6 +54,22 @@ export function registerProvider(
 export class ProviderFactory {
   private readonly providers = new Map<ProviderId, LLMProvider>();
   private readonly logger = Logger.for('ProviderFactory');
+  private readonly cliResolver: ProviderFactoryCliResolver;
+
+  constructor() {
+    this.cliResolver = new ProviderFactoryCliResolver({
+      logger: this.logger,
+      createCLIProvider: async (
+        cliType: 'claude' | 'codex',
+        command?: string,
+        workflowProfile?: WorkflowProfile
+      ): Promise<LLMProvider> => this.createCLIProvider(cliType, command, workflowProfile),
+      resolveWorkflowProfileContext: (
+        explicitProfile?: WorkflowProfile,
+        configuration?: vscode.WorkspaceConfiguration
+      ): WorkflowProfile => this.resolveWorkflowProfileContext(explicitProfile, configuration),
+    });
+  }
 
   private isCLIProviderWithHistory(provider: LLMProvider): provider is CLIProviderWithHistory {
     return (
@@ -90,6 +111,9 @@ export class ProviderFactory {
    * @throws ProviderError if provider is not configured or not registered
    */
   createProvider(providerId: ProviderId, model?: string): LLMProvider {
+    const config = vscode.workspace.getConfiguration('gofer');
+    const workflowProfile = this.resolveWorkflowProfileContext(undefined, config);
+
     // Check if provider is registered
     const Constructor = providerRegistry.get(providerId);
     if (!Constructor) {
@@ -112,6 +136,11 @@ export class ProviderFactory {
     // Create and cache the provider
     const provider = new Constructor(apiKey, providerModel);
     this.providers.set(providerId, provider);
+
+    this.logger.debug('Created provider with workflow profile context', {
+      providerId,
+      workflowProfile,
+    });
 
     return provider;
   }
@@ -144,12 +173,14 @@ export class ProviderFactory {
       try {
         const provider = this.createProvider(config.providerId, config.model);
         providers.push(provider);
-      } catch (error) {
-        if (error instanceof ProviderError) {
-          errors.push(error);
-        }
+      } catch (error: unknown) {
+        const providerError =
+          error instanceof ProviderError ? error : wrapError(config.providerId, error);
+        errors.push(providerError);
         // Log but don't throw - we want to create as many providers as possible
-        this.logger.warn(`Failed to create provider ${config.providerId}`, { error });
+        this.logger.warn(`Failed to create provider ${config.providerId}`, {
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
     }
 
@@ -174,8 +205,10 @@ export class ProviderFactory {
         if (isHealthy) {
           available.push(provider);
         }
-      } catch (error) {
-        this.logger.warn(`Health check failed for ${provider.id}`, { error });
+      } catch (error: unknown) {
+        this.logger.warn(`Health check failed for ${provider.id}`, {
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
     }
 
@@ -226,7 +259,8 @@ export class ProviderFactory {
    */
   public async createCLIProvider(
     cliType: 'claude' | 'codex',
-    command?: string
+    command?: string,
+    workflowProfile?: WorkflowProfile
   ): Promise<LLMProvider> {
     const providerId = `${cliType}-cli` as ProviderId;
 
@@ -238,6 +272,7 @@ export class ProviderFactory {
 
     // Get command from config or use provided
     const config = vscode.workspace.getConfiguration('gofer');
+    const profileContext = this.resolveWorkflowProfileContext(workflowProfile, config);
     const cliCommand =
       command ||
       (cliType === 'claude'
@@ -247,19 +282,23 @@ export class ProviderFactory {
     // T038: Health check with actionable error messages
     const { CLIHealthChecker } = await import('./cli/CLIHealthChecker');
     const healthResult = await CLIHealthChecker.check(cliType, cliCommand);
-    const providerDisplayName = this.getCLIProviderDisplayName(cliType);
+    const providerDisplayName = getCLIProviderDisplayName(cliType);
 
     if (!healthResult.available) {
       this.logger.warn(`${providerDisplayName} CLI not found`, {
         cliCommand,
+        workflowProfile: profileContext,
         installInstructions: healthResult.installInstructions,
       });
-      throw new Error(`${providerDisplayName} CLI not found.\n${healthResult.installInstructions || ''}`);
+      throw new Error(
+        `${providerDisplayName} CLI not found.\n${healthResult.installInstructions || ''}`
+      );
     }
 
     if (!healthResult.compatible) {
       this.logger.warn(`${providerDisplayName} CLI version is incompatible`, {
         cliCommand,
+        workflowProfile: profileContext,
         version: healthResult.version,
         errorMessage: healthResult.errorMessage,
       });
@@ -271,9 +310,12 @@ export class ProviderFactory {
     if (!healthResult.authenticated) {
       this.logger.warn(`${providerDisplayName} CLI is not authenticated`, {
         cliCommand,
+        workflowProfile: profileContext,
         authInstructions: healthResult.authInstructions,
       });
-      throw new Error(`${providerDisplayName} CLI not authenticated.\n${healthResult.authInstructions || ''}`);
+      throw new Error(
+        `${providerDisplayName} CLI not authenticated.\n${healthResult.authInstructions || ''}`
+      );
     }
 
     // Get model from defaults
@@ -324,251 +366,42 @@ export class ProviderFactory {
 
     // Cache and return
     this.providers.set(providerId, provider);
+    this.logger.debug('Created CLI provider with workflow profile context', {
+      providerId,
+      workflowProfile: profileContext,
+    });
     return provider;
   }
 
-  private getCLIProviderDisplayName(cliType: 'claude' | 'codex'): string {
-    return cliType === 'claude' ? 'Claude Code' : 'Codex';
+  public async autoDetectCLI(
+    workflowProfile?: WorkflowProfile
+  ): Promise<'claude' | 'codex' | null> {
+    return this.cliResolver.autoDetectCLI(workflowProfile);
   }
 
-  private isHealthyCLI(result: {
-    available: boolean;
-    authenticated: boolean;
-    compatible: boolean;
-  }): boolean {
-    return result.available && result.authenticated && result.compatible;
+  public async getCLIProvider(workflowProfile?: WorkflowProfile): Promise<LLMProvider> {
+    return this.cliResolver.getCLIProvider(workflowProfile);
   }
 
-  private buildPreferredCLIUnavailableMessage(
-    preferred: 'claude' | 'codex',
-    preferredHealth: {
-      available: boolean;
-      authenticated: boolean;
-      compatible: boolean;
-      installInstructions?: string;
-      authInstructions?: string;
-      errorMessage?: string;
-    },
-    fallback: {
-      cliType: 'claude' | 'codex';
-      healthy: boolean;
-      installInstructions?: string;
-      authInstructions?: string;
-    }
-  ): string {
-    const preferredName = this.getCLIProviderDisplayName(preferred);
-    const fallbackName = this.getCLIProviderDisplayName(fallback.cliType);
-
-    const details: string[] = [`Preferred ${preferredName} CLI is unavailable.`];
-
-    if (!preferredHealth.available) {
-      details.push(preferredHealth.installInstructions || `${preferredName} CLI is not installed.`);
-    } else if (!preferredHealth.authenticated) {
-      details.push(preferredHealth.authInstructions || `${preferredName} CLI is not authenticated.`);
-    } else if (!preferredHealth.compatible) {
-      details.push(preferredHealth.errorMessage || `${preferredName} CLI version is incompatible.`);
+  private resolveWorkflowProfileContext(
+    explicitProfile?: WorkflowProfile,
+    configuration?: vscode.WorkspaceConfiguration
+  ): WorkflowProfile {
+    if (explicitProfile) {
+      return explicitProfile;
     }
 
-    if (fallback.healthy) {
-      details.push(
-        `Fallback available: ${fallbackName} CLI. Set gofer.cliProvider to "${fallback.cliType}" or "auto".`
+    try {
+      return getWorkflowProfile(configuration);
+    } catch (error: unknown) {
+      this.logger.warn(
+        'Falling back to standard workflow profile after configuration read failure',
+        {
+          error: error instanceof Error ? error.message : String(error),
+        }
       );
-    } else {
-      details.push(
-        `No compatible fallback CLI was detected. Install or authenticate either CLI and retry.`
-      );
-      if (fallback.installInstructions) {
-        details.push(`Fallback install: ${fallback.installInstructions}`);
-      } else if (fallback.authInstructions) {
-        details.push(`Fallback auth: ${fallback.authInstructions}`);
-      }
+      return 'standard';
     }
-
-    return details.join('\n');
-  }
-
-  /**
-   * Auto-detect available CLI provider (T027, enhanced in T038, T014)
-   * Uses CLIHealthChecker for comprehensive detection
-   * Enhanced for T014: Checks gofer.defaultCLI setting before auto-detection
-   * @returns 'claude' if Claude CLI available, 'codex' if only Codex available, null if neither
-   */
-  public async autoDetectCLI(): Promise<'claude' | 'codex' | null> {
-    const { CLIHealthChecker } = await import('./cli/CLIHealthChecker');
-    const config = vscode.workspace.getConfiguration('gofer');
-
-    // T014: Check gofer.defaultCLI setting first
-    const defaultCLI = config.get<'claude' | 'copilot' | 'codex' | 'auto'>('defaultCLI', 'auto');
-
-    // If user explicitly set defaultCLI (not 'auto'), honor that preference
-    if (defaultCLI !== 'auto') {
-      // Copilot is not a CLI tool for autonomous mode, fall back to Claude/Codex
-      if (defaultCLI === 'copilot') {
-        this.logger.info(
-          'gofer.defaultCLI is set to Copilot; evaluating CLI-capable fallbacks for autonomous mode'
-        );
-
-        // Copilot Chat doesn't have a CLI we can exec, try Claude then Codex
-        const claudeCommand = config.get<string>('claudeCodeCommand', 'claude');
-        const claudeResult = await CLIHealthChecker.check('claude', claudeCommand);
-        if (this.isHealthyCLI(claudeResult)) {
-          this.logger.info('Auto-detected Claude Code CLI');
-          return 'claude';
-        }
-
-        const codexCommand = config.get<string>('codexCommand', 'codex');
-        const codexResult = await CLIHealthChecker.check('codex', codexCommand);
-        if (this.isHealthyCLI(codexResult)) {
-          this.logger.info('Auto-detected Codex CLI');
-          return 'codex';
-        }
-
-        return null;
-      }
-
-      // For Claude or Codex explicit preference, check if available
-      if (defaultCLI === 'claude') {
-        const claudeCommand = config.get<string>('claudeCodeCommand', 'claude');
-        const claudeResult = await CLIHealthChecker.check('claude', claudeCommand);
-        if (this.isHealthyCLI(claudeResult)) {
-          this.logger.info('Using Claude Code CLI (user preference)');
-          return 'claude';
-        }
-        this.logger.warn('Preferred Claude Code CLI is unavailable, falling back to auto-detection', {
-          installInstructions: claudeResult.installInstructions,
-          authInstructions: claudeResult.authInstructions,
-          errorMessage: claudeResult.errorMessage,
-        });
-        // Fallback to auto-detection if explicit preference not available
-      } else if (defaultCLI === 'codex') {
-        const codexCommand = config.get<string>('codexCommand', 'codex');
-        const codexResult = await CLIHealthChecker.check('codex', codexCommand);
-        if (this.isHealthyCLI(codexResult)) {
-          this.logger.info('Using Codex CLI (user preference)');
-          return 'codex';
-        }
-        this.logger.warn('Preferred Codex CLI is unavailable, falling back to auto-detection', {
-          installInstructions: codexResult.installInstructions,
-          authInstructions: codexResult.authInstructions,
-          errorMessage: codexResult.errorMessage,
-        });
-        // Fallback to auto-detection if explicit preference not available
-      }
-    }
-
-    // Auto-detection fallback: Check Claude first (preferred for backward compatibility)
-    const claudeCommand = config.get<string>('claudeCodeCommand', 'claude');
-    const claudeResult = await CLIHealthChecker.check('claude', claudeCommand);
-
-    if (this.isHealthyCLI(claudeResult)) {
-      this.logger.info('Auto-detected Claude Code CLI');
-      return 'claude';
-    }
-
-    // Check Codex second
-    const codexCommand = config.get<string>('codexCommand', 'codex');
-    const codexResult = await CLIHealthChecker.check('codex', codexCommand);
-
-    if (this.isHealthyCLI(codexResult)) {
-      this.logger.info('Auto-detected Codex CLI');
-      return 'codex';
-    }
-
-    // Neither available
-    this.logger.warn('No CLI provider detected during auto-detection');
-    return null;
-  }
-
-  /**
-   * Get CLI provider based on user preference with auto-detection (T028, enhanced in T038)
-   * Uses 'auto' setting to detect available CLI
-   * Provides comprehensive error messages with installation and auth instructions
-   *
-   * @returns LLMProvider instance
-   * @throws Error if no CLI provider found with actionable instructions
-   */
-  public async getCLIProvider(): Promise<LLMProvider> {
-    const { CLIHealthChecker } = await import('./cli/CLIHealthChecker');
-    const config = vscode.workspace.getConfiguration('gofer');
-    const preference = config.get<'claude' | 'codex' | 'auto'>('cliProvider', 'auto');
-
-    if (preference !== 'auto') {
-      try {
-        const provider = await this.createCLIProvider(preference);
-        this.logger.info(`Using ${this.getCLIProviderDisplayName(preference)} CLI (user preference)`);
-        return provider;
-      } catch (error) {
-        const preferredCommand = config.get<string>(
-          preference === 'claude' ? 'claudeCodeCommand' : 'codexCommand',
-          preference
-        );
-        const preferredHealth = await CLIHealthChecker.check(preference, preferredCommand);
-
-        const fallbackType = preference === 'claude' ? 'codex' : 'claude';
-        const fallbackCommand = config.get<string>(
-          fallbackType === 'claude' ? 'claudeCodeCommand' : 'codexCommand',
-          fallbackType
-        );
-        const fallbackHealth = await CLIHealthChecker.check(fallbackType, fallbackCommand);
-        const fallbackHealthy = this.isHealthyCLI(fallbackHealth);
-
-        const guidance = this.buildPreferredCLIUnavailableMessage(preference, preferredHealth, {
-          cliType: fallbackType,
-          healthy: fallbackHealthy,
-          installInstructions: fallbackHealth.installInstructions,
-          authInstructions: fallbackHealth.authInstructions,
-        });
-
-        this.logger.warn(`Preferred ${this.getCLIProviderDisplayName(preference)} CLI unavailable`, {
-          error,
-          preferredCommand,
-          preferredHealth,
-          fallbackType,
-          fallbackHealthy,
-        });
-
-        throw new Error(guidance);
-      }
-    }
-
-    // Auto-detect with detailed error messages
-    const detected = await this.autoDetectCLI();
-    if (!detected) {
-      // Check both CLIs to provide specific guidance
-      const claudeCommand = config.get<string>('claudeCodeCommand', 'claude');
-      const codexCommand = config.get<string>('codexCommand', 'codex');
-
-      const claudeResult = await CLIHealthChecker.check('claude', claudeCommand);
-      const codexResult = await CLIHealthChecker.check('codex', codexCommand);
-
-      // Build comprehensive error message
-      let errorMsg = 'No CLI provider available for autonomous mode.\n\n';
-
-      if (!claudeResult.available) {
-        errorMsg += `Claude CLI: ${claudeResult.installInstructions}\n`;
-      } else if (!claudeResult.authenticated) {
-        errorMsg += `Claude CLI: ${claudeResult.authInstructions}\n`;
-      } else if (!claudeResult.compatible) {
-        errorMsg += `Claude CLI: ${claudeResult.errorMessage}\n`;
-      }
-
-      if (!codexResult.available) {
-        errorMsg += `Codex CLI: ${codexResult.installInstructions}\n`;
-      } else if (!codexResult.authenticated) {
-        errorMsg += `Codex CLI: ${codexResult.authInstructions}\n`;
-      } else if (!codexResult.compatible) {
-        errorMsg += `Codex CLI: ${codexResult.errorMessage}\n`;
-      }
-
-      this.logger.warn('No CLI provider available for autonomous mode', {
-        claudeResult,
-        codexResult,
-      });
-      throw new Error(errorMsg);
-    }
-
-    this.logger.info(`Auto-detected ${this.getCLIProviderDisplayName(detected)} CLI`);
-    return this.createCLIProvider(detected);
   }
 }
 

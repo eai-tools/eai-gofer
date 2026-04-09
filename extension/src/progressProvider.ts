@@ -3,10 +3,24 @@ import { GoferParser, Spec, Task, SpecStatus, TaskStatus } from './goferParser';
 import { SpecLoader } from './autonomous/SpecLoader';
 import { DependencyGraph } from './autonomous/DependencyGraph';
 import type { BranchSpecManager } from './branchSpecManager';
+import { getWorkflowProfile } from './config/workflowProfile';
+import { createDeploymentReadinessEventHandlers } from './services/enterpriseai/events/DeploymentReadinessEvents';
+import { validateDeploymentReadiness } from './services/enterpriseai/internalApi/ValidateDeploymentReadiness';
 import { Logger } from './utils/logger';
 
 // Debug output channel for initialization troubleshooting
 let debugChannel: vscode.OutputChannel | undefined;
+
+const ENTERPRISE_AI_DEPLOYMENT_REQUIRED_FILES: readonly string[] = ['manifest.yml', 'config.json'];
+const PRIMARY_DEPLOYMENT_KEYWORDS: readonly string[] = ['deploy', 'deployment', 'rollout'];
+const DEPLOYMENT_ARTIFACT_KEYWORDS: readonly string[] = [
+  'manifest',
+  'config',
+  'image',
+  'container',
+  'helm',
+  'k8s',
+];
 
 class SpecItem extends vscode.TreeItem {
   constructor(
@@ -210,6 +224,7 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
   private hasStartedInitialLoad: boolean = false; // Track if initial load started
   private refreshDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly debounceMs: number;
+  private readonly taskUpdateLocks: Map<string, Promise<void>> = new Map();
 
   constructor(
     workspacePath: string,
@@ -751,8 +766,122 @@ export class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
    * Update task status
    */
   async updateTaskStatus(specId: string, taskId: string, status: TaskStatus): Promise<void> {
-    await this.parser.updateTaskStatus(specId, taskId, status);
+    await this.runTaskUpdateInOrder(specId, async (): Promise<void> => {
+      await this.enforceEnterpriseAiDeploymentReadiness(specId, taskId, status);
+      await this.parser.updateTaskStatus(specId, taskId, status);
+    });
     this.refresh();
+  }
+
+  private async runTaskUpdateInOrder(
+    specId: string,
+    operation: () => Promise<void>
+  ): Promise<void> {
+    const priorLock = this.taskUpdateLocks.get(specId) ?? Promise.resolve();
+    const currentUpdate = (async (): Promise<void> => {
+      await priorLock;
+      await operation();
+    })();
+    const completionSignal = currentUpdate.then(
+      (): void => undefined,
+      (): void => undefined
+    );
+    this.taskUpdateLocks.set(specId, completionSignal);
+
+    try {
+      await currentUpdate;
+    } finally {
+      if (this.taskUpdateLocks.get(specId) === completionSignal) {
+        this.taskUpdateLocks.delete(specId);
+      }
+    }
+  }
+
+  private async enforceEnterpriseAiDeploymentReadiness(
+    specId: string,
+    taskId: string,
+    status: TaskStatus
+  ): Promise<void> {
+    if (status !== 'completed' || getWorkflowProfile() !== 'enterpriseai') {
+      return;
+    }
+
+    const spec = this.getSpec(specId) ?? (await this.parser.loadSpec(specId));
+    const task = spec.tasks.find(
+      (candidateTask: Task): boolean =>
+        this.normalizeTaskIdentifier(candidateTask.id) === this.normalizeTaskIdentifier(taskId)
+    );
+    if (!task || !this.isDeploymentTask(task)) {
+      return;
+    }
+
+    const deploymentReadinessEvents = createDeploymentReadinessEventHandlers();
+    deploymentReadinessEvents.consume((payload) => {
+      this.logger.info('EnterpriseAI deployment readiness validated before completion', {
+        specId,
+        taskId: task.id,
+        readinessPassed: payload.readinessPassed,
+        missingFiles: payload.missingFiles,
+      });
+    });
+
+    const readiness = await validateDeploymentReadiness(
+      {
+        runId: `progress-${specId}`,
+        stage: 'implementation',
+        deploymentTaskId: task.id,
+        requiredFiles: ENTERPRISE_AI_DEPLOYMENT_REQUIRED_FILES,
+        blockCompletionOnFailure: true,
+      },
+      {
+        workspaceRoot: this.workspacePath,
+        eventPublisher: (payload) => {
+          deploymentReadinessEvents.publish(payload);
+        },
+      }
+    );
+
+    if (!readiness.response.deploymentTaskCompletionAllowed) {
+      const missingFiles = readiness.response.missingFiles.join(', ');
+      const message =
+        `Cannot mark deployment task "${task.id}" complete. ` +
+        `Missing required deployment files: ${missingFiles}.`;
+      void vscode.window.showWarningMessage(message);
+      throw new Error(`IMPL_DEPLOYMENT_VALIDATION_FAILED: ${message}`);
+    }
+  }
+
+  private isDeploymentTask(task: Task): boolean {
+    const searchableText = `${task.id} ${task.description}`.toLowerCase();
+    const hasPrimaryKeyword = PRIMARY_DEPLOYMENT_KEYWORDS.some((keyword: string): boolean =>
+      searchableText.includes(keyword)
+    );
+    if (hasPrimaryKeyword) {
+      return true;
+    }
+
+    const hasReleaseOrPublishKeyword =
+      searchableText.includes('release') || searchableText.includes('publish');
+    if (!hasReleaseOrPublishKeyword) {
+      return false;
+    }
+
+    const hasDeploymentArtifactKeyword = DEPLOYMENT_ARTIFACT_KEYWORDS.some(
+      (keyword: string): boolean => searchableText.includes(keyword)
+    );
+    if (!hasDeploymentArtifactKeyword) {
+      return false;
+    }
+
+    return (
+      searchableText.includes('production') ||
+      searchableText.includes('environment target') ||
+      searchableText.includes('deployment')
+    );
+  }
+
+  private normalizeTaskIdentifier(taskId: string): string {
+    return taskId.replace(/^[#\[]+|[\]:]+$/g, '').toLowerCase();
   }
 
   /**

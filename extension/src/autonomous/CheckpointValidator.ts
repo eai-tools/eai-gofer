@@ -13,6 +13,10 @@ import { execFile } from 'child_process';
 import { promisify } from 'util';
 import * as fs from 'fs';
 import * as path from 'path';
+import {
+  CapabilityRemovalApprovalGate,
+  type CapabilityRemovalApprovalGateResult,
+} from '../services/enterpriseai/governance/CapabilityRemovalApprovalGate';
 
 const execFileAsync = promisify(execFile);
 
@@ -30,14 +34,33 @@ export interface GitState {
   headCommit: string;
 }
 
+export interface ReleaseValidationInput {
+  specDir: string;
+  runId: string;
+  changeSetId: string;
+  removedCapabilities: readonly string[];
+  requireRemovalApprovalLog: boolean;
+}
+
+export interface ReleaseValidationResult extends CheckpointValidationResult {
+  gatePassed: boolean;
+  blockedCapabilities: readonly string[];
+  approvalGateResult?: CapabilityRemovalApprovalGateResult;
+}
+
 const REQUIRED_FIELDS = ['session_id', 'timestamp', 'stage', 'status'];
 const MAX_TOKEN_BUDGET = 8000;
 
 export class CheckpointValidator {
   private workspaceRoot?: string;
+  private readonly capabilityRemovalApprovalGate: CapabilityRemovalApprovalGate;
 
-  constructor(workspaceRoot?: string) {
+  constructor(
+    workspaceRoot?: string,
+    capabilityRemovalApprovalGate: CapabilityRemovalApprovalGate = new CapabilityRemovalApprovalGate()
+  ) {
     this.workspaceRoot = workspaceRoot;
+    this.capabilityRemovalApprovalGate = capabilityRemovalApprovalGate;
   }
 
   /**
@@ -86,7 +109,9 @@ export class CheckpointValidator {
     for (const section of criticalSections) {
       // Match the section heading
       const headingIdx = content.indexOf(`## ${section}`);
-      if (headingIdx === -1) {continue;}
+      if (headingIdx === -1) {
+        continue;
+      }
 
       // Find where the content after the heading starts (skip heading line + blank lines)
       const afterHeading = content.slice(headingIdx + `## ${section}`.length);
@@ -231,6 +256,50 @@ export class CheckpointValidator {
   }
 
   /**
+   * Validates release readiness with capability-removal governance gates.
+   * Reuses pipeline artifact validation and optionally enforces explicit
+   * per-capability approval records for removal/disablement changes.
+   */
+  async validateReleaseReadiness(input: ReleaseValidationInput): Promise<ReleaseValidationResult> {
+    const artifactValidation = this.validatePipelineArtifacts(input.specDir);
+    const warnings = [...artifactValidation.warnings];
+    const errors = [...artifactValidation.errors];
+
+    const normalizedCapabilities = this.normalizeCapabilities(input.removedCapabilities);
+    if (!input.requireRemovalApprovalLog || normalizedCapabilities.length < 1) {
+      return {
+        valid: errors.length === 0,
+        warnings,
+        errors,
+        gatePassed: errors.length === 0,
+        blockedCapabilities: [],
+      };
+    }
+
+    const approvalGateResult = await this.capabilityRemovalApprovalGate.evaluate({
+      runId: input.runId,
+      changeSetId: input.changeSetId,
+      capabilities: normalizedCapabilities,
+    });
+
+    if (!approvalGateResult.allowed) {
+      const blockedSummary = approvalGateResult.blockedCapabilities.join(', ');
+      errors.push(
+        `VAL_REMOVAL_APPROVAL_MISSING: explicit approval required for ${blockedSummary}.`
+      );
+    }
+
+    return {
+      valid: errors.length === 0,
+      warnings,
+      errors,
+      gatePassed: approvalGateResult.allowed && errors.length === 0,
+      blockedCapabilities: approvalGateResult.blockedCapabilities,
+      approvalGateResult,
+    };
+  }
+
+  /**
    * 018 T061: Capture current git state for checkpoint context.
    */
   async captureGitState(): Promise<GitState> {
@@ -279,5 +348,15 @@ export class CheckpointValidator {
     }
 
     return gitState;
+  }
+
+  private normalizeCapabilities(capabilities: readonly string[]): readonly string[] {
+    return Array.from(
+      new Set(
+        capabilities
+          .map((capability: string): string => capability.trim())
+          .filter((capability: string): boolean => capability.length > 0)
+      )
+    );
   }
 }

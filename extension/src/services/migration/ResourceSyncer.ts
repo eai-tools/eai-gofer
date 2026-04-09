@@ -50,6 +50,16 @@ function isNodeErrorWithCode(error: unknown): error is NodeJS.ErrnoException {
   return typeof error === 'object' && error !== null && 'code' in error;
 }
 
+function isAbsolutePathAcrossPlatforms(candidatePath: string): boolean {
+  return path.posix.isAbsolute(candidatePath) || path.win32.isAbsolute(candidatePath);
+}
+
+export function resolveResourceTargetPath(specifyPath: string, targetSubdir: string): string {
+  return isAbsolutePathAcrossPlatforms(targetSubdir)
+    ? targetSubdir
+    : path.join(specifyPath, targetSubdir);
+}
+
 /**
  * Resource Syncer Service
  *
@@ -131,10 +141,7 @@ export class ResourceSyncer implements IResourceOperations {
       }
 
       const sourcePath = path.join(extensionPath, 'resources', sourceSubdir);
-      const targetPath = path.join(
-        targetSubdir.startsWith('/') ? '' : this.specifyPath,
-        targetSubdir
-      );
+      const targetPath = resolveResourceTargetPath(this.specifyPath, targetSubdir);
 
       this.logger.debug('ResourceSyncer', 'Resource paths', { sourcePath, targetPath });
 

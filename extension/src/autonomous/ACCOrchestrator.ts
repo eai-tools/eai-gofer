@@ -22,6 +22,14 @@ import type { ObservationMasker } from './ObservationMasker';
 import type { ContextCompactor } from './ContextCompactor';
 import type { ContextBridgeWriter } from './ContextBridgeWriter';
 import type { TaskContext } from './ContextBuilder';
+import type { ArchitectureDecision } from '../services/enterpriseai/models/Governance';
+import type {
+  ArchitectureDecisionGate,
+  ArchitectureDecisionDiscussionEntry,
+  ArchitectureDecisionDiscussionSpeaker,
+  ArchitectureDecisionGateState,
+  ArchitectureDecisionPresentation,
+} from '../services/enterpriseai/governance/ArchitectureDecisionGate';
 import { Logger } from '../utils/logger';
 
 /** Duck-typed interface for SubAgentDispatcher (null-safe). */
@@ -44,7 +52,8 @@ export class ACCOrchestrator implements vscode.Disposable {
     private readonly contextBuilder: ContextBuilder,
     private readonly observationMasker: ObservationMasker,
     private readonly subAgentDispatcher: ACCSubAgentDispatcher | null = null,
-    private readonly contextCompactor: ContextCompactor | null = null
+    private readonly contextCompactor: ContextCompactor | null = null,
+    private readonly architectureDecisionGate: ArchitectureDecisionGate | null = null
   ) {
     this.logger = Logger.for('ACCOrchestrator');
     this.logger.debug('ACCOrchestrator initialized');
@@ -242,6 +251,75 @@ export class ACCOrchestrator implements vscode.Disposable {
    */
   setCurrentTaskContext(task: TaskContext): void {
     this.currentTaskContext = task;
+  }
+
+  configureArchitectureDecisionRun(
+    runId: string,
+    decisions: readonly ArchitectureDecision[]
+  ): void {
+    if (!this.architectureDecisionGate) {
+      this.logger.debug('Skipping architecture decision run configuration (no gate)');
+      return;
+    }
+
+    this.architectureDecisionGate.initializeRun(runId, decisions);
+    this.logger.info('Architecture decision run configured', {
+      runId,
+      decisionCount: decisions.length,
+    });
+  }
+
+  presentNextArchitectureDecision(runId: string): ArchitectureDecisionPresentation | null {
+    if (!this.architectureDecisionGate) {
+      this.logger.debug('Skipping architecture decision presentation (no gate)');
+      return null;
+    }
+
+    return this.architectureDecisionGate.presentNextDecision(runId);
+  }
+
+  recordArchitectureDecisionDiscussion(
+    runId: string,
+    decisionId: string,
+    speaker: ArchitectureDecisionDiscussionSpeaker,
+    message: string
+  ): ArchitectureDecisionDiscussionEntry | null {
+    if (!this.architectureDecisionGate) {
+      this.logger.debug('Skipping architecture decision discussion (no gate)');
+      return null;
+    }
+
+    return this.architectureDecisionGate.addDiscussion(runId, decisionId, speaker, message);
+  }
+
+  lockArchitectureDecision(
+    runId: string,
+    decisionId: string,
+    approved: boolean,
+    selectedOption?: string,
+    rationale?: string
+  ): ArchitectureDecision | null {
+    if (!this.architectureDecisionGate) {
+      this.logger.debug('Skipping architecture decision lock (no gate)');
+      return null;
+    }
+
+    return this.architectureDecisionGate.lockDecision(
+      runId,
+      decisionId,
+      approved,
+      selectedOption,
+      rationale
+    );
+  }
+
+  getArchitectureDecisionGateState(runId: string): ArchitectureDecisionGateState | null {
+    if (!this.architectureDecisionGate) {
+      this.logger.debug('Skipping architecture decision state check (no gate)');
+      return null;
+    }
+
+    return this.architectureDecisionGate.getRunState(runId);
   }
 
   /**

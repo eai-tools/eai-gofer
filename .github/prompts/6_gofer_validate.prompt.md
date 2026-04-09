@@ -10,6 +10,11 @@ tools:
   - Bash
   - WebSearch
 argument-hint: feature-name-or-description
+gofer:
+  workflowProfile: standard
+  canonicalSource: .claude/commands/6_gofer_validate.md
+  canonicalChecksum: 73bcdcff6385d45f174574c76f707fe551173b5c031b81cbfea7a193f8f47ca6
+  metadataSource: scripts/generate-commands.ts
 ---
 
 # Gofer Validate

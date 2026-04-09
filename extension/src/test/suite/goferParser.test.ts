@@ -353,6 +353,46 @@ created: "2025-10-22"
       );
     });
 
+    test('should serialize concurrent task status updates for the same spec', async () => {
+      const specId = '011b-status-concurrency-test';
+      const specDir = path.join(tempDir, '.specify', 'specs', specId);
+      await fs.mkdir(specDir, { recursive: true });
+
+      const specContent = `---
+id: "${specId}"
+title: "Concurrent Task Status Update Test"
+status: "draft"
+created: "2025-10-22"
+---
+
+# Concurrent Task Status Update Test
+`;
+
+      const tasksContent = `# Tasks
+
+- [ ] **T001**: First concurrent update
+- [ ] **T002**: Second concurrent update
+`;
+
+      await fs.writeFile(path.join(specDir, 'spec.md'), specContent);
+      await fs.writeFile(path.join(specDir, 'tasks.md'), tasksContent);
+
+      await Promise.all([
+        parser.updateTaskStatus(specId, 'T001', 'completed'),
+        parser.updateTaskStatus(specId, 'T002', 'completed'),
+      ]);
+
+      const updatedTasksContent = await fs.readFile(path.join(specDir, 'tasks.md'), 'utf-8');
+      assert.ok(
+        updatedTasksContent.includes('- [x] **T001**'),
+        'File should contain checked box for T001 after concurrent updates'
+      );
+      assert.ok(
+        updatedTasksContent.includes('- [x] **T002**'),
+        'File should contain checked box for T002 after concurrent updates'
+      );
+    });
+
     test('should update spec status', async () => {
       const specId = '012-spec-status-test';
       const specDir = path.join(tempDir, '.specify', 'specs', specId);
@@ -428,6 +468,20 @@ created: "2025-10-22"
       assert.ok(
         updatedTasksContent.includes('- [-] T002b'),
         'File should contain in-progress box for suffixed T002b'
+      );
+    });
+
+    test('should reject invalid spec IDs when updating task status', async () => {
+      await assert.rejects(
+        parser.updateTaskStatus('../malicious', 'T001', 'completed'),
+        /Invalid spec ID/
+      );
+    });
+
+    test('should reject invalid spec IDs when updating spec status', async () => {
+      await assert.rejects(
+        parser.updateSpecStatus('../malicious', 'in_progress'),
+        /Invalid spec ID/
       );
     });
   });

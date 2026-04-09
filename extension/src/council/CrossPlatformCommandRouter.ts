@@ -6,10 +6,17 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { pathExistsSafe, readDirectorySafe } from './CommandFileAccess';
+import { validateCommandName } from './CommandNameValidation';
 import { PlatformDetector } from './PlatformDetector';
 import { DefaultSkillDirectoryManager } from './SkillDirectoryManager';
 import { CommandMetadataExtractor } from './CommandMetadataExtractor';
 import { CommandMetadata, PlatformType } from './types/CrossPlatformTypes';
+import {
+  isWorkflowProfileCompatible,
+  selectGuidanceForWorkflowProfile,
+} from './WorkflowProfileGuidance';
+import { type WorkflowProfile, getWorkflowProfile } from '../config/workflowProfile';
 import { Logger } from '../utils/logger';
 
 /**
@@ -22,6 +29,14 @@ export interface CommandRoutingResult {
   metadata: CommandMetadata;
   syntax: string;
   isAvailable: boolean;
+  workflowProfile: WorkflowProfile;
+  profileMatched: boolean;
+}
+
+interface CommandSelectionResult {
+  metadata: CommandMetadata;
+  platform: PlatformType;
+  profileMatched: boolean;
 }
 
 /**
@@ -39,6 +54,8 @@ export class CrossPlatformCommandRouter {
   private cacheExpiry: number;
   private readonly CACHE_TTL_MS = 60000; // 1 minute
   private readonly logger = Logger.for('CrossPlatformCommandRouter');
+  private readonly logWarning = (message: string, metadata: Record<string, unknown>): void =>
+    this.logger.warn(message, metadata);
 
   constructor(private workspacePath: string) {
     this.platformDetector = PlatformDetector.getInstance(workspacePath);
@@ -58,60 +75,36 @@ export class CrossPlatformCommandRouter {
    */
   public async routeCommand(
     commandName: string,
-    targetPlatform?: PlatformType
+    targetPlatform?: PlatformType,
+    workflowProfile?: WorkflowProfile
   ): Promise<CommandRoutingResult> {
-    // Validate command name to prevent path traversal
-    this.validateCommandName(commandName);
-
-    // Check cache
-    const cacheKey = `${commandName}:${targetPlatform || 'auto'}`;
-    if (this.isCacheValid() && this.routingCache.has(cacheKey)) {
-      return this.routingCache.get(cacheKey)!;
+    validateCommandName(commandName);
+    const resolvedWorkflowProfile = this.resolveWorkflowProfile(workflowProfile);
+    const cacheKey = `${commandName}:${targetPlatform || 'auto'}:${resolvedWorkflowProfile}`;
+    const cachedResult = this.getCachedResult(cacheKey);
+    if (cachedResult) {
+      return cachedResult;
     }
 
     const searchOrder = targetPlatform
       ? [targetPlatform]
       : this.getPlatformSearchOrder(this.platformDetector.getDefaultPlatform());
 
-    this.logger.debug('Routing command', { commandName, searchOrder, targetPlatform });
-
-    let metadata: CommandMetadata | null = null;
-    let selectedPlatform: PlatformType | null = null;
-
-    for (const platform of searchOrder) {
-      metadata = await this.getMetadataForPlatform(commandName, platform);
-      if (metadata) {
-        selectedPlatform = platform;
-        this.logger.debug('Platform selected', {
-          commandName,
-          selectedPlatform,
-          reason: targetPlatform ? 'explicit' : 'priority-fallback',
-        });
-        break;
-      }
-    }
-
-    if (!metadata) {
-      this.logger.debug('Command not found', { commandName, targetPlatform });
-      if (targetPlatform) {
-        throw new Error(`Command "${commandName}" not found for platform "${targetPlatform}"`);
-      }
-      throw new Error(`Command "${commandName}" not found in any platform directory`);
-    }
-
-    // Build routing result
-    const result: CommandRoutingResult = {
+    this.logger.debug('Routing command', {
       commandName,
-      platform: selectedPlatform ?? metadata.platform,
-      filePath: metadata.filePath,
-      metadata,
-      syntax: this.getCommandSyntax(commandName, selectedPlatform ?? metadata.platform),
-      isAvailable: true,
-    };
+      searchOrder,
+      targetPlatform,
+      workflowProfile: resolvedWorkflowProfile,
+    });
 
-    // Cache result
+    const selection = await this.selectCommandMetadata(
+      commandName,
+      searchOrder,
+      resolvedWorkflowProfile,
+      targetPlatform
+    );
+    const result = this.buildRoutingResult(commandName, selection, resolvedWorkflowProfile);
     this.routingCache.set(cacheKey, result);
-
     return result;
   }
 
@@ -122,17 +115,20 @@ export class CrossPlatformCommandRouter {
    * @param platform Target platform
    * @returns Full command file content
    */
-  public async loadSkillForPlatform(commandName: string, platform: PlatformType): Promise<string> {
+  public async loadSkillForPlatform(
+    commandName: string,
+    platform: PlatformType,
+    workflowProfile?: WorkflowProfile
+  ): Promise<string> {
     const commandPath = this.getCommandPath(commandName, platform);
-    const exists = await fs.promises
-      .access(commandPath)
-      .then(() => true)
-      .catch(() => false);
+    const exists = await pathExistsSafe(commandPath, 'loadSkillForPlatform', this.logWarning);
     if (!exists) {
       throw new Error(`Command "${commandName}" not found for platform "${platform}"`);
     }
 
-    return await fs.promises.readFile(commandPath, 'utf8');
+    const resolvedWorkflowProfile = this.resolveWorkflowProfile(workflowProfile);
+    const content = await fs.promises.readFile(commandPath, 'utf8');
+    return selectGuidanceForWorkflowProfile(content, resolvedWorkflowProfile);
   }
 
   /**
@@ -152,7 +148,7 @@ export class CrossPlatformCommandRouter {
    * @returns Absolute file path
    */
   public getCommandPath(commandName: string, platform: PlatformType): string {
-    this.validateCommandName(commandName);
+    validateCommandName(commandName);
 
     const platformPaths: Record<PlatformType, string> = {
       claude: path.join(this.workspacePath, '.claude', 'commands', `${commandName}.md`),
@@ -171,25 +167,20 @@ export class CrossPlatformCommandRouter {
   public async listCommands(): Promise<string[]> {
     const commands = new Set<string>();
 
-    const tryReadDir = (dir: string): Promise<string[]> => fs.promises.readdir(dir).catch(() => []);
-
     // Scan Claude commands
     const claudeDir = path.join(this.workspacePath, '.claude', 'commands');
-    const claudeFiles = await tryReadDir(claudeDir);
+    const claudeFiles = await readDirectorySafe(claudeDir, 'listCommands.claude', this.logWarning);
     claudeFiles
       .filter((file) => file.endsWith('.md'))
       .forEach((file) => commands.add(path.basename(file, '.md')));
 
     // Scan Codex skills
     const codexDir = path.join(this.workspacePath, '.system', 'skills');
-    const codexDirs = await tryReadDir(codexDir);
+    const codexDirs = await readDirectorySafe(codexDir, 'listCommands.codex', this.logWarning);
     const codexChecks = await Promise.all(
       codexDirs.map(async (dir) => {
         const skillPath = path.join(codexDir, dir, 'SKILL.md');
-        const exists = await fs.promises
-          .access(skillPath)
-          .then(() => true)
-          .catch(() => false);
+        const exists = await pathExistsSafe(skillPath, 'listCommands.codexSkill', this.logWarning);
         return exists ? dir : null;
       })
     );
@@ -197,7 +188,11 @@ export class CrossPlatformCommandRouter {
 
     // Scan Copilot prompts
     const copilotDir = path.join(this.workspacePath, '.github', 'prompts');
-    const copilotFiles = await tryReadDir(copilotDir);
+    const copilotFiles = await readDirectorySafe(
+      copilotDir,
+      'listCommands.copilot',
+      this.logWarning
+    );
     copilotFiles
       .filter((file) => file.endsWith('.prompt.md'))
       .forEach((file) => commands.add(path.basename(file, '.prompt.md')));
@@ -213,10 +208,22 @@ export class CrossPlatformCommandRouter {
    */
   public isCommandAvailable(commandName: string): boolean {
     try {
-      this.validateCommandName(commandName);
+      validateCommandName(commandName);
       const metadata = this.skillDirectoryManager.findCommand(commandName);
       return metadata !== null;
-    } catch {
+    } catch (error) {
+      if (error instanceof Error && error.message.startsWith('Invalid command name')) {
+        this.logger.debug('Command rejected during availability check', {
+          commandName,
+          reason: error.message,
+        });
+        return false;
+      }
+
+      this.logger.warn('Failed to determine command availability', {
+        commandName,
+        error: error instanceof Error ? error.message : String(error),
+      });
       return false;
     }
   }
@@ -249,34 +256,6 @@ export class CrossPlatformCommandRouter {
   }
 
   /**
-   * Validate command name to prevent path traversal attacks
-   *
-   * @param commandName Command name to validate
-   * @throws Error if command name contains invalid characters
-   */
-  private validateCommandName(commandName: string): void {
-    // Reject empty names
-    if (!commandName || commandName.trim().length === 0) {
-      throw new Error('Command name cannot be empty');
-    }
-
-    // Reject path traversal attempts
-    if (
-      commandName.includes('..') ||
-      commandName.includes('/') ||
-      commandName.includes('\\') ||
-      commandName.includes('\0')
-    ) {
-      throw new Error(`Invalid command name: "${commandName}" (path traversal not allowed)`);
-    }
-
-    // Reject absolute paths
-    if (path.isAbsolute(commandName)) {
-      throw new Error(`Invalid command name: "${commandName}" (absolute paths not allowed)`);
-    }
-  }
-
-  /**
    * Check if cache is still valid
    */
   private isCacheValid(): boolean {
@@ -291,29 +270,131 @@ export class CrossPlatformCommandRouter {
     return [preferred, ...defaultPriority.filter((platform) => platform !== preferred)];
   }
 
+  private getCachedResult(cacheKey: string): CommandRoutingResult | null {
+    if (!this.isCacheValid()) {
+      return null;
+    }
+    return this.routingCache.get(cacheKey) ?? null;
+  }
+
+  private async selectCommandMetadata(
+    commandName: string,
+    searchOrder: readonly PlatformType[],
+    workflowProfile: WorkflowProfile,
+    targetPlatform?: PlatformType
+  ): Promise<CommandSelectionResult> {
+    let fallbackSelection: CommandSelectionResult | null = null;
+
+    for (const platform of searchOrder) {
+      const candidateMetadata = await this.getMetadataForPlatform(commandName, platform);
+      if (!candidateMetadata) {
+        continue;
+      }
+
+      if (isWorkflowProfileCompatible(candidateMetadata.frontmatter, workflowProfile)) {
+        this.logger.debug('Platform selected', {
+          commandName,
+          selectedPlatform: platform,
+          workflowProfile,
+          reason: targetPlatform ? 'explicit' : 'priority-fallback',
+        });
+        return {
+          metadata: candidateMetadata,
+          platform,
+          profileMatched: true,
+        };
+      }
+
+      if (!fallbackSelection) {
+        fallbackSelection = {
+          metadata: candidateMetadata,
+          platform,
+          profileMatched: false,
+        };
+      }
+    }
+
+    if (fallbackSelection) {
+      this.logger.warn('Profile-scoped guidance unavailable, using compatibility fallback', {
+        commandName,
+        workflowProfile,
+        selectedPlatform: fallbackSelection.platform,
+      });
+      return fallbackSelection;
+    }
+
+    this.logger.debug('Command not found', {
+      commandName,
+      targetPlatform,
+      workflowProfile,
+    });
+    if (targetPlatform) {
+      throw new Error(`Command "${commandName}" not found for platform "${targetPlatform}"`);
+    }
+    throw new Error(`Command "${commandName}" not found in any platform directory`);
+  }
+
+  private buildRoutingResult(
+    commandName: string,
+    selection: CommandSelectionResult,
+    workflowProfile: WorkflowProfile
+  ): CommandRoutingResult {
+    return {
+      commandName,
+      platform: selection.platform,
+      filePath: selection.metadata.filePath,
+      metadata: selection.metadata,
+      syntax: this.getCommandSyntax(commandName, selection.platform),
+      isAvailable: true,
+      workflowProfile,
+      profileMatched: selection.profileMatched,
+    };
+  }
+
   private async getMetadataForPlatform(
     commandName: string,
     platform: PlatformType
   ): Promise<CommandMetadata | null> {
     const commandPath = this.getCommandPath(commandName, platform);
-    const exists = await fs.promises
-      .access(commandPath)
-      .then(() => true)
-      .catch(() => false);
+    const exists = await pathExistsSafe(commandPath, 'getMetadataForPlatform', this.logWarning);
     if (!exists) {
       return null;
     }
 
     try {
       if (platform === 'claude') {
-        return this.metadataExtractor.extractFromClaudeCommandSync(commandPath);
+        return await this.metadataExtractor.extractFromClaudeCommand(commandPath);
       }
       if (platform === 'codex') {
-        return this.metadataExtractor.extractFromCodexSkillSync(commandPath);
+        return await this.metadataExtractor.extractFromCodexSkill(commandPath);
       }
-      return this.metadataExtractor.extractFromCopilotPromptSync(commandPath);
-    } catch {
+      return await this.metadataExtractor.extractFromCopilotPrompt(commandPath);
+    } catch (error) {
+      this.logger.warn('Failed to extract command metadata', {
+        commandName,
+        platform,
+        commandPath,
+        error: error instanceof Error ? error.message : String(error),
+      });
       return null;
+    }
+  }
+
+  private resolveWorkflowProfile(workflowProfile?: WorkflowProfile): WorkflowProfile {
+    if (workflowProfile) {
+      return workflowProfile;
+    }
+
+    try {
+      return getWorkflowProfile();
+    } catch (error) {
+      this.logger.warn(
+        'Falling back to standard workflow profile after configuration read failure',
+        {
+          error: error instanceof Error ? error.message : String(error),
+        }
+      );
+      return 'standard';
     }
   }
 }

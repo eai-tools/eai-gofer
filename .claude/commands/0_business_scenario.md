@@ -133,20 +133,40 @@ pipeline.
 
 If user selects "Skip Discovery", proceed directly to Step 3.
 
+### EnterpriseAI-First Discovery Framing (MANDATORY)
+
+For EnterpriseAI-profile and student vertical-app scenarios:
+
+- Frame recommendations in EnterpriseAI vertical-app terms first.
+- Keep discovery language focused on business-process outcomes, workflow
+  reliability, and deployable EnterpriseAI delivery.
+- Do **not** present non-EAI platforms as primary recommendations.
+- If non-EAI platforms are discussed, label them as secondary comparison context
+  only.
+
+### Novice Walkthrough Guardrail (MANDATORY)
+
+Assume the user is a novice. Discovery must be completable using in-product and
+repository guidance only.
+
+- Do not require external documentation to complete discovery.
+- Provide recommended options and plain-language implications for every
+  question.
+
 ### Discovery Question 1: Problem Statement
 
 **"What problem are you trying to solve?"**
 
 **Recommended:** Based on initial context, suggest the most likely problem type.
 
-| Option | Description                             | Implications                          |
-| ------ | --------------------------------------- | ------------------------------------- |
-| A      | Users can't find what they need quickly | Focus on search/navigation UX         |
-| B      | Manual processes taking too much time   | Focus on automation/efficiency        |
-| C      | Data is siloed across systems           | Focus on integration/consolidation    |
-| D      | Quality/reliability issues              | Focus on testing/monitoring           |
-| E      | [Context-specific suggestion]           | [Based on user's initial description] |
-| Custom | Describe your specific problem          | We'll tailor the approach             |
+| Option | Description                                              | Implications                                    |
+| ------ | -------------------------------------------------------- | ----------------------------------------------- |
+| A      | Manual business workflow is slowing delivery             | Focus on EnterpriseAI vertical-app automation   |
+| B      | Process quality/compliance issues in current flow        | Focus on reliability-first architecture choices |
+| C      | Teams cannot connect data/process context effectively    | Focus on EnterpriseAI integration patterns      |
+| D      | Need a reusable student/business vertical-app foundation | Focus on scaffold + deployment-ready outcomes   |
+| E      | [EnterpriseAI context-specific suggestion]               | [Based on user's initial description]           |
+| Custom | Describe your specific EnterpriseAI vertical-app problem | We'll tailor the approach                       |
 
 You can reply with the option letter, accept the recommendation by saying "yes",
 or provide your own answer.
@@ -159,13 +179,13 @@ or provide your own answer.
 
 **Recommended:** Suggest based on problem type selected.
 
-| Option | Description                | Implications                      |
-| ------ | -------------------------- | --------------------------------- |
-| A      | End customers (external)   | Focus on UX, onboarding, support  |
-| B      | Internal team members      | Focus on efficiency, integrations |
-| C      | Developers/technical users | Focus on APIs, documentation      |
-| D      | Business stakeholders      | Focus on reporting, dashboards    |
-| Custom | Describe your users        | We'll create appropriate personas |
+| Option | Description                              | Implications                                  |
+| ------ | ---------------------------------------- | --------------------------------------------- |
+| A      | Student builder (beginner/intermediate)  | Focus on guided, plain-language walkthrough   |
+| B      | Business process owner / operations lead | Focus on workflow ROI and deployable outcomes |
+| C      | Developer / integration practitioner     | Focus on APIs, deployment conventions, hooks  |
+| D      | Instructor / stakeholder reviewer        | Focus on evidence and presentation artifacts  |
+| Custom | Describe your users                      | We'll create appropriate personas             |
 
 **Store response** in discovery context.
 
@@ -175,13 +195,13 @@ or provide your own answer.
 
 **Recommended:** Suggest based on problem and user type.
 
-| Option | Description                               | Implications                         |
-| ------ | ----------------------------------------- | ------------------------------------ |
-| A      | Time savings (reduce X by Y%)             | Need baseline metrics, time tracking |
-| B      | Cost reduction (save $X/month)            | Need cost analysis, ROI tracking     |
-| C      | Quality improvement (reduce errors by Y%) | Need error tracking, quality metrics |
-| D      | User satisfaction (increase NPS by Y)     | Need feedback collection, surveys    |
-| Custom | Define your value metric                  | We'll build appropriate tracking     |
+| Option | Description                                      | Implications                                   |
+| ------ | ------------------------------------------------ | ---------------------------------------------- |
+| A      | Faster vertical-app delivery (reduce build time) | Need baseline stage timing and throughput      |
+| B      | Better process outcomes (reduce errors/rework)   | Need quality and reliability metrics           |
+| C      | Improved deployment readiness for EnterpriseAI   | Need deployment-task and readiness checkpoints |
+| D      | Stronger stakeholder confidence (clear evidence) | Need artifact completeness and traceability    |
+| Custom | Define your value metric                         | We'll build appropriate tracking               |
 
 **Store response** in discovery context.
 
@@ -254,6 +274,13 @@ status: complete
 ## Value Proposition
 
 **Primary Value**: [From Question 3] **Quantified Goal**: [From Question 4]
+
+## EnterpriseAI Framing Assertions
+
+- [x] EnterpriseAI vertical-app delivery is the primary context.
+- [x] Problem statement, persona, and value proposition are
+      EnterpriseAI-focused.
+- [x] Non-EAI platforms are excluded as primary recommendations.
 
 ## Success Metrics
 
@@ -625,9 +652,16 @@ If context window is filling up:
 - **ALWAYS ask what the user wants to do** - don't assume existing artifacts are
   relevant
 - Show existing features and let user choose to continue OR start new
+- Discovery guidance must remain EnterpriseAI-first for EnterpriseAI-profile
+  runs
+- Non-EAI platforms must never be presented as primary recommendations during
+  discovery
+- Discovery must remain novice-friendly without requiring external docs
 - Technology architecture decisions must be asked **one-by-one** with a
   discussion loop so users can ask clarifying questions before finalizing each
   answer
+- Do not remove or deprecate existing Gofer functionality without explicit
+  one-by-one user approval recorded in proposal review artifacts
 - Document the routing decision for debugging
 - If user seems confused, default to research first
 

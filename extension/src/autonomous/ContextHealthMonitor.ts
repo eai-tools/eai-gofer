@@ -20,6 +20,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { THRESHOLDS, LIMITS, TIMEOUTS } from '../config/index';
 import { Logger } from '../utils/logger';
+import { buildContextBudgetWarning, type ContextBudgetWarning } from './StageContextProfile';
 
 /**
  * Health status levels for context utilization.
@@ -64,6 +65,8 @@ export interface ContextHealthStatus {
   timestamp: number;
   /** Associated session ID */
   sessionId?: string;
+  /** Current Gofer stage */
+  stage?: string;
   // Spec 014: Real context monitoring fields (additive)
   /** Data source: 'real' (JSONL session), 'estimated' (filesystem), 'none' */
   dataSource?: 'real' | 'estimated' | 'none';
@@ -75,6 +78,10 @@ export interface ContextHealthStatus {
   apiCallCount?: number;
   /** Display name from /rename (customTitle) or auto-generated slug */
   displayName?: string;
+}
+
+export interface ContextBudgetWarningNotice extends ContextBudgetWarning {
+  status: ContextHealthStatus;
 }
 
 /**
@@ -118,6 +125,7 @@ export interface ContextHealthEvents {
   'auto-save': (status: ContextHealthStatus) => void;
   'handoff-recommended': (status: ContextHealthStatus) => void;
   'status-change': (from: HealthStatus, to: HealthStatus, status: ContextHealthStatus) => void;
+  'context-budget-warning': (warning: ContextBudgetWarningNotice) => void;
   // ACC (Adaptive Context Compaction) events — Feature 024
   'acc-delegation-advisory': (status: ContextHealthStatus) => void;
   'acc-observation-masking': (status: ContextHealthStatus) => void;
@@ -300,6 +308,7 @@ export class ContextHealthMonitor extends EventEmitter {
       recommendations,
       timestamp: Date.now(),
       sessionId: input.sessionId,
+      stage: input.stage,
       // Spec 014: pass through real context monitoring fields
       dataSource: input.dataSource,
       model: input.model,
@@ -382,9 +391,15 @@ export class ContextHealthMonitor extends EventEmitter {
       recommendations.push(
         `Context at ${utilizationPercent.toFixed(0)}%. Consider reducing context soon.`
       );
+      recommendations.push(
+        'Context budget warning: keep stage outputs concise to prevent critical context exhaustion.'
+      );
     } else if (status === 'critical') {
       recommendations.push(
         `Context at ${utilizationPercent.toFixed(0)}%. Immediate action recommended.`
+      );
+      recommendations.push(
+        'Context budget warning: critical threshold reached. Keep stage outputs concise and deterministic.'
       );
       recommendations.push('Run /7_gofer_save to preserve progress before handoff.');
     }
@@ -469,6 +484,22 @@ export class ContextHealthMonitor extends EventEmitter {
 
     // Emit status-specific event so UI (status bar) stays updated
     this.emit(status.status, status);
+
+    const contextBudgetWarning = buildContextBudgetWarning(
+      status.stage,
+      status.utilizationPercent,
+      this.config.criticalThreshold
+    );
+    if (contextBudgetWarning.warning && previousRatio < this.config.criticalThreshold) {
+      this.emit('context-budget-warning', {
+        ...contextBudgetWarning,
+        status,
+      });
+      this.logger.warn('Context budget warning emitted', {
+        utilizationPercent: status.utilizationPercent,
+        stage: status.stage,
+      });
+    }
 
     // Check for status change
     if (status.status !== this.lastStatus) {
@@ -801,6 +832,7 @@ export class ContextHealthMonitor extends EventEmitter {
         breakdown: status.breakdown,
         recommendations: status.recommendations,
         sessionId: status.sessionId,
+        stage: status.stage,
         // Spec 014 additive fields
         dataSource: status.dataSource,
         model: status.model,

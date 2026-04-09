@@ -1,7 +1,6 @@
 ---
 name: gofer_constitution
-description:
-  Create or update project constitution with coding principles and guidelines
+description: Create or update project constitution with coding principles and guidelines
 agent: copilot-workspace
 tools:
   - Read
@@ -16,6 +15,7 @@ gofer:
   canonicalChecksum: f5d450a614bcf681033a80d9fbdc2c96fe1baf466c97e679e9744a9b562395c4
   metadataSource: scripts/generate-commands.ts
 ---
+
 
 # Gofer Constitution
 

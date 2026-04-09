@@ -1,7 +1,6 @@
 ---
 name: 3_gofer_plan
-description:
-  Generate technical implementation plan with architecture and contracts
+description: Generate technical implementation plan with architecture and contracts
 agent: copilot-workspace
 tools:
   - Read
@@ -16,6 +15,7 @@ gofer:
   canonicalChecksum: 1f0e799f4a4888e73ba5c9f4715b4bfca37cd24a575f2168720ebccc08ee44a2
   metadataSource: scripts/generate-commands.ts
 ---
+
 
 # Gofer Plan
 
@@ -527,6 +527,7 @@ Artifacts created:
 Engineering Review: PASSED (cycle [N] of 5)
 ```
 
+
 ---
 
 ## LLM Council Integration (Optional)
@@ -552,17 +553,17 @@ Logs to: `.specify/logs/pipeline.jsonl`
 
 ---
 
+
+
 ## Pipeline Continuation
 
 This completes the 3_gofer_plan stage. To continue the Gofer pipeline:
 
 **Next Command:** `#4_gofer_tasks`
 
-The next stage will read the artifacts from this stage and continue the workflow
-automatically.
+The next stage will read the artifacts from this stage and continue the workflow automatically.
 
-**Note:** Copilot Chat supports context preservation. Your conversation history
-will be maintained as you progress through pipeline stages.
+**Note:** Copilot Chat supports context preservation. Your conversation history will be maintained as you progress through pipeline stages.
 
 ## Key Rules
 

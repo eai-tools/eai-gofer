@@ -18,6 +18,7 @@ gofer:
   metadataSource: scripts/generate-commands.ts
 ---
 
+
 # Gofer Problem Validation
 
 You are validating a business problem BEFORE any solution design begins. This is
@@ -276,6 +277,7 @@ After saving artifacts:
 
 If recommendation is PROCEED or user confirms they want to continue:
 
+
 ---
 
 ## Step 10: Observability Logging
@@ -323,14 +325,13 @@ so they include plain-English companion sections in their outputs.
   /7a_stakeholder_comms
 ```
 
+
 ## Pipeline Continuation
 
 This completes the 0a_problem_validation stage. To continue the Gofer pipeline:
 
 **Next Command:** `#1_gofer_research`
 
-The next stage will read the artifacts from this stage and continue the workflow
-automatically.
+The next stage will read the artifacts from this stage and continue the workflow automatically.
 
-**Note:** Copilot Chat supports context preservation. Your conversation history
-will be maintained as you progress through pipeline stages.
+**Note:** Copilot Chat supports context preservation. Your conversation history will be maintained as you progress through pipeline stages.

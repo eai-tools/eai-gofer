@@ -425,8 +425,8 @@ export class ConfigManager {
   /**
    * Get preferred CLI provider setting (T009)
    */
-  public getPreferredCLIProvider(): 'claude' | 'codex' | 'auto' {
-    return this.config.get<'claude' | 'codex' | 'auto'>(
+  public getPreferredCLIProvider(): 'claude' | 'codex' | 'copilot' | 'gemini' | 'auto' {
+    return this.config.get<'claude' | 'codex' | 'copilot' | 'gemini' | 'auto'>(
       CONFIG_KEYS.cliProvider.replace('gofer.', ''),
       DEFAULTS.cliProvider
     );
@@ -458,11 +458,12 @@ export class ConfigManager {
    * @param platform Platform identifier
    * @returns Display name (e.g., "Claude Code", "GitHub Copilot Chat")
    */
-  public getCLIDisplayName(platform: 'claude' | 'copilot' | 'codex' | 'auto'): string {
-    const displayNames: Record<'claude' | 'copilot' | 'codex' | 'auto', string> = {
+  public getCLIDisplayName(platform: 'claude' | 'copilot' | 'codex' | 'gemini' | 'auto'): string {
+    const displayNames: Record<'claude' | 'copilot' | 'codex' | 'gemini' | 'auto', string> = {
       claude: 'Claude Code',
       copilot: 'GitHub Copilot Chat',
       codex: 'OpenAI Codex CLI',
+      gemini: 'Google Gemini CLI',
       auto: 'Auto-Detect',
     };
 
@@ -517,8 +518,7 @@ export class ConfigManager {
       contextWindowAutoSaveThreshold: this.getContextWindowAutoSaveThreshold(),
       contextWindowAutoResumeAfterSave: this.getContextWindowAutoResumeAfterSave(),
       contextWindowContinuousSlopReductionEnabled: this.getContinuousSlopReductionEnabled(),
-      contextWindowContinuousSlopReductionIntervalMs:
-        this.getContinuousSlopReductionIntervalMs(),
+      contextWindowContinuousSlopReductionIntervalMs: this.getContinuousSlopReductionIntervalMs(),
       resourceSnapshotConfig: this.getResourceSnapshotConfig(),
       scopeGuardMode: this.getScopeGuardMode(),
       budgetMaxCostUsd: this.getBudgetMaxCostUsd(),

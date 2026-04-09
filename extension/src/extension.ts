@@ -82,6 +82,14 @@ let logger: Logger | undefined;
 const ENTERPRISEAI_ONBOARDING_MESSAGE =
   '✅ Gofer initialized with EnterpriseAI-first guidance. Standard and multi-platform workflows remain fully supported.';
 
+interface CopilotAvailabilityContext {
+  available: boolean;
+  viaDefaultCLI: boolean;
+  viaPreferredAI: boolean;
+  viaExtension: boolean;
+  viaCliBinary: boolean;
+}
+
 // Module-level reference to EventHandler deps so initializeForWorkspace can
 // mutate sharedContextBuilder after creation (enables auto-activate of config reload handlers)
 let eventHandlerDeps: EventHandlerDependencies | undefined;
@@ -92,6 +100,34 @@ let eventHandlerDeps: EventHandlerDependencies | undefined;
  */
 function getState(): StateManager {
   return getContainer().resolve(StateManager);
+}
+
+async function resolveCopilotAvailability(
+  config: vscode.WorkspaceConfiguration,
+  cliHealthChecker: { detectVersion(cliCommand: string): Promise<string | null> }
+): Promise<CopilotAvailabilityContext> {
+  const defaultCLI = config.get<'claude' | 'copilot' | 'codex' | 'gemini' | 'auto'>(
+    'defaultCLI',
+    'auto'
+  );
+  const preferredAI = config.get<'ask' | 'claude' | 'copilot'>('preferredAI', 'ask');
+  const viaExtension =
+    vscode.extensions.getExtension('GitHub.copilot') !== undefined ||
+    vscode.extensions.getExtension('GitHub.copilot-chat') !== undefined;
+  const viaDefaultCLI = defaultCLI === 'copilot';
+  const viaPreferredAI = preferredAI === 'copilot';
+  const shouldCheckCopilotCli = !viaDefaultCLI && !viaPreferredAI && !viaExtension;
+  const viaCliBinary = shouldCheckCopilotCli
+    ? (await cliHealthChecker.detectVersion('copilot')) !== null
+    : false;
+
+  return {
+    available: viaDefaultCLI || viaPreferredAI || viaExtension || viaCliBinary,
+    viaDefaultCLI,
+    viaPreferredAI,
+    viaExtension,
+    viaCliBinary,
+  };
 }
 
 async function showOptionalToolPrompt(workspacePath: string): Promise<void> {
@@ -748,6 +784,7 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
       'defaultCLI',
       'auto'
     );
+    const copilotAvailability = await resolveCopilotAvailability(config, CLIHealthChecker);
 
     if (preference === 'copilot' || preference === 'gemini') {
       logger?.debug(
@@ -765,44 +802,52 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
       const claudeResult = await CLIHealthChecker.check('claude', claudeCommand);
 
       if (!claudeResult.available || !claudeResult.authenticated) {
-        // Try Codex as fallback
-        const codexCommand = config.get<string>('codexCommand', 'codex');
-        const codexResult = await CLIHealthChecker.check('codex', codexCommand);
+        if (copilotAvailability.available) {
+          logger?.info(
+            'Extension',
+            'Skipping autonomous CLI missing-provider warning because Copilot is available for command routing',
+            { ...copilotAvailability }
+          );
+        } else {
+          // Try Codex as fallback
+          const codexCommand = config.get<string>('codexCommand', 'codex');
+          const codexResult = await CLIHealthChecker.check('codex', codexCommand);
 
-        if (!codexResult.available) {
-          // Neither CLI is available - show comprehensive error
-          const message =
-            'No CLI provider found for autonomous mode. Install one:\n' +
-            '• Claude Code CLI: npm install -g @anthropic/claude-code\n' +
-            '• Codex CLI: npm install -g @openai/codex-cli';
+          if (!codexResult.available) {
+            // Neither CLI is available - show comprehensive error
+            const message =
+              'No CLI provider found for autonomous mode. Install one:\n' +
+              '• Claude Code CLI: npm install -g @anthropic/claude-code\n' +
+              '• Codex CLI: npm install -g @openai/codex-cli';
 
-          vscode.window
-            .showWarningMessage(message, 'View Settings', 'Install Guide')
-            .then((selection) => {
-              if (selection === 'View Settings') {
-                vscode.commands.executeCommand(
-                  'workbench.action.openSettings',
-                  'gofer.cliProvider'
-                );
-              } else if (selection === 'Install Guide') {
-                vscode.env.openExternal(vscode.Uri.parse('https://docs.gofer.dev/setup'));
-              }
-            });
-        } else if (!codexResult.authenticated) {
-          // Codex found but not authenticated
-          vscode.window
-            .showWarningMessage(
-              `Codex CLI found but not authenticated. ${codexResult.authInstructions}`,
-              'View Settings'
-            )
-            .then((selection) => {
-              if (selection === 'View Settings') {
-                vscode.commands.executeCommand(
-                  'workbench.action.openSettings',
-                  'gofer.cliProvider'
-                );
-              }
-            });
+            vscode.window
+              .showWarningMessage(message, 'View Settings', 'Install Guide')
+              .then((selection) => {
+                if (selection === 'View Settings') {
+                  vscode.commands.executeCommand(
+                    'workbench.action.openSettings',
+                    'gofer.cliProvider'
+                  );
+                } else if (selection === 'Install Guide') {
+                  vscode.env.openExternal(vscode.Uri.parse('https://docs.gofer.dev/setup'));
+                }
+              });
+          } else if (!codexResult.authenticated) {
+            // Codex found but not authenticated
+            vscode.window
+              .showWarningMessage(
+                `Codex CLI found but not authenticated. ${codexResult.authInstructions}`,
+                'View Settings'
+              )
+              .then((selection) => {
+                if (selection === 'View Settings') {
+                  vscode.commands.executeCommand(
+                    'workbench.action.openSettings',
+                    'gofer.cliProvider'
+                  );
+                }
+              });
+          }
         }
       }
       // Note: Claude authentication check is already handled by line 706 condition
@@ -863,6 +908,7 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
       'auto'
     );
     const { CLIHealthChecker } = await import('./council/providers/cli/CLIHealthChecker');
+    const copilotAvailability = await resolveCopilotAvailability(config, CLIHealthChecker);
 
     let statusIcon = '$(warning)';
     let statusText = 'No CLI';
@@ -909,6 +955,11 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
           statusIcon = '$(check)';
           statusText = 'Codex';
           statusTooltip = 'Codex CLI ready (auto-detected)';
+        } else if (copilotAvailability.available) {
+          statusIcon = '$(check)';
+          statusText = 'Copilot';
+          statusTooltip =
+            'Copilot detected for command routing. Autonomous mode uses Claude/Codex when required.';
         }
       }
     }

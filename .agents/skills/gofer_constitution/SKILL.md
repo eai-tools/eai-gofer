@@ -1,7 +1,6 @@
 ---
 name: gofer_constitution
-description:
-  Create or update project constitution with coding principles and guidelines
+description: Create or update project constitution with coding principles and guidelines
 gofer:
   workflowProfile: standard
   canonicalSource: .claude/commands/gofer_constitution.md
@@ -23,6 +22,7 @@ result_schema:
         - success
         - error
 ---
+
 
 # Gofer Constitution
 

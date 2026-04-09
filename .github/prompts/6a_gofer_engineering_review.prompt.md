@@ -1,7 +1,6 @@
 ---
 name: 6a_gofer_engineering_review
-description:
-  Post-implementation engineering review with iterative fix cycles (up to 5)
+description: Post-implementation engineering review with iterative fix cycles (up to 5)
 agent: copilot-workspace
 tools:
   - Read
@@ -16,6 +15,7 @@ gofer:
   canonicalChecksum: 2939e3cdca072653df75dddc19cb4d158dab078f0e76889c5808ff30cb981368
   metadataSource: scripts/generate-commands.ts
 ---
+
 
 # Gofer Engineering Review
 

@@ -1,7 +1,6 @@
 ---
 name: 6_gofer_validate
-description:
-  Validate implementation with 10-category engineering rubric (100 points)
+description: Validate implementation with 10-category engineering rubric (100 points)
 agent: copilot-workspace
 tools:
   - Read
@@ -16,6 +15,7 @@ gofer:
   canonicalChecksum: 73bcdcff6385d45f174574c76f707fe551173b5c031b81cbfea7a193f8f47ca6
   metadataSource: scripts/generate-commands.ts
 ---
+
 
 # Gofer Validate
 
@@ -674,6 +674,7 @@ has_ui: [true/false]
 Proceed to **Step 12: Attribution Logging** then **Step 13: Memory Update
 Check**.
 
+
 ### If TOTAL < 100: FAIL
 
 Proceed to **Step 10: Brownfield Restart**.
@@ -972,17 +973,17 @@ This also logs quality metrics (rubric scores, finding counts) to:
 
 ---
 
+
+
 ## Pipeline Continuation
 
 This completes the 6_gofer_validate stage. To continue the Gofer pipeline:
 
 **Next Command:** `#6a_gofer_engineering_review`
 
-The next stage will read the artifacts from this stage and continue the workflow
-automatically.
+The next stage will read the artifacts from this stage and continue the workflow automatically.
 
-**Note:** Copilot Chat supports context preservation. Your conversation history
-will be maintained as you progress through pipeline stages.
+**Note:** Copilot Chat supports context preservation. Your conversation history will be maintained as you progress through pipeline stages.
 
 ## Key Rules
 

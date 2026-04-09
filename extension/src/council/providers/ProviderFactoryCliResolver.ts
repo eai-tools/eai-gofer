@@ -4,6 +4,7 @@ import { type LLMProvider } from './LLMProvider';
 import { type CLIHealthResult } from './cli/CLIHealthChecker';
 
 export type CLIType = 'claude' | 'codex';
+type CLIPreference = CLIType | 'copilot' | 'gemini' | 'auto';
 
 interface CLIResolverLogger {
   info(message: string, metadata?: Record<string, unknown>): void;
@@ -84,12 +85,15 @@ export class ProviderFactoryCliResolver {
     const config = vscode.workspace.getConfiguration('gofer');
     const profileContext = this.dependencies.resolveWorkflowProfileContext(workflowProfile, config);
 
-    const defaultCLI = config.get<'claude' | 'copilot' | 'codex' | 'auto'>('defaultCLI', 'auto');
+    const defaultCLI = config.get<'claude' | 'copilot' | 'codex' | 'gemini' | 'auto'>(
+      'defaultCLI',
+      'auto'
+    );
 
     if (defaultCLI !== 'auto') {
-      if (defaultCLI === 'copilot') {
+      if (defaultCLI === 'copilot' || defaultCLI === 'gemini') {
         this.dependencies.logger.info(
-          'gofer.defaultCLI is set to Copilot; evaluating CLI-capable fallbacks for autonomous mode',
+          `gofer.defaultCLI is set to ${defaultCLI}; evaluating CLI-capable fallbacks for autonomous mode`,
           {
             workflowProfile: profileContext,
           }
@@ -172,10 +176,17 @@ export class ProviderFactoryCliResolver {
   public async getCLIProvider(workflowProfile?: WorkflowProfile): Promise<LLMProvider> {
     const { CLIHealthChecker } = await import('./cli/CLIHealthChecker');
     const config = vscode.workspace.getConfiguration('gofer');
-    const preference = config.get<CLIType | 'auto'>('cliProvider', 'auto');
+    const preference = config.get<CLIPreference>('cliProvider', 'auto');
     const profileContext = this.dependencies.resolveWorkflowProfileContext(workflowProfile, config);
 
-    if (preference !== 'auto') {
+    if (preference === 'copilot' || preference === 'gemini') {
+      this.dependencies.logger.info(
+        `gofer.cliProvider is set to ${preference}; autonomous mode will use CLI-capable auto-detection (Claude/Codex)`,
+        {
+          workflowProfile: profileContext,
+        }
+      );
+    } else if (preference !== 'auto') {
       try {
         const provider = await this.dependencies.createCLIProvider(
           preference,

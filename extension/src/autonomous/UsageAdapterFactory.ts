@@ -22,11 +22,7 @@ class ClaudeCodeUsageAdapterWrapper implements CLIUsageAdapter {
 
   constructor(private adapter: ClaudeCodeUsageAdapter) {}
 
-  async parseLogFile(
-    _logFilePath: string,
-    fromDate?: Date,
-    toDate?: Date
-  ): Promise<UsageEntry[]> {
+  async parseLogFile(_logFilePath: string, fromDate?: Date, toDate?: Date): Promise<UsageEntry[]> {
     // ClaudeCodeUsageAdapter scans workspace usage, not a single file
     const conversations = await this.adapter.getWorkspaceUsage(fromDate, toDate);
     return conversations.map((conv: import('./ClaudeCodeUsageAdapter').ConversationUsage) => ({
@@ -122,15 +118,23 @@ export class UsageAdapterFactory {
   getCurrentAdapter(): CLIUsageAdapter | null {
     const vscode = require('vscode');
     const config = vscode.workspace.getConfiguration('gofer');
-    const preference = config.get('cliProvider', 'auto') as 'claude' | 'codex' | 'auto';
+    const preference = config.get('cliProvider', 'auto') as
+      | 'claude'
+      | 'codex'
+      | 'copilot'
+      | 'gemini'
+      | 'auto';
 
-    let providerId: CLIProviderId;
+    let providerId: CLIProviderId | null = null;
 
     if (preference === 'auto') {
       // Default to Claude CLI for auto mode
       providerId = 'claude-cli';
-    } else {
+    } else if (preference === 'claude' || preference === 'codex') {
       providerId = `${preference}-cli` as CLIProviderId;
+    } else {
+      // Copilot/Gemini selections do not have CLI usage adapters.
+      return null;
     }
 
     try {

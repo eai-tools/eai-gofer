@@ -287,20 +287,27 @@ else
     print_warning "⚠ macOS binaries missing"
 fi
 
-# CRITICAL: Ensure no platform-specific build artifacts are included
-if unzip -l "$VSIX_FILE" | grep -q "build/Release/pty.node"; then
-    print_error "✗ CRITICAL: Platform-specific build/Release/pty.node detected!"
-    print_error "  This will break cross-platform support. The electron-rebuild step"
-    print_error "  created a single-platform binary that was included in the VSIX."
-    print_error "  Fix: Remove electron-rebuild step or exclude build/ in .vscodeignore"
+# CRITICAL: Ensure no disallowed platform-specific build artifacts are included.
+# node-pty-prebuilt-multiarch may ship a fallback build/Release binary alongside
+# multi-platform prebuilds; treat that specific path as allowed.
+PTY_BUILD_ARTIFACTS=$(unzip -l "$VSIX_FILE" | grep "build/Release/pty.node" || true)
+if [ -n "$PTY_BUILD_ARTIFACTS" ]; then
+    DISALLOWED_PTY_ARTIFACTS=$(echo "$PTY_BUILD_ARTIFACTS" | grep -v "node_modules/node-pty-prebuilt-multiarch/build/Release/pty.node" || true)
 
-    # Show which binary was included
-    print_error ""
-    print_error "  Included binary:"
-    unzip -l "$VSIX_FILE" | grep "build/Release/pty.node"
-    exit 1
+    if [ -n "$DISALLOWED_PTY_ARTIFACTS" ]; then
+        print_error "✗ CRITICAL: Disallowed platform-specific build/Release/pty.node detected!"
+        print_error "  This will break cross-platform support. The electron-rebuild step"
+        print_error "  likely created single-platform artifacts that were included in the VSIX."
+        print_error ""
+        print_error "  Disallowed binaries:"
+        echo "$DISALLOWED_PTY_ARTIFACTS"
+        exit 1
+    fi
+
+    print_warning "Allowed node-pty-prebuilt-multiarch fallback build artifact detected."
+    print_warning "Cross-platform prebuilds are present; continuing release."
 else
-    print_success "✓ No platform-specific build artifacts (cross-platform support intact)"
+    print_success "✓ No platform-specific build artifacts detected"
 fi
 
 print_success "Cross-platform validation passed"

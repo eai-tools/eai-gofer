@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [2.0.3] - 2026-04-09
+
+Fix Copilot-only CLI startup detection
+
 ## [2.0.2] - 2026-04-09
 
 Fix Copilot/Gemini CLI provider compatibility

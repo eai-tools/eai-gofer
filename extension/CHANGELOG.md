@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [2.0.0] - 2026-04-09
+
+EnterpriseAI 2.0.0 release
+
 ## [1.27.1] - 2026-04-05
 
 Fix Gofer panel task completion progress updates

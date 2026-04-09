@@ -1,8 +1,17 @@
 {
-  "latest_version": "1.27.1",
+  "latest_version": "2.0.0",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-04-05T01:54:16.296Z",
+  "last_updated": "2026-04-09T11:12:13.366Z",
   "releases": [
+    {
+      "version": "2.0.0",
+      "tag_name": "v2.0.0",
+      "published_at": "2026-04-09T11:12:13.365Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-2.0.0.vsix",
+      "notes": "EnterpriseAI 2.0.0 release",
+      "prerelease": false,
+      "size_mb": 10.3
+    },
     {
       "version": "1.27.1",
       "tag_name": "v1.27.1",
@@ -81,15 +90,6 @@
       "published_at": "2026-03-19T06:07:45.816Z",
       "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.22.1.vsix",
       "notes": "Fix AI usage tracking bugs #2/#3 + security/performance fixes\n\n- Bug fix #2: Model-specific pricing (getPricingForModel with 4-tier fallback)\n- Bug fix #3: Model detection in adapters (modelId propagation to CostBudgetEnforcer)\n- Security fix: XSS prevention in MemoryPanel (HTML escaping)\n- Performance fix: Async I/O in UsageLogger (fs.promises)\n- Integration tests: AIUsageAccuracy (11), ModelPropagation (11)\n- All 40 bug fix tests passing\n- Validation score: 100/100 after fixes",
-      "prerelease": false,
-      "size_mb": 10.1
-    },
-    {
-      "version": "1.22.0",
-      "tag_name": "v1.22.0",
-      "published_at": "2026-03-18T06:45:54.552Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.22.0.vsix",
-      "notes": "Remove PTY terminal dependency, use native VSCode terminal API",
       "prerelease": false,
       "size_mb": 10.1
     }

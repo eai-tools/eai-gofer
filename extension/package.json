@@ -2,7 +2,7 @@
   "name": "gofer",
   "displayName": "Gofer for EnterpriseAI Vertical App Delivery [PREVIEW]",
   "description": "EnterpriseAI-first vertical app delivery workflow in VS Code with additive support for standard and multi-platform Gofer pipelines.",
-  "version": "1.27.1",
+  "version": "2.0.0",
   "publisher": "EnterpriseAI",
   "icon": "icon.png",
   "author": {

@@ -69,9 +69,11 @@ jobs:
         run: |
           # Generate coverage summary for PR comment
           COVERAGE_SUMMARY=$(npx vitest run --coverage --reporter=json 2>&1 | tail -20 || true)
-          echo "summary<<EOF" >> $GITHUB_OUTPUT
-          echo "$COVERAGE_SUMMARY" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          {
+            echo "summary<<EOF"
+            echo "$COVERAGE_SUMMARY"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Generate Quality Metrics Report
         run: |
@@ -87,20 +89,24 @@ jobs:
           npm run test:coverage-report > quality-reports/test-summary.txt 2>&1 || true
 
           # Create quality metrics summary
-          echo "# Quality Metrics Report" > quality-reports/metrics-summary.md
-          echo "Generated on: $(date)" >> quality-reports/metrics-summary.md
-          echo "Commit: ${{ github.sha }}" >> quality-reports/metrics-summary.md
-          echo "Branch: ${{ github.ref_name }}" >> quality-reports/metrics-summary.md
-          echo "" >> quality-reports/metrics-summary.md
+          {
+            echo "# Quality Metrics Report"
+            echo "Generated on: $(date)"
+            echo "Commit: ${{ github.sha }}"
+            echo "Branch: ${{ github.ref_name }}"
+            echo ""
+          } > quality-reports/metrics-summary.md
 
           # Count ESLint issues
           if [ -f "quality-reports/eslint-report.json" ]; then
             errors=$(cat quality-reports/eslint-report.json | jq '[.[].messages[] | select(.severity == 2)] | length')
             warnings=$(cat quality-reports/eslint-report.json | jq '[.[].messages[] | select(.severity == 1)] | length')
-            echo "## ESLint Results" >> quality-reports/metrics-summary.md
-            echo "- Errors: $errors" >> quality-reports/metrics-summary.md
-            echo "- Warnings: $warnings" >> quality-reports/metrics-summary.md
-            echo "" >> quality-reports/metrics-summary.md
+            {
+              echo "## ESLint Results"
+              echo "- Errors: $errors"
+              echo "- Warnings: $warnings"
+              echo ""
+            } >> quality-reports/metrics-summary.md
           fi
 
           # Extract test results
@@ -432,14 +438,16 @@ jobs:
 
       - name: Create Release Summary
         run: |
-          echo "# Gofer Build Summary" > release-summary.md
-          echo "**Branch**: ${{ github.ref_name }}" >> release-summary.md
-          echo "**Commit**: ${{ github.sha }}" >> release-summary.md
-          echo "**Build Date**: $(date)" >> release-summary.md
-          echo "**Tests**: ✅ Unit Tests + E2E Tests Passed" >> release-summary.md
-          echo "**Linting**: ✅ TypeScript + Code Quality Checks Passed" >> release-summary.md
-          echo "**Security**: ✅ Security Audit Completed" >> release-summary.md
-          echo "**Extension**: ✅ VSCode Extension Packaged" >> release-summary.md
+          {
+            echo "# Gofer Build Summary"
+            echo "**Branch**: ${{ github.ref_name }}"
+            echo "**Commit**: ${{ github.sha }}"
+            echo "**Build Date**: $(date)"
+            echo "**Tests**: ✅ Unit Tests + E2E Tests Passed"
+            echo "**Linting**: ✅ TypeScript + Code Quality Checks Passed"
+            echo "**Security**: ✅ Security Audit Completed"
+            echo "**Extension**: ✅ VSCode Extension Packaged"
+          } > release-summary.md
 
       - name: Upload Release Summary
         uses: actions/upload-artifact@v4

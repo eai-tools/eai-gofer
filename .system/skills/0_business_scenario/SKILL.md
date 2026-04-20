@@ -2,9 +2,9 @@
 name: 0_business_scenario
 description: Triage business scenario and orchestrate the unified Gofer pipeline
 gofer:
-  workflowProfile: enterpriseai
+  workflowProfile: standard
   canonicalSource: .claude/commands/0_business_scenario.md
-  canonicalChecksum: e4e2cb9bdd9689a1dd5c81a63c55bb7cfa570060897292cb2e005f57db2cda4e
+  canonicalChecksum: d0aaa314730e62ff6070ee7b544272f43f09468f47a0131f33de584a64d697b4
   metadataSource: scripts/generate-commands.ts
 arguments:
   - name: feature
@@ -22,7 +22,6 @@ result_schema:
         - success
         - error
 ---
-
 
 # Gofer Orchestrator
 
@@ -66,8 +65,8 @@ scenario and route them through the **unified Gofer pipeline**.
 
 ## Auxiliary Gofer Commands
 
-| Command               | Purpose                                    |
-| --------------------- | ------------------------------------------ |
+| Command                 | Purpose                                    |
+| ----------------------- | ------------------------------------------ |
 | `$ $7_gofer_save`       | Save session checkpoint mid-implementation |
 | `$ $8_gofer_resume`     | Resume work from saved checkpoint          |
 | `$ $9_gofer_tests`      | Define acceptance test cases using DSL     |
@@ -155,40 +154,20 @@ pipeline.
 
 If user selects "Skip Discovery", proceed directly to Step 3.
 
-### EnterpriseAI-First Discovery Framing (MANDATORY)
-
-For EnterpriseAI-profile and student vertical-app scenarios:
-
-- Frame recommendations in EnterpriseAI vertical-app terms first.
-- Keep discovery language focused on business-process outcomes, workflow
-  reliability, and deployable EnterpriseAI delivery.
-- Do **not** present non-EAI platforms as primary recommendations.
-- If non-EAI platforms are discussed, label them as secondary comparison context
-  only.
-
-### Novice Walkthrough Guardrail (MANDATORY)
-
-Assume the user is a novice. Discovery must be completable using in-product and
-repository guidance only.
-
-- Do not require external documentation to complete discovery.
-- Provide recommended options and plain-language implications for every
-  question.
-
 ### Discovery Question 1: Problem Statement
 
 **"What problem are you trying to solve?"**
 
 **Recommended:** Based on initial context, suggest the most likely problem type.
 
-| Option | Description                                              | Implications                                    |
-| ------ | -------------------------------------------------------- | ----------------------------------------------- |
-| A      | Manual business workflow is slowing delivery             | Focus on EnterpriseAI vertical-app automation   |
-| B      | Process quality/compliance issues in current flow        | Focus on reliability-first architecture choices |
-| C      | Teams cannot connect data/process context effectively    | Focus on EnterpriseAI integration patterns      |
-| D      | Need a reusable student/business vertical-app foundation | Focus on scaffold + deployment-ready outcomes   |
-| E      | [EnterpriseAI context-specific suggestion]               | [Based on user's initial description]           |
-| Custom | Describe your specific EnterpriseAI vertical-app problem | We'll tailor the approach                       |
+| Option | Description                             | Implications                          |
+| ------ | --------------------------------------- | ------------------------------------- |
+| A      | Users can't find what they need quickly | Focus on search/navigation UX         |
+| B      | Manual processes taking too much time   | Focus on automation/efficiency        |
+| C      | Data is siloed across systems           | Focus on integration/consolidation    |
+| D      | Quality/reliability issues              | Focus on testing/monitoring           |
+| E      | [Context-specific suggestion]           | [Based on user's initial description] |
+| Custom | Describe your specific problem          | We'll tailor the approach             |
 
 You can reply with the option letter, accept the recommendation by saying "yes",
 or provide your own answer.
@@ -201,13 +180,13 @@ or provide your own answer.
 
 **Recommended:** Suggest based on problem type selected.
 
-| Option | Description                              | Implications                                  |
-| ------ | ---------------------------------------- | --------------------------------------------- |
-| A      | Student builder (beginner/intermediate)  | Focus on guided, plain-language walkthrough   |
-| B      | Business process owner / operations lead | Focus on workflow ROI and deployable outcomes |
-| C      | Developer / integration practitioner     | Focus on APIs, deployment conventions, hooks  |
-| D      | Instructor / stakeholder reviewer        | Focus on evidence and presentation artifacts  |
-| Custom | Describe your users                      | We'll create appropriate personas             |
+| Option | Description                | Implications                      |
+| ------ | -------------------------- | --------------------------------- |
+| A      | End customers (external)   | Focus on UX, onboarding, support  |
+| B      | Internal team members      | Focus on efficiency, integrations |
+| C      | Developers/technical users | Focus on APIs, documentation      |
+| D      | Business stakeholders      | Focus on reporting, dashboards    |
+| Custom | Describe your users        | We'll create appropriate personas |
 
 **Store response** in discovery context.
 
@@ -217,13 +196,13 @@ or provide your own answer.
 
 **Recommended:** Suggest based on problem and user type.
 
-| Option | Description                                      | Implications                                   |
-| ------ | ------------------------------------------------ | ---------------------------------------------- |
-| A      | Faster vertical-app delivery (reduce build time) | Need baseline stage timing and throughput      |
-| B      | Better process outcomes (reduce errors/rework)   | Need quality and reliability metrics           |
-| C      | Improved deployment readiness for EnterpriseAI   | Need deployment-task and readiness checkpoints |
-| D      | Stronger stakeholder confidence (clear evidence) | Need artifact completeness and traceability    |
-| Custom | Define your value metric                         | We'll build appropriate tracking               |
+| Option | Description                               | Implications                         |
+| ------ | ----------------------------------------- | ------------------------------------ |
+| A      | Time savings (reduce X by Y%)             | Need baseline metrics, time tracking |
+| B      | Cost reduction (save $X/month)            | Need cost analysis, ROI tracking     |
+| C      | Quality improvement (reduce errors by Y%) | Need error tracking, quality metrics |
+| D      | User satisfaction (increase NPS by Y)     | Need feedback collection, surveys    |
+| Custom | Define your value metric                  | We'll build appropriate tracking     |
 
 **Store response** in discovery context.
 
@@ -296,13 +275,6 @@ status: complete
 ## Value Proposition
 
 **Primary Value**: [From Question 3] **Quantified Goal**: [From Question 4]
-
-## EnterpriseAI Framing Assertions
-
-- [x] EnterpriseAI vertical-app delivery is the primary context.
-- [x] Problem statement, persona, and value proposition are
-      EnterpriseAI-focused.
-- [x] Non-EAI platforms are excluded as primary recommendations.
 
 ## Success Metrics
 
@@ -532,8 +504,8 @@ pipeline-state.json is updated atomically by each stage on completion.
 **Fallback — File-existence heuristics** (used when no pipeline-state.json
 exists):
 
-| Has This                                  | Missing This                | Start At             |
-| ----------------------------------------- | --------------------------- | -------------------- |
+| Has This                                  | Missing This                | Start At               |
+| ----------------------------------------- | --------------------------- | ---------------------- |
 | tasks.md (unchecked)                      | -                           | `$ $5_gofer_implement` |
 | plan.md                                   | tasks.md                    | `$ $4_gofer_tasks`     |
 | spec.md                                   | plan.md                     | `$ $3_gofer_plan`      |
@@ -674,16 +646,9 @@ If context window is filling up:
 - **ALWAYS ask what the user wants to do** - don't assume existing artifacts are
   relevant
 - Show existing features and let user choose to continue OR start new
-- Discovery guidance must remain EnterpriseAI-first for EnterpriseAI-profile
-  runs
-- Non-EAI platforms must never be presented as primary recommendations during
-  discovery
-- Discovery must remain novice-friendly without requiring external docs
 - Technology architecture decisions must be asked **one-by-one** with a
   discussion loop so users can ask clarifying questions before finalizing each
   answer
-- Do not remove or deprecate existing Gofer functionality without explicit
-  one-by-one user approval recorded in proposal review artifacts
 - Document the routing decision for debugging
 - If user seems confused, default to research first
 
@@ -693,10 +658,10 @@ If context window is filling up:
 
 ### Core Pipeline (Approval-Gated)
 
-| #   | Command                        | Output                          | Description                         |
-| --- | ------------------------------ | ------------------------------- | ----------------------------------- |
+| #   | Command                          | Output                          | Description                         |
+| --- | -------------------------------- | ------------------------------- | ----------------------------------- |
 | 1   | `$ $1_gofer_research`            | research.md, proposal-review.md | Research + review prep              |
-| 1a  | User approval gate             | approved proposal-review.md     | Business and architecture alignment |
+| 1a  | User approval gate               | approved proposal-review.md     | Business and architecture alignment |
 | 2   | `$ $2_gofer_specify`             | spec.md                         | Feature specification               |
 | 3   | `$ $3_gofer_plan`                | plan.md, data-model.md          | Technical architecture              |
 | 4   | `$ $4_gofer_tasks`               | tasks.md                        | Task breakdown                      |
@@ -706,8 +671,8 @@ If context window is filling up:
 
 ### Auxiliary Commands
 
-| Command               | Purpose                                   |
-| --------------------- | ----------------------------------------- |
+| Command                 | Purpose                                   |
+| ----------------------- | ----------------------------------------- |
 | `$ $7_gofer_save`       | Save session checkpoint                   |
 | `$ $8_gofer_resume`     | Resume from checkpoint                    |
 | `$ $9_gofer_tests`      | Define test cases (DSL approach)          |
@@ -725,13 +690,14 @@ Log orchestrator routing:
 .specify/scripts/bash/log-stage.sh 0_orchestrator --route [command] --feature [name]
 ```
 
-
 ## Pipeline Continuation
 
 This completes the 0_business_scenario stage. To continue the Gofer pipeline:
 
 **Next Command:** `$ $0a_problem_validation`
 
-The next stage will use the artifacts generated by this command and continue the implementation workflow.
+The next stage will use the artifacts generated by this command and continue the
+implementation workflow.
 
-**Note:** Codex CLI does not support automatic command chaining. You must manually run each stage command to progress through the pipeline.
+**Note:** Codex CLI does not support automatic command chaining. You must
+manually run each stage command to progress through the pipeline.

@@ -1,8 +1,17 @@
 {
-  "latest_version": "2.0.9",
+  "latest_version": "2.0.10",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-04-20T13:40:28.294Z",
+  "last_updated": "2026-04-20T13:47:12.076Z",
   "releases": [
+    {
+      "version": "2.0.10",
+      "tag_name": "v2.0.10",
+      "published_at": "2026-04-20T13:47:12.075Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-2.0.10.vsix",
+      "notes": "infra(release): add scripts/sync-extension-resources.sh and wire into release-auto.sh so every VSIX bundles current canonical content. Adds 10 missing templates (stakeholder-comms, business-metrics, discovery, problem-brief, assumptions, brownfield-analysis, spec-summary, session-handoff, journey/, sequence-diagrams/) to extension/resources/templates/ so eai init delivers them. Prevents the v2.0.5-v2.0.8 class of stale-bundle regressions.",
+      "prerelease": false,
+      "size_mb": 10.4
+    },
     {
       "version": "2.0.9",
       "tag_name": "v2.0.9",
@@ -81,15 +90,6 @@
       "published_at": "2026-04-09T11:16:35.929Z",
       "download_url": "https://eai-tools.github.io/gofer/releases/gofer-2.0.1.vsix",
       "notes": "EnterpriseAI 2.0.1 patch release",
-      "prerelease": false,
-      "size_mb": 10.3
-    },
-    {
-      "version": "2.0.0",
-      "tag_name": "v2.0.0",
-      "published_at": "2026-04-09T11:12:13.365Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-2.0.0.vsix",
-      "notes": "EnterpriseAI 2.0.0 release",
       "prerelease": false,
       "size_mb": 10.3
     }

@@ -1,8 +1,17 @@
 {
-  "latest_version": "2.0.4",
+  "latest_version": "2.0.5",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-04-09T14:28:14.636Z",
+  "last_updated": "2026-04-20T12:35:38.165Z",
   "releases": [
+    {
+      "version": "2.0.5",
+      "tag_name": "v2.0.5",
+      "published_at": "2026-04-20T12:35:38.164Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-2.0.5.vsix",
+      "notes": "feat(validate): unify /6+/6a and add Phase B blast-radius analysis (change-graph, interface-contract diff, observability, dependency/submodule impact, rollback readiness) — rubric now 110 pts with new Category 11",
+      "prerelease": false,
+      "size_mb": 10.3
+    },
     {
       "version": "2.0.4",
       "tag_name": "v2.0.4",
@@ -81,15 +90,6 @@
       "published_at": "2026-04-04T03:40:10.325Z",
       "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.26.1.vsix",
       "notes": "Stabilize engineering baseline, fix task-state progression, and remove legacy spec regeneration",
-      "prerelease": false,
-      "size_mb": 10.1
-    },
-    {
-      "version": "1.26.0",
-      "tag_name": "v1.26.0",
-      "published_at": "2026-03-28T09:40:13.644Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.26.0.vsix",
-      "notes": "Add multi-provider CLI support, cross-platform command parity, AI usage tracking, and memory system v2",
       "prerelease": false,
       "size_mb": 10.1
     }

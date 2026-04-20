@@ -1,12 +1,12 @@
-# Feature Specification: {{FEATURE_NAME}}
+# Feature Specification: [FEATURE NAME]
 
-**Feature Branch**: `{{FEATURE_BRANCH}}` **Created**: {{CREATED_DATE}}
-**Status**: Draft **Input**: User description: "{{USER_INPUT}}"
+**Feature Branch**: `[###-feature-name]` **Created**: [DATE] **Status**: Draft
+**Input**: User description: "$ARGUMENTS"
 
 <!--
   This template is filled in by /2_gofer_specify (or legacy /2_gofer_specify).
   Recommended: Use /0_business_scenario to auto-chain the entire pipeline.
-  Location: .specify/specs/{{FEATURE_BRANCH}}/spec.md
+  Location: .specify/specs/[###-feature-name]/spec.md
 -->
 
 ## User Scenarios & Testing _(mandatory)_
@@ -24,54 +24,51 @@
   - Demonstrated to users independently
 -->
 
-### User Story 1 - {{USER_STORY_1_TITLE}} (Priority: P1)
+### User Story 1 - [Brief Title] (Priority: P1)
 
-{{USER_STORY_1_DESCRIPTION}}
+[Describe this user journey in plain language]
 
-**Why this priority**: {{USER_STORY_1_PRIORITY_RATIONALE}}
+**Why this priority**: [Explain the value and why it has this priority level]
 
-**Independent Test**: {{USER_STORY_1_INDEPENDENT_TEST}}
-
-**Acceptance Scenarios**:
-
-1. **Given** {{USER_STORY_1_GIVEN_1}}, **When** {{USER_STORY_1_WHEN_1}},
-   **Then** {{USER_STORY_1_THEN_1}}
-2. **Given** {{USER_STORY_1_GIVEN_2}}, **When** {{USER_STORY_1_WHEN_2}},
-   **Then** {{USER_STORY_1_THEN_2}}
-
----
-
-### User Story 2 - {{USER_STORY_2_TITLE}} (Priority: P2)
-
-{{USER_STORY_2_DESCRIPTION}}
-
-**Why this priority**: {{USER_STORY_2_PRIORITY_RATIONALE}}
-
-**Independent Test**: {{USER_STORY_2_INDEPENDENT_TEST}}
+**Independent Test**: [Describe how this can be tested independently - e.g.,
+"Can be fully tested by [specific action] and delivers [specific value]"]
 
 **Acceptance Scenarios**:
 
-1. **Given** {{USER_STORY_2_GIVEN_1}}, **When** {{USER_STORY_2_WHEN_1}},
-   **Then** {{USER_STORY_2_THEN_1}}
+1. **Given** [initial state], **When** [action], **Then** [expected outcome]
+2. **Given** [initial state], **When** [action], **Then** [expected outcome]
 
 ---
 
-### User Story 3 - {{USER_STORY_3_TITLE}} (Priority: P3)
+### User Story 2 - [Brief Title] (Priority: P2)
 
-{{USER_STORY_3_DESCRIPTION}}
+[Describe this user journey in plain language]
 
-**Why this priority**: {{USER_STORY_3_PRIORITY_RATIONALE}}
+**Why this priority**: [Explain the value and why it has this priority level]
 
-**Independent Test**: {{USER_STORY_3_INDEPENDENT_TEST}}
+**Independent Test**: [Describe how this can be tested independently]
 
 **Acceptance Scenarios**:
 
-1. **Given** {{USER_STORY_3_GIVEN_1}}, **When** {{USER_STORY_3_WHEN_1}},
-   **Then** {{USER_STORY_3_THEN_1}}
+1. **Given** [initial state], **When** [action], **Then** [expected outcome]
 
 ---
 
-Add more user stories as needed, each with an assigned priority.
+### User Story 3 - [Brief Title] (Priority: P3)
+
+[Describe this user journey in plain language]
+
+**Why this priority**: [Explain the value and why it has this priority level]
+
+**Independent Test**: [Describe how this can be tested independently]
+
+**Acceptance Scenarios**:
+
+1. **Given** [initial state], **When** [action], **Then** [expected outcome]
+
+---
+
+[Add more user stories as needed, each with an assigned priority]
 
 ### Edge Cases
 
@@ -80,8 +77,8 @@ Add more user stories as needed, each with an assigned priority.
   Fill them out with the right edge cases.
 -->
 
-- What happens when {{EDGE_CASE_BOUNDARY_CONDITION}}?
-- How does system handle {{EDGE_CASE_ERROR_SCENARIO}}?
+- What happens when [boundary condition]?
+- How does system handle [error scenario]?
 
 ## Requirements _(mandatory)_
 
@@ -92,41 +89,26 @@ Add more user stories as needed, each with an assigned priority.
 
 ### Functional Requirements
 
-- **FR-001**: System MUST {{FR_001_CAPABILITY}}
-- **FR-002**: System MUST {{FR_002_CAPABILITY}}
-- **FR-003**: Users MUST be able to {{FR_003_USER_INTERACTION}}
-- **FR-004**: System MUST {{FR_004_DATA_REQUIREMENT}}
-- **FR-005**: System MUST {{FR_005_BEHAVIOR}}
+- **FR-001**: System MUST [specific capability, e.g., "allow users to create
+  accounts"]
+- **FR-002**: System MUST [specific capability, e.g., "validate email
+  addresses"]
+- **FR-003**: Users MUST be able to [key interaction, e.g., "reset their
+  password"]
+- **FR-004**: System MUST [data requirement, e.g., "persist user preferences"]
+- **FR-005**: System MUST [behavior, e.g., "log all security events"]
 
 _Example of marking unclear requirements:_
 
-- **FR-006**: System MUST authenticate users via
-  {{FR_006_NEEDS_CLARIFICATION_AUTH_METHOD}}
-- **FR-007**: System MUST retain user data for
-  {{FR_007_NEEDS_CLARIFICATION_RETENTION_PERIOD}}
+- **FR-006**: System MUST authenticate users via [NEEDS CLARIFICATION: auth
+  method not specified - email/password, SSO, OAuth?]
+- **FR-007**: System MUST retain user data for [NEEDS CLARIFICATION: retention
+  period not specified]
 
 ### Key Entities _(include if feature involves data)_
 
-- **{{ENTITY_1_NAME}}**: {{ENTITY_1_DESCRIPTION}}
-- **{{ENTITY_2_NAME}}**: {{ENTITY_2_DESCRIPTION}}
-
-## EnterpriseAI Research Artifact Rationale _(required for enterpriseai profile)_
-
-### Business Analysis Artifact
-
-- **Business Analysis Path**: `{{BUSINESS_ANALYSIS_PATH}}`
-- **Business Problem Summary**: {{BUSINESS_ANALYSIS_PROBLEM_SUMMARY}}
-- **EnterpriseAI Selected Direction Rationale**:
-  {{BUSINESS_ANALYSIS_ENTERPRISEAI_SELECTED_DIRECTION_RATIONALE}}
-
-### Market Analysis Artifact _(when competitive analysis is enabled)_
-
-- **Market Analysis Path**: `{{MARKET_ANALYSIS_PATH}}`
-- **Alternative Count (>=3)**: {{MARKET_ANALYSIS_ALTERNATIVE_COUNT}}
-- **Referenced in Spec**: {{MARKET_ANALYSIS_REFERENCED_IN_SPEC}}
-- **Referenced in Plan**: {{MARKET_ANALYSIS_REFERENCED_IN_PLAN}}
-- **EnterpriseAI Selected Direction Rationale**:
-  {{MARKET_ANALYSIS_ENTERPRISEAI_SELECTED_DIRECTION_RATIONALE}}
+- **[Entity 1]**: [What it represents, key attributes without implementation]
+- **[Entity 2]**: [What it represents, relationships to other entities]
 
 ## Success Criteria _(mandatory)_
 
@@ -137,7 +119,11 @@ _Example of marking unclear requirements:_
 
 ### Measurable Outcomes
 
-- **SC-001**: {{SC_001_MEASURABLE_METRIC}}
-- **SC-002**: {{SC_002_PERFORMANCE_METRIC}}
-- **SC-003**: {{SC_003_USER_SATISFACTION_METRIC}}
-- **SC-004**: {{SC_004_BUSINESS_METRIC}}
+- **SC-001**: [Measurable metric, e.g., "Users can complete account creation in
+  under 2 minutes"]
+- **SC-002**: [Measurable metric, e.g., "System handles 1000 concurrent users
+  without degradation"]
+- **SC-003**: [User satisfaction metric, e.g., "90% of users successfully
+  complete primary task on first attempt"]
+- **SC-004**: [Business metric, e.g., "Reduce support tickets related to [X] by
+  50%"]

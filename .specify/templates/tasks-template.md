@@ -2,12 +2,9 @@
 description: 'Task list template for feature implementation'
 ---
 
-# Tasks: {{FEATURE_NAME}}
+# Tasks: [FEATURE NAME]
 
-**Input**: Design documents from `.specify/specs/{{FEATURE_BRANCH}}/`
-
-**EAI CLI Version Pin**: Capture installed `eai-cli` major.minor from `plan.md`
-when EnterpriseAI workflow guidance is used.
+**Input**: Design documents from `.specify/specs/[###-feature-name]/`
 
 **Prerequisites**: plan.md (required), spec.md (required for user stories),
 research.md, data-model.md, contracts/

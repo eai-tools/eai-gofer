@@ -1,8 +1,8 @@
-# Implementation Plan: {{FEATURE_NAME}}
+# Implementation Plan: [FEATURE]
 
-**Branch**: `{{FEATURE_BRANCH}}` | **Date**: {{CREATED_DATE}} | **Spec**:
-{{SPEC_LINK}} **Input**: Feature specification from
-`.specify/specs/{{FEATURE_BRANCH}}/spec.md`
+**Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
+**Input**: Feature specification from
+`.specify/specs/[###-feature-name]/spec.md`
 
 **Note**: This template is filled in by `/3_gofer_plan` (or legacy
 `/3_gofer_plan`). Recommended: Use `/0_business_scenario` to auto-chain the
@@ -27,11 +27,6 @@ CLARIFICATION]
 **Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]  
 **Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]  
 **Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
-**EAI CLI Version Pin**: [installed `eai-cli` major.minor, e.g., 2.4 or N/A]  
-**Business Analysis Artifact**: [path to `business-analysis.md` or N/A]  
-**Market Analysis Artifact**: [path to `market-analysis.md` or N/A]  
-**EnterpriseAI Selected Direction Rationale**: [why EnterpriseAI was selected
-over alternatives or N/A]  
 **Project Type**: [single/web/mobile - determines source structure]  
 **Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps
 or NEEDS CLARIFICATION]  
@@ -39,27 +34,6 @@ or NEEDS CLARIFICATION]
 offline-capable or NEEDS CLARIFICATION]  
 **Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS
 CLARIFICATION]
-
-## EnterpriseAI Research Artifact Inputs
-
-_Include this section when `workflowProfile=enterpriseai`._
-
-### Business Analysis Input
-
-| Field                                     | Value                                                           |
-| ----------------------------------------- | --------------------------------------------------------------- |
-| Artifact Path                             | `{{BUSINESS_ANALYSIS_PATH}}`                                    |
-| EnterpriseAI Selected Direction Rationale | {{BUSINESS_ANALYSIS_ENTERPRISEAI_SELECTED_DIRECTION_RATIONALE}} |
-
-### Market Analysis Input
-
-| Field                                     | Value                                                         |
-| ----------------------------------------- | ------------------------------------------------------------- |
-| Artifact Path                             | `{{MARKET_ANALYSIS_PATH}}`                                    |
-| Alternative Count (>=3)                   | {{MARKET_ANALYSIS_ALTERNATIVE_COUNT}}                         |
-| Referenced in Spec                        | {{MARKET_ANALYSIS_REFERENCED_IN_SPEC}}                        |
-| Referenced in Plan                        | {{MARKET_ANALYSIS_REFERENCED_IN_PLAN}}                        |
-| EnterpriseAI Selected Direction Rationale | {{MARKET_ANALYSIS_ENTERPRISEAI_SELECTED_DIRECTION_RATIONALE}} |
 
 ## Constitution Check
 
@@ -72,7 +46,7 @@ _GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 ### Documentation (this feature)
 
 ```text
-.specify/specs/{{FEATURE_BRANCH}}/
+.specify/specs/[###-feature]/
 ├── spec.md              # Feature specification (/2_gofer_specify)
 ├── research.md          # Codebase research (/1_gofer_research)
 ├── plan.md              # This file (/3_gofer_plan)

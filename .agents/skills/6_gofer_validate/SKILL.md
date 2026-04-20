@@ -6,7 +6,7 @@ description: >-
 gofer:
   workflowProfile: standard
   canonicalSource: .claude/commands/6_gofer_validate.md
-  canonicalChecksum: 0e578462c9bd91e5542391f92240618e5c0dc2fd1c923309058d9b613d588950
+  canonicalChecksum: 0bdf42e79df7bcc97c2523cade8194b6899bf12f4e3090c5f3f23aa3f97efb93
   metadataSource: scripts/generate-commands.ts
 arguments:
   - name: feature

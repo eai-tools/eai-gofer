@@ -1,10 +1,11 @@
 ---
-id: enterpriseai-student-vertical-builder
-title: EnterpriseAI Student Vertical Builder
-status: draft
-created: 2026-04-09T02:00:00.000Z
-updated: 2026-04-09T04:20:00.000Z
-author: Claude
+id: 'enterpriseai-student-vertical-builder'
+title: 'EnterpriseAI Student Vertical Builder'
+status: 'draft'
+created: '2026-04-09T02:00:00.000Z'
+updated: '2026-04-11'
+priority: 'medium'
+assignee: 'engineer-agent'
 ---
 
 # Feature Specification: EnterpriseAI Student Vertical Builder

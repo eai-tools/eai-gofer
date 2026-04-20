@@ -76,22 +76,6 @@ Planning dispatches multiple agents — keep main context lightweight.
 
 ---
 
-## Step 1.5: EnterpriseAI Deployment Convention and EAI CLI Pinning Requirements
-
-When `gofer.workflowProfile=enterpriseai`, planning output MUST include:
-
-- Deployment convention metadata covering branch naming, environment targeting,
-  and manifest/config expectations.
-- An explicit `eai-cli` version contract: capture installed version and pin
-  guidance to `major.minor` (never floating/latest).
-- References to required guidance inputs for `eai-cli`, `vertical-template`, and
-  `deployment-repo`.
-- When competitive analysis is enabled, explicit `market-analysis.md` references
-  and `referencedInPlan=true` traceability indicators.
-- Additive behavior only: standard profile outputs remain unchanged.
-
----
-
 ## Step 2: Dispatch Planning Agents
 
 **CRITICAL**: You **MUST** launch these agents using the Task tool. Do NOT
@@ -122,26 +106,20 @@ Generate the COMPLETE plan.md with these sections:
    - Architecture (how components fit together, with diagram description)
    - Integration Points table (Component | File | Integration Type)
    - Key Dependencies (existing modules, libraries)
-3. EnterpriseAI Deployment Conventions & Version Contract (when workflow profile is enterpriseai):
-   - Deployment convention metadata table (branch naming, environment targeting, manifest requirements)
-   - Required reference indicators for `eai-cli`, `vertical-template`, and `deployment-repo`
-   - `eai-cli` installed version and pinned `major.minor` metadata
-   - `market-analysis.md` input reference(s) plus `referencedInPlan=true` indicator(s) when
-     competitive analysis is enabled
-4. Selected Implementation Approach (if selected-option.md exists):
+3. Selected Implementation Approach (if selected-option.md exists):
    - Option number, scores, Gen AI touchpoints
-5. Constitution Check (if constitution.md exists):
+4. Constitution Check (if constitution.md exists):
    - Verify alignment with each project principle
-6. Implementation Phases (5 phases):
+5. Implementation Phases (5 phases):
    - Phase 1: Setup & Foundation (directory structure, config, deps, base types)
    - Phase 2: Data Layer (entities, persistence, validation)
    - Phase 3: Business Logic (services per user story, business rules, integrations)
    - Phase 4: API/Interface Layer (endpoints per contracts, validation, auth)
    - Phase 5: Polish & Integration (logging, docs, performance, final testing)
    Each phase must have: Goal, Tasks (checkboxed), Verification criteria
-7. File Structure (tree diagram of all new/modified files)
-8. Risk Assessment table (Risk | Impact | Mitigation)
-9. Spec Traceability:
+6. File Structure (tree diagram of all new/modified files)
+7. Risk Assessment table (Risk | Impact | Mitigation)
+8. Spec Traceability:
    - User Story Coverage (Story | Status | Plan References)
    - Requirement Coverage (FR-ID | Status | Plan Reference)
    Verify 100% coverage of all user stories and functional requirements.
@@ -153,11 +131,6 @@ Rules:
 - Reference specific file paths for all components
 - Plan must be specific enough for task generation
 - Resolve all unknowns — no NEEDS CLARIFICATION in the plan
-- For `gofer.workflowProfile=enterpriseai`, include deployment convention
-  metadata and pin `eai-cli` guidance to installed `major.minor`
-- When competitive analysis is enabled, include explicit `market-analysis.md`
-  references in `plan.md` and preserve `referencedInPlan=true` traceability
-- Preserve unchanged behavior for standard profile outputs
 
 Write the complete plan to {FEATURE_DIR}/plan.md.
 
@@ -267,8 +240,6 @@ After all agents complete:
    - All functional requirements are addressed
    - Implementation phases are specific enough for task generation
    - File structure is consistent with existing codebase patterns
-   - `market-analysis.md` is explicitly referenced when competitive analysis is
-     enabled
 
 2. **Review data-model.md** — Verify from Agent 2:
    - All spec entities are covered

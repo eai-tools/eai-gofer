@@ -233,6 +233,9 @@ for tool in "${TOOLS[@]}"; do
     codex)
       install_with_npm_global "@openai/codex-cli"
       ;;
+    copilot)
+      install_with_npm_global "@github/copilot"
+      ;;
     gemini)
       install_with_npm_global "@google/gemini-cli"
       ;;
@@ -254,6 +257,7 @@ done
 log_info "Suggested next steps:"
 log_info "  claude login"
 log_info "  codex login"
+log_info "  copilot login"
 log_info "  gemini auth login"
 log_info "  gh auth login"
 log_info "  az login"

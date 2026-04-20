@@ -10,9 +10,9 @@ tools:
   - WebSearch
 argument-hint: feature-name-or-description
 gofer:
-  workflowProfile: standard
+  workflowProfile: enterpriseai
   canonicalSource: .claude/commands/5_gofer_implement.md
-  canonicalChecksum: 6e3e02ae6012bf26c6200e9512dd90c8d16ab3e0ec1f1284f576e4af376a64a7
+  canonicalChecksum: 29ea04bb43bc18a7750defc9dec5a9711d82ace65f9c851c6f2633ff9922169b
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -572,6 +572,33 @@ When council mode is enabled:
 2. Different approaches compared
 3. Chairman synthesizes best solution
 4. Usage logged to `.specify/logs/council-usage.jsonl`
+
+---
+
+## EnterpriseAI Deployment Preflight Gate (Manifest/Config)
+
+> Active only when `gofer.workflowProfile=enterpriseai`. Standard profile runs
+> skip this gate entirely.
+
+Before any deployment task emitted by `#4_gofer_tasks` completes, this stage
+MUST execute deployment preflight checks (manifest/config gate). A task that
+invokes `eai-cli deploy` is not marked complete until all of the following files
+are present at the workspace root and pass their readiness checks:
+
+| Required File  | Purpose                                                 |
+| -------------- | ------------------------------------------------------- |
+| `manifest.yml` | Vertical application manifest (from `eai-cli scaffold`) |
+| `config.json`  | Runtime configuration bundle (environment-specific)     |
+
+### Gate behaviour
+
+- If any required file is missing, the stage emits `EVT-012` via the
+  deployment-readiness event bus and blocks task completion.
+- Paths are resolved relative to the workspace root. Any attempt to resolve a
+  required file outside the workspace (for example `/etc/passwd`) throws
+  `IMPL_DEPLOYMENT_PATH_INVALID`.
+- When the gate passes, `readinessPassed=true` is recorded in the emitted event
+  and the deployment task is allowed to continue.
 
 ---
 

@@ -11,9 +11,9 @@ tools:
   - WebSearch
 argument-hint: feature-name-or-description
 gofer:
-  workflowProfile: standard
+  workflowProfile: enterpriseai
   canonicalSource: .claude/commands/3_gofer_plan.md
-  canonicalChecksum: 1e56ac804b94eab0aeac0e173a75cd5ddf8361bab1f272acbc93c3142ab148a3
+  canonicalChecksum: d3f165c539dbc9eb79ba7cb0b6c622413850edddd32c399942b5017e3a5afc6b
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -508,6 +508,35 @@ When council mode is enabled for `gofer_plan` stage:
 2. Different perspectives on architecture decisions
 3. Chairman synthesizes best practices from multiple sources
 4. Usage logged to `.specify/logs/council-usage.jsonl`
+
+---
+
+## EnterpriseAI Deployment Convention and EAI CLI Pinning Requirements
+
+> When `gofer.workflowProfile=enterpriseai`, the following conventions apply.
+> standard profile outputs remain unchanged.
+
+When the workflow profile is `enterpriseai`, `plan.md` MUST capture:
+
+1. **EAI CLI version pin** — record the installed `eai-cli` version as a
+   `major.minor` pin (for example `2.0`). The plan stage resolves the local
+   version via `eai-cli --version`, strips the patch component, and writes the
+   pin to the `EnterpriseAI Profile Metadata` block of `plan-template.md` so
+   every downstream task is reproducible. Plans MUST apply
+   `pin guidance to `major.minor`` and never to a specific patch release.
+2. **Deployment convention** — reference
+   `.specify/references/eai/deployment-repo.md` for the canonical deployment
+   pipeline and note which environment (dev/staging/prod) each deliverable
+   targets.
+3. **Integration map handoff** — restate the Vertical App → EAI Services →
+   Deployment Target chain from `spec.md` and bind each link to a task
+   identifier in `tasks.md`.
+
+### Competitive / market analysis reference
+
+When `includeCompetitiveAnalysis=true`, `plan.md` MUST link to
+`market-analysis.md`. When disabled, the competitive-analysis section is omitted
+and standard profile outputs remain unchanged.
 
 ---
 

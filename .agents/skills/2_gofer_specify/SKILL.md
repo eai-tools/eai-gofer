@@ -4,7 +4,7 @@ description: Create feature specification informed by codebase research
 gofer:
   workflowProfile: enterpriseai
   canonicalSource: .claude/commands/2_gofer_specify.md
-  canonicalChecksum: 36aacb24b445a41e54d3739b6d088c0215dd84b8d37ed15a8733079ce61fa3dc
+  canonicalChecksum: b08e4a867e878fe3cdd3af99a89e8e60c7def80ce49d3d665acbcd619346df40
   metadataSource: scripts/generate-commands.ts
 arguments:
   - name: feature

@@ -1,8 +1,17 @@
 {
-  "latest_version": "2.0.8",
+  "latest_version": "2.0.9",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-04-20T13:34:15.822Z",
+  "last_updated": "2026-04-20T13:40:28.294Z",
   "releases": [
+    {
+      "version": "2.0.9",
+      "tag_name": "v2.0.9",
+      "published_at": "2026-04-20T13:40:28.293Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-2.0.9.vsix",
+      "notes": "fix(vsix-bundle): sync extension/resources/ from canonical — ships Phase B blast-radius + Cat 11 in /6, EnterpriseAI extensions in /0-/5+/7a, copilot) case in install-optional-tools.sh. Previous v2.0.5-v2.0.8 VSIX bundles shipped pre-blast-radius content because extension/resources was stale.",
+      "prerelease": false,
+      "size_mb": 10.4
+    },
     {
       "version": "2.0.8",
       "tag_name": "v2.0.8",
@@ -83,15 +92,6 @@
       "notes": "EnterpriseAI 2.0.0 release",
       "prerelease": false,
       "size_mb": 10.3
-    },
-    {
-      "version": "1.27.1",
-      "tag_name": "v1.27.1",
-      "published_at": "2026-04-05T01:54:16.295Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.27.1.vsix",
-      "notes": "Fix Gofer panel task completion progress updates",
-      "prerelease": false,
-      "size_mb": 10.2
     }
   ]
 }

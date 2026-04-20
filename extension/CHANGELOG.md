@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [2.0.5] - 2026-04-20
+
+feat(validate): unify /6+/6a and add Phase B blast-radius analysis (change-graph, interface-contract diff, observability, dependency/submodule impact, rollback readiness) — rubric now 110 pts with new Category 11
+
 ## [2.0.4] - 2026-04-10
 
 Fix cross-platform resource sync and Copilot provider detection

@@ -201,6 +201,17 @@ mv "$TEMP_FILE" extension/CHANGELOG.md
 
 print_success "Updated package.json and CHANGELOG.md"
 
+# Sync extension/resources/ from canonical sources BEFORE packaging the VSIX.
+# Without this, edits to .claude/commands/, .github/prompts/, .specify/
+# never reach end users — the installer ships from extension/resources/.
+print_info "Syncing extension/resources/ from canonical sources..."
+if ./scripts/sync-extension-resources.sh 2>&1; then
+    print_success "Extension resources synced"
+else
+    print_error "Failed to sync extension resources"
+    exit 1
+fi
+
 # Build VSIX
 print_info "Building VSIX package..."
 cd extension

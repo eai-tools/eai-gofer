@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [2.0.9] - 2026-04-20
+
+fix(vsix-bundle): sync extension/resources/ from canonical — ships Phase B blast-radius + Cat 11 in /6, EnterpriseAI extensions in /0-/5+/7a, copilot) case in install-optional-tools.sh. Previous v2.0.5-v2.0.8 VSIX bundles shipped pre-blast-radius content because extension/resources was stale.
+
 ## [2.0.8] - 2026-04-20
 
 feat(install): add copilot) case to optional-tools install scripts (bash + powershell) — installs @github/copilot alongside existing claude, @openai/codex-cli, and @google/gemini-cli. Reconciles drift with eai-cli bundled copy.

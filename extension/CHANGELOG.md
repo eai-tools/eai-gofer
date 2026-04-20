@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [2.0.8] - 2026-04-20
+
+feat(install): add copilot) case to optional-tools install scripts (bash + powershell) — installs @github/copilot alongside existing claude, @openai/codex-cli, and @google/gemini-cli. Reconciles drift with eai-cli bundled copy.
+
 ## [2.0.7] - 2026-04-20
 
 feat(commands): EnterpriseAI workflow profile extensions — adds required sections to /0, /2, /3, /4, /5, /7a commands plus plan/tasks templates so feature 029 integration tests pass. All 2549 tests now green.

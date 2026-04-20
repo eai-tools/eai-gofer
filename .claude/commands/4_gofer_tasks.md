@@ -448,10 +448,8 @@ manifest artifacts exist before any deploy command runs.
    - Command: `eai-cli deploy --env <environment>`
    - Inherits the `major.minor` pin recorded in `plan.md`.
 
-The ordering above is non-negotiable: tasks.md MUST instruct the pipeline to
-scaffold before deployment, validate before deploy, and only then invoke pinned
-`eai-cli major.minor` deployment tasks. Breaking the order causes deployment
-preflight gating in `/5_gofer_implement` to fail.
+<!-- prettier-ignore -->
+The ordering above is non-negotiable: tasks.md MUST instruct the pipeline to scaffold before deployment, validate before deploy, and only then invoke pinned `eai-cli major.minor` deployment tasks. Breaking the order causes deployment preflight gating in `/5_gofer_implement` to fail.
 
 ---
 

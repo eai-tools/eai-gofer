@@ -2,9 +2,17 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [2.0.6] - 2026-04-20
+
+feat(commands): add EnterpriseAI workflow profile extensions to /0, /2, /3, /4,
+/5, /7a plus plan/tasks templates — closes feature 029 content gap so all 2549
+tests pass
+
 ## [2.0.5] - 2026-04-20
 
-feat(validate): unify /6+/6a and add Phase B blast-radius analysis (change-graph, interface-contract diff, observability, dependency/submodule impact, rollback readiness) — rubric now 110 pts with new Category 11
+feat(validate): unify /6+/6a and add Phase B blast-radius analysis
+(change-graph, interface-contract diff, observability, dependency/submodule
+impact, rollback readiness) — rubric now 110 pts with new Category 11
 
 ## [2.0.4] - 2026-04-10
 
@@ -40,25 +48,30 @@ Gate specification behind proposal review and keep task progress in sync
 
 ## [1.26.1] - 2026-04-04
 
-Stabilize engineering baseline, fix task-state progression, and remove legacy spec regeneration
+Stabilize engineering baseline, fix task-state progression, and remove legacy
+spec regeneration
 
 ## [1.26.0] - 2026-03-28
 
-Add multi-provider CLI support, cross-platform command parity, AI usage tracking, and memory system v2
+Add multi-provider CLI support, cross-platform command parity, AI usage
+tracking, and memory system v2
 
 ## [1.25.0] - 2026-03-22
 
 feat: automatic Codex global CLI symlink creation
 
-Enables Codex CLI to access Gofer skills from any directory without manual symlink creation.
+Enables Codex CLI to access Gofer skills from any directory without manual
+symlink creation.
 
 Key features:
+
 - Automatic symlink creation during install/upgrade
 - Platform-aware (Windows junctions, Unix symlinks)
 - Non-blocking error handling
 - Updated documentation with troubleshooting guide
 
-This achieves true CLI feature parity - Codex now works globally like Claude Code.
+This achieves true CLI feature parity - Codex now works globally like Claude
+Code.
 
 ## [1.24.0] - 2026-03-22
 
@@ -73,7 +86,8 @@ Add Memory Panel system memory filtering (feature 001)
 Fix AI usage tracking bugs #2/#3 + security/performance fixes
 
 - Bug fix #2: Model-specific pricing (getPricingForModel with 4-tier fallback)
-- Bug fix #3: Model detection in adapters (modelId propagation to CostBudgetEnforcer)
+- Bug fix #3: Model detection in adapters (modelId propagation to
+  CostBudgetEnforcer)
 - Security fix: XSS prevention in MemoryPanel (HTML escaping)
 - Performance fix: Async I/O in UsageLogger (fs.promises)
 - Integration tests: AIUsageAccuracy (11), ModelPropagation (11)
@@ -86,31 +100,38 @@ Remove PTY terminal dependency, use native VSCode terminal API
 
 ## [1.21.0] - 2026-03-18
 
-feat: automatic context management via sub-agent dispatch + @lydell/node-pty migration
+feat: automatic context management via sub-agent dispatch + @lydell/node-pty
+migration
 
 ## [1.20.7] - 2026-03-18
 
-fix: Remove electron-rebuild to preserve cross-platform node-pty binaries for Codespaces
+fix: Remove electron-rebuild to preserve cross-platform node-pty binaries for
+Codespaces
 
 ## [1.20.6] - 2026-03-18
 
-fix: Add cross-platform support for Codespaces/Linux - replaced node-pty with node-pty-prebuilt-multiarch
+fix: Add cross-platform support for Codespaces/Linux - replaced node-pty with
+node-pty-prebuilt-multiarch
 
 ## [1.20.5] - 2026-03-18
 
-fix: Add cross-platform support for Codespaces/Linux - replaced node-pty with node-pty-prebuilt-multiarch
+fix: Add cross-platform support for Codespaces/Linux - replaced node-pty with
+node-pty-prebuilt-multiarch
 
 ## [1.20.4] - 2026-03-18
 
-fix: Add cross-platform support for Codespaces/Linux - replaced node-pty with node-pty-prebuilt-multiarch to include linux-x64 native binaries
+fix: Add cross-platform support for Codespaces/Linux - replaced node-pty with
+node-pty-prebuilt-multiarch to include linux-x64 native binaries
 
 ## [1.20.2] - 2026-03-15
 
-fix: engineering review - aggregate cache tokens (FR-025) and propagate error states to UI
+fix: engineering review - aggregate cache tokens (FR-025) and propagate error
+states to UI
 
 ## [1.20.1] - 2026-03-15
 
-fix: validation remediation for Feature 026 - remove AI slop, add visibility tests
+fix: validation remediation for Feature 026 - remove AI slop, add visibility
+tests
 
 ## [1.20.0] - 2026-03-15
 

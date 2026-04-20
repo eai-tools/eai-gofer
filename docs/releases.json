@@ -1,8 +1,17 @@
 {
-  "latest_version": "2.0.7",
+  "latest_version": "2.0.8",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-04-20T13:21:29.568Z",
+  "last_updated": "2026-04-20T13:34:15.822Z",
   "releases": [
+    {
+      "version": "2.0.8",
+      "tag_name": "v2.0.8",
+      "published_at": "2026-04-20T13:34:15.821Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-2.0.8.vsix",
+      "notes": "feat(install): add copilot) case to optional-tools install scripts (bash + powershell) — installs @github/copilot alongside existing claude, @openai/codex-cli, and @google/gemini-cli. Reconciles drift with eai-cli bundled copy.",
+      "prerelease": false,
+      "size_mb": 10.3
+    },
     {
       "version": "2.0.7",
       "tag_name": "v2.0.7",
@@ -81,15 +90,6 @@
       "published_at": "2026-04-05T01:54:16.295Z",
       "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.27.1.vsix",
       "notes": "Fix Gofer panel task completion progress updates",
-      "prerelease": false,
-      "size_mb": 10.2
-    },
-    {
-      "version": "1.27.0",
-      "tag_name": "v1.27.0",
-      "published_at": "2026-04-05T01:31:20.199Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.27.0.vsix",
-      "notes": "EnterpriseAI messaging + cross-platform flow parity",
       "prerelease": false,
       "size_mb": 10.2
     }

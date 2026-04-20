@@ -13,7 +13,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: standard
   canonicalSource: .claude/commands/6a_gofer_engineering_review.md
-  canonicalChecksum: 31b2eb388ad67b9ad84ed7e73c74fc39838bdd5d37b1348c5ba17a0b3ff7f1f3
+  canonicalChecksum: a3b6ac7813e3420dba49d75a6f69bc644216b208a591253a8cee32d937df3db6
   metadataSource: scripts/generate-commands.ts
 ---
 

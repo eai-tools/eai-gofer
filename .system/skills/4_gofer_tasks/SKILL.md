@@ -2,9 +2,9 @@
 name: 4_gofer_tasks
 description: Generate actionable task breakdown from implementation plan
 gofer:
-  workflowProfile: standard
+  workflowProfile: enterpriseai
   canonicalSource: .claude/commands/4_gofer_tasks.md
-  canonicalChecksum: 336101728b47917524fcb92f47f30c2f56c843d0efc374d66dd7088020423465
+  canonicalChecksum: 523455712e0993c745accb86a163de774e37b6da28a9163023c6d59de99f0259
   metadataSource: scripts/generate-commands.ts
 arguments:
   - name: feature
@@ -440,6 +440,34 @@ When council mode is enabled for task generation:
 2. Different perspectives on dependency ordering
 3. Chairman synthesizes optimal task breakdown
 4. Usage logged to `.specify/logs/council-usage.jsonl`
+
+---
+
+## Ordered Runnable Task-Generation Guidance
+
+> Active only when `gofer.workflowProfile=enterpriseai`. Standard profile task
+> generation is unaffected.
+
+When the workflow profile is `enterpriseai`, `tasks.md` MUST emit deployment
+tasks in the following ordered chain. Each task is independently runnable and
+the ordering enforces scaffold before deployment so that configuration and
+manifest artifacts exist before any deploy command runs.
+
+1. **Vertical Template scaffolding -> `eai-cli scaffold`**
+   - Command: `eai-cli scaffold --template vertical --name <app-name>`
+   - Produces the working directory, `manifest.yml`, and `config.json` expected
+     by subsequent tasks.
+2. **Local validation -> `eai-cli validate`**
+   - Command: `eai-cli validate`
+   - Confirms manifest/config correctness before any deploy attempt.
+3. **Pinned `eai-cli major.minor` deployment tasks -> `eai-cli deploy`**
+   - Command: `eai-cli deploy --env <environment>`
+   - Inherits the `major.minor` pin recorded in `plan.md`.
+
+The ordering above is non-negotiable: tasks.md MUST instruct the pipeline to
+scaffold before deployment, validate before deploy, and only then invoke pinned
+`eai-cli major.minor` deployment tasks. Breaking the order causes deployment
+preflight gating in `$ $5_gofer_implement` to fail.
 
 ---
 

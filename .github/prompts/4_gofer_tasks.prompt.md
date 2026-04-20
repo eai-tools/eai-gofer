@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: enterpriseai
   canonicalSource: .claude/commands/4_gofer_tasks.md
-  canonicalChecksum: 523455712e0993c745accb86a163de774e37b6da28a9163023c6d59de99f0259
+  canonicalChecksum: c95e60d02fff74a7afb2874e67d8f1e0147716c36442b6d5a0387b1294d7993c
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -457,10 +457,8 @@ manifest artifacts exist before any deploy command runs.
    - Command: `eai-cli deploy --env <environment>`
    - Inherits the `major.minor` pin recorded in `plan.md`.
 
-The ordering above is non-negotiable: tasks.md MUST instruct the pipeline to
-scaffold before deployment, validate before deploy, and only then invoke pinned
-`eai-cli major.minor` deployment tasks. Breaking the order causes deployment
-preflight gating in `#5_gofer_implement` to fail.
+<!-- prettier-ignore -->
+The ordering above is non-negotiable: tasks.md MUST instruct the pipeline to scaffold before deployment, validate before deploy, and only then invoke pinned `eai-cli major.minor` deployment tasks. Breaking the order causes deployment preflight gating in `#5_gofer_implement` to fail.
 
 ---
 

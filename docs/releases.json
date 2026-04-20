@@ -1,8 +1,17 @@
 {
-  "latest_version": "2.0.5",
+  "latest_version": "2.0.6",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-04-20T12:35:38.165Z",
+  "last_updated": "2026-04-20T13:18:50.731Z",
   "releases": [
+    {
+      "version": "2.0.6",
+      "tag_name": "v2.0.6",
+      "published_at": "2026-04-20T13:18:50.730Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-2.0.6.vsix",
+      "notes": "feat(commands): add EnterpriseAI workflow profile extensions to /0, /2, /3, /4, /5, /7a plus plan/tasks templates — closes feature 029 content gap so all 2549 tests pass",
+      "prerelease": false,
+      "size_mb": 10.3
+    },
     {
       "version": "2.0.5",
       "tag_name": "v2.0.5",
@@ -83,15 +92,6 @@
       "notes": "Gate specification behind proposal review and keep task progress in sync",
       "prerelease": false,
       "size_mb": 10.2
-    },
-    {
-      "version": "1.26.1",
-      "tag_name": "v1.26.1",
-      "published_at": "2026-04-04T03:40:10.325Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-1.26.1.vsix",
-      "notes": "Stabilize engineering baseline, fix task-state progression, and remove legacy spec regeneration",
-      "prerelease": false,
-      "size_mb": 10.1
     }
   ]
 }

@@ -12,12 +12,11 @@ tools:
   - WebSearch
 argument-hint: feature-name-or-description
 gofer:
-  workflowProfile: enterpriseai
+  workflowProfile: standard
   canonicalSource: .claude/commands/7a_stakeholder_comms.md
-  canonicalChecksum: 614805e0df61680b9b8e3a73f946bf3d44f33af43af0df260871ac6a6431a98c
+  canonicalChecksum: 95c24b86665cdf2bb7cd78aa2fbfdbb6f795cae9ec3984907f0032bc4bfb5a54
   metadataSource: scripts/generate-commands.ts
 ---
-
 
 # Gofer Stakeholder Communications
 
@@ -52,13 +51,12 @@ Instead, inform the user that validation must pass first.
 
 1. Context health check
 2. Load all feature context
-3. Resolve Marp output mode (opt-in, default-recommended for EnterpriseAI)
-4. Spawn comms-writer agent
-5. Spawn business-metrics-analyzer agent
-6. Generate stakeholder communications package
-7. Generate business metrics dashboard
-8. Final assumption review
-9. Completion summary
+3. Spawn comms-writer agent
+4. Spawn business-metrics-analyzer agent
+5. Generate stakeholder communications package
+6. Generate business metrics dashboard
+7. Final assumption review
+8. Completion summary
 
 ---
 
@@ -99,22 +97,7 @@ Instead, inform the user that validation must pass first.
 
 ---
 
-## Step 2: Resolve Marp Output Mode (Opt-In, Default-Recommended)
-
-Determine Marp behavior before drafting stakeholder artifacts:
-
-- Treat Marp generation as an explicit run-level opt-in via `enableMarpDeck` (or
-  equivalent run flag).
-- Use default recommendation for `workflowProfile=enterpriseai`:
-  `enableMarpDeck=true`.
-- For standard/legacy runs, keep Marp disabled unless explicitly requested.
-- Never block stakeholder communications when Marp is disabled.
-- Always preserve legacy outputs (`release-notes.md` and `demo-script.md`)
-  regardless of Marp mode.
-
----
-
-## Step 3: Spawn Parallel Agents
+## Step 2: Spawn Parallel Agents
 
 Launch both agents **in parallel**:
 
@@ -169,14 +152,10 @@ Return structured report (<2000 tokens)."
 
 ---
 
-## Step 4: Generate Stakeholder Communications
+## Step 3: Generate Stakeholder Communications
 
 Write to `{FEATURE_DIR}/stakeholder-comms.md` using the template at
-`.specify/templates/stakeholder-comms-template.md`. Also produce the legacy
-companion artifacts:
-
-- `{FEATURE_DIR}/release-notes.md`
-- `{FEATURE_DIR}/demo-script.md`
+`.specify/templates/stakeholder-comms-template.md`.
 
 Populate with comms-writer agent findings. Ensure:
 
@@ -186,78 +165,9 @@ Populate with comms-writer agent findings. Ensure:
 - **Change management is realistic** — phased rollout with success criteria
 - **Metrics are tied to problem** — connect back to original business case
 
-### Optional Marp Deck Output
-
-When `workflowProfile=enterpriseai` and Marp opt-in is enabled
-(`enableMarpDeck=true`), generate:
-
-- `{FEATURE_DIR}/presentation.marp.md`
-
-The deck MUST include valid Marp frontmatter plus these required sections:
-
-1. Problem Statement
-2. EnterpriseAI Solution Overview
-3. Architecture Diagram Reference
-4. Demo Script Summary
-5. Success Metrics
-
-Use this required template content:
-
-```markdown
----
-marp: true
-theme: default
-paginate: true
-title: '{{feature-name}} Stakeholder Presentation'
 ---
 
-# Problem Statement
-
-- {{problem-summary}}
-- {{who-is-impacted}}
-- {{why-now}}
-
----
-
-# EnterpriseAI Solution Overview
-
-- {{solution-summary}}
-- {{enterpriseai-fit}}
-- {{expected-business-outcome}}
-
----
-
-# Architecture Diagram Reference
-
-- Diagram: {{architecture-diagram-path-or-link}}
-- Components: {{vertical-app}} -> {{eai-services}} -> {{deployment-target}}
-- Decision rationale: {{why-this-architecture}}
-
----
-
-# Demo Script Summary
-
-1. {{demo-step-1}}
-2. {{demo-step-2}}
-3. {{demo-step-3}}
-4. {{demo-step-4}}
-
----
-
-# Success Metrics
-
-- {{metric-1}}: baseline {{current}} -> target {{target}}
-- {{metric-2}}: baseline {{current}} -> target {{target}}
-- {{metric-3}}: review cadence {{cadence}}
-```
-
-If Marp is not enabled, skip `presentation.marp.md` and continue generating
-`stakeholder-comms.md`, `release-notes.md`, and `demo-script.md` without
-interruption.
-
----
-
-## Step 5: Generate Business Metrics Dashboard
+## Step 4: Generate Business Metrics Dashboard
 
 Write to `{FEATURE_DIR}/business-metrics.md` using the template at
 `.specify/templates/business-metrics-template.md`.
@@ -266,7 +176,7 @@ Populate with business-metrics-analyzer agent findings.
 
 ---
 
-## Step 6: Final Assumption Review
+## Step 5: Final Assumption Review
 
 Spawn the assumption-tracker agent to do a final review:
 
@@ -296,7 +206,7 @@ Based on agent findings, update `{FEATURE_DIR}/assumptions.md`:
 
 ---
 
-## Step 7: Generate Scope Creep Report (If problem-brief exists)
+## Step 6: Generate Scope Creep Report (If problem-brief exists)
 
 If `{FEATURE_DIR}/problem-brief.md` exists, run scope creep detection:
 
@@ -317,7 +227,7 @@ stakeholder communications explaining what changed and why.
 
 ---
 
-## Step 8: Completion Summary
+## Step 7: Completion Summary
 
 ```
 ════════════════════════════════════════════════════════════════
@@ -326,9 +236,6 @@ stakeholder communications explaining what changed and why.
 
   Deliverables:
   - {FEATURE_DIR}/stakeholder-comms.md
-  - {FEATURE_DIR}/release-notes.md
-  - {FEATURE_DIR}/demo-script.md
-  - {FEATURE_DIR}/presentation.marp.md (when Marp opt-in is enabled)
   - {FEATURE_DIR}/business-metrics.md
   - {FEATURE_DIR}/assumptions.md (updated)
 
@@ -336,7 +243,6 @@ stakeholder communications explaining what changed and why.
   - Executive Summary
   - Release Notes (non-technical)
   - Demo Script (5-minute walkthrough)
-  - Marp Presentation Deck (opt-in, default-recommended for EnterpriseAI)
   - Change Management Brief
   - Success Metrics & KPIs
   - Communication Timeline
@@ -365,7 +271,7 @@ stakeholder communications explaining what changed and why.
 
 ---
 
-## Step 9: Observability Logging
+## Step 8: Observability Logging
 
 ```bash
 .specify/scripts/bash/log-stage.sh 7a_stakeholder_comms --complete --tokens [N] --compactions [N]

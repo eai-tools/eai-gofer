@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [2.0.10] - 2026-04-20
+
+infra(release): add scripts/sync-extension-resources.sh and wire into release-auto.sh so every VSIX bundles current canonical content. Adds 10 missing templates (stakeholder-comms, business-metrics, discovery, problem-brief, assumptions, brownfield-analysis, spec-summary, session-handoff, journey/, sequence-diagrams/) to extension/resources/templates/ so eai init delivers them. Prevents the v2.0.5-v2.0.8 class of stale-bundle regressions.
+
 ## [2.0.9] - 2026-04-20
 
 fix(vsix-bundle): sync extension/resources/ from canonical — ships Phase B blast-radius + Cat 11 in /6, EnterpriseAI extensions in /0-/5+/7a, copilot) case in install-optional-tools.sh. Previous v2.0.5-v2.0.8 VSIX bundles shipped pre-blast-radius content because extension/resources was stale.

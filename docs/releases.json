@@ -1,8 +1,17 @@
 {
-  "latest_version": "2.0.10",
+  "latest_version": "2.0.11",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-04-20T13:47:12.076Z",
+  "last_updated": "2026-04-21T01:43:50.356Z",
   "releases": [
+    {
+      "version": "2.0.11",
+      "tag_name": "v2.0.11",
+      "published_at": "2026-04-21T01:43:50.355Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-2.0.11.vsix",
+      "notes": "security: fix 48 of 55 npm audit vulnerabilities — remove unused wdio-vscode-service + @wdio/cli (23 CVEs in dev-only webdriverio v8 tree), remove deprecated electron-rebuild duplicate, bump @electron/rebuild 3.7.2 → 4.0.3. Remaining 7 are mocha's transitive diff/serialize-javascript — no upstream fix. Purely dev-only. All 2549 tests pass.",
+      "prerelease": false,
+      "size_mb": 10.4
+    },
     {
       "version": "2.0.10",
       "tag_name": "v2.0.10",
@@ -81,15 +90,6 @@
       "published_at": "2026-04-09T11:40:04.197Z",
       "download_url": "https://eai-tools.github.io/gofer/releases/gofer-2.0.2.vsix",
       "notes": "Fix Copilot/Gemini CLI provider compatibility",
-      "prerelease": false,
-      "size_mb": 10.3
-    },
-    {
-      "version": "2.0.1",
-      "tag_name": "v2.0.1",
-      "published_at": "2026-04-09T11:16:35.929Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-2.0.1.vsix",
-      "notes": "EnterpriseAI 2.0.1 patch release",
       "prerelease": false,
       "size_mb": 10.3
     }

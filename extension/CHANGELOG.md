@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [2.0.11] - 2026-04-21
+
+security: fix 48 of 55 npm audit vulnerabilities — remove unused wdio-vscode-service + @wdio/cli (23 CVEs in dev-only webdriverio v8 tree), remove deprecated electron-rebuild duplicate, bump @electron/rebuild 3.7.2 → 4.0.3. Remaining 7 are mocha's transitive diff/serialize-javascript — no upstream fix. Purely dev-only. All 2549 tests pass.
+
 ## [2.0.10] - 2026-04-20
 
 infra(release): add scripts/sync-extension-resources.sh and wire into release-auto.sh so every VSIX bundles current canonical content. Adds 10 missing templates (stakeholder-comms, business-metrics, discovery, problem-brief, assumptions, brownfield-analysis, spec-summary, session-handoff, journey/, sequence-diagrams/) to extension/resources/templates/ so eai init delivers them. Prevents the v2.0.5-v2.0.8 class of stale-bundle regressions.

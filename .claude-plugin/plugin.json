@@ -1,0 +1,125 @@
+{
+  "name": "gofer",
+  "version": "1.0.0",
+  "description": "Gofer pipeline: research, specify, plan, tasks, implement, validate workflow with multi-persona visuals.",
+  "author": "Gofer team",
+  "commands": [
+    {
+      "name": "0_business_scenario",
+      "description": "Define the business problem and scenario for Gofer to analyse and solve.",
+      "file": "../.specify/commands/0_business_scenario.md"
+    },
+    {
+      "name": "0a_problem_validation",
+      "description": "Validate the business problem using 5 Whys root-cause analysis and stakeholder mapping.",
+      "file": "../.specify/commands/0a_problem_validation.md"
+    },
+    {
+      "name": "1_gofer_research",
+      "description": "Research codebase, CLI integrations, and technology landscape for the target feature.",
+      "file": "../.specify/commands/1_gofer_research.md"
+    },
+    {
+      "name": "2_gofer_specify",
+      "description": "Generate a feature specification from research findings and approved proposal review.",
+      "file": "../.specify/commands/2_gofer_specify.md"
+    },
+    {
+      "name": "3_gofer_plan",
+      "description": "Create a detailed technical implementation plan with architecture, data model, and contracts.",
+      "file": "../.specify/commands/3_gofer_plan.md"
+    },
+    {
+      "name": "4_gofer_tasks",
+      "description": "Break down the implementation plan into dependency-ordered, parallelisable tasks.",
+      "file": "../.specify/commands/4_gofer_tasks.md"
+    },
+    {
+      "name": "5_gofer_implement",
+      "description": "Execute all tasks from tasks.md phase by phase with feedback loops and engineering review.",
+      "file": "../.specify/commands/5_gofer_implement.md"
+    },
+    {
+      "name": "6_gofer_validate",
+      "description": "Validate the implementation against spec acceptance criteria across six quality dimensions.",
+      "file": "../.specify/commands/6_gofer_validate.md"
+    },
+    {
+      "name": "6a_gofer_engineering_review",
+      "description": "Run a targeted engineering review on a specific component or concern.",
+      "file": "../.specify/commands/6a_gofer_engineering_review.md"
+    },
+    {
+      "name": "7_gofer_save",
+      "description": "Save session state and create a handoff checkpoint for resumption in a new context.",
+      "file": "../.specify/commands/7_gofer_save.md"
+    },
+    {
+      "name": "7a_stakeholder_comms",
+      "description": "Generate stakeholder-facing communications: release notes, demo scripts, and change briefs.",
+      "file": "../.specify/commands/7a_stakeholder_comms.md"
+    },
+    {
+      "name": "8_gofer_resume",
+      "description": "Resume a previous Gofer session from a saved checkpoint file.",
+      "file": "../.specify/commands/8_gofer_resume.md"
+    },
+    {
+      "name": "9_gofer_tests",
+      "description": "Generate comprehensive test suites from four testing perspectives for a target component.",
+      "file": "../.specify/commands/9_gofer_tests.md"
+    },
+    {
+      "name": "10_gofer_cloud",
+      "description": "Deploy and configure the Gofer cloud integration for remote pipeline execution.",
+      "file": "../.specify/commands/10_gofer_cloud.md"
+    },
+    {
+      "name": "gofer_constitution",
+      "description": "Display the Gofer working constitution and core principles for this project.",
+      "file": "../.specify/commands/gofer_constitution.md"
+    },
+    {
+      "name": "gofer_hydrate",
+      "description": "Hydrate the Gofer context with project memory, constitution, and prior pipeline state.",
+      "file": "../.specify/commands/gofer_hydrate.md"
+    },
+    {
+      "name": "gofer_personality",
+      "description": "Set the assistant personality for this Gofer session: friendly, pragmatic, or none (default).",
+      "file": "../.specify/commands/gofer_personality.md"
+    },
+    {
+      "name": "gofer_plan",
+      "description": "Toggle plan mode in the active CLI session for the next user prompt; non-pipeline control command.",
+      "file": "../.specify/commands/gofer_plan.md"
+    },
+    {
+      "name": "gofer_side",
+      "description": "Open a side conversation in the active CLI without disturbing the main pipeline state; resumable.",
+      "file": "../.specify/commands/gofer_side.md"
+    }
+  ],
+  "agents": [
+    {
+      "name": "visual-bounded-context-writer",
+      "file": "../.claude/agents/visual-bounded-context-writer.md"
+    },
+    {
+      "name": "visual-c4-writer",
+      "file": "../.claude/agents/visual-c4-writer.md"
+    },
+    {
+      "name": "visual-erd-writer",
+      "file": "../.claude/agents/visual-erd-writer.md"
+    },
+    {
+      "name": "visual-heatmap-writer",
+      "file": "../.claude/agents/visual-heatmap-writer.md"
+    },
+    {
+      "name": "visual-risk-writer",
+      "file": "../.claude/agents/visual-risk-writer.md"
+    }
+  ]
+}

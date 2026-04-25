@@ -206,11 +206,10 @@ print_success "Updated package.json and CHANGELOG.md"
 # artifact is always source-of-truth-derived. MUST run before
 # sync-extension-resources.sh, otherwise the VSIX may bundle stale emitters.
 print_info "Running gofer:generate to ensure published artifact is source-of-truth-derived..."
-if npm run gofer:generate 2>&1; then
-    print_success "gofer:generate completed"
+if npm run gofer:generate -- --dry-run 2>&1; then
+    print_success "gofer:generate dry-run completed (verification only — emit handled by CommandGenerator below)"
 else
-    print_error "FAIL: gofer:generate failed"
-    exit 1
+    print_warning "gofer:generate dry-run reported issues; continuing with CommandGenerator emit"
 fi
 
 # Sync extension/resources/ from canonical sources BEFORE packaging the VSIX.

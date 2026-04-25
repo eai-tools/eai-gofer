@@ -21,16 +21,20 @@ features-analyzed: '{{N}}'
 
 ## Feature Velocity
 
-| Period         | Features Delivered | Avg Cycle Time | Trend            |
-| -------------- | ------------------ | -------------- | ---------------- |
-| {{this-month}} | {{N}}              | {{N}} days     | up/down/stable   |
-| {{last-month}} | {{N}}              | {{N}} days     | —                |
+| Period         | Features Delivered | Avg Cycle Time | Trend          |
+| -------------- | ------------------ | -------------- | -------------- |
+| {{this-month}} | {{N}}              | {{N}} days     | up/down/stable |
+| {{last-month}} | {{N}}              | {{N}} days     | —              |
 
 ### Velocity Chart
 
-```
-Features/Month: [▓▓▓▓▓▓▓▓░░] 8/10 target
-Cycle Time:     [▓▓▓▓▓▓░░░░] 6 days avg
+```mermaid
+xychart-beta
+    title "ROI / Payback Projection"
+    x-axis ["Q1", "Q2", "Q3", "Q4", "Y2-Q1", "Y2-Q2"]
+    y-axis "Cumulative Value ({{UNIT}})" 0 --> {{Y_MAX}}
+    bar [{{COSTS_BY_QUARTER}}]
+    line [{{VALUE_BY_QUARTER}}]
 ```
 
 ---
@@ -52,53 +56,53 @@ Cycle Time:     [▓▓▓▓▓▓░░░░] 6 days avg
 
 ## Quality Trends
 
-| Metric                       | This Period | Previous | Trend     |
-| ---------------------------- | ----------- | -------- | --------- |
-| First-pass validation rate   | {{N}}%      | {{N}}%   | improving |
-| Avg validation score         | {{N}}/100   | {{N}}/100| improving |
-| Remediation iterations avg   | {{N}}       | {{N}}    | improving |
-| Most common failure category | {{cat}}     | {{cat}}  | —         |
+| Metric                       | This Period | Previous  | Trend     |
+| ---------------------------- | ----------- | --------- | --------- |
+| First-pass validation rate   | {{N}}%      | {{N}}%    | improving |
+| Avg validation score         | {{N}}/100   | {{N}}/100 | improving |
+| Remediation iterations avg   | {{N}}       | {{N}}     | improving |
+| Most common failure category | {{cat}}     | {{cat}}   | —         |
 
 ---
 
 ## Cost Analysis
 
-| Metric                    | Value      | Trend     |
-| ------------------------- | ---------- | --------- |
-| Avg tokens per feature    | {{N}}k     | stable    |
-| Estimated cost per feature| ${{N}}     | stable    |
-| Council mode premium      | +{{N}}%    | stable    |
+| Metric                     | Value   | Trend  |
+| -------------------------- | ------- | ------ |
+| Avg tokens per feature     | {{N}}k  | stable |
+| Estimated cost per feature | ${{N}}  | stable |
+| Council mode premium       | +{{N}}% | stable |
 
 ---
 
 ## Portfolio Status
 
-| Feature        | Stage        | Status      | Days in Stage | Risk   |
-| -------------- | ------------ | ----------- | ------------- | ------ |
-| {{feature-1}}  | Implementing | On Track    | {{N}}         | Low    |
-| {{feature-2}}  | Validating   | Remediation | {{N}}         | Medium |
-| {{feature-3}}  | Planning     | Blocked     | {{N}}         | High   |
+| Feature       | Stage        | Status      | Days in Stage | Risk   |
+| ------------- | ------------ | ----------- | ------------- | ------ |
+| {{feature-1}} | Implementing | On Track    | {{N}}         | Low    |
+| {{feature-2}} | Validating   | Remediation | {{N}}         | Medium |
+| {{feature-3}} | Planning     | Blocked     | {{N}}         | High   |
 
 ---
 
 ## Scope Health
 
-| Metric                          | Value           | Status  |
-| ------------------------------- | --------------- | ------- |
-| Avg spec revisions per feature  | {{N}}           | Healthy |
-| Avg task count growth           | {{N}}%          | Healthy |
-| Build vs Buy decisions          | {{N}} build, {{N}} buy | — |
-| Features with scope creep       | {{N}}/{{N}}     | Healthy |
-| Assumptions disproven           | {{N}}           | —       |
+| Metric                         | Value                  | Status  |
+| ------------------------------ | ---------------------- | ------- |
+| Avg spec revisions per feature | {{N}}                  | Healthy |
+| Avg task count growth          | {{N}}%                 | Healthy |
+| Build vs Buy decisions         | {{N}} build, {{N}} buy | —       |
+| Features with scope creep      | {{N}}/{{N}}            | Healthy |
+| Assumptions disproven          | {{N}}                  | —       |
 
 ---
 
 ## Business Impact Summary
 
-| Feature Delivered | Problem Solved              | Estimated Annual Value |
-| ----------------- | --------------------------- | ---------------------- |
-| {{feature-1}}     | {{problem-brief-summary}}   | ${{estimate}}          |
-| {{feature-2}}     | {{problem-brief-summary}}   | ${{estimate}}          |
+| Feature Delivered | Problem Solved            | Estimated Annual Value |
+| ----------------- | ------------------------- | ---------------------- |
+| {{feature-1}}     | {{problem-brief-summary}} | ${{estimate}}          |
+| {{feature-2}}     | {{problem-brief-summary}} | ${{estimate}}          |
 
 **Total estimated annual value delivered**: ${{total}}
 
@@ -112,5 +116,5 @@ Cycle Time:     [▓▓▓▓▓▓░░░░] 6 days avg
 
 ---
 
-*Generated by Gofer Business Metrics Analyzer — {{ISO-timestamp}}*
-*Data sources: pipeline.jsonl, context-usage.jsonl, validation-findings.jsonl*
+_Generated by Gofer Business Metrics Analyzer — {{ISO-timestamp}}_ _Data
+sources: pipeline.jsonl, context-usage.jsonl, validation-findings.jsonl_

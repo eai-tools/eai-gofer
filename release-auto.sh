@@ -201,6 +201,18 @@ mv "$TEMP_FILE" extension/CHANGELOG.md
 
 print_success "Updated package.json and CHANGELOG.md"
 
+# Pre-release hook (FR-001, NFR-011): regenerate every CLI surface from the
+# canonical .specify/commands/<stage>.md source-of-truth so the published
+# artifact is always source-of-truth-derived. MUST run before
+# sync-extension-resources.sh, otherwise the VSIX may bundle stale emitters.
+print_info "Running gofer:generate to ensure published artifact is source-of-truth-derived..."
+if npm run gofer:generate 2>&1; then
+    print_success "gofer:generate completed"
+else
+    print_error "FAIL: gofer:generate failed"
+    exit 1
+fi
+
 # Sync extension/resources/ from canonical sources BEFORE packaging the VSIX.
 # Without this, edits to .claude/commands/, .github/prompts/, .specify/
 # never reach end users — the installer ships from extension/resources/.

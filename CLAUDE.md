@@ -60,13 +60,34 @@ told how.
   introducing bugs.
 
 ## Active Technologies
-- [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS (028-cross-platform-command-parity)
+
+- [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS
+  (028-cross-platform-command-parity)
+- Node.js ≥20 (for the source-of-truth generator and
+  (001-cli-innovations-visuals)
+- Filesystem-only (Markdown + YAML + TOML + JSON). No database, no
+  (001-cli-innovations-visuals)
 
 - TypeScript 5.x (strict mode, noImplicitAny, strictNullChecks) + VSCode
   Extension API, Webview API, fs/promises for JSONL storage
   (001-memory-panel-filter)
 - JSONL file format (`memories.jsonl`) with in-memory index for fast queries
   (001-memory-panel-filter)
+
+## Gofer Generator Commands
+
+- `npm run gofer:generate` — Regenerates all CLI surfaces from
+  `.specify/commands/<stage>.md` source-of-truth
+- `npm run gofer:codex-doctor` — Read-only Codex skill-budget diagnostic
+- `npm run gofer:mermaid-export` — Optional visual export via `mmdc` (NEVER uses
+  `--no-sandbox`)
+
+## Plan Mode (locked decision)
+
+`/gofer:plan` is the plan-mode toggle for the active CLI session. The Gofer plan
+stage is `/3_gofer_plan` (also aliased as `/gofer:plan-stage`). When a
+non-trivial task is requested, default to `/gofer:plan` first to align on
+approach.
 
 ## Recent Changes
 

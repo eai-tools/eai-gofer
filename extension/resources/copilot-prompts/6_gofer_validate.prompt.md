@@ -1,21 +1,7 @@
 ---
-name: 6_gofer_validate
-description: >-
+description:
   Unified validation, blast-radius analysis, and engineering review (3 phases,
   110-point rubric)
-agent: copilot-workspace
-tools:
-  - Read
-  - Grep
-  - Glob
-  - Bash
-  - WebSearch
-argument-hint: feature-name-or-description
-gofer:
-  workflowProfile: standard
-  canonicalSource: .claude/commands/6_gofer_validate.md
-  canonicalChecksum: 0bdf42e79df7bcc97c2523cade8194b6899bf12f4e3090c5f3f23aa3f97efb93
-  metadataSource: scripts/generate-commands.ts
 ---
 
 # Gofer Validate
@@ -31,8 +17,8 @@ across **three phases**:
   to catch issues rubric-based validation might miss
 
 This is the **sixth stage** of the unified Gofer pipeline. It consolidates the
-former `#6_gofer_validate` and `#6a_gofer_engineering_review` stages into a
-single command; `#6a_gofer_engineering_review` is retained as a
+former `/6_gofer_validate` and `/6a_gofer_engineering_review` stages into a
+single command; `/6a_gofer_engineering_review` is retained as a
 backwards-compatibility stub that delegates here.
 
 A score of **110/110 on the rubric (Phases A + B) is required to pass**. Any
@@ -52,11 +38,11 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 This command expects in `.specify/specs/{feature}/`:
 
-- `research.md` - Codebase analysis (from #1_gofer_research)
-- `spec.md` - Feature specification (from #2_gofer_specify)
-- `plan.md` - Implementation plan (from #3_gofer_plan)
-- `tasks.md` - Task breakdown (from #4_gofer_tasks)
-- Implemented code (from #5_gofer_implement)
+- `research.md` - Codebase analysis (from /1_gofer_research)
+- `spec.md` - Feature specification (from /2_gofer_specify)
+- `plan.md` - Implementation plan (from /3_gofer_plan)
+- `tasks.md` - Task breakdown (from /4_gofer_tasks)
+- Implemented code (from /5_gofer_implement)
 
 ---
 
@@ -151,7 +137,7 @@ Before starting validation, assess context window health:
 
 - If **< 50%**: Proceed normally
 - If **50-70%**: Use sub-agents heavily, minimize main context
-- If **> 70%**: Run `#7_gofer_save`, start new session, run `#8_gofer_resume`
+- If **> 70%**: Run `/7_gofer_save`, start new session, run `/8_gofer_resume`
 
 Validation loads all artifacts and spawns 6 agents — context pressure is high.
 
@@ -914,6 +900,69 @@ to Cat2; total is still 110).
 
 ---
 
+## Step 7.4: Two-Pass Canvas Refresh (Impact Canvas)
+
+After the validation council completes, refresh the Impact Canvas with
+validation findings. This is a SURGICAL update: only the `topThreeRisks` slot of
+`impact-canvas.md` is replaced; all other canvas content (header, problem
+statement, personas, AI-leverage pie, outcomes) is preserved byte-for-byte. The
+frontmatter `pass:` marker is bumped from 1 to 2 so downstream consumers can
+tell which pass produced the artefact.
+
+```
+Task: subagent_type="visual-canvas-writer", model="sonnet"
+Prompt: "Pass-2 refresh for {FEATURE_DIR}/visuals/impact-canvas.md.
+Read validation council output from {FEATURE_DIR}/validation.md.
+Replace ONLY the topThreeRisks section with the council's top three risks.
+Preserve all other content byte-for-byte.
+
+Use the runPass2() helper at .specify/scripts/node/lib/visual-pass-pipeline.mjs
+which implements the surgical replacement (regex-bounded swap of the
+'## Top Three Risks' section + frontmatter pass: 1 -> 2 bump).
+
+Return: absolute path of file written and the three risk strings used."
+```
+
+The `runPass2()` function in
+`.specify/scripts/node/lib/visual-pass-pipeline.mjs` already implements the
+surgical replacement; the writer agent only needs to provide the three
+council-validated risk strings. This satisfies FR-016 (two-pass canvas refresh)
+and the locked decision recorded in `plan.md:912-919`.
+
+---
+
+## Step 7.5: Refresh Risk Heatmap (Persona Pack — US4)
+
+After the rubric is scored and validation council findings are available,
+dispatch `visual-risk-writer` in **pass-2 mode** to refresh the risk heatmap
+with critical risks identified by the council. This replaces the heuristic
+top-quadrant entries that pass-1 (run from this same stage before validation)
+populated from the spec NFR / Out-of-Scope sections.
+
+```
+Task: subagent_type="visual-risk-writer", model="sonnet"
+Prompt: "Pass 2: refresh risk heatmap for feature [FEATURE_NAME].
+
+Feature directory: {FEATURE_DIR}
+Spec: {FEATURE_DIR}/spec.md
+Validation council findings: {FEATURE_DIR}/validation-report.md (in-progress)
+Existing heatmap (pass-1): {FEATURE_DIR}/visuals/risk-heatmap.md
+Template: .specify/templates/visuals/risk-heatmap-template.md
+
+Replace top-quadrant risks with the validation council's critical findings.
+Preserve pass-1 risks that did not surface in validation.
+Honour ≥30 ≤200 word plain-language preamble (NFR-010).
+
+Return: absolute path of file written and risk counts per quadrant."
+```
+
+The validation report (Step 8) MUST link to the refreshed risk heatmap under its
+`## Risk Posture` section. If the Mermaid renderer fails for a downstream
+consumer, the `mermaid-tabular-fallback.mjs` helper provides a markdown-table
+fallback for the `quadrantChart` block.
+
+---
+
 ## Step 8: Generate Validation Report
 
 Write to `{FEATURE_DIR}/validation-report.md`:
@@ -1096,7 +1145,7 @@ Proceed to **Phase C: Engineering Review Loop** (inline, Step 10a below), then
 
 **No external auto-chain is needed** — Phase C runs inline in this command.
 After Phase C completes, the feature pipeline is complete. The legacy
-`#6a_gofer_engineering_review` stub will detect the
+`/6a_gofer_engineering_review` stub will detect the
 `engineering-review-report.md` artifact and no-op if invoked.
 
 ### If TOTAL < 110: FAIL
@@ -1192,7 +1241,7 @@ Output the routing instruction:
   REMEDIATION REQUIRED: [feature-name]
   Failed categories: [list]
   Iteration: [N] of 3
-  Route: #5_gofer_implement → focused on [failed areas]
+  Route: /5_gofer_implement → focused on [failed areas]
 
 ════════════════════════════════════════════════════════════════
 ```
@@ -1267,7 +1316,7 @@ cycle, catching issues that the rubric-based validation might miss (edge cases,
 race conditions, API-contract drift against the as-implemented code, spec spirit
 violations).
 
-Phase C is the terminal stage of `#6_gofer_validate`. After Phase C completes,
+Phase C is the terminal stage of `/6_gofer_validate`. After Phase C completes,
 the feature pipeline is complete.
 
 ## Step 10a: Initialize Phase C
@@ -1539,12 +1588,12 @@ blast_radius_carryovers: [N]
   FEATURE PIPELINE COMPLETE!
 
   All Gofer stages finished:
-  1. #1_gofer_research ✓
-  2. #2_gofer_specify ✓
-  3. #3_gofer_plan ✓
-  4. #4_gofer_tasks ✓
-  5. #5_gofer_implement ✓
-  6. #6_gofer_validate ✓ (Phase A ✓, Phase B ✓, Phase C ✓)
+  1. /1_gofer_research ✓
+  2. /2_gofer_specify ✓
+  3. /3_gofer_plan ✓
+  4. /4_gofer_tasks ✓
+  5. /5_gofer_implement ✓
+  6. /6_gofer_validate ✓ (Phase A ✓, Phase B ✓, Phase C ✓)
 
   The feature is ready for review and merge.
 ════════════════════════════════════════════════════════════════
@@ -1567,12 +1616,12 @@ blast_radius_carryovers: [N]
   FEATURE PIPELINE COMPLETE!
 
   All Gofer stages finished:
-  1. #1_gofer_research ✓
-  2. #2_gofer_specify ✓
-  3. #3_gofer_plan ✓
-  4. #4_gofer_tasks ✓
-  5. #5_gofer_implement ✓
-  6. #6_gofer_validate ✓ (Phase A ✓, Phase B ✓, Phase C ⚠)
+  1. /1_gofer_research ✓
+  2. /2_gofer_specify ✓
+  3. /3_gofer_plan ✓
+  4. /4_gofer_tasks ✓
+  5. /5_gofer_implement ✓
+  6. /6_gofer_validate ✓ (Phase A ✓, Phase B ✓, Phase C ⚠)
 
   The feature is ready for review and merge (review Gray findings).
 ════════════════════════════════════════════════════════════════
@@ -1749,18 +1798,6 @@ This also logs quality metrics (rubric scores, finding counts) to:
 `.specify/logs/quality-metrics.jsonl`
 
 ---
-
-## Pipeline Continuation
-
-This completes the 6_gofer_validate stage. To continue the Gofer pipeline:
-
-**Next Command:** `#6a_gofer_engineering_review`
-
-The next stage will read the artifacts from this stage and continue the workflow
-automatically.
-
-**Note:** Copilot Chat supports context preservation. Your conversation history
-will be maintained as you progress through pipeline stages.
 
 ## Key Rules
 

@@ -282,6 +282,43 @@ Assume a novice user can read only in-repo/generated artifacts.
 
 ---
 
+## Step 4.5: Generate Research Visuals (Persona Pack — US4)
+
+After synthesis, dispatch the visual writers in parallel to produce the
+research-stage visuals. These run AFTER research findings are compiled so they
+can cite real integration points and capability mentions, but BEFORE
+`research.md` is finalized so the writers can append cross-references to the
+generated artefacts.
+
+Run two sub-agents concurrently:
+
+1. **`visual-c4-writer`** (Context level only at this stage)
+   - Inputs:
+     - `<feature_dir>/research.md` (working draft)
+     - `<feature_dir>/discovery.md` (if present)
+     - Template: `.specify/templates/visuals/c4-context-template.md`
+   - Output: `<feature_dir>/visuals/c4-context.md`
+   - Required: Mermaid `C4Context` block with named external systems and at
+     least one Person; plain-language preamble ≥30 ≤200 words.
+
+2. **`visual-heatmap-writer`** (Capability heatmap)
+   - Inputs:
+     - `<feature_dir>/research.md` (working draft)
+     - Template: `.specify/templates/visuals/capability-heatmap-template.md`
+   - Output: `<feature_dir>/visuals/capability-heatmap.md`
+   - Required: Mermaid `quadrantChart` placing each capability on maturity ×
+     strategic-value axes plus tabular complement listing touched / extended /
+     replaced capabilities.
+
+Both writers must honour the ≥30 ≤200 word plain-language preamble rule
+(NFR-010). If a renderer fails downstream, the `mermaid-tabular-fallback.mjs`
+helper provides a markdown-table replacement without losing information.
+
+Cross-reference the generated artefacts from `research.md` (Step 5) under a new
+`## Visuals` section.
+
+---
+
 ## Step 5: Generate Research Document
 
 Write to `{FEATURE_DIR}/research.md`:

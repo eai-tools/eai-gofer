@@ -310,6 +310,24 @@ Every section title above (`Problem Statement`,
 
 ---
 
+## Step 7.5: Assemble Stakeholder Visual Pack
+
+After all comms artifacts are generated, compose the stakeholder visual pack
+from `{FEATURE_DIR}/visuals/` into a single `stakeholder-pack.md` file. This
+runs in deterministic order (impact-canvas → C4 → value-stream → capability
+heatmap → bounded-context → ERD → risk-heatmap → ROI projection) and skips
+artifacts that were not generated (FR-028, NFR-011, T138).
+
+```bash
+node .specify/scripts/node/lib/assemble-stakeholder-pack.mjs $FEATURE_DIR
+```
+
+The assembler writes `{FEATURE_DIR}/stakeholder-pack.md` and prints which
+artifacts were included vs. missing so the operator can re-run the relevant
+visual generators if needed.
+
+---
+
 ## Step 8: Observability Logging
 
 ```bash

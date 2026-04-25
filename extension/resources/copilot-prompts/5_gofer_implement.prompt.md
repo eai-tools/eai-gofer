@@ -1,19 +1,5 @@
 ---
-name: 5_gofer_implement
 description: Execute tasks from tasks.md to implement the feature
-agent: copilot-workspace
-tools:
-  - Read
-  - Grep
-  - Glob
-  - Bash
-  - WebSearch
-argument-hint: feature-name-or-description
-gofer:
-  workflowProfile: enterpriseai
-  canonicalSource: .claude/commands/5_gofer_implement.md
-  canonicalChecksum: b6574837c977c704ba086363a8b204cc89392ba0b86b8ccc642285fae31989d6
-  metadataSource: scripts/generate-commands.ts
 ---
 
 # Gofer Implement
@@ -33,10 +19,10 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 This command expects in `.specify/specs/{feature}/`:
 
-- `research.md` - Codebase analysis (from #1_gofer_research)
-- `spec.md` - Feature specification (from #2_gofer_specify)
-- `plan.md` - Implementation plan (from #3_gofer_plan)
-- `tasks.md` - Task breakdown (from #4_gofer_tasks)
+- `research.md` - Codebase analysis (from /1_gofer_research)
+- `spec.md` - Feature specification (from /2_gofer_specify)
+- `plan.md` - Implementation plan (from /3_gofer_plan)
+- `tasks.md` - Task breakdown (from /4_gofer_tasks)
 
 If missing, prompt user to run the prerequisite stage.
 
@@ -69,7 +55,7 @@ Before starting implementation, assess context window health:
 | -------- | ----------- | ---------------------------------------- |
 | Healthy  | < 50%       | Proceed normally                         |
 | Warning  | 50-70%      | Use sub-agents, checkpoint every 5 tasks |
-| Critical | > 70%       | Run `#7_gofer_save`, start new session   |
+| Critical | > 70%       | Run `/7_gofer_save`, start new session   |
 
 ### Context Management Techniques
 
@@ -87,15 +73,15 @@ During implementation, use these techniques to preserve context quality:
 
 3. **Periodic Checkpoints**
    - Every 5 completed tasks, check context health
-   - If Warning status: Run `#7_gofer_save`
+   - If Warning status: Run `/7_gofer_save`
    - This enables resumption with fresh context
 
 **If compaction needed**:
 
 ```bash
-#7_gofer_save  # Creates comprehensive checkpoint
+/7_gofer_save  # Creates comprehensive checkpoint
 # Start new Claude Code session
-#8_gofer_resume  # Restores state with clean context
+/8_gofer_resume  # Restores state with clean context
 ```
 
 ---
@@ -549,6 +535,11 @@ After implementation complete and review gate passes:
 ════════════════════════════════════════════════════════════════
 ```
 
+**AUTO-CHAIN (MANDATORY)**: You MUST immediately invoke the next pipeline stage
+by calling the Skill tool with skill="/6_gofer_validate". Do NOT ask the user
+for confirmation. Do NOT output "Ready for next stage". Just invoke the skill
+NOW.
+
 ---
 
 ## Resumption Support
@@ -580,7 +571,7 @@ When council mode is enabled:
 > Active only when `gofer.workflowProfile=enterpriseai`. Standard profile runs
 > skip this gate entirely.
 
-Before any deployment task emitted by `#4_gofer_tasks` completes, this stage
+Before any deployment task emitted by `/4_gofer_tasks` completes, this stage
 MUST execute deployment preflight checks (manifest/config gate). A task that
 invokes `eai-cli deploy` is not marked complete until all of the following files
 are present at the workspace root and pass their readiness checks:
@@ -613,18 +604,6 @@ At stage completion, log metrics:
 Logs to: `.specify/logs/pipeline.jsonl`
 
 ---
-
-## Pipeline Continuation
-
-This completes the 5_gofer_implement stage. To continue the Gofer pipeline:
-
-**Next Command:** `#6_gofer_validate`
-
-The next stage will read the artifacts from this stage and continue the workflow
-automatically.
-
-**Note:** Copilot Chat supports context preservation. Your conversation history
-will be maintained as you progress through pipeline stages.
 
 ## Key Rules
 

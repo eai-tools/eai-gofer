@@ -1,8 +1,17 @@
 {
-  "latest_version": "3.0.0",
+  "latest_version": "4.0.0",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-04-25T03:09:04.354Z",
+  "last_updated": "2026-04-25T03:10:50.335Z",
   "releases": [
+    {
+      "version": "4.0.0",
+      "tag_name": "v4.0.0",
+      "published_at": "2026-04-25T03:10:50.334Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-4.0.0.vsix",
+      "notes": "Phase 1+2+3 source-of-truth generator",
+      "prerelease": false,
+      "size_mb": 10.4
+    },
     {
       "version": "3.0.0",
       "tag_name": "v3.0.0",
@@ -81,15 +90,6 @@
       "published_at": "2026-04-09T14:28:14.636Z",
       "download_url": "https://eai-tools.github.io/gofer/releases/gofer-2.0.4.vsix",
       "notes": "Fix cross-platform resource sync and Copilot provider detection",
-      "prerelease": false,
-      "size_mb": 10.3
-    },
-    {
-      "version": "2.0.3",
-      "tag_name": "v2.0.3",
-      "published_at": "2026-04-09T13:52:41.342Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-2.0.3.vsix",
-      "notes": "Fix Copilot-only CLI startup detection",
       "prerelease": false,
       "size_mb": 10.3
     }

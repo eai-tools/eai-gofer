@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [4.0.0] - 2026-04-25
+
+Phase 1+2+3 source-of-truth generator
+
 ## [3.0.0] - 2026-04-25
 
 feat: source-of-truth generator + persona-pack visuals + /gofer:\* namespace

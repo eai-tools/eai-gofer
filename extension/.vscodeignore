@@ -22,3 +22,10 @@ node_modules/**
 # BUT keep the prebuilds directory (multi-platform binaries)
 node_modules/node-pty-prebuilt-multiarch/build/**
 !node_modules/node-pty-prebuilt-multiarch/prebuilds/**
+# Persona-pack visuals + canonical command source-of-truth must ship in VSIX
+# (T171 — feature 001-cli-innovations-visuals).
+!resources/templates/visuals/**
+!resources/templates/visuals/*.md
+!resources/claude-commands/**
+!resources/copilot-prompts/**
+!resources/templates/**

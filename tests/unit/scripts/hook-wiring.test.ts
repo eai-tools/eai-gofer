@@ -1,0 +1,137 @@
+/**
+ * T056 — Hook wiring test.
+ *
+ * Verifies the root package.json contains the expected npm scripts:
+ * 1. gofer:codex-doctor is present and references the correct file
+ * 2. gofer:generate is present and references the correct file
+ * 3. gofer:mermaid-export is present and references the correct file
+ */
+import { describe, it, expect, beforeAll } from 'vitest';
+import { promises as fs } from 'fs';
+import path from 'path';
+
+const PROJECT_ROOT = path.resolve(new URL('../../../', import.meta.url).pathname);
+const PACKAGE_JSON_PATH = path.join(PROJECT_ROOT, 'package.json');
+
+interface PackageJson {
+  scripts: Record<string, string>;
+  [key: string]: unknown;
+}
+
+describe('hook-wiring (T056)', () => {
+  let packageJson: PackageJson;
+
+  beforeAll(async () => {
+    const raw = await fs.readFile(PACKAGE_JSON_PATH, 'utf8');
+    packageJson = JSON.parse(raw) as PackageJson;
+  });
+
+  it('package.json has a scripts section', () => {
+    expect(packageJson.scripts).toBeDefined();
+    expect(typeof packageJson.scripts).toBe('object');
+  });
+
+  // -------------------------------------------------------------------------
+  // Script presence checks
+  // -------------------------------------------------------------------------
+
+  it('gofer:codex-doctor script is present', () => {
+    expect(packageJson.scripts, 'package.json is missing gofer:codex-doctor script').toHaveProperty(
+      'gofer:codex-doctor'
+    );
+  });
+
+  it('gofer:generate script is present', () => {
+    expect(packageJson.scripts, 'package.json is missing gofer:generate script').toHaveProperty(
+      'gofer:generate'
+    );
+  });
+
+  it('gofer:mermaid-export script is present', () => {
+    expect(
+      packageJson.scripts,
+      'package.json is missing gofer:mermaid-export script'
+    ).toHaveProperty('gofer:mermaid-export');
+  });
+
+  // -------------------------------------------------------------------------
+  // Script file path checks
+  // -------------------------------------------------------------------------
+
+  it('gofer:codex-doctor references codex-doctor.mjs', () => {
+    const script = packageJson.scripts['gofer:codex-doctor'];
+    expect(script).toContain('codex-doctor.mjs');
+  });
+
+  it('gofer:codex-doctor references the .specify/scripts/node/ path', () => {
+    const script = packageJson.scripts['gofer:codex-doctor'];
+    expect(script).toContain('.specify/scripts/node/');
+  });
+
+  it('gofer:generate references generate-commands.mjs', () => {
+    const script = packageJson.scripts['gofer:generate'];
+    expect(script).toContain('generate-commands.mjs');
+  });
+
+  it('gofer:generate references the .specify/scripts/node/ path', () => {
+    const script = packageJson.scripts['gofer:generate'];
+    expect(script).toContain('.specify/scripts/node/');
+  });
+
+  it('gofer:mermaid-export references mermaid-export.mjs', () => {
+    const script = packageJson.scripts['gofer:mermaid-export'];
+    expect(script).toContain('mermaid-export.mjs');
+  });
+
+  it('gofer:mermaid-export references the .specify/scripts/node/ path', () => {
+    const script = packageJson.scripts['gofer:mermaid-export'];
+    expect(script).toContain('.specify/scripts/node/');
+  });
+
+  // -------------------------------------------------------------------------
+  // Script invocation style — should use node directly (not tsx/ts-node)
+  // -------------------------------------------------------------------------
+
+  it('gofer:codex-doctor uses node to invoke the script', () => {
+    const script = packageJson.scripts['gofer:codex-doctor'];
+    expect(script).toMatch(/^node\s/);
+  });
+
+  it('gofer:generate uses node to invoke the script', () => {
+    const script = packageJson.scripts['gofer:generate'];
+    expect(script).toMatch(/^node\s/);
+  });
+
+  it('gofer:mermaid-export uses node to invoke the script', () => {
+    const script = packageJson.scripts['gofer:mermaid-export'];
+    expect(script).toMatch(/^node\s/);
+  });
+
+  // -------------------------------------------------------------------------
+  // Referenced script files actually exist on disk
+  // -------------------------------------------------------------------------
+
+  it('codex-doctor.mjs exists on disk', async () => {
+    const scriptPath = path.join(PROJECT_ROOT, '.specify', 'scripts', 'node', 'codex-doctor.mjs');
+    const stat = await fs.stat(scriptPath).catch(() => null);
+    expect(stat, `codex-doctor.mjs not found at ${scriptPath}`).not.toBeNull();
+  });
+
+  it('generate-commands.mjs exists on disk', async () => {
+    const scriptPath = path.join(
+      PROJECT_ROOT,
+      '.specify',
+      'scripts',
+      'node',
+      'generate-commands.mjs'
+    );
+    const stat = await fs.stat(scriptPath).catch(() => null);
+    expect(stat, `generate-commands.mjs not found at ${scriptPath}`).not.toBeNull();
+  });
+
+  it('mermaid-export.mjs exists on disk', async () => {
+    const scriptPath = path.join(PROJECT_ROOT, '.specify', 'scripts', 'node', 'mermaid-export.mjs');
+    const stat = await fs.stat(scriptPath).catch(() => null);
+    expect(stat, `mermaid-export.mjs not found at ${scriptPath}`).not.toBeNull();
+  });
+});

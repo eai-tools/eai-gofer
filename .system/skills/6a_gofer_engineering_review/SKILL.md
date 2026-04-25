@@ -1,9 +1,8 @@
 ---
 name: 6a_gofer_engineering_review
-description:
-  Backwards-compat stub — engineering review is now Phase C of /6_gofer_validate
+description: Backwards-compat stub — engineering review is now Phase C of /6_gofer_validate
 gofer:
-  workflowProfile: standard
+  workflowProfile: enterpriseai
   canonicalSource: .claude/commands/6a_gofer_engineering_review.md
   canonicalChecksum: a3b6ac7813e3420dba49d75a6f69bc644216b208a591253a8cee32d937df3db6
   metadataSource: scripts/generate-commands.ts
@@ -24,10 +23,11 @@ result_schema:
         - error
 ---
 
+
 # Gofer Engineering Review (Back-Compat Stub)
 
-> **NOTE**: This command was consolidated into `$ $6_gofer_validate` (Phase C).
-> It remains in the pipeline sequence and `ENTERPRISE_AI_REFERENCE_COMMANDS` set
+> **NOTE**: This command was consolidated into `$ $6_gofer_validate` (Phase C). It
+> remains in the pipeline sequence and `ENTERPRISE_AI_REFERENCE_COMMANDS` set
 > for backwards compatibility with existing `pipeline-state.json` files,
 > orchestration logs, and any callers that still reference it by name.
 >
@@ -71,9 +71,9 @@ test -f "{FEATURE_DIR}/engineering-review-report.md"
 
 #### Case A — `engineering-review-report.md` exists (Phase C already ran)
 
-Phase C was executed inline by `$ $6_gofer_validate`. This stub has nothing to
-do. Read the existing report, emit the appropriate completion banner that
-matches the report's `status` field, and exit.
+Phase C was executed inline by `$ $6_gofer_validate`. This stub has nothing to do.
+Read the existing report, emit the appropriate completion banner that matches
+the report's `status` field, and exit.
 
 ```
 ════════════════════════════════════════════════════════════════
@@ -102,17 +102,17 @@ next command:
 Skill: skill="$ $6_gofer_validate", args="--phase-c-only"
 ```
 
-If your CLI does not support phase-scoped invocation, run `$ $6_gofer_validate`
-in full — it will detect an existing `validation-report.md` with `status: PASS`
-and `score: 100` (legacy) or `score: 110` (new) and skip straight to Phase C.
+If your CLI does not support phase-scoped invocation, run `$ $6_gofer_validate` in
+full — it will detect an existing `validation-report.md` with `status: PASS` and
+`score: 100` (legacy) or `score: 110` (new) and skip straight to Phase C.
 
 ---
 
 ## Rationale for the Consolidation
 
-The former `$ $6a_gofer_engineering_review` was always auto-chained from `/6`
-and shared the same feature directory, same prerequisites, and same cycle
-concept. Splitting them into two commands created:
+The former `$ $6a_gofer_engineering_review` was always auto-chained from `/6` and
+shared the same feature directory, same prerequisites, and same cycle concept.
+Splitting them into two commands created:
 
 - Duplicated context loading
 - Two separate pipeline-state transitions where one logical quality gate existed
@@ -156,5 +156,5 @@ read `.specify/logs/stage-completions.jsonl`.
 - **Always log stage completion** — even for no-op runs — so pipeline-state
   progression stays coherent
 - **This file is intentionally thin** — all review logic lives in
-  `$ $6_gofer_validate`. If you're reading this stub looking for review
-  behavior, open `.claude/commands$ $6_gofer_validate.md` Phase C instead.
+  `$ $6_gofer_validate`. If you're reading this stub looking for review behavior,
+  open `.claude/commands$ $6_gofer_validate.md` Phase C instead.

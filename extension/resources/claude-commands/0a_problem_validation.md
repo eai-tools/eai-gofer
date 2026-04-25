@@ -237,6 +237,39 @@ Mark ALL assumptions as `UNVALIDATED` at this stage.
 
 ---
 
+## Step 8a: Always Emit Market and Business Analysis Artifacts (FR-035)
+
+Regardless of the `competitiveAnalysisEnabled` constitutional setting, this
+stage MUST emit BOTH baseline traceability artifacts so downstream stages and
+audits can find them at deterministic paths:
+
+- `{FEATURE_DIR}/market-analysis.md` — competitive landscape and build-vs-buy
+  reasoning. When `competitiveAnalysisEnabled=false`, this file is still created
+  and contains a clearly worded **disabled-state notice** explaining that
+  competitive analysis was skipped per constitution and that the section is
+  reserved for future enrichment.
+- `{FEATURE_DIR}/business-analysis.md` — business case, ROI sketch,
+  cost-of-doing-nothing summary, and stakeholder impact mapping. Emitted
+  unconditionally; this is the primary record consumed by
+  `/7a_stakeholder_comms` and the validation council.
+
+When `competitiveAnalysisEnabled=false`, the market-analysis.md file includes
+the following stub at the top so consumers can detect the disabled state
+programmatically:
+
+```markdown
+> **Notice:** Competitive analysis is disabled in this project's constitution
+> (`competitiveAnalysisEnabled: false`). This file is emitted as a baseline
+> traceability artifact only and contains no competitor research. Re-enable in
+> `.specify/memory/constitution.md` if you want full market analysis on the next
+> pipeline run.
+```
+
+Both files participate in the same audit trail and are referenced from the
+`7_gofer_save` checkpoint and the `7a_stakeholder_comms` package.
+
+---
+
 ## Step 9: Report and Continue
 
 After saving artifacts:
@@ -254,6 +287,8 @@ After saving artifacts:
   Artifacts:
   - {FEATURE_DIR}/problem-brief.md
   - {FEATURE_DIR}/assumptions.md
+  - {FEATURE_DIR}/market-analysis.md
+  - {FEATURE_DIR}/business-analysis.md
 
   Recommendation: [PROCEED/INVESTIGATE/RECONSIDER]
 

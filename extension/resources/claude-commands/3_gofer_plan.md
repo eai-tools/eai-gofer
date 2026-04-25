@@ -229,6 +229,33 @@ Return: scenario count, prerequisite count"
 **Run all 4 agents in parallel.** Agents 2-4 read spec.md independently while
 Agent 1 generates the plan.
 
+### Agent 5-7: Visual Writers (Persona-Pack)
+
+After the planning agents complete and write plan.md, data-model.md, and
+contracts, dispatch three visual-writer sub-agents in parallel to produce the
+developer-persona-pack visuals:
+
+```
+Task: subagent_type="visual-c4-writer", model="sonnet"
+Prompt: "Generate C4 Context and Container diagrams for {FEATURE_NAME}.
+Feature dir: {FEATURE_DIR}. Read spec.md, research.md, plan.md.
+Output to {FEATURE_DIR}/visuals/c4-context.md and c4-container.md."
+
+Task: subagent_type="visual-bounded-context-writer", model="sonnet"
+Prompt: "Generate bounded-context map for {FEATURE_NAME}.
+Feature dir: {FEATURE_DIR}. Read plan.md, data-model.md, contracts/.
+Output to {FEATURE_DIR}/visuals/bounded-context.md."
+
+Task: subagent_type="visual-erd-writer", model="sonnet"
+Prompt: "Generate data-model ERD for {FEATURE_NAME}.
+Feature dir: {FEATURE_DIR}. Read data-model.md.
+Output to {FEATURE_DIR}/visuals/data-model-erd.md."
+```
+
+These three artifacts (c4-container.md, bounded-context.md, data-model-erd.md)
+are required for the developer persona pack. The persona-pack completeness gate
+at /4_gofer_tasks start will warn if any are missing.
+
 ---
 
 ## Step 3: Review Agent Outputs

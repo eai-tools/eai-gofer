@@ -1,19 +1,5 @@
 ---
-name: 2_gofer_specify
 description: Create feature specification informed by codebase research
-agent: copilot-workspace
-tools:
-  - Read
-  - Grep
-  - Glob
-  - Bash
-  - WebSearch
-argument-hint: feature-name-or-description
-gofer:
-  workflowProfile: enterpriseai
-  canonicalSource: .claude/commands/2_gofer_specify.md
-  canonicalChecksum: b08e4a867e878fe3cdd3af99a89e8e60c7def80ce49d3d665acbcd619346df40
-  metadataSource: scripts/generate-commands.ts
 ---
 
 # Gofer Specify
@@ -34,10 +20,10 @@ You **MUST** consider the user input before proceeding (if not empty).
 This command expects:
 
 - Feature directory already created at `.specify/specs/{feature}/`
-- `research.md` completed from `#1_gofer_research`
-- `proposal-review.md` approved from `#1_gofer_research`
+- `research.md` completed from `/1_gofer_research`
+- `proposal-review.md` approved from `/1_gofer_research`
 
-If these don't exist, prompt user to run `#1_gofer_research` first.
+If these don't exist, prompt user to run `/1_gofer_research` first.
 
 ---
 
@@ -103,7 +89,7 @@ Before starting specification, assess context window health:
 `proposal-review.md` is the approval gate between research and specification.
 
 - If `proposal-review.md` is missing: STOP and tell the user to run
-  `#1_gofer_research` so the review can be created.
+  `/1_gofer_research` so the review can be created.
 - If `proposal-review.md` exists but `status` is not `approved`: STOP and tell
   the user to finish the review conversation before writing `spec.md`.
 - If `proposal-review.md` is approved: capture the approved business scenario,
@@ -523,6 +509,10 @@ Sequence Diagrams: {FEATURE_DIR}/sequence-diagrams/
 Selected Option: Option {N} - {Name}
 ```
 
+**AUTO-CHAIN (MANDATORY)**: You MUST immediately invoke the next pipeline stage
+by calling the Skill tool with skill="/3_gofer_plan". Do NOT ask the user for
+confirmation. Do NOT output "Ready for next stage". Just invoke the skill NOW.
+
 ---
 
 ## Guidelines
@@ -530,7 +520,7 @@ Selected Option: Option {N} - {Name}
 ### Quick Guidelines
 
 - Focus on **WHAT** users need and **WHY**
-- Avoid HOW to implement (that's for #3_gofer_plan)
+- Avoid HOW to implement (that's for /3_gofer_plan)
 - Written for business stakeholders, not developers
 - **Use research findings** to inform requirements
 
@@ -590,15 +580,3 @@ At stage completion, log metrics:
 ```
 
 Logs to: `.specify/logs/pipeline.jsonl`
-
-## Pipeline Continuation
-
-This completes the 2_gofer_specify stage. To continue the Gofer pipeline:
-
-**Next Command:** `#3_gofer_plan`
-
-The next stage will read the artifacts from this stage and continue the workflow
-automatically.
-
-**Note:** Copilot Chat supports context preservation. Your conversation history
-will be maintained as you progress through pipeline stages.

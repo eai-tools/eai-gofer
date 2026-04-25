@@ -2,9 +2,9 @@
 name: 8_gofer_resume
 description: Resume work from saved session checkpoint with full context restoration
 gofer:
-  workflowProfile: standard
+  workflowProfile: enterpriseai
   canonicalSource: .claude/commands/8_gofer_resume.md
-  canonicalChecksum: b33ba9dfb2dbdccff6f1f80af38d8af64d8935208087d1c3c6a30b8615ccbcc7
+  canonicalChecksum: ef5cd7a4ce17df059ebf8c3bf51f6afb2f8542a6b8b030bf8b11c576d5c3b717
   metadataSource: scripts/generate-commands.ts
 arguments:
   - name: feature
@@ -75,10 +75,10 @@ If multiple sessions found:
 ```markdown
 ## Saved Sessions Found
 
-| Feature         | Stage            | Last Saved          | Tasks Done |
-| --------------- | ---------------- | ------------------- | ---------- |
-| [feature-1]     | 5_implement      | 2026-01-13 14:30    | 12/25      |
-| [feature-2]     | 3_plan           | 2026-01-12 09:15    | 0/0        |
+| Feature     | Stage       | Last Saved       | Tasks Done |
+| ----------- | ----------- | ---------------- | ---------- |
+| [feature-1] | 5_implement | 2026-01-13 14:30 | 12/25      |
+| [feature-2] | 3_plan      | 2026-01-12 09:15 | 0/0        |
 
 Which feature would you like to resume?
 ```
@@ -228,31 +228,33 @@ Based on tasks.md and checkpoint:
 ## Step 6: Signal Ready to Continue
 
 ```markdown
+================================================================ CONTEXT
+RESTORED: [Feature Name]
 ================================================================
-  CONTEXT RESTORED: [Feature Name]
-================================================================
 
-  Resuming from: [checkpoint timestamp]
-  Branch: [branch name]
-  Stage: [pipeline stage]
+Resuming from: [checkpoint timestamp] Branch: [branch name] Stage: [pipeline
+stage]
 
-  Progress:
-  - Tasks completed: [X]/[Total]
-  - Current phase: [Phase name]
-  - Current task: [Task ID] - [Description]
+Progress:
 
-  Files to focus on:
-  - [Current file from checkpoint]
-  - [Next file in task list]
+- Tasks completed: [X]/[Total]
+- Current phase: [Phase name]
+- Current task: [Task ID] - [Description]
 
-  Code Status:
-  - Build: [passing/failing]
-  - Tests: [passing/failing/skipped]
-  - Changes since save: [N commits]
+Files to focus on:
 
-  Ready to continue with: $ $5_gofer_implement
+- [Current file from checkpoint]
+- [Next file in task list]
 
-  Or I can pick up exactly where we left off...
+Code Status:
+
+- Build: [passing/failing]
+- Tests: [passing/failing/skipped]
+- Changes since save: [N commits]
+
+Ready to continue with: $ $5_gofer_implement
+
+Or I can pick up exactly where we left off...
 
 ================================================================
 ```
@@ -365,7 +367,6 @@ Options:
 Warning: Build is currently failing.
 
 Error:
-
 ```
 
 [build error output]

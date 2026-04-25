@@ -294,8 +294,8 @@ In conflicts between this document and other practices:
 
 **Version Added**: 2.1.0 | **Feature**: 029-memory-system-v2
 
-The `gofer://` URI scheme provides uniform resource access across memory,
-specs, agents, and sessions without coupling code to filesystem paths.
+The `gofer://` URI scheme provides uniform resource access across memory, specs,
+agents, and sessions without coupling code to filesystem paths.
 
 ### URI Format
 
@@ -305,19 +305,20 @@ gofer://{scope}/{path}[#{fragment}]
 
 ### Scopes
 
-| Scope     | Filesystem Mapping                          | Example                                         |
-| --------- | ------------------------------------------- | ----------------------------------------------- |
-| `specs`   | `.specify/specs/{path}`                     | `gofer://specs/029-memory-system-v2/spec.md`    |
-| `memory`  | `.specify/memory/{path}`                    | `gofer://memory/core/task-context.md`           |
-| `agent`   | `.claude/agents/{path}`                     | `gofer://agent/validation-security.md`          |
-| `session` | `.specify/specs/{path}` (feature-scoped)    | `gofer://session/029-memory-system-v2/tasks.md` |
-| `user`    | `~/.claude/projects/memory/{path}`          | `gofer://user/global-patterns.md`               |
+| Scope     | Filesystem Mapping                       | Example                                         |
+| --------- | ---------------------------------------- | ----------------------------------------------- |
+| `specs`   | `.specify/specs/{path}`                  | `gofer://specs/029-memory-system-v2/spec.md`    |
+| `memory`  | `.specify/memory/{path}`                 | `gofer://memory/core/task-context.md`           |
+| `agent`   | `.claude/agents/{path}`                  | `gofer://agent/validation-security.md`          |
+| `session` | `.specify/specs/{path}` (feature-scoped) | `gofer://session/029-memory-system-v2/tasks.md` |
+| `user`    | `~/.claude/projects/memory/{path}`       | `gofer://user/global-patterns.md`               |
 
 ### Security Requirements
 
 - **Path traversal MUST be blocked**: `../` sequences and URL-encoded variants
   (`%2e%2e`) are rejected
-- **Absolute paths MUST be rejected**: double-slash URIs creating `/path` are blocked
+- **Absolute paths MUST be rejected**: double-slash URIs creating `/path` are
+  blocked
 - **Scope MUST be validated**: only the 5 defined scopes are accepted
 - Implementation: `GoferURIResolver.resolve()` in
   `extension/src/autonomous/memory/GoferURI.ts`
@@ -329,6 +330,7 @@ access. When an agent receives `gofer://memory/core/task-context.md`, the
 extension resolves it to the current workspace path.
 
 **Example in agent prompt**:
+
 ```
 Load the following contexts before starting:
 - Past patterns: gofer://memory/patterns/auth.md
@@ -339,6 +341,7 @@ Load the following contexts before starting:
 ### Glob Pattern Support
 
 Use `*` for single-level matching:
+
 ```
 gofer://specs/029-*/research.md     # All 029 research docs
 gofer://agent/validation-*.md       # All validation agents
@@ -349,3 +352,80 @@ gofer://agent/validation-*.md       # All validation agents
 - **Parser**: `parseGoferURI()` in `GoferURI.ts`
 - **Resolver**: `GoferURIResolver.resolve()` and `resolveGlob()`
 - **Integration**: `MemoryManager.loadByURI()` for memory scope
+
+---
+
+## Codex Skill Distribution (Hard Invariant 2)
+
+**Version Added**: 2.2.0 | **Feature**: 001-cli-innovations-visuals
+
+Gofer's Codex skill bundles emit to `.agents/skills/gofer/<stage>/SKILL.md`
+(flat, non-tenanted layout). This is the official Codex discovery path;
+`.claude/skills/` is NOT a Codex target. The two distribution paths are distinct
+and MUST NOT be conflated.
+
+### Constraints
+
+- **Per-skill description limit**: Each `SKILL.md` description MUST be ≤140
+  characters (UTF-8 bytes). The source-of-truth generator rejects emit when any
+  description exceeds this limit (FR-006).
+- **Cumulative description budget**: Cumulative description bytes across the 16
+  canonical Gofer stages MUST be ≤2048 bytes (≤2KB). Codex preloads ~2% of
+  context for skill name+description text; over-budget triggers a global drop of
+  ALL skill descriptions, not per-bundle eviction (NFR-004, SC-006).
+- **Per-CLI exclusion**: 5 Claude-only stages (`0_business_scenario`,
+  `gofer_constitution`, `gofer_hydrate`, `7_gofer_save`, `8_gofer_resume`) are
+  NOT emitted to Codex / Gemini / Copilot / GitHub-prompts surfaces (FR-007,
+  SC-012).
+- **Flat tree**: Codex skill files emit at depth ≤2 from `.agents/skills/`; no
+  `<tenant>/<stage>/` nesting (FR-008).
+- **No fictional config keys**: The official Codex disable knob is per-skill
+  `[[skills.config]] enabled = false` in `~/.codex/config.toml`. There is NO
+  `skills_context_budget_percent` config key — do NOT invent one (FR-011,
+  SC-011).
+
+### Diagnostic — `gofer codex doctor`
+
+`gofer codex doctor` is a **read-only** diagnostic that scans `~/.codex/skills`,
+lists duplicate Gofer bundles, prints which paths exceed the 2% budget, and
+emits a paste-ready `[[skills.config]] enabled = false` block. It MUST NOT
+modify any file on disk (FR-009).
+
+---
+
+## Source-of-Truth (FR-001)
+
+**Version Added**: 2.2.0 | **Feature**: 001-cli-innovations-visuals
+
+All stage commands and control commands derive from canonical files at
+`.specify/commands/<stage>.md`. Each file has YAML frontmatter (name,
+description, surfaces, category, aliases, args) followed by a Markdown body.
+
+### Generator
+
+The generator at `.specify/scripts/node/generate-commands.mjs` emits to all
+configured CLI surfaces:
+
+- `.claude/commands/` (Claude Code)
+- `extension/resources/claude-prompts/` (Claude-mirror, VSCode)
+- `extension/resources/copilot-prompts/` (Copilot)
+- `.github/prompts/` (GitHub Prompts)
+- `.agents/skills/gofer/` (Codex)
+- `.gemini/commands/gofer/` (Gemini)
+- `.system/skills/` (system)
+
+### Anti-drift Guard
+
+Hand-edits to emitted files (`.claude/commands/`, `.github/prompts/`,
+`extension/resources/copilot-prompts/`, `.agents/skills/`, etc.) are detected by
+the generator and rejected without `--force-emit`. Always port the change back
+into the canonical `.specify/commands/<stage>.md` and re-run
+`npm run gofer:generate`.
+
+### Operator Commands
+
+| Command                        | Purpose                                                         |
+| ------------------------------ | --------------------------------------------------------------- |
+| `npm run gofer:generate`       | Regenerate all CLI surfaces from `.specify/commands/<stage>.md` |
+| `npm run gofer:codex-doctor`   | Read-only Codex skill-budget diagnostic                         |
+| `npm run gofer:mermaid-export` | Optional visual export via `mmdc` (NEVER uses `--no-sandbox`)   |

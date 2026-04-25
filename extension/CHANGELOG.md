@@ -2,25 +2,62 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [3.0.0] - 2026-04-25
+
+feat: source-of-truth generator + persona-pack visuals + /gofer:\* namespace
+
+Phase 1: Single canonical .specify/commands/<stage>.md per stage emits to 8 CLI
+surfaces. Byte-equivalence gate enforces no-regression. gofer codex doctor
+read-only diagnostic. Per-CLI exclusion of 5 Claude-only stages.
+
+Phase 1.7: 16 /gofer:\* additive aliases plus 3 control commands (/gofer:plan
+plan-mode toggle, /gofer:side, /gofer:personality). ADR-003 namespace split.
+
+Phase 2: 10 persona-pack visual templates. 7 visual-writer sub-agents. Two-pass
+canvas. Mermaid tabular fallback.
+
+Phase 3: Plugin manifests (.claude-plugin/plugin.json, .gemini/extension.json,
+AGENTS.md, codex-config.toml). Stakeholder-pack assembler. mermaid-export.mjs.
+
+186 tasks. 3296 tests passing. No-regression on existing /0-/10 commands, 37
+sub-agents.
+
 ## [2.0.11] - 2026-04-21
 
-security: fix 48 of 55 npm audit vulnerabilities — remove unused wdio-vscode-service + @wdio/cli (23 CVEs in dev-only webdriverio v8 tree), remove deprecated electron-rebuild duplicate, bump @electron/rebuild 3.7.2 → 4.0.3. Remaining 7 are mocha's transitive diff/serialize-javascript — no upstream fix. Purely dev-only. All 2549 tests pass.
+security: fix 48 of 55 npm audit vulnerabilities — remove unused
+wdio-vscode-service + @wdio/cli (23 CVEs in dev-only webdriverio v8 tree),
+remove deprecated electron-rebuild duplicate, bump @electron/rebuild 3.7.2 →
+4.0.3. Remaining 7 are mocha's transitive diff/serialize-javascript — no
+upstream fix. Purely dev-only. All 2549 tests pass.
 
 ## [2.0.10] - 2026-04-20
 
-infra(release): add scripts/sync-extension-resources.sh and wire into release-auto.sh so every VSIX bundles current canonical content. Adds 10 missing templates (stakeholder-comms, business-metrics, discovery, problem-brief, assumptions, brownfield-analysis, spec-summary, session-handoff, journey/, sequence-diagrams/) to extension/resources/templates/ so eai init delivers them. Prevents the v2.0.5-v2.0.8 class of stale-bundle regressions.
+infra(release): add scripts/sync-extension-resources.sh and wire into
+release-auto.sh so every VSIX bundles current canonical content. Adds 10 missing
+templates (stakeholder-comms, business-metrics, discovery, problem-brief,
+assumptions, brownfield-analysis, spec-summary, session-handoff, journey/,
+sequence-diagrams/) to extension/resources/templates/ so eai init delivers them.
+Prevents the v2.0.5-v2.0.8 class of stale-bundle regressions.
 
 ## [2.0.9] - 2026-04-20
 
-fix(vsix-bundle): sync extension/resources/ from canonical — ships Phase B blast-radius + Cat 11 in /6, EnterpriseAI extensions in /0-/5+/7a, copilot) case in install-optional-tools.sh. Previous v2.0.5-v2.0.8 VSIX bundles shipped pre-blast-radius content because extension/resources was stale.
+fix(vsix-bundle): sync extension/resources/ from canonical — ships Phase B
+blast-radius + Cat 11 in /6, EnterpriseAI extensions in /0-/5+/7a, copilot) case
+in install-optional-tools.sh. Previous v2.0.5-v2.0.8 VSIX bundles shipped
+pre-blast-radius content because extension/resources was stale.
 
 ## [2.0.8] - 2026-04-20
 
-feat(install): add copilot) case to optional-tools install scripts (bash + powershell) — installs @github/copilot alongside existing claude, @openai/codex-cli, and @google/gemini-cli. Reconciles drift with eai-cli bundled copy.
+feat(install): add copilot) case to optional-tools install scripts (bash +
+powershell) — installs @github/copilot alongside existing claude,
+@openai/codex-cli, and @google/gemini-cli. Reconciles drift with eai-cli bundled
+copy.
 
 ## [2.0.7] - 2026-04-20
 
-feat(commands): EnterpriseAI workflow profile extensions — adds required sections to /0, /2, /3, /4, /5, /7a commands plus plan/tasks templates so feature 029 integration tests pass. All 2549 tests now green.
+feat(commands): EnterpriseAI workflow profile extensions — adds required
+sections to /0, /2, /3, /4, /5, /7a commands plus plan/tasks templates so
+feature 029 integration tests pass. All 2549 tests now green.
 
 ## [2.0.6] - 2026-04-20
 

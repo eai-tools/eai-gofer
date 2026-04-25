@@ -1,31 +1,17 @@
 ---
-name: 6a_gofer_engineering_review
 description:
   Backwards-compat stub — engineering review is now Phase C of /6_gofer_validate
-agent: copilot-workspace
-tools:
-  - Read
-  - Grep
-  - Glob
-  - Bash
-  - WebSearch
-argument-hint: feature-name-or-description
-gofer:
-  workflowProfile: standard
-  canonicalSource: .claude/commands/6a_gofer_engineering_review.md
-  canonicalChecksum: a3b6ac7813e3420dba49d75a6f69bc644216b208a591253a8cee32d937df3db6
-  metadataSource: scripts/generate-commands.ts
 ---
 
 # Gofer Engineering Review (Back-Compat Stub)
 
-> **NOTE**: This command was consolidated into `#6_gofer_validate` (Phase C). It
+> **NOTE**: This command was consolidated into `/6_gofer_validate` (Phase C). It
 > remains in the pipeline sequence and `ENTERPRISE_AI_REFERENCE_COMMANDS` set
 > for backwards compatibility with existing `pipeline-state.json` files,
 > orchestration logs, and any callers that still reference it by name.
 >
 > All engineering-review logic now lives in **Phase C** of
-> `.claude/commands#6_gofer_validate.md`. This stub is a thin router.
+> `.claude/commands/6_gofer_validate.md`. This stub is a thin router.
 
 ## User Input
 
@@ -39,9 +25,9 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 This command expects in `.specify/specs/{feature}/`:
 
-- `validation-report.md` — from `#6_gofer_validate` Phase A+B (status PASS)
-- `blast-radius-report.md` — from `#6_gofer_validate` Phase B
-- Optionally `engineering-review-report.md` — from `#6_gofer_validate` Phase C
+- `validation-report.md` — from `/6_gofer_validate` Phase A+B (status PASS)
+- `blast-radius-report.md` — from `/6_gofer_validate` Phase B
+- Optionally `engineering-review-report.md` — from `/6_gofer_validate` Phase C
   (if Phase C has already run)
 
 ---
@@ -64,7 +50,7 @@ test -f "{FEATURE_DIR}/engineering-review-report.md"
 
 #### Case A — `engineering-review-report.md` exists (Phase C already ran)
 
-Phase C was executed inline by `#6_gofer_validate`. This stub has nothing to do.
+Phase C was executed inline by `/6_gofer_validate`. This stub has nothing to do.
 Read the existing report, emit the appropriate completion banner that matches
 the report's `status` field, and exit.
 
@@ -77,7 +63,7 @@ the report's `status` field, and exit.
   Cycles used: [N] of 5
   Report: {FEATURE_DIR}/engineering-review-report.md
 
-  Phase C of #6_gofer_validate has already executed.
+  Phase C of /6_gofer_validate has already executed.
   Nothing further to do from the /6a stub.
 ════════════════════════════════════════════════════════════════
 ```
@@ -88,14 +74,14 @@ files. This is a pure no-op redirect.
 #### Case B — `engineering-review-report.md` is absent (legacy caller)
 
 A legacy caller invoked `/6a` directly without running the new consolidated
-`#6_gofer_validate`. Delegate to `#6_gofer_validate` Phase C by invoking the
-next command:
+`/6_gofer_validate`. Delegate to `/6_gofer_validate` Phase C by invoking the
+Skill tool:
 
 ```
-Skill: skill="#6_gofer_validate", args="--phase-c-only"
+Skill: skill="/6_gofer_validate", args="--phase-c-only"
 ```
 
-If your CLI does not support phase-scoped invocation, run `#6_gofer_validate` in
+If your CLI does not support phase-scoped invocation, run `/6_gofer_validate` in
 full — it will detect an existing `validation-report.md` with `status: PASS` and
 `score: 100` (legacy) or `score: 110` (new) and skip straight to Phase C.
 
@@ -103,7 +89,7 @@ full — it will detect an existing `validation-report.md` with `status: PASS` a
 
 ## Rationale for the Consolidation
 
-The former `#6a_gofer_engineering_review` was always auto-chained from `/6` and
+The former `/6a_gofer_engineering_review` was always auto-chained from `/6` and
 shared the same feature directory, same prerequisites, and same cycle concept.
 Splitting them into two commands created:
 
@@ -111,7 +97,7 @@ Splitting them into two commands created:
 - Two separate pipeline-state transitions where one logical quality gate existed
 - Ambiguity about where Phase B (blast-radius) findings should flow
 
-Consolidating into a 3-phase `#6_gofer_validate` (Rubric → Blast Radius →
+Consolidating into a 3-phase `/6_gofer_validate` (Rubric → Blast Radius →
 Engineering Review Loop) gives:
 
 - One artifact trail: `validation-report.md` + `blast-radius-report.md` +
@@ -123,7 +109,7 @@ Engineering Review Loop) gives:
 Nothing was removed. Every Phase C agent (engineer-review, codebase-analyzer,
 validation-correctness) and every cycle-management rule (5-cycle cap, Red-
 before-Yellow fix priority, re-verify after fixes, escalation on exhaustion) is
-preserved verbatim inside `#6_gofer_validate` Phase C.
+preserved verbatim inside `/6_gofer_validate` Phase C.
 
 ---
 
@@ -145,9 +131,9 @@ read `.specify/logs/stage-completions.jsonl`.
 - **Never re-run Phase C agents when the report already exists** — that would
   double-count findings and break attribution logs
 - **Never write `engineering-review-report.md` from this stub** — only
-  `#6_gofer_validate` Phase C writes it
+  `/6_gofer_validate` Phase C writes it
 - **Always log stage completion** — even for no-op runs — so pipeline-state
   progression stays coherent
 - **This file is intentionally thin** — all review logic lives in
-  `#6_gofer_validate`. If you're reading this stub looking for review behavior,
-  open `.claude/commands#6_gofer_validate.md` Phase C instead.
+  `/6_gofer_validate`. If you're reading this stub looking for review behavior,
+  open `.claude/commands/6_gofer_validate.md` Phase C instead.

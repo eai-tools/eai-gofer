@@ -1,19 +1,5 @@
 ---
-name: 4_gofer_tasks
 description: Generate actionable task breakdown from implementation plan
-agent: copilot-workspace
-tools:
-  - Read
-  - Grep
-  - Glob
-  - Bash
-  - WebSearch
-argument-hint: feature-name-or-description
-gofer:
-  workflowProfile: enterpriseai
-  canonicalSource: .claude/commands/4_gofer_tasks.md
-  canonicalChecksum: c95e60d02fff74a7afb2874e67d8f1e0147716c36442b6d5a0387b1294d7993c
-  metadataSource: scripts/generate-commands.ts
 ---
 
 # Gofer Tasks
@@ -33,9 +19,9 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 This command expects in `.specify/specs/{feature}/`:
 
-- `research.md` - Codebase analysis (from #1_gofer_research)
-- `spec.md` - Feature specification (from #2_gofer_specify)
-- `plan.md` - Implementation plan (from #3_gofer_plan)
+- `research.md` - Codebase analysis (from /1_gofer_research)
+- `spec.md` - Feature specification (from /2_gofer_specify)
+- `plan.md` - Implementation plan (from /3_gofer_plan)
 
 If missing, prompt user to run the prerequisite stage.
 
@@ -391,7 +377,7 @@ Display the task summary and request explicit approval:
 
 | Response                    | Action                                                       |
 | --------------------------- | ------------------------------------------------------------ |
-| `approved` / `lgtm` / `yes` | Update status to `approved`, proceed to `#5_gofer_implement` |
+| `approved` / `lgtm` / `yes` | Update status to `approved`, proceed to `/5_gofer_implement` |
 | `modify [feedback]`         | Update tasks based on feedback, re-present for approval      |
 | `stop`                      | Halt pipeline, document reason in tasks.md                   |
 
@@ -422,6 +408,11 @@ After approval received:
 
 Engineering Review: PASSED (cycle [N] of 5)
 ```
+
+**AUTO-CHAIN (MANDATORY)**: You MUST immediately invoke the next pipeline stage
+by calling the Skill tool with skill="/5_gofer_implement". Do NOT ask the user
+for confirmation. Do NOT output "Ready for next stage". Just invoke the skill
+NOW.
 
 ---
 
@@ -458,7 +449,7 @@ manifest artifacts exist before any deploy command runs.
    - Inherits the `major.minor` pin recorded in `plan.md`.
 
 <!-- prettier-ignore -->
-The ordering above is non-negotiable: tasks.md MUST instruct the pipeline to scaffold before deployment, validate before deploy, and only then invoke pinned `eai-cli major.minor` deployment tasks. Breaking the order causes deployment preflight gating in `#5_gofer_implement` to fail.
+The ordering above is non-negotiable: tasks.md MUST instruct the pipeline to scaffold before deployment, validate before deploy, and only then invoke pinned `eai-cli major.minor` deployment tasks. Breaking the order causes deployment preflight gating in `/5_gofer_implement` to fail.
 
 ---
 
@@ -473,18 +464,6 @@ At stage completion, log metrics:
 Logs to: `.specify/logs/pipeline.jsonl`
 
 ---
-
-## Pipeline Continuation
-
-This completes the 4_gofer_tasks stage. To continue the Gofer pipeline:
-
-**Next Command:** `#5_gofer_implement`
-
-The next stage will read the artifacts from this stage and continue the workflow
-automatically.
-
-**Note:** Copilot Chat supports context preservation. Your conversation history
-will be maintained as you progress through pipeline stages.
 
 ## Key Rules
 

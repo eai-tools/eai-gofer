@@ -1,8 +1,17 @@
 {
-  "latest_version": "3.0.0",
+  "latest_version": "3.0.1",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-04-25T03:14:48.692Z",
+  "last_updated": "2026-04-28T04:57:19.798Z",
   "releases": [
+    {
+      "version": "3.0.1",
+      "tag_name": "v3.0.1",
+      "published_at": "2026-04-28T04:57:19.797Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-3.0.1.vsix",
+      "notes": "Fix Codex install repair and cross-CLI docs",
+      "prerelease": false,
+      "size_mb": 10.5
+    },
     {
       "version": "3.0.0",
       "tag_name": "v3.0.0",
@@ -81,15 +90,6 @@
       "published_at": "2026-04-20T13:18:50.730Z",
       "download_url": "https://eai-tools.github.io/gofer/releases/gofer-2.0.6.vsix",
       "notes": "feat(commands): add EnterpriseAI workflow profile extensions to /0, /2, /3, /4, /5, /7a plus plan/tasks templates — closes feature 029 content gap so all 2549 tests pass",
-      "prerelease": false,
-      "size_mb": 10.3
-    },
-    {
-      "version": "2.0.5",
-      "tag_name": "v2.0.5",
-      "published_at": "2026-04-20T12:35:38.164Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-2.0.5.vsix",
-      "notes": "feat(validate): unify /6+/6a and add Phase B blast-radius analysis (change-graph, interface-contract diff, observability, dependency/submodule impact, rollback readiness) — rubric now 110 pts with new Category 11",
       "prerelease": false,
       "size_mb": 10.3
     }

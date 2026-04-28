@@ -12,6 +12,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
+import { createHash } from 'crypto';
 import { Logger } from '../Logger';
 import { FileUtils } from '../../utils/fileUtils';
 import { IResourceOperations } from './UpgradeService';
@@ -46,6 +47,11 @@ interface NonDestructiveSyncSummary {
   unchanged: number;
 }
 
+interface CodexConfigRepairResult {
+  content: string;
+  changedEntries: number;
+}
+
 function isNodeErrorWithCode(error: unknown): error is NodeJS.ErrnoException {
   return typeof error === 'object' && error !== null && 'code' in error;
 }
@@ -58,6 +64,36 @@ export function resolveResourceTargetPath(specifyPath: string, targetSubdir: str
   return isAbsolutePathAcrossPlatforms(targetSubdir)
     ? targetSubdir
     : path.join(specifyPath, targetSubdir);
+}
+
+export function enableManagedCodexSkillConfigEntries(
+  configContent: string,
+  managedSkillPaths: ReadonlySet<string>
+): CodexConfigRepairResult {
+  let changedEntries = 0;
+  const blockPattern = /\[\[skills\.config\]\][\s\S]*?(?=\n\[\[|\n\[(?!\[)|$)/g;
+
+  const content = configContent.replace(blockPattern, (block) => {
+    const pathMatch = block.match(/^\s*path\s*=\s*"((?:\\"|[^"])*)"\s*$/m);
+    if (!pathMatch) {
+      return block;
+    }
+
+    const configuredPath = pathMatch[1].replace(/\\"/g, '"');
+    const normalizedPath = path.resolve(configuredPath).replace(/\\/g, '/');
+    if (!managedSkillPaths.has(normalizedPath)) {
+      return block;
+    }
+
+    if (!/^\s*enabled\s*=\s*false\s*$/m.test(block)) {
+      return block;
+    }
+
+    changedEntries++;
+    return block.replace(/^(\s*enabled\s*=\s*)false\s*$/m, '$1true');
+  });
+
+  return { content, changedEntries };
 }
 
 /**
@@ -74,6 +110,16 @@ export function resolveResourceTargetPath(specifyPath: string, targetSubdir: str
 export class ResourceSyncer implements IResourceOperations {
   private workspacePath: string = '';
   private specifyPath: string = '';
+  private readonly codexExcludedSkillNames = [
+    '0_business_scenario',
+    '7_gofer_save',
+    '8_gofer_resume',
+    'gofer_constitution',
+    'gofer_hydrate',
+    'gofer:personality',
+    'gofer:plan',
+    'gofer:side',
+  ];
 
   constructor(private readonly logger: Logger) {}
 
@@ -351,6 +397,39 @@ export class ResourceSyncer implements IResourceOperations {
     );
   }
 
+  public async setupGeminiCommands(): Promise<void> {
+    this.logger.info('ResourceSyncer', 'Copying Gemini CLI extension commands');
+
+    try {
+      const extensionPath = this.getExtensionPath();
+      if (!extensionPath) {
+        this.logger.warn('ResourceSyncer', 'Could not find extension path for Gemini commands');
+        return;
+      }
+
+      const sourcePath = path.join(extensionPath, 'resources', 'gemini');
+      const targetPath = path.join(this.workspacePath, '.gemini');
+
+      if (!(await FileUtils.exists(sourcePath))) {
+        this.logger.warn('ResourceSyncer', 'No bundled Gemini commands found, skipping', {
+          sourcePath,
+        });
+        return;
+      }
+
+      const summary = await this.syncDirectoryNonDestructive(sourcePath, targetPath);
+      this.logger.info('ResourceSyncer', 'Successfully synced Gemini CLI commands', {
+        source: sourcePath,
+        target: targetPath,
+        summary,
+      });
+    } catch (error) {
+      this.logger.error('ResourceSyncer', error as Error, {
+        operation: 'setupGeminiCommands',
+      });
+    }
+  }
+
   public async setupCodexSkills(): Promise<void> {
     this.logger.info('ResourceSyncer', 'Generating Codex CLI skills from Claude commands');
 
@@ -370,11 +449,65 @@ export class ResourceSyncer implements IResourceOperations {
         workflowProfile,
       });
 
+      const systemPruned = await this.removeCodexExcludedSkills(
+        path.join(this.workspacePath, '.system', 'skills')
+      );
+      if (systemPruned > 0) {
+        this.logger.info('ResourceSyncer', 'Pruned Claude-only skills from .system/skills', {
+          removed: systemPruned,
+        });
+      }
+
       await this.syncCodexSkillsToAgents();
+
+      const agentsPruned = await this.removeCodexExcludedSkills(
+        path.join(this.workspacePath, '.agents', 'skills')
+      );
+      if (agentsPruned > 0) {
+        this.logger.info('ResourceSyncer', 'Pruned Claude-only skills from .agents/skills', {
+          removed: agentsPruned,
+        });
+      }
     } catch (error) {
       this.logger.error('ResourceSyncer', error as Error, {
         operation: 'setupCodexSkills',
       });
+      throw error;
+    }
+  }
+
+  private async removeCodexExcludedSkills(skillsRoot: string): Promise<number> {
+    let removed = 0;
+
+    for (const skillName of this.codexExcludedSkillNames) {
+      const skillDir = path.join(skillsRoot, skillName);
+      if (!(await this.isGeneratedGoferSkillDirectory(skillDir, skillName))) {
+        continue;
+      }
+
+      await fs.rm(skillDir, { recursive: true, force: true });
+      removed++;
+    }
+
+    return removed;
+  }
+
+  private async isGeneratedGoferSkillDirectory(
+    skillDir: string,
+    skillName: string
+  ): Promise<boolean> {
+    const skillPath = path.join(skillDir, 'SKILL.md');
+    try {
+      const content = await fs.readFile(skillPath, 'utf-8');
+      return (
+        content.includes('gofer:') ||
+        content.includes(`name: ${skillName}`) ||
+        content.includes(`name: gofer/${skillName}`)
+      );
+    } catch (error: unknown) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        return false;
+      }
       throw error;
     }
   }
@@ -499,12 +632,10 @@ export class ResourceSyncer implements IResourceOperations {
     this.logger.info('ResourceSyncer', 'Setting up global Codex CLI symlink');
 
     try {
-      // Get workspace folder name for symlink name
-      const workspaceName = path.basename(this.workspacePath);
       const homeDir = os.homedir();
       const codexSkillsDir = path.join(homeDir, '.codex', 'skills');
-      const symlinkPath = path.join(codexSkillsDir, workspaceName);
       const targetPath = path.join(this.workspacePath, '.agents', 'skills');
+      const symlinkPath = await this.resolveCodexGlobalSymlinkPath(codexSkillsDir, targetPath);
 
       // Check if source directory exists
       const sourceExists = await FileUtils.exists(targetPath);
@@ -518,12 +649,10 @@ export class ResourceSyncer implements IResourceOperations {
       // Ensure ~/.codex/skills directory exists
       await fs.mkdir(codexSkillsDir, { recursive: true });
 
-      // Check if symlink already exists
       let needsCreation = true;
       try {
         const stats = await fs.lstat(symlinkPath);
         if (stats.isSymbolicLink()) {
-          // Verify it points to the correct target
           const currentTarget = await fs.readlink(symlinkPath);
           const resolvedCurrent = path.resolve(path.dirname(symlinkPath), currentTarget);
           const resolvedTarget = path.resolve(targetPath);
@@ -539,19 +668,18 @@ export class ResourceSyncer implements IResourceOperations {
             );
             needsCreation = false;
           } else {
-            // Symlink exists but points to wrong location, remove it
-            this.logger.info('ResourceSyncer', 'Removing outdated Codex symlink', {
+            this.logger.warn('ResourceSyncer', 'Resolved Codex symlink path is occupied', {
+              symlink: symlinkPath,
               current: currentTarget,
-              new: targetPath,
+              target: targetPath,
             });
-            await fs.unlink(symlinkPath);
+            return;
           }
         } else {
-          // Path exists but is not a symlink (file/directory), remove it
-          this.logger.warn('ResourceSyncer', 'Path exists but is not a symlink, removing', {
+          this.logger.warn('ResourceSyncer', 'Resolved Codex symlink path is not a symlink', {
             path: symlinkPath,
           });
-          await fs.rm(symlinkPath, { recursive: true, force: true });
+          return;
         }
       } catch (error: unknown) {
         // Symlink doesn't exist, which is fine
@@ -573,13 +701,21 @@ export class ResourceSyncer implements IResourceOperations {
           target: targetPath,
           type: symlinkType,
         });
-
-        // Show success message to user
-        void vscode.window.showInformationMessage(
-          `Codex CLI global access enabled: Skills available as "$ $0_business_scenario" from any directory`,
-          'Dismiss'
-        );
       }
+
+      const repairedEntries = await this.repairDisabledCodexSkillConfigEntries(
+        symlinkPath,
+        targetPath
+      );
+
+      const linkName = path.basename(symlinkPath);
+      const repairSuffix =
+        repairedEntries > 0 ? ` Re-enabled ${repairedEntries} disabled skill config entries.` : '';
+
+      void vscode.window.showInformationMessage(
+        `Codex CLI access enabled for "${linkName}". Restart Codex to refresh skills.${repairSuffix}`,
+        'Dismiss'
+      );
     } catch (error) {
       // Non-blocking error: Log but don't throw
       // Users can still use Codex from the workspace directory
@@ -597,6 +733,223 @@ export class ResourceSyncer implements IResourceOperations {
         'Dismiss'
       );
     }
+  }
+
+  public async isCodexGlobalSymlinkCurrent(): Promise<boolean> {
+    const targetPath = path.join(this.workspacePath, '.agents', 'skills');
+    if (!(await FileUtils.exists(targetPath))) {
+      return false;
+    }
+
+    const codexSkillsDir = path.join(os.homedir(), '.codex', 'skills');
+    const symlinkPath = await this.resolveCodexGlobalSymlinkPath(codexSkillsDir, targetPath);
+
+    try {
+      const stats = await fs.lstat(symlinkPath);
+      if (!stats.isSymbolicLink()) {
+        return false;
+      }
+
+      const currentTarget = await fs.readlink(symlinkPath);
+      const resolvedCurrent = path.resolve(path.dirname(symlinkPath), currentTarget);
+      return resolvedCurrent === path.resolve(targetPath);
+    } catch (error: unknown) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        return false;
+      }
+      throw error;
+    }
+  }
+
+  public async hasDisabledCodexSkillEntries(): Promise<boolean> {
+    const targetPath = path.join(this.workspacePath, '.agents', 'skills');
+    if (!(await FileUtils.exists(targetPath))) {
+      return false;
+    }
+
+    const codexSkillsDir = path.join(os.homedir(), '.codex', 'skills');
+    const symlinkPath = await this.resolveCodexGlobalSymlinkPath(codexSkillsDir, targetPath);
+    const managedSkillPaths = await this.collectManagedCodexSkillPaths(symlinkPath, targetPath);
+    if (managedSkillPaths.size === 0) {
+      return false;
+    }
+
+    const configPath = path.join(os.homedir(), '.codex', 'config.toml');
+    try {
+      const configContent = await fs.readFile(configPath, 'utf-8');
+      const result = enableManagedCodexSkillConfigEntries(configContent, managedSkillPaths);
+      return result.changedEntries > 0;
+    } catch (error: unknown) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        return false;
+      }
+      throw error;
+    }
+  }
+
+  private async resolveCodexGlobalSymlinkPath(
+    codexSkillsDir: string,
+    targetPath: string
+  ): Promise<string> {
+    const existingPath = await this.findExistingCodexSymlinkToTarget(codexSkillsDir, targetPath);
+    if (existingPath) {
+      return existingPath;
+    }
+
+    const workspaceName = this.sanitizeCodexBundleName(path.basename(this.workspacePath));
+    const parentName = this.sanitizeCodexBundleName(
+      path.basename(path.dirname(this.workspacePath))
+    );
+    const hash = createHash('sha256')
+      .update(path.resolve(this.workspacePath))
+      .digest('hex')
+      .slice(0, 8);
+    const candidateNames = [
+      workspaceName,
+      parentName ? `${parentName}-${workspaceName}` : workspaceName,
+      `${workspaceName}-${hash}`,
+    ];
+
+    for (const candidateName of candidateNames) {
+      const candidatePath = path.join(codexSkillsDir, candidateName);
+      if (await this.isCodexSymlinkCandidateAvailable(candidatePath, targetPath)) {
+        return candidatePath;
+      }
+    }
+
+    return path.join(codexSkillsDir, `${workspaceName}-${hash}`);
+  }
+
+  private async findExistingCodexSymlinkToTarget(
+    codexSkillsDir: string,
+    targetPath: string
+  ): Promise<string | null> {
+    try {
+      const entries = await fs.readdir(codexSkillsDir);
+      for (const entry of entries) {
+        const candidatePath = path.join(codexSkillsDir, entry);
+        try {
+          const stats = await fs.lstat(candidatePath);
+          if (!stats.isSymbolicLink()) {
+            continue;
+          }
+
+          const currentTarget = await fs.readlink(candidatePath);
+          const resolvedCurrent = path.resolve(path.dirname(candidatePath), currentTarget);
+          if (resolvedCurrent === path.resolve(targetPath)) {
+            return candidatePath;
+          }
+        } catch {
+          continue;
+        }
+      }
+    } catch (error: unknown) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+        throw error;
+      }
+    }
+
+    return null;
+  }
+
+  private async isCodexSymlinkCandidateAvailable(
+    candidatePath: string,
+    targetPath: string
+  ): Promise<boolean> {
+    try {
+      const stats = await fs.lstat(candidatePath);
+      if (!stats.isSymbolicLink()) {
+        return false;
+      }
+
+      const currentTarget = await fs.readlink(candidatePath);
+      const resolvedCurrent = path.resolve(path.dirname(candidatePath), currentTarget);
+      return resolvedCurrent === path.resolve(targetPath);
+    } catch (error: unknown) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        return true;
+      }
+      throw error;
+    }
+  }
+
+  private sanitizeCodexBundleName(name: string): string {
+    const sanitized = name
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9_-]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    return sanitized || 'gofer';
+  }
+
+  private async repairDisabledCodexSkillConfigEntries(
+    symlinkPath: string,
+    targetPath: string
+  ): Promise<number> {
+    const managedSkillPaths = await this.collectManagedCodexSkillPaths(symlinkPath, targetPath);
+    if (managedSkillPaths.size === 0) {
+      return 0;
+    }
+
+    const configPath = path.join(os.homedir(), '.codex', 'config.toml');
+    try {
+      const configContent = await fs.readFile(configPath, 'utf-8');
+      const result = enableManagedCodexSkillConfigEntries(configContent, managedSkillPaths);
+      if (result.changedEntries === 0) {
+        return 0;
+      }
+
+      await fs.writeFile(configPath, result.content, 'utf-8');
+      this.logger.info('ResourceSyncer', 'Re-enabled disabled Codex skill config entries', {
+        configPath,
+        changedEntries: result.changedEntries,
+      });
+      return result.changedEntries;
+    } catch (error: unknown) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        return 0;
+      }
+      throw error;
+    }
+  }
+
+  private async collectManagedCodexSkillPaths(
+    symlinkPath: string,
+    targetPath: string
+  ): Promise<Set<string>> {
+    const relativeSkillPaths = await this.collectSkillRelativePaths(targetPath);
+    const managedPaths = new Set<string>();
+
+    for (const relativeSkillPath of relativeSkillPaths) {
+      managedPaths.add(path.resolve(symlinkPath, relativeSkillPath).replace(/\\/g, '/'));
+      managedPaths.add(path.resolve(targetPath, relativeSkillPath).replace(/\\/g, '/'));
+    }
+
+    return managedPaths;
+  }
+
+  private async collectSkillRelativePaths(rootPath: string): Promise<string[]> {
+    const skillPaths: string[] = [];
+
+    const walk = async (directoryPath: string, relativePath: string): Promise<void> => {
+      const entries = await fs.readdir(directoryPath, { withFileTypes: true });
+      for (const entry of entries) {
+        const entryRelativePath = path.join(relativePath, entry.name);
+        const entryPath = path.join(directoryPath, entry.name);
+
+        if (entry.isDirectory()) {
+          await walk(entryPath, entryRelativePath);
+          continue;
+        }
+
+        if (entry.isFile() && entry.name === 'SKILL.md') {
+          skillPaths.push(entryRelativePath);
+        }
+      }
+    };
+
+    await walk(rootPath, '');
+    return skillPaths;
   }
 
   public async setupDefaultInstructions(): Promise<void> {

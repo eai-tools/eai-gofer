@@ -80,71 +80,37 @@ This automatically:
 | Implement | `/5_gofer_implement` | Source code            |
 | Validate  | `/6_gofer_validate`  | validation-report.md   |
 
-### Unified Commands for Claude & Copilot
+### CLI Command Surfaces
 
-**Both Claude Code and GitHub Copilot use identical command names!**
+Gofer emits assistant-specific command files for Claude Code, GitHub Copilot,
+OpenAI Codex, and Gemini CLI.
 
-| Command                | Purpose                                  |
-| ---------------------- | ---------------------------------------- |
-| `/0_business_scenario` | Main orchestrator - starts full pipeline |
-| `/1_gofer_research`    | Deep codebase and technology research    |
-| `/2_gofer_specify`     | Create feature specification             |
-| `/3_gofer_plan`        | Generate implementation plan             |
-| `/4_gofer_tasks`       | Create task breakdown                    |
-| `/5_gofer_implement`   | Execute tasks autonomously               |
-| `/6_gofer_validate`    | Validate implementation                  |
-| `/7_gofer_save`        | Save session checkpoint                  |
-| `/8_gofer_resume`      | Resume from checkpoint                   |
-| `/9_gofer_tests`       | Define acceptance tests                  |
-| `/10_gofer_cloud`      | Cloud infrastructure analysis            |
-| `/gofer_constitution`  | Project coding principles                |
-| `/gofer_hydrate`       | Reverse-engineer spec from code          |
+| Assistant      | Files                     | Command style                  |
+| -------------- | ------------------------- | ------------------------------ |
+| Claude Code    | `.claude/commands/`       | `/1_gofer_research ...`        |
+| GitHub Copilot | `.github/prompts/`        | `#1_gofer_research ...`        |
+| OpenAI Codex   | `.agents/skills/`         | Ask Codex to use a Gofer skill |
+| Gemini CLI     | `.gemini/commands/gofer/` | `/gofer:1_gofer_research ...`  |
 
 ## Platform Capabilities
 
-Gofer supports **three AI platforms** with varying levels of feature parity:
+Gofer supports **four assistant surfaces** with different native capabilities:
 
-| Feature                    | Claude Code¹ | Copilot Chat² | Codex CLI³  | Notes                           |
-| -------------------------- | ------------ | ------------- | ----------- | ------------------------------- |
-| **Core Commands**          |              |               |             |                                 |
-| All 16 Gofer commands      | ✅           | ✅            | ✅          | Identical command names         |
-| Auto-chaining pipeline     | ✅           | ⚠️⁴           | ✅          | Full pipeline automation        |
-| Command output artifacts   | ✅           | ✅            | ✅          | research.md, spec.md, etc.      |
-| **Advanced Features**      |              |               |             |                                 |
-| MCP server integration     | ✅           | ✗             | ✗           | Direct tool calling             |
-| Parallel agent spawning⁵   | ✅           | ⚠️⁴           | ✅          | 6 concurrent validation agents  |
-| Conversation preservation  | ✅           | ✅            | ✅          | Checkpoint save/resume          |
-| Context health monitoring  | ✅           | ✅            | ✅          | Auto-save prompts at 70%        |
-| Autonomous mode execution  | ✅           | ✗             | ✅          | Fully unattended runs           |
-| **Performance**            |              |               |             |                                 |
-| Validation time (6 agents) | <60s         | 90-120s⁴      | <60s        | Parallel vs sequential          |
-| Auto-chain overhead        | <5s          | <5s           | <5s         | Stage transitions               |
-| Context window             | 200k tokens  | 128k tokens   | 100k tokens | Claude Opus 4.6 / GPT-4 / Codex |
+| Feature                   | Claude | Copilot | Codex | Gemini |
+| ------------------------- | ------ | ------- | ----- | ------ |
+| Portable pipeline stages  | ✅     | ✅      | ✅    | ✅     |
+| Full orchestrator command | ✅     | ✅      | ✗     | ✗      |
+| Save/resume commands      | ✅     | ✅      | ✗     | ✗      |
+| MCP server integration    | ✅     | ✗       | ✗     | ✗      |
+| Generated artifacts       | ✅     | ✅      | ✅    | ✅     |
 
-**Footnotes:**
-
-1. **Claude Code**: [Setup Guide](docs/setup-claude-code.md) - Full feature
-   support with MCP tools
-2. **Copilot Chat**: [Setup Guide](docs/setup-copilot-chat.md) - Core features +
-   2026+ enhancements
-3. **Codex CLI**: [Setup Guide](docs/setup-codex-cli.md) - Full feature support
-   via skill system
-4. **⚠️ Copilot 2026+**: Auto-chaining and parallel agents require GitHub
-   Copilot 2026 or later. Pre-2026 versions use
-   [manual workflow](docs/legacy-workflow.md) (sequential, ~90-120s validation)
-5. **Parallel Agents**: Uses `Task` tool (Claude Code), terminal multiplexing
-   (Codex), or multi-agent delegation (Copilot 2026+)
+Codex and Gemini intentionally omit Claude-specific orchestration and
+session-management commands to keep their command surfaces small.
 
 ### Setup Guides
 
-Choose your platform and follow the setup guide:
-
-- 🟣 **[Claude Code Setup](docs/setup-claude-code.md)** - Recommended for full
-  feature support
-- 🟢 **[GitHub Copilot Chat Setup](docs/setup-copilot-chat.md)** - Best if you
-  already have Copilot
-- 🔵 **[OpenAI Codex CLI Setup](docs/setup-codex-cli.md)** - Alternative with
-  skill-based execution
+Use the consolidated [CLI Support guide](docs/cli-support.md) for Claude,
+Copilot, Codex, and Gemini setup details.
 
 **Alternative: MCP Tools for AI Assistants**
 

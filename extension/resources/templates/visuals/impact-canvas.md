@@ -1,7 +1,7 @@
 ---
 template: impact-canvas
 version: 1.0
-pass: { { PASS } }
+pass: {{PASS}}
 ---
 
 # Impact Canvas: {{FEATURE_NAME}}

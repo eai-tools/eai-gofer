@@ -194,6 +194,13 @@ export class GoferMigrator {
   }
 
   /**
+   * Setup Gemini CLI extension commands
+   */
+  public async setupGeminiCommands(): Promise<void> {
+    await this.resourceSyncer.setupGeminiCommands();
+  }
+
+  /**
    * Setup Codex CLI skills (generated from Claude commands)
    */
   public async setupCodexSkills(): Promise<void> {
@@ -339,6 +346,9 @@ export class GoferMigrator {
     await this.resourceSyncer.copyBundledTemplates();
     await this.resourceSyncer.setupClaudeCommands();
     await this.resourceSyncer.setupClaudeAgents();
+    await this.resourceSyncer.setupCopilotPrompts();
+    await this.resourceSyncer.setupCopilotInstructions();
+    await this.resourceSyncer.setupGeminiCommands();
     await this.resourceSyncer.setupCodexSkills(); // Generate Codex skills from Claude commands
     await this.resourceSyncer.setupCodexGlobalSymlink(); // Enable global Codex CLI access
     await this.resourceSyncer.createBashScripts();
@@ -400,6 +410,18 @@ export class GoferMigrator {
     const criticalPaths = [
       { path: path.join(this.workspacePath, '.claude', 'commands'), name: 'Claude commands' },
       { path: path.join(this.workspacePath, '.claude', 'agents'), name: 'Claude agents' },
+      { path: path.join(this.workspacePath, '.github', 'prompts'), name: 'Copilot prompts' },
+      {
+        path: path.join(this.workspacePath, '.github', 'instructions'),
+        name: 'Copilot instructions',
+      },
+      { path: path.join(this.workspacePath, '.gemini', 'extension.json'), name: 'Gemini commands' },
+      {
+        path: path.join(this.workspacePath, '.gemini', 'commands', 'gofer'),
+        name: 'Gemini commands',
+      },
+      { path: path.join(this.workspacePath, '.system', 'skills'), name: 'Codex skills' },
+      { path: path.join(this.workspacePath, '.agents', 'skills'), name: 'Codex agent skills' },
       { path: path.join(this.specifyPath, 'scripts', 'bash'), name: 'Bash scripts' },
       {
         path: path.join(this.specifyPath, 'scripts', 'powershell', 'install-optional-tools.ps1'),
@@ -426,10 +448,27 @@ export class GoferMigrator {
           }
         }
         // If it's a file, it exists (post-tool-use.mjs)
-    } catch (_error) {
+      } catch (_error) {
         // Path doesn't exist
         missing.push(name);
       }
+    }
+
+    try {
+      const codexSymlinkCurrent = await this.resourceSyncer.isCodexGlobalSymlinkCurrent();
+      if (!codexSymlinkCurrent) {
+        missing.push('Codex global access');
+      }
+
+      const codexConfigBlocked = await this.resourceSyncer.hasDisabledCodexSkillEntries();
+      if (codexConfigBlocked) {
+        missing.push('Codex skill config');
+      }
+    } catch (error) {
+      this.logger.warn('GoferMigrator', 'Could not inspect Codex global access', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      missing.push('Codex global access');
     }
 
     return {
@@ -483,9 +522,39 @@ export class GoferMigrator {
           await this.resourceSyncer.setupCodexGlobalSymlink();
         }
 
+        if (
+          missing.includes('Codex skills') ||
+          missing.includes('Codex agent skills') ||
+          missing.includes('Codex global access') ||
+          missing.includes('Codex skill config')
+        ) {
+          if (missing.includes('Codex skills') || missing.includes('Codex agent skills')) {
+            reportProgress('Generating Codex skills');
+            await this.resourceSyncer.setupCodexSkills();
+          }
+
+          reportProgress('Enabling Codex global access');
+          await this.resourceSyncer.setupCodexGlobalSymlink();
+        }
+
         if (missing.includes('Claude agents')) {
           reportProgress('Syncing Claude agents');
           await this.resourceSyncer.setupClaudeAgents();
+        }
+
+        if (missing.includes('Copilot prompts')) {
+          reportProgress('Syncing Copilot prompts');
+          await this.resourceSyncer.setupCopilotPrompts();
+        }
+
+        if (missing.includes('Copilot instructions')) {
+          reportProgress('Syncing Copilot instructions');
+          await this.resourceSyncer.setupCopilotInstructions();
+        }
+
+        if (missing.includes('Gemini commands')) {
+          reportProgress('Syncing Gemini commands');
+          await this.resourceSyncer.setupGeminiCommands();
         }
 
         if (missing.includes('Bash scripts')) {

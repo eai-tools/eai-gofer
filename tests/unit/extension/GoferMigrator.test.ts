@@ -448,6 +448,10 @@ cd specs/001-feature
 
   describe('syncMissingResources - AI instruction consent prompt', () => {
     let setupDefaultInstructionsSpy: ReturnType<typeof vi.spyOn>;
+    let setupCodexSkillsSpy: ReturnType<typeof vi.spyOn>;
+    let setupCodexGlobalSymlinkSpy: ReturnType<typeof vi.spyOn>;
+    let isCodexGlobalSymlinkCurrentSpy: ReturnType<typeof vi.spyOn>;
+    let hasDisabledCodexSkillEntriesSpy: ReturnType<typeof vi.spyOn>;
 
     beforeEach(async () => {
       // Create full .specify structure so only AI instructions are missing
@@ -458,10 +462,41 @@ cd specs/001-feature
       await fs.mkdir(path.join(workspace, '.specify/scripts/hooks'), { recursive: true });
       await fs.mkdir(path.join(workspace, '.claude/commands'), { recursive: true });
       await fs.mkdir(path.join(workspace, '.claude/agents'), { recursive: true });
+      await fs.mkdir(path.join(workspace, '.github/prompts'), { recursive: true });
+      await fs.mkdir(path.join(workspace, '.github/instructions'), { recursive: true });
+      await fs.mkdir(path.join(workspace, '.gemini/commands/gofer'), { recursive: true });
+      await fs.mkdir(path.join(workspace, '.system/skills/placeholder'), { recursive: true });
+      await fs.mkdir(path.join(workspace, '.agents/skills/placeholder'), { recursive: true });
 
       // Create non-empty directories with placeholder files
       await fs.writeFile(path.join(workspace, '.claude/commands/placeholder.md'), '# cmd', 'utf-8');
       await fs.writeFile(path.join(workspace, '.claude/agents/placeholder.md'), '# agent', 'utf-8');
+      await fs.writeFile(
+        path.join(workspace, '.github/prompts/placeholder.prompt.md'),
+        '# prompt',
+        'utf-8'
+      );
+      await fs.writeFile(
+        path.join(workspace, '.github/instructions/placeholder.instructions.md'),
+        '# instructions',
+        'utf-8'
+      );
+      await fs.writeFile(path.join(workspace, '.gemini/extension.json'), '{}', 'utf-8');
+      await fs.writeFile(
+        path.join(workspace, '.gemini/commands/gofer/placeholder.toml'),
+        'description = "placeholder"',
+        'utf-8'
+      );
+      await fs.writeFile(
+        path.join(workspace, '.system/skills/placeholder/SKILL.md'),
+        '# skill',
+        'utf-8'
+      );
+      await fs.writeFile(
+        path.join(workspace, '.agents/skills/placeholder/SKILL.md'),
+        '# skill',
+        'utf-8'
+      );
       await fs.writeFile(
         path.join(workspace, '.specify/scripts/bash/placeholder.sh'),
         '#!/bin/bash',
@@ -495,10 +530,24 @@ cd specs/001-feature
       setupDefaultInstructionsSpy = vi
         .spyOn(resourceSyncer, 'setupDefaultInstructions')
         .mockResolvedValue();
+      setupCodexSkillsSpy = vi.spyOn(resourceSyncer, 'setupCodexSkills').mockResolvedValue();
+      setupCodexGlobalSymlinkSpy = vi
+        .spyOn(resourceSyncer, 'setupCodexGlobalSymlink')
+        .mockResolvedValue();
+      isCodexGlobalSymlinkCurrentSpy = vi
+        .spyOn(resourceSyncer, 'isCodexGlobalSymlinkCurrent')
+        .mockResolvedValue(true);
+      hasDisabledCodexSkillEntriesSpy = vi
+        .spyOn(resourceSyncer, 'hasDisabledCodexSkillEntries')
+        .mockResolvedValue(false);
     });
 
     afterEach(() => {
       setupDefaultInstructionsSpy.mockRestore();
+      setupCodexSkillsSpy.mockRestore();
+      setupCodexGlobalSymlinkSpy.mockRestore();
+      isCodexGlobalSymlinkCurrentSpy.mockRestore();
+      hasDisabledCodexSkillEntriesSpy.mockRestore();
     });
 
     it('shows prompt when AI instruction files are missing', async () => {

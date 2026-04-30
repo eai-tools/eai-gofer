@@ -9,6 +9,17 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 
 const FILE_PATH = path.resolve(__dirname, '../../../.specify/commands/gofer_side.md');
+const ALL_SURFACES = [
+  'agents-skills',
+  'claude',
+  'claude-mirror',
+  'codex',
+  'copilot',
+  'gemini',
+  'github-prompts',
+  'system-skills',
+  'vscode',
+].sort();
 
 const PARSE_MODULE_URL = new URL(
   '../../../.specify/scripts/node/parse-stage-command.mjs',
@@ -34,7 +45,7 @@ describe('gofer_side control command (T133 / FR-013)', () => {
     const { frontmatter } = await parseStageCommand(FILE_PATH);
     const surfaces = frontmatter.surfaces as string[];
     const sorted = [...surfaces].sort();
-    expect(sorted).toEqual(['claude', 'claude-mirror', 'copilot', 'vscode'].sort());
+    expect(sorted).toEqual(ALL_SURFACES);
   });
 
   it('frontmatter category is "control"', async () => {

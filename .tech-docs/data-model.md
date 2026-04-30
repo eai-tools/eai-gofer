@@ -1,14 +1,13 @@
 ---
-generated: "2026-04-30T17:58:10Z"
-source_commit: "64d169eba2a63002e0dcce3f4685790f6ddf7f88"
+generated: "2026-04-30T22:52:00Z"
+source_commit: "42dbe8f354ac8928bfa3d1e6c5b42989a9b6c55f"
 ---
 
 # Data Model
 
 ## Storage Architecture
 
-Gofer uses a file-based storage model with structured directories and markdown
-files.
+Gofer uses a file-based storage architecture with no database dependencies. All data is stored in the `.specify/` directory using JSONL (JSON Lines), JSON, and Markdown formats, making it Git-friendly and human-readable.
 
 ```mermaid
 erDiagram
@@ -344,25 +343,48 @@ All API endpoints must respond within 200ms (p95).
 
 ### Memory Entry
 
-**Path:** `.specify/memory/memories/{id}.md`
+**Path:** `.specify/memory/memories.jsonl`
 
-**Format:** Markdown with YAML frontmatter
+**Format:** Append-only JSONL (one JSON object per line)
+
+**Implementation:** `extension/src/autonomous/MemoryStorage.ts`
 
 **Schema:**
 
-```yaml
----
-id: string # UUID
-layer: enum # core | recall | archival
-priority: number # 1-10 (10 = highest)
-created: number # Unix timestamp
-updated: number # Unix timestamp
-tags: string[] # ["api", "authentication"]
----
-Memory content in markdown format...
+```typescript
+interface Memory {
+  id: string;                    // 8-character hex ID
+  content: string;               // Memory content
+  category: string;              // user | project | technical | auto_decision | discovery
+  tags: string[];                // Including #auto for system-generated
+  scope: 'local' | 'global';     // Workspace-local or global
+  layer?: 'core' | 'recall' | 'archival';  // MemGPT-inspired layers (opt-in)
+  priority?: number;             // 0-10 (higher = more important)
+  usedCount?: number;            // Access counter
+  lastUsed?: number;             // Unix timestamp (ms)
+  created: number;               // Unix timestamp (ms)
+  learnedFrom?: string;          // Source (user | system | agent)
+  agentId?: string;              // Agent that created memory
+  relatedMemories?: RelatedMemory[];  // Graph edges
+  backReferences?: string[];     // Incoming edges
+  supersededBy?: string;         // Deprecation chain
+  _deleted?: boolean;            // Soft deletion marker
+}
 ```
 
-**Layers:**
+**Example JSONL Entry:**
+```json
+{"id":"d16fcbc3","category":"discovery","tags":["#auto","#discovery","#spec-"],"scope":"local","content":"Research complete for spec . Memory coverage: 0.0%. Hints loaded: true","lastUsed":1771884921150,"usedCount":6,"learnedFrom":"","created":1770850738033}
+```
+
+**In-Memory Indexing:**
+- Primary index: `Map<string, IndexEntry>` (by ID)
+- Tag index: `Map<string, Set<string>>` (by tag)
+- Category filtering: O(1) via `#auto` tag
+- Token budget: 50,000 tokens max
+- Concurrent write queue prevents corruption
+
+**Layers (Optional - via `gofer.useLayeredMemory`):**
 
 1. **Core Memory** - Always loaded, high priority
    - Project principles
@@ -379,142 +401,109 @@ Memory content in markdown format...
    - Deprecated patterns
    - Migration notes
 
-### Compaction History
-
-**Path:** `.specify/memory/compaction-history.jsonl`
-
-**Format:** JSON Lines (one entry per compaction)
-
-**Schema:**
-
-```json
-{
-  "timestamp": 1642534800000,
-  "beforeSize": 150000,
-  "afterSize": 95000,
-  "compressionRatio": 0.63,
-  "entriesProcessed": 42,
-  "entriesArchived": 15,
-  "duration": 234
-}
-```
-
 ## Logs and Telemetry
 
-### Task Execution Log
+### AI Usage/Council Usage Log
 
-**Path:** `.specify/logs/task-execution.jsonl`
+**Path:** `.specify/logs/council-usage.jsonl`
+
+**Format:** Append-only JSONL
 
 **Schema:**
 
-```json
-{
-  "timestamp": "2025-01-15T10:30:00Z",
-  "feature": "auth-001",
-  "taskId": "FR-002",
-  "action": "started",
-  "agent": "claude-code",
-  "context": {
-    "branch": "feature/auth-001",
-    "commit": "a1b2c3d4"
-  }
+```typescript
+interface UsageRecord {
+  provider: 'anthropic' | 'google' | 'openai';
+  model: string;                 // claude-3-5-sonnet-20241022, gpt-4, etc.
+  inputTokens: number;
+  outputTokens: number;
+  costUsd: number;               // Calculated from pricing.ts
+  timestamp: string;             // ISO 8601
+  sessionId: string;             // Claude Code session ID
+  councilId?: string;            // LLM Council run ID
 }
 ```
+
+**Monitored By:** `extension/src/autonomous/AIUsageMonitor.ts`
+- File watcher (chokidar) for real-time updates
+- Fallback polling: 60s interval (configurable)
+- Cached for 5s TTL
 
 ### Tool Audit Log
 
 **Path:** `.specify/logs/tool-audit.jsonl`
 
-**Schema:**
-
-```json
-{
-  "timestamp": "2025-01-15T10:30:00Z",
-  "tool": "gofer_execute_task",
-  "parameters": {
-    "feature": "auth-001",
-    "taskId": "FR-002"
-  },
-  "result": "success",
-  "duration": 123,
-  "scopeViolations": []
-}
-```
-
-### Context Usage Log
-
-**Path:** `.specify/logs/context-usage.jsonl`
+**Format:** Append-only JSONL
 
 **Schema:**
 
-```json
-{
-  "timestamp": "2025-01-15T10:30:00Z",
-  "sessionId": "session-123",
-  "stage": "implement",
-  "contextSize": 125000,
-  "maxSize": 200000,
-  "utilization": 0.625,
-  "components": {
-    "research": 18750,
-    "memory": 31250,
-    "code": 50000,
-    "observations": 25000
-  }
+```typescript
+interface ToolAuditEntry {
+  timestamp: string;             // ISO 8601
+  tool: string;                  // MCP tool name (gofer_get_specs, etc.)
+  filePath?: string;             // File accessed
+  scopeViolation: boolean;       // Whether access violated boundaries
+  allowed: boolean;              // Whether access was allowed
+  userId?: string;               // User or agent ID
+  sessionId?: string;            // Session ID
 }
 ```
 
-### Cost Ledger
-
-**Path:** `.specify/logs/gofer-run-ledger.jsonl`
-
-**Schema:**
-
-```json
-{
-  "runId": "run-20250115-1030",
-  "feature": "auth-001",
-  "startTime": "2025-01-15T10:30:00Z",
-  "endTime": "2025-01-15T11:45:00Z",
-  "provider": "anthropic",
-  "model": "claude-3-5-sonnet-20241022",
-  "tokens": {
-    "input": 125000,
-    "output": 35000,
-    "total": 160000
-  },
-  "cost": {
-    "input": 0.375,
-    "output": 1.05,
-    "total": 1.425
-  }
-}
-```
+**Purpose:** Security audit trail for ScopeGuard (`extension/src/autonomous/ScopeGuard.ts`)
 
 ### Slop Reduction Log
 
 **Path:** `.specify/logs/slop-reduction.jsonl`
 
+**Format:** Append-only JSONL
+
 **Schema:**
 
-```json
-{
-  "timestamp": "2025-01-15T10:30:00Z",
-  "file": "src/models/User.ts",
-  "fixes": [
-    {
-      "type": "console.log",
-      "line": 42,
-      "removed": "console.log('User created:', user);"
-    },
-    {
-      "type": "@ts-ignore",
-      "line": 56,
-      "upgraded": "@ts-expect-error - Legacy code to be refactored"
-    }
-  ]
+```typescript
+interface SlopReductionEntry {
+  timestamp: string;             // ISO 8601
+  filePath: string;              // File cleaned
+  fixes: SlopFix[];              // List of fixes applied
+  sessionId?: string;
+}
+
+interface SlopFix {
+  type: 'console.log' | 'debugger' | '@ts-ignore';
+  line: number;
+  column: number;
+  original: string;              // Original code
+  replacement?: string;          // Replacement (empty for removal)
 }
 ```
+
+**Trigger:** 
+- On file save (opt-in via `gofer.yoloSlopReduction.enabled`)
+- Manual command: `Gofer: Check for Slop`
+- Implementation: `extension/src/autonomous/SlopReducer.ts`
+
+### Pipeline Run Ledger
+
+**Path:** `.specify/logs/gofer-run-ledger.jsonl`
+
+**Format:** Append-only JSONL
+
+**Schema:**
+
+```typescript
+interface PipelineRunEntry {
+  runId: string;                 // UUID
+  specId: string;                // Spec being executed
+  stage: string;                 // research | specify | plan | tasks | implement | validate
+  startTime: string;             // ISO 8601
+  endTime?: string;              // ISO 8601
+  totalTokens: number;           // Input + output tokens
+  costUsd: number;               // Total cost
+  budgetExceeded: boolean;       // Whether budget was exceeded
+  enforcementAction?: 'truncate' | 'block';
+}
+```
+
+**Purpose:** Cost attribution and budget enforcement via `extension/src/autonomous/CostBudgetEnforcer.ts`
 
 ## Indexes and Constraints
 
@@ -562,13 +551,125 @@ stateDiagram-v2
     completed --> [*]
 ```
 
+## File Locations Reference
+
+```
+.specify/
+├── specs/
+│   ├── {spec-id}/
+│   │   ├── spec.md                    # Specification (Markdown + YAML frontmatter)
+│   │   ├── tasks.md                   # Task breakdown (Markdown checklist)
+│   │   ├── research.md                # Research notes
+│   │   ├── research-index.json        # Chunk index (for files >50KB)
+│   │   ├── plan.md                    # Implementation plan
+│   │   └── .branch-info.json          # Git branch metadata
+│   └── _archived/                     # Completed specs
+├── memory/
+│   ├── memories.jsonl                 # Active memories (append-only JSONL)
+│   ├── archive.jsonl                  # Archived memories
+│   ├── constitution.md                # Coding principles
+│   ├── hints.md                       # User hints
+│   ├── enriched-context.json          # Context metadata
+│   └── knowledge-graph.json           # Memory graph
+├── logs/
+│   ├── council-usage.jsonl            # Token usage records
+│   ├── tool-audit.jsonl               # File access audit
+│   ├── slop-reduction.jsonl           # Code quality fixes
+│   └── gofer-run-ledger.jsonl         # Pipeline run costs
+├── ipc/
+│   └── status.json                    # Orchestrator IPC status
+├── current-stage.json                 # Active pipeline stage
+└── spec-schema.json                   # JSON schema for specs
+```
+
+## Storage Characteristics
+
+### Performance
+
+| Operation | Time Complexity | Notes |
+|-----------|----------------|-------|
+| Spec lookup | O(1) | In-memory cache |
+| Memory lookup by ID | O(1) | Hash map index |
+| Memory lookup by tag | O(k) | k = memories with tag |
+| Memory full scan | O(n) | n = total memories |
+| Spec parse | O(m) | m = file size |
+| JSONL append | O(1) | Atomic append |
+| Index rebuild | O(n) | n = JSONL lines |
+
+### Scale Limits
+
+| Resource | Limit | Mitigation |
+|----------|-------|------------|
+| In-memory spec cache | ~100 specs | Lazy loading |
+| Memory index tokens | 50,000 tokens | Compaction at 80% |
+| JSONL file size | 8MB warning | Compaction to archive.jsonl |
+| Research chunks | 50KB per chunk | On-demand loading |
+| Concurrent writes | Serialized | Write queue |
+
+### Data Integrity
+
+**Write Safety:**
+- Atomic file writes via `fs.writeFile` (overwrites)
+- Append-only via serialized `fs.appendFile` (JSONL)
+- Write queue prevents concurrent corruption (NFR-017)
+- No partial writes (Node.js guarantees)
+
+**Concurrency:**
+- Extension: Single-threaded (V8 event loop)
+- Language Server: Separate process (stdio IPC)
+- Orchestrator: Separate process (file-based IPC)
+
+**Crash Recovery:**
+- JSONL: Last-writer-wins on duplicate IDs
+- Soft deletion: `_deleted: true` markers preserved
+- Index rebuild: Full rebuild on startup
+
+**Migration:**
+- Legacy `local.json` → JSONL (automatic on first run)
+- Backward compatible: Old formats still readable
+
+## Best Practices
+
+### For Developers
+
+1. **Use append-only writes for logs** - Never truncate JSONL files
+2. **Serialize concurrent writes** - Use write queue pattern (`MemoryStorage.ts`)
+3. **Invalidate caches on file changes** - Use `chokidar` watchers (500ms debounce)
+4. **Implement soft deletion** - Set `_deleted: true` instead of removing
+5. **Index for fast queries** - Build in-memory indexes on startup
+6. **Chunk large files** - Use research chunking for files >50KB
+7. **Set token budgets** - Prevent unbounded memory growth (50,000 token limit)
+
+### For Users
+
+1. **Commit `.specify/` to git** - All data is version-controlled
+2. **Back up JSONL files** - Append-only means no automatic cleanup
+3. **Monitor JSONL size** - Compact when warned (8MB threshold)
+4. **Archive old specs** - Move completed specs to `_archived/`
+5. **Review memory panel** - Filter system memories (533 → 0 by default via `#auto` tag)
+6. **Check audit logs** - Review `tool-audit.jsonl` for scope violations
+
 ## Migration History
 
 No database migrations - file-based storage only.
 
 ### Format Migrations
 
-**v1.0 → v1.17 (GitHub Gofer Format)**
+**v1.x → v3.0 (JSONL Memory Storage)**
+
+- Migrated from `local.json` to `memories.jsonl` (append-only)
+- Added in-memory indexing for fast queries
+- Introduced soft deletion with `_deleted: true`
+- Added token budget tracking (50,000 token limit)
+
+**Migration Command:**
+
+```bash
+# Automatic migration on first run
+# MemoryStorage.ts migrates legacy local.json → memories.jsonl
+```
+
+**v1.0 → v3.0 (Spec Format)**
 
 - Migrated from JSON specs to Markdown with YAML frontmatter
 - Added `.specify/` directory structure
@@ -580,7 +681,4 @@ No database migrations - file-based storage only.
 ```bash
 # Via extension
 Gofer: Upgrade to Gofer Format
-
-# Automatically converts:
-# feature-001.json → .specify/specs/feature-001/spec.md
 ```

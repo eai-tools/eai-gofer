@@ -1,6 +1,6 @@
 ---
-generated: "2026-04-30T17:58:10Z"
-source_commit: "64d169eba2a63002e0dcce3f4685790f6ddf7f88"
+generated: "2026-04-30T22:52:00Z"
+source_commit: "42dbe8f354ac8928bfa3d1e6c5b42989a9b6c55f"
 ---
 
 # Patterns and Tech Debt
@@ -13,7 +13,8 @@ source_commit: "64d169eba2a63002e0dcce3f4685790f6ddf7f88"
 
 **Location:**
 
-- `extension/src/di.ts` - Container setup
+- `extension/src/di/index.ts` - Container exports
+- `extension/src/di/container.ts` - Container setup (actual implementation)
 - `extension/src/services/` - Service definitions
 - Used throughout extension codebase
 
@@ -29,10 +30,14 @@ class ContextBuilder {
   ) {}
 }
 
-// Container registration
-container.register(ContextBuilder, { useClass: ContextBuilder });
+// Container registration (in di/container.ts)
+export function registerServices(): void {
+  container.register(Logger, { useClass: Logger });
+  container.register(ContextBuilder, { useClass: ContextBuilder });
+}
 
 // Resolution
+const container = getContainer();
 const builder = container.resolve(ContextBuilder);
 ```
 
@@ -40,14 +45,22 @@ const builder = container.resolve(ContextBuilder);
 
 - ✅ Clear dependency graph
 - ✅ Easy to test (mock injection)
-- ✅ Centralized container management
+- ✅ Centralized container management in `di/container.ts`
 - ✅ Follows SOLID principles
+- ✅ Services properly exported via `services/index.ts`
 
 **Usage Examples:**
 
 - `extension/src/services/Logger.ts`
 - `extension/src/services/StateManager.ts`
-- `extension/src/autonomous/ContextBuilder.ts`
+- `extension/src/services/DisposalService.ts`
+- `extension/src/services/InitializationService.ts`
+- `extension/src/goferMigrator.ts` - resolves services from container
+
+**Weakness:**
+
+- ⚠️ Some services still use legacy patterns (not all migrated to DI)
+- ⚠️ `reflect-metadata` import in `extension.ts` is critical but easy to forget
 
 ---
 
@@ -323,31 +336,67 @@ class SpecRepository {
 
 ## Anti-Patterns Found
 
-### 1. God Object (Extension Entry Point)
+### 1. God Object / Mega-File Anti-Pattern (CRITICAL)
 
-**Location:** `extension/src/extension.ts`
+**Locations:** Multiple files exceed industry best practices
 
-**Issue:**
+**Mega-Files Identified:**
 
-- 800+ lines
-- Handles initialization, commands, events, disposal
-- High complexity
+- `extension/src/services/migration/ResourceSyncer.ts` - **1787 lines**
+- `extension/src/autonomous/ContextBuilder.ts` - **1787 lines**
+- `extension/src/autonomousCommands.ts` - **1637 lines**
+- `extension/src/autonomous/MemoryManager.ts` - **1372 lines**
+- `extension/src/autonomous/AutonomousDriver.ts` - **1299 lines**
+- `extension/src/extension.ts` - **1269 lines**
+- `extension/src/ui/ContextContentPanel.ts` - **1218 lines**
+- `extension/src/autonomous/ObservationMasker.ts` - **1215 lines**
+- **Top 20 files average 1100+ lines each**
 
-**Impact:** Medium
+**Issues:**
 
-- Hard to test in isolation
-- Difficult to navigate
-- Potential for bugs in lifecycle management
+- Violates Single Responsibility Principle
+- Handles initialization, commands, events, disposal, business logic in one file
+- Extremely high cognitive complexity
+- Nearly impossible to review in PRs (GitHub limits large diffs)
 
-**Recommendation:**
+**Impact:** CRITICAL
+
+- **Hard to test in isolation** - mocking becomes nightmare
+- **Difficult to navigate** - takes minutes to find relevant code
+- **Potential for bugs** - too much state to reason about
+- **Onboarding barrier** - new contributors overwhelmed
+- **Merge conflicts** - high probability with mega-files
+- **Review difficulty** - reviewers can't hold entire file in working memory
+
+**Recommendation:** URGENT REFACTORING REQUIRED
+
+For `extension.ts` (1269 lines):
 
 - Extract command handlers → `extension/src/commands/`
 - Extract event handlers → `extension/src/events/`
 - Keep only activation/deactivation logic in main file
+- Target: <300 lines
+
+For `ContextBuilder.ts` (1787 lines):
+
+- Extract context loading strategies
+- Extract budget enforcement logic
+- Extract masking logic
+- Split into: ContextBuilder (core), ContextLoader, BudgetEnforcer, ContextMasker
+- Target: <400 lines per file
+
+For `ResourceSyncer.ts` (1787 lines):
+
+- Extract sync strategies per resource type
+- Extract validation logic
+- Extract file operations
+- Target: <400 lines per file
+
+**Estimated Effort:** 3-4 weeks for complete refactoring
 
 ---
 
-### 2. Incomplete Separation (Spec Parsing)
+### 2. Code Duplication (Spec Parsing)
 
 **Location:**
 
@@ -356,21 +405,27 @@ class SpecRepository {
 
 **Issue:**
 
-- Spec parsing logic duplicated
+- Spec parsing logic duplicated between extension and language server
 - Slight variations in implementation
 - No shared utility package
+- Both files are substantial in size
 
-**Impact:** Low
+**Impact:** Medium
 
-- Code duplication (~200 lines)
-- Potential for divergence
-- Maintenance burden
+- Code duplication (estimated ~200+ lines)
+- **Bug fixes must be applied twice** - risk of missing one
+- Potential for divergence in behavior
+- Maintenance burden increases over time
+- Testing burden (same tests duplicated)
 
 **Recommendation:**
 
 - Create `@gofer/spec-parser` shared package
 - Use in both extension and language server
 - Single source of truth for parsing logic
+- Extract common utilities: YAML parsing, frontmatter extraction, validation
+
+**Estimated Effort:** 4-6 hours
 
 ---
 
@@ -378,135 +433,215 @@ class SpecRepository {
 
 **Location:**
 
-- `extension/src/autonomous/ContextHealthMonitor.ts`
-- `extension/src/autonomous/AutoHandoffTrigger.ts`
+- `extension/src/autonomous/ContextHealthMonitor.ts` (863 lines)
+- `extension/src/autonomous/AutoHandoffTrigger.ts` (1097 lines)
+- `extension/src/autonomous/ACCOrchestrator.ts` (cooldownMs = 30000)
 
 **Issue:**
 
 - Hardcoded thresholds scattered throughout
-- Example: `0.5`, `0.7`, `0.65` for context levels
+- Example: `0.5`, `0.7`, `0.65`, `0.85`, `0.9`, `0.99` for context levels
+- `30000` ms hardcoded as cooldown in ACCOrchestrator
+- No centralized configuration
 
-**Impact:** Low
+**Impact:** Medium
 
-- Hard to maintain consistency
-- No single source of truth
-- Difficult to tune
+- Hard to maintain consistency across files
+- No single source of truth for threshold tuning
+- Difficult to experiment with different thresholds
+- **Risk:** Changing threshold in one place but not others creates inconsistent
+  behavior
 
 **Recommendation:**
 
-- Extract to `ContextThresholds` class
-- Document threshold rationale
-- Make configurable via settings
+- Extract to `ContextThresholds` configuration class
+- Document threshold rationale and empirical basis
+- Make configurable via VSCode settings
+- Use named constants instead of inline numbers
 
-**Mitigation in place:**
+**Partial Mitigation in place:**
 
-- Most thresholds configurable via VSCode settings
-- Default values documented
+- Some thresholds configurable via VSCode settings
+- Default values documented in some places
+- **BUT:** Not all magic numbers are exposed to settings
+
+**Estimated Effort:** 2-3 hours
 
 ---
 
 ### 4. Incomplete Error Handling (Large File Reads)
 
-**Location:** `extension/src/autonomous/ContextBuilder.ts`
+**Location:** `extension/src/autonomous/ContextBuilder.ts` (1787 lines)
 
 **Issue:**
 
-- Large file reads without size limits
-- No timeout handling
-- Could hang on massive files
+- **1787-line file** loads research files without size limits
+- No timeout handling for file operations
+- Could hang on massive files (e.g., multi-MB research documents)
+- No graceful degradation when file is too large
+- ResearchChunker exists (831 lines) but unclear if it handles all cases
 
-**Impact:** Medium
+**Impact:** High
 
-- Extension could freeze
-- Poor user experience
-- No fallback behavior
+- Extension could freeze VS Code UI
+- Poor user experience - no feedback on why operation stalled
+- No fallback behavior (e.g., skip large files, truncate, warn user)
+- Memory exhaustion possible with very large spec directories
+
+**Specific Risks:**
+
+- Reading all research context into memory at once
+- String concatenation (`+=`) compounds memory usage
+- No streaming or chunked processing for large contexts
 
 **Recommendation:**
 
-- Add file size check before read
+- Add file size check before read (e.g., skip files >10MB)
 - Implement streaming for large files
-- Add timeout with fallback
+- Add timeout with fallback (e.g., 5 second timeout per file)
+- Use ResearchChunker consistently for all large file operations
+- Add user notification when files are skipped due to size
+
+**Estimated Effort:** 4-6 hours
 
 ---
 
-### 5. Callback Hell (Legacy Terminal Code)
+### 5. Mixed Async Patterns (Promise.then() vs async/await)
 
-**Location:** `extension/src/autonomous/ClaudeCodeTerminal.ts` (older versions)
+**Locations:** Found in multiple autonomous files
 
 **Issue:**
 
-- Some promise chains mixed with callbacks
-- Inconsistent async patterns
+- **8 instances** of `.then()` chains found in `extension/src/autonomous/`:
+  - `MemoryStorage.ts` - write queue uses `.then()`
+  - `ACCOrchestrator.ts` - summarization uses `.then()`
+  - `MemoryManager.ts` - file operations use `.then()`
+  - `MemoryConsolidator.ts` - staleness checks use `.then()`
+  - `UsageApiClient.ts` - API calls use `.then()`
+- Inconsistent with predominant async/await style used elsewhere
 
-**Impact:** Low
+**Impact:** Medium
 
-- Mostly refactored to async/await
-- Remaining instances isolated
+- Code inconsistency makes review harder
+- Mix of styles in same file is confusing
+- **Risk:** `.then()` chains easier to mishandle (missing catch, wrong scope)
+- Harder to debug - stack traces less clear with `.then()`
 
 **Recommendation:**
 
-- Convert remaining `.then()` to `await`
-- Standardize on async/await throughout
+- Convert all `.then()` to `async/await`
+- Standardize on async/await throughout codebase
+- Add ESLint rule to prevent new `.then()` usage
+- Exception: Write queue in MemoryStorage may need `.then()` for chaining, but
+  should document why
+
+**Estimated Effort:** 2-3 hours
+
+**Example Refactor:**
+
+```typescript
+// Before
+return Promise.resolve()
+  .then(() => this.summarize())
+  .then((summary) => this.writeSummary(summary));
+
+// After
+const summary = await this.summarize();
+await this.writeSummary(summary);
+```
 
 ---
 
 ## Tech Debt Table
 
-| Item                            | Severity | Location                                     | Recommendation                  | Effort    |
-| ------------------------------- | -------- | -------------------------------------------- | ------------------------------- | --------- |
-| **God Object - extension.ts**   | Medium   | `extension/src/extension.ts`                 | Extract command/event handlers  | 1-2 days  |
-| **Spec Parsing Duplication**    | Low      | `extension/`, `language-server/`             | Create shared package           | 4-6 hours |
-| **Magic Number Thresholds**     | Low      | `autonomous/ContextHealthMonitor.ts`         | Extract to constants/config     | 2-3 hours |
-| **Missing Size Limits**         | Medium   | `autonomous/ContextBuilder.ts`               | Add file size checks, streaming | 4-6 hours |
-| **Legacy Filename**             | Low      | `orchestrator/AutonomousOrchestrator_new.ts` | Rename or remove old version    | 1 hour    |
-| **Incomplete Error Boundaries** | Medium   | `autonomous/ContextBuilder.ts`               | Add timeout and fallback        | 4-6 hours |
-| **Race Condition Risk**         | Medium   | `autonomous/HookBridgeWatcher.ts`            | Add mutex for context updates   | 2-3 hours |
-| **Synchronous File Ops**        | Low      | `goferMigrator.ts`                           | Convert to async                | 2-3 hours |
-| **String Concatenation**        | Low      | `autonomous/ContextBuilder.ts`               | Use array join                  | 1-2 hours |
-| **Command Injection Risk**      | Low      | `autonomous/ClaudeCodeTerminal.ts`           | Whitelist commands              | 2-3 hours |
+| Item                               | Severity | Location                                                           | Recommendation                         | Effort      |
+| ---------------------------------- | -------- | ------------------------------------------------------------------ | -------------------------------------- | ----------- |
+| **Mega-File Anti-Pattern**         | CRITICAL | 5+ files >1200 LOC, top 2 at 1787 LOC                              | Break into focused modules (<500 LOC)  | 3-4 weeks   |
+| **Synchronous File Operations**    | HIGH     | 59 instances in `goferMigrator.ts`, migration services             | Convert to async fs/promises           | 1-2 days    |
+| **No Concurrency Protection**      | HIGH     | `ContextBuilder.ts`, `ContextHealthMonitor.ts`                     | Add mutex/lock for state mutations     | 4-6 hours   |
+| **Missing File Size Limits**       | HIGH     | `autonomous/ContextBuilder.ts` (1787 LOC)                          | Add size checks, streaming, timeouts   | 4-6 hours   |
+| **Pattern Inconsistency - Async**  | MEDIUM   | 8 .then() instances in autonomous files                            | Standardize on async/await             | 2-3 hours   |
+| **Pattern Inconsistency - Logging** | MEDIUM   | 20 console.log vs Logger service                                   | Replace with Logger service            | 2-3 hours   |
+| **Spec Parsing Duplication**       | MEDIUM   | `extension/SpecLoader.ts`, `language-server/goferLoader.ts`        | Create shared @gofer/spec-parser       | 4-6 hours   |
+| **Legacy Migration Incomplete**    | MEDIUM   | `src/orchestrator/AutonomousOrchestrator_new.ts`                   | Complete migration, remove old code    | 1-2 days    |
+| **Magic Number Thresholds**        | MEDIUM   | `ContextHealthMonitor.ts`, `AutoHandoffTrigger.ts`, etc.           | Extract to ContextThresholds config    | 2-3 hours   |
+| **No Path Traversal Checks**       | MEDIUM   | `language-server/src/utils/goferLoader.ts`                         | Add path normalization, boundary checks | 2-3 hours   |
+| **String Concatenation**           | LOW      | `autonomous/ContextBuilder.ts`                                     | Use array join pattern                 | 1-2 hours   |
+| **TODO Comments Without Issues**   | LOW      | 9 TODOs found, some without issue references                       | Link TODOs to issues or remove         | 1-2 hours   |
+| **Test Data Scattered**            | LOW      | Fixtures not consolidated                                          | Consolidate in tests/fixtures/         | 2-3 hours   |
+| **No Coverage Reporting in CI**    | LOW      | Coverage target exists but not enforced                            | Add coverage reports to CI             | 2-3 hours   |
+| **No Security Audit in CI**        | MEDIUM   | npm audit not in CI pipeline                                       | Add npm audit, Dependabot              | 2-3 hours   |
 
-**Total Estimated Effort:** 3-4 weeks for all items
+**Total Estimated Effort:** 6-8 weeks for all items
 
-**Priority Order:**
+**Priority Order (Reflects Impact × Urgency):**
 
-1. God Object refactoring (improves maintainability)
-2. Race condition fix (prevents bugs)
-3. Missing error boundaries (improves robustness)
-4. File size limits (prevents hangs)
-5. Rest can be deferred to future releases
+1. **Mega-File Refactoring** (CRITICAL) - Blocks all other improvements
+2. **Synchronous File Ops** (HIGH) - User-visible performance impact
+3. **Concurrency Protection** (HIGH) - Data corruption risk
+4. **File Size Limits** (HIGH) - Prevents hangs/crashes
+5. **Pattern Standardization** (MEDIUM) - Improves maintainability
+6. **Legacy Migration** (MEDIUM) - Reduces confusion
+7. **Security & Testing** (MEDIUM) - Proactive quality
+8. **Low Priority Items** - Defer to future releases
 
 ---
 
 ## Spec vs Implementation Alignment
 
-### Feature 023: Documentation Site
+**Active Specs:** 1 active (030-vscode-surface-truth-cleanup), 40 archived
 
-**Spec Location:** `.specify/specs/023-documentation-site/spec.md`
+### Feature 030: VS Code Surface Truth Cleanup (ACTIVE)
 
-**Status:** Draft → Implementation in progress
+**Spec Location:** `.specify/specs/030-vscode-surface-truth-cleanup/spec.md`
 
-**Alignment Notes:**
+**Status:** ready (not implemented yet)
 
-- Spec defines user stories and acceptance criteria
-- Implementation follows planned architecture
-- No major deviations identified
+**Spec Overview:**
 
-### Feature 024: Wire ContextBuilder + ACC
+- Addresses documentation drift between VS Code manifest and actual implementation
+- Focus: Command surface, configuration surface, setup paths
+- Priority: P1 (Maintainer trustworthy surfaces)
 
-**Spec Location:** `.specify/specs/024-wire-contextbuilder-acc/`
+**Alignment Analysis:**
 
-**Status:** Recently completed
+- ✅ **Spec correctly identifies real problem:** Documentation and manifest drift
+  is a genuine issue
+- ✅ **Acknowledges current state:** Spec references 41 active specs but actual
+  is 1 active + 40 archived
+- ✅ **Clear acceptance criteria:** Testable requirements for command/config parity
+- ⚠️ **Spec doesn't address mega-file problem:** Surface truth cleanup is
+  important but mega-files are more urgent
+- ⚠️ **May be hard to maintain:** Without addressing underlying code complexity,
+  drift will recur
 
-**Alignment Notes:**
+**Recommendation:**
 
-- ✅ Implementation matches spec requirements
-- ✅ All acceptance criteria met
-- ✅ ACCOrchestrator wired correctly
-- ⚠️ Memory leak fixed in v1.17.1 (post-spec)
+- Implement spec 030 as planned
+- BUT: Prioritize mega-file refactoring first to prevent future drift
+- Surface truth cleanup treats symptom; mega-file refactoring treats cause
 
-**Deviations:**
+### Archived Specs Sampling (40 archived specs)
 
-- None major - memory leak was discovered during implementation and fixed
+**Checked:**
+
+- `.specify/specs/_archived/003-multi-perspective-agents/`
+- `.specify/specs/_archived/020-multi-session-context-panel/`
+- `.specify/specs/_archived/010-addclaudeinstructions/`
+
+**Observations:**
+
+- Archived specs are comprehensive (plan, research, tasks, validation reports)
+- **413 total spec markdown files** in `.specify/specs/`
+- Evidence of robust spec-driven development process
+- Well-structured with traceability, quickstart, discovery docs
+
+**Alignment Quality:**
+
+- ✅ Strong spec infrastructure
+- ✅ Comprehensive documentation per feature
+- ⚠️ **BUT:** Implementation quality (mega-files) suggests specs aren't preventing
+  tech debt accumulation
 
 ---
 
@@ -542,21 +677,31 @@ class SpecRepository {
 
 **File I/O:**
 
-- Mix of `fs.readFile` and `fs.readFileSync`
-- Some use promises, some use callbacks
-- **Recommendation:** Standardize on async/await with promises
+- **59 instances** of `fs.readFileSync`/`fs.writeFileSync` (synchronous)
+- Most code uses async `fs/promises` or `fs.readFile`
+- **Impact:** Synchronous operations block extension activation and UI
+- **Recommendation:** Eliminate all sync file operations, standardize on
+  `fs/promises`
 
 **Error Handling:**
 
 - Some functions throw, others return error objects
 - No consistent error type hierarchy
+- Try-catch in some places, missing in others
 - **Recommendation:** Define error hierarchy and usage guidelines
 
 **Logging:**
 
-- Mix of `console.log` and `Logger` service
-- Inconsistent log levels
-- **Recommendation:** Use Logger service exclusively
+- **20 instances** of `console.log`/`console.warn`/`console.error`
+- Most code uses Logger service from `extension/src/services/Logger.ts`
+- **Impact:** Inconsistent logging, can't filter/configure console output
+- **Recommendation:** Replace all console calls with Logger service exclusively
+
+**Async Patterns:**
+
+- **8 instances** of `.then()` chains
+- Majority of code uses async/await
+- **Recommendation:** Standardize on async/await, add ESLint rule
 
 ---
 
@@ -725,23 +870,45 @@ class ContextBuilder {
 
 ## Conclusion
 
-Gofer demonstrates **strong architectural patterns** with consistent application
-across the codebase. The use of dependency injection, event-driven architecture,
-and well-known design patterns makes the code maintainable and extensible.
+Gofer demonstrates **good architectural intentions undermined by execution
+challenges**. The use of dependency injection, event-driven architecture, and
+well-known design patterns shows solid engineering foundations. However, **the
+mega-file anti-pattern dominates the codebase**, creating a critical
+maintainability crisis.
 
 **Key Strengths:**
 
-- Excellent use of TypeScript and DI
-- Consistent provider pattern for UI components
-- Clear separation of concerns
-- Strong testing infrastructure
+- Excellent use of TypeScript and dependency injection (tsyringe)
+- Consistent provider pattern for VS Code UI components
+- Comprehensive spec infrastructure (413 spec files, 1 active + 40 archived)
+- Strong testing volume (288 test files)
+- Good separation of concerns at the architectural level
 
-**Key Opportunities:**
+**Critical Weaknesses:**
 
-- Refactor large classes (extension.ts)
-- Extract shared spec parser
-- Strengthen error boundaries
-- Address minor tech debt
+- **Mega-file anti-pattern:** 5+ files exceed 1200 LOC, top 2 at 1787 LOC
+- **59 synchronous file operations** block extension and UI
+- **No concurrency protection** despite acknowledged race condition risks
+- **Pattern inconsistency:** console.log vs Logger, .then() vs async/await
+- **Tech debt accumulation:** Incomplete migrations, TODOs without issues
 
-**Overall Assessment:** The patterns and architecture are **production-quality**
-with minor refactoring opportunities that can be addressed incrementally.
+**Immediate Action Required:**
+
+The **mega-file problem is an existential threat** to long-term maintainability.
+Files of 1787 lines are:
+
+- Impossible to test properly
+- Impossible to review thoroughly
+- Impossible to refactor safely
+- Violations of every SOLID principle
+
+**Overall Assessment:** The patterns and architecture **were production-quality at
+inception, but rapid growth without refactoring discipline has created technical
+debt that now threatens the project's sustainability**. The active spec
+(030-vscode-surface-truth-cleanup) addresses symptoms (documentation drift) but
+not the root cause (code complexity). **Recommend pausing new features for 3-4
+weeks to break up mega-files before debt becomes insurmountable.**
+
+**Prognosis:** Without immediate intervention, the codebase will become
+unmaintainable within 6-12 months as files continue growing and patterns continue
+diverging.

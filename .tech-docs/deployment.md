@@ -1,6 +1,6 @@
 ---
-generated: "2026-04-30T17:58:10Z"
-source_commit: "64d169eba2a63002e0dcce3f4685790f6ddf7f88"
+generated: "2026-04-30T22:52:00Z"
+source_commit: "42dbe8f354ac8928bfa3d1e6c5b42989a9b6c55f"
 ---
 
 # Deployment
@@ -92,35 +92,54 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version, for example v2.0.5'
+        required: true
+      prerelease:
+        description: 'Mark as prerelease'
+        type: boolean
 
 jobs:
   release:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '20.x'
+          cache: 'npm'
 
-      - name: Install dependencies
-        run: npm install && cd extension && npm install
+      - name: Install Dependencies
+        run: |
+          npm ci
+          npm --prefix extension ci
+          npm --prefix language-server ci
 
-      - name: Build
-        run: npm run build:all
-
-      - name: Run tests
+      - name: Run Tests
         run: npm test
 
-      - name: Package extension
-        run: cd extension && npx vsce package
+      - name: Build Components
+        run: |
+          npm run build
+          npm --prefix extension run compile
+          npm --prefix language-server run build
 
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
+      - name: Package VS Code Extension
+        working-directory: ./extension
+        run: npx @vscode/vsce package --out "gofer-${{ steps.version.outputs.version }}.vsix"
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          files: extension/*.vsix
+          files: |
+            gofer-${{ steps.version.outputs.tag_name }}.tar.gz
+            extension/gofer-${{ steps.version.outputs.version }}.vsix
 ```
 
 ---

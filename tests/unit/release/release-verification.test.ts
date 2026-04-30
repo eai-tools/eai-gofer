@@ -223,5 +223,13 @@ describe('Release Verification', () => {
       expect(goferVersionWriteIndex).toBeGreaterThan(-1);
       expect(gitAddIndex).toBeGreaterThan(goferVersionWriteIndex);
     });
+
+    it('should capture failing test output before aborting the release', () => {
+      expect(RELEASE_AUTO_SCRIPT).toContain(`print_info "Running tests..."
+set +e
+npm test > /tmp/test-output.log 2>&1
+TEST_EXIT=$?
+set -e`);
+    });
   });
 });

@@ -2,6 +2,16 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [3.1.0] - 2026-04-30
+
+Adds EnterpriseAI-first cross-CLI delivery for Gofer.
+
+- Emits the full Gofer command set across Claude, Copilot, Codex, and Gemini.
+- Makes EnterpriseAI the default workflow with explicit standard-profile opt-out.
+- Adds app/non-app classification and a four-step AI-augmented process model for application delivery.
+- Adds context bundle, contract pack, reuse scan, audit history, and red/green validation guardrails.
+- Generates persona-specific Marp decks for enterprise decision makers.
+
 ## [3.0.1] - 2026-04-28
 
 Fix Codex install repair and cross-CLI docs

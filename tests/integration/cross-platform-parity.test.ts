@@ -23,7 +23,8 @@ import { CrossPlatformCommandRouter } from '../../extension/src/council/CrossPla
  * Feature Parity Tests (US-6, Phase 8)
  * Tasks: T078-T082
  *
- * Tests verify complete feature parity across Claude CLI, Codex CLI, and GitHub Copilot Chat
+ * Tests verify complete feature parity across Claude CLI, Codex CLI, GitHub
+ * Copilot Chat, and Gemini CLI command files.
  */
 describe('Cross-Platform Feature Parity', () => {
   const workspacePath = process.cwd();
@@ -51,9 +52,12 @@ describe('Cross-Platform Feature Parity', () => {
       '10_gofer_cloud',
       'gofer_constitution',
       'gofer_hydrate',
+      'gofer:personality',
+      'gofer:plan',
+      'gofer:side',
     ];
 
-    it('should have all 16 commands available in Claude platform', () => {
+    it('should have all 19 commands available in Claude platform', () => {
       commands.forEach((command) => {
         const commandPath = router.getCommandPath(command, 'claude');
         expect(fs.existsSync(commandPath)).toBe(true);
@@ -73,10 +77,12 @@ describe('Cross-Platform Feature Parity', () => {
       const claudePath = router.getCommandPath(testCommand, 'claude');
       const copilotPath = router.getCommandPath(testCommand, 'copilot');
       const codexPath = router.getCommandPath(testCommand, 'codex');
+      const geminiPath = router.getCommandPath(testCommand, 'gemini');
 
       expect(claudePath).toContain('.claude/commands');
       expect(copilotPath).toContain('.github/prompts');
       expect(codexPath).toContain('.system/skills');
+      expect(geminiPath).toContain('.gemini/commands/gofer');
     });
 
     it('should provide correct command syntax for each platform', () => {
@@ -85,12 +91,13 @@ describe('Cross-Platform Feature Parity', () => {
       expect(router.getCommandSyntax(testCommand, 'claude')).toBe('/1_gofer_research');
       expect(router.getCommandSyntax(testCommand, 'copilot')).toBe('#1_gofer_research');
       expect(router.getCommandSyntax(testCommand, 'codex')).toBe('$ $1_gofer_research');
+      expect(router.getCommandSyntax(testCommand, 'gemini')).toBe('/gofer:1_gofer_research');
     });
 
     it('should list all available commands', async () => {
       const availableCommands = await router.listCommands();
 
-      expect(availableCommands.length).toBeGreaterThanOrEqual(16);
+      expect(availableCommands.length).toBeGreaterThanOrEqual(19);
       expect(availableCommands).toContain('1_gofer_research');
       expect(availableCommands).toContain('6_gofer_validate');
     });
@@ -130,6 +137,10 @@ describe('Cross-Platform Feature Parity', () => {
           const copilotContent = fs.readFileSync(copilotPath, 'utf8');
           expect(copilotContent.trim().length).toBeGreaterThan(100);
         }
+
+        const geminiPath = router.getCommandPath(command, 'gemini');
+        const geminiContent = fs.readFileSync(geminiPath, 'utf8');
+        expect(geminiContent.trim().length).toBeGreaterThan(20);
       });
     });
   });
@@ -428,6 +439,9 @@ describe('Cross-Platform Feature Parity', () => {
 
       const copilotPath = router.getCommandPath(testCommand, 'copilot');
       expect(copilotPath).toMatch(/\.github\/prompts/);
+
+      const geminiPath = router.getCommandPath(testCommand, 'gemini');
+      expect(geminiPath).toMatch(/\.gemini\/commands\/gofer/);
     });
 
     it('should detect command availability correctly', () => {

@@ -110,16 +110,6 @@ export function enableManagedCodexSkillConfigEntries(
 export class ResourceSyncer implements IResourceOperations {
   private workspacePath: string = '';
   private specifyPath: string = '';
-  private readonly codexExcludedSkillNames = [
-    '0_business_scenario',
-    '7_gofer_save',
-    '8_gofer_resume',
-    'gofer_constitution',
-    'gofer_hydrate',
-    'gofer:personality',
-    'gofer:plan',
-    'gofer:side',
-  ];
 
   constructor(private readonly logger: Logger) {}
 
@@ -449,65 +439,11 @@ export class ResourceSyncer implements IResourceOperations {
         workflowProfile,
       });
 
-      const systemPruned = await this.removeCodexExcludedSkills(
-        path.join(this.workspacePath, '.system', 'skills')
-      );
-      if (systemPruned > 0) {
-        this.logger.info('ResourceSyncer', 'Pruned Claude-only skills from .system/skills', {
-          removed: systemPruned,
-        });
-      }
-
       await this.syncCodexSkillsToAgents();
-
-      const agentsPruned = await this.removeCodexExcludedSkills(
-        path.join(this.workspacePath, '.agents', 'skills')
-      );
-      if (agentsPruned > 0) {
-        this.logger.info('ResourceSyncer', 'Pruned Claude-only skills from .agents/skills', {
-          removed: agentsPruned,
-        });
-      }
     } catch (error) {
       this.logger.error('ResourceSyncer', error as Error, {
         operation: 'setupCodexSkills',
       });
-      throw error;
-    }
-  }
-
-  private async removeCodexExcludedSkills(skillsRoot: string): Promise<number> {
-    let removed = 0;
-
-    for (const skillName of this.codexExcludedSkillNames) {
-      const skillDir = path.join(skillsRoot, skillName);
-      if (!(await this.isGeneratedGoferSkillDirectory(skillDir, skillName))) {
-        continue;
-      }
-
-      await fs.rm(skillDir, { recursive: true, force: true });
-      removed++;
-    }
-
-    return removed;
-  }
-
-  private async isGeneratedGoferSkillDirectory(
-    skillDir: string,
-    skillName: string
-  ): Promise<boolean> {
-    const skillPath = path.join(skillDir, 'SKILL.md');
-    try {
-      const content = await fs.readFile(skillPath, 'utf-8');
-      return (
-        content.includes('gofer:') ||
-        content.includes(`name: ${skillName}`) ||
-        content.includes(`name: gofer/${skillName}`)
-      );
-    } catch (error: unknown) {
-      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-        return false;
-      }
       throw error;
     }
   }
@@ -544,11 +480,11 @@ export class ResourceSyncer implements IResourceOperations {
     } catch (error: unknown) {
       this.logger.warn(
         'ResourceSyncer',
-        `Unable to read workflow profile from configuration, defaulting to standard: ${
+        `Unable to read workflow profile from configuration, defaulting to enterpriseai: ${
           error instanceof Error ? error.message : String(error)
         }`
       );
-      return 'standard';
+      return 'enterpriseai';
     }
   }
 

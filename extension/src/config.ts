@@ -435,8 +435,8 @@ export class ConfigManager {
   /**
    * Get default CLI for Gofer command routing (T004)
    */
-  public getDefaultCLI(): 'claude' | 'copilot' | 'codex' | 'auto' {
-    return this.config.get<'claude' | 'copilot' | 'codex' | 'auto'>(
+  public getDefaultCLI(): 'claude' | 'copilot' | 'codex' | 'gemini' | 'auto' {
+    return this.config.get<'claude' | 'copilot' | 'codex' | 'gemini' | 'auto'>(
       'defaultCLI',
       DEFAULTS.defaultCLI
     );
@@ -478,16 +478,17 @@ export class ConfigManager {
    * @returns True if platform directory exists
    */
   public isPlatformEnabled(
-    platform: 'claude' | 'copilot' | 'codex',
+    platform: 'claude' | 'copilot' | 'codex' | 'gemini',
     workspacePath: string
   ): boolean {
     const fs = require('fs');
     const path = require('path');
 
-    const platformPaths: Record<'claude' | 'copilot' | 'codex', string> = {
+    const platformPaths: Record<'claude' | 'copilot' | 'codex' | 'gemini', string> = {
       claude: path.join(workspacePath, '.claude', 'commands'),
       copilot: path.join(workspacePath, '.github', 'prompts'),
       codex: path.join(workspacePath, '.system', 'skills'),
+      gemini: path.join(workspacePath, '.gemini', 'commands', 'gofer'),
     };
 
     try {

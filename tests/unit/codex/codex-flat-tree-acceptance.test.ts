@@ -74,18 +74,18 @@ describe('Codex agents-skills flat tree (T137 / FR-008)', () => {
     expect(existsSync(nested)).toBe(false);
   });
 
-  it('Claude-only stages were NOT emitted to agents-skills', () => {
+  it('formerly Claude-only stages are emitted to agents-skills', () => {
     const skillsRoot = path.join(tmp, '.agents/skills/gofer');
-    const claudeOnly = [
+    const formerlyClaudeOnly = [
       '0_business_scenario',
       'gofer_constitution',
       'gofer_hydrate',
       '7_gofer_save',
       '8_gofer_resume',
     ];
-    for (const stage of claudeOnly) {
+    for (const stage of formerlyClaudeOnly) {
       const dir = path.join(skillsRoot, stage);
-      expect(existsSync(dir)).toBe(false);
+      expect(existsSync(dir)).toBe(true);
     }
   });
 

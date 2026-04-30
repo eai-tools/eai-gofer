@@ -96,10 +96,11 @@ describe('ConfigManager (T071)', () => {
       const result = configManager.getDefaultCLI();
 
       // Type assertion to verify it's one of the valid values
-      const validValues: Array<'claude' | 'copilot' | 'codex' | 'auto'> = [
+      const validValues: Array<'claude' | 'copilot' | 'codex' | 'gemini' | 'auto'> = [
         'claude',
         'copilot',
         'codex',
+        'gemini',
         'auto',
       ];
 

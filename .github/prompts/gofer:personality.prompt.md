@@ -1,21 +1,3 @@
----
-name: gofer:personality
-description: Gofer Personality
-agent: copilot-workspace
-tools:
-  - Read
-  - Grep
-  - Glob
-  - Bash
-  - WebSearch
-argument-hint: feature-name-or-description
-gofer:
-  workflowProfile: enterpriseai
-  canonicalSource: .claude/commands/gofer:personality.md
-  canonicalChecksum: a4550e37f65b7f9140226caf4a3507bc9db6959038714f0cc984975278be2e79
-  metadataSource: scripts/generate-commands.ts
----
-
 
 # Gofer Personality
 

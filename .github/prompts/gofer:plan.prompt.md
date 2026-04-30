@@ -1,21 +1,3 @@
----
-name: gofer:plan
-description: Gofer Plan Mode Toggle
-agent: copilot-workspace
-tools:
-  - Read
-  - Grep
-  - Glob
-  - Bash
-  - WebSearch
-argument-hint: feature-name-or-description
-gofer:
-  workflowProfile: enterpriseai
-  canonicalSource: .claude/commands/gofer:plan.md
-  canonicalChecksum: fd86cccc2fe623a6ef6041af7d16c311dce97bd52f7377f4c394e4ddcd43e129
-  metadataSource: scripts/generate-commands.ts
----
-
 
 # Gofer Plan Mode Toggle
 

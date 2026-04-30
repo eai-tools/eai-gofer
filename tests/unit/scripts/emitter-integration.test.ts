@@ -49,7 +49,7 @@ async function readFile(filePath: string): Promise<string> {
 // ---------------------------------------------------------------------------
 
 /**
- * A stage that should appear on all non-claude surfaces.
+ * A stage that should appear on all surfaces.
  */
 const ALL_SURFACE_STAGE_CONTENT = `---
 name: 1_gofer_research
@@ -63,6 +63,7 @@ surfaces:
   - github-prompts
   - agents-skills
   - system-skills
+  - gemini
 ---
 
 # Gofer Research
@@ -76,8 +77,7 @@ This is the research stage body content.
 `;
 
 /**
- * A claude-only stage — must NOT appear in copilot, github-prompts,
- * agents-skills, or system-skills outputs.
+ * Formerly Claude-only stages now appear on all surfaces.
  */
 const CLAUDE_ONLY_STAGE_CONTENT = `---
 name: 0_business_scenario
@@ -87,6 +87,11 @@ category: pipeline
 surfaces:
   - claude
   - claude-mirror
+  - copilot
+  - github-prompts
+  - agents-skills
+  - system-skills
+  - gemini
 ---
 
 # Business Scenario
@@ -196,7 +201,7 @@ describe('generate-commands emitters (integration)', () => {
       '--root',
       tmpRoot,
       '--surfaces',
-      'claude,claude-mirror,copilot,github-prompts,agents-skills,system-skills',
+      'claude,claude-mirror,copilot,github-prompts,agents-skills,system-skills,gemini,agents-md,codex-config',
     ]);
 
     // Assign dummy emitters for the describe blocks below — actual verification
@@ -222,24 +227,24 @@ describe('generate-commands emitters (integration)', () => {
   // -------------------------------------------------------------------------
 
   describe('shouldExclude', () => {
-    it('CLAUDE_ONLY_STAGES contains exactly 5 stages', () => {
-      expect(CLAUDE_ONLY_STAGES).toHaveLength(5);
+    it('CLAUDE_ONLY_STAGES is empty', () => {
+      expect(CLAUDE_ONLY_STAGES).toEqual([]);
     });
 
-    it('excludes 0_business_scenario from copilot', () => {
-      expect(shouldExclude('0_business_scenario', 'copilot')).toBe(true);
+    it('does not exclude 0_business_scenario from copilot', () => {
+      expect(shouldExclude('0_business_scenario', 'copilot')).toBe(false);
     });
 
-    it('excludes 0_business_scenario from github-prompts', () => {
-      expect(shouldExclude('0_business_scenario', 'github-prompts')).toBe(true);
+    it('does not exclude 0_business_scenario from github-prompts', () => {
+      expect(shouldExclude('0_business_scenario', 'github-prompts')).toBe(false);
     });
 
-    it('excludes 0_business_scenario from agents-skills', () => {
-      expect(shouldExclude('0_business_scenario', 'agents-skills')).toBe(true);
+    it('does not exclude 0_business_scenario from agents-skills', () => {
+      expect(shouldExclude('0_business_scenario', 'agents-skills')).toBe(false);
     });
 
-    it('excludes 0_business_scenario from system-skills', () => {
-      expect(shouldExclude('0_business_scenario', 'system-skills')).toBe(true);
+    it('does not exclude 0_business_scenario from system-skills', () => {
+      expect(shouldExclude('0_business_scenario', 'system-skills')).toBe(false);
     });
 
     it('does NOT exclude 0_business_scenario from claude', () => {
@@ -266,15 +271,15 @@ describe('generate-commands emitters (integration)', () => {
       }
     });
 
-    it('excludes all CLAUDE_ONLY_STAGES from codex', () => {
+    it('does not exclude legacy stages from codex', () => {
       for (const stage of CLAUDE_ONLY_STAGES) {
-        expect(shouldExclude(stage, 'codex')).toBe(true);
+        expect(shouldExclude(stage, 'codex')).toBe(false);
       }
     });
 
-    it('excludes all CLAUDE_ONLY_STAGES from gemini', () => {
+    it('does not exclude legacy stages from gemini', () => {
       for (const stage of CLAUDE_ONLY_STAGES) {
-        expect(shouldExclude(stage, 'gemini')).toBe(true);
+        expect(shouldExclude(stage, 'gemini')).toBe(false);
       }
     });
   });
@@ -362,7 +367,7 @@ describe('generate-commands emitters (integration)', () => {
       expect(await fileExists(outPath)).toBe(true);
     });
 
-    it('does NOT emit 0_business_scenario (claude-only) to copilot-prompts/', async () => {
+    it('emits 0_business_scenario to copilot-prompts/', async () => {
       const outPath = path.join(
         tmpRoot,
         'extension',
@@ -370,7 +375,7 @@ describe('generate-commands emitters (integration)', () => {
         'copilot-prompts',
         '0_business_scenario.prompt.md'
       );
-      expect(await fileExists(outPath)).toBe(false);
+      expect(await fileExists(outPath)).toBe(true);
     });
 
     it('copilot body content has no frontmatter', async () => {
@@ -397,9 +402,9 @@ describe('generate-commands emitters (integration)', () => {
       expect(await fileExists(outPath)).toBe(true);
     });
 
-    it('does NOT emit 0_business_scenario (claude-only) to .github/prompts/', async () => {
+    it('emits 0_business_scenario to .github/prompts/', async () => {
       const outPath = path.join(tmpRoot, '.github', 'prompts', '0_business_scenario.prompt.md');
-      expect(await fileExists(outPath)).toBe(false);
+      expect(await fileExists(outPath)).toBe(true);
     });
 
     it('github-prompts body has no frontmatter', async () => {
@@ -427,7 +432,7 @@ describe('generate-commands emitters (integration)', () => {
       expect(await fileExists(outPath)).toBe(true);
     });
 
-    it('does NOT emit SKILL.md for 0_business_scenario (claude-only)', async () => {
+    it('emits SKILL.md for 0_business_scenario', async () => {
       const outPath = path.join(
         tmpRoot,
         '.agents',
@@ -436,7 +441,7 @@ describe('generate-commands emitters (integration)', () => {
         '0_business_scenario',
         'SKILL.md'
       );
-      expect(await fileExists(outPath)).toBe(false);
+      expect(await fileExists(outPath)).toBe(true);
     });
 
     it('SKILL.md contains correct YAML frontmatter with name and description', async () => {
@@ -500,7 +505,7 @@ describe('generate-commands emitters (integration)', () => {
       expect(await fileExists(outPath)).toBe(true);
     });
 
-    it('does NOT emit SKILL.md for 0_business_scenario (claude-only)', async () => {
+    it('emits SKILL.md for 0_business_scenario', async () => {
       const outPath = path.join(
         tmpRoot,
         '.system',
@@ -509,7 +514,7 @@ describe('generate-commands emitters (integration)', () => {
         '0_business_scenario',
         'SKILL.md'
       );
-      expect(await fileExists(outPath)).toBe(false);
+      expect(await fileExists(outPath)).toBe(true);
     });
 
     it('system SKILL.md has same format as agents SKILL.md', async () => {
@@ -551,19 +556,13 @@ describe('generate-commands emitters (integration)', () => {
   });
 
   // -------------------------------------------------------------------------
-  // T043 — per-CLI exclusion enforcement cross-check
+  // T043 — per-CLI parity cross-check
   // -------------------------------------------------------------------------
 
-  describe('exclusion enforcement (T043)', () => {
-    it('claude-only stages are absent from ALL non-claude surfaces', async () => {
-      const claudeOnlyStages = [
-        '0_business_scenario',
-        'gofer_constitution',
-        'gofer_hydrate',
-        '7_gofer_save',
-        '8_gofer_resume',
-      ];
-      const nonClaudeSurfaces = [
+  describe('surface parity (T043)', () => {
+    it('formerly Claude-only stages are present on all portable surfaces', async () => {
+      const formerlyClaudeOnlyStages = ['0_business_scenario'];
+      const portableSurfaces = [
         {
           surface: 'copilot',
           dir: path.join(tmpRoot, 'extension', 'resources', 'copilot-prompts'),
@@ -586,23 +585,25 @@ describe('generate-commands emitters (integration)', () => {
           ext: '/SKILL.md',
           nested: true,
         },
+        {
+          surface: 'gemini',
+          dir: path.join(tmpRoot, '.gemini', 'commands', 'gofer'),
+          ext: '.toml',
+        },
       ];
 
-      for (const stage of claudeOnlyStages) {
-        for (const { surface, dir, ext, nested } of nonClaudeSurfaces) {
+      for (const stage of formerlyClaudeOnlyStages) {
+        for (const { surface, dir, ext, nested } of portableSurfaces) {
           const outPath = nested
             ? path.join(dir, stage, 'SKILL.md')
             : path.join(dir, `${stage}${ext}`);
           const exists = await fileExists(outPath);
-          expect(
-            exists,
-            `claude-only stage '${stage}' should NOT exist at ${surface} path: ${outPath}`
-          ).toBe(false);
+          expect(exists, `stage '${stage}' should exist at ${surface} path: ${outPath}`).toBe(true);
         }
       }
     });
 
-    it('all-surface stage 1_gofer_research appears in all 6 surfaces', async () => {
+    it('all-surface stage 1_gofer_research appears in all surfaces', async () => {
       const expectedPaths = [
         path.join(tmpRoot, '.claude', 'commands', '1_gofer_research.md'),
         path.join(tmpRoot, 'extension', 'resources', 'claude-commands', '1_gofer_research.md'),
@@ -616,6 +617,7 @@ describe('generate-commands emitters (integration)', () => {
         path.join(tmpRoot, '.github', 'prompts', '1_gofer_research.prompt.md'),
         path.join(tmpRoot, '.agents', 'skills', 'gofer', '1_gofer_research', 'SKILL.md'),
         path.join(tmpRoot, '.system', 'skills', 'gofer', '1_gofer_research', 'SKILL.md'),
+        path.join(tmpRoot, '.gemini', 'commands', 'gofer', '1_gofer_research.toml'),
       ];
 
       for (const outPath of expectedPaths) {

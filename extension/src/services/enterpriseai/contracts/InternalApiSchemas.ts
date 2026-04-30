@@ -213,6 +213,10 @@ export const INTERNAL_API_SCHEMAS: Readonly<
       enableMarpDeck: { type: 'boolean' },
       inputArtifacts: { type: 'object', customValidator: validateInputArtifacts },
     },
+    optional: {
+      enablePersonaDecks: { type: 'boolean' },
+      personaDecks: { type: 'string[]' },
+    },
   },
   'IAP-008': {
     contractId: 'IAP-008',

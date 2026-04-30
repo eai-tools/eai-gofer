@@ -20,16 +20,10 @@ import { parseStageCommand } from './parse-stage-command.mjs';
 // ---------------------------------------------------------------------------
 
 /**
- * Stages that are exclusive to Claude surfaces and must not be emitted
- * to non-Claude surfaces (codex, gemini, copilot, github-prompts, etc.).
+ * Legacy compatibility export. Gofer now emits every command/helper to every
+ * supported surface when the stage frontmatter lists that surface.
  */
-export const CLAUDE_ONLY_STAGES = [
-  '0_business_scenario',
-  'gofer_constitution',
-  'gofer_hydrate',
-  '7_gofer_save',
-  '8_gofer_resume',
-];
+export const CLAUDE_ONLY_STAGES = [];
 
 const ALL_SURFACES = [
   'claude',
@@ -49,17 +43,18 @@ const ALL_SURFACES = [
 
 /**
  * Returns true if the given stage should be excluded from the given surface.
- * Claude-only stages are excluded from every surface except 'claude' and 'claude-mirror'.
+ * Gofer keeps this function for older tests/imports, but no stages are
+ * excluded by name anymore. Surface availability is controlled by stage
+ * frontmatter so Claude, Copilot, Codex, and Gemini stay in parity.
  *
  * @param {string} stageName
  * @param {string} surface
  * @returns {boolean}
  */
 export function shouldExclude(stageName, surface) {
-  if (!CLAUDE_ONLY_STAGES.includes(stageName)) {
-    return false;
-  }
-  return surface !== 'claude' && surface !== 'claude-mirror';
+  void stageName;
+  void surface;
+  return false;
 }
 
 // ---------------------------------------------------------------------------
@@ -172,7 +167,7 @@ async function emitClaudeMirror(stages, root, dryRun) {
 /**
  * T039 — copilot emitter
  * Emits body to extension/resources/copilot-prompts/<name>.prompt.md.
- * Skips CLAUDE_ONLY_STAGES entirely.
+ * Emits every stage whose frontmatter includes the Copilot surface.
  *
  * @param {Array} stages
  * @param {string} root
@@ -203,7 +198,7 @@ async function emitCopilot(stages, root, dryRun) {
 /**
  * T040 — github-prompts emitter
  * Emits body to .github/prompts/<name>.prompt.md.
- * Skips CLAUDE_ONLY_STAGES entirely.
+ * Emits every stage whose frontmatter includes the GitHub prompts surface.
  *
  * @param {Array} stages
  * @param {string} root
@@ -243,9 +238,18 @@ function buildSkillContent(stageName, description, body) {
 }
 
 /**
+ * Escapes a string for a basic TOML double-quoted value.
+ * @param {string} value
+ * @returns {string}
+ */
+function escapeTomlString(value) {
+  return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+}
+
+/**
  * T041 — agents-skills emitter
  * Emits Codex SKILL.md to .agents/skills/gofer/<name>/SKILL.md.
- * Skips CLAUDE_ONLY_STAGES entirely.
+ * Emits every stage whose frontmatter includes the agents-skills surface.
  *
  * @param {Array} stages
  * @param {string} root
@@ -279,7 +283,7 @@ async function emitAgentsSkills(stages, root, dryRun) {
 /**
  * T042 — system-skills emitter
  * Emits SKILL.md to .system/skills/gofer/<name>/SKILL.md.
- * Skips CLAUDE_ONLY_STAGES entirely.
+ * Emits every stage whose frontmatter includes the system-skills surface.
  *
  * @param {Array} stages
  * @param {string} root
@@ -312,8 +316,8 @@ async function emitSystemSkills(stages, root, dryRun) {
 
 /**
  * T065 — gemini emitter
- * Emits plain markdown body to .gemini/commands/gofer/<name>.md.
- * Skips CLAUDE_ONLY_STAGES entirely.
+ * Emits plain markdown body and TOML command wrappers to
+ * .gemini/commands/gofer/<name>.md and <name>.toml.
  * T066 — also creates .gemini/commands/gofer/manifest.json listing all emitted stage names.
  *
  * @param {Array} stages
@@ -322,21 +326,33 @@ async function emitSystemSkills(stages, root, dryRun) {
  */
 async function emitGemini(stages, root, dryRun) {
   const outDir = path.join(root, '.gemini', 'commands', 'gofer');
+  const extensionPath = path.join(root, '.gemini', 'extension.json');
   const emittedNames = [];
   let count = 0;
 
   for (const stage of stages) {
-    const { name, surfaces } = stage.frontmatter;
+    const { name, description, surfaces } = stage.frontmatter;
     if (shouldExclude(String(name), 'gemini')) continue;
     if (!surfaces.includes('gemini')) continue;
 
-    const outPath = path.join(outDir, `${name}.md`);
+    const markdownPath = path.join(outDir, `${name}.md`);
+    const tomlPath = path.join(outDir, `${name}.toml`);
+    const sourceFileName = path.basename(stage.filePath);
+    const tomlContent = [
+      `description = "${escapeTomlString(String(description || name))}"`,
+      `prompt = "{{include: ../../../.specify/commands/${sourceFileName}}}"`,
+      '',
+    ].join('\n');
+
     if (dryRun) {
-      console.log(`[dry-run] gemini: would write ${outPath}`);
+      console.log(`[dry-run] gemini: would write ${markdownPath}`);
+      console.log(`[dry-run] gemini: would write ${tomlPath}`);
     } else {
       await ensureDir(outDir);
-      await fs.writeFile(outPath, stage.body, 'utf8');
-      console.log(`gemini: wrote ${outPath}`);
+      await fs.writeFile(markdownPath, stage.body, 'utf8');
+      await fs.writeFile(tomlPath, tomlContent, 'utf8');
+      console.log(`gemini: wrote ${markdownPath}`);
+      console.log(`gemini: wrote ${tomlPath}`);
     }
     emittedNames.push(String(name));
     count++;
@@ -353,10 +369,26 @@ async function emitGemini(stages, root, dryRun) {
 
   if (dryRun) {
     console.log(`[dry-run] gemini: would write manifest ${manifestPath}`);
+    console.log(`[dry-run] gemini: would write extension manifest ${extensionPath}`);
   } else {
     await ensureDir(outDir);
     await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2) + '\n', 'utf8');
+    await fs.writeFile(
+      extensionPath,
+      JSON.stringify(
+        {
+          name: 'gofer',
+          version: '1.0.0',
+          description: 'Gofer pipeline as Gemini CLI extension',
+          commands: '.gemini/commands/gofer/',
+        },
+        null,
+        2
+      ) + '\n',
+      'utf8'
+    );
     console.log(`gemini: wrote manifest ${manifestPath}`);
+    console.log(`gemini: wrote extension manifest ${extensionPath}`);
   }
 
   console.log(`gemini: ${count} file(s) emitted`);
@@ -366,7 +398,7 @@ async function emitGemini(stages, root, dryRun) {
 /**
  * T067 — agents-md emitter
  * Creates .agents/AGENTS.md — a consolidated AGENTS.md for Gemini/Codex.
- * Includes all non-claude-only stages.
+ * Includes all stages emitted to portable agent surfaces.
  *
  * @param {Array} stages
  * @param {string} root
@@ -413,7 +445,7 @@ ${sections.join('\n\n')}
 /**
  * T068 — codex-config emitter
  * Generates .specify/outputs/codex-config-fragment.toml containing skill entries
- * for non-claude-only stages.
+ * for every stage emitted to Codex/agents-skills.
  * Does NOT touch ~/.codex/config.toml.
  *
  * @param {Array} stages

@@ -15,6 +15,7 @@ import { PlatformType, CommandMetadata, CommandInvocationSyntax } from './types/
  * - Claude CLI (.claude/commands)
  * - Copilot Chat (.github/prompts)
  * - Codex CLI (.system/skills)
+ * - Gemini CLI (.gemini/commands/gofer)
  */
 export class CommandMetadataExtractor {
   /**
@@ -152,6 +153,52 @@ export class CommandMetadataExtractor {
   }
 
   /**
+   * Extract metadata from a Gemini CLI command TOML file (async version)
+   */
+  public async extractFromGeminiCommand(filePath: string): Promise<CommandMetadata> {
+    const content = await fsPromises.readFile(filePath, 'utf8');
+    return this.parseGeminiCommandContent(content, filePath);
+  }
+
+  /**
+   * Extract metadata from a Gemini CLI command TOML file (sync version)
+   * Note: Prefer async version when possible to avoid blocking event loop
+   */
+  public extractFromGeminiCommandSync(filePath: string): CommandMetadata {
+    const content = fs.readFileSync(filePath, 'utf8');
+    return this.parseGeminiCommandContent(content, filePath);
+  }
+
+  private parseGeminiCommandContent(content: string, filePath: string): CommandMetadata {
+    const frontmatter = this.parseSimpleToml(content);
+    const name = this.extractCommandNameFromPath(filePath, '.toml');
+    const description = (frontmatter.description as string) || name;
+    const prompt = (frontmatter.prompt as string) || content;
+
+    const supportsAutoChain =
+      prompt.includes('Next Command:') ||
+      prompt.includes('continue the pipeline') ||
+      content.includes('AUTO-CHAIN');
+    const supportsParallelAgents =
+      prompt.includes('parallel') ||
+      prompt.includes('Multi-Agent Delegation') ||
+      content.includes('parallel agents');
+
+    return {
+      name,
+      description,
+      platform: 'gemini',
+      filePath,
+      frontmatter,
+      content,
+      supportsAutoChain,
+      supportsParallelAgents,
+      invocationSyntax: this.getInvocationSyntax('gemini', name),
+      extractedAt: new Date(),
+    };
+  }
+
+  /**
    * Validate command invocation syntax for a platform
    */
   public validateInvocationSyntax(invocation: string, platform: PlatformType): boolean {
@@ -213,6 +260,20 @@ export class CommandMetadataExtractor {
     return 'No description available';
   }
 
+  private parseSimpleToml(content: string): Record<string, unknown> {
+    const values: Record<string, unknown> = {};
+    const stringFieldPattern = /^([A-Za-z0-9_-]+)\s*=\s*"((?:\\"|[^"])*)"\s*$/;
+
+    for (const line of content.split(/\r?\n/)) {
+      const match = line.trim().match(stringFieldPattern);
+      if (match) {
+        values[match[1]] = match[2].replace(/\\"/g, '"');
+      }
+    }
+
+    return values;
+  }
+
   /**
    * Get invocation syntax for a platform and command
    */
@@ -248,6 +309,17 @@ export class CommandMetadataExtractor {
         prefix: '$ $',
         example: '$ $ ' + commandName,
         pattern: '^\\$\\s+\\$\\s+' + commandName + '(\\s+.*)?$',
+        supportsArguments: true,
+        argumentFormat: 'space-separated after command',
+      };
+    }
+
+    if (platform === 'gemini') {
+      return {
+        platform: 'gemini',
+        prefix: '/gofer:',
+        example: '/gofer:' + commandName,
+        pattern: '^/gofer:' + commandName + '(\\s+.*)?$',
         supportsArguments: true,
         argumentFormat: 'space-separated after command',
       };

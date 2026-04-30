@@ -1,12 +1,13 @@
 /**
  * Cross-Platform Command Parity Types
- * Feature 028: Enable complete feature parity across Claude CLI, Codex CLI, and GitHub Copilot Chat
+ * Feature 028: Enable complete feature parity across Claude CLI, Codex CLI,
+ * GitHub Copilot Chat, and Gemini CLI command files.
  */
 
 /**
  * Supported AI platforms for Gofer commands
  */
-export type PlatformType = 'claude' | 'copilot' | 'codex';
+export type PlatformType = 'claude' | 'copilot' | 'codex' | 'gemini';
 
 /**
  * Platform detection context information
@@ -46,6 +47,11 @@ export interface PlatformDetectionContext {
    * Codex CLI directory exists (.system/skills/)
    */
   hasCodexDirectory: boolean;
+
+  /**
+   * Gemini command directory exists (.gemini/commands/gofer/)
+   */
+  hasGeminiDirectory: boolean;
 
   /**
    * Timestamp when detection was performed
@@ -123,7 +129,7 @@ export interface CommandInvocationSyntax {
   platform: PlatformType;
 
   /**
-   * Command prefix (Claude: "/", Copilot: "#", Codex: "$ $")
+   * Command prefix (Claude: "/", Copilot: "#", Codex: "$ $", Gemini: "/gofer:")
    */
   prefix: string;
 
@@ -171,6 +177,11 @@ export interface CommandMapping {
    * Codex CLI file path
    */
   codexPath?: string;
+
+  /**
+   * Gemini CLI command file path
+   */
+  geminiPath?: string;
 
   /**
    * Whether command is available on all platforms (100% parity)

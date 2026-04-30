@@ -8,8 +8,8 @@ function readExtensionPackageJson(): Record<string, unknown> {
   return JSON.parse(content) as Record<string, unknown>;
 }
 
-describe('Workflow profile standard baseline', () => {
-  it('defines gofer.workflowProfile with standard default', () => {
+describe('Workflow profile defaults', () => {
+  it('defines gofer.workflowProfile with enterpriseai default', () => {
     const extensionPackage = readExtensionPackageJson();
     const contributes = extensionPackage.contributes as Record<string, unknown>;
     const configuration = contributes.configuration as Record<string, unknown>;
@@ -17,7 +17,7 @@ describe('Workflow profile standard baseline', () => {
     const workflowProfile = properties['gofer.workflowProfile'] as Record<string, unknown>;
 
     expect(workflowProfile).toBeDefined();
-    expect(workflowProfile.default).toBe('standard');
+    expect(workflowProfile.default).toBe('enterpriseai');
     expect(workflowProfile.enum).toEqual(['standard', 'enterpriseai']);
   });
 
@@ -28,7 +28,7 @@ describe('Workflow profile standard baseline', () => {
       'utf8'
     );
 
-    expect(rootReadme).toContain('"gofer.workflowProfile": "standard"');
+    expect(rootReadme).toContain('"gofer.workflowProfile": "enterpriseai"');
     expect(extensionReadme).toContain('`gofer.workflowProfile`');
   });
 });

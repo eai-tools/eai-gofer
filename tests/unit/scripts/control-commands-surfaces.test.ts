@@ -16,8 +16,17 @@ interface ParseResult {
 
 const CONTROL_COMMANDS = ['gofer_plan.md', 'gofer_side.md', 'gofer_personality.md'];
 
-const EXPECTED_SURFACES = ['claude', 'claude-mirror', 'copilot', 'vscode'];
-const FORBIDDEN_SURFACES = ['codex', 'gemini', 'github-prompts'];
+const EXPECTED_SURFACES = [
+  'claude',
+  'claude-mirror',
+  'copilot',
+  'vscode',
+  'codex',
+  'gemini',
+  'github-prompts',
+  'agents-skills',
+  'system-skills',
+];
 
 describe('control commands — surfaces and category', () => {
   let parseStageCommand: (filePath: string) => Promise<ParseResult>;
@@ -36,7 +45,7 @@ describe('control commands — surfaces and category', () => {
 
   for (const file of CONTROL_COMMANDS) {
     describe(file, () => {
-      it('has surfaces equal to exactly [claude, claude-mirror, copilot, vscode]', async () => {
+      it('has all cross-CLI surfaces', async () => {
         const filePath = path.join(COMMANDS_DIR, file);
         const { frontmatter } = await parseStageCommand(filePath);
 
@@ -48,18 +57,7 @@ describe('control commands — surfaces and category', () => {
         const sortedExpected = [...EXPECTED_SURFACES].sort();
         expect(sortedActual).toEqual(sortedExpected);
 
-        // Length must be exactly 4
-        expect(surfaces.length).toBe(4);
-      });
-
-      it('does NOT include codex, gemini, or github-prompts', async () => {
-        const filePath = path.join(COMMANDS_DIR, file);
-        const { frontmatter } = await parseStageCommand(filePath);
-        const surfaces = frontmatter.surfaces as string[];
-
-        for (const forbidden of FORBIDDEN_SURFACES) {
-          expect(surfaces, `${file} must not include ${forbidden}`).not.toContain(forbidden);
-        }
+        expect(surfaces.length).toBe(EXPECTED_SURFACES.length);
       });
 
       it('has category=control', async () => {

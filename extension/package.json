@@ -1,7 +1,7 @@
 {
   "name": "gofer",
   "displayName": "Gofer for EnterpriseAI Vertical App Delivery [PREVIEW]",
-  "description": "EnterpriseAI-first vertical app delivery workflow in VS Code with additive support for standard and multi-platform Gofer pipelines.",
+  "description": "Guide repository work from business scenario to validated delivery inside VS Code, with EnterpriseAI-first workflow support when you want it.",
   "version": "3.1.0",
   "publisher": "EnterpriseAI",
   "icon": "icon.png",
@@ -334,7 +334,7 @@
     "viewsWelcome": [
       {
         "view": "goferProgress",
-        "contents": "Welcome to Gofer for EnterpriseAI vertical app delivery.\n\nNo `.specify` workspace was found yet.\n\n[Initialize Gofer](command:gofer.initialize)\n\nGetting started:\n1. Initialize the workspace\n2. Open your AI chat/CLI and run `/0_business_scenario` (or `#0_business_scenario` in Copilot)\n3. Approve `proposal-review.md`, then continue through spec → plan → tasks → implement → validate\n\nEnterpriseAI-first guidance is the default. Set `gofer.workflowProfile=standard` only when you explicitly want the baseline Gofer workflow.\n\nUse **Gofer: Install Optional Developer Tools** if your preferred CLI is not installed."
+        "contents": "Gofer helps turn a business scenario into a clear delivery path inside the repository: research, specification, planning, tasks, implementation, and validation.\n\nNo `.specify` workspace was found yet.\n\n[Initialize Gofer](command:gofer.initialize)\n\nA simple way to start:\n1. Initialize the workspace\n2. Open your AI chat/CLI and run `/0_business_scenario` (or `#0_business_scenario` in Copilot)\n3. Review `proposal-review.md`, then continue through spec → plan → tasks → implement → validate\n\nEnterpriseAI-first guidance is the default when you want that workflow. Set `gofer.workflowProfile=standard` only when you explicitly want the baseline Gofer workflow.\n\nUse **Gofer: Install Optional Developer Tools** if your preferred CLI is not installed locally."
       },
       {
         "view": "goferAIUsage",
@@ -465,7 +465,7 @@
           "type": "string",
           "default": "",
           "description": "Anthropic API Key for Claude (get yours at https://console.anthropic.com/settings/keys)",
-          "markdownDescription": "Your Anthropic API key for Claude. [Get one here](https://console.anthropic.com/settings/keys). This is stored securely in VSCode settings and never shared.",
+          "markdownDescription": "Your Anthropic API key for Claude. [Get one here](https://console.anthropic.com/settings/keys). This is stored in your VS Code settings profile unless you choose another mechanism such as environment variables, and Gofer does not commit it to git.",
           "order": 0
         },
         "gofer.googleApiKey": {
@@ -515,8 +515,8 @@
         "gofer.autonomousMode": {
           "type": "boolean",
           "default": true,
-          "description": "Enable autonomous question answering in Claude Code terminal",
-          "markdownDescription": "When enabled, Gofer will automatically answer Claude Code's questions using Claude 3.5 Haiku with full context (constitution, spec, tasks). Requires `gofer.anthropicApiKey` to be set.",
+          "description": "Enable autonomous monitoring for Claude Code terminal sessions",
+          "markdownDescription": "When enabled, Gofer monitors Claude Code terminal sessions and prepares context-aware responses when questions are detected. Requires `gofer.anthropicApiKey` to be set.",
           "order": 1
         },
         "gofer.autoInitialize": {
@@ -624,21 +624,6 @@
           "default": "codex",
           "description": "Custom path to Codex CLI executable"
         },
-        "gofer.claudeTerminalName": {
-          "type": "string",
-          "default": "Claude",
-          "description": "Name pattern to identify Claude Code terminals"
-        },
-        "gofer.autoValidate": {
-          "type": "boolean",
-          "default": true,
-          "description": "Automatically validate specs against constitution when creating/updating"
-        },
-        "gofer.showWelcome": {
-          "type": "boolean",
-          "default": true,
-          "description": "Show welcome message and quick start when initializing"
-        },
         "gofer.markdownViewer": {
           "type": "string",
           "enum": [
@@ -662,34 +647,6 @@
           "default": true,
           "description": "Show Claude Code terminals during autonomous execution",
           "markdownDescription": "Whether to show Claude Code terminals when Gofer runs autonomous implementation.\n\n- `true`: Terminals are visible (you can watch progress)\n- `false`: Terminals are hidden (cleaner UI)"
-        },
-        "gofer.autonomous.notificationChannel": {
-          "type": "string",
-          "enum": [
-            "vscode",
-            "whatsapp",
-            "email"
-          ],
-          "enumDescriptions": [
-            "Show notifications in VSCode UI (default)",
-            "Send notifications via WhatsApp (requires phone number)",
-            "Send notifications via email (requires email address)"
-          ],
-          "default": "vscode",
-          "description": "How to receive notifications from autonomous execution",
-          "markdownDescription": "Choose how you want to receive notifications when Gofer needs your attention during autonomous execution.\n\n- `vscode`: Notification popups in VSCode (default)\n- `whatsapp`: Send messages to your phone (requires WhatsApp setup)\n- `email`: Send email notifications (requires email setup)"
-        },
-        "gofer.autonomous.whatsappPhoneNumber": {
-          "type": "string",
-          "default": "",
-          "description": "WhatsApp phone number for notifications (format: +1234567890)",
-          "markdownDescription": "Your WhatsApp phone number for receiving notifications.\n\n**Format**: Include country code with +, e.g., `+1234567890`\n\n**Note**: Requires WhatsApp to be set up and running."
-        },
-        "gofer.autonomous.emailAddress": {
-          "type": "string",
-          "default": "",
-          "description": "Email address for notifications",
-          "markdownDescription": "Your email address for receiving notifications from autonomous execution."
         },
         "gofer.autonomous.maxRetries": {
           "type": "number",

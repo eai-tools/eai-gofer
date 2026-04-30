@@ -7,10 +7,12 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
-import * as fsSync from 'fs';
 import * as fs from 'fs/promises';
 import { ProgressProvider } from '../progressProvider';
 import type { Spec } from '../goferParser';
+import { Logger } from '../utils/logger';
+
+const logger = Logger.for('SpecCommands');
 
 /**
  * Registers all spec execution commands.
@@ -56,7 +58,7 @@ async function hydrateSpecCommand(
       context.extensionPath,
       'resources',
       'claude-commands',
-      'gofer.hydrate.md'
+      'gofer_hydrate.md'
     );
     const promptContent = await fs.readFile(promptPath, 'utf-8');
 
@@ -185,7 +187,10 @@ async function executeAllPendingSpecsCommand(progressProvider: ProgressProvider)
           } catch (error) {
             failedCount++;
             failedSpecs.push(spec.id);
-            console.error(`[Gofer] Failed to execute spec ${spec.id}:`, error);
+            const resolvedError = error instanceof Error ? error : new Error(String(error));
+            logger.error(`Failed to execute spec ${spec.id}`, resolvedError, {
+              specId: spec.id,
+            });
           }
         }
       }
@@ -245,6 +250,20 @@ async function executeSpec(spec: Spec): Promise<void> {
   await vscode.commands.executeCommand('gofer.startAutonomous', spec);
 }
 
+async function pathExists(targetPath: string): Promise<boolean> {
+  try {
+    await fs.access(targetPath);
+    return true;
+  } catch (error) {
+    const errnoError = error as NodeJS.ErrnoException;
+    if (errnoError.code === 'ENOENT') {
+      return false;
+    }
+
+    throw error;
+  }
+}
+
 /**
  * Show spec picker for Claude Code Terminal Integration
  *
@@ -265,37 +284,42 @@ export async function showSpecPicker(): Promise<Spec | undefined> {
   // Check if .specify/specs exists, if not check parent directory
   const specsPath = path.join(workspacePath, '.specify', 'specs');
 
-  if (!fsSync.existsSync(specsPath)) {
-    // Try parent directory
-    const parentPath = path.dirname(workspacePath);
-    const parentSpecsPath = path.join(parentPath, '.specify', 'specs');
+  try {
+    if (!(await pathExists(specsPath))) {
+      const parentPath = path.dirname(workspacePath);
+      const parentSpecsPath = path.join(parentPath, '.specify', 'specs');
 
-    if (fsSync.existsSync(parentSpecsPath)) {
-      workspacePath = parentPath;
+      if (await pathExists(parentSpecsPath)) {
+        workspacePath = parentPath;
+      }
     }
-  }
 
-  // Create progress provider to load specs
-  const progressProvider = new ProgressProvider(workspacePath);
-  const specs = await getAllSpecs(progressProvider);
+    const progressProvider = new ProgressProvider(workspacePath);
+    const specs = await getAllSpecs(progressProvider);
 
-  if (specs.length === 0) {
-    vscode.window.showWarningMessage('No specs found in .specify/specs/');
+    if (specs.length === 0) {
+      vscode.window.showWarningMessage('No specs found in .specify/specs/');
+      return undefined;
+    }
+
+    const items = specs.map((spec) => ({
+      label: spec.title || spec.id,
+      description: spec.id,
+      detail: spec.description || '',
+      spec: spec,
+    }));
+
+    const selected = await vscode.window.showQuickPick(items, {
+      placeHolder: 'Select a specification to execute with Claude Code',
+      matchOnDescription: true,
+      matchOnDetail: true,
+    });
+
+    return selected?.spec;
+  } catch (error) {
+    const resolvedError = error instanceof Error ? error : new Error(String(error));
+    logger.error('Failed to load specs for picker', resolvedError, { workspacePath });
+    vscode.window.showErrorMessage(`Failed to load specs: ${resolvedError.message}`);
     return undefined;
   }
-
-  const items = specs.map((spec) => ({
-    label: spec.title || spec.id,
-    description: spec.id,
-    detail: spec.description || '',
-    spec: spec,
-  }));
-
-  const selected = await vscode.window.showQuickPick(items, {
-    placeHolder: 'Select a specification to execute with Claude Code',
-    matchOnDescription: true,
-    matchOnDetail: true,
-  });
-
-  return selected?.spec;
 }

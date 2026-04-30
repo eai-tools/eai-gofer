@@ -1,6 +1,8 @@
 ---
 name: 6_gofer_validate
-description: Validate the implementation against spec acceptance criteria across six quality dimensions.
+description: >-
+  Unified validation, blast-radius analysis, and engineering review (3 phases,
+  110-point rubric)
 agent: copilot-workspace
 tools:
   - Read
@@ -11,7 +13,7 @@ tools:
 argument-hint: feature-name-or-description
 gofer:
   workflowProfile: enterpriseai
-  canonicalSource: .claude/commands/6_gofer_validate.md
+  canonicalSource: .specify/commands/6_gofer_validate.md
   canonicalChecksum: 645c66403a80cb86d7944d0de61796712a5b0c4a221648f21c72ab13945a5125
   metadataSource: scripts/generate-commands.ts
 ---

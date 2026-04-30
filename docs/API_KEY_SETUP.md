@@ -3,7 +3,9 @@
 ## For Users of Gofer Extension
 
 When you install Gofer in any repo, each person can set their own API key in
-**VSCode User Settings**. This is secure, per-user, and works across all repos!
+**VSCode User Settings**. Many extension features read the manifest-backed
+`gofer.*ApiKey` settings directly. Some local integrations, including MCP setup,
+can also use environment-variable placeholders.
 
 ## How to Set It Up
 
@@ -23,9 +25,9 @@ When you install Gofer in any repo, each person can set their own API key in
    - It auto-saves!
 
 4. **Done!** ✅
-   - Works in ALL repos where you use Gofer
-   - Stored securely in VSCode's settings
-   - Never committed to git
+    - Works in ALL repos where you use Gofer
+    - Stored in your VSCode User Settings profile
+    - Never committed to git
 
 ### Method 2: Settings JSON (Advanced)
 
@@ -39,7 +41,7 @@ When you install Gofer in any repo, each person can set their own API key in
 }
 ```
 
-### Method 3: Environment Variable (System-Wide)
+### Method 3: Environment Variable (For integrations that support it)
 
 Add to `~/.zshrc` (or `~/.bashrc` if using bash):
 
@@ -61,19 +63,24 @@ source ~/.zshrc
 4. Copy the key (starts with `sk-ant-`)
 5. Paste it in VSCode settings!
 
-## Priority Order
+## Where Gofer Reads Keys
 
-Gofer checks for your API key in this order:
+There is not one global precedence order across every Gofer surface.
 
-1. **VSCode User Settings** (`gofer.anthropicApiKey`) ← **Recommended!**
-2. Environment Variable (`ANTHROPIC_API_KEY`)
-3. Workspace `.env` file (only for developing Gofer itself)
+1. The VS Code extension itself primarily reads the manifest-backed
+   `gofer.*ApiKey` settings.
+2. MCP setup writes a local `.vscode/mcp.json` entry that uses the current
+   setting value when present, or `${env:ANTHROPIC_API_KEY}` when the setting is
+   empty.
+3. Workspace `.env` files are only for developing Gofer itself and should not be
+   used as shared team configuration.
 
 ## For Teams
 
 ### Each Developer Should:
 
-- Set their own API key in their VSCode User Settings
+- Set their own API key in local VS Code User Settings, or use environment
+  variables for integrations that support them
 - Never share their API key
 - Never commit API keys to git
 
@@ -94,13 +101,15 @@ Gofer checks for your API key in this order:
 **Using multiple machines?**
 
 - Need to set the key on each machine
-- Use Settings Sync to sync across machines automatically!
+- Use environment variables or re-enter the key on each machine if you do not
+  want extension settings replicated elsewhere.
 
 **Settings Sync?**
 
-- VSCode Settings Sync includes extension settings
-- Your API key syncs to your other machines
-- Still secure (encrypted by Microsoft)
+- VSCode Settings Sync can include extension settings
+- That may replicate your API key to other signed-in machines
+- Only use it if you are comfortable with that trade-off; otherwise keep the
+  key local or use environment variables
 
 ## Testing It Works
 
@@ -114,12 +123,15 @@ After setting your key:
 
 ## Security Notes
 
-✅ **Safe:**
+✅ **Recommended:**
 
-- Stored in VSCode User Settings (encrypted)
+- Stored in VSCode User Settings on your machine, or provided through
+  environment variables
 - Never in source code
 - Never in git
-- Private to your machine
+- Kept local unless you explicitly opt into syncing those settings
+- If you run MCP setup, check the generated `.vscode/mcp.json` because it may
+  contain either `${env:ANTHROPIC_API_KEY}` or a copied setting value
 
 ❌ **Never:**
 

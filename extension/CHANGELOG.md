@@ -2,6 +2,25 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [Unreleased]
+
+### Changed
+
+- Shortened the extension README to the current manifest-backed command and
+  settings surface.
+- Removed stale VS Code documentation for unsupported command-palette actions
+  and setup paths, including `Gofer: Configure WhatsApp Integration`,
+  `Gofer: Test WhatsApp Connection`, `Gofer: View Pending Escalations`, and the
+  older hidden context-window setting examples.
+- Removed the unsupported autonomous notification-route settings
+  `gofer.autonomous.notificationChannel`,
+  `gofer.autonomous.whatsappPhoneNumber`, and
+  `gofer.autonomous.emailAddress` from the public VS Code configuration
+  surface and deleted outdated migration / WhatsApp guides.
+- Removed the no-op public settings `gofer.claudeTerminalName`,
+  `gofer.autoValidate`, and `gofer.showWelcome` from the manifest-backed VS Code
+  settings surface after confirming they no longer had runtime consumers.
+
 ## [3.1.0] - 2026-04-30
 
 Adds EnterpriseAI-first cross-CLI delivery for Gofer.

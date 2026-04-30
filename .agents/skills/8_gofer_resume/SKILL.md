@@ -3,7 +3,7 @@ name: 8_gofer_resume
 description: Resume work from saved session checkpoint with full context restoration
 gofer:
   workflowProfile: enterpriseai
-  canonicalSource: .claude/commands/8_gofer_resume.md
+  canonicalSource: .specify/commands/8_gofer_resume.md
   canonicalChecksum: ef5cd7a4ce17df059ebf8c3bf51f6afb2f8542a6b8b030bf8b11c576d5c3b717
   metadataSource: scripts/generate-commands.ts
 arguments:

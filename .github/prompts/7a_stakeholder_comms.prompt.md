@@ -13,7 +13,7 @@ tools:
 argument-hint: feature-name-or-description
 gofer:
   workflowProfile: enterpriseai
-  canonicalSource: .claude/commands/7a_stakeholder_comms.md
+  canonicalSource: .specify/commands/7a_stakeholder_comms.md
   canonicalChecksum: 246efaf545eb43e344519d73a2abb28da1631374eec2f3e8e2dbbf03208b0489
   metadataSource: scripts/generate-commands.ts
 ---

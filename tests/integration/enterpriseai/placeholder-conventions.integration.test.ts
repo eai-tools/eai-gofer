@@ -31,6 +31,7 @@ describe('enterpriseai placeholder conventions (root integration)', () => {
       process.cwd(),
       '.specify',
       'specs',
+      '_archived',
       '029-enterpriseai-student-vertical-builder'
     );
 

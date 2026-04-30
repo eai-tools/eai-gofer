@@ -18,15 +18,15 @@ agent-facing interfaces.
 ## 1. MCP Tools Overview
 
 MCP (Model Context Protocol) provides a standard way to expose tools to AI
-agents. EAI-GOFER exposes 6 core tools.
+agents. Gofer exposes 6 core tools.
 
-### Tool: eaigofer_get_specs
+### Tool: gofer_get_specs
 
 **Purpose**: Get all specifications and their current status.
 
 ```typescript
 {
-  name: 'eaigofer_get_specs',
+  name: 'gofer_get_specs',
   description: 'Get all specifications and tasks',
 
   inputSchema: {
@@ -75,13 +75,13 @@ agents. EAI-GOFER exposes 6 core tools.
 }
 ```
 
-### Tool: eaigofer_get_next_task
+### Tool: gofer_get_next_task
 
 **Purpose**: Get the next available task based on dependency resolution.
 
 ```typescript
 {
-  name: 'eaigofer_get_next_task',
+  name: 'gofer_get_next_task',
   description: 'Get next task based on dependencies',
 
   inputSchema: {
@@ -123,13 +123,13 @@ agents. EAI-GOFER exposes 6 core tools.
 }
 ```
 
-### Tool: eaigofer_execute_task
+### Tool: gofer_execute_task
 
 **Purpose**: Mark task in-progress and get full execution context.
 
 ```typescript
 {
-  name: 'eaigofer_execute_task',
+  name: 'gofer_execute_task',
   description: 'Mark task in-progress, get full context',
 
   inputSchema: {
@@ -167,13 +167,13 @@ agents. EAI-GOFER exposes 6 core tools.
 }
 ```
 
-### Tool: eaigofer_update_task_status
+### Tool: gofer_update_task_status
 
 **Purpose**: Update task completion status.
 
 ```typescript
 {
-  name: 'eaigofer_update_task_status',
+  name: 'gofer_update_task_status',
   description: 'Update task completion status',
 
   inputSchema: {
@@ -203,13 +203,13 @@ agents. EAI-GOFER exposes 6 core tools.
 }
 ```
 
-### Tool: eaigofer_validate_code
+### Tool: gofer_validate_code
 
 **Purpose**: Validate code against project constitution.
 
 ```typescript
 {
-  name: 'eaigofer_validate_code',
+  name: 'gofer_validate_code',
   description: 'Validate code against constitution',
 
   inputSchema: {
@@ -255,13 +255,13 @@ agents. EAI-GOFER exposes 6 core tools.
 }
 ```
 
-### Tool: eaigofer_run_tests
+### Tool: gofer_run_tests
 
 **Purpose**: Execute tests for acceptance criteria.
 
 ```typescript
 {
-  name: 'eaigofer_run_tests',
+  name: 'gofer_run_tests',
   description: 'Run tests for acceptance criteria',
 
   inputSchema: {
@@ -521,26 +521,26 @@ providers:
 
 | Command ID                       | Description                    |
 | -------------------------------- | ------------------------------ |
-| `eaiGofer.initializeRepository`  | Initialize .specify/ structure |
-| `eaiGofer.showProgressPanel`     | Open spec progress panel       |
-| `eaiGofer.refreshSpecs`          | Reload all specifications      |
-| `eaiGofer.checkForUpdates`       | Check for extension updates    |
+| `gofer.initialize`              | Initialize `.specify/` structure |
+| `gofer.showProgress`            | Open the progress panel          |
+| `gofer.refreshSpecs`            | Reload all specifications        |
+| `gofer.checkForUpdates`         | Check for extension updates      |
+| `gofer.updateNow`               | Apply an available extension update |
 
 ### Claude Code Commands
 
 | Command ID                       | Description                    |
 | -------------------------------- | ------------------------------ |
-| `eaiGofer.startClaudeTerminal`   | Launch Claude Code terminal    |
-| `eaiGofer.pauseClaudeTerminal`   | Pause current execution        |
-| `eaiGofer.stopClaudeTerminal`    | Stop Claude Code session       |
-| `eaiGofer.viewEscalations`       | View pending escalations       |
+| `gofer.startClaudeCode`         | Launch Claude Code terminal              |
+| `gofer.pauseClaudeCode`         | Pause current execution (send ESC)       |
+| `gofer.resumeClaudeCode`        | Resume Claude Code autonomous monitoring |
+| `gofer.stopClaudeCode`          | Stop Claude Code session                 |
 
 ### Council Commands
 
 | Command ID                       | Description                    |
 | -------------------------------- | ------------------------------ |
-| `eaiGofer.showCouncilStatus`     | Show council provider status   |
-| `eaiGofer.configureCouncil`      | Configure council settings     |
+| `gofer.showCouncilStatus`       | Show council provider status |
 
 ---
 
@@ -574,12 +574,12 @@ The extension watches these patterns:
 
 ```typescript
 // 1. Get next task
-const task = await mcpClient.call('eaigofer_get_next_task', {
+const task = await mcpClient.call('gofer_get_next_task', {
   specId: '001-feature'
 });
 
 // 2. Mark as in-progress
-const context = await mcpClient.call('eaigofer_execute_task', {
+const context = await mcpClient.call('gofer_execute_task', {
   specId: '001-feature',
   taskId: task.id
 });
@@ -588,20 +588,20 @@ const context = await mcpClient.call('eaigofer_execute_task', {
 // ...
 
 // 4. Run tests
-const testResult = await mcpClient.call('eaigofer_run_tests', {
+const testResult = await mcpClient.call('gofer_run_tests', {
   taskId: task.id,
   testCommand: 'npm test',
   testType: 'unit'
 });
 
 // 5. Validate against constitution
-const validation = await mcpClient.call('eaigofer_validate_code', {
+const validation = await mcpClient.call('gofer_validate_code', {
   files: ['src/newFeature.ts']
 });
 
 // 6. Update status
 if (testResult.passed && validation.valid) {
-  await mcpClient.call('eaigofer_update_task_status', {
+  await mcpClient.call('gofer_update_task_status', {
     specId: '001-feature',
     taskId: task.id,
     status: 'completed'
@@ -648,19 +648,15 @@ if (!testResult.passed) {
 
 ## 10. Debugging
 
-### Enable Debug Logging
+### Diagnostic Surfaces
 
-```json
-// .vscode/settings.json
-{
-  "eaiGofer.debug.enabled": true,
-  "eaiGofer.debug.logLevel": "verbose"
-}
-```
+- Command Palette: run `gofer.debugAIUsage` for AI-usage diagnostics.
+- Output Channels: `Gofer`, `Gofer Language Server`, `Gofer Debug`, and
+  `Gofer-ClaudeCode` are the primary extension debug streams.
 
 ### View Logs
 
-- Output Channel: "EAI-GOFER Language Server"
+- Output Channel: "Gofer Language Server"
 - Developer Tools: Help → Toggle Developer Tools
 
 ### Common Issues
@@ -669,7 +665,7 @@ if (!testResult.passed) {
 | ---------------------- | ------------------------------------- |
 | MCP tools not loading  | Check .vscode/mcp.json exists         |
 | Language server crash  | Check Node.js version (18+)           |
-| Specs not refreshing   | Run `eaiGofer.refreshSpecs` command   |
+| Specs not refreshing   | Run `gofer.refreshSpecs` command      |
 | Tests timing out       | Increase timeout in tool call         |
 
 ---

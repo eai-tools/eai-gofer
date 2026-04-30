@@ -247,7 +247,7 @@ describe('enterpriseai event contract coverage gate (root integration)', () => {
       await propagateCanonicalMirrors(
         {
           changeSetId: 'chg_evt_008',
-          canonicalSources: ['.claude/commands/0_business_scenario.md'],
+          canonicalSources: ['.specify/commands/0_business_scenario.md'],
           targetMirrors: ['copilot', 'codex', 'gemini'],
           runParityValidation: true,
         },

@@ -213,5 +213,15 @@ describe('Release Verification', () => {
       expect(changelogInsertIndex).toBeGreaterThan(preserveNotesIndex);
       expect(changelogAppendIndex).toBeGreaterThan(changelogInsertIndex);
     });
+
+    it('should update and commit the .gofer-version marker during release bumps', () => {
+      const goferVersionWriteIndex = RELEASE_AUTO_SCRIPT.indexOf(
+        "fs.writeFileSync('./.specify/.gofer-version', '$NEW_VERSION\\n');"
+      );
+      const gitAddIndex = RELEASE_AUTO_SCRIPT.indexOf('.specify/.gofer-version');
+
+      expect(goferVersionWriteIndex).toBeGreaterThan(-1);
+      expect(gitAddIndex).toBeGreaterThan(goferVersionWriteIndex);
+    });
   });
 });

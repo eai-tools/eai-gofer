@@ -1,6 +1,6 @@
 ---
-generated: "2026-04-30T17:58:10Z"
-source_commit: "64d169eba2a63002e0dcce3f4685790f6ddf7f88"
+generated: "2026-04-30T22:52:00Z"
+source_commit: "42dbe8f354ac8928bfa3d1e6c5b42989a9b6c55f"
 ---
 
 # Changelog
@@ -22,10 +22,10 @@ This changelog documents significant changes to the Gofer architecture, features
 ## v3.1.0 (2026-04-30) - Current Release
 
 **Release Commits:**
-- `64d169eba2a63002e0dcce3f4685790f6ddf7f88` - Documentation update (nightly automated)
-- `7665d4ca1791ffbf77b0e90768b8fba478011792` - Documentation update (nightly automated)
-- `c215b3f03a916f2db463f5ff27223dbf94ceea46` - Command artifact sync
-- `7989fbd` - Release tag
+- `42dbe8f354ac8928bfa3d1e6c5b42989a9b6c55f` - chore(gofer): resync generated release assets
+- `4122bd7` - feat(gofer): clean up vscode surface truth
+- `6c46a43` - docs: update .tech-docs/ [nightly-automated]
+- `7989fbd` - release: v3.1.0
 
 ### Features
 

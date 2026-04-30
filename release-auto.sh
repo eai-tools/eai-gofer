@@ -470,8 +470,10 @@ fi
 
 # Run tests and capture exit code
 print_info "Running tests..."
+set +e
 npm test > /tmp/test-output.log 2>&1
 TEST_EXIT=$?
+set -e
 
 # Show last 20 lines of test output
 tail -20 /tmp/test-output.log

@@ -216,6 +216,11 @@ const rootPkg = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
 rootPkg.version = '$NEW_VERSION';
 fs.writeFileSync('./package.json', JSON.stringify(rootPkg, null, 2) + '\n');
 
+// Keep Gofer workspace version marker aligned with the released extension version.
+if (fs.existsSync('./.specify')) {
+    fs.writeFileSync('./.specify/.gofer-version', '$NEW_VERSION\n');
+}
+
 // Keep lockfile package metadata aligned with release version when present.
 for (const lockPath of ['./package-lock.json', './extension/package-lock.json']) {
     if (!fs.existsSync(lockPath)) continue;
@@ -247,7 +252,7 @@ EOF
 awk '/^## \[/{f=1} f' extension/CHANGELOG.md >> "$TEMP_FILE"
 mv "$TEMP_FILE" extension/CHANGELOG.md
 
-print_success "Updated package.json and CHANGELOG.md"
+print_success "Updated package.json, .gofer-version, and CHANGELOG.md"
 
 # Pre-release hook (FR-001, NFR-011): regenerate every CLI surface from the
 # canonical .specify/commands/<stage>.md source-of-truth so the published
@@ -486,7 +491,7 @@ print_success "Pre-push validation complete"
 
 # Commit
 print_info "Committing changes..."
-git add package.json package-lock.json extension/package.json extension/package-lock.json extension/CHANGELOG.md extension/language-server/ docs/releases.json docs/releases/
+git add package.json package-lock.json extension/package.json extension/package-lock.json .specify/.gofer-version extension/CHANGELOG.md extension/language-server/ docs/releases.json docs/releases/
 
 git commit --no-verify -m "release: v$NEW_VERSION
 

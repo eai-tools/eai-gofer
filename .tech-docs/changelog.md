@@ -1,13 +1,13 @@
 ---
-generated: "2026-04-30T00:00:00Z"
-source_commit: "c215b3f03a916f2db463f5ff27223dbf94ceea46"
+generated: "2026-04-30T12:58:05Z"
+source_commit: "7665d4ca1791ffbf77b0e90768b8fba478011792"
 ---
 
 # Changelog
 
 ## Recent Changes Summary
 
-This changelog documents significant changes to the Gofer architecture, features, and APIs since the last `.tech-docs/` update (v1.17.1 on 2026-03-11).
+This changelog documents significant changes to the Gofer architecture, features, and APIs since the previous documentation update.
 
 **Focus Areas:**
 
@@ -21,7 +21,10 @@ This changelog documents significant changes to the Gofer architecture, features
 
 ## v3.1.0 (2026-04-30) - Current Release
 
-**Release Commit:** `c215b3f03a916f2db463f5ff27223dbf94ceea46`
+**Release Commits:**
+- `7665d4ca1791ffbf77b0e90768b8fba478011792` - Documentation update (nightly automated)
+- `c215b3f03a916f2db463f5ff27223dbf94ceea46` - Command artifact sync
+- `7989fbd` - Release tag
 
 ### Features
 
@@ -38,6 +41,15 @@ This changelog documents significant changes to the Gofer architecture, features
   - v1.x → v2.x: Cross-platform command parity
   - v2.x → v3.x: CLI innovations and visual artifacts
   - Breaking: None (additive changes only)
+
+### Documentation
+
+**Updated:**
+
+- **Technical Documentation** - Refreshed all `.tech-docs/` files with current commit references
+  - Updated frontmatter with correct source commit and timestamp
+  - Verified all file counts and metrics (246 extension TS files, 4 active specs)
+  - No architectural or functional changes
 
 ---
 

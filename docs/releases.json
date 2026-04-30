@@ -1,8 +1,17 @@
 {
-  "latest_version": "3.0.1",
+  "latest_version": "3.1.0",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-04-28T04:57:19.798Z",
+  "last_updated": "2026-04-30T05:00:27.905Z",
   "releases": [
+    {
+      "version": "3.1.0",
+      "tag_name": "v3.1.0",
+      "published_at": "2026-04-30T05:00:27.904Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-3.1.0.vsix",
+      "notes": "Adds EnterpriseAI-first cross-CLI delivery for Gofer.\n\n- Emits the full Gofer command set across Claude, Copilot, Codex, and Gemini.\n- Makes EnterpriseAI the default workflow with explicit standard-profile opt-out.\n- Adds app/non-app classification and a four-step AI-augmented process model for application delivery.\n- Adds context bundle, contract pack, reuse scan, audit history, and red/green validation guardrails.\n- Generates persona-specific Marp decks for enterprise decision makers.",
+      "prerelease": false,
+      "size_mb": 11.2
+    },
     {
       "version": "3.0.1",
       "tag_name": "v3.0.1",
@@ -81,15 +90,6 @@
       "published_at": "2026-04-20T13:21:29.567Z",
       "download_url": "https://eai-tools.github.io/gofer/releases/gofer-2.0.7.vsix",
       "notes": "feat(commands): EnterpriseAI workflow profile extensions — adds required sections to /0, /2, /3, /4, /5, /7a commands plus plan/tasks templates so feature 029 integration tests pass. All 2549 tests now green.",
-      "prerelease": false,
-      "size_mb": 10.3
-    },
-    {
-      "version": "2.0.6",
-      "tag_name": "v2.0.6",
-      "published_at": "2026-04-20T13:18:50.730Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-2.0.6.vsix",
-      "notes": "feat(commands): add EnterpriseAI workflow profile extensions to /0, /2, /3, /4, /5, /7a plus plan/tasks templates — closes feature 029 content gap so all 2549 tests pass",
       "prerelease": false,
       "size_mb": 10.3
     }

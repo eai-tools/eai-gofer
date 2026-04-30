@@ -80,7 +80,7 @@ import { Logger as LegacyLogger } from './utils/logger';
 let logger: Logger | undefined;
 
 const ENTERPRISEAI_ONBOARDING_MESSAGE =
-  '✅ Gofer initialized with EnterpriseAI-first guidance. Standard and multi-platform workflows remain fully supported.';
+  'Gofer initialized with EnterpriseAI-first guidance by default. Standard workflow remains an explicit opt-out, and multi-platform workflows remain supported.';
 
 interface CopilotAvailabilityContext {
   available: boolean;

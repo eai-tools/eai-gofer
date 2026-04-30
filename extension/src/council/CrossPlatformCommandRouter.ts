@@ -1,6 +1,6 @@
 /**
  * Cross-Platform Command Router
- * Routes commands across Claude CLI, Codex CLI, and GitHub Copilot Chat
+ * Routes commands across Claude CLI, Codex CLI, GitHub Copilot Chat, and Gemini CLI
  * Feature 028: Cross-platform command parity
  */
 
@@ -42,7 +42,7 @@ interface CommandSelectionResult {
 /**
  * Routes commands across different AI platforms with priority fallback
  *
- * Priority: .claude/commands/ > .system/skills/ > .github/prompts/
+ * Priority: .claude/commands/ > .system/skills/ > .gemini/commands/gofer/ > .github/prompts/
  *
  * Security: Validates all paths to prevent directory traversal attacks
  */
@@ -154,6 +154,7 @@ export class CrossPlatformCommandRouter {
       claude: path.join(this.workspacePath, '.claude', 'commands', `${commandName}.md`),
       codex: path.join(this.workspacePath, '.system', 'skills', commandName, 'SKILL.md'),
       copilot: path.join(this.workspacePath, '.github', 'prompts', `${commandName}.prompt.md`),
+      gemini: path.join(this.workspacePath, '.gemini', 'commands', 'gofer', `${commandName}.toml`),
     };
 
     return platformPaths[platform];
@@ -196,6 +197,13 @@ export class CrossPlatformCommandRouter {
     copilotFiles
       .filter((file) => file.endsWith('.prompt.md'))
       .forEach((file) => commands.add(path.basename(file, '.prompt.md')));
+
+    // Scan Gemini command TOML files
+    const geminiDir = path.join(this.workspacePath, '.gemini', 'commands', 'gofer');
+    const geminiFiles = await readDirectorySafe(geminiDir, 'listCommands.gemini', this.logWarning);
+    geminiFiles
+      .filter((file) => file.endsWith('.toml'))
+      .forEach((file) => commands.add(path.basename(file, '.toml')));
 
     return Array.from(commands).sort();
   }
@@ -240,6 +248,7 @@ export class CrossPlatformCommandRouter {
       claude: `/${commandName}`,
       codex: `$ $${commandName}`,
       copilot: `#${commandName}`,
+      gemini: `/gofer:${commandName}`,
     };
 
     return syntaxMap[platform];
@@ -263,7 +272,7 @@ export class CrossPlatformCommandRouter {
   }
 
   private getPlatformSearchOrder(preferred: PlatformType | 'auto'): PlatformType[] {
-    const defaultPriority: PlatformType[] = ['claude', 'codex', 'copilot'];
+    const defaultPriority: PlatformType[] = ['claude', 'codex', 'gemini', 'copilot'];
     if (preferred === 'auto') {
       return defaultPriority;
     }
@@ -368,6 +377,9 @@ export class CrossPlatformCommandRouter {
       if (platform === 'codex') {
         return await this.metadataExtractor.extractFromCodexSkill(commandPath);
       }
+      if (platform === 'gemini') {
+        return await this.metadataExtractor.extractFromGeminiCommand(commandPath);
+      }
       return await this.metadataExtractor.extractFromCopilotPrompt(commandPath);
     } catch (error) {
       this.logger.warn('Failed to extract command metadata', {
@@ -389,12 +401,12 @@ export class CrossPlatformCommandRouter {
       return getWorkflowProfile();
     } catch (error) {
       this.logger.warn(
-        'Falling back to standard workflow profile after configuration read failure',
+        'Falling back to enterpriseai workflow profile after configuration read failure',
         {
           error: error instanceof Error ? error.message : String(error),
         }
       );
-      return 'standard';
+      return 'enterpriseai';
     }
   }
 }

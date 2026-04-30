@@ -2,8 +2,8 @@
  * T070 — Unit tests for the Gemini emitter (T065/T066) in generate-commands.mjs.
  *
  * Verifies that:
- * 1. emitGemini writes correct files for non-claude-only stages
- * 2. emitGemini skips CLAUDE_ONLY_STAGES
+ * 1. emitGemini writes correct files for every stage with the gemini surface
+ * 2. emitGemini includes formerly Claude-only stages when they list gemini
  * 3. manifest.json contains correct stage list in alphabetical order
  * 4. manifest.json is valid JSON
  */
@@ -48,7 +48,7 @@ async function readFile(filePath: string): Promise<string> {
 }
 
 // ---------------------------------------------------------------------------
-// Fixtures — 2 non-claude-only stages + 1 claude-only stage
+// Fixtures — all stages list the gemini surface
 // ---------------------------------------------------------------------------
 
 const RESEARCH_STAGE = `---
@@ -106,6 +106,7 @@ category: pipeline
 surfaces:
   - claude
   - claude-mirror
+  - gemini
 ---
 
 # Business Scenario
@@ -167,26 +168,14 @@ describe('gemini emitter (T065)', () => {
     expect(content).not.toContain('category: pipeline');
   });
 
-  it('skips CLAUDE_ONLY_STAGES — 0_business_scenario is NOT written', async () => {
+  it('emits formerly Claude-only stage 0_business_scenario', async () => {
     const outPath = path.join(tmpRoot, '.gemini', 'commands', 'gofer', '0_business_scenario.md');
-    expect(await fileExists(outPath)).toBe(false);
+    expect(await fileExists(outPath)).toBe(true);
   });
 
-  it('skips all CLAUDE_ONLY_STAGES', async () => {
-    const claudeOnlyStages = [
-      '0_business_scenario',
-      'gofer_constitution',
-      'gofer_hydrate',
-      '7_gofer_save',
-      '8_gofer_resume',
-    ];
-    for (const stage of claudeOnlyStages) {
-      const outPath = path.join(tmpRoot, '.gemini', 'commands', 'gofer', `${stage}.md`);
-      expect(
-        await fileExists(outPath),
-        `claude-only stage '${stage}' should NOT exist in gemini output`
-      ).toBe(false);
-    }
+  it('emits TOML for formerly Claude-only stage 0_business_scenario', async () => {
+    const outPath = path.join(tmpRoot, '.gemini', 'commands', 'gofer', '0_business_scenario.toml');
+    expect(await fileExists(outPath)).toBe(true);
   });
 });
 
@@ -215,11 +204,12 @@ describe('gemini manifest (T066)', () => {
     expect(new Date(manifest.generated).toISOString()).toBe(manifest.generated);
   });
 
-  it('manifest.commands contains both non-claude-only stages', async () => {
+  it('manifest.commands contains all emitted stages', async () => {
     const manifestPath = path.join(tmpRoot, '.gemini', 'commands', 'gofer', 'manifest.json');
     const manifest = JSON.parse(await readFile(manifestPath));
     expect(manifest.commands).toContain('1_gofer_research');
     expect(manifest.commands).toContain('0a_problem_validation');
+    expect(manifest.commands).toContain('0_business_scenario');
   });
 
   it('manifest.commands is sorted alphabetically', async () => {
@@ -229,24 +219,19 @@ describe('gemini manifest (T066)', () => {
     expect(manifest.commands).toEqual(sorted);
   });
 
-  it('manifest.commands does NOT include 0_business_scenario', async () => {
+  it('manifest.commands includes 0_business_scenario', async () => {
     const manifestPath = path.join(tmpRoot, '.gemini', 'commands', 'gofer', 'manifest.json');
     const manifest = JSON.parse(await readFile(manifestPath));
-    expect(manifest.commands).not.toContain('0_business_scenario');
+    expect(manifest.commands).toContain('0_business_scenario');
   });
 
-  it('manifest.commands does not contain any CLAUDE_ONLY_STAGES', async () => {
-    const claudeOnlyStages = [
-      '0_business_scenario',
-      'gofer_constitution',
-      'gofer_hydrate',
-      '7_gofer_save',
-      '8_gofer_resume',
-    ];
+  it('manifest.commands contains no excluded stages because exclusions are empty', async () => {
     const manifestPath = path.join(tmpRoot, '.gemini', 'commands', 'gofer', 'manifest.json');
     const manifest = JSON.parse(await readFile(manifestPath));
-    for (const stage of claudeOnlyStages) {
-      expect(manifest.commands).not.toContain(stage);
-    }
+    expect(manifest.commands).toEqual([
+      '0_business_scenario',
+      '0a_problem_validation',
+      '1_gofer_research',
+    ]);
   });
 });

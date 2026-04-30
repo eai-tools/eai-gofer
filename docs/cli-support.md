@@ -15,31 +15,31 @@ separate workflows.
 
 ## Availability
 
-| Command                       | Claude | Copilot | Codex       | Gemini      |
-| ----------------------------- | ------ | ------- | ----------- | ----------- |
-| `0_business_scenario`         | Yes    | Yes     | Not emitted | Not emitted |
-| `0a_problem_validation`       | Yes    | Yes     | Yes         | Yes         |
-| `1_gofer_research`            | Yes    | Yes     | Yes         | Yes         |
-| `2_gofer_specify`             | Yes    | Yes     | Yes         | Yes         |
-| `3_gofer_plan`                | Yes    | Yes     | Yes         | Yes         |
-| `4_gofer_tasks`               | Yes    | Yes     | Yes         | Yes         |
-| `5_gofer_implement`           | Yes    | Yes     | Yes         | Yes         |
-| `6_gofer_validate`            | Yes    | Yes     | Yes         | Yes         |
-| `6a_gofer_engineering_review` | Yes    | Yes     | Yes         | Yes         |
-| `7_gofer_save`                | Yes    | Yes     | Not emitted | Not emitted |
-| `7a_stakeholder_comms`        | Yes    | Yes     | Yes         | Yes         |
-| `8_gofer_resume`              | Yes    | Yes     | Not emitted | Not emitted |
-| `9_gofer_tests`               | Yes    | Yes     | Yes         | Yes         |
-| `10_gofer_cloud`              | Yes    | Yes     | Yes         | Yes         |
-| `gofer_constitution`          | Yes    | Yes     | Not emitted | Not emitted |
-| `gofer_hydrate`               | Yes    | Yes     | Not emitted | Not emitted |
-| `gofer:personality`           | Yes    | Yes     | Not emitted | Not emitted |
-| `gofer:plan`                  | Yes    | Yes     | Not emitted | Not emitted |
-| `gofer:side`                  | Yes    | Yes     | Not emitted | Not emitted |
+| Command                       | Claude | Copilot | Codex | Gemini |
+| ----------------------------- | ------ | ------- | ----- | ------ |
+| `0_business_scenario`         | Yes    | Yes     | Yes   | Yes    |
+| `0a_problem_validation`       | Yes    | Yes     | Yes   | Yes    |
+| `1_gofer_research`            | Yes    | Yes     | Yes   | Yes    |
+| `2_gofer_specify`             | Yes    | Yes     | Yes   | Yes    |
+| `3_gofer_plan`                | Yes    | Yes     | Yes   | Yes    |
+| `4_gofer_tasks`               | Yes    | Yes     | Yes   | Yes    |
+| `5_gofer_implement`           | Yes    | Yes     | Yes   | Yes    |
+| `6_gofer_validate`            | Yes    | Yes     | Yes   | Yes    |
+| `6a_gofer_engineering_review` | Yes    | Yes     | Yes   | Yes    |
+| `7_gofer_save`                | Yes    | Yes     | Yes   | Yes    |
+| `7a_stakeholder_comms`        | Yes    | Yes     | Yes   | Yes    |
+| `8_gofer_resume`              | Yes    | Yes     | Yes   | Yes    |
+| `9_gofer_tests`               | Yes    | Yes     | Yes   | Yes    |
+| `10_gofer_cloud`              | Yes    | Yes     | Yes   | Yes    |
+| `gofer_constitution`          | Yes    | Yes     | Yes   | Yes    |
+| `gofer_hydrate`               | Yes    | Yes     | Yes   | Yes    |
+| `gofer:personality`           | Yes    | Yes     | Yes   | Yes    |
+| `gofer:plan`                  | Yes    | Yes     | Yes   | Yes    |
+| `gofer:side`                  | Yes    | Yes     | Yes   | Yes    |
 
-Codex and Gemini emit the portable pipeline stages only. Claude and Copilot also
-receive the orchestration, session-management, hydration, constitution, and
-Gofer helper commands.
+All generated Gofer stages and helper commands are emitted for Claude, Copilot,
+Codex, and Gemini. The generators no longer apply a CLI-specific "Claude-only"
+exclusion list.
 
 ## Codex Install Repair
 
@@ -66,7 +66,7 @@ Gemini uses the repository extension manifest:
 .gemini/commands/gofer/<stage>.toml
 ```
 
-The Gemini command set matches the portable Codex command set.
+The Gemini command set matches the Codex, Claude, and Copilot command set.
 
 ## Troubleshooting
 

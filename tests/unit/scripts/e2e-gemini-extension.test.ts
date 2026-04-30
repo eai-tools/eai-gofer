@@ -5,8 +5,8 @@
  *   1. .gemini/extension.json exists and is valid JSON
  *   2. .gemini/commands/gofer/ contains TOML files
  *   3. Each TOML file has `description = "..."` and a prompt field
- *   4. Number of TOML files = number of non-claude-only stages (11)
- *   5. CLAUDE_ONLY_STAGES are NOT present in .gemini/commands/gofer/
+ *   4. Number of TOML files = the full Gofer command/helper set (19)
+ *   5. Formerly Claude-only stages are present in .gemini/commands/gofer/
  */
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
@@ -17,7 +17,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
 
-const CLAUDE_ONLY_STAGES = [
+const FORMERLY_CLAUDE_ONLY_STAGES = [
   '0_business_scenario',
   'gofer_constitution',
   'gofer_hydrate',
@@ -61,18 +61,15 @@ describe('e2e gemini extension shape (T162)', () => {
     }
   });
 
-  it('emits exactly 11 TOML files (16 stages - 5 claude-only = 11)', (): void => {
+  it('emits exactly 19 TOML files for the full command set', (): void => {
     const tomlFiles = fs.readdirSync(GEMINI_COMMANDS_DIR).filter((f) => f.endsWith('.toml'));
-    expect(tomlFiles.length).toBe(11);
+    expect(tomlFiles.length).toBe(19);
   });
 
-  it('CLAUDE_ONLY_STAGES are NOT present as TOML files', (): void => {
-    for (const stage of CLAUDE_ONLY_STAGES) {
+  it('formerly Claude-only stages are present as TOML files', (): void => {
+    for (const stage of FORMERLY_CLAUDE_ONLY_STAGES) {
       const tomlPath = path.join(GEMINI_COMMANDS_DIR, `${stage}.toml`);
-      expect(
-        fs.existsSync(tomlPath),
-        `claude-only stage '${stage}' must NOT exist in .gemini/commands/gofer/`
-      ).toBe(false);
+      expect(fs.existsSync(tomlPath), `stage '${stage}' must exist in Gemini commands`).toBe(true);
     }
   });
 });

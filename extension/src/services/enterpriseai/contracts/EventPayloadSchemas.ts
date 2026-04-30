@@ -174,6 +174,10 @@ export const EVENT_PAYLOAD_SCHEMAS: Readonly<
       marpDeckPath: { type: 'string' },
       marpEnabled: { type: 'boolean' },
     },
+    optional: {
+      personaDeckPaths: { type: 'string[]' },
+      personaDeckPersonas: { type: 'string[]' },
+    },
   },
   'EVT-008': {
     contractId: 'EVT-008',

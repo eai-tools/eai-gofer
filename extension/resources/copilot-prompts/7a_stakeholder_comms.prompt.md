@@ -1,23 +1,8 @@
 ---
-name: 7a_stakeholder_comms
-description: >-
+description:
   Generate stakeholder communications package including release notes, demo
   script, change management brief, and success metrics
-agent: copilot-workspace
-tools:
-  - Read
-  - Grep
-  - Glob
-  - Bash
-  - WebSearch
-argument-hint: feature-name-or-description
-gofer:
-  workflowProfile: enterpriseai
-  canonicalSource: .claude/commands/7a_stakeholder_comms.md
-  canonicalChecksum: 3a87b0654b694bda9d3a3a0227f63847dbd8842d70b341fbe6164e35f72644c2
-  metadataSource: scripts/generate-commands.ts
 ---
-
 
 # Gofer Stakeholder Communications
 
@@ -37,10 +22,10 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 This command expects in `.specify/specs/{feature}/`:
 
-- `validation-report.md` — Feature validated (PASS) from #6_gofer_validate
+- `validation-report.md` — Feature validated (PASS) from /6_gofer_validate
 - `problem-brief.md` — Original business problem (from /0a_problem_validation)
-- `spec.md` — Feature specification (from #2_gofer_specify)
-- `spec-summary.md` — Executive summary (from #2_gofer_specify)
+- `spec.md` — Feature specification (from /2_gofer_specify)
+- `spec-summary.md` — Executive summary (from /2_gofer_specify)
 - `assumptions.md` — Tracked assumptions
 
 If `validation-report.md` doesn't exist or shows FAIL, do NOT generate comms.
@@ -69,7 +54,7 @@ Instead, inform the user that validation must pass first.
 
 - If **< 50%**: Proceed normally
 - If **50-70%**: Use sub-agents heavily
-- If **> 70%**: Run `#7_gofer_save` first
+- If **> 70%**: Run `/7_gofer_save` first
 
 ---
 
@@ -94,7 +79,7 @@ Instead, inform the user that validation must pass first.
 3. **Verify validation passed**:
    - Check `validation-report.md` for `status: PASS`
    - If FAIL: "Validation must pass before generating communications. Current
-     score: [N]/100. Run #6_gofer_validate first."
+     score: [N]/100. Run /6_gofer_validate first."
 
 ---
 
@@ -258,12 +243,12 @@ stakeholder communications explaining what changed and why.
 
   Full Pipeline Summary:
   0a. /0a_problem_validation  ✓ (Problem validated)
-  1.  #1_gofer_research        ✓ (Codebase + market research)
-  2.  #2_gofer_specify         ✓ (Spec + business summary)
-  3.  #3_gofer_plan            ✓ (Technical architecture)
-  4.  #4_gofer_tasks           ✓ (Task breakdown)
-  5.  #5_gofer_implement       ✓ (Implementation)
-  6.  #6_gofer_validate        ✓ (Quality: [score]/100)
+  1.  /1_gofer_research        ✓ (Codebase + market research)
+  2.  /2_gofer_specify         ✓ (Spec + business summary)
+  3.  /3_gofer_plan            ✓ (Technical architecture)
+  4.  /4_gofer_tasks           ✓ (Task breakdown)
+  5.  /5_gofer_implement       ✓ (Implementation)
+  6.  /6_gofer_validate        ✓ (Quality: [score]/100)
   7a. /7a_stakeholder_comms    ✓ (Communications package)
 
   The feature is ready for stakeholder review and deployment.
@@ -274,9 +259,10 @@ stakeholder communications explaining what changed and why.
 
 ## Marp Presentation Deck (EnterpriseAI Profile Extension)
 
-> Active only when `gofer.workflowProfile=enterpriseai` and Marp output is
-> enabled for the run. Standard-profile runs skip this step; Release Notes and
-> the Demo Script (5-minute walkthrough) remain the core deliverables.
+EnterpriseAI is the default profile. When Marp output is enabled, generate the
+general stakeholder deck and the persona deck pack. Standard-profile runs skip
+this step only when the user explicitly opts out; Release Notes and the Demo
+Script (5-minute walkthrough) remain the core deliverables.
 
 When enabled, generate `{FEATURE_DIR}/presentation.marp.md`. The file MUST use
 Marp frontmatter and the canonical EnterpriseAI slide deck structure:
@@ -322,6 +308,41 @@ Every section title above (`Problem Statement`,
 `Demo Script Summary`, `Success Metrics`) is mandatory in both the generated
 `presentation.marp.md` and the corresponding
 `.specify/templates/stakeholder-comms-template.md`.
+
+### Persona Marp Deck Pack
+
+Generate these additional decks under `{FEATURE_DIR}/presentations/`:
+
+| Deck | Decision-Rights Audience | Required Focus |
+| ---- | ------------------------ | -------------- |
+| `executive.marp.md` | Executive committee | Strategic value, funding gate, risk appetite |
+| `business.marp.md` | Business owner | User journey, operational value, adoption |
+| `internal-delivery.marp.md` | Delivery lead | Dependency plan, red/green loop, delivery risks |
+| `enterprise-architecture.marp.md` | Enterprise architecture | Platform fit, context bundle, contract pack, reuse decisions |
+| `ciso.marp.md` | CISO | Identity, tenant boundary, controls, residual risk |
+| `data-architecture.marp.md` | Data architecture | Object types, lineage, quality, governance |
+| `cio.marp.md` | CIO | Platform strategy, operating model, reuse roadmap |
+| `cfo.marp.md` | CFO | Investment case, benefit tracking, cost risk |
+| `coo.marp.md` | COO | Process change, rollout readiness, support model |
+| `risk-compliance.marp.md` | Risk/compliance | Obligations, evidence, exceptions, audit trail |
+
+Every persona deck MUST include:
+
+- Executive Summary.
+- Decision Focus.
+- Problem Statement.
+- EnterpriseAI Solution Overview.
+- AI-Augmented 4-Step Journey for app delivery, or the non-app classification
+  rationale when no app is being built.
+- Architecture Diagram Reference with a Mermaid diagram.
+- Context Bundle.
+- Contract Pack.
+- Reuse-Before-Create.
+- Audit History.
+- Red/Green Validation Loop.
+- Demo Script Summary.
+- Success Metrics.
+- Persona-specific value/risk table and controls table.
 
 ---
 

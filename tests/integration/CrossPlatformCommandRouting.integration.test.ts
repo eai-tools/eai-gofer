@@ -61,7 +61,8 @@ describe('Cross-Platform Command Routing with Default CLI (T072)', () => {
       return (
         pathStr.includes('.claude/commands') ||
         pathStr.includes('.github/prompts') ||
-        pathStr.includes('.system/skills')
+        pathStr.includes('.system/skills') ||
+        pathStr.includes('.gemini/commands/gofer')
       );
     });
 
@@ -110,6 +111,16 @@ describe('Cross-Platform Command Routing with Default CLI (T072)', () => {
       const platform = detector.getDefaultPlatform();
 
       expect(platform).toBe('codex');
+    });
+
+    it('should use Gemini when defaultCLI is set to "gemini"', () => {
+      mockConfig['defaultCLI'] = 'gemini';
+      ConfigManager.getInstance().refresh();
+
+      const detector = PlatformDetector.getInstance(testWorkspacePath);
+      const platform = detector.getDefaultPlatform();
+
+      expect(platform).toBe('gemini');
     });
 
     it('should auto-detect when defaultCLI is set to "auto"', () => {
@@ -187,6 +198,7 @@ describe('Cross-Platform Command Routing with Default CLI (T072)', () => {
       expect(context.hasClaudeDirectory).toBe(true);
       expect(context.hasCopilotDirectory).toBe(true);
       expect(context.hasCodexDirectory).toBe(true);
+      expect(context.hasGeminiDirectory).toBe(true);
     });
   });
 
@@ -204,13 +216,17 @@ describe('Cross-Platform Command Routing with Default CLI (T072)', () => {
       expect(platform).toBe('claude');
     });
 
-    it('should use Codex when only Codex and Copilot exist', () => {
+    it('should use Codex when only Codex, Gemini, and Copilot exist', () => {
       mockConfig['defaultCLI'] = 'auto';
       ConfigManager.getInstance().refresh();
 
       vi.mocked(fs.existsSync).mockImplementation((filePath: string) => {
         const pathStr = String(filePath);
-        return pathStr.includes('.system/skills') || pathStr.includes('.github/prompts');
+        return (
+          pathStr.includes('.system/skills') ||
+          pathStr.includes('.gemini/commands/gofer') ||
+          pathStr.includes('.github/prompts')
+        );
       });
 
       const detector = PlatformDetector.getInstance(testWorkspacePath);
@@ -218,6 +234,22 @@ describe('Cross-Platform Command Routing with Default CLI (T072)', () => {
       const platform = detector.getDefaultPlatform();
 
       expect(platform).toBe('codex');
+    });
+
+    it('should use Gemini when only Gemini and Copilot exist', () => {
+      mockConfig['defaultCLI'] = 'auto';
+      ConfigManager.getInstance().refresh();
+
+      vi.mocked(fs.existsSync).mockImplementation((filePath: string) => {
+        const pathStr = String(filePath);
+        return pathStr.includes('.gemini/commands/gofer') || pathStr.includes('.github/prompts');
+      });
+
+      const detector = PlatformDetector.getInstance(testWorkspacePath);
+      detector.clearCache();
+      const platform = detector.getDefaultPlatform();
+
+      expect(platform).toBe('gemini');
     });
 
     it('should use Copilot when only Copilot exists', () => {
@@ -360,6 +392,21 @@ describe('Cross-Platform Command Routing with Default CLI (T072)', () => {
       expect(router.getCommandPath('1_gofer_research', 'codex')).toContain('.system/skills');
     });
 
+    it('should route commands to Gemini when defaultCLI is "gemini"', () => {
+      mockConfig['defaultCLI'] = 'gemini';
+      ConfigManager.getInstance().refresh();
+
+      const detector = PlatformDetector.getInstance(testWorkspacePath);
+      detector.clearCache();
+
+      const platform = detector.getDefaultPlatform();
+
+      expect(platform).toBe('gemini');
+      expect(router.getCommandPath('1_gofer_research', 'gemini')).toContain(
+        '.gemini/commands/gofer'
+      );
+    });
+
     it('should auto-detect and route to highest priority platform when defaultCLI is "auto"', () => {
       mockConfig['defaultCLI'] = 'auto';
       ConfigManager.getInstance().refresh();
@@ -382,6 +429,7 @@ describe('Cross-Platform Command Routing with Default CLI (T072)', () => {
       expect(router.getCommandSyntax(commandName, 'claude')).toBe('/1_gofer_research');
       expect(router.getCommandSyntax(commandName, 'copilot')).toBe('#1_gofer_research');
       expect(router.getCommandSyntax(commandName, 'codex')).toBe('$ $1_gofer_research');
+      expect(router.getCommandSyntax(commandName, 'gemini')).toBe('/gofer:1_gofer_research');
     });
   });
 });

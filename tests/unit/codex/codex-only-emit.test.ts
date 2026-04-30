@@ -1,18 +1,37 @@
 /**
  * T136 — codex-only-emit.test.ts
  *
- * Asserts that the 5 Claude-only stages (FR-007) are never emitted to
- * Codex/agents-skills surfaces. Codex discovers `.agents/skills/`, so both
- * `codex` and `agents-skills` must exclude the Claude-only set.
- *
- * (US6 AC-4 / SC-012.)
+ * Codex now receives the full Gofer command set. The legacy
+ * CLAUDE_ONLY_STAGES export remains for compatibility but must be empty.
  */
 
 import { describe, it, expect, beforeAll } from 'vitest';
 
 const MODULE_URL = new URL('../../../.specify/scripts/node/generate-commands.mjs', import.meta.url);
 
-describe('Codex-only emit exclusions (T136 / FR-007)', () => {
+const ALL_GOFER_STAGES = [
+  '0_business_scenario',
+  '0a_problem_validation',
+  '1_gofer_research',
+  '2_gofer_specify',
+  '3_gofer_plan',
+  '4_gofer_tasks',
+  '5_gofer_implement',
+  '6_gofer_validate',
+  '6a_gofer_engineering_review',
+  '7_gofer_save',
+  '7a_stakeholder_comms',
+  '8_gofer_resume',
+  '9_gofer_tests',
+  '10_gofer_cloud',
+  'gofer_constitution',
+  'gofer_hydrate',
+  'gofer:personality',
+  'gofer:plan',
+  'gofer:side',
+] as const;
+
+describe('Codex emit parity (T136)', () => {
   let CLAUDE_ONLY_STAGES: string[];
   let shouldExclude: (stageName: string, surface: string) => boolean;
 
@@ -22,70 +41,19 @@ describe('Codex-only emit exclusions (T136 / FR-007)', () => {
     shouldExclude = mod.shouldExclude;
   });
 
-  it('CLAUDE_ONLY_STAGES contains the 5 stages defined by FR-007', () => {
-    expect(CLAUDE_ONLY_STAGES.sort()).toEqual(
-      [
-        '0_business_scenario',
-        'gofer_constitution',
-        'gofer_hydrate',
-        '7_gofer_save',
-        '8_gofer_resume',
-      ].sort()
-    );
+  it('keeps the legacy Claude-only list empty', () => {
+    expect(CLAUDE_ONLY_STAGES).toEqual([]);
   });
 
-  it.each([
-    '0_business_scenario',
-    'gofer_constitution',
-    'gofer_hydrate',
-    '7_gofer_save',
-    '8_gofer_resume',
-  ])('excludes %s from codex surface', (stageName) => {
-    expect(shouldExclude(stageName, 'codex')).toBe(true);
-  });
-
-  it.each([
-    '0_business_scenario',
-    'gofer_constitution',
-    'gofer_hydrate',
-    '7_gofer_save',
-    '8_gofer_resume',
-  ])('excludes %s from agents-skills surface', (stageName) => {
-    expect(shouldExclude(stageName, 'agents-skills')).toBe(true);
-  });
-
-  it.each([
-    '1_gofer_research',
-    '2_gofer_specify',
-    '3_gofer_plan',
-    '4_gofer_tasks',
-    '5_gofer_implement',
-    '6_gofer_validate',
-    '7a_stakeholder_comms',
-    '9_gofer_tests',
-    '10_gofer_cloud',
-  ])('does NOT exclude %s from codex surface', (stageName) => {
+  it.each(ALL_GOFER_STAGES)('does not exclude %s from codex', (stageName) => {
     expect(shouldExclude(stageName, 'codex')).toBe(false);
   });
 
-  it.each([
-    '1_gofer_research',
-    '2_gofer_specify',
-    '3_gofer_plan',
-    '4_gofer_tasks',
-    '5_gofer_implement',
-    '6_gofer_validate',
-    '7a_stakeholder_comms',
-    '9_gofer_tests',
-    '10_gofer_cloud',
-  ])('does NOT exclude %s from agents-skills surface', (stageName) => {
+  it.each(ALL_GOFER_STAGES)('does not exclude %s from agents-skills', (stageName) => {
     expect(shouldExclude(stageName, 'agents-skills')).toBe(false);
   });
 
-  it('Claude-only stages ARE allowed on the claude surface', () => {
-    for (const stage of CLAUDE_ONLY_STAGES) {
-      expect(shouldExclude(stage, 'claude')).toBe(false);
-      expect(shouldExclude(stage, 'claude-mirror')).toBe(false);
-    }
+  it.each(ALL_GOFER_STAGES)('does not exclude %s from gemini', (stageName) => {
+    expect(shouldExclude(stageName, 'gemini')).toBe(false);
   });
 });

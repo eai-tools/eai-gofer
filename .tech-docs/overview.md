@@ -1,6 +1,6 @@
 ---
-generated: "2026-04-30T17:58:10Z"
-source_commit: "64d169eba2a63002e0dcce3f4685790f6ddf7f88"
+generated: "2026-04-30T22:52:00Z"
+source_commit: "42dbe8f354ac8928bfa3d1e6c5b42989a9b6c55f"
 ---
 
 # Gofer - Technical Overview
@@ -10,21 +10,24 @@ source_commit: "64d169eba2a63002e0dcce3f4685790f6ddf7f88"
 **Name:** Gofer
 **Version:** 3.1.0
 **Publisher:** Enterprise AI Pty Ltd
-**Description:** Spec-driven development system for AI assistants. Provides 6 MCP tools that enable Claude Code, GitHub Copilot, OpenAI Codex, and Gemini CLI to autonomously implement features from specifications.
+**Description:** Spec-driven development system for AI assistants. Provides 40+ MCP tools that enable Claude Code, GitHub Copilot, OpenAI Codex, and Gemini CLI to autonomously implement features from specifications.
 
-**Repository:** https://github.com/eai-tools/gofer
+**Repository:** [https://github.com/eai-tools/gofer](https://github.com/eai-tools/gofer)
 
 ## Purpose
 
 Gofer is a VSCode extension that bridges human specifications with AI implementation. It provides:
 
-1. **Model Context Protocol (MCP) Tools** - 6 tools that AI assistants call directly to read specs, execute tasks, and validate code
+1. **Model Context Protocol (MCP) Tools** - 40+ tools that AI assistants call directly to read specs, execute tasks, validate code, and manage context
 2. **Specification Framework** - Structured `.specify/` directory format for feature specs, plans, and tasks
 3. **Multi-Platform CLI Support** - Commands for Claude Code, GitHub Copilot Chat, OpenAI Codex, and Gemini CLI
 4. **Autonomous Execution** - Optional orchestrator that drives Claude Code through full implementation cycles
-5. **Context Health Management** - Monitors and manages AI context window usage to maintain accuracy
+5. **Context Health Management** - Monitors and manages AI context window usage to maintain accuracy (auto-save at 65% threshold)
 6. **Constitution-Based Validation** - Enforces project principles and coding standards
 7. **Visual Artifacts** - 10 persona-pack templates (Impact Canvas, C4, ERD, Risk Heatmap, etc.)
+8. **Cost Budget Enforcement** - Tracks token usage and enforces cost limits per pipeline run
+9. **Scope Guard** - Prevents AI from accessing protected files defined in specs
+10. **Memory Management** - MemGPT-inspired three-layer memory system with automatic compaction
 
 ## Tech Stack
 
@@ -40,6 +43,7 @@ Gofer is a VSCode extension that bridges human specifications with AI implementa
 | Dependency Injection | tsyringe              | 4.10.0                            |
 | Terminal Emulation   | node-pty-prebuilt     | 0.10.1-pre.5                      |
 | Schema Validation    | Zod                   | 3.24.1                            |
+| File Watching        | chokidar              | 3.5.3/4.0.3                       |
 
 ## Key Entry Points
 
@@ -48,10 +52,11 @@ Gofer is a VSCode extension that bridges human specifications with AI implementa
 **File:** `extension/src/extension.ts`
 
 - Activates on startup (`onStartupFinished`)
-- Registers commands (30+), views (3), status bars
-- Initializes dependency injection container
+- Registers commands (30+), views (3), status bars (2)
+- Initializes dependency injection container (TSyringe)
 - Starts Language Server and MCP tools
-- **File count:** 246 TypeScript files
+- Sets up file watchers for real-time spec updates
+- **Extension file count:** 140+ TypeScript files
 
 ### Language Server Entry Point
 
@@ -59,15 +64,19 @@ Gofer is a VSCode extension that bridges human specifications with AI implementa
 
 - Dual-protocol server (LSP + MCP)
 - Listens on stdio for extension communication
-- Handles MCP tool requests from AI assistants
+- Handles 40+ MCP tool requests from AI assistants
+- Implements custom LSP methods for spec/task management
+- **Server file count:** 10+ TypeScript files
 
 ### Orchestrator Entry Point
 
 **File:** `src/orchestrator/AutonomousOrchestrator_new.ts`
 
-- Optional autonomous execution mode
+- Optional autonomous execution mode (CLI-based)
 - Coordinates Claude Code terminal sessions
 - Manages task queue and dependencies
+- IPC status signaling via `.specify/ipc/status.json`
+- WhatsApp notifications via Twilio (optional)
 
 ## How to Run Locally
 
@@ -102,6 +111,7 @@ npm test                    # All tests
 npm run test:unit           # Unit tests only
 npm run test:integration    # Integration tests
 npm run test:e2e            # End-to-end tests
+npm run test:coverage       # Coverage report
 ```
 
 ### 5. Build VSIX Package
@@ -115,13 +125,13 @@ npx vsce package
 ## Team/Ownership
 
 **Owner:** Enterprise AI Pty Ltd
-**Contact:** https://enterpriseai.com.au
+**Contact:** [https://enterpriseai.com.au](https://enterpriseai.com.au)
 
 **Key Maintainer Information:**
 
 - Based on CLAUDE.md, the project follows a structured workflow with autonomous bug fixing and self-improvement loops
 - Uses Gofer's own pipeline for development (`/0_business_scenario` → research → specify → plan → tasks → implement → validate)
-- Specifications stored in `.specify/specs/` directory (40 specs currently)
+- Specifications stored in `.specify/specs/` directory (41 active specs)
 - Constitution principles defined in `.specify/memory/constitution.md`
 
 ## Project Structure
@@ -129,9 +139,19 @@ npx vsce package
 ```
 gofer/
 ├── extension/           # VSCode extension (UI, commands, views)
-├── language-server/     # LSP + MCP server
+│   ├── src/             # TypeScript source
+│   ├── language-server/ # Bundled LSP server (copied during build)
+│   └── package.json     # Extension manifest
+├── language-server/     # LSP + MCP server (source)
+│   └── src/             # Server implementation
 ├── src/                 # Orchestrator (autonomous execution)
+│   ├── orchestrator/    # Main orchestration loop
+│   └── types/           # Shared type definitions
 ├── .specify/            # Specifications and memory
+│   ├── specs/           # Feature specifications
+│   ├── memory/          # Constitution, hints
+│   ├── logs/            # JSONL logs (usage, audit, slop)
+│   └── commands/        # Source-of-truth for CLI surfaces
 ├── docs/                # Documentation
 ├── tests/               # Test suites
 └── scripts/             # Build and automation scripts
@@ -151,11 +171,15 @@ gofer/
    - Run: `Gofer: Initialize Repository`
    - Creates `.specify/` folder structure
 
-3. **Create Specification**
+3. **Configure API Keys**
+   - Set `gofer.anthropicApiKey` in VSCode settings
+   - Optional: `gofer.googleApiKey`, `gofer.openaiApiKey` for LLM Council
+
+4. **Create Specification**
    - Create `.specify/specs/my-feature/spec.md`
    - Add requirements and success criteria
 
-4. **Let AI Implement**
+5. **Let AI Implement**
    - In Claude Code: `/0_business_scenario Add user authentication`
    - In GitHub Copilot: `#0_business_scenario Add user authentication`
    - In OpenAI Codex: Invoke the `0_business_scenario` skill
@@ -166,7 +190,7 @@ gofer/
 
 ### Multi-Platform Support (v3.0+)
 
-- **Claude Code** - Full feature support with MCP tools
+- **Claude Code** - Full feature support with 40+ MCP tools
 - **GitHub Copilot Chat** - Core features + 2026+ enhancements
 - **OpenAI Codex CLI** - Full feature support via skill system
 - **Gemini CLI** - Command files with namespace support
@@ -186,12 +210,14 @@ gofer/
 - **Auto-Updates** - Checks for extension updates automatically
 - **Progress Tracking** - Real-time status in Gofer sidebar
 - **Task Dependencies** - Executes tasks in dependency order
-- **Context Health** - Monitors AI context window usage
-- **Memory Management** - Continuous memory compaction and layered storage
-- **Scope Guard** - Prevents AI from accessing protected files
-- **Cost Budget** - Tracks and enforces per-run cost limits
+- **Context Health** - Monitors AI context window usage (status bar)
+- **Memory Management** - Continuous memory compaction and layered storage (JSONL-based)
+- **Scope Guard** - Prevents AI from accessing protected files (advisory/warning/blocking modes)
+- **Cost Budget** - Tracks and enforces per-run cost limits ($10 default, configurable)
 - **GitHub Codespaces** - Automatic installation in Codespaces
 - **Auto-Context-Continuity (ACC)** - Automatic session save/resume at 65% context
+- **Slop Reduction** - Auto-removes console.log, debugger, @ts-ignore on save (opt-in)
+- **Tool Audit Logging** - All file access logged to `.specify/logs/tool-audit.jsonl`
 
 ### Recent Additions (v3.0-3.1)
 
@@ -200,3 +226,19 @@ gofer/
 - **Parallel Validation** - 6 validation agents run concurrently (<60s vs 90-120s)
 - **Codex Budget Doctor** - `npm run gofer:codex-doctor` diagnostic tool
 - **Plugin Manifests** - `.claude-plugin/`, `.gemini/`, `codex-config.toml` support
+- **AI Usage Panel** - Real-time token usage and cost tracking via provider billing APIs
+- **Resource Diagnostics** - Lightweight performance snapshots (5min intervals, opt-in)
+- **Context REPL** - MCP tools for progressive context management (peek/grep/fold/expand/undo)
+- **Research Chunking** - On-demand loading of large research.md files to reduce context bloat
+
+## Data Storage
+
+All data is stored in the `.specify/` directory:
+
+- **Specs:** `.specify/specs/{spec-id}/spec.md` (Markdown with YAML frontmatter)
+- **Tasks:** `.specify/specs/{spec-id}/tasks.md` (Markdown checklist format)
+- **Memory:** `.specify/memory/memories.jsonl` (Append-only JSONL)
+- **Logs:** `.specify/logs/` (council-usage.jsonl, tool-audit.jsonl, slop-reduction.jsonl, gofer-run-ledger.jsonl)
+- **State:** `.specify/current-stage.json`, `.specify/ipc/status.json`
+
+No database required - all data is file-based for Git-friendly version control.

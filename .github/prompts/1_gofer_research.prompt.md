@@ -1,21 +1,6 @@
 ---
-name: 1_gofer_research
 description: Deep codebase and technology research for feature implementation
-agent: copilot-workspace
-tools:
-  - Read
-  - Grep
-  - Glob
-  - Bash
-  - WebSearch
-argument-hint: feature-name-or-description
-gofer:
-  workflowProfile: enterpriseai
-  canonicalSource: .claude/commands/1_gofer_research.md
-  canonicalChecksum: bbdffb903c4af1ec4fac2f262e2a1c714d83151d9ef98666c273fb441c0e2f00
-  metadataSource: scripts/generate-commands.ts
 ---
-
 
 # Gofer Research
 
@@ -260,7 +245,7 @@ run:
   - Record `competitiveAnalysisEnabled=false` in research outputs.
   - Keep `market-analysis.md` as a baseline traceability artifact with
     disabled-state messaging (no comparative metrics).
-  - Continue to `#2_gofer_specify` normally (no stage failure).
+  - Continue to `/2_gofer_specify` normally (no stage failure).
 
 When enabled, `market-analysis.md` must include:
 
@@ -588,7 +573,7 @@ approvedAt: ''
 ## Approval
 
 - Status: pending_review
-- Next action: user approves or requests changes before `#2_gofer_specify`
+- Next action: user approves or requests changes before `/2_gofer_specify`
 `````
 
 ---
@@ -631,7 +616,7 @@ After saving `research.md` and `proposal-review.md`:
 4. **If the user approves**:
    - Update `proposal-review.md` with `status: approved`
    - Record `approvedBy`, `approvedAt`, and any selected option or override
-   - Immediately invoke `#2_gofer_specify`
+   - Immediately invoke `/2_gofer_specify`
 
 5. **If the user requests changes**:
    - Update `proposal-review.md` with the feedback in
@@ -653,6 +638,9 @@ Key findings:
 
 ```
 
+**AUTO-CHAIN (MANDATORY AFTER APPROVAL)**: Do NOT invoke `/2_gofer_specify`
+until the user explicitly approves the proposal review. After approval, it is
+mandatory to invoke the Skill tool with `skill="/2_gofer_specify"` immediately.
 
 ---
 
@@ -877,14 +865,3 @@ Logs to: `.specify/logs/pipeline.jsonl`
 - **Maximum 5 open questions** - make informed decisions for the rest
 - **Do not continue to specification until `proposal-review.md` is approved**
 - **Log stage completion** for observability tracking
-
-
-## Pipeline Continuation
-
-This completes the 1_gofer_research stage. To continue the Gofer pipeline:
-
-**Next Command:** `#2_gofer_specify`
-
-The next stage will read the artifacts from this stage and continue the workflow automatically.
-
-**Note:** Copilot Chat supports context preservation. Your conversation history will be maintained as you progress through pipeline stages.

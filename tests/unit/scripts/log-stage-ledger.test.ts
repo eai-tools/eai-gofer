@@ -29,7 +29,7 @@ describe('log-stage.sh ledger integration', () => {
     // Initialize git repo (needed by common.sh)
     originalCwd = process.cwd();
     await execFileAsync('git', ['init', tmpDir]);
-    await execFileAsync('git', ['-C', tmpDir, 'checkout', '-b', 'feature/test-feature']);
+    await execFileAsync('git', ['-C', tmpDir, 'checkout', '-B', 'feature/test-feature']);
 
     // Create pipeline-state.json with a runId
     await execFileAsync('bash', [PIPELINE_STATE_SCRIPT, 'init', '--feature-dir', featureDir]);

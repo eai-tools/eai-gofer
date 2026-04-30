@@ -178,6 +178,17 @@ fs.writeFileSync('./extension/package.json', JSON.stringify(extPkg, null, 2) + '
 const rootPkg = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
 rootPkg.version = '$NEW_VERSION';
 fs.writeFileSync('./package.json', JSON.stringify(rootPkg, null, 2) + '\n');
+
+// Keep lockfile package metadata aligned with release version when present.
+for (const lockPath of ['./package-lock.json', './extension/package-lock.json']) {
+    if (!fs.existsSync(lockPath)) continue;
+    const lock = JSON.parse(fs.readFileSync(lockPath, 'utf8'));
+    lock.version = '$NEW_VERSION';
+    if (lock.packages && lock.packages['']) {
+        lock.packages[''].version = '$NEW_VERSION';
+    }
+    fs.writeFileSync(lockPath, JSON.stringify(lock, null, 2) + '\n');
+}
 "
 
 # Update CHANGELOG with placeholder
@@ -379,9 +390,19 @@ if [ -f "docs/update-releases.js" ]; then
     GITHUB_PAGES_URL="https://eai-tools.github.io/gofer/releases/gofer-$NEW_VERSION.vsix"
     node docs/update-releases.js "$NEW_VERSION" "$RELEASE_NOTES" "$GITHUB_PAGES_URL"
     git add docs/releases.json docs/releases/
-    print_success "Updated GitHub Pages release data with assets"
+print_success "Updated GitHub Pages release data with assets"
 else
     print_warning "GitHub Pages update script not found, skipping..."
+fi
+
+# Ensure root validation tools are installed before lint/test gates. Fresh
+# release worktrees do not have root node_modules by default.
+print_info "Installing root dependencies for validation..."
+if npm install 2>&1; then
+    print_success "Root dependencies installed"
+else
+    print_error "Failed to install root dependencies"
+    exit 1
 fi
 
 # Run pre-push validation BEFORE committing and pushing
@@ -419,7 +440,7 @@ print_success "Pre-push validation complete"
 
 # Commit
 print_info "Committing changes..."
-git add package.json extension/package.json extension/CHANGELOG.md extension/language-server/ docs/releases.json docs/releases/
+git add package.json package-lock.json extension/package.json extension/package-lock.json extension/CHANGELOG.md extension/language-server/ docs/releases.json docs/releases/
 
 git commit --no-verify -m "release: v$NEW_VERSION
 

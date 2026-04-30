@@ -3,7 +3,7 @@ name: gofer:personality
 description: Gofer Personality
 gofer:
   workflowProfile: enterpriseai
-  canonicalSource: .claude/commands/gofer:personality.md
+  canonicalSource: .specify/commands/gofer_personality.md
   canonicalChecksum: a4550e37f65b7f9140226caf4a3507bc9db6959038714f0cc984975278be2e79
   metadataSource: scripts/generate-commands.ts
 arguments:

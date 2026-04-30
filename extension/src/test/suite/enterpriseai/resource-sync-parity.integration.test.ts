@@ -66,7 +66,7 @@ suite('enterpriseai resource sync parity (extension integration)', () => {
     const preservedCustomSkill = await fs.readFile(customAgentSkillPath, 'utf8');
 
     assert.strictEqual(mirroredAgentContent, codexSkillContent);
-    assert.ok(codexSkillContent.includes('canonicalSource: .claude/commands/1_gofer_research.md'));
+    assert.ok(codexSkillContent.includes('canonicalSource: .specify/commands/1_gofer_research.md'));
     assert.strictEqual(preservedCustomSkill, '# Custom Skill\n\nDo not overwrite.');
   });
 });

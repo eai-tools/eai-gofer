@@ -9,6 +9,13 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Documentation
+
+- Trimmed the root and extension READMEs plus the VS Code configuration guide
+  to the current manifest-backed command and settings surface.
+- Removed the outdated migration and WhatsApp guides that still described dead
+  VS Code commands, notification flows, and setup paths.
+
 ### Added
 
 - **CLI Innovations + Multi-Persona Visual Artifacts** (feature

@@ -126,6 +126,7 @@ describe('e2e pipeline smoke (T160)', () => {
       REPO_ROOT,
       '.specify',
       'specs',
+      '_archived',
       '001-cli-innovations-visuals',
       'quickstart.md'
     );

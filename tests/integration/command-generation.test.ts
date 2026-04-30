@@ -14,6 +14,91 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { CommandGenerator } from '../../extension/src/council/CommandGenerator';
 
+function normalizeRelativePath(filePath: string): string {
+  return filePath.replace(/\\/g, '/');
+}
+
+interface RemovedSurfacePattern {
+  label: string;
+  pattern: RegExp;
+}
+
+const MIRROR_SURFACE_ROOTS = [
+  '.claude/commands',
+  '.claude/agents',
+  '.github/prompts',
+  '.gemini',
+  '.system/skills',
+  '.agents/skills',
+  'extension/resources/claude-commands',
+  'extension/resources/claude-agents',
+  'extension/resources/copilot-prompts',
+  'extension/resources/gemini',
+];
+
+const REMOVED_SURFACE_PATTERNS: RemovedSurfacePattern[] = [
+  {
+    label: 'legacy eaigofer prefix',
+    pattern: /\b(?:eaigofer_|eaiGofer\.)[A-Za-z0-9_.]*/,
+  },
+  {
+    label: 'removed autonomous notificationChannel setting',
+    pattern: /gofer\.autonomous\.notificationChannel/,
+  },
+  {
+    label: 'removed autonomous whatsappPhoneNumber setting',
+    pattern: /gofer\.autonomous\.whatsappPhoneNumber/,
+  },
+  {
+    label: 'removed autonomous emailAddress setting',
+    pattern: /gofer\.autonomous\.emailAddress/,
+  },
+  {
+    label: 'removed claudeTerminalName setting',
+    pattern: /gofer\.claudeTerminalName/,
+  },
+  {
+    label: 'removed autoValidate setting',
+    pattern: /gofer\.autoValidate/,
+  },
+  {
+    label: 'removed showWelcome setting',
+    pattern: /gofer\.showWelcome/,
+  },
+  {
+    label: 'deleted WhatsApp setup guide reference',
+    pattern: /docs\/WHATSAPP_SETUP\.md/,
+  },
+  {
+    label: 'deleted two-way WhatsApp guide reference',
+    pattern: /docs\/TWO_WAY_WHATSAPP\.md/,
+  },
+  {
+    label: 'deleted migration guide reference',
+    pattern: /docs\/migration-guide\.md/,
+  },
+  {
+    label: 'stale canonicalSource path',
+    pattern: /canonicalSource:\s*\.claude\/commands\//,
+  },
+];
+
+async function collectRelativeFiles(rootDir: string, currentDir: string = rootDir): Promise<string[]> {
+  const entries = await fs.readdir(currentDir, { withFileTypes: true });
+  const files = await Promise.all(
+    entries.map(async (entry): Promise<string[]> => {
+      const entryPath = path.join(currentDir, entry.name);
+      if (entry.isDirectory()) {
+        return collectRelativeFiles(rootDir, entryPath);
+      }
+
+      return [normalizeRelativePath(path.relative(rootDir, entryPath))];
+    })
+  );
+
+  return files.flat().sort();
+}
+
 describe('Command Generation Integration (US-3)', () => {
   describe('T061: Parallel Agent Instructions in Validation Commands', () => {
     it('should have parallel agent spawning in Claude validation command', async () => {
@@ -279,6 +364,65 @@ describe('Command Generation Integration (US-3)', () => {
       } finally {
         await fs.rm(fixtureRoot, { recursive: true, force: true });
       }
+    });
+
+    it('keeps packaged extension mirror resources byte-identical to checked-in mirrors', async () => {
+      const mirrorPairs: Array<[string, string]> = [
+        ['.claude/agents', 'extension/resources/claude-agents'],
+        ['.claude/commands', 'extension/resources/claude-commands'],
+        ['.github/prompts', 'extension/resources/copilot-prompts'],
+        ['.gemini', 'extension/resources/gemini'],
+      ];
+
+      for (const [repoRelativeDir, extensionRelativeDir] of mirrorPairs) {
+        const repoDir = path.join(process.cwd(), repoRelativeDir);
+        const extensionDir = path.join(process.cwd(), extensionRelativeDir);
+        const repoFiles = await collectRelativeFiles(repoDir);
+        const extensionFiles = await collectRelativeFiles(extensionDir);
+
+        expect(extensionFiles).toEqual(repoFiles);
+
+        for (const relativeFile of repoFiles) {
+          const repoContent = await fs.readFile(path.join(repoDir, relativeFile));
+          const extensionContent = await fs.readFile(path.join(extensionDir, relativeFile));
+          expect(extensionContent.equals(repoContent)).toBe(true);
+        }
+      }
+    });
+
+    it('does not ship removed VS Code surfaces in mirrors or packaged resources', async () => {
+      const findings: string[] = [];
+
+      for (const relativeDir of MIRROR_SURFACE_ROOTS) {
+        const rootDir = path.join(process.cwd(), relativeDir);
+        const relativeFiles = await collectRelativeFiles(rootDir);
+
+        for (const relativeFile of relativeFiles) {
+          const absoluteFile = path.join(rootDir, relativeFile);
+          const content = await fs.readFile(absoluteFile, 'utf-8');
+
+          for (const { label, pattern } of REMOVED_SURFACE_PATTERNS) {
+            if (pattern.test(content)) {
+              findings.push(
+                `${normalizeRelativePath(path.join(relativeDir, relativeFile))}: ${label}`
+              );
+            }
+          }
+        }
+      }
+
+      expect(findings).toEqual([]);
+    });
+
+    it('keeps only the cleanup spec active at the top level under .specify/specs', async () => {
+      const specsRoot = path.join(process.cwd(), '.specify', 'specs');
+      const entries = await fs.readdir(specsRoot, { withFileTypes: true });
+      const activeSpecDirs = entries
+        .filter((entry) => entry.isDirectory() && !entry.name.startsWith('.') && entry.name !== '_archived')
+        .map((entry) => entry.name)
+        .sort();
+
+      expect(activeSpecDirs).toEqual(['030-vscode-surface-truth-cleanup']);
     });
   });
 });

@@ -79,10 +79,6 @@ export const CONFIG_KEYS = {
   codexCommand: 'gofer.codexCommand',
   autoInitialize: 'gofer.autoInitialize',
   preferredAi: 'gofer.preferredAI',
-  autoUpdateCheck: 'gofer.autoUpdateCheck',
-  telemetryEnabled: 'gofer.telemetryEnabled',
-  updateCheckInterval: 'gofer.updateCheckInterval',
-  performanceMode: 'gofer.performanceMode',
   yoloSlopReductionEnabled: 'gofer.yoloSlopReduction.enabled',
   yoloSlopReductionNotifyEvery: 'gofer.yoloSlopReduction.notifyEvery',
   contextWindowAutoExecuteSave: 'gofer.contextWindow.autoExecuteSave',
@@ -109,12 +105,8 @@ export const DEFAULTS = {
   defaultCLI: 'auto' as const,
   codexCommand: 'codex',
   autoInitialize: false,
-  preferredAi: 'claude',
-  autoUpdateCheck: true,
-  telemetryEnabled: true,
-  updateCheckInterval: 24 * 60 * 60 * 1000, // 24 hours in ms
-  performanceMode: 'balanced',
-  yoloSlopReductionEnabled: true,
+  preferredAi: 'ask',
+  yoloSlopReductionEnabled: false,
   yoloSlopReductionNotifyEvery: 10,
   contextWindowAutoExecuteSave: true,
   contextWindowAutoSaveThreshold: 0.65,
@@ -249,40 +241,28 @@ export class ConfigManager {
    * Get auto-update check setting
    */
   public getAutoUpdateCheck(): boolean {
-    return this.config.get<boolean>(
-      CONFIG_KEYS.autoUpdateCheck.replace('gofer.', ''),
-      DEFAULTS.autoUpdateCheck
-    );
+    return true;
   }
 
   /**
    * Get telemetry enabled setting
    */
   public getTelemetryEnabled(): boolean {
-    return this.config.get<boolean>(
-      CONFIG_KEYS.telemetryEnabled.replace('gofer.', ''),
-      DEFAULTS.telemetryEnabled
-    );
+    return true;
   }
 
   /**
    * Get update check interval
    */
   public getUpdateCheckInterval(): number {
-    return this.config.get<number>(
-      CONFIG_KEYS.updateCheckInterval.replace('gofer.', ''),
-      DEFAULTS.updateCheckInterval
-    );
+    return 24 * 60 * 60 * 1000;
   }
 
   /**
    * Get performance mode
    */
   public getPerformanceMode(): 'fast' | 'balanced' | 'thorough' {
-    return this.config.get<'fast' | 'balanced' | 'thorough'>(
-      CONFIG_KEYS.performanceMode.replace('gofer.', ''),
-      DEFAULTS.performanceMode as 'balanced'
-    );
+    return 'balanced';
   }
 
   /**
@@ -509,10 +489,6 @@ export class ConfigManager {
       openaiApiKey: this.getOpenaiApiKey(),
       autoInitialize: this.getAutoInitialize(),
       preferredAI: this.getPreferredAI(),
-      autoUpdateCheck: this.getAutoUpdateCheck(),
-      telemetryEnabled: this.getTelemetryEnabled(),
-      updateCheckInterval: this.getUpdateCheckInterval(),
-      performanceMode: this.getPerformanceMode(),
       yoloSlopReductionEnabled: this.getSlopReductionEnabled(),
       yoloSlopReductionNotifyEvery: this.getSlopReductionNotifyEvery(),
       contextWindowAutoExecuteSave: this.getContextWindowAutoExecuteSave(),

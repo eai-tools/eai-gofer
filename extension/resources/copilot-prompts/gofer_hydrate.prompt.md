@@ -1,6 +1,21 @@
 ---
+name: gofer_hydrate
 description: Reverse-engineer specification from existing code (Hydration)
+agent: copilot-workspace
+tools:
+  - Read
+  - Grep
+  - Glob
+  - Bash
+  - WebSearch
+argument-hint: feature-name-or-description
+gofer:
+  workflowProfile: enterpriseai
+  canonicalSource: .claude/commands/gofer_hydrate.md
+  canonicalChecksum: 6981b19710e2386426a0b651eeaa43c3b9690d39a24e0fa507f9766612ecd94a
+  metadataSource: scripts/generate-commands.ts
 ---
+
 
 # Gofer Hydrate
 
@@ -163,7 +178,7 @@ source_files:
 # [Feature Title]
 
 > This specification was reverse-engineered from existing code using
-> `/gofer_hydrate`. It reflects the **current implementation**, not necessarily
+> `#gofer_hydrate`. It reflects the **current implementation**, not necessarily
 > the original requirements.
 
 ## Overview

@@ -1,8 +1,21 @@
 ---
-description:
-  Generate stakeholder communications package including release notes, demo
-  script, change management brief, and success metrics
+name: 7a_stakeholder_comms
+description: Generate stakeholder-facing communications: release notes, demo scripts, and change briefs.
+agent: copilot-workspace
+tools:
+  - Read
+  - Grep
+  - Glob
+  - Bash
+  - WebSearch
+argument-hint: feature-name-or-description
+gofer:
+  workflowProfile: enterpriseai
+  canonicalSource: .claude/commands/7a_stakeholder_comms.md
+  canonicalChecksum: 246efaf545eb43e344519d73a2abb28da1631374eec2f3e8e2dbbf03208b0489
+  metadataSource: scripts/generate-commands.ts
 ---
+
 
 # Gofer Stakeholder Communications
 
@@ -22,10 +35,10 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 This command expects in `.specify/specs/{feature}/`:
 
-- `validation-report.md` — Feature validated (PASS) from /6_gofer_validate
+- `validation-report.md` — Feature validated (PASS) from #6_gofer_validate
 - `problem-brief.md` — Original business problem (from /0a_problem_validation)
-- `spec.md` — Feature specification (from /2_gofer_specify)
-- `spec-summary.md` — Executive summary (from /2_gofer_specify)
+- `spec.md` — Feature specification (from #2_gofer_specify)
+- `spec-summary.md` — Executive summary (from #2_gofer_specify)
 - `assumptions.md` — Tracked assumptions
 
 If `validation-report.md` doesn't exist or shows FAIL, do NOT generate comms.
@@ -54,7 +67,7 @@ Instead, inform the user that validation must pass first.
 
 - If **< 50%**: Proceed normally
 - If **50-70%**: Use sub-agents heavily
-- If **> 70%**: Run `/7_gofer_save` first
+- If **> 70%**: Run `#7_gofer_save` first
 
 ---
 
@@ -79,7 +92,7 @@ Instead, inform the user that validation must pass first.
 3. **Verify validation passed**:
    - Check `validation-report.md` for `status: PASS`
    - If FAIL: "Validation must pass before generating communications. Current
-     score: [N]/100. Run /6_gofer_validate first."
+     score: [N]/100. Run #6_gofer_validate first."
 
 ---
 
@@ -243,12 +256,12 @@ stakeholder communications explaining what changed and why.
 
   Full Pipeline Summary:
   0a. /0a_problem_validation  ✓ (Problem validated)
-  1.  /1_gofer_research        ✓ (Codebase + market research)
-  2.  /2_gofer_specify         ✓ (Spec + business summary)
-  3.  /3_gofer_plan            ✓ (Technical architecture)
-  4.  /4_gofer_tasks           ✓ (Task breakdown)
-  5.  /5_gofer_implement       ✓ (Implementation)
-  6.  /6_gofer_validate        ✓ (Quality: [score]/100)
+  1.  #1_gofer_research        ✓ (Codebase + market research)
+  2.  #2_gofer_specify         ✓ (Spec + business summary)
+  3.  #3_gofer_plan            ✓ (Technical architecture)
+  4.  #4_gofer_tasks           ✓ (Task breakdown)
+  5.  #5_gofer_implement       ✓ (Implementation)
+  6.  #6_gofer_validate        ✓ (Quality: [score]/100)
   7a. /7a_stakeholder_comms    ✓ (Communications package)
 
   The feature is ready for stakeholder review and deployment.

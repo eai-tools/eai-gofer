@@ -1,8 +1,21 @@
 ---
-description:
-  Unified validation, blast-radius analysis, and engineering review (3 phases,
-  110-point rubric)
+name: 6_gofer_validate
+description: Validate the implementation against spec acceptance criteria across six quality dimensions.
+agent: copilot-workspace
+tools:
+  - Read
+  - Grep
+  - Glob
+  - Bash
+  - WebSearch
+argument-hint: feature-name-or-description
+gofer:
+  workflowProfile: enterpriseai
+  canonicalSource: .claude/commands/6_gofer_validate.md
+  canonicalChecksum: 645c66403a80cb86d7944d0de61796712a5b0c4a221648f21c72ab13945a5125
+  metadataSource: scripts/generate-commands.ts
 ---
+
 
 # Gofer Validate
 
@@ -17,8 +30,8 @@ across **three phases**:
   to catch issues rubric-based validation might miss
 
 This is the **sixth stage** of the unified Gofer pipeline. It consolidates the
-former `/6_gofer_validate` and `/6a_gofer_engineering_review` stages into a
-single command; `/6a_gofer_engineering_review` is retained as a
+former `#6_gofer_validate` and `#6a_gofer_engineering_review` stages into a
+single command; `#6a_gofer_engineering_review` is retained as a
 backwards-compatibility stub that delegates here.
 
 A score of **110/110 on the rubric (Phases A + B) is required to pass**. Any
@@ -38,11 +51,11 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 This command expects in `.specify/specs/{feature}/`:
 
-- `research.md` - Codebase analysis (from /1_gofer_research)
-- `spec.md` - Feature specification (from /2_gofer_specify)
-- `plan.md` - Implementation plan (from /3_gofer_plan)
-- `tasks.md` - Task breakdown (from /4_gofer_tasks)
-- Implemented code (from /5_gofer_implement)
+- `research.md` - Codebase analysis (from #1_gofer_research)
+- `spec.md` - Feature specification (from #2_gofer_specify)
+- `plan.md` - Implementation plan (from #3_gofer_plan)
+- `tasks.md` - Task breakdown (from #4_gofer_tasks)
+- Implemented code (from #5_gofer_implement)
 
 ---
 
@@ -137,7 +150,7 @@ Before starting validation, assess context window health:
 
 - If **< 50%**: Proceed normally
 - If **50-70%**: Use sub-agents heavily, minimize main context
-- If **> 70%**: Run `/7_gofer_save`, start new session, run `/8_gofer_resume`
+- If **> 70%**: Run `#7_gofer_save`, start new session, run `#8_gofer_resume`
 
 Validation loads all artifacts and spawns 6 agents — context pressure is high.
 
@@ -1145,7 +1158,7 @@ Proceed to **Phase C: Engineering Review Loop** (inline, Step 10a below), then
 
 **No external auto-chain is needed** — Phase C runs inline in this command.
 After Phase C completes, the feature pipeline is complete. The legacy
-`/6a_gofer_engineering_review` stub will detect the
+`#6a_gofer_engineering_review` stub will detect the
 `engineering-review-report.md` artifact and no-op if invoked.
 
 ### If TOTAL < 110: FAIL
@@ -1241,7 +1254,7 @@ Output the routing instruction:
   REMEDIATION REQUIRED: [feature-name]
   Failed categories: [list]
   Iteration: [N] of 3
-  Route: /5_gofer_implement → focused on [failed areas]
+  Route: #5_gofer_implement → focused on [failed areas]
 
 ════════════════════════════════════════════════════════════════
 ```
@@ -1316,7 +1329,7 @@ cycle, catching issues that the rubric-based validation might miss (edge cases,
 race conditions, API-contract drift against the as-implemented code, spec spirit
 violations).
 
-Phase C is the terminal stage of `/6_gofer_validate`. After Phase C completes,
+Phase C is the terminal stage of `#6_gofer_validate`. After Phase C completes,
 the feature pipeline is complete.
 
 ## Step 10a: Initialize Phase C
@@ -1588,12 +1601,12 @@ blast_radius_carryovers: [N]
   FEATURE PIPELINE COMPLETE!
 
   All Gofer stages finished:
-  1. /1_gofer_research ✓
-  2. /2_gofer_specify ✓
-  3. /3_gofer_plan ✓
-  4. /4_gofer_tasks ✓
-  5. /5_gofer_implement ✓
-  6. /6_gofer_validate ✓ (Phase A ✓, Phase B ✓, Phase C ✓)
+  1. #1_gofer_research ✓
+  2. #2_gofer_specify ✓
+  3. #3_gofer_plan ✓
+  4. #4_gofer_tasks ✓
+  5. #5_gofer_implement ✓
+  6. #6_gofer_validate ✓ (Phase A ✓, Phase B ✓, Phase C ✓)
 
   The feature is ready for review and merge.
 ════════════════════════════════════════════════════════════════
@@ -1616,12 +1629,12 @@ blast_radius_carryovers: [N]
   FEATURE PIPELINE COMPLETE!
 
   All Gofer stages finished:
-  1. /1_gofer_research ✓
-  2. /2_gofer_specify ✓
-  3. /3_gofer_plan ✓
-  4. /4_gofer_tasks ✓
-  5. /5_gofer_implement ✓
-  6. /6_gofer_validate ✓ (Phase A ✓, Phase B ✓, Phase C ⚠)
+  1. #1_gofer_research ✓
+  2. #2_gofer_specify ✓
+  3. #3_gofer_plan ✓
+  4. #4_gofer_tasks ✓
+  5. #5_gofer_implement ✓
+  6. #6_gofer_validate ✓ (Phase A ✓, Phase B ✓, Phase C ⚠)
 
   The feature is ready for review and merge (review Gray findings).
 ════════════════════════════════════════════════════════════════
@@ -1832,6 +1845,18 @@ This also logs quality metrics (rubric scores, finding counts) to:
 `.specify/logs/quality-metrics.jsonl`
 
 ---
+
+
+
+## Pipeline Continuation
+
+This completes the 6_gofer_validate stage. To continue the Gofer pipeline:
+
+**Next Command:** `#6a_gofer_engineering_review`
+
+The next stage will read the artifacts from this stage and continue the workflow automatically.
+
+**Note:** Copilot Chat supports context preservation. Your conversation history will be maintained as you progress through pipeline stages.
 
 ## Key Rules
 

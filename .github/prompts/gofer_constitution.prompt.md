@@ -1,7 +1,21 @@
 ---
-description:
-  Create or update project constitution with coding principles and guidelines
+name: gofer_constitution
+description: Display the Gofer working constitution and core principles for this project.
+agent: copilot-workspace
+tools:
+  - Read
+  - Grep
+  - Glob
+  - Bash
+  - WebSearch
+argument-hint: feature-name-or-description
+gofer:
+  workflowProfile: enterpriseai
+  canonicalSource: .claude/commands/gofer_constitution.md
+  canonicalChecksum: fd4a921367a3319bf9813a5491f530ecdd1b4fe9b3ed446c3907dd3c7282dc75
+  metadataSource: scripts/generate-commands.ts
 ---
+
 
 # Gofer Constitution
 
@@ -472,7 +486,7 @@ Report any violations or areas needing attention."
   1. Review with team
   2. Address any violations found
   3. Add to onboarding documentation
-  4. Reference in /3_gofer_plan for alignment checks
+  4. Reference in #3_gofer_plan for alignment checks
 
 ================================================================
 ```
@@ -481,7 +495,7 @@ Report any violations or areas needing attention."
 
 ## Integration with Pipeline
 
-### During Planning (/3_gofer_plan)
+### During Planning (#3_gofer_plan)
 
 ```markdown
 ## Constitution Check
@@ -491,11 +505,11 @@ Report any violations or areas needing attention."
 - [ ] P3: [Principle] - Exception needed (see ADR-NNN)
 ```
 
-### During Implementation (/5_gofer_implement)
+### During Implementation (#5_gofer_implement)
 
 Before each task, verify implementation follows constitution.
 
-### During Validation (/6_gofer_validate)
+### During Validation (#6_gofer_validate)
 
 ```markdown
 ## Constitution Compliance
@@ -513,7 +527,7 @@ Before each task, verify implementation follows constitution.
 
 When learnings emerge from feature work:
 
-1. Run `/gofer_constitution` with update flag
+1. Run `#gofer_constitution` with update flag
 2. Add new principles or modify existing
 3. Create ADR for significant changes
 4. Update version history

@@ -378,7 +378,7 @@ describe('generate-commands emitters (integration)', () => {
       expect(await fileExists(outPath)).toBe(true);
     });
 
-    it('copilot body content has no frontmatter', async () => {
+    it('copilot prompt includes metadata-rich frontmatter', async () => {
       const outPath = path.join(
         tmpRoot,
         'extension',
@@ -388,7 +388,11 @@ describe('generate-commands emitters (integration)', () => {
       );
       const content = await readFile(outPath);
       expect(content).toContain('# Gofer Research');
-      expect(content).not.toContain('name: 1_gofer_research');
+      expect(content).toContain('name: 1_gofer_research');
+      expect(content).toContain('agent: copilot-workspace');
+      expect(content).toContain('gofer:');
+      expect(content).toContain('workflowProfile: enterpriseai');
+      expect(content).toContain('canonicalSource: .claude/commands/1_gofer_research.md');
     });
   });
 
@@ -407,11 +411,15 @@ describe('generate-commands emitters (integration)', () => {
       expect(await fileExists(outPath)).toBe(true);
     });
 
-    it('github-prompts body has no frontmatter', async () => {
+    it('github-prompts prompt includes metadata-rich frontmatter', async () => {
       const outPath = path.join(tmpRoot, '.github', 'prompts', '1_gofer_research.prompt.md');
       const content = await readFile(outPath);
       expect(content).toContain('# Gofer Research');
-      expect(content).not.toContain('category: pipeline');
+      expect(content).toContain('name: 1_gofer_research');
+      expect(content).toContain('agent: copilot-workspace');
+      expect(content).toContain('gofer:');
+      expect(content).toContain('workflowProfile: enterpriseai');
+      expect(content).toContain('canonicalSource: .claude/commands/1_gofer_research.md');
     });
   });
 

@@ -4,7 +4,7 @@ description: Create or update project constitution with coding principles and gu
 gofer:
   workflowProfile: enterpriseai
   canonicalSource: .specify/commands/gofer_constitution.md
-  canonicalChecksum: fe7fbe1091ce379fe7d3dc501810374a425779464a7aaabd495413e581d99f4d
+  canonicalChecksum: fd4a921367a3319bf9813a5491f530ecdd1b4fe9b3ed446c3907dd3c7282dc75
   metadataSource: scripts/generate-commands.ts
 arguments:
   - name: feature
@@ -55,7 +55,7 @@ when updating:
    `.claude/skills/`. The constitution MUST capture that distinction explicitly
    so future authors do not conflate the two paths. The official Codex disable
    knob is per-skill `[[skills.config]] enabled = false` in
-   `~/.codex/config.toml`; there is NO `skills_context_budget_percent` key
+   `~/.codex/config.toml`; there is no global skill-budget percentage key
    (FR-011).
 
 When updating the constitution, ensure both sections survive the edit pass.

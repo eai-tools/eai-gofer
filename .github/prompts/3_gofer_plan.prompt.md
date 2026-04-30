@@ -1,6 +1,6 @@
 ---
 name: 3_gofer_plan
-description: Create a detailed technical implementation plan with architecture, data model, and contracts.
+description: Generate technical implementation plan with architecture and contracts
 agent: copilot-workspace
 tools:
   - Read

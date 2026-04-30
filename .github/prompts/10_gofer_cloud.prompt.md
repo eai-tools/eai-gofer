@@ -1,6 +1,6 @@
 ---
 name: 10_gofer_cloud
-description: Deploy and configure the Gofer cloud integration for remote pipeline execution.
+description: READ-ONLY cloud infrastructure analysis for Azure, AWS, GCP deployments
 agent: copilot-workspace
 tools:
   - Read

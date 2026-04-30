@@ -3,9 +3,9 @@
  *
  *   1. Exists
  *   2. Contains a `## Available stages` section
- *   3. Lists 11 non-claude-only stage descriptions (one ### per stage)
+ *   3. Lists the full 19-command Gofer set (one ### per command)
  *   4. Each description ≤140 chars
- *   5. CLAUDE_ONLY_STAGES are NOT mentioned in the stages section
+ *   5. Formerly Claude-only stages are listed in the stages section
  */
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
@@ -17,15 +17,8 @@ const __dirname = path.dirname(__filename);
 const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
 const AGENTS_MD_PATH = path.join(REPO_ROOT, 'AGENTS.md');
 
-const CLAUDE_ONLY_STAGES = [
+const ALL_GOFER_STAGES = [
   '0_business_scenario',
-  'gofer_constitution',
-  'gofer_hydrate',
-  '7_gofer_save',
-  '8_gofer_resume',
-];
-
-const NON_CLAUDE_ONLY_STAGES = [
   '0a_problem_validation',
   '1_gofer_research',
   '2_gofer_specify',
@@ -34,9 +27,16 @@ const NON_CLAUDE_ONLY_STAGES = [
   '5_gofer_implement',
   '6_gofer_validate',
   '6a_gofer_engineering_review',
+  '7_gofer_save',
   '7a_stakeholder_comms',
+  '8_gofer_resume',
   '9_gofer_tests',
   '10_gofer_cloud',
+  'gofer_constitution',
+  'gofer_hydrate',
+  'gofer:personality',
+  'gofer:plan',
+  'gofer:side',
 ];
 
 function extractStagesSection(content: string): string {
@@ -58,15 +58,15 @@ describe('AGENTS.md shape (T168)', () => {
     expect(content).toContain('## Available stages');
   });
 
-  it('lists exactly 11 non-claude-only stage subsections (### <name>)', (): void => {
+  it('lists exactly 19 Gofer stage/helper subsections (### <name>)', (): void => {
     const content = fs.readFileSync(AGENTS_MD_PATH, 'utf8');
     const section = extractStagesSection(content);
     let foundCount = 0;
-    for (const stage of NON_CLAUDE_ONLY_STAGES) {
+    for (const stage of ALL_GOFER_STAGES) {
       const re = new RegExp(`^### ${stage.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'm');
       if (re.test(section)) foundCount++;
     }
-    expect(foundCount).toBe(11);
+    expect(foundCount).toBe(19);
   });
 
   it('each stage description in stages section is ≤140 chars', (): void => {
@@ -86,15 +86,18 @@ describe('AGENTS.md shape (T168)', () => {
     }
   });
 
-  it('CLAUDE_ONLY_STAGES are NOT listed in the stages section', (): void => {
+  it('formerly Claude-only stages are listed in the stages section', (): void => {
     const content = fs.readFileSync(AGENTS_MD_PATH, 'utf8');
     const section = extractStagesSection(content);
-    for (const stage of CLAUDE_ONLY_STAGES) {
+    for (const stage of [
+      '0_business_scenario',
+      'gofer_constitution',
+      'gofer_hydrate',
+      '7_gofer_save',
+      '8_gofer_resume',
+    ]) {
       const re = new RegExp(`^### ${stage.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'm');
-      expect(
-        re.test(section),
-        `claude-only stage '${stage}' must NOT appear as a ### heading in stages section`
-      ).toBe(false);
+      expect(re.test(section), `stage '${stage}' must appear as a ### heading`).toBe(true);
     }
   });
 });

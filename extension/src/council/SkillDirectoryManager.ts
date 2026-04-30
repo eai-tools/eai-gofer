@@ -50,7 +50,8 @@ export interface SkillDirectoryManager {
  * Searches multiple directories with priority:
  * 1. .claude/commands/ (Claude CLI - highest priority)
  * 2. .system/skills/  (Codex CLI)
- * 3. .github/prompts/ (Copilot Chat - lowest priority)
+ * 3. .gemini/commands/gofer/ (Gemini CLI)
+ * 4. .github/prompts/ (Copilot Chat - lowest priority)
  */
 export class DefaultSkillDirectoryManager implements SkillDirectoryManager {
   private commandCache: Map<string, CommandMetadata> = new Map();
@@ -74,7 +75,7 @@ export class DefaultSkillDirectoryManager implements SkillDirectoryManager {
       return this.commandCache.get(commandName)!;
     }
 
-    // Search in priority order: Claude > Codex > Copilot
+    // Search in priority order: Claude > Codex > Gemini > Copilot
     let metadata: CommandMetadata | null = null;
 
     // 1. Try Claude CLI
@@ -91,7 +92,14 @@ export class DefaultSkillDirectoryManager implements SkillDirectoryManager {
       return metadata;
     }
 
-    // 3. Try Copilot Chat
+    // 3. Try Gemini CLI
+    metadata = this.searchGeminiCommands(commandName);
+    if (metadata) {
+      this.commandCache.set(commandName, metadata);
+      return metadata;
+    }
+
+    // 4. Try Copilot Chat
     metadata = this.searchCopilotPrompts(commandName);
     if (metadata) {
       this.commandCache.set(commandName, metadata);
@@ -117,6 +125,7 @@ export class DefaultSkillDirectoryManager implements SkillDirectoryManager {
     // Collect from all platforms
     commands.push(...this.getAllClaudeCommands());
     commands.push(...this.getAllCodexSkills());
+    commands.push(...this.getAllGeminiCommands());
     commands.push(...this.getAllCopilotPrompts());
 
     // Update cache
@@ -164,6 +173,17 @@ export class DefaultSkillDirectoryManager implements SkillDirectoryManager {
     codexWatcher.onDidCreate(() => this.onDirectoryChange(callback));
     codexWatcher.onDidDelete(() => this.onDirectoryChange(callback));
     watchers.push(codexWatcher);
+
+    // Watch .gemini/commands/gofer/
+    const geminiPattern = new vscode.RelativePattern(
+      this.workspacePath,
+      '.gemini/commands/gofer/*.toml'
+    );
+    const geminiWatcher = vscode.workspace.createFileSystemWatcher(geminiPattern);
+    geminiWatcher.onDidChange(() => this.onDirectoryChange(callback));
+    geminiWatcher.onDidCreate(() => this.onDirectoryChange(callback));
+    geminiWatcher.onDidDelete(() => this.onDirectoryChange(callback));
+    watchers.push(geminiWatcher);
 
     // Watch .github/prompts/
     const copilotPattern = new vscode.RelativePattern(
@@ -250,6 +270,27 @@ export class DefaultSkillDirectoryManager implements SkillDirectoryManager {
   }
 
   /**
+   * Search for command in Gemini CLI directory
+   */
+  private searchGeminiCommands(commandName: string): CommandMetadata | null {
+    const geminiDir = path.join(this.workspacePath, '.gemini/commands/gofer');
+    if (!fs.existsSync(geminiDir)) {
+      return null;
+    }
+
+    const filePath = path.join(geminiDir, `${commandName}.toml`);
+    if (fs.existsSync(filePath)) {
+      try {
+        return this.extractor.extractFromGeminiCommandSync(filePath);
+      } catch {
+        return null;
+      }
+    }
+
+    return null;
+  }
+
+  /**
    * Search for prompt in Copilot Chat directory
    */
   private searchCopilotPrompts(commandName: string): CommandMetadata | null {
@@ -320,6 +361,33 @@ export class DefaultSkillDirectoryManager implements SkillDirectoryManager {
               return this.extractor.extractFromCodexSkillSync(skillPath);
             }
             return null;
+          } catch {
+            return null;
+          }
+        })
+        .filter((metadata): metadata is CommandMetadata => metadata !== null);
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * Get all commands from Gemini CLI directory
+   */
+  private getAllGeminiCommands(): CommandMetadata[] {
+    const geminiDir = path.join(this.workspacePath, '.gemini/commands/gofer');
+    if (!fs.existsSync(geminiDir)) {
+      return [];
+    }
+
+    try {
+      const files = fs.readdirSync(geminiDir).filter((file) => file.endsWith('.toml'));
+
+      return files
+        .map((file) => {
+          try {
+            const filePath = path.join(geminiDir, file);
+            return this.extractor.extractFromGeminiCommandSync(filePath);
           } catch {
             return null;
           }

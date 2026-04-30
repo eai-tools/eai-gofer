@@ -3,9 +3,9 @@
  *
  * Verifies that:
  * 1. codex-config-fragment.toml is created at correct path
- * 2. Contains exactly the right skill entries (non-claude-only)
+ * 2. Contains all skill entries that list codex/agents-skills surfaces
  * 3. All entries have `enabled = true`
- * 4. CLAUDE_ONLY_STAGES are not present
+ * 4. Formerly Claude-only stages are present when portable surfaces are listed
  * 5. Does NOT touch ~/.codex/config.toml
  */
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
@@ -49,7 +49,7 @@ async function readFile(filePath: string): Promise<string> {
 }
 
 // ---------------------------------------------------------------------------
-// Fixtures — 3 non-claude-only stages + 2 claude-only stages
+// Fixtures — all stages can list codex/agents-skills surfaces
 // ---------------------------------------------------------------------------
 
 const NON_CLAUDE_STAGES = [
@@ -123,6 +123,8 @@ category: pipeline
 surfaces:
   - claude
   - claude-mirror
+  - agents-skills
+  - codex
 ---
 
 # Business Scenario
@@ -138,6 +140,8 @@ category: pipeline
 surfaces:
   - claude
   - claude-mirror
+  - agents-skills
+  - codex
 ---
 
 # Gofer Save
@@ -210,33 +214,24 @@ describe('codex-config emitter (T068)', () => {
     }
   });
 
-  it('does NOT contain 0_business_scenario (claude-only)', async () => {
+  it('contains 0_business_scenario', async () => {
     const outPath = path.join(tmpRoot, '.specify', 'outputs', 'codex-config-fragment.toml');
     const content = await readFile(outPath);
-    expect(content).not.toContain('0_business_scenario');
+    expect(content).toContain('name = "gofer/0_business_scenario"');
   });
 
-  it('does NOT contain 7_gofer_save (claude-only)', async () => {
+  it('contains 7_gofer_save', async () => {
     const outPath = path.join(tmpRoot, '.specify', 'outputs', 'codex-config-fragment.toml');
     const content = await readFile(outPath);
-    expect(content).not.toContain('7_gofer_save');
+    expect(content).toContain('name = "gofer/7_gofer_save"');
   });
 
-  it('does NOT contain any CLAUDE_ONLY_STAGES', async () => {
-    const claudeOnlyStages = [
-      '0_business_scenario',
-      'gofer_constitution',
-      'gofer_hydrate',
-      '7_gofer_save',
-      '8_gofer_resume',
-    ];
+  it('contains formerly Claude-only fixtures when they list portable surfaces', async () => {
+    const formerlyClaudeOnlyStages = ['0_business_scenario', '7_gofer_save'];
     const outPath = path.join(tmpRoot, '.specify', 'outputs', 'codex-config-fragment.toml');
     const content = await readFile(outPath);
-    for (const stage of claudeOnlyStages) {
-      expect(
-        content,
-        `codex-config-fragment.toml should not contain claude-only stage '${stage}'`
-      ).not.toContain(stage);
+    for (const stage of formerlyClaudeOnlyStages) {
+      expect(content).toContain(`name = "gofer/${stage}"`);
     }
   });
 

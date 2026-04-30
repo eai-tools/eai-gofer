@@ -1,6 +1,7 @@
 /**
  * Platform Detector for Cross-Platform Command Parity
- * Feature 028: Detects which AI platform is active (Claude CLI, Copilot Chat, or Codex CLI)
+ * Feature 028: Detects which AI platform is active (Claude CLI, Copilot Chat,
+ * Codex CLI, or Gemini CLI command files)
  */
 
 import * as fs from 'fs';
@@ -13,7 +14,7 @@ import { PlatformType, PlatformDetectionContext } from './types/CrossPlatformTyp
  *
  * Detection priority:
  * 1. User setting (gofer.defaultCLI) if explicitly set
- * 2. Directory presence (.claude/commands/, .github/prompts/, .system/skills/)
+ * 2. Directory presence (.claude/commands/, .github/prompts/, .system/skills/, .gemini/commands/gofer/)
  * 3. Execution context (VSCode extension host)
  * 4. Fallback to 'auto'
  */
@@ -74,6 +75,8 @@ export class PlatformDetector {
         return this.hasDirectory('.github/prompts');
       case 'codex':
         return this.hasDirectory('.system/skills');
+      case 'gemini':
+        return this.hasDirectory('.gemini/commands/gofer');
       default:
         return false;
     }
@@ -94,12 +97,15 @@ export class PlatformDetector {
     }
 
     // Auto-detect based on directory presence
-    // Priority: Claude > Codex > Copilot (based on feature completeness)
+    // Priority: Claude > Codex > Gemini > Copilot (based on feature completeness)
     if (this.isPlatformAvailable('claude')) {
       return 'claude';
     }
     if (this.isPlatformAvailable('codex')) {
       return 'codex';
+    }
+    if (this.isPlatformAvailable('gemini')) {
+      return 'gemini';
     }
     if (this.isPlatformAvailable('copilot')) {
       return 'copilot';
@@ -121,6 +127,7 @@ export class PlatformDetector {
     const hasClaudeDirectory = this.hasDirectory('.claude/commands');
     const hasCopilotDirectory = this.hasDirectory('.github/prompts');
     const hasCodexDirectory = this.hasDirectory('.system/skills');
+    const hasGeminiDirectory = this.hasDirectory('.gemini/commands/gofer');
 
     // Determine platform
     let platform: PlatformType | 'auto' = 'auto';
@@ -143,6 +150,8 @@ export class PlatformDetector {
         platform = 'claude';
       } else if (hasCodexDirectory) {
         platform = 'codex';
+      } else if (hasGeminiDirectory) {
+        platform = 'gemini';
       } else if (hasCopilotDirectory) {
         platform = 'copilot';
       }
@@ -156,6 +165,7 @@ export class PlatformDetector {
       hasClaudeDirectory,
       hasCopilotDirectory,
       hasCodexDirectory,
+      hasGeminiDirectory,
       detectedAt: new Date(),
       detectionMethod,
     };

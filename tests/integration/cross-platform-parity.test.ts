@@ -388,12 +388,12 @@ describe('Cross-Platform Feature Parity', () => {
 
       expect(codexContent).toContain('gofer:');
       expect(codexContent).toMatch(/workflowProfile:\s*(standard|enterpriseai)/);
-      expect(codexContent).toContain(`canonicalSource: .claude/commands/${commandName}.md`);
+      expect(codexContent).toContain(`canonicalSource: .specify/commands/${commandName}.md`);
       expect(codexContent).toContain('metadataSource: scripts/generate-commands.ts');
 
       expect(copilotContent).toContain('gofer:');
       expect(copilotContent).toMatch(/workflowProfile:\s*(standard|enterpriseai)/);
-      expect(copilotContent).toContain(`canonicalSource: .claude/commands/${commandName}.md`);
+      expect(copilotContent).toContain(`canonicalSource: .specify/commands/${commandName}.md`);
       expect(copilotContent).toContain('metadataSource: scripts/generate-commands.ts');
     });
 

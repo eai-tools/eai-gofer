@@ -404,9 +404,7 @@ The next stage will read the artifacts from this stage and continue the workflow
     const workflowProfile =
       options.workflowProfileOverride ??
       this.resolveWorkflowProfile(sourceMetadata, existingGoferMetadata);
-    const canonicalSource = this.normalizeRelativePath(
-      path.relative(this.workspacePath, sourceMetadata.filePath)
-    );
+    const canonicalSource = this.resolveCanonicalSourcePath(sourceMetadata);
     const canonicalChecksum = createHash('sha256')
       .update(sourceMetadata.content, 'utf8')
       .digest('hex');
@@ -444,7 +442,7 @@ The next stage will read the artifacts from this stage and continue the workflow
     const canonicalSource =
       this.readString(frontmatterGofer.canonicalSource) ??
       this.readString(frontmatter.canonicalSource) ??
-      this.normalizeRelativePath(path.relative(this.workspacePath, sourceMetadata.filePath));
+      this.resolveCanonicalSourcePath(sourceMetadata);
     const canonicalChecksum =
       this.readString(frontmatterGofer.canonicalChecksum) ??
       this.readString(frontmatter.canonicalChecksum) ??
@@ -458,6 +456,22 @@ The next stage will read the artifacts from this stage and continue the workflow
       canonicalChecksum,
       metadataSource,
     };
+  }
+
+  private resolveCanonicalSourcePath(sourceMetadata: CommandMetadata): string {
+    const relativeSourcePath = this.normalizeRelativePath(
+      path.relative(this.workspacePath, sourceMetadata.filePath)
+    );
+
+    if (
+      sourceMetadata.platform === 'claude' &&
+      relativeSourcePath.startsWith('.claude/commands/')
+    ) {
+      const canonicalFileName = path.posix.basename(relativeSourcePath).replace(/:/g, '_');
+      return `.specify/commands/${canonicalFileName}`;
+    }
+
+    return relativeSourcePath;
   }
 
   private resolveWorkflowProfile(

@@ -12,6 +12,7 @@
 
 import { describe, it, expect, beforeAll, vi } from 'vitest';
 import * as path from 'path';
+import { CONFIG_KEYS, DEFAULTS } from '../../extension/src/config';
 
 // Unmock fs for this test file - we need real file system access
 vi.unmock('fs');
@@ -33,6 +34,11 @@ interface ViewDefinition {
   id: string;
   name: string;
   contextualTitle?: string;
+}
+
+interface WelcomeViewDefinition {
+  view: string;
+  contents: string;
 }
 
 interface MenuDefinition {
@@ -73,9 +79,13 @@ interface PackageJson {
   activationEvents: string[];
   contributes: {
     commands: CommandDefinition[];
+    configuration: {
+      properties: Record<string, { default?: unknown }>;
+    };
     views: {
       [viewContainerId: string]: ViewDefinition[];
     };
+    viewsWelcome?: WelcomeViewDefinition[];
     viewsContainers: {
       activitybar: ViewContainerDefinition[];
     };
@@ -84,6 +94,223 @@ interface PackageJson {
     };
     keybindings: KeybindingDefinition[];
   };
+}
+
+const COMMAND_DOC_PATHS = [
+  '../../README.md',
+  '../../extension/README.md',
+  '../../docs/README.md',
+  '../../docs/quickstart.md',
+  '../../docs/cli-support.md',
+  '../../docs/setup-claude-code.md',
+  '../../docs/setup-copilot-chat.md',
+  '../../docs/setup-codex-cli.md',
+  '../../docs/multi-provider-cli-support.md',
+];
+const COMMAND_ID_DOC_PATHS = ['../../docs/agentic-coding/AGENT_TOOLING_REFERENCE.md'];
+const COMMAND_PALETTE_DOC_PATHS = ['../../docs/API_KEY_SETUP.md'];
+
+const SETTINGS_DOC_PATHS = [
+  '../../README.md',
+  '../../extension/README.md',
+  '../../docs/API_KEY_SETUP.md',
+  '../../docs/guides/configuration.md',
+  '../../docs/guides/session-management.md',
+];
+const SETTINGS_DEFAULT_DOC_PATHS = [
+  '../../docs/guides/configuration.md',
+  '../../docs/guides/session-management.md',
+];
+const LEGACY_DOC_PREFIX_PATHS = ['../../docs/agentic-coding/AGENT_TOOLING_REFERENCE.md'];
+const DELETED_LEGACY_DOC_PATHS = [
+  'docs/migration-guide.md',
+  'docs/WHATSAPP_SETUP.md',
+  'docs/TWO_WAY_WHATSAPP.md',
+];
+
+const COMMAND_REFERENCE_PATTERN = /(?:\*\*|`)(Gofer:[^`*]+?)(?:\*\*|`)/g;
+const COMMAND_ID_REFERENCE_PATTERN = /`(gofer\.[A-Za-z][A-Za-z0-9]+)`/g;
+const COMMAND_PALETTE_REFERENCE_PATTERN = /Command Palette[^\n`]*`(Gofer:[^`]+)`/g;
+const SETTINGS_REFERENCE_PATTERN = /(?:`|")(gofer\.[A-Za-z0-9.]+)(?:`|")/g;
+const SETTINGS_DEFAULT_TABLE_ROW_PATTERN =
+  /^\|\s*`(gofer\.[^`]+)`\s*\|\s*[^|]+\|\s*`([^`]*)`\s*\|/gm;
+const LEGACY_DOC_REFERENCE_PATTERN = /\b(?:eaigofer_|eaiGofer\.)[A-Za-z0-9_.]*/g;
+const DIRECT_CONFIG_DEFAULT_SOURCE_PATHS = [
+  '../../extension/src/config.ts',
+  '../../extension/src/extension.ts',
+  '../../extension/src/services/EventHandlers.ts',
+  '../../extension/src/services/InitializationService.ts',
+  '../../extension/src/webviewHelpers.ts',
+  '../../extension/src/ui/AIUsageStatusBar.ts',
+  '../../extension/src/ui/GoferActivityStatusBar.ts',
+  '../../extension/src/ui/ContextHealthStatusBar.ts',
+  '../../extension/src/autonomous/AIUsageMonitor.ts',
+  '../../extension/src/config/workflowProfile.ts',
+  '../../extension/src/autonomousCommands.ts',
+  '../../extension/src/mcpConfig.ts',
+  '../../extension/src/council/providers/ProviderFactory.ts',
+  '../../extension/src/council/providers/ProviderFactoryCliResolver.ts',
+];
+const DIRECT_CONFIG_GET_PATTERN =
+  /\.get<[^>]+>\(\s*['"]([^'"]+)['"]\s*,\s*(\[[^\]]*\]|'[^']*'|"[^"]*"|true|false|-?\d+(?:\.\d+)?)\s*\)/g;
+const JSON_CODE_BLOCK_PATTERN = /```json\s*([\s\S]*?)```/g;
+
+function normalizeWhitespace(value: string): string {
+  return value.replace(/\s+/g, ' ').trim();
+}
+
+function readWorkspaceFile(relativePath: string): string {
+  return readFileSync(path.join(__dirname, relativePath), 'utf-8');
+}
+
+function getDocumentedCommandTitles(relativePath: string): string[] {
+  const content = normalizeWhitespace(readWorkspaceFile(relativePath));
+
+  return Array.from(
+    new Set(
+      Array.from(content.matchAll(COMMAND_REFERENCE_PATTERN), (match) =>
+        normalizeWhitespace(match[1])
+      )
+    )
+  );
+}
+
+function getDocumentedCommandIds(relativePath: string): string[] {
+  const content = readWorkspaceFile(relativePath);
+
+  return Array.from(
+    new Set(Array.from(content.matchAll(COMMAND_ID_REFERENCE_PATTERN), (match) => match[1]))
+  );
+}
+
+function getDocumentedCommandPaletteTitles(relativePath: string): string[] {
+  const content = readWorkspaceFile(relativePath);
+
+  return Array.from(
+    new Set(
+      Array.from(content.matchAll(COMMAND_PALETTE_REFERENCE_PATTERN), (match) =>
+        normalizeWhitespace(match[1])
+      )
+    )
+  );
+}
+
+function getDocumentedSettings(relativePath: string): string[] {
+  const content = readWorkspaceFile(relativePath);
+
+  return Array.from(
+    new Set(Array.from(content.matchAll(SETTINGS_REFERENCE_PATTERN), (match) => match[1]))
+  );
+}
+
+interface DocumentedSettingValue {
+  setting: string;
+  value: unknown;
+}
+
+function getDocumentedSettingDefaults(relativePath: string): DocumentedSettingValue[] {
+  const content = readWorkspaceFile(relativePath);
+  const documentedDefaults = new Map<string, unknown>();
+
+  for (const match of content.matchAll(SETTINGS_DEFAULT_TABLE_ROW_PATTERN)) {
+    documentedDefaults.set(match[1], parseLiteralValue(match[2]));
+  }
+
+  return Array.from(documentedDefaults, ([setting, value]) => ({ setting, value }));
+}
+
+function getDocumentedSettingsFromJsonBlocks(relativePath: string): DocumentedSettingValue[] {
+  const content = readWorkspaceFile(relativePath);
+  const documentedSettings = new Map<string, unknown>();
+
+  for (const match of content.matchAll(JSON_CODE_BLOCK_PATTERN)) {
+    const parsedBlock = JSON.parse(match[1]) as Record<string, unknown>;
+
+    for (const [setting, value] of Object.entries(parsedBlock)) {
+      if (setting.startsWith('gofer.')) {
+        documentedSettings.set(setting, value);
+      }
+    }
+  }
+
+  return Array.from(documentedSettings, ([setting, value]) => ({ setting, value }));
+}
+
+function getLegacyDocReferences(relativePath: string): string[] {
+  const content = readWorkspaceFile(relativePath);
+
+  return Array.from(
+    new Set(Array.from(content.matchAll(LEGACY_DOC_REFERENCE_PATTERN), (match) => match[0]))
+  );
+}
+
+interface DirectConfigFallback {
+  key: string;
+  fallback: unknown;
+}
+
+function parseLiteralValue(literal: string): unknown {
+  const trimmed = literal.trim();
+
+  if (trimmed === 'true') {
+    return true;
+  }
+
+  if (trimmed === 'false') {
+    return false;
+  }
+
+  if (trimmed === '[]') {
+    return [];
+  }
+
+  if (/^-?\d+(?:\.\d+)?$/.test(trimmed)) {
+    return Number(trimmed);
+  }
+
+  if (
+    (trimmed.startsWith("'") && trimmed.endsWith("'")) ||
+    (trimmed.startsWith('"') && trimmed.endsWith('"'))
+  ) {
+    return trimmed.slice(1, -1);
+  }
+
+  return trimmed;
+}
+
+function collectDirectConfigFallbacks(relativePath: string): DirectConfigFallback[] {
+  const source = readWorkspaceFile(relativePath);
+
+  return Array.from(source.matchAll(DIRECT_CONFIG_GET_PATTERN), (match) => ({
+    key: match[1],
+    fallback: parseLiteralValue(match[2]),
+  }));
+}
+
+function valuesMatch(left: unknown, right: unknown): boolean {
+  return JSON.stringify(left) === JSON.stringify(right);
+}
+
+function collectDocumentedSettingValueMismatches(
+  properties: Record<string, { default?: unknown }>,
+  relativePath: string,
+  documentedValues: DocumentedSettingValue[],
+  valueLabel: string
+): string[] {
+  return documentedValues.flatMap(({ setting, value }) => {
+    if (!Object.prototype.hasOwnProperty.call(properties, setting)) {
+      return [`${relativePath}: ${setting} is not declared in extension/package.json`];
+    }
+
+    const manifestDefault = properties[setting]?.default;
+    if (valuesMatch(value, manifestDefault)) {
+      return [];
+    }
+
+    return [
+      `${relativePath}: ${setting} ${valueLabel} ${JSON.stringify(value)} !== manifest default ${JSON.stringify(manifestDefault)}`,
+    ];
+  });
 }
 
 describe('Command Registration Validation', () => {
@@ -161,6 +388,209 @@ describe('Command Registration Validation', () => {
   it('should have commands declared in package.json', () => {
     expect(packageJson.contributes.commands).toBeDefined();
     expect(packageJson.contributes.commands.length).toBeGreaterThan(0);
+  });
+
+  it('should keep exported config defaults aligned with manifest defaults', () => {
+    const properties = packageJson.contributes.configuration.properties;
+    const missingConfigKeys: string[] = [];
+    const mismatches: string[] = [];
+
+    for (const [defaultKey, expectedDefault] of Object.entries(DEFAULTS) as Array<
+      [keyof typeof DEFAULTS, (typeof DEFAULTS)[keyof typeof DEFAULTS]]
+    >) {
+      const manifestKey = CONFIG_KEYS[defaultKey as keyof typeof CONFIG_KEYS];
+      if (!manifestKey) {
+        missingConfigKeys.push(String(defaultKey));
+        continue;
+      }
+
+      const manifestDefault = properties[manifestKey]?.default;
+      if (!valuesMatch(expectedDefault, manifestDefault)) {
+        mismatches.push(
+          `${manifestKey} default ${JSON.stringify(expectedDefault)} !== manifest default ${JSON.stringify(manifestDefault)}`
+        );
+      }
+    }
+
+    expect({ missingConfigKeys, mismatches }).toEqual({
+      missingConfigKeys: [],
+      mismatches: [],
+    });
+  });
+
+  it('should keep manifest-backed direct runtime fallbacks aligned with manifest defaults', () => {
+    const properties = packageJson.contributes.configuration.properties;
+    const mismatches = new Set<string>();
+
+    for (const relativePath of DIRECT_CONFIG_DEFAULT_SOURCE_PATHS) {
+      for (const fallback of collectDirectConfigFallbacks(relativePath)) {
+        const manifestKey = `gofer.${fallback.key}`;
+        if (!Object.prototype.hasOwnProperty.call(properties, manifestKey)) {
+          continue;
+        }
+
+        const manifestDefault = properties[manifestKey]?.default;
+        if (!valuesMatch(fallback.fallback, manifestDefault)) {
+          mismatches.add(
+            `${relativePath}: ${manifestKey} fallback ${JSON.stringify(fallback.fallback)} !== manifest default ${JSON.stringify(manifestDefault)}`
+          );
+        }
+      }
+    }
+
+    expect(Array.from(mismatches)).toEqual([]);
+  });
+
+  it('should keep documented command titles aligned with manifest commands', () => {
+    const declaredCommandTitles = new Set(packageJson.contributes.commands.map((cmd) => cmd.title));
+    const unexpectedTitles = COMMAND_DOC_PATHS.flatMap((relativePath) =>
+      getDocumentedCommandTitles(relativePath)
+        .filter((title) => !declaredCommandTitles.has(title))
+        .map((title) => `${relativePath}: ${title}`)
+    );
+
+    expect(unexpectedTitles).toEqual([]);
+  });
+
+  it('should keep active command-id references aligned with manifest commands', () => {
+    const declaredCommands = new Set(packageJson.contributes.commands.map((cmd) => cmd.command));
+    const unexpectedCommandIds = COMMAND_ID_DOC_PATHS.flatMap((relativePath) =>
+      getDocumentedCommandIds(relativePath)
+        .filter((commandId) => !declaredCommands.has(commandId))
+        .map((commandId) => `${relativePath}: ${commandId}`)
+    );
+
+    expect(unexpectedCommandIds).toEqual([]);
+  });
+
+  it('should keep command palette walkthroughs aligned with manifest commands', () => {
+    const declaredCommandTitles = new Set(packageJson.contributes.commands.map((cmd) => cmd.title));
+    const unexpectedCommandTitles = COMMAND_PALETTE_DOC_PATHS.flatMap((relativePath) =>
+      getDocumentedCommandPaletteTitles(relativePath)
+        .filter((title) => !declaredCommandTitles.has(title))
+        .map((title) => `${relativePath}: ${title}`)
+    );
+
+    expect(unexpectedCommandTitles).toEqual([]);
+  });
+
+  it('should keep documented settings aligned with manifest properties', () => {
+    const properties = packageJson.contributes.configuration.properties;
+    const unexpectedSettings = SETTINGS_DOC_PATHS.flatMap((relativePath) =>
+      getDocumentedSettings(relativePath)
+        .filter((setting) => !Object.prototype.hasOwnProperty.call(properties, setting))
+        .map((setting) => `${relativePath}: ${setting}`)
+    );
+
+    expect(unexpectedSettings).toEqual([]);
+  });
+
+  it('should keep configuration guide defaults aligned with manifest defaults', () => {
+    const properties = packageJson.contributes.configuration.properties;
+    const defaultMismatches = SETTINGS_DEFAULT_DOC_PATHS.flatMap((relativePath) =>
+      collectDocumentedSettingValueMismatches(
+        properties,
+        relativePath,
+        getDocumentedSettingDefaults(relativePath),
+        'documented default'
+      )
+    );
+
+    expect(defaultMismatches).toEqual([]);
+  });
+
+  it('should keep README configuration examples aligned with manifest defaults', () => {
+    const properties = packageJson.contributes.configuration.properties;
+    const examplePaths = ['../../README.md', '../../extension/README.md'];
+    const exampleMismatches = examplePaths.flatMap((relativePath) =>
+      collectDocumentedSettingValueMismatches(
+        properties,
+        relativePath,
+        getDocumentedSettingsFromJsonBlocks(relativePath),
+        'documented example'
+      )
+    );
+
+    expect(exampleMismatches).toEqual([]);
+  });
+
+  it('should not keep legacy eaigofer prefixes in active docs', () => {
+    const legacyReferences = LEGACY_DOC_PREFIX_PATHS.flatMap((relativePath) =>
+      getLegacyDocReferences(relativePath).map((reference) => `${relativePath}: ${reference}`)
+    );
+
+    expect(legacyReferences).toEqual([]);
+  });
+
+  it('should not expose removed or no-op public settings', () => {
+    const properties = packageJson.contributes.configuration.properties;
+
+    expect(properties['gofer.autonomous.notificationChannel']).toBeUndefined();
+    expect(properties['gofer.autonomous.whatsappPhoneNumber']).toBeUndefined();
+    expect(properties['gofer.autonomous.emailAddress']).toBeUndefined();
+    expect(properties['gofer.claudeTerminalName']).toBeUndefined();
+    expect(properties['gofer.autoValidate']).toBeUndefined();
+    expect(properties['gofer.showWelcome']).toBeUndefined();
+  });
+
+  it('should reference the bundled hydrate prompt filename', () => {
+    expect(specCommandsSource).toContain('gofer_hydrate.md');
+    expect(specCommandsSource).not.toContain('gofer.hydrate.md');
+  });
+
+  it('should surface unexpected spec picker load failures through the shared logger and UI', () => {
+    expect(specCommandsSource).toContain("Logger.for('SpecCommands')");
+    expect(specCommandsSource).toContain("logger.error('Failed to load specs for picker'");
+    expect(specCommandsSource).toContain("showErrorMessage(`Failed to load specs:");
+    expect(specCommandsSource).not.toContain('console.error(');
+  });
+
+  it('should keep welcome view guidance aligned to the active workflow', () => {
+    const progressWelcome = packageJson.contributes.viewsWelcome?.find(
+      (entry) => entry.view === 'goferProgress'
+    );
+
+    expect(progressWelcome?.contents).toContain('[Initialize Gofer](command:gofer.initialize)');
+    expect(progressWelcome?.contents).toContain('/0_business_scenario');
+    expect(progressWelcome?.contents).toContain('proposal-review.md');
+    expect(progressWelcome?.contents).toContain('gofer.workflowProfile=standard');
+    expect(progressWelcome?.contents).toContain('Gofer: Install Optional Developer Tools');
+    expect(progressWelcome?.contents).not.toContain('WhatsApp');
+    expect(progressWelcome?.contents).not.toContain('gofer.showWelcome');
+    expect(progressWelcome?.contents).not.toContain('gofer.autoValidate');
+  });
+
+  it('should not reference deleted legacy guides from active docs', () => {
+    const activeDocPaths = [
+      ...COMMAND_DOC_PATHS,
+      ...COMMAND_ID_DOC_PATHS,
+      ...COMMAND_PALETTE_DOC_PATHS,
+      ...SETTINGS_DOC_PATHS,
+    ];
+
+    const deletedDocReferences = Array.from(
+      new Set(
+        activeDocPaths.flatMap((relativePath) =>
+          DELETED_LEGACY_DOC_PATHS.filter((deletedDocPath) =>
+            readWorkspaceFile(relativePath).includes(deletedDocPath)
+          ).map((deletedDocPath) => `${relativePath}: ${deletedDocPath}`)
+        )
+      )
+    );
+
+    expect(deletedDocReferences).toEqual([]);
+  });
+
+  it('should record removed settings and deleted guides in release notes', () => {
+    const rootChangelog = readWorkspaceFile('../../CHANGELOG.md');
+    const extensionChangelog = readWorkspaceFile('../../extension/CHANGELOG.md');
+    const combinedChangelog = `${rootChangelog}\n${extensionChangelog}`;
+
+    expect(combinedChangelog).toContain('gofer.claudeTerminalName');
+    expect(combinedChangelog).toContain('gofer.autoValidate');
+    expect(combinedChangelog).toContain('gofer.showWelcome');
+    expect(combinedChangelog).toContain('outdated migration and WhatsApp guides');
+    expect(combinedChangelog).toContain('manifest-backed command and settings surface');
   });
 
   it('should register all declared commands in extension.ts or command files', () => {

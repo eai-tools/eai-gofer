@@ -622,11 +622,11 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
   }
 
   // Wire AIUsageMonitor - UsageApiClient for billing APIs, UsageLogger for council session logs
-  // Default to UsageLogger (false) so auto-discovery works out of the box
+  // Match the manifest-backed default so billing API data is used unless users opt out.
   // CRITICAL: Wrapped in try-catch so AI Usage Panel works even if other init steps fail
   try {
     const goferConfig = vscode.workspace.getConfiguration('gofer');
-    const useApiClient = goferConfig.get<boolean>('aiUsage.useApiClient', false);
+    const useApiClient = goferConfig.get<boolean>('aiUsage.useApiClient', true);
     logger?.info(
       'Extension',
       `[AIUsage] useApiClient = ${useApiClient} (false = UsageLogger, true = UsageApiClient)`

@@ -3,27 +3,34 @@
 All Gofer settings are configured in VS Code Settings (`Cmd/Ctrl+,`). Search for
 "Gofer" to see all options.
 
+`extension/package.json` is the authoritative contract for the currently
+supported settings and defaults. This guide highlights the main user-facing
+settings without repeating every manifest field verbatim.
+
 ## API Keys
 
 These keys enable the optional LLM Council feature, which uses multiple AI
 providers for consensus-driven research and validation.
 
-| Setting                 | Type   | Default | Description                   |
-| ----------------------- | ------ | ------- | ----------------------------- |
-| `gofer.anthropicApiKey` | string | `""`    | Anthropic API Key for Claude  |
-| `gofer.googleApiKey`    | string | `""`    | Google AI API Key for Gemini  |
-| `gofer.openaiApiKey`    | string | `""`    | OpenAI API Key for GPT models |
+| Setting                      | Type   | Default | Description                                          |
+| ---------------------------- | ------ | ------- | ---------------------------------------------------- |
+| `gofer.anthropicApiKey`      | string | `""`    | Anthropic API Key for Claude                         |
+| `gofer.googleApiKey`         | string | `""`    | Google AI API Key for Gemini                         |
+| `gofer.openaiApiKey`         | string | `""`    | OpenAI API Key for GPT models                        |
+| `gofer.anthropicAdminApiKey` | string | `""`    | Anthropic Admin API key for billing and usage access |
+| `gofer.openaiAdminApiKey`    | string | `""`    | OpenAI Admin API key with `api.usage.read` scope     |
 
-> **Note**: API keys are stored in VS Code's settings. For team projects, use
-> workspace-level settings or environment variables.
+> **Note**: Extension features primarily read these keys from VS Code settings.
+> Some local integrations can also use environment-variable placeholders.
+> Avoid workspace-level settings for shared or team projects because they are
+> plain local config, and treat the admin keys as higher-sensitivity credentials
+> than standard provider API keys.
 
 ## General Settings
 
 | Setting                | Type    | Default     | Description                                                            |
 | ---------------------- | ------- | ----------- | ---------------------------------------------------------------------- |
 | `gofer.autoInitialize` | boolean | `false`     | Automatically offer to initialize Gofer when opening a repo without it |
-| `gofer.showWelcome`    | boolean | `true`      | Show welcome message when initializing                                 |
-| `gofer.autoValidate`   | boolean | `true`      | Validate specs against constitution automatically                      |
 | `gofer.markdownViewer` | string  | `"preview"` | How to view markdown files in the tree view                            |
 | `gofer.preferredAI`    | string  | `"ask"`     | Preferred AI tool: `ask`, `claude`, or `copilot`                       |
 
@@ -31,10 +38,9 @@ providers for consensus-driven research and validation.
 
 | Setting                    | Type    | Default      | Description                                            |
 | -------------------------- | ------- | ------------ | ------------------------------------------------------ |
-| `gofer.claudeCodeMode`     | string  | `"standard"` | How to launch Claude Code from the status bar          |
-| `gofer.claudeCodeCommand`  | string  | `"claude"`   | Custom command for Claude Code (when mode is `custom`) |
-| `gofer.claudeTerminalName` | string  | `"Claude"`   | Name pattern to identify Claude Code terminals         |
-| `gofer.autonomousMode`     | boolean | `true`       | Enable autonomous question answering                   |
+| `gofer.claudeCodeMode`    | string  | `"standard"` | How to launch Claude Code from the status bar          |
+| `gofer.claudeCodeCommand` | string  | `"claude"`   | Custom command for Claude Code (when mode is `custom`) |
+| `gofer.autonomousMode`    | boolean | `true`       | Enable autonomous monitoring and response preparation  |
 
 ## Context Window Management
 
@@ -61,14 +67,6 @@ Settings for autonomous pipeline execution behavior.
 | `gofer.autonomous.runFinalValidation`   | boolean | `true`   | Run validation after implementation         |
 | `gofer.autonomous.validateConstitution` | boolean | `true`   | Validate against constitution principles    |
 
-## Notifications
-
-| Setting                                | Type   | Default    | Description                                           |
-| -------------------------------------- | ------ | ---------- | ----------------------------------------------------- |
-| `gofer.autonomous.notificationChannel` | string | `"vscode"` | Notification method: `vscode`, `whatsapp`, or `email` |
-| `gofer.autonomous.whatsappPhoneNumber` | string | `""`       | WhatsApp number for notifications                     |
-| `gofer.autonomous.emailAddress`        | string | `""`       | Email for notifications                               |
-
 ## Engineering Reviews
 
 Settings for proactive reviews during implementation.
@@ -89,7 +87,7 @@ Settings for proactive reviews during implementation.
 | `gofer.stageDetectionStalenessMinutes` | number  | `30`        | Minutes before stage detection is stale               |
 | `gofer.yoloSlopReduction.enabled`      | boolean | `false`     | Auto-reduce AI slop on file save                      |
 | `gofer.yoloSlopReduction.notifyEvery`  | number  | `10`        | Show notification every N slop fixes                  |
-| `gofer.scopeGuard.mode`                | string  | `"warning"` | Scope guard enforcement: `off`, `warning`, or `block` |
+| `gofer.scopeGuard.mode`                | string  | `"warning"` | Scope guard enforcement: `advisory`, `warning`, or `blocking` |
 
 ## Budget Controls
 
@@ -97,4 +95,4 @@ Settings for proactive reviews during implementation.
 | ------------------------------- | ------ | ------------ | -------------------------------------------------- |
 | `gofer.budgets.maxCostUsd`      | number | `10`         | Max cost (USD) per pipeline run                    |
 | `gofer.budgets.maxTokensPerRun` | number | `500000`     | Max total tokens per pipeline run                  |
-| `gofer.budgets.enforcementMode` | string | `"advisory"` | Budget enforcement: `advisory`, `warn`, or `block` |
+| `gofer.budgets.enforcementMode` | string | `"advisory"` | Budget enforcement: `advisory`, `truncate`, or `blocking` |

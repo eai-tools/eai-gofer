@@ -291,12 +291,9 @@ export async function startAutonomousExecution(
   const options: DriverOptions = {
     enableParallelTester: false, // User Story 2 feature
     showTerminals: config.get('showTerminals', true),
-    notificationChannel: config.get('notificationChannel', 'vscode') as
-      | 'vscode'
-      | 'whatsapp'
-      | 'email',
-    whatsappPhoneNumber: config.get('whatsappPhoneNumber', null),
-    emailAddress: config.get('emailAddress', null),
+    notificationChannel: 'vscode',
+    whatsappPhoneNumber: null,
+    emailAddress: null,
     maxRetries: config.get('maxRetries', 3),
     tokenWarningThreshold: config.get('tokenWarningThreshold', 150000),
     tokenActionThreshold: config.get('tokenActionThreshold', 180000),

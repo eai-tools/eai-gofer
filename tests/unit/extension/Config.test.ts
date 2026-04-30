@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import packageJson from '../../../extension/package.json';
 import {
   EXTENSION_NAME,
   EXTENSION_DISPLAY_NAME,
@@ -127,10 +128,7 @@ describe('Config - Constants', () => {
       expect(CONFIG_KEYS.anthropicApiKey).toBe('gofer.anthropicApiKey');
       expect(CONFIG_KEYS.autoInitialize).toBe('gofer.autoInitialize');
       expect(CONFIG_KEYS.preferredAi).toBe('gofer.preferredAI');
-      expect(CONFIG_KEYS.autoUpdateCheck).toBe('gofer.autoUpdateCheck');
-      expect(CONFIG_KEYS.telemetryEnabled).toBe('gofer.telemetryEnabled');
-      expect(CONFIG_KEYS.updateCheckInterval).toBe('gofer.updateCheckInterval');
-      expect(CONFIG_KEYS.performanceMode).toBe('gofer.performanceMode');
+      expect(CONFIG_KEYS.yoloSlopReductionEnabled).toBe('gofer.yoloSlopReduction.enabled');
     });
 
     it('should have all config keys prefixed with gofer.', () => {
@@ -146,24 +144,11 @@ describe('Config - Constants', () => {
     });
 
     it('should have correct default for preferredAi', () => {
-      expect(DEFAULTS.preferredAi).toBe('claude');
+      expect(DEFAULTS.preferredAi).toBe('ask');
     });
 
-    it('should have correct default for autoUpdateCheck', () => {
-      expect(DEFAULTS.autoUpdateCheck).toBe(true);
-    });
-
-    it('should have correct default for telemetryEnabled', () => {
-      expect(DEFAULTS.telemetryEnabled).toBe(true);
-    });
-
-    it('should have correct default for updateCheckInterval (24 hours)', () => {
-      expect(DEFAULTS.updateCheckInterval).toBe(24 * 60 * 60 * 1000);
-      expect(DEFAULTS.updateCheckInterval).toBe(86400000); // 24 hours in ms
-    });
-
-    it('should have correct default for performanceMode', () => {
-      expect(DEFAULTS.performanceMode).toBe('balanced');
+    it('should have correct default for yoloSlopReductionEnabled', () => {
+      expect(DEFAULTS.yoloSlopReductionEnabled).toBe(false);
     });
   });
 
@@ -276,14 +261,15 @@ describe('Config - Validation Helpers', () => {
     });
 
     it('should handle Windows paths', () => {
-      // Note: This test runs on the current platform's path separator
-      // On macOS/Linux, backslashes are treated as part of filename, not separators
       const workspacePath = 'C:\\Users\\John\\project';
       const filePath = 'C:\\Users\\John\\project\\.specify\\specs\\001\\spec.md';
 
       const result = VALIDATION.isSpecifyPath(filePath, workspacePath);
-      // On Windows: true, on Unix: false (backslashes are literal characters)
-      expect(typeof result).toBe('boolean');
+      if (process.platform === 'win32') {
+        expect(result).toBe(true);
+      } else {
+        expect(result).toBe(false);
+      }
     });
 
     it('should return false for similar but not exact paths', () => {
@@ -373,13 +359,6 @@ describe('Config - Integration Scenarios', () => {
     expect(FILE_PATTERNS.CONSTITUTION).toMatch(/^\*\*/);
   });
 
-  it('should have valid update check interval (not too short)', () => {
-    // Should be at least 1 hour
-    expect(DEFAULTS.updateCheckInterval).toBeGreaterThanOrEqual(60 * 60 * 1000);
-    // Should be less than 1 week
-    expect(DEFAULTS.updateCheckInterval).toBeLessThanOrEqual(7 * 24 * 60 * 60 * 1000);
-  });
-
   it('should have unique command IDs', () => {
     const commandIds = Object.values(COMMANDS);
     const uniqueIds = new Set(commandIds);
@@ -401,27 +380,25 @@ describe('Config - Integration Scenarios', () => {
 
 describe('Config - Feature 026 Settings Validation', () => {
   it('should define polling interval defaults within valid range', () => {
-    // Default: 60000ms, Min: 15000ms, Max: 300000ms
-    const defaultInterval = 60000;
-    const minInterval = 15000;
-    const maxInterval = 300000;
+    const pollingIntervalSetting =
+      packageJson.contributes.configuration.properties['gofer.aiUsage.api.pollingInterval'];
 
-    expect(defaultInterval).toBeGreaterThanOrEqual(minInterval);
-    expect(defaultInterval).toBeLessThanOrEqual(maxInterval);
+    expect(pollingIntervalSetting.default).toBeGreaterThanOrEqual(pollingIntervalSetting.minimum);
+    expect(pollingIntervalSetting.default).toBeLessThanOrEqual(pollingIntervalSetting.maximum);
   });
 
   it('should validate admin key format patterns', () => {
-    // Anthropic admin keys start with sk-ant-admin
-    const validAnthropicKey = 'sk-ant-admin-test-key-12345';
-    const invalidAnthropicKey = 'sk-ant-api-test-key';
+    const anthropicAdminSetting =
+      packageJson.contributes.configuration.properties['gofer.anthropicAdminApiKey'];
 
-    expect(validAnthropicKey.startsWith('sk-ant-admin')).toBe(true);
-    expect(invalidAnthropicKey.startsWith('sk-ant-admin')).toBe(false);
+    expect(anthropicAdminSetting.description).toContain('sk-ant-admin');
+    expect(anthropicAdminSetting.markdownDescription).toContain('sk-ant-admin');
   });
 
   it('should have feature flag default to true', () => {
-    // gofer.aiUsage.useApiClient defaults to true
-    const defaultUseApiClient = true;
-    expect(defaultUseApiClient).toBe(true);
+    const apiClientSetting =
+      packageJson.contributes.configuration.properties['gofer.aiUsage.useApiClient'];
+
+    expect(apiClientSetting.default).toBe(true);
   });
 });

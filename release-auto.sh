@@ -2,11 +2,6 @@
 
 set -e
 
-# Load environment variables from .env file if it exists
-if [ -f ".env" ]; then
-    export $(cat .env | grep -v '^#' | grep -v '^$' | xargs)
-fi
-
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -18,6 +13,48 @@ print_info() { echo -e "${BLUE}ℹ ${NC}$1"; }
 print_success() { echo -e "${GREEN}✓${NC} $1"; }
 print_warning() { echo -e "${YELLOW}⚠${NC} $1"; }
 print_error() { echo -e "${RED}✗${NC} $1"; }
+
+load_env_file() {
+    local env_line
+    local env_key
+    local env_value
+
+    while IFS= read -r env_line || [ -n "$env_line" ]; do
+        case "$env_line" in
+            ''|\#*)
+                continue
+                ;;
+            *=*)
+                env_key=${env_line%%=*}
+                env_value=${env_line#*=}
+                env_value=${env_value%$'\r'}
+
+                if [[ ! "$env_key" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
+                    print_warning "Skipping invalid .env key: $env_key"
+                    continue
+                fi
+
+                if [[ "$env_value" == \"*\" && "$env_value" == *\" ]]; then
+                    env_value=${env_value:1:-1}
+                elif [[ "$env_value" == \'*\' && "$env_value" == *\' ]]; then
+                    env_value=${env_value:1:-1}
+                fi
+
+                printf -v "$env_key" '%s' "$env_value"
+                export "$env_key"
+                ;;
+            *)
+                print_warning "Skipping malformed .env line"
+                ;;
+        esac
+    done < ".env"
+}
+
+# Load environment variables from .env file if it exists without evaluating
+# shell expansions from file contents.
+if [ -f ".env" ]; then
+    load_env_file
+fi
 
 # Check if release type is provided
 if [ -z "$1" ]; then
@@ -217,10 +254,19 @@ print_success "Updated package.json and CHANGELOG.md"
 # artifact is always source-of-truth-derived. MUST run before
 # sync-extension-resources.sh, otherwise the VSIX may bundle stale emitters.
 print_info "Running gofer:generate to ensure published artifact is source-of-truth-derived..."
-if npm run gofer:generate -- --dry-run 2>&1; then
-    print_success "gofer:generate dry-run completed (verification only — emit handled by CommandGenerator below)"
+if npm run gofer:generate 2>&1; then
+    print_success "gofer:generate completed"
 else
-    print_warning "gofer:generate dry-run reported issues; continuing with CommandGenerator emit"
+    print_error "gofer:generate failed"
+    exit 1
+fi
+
+print_info "Running generate-commands to refresh downstream mirrors..."
+if npm run generate-commands -- --verbose 2>&1; then
+    print_success "generate-commands completed"
+else
+    print_error "generate-commands failed"
+    exit 1
 fi
 
 # Sync extension/resources/ from canonical sources BEFORE packaging the VSIX.

@@ -10,7 +10,7 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 
 const FILE_PATH = path.resolve(__dirname, '../../../.specify/commands/gofer_plan.md');
-const ALL_SURFACES = [
+const EXPECTED_SURFACES = [
   'agents-skills',
   'claude',
   'claude-mirror',
@@ -20,7 +20,7 @@ const ALL_SURFACES = [
   'github-prompts',
   'system-skills',
   'vscode',
-].sort();
+];
 
 const PARSE_MODULE_URL = new URL(
   '../../../.specify/scripts/node/parse-stage-command.mjs',
@@ -47,12 +47,12 @@ describe('gofer_plan control command (T132 / FR-012)', () => {
     expect(frontmatter.category).toBe('control');
   });
 
-  it('surfaces are emitted across all supported assistant targets', async () => {
+  it('surfaces are exactly the supported cross-platform surface set', async () => {
     const { frontmatter } = await parseStageCommand(FILE_PATH);
     const surfaces = frontmatter.surfaces as string[];
     expect(Array.isArray(surfaces)).toBe(true);
     const sorted = [...surfaces].sort();
-    expect(sorted).toEqual(ALL_SURFACES);
+    expect(sorted).toEqual([...EXPECTED_SURFACES].sort());
   });
 
   it('body documents the plan-mode toggle behavior', async () => {

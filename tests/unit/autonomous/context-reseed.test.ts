@@ -8,10 +8,16 @@
  */
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 // Mock vscode
 vi.mock('vscode', () => ({
+  env: {
+    isTelemetryEnabled: true,
+  },
   window: {
     showWarningMessage: vi.fn().mockResolvedValue(undefined),
     showInformationMessage: vi.fn(),
@@ -108,6 +114,7 @@ describe('Observation Type Classification', () => {
 describe('ContextBuilder.reseedContext', () => {
   let contextBuilder: ContextBuilder;
   let mockMemoryManager: MemoryManager;
+  let testWorkspacePath: string;
 
   const mockContext = {
     globalState: {
@@ -136,10 +143,11 @@ describe('ContextBuilder.reseedContext', () => {
     description: 'implement authentication module',
   };
 
-  beforeEach(() => {
-    mockMemoryManager = new MemoryManager(mockContext, '/tmp/test-reseed');
+  beforeEach(async () => {
+    testWorkspacePath = await mkdtemp(path.join(tmpdir(), 'test-reseed-'));
+    mockMemoryManager = new MemoryManager(mockContext, testWorkspacePath);
     contextBuilder = new ContextBuilder(
-      '/tmp/test-reseed',
+      testWorkspacePath,
       mockMemoryManager,
       undefined,
       undefined,
@@ -150,6 +158,10 @@ describe('ContextBuilder.reseedContext', () => {
         enableChunkedResearch: false,
       }
     );
+  });
+
+  afterEach(async () => {
+    await rm(testWorkspacePath, { recursive: true, force: true });
   });
 
   it('should reset turn counter to 0 on reseed', async () => {

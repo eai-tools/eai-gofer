@@ -1,6 +1,6 @@
 ---
 name: 3_gofer_plan
-description: Create a detailed technical implementation plan with architecture, data model, and contracts.
+description: Generate technical implementation plan with architecture and contracts
 agent: copilot-workspace
 tools:
   - Read
@@ -11,7 +11,7 @@ tools:
 argument-hint: feature-name-or-description
 gofer:
   workflowProfile: enterpriseai
-  canonicalSource: .claude/commands/3_gofer_plan.md
+  canonicalSource: .specify/commands/3_gofer_plan.md
   canonicalChecksum: 0aa58a4e2afe0ccb787314b1aea0cfc7cdd3085172eb10d9bf256802a228eeb1
   metadataSource: scripts/generate-commands.ts
 ---

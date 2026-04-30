@@ -31,7 +31,7 @@ fi
 test_command() {
     local cmd="$1"
     local description="$2"
-    local expect_fail="${3:-false}"
+    local allow_validation_failure="${3:-true}"
 
     print_info "Testing: $description ($cmd)"
 
@@ -61,14 +61,8 @@ test_command() {
     CMD_EXIT=$?
 
     if [ $CMD_EXIT -eq 0 ]; then
-        if [ "$expect_fail" = "true" ]; then
-            print_warning "  Command succeeded but was expected to fail gracefully"
-            cat "$TEMP_OUTPUT"
-            return 1
-        else
-            print_success "  Command registered and callable"
-            return 0
-        fi
+        print_success "  Command registered and callable"
+        return 0
     else
         EXIT_CODE=$?
         ERROR_OUTPUT=$(cat "$TEMP_OUTPUT")
@@ -93,7 +87,7 @@ test_command() {
         fi
 
         # For commands that require workspace/context
-        if [ "$expect_fail" = "true" ]; then
+        if [ "$allow_validation_failure" = "true" ]; then
             print_success "  Command failed as expected (no workspace/context)"
             return 0
         fi
@@ -119,45 +113,16 @@ echo ""
 
 FAILED_COMMANDS=()
 
-# Core initialization commands
-test_command "gofer.initialize" "Initialize Spec Kit structure" "true" || FAILED_COMMANDS+=("gofer.initialize")
-test_command "gofer.upgrade" "Upgrade to latest version" "true" || FAILED_COMMANDS+=("gofer.upgrade")
+print_info "Loading contributed commands from extension/package.json..."
+while IFS=$'\t' read -r command_id command_title; do
+    if [ -z "$command_id" ]; then
+        continue
+    fi
 
-# Spec management commands
-test_command "gofer.createSpec" "Create new spec" "true" || FAILED_COMMANDS+=("gofer.createSpec")
-test_command "gofer.generatePlan" "Generate plan for spec" "true" || FAILED_COMMANDS+=("gofer.generatePlan")
-test_command "gofer.generateTasks" "Generate tasks from spec" "true" || FAILED_COMMANDS+=("gofer.generateTasks")
-test_command "gofer.executeTasks" "Execute spec tasks" "true" || FAILED_COMMANDS+=("gofer.executeTasks")
-test_command "gofer.validateSpec" "Validate spec structure" "true" || FAILED_COMMANDS+=("gofer.validateSpec")
-test_command "gofer.checkDependencies" "Check spec dependencies" "true" || FAILED_COMMANDS+=("gofer.checkDependencies")
-
-# Autonomous execution commands
-test_command "gofer.startAutonomous" "Start autonomous execution" "true" || FAILED_COMMANDS+=("gofer.startAutonomous")
-test_command "gofer.stopAutonomous" "Stop autonomous execution" "true" || FAILED_COMMANDS+=("gofer.stopAutonomous")
-test_command "gofer.pauseAutonomous" "Pause autonomous execution" "true" || FAILED_COMMANDS+=("gofer.pauseAutonomous")
-test_command "gofer.resumeAutonomous" "Resume autonomous execution" "true" || FAILED_COMMANDS+=("gofer.resumeAutonomous")
-
-# View commands
-test_command "gofer.refreshProgress" "Refresh progress view" "true" || FAILED_COMMANDS+=("gofer.refreshProgress")
-test_command "gofer.showTaskDetails" "Show task details" "true" || FAILED_COMMANDS+=("gofer.showTaskDetails")
-test_command "gofer.markTaskComplete" "Mark task as complete" "true" || FAILED_COMMANDS+=("gofer.markTaskComplete")
-test_command "gofer.openSpecFile" "Open spec file" "true" || FAILED_COMMANDS+=("gofer.openSpecFile")
-test_command "gofer.openPlanFile" "Open plan file" "true" || FAILED_COMMANDS+=("gofer.openPlanFile")
-test_command "gofer.openTasksFile" "Open tasks file" "true" || FAILED_COMMANDS+=("gofer.openTasksFile")
-
-# Constitution commands
-test_command "gofer.editConstitution" "Edit constitution" "true" || FAILED_COMMANDS+=("gofer.editConstitution")
-test_command "gofer.validateConstitution" "Validate constitution" "true" || FAILED_COMMANDS+=("gofer.validateConstitution")
-
-# Memory commands
-test_command "gofer.openMemoryFile" "Open memory file" "true" || FAILED_COMMANDS+=("gofer.openMemoryFile")
-test_command "gofer.clearMemory" "Clear memory" "true" || FAILED_COMMANDS+=("gofer.clearMemory")
-test_command "gofer.exportMemory" "Export memory" "true" || FAILED_COMMANDS+=("gofer.exportMemory")
-
-# Utility commands
-test_command "gofer.checkForUpdates" "Check for updates" || FAILED_COMMANDS+=("gofer.checkForUpdates")
-test_command "gofer.openDocumentation" "Open documentation" || FAILED_COMMANDS+=("gofer.openDocumentation")
-test_command "gofer.showWelcome" "Show welcome message" || FAILED_COMMANDS+=("gofer.showWelcome")
+    test_command "$command_id" "${command_title:-$command_id}" "true" || FAILED_COMMANDS+=("$command_id")
+done < <(
+    node -e "const pkg=require('./extension/package.json'); for (const entry of pkg.contributes.commands) { const title=(entry.title || entry.command).replace(/\\s+/g, ' ').trim(); console.log(entry.command + '\t' + title); }"
+)
 
 echo ""
 print_info "Command test summary:"

@@ -13,6 +13,7 @@ const SPEC_PATH = path.join(
   PROJECT_ROOT,
   '.specify',
   'specs',
+  '_archived',
   '001-cli-innovations-visuals',
   'spec.md'
 );
@@ -20,6 +21,7 @@ const TASKS_PATH = path.join(
   PROJECT_ROOT,
   '.specify',
   'specs',
+  '_archived',
   '001-cli-innovations-visuals',
   'tasks.md'
 );

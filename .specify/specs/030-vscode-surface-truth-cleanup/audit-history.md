@@ -1,0 +1,66 @@
+---
+feature: '030-vscode-surface-truth-cleanup'
+created: '2026-04-30T19:40:36.174+10:00'
+updated: '2026-04-30T17:41:03Z'
+status: resolved
+---
+
+# Audit History: VS Code Surface Truth Cleanup
+
+## Finding Registry
+
+| Finding ID | Category | Status | Owner | Review Cadence | Description | Closure Evidence |
+| ---------- | -------- | ------ | ----- | -------------- | ----------- | ---------------- |
+| VS-TRUTH-001 | Documentation drift | Resolved | Extension docs maintainer | Review at each doc-edit PR and before release | Active VS Code-facing docs described unsupported commands, setup paths, workflow steps, or obsolete WhatsApp / migration flows. | `extension/README.md`, `README.md`, `docs/API_KEY_SETUP.md`, `docs/guides/configuration.md`, `docs/guides/session-management.md`, and `docs/agentic-coding/AGENT_TOOLING_REFERENCE.md` now match the shipped surface; stale `docs/migration-guide.md`, `docs/WHATSAPP_SETUP.md`, and `docs/TWO_WAY_WHATSAPP.md` were removed; command-doc, command-id, command-palette, and stale-prefix checks passed. |
+| VS-TRUTH-002 | Configuration drift | Resolved | Extension maintainer | Review at each `extension/package.json` or `extension/src/config.ts` change and before release | User-facing setting names, defaults, enum guidance, or public autonomous controls diverged between docs, helpers, and the manifest contract. | `extension/src/config.ts` remains trimmed to manifest-backed settings, public defaults aligned, unsupported autonomous notification-route settings plus dead no-op settings (`gofer.claudeTerminalName`, `gofer.autoValidate`, `gofer.showWelcome`) were removed from `extension/package.json`, and documented settings/default parity checks passed. |
+| VS-TRUTH-003 | Mirror drift | Resolved | Command generator maintainer | Review at each canonical command change and before release | Canonical command descriptions or generated mirrors preserved wording that exceeded the shipped contract. | Canonical-source metadata now resolves to `.specify/commands/...`; `.github/`, `.system/`, `.agents/`, and `.gemini/` mirrors were regenerated; `extension/resources/` including `extension/resources/gemini/` was re-synced; and mirror/parity tests plus generator dry-runs passed. |
+| VS-TRUTH-004 | Legacy scope drift | Resolved | Spec maintainer | Review at each planning / implementation stage until closed | Any active non-cleanup spec outside `_archived/` could reintroduce stale assumptions into current work. | Top-level spec inventory contains only `030-vscode-surface-truth-cleanup` and `_archived/` (ignoring hidden files). |
+| VS-TRUTH-005 | Resource naming drift | Resolved | Extension maintainer | Review at each resource rename or prompt-path change | User-invokable resource references in `extension/src/commands/specCommands.ts` did not match bundled filenames under `extension/resources/`. | `specCommands.ts` now loads `gofer_hydrate.md`; relevant compile and command-registration checks passed. |
+| VS-TRUTH-006 | Config default drift | Resolved | Extension maintainer | Review at each config-contract change and before release | Confirmed user-facing defaults (for example `gofer.preferredAI`) could diverge between `extension/src/config.ts` and `extension/package.json`. | `DEFAULTS.preferredAi` and `DEFAULTS.yoloSlopReductionEnabled` now match the manifest, the reused `Config.test.ts` suite continues to pin config constants/helpers/default behavior while retaining some older feature-026 assertions, and a targeted manifest/default guard was added to `tests/integration/command-registration.test.ts`. |
+
+## TruthSurface Register
+
+| Surface ID | Repo Paths | Surface Type | Authority Source | User Facing | Trust State |
+| ---------- | ---------- | ------------ | ---------------- | ----------- | ----------- |
+| manifest-contract | `extension/package.json` | AuthoritativeContract | self | Yes | Authoritative |
+| runtime-wiring | `extension/src/extension.ts`, `extension/src/services/CommandRegistry.ts`, `extension/src/commands/` | RuntimeWiring | self | No | Verified |
+| documentation-set | `extension/README.md`, `README.md`, `docs/API_KEY_SETUP.md`, `docs/guides/configuration.md`, `docs/guides/session-management.md`, `docs/agentic-coding/AGENT_TOOLING_REFERENCE.md` | Documentation | manifest+runtime | Yes | Verified |
+| config-helper | `extension/src/config.ts` | ConfigHelper | manifest+runtime | No | Verified |
+| canonical-commands | `.specify/commands/` | CanonicalCommandSource | manifest+runtime | No | Verified |
+| generated-mirror-set | `.claude/`, `.github/`, `.gemini/`, `.agents/`, `.system/`, `extension/resources/claude-agents/`, `extension/resources/claude-commands/`, `extension/resources/copilot-prompts/`, `extension/resources/gemini/` | GeneratedMirror | canonical+manifest | Yes | Verified |
+| resource-reference | `extension/src/commands/specCommands.ts`, `extension/resources/` | BundledResource | manifest+runtime | No | Verified |
+| parity-tests | `tests/integration/command-registration.test.ts`, `tests/integration/command-generation.test.ts` | ParityTest | manifest+documentation+runtime+mirrors | No | Verified |
+| legacy-spec-root | `.specify/specs/`, `.specify/specs/_archived/` | LegacySpec | archive-boundary | No | Archived |
+
+## CleanupAction Register
+
+| Action ID | Contract Ref | Finding ID | Surface ID | Action Type | Status | Spec Refs | Validation Refs | Notes |
+| --------- | ------------ | ---------- | ---------- | ----------- | ------ | --------- | --------------- | ----- |
+| align-documentation-set | IAP-030-01 | VS-TRUTH-001 | documentation-set | Align | Done | US-001, US-003; FR-001, FR-003, FR-008, FR-009 | AT-001, AT-003, AT-008 | Rewrote extension README, trimmed root README, corrected the configuration and session-management guides, verified `docs/API_KEY_SETUP.md`, updated `docs/agentic-coding/AGENT_TOOLING_REFERENCE.md`, removed stale migration / WhatsApp guides, and added changelog disclosure. |
+| prune-canonical-commands | IAP-030-02 | VS-TRUTH-003 | canonical-commands | Align | Skipped | US-004; FR-010, FR-004 |  | Canonical command audit found no stale wording that required edits. |
+| regenerate-generated-mirrors | IAP-030-02 | VS-TRUTH-003 | generated-mirror-set | Regenerate | Done | US-004; FR-010, FR-011 | AT-005 | Regenerated `.github/`, `.system/`, `.agents/`, and `.gemini/` mirrors after canonical-source cleanup, then re-synced bundled `extension/resources/` mirrors including `extension/resources/claude-agents/` and `extension/resources/gemini/`. |
+| align-config-helper | IAP-030-03 | VS-TRUTH-002 | config-helper | Align | Done | US-002; FR-006, FR-007 | AT-004 | Removed ghost public settings from `CONFIG_KEYS`/`DEFAULTS` and kept internal runtime behavior non-config-backed. |
+| prune-unsupported-autonomous-settings | IAP-030-03 | VS-TRUTH-002 | manifest-contract | Remove | Done | US-002, US-003; FR-005, FR-007, FR-008 | AT-003, AT-004 | Removed `gofer.autonomous.notificationChannel`, `gofer.autonomous.whatsappPhoneNumber`, and `gofer.autonomous.emailAddress` from the public manifest and fixed autonomous runtime defaults to VS Code-only notifications. |
+| correct-config-helper-defaults | IAP-030-03 | VS-TRUTH-006 | config-helper | Correct | Done | US-002; FR-006 | AT-004 | Aligned `preferredAi` and `yoloSlopReductionEnabled` defaults to the manifest. |
+| correct-documented-defaults | — | VS-TRUTH-006 | documentation-set | Correct | Done | US-002, US-003; FR-005, FR-008 | AT-003, AT-008 | Updated README/config docs to match manifest defaults and supported setup flows, and removed no-op settings from the public manifest/docs surface. |
+| correct-resource-reference | IAP-030-04 | VS-TRUTH-005 | resource-reference | Correct | Done | US-004; FR-012 | AT-006 | Corrected the hydrate prompt filename reference in `specCommands.ts`. |
+| archive-legacy-spec-root | — | VS-TRUTH-004 | legacy-spec-root | Archive | Done | US-004; FR-016 | AT-007 | Archived previously active legacy specs under `.specify/specs/_archived/`. |
+| extend-doc-settings-parity-tests | IAP-030-03 | VS-TRUTH-006 | parity-tests | ExtendTest | Done | US-005; FR-015 | AT-001, AT-003, AT-004 | Added manifest-backed documentation/settings parity checks for command titles, command IDs, command-palette walkthroughs, DEFAULTS parity, direct runtime fallback parity, configuration-guide/session-management default checks, README example checks, and removed-setting regression guards to `tests/integration/command-registration.test.ts`. |
+| extend-mirror-scope-guard | IAP-030-02 | VS-TRUTH-003 | parity-tests | ExtendTest | Done | US-004, US-005; FR-010, FR-014 | AT-005 | Added a recursive full-tree mirror/package denylist guard in `tests/integration/command-generation.test.ts` so removed VS Code surfaces cannot leak back through generated or packaged mirrors, including `.gemini/`, `extension/resources/claude-agents/`, and `extension/resources/gemini/`. |
+
+## Accepted Exceptions
+
+| Exception ID | Finding ID | Surface ID | Status | Owner | Review Cadence | Rationale | Expiry |
+| ------------ | ---------- | ---------- | ------ | ----- | -------------- | --------- | ------ |
+| EX-030-01 | VS-TRUTH-001 | documentation-set | Accepted | Spec maintainer | Review at each plan / tasks / validation stage | EnterpriseAI app-journey, deployment, and EAI CLI pin fields remain not applicable for this non-application repo cleanup because `eai-cli` is not installed locally and no deployment target exists. | Expires if scope changes to application delivery or external deployment. |
+| EX-030-02 | VS-TRUTH-004 | legacy-spec-root | Accepted | Spec maintainer | Review at each plan / tasks / validation stage | Git-based checkpoint and task-marking helpers were not reliable in this execution context, so bounded manual verification and direct artifact edits were used instead. | Expires if a reliable git-backed helper workflow is available in the execution environment. |
+
+## Closure Notes
+
+| Check | Result | Notes |
+| ----- | ------ | ----- |
+| `npm test` | Known pre-existing failures | Re-run after dead-setting removal. Root suite still fails on unrelated missing-spec fixtures, control-command surface expectations, byte-equivalence / golden drift, quickstart fixture gaps, fake-config-key debt, and a `vscode.env` mock gap in `context-reseed`. |
+| `npm run typecheck && cd extension && npm run compile && cd .. && npm run generate-commands -- --dry-run --verbose && npm test -- tests/integration/command-registration.test.ts tests/integration/command-generation.test.ts tests/integration/cross-platform-parity.test.ts tests/integration/enterpriseai/canonical-mirror-parity.integration.test.ts tests/integration/enterpriseai/internal-api-schema-validation.integration.test.ts tests/integration/enterpriseai/internal-api-contract-coverage.integration.test.ts tests/integration/enterpriseai/path-confinement.integration.test.ts tests/integration/event-contract-coverage.test.ts tests/unit/extension/Config.test.ts tests/unit/council/CommandGenerator.test.ts` | Passed | Re-run after dead-setting removal. Targeted feature-030 closure slice passed `159/159`; covers manifest/runtime command parity, command-id and command-palette doc parity, manifest-backed config default checks across active settings docs, removed-setting guards, mirror scope denylist checks, packaged-resource parity, generator dry-run, build, type safety, and the reused Config.test unit suite for config constants/helpers/default behavior alongside some older legacy assertions. |
+| `cd extension && npm test` | Known pre-existing failures | Extension suite still fails on unrelated concurrent parsing performance, GitHub API timeout, and Marp opt-in documentation expectations outside feature 030 scope. |
+
+- No `package.json` dependency or lockfile changes were made for this cleanup.

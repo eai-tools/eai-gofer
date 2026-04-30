@@ -112,7 +112,7 @@ const SKIP_PATH_FRAGMENTS = [
   path.sep + 'docs' + path.sep,
   // gofer_constitution skill mirrors (.agents/skills/, .system/skills/) document
   // the forbidden key as a "do not use" rule; allowed by FR-011 doc requirement.
-  path.sep + 'skills' + path.sep + 'gofer_constitution' + path.sep,
+  path.sep + 'gofer_constitution' + path.sep,
 ];
 
 interface Finding {

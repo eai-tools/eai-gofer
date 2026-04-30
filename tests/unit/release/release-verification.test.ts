@@ -1,3 +1,5 @@
+import { readFileSync } from 'fs';
+import * as path from 'path';
 import { describe, it, expect } from 'vitest';
 
 /**
@@ -60,6 +62,11 @@ const VALID_RELEASES_JSON: ReleasesJson = {
     },
   ],
 };
+
+const RELEASE_AUTO_SCRIPT = readFileSync(
+  path.resolve(__dirname, '../../../release-auto.sh'),
+  'utf-8'
+);
 
 describe('Release Verification', () => {
   describe('extractLatestVersion', () => {
@@ -169,6 +176,42 @@ describe('Release Verification', () => {
       const expectedUrl = buildExpectedVsixUrl('1.16.1');
       const actualUrl = extractDownloadUrl(json, '1.16.1');
       expect(actualUrl).not.toBe(expectedUrl);
+    });
+  });
+
+  describe('release orchestration order', () => {
+    it('should regenerate canonical and downstream mirrors before syncing packaged resources', () => {
+      const goferGenerateIndex = RELEASE_AUTO_SCRIPT.indexOf('npm run gofer:generate 2>&1');
+      const generateCommandsIndex = RELEASE_AUTO_SCRIPT.indexOf(
+        'npm run generate-commands -- --verbose 2>&1'
+      );
+      const syncResourcesIndex = RELEASE_AUTO_SCRIPT.indexOf('./scripts/sync-extension-resources.sh');
+      const compileIndex = RELEASE_AUTO_SCRIPT.indexOf('if npm run compile 2>&1; then');
+      const packageIndex = RELEASE_AUTO_SCRIPT.indexOf('npx @vscode/vsce package');
+
+      expect(goferGenerateIndex).toBeGreaterThan(-1);
+      expect(generateCommandsIndex).toBeGreaterThan(goferGenerateIndex);
+      expect(syncResourcesIndex).toBeGreaterThan(generateCommandsIndex);
+      expect(compileIndex).toBeGreaterThan(syncResourcesIndex);
+      expect(packageIndex).toBeGreaterThan(compileIndex);
+    });
+
+    it('should load .env entries without command-substitution parsing', () => {
+      expect(RELEASE_AUTO_SCRIPT).toContain('load_env_file()');
+      expect(RELEASE_AUTO_SCRIPT).toContain("printf -v \"$env_key\" '%s' \"$env_value\"");
+      expect(RELEASE_AUTO_SCRIPT).not.toContain('export $(cat .env');
+    });
+
+    it('should preserve release notes when rebuilding extension changelog entries', () => {
+      const preserveNotesIndex = RELEASE_AUTO_SCRIPT.indexOf('RELEASE_NOTES="$COMMIT_MSG"');
+      const changelogInsertIndex = RELEASE_AUTO_SCRIPT.indexOf('$RELEASE_NOTES');
+      const changelogAppendIndex = RELEASE_AUTO_SCRIPT.indexOf(
+        "awk '/^## \\[/{f=1} f' extension/CHANGELOG.md >> \"$TEMP_FILE\""
+      );
+
+      expect(preserveNotesIndex).toBeGreaterThan(-1);
+      expect(changelogInsertIndex).toBeGreaterThan(preserveNotesIndex);
+      expect(changelogAppendIndex).toBeGreaterThan(changelogInsertIndex);
     });
   });
 });

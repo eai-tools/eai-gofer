@@ -12,6 +12,7 @@
 
 import { promises as fs } from 'fs';
 import path from 'path';
+import { createHash } from 'crypto';
 import { CANONICAL_DESCRIPTIONS, validateDescriptions } from './canonical-descriptions.mjs';
 import { parseStageCommand } from './parse-stage-command.mjs';
 
@@ -186,7 +187,7 @@ async function emitCopilot(stages, root, dryRun) {
       console.log(`[dry-run] copilot: would write ${outPath}`);
     } else {
       await ensureDir(outDir);
-      await fs.writeFile(outPath, stage.body, 'utf8');
+      await fs.writeFile(outPath, buildCopilotPromptContent(stage), 'utf8');
       console.log(`copilot: wrote ${outPath}`);
     }
     count++;
@@ -217,13 +218,150 @@ async function emitGithubPrompts(stages, root, dryRun) {
       console.log(`[dry-run] github-prompts: would write ${outPath}`);
     } else {
       await ensureDir(outDir);
-      await fs.writeFile(outPath, stage.body, 'utf8');
+      await fs.writeFile(outPath, buildCopilotPromptContent(stage), 'utf8');
       console.log(`github-prompts: wrote ${outPath}`);
     }
     count++;
   }
   console.log(`github-prompts: ${count} file(s) emitted`);
   return true;
+}
+
+/**
+ * Builds a Copilot prompt using the same metadata and body transform as the
+ * runtime CommandGenerator. This keeps .github/prompts and bundled VSIX
+ * resources byte-equivalent to generated Copilot mirrors.
+ *
+ * @param {{ frontmatter: Record<string, unknown>, body: string }} stage
+ * @returns {string}
+ */
+function buildCopilotPromptContent(stage) {
+  const stageName = String(stage.frontmatter.name);
+  const { frontmatter, body } = splitMarkdownFrontmatter(stage.body);
+  const description = readString(frontmatter.description) ?? String(stage.frontmatter.description);
+  const transformedBody = injectPipelineContinuation(
+    transformClaudeContent(body, 'copilot'),
+    'copilot',
+    stageName
+  );
+  const canonicalChecksum = createHash('sha256').update(body, 'utf8').digest('hex');
+
+  return [
+    '---',
+    `name: ${stageName}`,
+    `description: ${description}`,
+    'agent: copilot-workspace',
+    'tools:',
+    '  - Read',
+    '  - Grep',
+    '  - Glob',
+    '  - Bash',
+    '  - WebSearch',
+    'argument-hint: feature-name-or-description',
+    'gofer:',
+    '  workflowProfile: enterpriseai',
+    `  canonicalSource: .claude/commands/${stageName}.md`,
+    `  canonicalChecksum: ${canonicalChecksum}`,
+    '  metadataSource: scripts/generate-commands.ts',
+    '---',
+    '',
+    transformedBody,
+  ].join('\n');
+}
+
+/**
+ * @param {string} content
+ * @returns {{ frontmatter: Record<string, unknown>, body: string }}
+ */
+function splitMarkdownFrontmatter(content) {
+  const match = content.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
+  if (!match) {
+    return { frontmatter: {}, body: content };
+  }
+
+  const frontmatter = {};
+  for (const line of match[1].split('\n')) {
+    const fieldMatch = line.match(/^([A-Za-z0-9_-]+):\s*(.*)$/);
+    if (!fieldMatch) continue;
+    frontmatter[fieldMatch[1]] = fieldMatch[2].trim().replace(/^["']|["']$/g, '');
+  }
+
+  return { frontmatter, body: match[2] };
+}
+
+/**
+ * @param {string} content
+ * @param {'copilot'} toPlatform
+ * @returns {string}
+ */
+function transformClaudeContent(content, toPlatform) {
+  let transformed = content;
+
+  transformed = transformed.replace(/\*\*AUTO-CHAIN[^]*?(?=\n##|\n---|\n\*\*|$)/g, '');
+  transformed = transformed.replace(
+    /by calling the Skill tool with skill="[^"]+"/g,
+    'by running the next command'
+  );
+  transformed = transformed.replace(/Skill tool/g, 'next command');
+
+  if (toPlatform === 'copilot') {
+    transformed = transformed.replace(/\/(\d+[a-z]?_gofer_\w+)/g, '#$1');
+    transformed = transformed.replace(/\/(gofer_\w+)/g, '#$1');
+  }
+
+  return transformed;
+}
+
+/**
+ * @param {string} content
+ * @param {'copilot'} platform
+ * @param {string} commandName
+ * @returns {string}
+ */
+function injectPipelineContinuation(content, platform, commandName) {
+  const nextCommand = getNextCommand(commandName);
+  if (!nextCommand) return content;
+
+  const autoChainSection = `\n\n## Pipeline Continuation\n\nThis completes the ${commandName} stage. To continue the Gofer pipeline:\n\n**Next Command:** \`#${nextCommand}\`\n\nThe next stage will read the artifacts from this stage and continue the workflow automatically.\n\n**Note:** Copilot Chat supports context preservation. Your conversation history will be maintained as you progress through pipeline stages.\n`;
+
+  if (content.includes('## Key Rules')) {
+    return content.replace('## Key Rules', `${autoChainSection}\n## Key Rules`);
+  }
+
+  return content + autoChainSection;
+}
+
+/**
+ * @param {string} currentCommand
+ * @returns {string | null}
+ */
+function getNextCommand(currentCommand) {
+  const pipeline = [
+    '0_business_scenario',
+    '0a_problem_validation',
+    '1_gofer_research',
+    '2_gofer_specify',
+    '3_gofer_plan',
+    '4_gofer_tasks',
+    '5_gofer_implement',
+    '6_gofer_validate',
+    '6a_gofer_engineering_review',
+  ];
+
+  const currentIndex = pipeline.indexOf(currentCommand);
+  if (currentIndex >= 0 && currentIndex < pipeline.length - 1) {
+    return pipeline[currentIndex + 1];
+  }
+
+  return null;
+}
+
+/**
+ * @param {unknown} value
+ * @returns {string | undefined}
+ */
+function readString(value) {
+  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : undefined;
 }
 
 /**

@@ -1,8 +1,21 @@
 ---
-description:
-  Validate business problem using 5 Whys analysis, stakeholder impact mapping,
-  and market landscape research before any solution design
+name: 0a_problem_validation
+description: Validate the business problem using 5 Whys root-cause analysis and stakeholder mapping.
+agent: copilot-workspace
+tools:
+  - Read
+  - Grep
+  - Glob
+  - Bash
+  - WebSearch
+argument-hint: feature-name-or-description
+gofer:
+  workflowProfile: enterpriseai
+  canonicalSource: .claude/commands/0a_problem_validation.md
+  canonicalChecksum: 930892c2f6e47bc9ee1761c15bca5cda51aa60e754bb159a0b754f1fa6d4916f
+  metadataSource: scripts/generate-commands.ts
 ---
+
 
 # Gofer Problem Validation
 
@@ -20,7 +33,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 ## Outline
 
-This stage sits BEFORE `/1_gofer_research` in the pipeline. Your job is to:
+This stage sits BEFORE `#1_gofer_research` in the pipeline. Your job is to:
 
 1. Deconstruct the problem statement
 2. Run 5 Whys root cause analysis
@@ -297,14 +310,6 @@ After saving artifacts:
 
 If recommendation is PROCEED or user confirms they want to continue:
 
-**AUTO-CHAIN (MANDATORY)**: You MUST immediately invoke the next pipeline stage
-by calling the Skill tool with skill="/1_gofer_research". Do NOT ask the user
-for confirmation. Do NOT output "Ready for next stage". Just invoke the skill
-NOW.
-
-If recommendation is RECONSIDER:
-
-Present alternatives and let user decide whether to proceed or stop.
 
 ---
 
@@ -344,11 +349,22 @@ so they include plain-English companion sections in their outputs.
 ```text
   /0a_problem_validation  ← YOU ARE HERE
        ↓ AUTO
-  /1_gofer_research
+  #1_gofer_research
        ↓ AUTO
-  /2_gofer_specify
+  #2_gofer_specify
        ↓ AUTO
   ... (rest of pipeline)
        ↓ AUTO
   /7a_stakeholder_comms
 ```
+
+
+## Pipeline Continuation
+
+This completes the 0a_problem_validation stage. To continue the Gofer pipeline:
+
+**Next Command:** `#1_gofer_research`
+
+The next stage will read the artifacts from this stage and continue the workflow automatically.
+
+**Note:** Copilot Chat supports context preservation. Your conversation history will be maintained as you progress through pipeline stages.

@@ -3,9 +3,28 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import { execFile } from 'child_process';
+import type { ExecFileOptions } from 'child_process';
 import { promisify } from 'util';
 
 const execFileAsync = promisify(execFile);
+
+function cleanGitEnv(): NodeJS.ProcessEnv {
+  const env = { ...process.env };
+  for (const key of Object.keys(env)) {
+    if (key === 'GIT_DIR' || key.startsWith('GIT_')) {
+      delete env[key];
+    }
+  }
+  return env;
+}
+
+async function execFileWithoutGitEnv(
+  file: string,
+  args: string[],
+  options: ExecFileOptions = {}
+): Promise<void> {
+  await execFileAsync(file, args, { ...options, env: cleanGitEnv() });
+}
 
 const LOG_STAGE_SCRIPT = path.resolve(__dirname, '../../../.specify/scripts/bash/log-stage.sh');
 const PIPELINE_STATE_SCRIPT = path.resolve(
@@ -28,11 +47,16 @@ describe('log-stage.sh ledger integration', () => {
 
     // Initialize git repo (needed by common.sh)
     originalCwd = process.cwd();
-    await execFileAsync('git', ['init', tmpDir]);
-    await execFileAsync('git', ['-C', tmpDir, 'checkout', '-B', 'feature/test-feature']);
+    await execFileWithoutGitEnv('git', ['init', tmpDir]);
+    await execFileWithoutGitEnv('git', ['-C', tmpDir, 'checkout', '-B', 'feature/test-feature']);
 
     // Create pipeline-state.json with a runId
-    await execFileAsync('bash', [PIPELINE_STATE_SCRIPT, 'init', '--feature-dir', featureDir]);
+    await execFileWithoutGitEnv('bash', [
+      PIPELINE_STATE_SCRIPT,
+      'init',
+      '--feature-dir',
+      featureDir,
+    ]);
   });
 
   afterEach(() => {
@@ -43,7 +67,7 @@ describe('log-stage.sh ledger integration', () => {
   it('should write to both pipeline.jsonl and gofer-run-ledger.jsonl on stage complete', async () => {
     // Run log-stage.sh from the tmp repo
     try {
-      await execFileAsync(
+      await execFileWithoutGitEnv(
         'bash',
         [LOG_STAGE_SCRIPT, '3_plan', '--complete', '--tokens', '1000', '--compactions', '0'],
         { cwd: tmpDir }
@@ -83,7 +107,9 @@ describe('log-stage.sh ledger integration', () => {
     const expectedRunId = state.runId;
 
     try {
-      await execFileAsync('bash', [LOG_STAGE_SCRIPT, '1_research', '--start'], { cwd: tmpDir });
+      await execFileWithoutGitEnv('bash', [LOG_STAGE_SCRIPT, '1_research', '--start'], {
+        cwd: tmpDir,
+      });
     } catch {
       // May fail on feature path detection
     }

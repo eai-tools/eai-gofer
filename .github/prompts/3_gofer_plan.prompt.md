@@ -1,21 +1,7 @@
 ---
-name: 3_gofer_plan
-description: Generate technical implementation plan with architecture and contracts
-agent: copilot-workspace
-tools:
-  - Read
-  - Grep
-  - Glob
-  - Bash
-  - WebSearch
-argument-hint: feature-name-or-description
-gofer:
-  workflowProfile: enterpriseai
-  canonicalSource: .claude/commands/3_gofer_plan.md
-  canonicalChecksum: 0aa58a4e2afe0ccb787314b1aea0cfc7cdd3085172eb10d9bf256802a228eeb1
-  metadataSource: scripts/generate-commands.ts
+description:
+  Generate technical implementation plan with architecture and contracts
 ---
-
 
 # Gofer Plan
 
@@ -35,8 +21,8 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 This command expects in `.specify/specs/{feature}/`:
 
-- `research.md` - Codebase analysis (from #1_gofer_research)
-- `spec.md` - Feature specification (from #2_gofer_specify)
+- `research.md` - Codebase analysis (from /1_gofer_research)
+- `spec.md` - Feature specification (from /2_gofer_specify)
 
 If missing, prompt user to run the prerequisite stage.
 
@@ -270,7 +256,7 @@ Output to {FEATURE_DIR}/visuals/data-model-erd.md."
 
 These three artifacts (c4-container.md, bounded-context.md, data-model-erd.md)
 are required for the developer persona pack. The persona-pack completeness gate
-at #4_gofer_tasks start will warn if any are missing.
+at /4_gofer_tasks start will warn if any are missing.
 
 ---
 
@@ -527,6 +513,9 @@ Artifacts created:
 Engineering Review: PASSED (cycle [N] of 5)
 ```
 
+**AUTO-CHAIN (MANDATORY)**: You MUST immediately invoke the next pipeline stage
+by calling the Skill tool with skill="/4_gofer_tasks". Do NOT ask the user for
+confirmation. Do NOT output "Ready for next stage". Just invoke the skill NOW.
 
 ---
 
@@ -610,18 +599,6 @@ At stage completion, log metrics:
 Logs to: `.specify/logs/pipeline.jsonl`
 
 ---
-
-
-
-## Pipeline Continuation
-
-This completes the 3_gofer_plan stage. To continue the Gofer pipeline:
-
-**Next Command:** `#4_gofer_tasks`
-
-The next stage will read the artifacts from this stage and continue the workflow automatically.
-
-**Note:** Copilot Chat supports context preservation. Your conversation history will be maintained as you progress through pipeline stages.
 
 ## Key Rules
 

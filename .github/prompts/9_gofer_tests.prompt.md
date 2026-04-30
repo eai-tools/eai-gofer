@@ -1,23 +1,8 @@
 ---
-name: 9_gofer_tests
-description: >-
+description:
   Define acceptance test cases using DSL approach before or during
   implementation
-agent: copilot-workspace
-tools:
-  - Read
-  - Grep
-  - Glob
-  - Bash
-  - WebSearch
-argument-hint: feature-name-or-description
-gofer:
-  workflowProfile: enterpriseai
-  canonicalSource: .claude/commands/9_gofer_tests.md
-  canonicalChecksum: 0a6baf44d5add8fccc5ee6deb6aed559ef42d0e19aa6f4afc2733335e42ef744
-  metadataSource: scripts/generate-commands.ts
 ---
-
 
 # Gofer Tests
 
@@ -466,16 +451,16 @@ Add test implementation tasks to tasks.md:
 ### Before Implementation
 
 ```
-#1_gofer_research  →  #2_gofer_specify  →  #3_gofer_plan
+/1_gofer_research  →  /2_gofer_specify  →  /3_gofer_plan
                                                  ↓
-                                          #9_gofer_tests  ← Define tests here
+                                          /9_gofer_tests  ← Define tests here
                                                  ↓
-                                          #4_gofer_tasks  →  #5_gofer_implement
+                                          /4_gofer_tasks  →  /5_gofer_implement
 ```
 
 ### During Implementation
 
-After each task in `#5_gofer_implement`:
+After each task in `/5_gofer_implement`:
 
 1. Run relevant tests
 2. Verify behavior matches test expectations

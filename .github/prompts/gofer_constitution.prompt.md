@@ -1,6 +1,6 @@
 ---
 name: gofer_constitution
-description: Display the Gofer working constitution and core principles for this project.
+description: Create or update project constitution with coding principles and guidelines
 agent: copilot-workspace
 tools:
   - Read

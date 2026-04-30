@@ -1,60 +1,49 @@
 ---
-generated: "2026-04-30T17:58:10Z"
-source_commit: "64d169eba2a63002e0dcce3f4685790f6ddf7f88"
+generated: "2026-04-30T22:52:00Z"
+source_commit: "42dbe8f354ac8928bfa3d1e6c5b42989a9b6c55f"
 ---
 
 # API Reference
 
-## Model Context Protocol (MCP) Tools
+## Overview
 
-Gofer exposes 6 MCP tools that AI assistants (Claude Code, GitHub Copilot) can
-call directly.
+Gofer does not expose REST HTTP endpoints. Instead, it provides two protocol-based APIs:
 
-### Tool Discovery
+1. **MCP (Model Context Protocol)** - 40+ tools for AI assistants (Claude Code, Copilot, etc.)
+2. **LSP (Language Server Protocol)** - Custom methods for extension-server communication
 
-Tools are auto-registered in `.vscode/mcp.json` when running
-`Gofer: Initialize Repository`.
+All communication happens via JSON-RPC over stdio/IPC channels.
 
-```json
-{
-  "mcpServers": {
-    "gofer": {
-      "command": "node",
-      "args": ["path/to/language-server/dist/server.js"],
-      "transportType": "stdio"
-    }
-  }
-}
-```
+## MCP Tools (Model Context Protocol)
 
----
+AI assistants interact with Gofer via MCP tools. These tools are implemented in `language-server/src/mcp/toolHandler.ts`.
 
-## Tool: `gofer_get_specs`
+### Spec Management Tools
 
-**Description:** List all specifications and their tasks
+#### `gofer_get_specs`
+
+**Purpose:** List all specifications and their tasks
 
 **Parameters:** None
 
 **Returns:**
-
 ```json
 {
   "specs": [
     {
-      "feature": "auth-001",
-      "title": "User Authentication",
+      "id": "001-authentication",
+      "title": "User Authentication System",
       "status": "in-progress",
-      "path": ".specify/specs/auth-001/spec.md",
       "tasks": [
         {
           "id": "FR-001",
-          "description": "Create database schema",
+          "description": "Implement login endpoint",
           "status": "completed",
           "dependencies": []
         },
         {
           "id": "FR-002",
-          "description": "Implement user model",
+          "description": "Add JWT middleware",
           "status": "in-progress",
           "dependencies": ["FR-001"]
         }
@@ -64,416 +53,900 @@ Tools are auto-registered in `.vscode/mcp.json` when running
 }
 ```
 
-**Use Case:** AI assistant queries available work
-
-**Example:**
-
-```typescript
-// Claude Code calls this internally
-const specs = await mcp.call_tool('gofer_get_specs', {});
-```
+**Use Case:** Initial discovery - AI discovers available work
 
 ---
 
-## Tool: `gofer_get_next_task`
+#### `gofer_get_next_task`
 
-**Description:** Get the next task to work on based on dependencies
+**Purpose:** Get the next task to work on based on dependency order
 
 **Parameters:**
-
 ```json
 {
-  "feature": "auth-001" // Optional: filter by feature
+  "spec_id": "001-authentication"  // Optional - defaults to current spec
 }
 ```
 
 **Returns:**
-
 ```json
 {
   "task": {
     "id": "FR-002",
-    "description": "Implement user model (depends on FR-001)",
+    "description": "Add JWT middleware",
     "status": "pending",
     "dependencies": ["FR-001"],
+    "estimatedTokens": 50000,
     "context": {
-      "spec": "Full specification text...",
-      "plan": "Implementation plan...",
-      "constitution": "Project principles..."
+      "spec": "...",
+      "plan": "...",
+      "research": "...",
+      "relatedCode": "..."
     }
   }
 }
 ```
 
-**Behavior:**
-
-- Returns only tasks whose dependencies are completed
-- Returns `null` if no tasks are ready
-- Prioritizes by order in spec.md
-
-**Use Case:** AI assistant asks "what should I work on next?"
+**Use Case:** Task selection - AI picks next task in dependency order
 
 ---
 
-## Tool: `gofer_execute_task`
+#### `gofer_execute_task`
 
-**Description:** Mark task as in-progress and get full context
+**Purpose:** Mark a task as in-progress and receive full context
 
 **Parameters:**
-
 ```json
 {
-  "feature": "auth-001",
-  "taskId": "FR-002"
+  "task_id": "FR-002",
+  "spec_id": "001-authentication"
 }
 ```
 
 **Returns:**
-
-```json
-{
-  "task": {
-    "id": "FR-002",
-    "description": "Implement user model",
-    "status": "in-progress"
-  },
-  "context": {
-    "spec": "# User Authentication\n\n...",
-    "plan": "# Implementation Plan\n\n...",
-    "tasks": "# Tasks\n\n...",
-    "constitution": "# Project Principles\n\n...",
-    "hints": "# Hints\n\nUse bcrypt for passwords..."
-  }
-}
-```
-
-**Side Effects:**
-
-- Updates task status to `in-progress` in `tasks.md`
-- Creates `.specify/logs/task-execution.jsonl` entry
-- Triggers context health monitoring
-
-**Use Case:** AI assistant starts working on a task
-
----
-
-## Tool: `gofer_update_task_status`
-
-**Description:** Mark task as completed or failed
-
-**Parameters:**
-
-```json
-{
-  "feature": "auth-001",
-  "taskId": "FR-002",
-  "status": "completed", // or "failed"
-  "notes": "Optional completion notes"
-}
-```
-
-**Returns:**
-
 ```json
 {
   "success": true,
   "task": {
     "id": "FR-002",
-    "status": "completed"
+    "description": "Add JWT middleware",
+    "status": "in-progress",
+    "startedAt": "2026-04-30T22:50:00Z"
+  },
+  "context": {
+    "spec": "# Spec content...",
+    "plan": "# Plan content...",
+    "research": "# Research content...",
+    "constitution": "# Constitution...",
+    "hints": ["Consider rate limiting", "Use bcrypt for passwords"],
+    "relevantCode": {
+      "src/auth.ts": "...",
+      "src/middleware.ts": "..."
+    }
   }
 }
 ```
 
-**Side Effects:**
-
-- Updates task status in `tasks.md`
-- Logs completion in `.specify/logs/task-execution.jsonl`
-- Triggers spec refresh in UI
-- Updates progress panel
-
-**Use Case:** AI assistant completes a task
+**Use Case:** Task execution - AI starts working on a task
 
 ---
 
-## Tool: `gofer_validate_code`
+#### `gofer_update_task_status`
 
-**Description:** Validate code against project constitution
+**Purpose:** Update task status (completed/failed)
 
 **Parameters:**
-
 ```json
 {
-  "filePath": "src/models/User.ts",
-  "feature": "auth-001"
+  "task_id": "FR-002",
+  "spec_id": "001-authentication",
+  "status": "completed",  // or "failed"
+  "notes": "Implemented JWT middleware with 15min expiry"
 }
 ```
 
 **Returns:**
+```json
+{
+  "success": true,
+  "nextTask": {
+    "id": "FR-003",
+    "description": "Add refresh token endpoint"
+  }
+}
+```
 
+**Use Case:** Task completion - AI marks task done, gets next task
+
+---
+
+### Validation Tools
+
+#### `gofer_validate_code`
+
+**Purpose:** Validate code against constitution principles
+
+**Parameters:**
+```json
+{
+  "files": ["src/auth.ts", "src/middleware.ts"],
+  "spec_id": "001-authentication"
+}
+```
+
+**Returns:**
 ```json
 {
   "valid": false,
   "violations": [
     {
-      "rule": "All functions must have TypeScript types",
+      "file": "src/auth.ts",
       "line": 42,
       "severity": "error",
-      "message": "Function 'hashPassword' missing return type"
+      "rule": "no-hardcoded-secrets",
+      "message": "Found hardcoded API key on line 42"
     }
   ],
-  "score": 85
+  "score": 85,  // Out of 100
+  "recommendations": [
+    "Move API keys to environment variables",
+    "Add input validation to login endpoint"
+  ]
 }
 ```
 
-**Constitution Sources:**
-
-1. `.specify/memory/constitution.md` - Project principles
-2. Spec-specific `## Protected Boundaries` sections
-
-**Use Case:** AI assistant validates code before completing task
+**Use Case:** Quality gate - AI validates work before marking complete
 
 ---
 
-## Tool: `gofer_run_tests`
+#### `gofer_run_tests`
 
-**Description:** Execute Playwright tests for a feature
+**Purpose:** Execute test suite (auto-detects vitest/jest/pytest)
 
 **Parameters:**
-
 ```json
 {
-  "feature": "auth-001",
-  "testPattern": "auth.spec.ts" // Optional
+  "spec_id": "001-authentication",
+  "testPattern": "auth.test.ts"  // Optional - defaults to all tests
 }
 ```
 
 **Returns:**
-
 ```json
 {
   "success": true,
   "results": {
-    "passed": 15,
-    "failed": 0,
-    "skipped": 2,
-    "duration": 3421,
-    "details": [
+    "passed": 42,
+    "failed": 2,
+    "skipped": 0,
+    "duration": 1234,
+    "failures": [
       {
-        "test": "should login with valid credentials",
-        "status": "passed",
-        "duration": 234
+        "test": "should reject invalid JWT",
+        "file": "tests/auth.test.ts",
+        "error": "Expected 401, got 500"
       }
     ]
+  },
+  "coverage": {
+    "lines": 85.2,
+    "branches": 78.9,
+    "functions": 90.1
   }
 }
 ```
 
-**Behavior:**
-
-- Runs tests via Playwright
-- Captures stdout/stderr
-- Returns structured results
-
-**Use Case:** AI assistant runs tests after implementing code
+**Use Case:** Test verification - AI runs tests to confirm implementation
 
 ---
 
-## Language Server Protocol (LSP) - Internal
+### Context Management Tools
 
-### Notifications (Extension → Language Server)
+#### `gofer_get_context_health`
 
-#### `workspace/didChangeConfiguration`
+**Purpose:** Get current context window utilization
 
-Notifies server of config changes.
+**Parameters:** None
 
-**Payload:**
-
+**Returns:**
 ```json
 {
-  "settings": {
-    "gofer": {
-      "autoValidate": true,
-      "preferredAI": "claude"
+  "utilization": 0.67,  // 67% of context window used
+  "tokens": {
+    "used": 134000,
+    "total": 200000,
+    "breakdown": {
+      "spec": 15000,
+      "plan": 8000,
+      "research": 30000,
+      "memory": 25000,
+      "code": 40000,
+      "conversation": 16000
+    }
+  },
+  "recommendation": "Consider compaction - approaching 65% threshold"
+}
+```
+
+**Use Case:** Context awareness - AI monitors context health
+
+---
+
+#### `gofer_trigger_handoff`
+
+**Purpose:** Trigger auto-context-continuity (save/resume)
+
+**Parameters:**
+```json
+{
+  "reason": "approaching_limit",  // or "manual_request"
+  "saveCheckpoint": true
+}
+```
+
+**Returns:**
+```json
+{
+  "success": true,
+  "checkpointFile": ".specify/checkpoints/2026-04-30T22-50-00.md",
+  "resumeCommand": "/8_gofer_resume",
+  "estimatedContextReduction": 0.60  // Expect 60% reduction
+}
+```
+
+**Use Case:** Context continuity - AI triggers save/resume cycle
+
+---
+
+### Research Chunking Tools
+
+#### `gofer_get_research_index`
+
+**Purpose:** Get index of research.md chunks for progressive loading
+
+**Parameters:**
+```json
+{
+  "spec_id": "001-authentication"
+}
+```
+
+**Returns:**
+```json
+{
+  "chunks": [
+    {
+      "id": "chunk-0",
+      "title": "Authentication Patterns",
+      "sizeBytes": 48000,
+      "tokens": 12000,
+      "sections": ["JWT Overview", "OAuth 2.0 Comparison"]
+    },
+    {
+      "id": "chunk-1",
+      "title": "Security Best Practices",
+      "sizeBytes": 52000,
+      "tokens": 13000,
+      "sections": ["Password Hashing", "Rate Limiting"]
+    }
+  ],
+  "totalChunks": 2,
+  "totalBytes": 100000
+}
+```
+
+**Use Case:** Progressive loading - AI loads research on-demand
+
+---
+
+#### `gofer_load_research_chunk`
+
+**Purpose:** Load a specific research chunk
+
+**Parameters:**
+```json
+{
+  "spec_id": "001-authentication",
+  "chunk_id": "chunk-0"
+}
+```
+
+**Returns:**
+```json
+{
+  "content": "# Authentication Patterns\n\n## JWT Overview\n...",
+  "tokens": 12000,
+  "metadata": {
+    "chunkId": "chunk-0",
+    "totalChunks": 2
+  }
+}
+```
+
+**Use Case:** Lazy loading - AI loads only relevant research sections
+
+---
+
+### Observation Management Tools
+
+#### `gofer_peek_observation`
+
+**Purpose:** Preview an observation without loading it into context
+
+**Parameters:**
+```json
+{
+  "observation_id": "obs-1234"
+}
+```
+
+**Returns:**
+```json
+{
+  "preview": "First 500 characters of observation...",
+  "metadata": {
+    "timestamp": "2026-04-30T22:45:00Z",
+    "tokens": 5000,
+    "masked": false
+  }
+}
+```
+
+---
+
+#### `gofer_fold_observation`
+
+**Purpose:** Mask/collapse an observation to save context
+
+**Parameters:**
+```json
+{
+  "observation_id": "obs-1234",
+  "reason": "no_longer_relevant"
+}
+```
+
+**Returns:**
+```json
+{
+  "success": true,
+  "tokensSaved": 5000
+}
+```
+
+---
+
+#### `gofer_grep_observations`
+
+**Purpose:** Search across observations by pattern
+
+**Parameters:**
+```json
+{
+  "pattern": "error|exception",
+  "caseSensitive": false,
+  "maxResults": 10
+}
+```
+
+**Returns:**
+```json
+{
+  "matches": [
+    {
+      "observation_id": "obs-5678",
+      "line": 42,
+      "snippet": "... ERROR: Connection timeout ...",
+      "context": "Full error stack trace"
+    }
+  ]
+}
+```
+
+---
+
+### Context REPL Tools (Progressive Context Management)
+
+#### `gofer_context_peek`
+
+**Purpose:** Preview a context section without loading
+
+**Parameters:**
+```json
+{
+  "section": "research" | "memory" | "code" | "spec" | "plan",
+  "maxTokens": 1000
+}
+```
+
+**Returns:**
+```json
+{
+  "preview": "First 1000 tokens...",
+  "totalTokens": 15000,
+  "summary": "Research covers JWT patterns, OAuth comparison, security best practices"
+}
+```
+
+---
+
+#### `gofer_context_grep`
+
+**Purpose:** Search context by pattern
+
+**Parameters:**
+```json
+{
+  "pattern": "authentication",
+  "sections": ["research", "spec"],
+  "caseSensitive": false
+}
+```
+
+**Returns:**
+```json
+{
+  "matches": [
+    {
+      "section": "research",
+      "line": 15,
+      "snippet": "...JWT authentication provides..."
+    }
+  ]
+}
+```
+
+---
+
+#### `gofer_context_fold`
+
+**Purpose:** Collapse a context section to save tokens
+
+**Parameters:**
+```json
+{
+  "section": "research",
+  "keepSummary": true
+}
+```
+
+**Returns:**
+```json
+{
+  "success": true,
+  "tokensBefore": 30000,
+  "tokensAfter": 500,
+  "summary": "Research on JWT authentication, OAuth 2.0, security patterns"
+}
+```
+
+---
+
+#### `gofer_context_expand`
+
+**Purpose:** Expand a previously folded section
+
+**Parameters:**
+```json
+{
+  "section": "research"
+}
+```
+
+**Returns:**
+```json
+{
+  "success": true,
+  "tokensAdded": 29500,
+  "content": "# Research\n\n..."
+}
+```
+
+---
+
+#### `gofer_context_undo`
+
+**Purpose:** Undo last context operation
+
+**Parameters:** None
+
+**Returns:**
+```json
+{
+  "success": true,
+  "undoneOperation": "fold:research",
+  "tokensRestored": 29500
+}
+```
+
+---
+
+#### `gofer_context_history`
+
+**Purpose:** Show context operation history
+
+**Parameters:** None
+
+**Returns:**
+```json
+{
+  "operations": [
+    {
+      "timestamp": "2026-04-30T22:48:00Z",
+      "operation": "fold",
+      "section": "research",
+      "tokenDelta": -29500
+    },
+    {
+      "timestamp": "2026-04-30T22:50:00Z",
+      "operation": "expand",
+      "section": "memory",
+      "tokenDelta": +12000
+    }
+  ]
+}
+```
+
+---
+
+#### `gofer_context_repl`
+
+**Purpose:** Batch execute multiple context operations
+
+**Parameters:**
+```json
+{
+  "operations": [
+    { "action": "fold", "section": "research" },
+    { "action": "expand", "section": "memory" },
+    { "action": "peek", "section": "code", "maxTokens": 1000 }
+  ]
+}
+```
+
+**Returns:**
+```json
+{
+  "results": [
+    { "success": true, "tokensSaved": 29500 },
+    { "success": true, "tokensAdded": 12000 },
+    { "preview": "First 1000 tokens of code..." }
+  ],
+  "netTokenChange": -17500
+}
+```
+
+---
+
+### Code Quality Tools
+
+#### `gofer_check_slop`
+
+**Purpose:** Detect code quality issues (console.log, debugger, @ts-ignore)
+
+**Parameters:**
+```json
+{
+  "files": ["src/**/*.ts"],
+  "autoFix": false
+}
+```
+
+**Returns:**
+```json
+{
+  "issues": [
+    {
+      "file": "src/auth.ts",
+      "line": 42,
+      "type": "console.log",
+      "severity": "warning"
+    },
+    {
+      "file": "src/middleware.ts",
+      "line": 15,
+      "type": "debugger",
+      "severity": "error"
+    }
+  ],
+  "summary": {
+    "totalIssues": 2,
+    "byType": {
+      "console.log": 1,
+      "debugger": 1,
+      "@ts-ignore": 0
     }
   }
 }
 ```
 
-#### `textDocument/didChange`
+---
 
-Notifies server of spec file edits.
+## LSP Custom Methods
 
-**Payload:**
+These methods are used for extension-server communication, not directly by AI assistants.
 
+### `gofer/getSpecs`
+
+**Purpose:** Get spec list for UI tree view
+
+**Parameters:** None
+
+**Returns:** Array of spec objects with tree structure
+
+**Used By:** ProgressProvider.ts
+
+---
+
+### `gofer/executeTask`
+
+**Purpose:** Extension request to execute a task
+
+**Parameters:**
 ```json
 {
-  "textDocument": {
-    "uri": "file:///path/.specify/specs/auth-001/spec.md"
-  },
-  "contentChanges": [...]
+  "taskId": "FR-002",
+  "specId": "001-authentication"
 }
 ```
 
-### Requests (Extension → Language Server)
+**Used By:** Extension command handlers
 
-#### `workspace/executeCommand`
+---
 
-Execute MCP tool on behalf of extension.
+### `gofer/updateTaskStatus`
 
-**Request:**
+**Purpose:** Extension request to update task status
 
+**Parameters:**
 ```json
 {
-  "command": "gofer.executeMCPTool",
-  "arguments": ["gofer_get_specs", {}]
+  "taskId": "FR-002",
+  "specId": "001-authentication",
+  "status": "completed"
 }
+```
+
+**Used By:** Extension command handlers
+
+---
+
+### `gofer/taskProgress` (Notification)
+
+**Purpose:** Server notifies extension of task progress
+
+**Direction:** Server → Extension (notification, not request)
+
+**Payload:**
+```json
+{
+  "taskId": "FR-002",
+  "specId": "001-authentication",
+  "progress": 0.75,
+  "message": "Implementation 75% complete"
+}
+```
+
+**Used By:** Extension UI updates (progress bars, status bar)
+
+---
+
+## External APIs
+
+Gofer integrates with external APIs for billing/usage data and notifications.
+
+### Anthropic Admin API
+
+**Base URL:** [https://api.anthropic.com](https://api.anthropic.com)
+
+**Endpoints Used:**
+
+#### GET `/v1/organization/billing/usage`
+
+**Headers:**
+```
+x-api-key: {gofer.anthropicAdminApiKey}
+```
+
+**Query Parameters:**
+```
+start_date: 2026-04-01
+end_date: 2026-04-30
 ```
 
 **Response:**
+```json
+{
+  "usage": [
+    {
+      "date": "2026-04-30",
+      "model": "claude-3-5-sonnet-20241022",
+      "input_tokens": 1500000,
+      "output_tokens": 500000
+    }
+  ]
+}
+```
+
+**Used By:** `extension/src/autonomous/UsageApiClient.ts`
+
+**Polling Interval:** 60s minimum (Anthropic recommendation)
+
+---
+
+#### GET `/v1/organization/billing/costs`
+
+**Headers:**
+```
+x-api-key: {gofer.anthropicAdminApiKey}
+```
+
+**Response:**
+```json
+{
+  "costs": [
+    {
+      "date": "2026-04-30",
+      "model": "claude-3-5-sonnet-20241022",
+      "cost_usd": 15.75
+    }
+  ]
+}
+```
+
+**Used By:** `extension/src/autonomous/UsageApiClient.ts`
+
+---
+
+### OpenAI Admin API
+
+**Base URL:** [https://api.openai.com](https://api.openai.com)
+
+**Endpoints Used:**
+
+#### GET `/v1/usage`
+
+**Headers:**
+```
+Authorization: Bearer {gofer.openaiAdminApiKey}
+```
+
+**Query Parameters:**
+```
+start_date: 2026-04-01
+end_date: 2026-04-30
+```
+
+**Response:**
+```json
+{
+  "data": [
+    {
+      "date": "2026-04-30",
+      "model": "gpt-4",
+      "tokens": 2000000,
+      "cost_usd": 40.00
+    }
+  ]
+}
+```
+
+**Used By:** `extension/src/autonomous/UsageApiClient.ts`
+
+**Required Scope:** `api.usage.read`
+
+---
+
+### GitHub Releases API
+
+**Base URL:** [https://api.github.com](https://api.github.com)
+
+**Endpoint:** `GET /repos/eai-tools/gofer/releases/latest`
+
+**No authentication required** (public repository)
+
+**Response:**
+```json
+{
+  "tag_name": "v3.1.0",
+  "name": "Gofer 3.1.0",
+  "assets": [
+    {
+      "name": "gofer-3.1.0.vsix",
+      "browser_download_url": "https://github.com/eai-tools/gofer/releases/download/v3.1.0/gofer-3.1.0.vsix"
+    }
+  ]
+}
+```
+
+**Used By:** `extension/src/autoUpdater.ts`
+
+**Polling Interval:** 24 hours
+
+---
+
+### Twilio WhatsApp API
+
+**Purpose:** Optional notifications from CLI orchestrator
+
+**Configuration:** Environment variables (`TWILIO_*`)
+
+**Used By:** `src/utils/NotificationService.ts`
+
+**Not used by extension** - only by standalone orchestrator
+
+---
+
+## Error Responses
+
+All MCP tools return consistent error format:
 
 ```json
 {
-  "specs": [...]
+  "isError": true,
+  "code": "SPEC_NOT_FOUND" | "TASK_NOT_FOUND" | "INVALID_PARAMS" | "INTERNAL_ERROR",
+  "message": "Human-readable error message",
+  "details": {
+    "specId": "001-authentication",
+    "availableSpecs": ["002-dashboard", "003-api"]
+  }
 }
 ```
 
----
+**Common Error Codes:**
 
-## VSCode Commands (Extension API)
-
-User-facing commands registered by the extension.
-
-### Repository Management
-
-| Command              | Description                | Keyboard         |
-| -------------------- | -------------------------- | ---------------- |
-| `gofer.initialize`   | Initialize .specify folder | Ctrl+Shift+Alt+I |
-| `gofer.upgrade`      | Upgrade legacy JSON specs  | -                |
-| `gofer.refreshSpecs` | Reload specs from disk     | Ctrl+Shift+Alt+R |
-
-### Specification Management
-
-| Command                        | Description               | Keyboard         |
-| ------------------------------ | ------------------------- | ---------------- |
-| `gofer.createSpec`             | Create new specification  | Ctrl+Shift+Alt+N |
-| `gofer.openSpec`               | Open specification file   | -                |
-| `gofer.showSpecDetails`        | Show spec details panel   | -                |
-| `gofer.executeAllPendingSpecs` | Execute all pending specs | -                |
-
-### UI Panels
-
-| Command                   | Description               | Keyboard         |
-| ------------------------- | ------------------------- | ---------------- |
-| `gofer.showProgress`      | Show progress panel       | Ctrl+Shift+Alt+P |
-| `gofer.showConstitution`  | Show constitution panel   | Ctrl+Shift+Alt+C |
-| `gofer.showContextWindow` | Show context window panel | -                |
-
-### Memory Management
-
-| Command                       | Description             |
-| ----------------------------- | ----------------------- |
-| `gofer.remember`              | Add memory entry        |
-| `gofer.searchMemory`          | Search memories         |
-| `gofer.forgetMemory`          | Delete memory           |
-| `gofer.clearMemory`           | Clear all memories      |
-| `gofer.viewMemories`          | View all memories       |
-| `gofer.viewCompactionHistory` | View compaction history |
-
-### Claude Code Integration
-
-| Command                  | Description                |
-| ------------------------ | -------------------------- |
-| `gofer.startClaudeCode`  | Start Claude Code terminal |
-| `gofer.stopClaudeCode`   | Stop Claude Code terminal  |
-| `gofer.pauseClaudeCode`  | Pause (send ESC)           |
-| `gofer.resumeClaudeCode` | Resume monitoring          |
-| `gofer.resumeSession`    | Resume from checkpoint     |
-
-### Quality & Validation
-
-| Command                   | Description                      |
-| ------------------------- | -------------------------------- |
-| `gofer.checkForSlop`      | Check for AI code quality issues |
-| `gofer.showCouncilStatus` | Show LLM council status          |
-| `gofer.fixSpecPaths`      | Fix spec path references         |
-
-### Updates
-
-| Command                 | Description                 | Keyboard         |
-| ----------------------- | --------------------------- | ---------------- |
-| `gofer.checkForUpdates` | Check for extension updates | Ctrl+Shift+Alt+U |
-| `gofer.updateNow`       | Install latest version      | -                |
-| `gofer.updateTemplates` | Update spec templates       | -                |
+- `SPEC_NOT_FOUND` - Spec ID not found in `.specify/specs/`
+- `TASK_NOT_FOUND` - Task ID not found in tasks.md
+- `INVALID_PARAMS` - Missing or invalid parameters
+- `INTERNAL_ERROR` - Server error (logged to output channel)
+- `VALIDATION_FAILED` - Constitution validation failed
+- `TESTS_FAILED` - Test suite failed
+- `CONTEXT_OVERFLOW` - Context window exceeded
+- `SCOPE_VIOLATION` - ScopeGuard blocked file access
+- `BUDGET_EXCEEDED` - Cost budget limit reached
 
 ---
 
-## Authentication
+## Authentication & Authorization
 
-### MCP Tools
+**MCP Tools:** No authentication required - runs in trusted VSCode extension context
 
-**Authentication:** None required for MCP tools **Authorization:** File system
-permissions only **Rate Limiting:** None
+**LSP Methods:** No authentication required - communication over stdio/IPC
 
-### External APIs
+**External APIs:**
+- Anthropic Admin API: Requires admin API key (`sk-ant-admin-...`)
+- OpenAI Admin API: Requires admin API key with `api.usage.read` scope
+- GitHub API: No authentication (public repository)
+- Twilio API: Account SID + Auth Token (optional feature)
 
-**Anthropic API:**
-
-- **Key:** `gofer.anthropicApiKey` setting
-- **Usage:** Orchestrator, autonomous mode, LLM council
-- **Models:** Claude 3.5 Sonnet, Claude 3.5 Haiku
-
-**Google AI API:**
-
-- **Key:** `gofer.googleApiKey` setting
-- **Usage:** LLM council (optional)
-- **Models:** Gemini 1.5 Pro, Gemini 1.5 Flash
-
-**OpenAI API:**
-
-- **Key:** `gofer.openaiApiKey` setting
-- **Usage:** LLM council (optional)
-- **Models:** GPT-4, GPT-4 Turbo
+**API Keys Storage:** VSCode settings (per-user or per-workspace), not committed to git
 
 ---
 
-## Error Handling
+## Rate Limits
 
-### MCP Tool Errors
+**MCP Tools:** No rate limits (local execution)
 
-```typescript
-interface MCPError {
-  code: string;
-  message: string;
-  statusCode?: number;
-}
-```
+**External APIs:**
+- Anthropic Admin API: 60s minimum polling interval recommended
+- OpenAI Admin API: Standard rate limits apply
+- GitHub API: 60 requests/hour (unauthenticated), 5000 requests/hour (authenticated)
 
-**Error Codes:**
+**File System:**
+- JSONL logs: Append-only, no read rate limits
+- Spec parsing: Cached in memory, invalidated on file change
 
-| Code               | Status | Description                   |
-| ------------------ | ------ | ----------------------------- |
-| `VALIDATION_ERROR` | 400    | Invalid parameters            |
-| `NOT_FOUND`        | 404    | Spec/task not found           |
-| `FILE_READ_ERROR`  | 500    | Failed to read spec file      |
-| `PARSE_ERROR`      | 500    | Failed to parse YAML/markdown |
-| `DEPENDENCY_ERROR` | 409    | Task dependencies not met     |
+---
 
-**Example Error:**
+## Versioning
 
-```json
-{
-  "code": "NOT_FOUND",
-  "message": "Resource not found: auth-001/FR-999",
-  "statusCode": 404
-}
-```
+**MCP Protocol Version:** Experimental (VSCode MCP support)
 
-### LSP Errors
+**LSP Protocol Version:** 3.17
 
-Standard LSP error codes (JSON-RPC 2.0):
+**API Stability:**
+- MCP tools: Stable since v3.0
+- LSP methods: Stable since v2.0
+- External API integrations: Follows provider versioning
 
-- `-32700` - Parse error
-- `-32600` - Invalid request
-- `-32601` - Method not found
-- `-32602` - Invalid params
-- `-32603` - Internal error
+**Breaking Changes:** Documented in CHANGELOG.md

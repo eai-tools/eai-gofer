@@ -1,6 +1,6 @@
 ---
-generated: '2026-03-11T22:14:00Z'
-source_commit: '29a322a5fd292b6346a0cf0d2ae981a59ffe4a4c'
+generated: "2026-04-30T00:00:00Z"
+source_commit: "c215b3f03a916f2db463f5ff27223dbf94ceea46"
 ---
 
 # Configuration
@@ -100,7 +100,43 @@ Configure via `Cmd/Ctrl+,` or `.vscode/settings.json`
 - **Description:** Automatically answer Claude Code questions using Haiku
 - **Requires:** `gofer.anthropicApiKey`
 
-**Preferred AI Tool**
+**Default CLI Platform (v3.0+)**
+
+```json
+{
+  "gofer.defaultCLI": "auto"
+}
+```
+
+- **Options:** `"auto"`, `"claude"`, `"copilot"`, `"codex"`, `"gemini"`
+- **Default:** `"auto"`
+- **Description:** AI CLI for Gofer command routing
+- **Auto-detection:** Automatically detects installed CLI
+
+**Workflow Profile (v3.0+)**
+
+```json
+{
+  "gofer.workflowProfile": "enterpriseai"
+}
+```
+
+- **Options:** `"standard"`, `"enterpriseai"`
+- **Default:** `"enterpriseai"`
+- **Description:** EnterpriseAI-focused workflow guidance
+
+**Use External References**
+
+```json
+{
+  "gofer.enterpriseAiUseExternalReferences": false
+}
+```
+
+- **Default:** `false`
+- **Description:** Prefer external EnterpriseAI URLs vs local fallback
+
+**Preferred AI Tool (Legacy)**
 
 ```json
 {
@@ -110,7 +146,7 @@ Configure via `Cmd/Ctrl+,` or `.vscode/settings.json`
 
 - **Options:** `"claude"`, `"copilot"`, `"ask"`
 - **Default:** `"ask"`
-- **Description:** Which AI to use when sending tasks
+- **Description:** Which AI to use when sending tasks (legacy setting)
 
 **Claude Code Launch Mode**
 
@@ -540,6 +576,95 @@ Configure via `Cmd/Ctrl+,` or `.vscode/settings.json`
   `"markdown-wysiwyg"`
 - **Default:** `"preview"`
 - **Description:** How to view markdown in tree views
+
+**AI Usage Panel Settings (v3.0+)**
+
+```json
+{
+  "gofer.aiUsage.statusBar.enabled": true,
+  "gofer.aiUsage.polling.interval": 3600000,
+  "gofer.aiUsage.useApiClient": true,
+  "gofer.aiUsage.api.pollingInterval": 60000
+}
+```
+
+- **Status Bar:** Show AI cost in status bar
+- **Polling Interval:** Fallback when file watcher inactive (1 hour default)
+- **Use API Client:** Fetch real billing data from provider APIs
+- **API Polling:** How often to poll billing APIs (1 minute default)
+
+**Admin API Keys (v3.0+)**
+
+```json
+{
+  "gofer.anthropicAdminApiKey": "sk-ant-admin-...",
+  "gofer.openaiAdminApiKey": "sk-..."
+}
+```
+
+- **Anthropic Admin:** Starts with `sk-ant-admin-...`
+- **OpenAI Admin:** Requires `api.usage.read` scope
+- **Usage:** AI Usage panel - real billing data
+
+**Memory Coverage (v3.0+)**
+
+```json
+{
+  "gofer.memory.coverageThreshold": 30
+}
+```
+
+- **Default:** `30` (30% keyword coverage)
+- **Range:** 0-100
+- **Description:** Threshold for skipping research docs when memories cover task keywords
+
+**Stage Detection Staleness**
+
+```json
+{
+  "gofer.stageDetectionStalenessMinutes": 30
+}
+```
+
+- **Default:** `30` minutes
+- **Range:** 5-120
+- **Description:** How long before stage detection falls back to heuristics
+
+**Diagnostics (v3.0+)**
+
+```json
+{
+  "gofer.diagnostics.resourceSnapshots.enabled": true,
+  "gofer.diagnostics.resourceSnapshots.intervalMs": 300000
+}
+```
+
+- **Snapshots:** Log lightweight resource metrics (RSS, heap, uptime)
+- **Interval:** Every 5 minutes default
+- **Purpose:** Attribute long-running VSCode slowdowns
+
+**CLI Provider (Legacy)**
+
+```json
+{
+  "gofer.cliProvider": "auto"
+}
+```
+
+- **Options:** `"claude"`, `"codex"`, `"copilot"`, `"gemini"`, `"auto"`
+- **Default:** `"auto"`
+- **Deprecated:** Use `gofer.defaultCLI` instead
+
+**Codex Command**
+
+```json
+{
+  "gofer.codexCommand": "codex"
+}
+```
+
+- **Default:** `"codex"`
+- **Description:** Custom path to Codex CLI executable
 
 ---
 

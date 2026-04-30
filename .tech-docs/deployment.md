@@ -1,6 +1,6 @@
 ---
-generated: '2026-03-11T22:14:00Z'
-source_commit: '29a322a5fd292b6346a0cf0d2ae981a59ffe4a4c'
+generated: "2026-04-30T00:00:00Z"
+source_commit: "c215b3f03a916f2db463f5ff27223dbf94ceea46"
 ---
 
 # Deployment
@@ -49,14 +49,14 @@ npm run package
 
 # 4. Build VSIX
 npx vsce package
-# Creates: gofer-1.17.1.vsix
+# Creates: gofer-3.1.0.vsix
 ```
 
 **Output:**
 
 - `extension/dist/extension.js` - Bundled extension
 - `language-server/dist/server.js` - Language server
-- `gofer-1.17.1.vsix` - Installable package
+- `gofer-3.1.0.vsix` - Installable package
 
 ---
 
@@ -162,7 +162,7 @@ jobs:
 gh release download --repo eai-tools/gofer --pattern "*.vsix"
 
 # Install in VSCode
-code --install-extension gofer-1.17.1.vsix
+code --install-extension gofer-3.1.0.vsix
 
 # Or via UI:
 # Extensions > ... > Install from VSIX

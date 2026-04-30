@@ -1,6 +1,8 @@
 ---
 name: 6_gofer_validate
-description: Validate the implementation against spec acceptance criteria across six quality dimensions.
+description: >-
+  Unified validation, blast-radius analysis, and engineering review (3 phases,
+  110-point rubric)
 agent: copilot-workspace
 tools:
   - Read

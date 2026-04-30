@@ -1,6 +1,6 @@
 ---
-generated: "2026-04-30T17:58:10Z"
-source_commit: "64d169eba2a63002e0dcce3f4685790f6ddf7f88"
+generated: "2026-04-30T22:52:00Z"
+source_commit: "42dbe8f354ac8928bfa3d1e6c5b42989a9b6c55f"
 ---
 
 # Dependencies
@@ -249,19 +249,25 @@ Claude Code **Status:** Experimental support
 
 ### Production Dependencies (Extension)
 
-| Package                 | Version  | Purpose                | Critical |
-| ----------------------- | -------- | ---------------------- | -------- |
-| `@anthropic-ai/sdk`     | ^0.67.0  | Claude API             | No       |
-| `@google/generative-ai` | ^0.21.0  | Gemini API             | No       |
-| `ajv`                   | ^8.18.0  | JSON schema validation | Yes      |
-| `chokidar`              | ^3.5.3   | File watching          | Yes      |
-| `express`               | ^5.1.0   | HTTP server (council)  | No       |
-| `graphlib`              | ^2.1.8   | Dependency graphs      | Yes      |
-| `node-pty`              | ^1.0.0   | Terminal emulation     | Yes      |
-| `openai`                | ^4.104.0 | OpenAI API             | No       |
-| `twilio`                | ^5.3.0   | WhatsApp               | No       |
-| `vscode-languageclient` | ^9.0.1   | LSP client             | Yes      |
-| `ws`                    | ^8.18.0  | WebSocket              | No       |
+| Package                          | Version         | Purpose                | Critical |
+| -------------------------------- | --------------- | ---------------------- | -------- |
+| `@anthropic-ai/sdk`              | ^0.67.0         | Claude API             | No       |
+| `@google/generative-ai`          | ^0.21.0         | Gemini API             | No       |
+| `@lydell/node-pty`               | ^1.2.0-beta.3   | Terminal emulation     | No       |
+| `node-pty-prebuilt-multiarch`    | ^0.10.1-pre.5   | Terminal emulation     | Yes      |
+| `ajv`                            | ^8.18.0         | JSON schema validation | Yes      |
+| `chokidar`                       | ^3.5.3          | File watching          | Yes      |
+| `express`                        | ^5.1.0          | HTTP server (council)  | No       |
+| `fast-glob`                      | ^3.3.2          | File pattern matching  | Yes      |
+| `graphlib`                       | ^2.1.8          | Dependency graphs      | Yes      |
+| `jszip`                          | ^3.10.1         | ZIP file handling      | No       |
+| `openai`                         | ^4.104.0        | OpenAI API             | No       |
+| `reflect-metadata`               | ^0.2.2          | DI metadata            | Yes      |
+| `tsyringe`                       | ^4.10.0         | Dependency injection   | Yes      |
+| `twilio`                         | ^5.3.0          | WhatsApp notifications | No       |
+| `uuid`                           | ^10.0.0         | UUID generation        | Yes      |
+| `vscode-languageclient`          | ^9.0.1          | LSP client             | Yes      |
+| `ws`                             | ^8.18.0         | WebSocket              | No       |
 
 ### Production Dependencies (Language Server)
 

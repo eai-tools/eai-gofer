@@ -22,9 +22,9 @@ suite('enterpriseai workflow profile contracts', () => {
     await fs.rm(fixturesRoot, { recursive: true, force: true });
   });
 
-  test('normalizes unknown workflow profile values to standard', () => {
-    assert.strictEqual(normalizeWorkflowProfile('unknown-profile'), 'standard');
-    assert.strictEqual(normalizeWorkflowProfile(undefined), 'standard');
+  test('normalizes unknown workflow profile values to enterpriseai', () => {
+    assert.strictEqual(normalizeWorkflowProfile('unknown-profile'), 'enterpriseai');
+    assert.strictEqual(normalizeWorkflowProfile(undefined), 'enterpriseai');
     assert.strictEqual(normalizeWorkflowProfile('enterpriseai'), 'enterpriseai');
   });
 

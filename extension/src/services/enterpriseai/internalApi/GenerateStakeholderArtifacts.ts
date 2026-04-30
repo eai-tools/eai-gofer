@@ -17,9 +17,31 @@ export interface GenerateStakeholderArtifactsRequest {
   workflowProfile: WorkflowProfile;
   enableMarpDeck: boolean;
   inputArtifacts: StakeholderCommsInputArtifacts;
+  enablePersonaDecks?: boolean;
+  personaDecks?: readonly StakeholderPersona[];
   releaseNotesPath?: string;
   demoScriptPath?: string;
   marpDeckPath?: string;
+}
+
+export const STAKEHOLDER_PERSONAS = [
+  'executive',
+  'business',
+  'internal-delivery',
+  'enterprise-architecture',
+  'ciso',
+  'data-architecture',
+  'cio',
+  'cfo',
+  'coo',
+  'risk-compliance',
+] as const;
+
+export type StakeholderPersona = (typeof STAKEHOLDER_PERSONAS)[number];
+
+export interface PersonaDeckRecord {
+  persona: StakeholderPersona;
+  path: string;
 }
 
 export interface GenerateStakeholderArtifactsResponse {
@@ -30,6 +52,7 @@ export interface GenerateStakeholderArtifactsResponse {
   marpEnabled: boolean;
   marpDeckGenerated: boolean;
   marpRecommendedByDefault: boolean;
+  personaDeckPaths?: readonly PersonaDeckRecord[];
 }
 
 export interface StakeholderCommsGeneratedEventPayload {
@@ -39,6 +62,8 @@ export interface StakeholderCommsGeneratedEventPayload {
   demoScriptPath: string;
   marpDeckPath: string;
   marpEnabled: boolean;
+  personaDeckPaths?: readonly string[];
+  personaDeckPersonas?: readonly string[];
 }
 
 export interface GenerateStakeholderArtifactsEvent {
@@ -76,9 +101,20 @@ interface LoadedInputArtifacts {
 interface StakeholderSections {
   problemStatement: string;
   solutionOverview: string;
+  aiAugmentedJourney?: string;
   architectureReference: string;
   demoSummary: string;
   successMetrics: string;
+}
+
+interface PersonaDeckProfile {
+  label: string;
+  title: string;
+  decisionFocus: string;
+  primaryDecision: string;
+  diagram: readonly string[];
+  valueRows: readonly (readonly [string, string, string])[];
+  requiredControls: readonly string[];
 }
 
 const REQUIRED_SECTION_TITLES: readonly string[] = [
@@ -88,6 +124,282 @@ const REQUIRED_SECTION_TITLES: readonly string[] = [
   'Demo Script Summary',
   'Success Metrics',
 ];
+
+const PERSONA_DECK_PROFILES: Readonly<Record<StakeholderPersona, PersonaDeckProfile>> = {
+  executive: {
+    label: 'Executive Committee',
+    title: 'Executive Committee EnterpriseAI Readout',
+    decisionFocus: 'Portfolio value, strategic fit, funding, and executive risk appetite.',
+    primaryDecision:
+      'Approve the vertical outcome, sponsor, value target, and next investment gate.',
+    diagram: [
+      'flowchart LR',
+      '  Need["Business need"] --> Vertical["EnterpriseAI vertical"]',
+      '  Vertical --> Outcome["Measurable outcome"]',
+      '  Vertical --> Governance["Decision gates"]',
+      '  Outcome --> Value["Enterprise value"]',
+      '  Governance --> Risk["Managed risk"]',
+    ],
+    valueRows: [
+      ['Value case', 'Business outcome, time-to-value, adoption target', 'Fund / hold / stop'],
+      [
+        'Enterprise fit',
+        'Alignment to platform patterns and reuse',
+        'Sponsor cross-functional support',
+      ],
+      [
+        'Risk posture',
+        'Residual risk after controls and validation',
+        'Accept or require mitigation',
+      ],
+    ],
+    requiredControls: [
+      'Named executive sponsor and value owner',
+      'Stage gate for scope, funding, risk, and launch readiness',
+      'Audit trail showing why build, reuse, or extend was chosen',
+    ],
+  },
+  business: {
+    label: 'Business Owner',
+    title: 'Business Owner EnterpriseAI Readout',
+    decisionFocus: 'User journey, operational change, adoption, and measurable business value.',
+    primaryDecision: 'Confirm the target process, user groups, rollout plan, and success measures.',
+    diagram: [
+      'journey',
+      '  title Business journey',
+      '  section Current state',
+      '    Manual handoff: 2: User',
+      '    Rework loop: 2: Operations',
+      '  section EnterpriseAI state',
+      '    Guided intake: 5: User',
+      '    Governed outcome: 5: Business',
+    ],
+    valueRows: [
+      ['User impact', 'Before/after journey and training impact', 'Approve change plan'],
+      ['Operational value', 'Cycle time, quality, and cost target', 'Confirm metric owner'],
+      ['Adoption path', 'Pilot cohort, communications, support model', 'Approve launch path'],
+    ],
+    requiredControls: [
+      'Business process owner named for each workflow',
+      'Change, training, and support plan attached to launch gate',
+      'Success metric baseline captured before implementation',
+    ],
+  },
+  'internal-delivery': {
+    label: 'Internal Delivery',
+    title: 'Internal Delivery EnterpriseAI Readout',
+    decisionFocus:
+      'Delivery sequencing, dependencies, implementation risk, and validation readiness.',
+    primaryDecision:
+      'Commit the delivery plan, dependency order, owners, and test-first validation loop.',
+    diagram: [
+      'flowchart TD',
+      '  Spec["Approved spec"] --> Tests["Failing tests from contract"]',
+      '  Tests --> Build["Implementation"]',
+      '  Build --> Validate["Validation rubric"]',
+      '  Validate --> Fix["Finding fixes"]',
+      '  Fix --> Validate',
+      '  Validate --> Release["Stakeholder release pack"]',
+    ],
+    valueRows: [
+      ['Plan clarity', 'Dependency-ordered tasks and owners', 'Commit sprint or phase plan'],
+      ['Quality loop', 'Red/green tests before implementation', 'Approve readiness gate'],
+      ['Delivery risk', 'Open blockers and mitigation owners', 'Escalate or accept'],
+    ],
+    requiredControls: [
+      'Spec-derived tests fail before implementation and pass after',
+      'Persistent finding IDs retained through review cycles',
+      'Task ownership and rollback plan documented before release',
+    ],
+  },
+  'enterprise-architecture': {
+    label: 'Enterprise Architecture',
+    title: 'Enterprise Architecture EnterpriseAI Readout',
+    decisionFocus:
+      'Platform fit, integration boundaries, contracts, reuse, and long-term maintainability.',
+    primaryDecision:
+      'Approve architecture, contract pack, reuse choice, and platform boundary assumptions.',
+    diagram: [
+      'flowchart LR',
+      '  Users["User journeys"] --> App["Vertical app"]',
+      '  App --> API["ResourceAPI / services"]',
+      '  API --> Objects["Object types"]',
+      '  API --> Events["Events / integrations"]',
+      '  App --> Controls["Tenant and policy controls"]',
+      '  Controls --> Platform["EnterpriseAI platform"]',
+    ],
+    valueRows: [
+      ['Reuse decision', 'Reuse, extend, or create-new rationale', 'Approve architecture decision'],
+      ['Contract pack', 'Actors, objects, APIs, events, tests', 'Approve interface boundary'],
+      ['Platform posture', 'Tenant, deployment, runtime assumptions', 'Approve target pattern'],
+    ],
+    requiredControls: [
+      'Context bundle includes relevant existing specs and APIs',
+      'Lightweight contract pack is complete before build starts',
+      'Architecture decision record links to reuse-before-create scan',
+    ],
+  },
+  ciso: {
+    label: 'CISO',
+    title: 'CISO EnterpriseAI Readout',
+    decisionFocus:
+      'Identity, tenant boundary, data protection, control evidence, and residual risk.',
+    primaryDecision:
+      'Accept the control set, security validation evidence, and launch risk posture.',
+    diagram: [
+      'flowchart LR',
+      '  Identity["Entra / identity"] --> App["Vertical app"]',
+      '  App --> Policy["Policy enforcement"]',
+      '  Policy --> Tenant["Tenant boundary"]',
+      '  Tenant --> Data["Protected data"]',
+      '  App --> Audit["Audit evidence"]',
+      '  Audit --> Risk["Risk acceptance"]',
+    ],
+    valueRows: [
+      ['Identity and access', 'Actors, permissions, tenant boundary', 'Approve control model'],
+      ['Data protection', 'Classification, retention, logging, privacy', 'Accept residual risk'],
+      ['Evidence', 'Validation report, audit history, recurring findings', 'Approve launch gate'],
+    ],
+    requiredControls: [
+      'Threat model and abuse cases attached to validation',
+      'Recurring findings escalate until remediated or accepted',
+      'No credentials or sensitive configuration values in generated artifacts',
+    ],
+  },
+  'data-architecture': {
+    label: 'Data Architecture',
+    title: 'Data Architecture EnterpriseAI Readout',
+    decisionFocus: 'Data model, lineage, governance, quality, and analytical readiness.',
+    primaryDecision:
+      'Approve object types, data flows, lineage, quality checks, and stewardship model.',
+    diagram: [
+      'flowchart LR',
+      '  Source["Source systems"] --> Ingest["EnterpriseAI ingest"]',
+      '  Ingest --> Objects["Object types"]',
+      '  Objects --> Workflows["Workflows"]',
+      '  Objects --> Analytics["Analytics / reporting"]',
+      '  Objects --> Lineage["Lineage and stewardship"]',
+    ],
+    valueRows: [
+      ['Object model', 'Canonical object types and ownership', 'Approve data design'],
+      ['Lineage', 'Source, transform, retention, reporting path', 'Approve governance evidence'],
+      ['Quality', 'Validation rules, reconciliation, monitoring', 'Approve quality gate'],
+    ],
+    requiredControls: [
+      'Object type reuse scan completed before new type creation',
+      'Data lineage, classification, and retention captured in contract pack',
+      'Quality checks included in acceptance tests and validation report',
+    ],
+  },
+  cio: {
+    label: 'CIO',
+    title: 'CIO EnterpriseAI Readout',
+    decisionFocus: 'Technology strategy, delivery confidence, platform reuse, and operating model.',
+    primaryDecision:
+      'Approve platform alignment, delivery readiness, operating model, and adoption path.',
+    diagram: [
+      'flowchart LR',
+      '  Strategy["Technology strategy"] --> Platform["EnterpriseAI platform"]',
+      '  Platform --> Vertical["Reusable vertical"]',
+      '  Vertical --> Ops["Operating model"]',
+      '  Ops --> Metrics["Run and value metrics"]',
+      '  Platform --> Roadmap["Future verticals"]',
+    ],
+    valueRows: [
+      ['Strategic alignment', 'Platform reuse and capability roadmap', 'Approve roadmap fit'],
+      [
+        'Delivery confidence',
+        'Tasks, tests, validation, and release pack',
+        'Approve launch readiness',
+      ],
+      ['Run model', 'Support, observability, ownership, costs', 'Approve operating model'],
+    ],
+    requiredControls: [
+      'Platform standards and extension points are documented',
+      'Reusable context bundle supports future vertical teams',
+      'Runbook and operating ownership are approved before launch',
+    ],
+  },
+  cfo: {
+    label: 'CFO',
+    title: 'CFO EnterpriseAI Readout',
+    decisionFocus: 'Investment case, value realization, delivery cost, and measurable benefits.',
+    primaryDecision:
+      'Approve funding, benefit tracking, value owner, and financial risk treatment.',
+    diagram: [
+      'flowchart LR',
+      '  Investment["Investment"] --> Build["EnterpriseAI build"]',
+      '  Build --> Adoption["Adoption"]',
+      '  Adoption --> Benefit["Measured benefit"]',
+      '  Benefit --> Reinvest["Scale or reinvest"]',
+      '  Build --> Controls["Cost and risk controls"]',
+    ],
+    valueRows: [
+      ['Investment', 'Build, run, and change cost estimate', 'Approve funding'],
+      ['Benefits', 'Baseline, target, owner, review cadence', 'Approve value tracking'],
+      ['Risk cost', 'Residual risk and mitigation cost', 'Accept or require mitigation'],
+    ],
+    requiredControls: [
+      'Baseline and target financial metrics captured before launch',
+      'Benefit owner signs off on measurement method',
+      'Reuse-before-create decision includes cost implication',
+    ],
+  },
+  coo: {
+    label: 'COO',
+    title: 'COO EnterpriseAI Readout',
+    decisionFocus: 'Process impact, operational readiness, service adoption, and support model.',
+    primaryDecision:
+      'Approve operational change, rollout sequencing, support readiness, and handover.',
+    diagram: [
+      'flowchart TD',
+      '  Process["Target process"] --> Pilot["Pilot cohort"]',
+      '  Pilot --> Feedback["Feedback loop"]',
+      '  Feedback --> Scale["Scale rollout"]',
+      '  Scale --> Run["Run operations"]',
+      '  Run --> Improve["Continuous improvement"]',
+    ],
+    valueRows: [
+      [
+        'Operational impact',
+        'Changed steps, teams, handoffs, exceptions',
+        'Approve process change',
+      ],
+      ['Readiness', 'Training, support, runbook, monitoring', 'Approve go-live'],
+      ['Performance', 'SLA, throughput, quality, escalation path', 'Approve run targets'],
+    ],
+    requiredControls: [
+      'Operational runbook and support model are release blockers',
+      'Exception paths are defined before rollout',
+      'Adoption and support metrics reviewed during first 30 days',
+    ],
+  },
+  'risk-compliance': {
+    label: 'Risk and Compliance',
+    title: 'Risk and Compliance EnterpriseAI Readout',
+    decisionFocus: 'Policy obligations, evidence, auditability, exceptions, and residual risk.',
+    primaryDecision:
+      'Approve obligation coverage, evidence pack, exception handling, and audit trail.',
+    diagram: [
+      'flowchart LR',
+      '  Obligations["Policy obligations"] --> Controls["Controls"]',
+      '  Controls --> Evidence["Evidence pack"]',
+      '  Evidence --> Audit["Audit history"]',
+      '  Audit --> Exceptions["Exceptions"]',
+      '  Exceptions --> Decision["Risk decision"]',
+    ],
+    valueRows: [
+      ['Obligations', 'Relevant policies, controls, and owners', 'Approve compliance mapping'],
+      ['Evidence', 'Validation artifacts and persistent finding IDs', 'Approve evidence pack'],
+      ['Exceptions', 'Open issues, compensating controls, expiry', 'Approve risk treatment'],
+    ],
+    requiredControls: [
+      'Audit history records every recurring finding and disposition',
+      'Compliance obligations are mapped to acceptance tests',
+      'Exceptions include owner, expiry, and review cadence',
+    ],
+  },
+};
 
 function toIsoTimestamp(date: Date = new Date()): string {
   return date.toISOString();
@@ -112,6 +424,28 @@ function resolveMarpEnabled(workflowProfile: WorkflowProfile, enableMarpDeck: bo
 
 function isMarpRecommendedByDefault(workflowProfile: WorkflowProfile): boolean {
   return workflowProfile === 'enterpriseai';
+}
+
+function isStakeholderPersona(value: string): value is StakeholderPersona {
+  return (STAKEHOLDER_PERSONAS as readonly string[]).includes(value);
+}
+
+function resolvePersonaDecks(
+  request: GenerateStakeholderArtifactsRequest,
+  marpEnabled: boolean
+): readonly StakeholderPersona[] {
+  if (!marpEnabled || request.enablePersonaDecks === false) {
+    return [];
+  }
+
+  if (!request.personaDecks || request.personaDecks.length === 0) {
+    return STAKEHOLDER_PERSONAS;
+  }
+
+  const normalized = request.personaDecks.filter((persona: StakeholderPersona): boolean =>
+    isStakeholderPersona(persona)
+  );
+  return Array.from(new Set(normalized));
 }
 
 function isWithinWorkspace(resolvedWorkspaceRoot: string, absolutePath: string): boolean {
@@ -210,13 +544,16 @@ function extractSummary(content: string, label: string): string {
   return summaryLines.join(' ');
 }
 
-function buildStakeholderSections(inputArtifacts: LoadedInputArtifacts): StakeholderSections {
+function buildStakeholderSections(
+  inputArtifacts: LoadedInputArtifacts,
+  workflowProfile: WorkflowProfile
+): StakeholderSections {
   const problemStatement = extractSummary(inputArtifacts.discovery, 'discovery');
   const solutionOverview = extractSummary(inputArtifacts.spec, 'spec');
   const architectureReference = extractSummary(inputArtifacts.plan, 'plan');
   const demoSummary = extractSummary(inputArtifacts.implementationSummary, 'implementationSummary');
 
-  return {
+  const sections: StakeholderSections = {
     problemStatement,
     solutionOverview,
     architectureReference,
@@ -224,6 +561,22 @@ function buildStakeholderSections(inputArtifacts: LoadedInputArtifacts): Stakeho
     successMetrics:
       'Deployment readiness gate passes (manifest/config), parity checks pass, and stakeholder demo completes within 5 minutes.',
   };
+  if (workflowProfile === 'enterpriseai') {
+    sections.aiAugmentedJourney =
+      'App delivery uses a four-step-or-fewer AI-augmented journey: each step has a business goal, generative AI assistance, contextual data use, human controls, audit trail, and a completion signal. Non-app runs must carry the explicit classification rationale.';
+  }
+  return sections;
+}
+
+function buildAiJourneySection(
+  sections: StakeholderSections,
+  heading: string = '## AI-Augmented 4-Step Journey'
+): readonly string[] {
+  if (!sections.aiAugmentedJourney) {
+    return [];
+  }
+
+  return [heading, sections.aiAugmentedJourney, ''];
 }
 
 function buildReleaseNotesContent(
@@ -243,6 +596,7 @@ function buildReleaseNotesContent(
     '## EnterpriseAI Solution Overview',
     sections.solutionOverview,
     '',
+    ...buildAiJourneySection(sections),
     '## Architecture Diagram Reference',
     sections.architectureReference,
     '',
@@ -265,11 +619,14 @@ function buildDemoScriptContent(runId: string, sections: StakeholderSections): s
     `   - ${sections.problemStatement}`,
     '2. **EnterpriseAI Solution Overview**',
     `   - ${sections.solutionOverview}`,
-    '3. **Architecture Diagram Reference**',
+    ...(sections.aiAugmentedJourney
+      ? ['3. **AI-Augmented 4-Step Journey**', `   - ${sections.aiAugmentedJourney}`]
+      : []),
+    `${sections.aiAugmentedJourney ? '4' : '3'}. **Architecture Diagram Reference**`,
     `   - ${sections.architectureReference}`,
-    '4. **Demo Script Summary**',
+    `${sections.aiAugmentedJourney ? '5' : '4'}. **Demo Script Summary**`,
     `   - ${sections.demoSummary}`,
-    '5. **Success Metrics**',
+    `${sections.aiAugmentedJourney ? '6' : '5'}. **Success Metrics**`,
     `   - ${sections.successMetrics}`,
     '',
   ].join('\n');
@@ -293,6 +650,7 @@ function buildMarpDeckContent(runId: string, sections: StakeholderSections): str
     '## EnterpriseAI Solution Overview',
     sections.solutionOverview,
     '',
+    ...buildAiJourneySection(sections),
     '## Architecture Diagram Reference',
     sections.architectureReference,
     '',
@@ -305,8 +663,156 @@ function buildMarpDeckContent(runId: string, sections: StakeholderSections): str
   ].join('\n');
 }
 
-function assertStakeholderContent(content: string, artifactName: string): void {
-  for (const sectionTitle of REQUIRED_SECTION_TITLES) {
+function buildPersonaValueRows(
+  rows: readonly (readonly [string, string, string])[]
+): readonly string[] {
+  return [
+    '| Area | What This Persona Needs | Decision Signal |',
+    '| ---- | ----------------------- | --------------- |',
+    ...rows.map((row): string => `| ${row[0]} | ${row[1]} | ${row[2]} |`),
+  ];
+}
+
+function buildPersonaControlRows(controls: readonly string[]): readonly string[] {
+  return [
+    '| Control | Evidence Expected |',
+    '| ------- | ----------------- |',
+    ...controls.map((control, index): string => `| ${index + 1}. ${control} | Required |`),
+  ];
+}
+
+function buildPersonaMarpDeckContent(
+  runId: string,
+  persona: StakeholderPersona,
+  sections: StakeholderSections
+): string {
+  const profile = PERSONA_DECK_PROFILES[persona];
+  return [
+    '---',
+    'marp: true',
+    'theme: default',
+    'paginate: true',
+    `title: '${profile.title}'`,
+    '---',
+    '',
+    `# ${profile.title}`,
+    '',
+    `Run ID: ${runId}`,
+    `Audience: ${profile.label}`,
+    '',
+    '## Executive Summary',
+    '',
+    `- Problem: ${sections.problemStatement}`,
+    `- EnterpriseAI value: ${sections.solutionOverview}`,
+    `- Decision focus: ${profile.decisionFocus}`,
+    '',
+    '---',
+    '',
+    '# Decision Focus',
+    '',
+    profile.primaryDecision,
+    '',
+    '## Problem Statement',
+    sections.problemStatement,
+    '',
+    '---',
+    '',
+    '# EnterpriseAI Solution Overview',
+    '',
+    sections.solutionOverview,
+    '',
+    ...buildAiJourneySection(sections),
+    '## EnterpriseAI Value/Risk Table',
+    '',
+    ...buildPersonaValueRows(profile.valueRows),
+    '',
+    '---',
+    '',
+    '# Architecture Diagram Reference',
+    '',
+    '```mermaid',
+    ...profile.diagram,
+    '```',
+    '',
+    sections.architectureReference,
+    '',
+    '---',
+    '',
+    '# Context Bundle',
+    '',
+    '| Artifact | Purpose | Required For This Persona |',
+    '| -------- | ------- | ------------------------- |',
+    '| `context-bundle.md` | Compact bundle of spec, tasks, EnterpriseAI object types, tenant assumptions, APIs, and validation criteria | Yes |',
+    '| `reuse-scan.md` | Reuse-before-create scan for object types, APIs, workflows, modules, and prior specs | Yes |',
+    '| `contract-pack.md` | Actors, object types, journeys, permissions, APIs/events, runtime assumptions, and acceptance tests | Yes |',
+    '',
+    '---',
+    '',
+    '# Contract Pack',
+    '',
+    '| Contract Element | EnterpriseAI Decision Need |',
+    '| ---------------- | -------------------------- |',
+    '| Actors | Who can act, approve, administer, or consume the vertical |',
+    '| Object types | Canonical entities, owners, lineage, retention, and reuse decisions |',
+    '| Workflows and journeys | External user journeys, four-step AI-augmented app process, and internal orchestration flows |',
+    '| AI assistance | Chat/voice/accessibility/translation, contextual prefill, recommendation, validation, controls, audit, and escalation per step |',
+    '| Permissions and tenant boundaries | Identity, access, policy, and data isolation assumptions |',
+    '| APIs and events | ResourceAPI surfaces, integration events, and contract tests |',
+    '| Acceptance tests | Business, security, data, architecture, and operational acceptance checks |',
+    '',
+    '---',
+    '',
+    '# Reuse-Before-Create',
+    '',
+    '| Candidate | Decision | Evidence |',
+    '| --------- | -------- | -------- |',
+    '| Existing object type | Reuse / extend / create new | Link to existing spec or platform reference |',
+    '| Existing workflow | Reuse / extend / create new | Link to journey or orchestration flow |',
+    '| Existing API/event | Reuse / extend / create new | Link to contract and validation test |',
+    '',
+    '---',
+    '',
+    '# Audit History',
+    '',
+    '| Finding ID | Status | Escalation Rule |',
+    '| ---------- | ------ | --------------- |',
+    '| `AUD-001` | Open / fixed / accepted | Recurring findings escalate to the decision owner |',
+    '| `AUD-002` | Open / fixed / accepted | Exceptions require owner, expiry, and review cadence |',
+    '',
+    '## Red/Green Validation Loop',
+    '',
+    '1. Generate acceptance tests from the contract pack.',
+    '2. Confirm tests fail against missing or incomplete implementation.',
+    '3. Implement in a separate delivery context.',
+    '4. Re-run validation, retain stable finding IDs, and repeat until launch criteria pass.',
+    '',
+    '---',
+    '',
+    '# Demo Script Summary',
+    '',
+    sections.demoSummary,
+    '',
+    '## Success Metrics',
+    sections.successMetrics,
+    '',
+    '---',
+    '',
+    '# Persona-Specific Controls',
+    '',
+    ...buildPersonaControlRows(profile.requiredControls),
+    '',
+  ].join('\n');
+}
+
+function assertStakeholderContent(
+  content: string,
+  artifactName: string,
+  requireAiJourney: boolean
+): void {
+  const requiredSectionTitles = requireAiJourney
+    ? [...REQUIRED_SECTION_TITLES, 'AI-Augmented 4-Step Journey']
+    : REQUIRED_SECTION_TITLES;
+  for (const sectionTitle of requiredSectionTitles) {
     if (!content.includes(sectionTitle)) {
       throw new Error(
         `COMMS_MARP_TEMPLATE_INVALID: ${artifactName} is missing required section "${sectionTitle}".`
@@ -439,20 +945,49 @@ export async function generateStakeholderArtifacts(
 
   const marpEnabled = resolveMarpEnabled(request.workflowProfile, request.enableMarpDeck);
   const generatedAt = options.generatedAt ?? toIsoTimestamp();
-  const sections = buildStakeholderSections(loadedInputArtifacts);
+  const sections = buildStakeholderSections(loadedInputArtifacts, request.workflowProfile);
+  const personaDecks = resolvePersonaDecks(request, marpEnabled);
+  const personaDeckRecords: readonly PersonaDeckRecord[] = personaDecks.map(
+    (persona: StakeholderPersona): PersonaDeckRecord => ({
+      persona,
+      path: deriveArtifactPath(
+        resolvedInputPaths.spec.reportPath,
+        `presentations/${persona}.marp.md`
+      ),
+    })
+  );
+  const resolvedPersonaDeckPaths = personaDeckRecords.map((record: PersonaDeckRecord) =>
+    resolveWorkspacePath(workspaceRoot, record.path, `${record.persona}PersonaDeckPath`)
+  );
 
   const releaseNotesContent = buildReleaseNotesContent(request.runId, generatedAt, sections);
   const demoScriptContent = buildDemoScriptContent(request.runId, sections);
   const marpDeckContent = buildMarpDeckContent(request.runId, sections);
+  const personaDeckContents = personaDeckRecords.map((record: PersonaDeckRecord): string =>
+    buildPersonaMarpDeckContent(request.runId, record.persona, sections)
+  );
 
-  assertStakeholderContent(releaseNotesContent, 'release-notes.md');
-  assertStakeholderContent(demoScriptContent, 'demo-script.md');
-  assertStakeholderContent(marpDeckContent, 'presentation.marp.md');
+  const requireAiJourney = request.workflowProfile === 'enterpriseai';
+  assertStakeholderContent(releaseNotesContent, 'release-notes.md', requireAiJourney);
+  assertStakeholderContent(demoScriptContent, 'demo-script.md', requireAiJourney);
+  assertStakeholderContent(marpDeckContent, 'presentation.marp.md', requireAiJourney);
+  personaDeckContents.forEach((content: string, index: number): void => {
+    assertStakeholderContent(
+      content,
+      `${personaDeckRecords[index].persona}.marp.md`,
+      requireAiJourney
+    );
+  });
 
   await writeArtifact(resolvedReleaseNotesPath, releaseNotesContent);
   await writeArtifact(resolvedDemoScriptPath, demoScriptContent);
   if (marpEnabled) {
     await writeArtifact(resolvedMarpDeckPath, marpDeckContent);
+    await Promise.all(
+      resolvedPersonaDeckPaths.map((pathInfo: ResolvedWorkspacePath, index: number) =>
+        writeArtifact(pathInfo, personaDeckContents[index])
+      )
+    );
   }
 
   const response: GenerateStakeholderArtifactsResponse = {
@@ -464,6 +999,9 @@ export async function generateStakeholderArtifacts(
     marpDeckGenerated: marpEnabled,
     marpRecommendedByDefault: isMarpRecommendedByDefault(request.workflowProfile),
   };
+  if (personaDeckRecords.length > 0) {
+    response.personaDeckPaths = personaDeckRecords;
+  }
 
   const eventPayload: StakeholderCommsGeneratedEventPayload = {
     eventId: options.eventId ?? buildEventId('evt_007', generatedAt),
@@ -473,6 +1011,14 @@ export async function generateStakeholderArtifacts(
     marpDeckPath: response.marpDeckPath,
     marpEnabled,
   };
+  if (personaDeckRecords.length > 0) {
+    eventPayload.personaDeckPaths = personaDeckRecords.map(
+      (record: PersonaDeckRecord): string => record.path
+    );
+    eventPayload.personaDeckPersonas = personaDeckRecords.map(
+      (record: PersonaDeckRecord): string => record.persona
+    );
+  }
   assertValidEventPayload(eventPayload);
 
   options.eventPublisher?.(eventPayload);

@@ -474,7 +474,7 @@ The next stage will read the artifacts from this stage and continue the workflow
     return /enterpriseai/i.test(sourceMetadata.content) ||
       /enterpriseai/i.test(sourceMetadata.description)
       ? 'enterpriseai'
-      : 'standard';
+      : 'enterpriseai';
   }
 
   private asRecord(value: unknown): Record<string, unknown> {

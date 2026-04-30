@@ -49,6 +49,7 @@ describe('PlatformDetector', () => {
       expect(detector.isPlatformAvailable('claude')).toBe(true);
       expect(detector.isPlatformAvailable('copilot')).toBe(false);
       expect(detector.isPlatformAvailable('codex')).toBe(false);
+      expect(detector.isPlatformAvailable('gemini')).toBe(false);
     });
 
     it('returns true for copilot when .github/prompts exists', () => {
@@ -59,6 +60,7 @@ describe('PlatformDetector', () => {
       expect(detector.isPlatformAvailable('copilot')).toBe(true);
       expect(detector.isPlatformAvailable('claude')).toBe(false);
       expect(detector.isPlatformAvailable('codex')).toBe(false);
+      expect(detector.isPlatformAvailable('gemini')).toBe(false);
     });
 
     it('returns true for codex when .system/skills exists', () => {
@@ -69,6 +71,18 @@ describe('PlatformDetector', () => {
       expect(detector.isPlatformAvailable('codex')).toBe(true);
       expect(detector.isPlatformAvailable('claude')).toBe(false);
       expect(detector.isPlatformAvailable('copilot')).toBe(false);
+      expect(detector.isPlatformAvailable('gemini')).toBe(false);
+    });
+
+    it('returns true for gemini when .gemini/commands/gofer exists', () => {
+      vi.mocked(fs.existsSync).mockImplementation((p: fs.PathLike) =>
+        String(p).includes('.gemini/commands/gofer')
+      );
+      const detector = PlatformDetector.getInstance(workspacePath);
+      expect(detector.isPlatformAvailable('gemini')).toBe(true);
+      expect(detector.isPlatformAvailable('claude')).toBe(false);
+      expect(detector.isPlatformAvailable('copilot')).toBe(false);
+      expect(detector.isPlatformAvailable('codex')).toBe(false);
     });
   });
 
@@ -80,7 +94,7 @@ describe('PlatformDetector', () => {
       expect(detector.getDefaultPlatform()).toBe('copilot');
     });
 
-    it('auto-detects claude first, then codex, then copilot', () => {
+    it('auto-detects claude first, then codex, then gemini, then copilot', () => {
       mockConfig['defaultCLI'] = 'auto';
       ConfigManager.getInstance().refresh();
 
@@ -96,6 +110,13 @@ describe('PlatformDetector', () => {
       });
       detector.clearCache();
       expect(detector.getDefaultPlatform()).toBe('claude');
+
+      vi.mocked(fs.existsSync).mockImplementation(
+        (p: fs.PathLike) =>
+          String(p).includes('.gemini/commands/gofer') || String(p).includes('.github/prompts')
+      );
+      detector.clearCache();
+      expect(detector.getDefaultPlatform()).toBe('gemini');
 
       vi.mocked(fs.existsSync).mockImplementation((p: fs.PathLike) =>
         String(p).includes('.github/prompts')
@@ -140,6 +161,7 @@ describe('PlatformDetector', () => {
       expect(ctx.hasClaudeDirectory).toBe(true);
       expect(ctx.hasCopilotDirectory).toBe(false);
       expect(ctx.hasCodexDirectory).toBe(false);
+      expect(ctx.hasGeminiDirectory).toBe(false);
     });
 
     it('caches detectPlatform result until clearCache', () => {

@@ -334,7 +334,7 @@
     "viewsWelcome": [
       {
         "view": "goferProgress",
-        "contents": "Welcome to Gofer for EnterpriseAI vertical app delivery.\n\nNo `.specify` workspace was found yet.\n\n[Initialize Gofer](command:gofer.initialize)\n\nGetting started:\n1. Initialize the workspace\n2. Open your AI chat/CLI and run `/0_business_scenario` (or `#0_business_scenario` in Copilot)\n3. Approve `proposal-review.md`, then continue through spec → plan → tasks → implement → validate\n\nEnterpriseAI-first guidance is active when `gofer.workflowProfile=enterpriseai`; standard and multi-platform workflows remain fully supported.\n\nUse **Gofer: Install Optional Developer Tools** if your preferred CLI is not installed."
+        "contents": "Welcome to Gofer for EnterpriseAI vertical app delivery.\n\nNo `.specify` workspace was found yet.\n\n[Initialize Gofer](command:gofer.initialize)\n\nGetting started:\n1. Initialize the workspace\n2. Open your AI chat/CLI and run `/0_business_scenario` (or `#0_business_scenario` in Copilot)\n3. Approve `proposal-review.md`, then continue through spec → plan → tasks → implement → validate\n\nEnterpriseAI-first guidance is the default. Set `gofer.workflowProfile=standard` only when you explicitly want the baseline Gofer workflow.\n\nUse **Gofer: Install Optional Developer Tools** if your preferred CLI is not installed."
       },
       {
         "view": "goferAIUsage",
@@ -582,17 +582,19 @@
             "claude",
             "copilot",
             "codex",
+            "gemini",
             "auto"
           ],
           "enumDescriptions": [
             "Use Claude Code CLI for all Gofer commands",
             "Use GitHub Copilot Chat for all Gofer commands",
             "Use OpenAI Codex CLI for all Gofer commands",
+            "Use Gemini CLI command files for all Gofer commands",
             "Auto-detect which CLI is installed and active"
           ],
           "default": "auto",
           "description": "Default AI CLI for Gofer command routing",
-          "markdownDescription": "Choose which AI platform to use for Gofer slash commands (research, specify, plan, tasks, implement, validate).\n\n- **Claude**: Use `.claude/commands/*.md` files\n- **Copilot**: Use `.github/prompts/*.prompt.md` files\n- **Codex**: Use `.system/skills/*/SKILL.md` files\n- **Auto**: Automatically detect which CLI is active\n\nThis enables complete feature parity across all three AI platforms.",
+          "markdownDescription": "Choose which AI platform to use for Gofer slash commands (research, specify, plan, tasks, implement, validate).\n\n- **Claude**: Use `.claude/commands/*.md` files\n- **Copilot**: Use `.github/prompts/*.prompt.md` files\n- **Codex**: Use `.system/skills/*/SKILL.md` files\n- **Gemini**: Use `.gemini/commands/gofer/*.toml` files\n- **Auto**: Automatically detect which CLI is active\n\nThis enables complete feature parity across Claude, Copilot, Codex, and Gemini.",
           "order": 27
         },
         "gofer.workflowProfile": {
@@ -602,12 +604,12 @@
             "enterpriseai"
           ],
           "enumDescriptions": [
-            "Standard Gofer behavior with existing multi-platform workflow defaults",
-            "EnterpriseAI-focused workflow guidance and artifact defaults (additive, no feature removal)"
+            "Standard Gofer behavior when explicitly requested",
+            "EnterpriseAI-focused workflow guidance and artifact defaults"
           ],
-          "default": "standard",
+          "default": "enterpriseai",
           "description": "Workflow profile used for Gofer pipeline guidance",
-          "markdownDescription": "Select the workflow profile Gofer uses during pipeline execution.\n\n- **standard**: Existing baseline behavior\n- **enterpriseai**: EnterpriseAI-first guidance, templates, and artifacts\n\nThis setting is additive and does not remove existing Gofer functionality.",
+          "markdownDescription": "Select the workflow profile Gofer uses during pipeline execution.\n\n- **enterpriseai**: Default EnterpriseAI-first guidance, templates, and artifacts\n- **standard**: Existing baseline behavior when explicitly requested\n\nThis setting is additive and does not remove existing Gofer functionality.",
           "order": 28
         },
         "gofer.enterpriseAiUseExternalReferences": {

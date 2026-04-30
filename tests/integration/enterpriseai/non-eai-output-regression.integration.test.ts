@@ -124,8 +124,8 @@ describe('enterpriseai non-eai output regression (root integration)', () => {
     expect(baselineProvenance.baselineId).toBe('pre-enterpriseai-standard-profile-v1');
     assertBaselineChecksums(baselineProvenance);
 
-    expect(normalizeWorkflowProfile(undefined)).toBe('standard');
-    expect(normalizeWorkflowProfile('unrecognized-profile')).toBe('standard');
+    expect(normalizeWorkflowProfile(undefined)).toBe('enterpriseai');
+    expect(normalizeWorkflowProfile('unrecognized-profile')).toBe('enterpriseai');
 
     const activation = workflowActivateProfile(
       {

@@ -395,12 +395,12 @@ export class ProviderFactory {
       return getWorkflowProfile(configuration);
     } catch (error: unknown) {
       this.logger.warn(
-        'Falling back to standard workflow profile after configuration read failure',
+        'Falling back to enterpriseai workflow profile after configuration read failure',
         {
           error: error instanceof Error ? error.message : String(error),
         }
       );
-      return 'standard';
+      return 'enterpriseai';
     }
   }
 }

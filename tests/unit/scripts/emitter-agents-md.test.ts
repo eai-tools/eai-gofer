@@ -3,8 +3,8 @@
  *
  * Verifies that:
  * 1. AGENTS.md is created with correct content
- * 2. All non-claude-only stages appear as sections
- * 3. CLAUDE_ONLY_STAGES do not appear
+ * 2. All portable stages appear as sections
+ * 3. Formerly Claude-only stages appear when they list portable surfaces
  */
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { promises as fs } from 'fs';
@@ -47,7 +47,7 @@ async function readFile(filePath: string): Promise<string> {
 }
 
 // ---------------------------------------------------------------------------
-// Fixtures — multiple non-claude-only stages + claude-only stages
+// Fixtures — multiple portable stages including formerly Claude-only stages
 // ---------------------------------------------------------------------------
 
 const RESEARCH_STAGE = `---
@@ -114,11 +114,14 @@ category: pipeline
 surfaces:
   - claude
   - claude-mirror
+  - agents-skills
+  - gemini
+  - codex
 ---
 
 # Business Scenario
 
-This stage is claude-only.
+This stage is portable.
 `;
 
 const GOFER_SAVE_STAGE = `---
@@ -129,6 +132,9 @@ category: pipeline
 surfaces:
   - claude
   - claude-mirror
+  - agents-skills
+  - gemini
+  - codex
 ---
 
 # Gofer Save
@@ -216,35 +222,31 @@ describe('agents-md emitter (T067)', () => {
     expect(content).toContain('# Gofer Research');
   });
 
-  it('does NOT contain 0_business_scenario (claude-only)', async () => {
+  it('contains 0_business_scenario', async () => {
     const outPath = path.join(tmpRoot, '.agents', 'AGENTS.md');
     const content = await readFile(outPath);
-    expect(content).not.toContain('Business Scenario');
-    expect(content).not.toContain('0_business_scenario');
+    expect(content).toContain('Business Scenario');
     expect(content).not.toContain('claude-only');
   });
 
-  it('does NOT contain 7_gofer_save (claude-only)', async () => {
+  it('contains 7_gofer_save', async () => {
     const outPath = path.join(tmpRoot, '.agents', 'AGENTS.md');
     const content = await readFile(outPath);
-    expect(content).not.toContain('Gofer Save');
-    expect(content).not.toContain('7_gofer_save');
+    expect(content).toContain('Gofer Save');
   });
 
-  it('does NOT contain any CLAUDE_ONLY_STAGES', async () => {
-    const claudeOnlyStages = [
-      '0_business_scenario',
-      'gofer_constitution',
-      'gofer_hydrate',
-      '7_gofer_save',
-      '8_gofer_resume',
+  it('contains every fixture stage with portable surfaces', async () => {
+    const expectedTitles = [
+      'Gofer Research',
+      'Problem Validation',
+      'Gofer Specify',
+      'Business Scenario',
+      'Gofer Save',
     ];
     const outPath = path.join(tmpRoot, '.agents', 'AGENTS.md');
     const content = await readFile(outPath);
-    for (const stage of claudeOnlyStages) {
-      expect(content, `AGENTS.md should not mention claude-only stage '${stage}'`).not.toContain(
-        stage
-      );
+    for (const title of expectedTitles) {
+      expect(content).toContain(title);
     }
   });
 });

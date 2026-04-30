@@ -1,21 +1,6 @@
 ---
-name: 1_gofer_research
 description: Deep codebase and technology research for feature implementation
-agent: copilot-workspace
-tools:
-  - Read
-  - Grep
-  - Glob
-  - Bash
-  - WebSearch
-argument-hint: feature-name-or-description
-gofer:
-  workflowProfile: enterpriseai
-  canonicalSource: .claude/commands/1_gofer_research.md
-  canonicalChecksum: 30ba0e1d7f296573ca34805b6052b8bfaef7f12424a96138089f7274f7d05ec6
-  metadataSource: scripts/generate-commands.ts
 ---
-
 
 # Gofer Research
 
@@ -46,6 +31,9 @@ This is the **first stage** of the unified Gofer pipeline. Your job is to:
 
 - `.specify/specs/{feature}/research.md`
 - `.specify/specs/{feature}/proposal-review.md`
+- `.specify/specs/{feature}/journeys/base-journey.md` (application delivery default)
+- `.specify/specs/{feature}/context-bundle.md` (EnterpriseAI default)
+- `.specify/specs/{feature}/reuse-scan.md` (EnterpriseAI default)
 
 ---
 
@@ -80,11 +68,18 @@ If discovery.md exists:
    - Target Users → Research UX patterns appropriate for these users
    - Value Proposition → Research metrics and measurement approaches
    - Competitive Analysis → If researched, focus on differentiation
+   - Application Classification → Determine whether a four-step AI-augmented
+     app journey is required
+   - AI-Augmented Journey → If app delivery, preserve the four-step-or-fewer
+     journey as the scope spine for research
 
 2. **Use discovery to guide agent prompts**:
    - Codebase Locator: Focus on areas related to the discovered problem
    - Codebase Analyzer: Analyze patterns relevant to target users
    - Pattern Finder: Find examples that deliver similar value
+   - AI Pattern Finder: Find existing chatbot, voice, accessibility,
+     translation, contextual prefill, recommendation, validation, or
+     human-review patterns that can support each journey step
 
 3. **Load discovery memories** via MemoryManager if available:
    ```
@@ -250,13 +245,42 @@ run:
   - Record `competitiveAnalysisEnabled=false` in research outputs.
   - Keep `market-analysis.md` as a baseline traceability artifact with
     disabled-state messaging (no comparative metrics).
-  - Continue to `#2_gofer_specify` normally (no stage failure).
+  - Continue to `/2_gofer_specify` normally (no stage failure).
 
 When enabled, `market-analysis.md` must include:
 
 - At least 3 alternatives.
 - Explicit EnterpriseAI-selected direction rationale.
 - Traceability indicators for downstream `spec.md` and `plan.md` references.
+
+---
+
+## Step 3.6: Context Bundle and Reuse-Before-Create Scan
+
+EnterpriseAI is the default profile. Unless the user explicitly opts out with
+the standard profile, generate:
+
+1. `{FEATURE_DIR}/context-bundle.md`
+   - Feature summary and approved business scenario.
+   - Application classification: app delivery or non-app work, with rationale.
+   - Four-step-or-fewer AI-augmented journey summary when app delivery applies.
+   - Relevant existing specs, code paths, platform references, and API surfaces.
+   - EnterpriseAI object types, tenant assumptions, deployment target, and
+     validation criteria.
+   - A compact "what the next agent needs" section to avoid dumping entire
+     source files into later stages.
+2. `{FEATURE_DIR}/reuse-scan.md`
+   - Existing object types, APIs/events, workflows, modules, specs, and
+     reference implementations that may satisfy the need.
+   - Existing AI assistance capabilities: chat, voice, accessibility,
+     translation, contextual prefill, recommendation, validation, completion
+     checks, audit logging, and escalation.
+   - Decision for each candidate: reuse, extend, or create new.
+   - Rationale, evidence path, and stakeholder/architecture owner if a new
+     platform concept is recommended.
+
+Do not recommend a new EnterpriseAI object type, API/event, workflow, or module
+until the reuse-before-create scan is complete.
 
 ---
 
@@ -372,6 +396,20 @@ status: complete
 - **Primary Value**: [Core value delivered]
 - **Measurable Goal**: [Quantified target]
 - **EnterpriseAI-First Rationale**: [Why EAI is the primary fit]
+
+## Context Bundle Summary
+
+- **Relevant Specs**: [Existing specs to carry forward]
+- **Relevant Code Paths**: [Files/directories and why they matter]
+- **EnterpriseAI Object Types**: [Known or candidate object types]
+- **Tenant and Deployment Assumptions**: [Tenant, identity, runtime, target environment]
+- **Validation Criteria**: [Business, security, data, architecture, and operational checks]
+
+## Reuse-Before-Create Scan
+
+| Candidate | Existing Evidence | Decision | Rationale | Owner |
+| --------- | ----------------- | -------- | --------- | ----- |
+| [Object type/API/workflow/module/spec] | [Path or reference] | Reuse/Extend/Create New | [Why] | [Owner] |
 
 ## Business Scenario Analysis
 
@@ -535,7 +573,7 @@ approvedAt: ''
 ## Approval
 
 - Status: pending_review
-- Next action: user approves or requests changes before `#2_gofer_specify`
+- Next action: user approves or requests changes before `/2_gofer_specify`
 `````
 
 ---
@@ -578,7 +616,7 @@ After saving `research.md` and `proposal-review.md`:
 4. **If the user approves**:
    - Update `proposal-review.md` with `status: approved`
    - Record `approvedBy`, `approvedAt`, and any selected option or override
-   - Immediately invoke `#2_gofer_specify`
+   - Immediately invoke `/2_gofer_specify`
 
 5. **If the user requests changes**:
    - Update `proposal-review.md` with the feedback in
@@ -600,6 +638,9 @@ Key findings:
 
 ```
 
+**AUTO-CHAIN (MANDATORY AFTER APPROVAL)**: Do NOT invoke `/2_gofer_specify`
+until the user explicitly approves the proposal review. After approval, it is
+mandatory to invoke the Skill tool with `skill="/2_gofer_specify"` immediately.
 
 ---
 
@@ -824,14 +865,3 @@ Logs to: `.specify/logs/pipeline.jsonl`
 - **Maximum 5 open questions** - make informed decisions for the rest
 - **Do not continue to specification until `proposal-review.md` is approved**
 - **Log stage completion** for observability tracking
-
-
-## Pipeline Continuation
-
-This completes the 1_gofer_research stage. To continue the Gofer pipeline:
-
-**Next Command:** `#2_gofer_specify`
-
-The next stage will read the artifacts from this stage and continue the workflow automatically.
-
-**Note:** Copilot Chat supports context preservation. Your conversation history will be maintained as you progress through pipeline stages.

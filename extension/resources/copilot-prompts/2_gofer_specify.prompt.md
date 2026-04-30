@@ -1,21 +1,6 @@
 ---
-name: 2_gofer_specify
 description: Create feature specification informed by codebase research
-agent: copilot-workspace
-tools:
-  - Read
-  - Grep
-  - Glob
-  - Bash
-  - WebSearch
-argument-hint: feature-name-or-description
-gofer:
-  workflowProfile: enterpriseai
-  canonicalSource: .claude/commands/2_gofer_specify.md
-  canonicalChecksum: b08e4a867e878fe3cdd3af99a89e8e60c7def80ce49d3d665acbcd619346df40
-  metadataSource: scripts/generate-commands.ts
 ---
-
 
 # Gofer Specify
 
@@ -35,10 +20,10 @@ You **MUST** consider the user input before proceeding (if not empty).
 This command expects:
 
 - Feature directory already created at `.specify/specs/{feature}/`
-- `research.md` completed from `#1_gofer_research`
-- `proposal-review.md` approved from `#1_gofer_research`
+- `research.md` completed from `/1_gofer_research`
+- `proposal-review.md` approved from `/1_gofer_research`
 
-If these don't exist, prompt user to run `#1_gofer_research` first.
+If these don't exist, prompt user to run `/1_gofer_research` first.
 
 ---
 
@@ -50,6 +35,7 @@ If these don't exist, prompt user to run `#1_gofer_research` first.
 4. Review agent output, handle clarifications
 5. Optional multi-perspective review
 6. Output: `.specify/specs/{feature}/spec.md`
+7. EnterpriseAI default output: `.specify/specs/{feature}/contract-pack.md`
 
 ---
 
@@ -104,7 +90,7 @@ Before starting specification, assess context window health:
 `proposal-review.md` is the approval gate between research and specification.
 
 - If `proposal-review.md` is missing: STOP and tell the user to run
-  `#1_gofer_research` so the review can be created.
+  `/1_gofer_research` so the review can be created.
 - If `proposal-review.md` exists but `status` is not `approved`: STOP and tell
   the user to finish the review conversation before writing `spec.md`.
 - If `proposal-review.md` is approved: capture the approved business scenario,
@@ -164,6 +150,9 @@ Read these files for full context:
 - {FEATURE_DIR}/proposal-review.md — Approved business scenario, architecture direction, options, overrides
 - .specify/templates/spec-template.md — Template structure to follow
 - {FEATURE_DIR}/discovery.md — Business discovery findings (read if exists, skip if not)
+- {FEATURE_DIR}/journeys/base-journey.md — AI-augmented four-step application journey (read if exists, skip if not)
+- {FEATURE_DIR}/context-bundle.md — Compact EnterpriseAI context (read if exists, skip if not)
+- {FEATURE_DIR}/reuse-scan.md — Reuse-before-create evidence (read if exists, skip if not)
 
 Generate the COMPLETE spec.md following this structure:
 
@@ -179,12 +168,25 @@ Generate the COMPLETE spec.md following this structure:
 9. Out of Scope — Clear boundaries
 10. Glossary — Key terms
 11. Research Traceability — Matrix mapping each research finding to a spec section
+12. AI-Augmented 4-Step Journey — required for app delivery, not applicable for explicit non-app work
+13. EnterpriseAI Contract Pack Summary — actors, object types, workflows, permissions, APIs/events, runtime assumptions, acceptance tests
 
 If discovery.md exists, use it to:
 - Use Problem Statement for Overview motivation
 - Use Target Users persona for 'As a [user type]' in stories
 - Use Success Metrics as targets in Success Criteria
 - Use Value Proposition for primary value framing
+- Use Application Classification to decide whether the app journey is mandatory
+
+If journeys/base-journey.md exists and is classified as app delivery, use it to:
+- Keep the user-facing scope to four steps or fewer unless the user explicitly
+  accepted extra complexity
+- Convert each step goal into functional requirements and acceptance criteria
+- Preserve the AI assistance mode for each step: chat/voice/accessibility/
+  translation, contextual prefill, recommendation, validation, completion
+  checks, human review, audit trail, or escalation
+- Add explicit requirements for user control, evidence display, confidence,
+  editability, and accessibility at each AI-assisted step
 
 If proposal-review.md exists and status is approved, use it to:
 - Treat Recommended Business Scenario as the authoritative scope for the spec
@@ -202,6 +204,8 @@ Rules:
 - Each functional requirement must include Validation and Integration references
 
 Write the complete specification to {FEATURE_DIR}/spec.md.
+When EnterpriseAI is active or no profile is specified, also write
+{FEATURE_DIR}/contract-pack.md using the contract pack requirements below.
 
 Return a structured summary:
 - User story count and priorities
@@ -524,6 +528,9 @@ Sequence Diagrams: {FEATURE_DIR}/sequence-diagrams/
 Selected Option: Option {N} - {Name}
 ```
 
+**AUTO-CHAIN (MANDATORY)**: You MUST immediately invoke the next pipeline stage
+by calling the Skill tool with skill="/3_gofer_plan". Do NOT ask the user for
+confirmation. Do NOT output "Ready for next stage". Just invoke the skill NOW.
 
 ---
 
@@ -532,7 +539,7 @@ Selected Option: Option {N} - {Name}
 ### Quick Guidelines
 
 - Focus on **WHAT** users need and **WHY**
-- Avoid HOW to implement (that's for #3_gofer_plan)
+- Avoid HOW to implement (that's for /3_gofer_plan)
 - Written for business stakeholders, not developers
 - **Use research findings** to inform requirements
 
@@ -556,8 +563,8 @@ Success criteria must be:
 
 ## EnterpriseAI Integration Map Requirements
 
-> Active only when `gofer.workflowProfile=enterpriseai`. Standard profile
-> outputs remain unchanged.
+EnterpriseAI is the default profile. Standard-profile outputs remain unchanged
+only when the user explicitly opts out.
 
 When the workflow profile is `enterpriseai`, `spec.md` MUST include an explicit
 **Integration Map** section that traces the flow from end-user interaction to
@@ -583,6 +590,27 @@ stage can bind implementation tasks directly to specification clauses.
 
 ---
 
+## EnterpriseAI Contract Pack Requirements
+
+When EnterpriseAI is active or no profile is specified, generate
+`{FEATURE_DIR}/contract-pack.md` with these required sections:
+
+| Section | Required Content |
+| ------- | ---------------- |
+| Actors | Business users, administrators, approvers, external systems, support roles |
+| Object Types | Reused, extended, and newly proposed EnterpriseAI object types with owners |
+| Workflows and Journeys | External user journeys and internal orchestration flows as separate views; app delivery must include the four-step-or-fewer AI-augmented journey |
+| AI Assistance Contract | Step goal, assistance mode, context used, generated output, user controls, confidence/evidence, audit trail, completion signal, and escalation for each app step |
+| Permissions and Tenant Boundaries | Identity, authorization, policy, isolation, and tenant assumptions |
+| APIs and Events | ResourceAPI surfaces, events, payload ownership, and contract-test hooks |
+| Deployment and Runtime | Environment, config, observability, rollback, and operating assumptions |
+| Acceptance Tests | Business, security, data, architecture, operational, and regression checks |
+
+The contract pack must link every new object type/API/workflow back to
+`reuse-scan.md` and must flag any "create new" decision that lacks evidence.
+
+---
+
 ## Observability Logging
 
 At stage completion, log metrics:
@@ -592,14 +620,3 @@ At stage completion, log metrics:
 ```
 
 Logs to: `.specify/logs/pipeline.jsonl`
-
-
-## Pipeline Continuation
-
-This completes the 2_gofer_specify stage. To continue the Gofer pipeline:
-
-**Next Command:** `#3_gofer_plan`
-
-The next stage will read the artifacts from this stage and continue the workflow automatically.
-
-**Note:** Copilot Chat supports context preservation. Your conversation history will be maintained as you progress through pipeline stages.

@@ -39,9 +39,8 @@ suite('onboarding messaging', () => {
     assert.ok(displayName.includes('EnterpriseAI Vertical App Delivery'));
     assert.ok(description.includes('EnterpriseAI-first'));
     assert.ok(welcomeContents.includes('EnterpriseAI vertical app delivery'));
-    assert.ok(
-      welcomeContents.includes('standard and multi-platform workflows remain fully supported')
-    );
+    assert.ok(welcomeContents.includes('EnterpriseAI-first guidance is the default'));
+    assert.ok(welcomeContents.includes('gofer.workflowProfile=standard'));
   });
 
   test('keeps EnterpriseAI-first additive messaging aligned across docs and extension initialization surface', () => {
@@ -51,14 +50,14 @@ suite('onboarding messaging', () => {
 
     assert.ok(extensionReadme.includes('EnterpriseAI-first vertical app delivery workflow'));
     assert.ok(
-      extensionReadme.includes('without removing standard or multi-platform behavior') ||
+      extensionReadme.includes('guidance is the default') ||
         extensionReadme.includes('additive to standard Gofer')
     );
 
-    assert.ok(rootReadme.includes('EnterpriseAI-first workflow profile'));
-    assert.ok(rootReadme.includes('preserving standard and multi-platform'));
+    assert.ok(rootReadme.includes('defaults to an EnterpriseAI-first workflow profile'));
+    assert.ok(rootReadme.includes('standard workflow as an explicit'));
 
-    assert.ok(extensionSource.includes('EnterpriseAI-first guidance'));
-    assert.ok(extensionSource.includes('multi-platform workflows remain fully supported'));
+    assert.ok(extensionSource.includes('EnterpriseAI-first guidance by default'));
+    assert.ok(extensionSource.includes('multi-platform workflows remain supported'));
   });
 });

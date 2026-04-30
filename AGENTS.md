@@ -4,12 +4,18 @@ Gofer is a pipelined feature-development assistant. It orchestrates research ->
 specify -> plan -> tasks -> implement -> validate as a sequence of stages, each
 backed by a Markdown command file at `.specify/commands/<stage>.md`.
 
-This document is the canonical Codex/Gemini-facing index of the non-Claude-only
-stages. The five Claude-only stages (`0_business_scenario`,
-`gofer_constitution`, `gofer_hydrate`, `7_gofer_save`, `8_gofer_resume`) are
-intentionally omitted from this index per FR-007.
+This document is the canonical Codex/Gemini-facing index of all Gofer stages and
+helper commands. Gofer emits the same command set across Claude, Copilot, Codex,
+and Gemini.
 
 ## Available stages
+
+### 0_business_scenario
+
+Triage the business scenario, default to EnterpriseAI delivery unless the user
+explicitly opts out, and orchestrate the unified Gofer pipeline.
+
+Use when: starting or resuming a full Gofer workflow from a business scenario.
 
 ### 0a_problem_validation
 
@@ -74,6 +80,12 @@ Run a targeted engineering review on a specific component or concern.
 Use when: a specific module or concern needs a focused engineering review
 independent of the full pipeline.
 
+### 7_gofer_save
+
+Save session progress with a checkpoint that can be resumed in a later session.
+
+Use when: context is filling up or implementation must pause safely.
+
 ### 7a_stakeholder_comms
 
 Generate stakeholder-facing communications: release notes, demo scripts, and
@@ -81,6 +93,12 @@ change briefs.
 
 Use when: validation is complete and you need release notes, a demo script, and
 a change-management brief for stakeholders.
+
+### 8_gofer_resume
+
+Resume work from a saved session checkpoint with full context restoration.
+
+Use when: continuing from a prior checkpoint.
 
 ### 9_gofer_tests
 
@@ -96,6 +114,36 @@ Deploy and configure the Gofer cloud integration for remote pipeline execution.
 
 Use when: you need read-only cloud-infrastructure analysis for an Azure, AWS, or
 GCP target environment.
+
+### gofer_constitution
+
+Create or update project constitution with coding principles and guidelines.
+
+Use when: setting or refreshing project-level engineering standards.
+
+### gofer_hydrate
+
+Reverse-engineer a specification from existing code.
+
+Use when: bringing brownfield code into the Gofer specification workflow.
+
+### gofer:personality
+
+Apply Gofer personality guidance.
+
+Use when: aligning assistant behavior to Gofer's collaboration style.
+
+### gofer:plan
+
+Toggle Gofer plan mode guidance.
+
+Use when: planning before implementation.
+
+### gofer:side
+
+Run a Gofer side conversation without disrupting the main pipeline.
+
+Use when: exploring a tangent or clarification alongside the main flow.
 
 ## Activation
 

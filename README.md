@@ -2,10 +2,11 @@
 
 **Enterprise AI Pty Ltd**
 
-Let AI assistants (Claude Code, GitHub Copilot) autonomously implement features
-from specifications using VSCode's native MCP (Model Context Protocol) support.
-Gofer now includes an EnterpriseAI-first workflow profile for vertical app
-delivery while preserving standard and multi-platform behavior.
+Let AI assistants (Claude Code, GitHub Copilot, Codex, and Gemini) autonomously
+implement features from specifications using VSCode's native MCP (Model Context
+Protocol) support. Gofer now defaults to an EnterpriseAI-first workflow profile
+for vertical app delivery while preserving the standard workflow as an explicit
+opt-out.
 
 ## Quick Start
 
@@ -272,13 +273,13 @@ VSCode Settings (`Cmd/Ctrl+,`):
   "gofer.autoInitialize": true,
   "gofer.preferredAI": "claude",
   "gofer.autoValidate": true,
-  "gofer.workflowProfile": "standard"
+  "gofer.workflowProfile": "enterpriseai"
 }
 ```
 
-Set `gofer.workflowProfile` to `"enterpriseai"` when you want EnterpriseAI-first
-guidance and artifacts, while preserving existing standard and multi-platform
-Gofer functionality.
+EnterpriseAI-first guidance and artifacts are the default. Set
+`gofer.workflowProfile` to `"standard"` only when you explicitly want the
+baseline Gofer workflow without EnterpriseAI defaults.
 
 ## Troubleshooting
 

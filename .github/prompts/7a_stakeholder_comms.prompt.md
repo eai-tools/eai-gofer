@@ -1,6 +1,8 @@
 ---
 name: 7a_stakeholder_comms
-description: Generate stakeholder-facing communications: release notes, demo scripts, and change briefs.
+description: >-
+  Generate stakeholder communications package including release notes, demo
+  script, change management brief, and success metrics
 agent: copilot-workspace
 tools:
   - Read

@@ -182,7 +182,7 @@
         },
         "autonomousMode": {
           "type": "boolean",
-          "description": "Enable autonomous question answering in Claude Code terminal",
+          "description": "Enable autonomous monitoring for Claude Code terminal sessions",
           "default": true
         },
         "languageServer": {

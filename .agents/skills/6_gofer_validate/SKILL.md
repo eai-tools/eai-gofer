@@ -5,7 +5,7 @@ description: >-
   110-point rubric)
 gofer:
   workflowProfile: enterpriseai
-  canonicalSource: .claude/commands/6_gofer_validate.md
+  canonicalSource: .specify/commands/6_gofer_validate.md
   canonicalChecksum: 645c66403a80cb86d7944d0de61796712a5b0c4a221648f21c72ab13945a5125
   metadataSource: scripts/generate-commands.ts
 arguments:

@@ -107,6 +107,21 @@ Task: subagent_type="validation-correctness"
       expect(content).toContain('name: 1_gofer_research');
       expect(content).toContain('description: Research stage');
       expect(content).toContain('result_schema:');
+      expect(content).toContain('canonicalSource: .specify/commands/1_gofer_research.md');
+    });
+
+    it('maps Claude control-command filenames back to .specify canonical sources', async () => {
+      await generator.generateCodexSkill(
+        {
+          ...sampleMetadata,
+          name: 'gofer:plan',
+          filePath: '/test/workspace/.claude/commands/gofer:plan.md',
+        },
+        false
+      );
+
+      const content = String(vi.mocked(fs.promises.writeFile).mock.calls[0][1]);
+      expect(content).toContain('canonicalSource: .specify/commands/gofer_plan.md');
     });
   });
 

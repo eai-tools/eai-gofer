@@ -3,7 +3,7 @@ name: 3_gofer_plan
 description: Generate technical implementation plan with architecture and contracts
 gofer:
   workflowProfile: enterpriseai
-  canonicalSource: .claude/commands/3_gofer_plan.md
+  canonicalSource: .specify/commands/3_gofer_plan.md
   canonicalChecksum: 0aa58a4e2afe0ccb787314b1aea0cfc7cdd3085172eb10d9bf256802a228eeb1
   metadataSource: scripts/generate-commands.ts
 arguments:

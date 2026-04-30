@@ -3,7 +3,7 @@ name: 4_gofer_tasks
 description: Generate actionable task breakdown from implementation plan
 gofer:
   workflowProfile: enterpriseai
-  canonicalSource: .claude/commands/4_gofer_tasks.md
+  canonicalSource: .specify/commands/4_gofer_tasks.md
   canonicalChecksum: f205d4d782c400ee58e9854fe5079a580e6ae54ad7c53d844dddf66deac4a432
   metadataSource: scripts/generate-commands.ts
 arguments:

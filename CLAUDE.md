@@ -60,6 +60,8 @@ told how.
   introducing bugs.
 
 ## Active Technologies
+- VS Code Extension API, `webpack`, (030-vscode-surface-truth-cleanup)
+- Filesystem-only repository surfaces (030-vscode-surface-truth-cleanup)
 
 - [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS
   (028-cross-platform-command-parity)
@@ -90,6 +92,7 @@ non-trivial task is requested, default to `/gofer:plan` first to align on
 approach.
 
 ## Recent Changes
+- 030-vscode-surface-truth-cleanup: Added VS Code Extension API, `webpack`,
 
 - 001-memory-panel-filter: Added TypeScript 5.x (strict mode, noImplicitAny,
   strictNullChecks) + VSCode Extension API, Webview API, fs/promises for JSONL

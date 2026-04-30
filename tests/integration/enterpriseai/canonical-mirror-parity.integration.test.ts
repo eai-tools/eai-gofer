@@ -20,7 +20,7 @@ describe('enterpriseai canonical mirror parity (root integration)', () => {
     const result = await propagateCanonicalMirrors(
       {
         changeSetId: 'chg_029_phase8',
-        canonicalSources: ['.claude/commands/1_gofer_research.md'],
+        canonicalSources: ['.specify/commands/1_gofer_research.md'],
         targetMirrors: ['.github/prompts', '.system/skills', '.agents/skills'],
         runParityValidation: true,
       },

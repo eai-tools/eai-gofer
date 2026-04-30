@@ -3,7 +3,7 @@ name: 10_gofer_cloud
 description: READ-ONLY cloud infrastructure analysis for Azure, AWS, GCP deployments
 gofer:
   workflowProfile: enterpriseai
-  canonicalSource: .claude/commands/10_gofer_cloud.md
+  canonicalSource: .specify/commands/10_gofer_cloud.md
   canonicalChecksum: 243126b1ceb3b5cd213829b030483a7fb250a87578070a43081ab6c0fd3a94fe
   metadataSource: scripts/generate-commands.ts
 arguments:

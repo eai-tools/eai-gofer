@@ -1,13 +1,27 @@
 ---
-description:
-  Resume work from saved session checkpoint with full context restoration
+name: 8_gofer_resume
+description: Resume a previous Gofer session from a saved checkpoint file.
+agent: copilot-workspace
+tools:
+  - Read
+  - Grep
+  - Glob
+  - Bash
+  - WebSearch
+argument-hint: feature-name-or-description
+gofer:
+  workflowProfile: enterpriseai
+  canonicalSource: .claude/commands/8_gofer_resume.md
+  canonicalChecksum: ef5cd7a4ce17df059ebf8c3bf51f6afb2f8542a6b8b030bf8b11c576d5c3b717
+  metadataSource: scripts/generate-commands.ts
 ---
+
 
 # Gofer Resume
 
 You are resuming previously saved work by restoring full context and continuing
 implementation. This is an **auxiliary command** that restores state from
-`/7_gofer_save`.
+`#7_gofer_save`.
 
 ## User Input
 
@@ -231,7 +245,7 @@ Code Status:
 - Tests: [passing/failing/skipped]
 - Changes since save: [N commits]
 
-Ready to continue with: /5_gofer_implement
+Ready to continue with: #5_gofer_implement
 
 Or I can pick up exactly where we left off...
 
@@ -251,7 +265,7 @@ If user says "continue" or similar:
 1. Load the current task details
 2. Open the file at the saved location
 3. Continue implementing from that point
-4. Follow normal `/5_gofer_implement` flow
+4. Follow normal `#5_gofer_implement` flow
 
 ### Option B: Manual Navigation
 
@@ -268,7 +282,7 @@ If user wants to review first:
 ### Pattern 1: Quick Resume (Same Day)
 
 ```
-/8_gofer_resume
+#8_gofer_resume
 
 > Continue the user management feature from this morning
 
@@ -281,7 +295,7 @@ If user wants to review first:
 ### Pattern 2: Full Context Restore (Days Later)
 
 ```
-/8_gofer_resume .specify/specs/auth-feature/
+#8_gofer_resume .specify/specs/auth-feature/
 
 # Claude:
 1. Reads full checkpoint
@@ -294,7 +308,7 @@ If user wants to review first:
 ### Pattern 3: Recovery Mode (No Checkpoint)
 
 ```
-/8_gofer_resume
+#8_gofer_resume
 
 # Claude:
 1. No checkpoint found
@@ -377,8 +391,8 @@ Would you like me to:
 
 This command works with:
 
-- `/7_gofer_save` - Paired save command
-- `/5_gofer_implement` - Continues implementation
+- `#7_gofer_save` - Paired save command
+- `#5_gofer_implement` - Continues implementation
 - `/0_business_scenario` - Can route to resume
 - All other Gofer commands - Can be invoked after resume
 

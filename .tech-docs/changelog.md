@@ -1,6 +1,6 @@
 ---
-generated: "2026-05-01T01:27:17Z"
-source_commit: "93f78273088867c363da24675f394e1779ac0f7f"
+generated: "2026-05-01T02:24:16Z"
+source_commit: "65a155c8c10add0b07607d3669e450d458df9d9f"
 ---
 
 # Changelog
@@ -22,7 +22,9 @@ This changelog documents significant changes to the Gofer architecture, features
 ## v3.1.0 (2026-05-01) - Current Release
 
 **Release Commits:**
-- `93f7827` - docs: update .tech-docs/ [nightly-automated] (LATEST)
+- `65a155c` - chore(pages): keep last five vsix releases (LATEST)
+- `046830f` - docs: update .tech-docs/ [nightly-automated]
+- `93f7827` - docs: update .tech-docs/ [nightly-automated]
 - `31c4565` - docs: update .tech-docs/ [nightly-automated] (#4)
 - `a2609c0` - fix(release): surface failing test output
 - `642b399` - fix(release): keep gofer version marker in sync

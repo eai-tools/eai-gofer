@@ -1,13 +1,13 @@
 ---
-generated: "2026-05-01T00:22:00Z"
-source_commit: "31c456506234dfdc6c1ed7b276e283b6aec602d1"
+generated: "2026-05-01T01:27:17Z"
+source_commit: "93f78273088867c363da24675f394e1779ac0f7f"
 ---
 
 # Technical Documentation Index
 
 **Repository:** [eai-tools/gofer](https://github.com/eai-tools/gofer)
 **Version:** 3.1.0
-**Generated:** 2026-05-01T00:22:00Z
+**Generated:** 2026-05-01T01:27:17Z
 
 This directory contains comprehensive technical documentation for the Gofer VSCode extension project.
 
@@ -288,10 +288,10 @@ Design patterns and technical debt analysis.
 ### Version Tracking
 
 - **Version:** 3.1.0
-- **Commit:** 31c456506234dfdc6c1ed7b276e283b6aec602d1
-- **Generated:** 2026-05-01T00:22:00Z
-- **Previous Update:** 2026-04-30T22:52:00Z (42dbe8f)
-- **Change Summary:** Documentation refresh with release process fixes and updated file counts
+- **Commit:** 93f78273088867c363da24675f394e1779ac0f7f
+- **Generated:** 2026-05-01T01:27:17Z
+- **Previous Update:** 2026-05-01T00:22:00Z (31c4565)
+- **Change Summary:** Nightly automated documentation refresh with latest commit references
 
 ### Regenerating Documentation
 

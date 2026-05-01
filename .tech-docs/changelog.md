@@ -1,6 +1,6 @@
 ---
-generated: "2026-04-30T22:52:00Z"
-source_commit: "42dbe8f354ac8928bfa3d1e6c5b42989a9b6c55f"
+generated: "2026-05-01T00:22:00Z"
+source_commit: "31c456506234dfdc6c1ed7b276e283b6aec602d1"
 ---
 
 # Changelog
@@ -19,12 +19,14 @@ This changelog documents significant changes to the Gofer architecture, features
 
 ---
 
-## v3.1.0 (2026-04-30) - Current Release
+## v3.1.0 (2026-05-01) - Current Release
 
 **Release Commits:**
-- `42dbe8f354ac8928bfa3d1e6c5b42989a9b6c55f` - chore(gofer): resync generated release assets
+- `31c4565` - docs: update .tech-docs/ [nightly-automated] (#4)
+- `a2609c0` - fix(release): surface failing test output
+- `642b399` - fix(release): keep gofer version marker in sync
+- `42dbe8f` - chore(gofer): resync generated release assets
 - `4122bd7` - feat(gofer): clean up vscode surface truth
-- `6c46a43` - docs: update .tech-docs/ [nightly-automated]
 - `7989fbd` - release: v3.1.0
 
 ### Features
@@ -42,6 +44,13 @@ This changelog documents significant changes to the Gofer architecture, features
   - v1.x → v2.x: Cross-platform command parity
   - v2.x → v3.x: CLI innovations and visual artifacts
   - Breaking: None (additive changes only)
+
+**Fixed:**
+
+- **Release Process** - Improved test output visibility in release script
+  - Files: `release-auto.sh`, `tests/unit/release/release-verification.test.ts`
+  - Impact: Better debugging of release test failures
+  - Added test verification to ensure version markers stay in sync
 
 ### Documentation
 

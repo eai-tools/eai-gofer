@@ -1,13 +1,13 @@
 ---
-generated: "2026-04-30T17:58:10Z"
-source_commit: "64d169eba2a63002e0dcce3f4685790f6ddf7f88"
+generated: "2026-05-01T00:22:00Z"
+source_commit: "31c456506234dfdc6c1ed7b276e283b6aec602d1"
 ---
 
 # Technical Documentation Index
 
 **Repository:** [eai-tools/gofer](https://github.com/eai-tools/gofer)
 **Version:** 3.1.0
-**Generated:** 2026-04-30T17:58:10Z
+**Generated:** 2026-05-01T00:22:00Z
 
 This directory contains comprehensive technical documentation for the Gofer VSCode extension project.
 
@@ -45,7 +45,7 @@ Service identity, tech stack, and quick start guide.
 **Contents:**
 - Service purpose and description
 - Technology stack table (TypeScript 5.7.2, Node 20.x, VSCode 1.85.0+)
-- Key entry points (246 TypeScript files in extension)
+- Key entry points (262 TypeScript files across all modules)
 - Local development setup
 - Multi-platform CLI support (v3.0+)
 - Team/ownership
@@ -288,10 +288,10 @@ Design patterns and technical debt analysis.
 ### Version Tracking
 
 - **Version:** 3.1.0
-- **Commit:** 64d169eba2a63002e0dcce3f4685790f6ddf7f88
-- **Generated:** 2026-04-30T17:58:10Z
-- **Previous Update:** 2026-04-30T12:58:05Z (7665d4c)
-- **Change Summary:** Documentation refresh with updated commit reference
+- **Commit:** 31c456506234dfdc6c1ed7b276e283b6aec602d1
+- **Generated:** 2026-05-01T00:22:00Z
+- **Previous Update:** 2026-04-30T22:52:00Z (42dbe8f)
+- **Change Summary:** Documentation refresh with release process fixes and updated file counts
 
 ### Regenerating Documentation
 
@@ -369,8 +369,8 @@ When making changes, update these files if applicable:
 | Metric                      | Value                           |
 | --------------------------- | ------------------------------- |
 | Version                     | 3.1.0                           |
-| Extension Files             | 246 TypeScript files            |
-| Specifications              | 40 spec files                   |
+| TypeScript Files            | 262 files (all modules)         |
+| Specifications              | 1 active spec (030)             |
 | MCP Tools                   | 6 tools (stable API)            |
 | VSCode Commands             | 30+ commands                    |
 | VSCode Settings             | 60+ configuration options       |

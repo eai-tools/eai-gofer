@@ -1,6 +1,6 @@
 ---
-generated: "2026-05-01T00:22:00Z"
-source_commit: "31c456506234dfdc6c1ed7b276e283b6aec602d1"
+generated: "2026-05-01T01:27:17Z"
+source_commit: "93f78273088867c363da24675f394e1779ac0f7f"
 ---
 
 # Changelog
@@ -22,6 +22,7 @@ This changelog documents significant changes to the Gofer architecture, features
 ## v3.1.0 (2026-05-01) - Current Release
 
 **Release Commits:**
+- `93f7827` - docs: update .tech-docs/ [nightly-automated] (LATEST)
 - `31c4565` - docs: update .tech-docs/ [nightly-automated] (#4)
 - `a2609c0` - fix(release): surface failing test output
 - `642b399` - fix(release): keep gofer version marker in sync

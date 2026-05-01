@@ -1,6 +1,6 @@
 ---
-generated: "2026-04-30T22:52:00Z"
-source_commit: "42dbe8f354ac8928bfa3d1e6c5b42989a9b6c55f"
+generated: "2026-05-01T00:22:00Z"
+source_commit: "31c456506234dfdc6c1ed7b276e283b6aec602d1"
 ---
 
 # Gofer - Technical Overview
@@ -9,6 +9,7 @@ source_commit: "42dbe8f354ac8928bfa3d1e6c5b42989a9b6c55f"
 
 **Name:** Gofer
 **Version:** 3.1.0
+**Documentation Updated:** 2026-05-01
 **Publisher:** Enterprise AI Pty Ltd
 **Description:** Spec-driven development system for AI assistants. Provides 40+ MCP tools that enable Claude Code, GitHub Copilot, OpenAI Codex, and Gemini CLI to autonomously implement features from specifications.
 
@@ -56,7 +57,7 @@ Gofer is a VSCode extension that bridges human specifications with AI implementa
 - Initializes dependency injection container (TSyringe)
 - Starts Language Server and MCP tools
 - Sets up file watchers for real-time spec updates
-- **Extension file count:** 140+ TypeScript files
+- **Extension file count:** 262 TypeScript files (across all modules)
 
 ### Language Server Entry Point
 
@@ -131,8 +132,12 @@ npx vsce package
 
 - Based on CLAUDE.md, the project follows a structured workflow with autonomous bug fixing and self-improvement loops
 - Uses Gofer's own pipeline for development (`/0_business_scenario` → research → specify → plan → tasks → implement → validate)
-- Specifications stored in `.specify/specs/` directory (41 active specs)
+- Specifications stored in `.specify/specs/` directory
 - Constitution principles defined in `.specify/memory/constitution.md`
+
+**Active Specifications (2026-05-01):**
+
+- **030-vscode-surface-truth-cleanup** - Aligning VS Code extension commands and settings documentation with the actual manifest and runtime implementation (Status: Ready)
 
 ## Project Structure
 

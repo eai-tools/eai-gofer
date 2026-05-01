@@ -1,7 +1,7 @@
 {
   "latest_version": "3.1.0",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-04-30T05:00:27.905Z",
+  "last_updated": "2026-05-01T01:40:52Z",
   "releases": [
     {
       "version": "3.1.0",
@@ -31,24 +31,6 @@
       "size_mb": 10.4
     },
     {
-      "version": "4.0.0",
-      "tag_name": "v4.0.0",
-      "published_at": "2026-04-25T03:10:50.334Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-4.0.0.vsix",
-      "notes": "Phase 1+2+3 source-of-truth generator",
-      "prerelease": false,
-      "size_mb": 10.4
-    },
-    {
-      "version": "3.0.0",
-      "tag_name": "v3.0.0",
-      "published_at": "2026-04-25T03:09:04.354Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-3.0.0.vsix",
-      "notes": "feat: source-of-truth generator + persona-pack visuals + /gofer:* namespace\n\nPhase 1: Single canonical .specify/commands/<stage>.md per stage emits to 8 CLI surfaces. Byte-equivalence gate enforces no-regression. gofer codex doctor read-only diagnostic. Per-CLI exclusion of 5 Claude-only stages.\n\nPhase 1.7: 16 /gofer:* additive aliases plus 3 control commands (/gofer:plan plan-mode toggle, /gofer:side, /gofer:personality). ADR-003 namespace split.\n\nPhase 2: 10 persona-pack visual templates. 7 visual-writer sub-agents. Two-pass canvas. Mermaid tabular fallback.\n\nPhase 3: Plugin manifests (.claude-plugin/plugin.json, .gemini/extension.json, AGENTS.md, codex-config.toml). Stakeholder-pack assembler. mermaid-export.mjs.\n\n186 tasks. 3296 tests passing. No-regression on existing /0-/10 commands, 37 sub-agents.",
-      "prerelease": false,
-      "size_mb": 10.4
-    },
-    {
       "version": "2.0.11",
       "tag_name": "v2.0.11",
       "published_at": "2026-04-21T01:43:50.355Z",
@@ -65,33 +47,6 @@
       "notes": "infra(release): add scripts/sync-extension-resources.sh and wire into release-auto.sh so every VSIX bundles current canonical content. Adds 10 missing templates (stakeholder-comms, business-metrics, discovery, problem-brief, assumptions, brownfield-analysis, spec-summary, session-handoff, journey/, sequence-diagrams/) to extension/resources/templates/ so eai init delivers them. Prevents the v2.0.5-v2.0.8 class of stale-bundle regressions.",
       "prerelease": false,
       "size_mb": 10.4
-    },
-    {
-      "version": "2.0.9",
-      "tag_name": "v2.0.9",
-      "published_at": "2026-04-20T13:40:28.293Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-2.0.9.vsix",
-      "notes": "fix(vsix-bundle): sync extension/resources/ from canonical — ships Phase B blast-radius + Cat 11 in /6, EnterpriseAI extensions in /0-/5+/7a, copilot) case in install-optional-tools.sh. Previous v2.0.5-v2.0.8 VSIX bundles shipped pre-blast-radius content because extension/resources was stale.",
-      "prerelease": false,
-      "size_mb": 10.4
-    },
-    {
-      "version": "2.0.8",
-      "tag_name": "v2.0.8",
-      "published_at": "2026-04-20T13:34:15.821Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-2.0.8.vsix",
-      "notes": "feat(install): add copilot) case to optional-tools install scripts (bash + powershell) — installs @github/copilot alongside existing claude, @openai/codex-cli, and @google/gemini-cli. Reconciles drift with eai-cli bundled copy.",
-      "prerelease": false,
-      "size_mb": 10.3
-    },
-    {
-      "version": "2.0.7",
-      "tag_name": "v2.0.7",
-      "published_at": "2026-04-20T13:21:29.567Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-2.0.7.vsix",
-      "notes": "feat(commands): EnterpriseAI workflow profile extensions — adds required sections to /0, /2, /3, /4, /5, /7a commands plus plan/tasks templates so feature 029 integration tests pass. All 2549 tests now green.",
-      "prerelease": false,
-      "size_mb": 10.3
     }
   ]
 }

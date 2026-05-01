@@ -1,6 +1,6 @@
 ---
-generated: "2026-05-01T01:27:17Z"
-source_commit: "93f78273088867c363da24675f394e1779ac0f7f"
+generated: "2026-05-01T02:24:16Z"
+source_commit: "65a155c8c10add0b07607d3669e450d458df9d9f"
 ---
 
 # Gofer - Technical Overview
@@ -57,7 +57,7 @@ Gofer is a VSCode extension that bridges human specifications with AI implementa
 - Initializes dependency injection container (TSyringe)
 - Starts Language Server and MCP tools
 - Sets up file watchers for real-time spec updates
-- **Extension file count:** 262 TypeScript files (across all modules)
+- **Extension file count:** 246 TypeScript files (across all modules)
 
 ### Language Server Entry Point
 
@@ -137,7 +137,7 @@ npx vsce package
 
 **Active Specifications (2026-05-01):**
 
-- **030-vscode-surface-truth-cleanup** - Aligning VS Code extension commands and settings documentation with the actual manifest and runtime implementation (Status: Ready)
+- **030-vscode-surface-truth-cleanup** - Aligning VS Code extension commands and settings documentation with the actual manifest and runtime implementation (Status: Complete)
 
 ## Project Structure
 

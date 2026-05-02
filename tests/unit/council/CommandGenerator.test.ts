@@ -102,12 +102,23 @@ Task: subagent_type="validation-correctness"
         '/test/workspace/.agents/skills/1_gofer_research',
         { recursive: true }
       );
-      expect(vi.mocked(fs.promises.writeFile)).toHaveBeenCalledTimes(1);
+      expect(vi.mocked(fs.promises.mkdir)).toHaveBeenCalledWith(
+        '/test/workspace/.system/skills/1_gofer_research',
+        { recursive: true }
+      );
+      expect(vi.mocked(fs.promises.writeFile)).toHaveBeenCalledTimes(2);
+      expect(vi.mocked(fs.promises.writeFile).mock.calls[0][0]).toBe(
+        '/test/workspace/.agents/skills/1_gofer_research/SKILL.md'
+      );
+      expect(vi.mocked(fs.promises.writeFile).mock.calls[1][0]).toBe(
+        '/test/workspace/.system/skills/1_gofer_research/SKILL.md'
+      );
       const content = String(vi.mocked(fs.promises.writeFile).mock.calls[0][1]);
       expect(content).toContain('name: 1_gofer_research');
       expect(content).toContain('description: Research stage');
       expect(content).toContain('result_schema:');
       expect(content).toContain('canonicalSource: .specify/commands/1_gofer_research.md');
+      expect(String(vi.mocked(fs.promises.writeFile).mock.calls[1][1])).toBe(content);
     });
 
     it('maps Claude control-command filenames back to .specify canonical sources', async () => {

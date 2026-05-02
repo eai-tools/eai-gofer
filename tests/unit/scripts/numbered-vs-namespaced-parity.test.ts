@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import path from 'path';
+import {
+  CONTROL_COMMANDS as EXPECTED_CONTROL_COMMANDS,
+  CONTROL_COMMAND_COUNT,
+} from '../../helpers/goferCommandSet';
 
 const COMMANDS_DIR = path.resolve(__dirname, '../../../.specify/commands');
 
@@ -102,14 +106,7 @@ const PIPELINE_STAGES: Array<{ file: string; name: string; alias: string; catego
  * file IS the canonical surface; there is no separate aliases array
  * required for control commands (parity is namespaced-only).
  */
-const CONTROL_COMMANDS: Array<{ file: string; name: string; category: string }> = [
-  { file: 'gofer_plan.md', name: 'gofer:plan', category: 'control' },
-  { file: 'gofer_side.md', name: 'gofer:side', category: 'control' },
-  { file: 'gofer_personality.md', name: 'gofer:personality', category: 'control' },
-];
-
 const PIPELINE_STAGE_COUNT = 16;
-const CONTROL_COMMAND_COUNT = 3;
 
 describe('numbered vs namespaced stage parity', () => {
   let parseStageCommand: (filePath: string) => Promise<ParseResult>;
@@ -124,7 +121,7 @@ describe('numbered vs namespaced stage parity', () => {
   });
 
   it(`has exactly ${CONTROL_COMMAND_COUNT} control commands in the parity matrix`, () => {
-    expect(CONTROL_COMMANDS.length).toBe(CONTROL_COMMAND_COUNT);
+    expect(EXPECTED_CONTROL_COMMANDS.length).toBe(CONTROL_COMMAND_COUNT);
   });
 
   for (const stage of PIPELINE_STAGES) {
@@ -148,14 +145,14 @@ describe('numbered vs namespaced stage parity', () => {
     });
   }
 
-  for (const ctrl of CONTROL_COMMANDS) {
-    it(`${ctrl.file} is a control command with namespaced name '${ctrl.name}'`, async () => {
-      const filePath = path.join(COMMANDS_DIR, ctrl.file);
+  for (const ctrl of EXPECTED_CONTROL_COMMANDS) {
+    it(`${ctrl.file}.md is a control command with namespaced name '${ctrl.name}'`, async () => {
+      const filePath = path.join(COMMANDS_DIR, `${ctrl.file}.md`);
       const { frontmatter, body } = await parseStageCommand(filePath);
 
       // Control commands declare the namespaced form as canonical name.
       expect(frontmatter.name).toBe(ctrl.name);
-      expect(frontmatter.category).toBe(ctrl.category);
+      expect(frontmatter.category).toBe('control');
 
       // Body is non-empty.
       expect(typeof body).toBe('string');
@@ -163,17 +160,40 @@ describe('numbered vs namespaced stage parity', () => {
     });
   }
 
-  it('byte-identity: loading via canonical name vs namespaced alias yields the same body', async () => {
-    // The current source-of-truth model resolves both forms to the same file.
-    // We simulate "loading via the alias" by reading the same file twice and
-    // asserting body equality. If a future change introduces a separate alias
-    // file, this test will catch the divergence.
-    const allStages: Array<{ file: string }> = [...PIPELINE_STAGES, ...CONTROL_COMMANDS];
-    for (const stage of allStages) {
+  it('builds a real name-and-alias index that resolves numbered and namespaced ids to the same file', async () => {
+    const index = new Map<string, string>();
+
+    for (const stage of PIPELINE_STAGES) {
       const filePath = path.join(COMMANDS_DIR, stage.file);
-      const a = await parseStageCommand(filePath);
-      const b = await parseStageCommand(filePath);
-      expect(b.body).toBe(a.body);
+      const { frontmatter } = await parseStageCommand(filePath);
+      const ids = [
+        String(frontmatter.name),
+        ...((Array.isArray(frontmatter.aliases) ? frontmatter.aliases : []) as string[]),
+      ];
+
+      ids.forEach((id) => index.set(id, filePath));
+    }
+
+    for (const ctrl of EXPECTED_CONTROL_COMMANDS) {
+      const filePath = path.join(COMMANDS_DIR, `${ctrl.file}.md`);
+      const { frontmatter } = await parseStageCommand(filePath);
+      const ids = [
+        String(frontmatter.name),
+        ...((Array.isArray(frontmatter.aliases) ? frontmatter.aliases : []) as string[]),
+      ];
+
+      ids.forEach((id) => index.set(id, filePath));
+    }
+
+    for (const stage of PIPELINE_STAGES) {
+      const expectedPath = path.join(COMMANDS_DIR, stage.file);
+      expect(index.get(stage.name)).toBe(expectedPath);
+      expect(index.get(stage.alias)).toBe(expectedPath);
+    }
+
+    for (const ctrl of EXPECTED_CONTROL_COMMANDS) {
+      const expectedPath = path.join(COMMANDS_DIR, `${ctrl.file}.md`);
+      expect(index.get(ctrl.name)).toBe(expectedPath);
     }
   });
 });

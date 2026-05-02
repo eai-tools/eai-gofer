@@ -49,7 +49,7 @@ export interface SkillDirectoryManager {
  *
  * Searches multiple directories with priority:
  * 1. .claude/commands/ (Claude CLI - highest priority)
- * 2. .system/skills/  (Codex CLI)
+ * 2. .agents/skills/  (Codex CLI canonical path, with legacy .system fallback)
  * 3. .gemini/commands/gofer/ (Gemini CLI)
  * 4. .github/prompts/ (Copilot Chat - lowest priority)
  */
@@ -61,6 +61,15 @@ export class DefaultSkillDirectoryManager implements SkillDirectoryManager {
 
   constructor(private workspacePath: string) {
     this.extractor = new CommandMetadataExtractor();
+  }
+
+  private toCommandFileStem(commandName: string): string {
+    return commandName.replace(/:/g, '_').replace(/-/g, '_');
+  }
+
+  private getCommandFileStemCandidates(commandName: string): string[] {
+    const safeStem = this.toCommandFileStem(commandName);
+    return safeStem === commandName ? [commandName] : [safeStem, commandName];
   }
 
   /**
@@ -163,7 +172,27 @@ export class DefaultSkillDirectoryManager implements SkillDirectoryManager {
     claudeWatcher.onDidDelete(() => this.onDirectoryChange(callback));
     watchers.push(claudeWatcher);
 
-    // Watch .system/skills/
+    // Watch canonical Codex skills plus legacy compatibility mirrors.
+    const canonicalCodexPattern = new vscode.RelativePattern(
+      this.workspacePath,
+      '.agents/skills/*/SKILL.md'
+    );
+    const canonicalCodexWatcher = vscode.workspace.createFileSystemWatcher(canonicalCodexPattern);
+    canonicalCodexWatcher.onDidChange(() => this.onDirectoryChange(callback));
+    canonicalCodexWatcher.onDidCreate(() => this.onDirectoryChange(callback));
+    canonicalCodexWatcher.onDidDelete(() => this.onDirectoryChange(callback));
+    watchers.push(canonicalCodexWatcher);
+
+    const codexNamespacePattern = new vscode.RelativePattern(
+      this.workspacePath,
+      '.agents/skills/gofer/*/SKILL.md'
+    );
+    const codexNamespaceWatcher = vscode.workspace.createFileSystemWatcher(codexNamespacePattern);
+    codexNamespaceWatcher.onDidChange(() => this.onDirectoryChange(callback));
+    codexNamespaceWatcher.onDidCreate(() => this.onDirectoryChange(callback));
+    codexNamespaceWatcher.onDidDelete(() => this.onDirectoryChange(callback));
+    watchers.push(codexNamespaceWatcher);
+
     const codexPattern = new vscode.RelativePattern(
       this.workspacePath,
       '.system/skills/*/SKILL.md'
@@ -173,6 +202,18 @@ export class DefaultSkillDirectoryManager implements SkillDirectoryManager {
     codexWatcher.onDidCreate(() => this.onDirectoryChange(callback));
     codexWatcher.onDidDelete(() => this.onDirectoryChange(callback));
     watchers.push(codexWatcher);
+
+    const legacyCodexNamespacePattern = new vscode.RelativePattern(
+      this.workspacePath,
+      '.system/skills/gofer/*/SKILL.md'
+    );
+    const legacyCodexNamespaceWatcher = vscode.workspace.createFileSystemWatcher(
+      legacyCodexNamespacePattern
+    );
+    legacyCodexNamespaceWatcher.onDidChange(() => this.onDirectoryChange(callback));
+    legacyCodexNamespaceWatcher.onDidCreate(() => this.onDirectoryChange(callback));
+    legacyCodexNamespaceWatcher.onDidDelete(() => this.onDirectoryChange(callback));
+    watchers.push(legacyCodexNamespaceWatcher);
 
     // Watch .gemini/commands/gofer/
     const geminiPattern = new vscode.RelativePattern(
@@ -236,12 +277,14 @@ export class DefaultSkillDirectoryManager implements SkillDirectoryManager {
       return null;
     }
 
-    const filePath = path.join(claudeDir, `${commandName}.md`);
-    if (fs.existsSync(filePath)) {
-      try {
-        return this.extractor.extractFromClaudeCommandSync(filePath);
-      } catch {
-        return null;
+    for (const fileStem of this.getCommandFileStemCandidates(commandName)) {
+      const filePath = path.join(claudeDir, `${fileStem}.md`);
+      if (fs.existsSync(filePath)) {
+        try {
+          return this.extractor.extractFromClaudeCommandSync(filePath);
+        } catch {
+          return null;
+        }
       }
     }
 
@@ -252,17 +295,21 @@ export class DefaultSkillDirectoryManager implements SkillDirectoryManager {
    * Search for skill in Codex CLI directory
    */
   private searchCodexSkills(commandName: string): CommandMetadata | null {
-    const codexDir = path.join(this.workspacePath, '.system/skills');
-    if (!fs.existsSync(codexDir)) {
+    const hasCanonicalCodexDir = fs.existsSync(path.join(this.workspacePath, '.agents/skills'));
+    const hasLegacyCodexDir = fs.existsSync(path.join(this.workspacePath, '.system/skills'));
+    if (!hasCanonicalCodexDir && !hasLegacyCodexDir) {
       return null;
     }
 
-    const skillPath = path.join(codexDir, commandName, 'SKILL.md');
-    if (fs.existsSync(skillPath)) {
+    for (const skillPath of this.getCodexSkillPathCandidates(commandName)) {
+      if (!fs.existsSync(skillPath)) {
+        continue;
+      }
+
       try {
         return this.extractor.extractFromCodexSkillSync(skillPath);
       } catch {
-        return null;
+        continue;
       }
     }
 
@@ -278,12 +325,14 @@ export class DefaultSkillDirectoryManager implements SkillDirectoryManager {
       return null;
     }
 
-    const filePath = path.join(geminiDir, `${commandName}.toml`);
-    if (fs.existsSync(filePath)) {
-      try {
-        return this.extractor.extractFromGeminiCommandSync(filePath);
-      } catch {
-        return null;
+    for (const fileStem of this.getCommandFileStemCandidates(commandName)) {
+      const filePath = path.join(geminiDir, `${fileStem}.toml`);
+      if (fs.existsSync(filePath)) {
+        try {
+          return this.extractor.extractFromGeminiCommandSync(filePath);
+        } catch {
+          return null;
+        }
       }
     }
 
@@ -299,12 +348,14 @@ export class DefaultSkillDirectoryManager implements SkillDirectoryManager {
       return null;
     }
 
-    const filePath = path.join(copilotDir, `${commandName}.prompt.md`);
-    if (fs.existsSync(filePath)) {
-      try {
-        return this.extractor.extractFromCopilotPromptSync(filePath);
-      } catch {
-        return null;
+    for (const fileStem of this.getCommandFileStemCandidates(commandName)) {
+      const filePath = path.join(copilotDir, `${fileStem}.prompt.md`);
+      if (fs.existsSync(filePath)) {
+        try {
+          return this.extractor.extractFromCopilotPromptSync(filePath);
+        } catch {
+          return null;
+        }
       }
     }
 
@@ -342,30 +393,33 @@ export class DefaultSkillDirectoryManager implements SkillDirectoryManager {
    * Get all skills from Codex CLI directory
    */
   private getAllCodexSkills(): CommandMetadata[] {
-    const codexDir = path.join(this.workspacePath, '.system/skills');
-    if (!fs.existsSync(codexDir)) {
+    const codexRoots = [
+      path.join(this.workspacePath, '.agents/skills'),
+      path.join(this.workspacePath, '.agents/skills', 'gofer'),
+      path.join(this.workspacePath, '.system/skills'),
+      path.join(this.workspacePath, '.system/skills', 'gofer'),
+    ];
+    if (!codexRoots.some((codexRoot) => fs.existsSync(codexRoot))) {
       return [];
     }
 
     try {
-      const subdirs = fs.readdirSync(codexDir).filter((item) => {
-        const itemPath = path.join(codexDir, item);
-        return fs.statSync(itemPath).isDirectory();
-      });
+      const skillPaths = new Set<string>();
+      codexRoots.forEach((codexRoot) => this.collectCodexSkillPaths(codexRoot, skillPaths));
 
-      return subdirs
-        .map((subdir) => {
-          try {
-            const skillPath = path.join(codexDir, subdir, 'SKILL.md');
-            if (fs.existsSync(skillPath)) {
-              return this.extractor.extractFromCodexSkillSync(skillPath);
-            }
-            return null;
-          } catch {
-            return null;
+      const dedupedSkills = new Map<string, CommandMetadata>();
+      for (const skillPath of Array.from(skillPaths)) {
+        try {
+          const metadata = this.extractor.extractFromCodexSkillSync(skillPath);
+          if (!dedupedSkills.has(metadata.name)) {
+            dedupedSkills.set(metadata.name, metadata);
           }
-        })
-        .filter((metadata): metadata is CommandMetadata => metadata !== null);
+        } catch {
+          // Ignore malformed legacy artifacts during discovery.
+        }
+      }
+
+      return Array.from(dedupedSkills.values());
     } catch {
       return [];
     }
@@ -384,9 +438,9 @@ export class DefaultSkillDirectoryManager implements SkillDirectoryManager {
       const files = fs.readdirSync(geminiDir).filter((file) => file.endsWith('.toml'));
 
       return files
-        .map((file) => {
+        .map((skillPath) => {
           try {
-            const filePath = path.join(geminiDir, file);
+            const filePath = path.join(geminiDir, skillPath);
             return this.extractor.extractFromGeminiCommandSync(filePath);
           } catch {
             return null;
@@ -422,6 +476,33 @@ export class DefaultSkillDirectoryManager implements SkillDirectoryManager {
         .filter((metadata): metadata is CommandMetadata => metadata !== null);
     } catch {
       return [];
+    }
+  }
+
+  private getCodexSkillPathCandidates(commandName: string): string[] {
+    return this.getCommandFileStemCandidates(commandName).flatMap((fileStem) => [
+      path.join(this.workspacePath, '.agents/skills', fileStem, 'SKILL.md'),
+      path.join(this.workspacePath, '.agents/skills', 'gofer', fileStem, 'SKILL.md'),
+      path.join(this.workspacePath, '.system/skills', fileStem, 'SKILL.md'),
+      path.join(this.workspacePath, '.system/skills', 'gofer', fileStem, 'SKILL.md'),
+    ]);
+  }
+
+  private collectCodexSkillPaths(parentDir: string, skillPaths: Set<string>): void {
+    if (!fs.existsSync(parentDir)) {
+      return;
+    }
+
+    const subdirs = fs.readdirSync(parentDir).filter((item) => {
+      const itemPath = path.join(parentDir, item);
+      return fs.statSync(itemPath).isDirectory();
+    });
+
+    for (const subdir of subdirs) {
+      const skillPath = path.join(parentDir, subdir, 'SKILL.md');
+      if (fs.existsSync(skillPath)) {
+        skillPaths.add(skillPath);
+      }
     }
   }
 }

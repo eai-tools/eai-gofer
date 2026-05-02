@@ -45,12 +45,12 @@ Gofer stores artifacts in `.specify/specs/{feature}/`:
 
 ## Codex Note
 
-Initialization now repairs the Codex install path:
+Initialization now installs the official Codex repo-local path:
 
 - Generates Codex skills into `.agents/skills/`.
-- Creates a non-conflicting symlink under `~/.codex/skills/`.
-- Re-enables stale `enabled = false` entries in `~/.codex/config.toml` only for
-  this Gofer install.
+- Emits the legacy `.system/skills/` mirror for older Gofer compatibility.
+- Leaves `codex-config.toml` as an optional sample for `~/.codex/config.toml`
+  path overrides when you need explicit per-skill enablement control.
 
 Restart Codex after initialization or template updates so it rediscovers the
 skills.

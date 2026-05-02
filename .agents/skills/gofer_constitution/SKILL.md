@@ -1,28 +1,12 @@
 ---
 name: gofer_constitution
-description: Create or update project constitution with coding principles and guidelines
-gofer:
-  workflowProfile: enterpriseai
-  canonicalSource: .specify/commands/gofer_constitution.md
-  canonicalChecksum: fd4a921367a3319bf9813a5491f530ecdd1b4fe9b3ed446c3907dd3c7282dc75
-  metadataSource: scripts/generate-commands.ts
-arguments:
-  - name: feature
-    description: Feature name or description
-    required: false
-result_schema:
-  type: object
-  properties:
-    output:
-      type: string
-      description: Path to generated artifact or execution summary
-    status:
-      type: string
-      enum:
-        - success
-        - error
+description: "Create or update project constitution with coding principles and guidelines."
 ---
 
+---
+description:
+  Create or update project constitution with coding principles and guidelines
+---
 
 # Gofer Constitution
 
@@ -45,18 +29,21 @@ when updating:
    chars, surfaces, args) plus Markdown body. The generator at
    `.specify/scripts/node/generate-commands.mjs` emits to every CLI surface
    (`.claude/commands/`, `extension/resources/copilot-prompts/`,
-   `.github/prompts/`, `.agents/skills/gofer/`, `.gemini/commands/gofer/`,
-   `.system/skills/`). Hand-edits on emitted files are rejected by the generator
-   without `--force-emit`. **Never bypass the source-of-truth.**
+   `.github/prompts/`, `.gemini/commands/gofer/`, `.agents/skills/`, and the
+   legacy compatibility mirror `.system/skills/`). Hand-edits on emitted files
+   are rejected by the generator without `--force-emit`. **Never bypass the
+   source-of-truth.**
 
 2. **Codex distribution path (FR-010)**: Codex discovers skills at
-   `.agents/skills/` (flat, non-tenanted layout:
-   `.agents/skills/gofer/<stage>/SKILL.md`). This is NOT the same as
-   `.claude/skills/`. The constitution MUST capture that distinction explicitly
-   so future authors do not conflate the two paths. The official Codex disable
-   knob is per-skill `[[skills.config]] enabled = false` in
-   `~/.codex/config.toml`; there is no global skill-budget percentage key
-   (FR-011).
+   `.agents/skills/` (one folder per skill:
+   `.agents/skills/<stage>/SKILL.md`). This is NOT the same as
+   `.claude/skills/`, and it is the only repo-local path Codex should rely on
+   for normal Gofer installs. The constitution MUST capture that distinction
+   explicitly so future authors do not conflate the two paths or recreate
+   duplicate global Gofer bundles. The official Codex disable knob is a
+   per-skill `[[skills.config]]` entry with a `path = "/full/path/to/skill"`
+   plus `enabled = false` in `~/.codex/config.toml`; there is no global
+   skill-budget percentage key (FR-011).
 
 When updating the constitution, ensure both sections survive the edit pass.
 
@@ -144,7 +131,7 @@ What would you like to update in the constitution?
 Before writing principles, understand current codebase:
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the codebase-pattern-finder analysis in each., model="haiku"
+Task: subagent_type="codebase-pattern-finder", model="haiku"
 Prompt: "Analyze the codebase for existing patterns and conventions.
 Find:
 - Naming conventions (files, variables, functions)
@@ -451,7 +438,7 @@ After creating/updating, validate:
 ### Codebase Alignment Check
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the codebase-analyzer analysis in each., model="sonnet"
+Task: subagent_type="codebase-analyzer", model="sonnet"
 Prompt: "Check if the codebase follows these constitution principles:
 [List key principles]
 Report any violations or areas needing attention."
@@ -493,7 +480,7 @@ Report any violations or areas needing attention."
   1. Review with team
   2. Address any violations found
   3. Add to onboarding documentation
-  4. Reference in $ $3_gofer_plan for alignment checks
+  4. Reference in /3_gofer_plan for alignment checks
 
 ================================================================
 ```
@@ -502,7 +489,7 @@ Report any violations or areas needing attention."
 
 ## Integration with Pipeline
 
-### During Planning ($ $3_gofer_plan)
+### During Planning (/3_gofer_plan)
 
 ```markdown
 ## Constitution Check
@@ -512,11 +499,11 @@ Report any violations or areas needing attention."
 - [ ] P3: [Principle] - Exception needed (see ADR-NNN)
 ```
 
-### During Implementation ($ $5_gofer_implement)
+### During Implementation (/5_gofer_implement)
 
 Before each task, verify implementation follows constitution.
 
-### During Validation ($ $6_gofer_validate)
+### During Validation (/6_gofer_validate)
 
 ```markdown
 ## Constitution Compliance
@@ -534,7 +521,7 @@ Before each task, verify implementation follows constitution.
 
 When learnings emerge from feature work:
 
-1. Run `$ $gofer_constitution` with update flag
+1. Run `/gofer_constitution` with update flag
 2. Add new principles or modify existing
 3. Create ADR for significant changes
 4. Update version history

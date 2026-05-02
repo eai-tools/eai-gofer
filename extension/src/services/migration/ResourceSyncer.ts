@@ -52,6 +52,11 @@ interface CodexConfigRepairResult {
   changedEntries: number;
 }
 
+interface ManagedFileState {
+  exists: boolean;
+  executable: boolean;
+}
+
 function isNodeErrorWithCode(error: unknown): error is NodeJS.ErrnoException {
   return typeof error === 'object' && error !== null && 'code' in error;
 }
@@ -181,8 +186,7 @@ export class ResourceSyncer implements IResourceOperations {
 
       this.logger.debug('ResourceSyncer', 'Resource paths', { sourcePath, targetPath });
 
-      // Ensure target directory exists
-      await fs.mkdir(targetPath, { recursive: true });
+      await this.ensureManagedDirectory(targetPath);
 
       try {
         const files = await fs.readdir(sourcePath);
@@ -220,17 +224,63 @@ export class ResourceSyncer implements IResourceOperations {
           updated: updatedCount,
           unchanged: unchangedCount,
         });
-      } catch (error) {
+      } catch (error: unknown) {
+        if (isNodeErrorWithCode(error) && error.code === 'ENOENT') {
+          this.logger.warn('ResourceSyncer', `No bundled ${resourceType} found, skipping`);
+          return;
+        }
+
         this.logger.error('ResourceSyncer', error as Error, {
           operation: `copy ${resourceType}`,
           sourcePath,
         });
-        this.logger.warn('ResourceSyncer', `No bundled ${resourceType} found, skipping`);
+        throw error;
       }
     } catch (error) {
       this.logger.error('ResourceSyncer', error as Error, {
         operation: `copyBundledResources for ${resourceType}`,
       });
+      throw error;
+    }
+  }
+
+  private async syncBundledDirectory(
+    resourceType: string,
+    sourceSubdir: string,
+    targetPath: string,
+    makeExecutableExtensions: readonly string[] = []
+  ): Promise<void> {
+    try {
+      this.logger.info('ResourceSyncer', `Syncing ${resourceType}`, {
+        sourceSubdir,
+        targetPath,
+      });
+
+      const extensionPath = this.getExtensionPath();
+      if (!extensionPath) {
+        this.logger.warn('ResourceSyncer', `Could not find extension path for ${resourceType}`);
+        return;
+      }
+
+      const sourcePath = path.join(extensionPath, 'resources', sourceSubdir);
+      if (!(await FileUtils.exists(sourcePath))) {
+        this.logger.warn('ResourceSyncer', `No bundled ${resourceType} found, skipping`, {
+          sourcePath,
+        });
+        return;
+      }
+
+      const summary = await this.syncDirectoryNonDestructive(sourcePath, targetPath, makeExecutableExtensions);
+      this.logger.info('ResourceSyncer', `Successfully synced ${resourceType}`, {
+        source: sourcePath,
+        target: targetPath,
+        summary,
+      });
+    } catch (error) {
+      this.logger.error('ResourceSyncer', error as Error, {
+        operation: `syncBundledDirectory for ${resourceType}`,
+      });
+      throw error;
     }
   }
 
@@ -257,17 +307,18 @@ export class ResourceSyncer implements IResourceOperations {
 
     // Create structure and resources
     await this.createGoferStructure();
+    await this.syncCanonicalCommands();
     await this.copyBundledTemplates();
 
     // Restore constitution if it existed
     if (existingConstitution) {
-      await fs.writeFile(constitutionPath, existingConstitution);
+      await this.writeManagedFile(constitutionPath, existingConstitution);
       this.logger.debug('ResourceSyncer', 'Restored existing constitution');
     }
 
     // Save version
     const versionFilePath = path.join(this.specifyPath, '.gofer-version');
-    await fs.writeFile(versionFilePath, await this.getExtensionVersion());
+    await this.writeManagedFile(versionFilePath, await this.getExtensionVersion());
 
     this.logger.info('ResourceSyncer', 'Gofer CLI resources installed successfully');
   }
@@ -275,11 +326,20 @@ export class ResourceSyncer implements IResourceOperations {
   public async createGoferStructure(): Promise<void> {
     this.logger.info('ResourceSyncer', 'Creating Gofer folder structure');
 
-    const folders = ['memory', 'scripts/bash', 'scripts/powershell', 'specs', 'templates'];
+    const folders = [
+      'commands',
+      'memory',
+      'scripts/bash',
+      'scripts/hooks',
+      'scripts/node',
+      'scripts/powershell',
+      'specs',
+      'templates',
+    ];
 
     for (const folder of folders) {
       const folderPath = path.join(this.specifyPath, folder);
-      await fs.mkdir(folderPath, { recursive: true });
+      await this.ensureManagedDirectory(folderPath);
     }
 
     this.logger.debug('ResourceSyncer', 'Created all Gofer folders');
@@ -292,7 +352,7 @@ export class ResourceSyncer implements IResourceOperations {
       let specNumber = 1;
       let migratedCount = 0;
       const backupDir = path.join(this.specifyPath, '_backup');
-      await fs.mkdir(backupDir, { recursive: true });
+      await this.ensureManagedDirectory(backupDir);
 
       const rootBundlePath = path.join(this.workspacePath, 'specs.json');
       if (await FileUtils.exists(rootBundlePath)) {
@@ -389,46 +449,26 @@ export class ResourceSyncer implements IResourceOperations {
 
   public async setupGeminiCommands(): Promise<void> {
     this.logger.info('ResourceSyncer', 'Copying Gemini CLI extension commands');
-
-    try {
-      const extensionPath = this.getExtensionPath();
-      if (!extensionPath) {
-        this.logger.warn('ResourceSyncer', 'Could not find extension path for Gemini commands');
-        return;
-      }
-
-      const sourcePath = path.join(extensionPath, 'resources', 'gemini');
-      const targetPath = path.join(this.workspacePath, '.gemini');
-
-      if (!(await FileUtils.exists(sourcePath))) {
-        this.logger.warn('ResourceSyncer', 'No bundled Gemini commands found, skipping', {
-          sourcePath,
-        });
-        return;
-      }
-
-      const summary = await this.syncDirectoryNonDestructive(sourcePath, targetPath);
-      this.logger.info('ResourceSyncer', 'Successfully synced Gemini CLI commands', {
-        source: sourcePath,
-        target: targetPath,
-        summary,
-      });
-    } catch (error) {
-      this.logger.error('ResourceSyncer', error as Error, {
-        operation: 'setupGeminiCommands',
-      });
-    }
+    await this.syncCanonicalCommands();
+    await this.syncBundledDirectory(
+      'Gemini CLI commands',
+      'gemini',
+      path.join(this.workspacePath, '.gemini')
+    );
   }
 
   public async setupCodexSkills(): Promise<void> {
-    this.logger.info('ResourceSyncer', 'Generating Codex CLI skills from Claude commands');
+    this.logger.info(
+      'ResourceSyncer',
+      'Generating Codex skills into the canonical .agents/skills workspace path'
+    );
 
     try {
       const { CommandGenerator } = await import('../../council/CommandGenerator');
       const generator = new CommandGenerator(this.workspacePath);
       const workflowProfile = this.resolveWorkflowProfileForGeneration();
 
-      // Generate all Codex skills from Claude commands
+      // Generate all Codex skills into the canonical repo-local .agents/skills tree.
       const generatedPaths = await generator.generateCommands('codex', false, {
         workflowProfileOverride: workflowProfile,
         metadataSource: 'extension/src/services/migration/ResourceSyncer.ts',
@@ -438,40 +478,12 @@ export class ResourceSyncer implements IResourceOperations {
         paths: generatedPaths,
         workflowProfile,
       });
-
-      await this.syncCodexSkillsToAgents();
     } catch (error) {
       this.logger.error('ResourceSyncer', error as Error, {
         operation: 'setupCodexSkills',
       });
       throw error;
     }
-  }
-
-  private async syncCodexSkillsToAgents(): Promise<void> {
-    const codexSkillsPath = path.join(this.workspacePath, '.system', 'skills');
-    const agentsSkillsPath = path.join(this.workspacePath, '.agents', 'skills');
-
-    const codexSkillsExists = await FileUtils.exists(codexSkillsPath);
-    if (!codexSkillsExists) {
-      this.logger.warn('ResourceSyncer', 'Codex skills directory missing; cannot sync .agents', {
-        path: codexSkillsPath,
-      });
-      return;
-    }
-
-    await fs.mkdir(agentsSkillsPath, { recursive: true });
-    const summary = await this.syncDirectoryNonDestructive(codexSkillsPath, agentsSkillsPath);
-
-    this.logger.info(
-      'ResourceSyncer',
-      'Synced Codex skills to .agents/skills for Copilot CLI and Gemini CLI',
-      {
-        source: codexSkillsPath,
-        target: agentsSkillsPath,
-        summary,
-      }
-    );
   }
 
   private resolveWorkflowProfileForGeneration(): 'standard' | 'enterpriseai' {
@@ -488,37 +500,170 @@ export class ResourceSyncer implements IResourceOperations {
     }
   }
 
+  private getWorkspaceRoot(): string {
+    if (this.workspacePath.trim().length === 0) {
+      throw new Error('Workspace path has not been configured');
+    }
+
+    return path.resolve(this.workspacePath);
+  }
+
+  private isPathWithinWorkspace(targetPath: string): boolean {
+    const workspaceRoot = this.getWorkspaceRoot();
+    const relativePath = path.relative(workspaceRoot, targetPath);
+    return (
+      relativePath === '' ||
+      (!relativePath.startsWith('..') && !path.isAbsolute(relativePath))
+    );
+  }
+
+  private resolveManagedWorkspacePath(targetPath: string): string {
+    const resolvedTargetPath = path.resolve(targetPath);
+    if (!this.isPathWithinWorkspace(resolvedTargetPath)) {
+      throw new Error(
+        `Managed path escapes workspace root: ${resolvedTargetPath} is outside ${this.getWorkspaceRoot()}`
+      );
+    }
+
+    return resolvedTargetPath;
+  }
+
+  private async ensureManagedDirectory(directoryPath: string): Promise<void> {
+    const workspaceRoot = this.getWorkspaceRoot();
+    const resolvedDirectoryPath = this.resolveManagedWorkspacePath(directoryPath);
+    const relativePath = path.relative(workspaceRoot, resolvedDirectoryPath);
+
+    if (relativePath === '') {
+      return;
+    }
+
+    let currentPath = workspaceRoot;
+    for (const segment of relativePath.split(path.sep)) {
+      currentPath = path.join(currentPath, segment);
+      try {
+        const stats = await fs.lstat(currentPath);
+        if (stats.isSymbolicLink()) {
+          throw new Error(`Refusing to traverse symlinked managed path: ${currentPath}`);
+        }
+        if (!stats.isDirectory()) {
+          throw new Error(`Managed directory path is occupied by a non-directory: ${currentPath}`);
+        }
+      } catch (error: unknown) {
+        if (isNodeErrorWithCode(error) && error.code === 'ENOENT') {
+          await fs.mkdir(currentPath);
+          continue;
+        }
+        throw error;
+      }
+    }
+  }
+
+  private async getManagedFileState(targetPath: string): Promise<ManagedFileState> {
+    const resolvedTargetPath = this.resolveManagedWorkspacePath(targetPath);
+    await this.ensureManagedDirectory(path.dirname(resolvedTargetPath));
+
+    try {
+      const stats = await fs.lstat(resolvedTargetPath);
+      if (stats.isSymbolicLink()) {
+        throw new Error(`Refusing to write through symlinked managed file: ${resolvedTargetPath}`);
+      }
+      if (!stats.isFile()) {
+        throw new Error(`Managed file path is occupied by a non-file: ${resolvedTargetPath}`);
+      }
+
+      return {
+        exists: true,
+        executable: (stats.mode & 0o111) === 0o111,
+      };
+    } catch (error: unknown) {
+      if (isNodeErrorWithCode(error) && error.code === 'ENOENT') {
+        return { exists: false, executable: false };
+      }
+      throw error;
+    }
+  }
+
+  private async writeManagedFile(
+    targetPath: string,
+    content: string | Buffer,
+    makeExecutable: boolean = false
+  ): Promise<void> {
+    const resolvedTargetPath = this.resolveManagedWorkspacePath(targetPath);
+    const parentDirectory = path.dirname(resolvedTargetPath);
+    await this.ensureManagedDirectory(parentDirectory);
+
+    try {
+      const existingStats = await fs.lstat(resolvedTargetPath);
+      if (existingStats.isSymbolicLink()) {
+        throw new Error(`Refusing to write through symlinked managed file: ${resolvedTargetPath}`);
+      }
+      if (!existingStats.isFile()) {
+        throw new Error(`Managed file path is occupied by a non-file: ${resolvedTargetPath}`);
+      }
+    } catch (error: unknown) {
+      if (!(isNodeErrorWithCode(error) && error.code === 'ENOENT')) {
+        throw error;
+      }
+    }
+
+    const temporaryPath = path.join(
+      parentDirectory,
+      `.gofer-sync-${path.basename(resolvedTargetPath)}-${process.pid}-${Date.now()}.tmp`
+    );
+    let tempWritten = false;
+
+    try {
+      await fs.writeFile(temporaryPath, content);
+      tempWritten = true;
+      if (makeExecutable) {
+        await fs.chmod(temporaryPath, 0o755);
+      }
+      await fs.rename(temporaryPath, resolvedTargetPath);
+    } catch (error) {
+      if (tempWritten) {
+        try {
+          await fs.rm(temporaryPath, { force: true });
+        } catch (cleanupError) {
+          this.logger.warn(
+            'ResourceSyncer',
+            `Failed to clean up temporary managed file ${temporaryPath}: ${
+              cleanupError instanceof Error ? cleanupError.message : String(cleanupError)
+            }`
+          );
+        }
+      }
+      throw error;
+    }
+  }
+
   private async upsertFileFromSource(
     sourcePath: string,
     targetPath: string,
     makeExecutable: boolean = false
   ): Promise<'copied' | 'updated' | 'unchanged'> {
     const sourceContent = await fs.readFile(sourcePath);
-    const targetExists = await FileUtils.exists(targetPath);
+    const targetState = await this.getManagedFileState(targetPath);
 
-    if (targetExists) {
+    if (targetState.exists) {
       const targetContent = await fs.readFile(targetPath);
       if (Buffer.compare(sourceContent, targetContent) === 0) {
-        if (makeExecutable) {
-          await fs.chmod(targetPath, 0o755);
+        if (makeExecutable && !targetState.executable) {
+          await this.writeManagedFile(targetPath, sourceContent, true);
+          return 'updated';
         }
         return 'unchanged';
       }
-    } else {
-      await fs.mkdir(path.dirname(targetPath), { recursive: true });
     }
 
-    await fs.writeFile(targetPath, sourceContent);
-    if (makeExecutable) {
-      await fs.chmod(targetPath, 0o755);
-    }
+    await this.writeManagedFile(targetPath, sourceContent, makeExecutable);
 
-    return targetExists ? 'updated' : 'copied';
+    return targetState.exists ? 'updated' : 'copied';
   }
 
   private async syncDirectoryNonDestructive(
     sourcePath: string,
-    targetPath: string
+    targetPath: string,
+    makeExecutableExtensions: readonly string[] = []
   ): Promise<NonDestructiveSyncSummary> {
     const summary: NonDestructiveSyncSummary = {
       copied: 0,
@@ -527,7 +672,7 @@ export class ResourceSyncer implements IResourceOperations {
     };
 
     const entries = await fs.readdir(sourcePath, { withFileTypes: true });
-    await fs.mkdir(targetPath, { recursive: true });
+    await this.ensureManagedDirectory(targetPath);
 
     for (const entry of entries) {
       const sourceEntryPath = path.join(sourcePath, entry.name);
@@ -536,7 +681,8 @@ export class ResourceSyncer implements IResourceOperations {
       if (entry.isDirectory()) {
         const childSummary = await this.syncDirectoryNonDestructive(
           sourceEntryPath,
-          targetEntryPath
+          targetEntryPath,
+          makeExecutableExtensions
         );
         summary.copied += childSummary.copied;
         summary.updated += childSummary.updated;
@@ -544,7 +690,14 @@ export class ResourceSyncer implements IResourceOperations {
         continue;
       }
 
-      const action = await this.upsertFileFromSource(sourceEntryPath, targetEntryPath);
+      const makeExecutable = makeExecutableExtensions.some((extension) =>
+        entry.name.endsWith(extension)
+      );
+      const action = await this.upsertFileFromSource(
+        sourceEntryPath,
+        targetEntryPath,
+        makeExecutable
+      );
       if (action === 'copied') {
         summary.copied++;
       } else if (action === 'updated') {
@@ -900,7 +1053,7 @@ export class ResourceSyncer implements IResourceOperations {
       const agentsPath = path.join(this.workspacePath, 'AGENTS.md');
       if (!(await FileUtils.exists(agentsPath))) {
         const agentsContent = await generator.generateAgentsMd(projectInfo);
-        await FileUtils.writeTextFile(agentsPath, agentsContent);
+        await this.writeManagedFile(agentsPath, agentsContent);
         this.logger.info('ResourceSyncer', 'Created AGENTS.md');
       }
 
@@ -908,16 +1061,16 @@ export class ResourceSyncer implements IResourceOperations {
       const claudePath = path.join(this.workspacePath, 'CLAUDE.md');
       if (!(await FileUtils.exists(claudePath))) {
         const claudeContent = await generator.generateClaudeMd(projectInfo);
-        await FileUtils.writeTextFile(claudePath, claudeContent);
+        await this.writeManagedFile(claudePath, claudeContent);
         this.logger.info('ResourceSyncer', 'Created CLAUDE.md');
       }
 
       // .github/copilot-instructions.md
       const copilotPath = path.join(this.workspacePath, '.github', 'copilot-instructions.md');
       if (!(await FileUtils.exists(copilotPath))) {
-        await FileUtils.ensureDirectory(path.join(this.workspacePath, '.github'));
+        await this.ensureManagedDirectory(path.join(this.workspacePath, '.github'));
         const copilotContent = await generator.generateCopilotMd(projectInfo);
-        await FileUtils.writeTextFile(copilotPath, copilotContent);
+        await this.writeManagedFile(copilotPath, copilotContent);
         this.logger.info('ResourceSyncer', 'Created .github/copilot-instructions.md');
       }
     } catch (error) {
@@ -932,12 +1085,11 @@ export class ResourceSyncer implements IResourceOperations {
   }
 
   public async createNodeScripts(): Promise<void> {
-    await this.copyBundledResources(
+    await this.syncBundledDirectory(
       'Node.js scripts',
       'node-scripts',
-      'scripts/node',
-      ['*.js'],
-      true
+      path.join(this.specifyPath, 'scripts', 'node'),
+      ['.js', '.mjs']
     );
   }
 
@@ -958,8 +1110,7 @@ export class ResourceSyncer implements IResourceOperations {
       const vscodeDir = path.join(this.workspacePath, '.vscode');
       const settingsPath = path.join(vscodeDir, 'settings.json');
 
-      // Ensure .vscode directory exists
-      await fs.mkdir(vscodeDir, { recursive: true });
+      await this.ensureManagedDirectory(vscodeDir);
 
       // Read existing settings or start with empty object
       let settings: Record<string, unknown> = {};
@@ -1011,7 +1162,7 @@ export class ResourceSyncer implements IResourceOperations {
       }
 
       // Write back to file
-      await fs.writeFile(settingsPath, JSON.stringify(settings, null, 2) + '\n');
+      await this.writeManagedFile(settingsPath, JSON.stringify(settings, null, 2) + '\n');
       this.logger.info('ResourceSyncer', 'Successfully updated .vscode/settings.json');
     } catch (error) {
       this.logger.error('ResourceSyncer', error as Error, { operation: 'createVSCodeSettings' });
@@ -1118,7 +1269,7 @@ export class ResourceSyncer implements IResourceOperations {
           }
 
           if (needsUpdate) {
-            await fs.writeFile(specFile, specContent);
+            await this.writeManagedFile(specFile, specContent);
             this.logger.debug('ResourceSyncer', `Updated ${specDir.name}/spec.md`);
           }
         } catch (error: unknown) {
@@ -1169,7 +1320,7 @@ export class ResourceSyncer implements IResourceOperations {
                   headingMatch[0],
                   headingMatch[0] + checkboxList
                 );
-                await fs.writeFile(tasksFile, tasksContent);
+                await this.writeManagedFile(tasksFile, tasksContent);
               }
             }
           }
@@ -1260,7 +1411,7 @@ ${newReportNumber}. **Report**: Output path to generated tasks.md and issues.md 
       }
 
       if (needsUpdate && content !== originalContent) {
-        await fs.writeFile(tasksCommandPath, content, 'utf-8');
+        await this.writeManagedFile(tasksCommandPath, content);
         this.logger.debug('ResourceSyncer', 'Updated gofer.tasks.md with issues generation');
       } else if (content.includes('generate-issues.js')) {
         this.logger.debug('ResourceSyncer', 'gofer.tasks.md already includes issues generation');
@@ -1337,7 +1488,7 @@ AI agents validate code against the constitution before implementation.
 - **Gofer Extension**: View specs and progress in VSCode sidebar
 `;
 
-    await fs.writeFile(path.join(this.specifyPath, 'README.md'), readme);
+    await this.writeManagedFile(path.join(this.specifyPath, 'README.md'), readme);
     this.logger.info('ResourceSyncer', 'Created README.md');
   }
 
@@ -1409,7 +1560,7 @@ AI agents validate code against the constitution before implementation.
         }
       }
 
-      await fs.writeFile(gitignorePath, updatedContent);
+      await this.writeManagedFile(gitignorePath, updatedContent);
       this.logger.info('ResourceSyncer', 'Successfully updated .gitignore');
     } catch (error) {
       this.logger.error('ResourceSyncer', error as Error, { operation: 'updateGitignore' });
@@ -1423,7 +1574,7 @@ AI agents validate code against the constitution before implementation.
       const claudeDir = path.join(this.workspacePath, '.claude');
       const settingsPath = path.join(claudeDir, 'settings.json');
 
-      await fs.mkdir(claudeDir, { recursive: true });
+      await this.ensureManagedDirectory(claudeDir);
 
       const hooksConfig: Record<string, unknown[]> = {
         UserPromptSubmit: [
@@ -1489,12 +1640,12 @@ AI agents validate code against the constitution before implementation.
       }
 
       settings.hooks = existingHooks;
-      await fs.writeFile(settingsPath, JSON.stringify(settings, null, 2) + '\n');
+      await this.writeManagedFile(settingsPath, JSON.stringify(settings, null, 2) + '\n');
       this.logger.info('ResourceSyncer', 'Successfully wrote .claude/settings.json');
 
       // Ensure hook scripts directory exists and copy scripts
       const hooksScriptDir = path.join(this.specifyPath, 'scripts', 'hooks');
-      await fs.mkdir(hooksScriptDir, { recursive: true });
+      await this.ensureManagedDirectory(hooksScriptDir);
 
       await this.copyHookScripts();
     } catch (error) {
@@ -1521,7 +1672,7 @@ AI agents validate code against the constitution before implementation.
         target: targetHooksPath,
       });
 
-      await fs.mkdir(targetHooksPath, { recursive: true });
+      await this.ensureManagedDirectory(targetHooksPath);
 
       try {
         const files = await fs.readdir(bundledHooksPath);
@@ -1530,7 +1681,7 @@ AI agents validate code against the constitution before implementation.
           if (file.endsWith('.mjs')) {
             const source = path.join(bundledHooksPath, file);
             const target = path.join(targetHooksPath, file);
-            await fs.copyFile(source, target);
+            await this.upsertFileFromSource(source, target);
             copiedCount++;
             this.logger.debug('ResourceSyncer', `Copied: ${file}`);
           }
@@ -1562,6 +1713,14 @@ AI agents validate code against the constitution before implementation.
       'templates',
       ['*.md', '*.yaml'],
       false
+    );
+  }
+
+  public async syncCanonicalCommands(): Promise<void> {
+    await this.syncBundledDirectory(
+      'canonical Gofer commands',
+      'specify-commands',
+      path.join(this.specifyPath, 'commands')
     );
   }
 
@@ -1681,11 +1840,11 @@ AI agents validate code against the constitution before implementation.
    */
   private async writeMigratedSpec(spec: LegacyJsonSpec, specId: string): Promise<void> {
     const specDir = path.join(this.specifyPath, 'specs', specId);
-    await fs.mkdir(specDir, { recursive: true });
-    await fs.writeFile(path.join(specDir, 'spec.md'), this.convertJsonToMarkdown(spec, specId));
+    await this.ensureManagedDirectory(specDir);
+    await this.writeManagedFile(path.join(specDir, 'spec.md'), this.convertJsonToMarkdown(spec, specId));
 
     if (Array.isArray(spec.tasks) && spec.tasks.length > 0) {
-      await fs.writeFile(
+      await this.writeManagedFile(
         path.join(specDir, 'tasks.md'),
         this.convertJsonTasksToMarkdown(spec.tasks)
       );

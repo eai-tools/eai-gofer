@@ -67,11 +67,11 @@ engineering-review feedback.
 
 ### 6_gofer_validate
 
-Validate the implementation against spec acceptance criteria across six quality
-dimensions.
+Validate implemented work with evidence-backed scoring, blast-radius analysis,
+and engineering review.
 
-Use when: implementation is complete and you need a 100-point rubric pass across
-the six validation dimensions.
+Use when: implementation is complete and you need truthful 110-point,
+evidence-backed validation before completion.
 
 ### 6a_gofer_engineering_review
 
@@ -127,6 +127,41 @@ Reverse-engineer a specification from existing code.
 
 Use when: bringing brownfield code into the Gofer specification workflow.
 
+### gofer:vocabulary
+
+Extract domain terminology into a canonical feature glossary.
+
+Use when: a feature needs stable shared language across research, spec, and
+implementation artifacts.
+
+### gofer:diagnose
+
+Run a reproduce-minimize-instrument-fix loop for bugs and failing tests.
+
+Use when: a failure needs a structured debugging artifact inside the feature
+directory.
+
+### gofer:tdd
+
+Guide a red-green-refactor loop tied to spec acceptance criteria.
+
+Use when: implementation should stay test-first without replacing the numbered
+pipeline stages.
+
+### gofer:spec-summary
+
+Generate a business-friendly summary of feature value and scope.
+
+Use when: stakeholders need a plain-language summary of what the feature does
+and what stays out of scope.
+
+### gofer:zoom-out
+
+Show how the current feature connects to broader system boundaries.
+
+Use when: the feature needs upstream, downstream, or cross-cutting context
+before implementation decisions are finalized.
+
 ### gofer:personality
 
 Apply Gofer personality guidance.
@@ -147,7 +182,7 @@ Use when: exploring a tangent or clarification alongside the main flow.
 
 ## Activation
 
-Codex discovers these stages via `.agents/skills/gofer/<stage>/SKILL.md`
+Codex discovers these stages via `.agents/skills/<stage>/SKILL.md`
 (already emitted by `.specify/scripts/node/generate-commands.mjs`).
 
 Gemini discovers them via `.gemini/commands/gofer/<stage>.toml` plus

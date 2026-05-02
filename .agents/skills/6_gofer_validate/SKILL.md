@@ -1,37 +1,21 @@
 ---
 name: 6_gofer_validate
-description: >-
-  Unified validation, blast-radius analysis, and engineering review (3 phases,
-  110-point rubric)
-gofer:
-  workflowProfile: enterpriseai
-  canonicalSource: .specify/commands/6_gofer_validate.md
-  canonicalChecksum: 645c66403a80cb86d7944d0de61796712a5b0c4a221648f21c72ab13945a5125
-  metadataSource: scripts/generate-commands.ts
-arguments:
-  - name: feature
-    description: Feature name or description
-    required: false
-result_schema:
-  type: object
-  properties:
-    output:
-      type: string
-      description: Path to generated artifact or execution summary
-    status:
-      type: string
-      enum:
-        - success
-        - error
+description: "Validate implemented work with evidence-backed scoring, blast-radius analysis, and engineering review."
 ---
 
+---
+description:
+  Unified validation, blast-radius analysis, and engineering review (3 phases,
+  110-point rubric)
+---
 
 # Gofer Validate
 
 You are validating that the implementation meets engineering quality standards
 across **three phases**:
 
-- **Phase A — Rubric Validation**: 10-category engineering rubric (100 points)
+- **Phase A — Rubric Validation**: 10-category engineering rubric scored only
+  from real evidence (Categories 1-10, up to 100 points)
 - **Phase B — Blast Radius Analysis**: risk to other code, interface contracts,
   error logging/observability, submodule and repo-wide impact, dependency risk,
   rollback readiness, release-checklist compliance (Category 11, 10 points)
@@ -39,8 +23,8 @@ across **three phases**:
   to catch issues rubric-based validation might miss
 
 This is the **sixth stage** of the unified Gofer pipeline. It consolidates the
-former `$ $6_gofer_validate` and `$ $6a_gofer_engineering_review` stages into a
-single command; `$ $6a_gofer_engineering_review` is retained as a
+former `/6_gofer_validate` and `/6a_gofer_engineering_review` stages into a
+single command; `/6a_gofer_engineering_review` is retained as a
 backwards-compatibility stub that delegates here.
 
 A score of **110/110 on the rubric (Phases A + B) is required to pass**. Any
@@ -60,11 +44,11 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 This command expects in `.specify/specs/{feature}/`:
 
-- `research.md` - Codebase analysis (from $ $1_gofer_research)
-- `spec.md` - Feature specification (from $ $2_gofer_specify)
-- `plan.md` - Implementation plan (from $ $3_gofer_plan)
-- `tasks.md` - Task breakdown (from $ $4_gofer_tasks)
-- Implemented code (from $ $5_gofer_implement)
+- `research.md` - Codebase analysis (from /1_gofer_research)
+- `spec.md` - Feature specification (from /2_gofer_specify)
+- `plan.md` - Implementation plan (from /3_gofer_plan)
+- `tasks.md` - Task breakdown (from /4_gofer_tasks)
+- Implemented code (from /5_gofer_implement)
 
 ---
 
@@ -73,22 +57,23 @@ This command expects in `.specify/specs/{feature}/`:
 1. Context health check
 2. Load implementation context
 3. **Phase A** — Spawn 6 specialist rubric validation agents in parallel
-4. Run automated checks (build, test, lint, typecheck)
-5. Mutation testing gate
-6. Mock ratio analysis
-7. Semantic slop detection
-8. **Phase B** — Spawn 5 blast-radius analysis agents in parallel
-9. Blast-radius synthesis (change graph, interface diff, observability,
-   dependency/submodule impact, rollback readiness, release checklist)
-10. Score the 11-category rubric (110 points)
-11. Generate enhanced validation report + blast-radius report
-12. Determine rubric PASS/FAIL outcome
-13. Brownfield restart on failure
-14. **Phase C** — Engineering review loop (3 agents × up to 5 cycles with
+4. Evidence gate pre-check and pending-gate tracking
+5. **Phase B** — Spawn 5 blast-radius analysis agents in parallel
+6. Blast-radius synthesis (change graph, interface diff, observability,
+    dependency/submodule impact, rollback readiness, release checklist)
+7. Run automated checks (build, test, lint, typecheck)
+8. Mutation testing gate
+9. Mock ratio analysis
+10. Semantic slop detection
+11. Score the 11-category rubric (110 points)
+12. Generate enhanced validation report + blast-radius report
+13. Determine rubric PASS/FAIL outcome
+14. Brownfield restart on failure
+15. **Phase C** — Engineering review loop (3 agents × up to 5 cycles with
     auto-fix)
-15. Generate engineering review report
-16. Attribution logging to JSONL
-17. Memory update check
+16. Generate engineering review report
+17. Attribution logging to JSONL
+18. Memory update check
 
 ---
 
@@ -147,6 +132,13 @@ Angular, Svelte) and no Playwright/Cypress tests exist, this is a no-UI feature.
   should migrate to the 110-point scale. The report keeps the `score` field as
   the numerator and `score_max` to disambiguate.
 
+**Honest-scoring rule (FR-012)**: If an agent reports `EVIDENCE ABSENT:`, the
+orchestrating stage MUST score that category 0 regardless of other findings.
+Phrases like `likely correct`, `appears wired`, or `should be passing` are NOT
+evidence and MUST NOT contribute to any score. Any rubric category where
+evidence is absent, unverifiable, fabricated, or implied scores exactly 0 — no
+partial credit.
+
 ---
 
 ## Step 0: Context Health Check
@@ -159,7 +151,7 @@ Before starting validation, assess context window health:
 
 - If **< 50%**: Proceed normally
 - If **50-70%**: Use sub-agents heavily, minimize main context
-- If **> 70%**: Run `$ $7_gofer_save`, start new session, run `$ $8_gofer_resume`
+- If **> 70%**: Run `/7_gofer_save`, start new session, run `/8_gofer_resume`
 
 Validation loads all artifacts and spawns 6 agents — context pressure is high.
 
@@ -191,11 +183,32 @@ Validation loads all artifacts and spawns 6 agents — context pressure is high.
    - If UI framework present AND Playwright/Cypress tests exist: `HAS_UI = true`
    - Otherwise: `HAS_UI = false` → apply point redistribution
 
+**Deployment/Render Scope Detection** (FR-011):
+
+Scan `spec.md`, `plan.md`, `contract-pack.md`, and `quickstart.md` (when
+present) for the following signals:
+
+- `DEPLOY_SIGNAL_1`: any acceptance criterion contains: `rendered`,
+  `live route`, `live API`, `deployed`, `production`, `staging`,
+  `SharePoint`, `Azure`, `smoke`, `E2E`, `browser`
+- `DEPLOY_SIGNAL_2`: `plan.md`, `contract-pack.md`, or `quickstart.md`
+  names a deployment target: SharePoint, Azure, staging, production, Vercel,
+  Netlify, Docker, Kubernetes, or any server/environment referenced in the
+  acceptance chain
+- `DEPLOY_SIGNAL_3`: `plan.md` declares a UI/rendered experience AND at least
+  one acceptance criterion uses: `sees`, `displays`, `shows`, `renders`,
+  `navigates to`
+
+Set `DEPLOY_IN_SCOPE = true` if ANY signal is present.
+Set `DEPLOY_IN_SCOPE = false` if NO signal is present.
+Record the determination in the validation report preamble.
+
 ---
 
 # Phase A — Rubric Validation
 
-Phase A runs the 10-category engineering rubric (Categories 1-10, 100 points).
+Phase A runs the 10-category engineering rubric (Categories 1-10, up to 100
+points before Category 11 is added).
 
 ## Step 2: Spawn 6 Specialist Validation Agents
 
@@ -207,7 +220,7 @@ Each agent receives the feature context and returns structured findings.
 ### Agent 1: Correctness Validator
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the validation-correctness analysis in each., model="sonnet"
+Task: subagent_type="validation-correctness", model="sonnet"
 Prompt: "Validate functional correctness for feature [FEATURE_NAME].
 
 Feature directory: {FEATURE_DIR}
@@ -222,7 +235,7 @@ Return findings in your standard report format (<2000 tokens)."
 ### Agent 2: Security Validator
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the validation-security analysis in each., model="sonnet"
+Task: subagent_type="validation-security", model="sonnet"
 Prompt: "Validate security posture for feature [FEATURE_NAME].
 
 Scan all new/modified files (from tasks.md file paths).
@@ -233,7 +246,7 @@ Return findings with Red/Yellow/Gray severity (<2000 tokens)."
 ### Agent 3: Performance Validator
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the validation-performance analysis in each., model="haiku"
+Task: subagent_type="validation-performance", model="haiku"
 Prompt: "Validate performance characteristics for feature [FEATURE_NAME].
 
 Scan all new/modified source files (from tasks.md file paths).
@@ -245,7 +258,7 @@ Return findings with complexity scores (<2000 tokens)."
 ### Agent 4: Test Quality Validator
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the validation-test-quality analysis in each., model="haiku"
+Task: subagent_type="validation-test-quality", model="haiku"
 Prompt: "Validate test quality for feature [FEATURE_NAME].
 
 Scan test files related to the feature.
@@ -257,7 +270,7 @@ Return findings with mock ratio calculation (<2000 tokens)."
 ### Agent 5: Integration Validator
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the validation-integration analysis in each., model="sonnet"
+Task: subagent_type="validation-integration", model="sonnet"
 Prompt: "Validate integration contracts for feature [FEATURE_NAME].
 
 Feature directory: {FEATURE_DIR}
@@ -269,7 +282,7 @@ Return findings with contract compliance status (<2000 tokens)."
 ### Agent 6: Standards Validator
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the validation-standards analysis in each., model="sonnet"
+Task: subagent_type="validation-standards", model="sonnet"
 Prompt: "Validate standards compliance for feature [FEATURE_NAME].
 
 Feature directory: {FEATURE_DIR}
@@ -287,23 +300,23 @@ strategy (#13):
 
 ```
 # Diverge: 3 attack perspectives
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the validate-security-red-team analysis in each., model="sonnet"
+Task: subagent_type="validate-security-red-team", model="sonnet"
 Prompt: "Perspective 1: OWASP Top 10 attack analysis for feature [FEATURE_NAME].
 Scan all new/modified files from tasks.md. Attack from OWASP perspective.
 Return findings with exploit steps (<2000 tokens)."
 
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the validate-security-red-team analysis in each., model="sonnet"
+Task: subagent_type="validate-security-red-team", model="sonnet"
 Prompt: "Perspective 2: Business logic abuse analysis for feature [FEATURE_NAME].
 Scan all new/modified files from tasks.md. Attack business logic.
 Return findings with exploit steps (<2000 tokens)."
 
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the validate-security-red-team analysis in each., model="sonnet"
+Task: subagent_type="validate-security-red-team", model="sonnet"
 Prompt: "Perspective 3: CVE search for feature [FEATURE_NAME].
 Check package.json dependencies for known CVEs.
 Return findings with advisory references (<2000 tokens)."
 
 # Converge: Judge synthesizes attack findings
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the multi-perspective-judge analysis in each., model="opus"
+Task: subagent_type="multi-perspective-judge", model="opus"
 Prompt: "Synthesize 3 security red team perspectives for [FEATURE_NAME].
 Perspective 1 (OWASP): [result]. Perspective 2 (Business Logic): [result].
 Perspective 3 (CVE): [result].
@@ -311,7 +324,59 @@ Identify confirmed vulnerabilities vs false positives. Prioritize by exploitabil
 ```
 
 **Run all 6 core agents in parallel.** Run Agent 7 (if applicable) in parallel
-with the core agents. Collect all results before proceeding.
+with the core agents.
+
+## Step 2.2: Evidence Gate Pre-Check
+
+Evaluate the truthfulness gates before final scoring. If a gate is still
+pending here, re-check it after Step 3 automated checks complete and before the
+PASS/FAIL synthesis.
+
+```
+GATE-1 (Integration Proof — Category 5):
+  Require: runtime wiring artifact OR integration-test execution output
+  present in the current session context by final scoring time.
+  If absent during Step 2.2, record GATE-1 as pending and re-check it after
+  Step 3 automated checks complete.
+  Still absent after Step 3 → Category 5 score = 0; mark GATE_FAIL = true
+
+GATE-2 (Test Execution — Categories 1 and 2):
+  Require: real, executed npm test output with pass/fail count already present
+  or produced by Step 3 automated checks before final scoring.
+  If absent during Step 2.2, record GATE-2 as pending and re-check it after
+  Step 3 automated checks complete.
+  Still absent after Step 3 → Categories 1 and 2 score = 0; mark GATE_FAIL = true
+
+GATE-3 (Render/Deployment Proof — Category 3):
+  IF HAS_UI = false:
+    Record "N/A — HAS_UI=false" in evidence table.
+    Record a matching not-in-scope reason in `Absent / Reason for 0`.
+    Apply existing no-UI point redistribution.
+  IF HAS_UI = true AND DEPLOY_IN_SCOPE = false:
+    Require: local render proof (screenshot, component render assertion,
+    headless browser assertion, or local smoke-check output) present by final
+    scoring time.
+    If absent during Step 2.2, record GATE-3 as pending and re-check before
+    final PASS/FAIL synthesis.
+    Still absent → Category 3 score = 0; mark GATE_FAIL = true
+    If present, record "Render proof only — deployment target not in scope" in
+    the evidence table and do not redistribute Category 3 points.
+  IF HAS_UI = true AND DEPLOY_IN_SCOPE = true:
+    Require: screenshot, curl/HTTP transcript, deployment log, headless browser
+    assertion, or smoke-check output present by final scoring time, with at
+    least one artifact proving rendered/live behavior on the declared route or
+    deployment target.
+    If absent during Step 2.2, record GATE-3 as pending and re-check before
+    final PASS/FAIL synthesis.
+    Still absent → Category 3 score = 0; mark GATE_FAIL = true
+
+If any GATE_FAIL = true:
+  - Any agent that would have scored the gated category is still run
+  - The category score remains 0 unless the missing evidence appears before
+    final scoring
+```
+
+Collect all results before proceeding.
 
 ---
 
@@ -382,7 +447,7 @@ truth.
 ### Agent 8: Change Graph / Ripple Analyzer
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the codebase-analyzer analysis in each., model="sonnet"
+Task: subagent_type="codebase-analyzer", model="sonnet"
 Prompt: "Blast-radius change-graph analysis for feature [FEATURE_NAME].
 
 Feature directory: {FEATURE_DIR}
@@ -408,7 +473,7 @@ Return findings with Red/Yellow/Gray severity and a concise ripple summary
 ### Agent 9: Interface Contract Diff
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the validation-integration analysis in each., model="sonnet"
+Task: subagent_type="validation-integration", model="sonnet"
 Prompt: "Interface contract blast-radius analysis for feature [FEATURE_NAME].
 
 Feature directory: {FEATURE_DIR}
@@ -437,7 +502,7 @@ silent coverage regression). Return findings (<2000 tokens) with sections:
 ### Agent 10: Error Logging & Observability Integrity
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the validation-standards analysis in each., model="sonnet"
+Task: subagent_type="validation-standards", model="sonnet"
 Prompt: "Observability blast-radius analysis for feature [FEATURE_NAME].
 
 Feature directory: {FEATURE_DIR}
@@ -465,7 +530,7 @@ Logs', 'PII Risk', 'Metric Coverage Delta', 'Trace Propagation'."
 ### Agent 11: Dependency & Submodule Impact (with npm audit delta)
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the research-dependency-evaluator analysis in each., model="sonnet"
+Task: subagent_type="research-dependency-evaluator", model="sonnet"
 Prompt: "Dependency and submodule blast-radius analysis for feature
 [FEATURE_NAME].
 
@@ -496,7 +561,7 @@ Bumps', 'Lockfile Drift', 'CVE Delta', 'Submodule Boundary Crossings'."
 ### Agent 12: Rollback Readiness & Release Checklist
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the tasks-rollback-planner analysis in each., model="sonnet"
+Task: subagent_type="tasks-rollback-planner", model="sonnet"
 Prompt: "Rollback readiness + release-checklist review for feature
 [FEATURE_NAME].
 
@@ -567,6 +632,10 @@ Write to `{FEATURE_DIR}/blast-radius-report.md`:
 feature: [Feature Name]
 generated: [ISO timestamp]
 reviewer: Claude
+GeneratedAt: [ISO timestamp]
+SourceCommandId: /6_gofer_validate
+SourceInputs: [spec.md, plan.md, tasks.md, research.md, blast-radius inputs]
+OverwriteNoticeWhenApplicable: [new file or overwrite note]
 dimensions_checked:
   [
     change_graph,
@@ -583,7 +652,7 @@ verdict: [CONTAINED | BREACHED]
 
 # Blast Radius Report: [Feature Name]
 
-## Change Surface
+## Changed Surfaces
 
 - Modified files: [N]
 - Submodules touched: [list]
@@ -593,7 +662,7 @@ verdict: [CONTAINED | BREACHED]
 - Migration files: [list]
 - Feature flags introduced/modified: [list]
 
-## Dimension Findings
+## Risk Vectors
 
 ### 1. Change Graph / Ripple (Agent: codebase-analyzer)
 
@@ -639,7 +708,7 @@ verdict: [CONTAINED | BREACHED]
 - Rollback runbook: [Present / Absent / N/A]
 - Red findings: [table]
 
-## Verdict
+## Containment Summary
 
 - **CONTAINED** if `BLAST_RADIUS_RED == 0` — Category 11 scores full 10 pts.
 - **BREACHED** if `BLAST_RADIUS_RED > 0` — Category 11 scores 0.
@@ -835,22 +904,33 @@ category:
 
 **Category 1: Functional Correctness** ({15 or 20 if no UI} pts)
 
-- Input: validation-correctness agent report + automated test results
-- Score 0 if: Any Red finding from correctness agent, OR build/tests fail
+- Input: validation-correctness agent report + `GATE-2` + automated test results
+- Score 0 if: `GATE-2` fails, OR any Red finding from correctness agent, OR
+  build/tests fail, OR tests fail to import
 - Score full if: All acceptance criteria verified with real tests
 
 **Category 2: Test Authenticity** ({15 or 20 if no UI} pts)
 
-- Input: validation-test-quality agent report + mutation score + mock ratio
+- Input: validation-test-quality agent report + `GATE-2` + mutation score +
+  mock ratio
 - Score 0 if: Any placeholder assertion found, OR any test.skip found, OR mock
-  ratio > 30%, OR mutation score < 60% (when Stryker available)
+  ratio > 30%, OR mutation score < 60% (when Stryker available), OR
+  `GATE-2` fails
 - Score full if: Zero placeholders, zero skips, mock ratio <= 30%
 
 **Category 3: UI/E2E Verification** (10 pts, or 0 if redistributed)
 
-- If `HAS_UI = false`: Skip (points already redistributed to Cat 1 & 2)
-- If `HAS_UI = true`: Check for Playwright/Cypress test files that exercise real
-  rendering. Score 0 if no real UI tests exist.
+- If `HAS_UI = false`: Record `N/A — HAS_UI=false` plus an explicit not-in-scope
+  reason in the evidence table and apply the existing no-UI redistribution.
+- If `HAS_UI = true` and `DEPLOY_IN_SCOPE = false`: Check `GATE-3` for local
+  render proof and record `Render proof only — deployment target not in scope`
+  when that proof exists. Score 0 if `GATE-3` fails or no local render proof
+  exists. Do not redistribute Category 3 points.
+- If `HAS_UI = true` and `DEPLOY_IN_SCOPE = true`: Check `GATE-3` for
+  screenshot, curl/HTTP transcript, deployment log, headless browser
+  assertion, or smoke-check output with proof of rendered/live behavior on the
+  declared route or target. Score 0 if `GATE-3` fails or no real render/deploy
+  proof exists.
 
 **Category 4: Security Posture** (10 pts)
 
@@ -860,8 +940,9 @@ category:
 
 **Category 5: Integration Reality** (10 pts)
 
-- Input: validation-integration agent report
-- Score 0 if: Any contract violation, OR critical boundary with zero tests
+- Input: validation-integration agent report + `GATE-1`
+- Score 0 if: `GATE-1` fails, OR any contract violation, OR critical boundary
+  with zero tests
 - Score full if: All contracts satisfied, integration tests use real deps
 
 **Category 6: Error Path Coverage** (10 pts)
@@ -932,7 +1013,7 @@ frontmatter `pass:` marker is bumped from 1 to 2 so downstream consumers can
 tell which pass produced the artefact.
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the visual-canvas-writer analysis in each., model="sonnet"
+Task: subagent_type="visual-canvas-writer", model="sonnet"
 Prompt: "Pass-2 refresh for {FEATURE_DIR}/visuals/impact-canvas.md.
 Read validation council output from {FEATURE_DIR}/validation.md.
 Replace ONLY the topThreeRisks section with the council's top three risks.
@@ -962,7 +1043,7 @@ top-quadrant entries that pass-1 (run from this same stage before validation)
 populated from the spec NFR / Out-of-Scope sections.
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the visual-risk-writer analysis in each., model="sonnet"
+Task: subagent_type="visual-risk-writer", model="sonnet"
 Prompt: "Pass 2: refresh risk heatmap for feature [FEATURE_NAME].
 
 Feature directory: {FEATURE_DIR}
@@ -999,8 +1080,13 @@ score: [N]
 score_max: 110
 iteration: [N]
 has_ui: [true/false]
+deploy_in_scope: [true/false]
 blast_radius_verdict: [CONTAINED | BREACHED]
 blast_radius_report: blast-radius-report.md
+GeneratedAt: [ISO timestamp]
+SourceCommandId: /6_gofer_validate
+SourceInputs: [spec.md, plan.md, tasks.md, research.md, automated checks, agent findings]
+OverwriteNoticeWhenApplicable: [new file or overwrite note]
 ---
 
 # Validation Report: [Feature Name]
@@ -1127,7 +1213,42 @@ See `{FEATURE_DIR}/blast-radius-report.md` for the full dimension report.
 ### Future Improvements (Informational)
 
 - [Gray findings and suggestions]
+
+## Evidence Table
+
+| Category | Score | Evidence Artifact / Command Output | Absent / Reason for 0 |
+| --- | --- | --- | --- |
+| 1 — Functional Correctness | [0/15/20] | [file path, executed `npm test` output with timestamp, or agent citation] | [reason if 0] |
+| 2 — Test Authenticity | [0/15/20] | [file path, mutation output, or agent citation] | [reason if 0] |
+| 3 — UI/E2E Verification | [0/10/N/A] | [`N/A — HAS_UI=false`, `Render proof only — deployment target not in scope`, or render/deploy artifact] | [reason if 0 or not in scope] |
+| 4 — Security Posture | [0/10] | [agent finding citation] | [reason if 0] |
+| 5 — Integration Reality | [0/10] | [runtime wiring proof, integration-test output, or agent citation] | [reason if 0] |
+| 6 — Error Path Coverage | [0/10] | [agent finding citation] | [reason if 0] |
+| 7 — Architecture Compliance | [0/10] | [agent finding citation] | [reason if 0] |
+| 8 — Performance Baseline | [0/5] | [agent finding citation] | [reason if 0] |
+| 9 — Code Hygiene | [0/10] | [agent finding citation] | [reason if 0] |
+| 10 — Specification Traceability | [0/5] | [agent finding citation] | [reason if 0] |
+| 11 — Blast Radius Containment | [0/10] | [blast-radius-report.md reference] | [reason if 0] |
+| **Total** | **[N]/110** |  |  |
 ```
+
+This evidence table is required on **EVERY run (PASS and FAIL)**.
+
+Each `Evidence Artifact / Command Output` cell MUST contain at least one of:
+
+- A file path visible in the current session
+- An executed command and its real output (with timestamp)
+- A sub-agent finding citation (agent name + finding ID)
+
+An empty evidence cell or a cell containing only inferences/assumptions MUST
+cause that category to score 0.
+
+Category 11's evidence cell MUST cite `blast-radius-report.md`.
+
+When Category 3 is not in scope, the report preamble or row text MUST make the
+redistribution explicit enough that normalization/effective contribution remains
+derivable from the persisted report, and `Absent / Reason for 0` must record
+the matching not-in-scope reason.
 
 ---
 
@@ -1167,7 +1288,7 @@ Proceed to **Phase C: Engineering Review Loop** (inline, Step 10a below), then
 
 **No external auto-chain is needed** — Phase C runs inline in this command.
 After Phase C completes, the feature pipeline is complete. The legacy
-`$ $6a_gofer_engineering_review` stub will detect the
+`/6a_gofer_engineering_review` stub will detect the
 `engineering-review-report.md` artifact and no-op if invoked.
 
 ### If TOTAL < 110: FAIL
@@ -1179,7 +1300,7 @@ fails — fix the rubric first).
 
 ## Step 10: Brownfield Restart Loop
 
-When validation fails (score < 100), generate a remediation report and signal
+When validation fails (score < score_max), generate a remediation report and signal
 the orchestrator to restart the pipeline focused on failed areas.
 
 ### 10.1 Check Iteration Count
@@ -1195,7 +1316,8 @@ Write to `{FEATURE_DIR}/remediation-report.md`:
 ---
 feature: [Feature Name]
 iteration: [N]
-score: [N]/100
+score: [N]
+score_max: 110
 generated: [ISO timestamp]
 failed_categories: [list]
 ---
@@ -1204,7 +1326,7 @@ failed_categories: [list]
 
 ## Iteration [N] of 3
 
-**Score**: [N]/100 **Status**: FAIL — Remediation Required
+**Score**: [N]/110 **Status**: FAIL — Remediation Required
 
 ## Failed Categories
 
@@ -1238,8 +1360,8 @@ The following pipeline stages should re-run focused on these areas:
 
 | Iteration | Score   | Failed Categories | Date   |
 | --------- | ------- | ----------------- | ------ |
-| 1         | [N]/100 | [list]            | [date] |
-| 2         | [N]/100 | [list]            | [date] |
+| 1         | [N]/110 | [list]            | [date] |
+| 2         | [N]/110 | [list]            | [date] |
 ```
 
 ### 10.3 Signal Orchestrator
@@ -1251,7 +1373,7 @@ Output the routing instruction:
   VALIDATION FAILED: [Feature Name]
 ════════════════════════════════════════════════════════════════
 
-  Score: [N]/100
+  Score: [N]/110
   Iteration: [N] of 3
 
   Failed categories:
@@ -1263,7 +1385,7 @@ Output the routing instruction:
   REMEDIATION REQUIRED: [feature-name]
   Failed categories: [list]
   Iteration: [N] of 3
-  Route: $ $5_gofer_implement → focused on [failed areas]
+  Route: /5_gofer_implement → focused on [failed areas]
 
 ════════════════════════════════════════════════════════════════
 ```
@@ -1279,7 +1401,7 @@ If this is the 3rd iteration and validation still fails, generate
 ---
 feature: [Feature Name]
 iteration: 3
-final_score: [N]/100
+final_score: [N]/110
 escalated: [ISO timestamp]
 ---
 
@@ -1318,7 +1440,7 @@ Output:
 ════════════════════════════════════════════════════════════════
 
   After 3 remediation attempts, validation still fails.
-  Score: [N]/100
+  Score: [N]/110
 
   Escalation report: {FEATURE_DIR}/escalation-report.md
 
@@ -1338,7 +1460,7 @@ cycle, catching issues that the rubric-based validation might miss (edge cases,
 race conditions, API-contract drift against the as-implemented code, spec spirit
 violations).
 
-Phase C is the terminal stage of `$ $6_gofer_validate`. After Phase C completes,
+Phase C is the terminal stage of `/6_gofer_validate`. After Phase C completes,
 the feature pipeline is complete.
 
 ## Step 10a: Initialize Phase C
@@ -1362,7 +1484,7 @@ feature context and returns structured findings.
 ### Agent 13: Engineer Review (Spec↔Plan↔Tasks↔Research Alignment)
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the engineer-review analysis in each., model="sonnet"
+Task: subagent_type="engineer-review", model="sonnet"
 Prompt: "Post-implementation engineering review for feature [FEATURE_NAME].
 
 Feature directory: {FEATURE_DIR}
@@ -1383,7 +1505,7 @@ Return findings in your standard report format (<2000 tokens)."
 ### Agent 14: Codebase Analyzer (Code↔Tasks Verification)
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the codebase-analyzer analysis in each., model="sonnet"
+Task: subagent_type="codebase-analyzer", model="sonnet"
 Prompt: "Post-implementation code verification for feature [FEATURE_NAME].
 
 Feature directory: {FEATURE_DIR}
@@ -1405,7 +1527,7 @@ Gray = style suggestions, optional improvements"
 ### Agent 15: Correctness Re-verification
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the validation-correctness analysis in each., model="sonnet"
+Task: subagent_type="validation-correctness", model="sonnet"
 Prompt: "Post-implementation correctness re-verification for feature [FEATURE_NAME].
 
 Feature directory: {FEATURE_DIR}
@@ -1610,12 +1732,12 @@ blast_radius_carryovers: [N]
   FEATURE PIPELINE COMPLETE!
 
   All Gofer stages finished:
-  1. $ $1_gofer_research ✓
-  2. $ $2_gofer_specify ✓
-  3. $ $3_gofer_plan ✓
-  4. $ $4_gofer_tasks ✓
-  5. $ $5_gofer_implement ✓
-  6. $ $6_gofer_validate ✓ (Phase A ✓, Phase B ✓, Phase C ✓)
+  1. /1_gofer_research ✓
+  2. /2_gofer_specify ✓
+  3. /3_gofer_plan ✓
+  4. /4_gofer_tasks ✓
+  5. /5_gofer_implement ✓
+  6. /6_gofer_validate ✓ (Phase A ✓, Phase B ✓, Phase C ✓)
 
   The feature is ready for review and merge.
 ════════════════════════════════════════════════════════════════
@@ -1638,12 +1760,12 @@ blast_radius_carryovers: [N]
   FEATURE PIPELINE COMPLETE!
 
   All Gofer stages finished:
-  1. $ $1_gofer_research ✓
-  2. $ $2_gofer_specify ✓
-  3. $ $3_gofer_plan ✓
-  4. $ $4_gofer_tasks ✓
-  5. $ $5_gofer_implement ✓
-  6. $ $6_gofer_validate ✓ (Phase A ✓, Phase B ✓, Phase C ⚠)
+  1. /1_gofer_research ✓
+  2. /2_gofer_specify ✓
+  3. /3_gofer_plan ✓
+  4. /4_gofer_tasks ✓
+  5. /5_gofer_implement ✓
+  6. /6_gofer_validate ✓ (Phase A ✓, Phase B ✓, Phase C ⚠)
 
   The feature is ready for review and merge (review Gray findings).
 ════════════════════════════════════════════════════════════════
@@ -1764,7 +1886,7 @@ After all findings, append a summary entry:
   "feature": "[feature-name]",
   "category": "summary",
   "severity": "info",
-  "description": "Validation score: [N]/100. Categories failed: [list or 'none']",
+  "description": "Validation score: [N]/110. Categories failed: [list or 'none']",
   "file": null,
   "line": null,
   "agent": "rubric",
@@ -1854,18 +1976,6 @@ This also logs quality metrics (rubric scores, finding counts) to:
 `.specify/logs/quality-metrics.jsonl`
 
 ---
-
-
-
-## Pipeline Continuation
-
-This completes the 6_gofer_validate stage. To continue the Gofer pipeline:
-
-**Next Command:** `$ $6a_gofer_engineering_review`
-
-The next stage will use the artifacts generated by this command and continue the implementation workflow.
-
-**Note:** Codex CLI does not support automatic command chaining. You must manually run each stage command to progress through the pipeline.
 
 ## Key Rules
 

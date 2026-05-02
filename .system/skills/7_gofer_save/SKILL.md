@@ -1,28 +1,11 @@
 ---
 name: 7_gofer_save
-description: Save session progress with comprehensive checkpoint for resumption
-gofer:
-  workflowProfile: enterpriseai
-  canonicalSource: .specify/commands/7_gofer_save.md
-  canonicalChecksum: d23fd96c753c0a905d10652fab5107f170145ccd868442731941aa43ebb25514
-  metadataSource: scripts/generate-commands.ts
-arguments:
-  - name: feature
-    description: Feature name or description
-    required: false
-result_schema:
-  type: object
-  properties:
-    output:
-      type: string
-      description: Path to generated artifact or execution summary
-    status:
-      type: string
-      enum:
-        - success
-        - error
+description: "Save session state and create a handoff checkpoint for resumption in a new context."
 ---
 
+---
+description: Save session progress with comprehensive checkpoint for resumption
+---
 
 # Gofer Save
 
@@ -111,7 +94,7 @@ git diff --stat
 git add [specific files]
 git commit -m "WIP: [Feature] - [Current state description]
 
-Checkpoint created by $ $7_gofer_save
+Checkpoint created by /7_gofer_save
 Stage: [current pipeline stage]
 Next: [what needs to happen next]"
 ```
@@ -219,7 +202,7 @@ From tasks.md Protected Files section:
 ```bash
 cd [repo path]
 git checkout [branch]
-$ $8_gofer_resume
+/8_gofer_resume
 ```
 
 ### Manual Resume Steps
@@ -227,7 +210,7 @@ $ $8_gofer_resume
 1. Read this checkpoint file
 2. Check `tasks.md` for current task
 3. Review `plan.md` for architecture context
-4. Continue with `$ $5_gofer_implement`
+4. Continue with `/5_gofer_implement`
 
 ### Context to Load First
 
@@ -256,7 +239,7 @@ Add checkpoint marker to tasks.md:
 ```markdown
 ## Checkpoint: [ISO timestamp]
 
-Progress saved at task [TaskID]. Resume with `$ $8_gofer_resume`.
+Progress saved at task [TaskID]. Resume with `/8_gofer_resume`.
 ````
 
 ---
@@ -280,12 +263,12 @@ Progress saved at task [TaskID]. Resume with `$ $8_gofer_resume`.
   - Tests: [passing/failing/not run]
 
   To resume:
-  $ $8_gofer_resume
+  /8_gofer_resume
 
   Or manually:
   cd [repo] && git checkout [branch]
   Read: {FEATURE_DIR}/session-checkpoint.md
-  Continue: $ $5_gofer_implement
+  Continue: /5_gofer_implement
 
 ================================================================
 ```
@@ -364,8 +347,8 @@ This ensures the resume session starts with clean context.
 
 This command works with:
 
-- `$ $8_gofer_resume` - Paired resume command
-- `$ $5_gofer_implement` - Can resume implementation
-- `$ $6_gofer_validate` - Can validate partial progress
+- `/8_gofer_resume` - Paired resume command
+- `/5_gofer_implement` - Can resume implementation
+- `/6_gofer_validate` - Can validate partial progress
 - `/0_business_scenario` - Detects saved sessions
 - `check-context-health.sh` - Triggers save at thresholds

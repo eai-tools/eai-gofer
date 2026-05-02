@@ -1,30 +1,13 @@
 ---
 name: 7a_stakeholder_comms
-description: >-
-  Generate stakeholder communications package including release notes, demo
-  script, change management brief, and success metrics
-gofer:
-  workflowProfile: enterpriseai
-  canonicalSource: .specify/commands/7a_stakeholder_comms.md
-  canonicalChecksum: 246efaf545eb43e344519d73a2abb28da1631374eec2f3e8e2dbbf03208b0489
-  metadataSource: scripts/generate-commands.ts
-arguments:
-  - name: feature
-    description: Feature name or description
-    required: false
-result_schema:
-  type: object
-  properties:
-    output:
-      type: string
-      description: Path to generated artifact or execution summary
-    status:
-      type: string
-      enum:
-        - success
-        - error
+description: "Generate stakeholder-facing communications: release notes, demo scripts, and change briefs."
 ---
 
+---
+description:
+  Generate stakeholder communications package including release notes, demo
+  script, change management brief, and success metrics
+---
 
 # Gofer Stakeholder Communications
 
@@ -44,10 +27,10 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 This command expects in `.specify/specs/{feature}/`:
 
-- `validation-report.md` — Feature validated (PASS) from $ $6_gofer_validate
+- `validation-report.md` — Feature validated (PASS) from /6_gofer_validate
 - `problem-brief.md` — Original business problem (from /0a_problem_validation)
-- `spec.md` — Feature specification (from $ $2_gofer_specify)
-- `spec-summary.md` — Executive summary (from $ $2_gofer_specify)
+- `spec.md` — Feature specification (from /2_gofer_specify)
+- `spec-summary.md` — Executive summary (from /2_gofer_specify)
 - `assumptions.md` — Tracked assumptions
 
 If `validation-report.md` doesn't exist or shows FAIL, do NOT generate comms.
@@ -76,7 +59,7 @@ Instead, inform the user that validation must pass first.
 
 - If **< 50%**: Proceed normally
 - If **50-70%**: Use sub-agents heavily
-- If **> 70%**: Run `$ $7_gofer_save` first
+- If **> 70%**: Run `/7_gofer_save` first
 
 ---
 
@@ -101,7 +84,7 @@ Instead, inform the user that validation must pass first.
 3. **Verify validation passed**:
    - Check `validation-report.md` for `status: PASS`
    - If FAIL: "Validation must pass before generating communications. Current
-     score: [N]/100. Run $ $6_gofer_validate first."
+     score: [N]/110. Run /6_gofer_validate first."
 
 ---
 
@@ -112,7 +95,7 @@ Launch both agents **in parallel**:
 ### Agent 1: Communications Writer
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the comms-writer analysis in each., model="sonnet"
+Task: subagent_type="comms-writer", model="sonnet"
 Prompt: "Generate stakeholder communications for feature [FEATURE_NAME].
 
 Feature directory: {FEATURE_DIR}
@@ -139,7 +122,7 @@ Return structured report (<2000 tokens)."
 ### Agent 2: Business Metrics Analyzer
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the business-metrics-analyzer analysis in each., model="sonnet"
+Task: subagent_type="business-metrics-analyzer", model="sonnet"
 Prompt: "Analyze pipeline metrics for business reporting.
 
 Feature directory: {FEATURE_DIR}
@@ -150,7 +133,7 @@ Read pipeline logs and feature artifacts to produce:
 2. Stage duration breakdown
 3. Quality metrics (validation score, iterations)
 4. Cost analysis (token usage)
-5. Portfolio status (all features in .specify/specs/)
+5. Portfolio status (active top-level features in .specify/specs/, excluding `_archived/`)
 6. Scope health indicators
 
 Return structured report (<2000 tokens)."
@@ -189,7 +172,7 @@ Populate with business-metrics-analyzer agent findings.
 Spawn the assumption-tracker agent to do a final review:
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the assumption-tracker analysis in each., model="haiku"
+Task: subagent_type="assumption-tracker", model="haiku"
 Prompt: "Final assumption review for feature [FEATURE_NAME].
 
 Feature directory: {FEATURE_DIR}
@@ -219,7 +202,7 @@ Based on agent findings, update `{FEATURE_DIR}/assumptions.md`:
 If `{FEATURE_DIR}/problem-brief.md` exists, run scope creep detection:
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the scope-creep-detector analysis in each., model="haiku"
+Task: subagent_type="scope-creep-detector", model="haiku"
 Prompt: "Analyze scope creep for feature [FEATURE_NAME].
 
 Feature directory: {FEATURE_DIR}
@@ -265,12 +248,12 @@ stakeholder communications explaining what changed and why.
 
   Full Pipeline Summary:
   0a. /0a_problem_validation  ✓ (Problem validated)
-  1.  $ $1_gofer_research        ✓ (Codebase + market research)
-  2.  $ $2_gofer_specify         ✓ (Spec + business summary)
-  3.  $ $3_gofer_plan            ✓ (Technical architecture)
-  4.  $ $4_gofer_tasks           ✓ (Task breakdown)
-  5.  $ $5_gofer_implement       ✓ (Implementation)
-  6.  $ $6_gofer_validate        ✓ (Quality: [score]/100)
+  1.  /1_gofer_research        ✓ (Codebase + market research)
+  2.  /2_gofer_specify         ✓ (Spec + business summary)
+  3.  /3_gofer_plan            ✓ (Technical architecture)
+  4.  /4_gofer_tasks           ✓ (Task breakdown)
+  5.  /5_gofer_implement       ✓ (Implementation)
+  6.  /6_gofer_validate        ✓ (Quality: [score]/110)
   7a. /7a_stakeholder_comms    ✓ (Communications package)
 
   The feature is ready for stakeholder review and deployment.

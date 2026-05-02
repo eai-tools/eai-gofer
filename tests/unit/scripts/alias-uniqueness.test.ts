@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import path from 'path';
+import { FULL_COMMAND_COUNT } from '../../helpers/goferCommandSet';
 
 const COMMANDS_DIR = path.resolve(__dirname, '../../../.specify/commands');
 
@@ -34,9 +35,9 @@ describe('validateAliases', () => {
     validateAliases = mod.validateAliases;
   });
 
-  it('returns ok=true for the 19 source-of-truth files (16 stages + 3 control commands)', async () => {
+  it('returns ok=true for the full source-of-truth command set', async () => {
     const stages = await loadStages(COMMANDS_DIR);
-    expect(stages.length).toBe(19);
+    expect(stages.length).toBe(FULL_COMMAND_COUNT);
 
     const result = validateAliases(stages);
     if (!result.ok) {

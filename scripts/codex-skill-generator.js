@@ -14,7 +14,7 @@ const __dirname = path.dirname(__filename);
 
 const workspaceRoot = path.join(__dirname, '..');
 const claudeCommandsDir = path.join(workspaceRoot, '.claude', 'commands');
-const codexSkillsDir = path.join(workspaceRoot, '.system', 'skills');
+const codexSkillsDir = path.join(workspaceRoot, '.agents', 'skills');
 
 // Pipeline sequence for auto-chain injection
 const PIPELINE_SEQUENCE = [
@@ -157,7 +157,7 @@ function generateCodexSkill(commandFile) {
   const skillContent =
     '---\n' + yaml.dump(codexFrontmatter) + '---\n\n' + transformedBody;
 
-  // Write to .system/skills/{command-name}/SKILL.md
+  // Write to .agents/skills/{command-name}/SKILL.md
   const skillDir = path.join(codexSkillsDir, commandName);
   const skillPath = path.join(skillDir, 'SKILL.md');
 

@@ -28,4 +28,5 @@ node_modules/node-pty-prebuilt-multiarch/build/**
 !resources/templates/visuals/*.md
 !resources/claude-commands/**
 !resources/copilot-prompts/**
+!resources/specify-commands/**
 !resources/templates/**

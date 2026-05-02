@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: enterpriseai
   canonicalSource: .specify/commands/1_gofer_research.md
-  canonicalChecksum: bbdffb903c4af1ec4fac2f262e2a1c714d83151d9ef98666c273fb441c0e2f00
+  canonicalChecksum: 8275a05dcf3e78a1468f03b80c8bba00103dfce4c405292f3c19533c40cc9546
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -877,6 +877,26 @@ Logs to: `.specify/logs/pipeline.jsonl`
 - **Maximum 5 open questions** - make informed decisions for the rest
 - **Do not continue to specification until `proposal-review.md` is approved**
 - **Log stage completion** for observability tracking
+
+---
+
+## Optional Helpers: Vocabulary Extraction and Zoom-Out
+
+If the operator explicitly requests the `vocabulary` selector after
+`research.md` exists, run `gofer:vocabulary` inline and write
+`.specify/specs/{feature}/glossary.md` using the same artifact contract as the
+standalone helper.
+
+If the operator explicitly requests the `zoom-out` selector after `research.md`
+exists, run `gofer:zoom-out` inline and write
+`.specify/specs/{feature}/zoom-out-report.md` using the same artifact contract
+as the standalone helper.
+
+If `research.md` is missing, continue the stage normally and report that the
+helper was not run.
+
+These selectors are optional and do not change stage progress, routing, or
+pipeline state.
 
 
 ## Pipeline Continuation

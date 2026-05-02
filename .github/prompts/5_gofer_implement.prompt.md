@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: enterpriseai
   canonicalSource: .specify/commands/5_gofer_implement.md
-  canonicalChecksum: eaed0dcbe3bef77d23ae8b4f0fed6cb02bd2747f449fb74be1b682e4f37127df
+  canonicalChecksum: 3d5fec6f1f9ef76105ab5f0f3a94b99156ebba1cf0ca2882b2dc358930148434
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -657,3 +657,21 @@ The next stage will read the artifacts from this stage and continue the workflow
 - Stop on errors for sequential tasks
 - Implementation must match specification
 - Log stage completion for observability tracking
+
+---
+
+## Optional Helpers: TDD and Diagnose
+
+- If the operator explicitly requests `tdd-assist` and both `spec.md` and
+  `tasks.md` are present, run `gofer:tdd` inline and write
+  `.specify/specs/{feature}/tdd-session.md` using the same artifact contract as
+  the standalone helper.
+- If the operator explicitly requests `diagnose` and `spec.md` is present, run
+  `gofer:diagnose` inline; bug context, failing output, or equivalent failure
+  evidence may supplement the investigation. Write
+  `.specify/specs/{feature}/diagnose-report.md` using the same artifact
+  contract as the standalone helper.
+- If the required inputs are missing, continue the stage normally and report
+  that the helper was not run.
+- These selectors are optional and do not change stage progress, routing, or
+  pipeline state.

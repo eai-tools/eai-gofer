@@ -1,9 +1,11 @@
 import { describe, it, expect, beforeAll } from 'vitest';
+import { promises as fs } from 'fs';
+import os from 'os';
 import path from 'path';
 
 const FIXTURE_PATH = path.resolve(
   __dirname,
-  '../../../tests/fixtures/stage-commands/sample-stage.md'
+  '../../../tests/fixtures/stage-commands/1_gofer_research.md'
 );
 
 const moduleUrl = new URL(
@@ -71,5 +73,55 @@ describe('parseStageCommand', () => {
   it('throws for a file that does not start with ---', async () => {
     // Use a non-existent path that we know will fail
     await expect(parseStageCommand('/nonexistent/path/file.md')).rejects.toThrow();
+  });
+
+  it('rejects frontmatter names with invalid path characters', async () => {
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'parse-stage-invalid-name-'));
+    const filePath = path.join(tempDir, 'gofer_diagnose.md');
+
+    await fs.writeFile(
+      filePath,
+      `---
+name: ../../escape
+description: "Invalid"
+title: "Invalid"
+category: control
+surfaces:
+  - claude
+---
+
+# Invalid
+`,
+      'utf8'
+    );
+
+    await expect(parseStageCommand(filePath)).rejects.toThrow("'name' contains invalid characters");
+    await fs.rm(tempDir, { recursive: true, force: true });
+  });
+
+  it('rejects frontmatter names that do not match the canonical file id', async () => {
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'parse-stage-mismatch-'));
+    const filePath = path.join(tempDir, 'gofer_diagnose.md');
+
+    await fs.writeFile(
+      filePath,
+      `---
+name: gofer:plan
+description: "Mismatch"
+title: "Mismatch"
+category: control
+surfaces:
+  - claude
+---
+
+# Mismatch
+`,
+      'utf8'
+    );
+
+    await expect(parseStageCommand(filePath)).rejects.toThrow(
+      "'name' must match canonical command id 'gofer:diagnose'"
+    );
+    await fs.rm(tempDir, { recursive: true, force: true });
   });
 });

@@ -634,3 +634,21 @@ Logs to: `.specify/logs/pipeline.jsonl`
 - Stop on errors for sequential tasks
 - Implementation must match specification
 - Log stage completion for observability tracking
+
+---
+
+## Optional Helpers: TDD and Diagnose
+
+- If the operator explicitly requests `tdd-assist` and both `spec.md` and
+  `tasks.md` are present, run `gofer:tdd` inline and write
+  `.specify/specs/{feature}/tdd-session.md` using the same artifact contract as
+  the standalone helper.
+- If the operator explicitly requests `diagnose` and `spec.md` is present, run
+  `gofer:diagnose` inline; bug context, failing output, or equivalent failure
+  evidence may supplement the investigation. Write
+  `.specify/specs/{feature}/diagnose-report.md` using the same artifact
+  contract as the standalone helper.
+- If the required inputs are missing, continue the stage normally and report
+  that the helper was not run.
+- These selectors are optional and do not change stage progress, routing, or
+  pipeline state.

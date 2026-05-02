@@ -105,7 +105,7 @@ Body`);
     vi.mocked(fs.promises.access).mockImplementation((p) => {
       const pathStr = String(p);
       return pathStr.includes('.claude/commands/1_gofer_research.md') ||
-        pathStr.includes('.system/skills/1_gofer_research/SKILL.md') ||
+        pathStr.includes('.system/skills/gofer/1_gofer_research/SKILL.md') ||
         pathStr.includes('.github/prompts/1_gofer_research.prompt.md')
         ? Promise.resolve()
         : Promise.reject(createFsError('ENOENT'));
@@ -135,6 +135,24 @@ Body`);
     expect(result.filePath).toContain('.claude/commands/1_gofer_research.md');
   });
 
+  it('prefers nested codex skill paths and falls back to legacy flat paths', () => {
+    const router = new CrossPlatformCommandRouter(workspacePath);
+
+    vi.mocked(fs.existsSync).mockImplementation((filePath: fs.PathLike) =>
+      String(filePath).includes('.system/skills/gofer/gofer_diagnose/SKILL.md')
+    );
+    expect(router.getCommandPath('gofer:diagnose', 'codex')).toContain(
+      '.system/skills/gofer/gofer_diagnose/SKILL.md'
+    );
+
+    vi.mocked(fs.existsSync).mockImplementation((filePath: fs.PathLike) =>
+      String(filePath).includes('.system/skills/gofer_plan/SKILL.md')
+    );
+    expect(router.getCommandPath('gofer:plan', 'codex')).toContain(
+      '.system/skills/gofer_plan/SKILL.md'
+    );
+  });
+
   it('respects explicit targetPlatform override without fallback', async () => {
     mockConfig['defaultCLI'] = 'claude';
     ConfigManager.getInstance().refresh();
@@ -144,6 +162,13 @@ Body`);
     await expect(router.routeCommand('1_gofer_research', 'copilot')).rejects.toThrow(
       'Command "1_gofer_research" not found for platform "copilot"'
     );
+  });
+
+  it('formats Gemini helper syntax without double-prefixing gofer names', () => {
+    const router = new CrossPlatformCommandRouter(workspacePath);
+
+    expect(router.getCommandSyntax('1_gofer_research', 'gemini')).toBe('/gofer:1_gofer_research');
+    expect(router.getCommandSyntax('gofer:diagnose', 'gemini')).toBe('/gofer:diagnose');
   });
 
   it('rejects path traversal command names (T046)', async () => {

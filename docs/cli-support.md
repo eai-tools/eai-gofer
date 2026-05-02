@@ -41,18 +41,20 @@ All generated Gofer stages and helper commands are emitted for Claude, Copilot,
 Codex, and Gemini. The generators no longer apply a CLI-specific "Claude-only"
 exclusion list.
 
-## Codex Install Repair
+## Codex Install Model
 
-Gofer initialization and template updates now check Codex access even when the
-rest of the repository already looks complete.
+Gofer initialization and template updates install Codex skills into the
+repository-local `.agents/skills/` tree that Codex scans automatically.
 
 The installer:
 
-- Generates Codex skills and mirrors them into `.agents/skills/`.
-- Creates a global symlink under `~/.codex/skills/`.
-- Avoids replacing another project if a symlink name is already taken.
-- Repairs stale `enabled = false` entries in `~/.codex/config.toml` only when
-  those entries point at the current Gofer install.
+- Generates Codex skills into `.agents/skills/`.
+- Emits the legacy `.system/skills/` mirror for older Gofer compatibility only.
+- Ships `codex-config.toml` as a sample of path-based `[[skills.config]]`
+  overrides for `~/.codex/config.toml` when a team explicitly wants per-skill
+  enablement control.
+- Does not create global `~/.codex/skills/` bundles during normal installs or
+  template updates.
 
 Restart Codex after running **Gofer: Initialize Repository** or **Gofer: Update
 Templates**.
@@ -74,9 +76,12 @@ If Codex does not show Gofer skills:
 
 1. Run **Gofer: Update Templates** in VS Code.
 2. Restart Codex.
-3. Check that `~/.codex/skills/` has a symlink for the project.
-4. Check that `~/.codex/config.toml` does not still disable that symlink's
-   `SKILL.md` paths.
+3. Make sure you launched Codex from inside the repository so it can scan
+   `.agents/skills/`.
+4. If you intentionally use `~/.codex/config.toml`, check that it does not
+   disable the repository skill folders.
+5. If you are cleaning up an older install that copied Gofer into
+   `~/.codex/skills/`, run `npm run gofer:codex-doctor -- --root ~/.codex/skills`.
 
 If Gemini does not show commands, confirm `.gemini/extension.json` and
 `.gemini/commands/gofer/` exist in the repository.

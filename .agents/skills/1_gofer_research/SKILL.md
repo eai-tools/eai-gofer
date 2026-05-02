@@ -1,28 +1,11 @@
 ---
 name: 1_gofer_research
-description: Deep codebase and technology research for feature implementation
-gofer:
-  workflowProfile: enterpriseai
-  canonicalSource: .specify/commands/1_gofer_research.md
-  canonicalChecksum: bbdffb903c4af1ec4fac2f262e2a1c714d83151d9ef98666c273fb441c0e2f00
-  metadataSource: scripts/generate-commands.ts
-arguments:
-  - name: feature
-    description: Feature name or description
-    required: false
-result_schema:
-  type: object
-  properties:
-    output:
-      type: string
-      description: Path to generated artifact or execution summary
-    status:
-      type: string
-      enum:
-        - success
-        - error
+description: "Research codebase, CLI integrations, and technology landscape for the target feature."
 ---
 
+---
+description: Deep codebase and technology research for feature implementation
+---
 
 # Gofer Research
 
@@ -138,7 +121,7 @@ only orchestrate and review agent outputs.
 ### Agent 1: Codebase Locator
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the codebase-locator analysis in each., model="haiku"
+Task: subagent_type="codebase-locator", model="haiku"
 Prompt: "Find all code related to [FEATURE AREA] in this codebase.
 Identify: entry points, related files, directory structure, key classes/functions.
 Focus on: [specific aspects from user's description]"
@@ -147,7 +130,7 @@ Focus on: [specific aspects from user's description]"
 ### Agent 2: Codebase Analyzer
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the codebase-analyzer analysis in each., model="sonnet"
+Task: subagent_type="codebase-analyzer", model="sonnet"
 Prompt: "Analyze how [RELATED FUNCTIONALITY] is implemented in this codebase.
 Explain: architecture patterns, data flow, key abstractions.
 Focus on: [how similar features work]"
@@ -156,7 +139,7 @@ Focus on: [how similar features work]"
 ### Agent 3: Pattern Finder
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the codebase-pattern-finder analysis in each., model="haiku"
+Task: subagent_type="codebase-pattern-finder", model="haiku"
 Prompt: "Find examples of [PATTERN TYPE] in this codebase.
 Show: similar implementations we should model after.
 Include: file paths, code snippets, conventions used."
@@ -178,7 +161,7 @@ When the feature involves complex integration or unfamiliar territory, spawn 5
 perspective agents:
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the research-perspective-multiplier analysis in each., model="haiku"
+Task: subagent_type="research-perspective-multiplier", model="haiku"
 Prompt: "Research [TOPIC] from perspective [1-5].
 Perspective 1: Existing codebase patterns
 Perspective 2: Open-source project approaches
@@ -191,7 +174,7 @@ Context: [summary of feature and existing research findings]"
 Run all 5 perspectives in parallel, then synthesize with judge:
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the multi-perspective-judge analysis in each., model="sonnet"
+Task: subagent_type="multi-perspective-judge", model="sonnet"
 Prompt: "Judge verdict type: research synthesis.
 Synthesize these 5 research perspectives into a unified recommendation.
 [paste all 5 agent outputs]"
@@ -202,7 +185,7 @@ Synthesize these 5 research perspectives into a unified recommendation.
 When the research proposes new dependencies, evaluate each one:
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the research-dependency-evaluator analysis in each., model="haiku"
+Task: subagent_type="research-dependency-evaluator", model="haiku"
 Prompt: "Evaluate [LIBRARY NAME] from perspective [1-3].
 Perspective 1: Evaluate the proposed library
 Perspective 2: Find alternatives
@@ -213,7 +196,7 @@ Needed functionality: [what we need from it]"
 Run all 3 perspectives in parallel, then synthesize with judge:
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the multi-perspective-judge analysis in each., model="sonnet"
+Task: subagent_type="multi-perspective-judge", model="sonnet"
 Prompt: "Judge verdict type: dependency decision.
 Decide whether to adopt, find alternative, or build in-house.
 [paste all 3 agent outputs]"
@@ -224,7 +207,7 @@ Decide whether to adopt, find alternative, or build in-house.
 For features touching evolving technology areas:
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the research-horizon-scanner analysis in each., model="sonnet"
+Task: subagent_type="research-horizon-scanner", model="sonnet"
 Prompt: "Scan for emerging alternatives and approaches relevant to [TOPIC].
 Current approach: [what we're considering]
 Tech stack: [relevant technologies]"
@@ -267,7 +250,7 @@ run:
   - Record `competitiveAnalysisEnabled=false` in research outputs.
   - Keep `market-analysis.md` as a baseline traceability artifact with
     disabled-state messaging (no comparative metrics).
-  - Continue to `$ $2_gofer_specify` normally (no stage failure).
+  - Continue to `/2_gofer_specify` normally (no stage failure).
 
 When enabled, `market-analysis.md` must include:
 
@@ -595,7 +578,7 @@ approvedAt: ''
 ## Approval
 
 - Status: pending_review
-- Next action: user approves or requests changes before `$ $2_gofer_specify`
+- Next action: user approves or requests changes before `/2_gofer_specify`
 `````
 
 ---
@@ -638,7 +621,7 @@ After saving `research.md` and `proposal-review.md`:
 4. **If the user approves**:
    - Update `proposal-review.md` with `status: approved`
    - Record `approvedBy`, `approvedAt`, and any selected option or override
-   - Immediately invoke `$ $2_gofer_specify`
+   - Immediately invoke `/2_gofer_specify`
 
 5. **If the user requests changes**:
    - Update `proposal-review.md` with the feedback in
@@ -660,6 +643,9 @@ Key findings:
 
 ```
 
+**AUTO-CHAIN (MANDATORY AFTER APPROVAL)**: Do NOT invoke `/2_gofer_specify`
+until the user explicitly approves the proposal review. After approval, it is
+mandatory to invoke the Skill tool with `skill="/2_gofer_specify"` immediately.
 
 ---
 
@@ -885,13 +871,22 @@ Logs to: `.specify/logs/pipeline.jsonl`
 - **Do not continue to specification until `proposal-review.md` is approved**
 - **Log stage completion** for observability tracking
 
+---
 
-## Pipeline Continuation
+## Optional Helpers: Vocabulary Extraction and Zoom-Out
 
-This completes the 1_gofer_research stage. To continue the Gofer pipeline:
+If the operator explicitly requests the `vocabulary` selector after
+`research.md` exists, run `gofer:vocabulary` inline and write
+`.specify/specs/{feature}/glossary.md` using the same artifact contract as the
+standalone helper.
 
-**Next Command:** `$ $2_gofer_specify`
+If the operator explicitly requests the `zoom-out` selector after `research.md`
+exists, run `gofer:zoom-out` inline and write
+`.specify/specs/{feature}/zoom-out-report.md` using the same artifact contract
+as the standalone helper.
 
-The next stage will use the artifacts generated by this command and continue the implementation workflow.
+If `research.md` is missing, continue the stage normally and report that the
+helper was not run.
 
-**Note:** Codex CLI does not support automatic command chaining. You must manually run each stage command to progress through the pipeline.
+These selectors are optional and do not change stage progress, routing, or
+pipeline state.

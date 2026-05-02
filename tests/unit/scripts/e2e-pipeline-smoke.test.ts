@@ -2,7 +2,7 @@
  * T160 — End-to-end pipeline smoke test.
  *
  * Since we can't run the actual pipeline in unit tests, this smoke verifies:
- *   1. All 19 stage source-of-truth files exist at .specify/commands/<stage>.md
+ *   1. All source-of-truth command files exist at .specify/commands/<stage>.md
  *   2. The generator emits to all surfaces under --dry-run without throwing
  *   3. All persona-pack templates exist at .specify/templates/visuals/
  *   4. assemble-stakeholder-pack.mjs is importable
@@ -13,32 +13,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
+import { FULL_COMMAND_COUNT, FULL_COMMAND_FILES } from '../../helpers/goferCommandSet';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
-
-const ALL_STAGE_NAMES = [
-  '0_business_scenario',
-  '0a_problem_validation',
-  '1_gofer_research',
-  '2_gofer_specify',
-  '3_gofer_plan',
-  '4_gofer_tasks',
-  '5_gofer_implement',
-  '6_gofer_validate',
-  '6a_gofer_engineering_review',
-  '7_gofer_save',
-  '7a_stakeholder_comms',
-  '8_gofer_resume',
-  '9_gofer_tests',
-  '10_gofer_cloud',
-  'gofer_constitution',
-  'gofer_hydrate',
-  'gofer_personality',
-  'gofer_plan',
-  'gofer_side',
-];
 
 const PERSONA_PACK_VISUALS = [
   'impact-canvas.md',
@@ -53,9 +32,9 @@ const PERSONA_PACK_VISUALS = [
 ];
 
 describe('e2e pipeline smoke (T160)', () => {
-  it('all 19 source-of-truth stage files exist', (): void => {
+  it(`all ${FULL_COMMAND_COUNT} source-of-truth command files exist`, (): void => {
     const commandsDir = path.join(REPO_ROOT, '.specify', 'commands');
-    for (const name of ALL_STAGE_NAMES) {
+    for (const name of FULL_COMMAND_FILES) {
       const filePath = path.join(commandsDir, `${name}.md`);
       expect(fs.existsSync(filePath), `expected source-of-truth file ${filePath}`).toBe(true);
     }

@@ -12,7 +12,7 @@
 import { describe, it, expect } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
-import { CommandGenerator } from '../../extension/src/council/CommandGenerator';
+import { execFileSync } from 'child_process';
 
 function normalizeRelativePath(filePath: string): string {
   return filePath.replace(/\\/g, '/');
@@ -130,16 +130,19 @@ describe('Command Generation Integration (US-3)', () => {
       expect(content).toMatch(/Task:\s+subagent_type=/);
     });
 
-    it('should have 6-terminal workflow in Codex validation skill', async () => {
+    it('should preserve the execution-strategy table in the Codex validation skill', async () => {
       // Read Codex validation skill
-      const codexSkillPath = path.join(process.cwd(), '.system/skills/6_gofer_validate/SKILL.md');
+      const codexSkillPath = path.join(
+        process.cwd(),
+        '.agents/skills/6_gofer_validate/SKILL.md'
+      );
 
       const content = await fs.readFile(codexSkillPath, 'utf-8');
 
-      // Verify codex guidance for parallel work exists
-      expect(content).toContain('Codex CLI does not support the Task tool');
-      expect(content).toContain('parallel agent work');
-      expect(content).toContain('multiple Codex CLI sessions');
+      // Verify the shared cross-platform execution strategy survives Codex emission
+      expect(content).toContain('Execution Strategy by Platform');
+      expect(content).toContain('Run all validation agents in parallel using the Task tool');
+      expect(content).toContain('GitHub Copilot Chat (2025 and earlier)');
 
       // Verify all 6 validation skills are referenced
       const skills = [
@@ -222,10 +225,21 @@ describe('Command Generation Integration (US-3)', () => {
       expect(legacyContent).toContain('90-120 seconds');
     });
 
+    it('should preserve canonical SourceCommandId values in Copilot validation report templates', async () => {
+      const copilotPromptPath = path.join(
+        process.cwd(),
+        '.github/prompts/6_gofer_validate.prompt.md'
+      );
+      const content = await fs.readFile(copilotPromptPath, 'utf-8');
+
+      expect(content).toContain('SourceCommandId: /6_gofer_validate');
+      expect(content).not.toContain('SourceCommandId: #6_gofer_validate');
+    });
+
     it('should have consistent agent naming across all platforms', async () => {
       // Read all three platform validation files
       const claudePath = path.join(process.cwd(), '.claude/commands/6_gofer_validate.md');
-      const codexPath = path.join(process.cwd(), '.system/skills/6_gofer_validate/SKILL.md');
+      const codexPath = path.join(process.cwd(), '.agents/skills/6_gofer_validate/SKILL.md');
       const copilotPath = path.join(process.cwd(), '.github/prompts/6_gofer_validate.prompt.md');
 
       const [claudeContent, codexContent, copilotContent] = await Promise.all([
@@ -254,7 +268,7 @@ describe('Command Generation Integration (US-3)', () => {
 
     it('should document performance expectations consistently', async () => {
       // Read validation files for performance timing checks
-      const codexPath = path.join(process.cwd(), '.system/skills/6_gofer_validate/SKILL.md');
+      const codexPath = path.join(process.cwd(), '.agents/skills/6_gofer_validate/SKILL.md');
       const legacyPath = path.join(process.cwd(), 'docs/legacy-workflow.md');
 
       const [codexContent, legacyContent] = await Promise.all([
@@ -292,7 +306,7 @@ describe('Command Generation Integration (US-3)', () => {
 
       // Read all platform validation files
       const claudePath = path.join(process.cwd(), '.claude/commands/6_gofer_validate.md');
-      const codexPath = path.join(process.cwd(), '.system/skills/6_gofer_validate/SKILL.md');
+      const codexPath = path.join(process.cwd(), '.agents/skills/6_gofer_validate/SKILL.md');
       const copilotPath = path.join(process.cwd(), '.github/prompts/6_gofer_validate.prompt.md');
 
       const [claudeContent, codexContent, copilotContent] = await Promise.all([
@@ -320,30 +334,32 @@ describe('Command Generation Integration (US-3)', () => {
         '.command-generation-fixture'
       );
       const canonicalCommand = '1_gofer_research.md';
-      const canonicalPath = path.join(process.cwd(), '.claude', 'commands', canonicalCommand);
+      const canonicalPath = path.join(process.cwd(), '.specify', 'commands', canonicalCommand);
       const canonicalContent = await fs.readFile(canonicalPath, 'utf-8');
 
       await fs.rm(fixtureRoot, { recursive: true, force: true });
-      await fs.mkdir(path.join(fixtureRoot, '.claude', 'commands'), { recursive: true });
+      await fs.mkdir(path.join(fixtureRoot, '.specify', 'commands'), { recursive: true });
       await fs.writeFile(
-        path.join(fixtureRoot, '.claude', 'commands', canonicalCommand),
+        path.join(fixtureRoot, '.specify', 'commands', canonicalCommand),
         canonicalContent,
         'utf-8'
       );
 
       try {
-        const generator = new CommandGenerator(fixtureRoot);
-        await generator.generateCommands('codex', false, {
-          workflowProfileOverride: 'enterpriseai',
-          metadataSource: 'scripts/generate-commands.ts',
-        });
-        await generator.generateCommands('copilot', false, {
-          workflowProfileOverride: 'enterpriseai',
-          metadataSource: 'scripts/generate-commands.ts',
-        });
+        execFileSync(
+          'node',
+          [
+            path.join(process.cwd(), '.specify', 'scripts', 'node', 'generate-commands.mjs'),
+            '--root',
+            fixtureRoot,
+            '--surfaces',
+            'github-prompts,agents-skills,system-skills',
+          ],
+          { stdio: 'pipe' }
+        );
 
         const generatedCodex = await fs.readFile(
-          path.join(fixtureRoot, '.system', 'skills', '1_gofer_research', 'SKILL.md'),
+          path.join(fixtureRoot, '.agents', 'skills', '1_gofer_research', 'SKILL.md'),
           'utf-8'
         );
         const generatedCopilot = await fs.readFile(
@@ -351,7 +367,7 @@ describe('Command Generation Integration (US-3)', () => {
           'utf-8'
         );
         const repoCodex = await fs.readFile(
-          path.join(process.cwd(), '.system', 'skills', '1_gofer_research', 'SKILL.md'),
+          path.join(process.cwd(), '.agents', 'skills', '1_gofer_research', 'SKILL.md'),
           'utf-8'
         );
         const repoCopilot = await fs.readFile(
@@ -414,15 +430,23 @@ describe('Command Generation Integration (US-3)', () => {
       expect(findings).toEqual([]);
     });
 
-    it('keeps only the cleanup spec active at the top level under .specify/specs', async () => {
+    it('keeps completed and release specs archived instead of active at the top level', async () => {
       const specsRoot = path.join(process.cwd(), '.specify', 'specs');
       const entries = await fs.readdir(specsRoot, { withFileTypes: true });
       const activeSpecDirs = entries
         .filter((entry) => entry.isDirectory() && !entry.name.startsWith('.') && entry.name !== '_archived')
         .map((entry) => entry.name)
         .sort();
+      const archivedSpecsRoot = path.join(specsRoot, '_archived');
+      const archivedSpecDirs = (await fs.readdir(archivedSpecsRoot, { withFileTypes: true }))
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => entry.name);
 
-      expect(activeSpecDirs).toEqual(['030-vscode-surface-truth-cleanup']);
+      expect(activeSpecDirs.length).toBeGreaterThan(0);
+      expect(activeSpecDirs).not.toContain('030-vscode-surface-truth-cleanup');
+      expect(activeSpecDirs).not.toContain('release-vscode-surface-truth');
+      expect(archivedSpecDirs).toContain('030-vscode-surface-truth-cleanup');
+      expect(archivedSpecDirs).toContain('release-vscode-surface-truth');
     });
   });
 });

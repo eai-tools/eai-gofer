@@ -1,22 +1,36 @@
 ---
-generated: "2026-05-01T02:24:16Z"
-source_commit: "65a155c8c10add0b07607d3669e450d458df9d9f"
+generated: "2026-05-02T17:49:07Z"
+source_commit: "46486d94a7292a485629613e8e8277c4d2e6e1d1"
 ---
 
 # Technical Documentation Index
 
 **Repository:** [eai-tools/gofer](https://github.com/eai-tools/gofer)
-**Version:** 3.1.0
-**Generated:** 2026-05-01T01:27:17Z
+**Version:** 3.2.0
+**Generated:** 2026-05-02T17:49:07Z
 
 This directory contains comprehensive technical documentation for the Gofer VSCode extension project.
+
+---
+
+## What's New in v3.2
+
+### Skills Pipeline Augmentation
+- **Enhanced Agent Coordination** - Better multi-agent orchestration
+- **Improved Skill Composition** - More flexible skill chaining
+- **Pipeline Optimizations** - Faster stage transitions
+
+### Infrastructure Improvements
+- **Deduplicated Release Index** - Cleaner release artifact management
+- **Automated Documentation** - Nightly tech docs updates
+- **Release Retention Policy** - Keep last 5 VSIX releases
 
 ---
 
 ## What's New in v3.0+
 
 ### Multi-Platform CLI Support
-- **Claude Code** - Full MCP tool support
+- **Claude Code** - Full MCP tool support (40+ tools)
 - **GitHub Copilot Chat** - Prompt files in `.github/prompts/`
 - **OpenAI Codex CLI** - Skill files in `.agents/skills/`
 - **Gemini CLI** - Command files in `.gemini/commands/gofer/`
@@ -33,6 +47,8 @@ This directory contains comprehensive technical documentation for the Gofer VSCo
 - **Memory Panel Filter** - Toggle system memories (533 → 0 by default)
 - **Parallel Validation** - 6 agents run concurrently (<60s vs 90-120s)
 - **Cross-Platform Commands** - All 16 pipeline stages on all platforms
+- **AI Usage Panel** - Real-time token usage and cost tracking
+- **Context REPL** - Progressive context management tools
 
 ---
 
@@ -45,7 +61,7 @@ Service identity, tech stack, and quick start guide.
 **Contents:**
 - Service purpose and description
 - Technology stack table (TypeScript 5.7.2, Node 20.x, VSCode 1.85.0+)
-- Key entry points (262 TypeScript files across all modules)
+- Key entry points (246 TypeScript files across all modules)
 - Local development setup
 - Multi-platform CLI support (v3.0+)
 - Team/ownership
@@ -60,7 +76,7 @@ Internal architecture and component breakdown.
 - System overview with Mermaid diagrams
 - Component breakdown (Extension, Language Server, Orchestrator)
 - Data flow diagrams
-- Design patterns (8 patterns identified)
+- Design patterns (8+ patterns identified)
 - Integration points (VSCode, MCP, AI providers)
 - Performance considerations
 
@@ -71,12 +87,12 @@ Internal architecture and component breakdown.
 MCP tools, VSCode commands, and LSP endpoints.
 
 **Contents:**
-- 6 MCP tools (detailed parameters/responses)
+- 40+ MCP tools (detailed parameters/responses)
 - VSCode commands (30+ commands)
 - LSP notifications and requests
 - Authentication and rate limits
 - Error handling
-- **Status:** No API changes in v3.0+ (stable)
+- **Status:** Stable API (v3.2)
 
 ---
 
@@ -86,11 +102,11 @@ File system schema and data structures.
 
 **Contents:**
 - Storage architecture with ER diagram
-- Specification directory structure (40 specs in repository)
+- Specification directory structure (1 active spec, many archived)
 - File formats (spec.md, tasks.md, plan.md, research.md)
 - Constitution and memory system
 - Logs and telemetry schemas (JSONL format)
-- Migration history
+- Migration history (v1.0 → v3.2)
 
 ---
 
@@ -100,16 +116,17 @@ Environment variables and settings.
 
 **Contents:**
 - Environment variables (optional - Anthropic, Google, OpenAI, Twilio)
-- VSCode settings (60+ settings in v3.0+)
-- **New in v3.0:**
+- VSCode settings (60+ settings in v3.2)
+- **Key Settings:**
   - `gofer.defaultCLI` - Platform selection
   - `gofer.workflowProfile` - EnterpriseAI vs standard
   - `gofer.memory.coverageThreshold` - Memory-first loading
   - Admin API keys for real usage data
-- Configuration files (.vscode/mcp.json, context-profiles.yaml)
-- Feature flags (all production-ready)
+  - Context management (auto-save at 65%, compaction at 80%)
+  - Budget enforcement (max $10/run default)
+- Configuration files
+- Feature flags
 - Secrets management
-- Recommended settings by use case
 
 ---
 
@@ -125,7 +142,7 @@ Build, release, and deployment processes.
 - Runtime environment (3 processes: extension, language server, orchestrator)
 - Health checks and monitoring
 - Rollback procedures
-- **Latest VSIX:** gofer-3.1.0.vsix
+- **Latest VSIX:** gofer-3.2.0.vsix
 
 ---
 
@@ -142,11 +159,11 @@ Service dependencies and integration points.
   - Twilio (optional - WhatsApp notifications)
   - GitHub API (optional - auto-updates)
 - Downstream dependents:
-  - Claude Code (primary)
-  - GitHub Copilot (experimental)
+  - Claude Code (primary - full MCP support)
+  - GitHub Copilot (core features)
   - OpenAI Codex CLI (v3.0+)
   - Gemini CLI (v3.0+)
-- NPM dependencies (production + dev)
+- NPM dependencies (47 production + 54 dev)
 - Dependency diagrams
 - Version constraints (Node 20.x, VSCode 1.85.0+)
 - Security considerations
@@ -158,23 +175,20 @@ Service dependencies and integration points.
 Recent changes summary.
 
 **Contents:**
-- **v3.1.0** - Current release (2026-04-30)
-  - Command artifact sync
-  - Version bump to 3.x milestone
-- **v3.0.1** - Installation resource fixes
+- **v3.2.0** - Current release (2026-05-02)
+  - Skills pipeline augmentation
+  - Release index deduplication
+  - Automated documentation updates
+- **v3.1.0** - Command artifact sync
 - **v3.0.0** - Major release (2026-04-28)
   - CLI innovations + visual artifacts
   - Source-of-truth generator
   - 10 persona-pack templates
-  - 7 visual writer agents
-  - Namespace aliases
 - **v2.0.x** - Cross-platform command parity
 - **v1.19.x** - Memory panel filter
-- Historical changes (v1.17.x - v1.9.x)
+- Historical changes
 - Breaking changes summary (none in v3.x)
-- API changes timeline (stable since v1.11.0)
-- Performance improvements
-- Security updates
+- API stability notes
 
 ---
 
@@ -184,7 +198,7 @@ Recent changes summary.
 
 Code quality assessment across 6 dimensions.
 
-**Scores (v3.1.0):**
+**Scores (v3.2.0):**
 - **Readability:** 9/10
 - **Correctness:** 8/10
 - **Performance:** 8/10
@@ -261,7 +275,7 @@ Design patterns and technical debt analysis.
 
 ### For Multi-Platform Users (v3.0+)
 
-1. **Claude Code users** - MCP tools work out of the box
+1. **Claude Code users** - MCP tools work out of the box (40+ tools)
 2. **GitHub Copilot users** - Commands in `.github/prompts/`
 3. **OpenAI Codex users** - Skills in `.agents/skills/`, run `npm run gofer:codex-doctor`
 4. **Gemini CLI users** - Commands in `.gemini/commands/gofer/`
@@ -287,11 +301,11 @@ Design patterns and technical debt analysis.
 
 ### Version Tracking
 
-- **Version:** 3.1.0
-- **Commit:** 93f78273088867c363da24675f394e1779ac0f7f
-- **Generated:** 2026-05-01T01:27:17Z
-- **Previous Update:** 2026-05-01T00:22:00Z (31c4565)
-- **Change Summary:** Nightly automated documentation refresh with latest commit references
+- **Version:** 3.2.0
+- **Commit:** 46486d94a7292a485629613e8e8277c4d2e6e1d1
+- **Generated:** 2026-05-02T17:49:07Z
+- **Previous Update:** 2026-05-01 (65a155c8c10add0b07607d3669e450d458df9d9f)
+- **Change Summary:** Updated to v3.2.0 with skills pipeline augmentation and release management fixes
 
 ### Regenerating Documentation
 
@@ -357,10 +371,8 @@ When making changes, update these files if applicable:
 - **User Documentation:** [README.md](../README.md)
 - **Agent Guidelines:** [AGENTS.md](../AGENTS.md)
 - **Project Instructions:** [CLAUDE.md](../CLAUDE.md)
-- **Testing Guide:** [docs/TESTING_GUIDE.md](../docs/TESTING_GUIDE.md)
-- **Release Guide:** [docs/RELEASE_GUIDE.md](../docs/RELEASE_GUIDE.md)
 - **CLI Support Guide:** [docs/cli-support.md](../docs/cli-support.md) (v3.0+)
-- **GitHub Repository:** https://github.com/eai-tools/gofer
+- **GitHub Repository:** [https://github.com/eai-tools/gofer](https://github.com/eai-tools/gofer)
 
 ---
 
@@ -368,10 +380,11 @@ When making changes, update these files if applicable:
 
 | Metric                      | Value                           |
 | --------------------------- | ------------------------------- |
-| Version                     | 3.1.0                           |
-| TypeScript Files            | 262 files (all modules)         |
-| Specifications              | 1 active spec (030)             |
-| MCP Tools                   | 6 tools (stable API)            |
+| Version                     | 3.2.0                           |
+| TypeScript Files            | 246 files (all modules)         |
+| Active Specifications       | 1 (031-skills-pipeline-augmentation) |
+| Archived Specifications     | 30+ specs                       |
+| MCP Tools                   | 40+ tools                       |
 | VSCode Commands             | 30+ commands                    |
 | VSCode Settings             | 60+ configuration options       |
 | Test Coverage Target        | 80%+                            |
@@ -387,10 +400,10 @@ When making changes, update these files if applicable:
 
 For questions, issues, or contributions:
 
-- **GitHub Issues:** https://github.com/eai-tools/gofer/issues
-- **Documentation:** https://github.com/eai-tools/gofer#readme
+- **GitHub Issues:** [https://github.com/eai-tools/gofer/issues](https://github.com/eai-tools/gofer/issues)
+- **Documentation:** [https://github.com/eai-tools/gofer#readme](https://github.com/eai-tools/gofer#readme)
 - **Owner:** Enterprise AI Pty Ltd
-- **Website:** https://enterpriseai.com.au
+- **Website:** [https://enterpriseai.com.au](https://enterpriseai.com.au)
 
 ---
 

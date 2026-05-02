@@ -14,6 +14,60 @@ print_success() { echo -e "${GREEN}✓${NC} $1"; }
 print_warning() { echo -e "${YELLOW}⚠${NC} $1"; }
 print_error() { echo -e "${RED}✗${NC} $1"; }
 
+repo_has_changes() {
+    [ -n "$(git status --porcelain)" ]
+}
+
+commit_all_changes() {
+    local commit_message="$1"
+
+    if ! repo_has_changes; then
+        return 0
+    fi
+
+    print_warning "Uncommitted changes detected. Creating pre-release commit..."
+    git status --short
+    echo ""
+
+    git add -A
+    git commit --no-verify -m "$commit_message"
+    print_success "Changes committed"
+    echo ""
+}
+
+ensure_release_base() {
+    print_info "Fetching origin/main..."
+    git fetch origin main
+
+    if [ "$CURRENT_BRANCH" = "main" ]; then
+        if git merge-base --is-ancestor origin/main HEAD; then
+            return 0
+        fi
+
+        if repo_has_changes; then
+            print_error "Local main is behind origin/main and the working tree is not clean."
+            print_error "Fast-forward main first, then rerun the release."
+            exit 1
+        fi
+
+        if git merge-base --is-ancestor HEAD origin/main; then
+            print_info "Fast-forwarding local main to origin/main..."
+            git pull --ff-only origin main
+            return 0
+        fi
+
+        print_error "Local main has diverged from origin/main."
+        print_error "Rebase or merge origin/main before releasing."
+        exit 1
+    fi
+
+    if ! git merge-base --is-ancestor origin/main HEAD; then
+        print_error "Current branch $CURRENT_BRANCH does not contain the latest origin/main."
+        print_error "Rebase or merge origin/main into this branch before releasing."
+        exit 1
+    fi
+}
+
 load_env_file() {
     local env_line
     local env_key
@@ -84,102 +138,14 @@ if [ ! -f "extension/package.json" ]; then
     exit 1
 fi
 
-# Check if we're on main branch and auto-push to main if needed
 CURRENT_BRANCH=$(git branch --show-current)
+ensure_release_base
+commit_all_changes "chore: pre-release commit from $CURRENT_BRANCH"
+
 if [ "$CURRENT_BRANCH" != "main" ]; then
-    print_info "Currently on branch: $CURRENT_BRANCH"
-    print_info "Will push to origin/main and release..."
+    print_info "Releasing from branch: $CURRENT_BRANCH"
+    print_info "origin/main will only be updated after validation, packaging, and tagging succeed."
     echo ""
-
-    # Ensure working directory is clean
-    if ! git diff-index --quiet HEAD --; then
-        print_warning "Uncommitted changes detected. Committing first..."
-        git add -A
-        git commit -m "chore: pre-release commit from $CURRENT_BRANCH"
-        print_success "Changes committed"
-    fi
-
-    # Push current branch directly to origin/main (overwrite main on remote)
-    print_info "Pushing $CURRENT_BRANCH to origin/main..."
-    # Skip local pre-push hooks here; this script runs explicit validation before tagging/release.
-    git push --no-verify origin "$CURRENT_BRANCH:main" --force-with-lease
-
-    print_success "Pushed $CURRENT_BRANCH to origin/main"
-    print_info "Staying on $CURRENT_BRANCH locally"
-    echo ""
-fi
-
-# Check for uncommitted changes and auto-commit with AI-generated message
-if ! git diff-index --quiet HEAD --; then
-    print_warning "Uncommitted changes detected. Generating AI commit message..."
-    git status --short
-    echo ""
-    
-    # Get the diff for AI analysis
-    CHANGES=$(git diff --stat)
-    FILES_CHANGED=$(git status --short)
-    
-    print_info "Generating commit message with AI..."
-    
-    # Create a prompt for AI to generate commit message
-    AI_PROMPT="Based on these git changes, write a concise conventional commit message (50 chars max for title, detailed body if needed):
-
-Changed files:
-$FILES_CHANGED
-
-Changes summary:
-$CHANGES
-
-Format: <type>(<scope>): <subject>
-
-Where type is one of: feat, fix, docs, style, refactor, test, chore"
-    
-    # Use Claude API if available, otherwise use a simple default
-    if command -v claude &> /dev/null; then
-        COMMIT_MSG=$(echo "$AI_PROMPT" | claude --no-stream 2>/dev/null | head -100)
-    elif [ ! -z "$ANTHROPIC_API_KEY" ]; then
-        # Try using curl with Anthropic API
-        COMMIT_MSG=$(curl -s https://api.anthropic.com/v1/messages \
-            -H "content-type: application/json" \
-            -H "x-api-key: $ANTHROPIC_API_KEY" \
-            -H "anthropic-version: 2023-06-01" \
-            -d "{
-                \"model\": \"claude-3-5-sonnet-20241022\",
-                \"max_tokens\": 200,
-                \"messages\": [{
-                    \"role\": \"user\",
-                    \"content\": $(echo "$AI_PROMPT" | jq -Rs .)
-                }]
-            }" 2>/dev/null | jq -r '.content[0].text // empty' 2>/dev/null)
-    fi
-    
-    # Fallback to default message if AI generation failed
-    if [ -z "$COMMIT_MSG" ]; then
-        print_warning "AI commit message generation unavailable, using default..."
-        CURRENT_VER=$(node -p "require('./extension/package.json').version" 2>/dev/null || echo "next")
-        COMMIT_MSG="chore: pre-release changes
-
-Auto-committed changes before release v${CURRENT_VER}"
-    fi
-    
-    print_success "Generated commit message:"
-    echo "$COMMIT_MSG"
-    echo ""
-    
-    # Commit all changes
-    print_info "Committing changes..."
-    git add -A
-    git commit --no-verify -m "$COMMIT_MSG"
-    print_success "Changes committed successfully"
-    echo ""
-fi
-
-# Pull latest changes (skip if we already pushed to origin/main)
-if [ "$CURRENT_BRANCH" = "main" ]; then
-    print_info "Pulling latest changes from origin/main..."
-    git pull origin main
-else
-    print_info "Skipping pull (already pushed $CURRENT_BRANCH to origin/main)"
 fi
 
 # Get current version
@@ -428,24 +394,6 @@ else
     print_warning "test-commands.sh not found, skipping command validation"
 fi
 
-# Create releases directory and copy VSIX for GitHub Pages hosting
-print_info "Preparing GitHub Pages release assets..."
-mkdir -p docs/releases
-cp "gofer-$NEW_VERSION.vsix" "docs/releases/"
-print_success "Copied VSIX to docs/releases/ for GitHub Pages hosting"
-
-# Update GitHub Pages releases.json with GitHub Pages download URLs
-print_info "Updating GitHub Pages releases.json..."
-if [ -f "docs/update-releases.js" ]; then
-    # Update the script to use GitHub Pages URLs
-    GITHUB_PAGES_URL="https://eai-tools.github.io/gofer/releases/gofer-$NEW_VERSION.vsix"
-    node docs/update-releases.js "$NEW_VERSION" "$RELEASE_NOTES" "$GITHUB_PAGES_URL"
-    git add docs/releases.json docs/releases/
-print_success "Updated GitHub Pages release data with assets"
-else
-    print_warning "GitHub Pages update script not found, skipping..."
-fi
-
 # Ensure root validation tools are installed before lint/test gates. Fresh
 # release worktrees do not have root node_modules by default.
 print_info "Installing root dependencies for validation..."
@@ -491,9 +439,27 @@ fi
 echo ""
 print_success "Pre-push validation complete"
 
+# Create releases directory and copy VSIX for GitHub Pages hosting only after
+# the repo validations pass. This keeps failed release attempts from mutating
+# the published release feed state in the working tree.
+print_info "Preparing GitHub Pages release assets..."
+mkdir -p docs/releases
+cp "gofer-$NEW_VERSION.vsix" "docs/releases/"
+print_success "Copied VSIX to docs/releases/ for GitHub Pages hosting"
+
+# Update GitHub Pages releases.json with GitHub Pages download URLs.
+print_info "Updating GitHub Pages releases.json..."
+if [ -f "docs/update-releases.js" ]; then
+    GITHUB_PAGES_URL="https://eai-tools.github.io/gofer/releases/gofer-$NEW_VERSION.vsix"
+    node docs/update-releases.js "$NEW_VERSION" "$RELEASE_NOTES" "$GITHUB_PAGES_URL"
+    print_success "Updated GitHub Pages release data with assets"
+else
+    print_warning "GitHub Pages update script not found, skipping..."
+fi
+
 # Commit
 print_info "Committing changes..."
-git add package.json package-lock.json extension/package.json extension/package-lock.json .specify/.gofer-version extension/CHANGELOG.md extension/language-server/ docs/releases.json docs/releases/
+git add -A
 
 git commit --no-verify -m "release: v$NEW_VERSION
 

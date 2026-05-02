@@ -12,30 +12,14 @@ import path from 'node:path';
 import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
+import { CANONICAL_DESCRIPTION_NAMES } from '../../helpers/goferCommandSet';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
 const DOCTOR_PATH = path.join(REPO_ROOT, '.specify', 'scripts', 'node', 'codex-doctor.mjs');
 
-const CANONICAL_GOFER_STAGES = [
-  '0_business_scenario',
-  '0a_problem_validation',
-  '1_gofer_research',
-  '2_gofer_specify',
-  '3_gofer_plan',
-  '4_gofer_tasks',
-  '5_gofer_implement',
-  '6_gofer_validate',
-  '6a_gofer_engineering_review',
-  '7_gofer_save',
-  '7a_stakeholder_comms',
-  '8_gofer_resume',
-  '9_gofer_tests',
-  '10_gofer_cloud',
-  'gofer_constitution',
-  'gofer_hydrate',
-];
+const CANONICAL_GOFER_STAGES = [...CANONICAL_DESCRIPTION_NAMES];
 
 function buildSkillMd(name: string): string {
   return `---\nname: ${name}\ndescription: smoke fixture for ${name}\n---\n\nbody.\n`;
@@ -47,8 +31,9 @@ beforeAll((): void => {
   fixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codex-doctor-smoke-'));
   // Two duplicate Gofer bundles — both undisabled.
   for (const tenant of ['tenant-a', 'tenant-b']) {
+    const goferDir = path.join(fixtureRoot, tenant, 'gofer');
     for (const stage of CANONICAL_GOFER_STAGES) {
-      const stageDir = path.join(fixtureRoot, tenant, stage);
+      const stageDir = path.join(goferDir, stage);
       fs.mkdirSync(stageDir, { recursive: true });
       fs.writeFileSync(path.join(stageDir, 'SKILL.md'), buildSkillMd(stage));
     }
@@ -100,8 +85,9 @@ describe('codex doctor e2e smoke (T161)', () => {
   it('exits 0 when scan root has no duplicates (single canonical bundle)', (): void => {
     const cleanRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codex-doctor-clean-'));
     try {
+      const goferDir = path.join(cleanRoot, 'tenant-only', 'gofer');
       for (const stage of CANONICAL_GOFER_STAGES) {
-        const stageDir = path.join(cleanRoot, 'tenant-only', stage);
+        const stageDir = path.join(goferDir, stage);
         fs.mkdirSync(stageDir, { recursive: true });
         fs.writeFileSync(path.join(stageDir, 'SKILL.md'), buildSkillMd(stage));
       }

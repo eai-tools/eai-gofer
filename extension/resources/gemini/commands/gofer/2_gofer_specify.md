@@ -620,3 +620,20 @@ At stage completion, log metrics:
 ```
 
 Logs to: `.specify/logs/pipeline.jsonl`
+
+---
+
+## Optional Helpers: Vocabulary Extraction and Spec Summary
+
+- If the operator explicitly requests the `vocabulary` selector after `spec.md`
+  is stabilized, run `gofer:vocabulary` inline and write
+  `.specify/specs/{feature}/glossary.md` using the same artifact contract as the
+  standalone helper.
+- If the operator explicitly requests the `spec-summary` selector after `spec.md`
+  is stabilized, run `gofer:spec-summary` inline and write
+  `.specify/specs/{feature}/spec-summary.md` using the same artifact contract as
+  the standalone helper.
+- If `spec.md` is missing, continue the stage normally and report that the
+  helper was not run.
+- These selectors are optional and do not change stage progress, routing, or
+  pipeline state.

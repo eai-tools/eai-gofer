@@ -2,7 +2,7 @@
 
 This file documents all Gofer pipeline commands available as agent skills.
 
-Generated: 2026-04-30T22:49:43.994Z
+Generated: 2026-05-02T03:34:06.125Z
 
 ## Commands
 
@@ -165,6 +165,15 @@ description:
 You are creating or updating the project constitution - a set of principles,
 c...
 
+### Gofer Diagnose
+
+# Gofer Diagnose
+
+Run a structured reproduce-minimize-instrument-fix investigation and write the
+results to `.specify/specs/{feature}/diagnose-report.md`.
+
+Use this when an implementation, test, or i...
+
 ### Gofer Hydrate
 ---
 description: Reverse-engineer specification from existing code (Hydration)
@@ -198,3 +207,39 @@ before compl...
 Open a side conversation in the active CLI without disturbing the main Gofer
 pipeline state. Use this when you need to ask a quick clarifying question, run
 an exploratory s...
+
+### Gofer Spec Summary
+
+# Gofer Spec Summary
+
+Generate a business-friendly summary of the current feature and write it to
+`.specify/specs/{feature}/spec-summary.md`.
+
+Use this when a stakeholder or implementation team needs...
+
+### Gofer TDD
+
+# Gofer TDD
+
+Guide a red-green-refactor loop for the active feature and write the cycle log
+to `.specify/specs/{feature}/tdd-session.md`.
+
+Use this helper when you want to work test-first inside the ...
+
+### Gofer Vocabulary
+
+# Gofer Vocabulary
+
+Extract the feature's shared domain language into a canonical glossary and
+write it to `.specify/specs/{feature}/glossary.md`.
+
+Use this when research, specification, contracts, o...
+
+### Gofer Zoom Out
+
+# Gofer Zoom Out
+
+Expand the current feature into its surrounding system context and write the
+result to `.specify/specs/{feature}/zoom-out-report.md`.
+
+Use this helper when the feature needs broader...

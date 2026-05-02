@@ -8,10 +8,11 @@
  *   5. Each description ≤140 chars
  *   6. Cumulative description bytes ≤2048
  */
-import { describe, it, expect } from 'vitest';
+import { beforeAll, describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { FULL_COMMAND_COUNT } from '../../helpers/goferCommandSet';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,11 +20,17 @@ const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
 
 const MANIFEST_PATH = path.join(REPO_ROOT, '.claude-plugin', 'plugin.json');
 const MANIFEST_DIR = path.dirname(MANIFEST_PATH);
+const parseModuleUrl = new URL('../../../.specify/scripts/node/parse-stage-command.mjs', import.meta.url);
 
 interface Command {
   name: string;
   description: string;
   file: string;
+}
+
+interface ParseResult {
+  frontmatter: Record<string, unknown>;
+  body: string;
 }
 
 interface Manifest {
@@ -36,6 +43,13 @@ interface Manifest {
 }
 
 describe('claude plugin manifest (T166)', () => {
+  let parseStageCommand: (filePath: string) => Promise<ParseResult>;
+
+  beforeAll(async (): Promise<void> => {
+    const mod = await import(parseModuleUrl.href);
+    parseStageCommand = mod.parseStageCommand;
+  });
+
   it('plugin.json exists', (): void => {
     expect(fs.existsSync(MANIFEST_PATH)).toBe(true);
   });
@@ -51,7 +65,7 @@ describe('claude plugin manifest (T166)', () => {
     expect(typeof manifest.version).toBe('string');
     expect(typeof manifest.description).toBe('string');
     expect(Array.isArray(manifest.commands)).toBe(true);
-    expect(manifest.commands.length).toBe(19);
+    expect(manifest.commands.length).toBe(FULL_COMMAND_COUNT);
   });
 
   it('each command has name, description, file', (): void => {
@@ -74,6 +88,17 @@ describe('claude plugin manifest (T166)', () => {
         fs.existsSync(resolved),
         `command '${cmd.name}' file '${cmd.file}' does not exist (resolved to ${resolved})`
       ).toBe(true);
+    }
+  });
+
+  it('keeps command names and descriptions aligned with canonical source frontmatter', async (): Promise<void> => {
+    const manifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf8')) as Manifest;
+    for (const cmd of manifest.commands) {
+      const resolved = path.resolve(MANIFEST_DIR, cmd.file);
+      const { frontmatter } = await parseStageCommand(resolved);
+
+      expect(cmd.name).toBe(String(frontmatter.name));
+      expect(cmd.description).toBe(String(frontmatter.description));
     }
   });
 

@@ -87,19 +87,19 @@ Task: subagent_type="validation-correctness"
   describe('generateCodexSkill (T019)', () => {
     it('generates skill with required YAML frontmatter', async () => {
       const path = await generator.generateCodexSkill(sampleMetadata, true);
-      expect(path).toBe('/test/workspace/.system/skills/1_gofer_research/SKILL.md');
+      expect(path).toBe('/test/workspace/.agents/skills/1_gofer_research/SKILL.md');
 
       const writeSpy = vi.mocked(fs.promises.writeFile);
       expect(writeSpy).not.toHaveBeenCalled();
 
       const generated = await generator.generateCommand(sampleMetadata, 'codex', true);
-      expect(generated).toContain('.system/skills/1_gofer_research/SKILL.md');
+      expect(generated).toContain('.agents/skills/1_gofer_research/SKILL.md');
     });
 
     it('writes codex skill when not in dry run', async () => {
       await generator.generateCodexSkill(sampleMetadata, false);
       expect(vi.mocked(fs.promises.mkdir)).toHaveBeenCalledWith(
-        '/test/workspace/.system/skills/1_gofer_research',
+        '/test/workspace/.agents/skills/1_gofer_research',
         { recursive: true }
       );
       expect(vi.mocked(fs.promises.writeFile)).toHaveBeenCalledTimes(1);
@@ -115,7 +115,7 @@ Task: subagent_type="validation-correctness"
         {
           ...sampleMetadata,
           name: 'gofer:plan',
-          filePath: '/test/workspace/.claude/commands/gofer:plan.md',
+          filePath: '/test/workspace/.claude/commands/gofer_plan.md',
         },
         false
       );
@@ -194,7 +194,7 @@ body`;
         .mockResolvedValue(sampleMetadata);
       const generateSpy = vi
         .spyOn(generator, 'generateCommand')
-        .mockResolvedValue('/test/workspace/.system/skills/1_gofer_research/SKILL.md');
+        .mockResolvedValue('/test/workspace/.agents/skills/1_gofer_research/SKILL.md');
 
       const results = await generator.generateCommands('codex', true);
 
@@ -208,6 +208,33 @@ body`;
       await expect(generator.generateCommands('codex', true)).rejects.toThrow(
         'Claude commands directory not found: /test/workspace/.claude/commands'
       );
+    });
+
+    it('throws when any command generation fails instead of silently succeeding', async () => {
+      vi.mocked(fs.promises.access).mockResolvedValue(undefined as never);
+      vi.mocked(fs.promises.readdir).mockResolvedValue([
+        '1_gofer_research.md',
+        '2_gofer_specify.md',
+      ] as never);
+
+      const extractSpy = vi
+        .spyOn(
+          (
+            generator as unknown as {
+              extractor: { extractFromClaudeCommand: (p: string) => Promise<CommandMetadata> };
+            }
+          ).extractor,
+          'extractFromClaudeCommand'
+        )
+        .mockResolvedValue(sampleMetadata);
+      vi.spyOn(generator, 'generateCommand')
+        .mockResolvedValueOnce('/test/workspace/.agents/skills/1_gofer_research/SKILL.md')
+        .mockRejectedValueOnce(new Error('write failed'));
+
+      await expect(generator.generateCommands('codex', true)).rejects.toThrow(
+        'Failed to generate 1 codex command(s)'
+      );
+      expect(extractSpy).toHaveBeenCalledTimes(2);
     });
   });
 });

@@ -27,6 +27,10 @@ export class CommandGenerator {
     this.extractor = new CommandMetadataExtractor();
   }
 
+  private toCommandFileStem(commandName: string): string {
+    return commandName.replace(/:/g, '_').replace(/-/g, '_');
+  }
+
   /**
    * Generate commands for a specific platform
    *
@@ -54,6 +58,7 @@ export class CommandGenerator {
       .map((file) => path.join(claudeCommandsDir, file));
 
     const generatedPaths: string[] = [];
+    const failures: string[] = [];
 
     for (const commandFile of commandFiles) {
       try {
@@ -62,8 +67,15 @@ export class CommandGenerator {
         const outputPath = await this.generateCommand(enrichedMetadata, platform, dryRun);
         generatedPaths.push(outputPath);
       } catch (error) {
-        console.error('Failed to generate command from ' + commandFile + ':', error);
+        const message = error instanceof Error ? error.message : String(error);
+        failures.push(`${commandFile}: ${message}`);
       }
+    }
+
+    if (failures.length > 0) {
+      throw new Error(
+        `Failed to generate ${failures.length} ${platform} command(s): ${failures.join('; ')}`
+      );
     }
 
     return generatedPaths;
@@ -100,8 +112,10 @@ export class CommandGenerator {
     sourceMetadata: CommandMetadata,
     dryRun: boolean = false
   ): Promise<string> {
-    const skillDir = path.join(this.workspacePath, '.system', 'skills', sourceMetadata.name);
+    const fileStem = this.toCommandFileStem(sourceMetadata.name);
+    const skillDir = path.join(this.workspacePath, '.agents', 'skills', fileStem);
     const skillPath = path.join(skillDir, 'SKILL.md');
+    const legacySkillDirs = this.getLegacyCodexSkillDirs(fileStem, sourceMetadata.name);
 
     // Transform content for Codex
     const transformedContent = this.transformContent(sourceMetadata.content, 'claude', 'codex');
@@ -154,9 +168,26 @@ export class CommandGenerator {
 
       // Write skill file
       await fs.promises.writeFile(skillPath, skillContent, 'utf8');
+      for (const legacySkillDir of legacySkillDirs) {
+        if (legacySkillDir !== skillDir) {
+          await fs.promises.rm(legacySkillDir, { recursive: true, force: true });
+        }
+      }
     }
 
     return skillPath;
+  }
+
+  private getLegacyCodexSkillDirs(fileStem: string, commandName: string): string[] {
+    return [
+      path.join(this.workspacePath, '.agents', 'skills', commandName),
+      path.join(this.workspacePath, '.agents', 'skills', 'gofer', fileStem),
+      path.join(this.workspacePath, '.agents', 'skills', 'gofer', commandName),
+      path.join(this.workspacePath, '.system', 'skills', fileStem),
+      path.join(this.workspacePath, '.system', 'skills', commandName),
+      path.join(this.workspacePath, '.system', 'skills', 'gofer', fileStem),
+      path.join(this.workspacePath, '.system', 'skills', 'gofer', commandName),
+    ];
   }
 
   /**
@@ -171,7 +202,9 @@ export class CommandGenerator {
     dryRun: boolean = false
   ): Promise<string> {
     const promptsDir = path.join(this.workspacePath, '.github', 'prompts');
-    const promptPath = path.join(promptsDir, sourceMetadata.name + '.prompt.md');
+    const fileStem = this.toCommandFileStem(sourceMetadata.name);
+    const promptPath = path.join(promptsDir, fileStem + '.prompt.md');
+    const legacyPromptPath = path.join(promptsDir, sourceMetadata.name + '.prompt.md');
 
     // Transform content for Copilot
     const transformedContent = this.transformContent(sourceMetadata.content, 'claude', 'copilot');
@@ -207,6 +240,9 @@ export class CommandGenerator {
 
       // Write prompt file
       await fs.promises.writeFile(promptPath, promptContent, 'utf8');
+      if (legacyPromptPath !== promptPath) {
+        await fs.promises.rm(legacyPromptPath, { recursive: true, force: true });
+      }
     }
 
     return promptPath;
@@ -467,7 +503,10 @@ The next stage will read the artifacts from this stage and continue the workflow
       sourceMetadata.platform === 'claude' &&
       relativeSourcePath.startsWith('.claude/commands/')
     ) {
-      const canonicalFileName = path.posix.basename(relativeSourcePath).replace(/:/g, '_');
+      const canonicalFileName = path.posix
+        .basename(relativeSourcePath)
+        .replace(/:/g, '_')
+        .replace(/-/g, '_');
       return `.specify/commands/${canonicalFileName}`;
     }
 

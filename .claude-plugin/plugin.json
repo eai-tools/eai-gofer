@@ -41,7 +41,7 @@
     },
     {
       "name": "6_gofer_validate",
-      "description": "Validate the implementation against spec acceptance criteria across six quality dimensions.",
+      "description": "Validate implemented work with evidence-backed scoring, blast-radius analysis, and engineering review.",
       "file": "../.specify/commands/6_gofer_validate.md"
     },
     {
@@ -76,28 +76,53 @@
     },
     {
       "name": "gofer_constitution",
-      "description": "Display the Gofer working constitution and core principles for this project.",
+      "description": "Create or update project constitution with coding principles and guidelines.",
       "file": "../.specify/commands/gofer_constitution.md"
     },
     {
       "name": "gofer_hydrate",
-      "description": "Hydrate the Gofer context with project memory, constitution, and prior pipeline state.",
+      "description": "Reverse-engineer specification from existing code (Hydration).",
       "file": "../.specify/commands/gofer_hydrate.md"
     },
     {
-      "name": "gofer_personality",
+      "name": "gofer:personality",
       "description": "Set the assistant personality for this Gofer session: friendly, pragmatic, or none (default).",
       "file": "../.specify/commands/gofer_personality.md"
     },
     {
-      "name": "gofer_plan",
+      "name": "gofer:plan",
       "description": "Toggle plan mode in the active CLI session for the next user prompt; non-pipeline control command.",
       "file": "../.specify/commands/gofer_plan.md"
     },
     {
-      "name": "gofer_side",
+      "name": "gofer:side",
       "description": "Open a side conversation in the active CLI without disturbing the main pipeline state; resumable.",
       "file": "../.specify/commands/gofer_side.md"
+    },
+    {
+      "name": "gofer:vocabulary",
+      "description": "Extract domain terminology into a canonical feature glossary.",
+      "file": "../.specify/commands/gofer_vocabulary.md"
+    },
+    {
+      "name": "gofer:diagnose",
+      "description": "Run a reproduce-minimize-instrument-fix loop for bugs and failing tests.",
+      "file": "../.specify/commands/gofer_diagnose.md"
+    },
+    {
+      "name": "gofer:tdd",
+      "description": "Guide a red-green-refactor loop tied to spec acceptance criteria.",
+      "file": "../.specify/commands/gofer_tdd.md"
+    },
+    {
+      "name": "gofer:spec-summary",
+      "description": "Generate a business-friendly summary of feature value and scope.",
+      "file": "../.specify/commands/gofer_spec_summary.md"
+    },
+    {
+      "name": "gofer:zoom-out",
+      "description": "Show how the current feature connects to broader system boundaries.",
+      "file": "../.specify/commands/gofer_zoom_out.md"
     }
   ],
   "agents": [

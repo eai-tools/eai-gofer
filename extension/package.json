@@ -594,7 +594,7 @@
           ],
           "default": "auto",
           "description": "Default AI CLI for Gofer command routing",
-          "markdownDescription": "Choose which AI platform to use for Gofer slash commands (research, specify, plan, tasks, implement, validate).\n\n- **Claude**: Use `.claude/commands/*.md` files\n- **Copilot**: Use `.github/prompts/*.prompt.md` files\n- **Codex**: Use `.system/skills/*/SKILL.md` files\n- **Gemini**: Use `.gemini/commands/gofer/*.toml` files\n- **Auto**: Automatically detect which CLI is active\n\nThis enables complete feature parity across Claude, Copilot, Codex, and Gemini.",
+          "markdownDescription": "Choose which AI platform to use for Gofer slash commands (research, specify, plan, tasks, implement, validate).\n\n- **Claude**: Use `.claude/commands/*.md` files\n- **Copilot**: Use `.github/prompts/*.prompt.md` files\n- **Codex**: Use `.agents/skills/*/SKILL.md` files\n- **Gemini**: Use `.gemini/commands/gofer/*.toml` files\n- **Auto**: Automatically detect which CLI is active\n\nThis enables complete feature parity across Claude, Copilot, Codex, and Gemini.",
           "order": 27
         },
         "gofer.workflowProfile": {
@@ -917,7 +917,7 @@
     "postinstall": "echo 'Using prebuilt node-pty-prebuilt-multiarch, skipping rebuild'",
     "rebuild-native": "echo 'Using prebuilt node-pty-prebuilt-multiarch, skipping rebuild'",
     "vscode:prepublish": "npm run prepare-language-server && npm run rebuild-native && npm run package",
-    "prepare-language-server": "cd ../language-server && npm run build && cd ../extension && rm -rf language-server && cp -r ../language-server language-server && rm -rf language-server/src",
+    "prepare-language-server": "node scripts/prepare-language-server.mjs",
     "compile": "webpack",
     "watch": "webpack --watch",
     "package": "webpack --mode production --devtool hidden-source-map",

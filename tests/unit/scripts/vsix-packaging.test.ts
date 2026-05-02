@@ -4,8 +4,10 @@
  *
  *   1. extension/.vscodeignore does NOT exclude resources/templates/visuals/**
  *   2. extension/.vscodeignore does NOT exclude resources/claude-commands/**
- *   3. extension/resources/templates/visuals/ contains persona-pack templates
- *   4. extension/resources/claude-commands/ contains the canonical Claude bodies
+ *   3. extension/.vscodeignore does NOT exclude resources/specify-commands/**
+ *   4. extension/resources/templates/visuals/ contains persona-pack templates
+ *   5. extension/resources/claude-commands/ contains the canonical Claude bodies
+ *   6. extension/resources/specify-commands/ contains canonical source files
  */
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
@@ -41,6 +43,13 @@ describe('vsix packaging includes persona-pack + source-of-truth (T172)', () => 
     expect(hasExclusion).toBe(false);
   });
 
+  it('does NOT exclude resources/specify-commands/**', (): void => {
+    const content = fs.readFileSync(VSCODEIGNORE, 'utf8');
+    const hasNegativeRule = /(^|\n)!resources\/specify-commands\//.test(content);
+    const hasExclusion = /(^|\n)resources\/specify-commands\//.test(content) && !hasNegativeRule;
+    expect(hasExclusion).toBe(false);
+  });
+
   it('extension/resources/templates/visuals/ exists with persona-pack files', (): void => {
     const visualsDir = path.join(EXTENSION_DIR, 'resources', 'templates', 'visuals');
     expect(fs.existsSync(visualsDir)).toBe(true);
@@ -55,7 +64,14 @@ describe('vsix packaging includes persona-pack + source-of-truth (T172)', () => 
     const claudeDir = path.join(EXTENSION_DIR, 'resources', 'claude-commands');
     expect(fs.existsSync(claudeDir)).toBe(true);
     const files = fs.readdirSync(claudeDir).filter((f) => f.endsWith('.md'));
-    // 19 canonical commands all live here (Claude surface + Claude-mirror).
+    // The full command set lives here (Claude surface + Claude-mirror).
     expect(files.length).toBeGreaterThanOrEqual(11);
+  });
+
+  it('extension/resources/specify-commands/ contains canonical command sources', (): void => {
+    const specifyCommandsDir = path.join(EXTENSION_DIR, 'resources', 'specify-commands');
+    expect(fs.existsSync(specifyCommandsDir)).toBe(true);
+    expect(fs.existsSync(path.join(specifyCommandsDir, '6_gofer_validate.md'))).toBe(true);
+    expect(fs.existsSync(path.join(specifyCommandsDir, 'gofer_diagnose.md'))).toBe(true);
   });
 });

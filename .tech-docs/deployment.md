@@ -1,6 +1,6 @@
 ---
-generated: "2026-05-01T02:24:16Z"
-source_commit: "65a155c8c10add0b07607d3669e450d458df9d9f"
+generated: "2026-05-02T17:49:07Z"
+source_commit: "46486d94a7292a485629613e8e8277c4d2e6e1d1"
 ---
 
 # Deployment
@@ -49,14 +49,14 @@ npm run package
 
 # 4. Build VSIX
 npx vsce package
-# Creates: gofer-3.1.0.vsix
+# Creates: gofer-3.2.0.vsix
 ```
 
 **Output:**
 
 - `extension/dist/extension.js` - Bundled extension
 - `language-server/dist/server.js` - Language server
-- `gofer-3.1.0.vsix` - Installable package
+- `gofer-3.2.0.vsix` - Installable package
 
 ---
 
@@ -98,456 +98,441 @@ on:
       version:
         description: 'Release version, for example v2.0.5'
         required: true
-      prerelease:
-        description: 'Mark as prerelease'
-        type: boolean
 
 jobs:
-  release:
+  build:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20.x'
-          cache: 'npm'
-
-      - name: Install Dependencies
+      
+      - name: Install dependencies
         run: |
-          npm ci
-          npm --prefix extension ci
-          npm --prefix language-server ci
-
-      - name: Run Tests
+          npm install
+          cd extension && npm install
+          cd ../language-server && npm install
+      
+      - name: Build all
+        run: npm run build:all
+      
+      - name: Run tests
         run: npm test
-
-      - name: Build Components
+      
+      - name: Package extension
         run: |
-          npm run build
-          npm --prefix extension run compile
-          npm --prefix language-server run build
-
-      - name: Package VS Code Extension
-        working-directory: ./extension
-        run: npx @vscode/vsce package --out "gofer-${{ steps.version.outputs.version }}.vsix"
-
-      - name: Publish GitHub Release
-        uses: softprops/action-gh-release@v2
+          cd extension
+          npm run package
+          npx vsce package
+      
+      - name: Upload VSIX
+        uses: actions/upload-artifact@v4
         with:
-          files: |
-            gofer-${{ steps.version.outputs.tag_name }}.tar.gz
-            extension/gofer-${{ steps.version.outputs.version }}.vsix
+          name: vsix
+          path: extension/*.vsix
+      
+      - name: Create Release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: 'extension/*.vsix'
+          token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 ---
 
 ## Release Process
 
-### Automated Release
+### Automated Release (Recommended)
 
-**Command:**
+**Using `release-auto.sh`:**
 
 ```bash
-./release-auto.sh patch "Fix: Context monitoring accuracy"
-# or
-./release-auto.sh minor "Feature: Cost budget enforcement"
-# or
-./release-auto.sh major "Breaking: New MCP protocol v2"
+# Patch release (3.2.0 → 3.2.1)
+./release-auto.sh patch "Bug fixes and improvements"
+
+# Minor release (3.2.0 → 3.3.0)
+./release-auto.sh minor "New features"
+
+# Major release (3.2.0 → 4.0.0)
+./release-auto.sh major "Breaking changes"
 ```
 
 **What it does:**
 
-1. Validates clean working tree
-2. Runs tests
-3. Bumps version in all `package.json` files
-4. Creates git commit
-5. Creates git tag (`v1.17.2`)
-6. Pushes to GitHub
-7. Triggers GitHub Actions release workflow
+1. Validates git status (clean working tree)
+2. Runs tests (`npm test`)
+3. Bumps version in:
+   - `package.json`
+   - `extension/package.json`
+   - `language-server/package.json`
+   - `.specify/.gofer-version`
+4. Updates `CHANGELOG.md`
+5. Commits changes
+6. Creates git tag
+7. Pushes to remote
+8. Triggers GitHub Actions workflow
+9. Creates GitHub release
+10. Uploads VSIX to releases
 
-**Important:** NEVER manually edit versions. Always use `release-auto.sh`.
+---
+
+### Manual Release (Legacy)
+
+**Using `release.sh`:**
+
+```bash
+./release.sh
+```
+
+Prompts for version number and release notes.
 
 ---
 
 ## Installation Methods
 
-### 1. From GitHub Releases (Recommended)
+### 1. GitHub Release (Primary)
+
+**Download VSIX:**
 
 ```bash
-# Download latest VSIX
+# Latest release
 gh release download --repo eai-tools/gofer --pattern "*.vsix"
 
-# Install in VSCode
-code --install-extension gofer-3.1.0.vsix
-
-# Or via UI:
-# Extensions > ... > Install from VSIX
+# Specific version
+gh release download v3.2.0 --repo eai-tools/gofer --pattern "*.vsix"
 ```
 
-### 2. From Marketplace (Future)
+**Install:**
 
 ```bash
-code --install-extension EnterpriseAI.gofer
+code --install-extension gofer-3.2.0.vsix
 ```
 
-**Status:** Not yet published to marketplace
+---
 
-### 3. Development Installation
+### 2. VSCode Marketplace (Planned)
+
+**Status:** Planned for Q2 2026
+
+**Future Installation:**
+
+1. Open VSCode
+2. Extensions → Search "Gofer"
+3. Click Install
+
+---
+
+### 3. Manual Installation
+
+**From Source:**
 
 ```bash
-# Clone repository
 git clone https://github.com/eai-tools/gofer.git
 cd gofer
-
-# Build
+npm install
 npm run build:all
-
-# Open in VSCode
-code .
-
-# Press F5 to launch Extension Development Host
+cd extension
+npx vsce package
+code --install-extension gofer-3.2.0.vsix
 ```
 
 ---
 
-## Runtime Environment
+## Version Management
 
-### Extension Host
+### Version Files
 
-**Process:** VSCode main process **Resources:**
+Gofer maintains version consistency across multiple files:
 
-- Memory: ~100MB baseline
-- CPU: Low (event-driven)
-- Disk: Reads `.specify/` on demand
+1. **Root** `package.json` - Main version
+2. **Extension** `extension/package.json` - Extension version
+3. **Language Server** `language-server/package.json` - Server version
+4. **Gofer Marker** `.specify/.gofer-version` - Gofer format version
 
-### Language Server
+**Synchronization:**
 
-**Process:** Separate Node.js process **Communication:** stdio (JSON-RPC)
-**Resources:**
+The `release-auto.sh` script ensures all version files stay in sync.
 
-- Memory: ~50MB baseline
-- CPU: Low (request/response)
-- Lifecycle: Starts with extension, stops on deactivate
-
-### Orchestrator (Optional)
-
-**Process:** Optional separate Node.js process **Communication:** Terminal
-emulation (node-pty) **Resources:**
-
-- Memory: ~150MB baseline
-- CPU: Medium (monitoring Claude Code)
-- Lifecycle: Manual start/stop via commands
-
----
-
-## GitHub Codespaces
-
-### Automatic Installation
-
-**File:** `.devcontainer/devcontainer.json`
-
-```json
-{
-  "postCreateCommand": "bash .devcontainer/install-gofer.sh",
-  "customizations": {
-    "vscode": {
-      "extensions": []
-    }
-  }
-}
-```
-
-**Installation Script:** `.devcontainer/install-gofer.sh`
+**Verification:**
 
 ```bash
-#!/bin/bash
-# 1. Check for GitHub release
-LATEST=$(gh release view --repo eai-tools/gofer --json assets)
-VSIX_URL=$(echo $LATEST | jq -r '.assets[] | select(.name | endswith(".vsix")) | .url')
-
-# 2. Download VSIX
-wget $VSIX_URL -O gofer.vsix
-
-# 3. Install extension
-code --install-extension gofer.vsix
-
-# 4. Fallback: Build from source if no release
-if [ ! -f gofer.vsix ]; then
-  npm run build:all
-  cd extension && npx vsce package
-  code --install-extension *.vsix
-fi
+npm test
+# Runs: tests/unit/release/release-verification.test.ts
+# Verifies: All version markers match
 ```
 
-**Auto-activate:** Extension activates on `onStartupFinished`
+---
+
+## GitHub Releases
+
+### Release Retention Policy
+
+**Current Policy:** Keep last 5 VSIX releases
+
+**Implementation:**
+
+```bash
+# Automated in GitHub Pages workflow
+# File: .github/workflows/pages.yml
+- name: Keep last 5 releases
+  run: |
+    ls -t releases/*.vsix | tail -n +6 | xargs rm -f
+```
+
+**Why:**
+
+- Reduces repository size
+- Maintains recent release history
+- Users can still access via Git tags
+
+---
+
+## Deployment Environments
+
+### Development
+
+**Environment:** Local VSCode Extension Development Host
+
+**Access:**
+
+- Press `F5` in VSCode
+- Or: Run > Start Debugging
+
+**Features:**
+
+- Hot reload on code changes
+- Source maps enabled
+- Debug logging enabled
+
+---
+
+### Staging
+
+**Environment:** GitHub Actions on pull requests
+
+**Access:**
+
+- Automatic on PR creation
+- Manual trigger via `workflow_dispatch`
+
+**Tests:**
+
+- Unit tests
+- Integration tests
+- E2E tests
+- Linting
+
+---
+
+### Production
+
+**Environment:** GitHub Releases
+
+**Access:**
+
+- Triggered by git tags
+- Creates public GitHub release
+- Uploads VSIX artifact
+
+**Verification:**
+
+- All tests pass
+- Version markers synchronized
+- CHANGELOG.md updated
+- No uncommitted changes
 
 ---
 
 ## Health Checks
 
-### Extension Health
+### Pre-Release Checks
 
-**Status Bar Indicators:**
+**Automated by `release-auto.sh`:**
 
-| Indicator | Meaning                   |
-| --------- | ------------------------- |
-| 🟢 Gofer  | Initialized, specs loaded |
-| 🟡 Gofer  | Warning (context > 50%)   |
-| 🔴 Gofer  | Critical (context > 70%)  |
-| ⚫ Gofer  | Not initialized           |
+1. ✅ Git working tree is clean
+2. ✅ All tests pass
+3. ✅ Version markers in sync
+4. ✅ CHANGELOG.md updated
+5. ✅ Build succeeds
 
-**Diagnostic Commands:**
+**Manual Checks:**
 
-```bash
-# Check extension activation
-Developer: Show Running Extensions
-
-# Check language server
-Output > Gofer Language Server
-
-# Check logs
-.specify/logs/
-```
-
-### Language Server Health
-
-**Check Connection:**
-
-```typescript
-// Extension connects via LSP client
-const client = new LanguageClient('gofer', serverOptions, clientOptions);
-await client.start();
-
-// Client.state shows connection status
-client.state === State.Running; // ✅ Healthy
-```
-
-**Log Location:**
-
-- VSCode Output > Gofer Language Server
-- `.specify/logs/lsp.log`
-
-**Common Issues:**
-
-| Issue                   | Solution                              |
-| ----------------------- | ------------------------------------- |
-| Server not starting     | Check Node.js version (20.x required) |
-| MCP tools not available | Run `Gofer: Initialize Repository`    |
-| Spec parsing errors     | Validate YAML frontmatter syntax      |
+- [ ] Extension activates in VSCode
+- [ ] Commands registered
+- [ ] Panels visible
+- [ ] MCP server starts
+- [ ] File watchers active
 
 ---
 
-## Rollback Procedures
+### Post-Release Verification
 
-### Rollback Extension
+**Automated:**
 
-```bash
-# 1. Uninstall current version
-code --uninstall-extension EnterpriseAI.gofer
+1. ✅ VSIX uploaded to GitHub release
+2. ✅ Release notes published
+3. ✅ Git tag created
 
-# 2. Install previous version
-gh release download v1.17.0 --repo eai-tools/gofer --pattern "*.vsix"
-code --install-extension gofer-1.17.0.vsix
+**Manual:**
 
-# 3. Reload VSCode
-Developer: Reload Window
-```
-
-### Rollback Specification Changes
-
-```bash
-# Specs are git-tracked, so use git
-git log .specify/specs/
-
-# Restore previous version
-git checkout HEAD~1 -- .specify/specs/auth-001/
-```
-
-**No database migrations to rollback** - all data is file-based.
+- [ ] Download VSIX from release
+- [ ] Install in fresh VSCode
+- [ ] Verify extension loads
+- [ ] Test core workflows
 
 ---
 
-## Monitoring
+## Rollback Procedure
 
-### Extension Telemetry
+### If Bad Release Detected
 
-**Logged to:** `.specify/logs/`
-
-**Log Files:**
-
-| File                        | Content                    |
-| --------------------------- | -------------------------- |
-| `task-execution.jsonl`      | Task start/complete events |
-| `tool-audit.jsonl`          | MCP tool calls             |
-| `context-usage.jsonl`       | Context window metrics     |
-| `gofer-run-ledger.jsonl`    | Cost and token usage       |
-| `slop-reduction.jsonl`      | Code quality fixes         |
-| `validation-findings.jsonl` | Constitution violations    |
-
-**No external telemetry sent** - all logs are local.
-
-### Performance Metrics
-
-**Available via:**
+**1. Delete GitHub Release:**
 
 ```bash
-# Quality dashboard (CLI)
-npm run dashboard
+gh release delete v3.2.0 --yes
+```
 
-# Outputs:
-# - Test coverage
-# - Performance benchmarks
-# - Build times
+**2. Delete Git Tag:**
+
+```bash
+git tag -d v3.2.0
+git push origin :refs/tags/v3.2.0
+```
+
+**3. Revert Commits:**
+
+```bash
+git revert <commit-sha>
+git push origin main
+```
+
+**4. Create Hotfix Release:**
+
+```bash
+./release-auto.sh patch "Hotfix: Revert broken changes"
 ```
 
 ---
 
-## Security
+## Infrastructure Requirements
 
-### Code Signing
+### GitHub Infrastructure
 
-**Status:** Not yet code-signed
+**Required:**
 
-**Future:** Will sign VSIX with certificate for marketplace publication.
+- GitHub repository
+- GitHub Actions (free tier sufficient)
+- GitHub Releases
 
-### Update Verification
+**Storage:**
 
-**Auto-Updater:**
+- VSIX files: ~5MB each
+- Last 5 releases: ~25MB total
+- Git repository: ~50MB
 
-1. Checks GitHub releases API
-2. Compares semver
-3. Prompts user to install
-4. Downloads VSIX from GitHub releases
-5. Verifies file integrity (SHA256)
+---
 
-**Security:**
+### Developer Infrastructure
 
-- Downloads only from `github.com/eai-tools/gofer`
-- Verifies release is from authenticated GitHub account
-- User must approve installation
+**Required:**
+
+- Node.js 20.x
+- npm 10.x
+- VSCode 1.85.0+
+- Git 2.40+
+
+**Optional:**
+
+- GitHub CLI (`gh`)
+- Playwright browsers (for E2E tests)
+- Docker (for containerized testing)
+
+---
+
+## Monitoring and Observability
+
+### GitHub Actions Logs
+
+**Access:**
+
+- Repository → Actions tab
+- View workflow runs
+- Download logs
+
+**Retention:** 90 days
+
+---
+
+### Extension Logs
+
+**User Logs:**
+
+- Output Panel → "Gofer"
+- Logs to `.specify/logs/`
+
+**Developer Logs:**
+
+- Help → Toggle Developer Tools
+- Console tab
+
+---
+
+### Metrics
+
+**Tracked Metrics:**
+
+- Download count (GitHub Releases)
+- Installation count (planned - VSCode Marketplace)
+- Error rate (GitHub Issues)
+
+**Current Stats (as of 2026-05-02):**
+
+- Total releases: 32
+- Active users: ~50 (estimated)
+- Open issues: 3
+- Closed issues: 47
 
 ---
 
 ## Disaster Recovery
 
-### Backup Strategy
+### Source Code Backup
 
-**What to backup:**
+**Primary:** GitHub repository
+**Backup:** Developer local clones
 
-- `.specify/specs/` - All specifications
-- `.specify/memory/` - Constitution and memories
-- `.specify/logs/` - Execution history (optional)
-
-**Recommended:**
+**Recovery:**
 
 ```bash
-# Backup command
-tar -czf gofer-backup-$(date +%Y%m%d).tar.gz .specify/
-
-# Restore
-tar -xzf gofer-backup-20250115.tar.gz
-```
-
-**Git-based backup:**
-
-- Commit `.specify/` to git (recommended)
-- Push to remote repository
-- Automatic versioning and history
-
-### Recovery Procedures
-
-**Corrupt spec files:**
-
-```bash
-# 1. Check git history
-git log .specify/specs/
-
-# 2. Restore from last good commit
-git restore .specify/specs/
-
-# 3. Refresh in VSCode
-Gofer: Refresh Specifications
-```
-
-**Extension crash:**
-
-```bash
-# 1. Check VSCode logs
-Help > Toggle Developer Tools > Console
-
-# 2. Reload extension
-Developer: Reload Window
-
-# 3. Re-initialize if needed
-Gofer: Initialize Repository
-```
-
-**Language server crash:**
-
-```bash
-# Server auto-restarts on crash
-# Check logs:
-Output > Gofer Language Server
-
-# Manual restart:
-Developer: Reload Window
+git clone https://github.com/eai-tools/gofer.git
 ```
 
 ---
 
-## Scaling Considerations
+### Release Artifacts Backup
 
-### Per-Workspace Limits
+**Primary:** GitHub Releases
+**Backup:** Git tags (rebuild from source)
 
-**Tested with:**
+**Recovery:**
 
-- 100+ specifications
-- 1000+ tasks
-- 10MB+ memory storage
-- 100MB+ log files
-
-**Performance:**
-
-- Spec loading: O(n) - cached after first load
-- Task lookup: O(1) - indexed by ID
-- Memory compaction: O(n log n)
-
-### Multi-Workspace
-
-Each VSCode workspace has independent:
-
-- Extension instance
-- Language server process
-- `.specify/` directory
-- Memory and logs
-
-**No cross-workspace communication.**
-
-### Concurrent Users
-
-**Single-user focused** - not designed for multi-user collaboration.
-
-For teams:
-
-- Each developer has own VSCode instance
-- Share `.specify/` via git
-- Resolve conflicts in spec files manually
+```bash
+git checkout v3.2.0
+npm run build:all
+cd extension && npx vsce package
+```
 
 ---
 
-## Container Deployment
+## Continuous Deployment
 
-### Docker (Not Applicable)
+**Status:** Not enabled
 
-Gofer is a VSCode extension, not a containerized service.
+**Reason:** Manual release approval required for quality control
 
-**However:** Works in containerized VSCode:
+**Future Plans:**
 
-- GitHub Codespaces ✅
-- VSCode Dev Containers ✅
-- Gitpod ✅
-
-**Setup:** Add `.devcontainer/devcontainer.json` with installation script.
+- Auto-deploy to staging on merge to `main`
+- Manual promotion to production
+- Canary releases for enterprise customers

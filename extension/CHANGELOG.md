@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [3.2.0] - 2026-05-02
+
+Augment skills pipeline with new helpers and stricter validation
+
 ## [Unreleased]
 
 ### Changed

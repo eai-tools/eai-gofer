@@ -201,7 +201,7 @@ describe('Release Verification', () => {
 
     it('should load .env entries without command-substitution parsing', () => {
       expect(RELEASE_AUTO_SCRIPT).toContain('load_env_file()');
-      expect(RELEASE_AUTO_SCRIPT).toContain("printf -v \"$env_key\" '%s' \"$env_value\"");
+      expect(RELEASE_AUTO_SCRIPT).toContain('printf -v "$env_key" \'%s\' "$env_value"');
       expect(RELEASE_AUTO_SCRIPT).not.toContain('export $(cat .env');
     });
 
@@ -209,7 +209,7 @@ describe('Release Verification', () => {
       const preserveNotesIndex = RELEASE_AUTO_SCRIPT.indexOf('RELEASE_NOTES="$COMMIT_MSG"');
       const changelogInsertIndex = RELEASE_AUTO_SCRIPT.indexOf('$RELEASE_NOTES');
       const changelogAppendIndex = RELEASE_AUTO_SCRIPT.indexOf(
-        "awk '/^## \\[/{f=1} f' extension/CHANGELOG.md >> \"$TEMP_FILE\""
+        'awk \'/^## \\[/{f=1} f\' extension/CHANGELOG.md >> "$TEMP_FILE"'
       );
 
       expect(preserveNotesIndex).toBeGreaterThan(-1);
@@ -233,6 +233,51 @@ set +e
 npm test > /tmp/test-output.log 2>&1
 TEST_EXIT=$?
 set -e`);
+    });
+
+    it('should not push to origin/main before validation and release commit succeed', () => {
+      const testsPassedIndex = RELEASE_AUTO_SCRIPT.indexOf('print_success "Tests passed"');
+      const releaseCommitIndex = RELEASE_AUTO_SCRIPT.indexOf(
+        'git commit --no-verify -m "release: v$NEW_VERSION'
+      );
+      const pushMainIndex = RELEASE_AUTO_SCRIPT.indexOf('git push --no-verify origin HEAD:main');
+
+      expect(testsPassedIndex).toBeGreaterThan(-1);
+      expect(releaseCommitIndex).toBeGreaterThan(testsPassedIndex);
+      expect(pushMainIndex).toBeGreaterThan(releaseCommitIndex);
+      expect(RELEASE_AUTO_SCRIPT).not.toContain('--force-with-lease');
+    });
+
+    it('should gate releases on origin/main ancestry and fast-forward local main safely', () => {
+      expect(RELEASE_AUTO_SCRIPT).toContain('git merge-base --is-ancestor origin/main HEAD');
+      expect(RELEASE_AUTO_SCRIPT).toContain('git pull --ff-only origin main');
+    });
+
+    it('should detect dirty worktrees using git status porcelain output', () => {
+      expect(RELEASE_AUTO_SCRIPT).toContain('git status --porcelain');
+      expect(RELEASE_AUTO_SCRIPT).not.toContain('git diff-index --quiet HEAD --');
+    });
+
+    it('should update release feed assets only after repo validation passes', () => {
+      const testsPassedIndex = RELEASE_AUTO_SCRIPT.indexOf('print_success "Tests passed"');
+      const updateReleasesIndex = RELEASE_AUTO_SCRIPT.indexOf(
+        'node docs/update-releases.js "$NEW_VERSION" "$RELEASE_NOTES" "$GITHUB_PAGES_URL"'
+      );
+
+      expect(updateReleasesIndex).toBeGreaterThan(testsPassedIndex);
+    });
+
+    it('should stage the full release diff before creating the release commit', () => {
+      const gitAddIndex = RELEASE_AUTO_SCRIPT.indexOf('git add -A');
+      const releaseCommitIndex = RELEASE_AUTO_SCRIPT.indexOf(
+        'git commit --no-verify -m "release: v$NEW_VERSION'
+      );
+
+      expect(gitAddIndex).toBeGreaterThan(-1);
+      expect(releaseCommitIndex).toBeGreaterThan(gitAddIndex);
+      expect(RELEASE_AUTO_SCRIPT).not.toContain(
+        'git add package.json package-lock.json extension/package.json extension/package-lock.json'
+      );
     });
   });
 });

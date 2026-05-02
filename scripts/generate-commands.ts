@@ -2,10 +2,10 @@
 /**
  * Command Generator for Cross-Platform Parity
  *
- * Generates Codex CLI skills and Copilot Chat prompts from Claude CLI reference implementation.
- * Codex skills live directly in .agents/skills; no extra mirror step is required.
- * This ensures Gofer command flow stays aligned across Claude, Copilot VSCode, Copilot CLI,
- * Codex CLI, and Gemini CLI.
+ * Regenerates the canonical Codex and Copilot surfaces from
+ * `.specify/commands/*.md` via the shared Node generator. This keeps the release
+ * path byte-identical with the canonical source-of-truth surfaces already used
+ * across Claude, Copilot, Codex, and Gemini.
  *
  * Usage:
  *   npm run generate-commands               # Generate all commands
@@ -16,8 +16,8 @@
  * Feature: 028-cross-platform-command-parity
  */
 
-import * as fs from 'fs';
 import * as path from 'path';
+import { execFileSync } from 'child_process';
 import { fileURLToPath } from 'url';
 
 /**
@@ -101,56 +101,52 @@ Examples:
  */
 async function main(): Promise<void> {
   const args = parseArgs();
-  const workflowProfileOverride =
-    args.workflowProfile === 'auto' ? undefined : args.workflowProfile;
-
-  // Determine which platforms to generate
-  const platforms: Array<'codex' | 'copilot'> = [];
-  if (args.platform === 'codex' || args.platform === 'all' || !args.platform) {
-    platforms.push('codex');
-  }
-  if (args.platform === 'copilot' || args.platform === 'all' || !args.platform) {
-    platforms.push('copilot');
-  }
-
 
   // Get workspace path (parent of scripts directory)
   const scriptPath = fileURLToPath(import.meta.url);
   const scriptDir = path.dirname(scriptPath);
   const workspacePath = path.resolve(scriptDir, '..');
 
-  // Import CommandGenerator (dynamically to avoid compilation issues)
-  const { CommandGenerator } = await import(
-    '../extension/src/council/CommandGenerator.ts'
+  const surfaces: string[] = [];
+  if (args.platform === 'codex' || args.platform === 'all' || !args.platform) {
+    surfaces.push('agents-skills', 'system-skills');
+  }
+  if (args.platform === 'copilot' || args.platform === 'all' || !args.platform) {
+    surfaces.push('github-prompts');
+  }
+
+  const canonicalGeneratorPath = path.join(
+    workspacePath,
+    '.specify',
+    'scripts',
+    'node',
+    'generate-commands.mjs'
   );
+  const commandArgs = [
+    canonicalGeneratorPath,
+    '--root',
+    workspacePath,
+    '--surfaces',
+    surfaces.join(','),
+  ];
 
-  const generator = new CommandGenerator(workspacePath);
+  if (args.dryRun) {
+    commandArgs.push('--dry-run');
+  }
+
   if (args.verbose) {
-    console.log(
-      `Using workflow profile metadata: ${workflowProfileOverride ?? 'auto-detected per canonical source'}`
-    );
-  }
-  for (const platform of platforms) {
-
-    try {
-      const generatedPaths = await generator.generateCommands(
-        platform,
-        args.dryRun,
-        {
-          workflowProfileOverride,
-          metadataSource: 'scripts/generate-commands.ts',
-        }
-      );
-
-      if (args.verbose) {
-        console.log(`Generated ${generatedPaths.length} ${platform} command files`);
-      }
-    } catch (error) {
-      console.error(`❌ Failed to generate ${platform} commands:`, error);
-      process.exit(1);
-    }
+    console.log('Using workflow profile metadata: auto-detected per canonical source');
   }
 
+  try {
+    execFileSync(process.execPath, commandArgs, {
+      stdio: 'inherit',
+      cwd: workspacePath,
+    });
+  } catch (error) {
+    console.error('❌ Failed to generate canonical command surfaces:', error);
+    process.exit(1);
+  }
 }
 
 // Run if invoked directly

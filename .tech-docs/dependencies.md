@@ -1,6 +1,6 @@
 ---
-generated: "2026-05-01T02:24:16Z"
-source_commit: "65a155c8c10add0b07607d3669e450d458df9d9f"
+generated: "2026-05-02T17:49:07Z"
+source_commit: "46486d94a7292a485629613e8e8277c4d2e6e1d1"
 ---
 
 # Dependencies
@@ -47,8 +47,11 @@ Services that Gofer **calls** or **depends on**.
 
 ### 1. VSCode Platform (Required)
 
-**Dependency:** VSCode Extension API **Type:** Platform **Version:** 1.85.0+
-**Usage:** Core extension functionality **Critical:** Yes
+**Dependency:** VSCode Extension API
+**Type:** Platform
+**Version:** 1.85.0+
+**Usage:** Core extension functionality
+**Critical:** Yes
 
 **APIs Used:**
 
@@ -66,13 +69,16 @@ Services that Gofer **calls** or **depends on**.
 
 ### 2. Anthropic API (Optional)
 
-**Dependency:** Claude 3.5 Sonnet, Claude 3.5 Haiku **Type:** External API
-**Configuration:** `gofer.anthropicApiKey` **Usage:** Autonomous mode, LLM
-council **Critical:** No (optional feature)
+**Dependency:** Claude 3.5 Sonnet, Claude 3.5 Haiku
+**Type:** External API
+**Configuration:** `gofer.anthropicApiKey`
+**Usage:** Autonomous mode, LLM council
+**Critical:** No (optional feature)
 
 **Endpoints Used:**
 
 - `POST /v1/messages` - Chat completions
+- `GET /v1/organization/usage` - Billing data (admin key)
 - Models:
   - `claude-3-5-sonnet-20241022` - Main orchestrator
   - `claude-3-5-haiku-20241022` - Quick decisions
@@ -97,9 +103,11 @@ council **Critical:** No (optional feature)
 
 ### 3. Google AI API (Optional)
 
-**Dependency:** Gemini 1.5 Pro, Gemini 1.5 Flash **Type:** External API
-**Configuration:** `gofer.googleApiKey` **Usage:** LLM council (multi-provider
-validation) **Critical:** No
+**Dependency:** Gemini 1.5 Pro, Gemini 1.5 Flash
+**Type:** External API
+**Configuration:** `gofer.googleApiKey`
+**Usage:** LLM council (multi-provider validation)
+**Critical:** No
 
 **Endpoints Used:**
 
@@ -122,12 +130,16 @@ validation) **Critical:** No
 
 ### 4. OpenAI API (Optional)
 
-**Dependency:** GPT-4, GPT-4 Turbo **Type:** External API **Configuration:**
-`gofer.openaiApiKey` **Usage:** LLM council (optional) **Critical:** No
+**Dependency:** GPT-4, GPT-4 Turbo
+**Type:** External API
+**Configuration:** `gofer.openaiApiKey`
+**Usage:** LLM council (optional)
+**Critical:** No
 
 **Endpoints Used:**
 
 - `POST /v1/chat/completions`
+- `GET /v1/usage` - Billing data (admin key with `api.usage.read` scope)
 - Models:
   - `gpt-4-turbo`
   - `gpt-4`
@@ -145,36 +157,36 @@ validation) **Critical:** No
 
 ### 5. Twilio API (Optional)
 
-**Dependency:** Twilio WhatsApp Business API **Type:** External API
-**Configuration:** Environment variables **Usage:** Autonomous execution
-notifications **Critical:** No
+**Dependency:** Twilio WhatsApp Business API
+**Type:** External API
+**Configuration:** Environment variables
+**Usage:** Autonomous execution notifications
+**Critical:** No
 
 **Endpoints Used:**
 
 - `POST /2010-04-01/Accounts/{AccountSid}/Messages.json`
 
-**Environment Variables:**
+**Configuration Required:**
 
 - `TWILIO_ACCOUNT_SID`
 - `TWILIO_AUTH_TOKEN`
 - `TWILIO_PHONE_NUMBER`
 
-**Rate Limits:**
-
-- 1 message/second default
-- Configurable per account
-
 **Failure Handling:**
 
-- Falls back to VSCode notifications
-- Logs error to console
+- Notifications skipped
+- Execution continues
+- Error logged to output channel
 
 ---
 
 ### 6. GitHub API (Optional)
 
-**Dependency:** GitHub Releases API **Type:** External API **Authentication:**
-Public API (no auth required) **Usage:** Auto-update checks **Critical:** No
+**Dependency:** GitHub REST API
+**Type:** External API
+**Usage:** Extension auto-update checks
+**Critical:** No
 
 **Endpoints Used:**
 
@@ -183,295 +195,259 @@ Public API (no auth required) **Usage:** Auto-update checks **Critical:** No
 **Rate Limits:**
 
 - Unauthenticated: 60 requests/hour
-- Authenticated: 5000 requests/hour
+- Authenticated: 5,000 requests/hour
 
 **Failure Handling:**
 
-- Update check fails silently
-- User can still update manually
+- Auto-update checks disabled
+- Extension continues normal operation
 
 ---
 
 ## Downstream Dependents
 
-Services/tools that **depend on** Gofer.
+Services and tools that **depend on** Gofer.
 
-### 1. Claude Code (Primary)
+### 1. Claude Code CLI (Optional Integration)
 
-**Type:** AI Assistant (CLI tool) **Integration:** MCP tools via VSCode
-**Usage:** Reads specs, executes tasks, validates code **Version:** Latest
+**Type:** AI CLI Tool
+**Version:** Latest
+**Usage:** MCP tool consumer
 
-**Depends on:**
+**Integration:**
 
-- MCP tools (6 tools)
-- `.specify/` directory structure
-- Spec file format
+- Calls Gofer MCP tools via stdio
+- Reads `.claude/commands/` for slash commands
+- Monitors `.specify/` directory for specs
 
-**Breaking Changes Impact:**
+**Benefits:**
 
-- Tool signature changes → Claude Code may fail
-- Spec format changes → Parsing errors
-
----
-
-### 2. GitHub Copilot (Experimental)
-
-**Type:** AI Assistant **Integration:** MCP tools via VSCode **Usage:** Same as
-Claude Code **Status:** Experimental support
+- Full access to 40+ MCP tools
+- Autonomous implementation workflows
+- Context management
 
 ---
 
-### 3. Custom AI Tools (Future)
+### 2. GitHub Copilot Chat (Optional Integration)
 
-**Type:** Any MCP-compatible client **Integration:** MCP tools **Requirements:**
+**Type:** AI Chat Tool
+**Version:** Latest
+**Usage:** Prompt consumer
 
-- Must support MCP protocol
-- Must run in VSCode context
-- Must have file system access
+**Integration:**
 
----
+- Reads `.github/prompts/` for prompt commands
+- Discovers Gofer pipeline stages
+- Limited to chat-based interactions (no MCP)
 
-## NPM Dependencies
+**Benefits:**
 
-### Production Dependencies (Root)
-
-| Package             | Version | Purpose                  | Critical |
-| ------------------- | ------- | ------------------------ | -------- |
-| `@anthropic-ai/sdk` | ^0.32.1 | Claude API client        | No       |
-| `chokidar`          | ^4.0.3  | File system watching     | Yes      |
-| `dotenv`            | ^16.4.5 | Environment variables    | No       |
-| `gray-matter`       | ^4.0.3  | YAML frontmatter parsing | Yes      |
-| `reflect-metadata`  | ^0.2.2  | DI metadata              | Yes      |
-| `tsyringe`          | ^4.10.0 | Dependency injection     | Yes      |
-| `winston`           | ^3.17.0 | Logging                  | Yes      |
-| `ws`                | ^8.18.0 | WebSocket server         | No       |
-| `zod`               | ^3.24.1 | Schema validation        | Yes      |
-
-### Production Dependencies (Extension)
-
-| Package                          | Version         | Purpose                | Critical |
-| -------------------------------- | --------------- | ---------------------- | -------- |
-| `@anthropic-ai/sdk`              | ^0.67.0         | Claude API             | No       |
-| `@google/generative-ai`          | ^0.21.0         | Gemini API             | No       |
-| `@lydell/node-pty`               | ^1.2.0-beta.3   | Terminal emulation     | No       |
-| `node-pty-prebuilt-multiarch`    | ^0.10.1-pre.5   | Terminal emulation     | Yes      |
-| `ajv`                            | ^8.18.0         | JSON schema validation | Yes      |
-| `chokidar`                       | ^3.5.3          | File watching          | Yes      |
-| `express`                        | ^5.1.0          | HTTP server (council)  | No       |
-| `fast-glob`                      | ^3.3.2          | File pattern matching  | Yes      |
-| `graphlib`                       | ^2.1.8          | Dependency graphs      | Yes      |
-| `jszip`                          | ^3.10.1         | ZIP file handling      | No       |
-| `openai`                         | ^4.104.0        | OpenAI API             | No       |
-| `reflect-metadata`               | ^0.2.2          | DI metadata            | Yes      |
-| `tsyringe`                       | ^4.10.0         | Dependency injection   | Yes      |
-| `twilio`                         | ^5.3.0          | WhatsApp notifications | No       |
-| `uuid`                           | ^10.0.0         | UUID generation        | Yes      |
-| `vscode-languageclient`          | ^9.0.1          | LSP client             | Yes      |
-| `ws`                             | ^8.18.0         | WebSocket              | No       |
-
-### Production Dependencies (Language Server)
-
-| Package                              | Version | Purpose       | Critical |
-| ------------------------------------ | ------- | ------------- | -------- |
-| `vscode-languageserver`              | ^9.0.1  | LSP server    | Yes      |
-| `vscode-languageserver-textdocument` | ^1.0.11 | Document sync | Yes      |
-| `yaml`                               | ^2.3.4  | YAML parsing  | Yes      |
-| `gray-matter`                        | ^4.0.3  | Frontmatter   | Yes      |
-| `@anthropic-ai/sdk`                  | ^0.30.0 | Claude API    | No       |
-| `chokidar`                           | ^3.5.3  | File watching | Yes      |
-
-### Dev Dependencies
-
-| Package                 | Version | Purpose             |
-| ----------------------- | ------- | ------------------- |
-| `typescript`            | ^5.7.2  | TypeScript compiler |
-| `webpack`               | ^5.89.0 | Extension bundler   |
-| `vitest`                | ^3.2.4  | Test runner         |
-| `@playwright/test`      | ^1.49.1 | E2E tests           |
-| `eslint`                | ^9.26.0 | Linting             |
-| `prettier`              | ^3.0.0  | Code formatting     |
-| `@vscode/vsce`          | ^3.7.1  | Extension packaging |
-| `@vscode/test-electron` | ^2.5.2  | Extension testing   |
+- Core Gofer pipeline stages available
+- Multi-platform workflow support
 
 ---
 
-## Dependency Diagram
+### 3. OpenAI Codex CLI (Optional Integration)
+
+**Type:** AI CLI Tool
+**Version:** Latest
+**Usage:** Skill consumer
+
+**Integration:**
+
+- Reads `.agents/skills/` for skill definitions
+- Discovers Gofer pipeline stages
+- Limited to skill-based interactions (no MCP)
+
+**Benefits:**
+
+- Full feature support via skill system
+- Budget diagnostics via `gofer:codex-doctor`
+
+---
+
+### 4. Gemini CLI (Optional Integration)
+
+**Type:** AI CLI Tool
+**Version:** Latest
+**Usage:** Command file consumer
+
+**Integration:**
+
+- Reads `.gemini/commands/gofer/` for TOML command files
+- Namespace support with `/gofer:*` prefix
+- Limited to command file-based interactions (no MCP)
+
+**Benefits:**
+
+- Core pipeline stages available
+- Namespace isolation
+
+---
+
+## External Service Dependencies
+
+### NPM Registry
+
+**Type:** Package Registry
+**Usage:** Dependency installation
+**Critical:** Yes (build time only)
+
+**Packages:**
+
+- 47 production dependencies
+- 54 development dependencies
+- Total: 101 packages
+
+**Failure Handling:**
+
+- Build fails
+- Use `npm ci --offline` for offline builds
+- Lock file ensures reproducibility
+
+---
+
+### Node.js Runtime
+
+**Type:** JavaScript Runtime
+**Version:** 20.x
+**Usage:** Extension runtime, build tools
+**Critical:** Yes
+
+**Requirements:**
+
+- Node.js ≥20.0.0
+- npm ≥10.0.0
+
+---
+
+## Dependency Diagram (Internal)
 
 ```mermaid
 graph LR
-    subgraph Gofer Extension
-        EXT[Extension]
-        LS[Language Server]
-        ORCH[Orchestrator]
-    end
-
-    subgraph VSCode
-        API[Extension API]
-        TERM[Terminal API]
-        FS[File System]
-    end
-
-    subgraph AI Services
-        CLAUDE[Claude Code]
-        COPILOT[GitHub Copilot]
-    end
-
-    subgraph External APIs
-        ANTHRO[Anthropic]
-        GOOGLE[Google AI]
-        OPENAI[OpenAI]
-        TWILIO[Twilio]
-    end
-
-    EXT --> API
-    EXT --> TERM
-    EXT --> FS
-    LS --> API
-    LS --> FS
-    ORCH --> ANTHRO
-    ORCH --> GOOGLE
-    ORCH --> OPENAI
-    ORCH --> TWILIO
-    CLAUDE --> LS
-    COPILOT --> LS
+    EXT[Extension<br/>extension/] --> LS[Language Server<br/>language-server/]
+    EXT --> ORCH[Orchestrator<br/>src/]
+    LS --> GOFER_LOADER[GoferLoader]
+    LS --> MCP_HANDLER[MCPToolHandler]
+    ORCH --> AGENT[Agents]
+    ORCH --> QUEUE[Task Queue]
+    
+    EXT --> DI[DI Container<br/>TSyringe]
+    EXT --> LSP_CLIENT[LSP Client]
+    EXT --> FILE_MONITOR[File Monitor]
+    
+    LS --> SPEC_CACHE[Spec Cache]
+    LS --> RESEARCH_CHUNKER[Research Chunker]
+    LS --> VALIDATION[Validation Service]
 ```
 
 ---
 
-## Critical Path Analysis
+## Third-Party Package Dependencies
 
-**Must-have for basic functionality:**
+### Production Dependencies (Extension)
 
-1. VSCode Extension API ✅ (platform)
-2. vscode-languageserver ✅ (MCP tools)
-3. gray-matter ✅ (spec parsing)
-4. chokidar ✅ (file watching)
-5. tsyringe ✅ (DI container)
-6. graphlib ✅ (task dependencies)
+| Package                      | Version      | Purpose                          |
+| ---------------------------- | ------------ | -------------------------------- |
+| @anthropic-ai/sdk            | ^0.67.0      | Anthropic API client             |
+| @google/generative-ai        | ^0.21.0      | Google Gemini API client         |
+| openai                       | ^4.104.0     | OpenAI API client                |
+| vscode-languageclient        | ^9.0.1       | LSP client                       |
+| tsyringe                     | ^4.10.0      | Dependency injection             |
+| ws                           | ^8.18.0      | WebSocket support                |
+| node-pty-prebuilt-multiarch  | ^0.10.1-pre.5| Terminal emulation               |
+| chokidar                     | ^3.5.3       | File watching                    |
+| fast-glob                    | ^3.3.2       | Fast file globbing               |
+| graphlib                     | ^2.1.8       | Dependency graph resolution      |
+| ajv                          | ^8.18.0      | JSON schema validation           |
+| jszip                        | ^3.10.1      | ZIP file handling                |
+| express                      | ^5.1.0       | HTTP server (optional features)  |
+| twilio                       | ^5.3.0       | WhatsApp notifications           |
+| uuid                         | ^10.0.0      | UUID generation                  |
 
-**Optional for enhanced functionality:**
+### Production Dependencies (Root)
 
-- Anthropic SDK - Autonomous mode
-- Google AI SDK - LLM council
-- OpenAI SDK - LLM council
-- Twilio SDK - WhatsApp notifications
-- node-pty - Terminal monitoring
+| Package            | Version   | Purpose                  |
+| ------------------ | --------- | ------------------------ |
+| @anthropic-ai/sdk  | ^0.32.1   | Anthropic API client     |
+| zod                | ^3.24.1   | Schema validation        |
+| winston            | ^3.17.0   | Logging                  |
+| gray-matter        | ^4.0.3    | YAML frontmatter parsing |
+| reflect-metadata   | ^0.2.2    | TypeScript decorators    |
 
-**Failure modes:**
+### Development Dependencies
 
-| Dependency      | Failure Impact             | Mitigation                   |
-| --------------- | -------------------------- | ---------------------------- |
-| VSCode API      | Extension won't load       | None - platform required     |
-| Language Server | MCP tools unavailable      | Extension still provides UI  |
-| Anthropic API   | Autonomous mode disabled   | Manual operation still works |
-| File watching   | Specs won't auto-refresh   | Manual refresh available     |
-| node-pty        | Terminal monitoring broken | Fallback to polling          |
-
----
-
-## Version Constraints
-
-### Node.js
-
-**Required:** 20.x **Tested:** 20.10.0+ **Maximum:** < 21.0.0
-
-**Reason:** VSCode Electron runtime uses Node 20.x
-
-### VSCode
-
-**Minimum:** 1.85.0 **Tested:** 1.85.0 - 1.95.0 **Recommended:** Latest stable
-
-**Breaking changes:**
-
-- Extension API changes tracked via `engines.vscode` in package.json
+| Package                      | Version  | Purpose                    |
+| ---------------------------- | -------- | -------------------------- |
+| typescript                   | ^5.7.2   | TypeScript compiler        |
+| webpack                      | ^5.89.0  | Bundler                    |
+| vitest                       | ^3.2.4   | Testing framework          |
+| playwright                   | ^1.49.1  | E2E testing                |
+| eslint                       | ^9.26.0  | Linting                    |
+| prettier                     | ^3.0.0   | Code formatting            |
+| @vscode/vsce                 | ^3.7.1   | VSIX packaging             |
 
 ---
 
 ## Security Considerations
 
-### Supply Chain
+### Dependency Scanning
 
-**NPM packages verified:**
+- **npm audit** - Runs on every install
+- **Dependabot** - Automated security updates (GitHub)
+- **Lock files** - Ensure reproducible builds
 
-- All packages from official registries
-- Lock files committed (`package-lock.json`)
-- Automated security scanning via `npm audit`
+### Known Vulnerabilities
 
-**High-risk dependencies:**
+**As of 2026-05-02:** 0 known critical vulnerabilities
 
-- `node-pty` - Native module (requires rebuild)
-- `ws` - WebSocket server (network exposure)
+**Monitoring:**
 
-**Mitigation:**
+- Weekly `npm audit` checks
+- Automated Dependabot PRs
+- Manual review for major updates
 
-- Regular updates
-- Security scanning in CI/CD
-- Minimal native dependencies
+### Update Policy
 
-### API Keys
-
-**Storage:**
-
-- Never stored in code
-- VSCode secure storage (keychain/credential manager)
-- Environment variables for local dev
-
-**Transmission:**
-
-- HTTPS only for all APIs
-- Keys never logged
-- Keys never sent to telemetry
+- **Critical security updates:** Immediate
+- **Major version updates:** Monthly review
+- **Minor/patch updates:** Automated (Dependabot)
 
 ---
 
-## Update Strategy
+## Offline Mode Support
 
-### Dependency Updates
+Gofer can operate in offline mode with limited functionality:
 
-**Automated:**
+**Offline Features:**
 
-- Dependabot alerts for security issues
-- Monthly dependency review
+- ✅ Spec file editing
+- ✅ Task management
+- ✅ Local validation
+- ✅ Constitution checking
+- ✅ File system operations
 
-**Manual:**
+**Requires Internet:**
 
-- Major version updates tested thoroughly
-- Breaking changes documented in changelog
-
-**Testing:**
-
-```bash
-# Before updating
-npm run test:all
-
-# Update
-npm update
-
-# Verify
-npm run test:all
-npm run build:all
-```
+- ❌ Autonomous mode (Claude API)
+- ❌ LLM council (Anthropic/Google/OpenAI APIs)
+- ❌ Auto-update checks (GitHub API)
+- ❌ WhatsApp notifications (Twilio API)
+- ❌ AI Usage Panel billing data (provider APIs)
 
 ---
 
-## Vendor Lock-in
+## Dependency Health
 
-**VSCode Platform:**
+**Status:** ✅ All dependencies healthy
 
-- ✅ Locked in - Extension requires VSCode
-- Alternative: Could port to other Electron-based editors
+**Last Audit:** 2026-05-02
+**Critical Vulnerabilities:** 0
+**High Vulnerabilities:** 0
+**Outdated Packages:** 0 major, 2 minor
 
-**AI Providers:**
+**Automated Monitoring:**
 
-- ⚠️ Minimal lock-in - Abstracted via LLM council
-- Easy to swap providers
-
-**MCP Protocol:**
-
-- ⚠️ Minimal lock-in - Open protocol
-- Compatible with any MCP client
-
-**File Format:**
-
-- ✅ No lock-in - Markdown + YAML (open standards)
-- Portable to other tools
+- Dependabot alerts enabled
+- Weekly dependency review
+- Quarterly major version upgrade review

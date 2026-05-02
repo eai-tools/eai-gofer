@@ -58,6 +58,18 @@ Task: subagent_type="research"
       expect(metadata.name).toBe('2_gofer_specify');
       expect(metadata.platform).toBe('claude');
     });
+
+    it('derives command names from Windows paths when frontmatter is missing', () => {
+      const content = `# Windows Path Title\n\nBody text`;
+      vi.mocked(fs.readFileSync).mockReturnValue(content);
+
+      const metadata = extractor.extractFromClaudeCommandSync(
+        'C:\\repo\\.claude\\commands\\1_gofer_research.md'
+      );
+
+      expect(metadata.name).toBe('1_gofer_research');
+      expect(metadata.description).toBe('Windows Path Title');
+    });
   });
 
   describe('extractFromCopilotPrompt', () => {
@@ -107,6 +119,24 @@ Use separate Codex CLI sessions for parallel perspectives.
       expect(metadata.invocationSyntax.prefix).toBe('$ $');
     });
 
+    it('normalizes gofer-prefixed Codex skill names back to command ids', async () => {
+      const content = `---
+name: gofer/gofer:diagnose
+description: Diagnose helper
+---
+
+Run: $ $gofer:diagnose
+`;
+      vi.mocked(fs.promises.readFile).mockResolvedValue(content as never);
+
+      const metadata = await extractor.extractFromCodexSkill(
+        '/repo/.system/skills/gofer/gofer_diagnose/SKILL.md'
+      );
+
+      expect(metadata.name).toBe('gofer:diagnose');
+      expect(metadata.invocationSyntax.example).toBe('$ $gofer:diagnose');
+    });
+
     it('handles missing frontmatter name safely', () => {
       const content = `No frontmatter\n\nRun: $ $next`;
       vi.mocked(fs.readFileSync).mockReturnValue(content);
@@ -146,9 +176,25 @@ description: [unterminated
     });
 
     it('validates codex syntax', () => {
-      expect(extractor.validateInvocationSyntax('$ $ 1_gofer_research', 'codex')).toBe(true);
-      expect(extractor.validateInvocationSyntax('$ $1_gofer_research', 'codex')).toBe(false);
+      expect(extractor.validateInvocationSyntax('$ $1_gofer_research', 'codex')).toBe(true);
+      expect(extractor.validateInvocationSyntax('$ $ 1_gofer_research', 'codex')).toBe(false);
       expect(extractor.validateInvocationSyntax('/1_gofer_research', 'codex')).toBe(false);
+    });
+
+    it('formats Gemini helper syntax without double-prefixing gofer names', async () => {
+      const content = `---
+name: gofer:diagnose
+description: Diagnose helper
+---
+
+Body`;
+      vi.mocked(fs.readFileSync).mockReturnValue(content);
+
+      const metadata = extractor.extractFromGeminiCommandSync(
+        '/repo/.gemini/commands/gofer/gofer_diagnose.toml'
+      );
+
+      expect(metadata.invocationSyntax.example).toBe('/gofer:diagnose');
     });
   });
 });

@@ -126,10 +126,10 @@ function resolveTargetPlatform(targetMirror: string): TargetPlatform {
   if (normalizedTarget === 'copilot' || normalizedTarget.includes('.github/prompts')) {
     return 'copilot';
   }
-  if (normalizedTarget === 'codex' || normalizedTarget.includes('.system/skills')) {
+  if (normalizedTarget === 'codex' || normalizedTarget.includes('.agents/skills')) {
     return 'codex';
   }
-  if (normalizedTarget === 'gemini' || normalizedTarget.includes('.agents/skills')) {
+  if (normalizedTarget === 'gemini' || normalizedTarget.includes('.gemini/commands/gofer')) {
     return 'gemini';
   }
 
@@ -145,10 +145,10 @@ function resolveTargetPath(targetMirror: string, workspaceRoot: string): string 
     return normalizePath(path.resolve(workspaceRoot, '.github', 'prompts'));
   }
   if (targetMirror === 'codex') {
-    return normalizePath(path.resolve(workspaceRoot, '.system', 'skills'));
+    return normalizePath(path.resolve(workspaceRoot, '.agents', 'skills'));
   }
   if (targetMirror === 'gemini') {
-    return normalizePath(path.resolve(workspaceRoot, '.agents', 'skills'));
+    return normalizePath(path.resolve(workspaceRoot, '.gemini', 'commands', 'gofer'));
   }
 
   return resolveWorkspaceRelativePath(workspaceRoot, targetMirror, 'targetMirrors');

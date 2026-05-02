@@ -208,7 +208,8 @@ export class GoferMigrator {
   }
 
   /**
-   * Setup global Codex CLI symlink for access from any directory
+   * Legacy compatibility helper for older Codex installs that still relied on
+   * ~/.codex/skills. Normal Gofer installs now use repo-local .agents/skills.
    */
   public async setupCodexGlobalSymlink(): Promise<void> {
     await this.resourceSyncer.setupCodexGlobalSymlink();
@@ -349,8 +350,7 @@ export class GoferMigrator {
     await this.resourceSyncer.setupCopilotPrompts();
     await this.resourceSyncer.setupCopilotInstructions();
     await this.resourceSyncer.setupGeminiCommands();
-    await this.resourceSyncer.setupCodexSkills(); // Generate Codex skills from Claude commands
-    await this.resourceSyncer.setupCodexGlobalSymlink(); // Enable global Codex CLI access
+    await this.resourceSyncer.setupCodexSkills(); // Generate repo-local Codex skills
     await this.resourceSyncer.createBashScripts();
     await this.resourceSyncer.createPowerShellScripts();
     await this.resourceSyncer.createNodeScripts();
@@ -420,8 +420,15 @@ export class GoferMigrator {
         path: path.join(this.workspacePath, '.gemini', 'commands', 'gofer'),
         name: 'Gemini commands',
       },
-      { path: path.join(this.workspacePath, '.system', 'skills'), name: 'Codex skills' },
-      { path: path.join(this.workspacePath, '.agents', 'skills'), name: 'Codex agent skills' },
+      { path: path.join(this.workspacePath, '.agents', 'skills'), name: 'Codex skills' },
+      {
+        path: path.join(this.specifyPath, 'commands', '6_gofer_validate.md'),
+        name: 'Canonical commands',
+      },
+      {
+        path: path.join(this.specifyPath, 'scripts', 'node', 'lib', 'visual-pass-pipeline.mjs'),
+        name: 'Node.js scripts',
+      },
       { path: path.join(this.specifyPath, 'scripts', 'bash'), name: 'Bash scripts' },
       {
         path: path.join(this.specifyPath, 'scripts', 'powershell', 'install-optional-tools.ps1'),
@@ -452,23 +459,6 @@ export class GoferMigrator {
         // Path doesn't exist
         missing.push(name);
       }
-    }
-
-    try {
-      const codexSymlinkCurrent = await this.resourceSyncer.isCodexGlobalSymlinkCurrent();
-      if (!codexSymlinkCurrent) {
-        missing.push('Codex global access');
-      }
-
-      const codexConfigBlocked = await this.resourceSyncer.hasDisabledCodexSkillEntries();
-      if (codexConfigBlocked) {
-        missing.push('Codex skill config');
-      }
-    } catch (error) {
-      this.logger.warn('GoferMigrator', 'Could not inspect Codex global access', {
-        error: error instanceof Error ? error.message : String(error),
-      });
-      missing.push('Codex global access');
     }
 
     return {
@@ -518,23 +508,11 @@ export class GoferMigrator {
           // Also regenerate Codex skills when Claude commands are synced
           reportProgress('Generating Codex skills');
           await this.resourceSyncer.setupCodexSkills();
-          reportProgress('Enabling Codex global access');
-          await this.resourceSyncer.setupCodexGlobalSymlink();
         }
 
-        if (
-          missing.includes('Codex skills') ||
-          missing.includes('Codex agent skills') ||
-          missing.includes('Codex global access') ||
-          missing.includes('Codex skill config')
-        ) {
-          if (missing.includes('Codex skills') || missing.includes('Codex agent skills')) {
-            reportProgress('Generating Codex skills');
-            await this.resourceSyncer.setupCodexSkills();
-          }
-
-          reportProgress('Enabling Codex global access');
-          await this.resourceSyncer.setupCodexGlobalSymlink();
+        if (missing.includes('Codex skills')) {
+          reportProgress('Generating Codex skills');
+          await this.resourceSyncer.setupCodexSkills();
         }
 
         if (missing.includes('Claude agents')) {
@@ -555,6 +533,16 @@ export class GoferMigrator {
         if (missing.includes('Gemini commands')) {
           reportProgress('Syncing Gemini commands');
           await this.resourceSyncer.setupGeminiCommands();
+        }
+
+        if (missing.includes('Canonical commands')) {
+          reportProgress('Syncing canonical commands');
+          await this.resourceSyncer.syncCanonicalCommands();
+        }
+
+        if (missing.includes('Node.js scripts')) {
+          reportProgress('Syncing Node.js scripts');
+          await this.resourceSyncer.createNodeScripts();
         }
 
         if (missing.includes('Bash scripts')) {

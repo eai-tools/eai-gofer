@@ -3,7 +3,7 @@
  *
  * Verifies that the agents-skills emitter writes a flat per-stage tree:
  *
- *   .agents/skills/gofer/<stage>/SKILL.md
+ *   .agents/skills/<stage>/SKILL.md
  *
  * Depth must not exceed 3 levels under `.agents/skills/`. There must be
  * NO nested `gofer/gofer/...` (anti-tenant nesting) anywhere in the tree.
@@ -51,12 +51,12 @@ describe('Codex agents-skills flat tree (T137 / FR-008)', () => {
   });
 
   it('agents-skills root exists', () => {
-    const skillsRoot = path.join(tmp, '.agents/skills/gofer');
+    const skillsRoot = path.join(tmp, '.agents/skills');
     expect(existsSync(skillsRoot)).toBe(true);
   });
 
-  it('every SKILL.md sits at exactly .agents/skills/gofer/<stage>/SKILL.md', () => {
-    const skillsRoot = path.join(tmp, '.agents/skills/gofer');
+  it('every SKILL.md sits at exactly .agents/skills/<stage>/SKILL.md', () => {
+    const skillsRoot = path.join(tmp, '.agents/skills');
     const stageDirs = readdirSync(skillsRoot, { withFileTypes: true })
       .filter((e) => e.isDirectory())
       .map((e) => e.name);
@@ -75,7 +75,7 @@ describe('Codex agents-skills flat tree (T137 / FR-008)', () => {
   });
 
   it('formerly Claude-only stages are emitted to agents-skills', () => {
-    const skillsRoot = path.join(tmp, '.agents/skills/gofer');
+    const skillsRoot = path.join(tmp, '.agents/skills');
     const formerlyClaudeOnly = [
       '0_business_scenario',
       'gofer_constitution',
@@ -89,8 +89,8 @@ describe('Codex agents-skills flat tree (T137 / FR-008)', () => {
     }
   });
 
-  it('depth of every SKILL.md is exactly 4 segments below project root: .agents/skills/gofer/<stage>/SKILL.md', () => {
-    const skillsRoot = path.join(tmp, '.agents/skills/gofer');
+  it('depth of every SKILL.md is exactly 3 segments below project root: .agents/skills/<stage>/SKILL.md', () => {
+    const skillsRoot = path.join(tmp, '.agents/skills');
     const stageDirs = readdirSync(skillsRoot, { withFileTypes: true })
       .filter((e) => e.isDirectory())
       .map((e) => e.name);
@@ -98,13 +98,12 @@ describe('Codex agents-skills flat tree (T137 / FR-008)', () => {
     for (const stage of stageDirs) {
       const skillFile = path.join(skillsRoot, stage, 'SKILL.md');
       const rel = path.relative(tmp, skillFile);
-      // Expect 5 segments: .agents / skills / gofer / <stage> / SKILL.md
+      // Expect 4 segments: .agents / skills / <stage> / SKILL.md
       const parts = rel.split(path.sep);
-      expect(parts).toHaveLength(5);
+      expect(parts).toHaveLength(4);
       expect(parts[0]).toBe('.agents');
       expect(parts[1]).toBe('skills');
-      expect(parts[2]).toBe('gofer');
-      expect(parts[4]).toBe('SKILL.md');
+      expect(parts[3]).toBe('SKILL.md');
     }
   });
 });

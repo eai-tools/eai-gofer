@@ -392,7 +392,7 @@ describe('generate-commands emitters (integration)', () => {
       expect(content).toContain('agent: copilot-workspace');
       expect(content).toContain('gofer:');
       expect(content).toContain('workflowProfile: enterpriseai');
-      expect(content).toContain('canonicalSource: .claude/commands/1_gofer_research.md');
+      expect(content).toContain('canonicalSource: .specify/commands/1_gofer_research.md');
     });
   });
 
@@ -419,7 +419,7 @@ describe('generate-commands emitters (integration)', () => {
       expect(content).toContain('agent: copilot-workspace');
       expect(content).toContain('gofer:');
       expect(content).toContain('workflowProfile: enterpriseai');
-      expect(content).toContain('canonicalSource: .claude/commands/1_gofer_research.md');
+      expect(content).toContain('canonicalSource: .specify/commands/1_gofer_research.md');
     });
   });
 
@@ -428,69 +428,34 @@ describe('generate-commands emitters (integration)', () => {
   // -------------------------------------------------------------------------
 
   describe('agents-skills emitter (T041)', () => {
-    it('emits SKILL.md to .agents/skills/gofer/1_gofer_research/', async () => {
-      const outPath = path.join(
-        tmpRoot,
-        '.agents',
-        'skills',
-        'gofer',
-        '1_gofer_research',
-        'SKILL.md'
-      );
+    it('emits SKILL.md to .agents/skills/1_gofer_research/', async () => {
+      const outPath = path.join(tmpRoot, '.agents', 'skills', '1_gofer_research', 'SKILL.md');
       expect(await fileExists(outPath)).toBe(true);
     });
 
     it('emits SKILL.md for 0_business_scenario', async () => {
-      const outPath = path.join(
-        tmpRoot,
-        '.agents',
-        'skills',
-        'gofer',
-        '0_business_scenario',
-        'SKILL.md'
-      );
+      const outPath = path.join(tmpRoot, '.agents', 'skills', '0_business_scenario', 'SKILL.md');
       expect(await fileExists(outPath)).toBe(true);
     });
 
     it('SKILL.md contains correct YAML frontmatter with name and description', async () => {
-      const outPath = path.join(
-        tmpRoot,
-        '.agents',
-        'skills',
-        'gofer',
-        '1_gofer_research',
-        'SKILL.md'
-      );
+      const outPath = path.join(tmpRoot, '.agents', 'skills', '1_gofer_research', 'SKILL.md');
       const content = await readFile(outPath);
-      expect(content).toContain('name: gofer/1_gofer_research');
+      expect(content).toContain('name: 1_gofer_research');
       expect(content).toContain(
         'description: "Research codebase, CLI integrations, and technology landscape for the target feature."'
       );
     });
 
     it('SKILL.md contains the stage body after frontmatter', async () => {
-      const outPath = path.join(
-        tmpRoot,
-        '.agents',
-        'skills',
-        'gofer',
-        '1_gofer_research',
-        'SKILL.md'
-      );
+      const outPath = path.join(tmpRoot, '.agents', 'skills', '1_gofer_research', 'SKILL.md');
       const content = await readFile(outPath);
       expect(content).toContain('# Gofer Research');
       expect(content).toContain('This is the research stage body content.');
     });
 
     it('SKILL.md starts with --- fence', async () => {
-      const outPath = path.join(
-        tmpRoot,
-        '.agents',
-        'skills',
-        'gofer',
-        '1_gofer_research',
-        'SKILL.md'
-      );
+      const outPath = path.join(tmpRoot, '.agents', 'skills', '1_gofer_research', 'SKILL.md');
       const content = await readFile(outPath);
       expect(content.startsWith('---')).toBe(true);
     });
@@ -501,61 +466,26 @@ describe('generate-commands emitters (integration)', () => {
   // -------------------------------------------------------------------------
 
   describe('system-skills emitter (T042)', () => {
-    it('emits SKILL.md to .system/skills/gofer/1_gofer_research/', async () => {
-      const outPath = path.join(
-        tmpRoot,
-        '.system',
-        'skills',
-        'gofer',
-        '1_gofer_research',
-        'SKILL.md'
-      );
+    it('emits SKILL.md to .system/skills/1_gofer_research/', async () => {
+      const outPath = path.join(tmpRoot, '.system', 'skills', '1_gofer_research', 'SKILL.md');
       expect(await fileExists(outPath)).toBe(true);
     });
 
     it('emits SKILL.md for 0_business_scenario', async () => {
-      const outPath = path.join(
-        tmpRoot,
-        '.system',
-        'skills',
-        'gofer',
-        '0_business_scenario',
-        'SKILL.md'
-      );
+      const outPath = path.join(tmpRoot, '.system', 'skills', '0_business_scenario', 'SKILL.md');
       expect(await fileExists(outPath)).toBe(true);
     });
 
     it('system SKILL.md has same format as agents SKILL.md', async () => {
-      const agentsPath = path.join(
-        tmpRoot,
-        '.agents',
-        'skills',
-        'gofer',
-        '1_gofer_research',
-        'SKILL.md'
-      );
-      const systemPath = path.join(
-        tmpRoot,
-        '.system',
-        'skills',
-        'gofer',
-        '1_gofer_research',
-        'SKILL.md'
-      );
+      const agentsPath = path.join(tmpRoot, '.agents', 'skills', '1_gofer_research', 'SKILL.md');
+      const systemPath = path.join(tmpRoot, '.system', 'skills', '1_gofer_research', 'SKILL.md');
       const agentsContent = await readFile(agentsPath);
       const systemContent = await readFile(systemPath);
       expect(systemContent).toBe(agentsContent);
     });
 
     it('SKILL.md description field is within 140 chars', async () => {
-      const outPath = path.join(
-        tmpRoot,
-        '.system',
-        'skills',
-        'gofer',
-        '1_gofer_research',
-        'SKILL.md'
-      );
+      const outPath = path.join(tmpRoot, '.system', 'skills', '1_gofer_research', 'SKILL.md');
       const content = await readFile(outPath);
       const match = content.match(/description: "(.+)"/);
       expect(match).not.toBeNull();
@@ -583,13 +513,13 @@ describe('generate-commands emitters (integration)', () => {
         },
         {
           surface: 'agents-skills',
-          dir: path.join(tmpRoot, '.agents', 'skills', 'gofer'),
+          dir: path.join(tmpRoot, '.agents', 'skills'),
           ext: '/SKILL.md',
           nested: true,
         },
         {
           surface: 'system-skills',
-          dir: path.join(tmpRoot, '.system', 'skills', 'gofer'),
+          dir: path.join(tmpRoot, '.system', 'skills'),
           ext: '/SKILL.md',
           nested: true,
         },
@@ -623,8 +553,8 @@ describe('generate-commands emitters (integration)', () => {
           '1_gofer_research.prompt.md'
         ),
         path.join(tmpRoot, '.github', 'prompts', '1_gofer_research.prompt.md'),
-        path.join(tmpRoot, '.agents', 'skills', 'gofer', '1_gofer_research', 'SKILL.md'),
-        path.join(tmpRoot, '.system', 'skills', 'gofer', '1_gofer_research', 'SKILL.md'),
+        path.join(tmpRoot, '.agents', 'skills', '1_gofer_research', 'SKILL.md'),
+        path.join(tmpRoot, '.system', 'skills', '1_gofer_research', 'SKILL.md'),
         path.join(tmpRoot, '.gemini', 'commands', 'gofer', '1_gofer_research.toml'),
       ];
 

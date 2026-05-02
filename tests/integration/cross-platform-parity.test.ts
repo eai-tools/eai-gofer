@@ -18,6 +18,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
 import { CrossPlatformCommandRouter } from '../../extension/src/council/CrossPlatformCommandRouter';
+import { FULL_COMMAND_COUNT, FULL_COMMAND_NAMES } from '../helpers/goferCommandSet';
 
 /**
  * Feature Parity Tests (US-6, Phase 8)
@@ -28,6 +29,7 @@ import { CrossPlatformCommandRouter } from '../../extension/src/council/CrossPla
  */
 describe('Cross-Platform Feature Parity', () => {
   const workspacePath = process.cwd();
+  const commands = [...FULL_COMMAND_NAMES];
   let router: CrossPlatformCommandRouter;
 
   beforeEach(() => {
@@ -35,29 +37,7 @@ describe('Cross-Platform Feature Parity', () => {
   });
 
   describe('T078: Command Availability', () => {
-    const commands = [
-      '0_business_scenario',
-      '0a_problem_validation',
-      '1_gofer_research',
-      '2_gofer_specify',
-      '3_gofer_plan',
-      '4_gofer_tasks',
-      '5_gofer_implement',
-      '6_gofer_validate',
-      '6a_gofer_engineering_review',
-      '7_gofer_save',
-      '7a_stakeholder_comms',
-      '8_gofer_resume',
-      '9_gofer_tests',
-      '10_gofer_cloud',
-      'gofer_constitution',
-      'gofer_hydrate',
-      'gofer:personality',
-      'gofer:plan',
-      'gofer:side',
-    ];
-
-    it('should have all 19 commands available in Claude platform', () => {
+    it(`should have all ${FULL_COMMAND_COUNT} commands available in Claude platform`, () => {
       commands.forEach((command) => {
         const commandPath = router.getCommandPath(command, 'claude');
         expect(fs.existsSync(commandPath)).toBe(true);
@@ -81,7 +61,7 @@ describe('Cross-Platform Feature Parity', () => {
 
       expect(claudePath).toContain('.claude/commands');
       expect(copilotPath).toContain('.github/prompts');
-      expect(codexPath).toContain('.system/skills');
+      expect(codexPath).toContain('.agents/skills');
       expect(geminiPath).toContain('.gemini/commands/gofer');
     });
 
@@ -92,23 +72,23 @@ describe('Cross-Platform Feature Parity', () => {
       expect(router.getCommandSyntax(testCommand, 'copilot')).toBe('#1_gofer_research');
       expect(router.getCommandSyntax(testCommand, 'codex')).toBe('$ $1_gofer_research');
       expect(router.getCommandSyntax(testCommand, 'gemini')).toBe('/gofer:1_gofer_research');
+      expect(router.getCommandSyntax('gofer:diagnose', 'gemini')).toBe('/gofer:diagnose');
     });
 
     it('should list all available commands', async () => {
       const availableCommands = await router.listCommands();
 
-      expect(availableCommands.length).toBeGreaterThanOrEqual(19);
-      expect(availableCommands).toContain('1_gofer_research');
-      expect(availableCommands).toContain('6_gofer_validate');
+      expect(availableCommands.length).toBeGreaterThanOrEqual(FULL_COMMAND_COUNT);
+      expect(availableCommands).toEqual(expect.arrayContaining(commands));
     });
 
     it('should verify Codex skills directory exists with all skills', () => {
-      const codexSkillsDir = path.join(workspacePath, '.system/skills');
+      const codexSkillsDir = path.join(workspacePath, '.agents/skills');
       expect(fs.existsSync(codexSkillsDir)).toBe(true);
 
       // Verify all commands have corresponding SKILL.md files
       commands.forEach((command) => {
-        const skillPath = path.join(codexSkillsDir, command, 'SKILL.md');
+        const skillPath = router.getCommandPath(command, 'codex');
         expect(fs.existsSync(skillPath)).toBe(true);
 
         // Verify SKILL.md has YAML frontmatter
@@ -220,8 +200,8 @@ describe('Cross-Platform Feature Parity', () => {
           // Should reference next stage
           expect(content).toContain(nextStage);
 
-          // Should have "Next Steps" or similar section
-          expect(content.toLowerCase()).toMatch(/next\s+(steps?|command)/);
+          // Should include continuation guidance, even if the wording differs by surface
+          expect(content.toLowerCase()).toMatch(/auto-chain|continue|next action/);
         }
       });
     });
@@ -355,7 +335,7 @@ describe('Cross-Platform Feature Parity', () => {
 
       // Should have scoring rubric
       expect(content.toLowerCase()).toContain('score');
-      expect(content).toContain('100');
+      expect(content).toContain('110');
     });
 
     it('should verify command metadata is consistent across platforms', () => {
@@ -386,10 +366,8 @@ describe('Cross-Platform Feature Parity', () => {
       const codexContent = fs.readFileSync(codexPath, 'utf8');
       const copilotContent = fs.readFileSync(copilotPath, 'utf8');
 
-      expect(codexContent).toContain('gofer:');
-      expect(codexContent).toMatch(/workflowProfile:\s*(standard|enterpriseai)/);
-      expect(codexContent).toContain(`canonicalSource: .specify/commands/${commandName}.md`);
-      expect(codexContent).toContain('metadataSource: scripts/generate-commands.ts');
+      expect(codexContent).toContain(`name: ${commandName}`);
+      expect(codexContent).toContain('description:');
 
       expect(copilotContent).toContain('gofer:');
       expect(copilotContent).toMatch(/workflowProfile:\s*(standard|enterpriseai)/);
@@ -398,27 +376,17 @@ describe('Cross-Platform Feature Parity', () => {
     });
 
     it('should keep .agents skills in parity with .system skills without manual mirror edits', () => {
-      const codexSkillsDir = path.join(workspacePath, '.system', 'skills');
-      const commandDirs = fs.readdirSync(codexSkillsDir).filter((entry) => {
-        return fs.existsSync(path.join(codexSkillsDir, entry, 'SKILL.md'));
-      });
-
-      expect(commandDirs.length).toBeGreaterThan(0);
-
-      commandDirs.forEach((commandName) => {
-        const codexSkillPath = path.join(codexSkillsDir, commandName, 'SKILL.md');
-        const agentSkillPath = path.join(
-          workspacePath,
-          '.agents',
-          'skills',
-          commandName,
-          'SKILL.md'
+      commands.forEach((commandName) => {
+        const agentSkillPath = router.getCommandPath(commandName, 'codex');
+        const relativeSkillPath = path.relative(
+          path.join(workspacePath, '.agents', 'skills'),
+          agentSkillPath
         );
+        const systemSkillPath = path.join(workspacePath, '.system', 'skills', relativeSkillPath);
 
         expect(fs.existsSync(agentSkillPath)).toBe(true);
-        expect(fs.readFileSync(agentSkillPath, 'utf8')).toBe(
-          fs.readFileSync(codexSkillPath, 'utf8')
-        );
+        expect(fs.existsSync(systemSkillPath)).toBe(true);
+        expect(fs.readFileSync(systemSkillPath, 'utf8')).toBe(fs.readFileSync(agentSkillPath, 'utf8'));
       });
     });
   });
@@ -435,7 +403,7 @@ describe('Cross-Platform Feature Parity', () => {
       expect(claudePath).toMatch(/\.claude\/commands/);
 
       const codexPath = router.getCommandPath(testCommand, 'codex');
-      expect(codexPath).toMatch(/\.system\/skills/);
+      expect(codexPath).toMatch(/\.agents\/skills/);
 
       const copilotPath = router.getCommandPath(testCommand, 'copilot');
       expect(copilotPath).toMatch(/\.github\/prompts/);

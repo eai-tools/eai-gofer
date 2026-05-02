@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: enterpriseai
   canonicalSource: .specify/commands/2_gofer_specify.md
-  canonicalChecksum: 185ddfc7a7e8d45685574bc60e91bd3f4f9e40e6d7bb7822c6b416ecfa9de360
+  canonicalChecksum: 35db62133b41369e3db88117d22201c70e208024c5bea89104c691a1e13b548a
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -632,6 +632,23 @@ At stage completion, log metrics:
 ```
 
 Logs to: `.specify/logs/pipeline.jsonl`
+
+---
+
+## Optional Helpers: Vocabulary Extraction and Spec Summary
+
+- If the operator explicitly requests the `vocabulary` selector after `spec.md`
+  is stabilized, run `gofer:vocabulary` inline and write
+  `.specify/specs/{feature}/glossary.md` using the same artifact contract as the
+  standalone helper.
+- If the operator explicitly requests the `spec-summary` selector after `spec.md`
+  is stabilized, run `gofer:spec-summary` inline and write
+  `.specify/specs/{feature}/spec-summary.md` using the same artifact contract as
+  the standalone helper.
+- If `spec.md` is missing, continue the stage normally and report that the
+  helper was not run.
+- These selectors are optional and do not change stage progress, routing, or
+  pipeline state.
 
 
 ## Pipeline Continuation

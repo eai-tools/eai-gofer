@@ -4,7 +4,7 @@
  * Verifies:
  * 1. Running the generator with --dry-run does NOT modify existing .claude/commands/ files
  * 2. The generator exits with code 0 on success
- * 3. The generator handles a missing .specify/commands/ directory gracefully (no crash)
+ * 3. The generator fails fast when .specify/commands/ is missing
  * 4. All 16 expected pipeline stages plus 3 control commands are processed when --dry-run is passed
  */
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
@@ -13,6 +13,12 @@ import path from 'path';
 import os from 'os';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
+import {
+  CONTROL_COMMANDS,
+  FULL_COMMAND_COUNT,
+  PIPELINE_STAGE_COUNT,
+  PIPELINE_STAGE_FILES,
+} from '../../helpers/goferCommandSet';
 
 const execFileAsync = promisify(execFile);
 
@@ -31,31 +37,8 @@ const GENERATOR_SCRIPT = path.join(
 const CLAUDE_COMMANDS_DIR = path.join(PROJECT_ROOT, '.claude', 'commands');
 const SPECIFY_COMMANDS_DIR = path.join(PROJECT_ROOT, '.specify', 'commands');
 
-const EXPECTED_PIPELINE_STAGES = [
-  '0_business_scenario',
-  '0a_problem_validation',
-  '1_gofer_research',
-  '2_gofer_specify',
-  '3_gofer_plan',
-  '4_gofer_tasks',
-  '5_gofer_implement',
-  '6_gofer_validate',
-  '6a_gofer_engineering_review',
-  '7_gofer_save',
-  '7a_stakeholder_comms',
-  '8_gofer_resume',
-  '9_gofer_tests',
-  '10_gofer_cloud',
-  'gofer_constitution',
-  'gofer_hydrate',
-];
-
-const EXPECTED_CONTROL_COMMANDS = ['gofer_plan', 'gofer_side', 'gofer_personality'];
-
-const EXPECTED_STAGES = [...EXPECTED_PIPELINE_STAGES, ...EXPECTED_CONTROL_COMMANDS];
-
-const PIPELINE_STAGE_COUNT = EXPECTED_PIPELINE_STAGES.length; // 16
-const TOTAL_COMMAND_COUNT = EXPECTED_STAGES.length; // 19
+const EXPECTED_PIPELINE_STAGES = [...PIPELINE_STAGE_FILES];
+const EXPECTED_CONTROL_COMMANDS = CONTROL_COMMANDS.map((command) => command.file);
 
 // ---------------------------------------------------------------------------
 // Snapshot of .claude/commands/ before the test suite runs
@@ -120,11 +103,11 @@ describe('generator regression (T054)', () => {
       expect(stdout).toContain('Canonical descriptions OK');
     });
 
-    it(`reports all ${TOTAL_COMMAND_COUNT} stages loaded`, () => {
+    it(`reports all ${FULL_COMMAND_COUNT} stages loaded`, () => {
       // The generator logs: "Loaded N stage(s): ..."
       const match = stdout.match(/Loaded (\d+) stage\(s\)/);
       expect(match).not.toBeNull();
-      expect(parseInt(match![1], 10)).toBe(TOTAL_COMMAND_COUNT);
+      expect(parseInt(match![1], 10)).toBe(FULL_COMMAND_COUNT);
     });
 
     it('lists all expected pipeline stage names in output', () => {
@@ -136,12 +119,11 @@ describe('generator regression (T054)', () => {
     it('lists all expected control command names (namespaced) in output', () => {
       // Control commands appear in the loaded list using their canonical
       // namespaced name (e.g. `gofer:plan`), not their filename slug.
-      for (const ctrl of EXPECTED_CONTROL_COMMANDS) {
-        const namespaced = ctrl.replace(/^gofer_/, 'gofer:');
+      for (const { name } of CONTROL_COMMANDS) {
         expect(
           stdout,
-          `Expected control command '${namespaced}' to appear in --dry-run output`
-        ).toContain(namespaced);
+          `Expected control command '${name}' to appear in --dry-run output`
+        ).toContain(name);
       }
     });
 
@@ -161,7 +143,7 @@ describe('generator regression (T054)', () => {
   });
 
   // -------------------------------------------------------------------------
-  // 2. Handles missing .specify/commands/ gracefully
+  // 2. Fails fast when .specify/commands/ is missing
   // -------------------------------------------------------------------------
   describe('missing .specify/commands/ directory', () => {
     let tmpRoot: string;
@@ -195,13 +177,13 @@ describe('generator regression (T054)', () => {
       await fs.rm(tmpRoot, { recursive: true, force: true });
     });
 
-    it('exits with code 0 (no crash on missing directory)', () => {
-      expect(exitCode).toBe(0);
+    it('exits with code 1 when the commands directory is missing', () => {
+      expect(exitCode).toBe(1);
     });
 
-    it('emits a [warn] message about missing .specify/commands/', () => {
+    it('reports a stage-loading error about missing .specify/commands/', () => {
       const combined = stdout + stderr;
-      expect(combined).toMatch(/\[warn\].*\.specify\/commands/);
+      expect(combined).toContain('Stage loading failed: .specify/commands/ not found');
     });
   });
 
@@ -209,10 +191,10 @@ describe('generator regression (T054)', () => {
   // 3. All 16 pipeline stages + 3 control commands are present in .specify/commands/
   // -------------------------------------------------------------------------
   describe('stage manifest completeness', () => {
-    it(`has exactly ${TOTAL_COMMAND_COUNT} .md files in .specify/commands/ (16 pipeline stages + 3 control commands)`, async () => {
+    it(`has exactly ${FULL_COMMAND_COUNT} .md files in .specify/commands/`, async () => {
       const entries = await fs.readdir(SPECIFY_COMMANDS_DIR);
       const mdFiles = entries.filter((e) => e.endsWith('.md') && e !== '.gitkeep');
-      expect(mdFiles).toHaveLength(TOTAL_COMMAND_COUNT);
+      expect(mdFiles).toHaveLength(FULL_COMMAND_COUNT);
     });
 
     it(`contains all ${PIPELINE_STAGE_COUNT} expected pipeline stage files`, async () => {
@@ -226,7 +208,7 @@ describe('generator regression (T054)', () => {
       }
     });
 
-    it('contains all 3 expected control command files', async () => {
+    it('contains all expected control and helper command files', async () => {
       const entries = await fs.readdir(SPECIFY_COMMANDS_DIR);
       const stageNames = entries
         .filter((e) => e.endsWith('.md') && e !== '.gitkeep')

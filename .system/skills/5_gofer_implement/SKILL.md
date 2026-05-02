@@ -1,28 +1,11 @@
 ---
 name: 5_gofer_implement
-description: Execute tasks from tasks.md to implement the feature
-gofer:
-  workflowProfile: enterpriseai
-  canonicalSource: .specify/commands/5_gofer_implement.md
-  canonicalChecksum: eaed0dcbe3bef77d23ae8b4f0fed6cb02bd2747f449fb74be1b682e4f37127df
-  metadataSource: scripts/generate-commands.ts
-arguments:
-  - name: feature
-    description: Feature name or description
-    required: false
-result_schema:
-  type: object
-  properties:
-    output:
-      type: string
-      description: Path to generated artifact or execution summary
-    status:
-      type: string
-      enum:
-        - success
-        - error
+description: "Execute all tasks from tasks.md phase by phase with feedback loops and engineering review."
 ---
 
+---
+description: Execute tasks from tasks.md to implement the feature
+---
 
 # Gofer Implement
 
@@ -41,10 +24,10 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 This command expects in `.specify/specs/{feature}/`:
 
-- `research.md` - Codebase analysis (from $ $1_gofer_research)
-- `spec.md` - Feature specification (from $ $2_gofer_specify)
-- `plan.md` - Implementation plan (from $ $3_gofer_plan)
-- `tasks.md` - Task breakdown (from $ $4_gofer_tasks)
+- `research.md` - Codebase analysis (from /1_gofer_research)
+- `spec.md` - Feature specification (from /2_gofer_specify)
+- `plan.md` - Implementation plan (from /3_gofer_plan)
+- `tasks.md` - Task breakdown (from /4_gofer_tasks)
 
 If missing, prompt user to run the prerequisite stage.
 
@@ -77,7 +60,7 @@ Before starting implementation, assess context window health:
 | -------- | ----------- | ---------------------------------------- |
 | Healthy  | < 50%       | Proceed normally                         |
 | Warning  | 50-70%      | Use sub-agents, checkpoint every 5 tasks |
-| Critical | > 70%       | Run `$ $7_gofer_save`, start new session   |
+| Critical | > 70%       | Run `/7_gofer_save`, start new session   |
 
 ### Context Management Techniques
 
@@ -95,15 +78,15 @@ During implementation, use these techniques to preserve context quality:
 
 3. **Periodic Checkpoints**
    - Every 5 completed tasks, check context health
-   - If Warning status: Run `$ $7_gofer_save`
+   - If Warning status: Run `/7_gofer_save`
    - This enables resumption with fresh context
 
 **If compaction needed**:
 
 ```bash
-$ $7_gofer_save  # Creates comprehensive checkpoint
+/7_gofer_save  # Creates comprehensive checkpoint
 # Start new Claude Code session
-$ $8_gofer_resume  # Restores state with clean context
+/8_gofer_resume  # Restores state with clean context
 ```
 
 ---
@@ -377,17 +360,17 @@ explore different approaches, then a judge synthesizes the best result.
 
 ```
 # Diverge: Launch 3-5 agents with different approaches
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the implement-variant-generator analysis in each., model="sonnet"
+Task: subagent_type="implement-variant-generator", model="sonnet"
   prompt="Perspective 1: Implement [task] using functional approach. Files: [list]"
 
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the implement-variant-generator analysis in each., model="sonnet"
+Task: subagent_type="implement-variant-generator", model="sonnet"
   prompt="Perspective 2: Implement [task] using OOP approach. Files: [list]"
 
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the implement-variant-generator analysis in each., model="sonnet"
+Task: subagent_type="implement-variant-generator", model="sonnet"
   prompt="Perspective 3: Implement [task] using event-driven approach. Files: [list]"
 
 # Converge: Judge synthesizes best approach
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the multi-perspective-judge analysis in each., model="opus"
+Task: subagent_type="multi-perspective-judge", model="opus"
   prompt="Synthesize 3 implementation variants for [task]. Select best approach.
   Variant 1: [result]. Variant 2: [result]. Variant 3: [result]."
 ```
@@ -491,7 +474,7 @@ tool. Do NOT perform this review work inline in the main context.
 alignment
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the engineer-review analysis in each., model="sonnet"
+Task: subagent_type="engineer-review", model="sonnet"
 Prompt: "Review alignment between spec.md, plan.md, tasks.md, and the
 implemented code in {FEATURE_DIR}. Check that all acceptance criteria are
 implemented. Report Red/Yellow/Gray findings."
@@ -500,7 +483,7 @@ implemented. Report Red/Yellow/Gray findings."
 **Agent 2**: codebase-analyzer (sonnet) — verify implementation patterns
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the codebase-analyzer analysis in each., model="sonnet"
+Task: subagent_type="codebase-analyzer", model="sonnet"
 Prompt: "Verify that the implemented code follows existing codebase patterns
 from {FEATURE_DIR}/research.md and matches the architecture in
 {FEATURE_DIR}/plan.md. Report Red/Yellow/Gray findings."
@@ -510,7 +493,7 @@ from {FEATURE_DIR}/research.md and matches the architecture in
 coverage
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the validation-correctness analysis in each., model="sonnet"
+Task: subagent_type="validation-correctness", model="sonnet"
 Prompt: "Verify that every acceptance criterion in {FEATURE_DIR}/spec.md
 has been implemented and has corresponding test coverage.
 Report Red/Yellow/Gray findings with coverage gaps."
@@ -557,6 +540,10 @@ After implementation complete and review gate passes:
 ════════════════════════════════════════════════════════════════
 ```
 
+**AUTO-CHAIN (MANDATORY)**: You MUST immediately invoke the next pipeline stage
+by calling the Skill tool with skill="/6_gofer_validate". Do NOT ask the user
+for confirmation. Do NOT output "Ready for next stage". Just invoke the skill
+NOW.
 
 ---
 
@@ -589,7 +576,7 @@ When council mode is enabled:
 EnterpriseAI is the default profile. Standard profile runs skip this gate only
 when the user explicitly opts out.
 
-Before any deployment task emitted by `$ $4_gofer_tasks` completes, this stage
+Before any deployment task emitted by `/4_gofer_tasks` completes, this stage
 MUST execute deployment preflight checks (manifest/config gate). A task that
 invokes `eai-cli deploy` is not marked complete until all of the following files
 are present at the workspace root and pass their readiness checks:
@@ -642,18 +629,6 @@ Logs to: `.specify/logs/pipeline.jsonl`
 
 ---
 
-
-
-## Pipeline Continuation
-
-This completes the 5_gofer_implement stage. To continue the Gofer pipeline:
-
-**Next Command:** `$ $6_gofer_validate`
-
-The next stage will use the artifacts generated by this command and continue the implementation workflow.
-
-**Note:** Codex CLI does not support automatic command chaining. You must manually run each stage command to progress through the pipeline.
-
 ## Key Rules
 
 - ALWAYS mark tasks complete in tasks.md as you finish them
@@ -664,3 +639,21 @@ The next stage will use the artifacts generated by this command and continue the
 - Stop on errors for sequential tasks
 - Implementation must match specification
 - Log stage completion for observability tracking
+
+---
+
+## Optional Helpers: TDD and Diagnose
+
+- If the operator explicitly requests `tdd-assist` and both `spec.md` and
+  `tasks.md` are present, run `gofer:tdd` inline and write
+  `.specify/specs/{feature}/tdd-session.md` using the same artifact contract as
+  the standalone helper.
+- If the operator explicitly requests `diagnose` and `spec.md` is present, run
+  `gofer:diagnose` inline; bug context, failing output, or equivalent failure
+  evidence may supplement the investigation. Write
+  `.specify/specs/{feature}/diagnose-report.md` using the same artifact
+  contract as the standalone helper.
+- If the required inputs are missing, continue the stage normally and report
+  that the helper was not run.
+- These selectors are optional and do not change stage progress, routing, or
+  pipeline state.

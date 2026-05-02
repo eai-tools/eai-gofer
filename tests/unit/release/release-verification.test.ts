@@ -185,7 +185,9 @@ describe('Release Verification', () => {
       const generateCommandsIndex = RELEASE_AUTO_SCRIPT.indexOf(
         'npm run generate-commands -- --verbose 2>&1'
       );
-      const syncResourcesIndex = RELEASE_AUTO_SCRIPT.indexOf('./scripts/sync-extension-resources.sh');
+      const syncResourcesIndex = RELEASE_AUTO_SCRIPT.indexOf(
+        'node .specify/scripts/node/sync-extension-resources.mjs 2>&1'
+      );
       const compileIndex = RELEASE_AUTO_SCRIPT.indexOf('if npm run compile 2>&1; then');
       const packageIndex = RELEASE_AUTO_SCRIPT.indexOf('npx @vscode/vsce package');
 
@@ -194,6 +196,7 @@ describe('Release Verification', () => {
       expect(syncResourcesIndex).toBeGreaterThan(generateCommandsIndex);
       expect(compileIndex).toBeGreaterThan(syncResourcesIndex);
       expect(packageIndex).toBeGreaterThan(compileIndex);
+      expect(RELEASE_AUTO_SCRIPT).not.toContain('./scripts/sync-extension-resources.sh');
     });
 
     it('should load .env entries without command-substitution parsing', () => {

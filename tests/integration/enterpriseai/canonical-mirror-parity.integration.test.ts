@@ -21,7 +21,7 @@ describe('enterpriseai canonical mirror parity (root integration)', () => {
       {
         changeSetId: 'chg_029_phase8',
         canonicalSources: ['.specify/commands/1_gofer_research.md'],
-        targetMirrors: ['.github/prompts', '.system/skills', '.agents/skills'],
+        targetMirrors: ['.github/prompts', '.agents/skills', '.gemini/commands/gofer'],
         runParityValidation: true,
       },
       {

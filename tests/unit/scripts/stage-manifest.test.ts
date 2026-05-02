@@ -2,8 +2,8 @@
  * T061 — Stage manifest test.
  *
  * Verifies the .specify/commands/ directory:
- * 1. Contains exactly 19 .md files (excluding .gitkeep) — 16 pipeline stages
- *    + 3 control commands (gofer_plan, gofer_side, gofer_personality).
+ * 1. Contains the full command set (excluding .gitkeep) — 16 pipeline/utility
+ *    stages plus 8 control/helper commands.
  * 2. Each file has valid YAML frontmatter (parseable by parseStageCommand)
  * 3. Each frontmatter has: name, description, title, category, surfaces (all required)
  * 4. Each description is ≤ 140 chars
@@ -14,6 +14,13 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
+import {
+  CONTROL_COMMANDS,
+  CONTROL_COMMAND_COUNT,
+  FULL_COMMAND_COUNT,
+  PIPELINE_STAGE_COUNT,
+  PIPELINE_STAGE_FILES,
+} from '../../helpers/goferCommandSet';
 
 const parseStageCommandUrl = new URL(
   '../../../.specify/scripts/node/parse-stage-command.mjs',
@@ -31,41 +38,13 @@ const REQUIRED_FRONTMATTER_FIELDS = [
   'surfaces',
 ] as const;
 
-const EXPECTED_PIPELINE_STAGES = [
-  '0_business_scenario',
-  '0a_problem_validation',
-  '1_gofer_research',
-  '2_gofer_specify',
-  '3_gofer_plan',
-  '4_gofer_tasks',
-  '5_gofer_implement',
-  '6_gofer_validate',
-  '6a_gofer_engineering_review',
-  '7_gofer_save',
-  '7a_stakeholder_comms',
-  '8_gofer_resume',
-  '9_gofer_tests',
-  '10_gofer_cloud',
-  'gofer_constitution',
-  'gofer_hydrate',
-] as const;
-
-// Control commands: filename uses underscore, frontmatter `name` uses
-// the `gofer:<slug>` namespaced form. Their category is 'control'.
-const EXPECTED_CONTROL_COMMANDS = [
-  { file: 'gofer_plan', name: 'gofer:plan' },
-  { file: 'gofer_side', name: 'gofer:side' },
-  { file: 'gofer_personality', name: 'gofer:personality' },
-] as const;
+const EXPECTED_PIPELINE_STAGES = [...PIPELINE_STAGE_FILES];
+const EXPECTED_CONTROL_COMMANDS = [...CONTROL_COMMANDS];
 
 const EXPECTED_STAGES = [
   ...EXPECTED_PIPELINE_STAGES,
   ...EXPECTED_CONTROL_COMMANDS.map((c) => c.file),
 ] as const;
-
-const PIPELINE_STAGE_COUNT = EXPECTED_PIPELINE_STAGES.length; // 16
-const CONTROL_COMMAND_COUNT = EXPECTED_CONTROL_COMMANDS.length; // 3
-const TOTAL_COMMAND_COUNT = PIPELINE_STAGE_COUNT + CONTROL_COMMAND_COUNT; // 19
 
 interface ParsedStage {
   fileName: string;
@@ -106,8 +85,8 @@ describe('stage-manifest (T061)', () => {
   // File count
   // -------------------------------------------------------------------------
 
-  it(`contains exactly ${TOTAL_COMMAND_COUNT} .md files (excluding .gitkeep)`, () => {
-    expect(mdFiles).toHaveLength(TOTAL_COMMAND_COUNT);
+  it(`contains exactly ${FULL_COMMAND_COUNT} .md files (excluding .gitkeep)`, () => {
+    expect(mdFiles).toHaveLength(FULL_COMMAND_COUNT);
   });
 
   it(`contains exactly ${PIPELINE_STAGE_COUNT} pipeline-or-utility stage files (the 16 pipeline stages)`, () => {
@@ -122,7 +101,7 @@ describe('stage-manifest (T061)', () => {
     expect(controlCommands).toHaveLength(CONTROL_COMMAND_COUNT);
   });
 
-  it(`contains all ${TOTAL_COMMAND_COUNT} expected stage and control files`, () => {
+  it(`contains all ${FULL_COMMAND_COUNT} expected stage and control files`, () => {
     const foundNames = mdFiles.map((f) => f.replace(/\.md$/, ''));
     for (const expected of EXPECTED_STAGES) {
       expect(foundNames, `Missing .specify/commands/${expected}.md`).toContain(expected);
@@ -133,8 +112,8 @@ describe('stage-manifest (T061)', () => {
   // Parseable frontmatter
   // -------------------------------------------------------------------------
 
-  it(`all ${TOTAL_COMMAND_COUNT} stage files parse without error`, () => {
-    expect(stages).toHaveLength(TOTAL_COMMAND_COUNT);
+  it(`all ${FULL_COMMAND_COUNT} stage files parse without error`, () => {
+    expect(stages).toHaveLength(FULL_COMMAND_COUNT);
   });
 
   // -------------------------------------------------------------------------

@@ -257,7 +257,7 @@ print_success "Updated package.json, .gofer-version, and CHANGELOG.md"
 # Pre-release hook (FR-001, NFR-011): regenerate every CLI surface from the
 # canonical .specify/commands/<stage>.md source-of-truth so the published
 # artifact is always source-of-truth-derived. MUST run before
-# sync-extension-resources.sh, otherwise the VSIX may bundle stale emitters.
+# sync-extension-resources.mjs, otherwise the VSIX may bundle stale emitters.
 print_info "Running gofer:generate to ensure published artifact is source-of-truth-derived..."
 if npm run gofer:generate 2>&1; then
     print_success "gofer:generate completed"
@@ -278,7 +278,7 @@ fi
 # Without this, edits to .claude/commands/, .github/prompts/, .specify/
 # never reach end users — the installer ships from extension/resources/.
 print_info "Syncing extension/resources/ from canonical sources..."
-if ./scripts/sync-extension-resources.sh 2>&1; then
+if node .specify/scripts/node/sync-extension-resources.mjs 2>&1; then
     print_success "Extension resources synced"
 else
     print_error "Failed to sync extension resources"

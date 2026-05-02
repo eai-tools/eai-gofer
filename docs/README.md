@@ -16,7 +16,7 @@ source material is emitted for each assistant surface:
 | -------------- | ------------------------------------------------------ | ------------------------------------------- |
 | Claude Code    | `.claude/commands/`                                    | Slash commands, full automation, MCP, hooks |
 | GitHub Copilot | `.github/prompts/`                                     | Prompt files and Copilot Chat commands      |
-| OpenAI Codex   | `.agents/skills/` plus global `~/.codex/skills/` link  | Codex skills with stale config repair       |
+| OpenAI Codex   | `.agents/skills/` repo-local skills                    | Codex skills with optional config overrides |
 | Gemini CLI     | `.gemini/commands/gofer/` and `.gemini/extension.json` | Gemini extension commands                   |
 
 ## Core Pipeline

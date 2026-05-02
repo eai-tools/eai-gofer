@@ -458,8 +458,10 @@ cd specs/001-feature
       await fs.mkdir(path.join(workspace, '.specify/specs'), { recursive: true });
       await fs.mkdir(path.join(workspace, '.specify/memory'), { recursive: true });
       await fs.mkdir(path.join(workspace, '.specify/templates'), { recursive: true });
+      await fs.mkdir(path.join(workspace, '.specify/commands'), { recursive: true });
       await fs.mkdir(path.join(workspace, '.specify/scripts/bash'), { recursive: true });
       await fs.mkdir(path.join(workspace, '.specify/scripts/hooks'), { recursive: true });
+      await fs.mkdir(path.join(workspace, '.specify/scripts/node/lib'), { recursive: true });
       await fs.mkdir(path.join(workspace, '.claude/commands'), { recursive: true });
       await fs.mkdir(path.join(workspace, '.claude/agents'), { recursive: true });
       await fs.mkdir(path.join(workspace, '.github/prompts'), { recursive: true });
@@ -505,6 +507,16 @@ cd specs/001-feature
       await fs.writeFile(
         path.join(workspace, '.specify/scripts/hooks/post-tool-use.mjs'),
         'export default {}',
+        'utf-8'
+      );
+      await fs.writeFile(
+        path.join(workspace, '.specify/commands/6_gofer_validate.md'),
+        '# validate',
+        'utf-8'
+      );
+      await fs.writeFile(
+        path.join(workspace, '.specify/scripts/node/lib/visual-pass-pipeline.mjs'),
+        'export async function runPass2() {}',
         'utf-8'
       );
       await fs.writeFile(

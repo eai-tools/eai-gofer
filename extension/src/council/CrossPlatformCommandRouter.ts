@@ -42,7 +42,8 @@ interface CommandSelectionResult {
 /**
  * Routes commands across different AI platforms with priority fallback
  *
- * Priority: .claude/commands/ > .system/skills/ > .gemini/commands/gofer/ > .github/prompts/
+ * Priority: .claude/commands/ > .agents/skills/ (with legacy .system fallback)
+ * > .gemini/commands/gofer/ > .github/prompts/
  *
  * Security: Validates all paths to prevent directory traversal attacks
  */
@@ -63,6 +64,15 @@ export class CrossPlatformCommandRouter {
     this.metadataExtractor = new CommandMetadataExtractor();
     this.routingCache = new Map();
     this.cacheExpiry = Date.now() + this.CACHE_TTL_MS;
+  }
+
+  private toCommandFileStem(commandName: string): string {
+    return commandName.replace(/:/g, '_').replace(/-/g, '_');
+  }
+
+  private getCommandFileStemCandidates(commandName: string): string[] {
+    const safeStem = this.toCommandFileStem(commandName);
+    return safeStem === commandName ? [commandName] : [safeStem, commandName];
   }
 
   /**
@@ -120,7 +130,7 @@ export class CrossPlatformCommandRouter {
     platform: PlatformType,
     workflowProfile?: WorkflowProfile
   ): Promise<string> {
-    const commandPath = this.getCommandPath(commandName, platform);
+    const commandPath = await this.getCommandPathAsync(commandName, platform);
     const exists = await pathExistsSafe(commandPath, 'loadSkillForPlatform', this.logWarning);
     if (!exists) {
       throw new Error(`Command "${commandName}" not found for platform "${platform}"`);
@@ -149,15 +159,7 @@ export class CrossPlatformCommandRouter {
    */
   public getCommandPath(commandName: string, platform: PlatformType): string {
     validateCommandName(commandName);
-
-    const platformPaths: Record<PlatformType, string> = {
-      claude: path.join(this.workspacePath, '.claude', 'commands', `${commandName}.md`),
-      codex: path.join(this.workspacePath, '.system', 'skills', commandName, 'SKILL.md'),
-      copilot: path.join(this.workspacePath, '.github', 'prompts', `${commandName}.prompt.md`),
-      gemini: path.join(this.workspacePath, '.gemini', 'commands', 'gofer', `${commandName}.toml`),
-    };
-
-    return platformPaths[platform];
+    return this.resolveExistingCommandPath(this.getCommandPathCandidates(commandName, platform));
   }
 
   /**
@@ -171,21 +173,22 @@ export class CrossPlatformCommandRouter {
     // Scan Claude commands
     const claudeDir = path.join(this.workspacePath, '.claude', 'commands');
     const claudeFiles = await readDirectorySafe(claudeDir, 'listCommands.claude', this.logWarning);
-    claudeFiles
-      .filter((file) => file.endsWith('.md'))
-      .forEach((file) => commands.add(path.basename(file, '.md')));
+    const claudeMetadata = await Promise.all(
+      claudeFiles
+        .filter((file) => file.endsWith('.md'))
+        .map(async (file) => {
+          try {
+            return await this.metadataExtractor.extractFromClaudeCommand(path.join(claudeDir, file));
+          } catch {
+            return null;
+          }
+        })
+    );
+    claudeMetadata.filter(Boolean).forEach((metadata) => commands.add(metadata!.name));
 
     // Scan Codex skills
-    const codexDir = path.join(this.workspacePath, '.system', 'skills');
-    const codexDirs = await readDirectorySafe(codexDir, 'listCommands.codex', this.logWarning);
-    const codexChecks = await Promise.all(
-      codexDirs.map(async (dir) => {
-        const skillPath = path.join(codexDir, dir, 'SKILL.md');
-        const exists = await pathExistsSafe(skillPath, 'listCommands.codexSkill', this.logWarning);
-        return exists ? dir : null;
-      })
-    );
-    codexChecks.filter(Boolean).forEach((dir) => commands.add(dir as string));
+    const codexNames = await this.listCodexCommandNames();
+    codexNames.forEach((name) => commands.add(name));
 
     // Scan Copilot prompts
     const copilotDir = path.join(this.workspacePath, '.github', 'prompts');
@@ -194,16 +197,36 @@ export class CrossPlatformCommandRouter {
       'listCommands.copilot',
       this.logWarning
     );
-    copilotFiles
-      .filter((file) => file.endsWith('.prompt.md'))
-      .forEach((file) => commands.add(path.basename(file, '.prompt.md')));
+    const copilotMetadata = await Promise.all(
+      copilotFiles
+        .filter((file) => file.endsWith('.prompt.md'))
+        .map(async (file) => {
+          try {
+            return await this.metadataExtractor.extractFromCopilotPrompt(
+              path.join(copilotDir, file)
+            );
+          } catch {
+            return null;
+          }
+        })
+    );
+    copilotMetadata.filter(Boolean).forEach((metadata) => commands.add(metadata!.name));
 
     // Scan Gemini command TOML files
     const geminiDir = path.join(this.workspacePath, '.gemini', 'commands', 'gofer');
     const geminiFiles = await readDirectorySafe(geminiDir, 'listCommands.gemini', this.logWarning);
-    geminiFiles
-      .filter((file) => file.endsWith('.toml'))
-      .forEach((file) => commands.add(path.basename(file, '.toml')));
+    const geminiMetadata = await Promise.all(
+      geminiFiles
+        .filter((file) => file.endsWith('.toml'))
+        .map(async (file) => {
+          try {
+            return await this.metadataExtractor.extractFromGeminiCommand(path.join(geminiDir, file));
+          } catch {
+            return null;
+          }
+        })
+    );
+    geminiMetadata.filter(Boolean).forEach((metadata) => commands.add(metadata!.name));
 
     return Array.from(commands).sort();
   }
@@ -244,11 +267,13 @@ export class CrossPlatformCommandRouter {
    * @returns Invocation syntax (e.g., "/1_gofer_research" or "$ $1_gofer_research")
    */
   public getCommandSyntax(commandName: string, platform: PlatformType): string {
+    const geminiCommand =
+      commandName.startsWith('gofer:') ? commandName : `gofer:${commandName}`;
     const syntaxMap: Record<PlatformType, string> = {
       claude: `/${commandName}`,
       codex: `$ $${commandName}`,
       copilot: `#${commandName}`,
-      gemini: `/gofer:${commandName}`,
+      gemini: `/${geminiCommand}`,
     };
 
     return syntaxMap[platform];
@@ -364,7 +389,7 @@ export class CrossPlatformCommandRouter {
     commandName: string,
     platform: PlatformType
   ): Promise<CommandMetadata | null> {
-    const commandPath = this.getCommandPath(commandName, platform);
+    const commandPath = await this.getCommandPathAsync(commandName, platform);
     const exists = await pathExistsSafe(commandPath, 'getMetadataForPlatform', this.logWarning);
     if (!exists) {
       return null;
@@ -408,5 +433,99 @@ export class CrossPlatformCommandRouter {
       );
       return 'enterpriseai';
     }
+  }
+
+  private getCommandPathCandidates(commandName: string, platform: PlatformType): string[] {
+    if (platform === 'codex') {
+      return this.getCodexCommandPathCandidates(commandName);
+    }
+
+    return this.getCommandFileStemCandidates(commandName).map((fileStem) => {
+      const platformPaths: Record<Exclude<PlatformType, 'codex'>, string> = {
+        claude: path.join(this.workspacePath, '.claude', 'commands', `${fileStem}.md`),
+        copilot: path.join(this.workspacePath, '.github', 'prompts', `${fileStem}.prompt.md`),
+        gemini: path.join(this.workspacePath, '.gemini', 'commands', 'gofer', `${fileStem}.toml`),
+      };
+
+      return platformPaths[platform];
+    });
+  }
+
+  private async getCommandPathAsync(commandName: string, platform: PlatformType): Promise<string> {
+    validateCommandName(commandName);
+    return this.resolveExistingCommandPathAsync(this.getCommandPathCandidates(commandName, platform));
+  }
+
+  private getCodexCommandPathCandidates(commandName: string): string[] {
+    return this.getCommandFileStemCandidates(commandName).flatMap((fileStem) => [
+      path.join(this.workspacePath, '.agents', 'skills', fileStem, 'SKILL.md'),
+      path.join(this.workspacePath, '.agents', 'skills', 'gofer', fileStem, 'SKILL.md'),
+      path.join(this.workspacePath, '.system', 'skills', fileStem, 'SKILL.md'),
+      path.join(this.workspacePath, '.system', 'skills', 'gofer', fileStem, 'SKILL.md'),
+    ]);
+  }
+
+  private resolveExistingCommandPath(candidates: string[]): string {
+    for (const candidate of candidates) {
+      if (fs.existsSync(candidate)) {
+        return candidate;
+      }
+    }
+
+    return candidates[0];
+  }
+
+  private async resolveExistingCommandPathAsync(candidates: string[]): Promise<string> {
+    for (const candidate of candidates) {
+      const exists = await pathExistsSafe(candidate, 'resolveExistingCommandPathAsync', this.logWarning);
+      if (exists) {
+        return candidate;
+      }
+    }
+
+    return candidates[0];
+  }
+
+  private async listCodexCommandNames(): Promise<string[]> {
+    const commandNames = new Set<string>();
+    const codexRoots = [
+      path.join(this.workspacePath, '.agents', 'skills'),
+      path.join(this.workspacePath, '.agents', 'skills', 'gofer'),
+      path.join(this.workspacePath, '.system', 'skills'),
+      path.join(this.workspacePath, '.system', 'skills', 'gofer'),
+    ];
+
+    for (const codexRoot of codexRoots) {
+      const rootEntries = await readDirectorySafe(
+        codexRoot,
+        `listCommands.codex.${path.relative(this.workspacePath, codexRoot) || 'root'}`,
+        this.logWarning
+      );
+      const rootChecks = await Promise.all(
+        rootEntries
+          .filter((entry) => entry !== 'gofer')
+          .map(async (entry) => {
+            const skillPath = path.join(codexRoot, entry, 'SKILL.md');
+            const exists = await pathExistsSafe(
+              skillPath,
+              'listCommands.codexSkill',
+              this.logWarning
+            );
+            if (!exists) {
+              return null;
+            }
+
+            try {
+              const metadata = await this.metadataExtractor.extractFromCodexSkill(skillPath);
+              return metadata.name;
+            } catch {
+              return null;
+            }
+          })
+      );
+      rootChecks.filter(Boolean).forEach((entry) => commandNames.add(entry as string));
+    }
+
+    return Array.from(commandNames).sort();
   }
 }

@@ -78,6 +78,13 @@ describe('hook-wiring (T056)', () => {
     expect(script).toContain('.specify/scripts/node/');
   });
 
+  it('gofer:generate uses the Node-based extension resource sync script', () => {
+    const script = packageJson.scripts['gofer:generate'];
+    expect(script).toContain('sync-extension-resources.mjs');
+    expect(script).not.toContain('./scripts/sync-extension-resources.sh');
+    expect(script).not.toContain(' cp ');
+  });
+
   it('gofer:mermaid-export references mermaid-export.mjs', () => {
     const script = packageJson.scripts['gofer:mermaid-export'];
     expect(script).toContain('mermaid-export.mjs');
@@ -127,6 +134,18 @@ describe('hook-wiring (T056)', () => {
     );
     const stat = await fs.stat(scriptPath).catch(() => null);
     expect(stat, `generate-commands.mjs not found at ${scriptPath}`).not.toBeNull();
+  });
+
+  it('sync-extension-resources.mjs exists on disk', async () => {
+    const scriptPath = path.join(
+      PROJECT_ROOT,
+      '.specify',
+      'scripts',
+      'node',
+      'sync-extension-resources.mjs'
+    );
+    const stat = await fs.stat(scriptPath).catch(() => null);
+    expect(stat, `sync-extension-resources.mjs not found at ${scriptPath}`).not.toBeNull();
   });
 
   it('mermaid-export.mjs exists on disk', async () => {

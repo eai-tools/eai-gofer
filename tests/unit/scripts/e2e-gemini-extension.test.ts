@@ -5,25 +5,21 @@
  *   1. .gemini/extension.json exists and is valid JSON
  *   2. .gemini/commands/gofer/ contains TOML files
  *   3. Each TOML file has `description = "..."` and a prompt field
- *   4. Number of TOML files = the full Gofer command/helper set (19)
+ *   4. Number of TOML files = the full Gofer command/helper set
  *   5. Formerly Claude-only stages are present in .gemini/commands/gofer/
  */
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  FORMERLY_CLAUDE_ONLY_STAGES,
+  FULL_COMMAND_COUNT,
+} from '../../helpers/goferCommandSet';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
-
-const FORMERLY_CLAUDE_ONLY_STAGES = [
-  '0_business_scenario',
-  'gofer_constitution',
-  'gofer_hydrate',
-  '7_gofer_save',
-  '8_gofer_resume',
-];
 
 const GEMINI_EXTENSION_JSON = path.join(REPO_ROOT, '.gemini', 'extension.json');
 const GEMINI_COMMANDS_DIR = path.join(REPO_ROOT, '.gemini', 'commands', 'gofer');
@@ -61,9 +57,9 @@ describe('e2e gemini extension shape (T162)', () => {
     }
   });
 
-  it('emits exactly 19 TOML files for the full command set', (): void => {
+  it(`emits exactly ${FULL_COMMAND_COUNT} TOML files for the full command set`, (): void => {
     const tomlFiles = fs.readdirSync(GEMINI_COMMANDS_DIR).filter((f) => f.endsWith('.toml'));
-    expect(tomlFiles.length).toBe(19);
+    expect(tomlFiles.length).toBe(FULL_COMMAND_COUNT);
   });
 
   it('formerly Claude-only stages are present as TOML files', (): void => {

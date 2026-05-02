@@ -41,7 +41,7 @@ standard workflow as an explicit opt-out. Set `gofer.workflowProfile` to
 | --------- | ----------------- | ------------- |
 | Claude Code | `.claude/commands/` | `/1_gofer_research ...` |
 | GitHub Copilot | `.github/prompts/` | `#1_gofer_research ...` |
-| OpenAI Codex | `.agents/skills/` and `.system/skills/` | Ask Codex to use the relevant Gofer skill |
+| OpenAI Codex | `.agents/skills/` (legacy `.system/skills/` mirror also emitted) | Ask Codex to use the relevant Gofer skill |
 | Gemini CLI | `.gemini/commands/gofer/` | `/gofer:1_gofer_research ...` |
 
 ## Repository Layout

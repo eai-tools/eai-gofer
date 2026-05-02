@@ -263,6 +263,7 @@ suite('GoferMigrator Test Suite', function() {
     await fs.mkdir(path.join(specifyDir, 'specs'), { recursive: true });
     await fs.mkdir(path.join(specifyDir, 'memory'), { recursive: true });
     await fs.mkdir(path.join(specifyDir, 'templates'), { recursive: true });
+    await fs.mkdir(path.join(specifyDir, 'commands'), { recursive: true });
 
     // Create a basic constitution
     const constitution = `# Project Constitution

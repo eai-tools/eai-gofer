@@ -1,6 +1,6 @@
 ---
-generated: "2026-05-01T02:24:16Z"
-source_commit: "65a155c8c10add0b07607d3669e450d458df9d9f"
+generated: "2026-05-02T17:49:07Z"
+source_commit: "46486d94a7292a485629613e8e8277c4d2e6e1d1"
 ---
 
 # Gofer - Technical Overview
@@ -8,8 +8,8 @@ source_commit: "65a155c8c10add0b07607d3669e450d458df9d9f"
 ## Service Identity
 
 **Name:** Gofer
-**Version:** 3.1.0
-**Documentation Updated:** 2026-05-01
+**Version:** 3.2.0
+**Documentation Updated:** 2026-05-02
 **Publisher:** Enterprise AI Pty Ltd
 **Description:** Spec-driven development system for AI assistants. Provides 40+ MCP tools that enable Claude Code, GitHub Copilot, OpenAI Codex, and Gemini CLI to autonomously implement features from specifications.
 
@@ -135,9 +135,9 @@ npx vsce package
 - Specifications stored in `.specify/specs/` directory
 - Constitution principles defined in `.specify/memory/constitution.md`
 
-**Active Specifications (2026-05-01):**
+**Active Specifications (2026-05-02):**
 
-- **030-vscode-surface-truth-cleanup** - Aligning VS Code extension commands and settings documentation with the actual manifest and runtime implementation (Status: Complete)
+- **031-skills-pipeline-augmentation** - Augmenting the Gofer skills pipeline with enhanced capabilities (Status: Active)
 
 ## Project Structure
 
@@ -224,7 +224,7 @@ gofer/
 - **Slop Reduction** - Auto-removes console.log, debugger, @ts-ignore on save (opt-in)
 - **Tool Audit Logging** - All file access logged to `.specify/logs/tool-audit.jsonl`
 
-### Recent Additions (v3.0-3.1)
+### Recent Additions (v3.0-3.2)
 
 - **Memory Panel Filter** - Toggle to hide system-generated memories (533 → 0 by default)
 - **Cross-Platform Command Parity** - All 16 Gofer commands on Claude, Copilot, Codex, Gemini
@@ -235,6 +235,7 @@ gofer/
 - **Resource Diagnostics** - Lightweight performance snapshots (5min intervals, opt-in)
 - **Context REPL** - MCP tools for progressive context management (peek/grep/fold/expand/undo)
 - **Research Chunking** - On-demand loading of large research.md files to reduce context bloat
+- **Skills Pipeline Augmentation** - Enhanced agent coordination and skill composition (v3.2)
 
 ## Data Storage
 

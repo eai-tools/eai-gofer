@@ -115,6 +115,8 @@ export class CommandGenerator {
     const fileStem = this.toCommandFileStem(sourceMetadata.name);
     const skillDir = path.join(this.workspacePath, '.agents', 'skills', fileStem);
     const skillPath = path.join(skillDir, 'SKILL.md');
+    const compatibilitySkillDir = path.join(this.workspacePath, '.system', 'skills', fileStem);
+    const compatibilitySkillPath = path.join(compatibilitySkillDir, 'SKILL.md');
     const legacySkillDirs = this.getLegacyCodexSkillDirs(fileStem, sourceMetadata.name);
 
     // Transform content for Codex
@@ -163,13 +165,15 @@ export class CommandGenerator {
     this.validateGeneratedCommand(skillContent, 'codex');
 
     if (!dryRun) {
-      // Create directory if needed
+      // Keep the repo-local .agents tree canonical, but continue emitting the
+      // flat .system mirror for compatibility with existing tooling/tests.
       await fs.promises.mkdir(skillDir, { recursive: true });
+      await fs.promises.mkdir(compatibilitySkillDir, { recursive: true });
 
-      // Write skill file
       await fs.promises.writeFile(skillPath, skillContent, 'utf8');
+      await fs.promises.writeFile(compatibilitySkillPath, skillContent, 'utf8');
       for (const legacySkillDir of legacySkillDirs) {
-        if (legacySkillDir !== skillDir) {
+        if (legacySkillDir !== skillDir && legacySkillDir !== compatibilitySkillDir) {
           await fs.promises.rm(legacySkillDir, { recursive: true, force: true });
         }
       }
@@ -183,7 +187,6 @@ export class CommandGenerator {
       path.join(this.workspacePath, '.agents', 'skills', commandName),
       path.join(this.workspacePath, '.agents', 'skills', 'gofer', fileStem),
       path.join(this.workspacePath, '.agents', 'skills', 'gofer', commandName),
-      path.join(this.workspacePath, '.system', 'skills', fileStem),
       path.join(this.workspacePath, '.system', 'skills', commandName),
       path.join(this.workspacePath, '.system', 'skills', 'gofer', fileStem),
       path.join(this.workspacePath, '.system', 'skills', 'gofer', commandName),

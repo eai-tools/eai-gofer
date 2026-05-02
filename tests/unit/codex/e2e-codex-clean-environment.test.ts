@@ -16,6 +16,7 @@ import {
   CANONICAL_DESCRIPTIONS,
   validateDescriptions,
 } from '../../../.specify/scripts/node/canonical-descriptions.mjs';
+import { CANONICAL_DESCRIPTION_COUNT } from '../../helpers/goferCommandSet';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -42,7 +43,7 @@ beforeAll((): void => {
   for (const [name, description] of Object.entries(CANONICAL_DESCRIPTIONS)) {
     const stageDir = path.join(tenantDir, name);
     fs.mkdirSync(stageDir, { recursive: true });
-    const skill = `---\nname: gofer/${name}\ndescription: ${description}\n---\n\nbody.\n`;
+    const skill = `---\nname: ${name}\ndescription: ${description}\n---\n\nbody.\n`;
     fs.writeFileSync(path.join(stageDir, 'SKILL.md'), skill);
   }
 });
@@ -54,7 +55,7 @@ afterAll((): void => {
 describe('codex clean environment smoke (T163)', () => {
   it('canonical descriptions validate (≤140 chars each, ≤2048 bytes total)', (): void => {
     const { count, totalBytes } = validateDescriptions();
-    expect(count).toBe(16);
+    expect(count).toBe(CANONICAL_DESCRIPTION_COUNT);
     expect(totalBytes).toBeLessThanOrEqual(2048);
   });
 

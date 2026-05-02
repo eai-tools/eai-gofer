@@ -3,7 +3,7 @@
  *
  *   1. Exists
  *   2. Contains a `## Available stages` section
- *   3. Lists the full 19-command Gofer set (one ### per command)
+ *   3. Lists the full Gofer command set (one ### per command)
  *   4. Each description ≤140 chars
  *   5. Formerly Claude-only stages are listed in the stages section
  */
@@ -11,33 +11,12 @@ import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { FULL_COMMAND_COUNT, FULL_COMMAND_NAMES } from '../../helpers/goferCommandSet';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
 const AGENTS_MD_PATH = path.join(REPO_ROOT, 'AGENTS.md');
-
-const ALL_GOFER_STAGES = [
-  '0_business_scenario',
-  '0a_problem_validation',
-  '1_gofer_research',
-  '2_gofer_specify',
-  '3_gofer_plan',
-  '4_gofer_tasks',
-  '5_gofer_implement',
-  '6_gofer_validate',
-  '6a_gofer_engineering_review',
-  '7_gofer_save',
-  '7a_stakeholder_comms',
-  '8_gofer_resume',
-  '9_gofer_tests',
-  '10_gofer_cloud',
-  'gofer_constitution',
-  'gofer_hydrate',
-  'gofer:personality',
-  'gofer:plan',
-  'gofer:side',
-];
 
 function extractStagesSection(content: string): string {
   const start = content.indexOf('## Available stages');
@@ -58,15 +37,15 @@ describe('AGENTS.md shape (T168)', () => {
     expect(content).toContain('## Available stages');
   });
 
-  it('lists exactly 19 Gofer stage/helper subsections (### <name>)', (): void => {
+  it(`lists exactly ${FULL_COMMAND_COUNT} Gofer stage/helper subsections (### <name>)`, (): void => {
     const content = fs.readFileSync(AGENTS_MD_PATH, 'utf8');
     const section = extractStagesSection(content);
     let foundCount = 0;
-    for (const stage of ALL_GOFER_STAGES) {
+    for (const stage of FULL_COMMAND_NAMES) {
       const re = new RegExp(`^### ${stage.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'm');
       if (re.test(section)) foundCount++;
     }
-    expect(foundCount).toBe(19);
+    expect(foundCount).toBe(FULL_COMMAND_COUNT);
   });
 
   it('each stage description in stages section is ≤140 chars', (): void => {

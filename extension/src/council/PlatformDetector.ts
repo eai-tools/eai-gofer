@@ -14,7 +14,7 @@ import { PlatformType, PlatformDetectionContext } from './types/CrossPlatformTyp
  *
  * Detection priority:
  * 1. User setting (gofer.defaultCLI) if explicitly set
- * 2. Directory presence (.claude/commands/, .github/prompts/, .system/skills/, .gemini/commands/gofer/)
+ * 2. Directory presence (.claude/commands/, .github/prompts/, .agents/skills/, .gemini/commands/gofer/)
  * 3. Execution context (VSCode extension host)
  * 4. Fallback to 'auto'
  */
@@ -74,7 +74,7 @@ export class PlatformDetector {
       case 'copilot':
         return this.hasDirectory('.github/prompts');
       case 'codex':
-        return this.hasDirectory('.system/skills');
+        return this.hasAnyDirectory(['.agents/skills', '.system/skills']);
       case 'gemini':
         return this.hasDirectory('.gemini/commands/gofer');
       default:
@@ -126,7 +126,7 @@ export class PlatformDetector {
     // Check directory availability
     const hasClaudeDirectory = this.hasDirectory('.claude/commands');
     const hasCopilotDirectory = this.hasDirectory('.github/prompts');
-    const hasCodexDirectory = this.hasDirectory('.system/skills');
+    const hasCodexDirectory = this.hasAnyDirectory(['.agents/skills', '.system/skills']);
     const hasGeminiDirectory = this.hasDirectory('.gemini/commands/gofer');
 
     // Determine platform
@@ -191,5 +191,9 @@ export class PlatformDetector {
     } catch {
       return false;
     }
+  }
+
+  private hasAnyDirectory(relativePaths: readonly string[]): boolean {
+    return relativePaths.some((relativePath) => this.hasDirectory(relativePath));
   }
 }

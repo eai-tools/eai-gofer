@@ -5,7 +5,7 @@
  * T051 (no fake key grep), T052 (read-only enforcement source-grep).
  *
  * The fixture mirrors the 2026-04-25 incident shape: two Gofer-bundle tenants
- * (16 stages each, one canonical + one duplicate) plus a `.system/imagegen`
+ * (21 canonical commands each, one canonical + one duplicate) plus a `.system/imagegen`
  * single-skill tenant.
  */
 
@@ -13,6 +13,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { CANONICAL_DESCRIPTION_NAMES } from '../../helpers/goferCommandSet';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -22,24 +23,7 @@ const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
 const DOCTOR_PATH = path.join(REPO_ROOT, '.specify', 'scripts', 'node', 'codex-doctor.mjs');
 const FIXTURE_ROOT = path.join(REPO_ROOT, 'tests', 'fixtures', 'codex-skills-fixture');
 
-const CANONICAL_GOFER_STAGES = [
-  '0_business_scenario',
-  '0a_problem_validation',
-  '1_gofer_research',
-  '2_gofer_specify',
-  '3_gofer_plan',
-  '4_gofer_tasks',
-  '5_gofer_implement',
-  '6_gofer_validate',
-  '6a_gofer_engineering_review',
-  '7_gofer_save',
-  '7a_stakeholder_comms',
-  '8_gofer_resume',
-  '9_gofer_tests',
-  '10_gofer_cloud',
-  'gofer_constitution',
-  'gofer_hydrate',
-];
+const CANONICAL_GOFER_STAGES = [...CANONICAL_DESCRIPTION_NAMES];
 
 function buildSkillMd(name: string): string {
   // Description ≤140 bytes; minimal body.
@@ -48,8 +32,9 @@ function buildSkillMd(name: string): string {
 }
 
 function buildBundle(tenantDir: string): void {
+  const goferDir = path.join(tenantDir, 'gofer');
   for (const stage of CANONICAL_GOFER_STAGES) {
-    const stageDir = path.join(tenantDir, stage);
+    const stageDir = path.join(goferDir, stage);
     fs.mkdirSync(stageDir, { recursive: true });
     fs.writeFileSync(path.join(stageDir, 'SKILL.md'), buildSkillMd(stage));
   }
@@ -91,12 +76,12 @@ describe('codex-doctor', () => {
     // Each fixture description is the same byte length; we expect a positive
     // total equal to (skill count * per-description bytes).
     expect(report.descriptionBudgetBytes).toBeGreaterThan(0);
-    // 2 bundles × 16 stages + 1 system skill = 33 SKILL.md files.
-    expect(report.totalSkillFiles).toBe(33);
+    // 2 bundles × 21 canonical commands + 1 system skill = 43 SKILL.md files.
+    expect(report.totalSkillFiles).toBe(43);
     // Each description is roughly ~50 bytes; cumulative will exceed 2048
-    // because we have 33 skills. The over-budget exit code path is exercised
+    // because we have 43 skills. The over-budget exit code path is exercised
     // by the cumulative-budget assertion below; we tolerate either >2048 (as
-    // is realistic for 33 skills) or ≤2048 if descriptions get shortened in
+    // is realistic for 43 skills) or ≤2048 if descriptions get shortened in
     // the future.
     const bytesPerSkill = report.descriptionBudgetBytes / report.totalSkillFiles;
     expect(bytesPerSkill).toBeGreaterThan(20);

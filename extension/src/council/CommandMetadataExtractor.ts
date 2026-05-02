@@ -14,7 +14,7 @@ import { PlatformType, CommandMetadata, CommandInvocationSyntax } from './types/
  * Supports:
  * - Claude CLI (.claude/commands)
  * - Copilot Chat (.github/prompts)
- * - Codex CLI (.system/skills)
+ * - Codex CLI (.agents/skills, with .system/skills legacy fallback)
  * - Gemini CLI (.gemini/commands/gofer)
  */
 export class CommandMetadataExtractor {
@@ -126,7 +126,8 @@ export class CommandMetadataExtractor {
   private parseCodexSkillContent(content: string, filePath: string): CommandMetadata {
     const { frontmatter, body } = this.parseMarkdownWithFrontmatter(content);
 
-    const name = (frontmatter.name as string) || 'unknown';
+    const rawName = (frontmatter.name as string) || 'unknown';
+    const name = rawName.startsWith('gofer/') ? rawName.slice('gofer/'.length) : rawName;
     const description = (frontmatter.description as string) || name;
 
     const supportsAutoChain =
@@ -202,9 +203,14 @@ export class CommandMetadataExtractor {
    * Validate command invocation syntax for a platform
    */
   public validateInvocationSyntax(invocation: string, platform: PlatformType): boolean {
-    const syntax = this.getInvocationSyntax(platform, '.*');
-    const regex = new RegExp(syntax.pattern);
-    return regex.test(invocation);
+    const syntaxPatterns: Record<PlatformType, RegExp> = {
+      claude: /^\/[^\s]+(?:\s+.*)?$/,
+      copilot: /^#[^\s]+(?:\s+.*)?$/,
+      codex: /^\$\s+\$[^\s]+(?:\s+.*)?$/,
+      gemini: /^\/gofer:[^\s]+(?:\s+.*)?$/,
+    };
+
+    return syntaxPatterns[platform].test(invocation);
   }
 
   /**
@@ -236,8 +242,25 @@ export class CommandMetadataExtractor {
    * Extract command name from file path
    */
   private extractCommandNameFromPath(filePath: string, extension: string): string {
-    const filename = filePath.split('/').pop() || '';
-    return filename.replace(extension, '');
+    const filename = filePath.split(/[\\/]/).pop() || '';
+    const fileStem = filename.replace(extension, '');
+    return this.normalizeCommandName(fileStem);
+  }
+
+  private normalizeCommandName(fileStem: string): string {
+    if (fileStem.includes(':')) {
+      return fileStem;
+    }
+
+    if (fileStem === 'gofer_constitution' || fileStem === 'gofer_hydrate') {
+      return fileStem;
+    }
+
+    if (fileStem.startsWith('gofer_')) {
+      return `gofer:${fileStem.slice('gofer_'.length).replace(/_/g, '-')}`;
+    }
+
+    return fileStem;
   }
 
   /**
@@ -307,19 +330,21 @@ export class CommandMetadataExtractor {
       return {
         platform: 'codex',
         prefix: '$ $',
-        example: '$ $ ' + commandName,
-        pattern: '^\\$\\s+\\$\\s+' + commandName + '(\\s+.*)?$',
+        example: '$ $' + commandName,
+        pattern: '^\\$\\s+\\$' + commandName + '(\\s+.*)?$',
         supportsArguments: true,
         argumentFormat: 'space-separated after command',
       };
     }
 
     if (platform === 'gemini') {
+      const geminiCommand =
+        commandName.startsWith('gofer:') ? commandName : `gofer:${commandName}`;
       return {
         platform: 'gemini',
         prefix: '/gofer:',
-        example: '/gofer:' + commandName,
-        pattern: '^/gofer:' + commandName + '(\\s+.*)?$',
+        example: '/' + geminiCommand,
+        pattern: '^/' + geminiCommand + '(\\s+.*)?$',
         supportsArguments: true,
         argumentFormat: 'space-separated after command',
       };

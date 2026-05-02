@@ -13,7 +13,7 @@ Gofer now supports **4 AI CLIs** with automatic command synchronization:
 | ---------------- | ------------------- | ------------------------ | -------------------- |
 | **Claude Code**  | `.claude/commands/` | `/0_business_scenario`   | ✅ Yes (bundled)     |
 | **Codex**        | `.agents/skills/`   | `$ $0_business_scenario` | ✅ Yes (from Claude) |
-| **Gemini**       | `.agents/skills/`   | Uses same as Codex       | ✅ Yes (from Claude) |
+| **Gemini**       | `.gemini/commands/` | `/gofer:0_business_scenario` | ✅ Yes (from Claude) |
 | **Copilot Chat** | `.github/prompts/`  | `#0_business_scenario`   | ✅ Yes (bundled)     |
 
 ---
@@ -116,16 +116,12 @@ When Gofer initializes or upgrades your workspace:
 
 1. **Claude commands** are copied from bundled resources → `.claude/commands/`
 2. **Codex skills** are generated from Claude commands → `.agents/skills/`
-3. **Codex global symlink** is created → `~/.codex/skills/{workspace-name}`
-   links to `.agents/skills/`
-4. **Gemini skills** use the same `.agents/skills/` directory (Gemini
-   auto-discovers)
-5. **Copilot prompts** are copied from bundled resources → `.github/prompts/`
+3. **Gemini commands** are emitted to `.gemini/commands/gofer/`
+4. **Copilot prompts** are copied from bundled resources → `.github/prompts/`
 
-**Codex Global Access:** The extension automatically creates a symlink in
-`~/.codex/skills/` pointing to your workspace's `.agents/skills/` directory.
-This enables Codex to access Gofer skills from any directory, not just the
-workspace directory.
+**Codex Discovery:** Codex scans `.agents/skills/` from the current working
+directory up to the repository root, so Gofer installs the repo-local surface
+there and does not need a `~/.codex/skills/` symlink.
 
 ### Platform Detection Priority
 
@@ -162,7 +158,7 @@ $ $0_business_scenario "Add user authentication"
 | Feature                         | Claude    | Codex         | Gemini       | Copilot   |
 | ------------------------------- | --------- | ------------- | ------------ | --------- |
 | **Gofer Pipeline**              | ✅ Full   | ✅ Full       | ✅ Full      | ✅ Full   |
-| **Global CLI Access**           | ✅ Native | ✅ Symlinked‡ | ✅ Native    | ✅ Native |
+| **Global CLI Access**           | ✅ Native | Repo-local    | ✅ Native    | ✅ Native |
 | **Task Tool (Parallel Agents)** | ✅ Yes    | ❌ No\*       | ✅ Yes (MCP) | ❌ No\*   |
 | **Auto-Chaining**               | ✅ Yes    | ❌ Manual     | ❌ Manual    | ✅ Yes    |
 | **Memory/Context**              | ✅ Yes    | ✅ Yes        | ✅ Yes       | ✅ Yes    |
@@ -170,9 +166,7 @@ $ $0_business_scenario "Add user authentication"
 | **VSCode Integration**          | ✅ Native | ❌ CLI only   | ❌ CLI only  | ✅ Native |
 
 \*Codex and Copilot commands include notes about manual workflow when Task tool
-is unavailable †Gemini 1.5 Pro supports up to 2M tokens ‡Codex global access
-enabled via automatic symlink (`~/.codex/skills/{workspace-name}` →
-`.agents/skills/`)
+is unavailable †Gemini 1.5 Pro supports up to 2M tokens
 
 ---
 
@@ -216,7 +210,7 @@ codex "Use $ $0 to triage my feature"
 
 ```bash
 cd your-workspace
-gemini "Use $ $0 to triage my feature"
+gemini "/gofer:0_business_scenario Add user authentication"
 ```
 
 **Copilot (in VSCode):**
@@ -265,37 +259,28 @@ cd your-workspace
 codex "List files in .agents/skills/"
 ```
 
-### Codex: Global Access Issues
+### Codex: Skills Only Show Inside One Repo
 
-**Problem:** Codex skills only work from workspace directory
+**Problem:** Codex only shows Gofer skills when launched from the repository
 
 **Solution:**
 
-The extension automatically creates a global symlink at
-`~/.codex/skills/{workspace-name}` during installation. If you encounter issues:
+Gofer intentionally installs Codex skills repo-locally in `.agents/skills/`.
+Launch Codex from the repository root or a subdirectory so Codex can scan up to
+that root:
 
 ```bash
-# Check if symlink exists
-ls -la ~/.codex/skills/
+# Check the repo-local skills
+ls -la .agents/skills/
 
-# Verify symlink points to correct location
-readlink ~/.codex/skills/{workspace-name}
-
-# If symlink is missing or incorrect, trigger upgrade
-# In VSCode: Cmd+Shift+P → "Gofer: Upgrade Templates"
-
-# Or manually create symlink (replace {workspace-name} and {workspace-path})
-mkdir -p ~/.codex/skills
-ln -s "{workspace-path}/.agents/skills" ~/.codex/skills/{workspace-name}
+# Relaunch Codex from the repo root
+cd your-workspace
+codex "What skills do you have?"
 ```
 
-**Windows Users:** Windows requires `junction` points instead of symlinks. The
-extension handles this automatically, but if manual creation is needed:
-
-```cmd
-# Windows Command Prompt (run as Administrator)
-mklink /J "%USERPROFILE%\.codex\skills\{workspace-name}" "{workspace-path}\.agents\skills"
-```
+If you need a user-level shared install across repos, use the official
+`$HOME/.agents/skills/` location or explicit `[[skills.config]]` path overrides,
+not `~/.codex/skills/`.
 
 ### Gemini: Skills Not Discovered
 
@@ -304,12 +289,11 @@ mklink /J "%USERPROFILE%\.codex\skills\{workspace-name}" "{workspace-path}\.agen
 **Solution:**
 
 ```bash
-# Gemini auto-discovers from .agents/skills/ or .gemini/skills/
-# If using .gemini/skills, create symlink:
-ln -s .agents/skills .gemini/skills
+# Check the generated Gemini surface
+ls -la .gemini/commands/gofer/
 
-# Or copy skills
-cp -r .agents/skills ~/.gemini/skills
+# Restart Gemini from the repo after template generation
+gemini "/gofer:0_business_scenario Test discovery"
 ```
 
 ### Copilot: Prompts Not Appearing

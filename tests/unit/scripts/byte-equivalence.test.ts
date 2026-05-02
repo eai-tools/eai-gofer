@@ -15,6 +15,11 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
+import {
+  CONTROL_COMMANDS,
+  PIPELINE_STAGE_COUNT,
+  PIPELINE_STAGE_FILES,
+} from '../../helpers/goferCommandSet';
 
 // ---------------------------------------------------------------------------
 // Module resolution
@@ -100,9 +105,11 @@ beforeAll(async () => {
     ) => Promise<{ frontmatter: Record<string, unknown>; body: string }>;
   };
 
-  // Post-migration control commands have no golden fixtures (their structure
-  // is asserted by numbered-vs-namespaced-parity.test.ts). Skip them here.
-  const CONTROL_COMMAND_FILES = new Set(['gofer_plan.md', 'gofer_side.md', 'gofer_personality.md']);
+  // Control and helper commands do not participate in the legacy golden-fixture
+  // body gate. Their structure and emitted parity are covered elsewhere.
+  const CONTROL_COMMAND_FILES = new Set(
+    CONTROL_COMMANDS.map((command) => `${command.file}.md`)
+  );
 
   const entries = await fs.readdir(SPECIFY_COMMANDS_DIR);
   const mdFiles = entries
@@ -127,8 +134,8 @@ beforeAll(async () => {
 // ---------------------------------------------------------------------------
 
 describe('byte-equivalence gate (T053)', () => {
-  it('loads exactly 16 stage fixtures', () => {
-    expect(fixtures).toHaveLength(16);
+  it(`loads exactly ${PIPELINE_STAGE_COUNT} stage fixtures`, () => {
+    expect(fixtures).toHaveLength(PIPELINE_STAGE_COUNT);
   });
 
   it('each .specify/commands/<stage>.md has a matching golden file', () => {
@@ -141,27 +148,8 @@ describe('byte-equivalence gate (T053)', () => {
   describe('per-stage body === golden content', () => {
     // We generate the assertions after beforeAll by using a deferred describe
     // populated with the fixture data. Since vitest collects tests synchronously
-    // we enumerate the known 16 stage names here and look them up in fixtures.
-    const EXPECTED_STAGES = [
-      '0_business_scenario',
-      '0a_problem_validation',
-      '1_gofer_research',
-      '2_gofer_specify',
-      '3_gofer_plan',
-      '4_gofer_tasks',
-      '5_gofer_implement',
-      '6_gofer_validate',
-      '6a_gofer_engineering_review',
-      '7_gofer_save',
-      '7a_stakeholder_comms',
-      '8_gofer_resume',
-      '9_gofer_tests',
-      '10_gofer_cloud',
-      'gofer_constitution',
-      'gofer_hydrate',
-    ];
-
-    for (const stageName of EXPECTED_STAGES) {
+    // we enumerate the known pipeline/utility stage names here and look them up.
+    for (const stageName of PIPELINE_STAGE_FILES) {
       it(`${stageName}: body matches golden byte-for-byte`, () => {
         const fixture = fixtures.find((f) => f.stageName === stageName);
         expect(fixture, `No fixture loaded for stage '${stageName}'`).toBeDefined();

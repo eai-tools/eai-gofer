@@ -10,6 +10,7 @@
  */
 
 import { describe, it, expect, beforeAll } from 'vitest';
+import { CANONICAL_DESCRIPTION_COUNT } from '../../helpers/goferCommandSet';
 
 const MODULE_URL = new URL(
   '../../../.specify/scripts/node/canonical-descriptions.mjs',
@@ -24,8 +25,8 @@ describe('Codex canonical-set cumulative byte budget (T135 / NFR-004)', () => {
     CANONICAL_DESCRIPTIONS = mod.CANONICAL_DESCRIPTIONS;
   });
 
-  it('canonical set has 16 descriptions', () => {
-    expect(Object.keys(CANONICAL_DESCRIPTIONS)).toHaveLength(16);
+  it(`canonical set has ${CANONICAL_DESCRIPTION_COUNT} descriptions`, () => {
+    expect(Object.keys(CANONICAL_DESCRIPTIONS)).toHaveLength(CANONICAL_DESCRIPTION_COUNT);
   });
 
   it('cumulative UTF-8 byte total (name + description) is ≤ 2048 bytes', () => {

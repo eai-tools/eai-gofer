@@ -11,30 +11,15 @@
  * helper), this test directly validates the budget constraints in isolation.
  */
 import { describe, it, expect, beforeAll } from 'vitest';
+import {
+  CANONICAL_DESCRIPTION_COUNT,
+  CANONICAL_DESCRIPTION_NAMES,
+} from '../../helpers/goferCommandSet';
 
 const canonicalDescriptionsUrl = new URL(
   '../../../.specify/scripts/node/canonical-descriptions.mjs',
   import.meta.url
 );
-
-const EXPECTED_STAGES = [
-  '0_business_scenario',
-  '0a_problem_validation',
-  '1_gofer_research',
-  '2_gofer_specify',
-  '3_gofer_plan',
-  '4_gofer_tasks',
-  '5_gofer_implement',
-  '6_gofer_validate',
-  '6a_gofer_engineering_review',
-  '7_gofer_save',
-  '7a_stakeholder_comms',
-  '8_gofer_resume',
-  '9_gofer_tests',
-  '10_gofer_cloud',
-  'gofer_constitution',
-  'gofer_hydrate',
-] as const;
 
 // The Codex skill-budget hard limits
 const MAX_DESCRIPTION_BYTES = 140;
@@ -52,12 +37,12 @@ describe('description-budget (T055)', () => {
   // Stage completeness
   // -------------------------------------------------------------------------
 
-  it('contains exactly 16 stage descriptions', () => {
-    expect(Object.keys(CANONICAL_DESCRIPTIONS)).toHaveLength(16);
+  it(`contains exactly ${CANONICAL_DESCRIPTION_COUNT} canonical command descriptions`, () => {
+    expect(Object.keys(CANONICAL_DESCRIPTIONS)).toHaveLength(CANONICAL_DESCRIPTION_COUNT);
   });
 
-  it('contains all 16 expected stage names', () => {
-    for (const stage of EXPECTED_STAGES) {
+  it('contains all expected canonical command names', () => {
+    for (const stage of CANONICAL_DESCRIPTION_NAMES) {
       expect(
         CANONICAL_DESCRIPTIONS,
         `CANONICAL_DESCRIPTIONS is missing stage '${stage}'`
@@ -84,7 +69,7 @@ describe('description-budget (T055)', () => {
   // -------------------------------------------------------------------------
 
   describe('per-description byte budget (≤ 140 bytes UTF-8)', () => {
-    for (const stageName of EXPECTED_STAGES) {
+    for (const stageName of CANONICAL_DESCRIPTION_NAMES) {
       it(`${stageName}: description ≤ ${MAX_DESCRIPTION_BYTES} bytes`, () => {
         const description = CANONICAL_DESCRIPTIONS[stageName];
         expect(description, `No description for stage '${stageName}'`).toBeDefined();

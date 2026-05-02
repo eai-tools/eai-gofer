@@ -1,4 +1,8 @@
 import { describe, it, expect } from 'vitest';
+import {
+  CANONICAL_DESCRIPTION_COUNT,
+  CANONICAL_DESCRIPTION_NAMES,
+} from '../../helpers/goferCommandSet';
 
 // ESM interop: use dynamic import in async context
 const moduleUrl = new URL(
@@ -17,31 +21,13 @@ describe('canonical-descriptions', () => {
     validateDescriptions = mod.validateDescriptions;
   });
 
-  it('has exactly 16 stage descriptions', () => {
+  it(`has exactly ${CANONICAL_DESCRIPTION_COUNT} canonical command descriptions`, () => {
     const keys = Object.keys(CANONICAL_DESCRIPTIONS);
-    expect(keys).toHaveLength(16);
+    expect(keys).toHaveLength(CANONICAL_DESCRIPTION_COUNT);
   });
 
   it('contains all expected stage names', () => {
-    const expectedStages = [
-      '0_business_scenario',
-      '0a_problem_validation',
-      '1_gofer_research',
-      '2_gofer_specify',
-      '3_gofer_plan',
-      '4_gofer_tasks',
-      '5_gofer_implement',
-      '6_gofer_validate',
-      '6a_gofer_engineering_review',
-      '7_gofer_save',
-      '7a_stakeholder_comms',
-      '8_gofer_resume',
-      '9_gofer_tests',
-      '10_gofer_cloud',
-      'gofer_constitution',
-      'gofer_hydrate',
-    ];
-    for (const stage of expectedStages) {
+    for (const stage of CANONICAL_DESCRIPTION_NAMES) {
       expect(CANONICAL_DESCRIPTIONS).toHaveProperty(stage);
     }
   });
@@ -76,7 +62,7 @@ describe('canonical-descriptions', () => {
 
   it('validateDescriptions() returns correct count and byte total', () => {
     const result = validateDescriptions();
-    expect(result.count).toBe(16);
+    expect(result.count).toBe(CANONICAL_DESCRIPTION_COUNT);
     expect(result.totalBytes).toBeGreaterThan(0);
     expect(result.totalBytes).toBeLessThanOrEqual(2048);
   });

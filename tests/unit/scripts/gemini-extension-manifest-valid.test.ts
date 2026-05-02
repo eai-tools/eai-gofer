@@ -4,13 +4,17 @@
  *   1. Is valid JSON
  *   2. Has name, version, commands path
  *   3. The commands path resolves to .gemini/commands/gofer/
- *   4. That directory has 19 .toml files (full Gofer command set)
+ *   4. That directory has the full Gofer command set as .toml files
  *   5. Formerly Claude-only stages are present
  */
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  FORMERLY_CLAUDE_ONLY_STAGES,
+  FULL_COMMAND_COUNT,
+} from '../../helpers/goferCommandSet';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -18,14 +22,6 @@ const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
 
 const MANIFEST_PATH = path.join(REPO_ROOT, '.gemini', 'extension.json');
 const COMMANDS_DIR = path.join(REPO_ROOT, '.gemini', 'commands', 'gofer');
-
-const FORMERLY_CLAUDE_ONLY_STAGES = [
-  '0_business_scenario',
-  'gofer_constitution',
-  'gofer_hydrate',
-  '7_gofer_save',
-  '8_gofer_resume',
-];
 
 interface Manifest {
   name: string;
@@ -57,10 +53,10 @@ describe('gemini extension manifest (T167)', () => {
     expect(resolved.replace(/\/$/, '')).toBe(COMMANDS_DIR);
   });
 
-  it('.gemini/commands/gofer/ has exactly 19 TOML files', (): void => {
+  it(`.gemini/commands/gofer/ has exactly ${FULL_COMMAND_COUNT} TOML files`, (): void => {
     expect(fs.existsSync(COMMANDS_DIR)).toBe(true);
     const tomlFiles = fs.readdirSync(COMMANDS_DIR).filter((f) => f.endsWith('.toml'));
-    expect(tomlFiles.length).toBe(19);
+    expect(tomlFiles.length).toBe(FULL_COMMAND_COUNT);
   });
 
   it('formerly Claude-only stages are present as TOML files', (): void => {

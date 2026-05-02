@@ -43,6 +43,11 @@ const newRelease = {
   size_mb: parseFloat(fileSize)
 };
 
+// Replace any existing entry for the same version before prepending the latest.
+releases.releases = releases.releases.filter((release) => {
+  return release.version !== version && release.tag_name !== `v${version}`;
+});
+
 // Add to beginning of releases array
 releases.releases.unshift(newRelease);
 

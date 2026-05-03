@@ -1,8 +1,17 @@
 {
-  "latest_version": "3.2.1",
+  "latest_version": "3.2.2",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-05-02T21:41:26.788Z",
+  "last_updated": "2026-05-03T09:20:16.201Z",
   "releases": [
+    {
+      "version": "3.2.2",
+      "tag_name": "v3.2.2",
+      "published_at": "2026-05-03T09:20:16.201Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-3.2.2.vsix",
+      "notes": "Refine the Rules and Memory panel, restore editable markdown flows, and tighten memory curation behavior",
+      "prerelease": false,
+      "size_mb": 12
+    },
     {
       "version": "3.2.1",
       "tag_name": "v3.2.1",

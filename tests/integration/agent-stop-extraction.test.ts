@@ -148,10 +148,7 @@ describe('Agent-Stop Memory Extraction Pipeline', () => {
       usedCount: 2,
       scope: 'local',
     };
-    fs.writeFileSync(
-      localJsonPath,
-      JSON.stringify({ version: 1, memories: [existingMemory] })
-    );
+    fs.writeFileSync(localJsonPath, JSON.stringify({ version: 1, memories: [existingMemory] }));
 
     // Transcript with similar content
     writeTranscript([
@@ -169,9 +166,7 @@ describe('Agent-Stop Memory Extraction Pipeline', () => {
     expect(localData.memories.length).toBeGreaterThanOrEqual(1);
 
     // The existing memory's usedCount should have been bumped
-    const existing = localData.memories.find(
-      (m: Record<string, unknown>) => m.id === 'existing-1'
-    );
+    const existing = localData.memories.find((m: Record<string, unknown>) => m.id === 'existing-1');
     if (existing) {
       expect(existing.usedCount).toBeGreaterThan(2);
     }
@@ -222,5 +217,20 @@ describe('Agent-Stop Memory Extraction Pipeline', () => {
         mem.category
       );
     }
+  });
+
+  it('should ignore low-signal completion chatter', () => {
+    writeTranscript([
+      { type: 'human', content: 'How did it go?' },
+      {
+        type: 'assistant',
+        content: '100/100 PASS. Feature complete. All tests passed and everything is done.',
+      },
+    ]);
+
+    runHook();
+
+    const memories = readMemories();
+    expect(memories).toHaveLength(0);
   });
 });

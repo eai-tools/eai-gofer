@@ -1,13 +1,14 @@
 /**
  * Memory and Learning System - Memory Panel Webview
  *
- * Provides a searchable UI for viewing, filtering, and managing memories.
+ * Provides a searchable UI for viewing and filtering memories.
  * Displays memories with categories, tags, and usage statistics.
  */
 
 import * as vscode from 'vscode';
 import { type MemoryManager } from '../autonomous/MemoryManager';
 import { type Memory, type MemoryQuery } from '../autonomous/memory';
+import { isGeneratedMemory } from '../autonomous/memoryFilters';
 
 interface MemoryPanelMessage {
   command: string;
@@ -19,6 +20,10 @@ interface MemoryPanelMessage {
   showSystemMemories?: boolean;
 }
 
+type MemoryScopeFilter = 'all' | 'local' | 'global';
+
+const DEFAULT_SCOPE_FILTER: MemoryScopeFilter = 'local';
+
 /**
  * MemoryPanel manages the webview for displaying and searching memories.
  */
@@ -29,6 +34,8 @@ export class MemoryPanel {
   private disposables: vscode.Disposable[] = [];
   private showSystemMemories: boolean = false;
   private updateDebounceTimer: NodeJS.Timeout | undefined;
+  private static readonly READ_ONLY_MESSAGE =
+    'Gofer Memories is read-only. Use dedicated memory commands to add, forget, or clear memories.';
 
   /**
    * Creates or shows the MemoryPanel.
@@ -121,18 +128,23 @@ export class MemoryPanel {
   private async handleMessage(message: MemoryPanelMessage): Promise<void> {
     switch (message.command) {
       case 'search': {
+        const scopeFilter = (message.scope ?? DEFAULT_SCOPE_FILTER) as MemoryScopeFilter;
         const query: MemoryQuery = {
           keywords: message.keywords || undefined,
           category: message.category || undefined,
           tags: message.tags || undefined,
-          scope: message.scope === 'all' ? 'both' : (message.scope as 'local' | 'global'),
+          scope: scopeFilter === 'all' ? 'both' : scopeFilter,
           excludeSystemMemories: !this.showSystemMemories,
         };
         const result = await this.memoryManager.search(query);
+        const filteredMemories = this.filterMemoriesForView(result.memories, {
+          includeGenerated: this.showSystemMemories,
+          scope: scopeFilter,
+        });
         this.panel.webview.postMessage({
           command: 'searchResults',
-          memories: result.memories,
-          count: result.count,
+          memories: filteredMemories,
+          count: filteredMemories.length,
           searchTime: result.searchTime,
         });
         break;
@@ -155,54 +167,10 @@ export class MemoryPanel {
         break;
       }
 
-      case 'delete': {
-        if (!message.id) {
-          vscode.window.showErrorMessage('No memory ID provided');
-          break;
-        }
-
-        try {
-          await this.memoryManager.forget(message.id);
-          vscode.window.showInformationMessage('Memory deleted');
-          // Refresh the list
-          this.panel.webview.postMessage({ command: 'refresh' });
-        } catch (error) {
-          vscode.window.showErrorMessage(`Failed to delete memory: ${(error as Error).message}`);
-        }
-        break;
-      }
-
-      case 'recordUsage': {
-        if (!message.id) {
-          break;
-        }
-
-        try {
-          await this.memoryManager.recordUsage(message.id);
-        } catch (error) {
-          console.error('Failed to record usage:', error);
-        }
-        break;
-      }
-
+      case 'delete':
+      case 'recordUsage':
       case 'clearScope': {
-        const scope = message.scope ?? 'all';
-        const scopeLabel = scope === 'all' ? 'all memories' : `${scope} memories`;
-        const confirmed = await vscode.window.showWarningMessage(
-          `Are you sure you want to clear ${scopeLabel}? This cannot be undone.`,
-          { modal: true },
-          'Clear'
-        );
-
-        if (confirmed === 'Clear') {
-          try {
-            const count = await this.memoryManager.clear(scope);
-            vscode.window.showInformationMessage(`Cleared ${count} ${scopeLabel}`);
-            this.panel.webview.postMessage({ command: 'refresh' });
-          } catch (error) {
-            vscode.window.showErrorMessage(`Failed to clear memories: ${(error as Error).message}`);
-          }
-        }
+        vscode.window.showWarningMessage(MemoryPanel.READ_ONLY_MESSAGE);
         break;
       }
 
@@ -222,10 +190,11 @@ export class MemoryPanel {
     // Load all memories initially
     const allMemories = await this.memoryManager.load('both');
 
-    // Filter memories based on toggle state
-    const visibleMemories = this.showSystemMemories
-      ? allMemories
-      : allMemories.filter((m) => !m.tags.includes('#auto'));
+    // Default the panel to repo-local, human-relevant memories.
+    const visibleMemories = this.filterMemoriesForView(allMemories, {
+      includeGenerated: this.showSystemMemories,
+      scope: DEFAULT_SCOPE_FILTER,
+    });
 
     // Get unique categories for filter dropdown
     const categories = Array.from(new Set(visibleMemories.map((m) => m.category))).sort();
@@ -348,6 +317,17 @@ export class MemoryPanel {
             color: var(--vscode-foreground);
         }
 
+        .toolbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .read-only-note {
+            color: var(--vscode-descriptionForeground);
+            font-size: 12px;
+        }
+
         .memory-list {
             display: flex;
             flex-direction: column;
@@ -440,16 +420,6 @@ export class MemoryPanel {
             gap: 15px;
         }
 
-        .memory-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .memory-actions button {
-            padding: 4px 10px;
-            font-size: 12px;
-        }
-
         .empty-state {
             text-align: center;
             padding: 40px;
@@ -485,8 +455,8 @@ export class MemoryPanel {
         </div>
         <div class="search-row">
             <select id="scopeFilter">
+                <option value="local" selected>Local Only</option>
                 <option value="all">All Scopes</option>
-                <option value="local">Local Only</option>
                 <option value="global">Global Only</option>
             </select>
             <select id="categoryFilter">
@@ -511,11 +481,11 @@ export class MemoryPanel {
                 ${this.showSystemMemories ? 'checked' : ''}
                 onchange="toggleSystemMemories()"
             />
-            <label for="showSystemMemoriesToggle">Show system memories</label>
+            <label for="showSystemMemoriesToggle">Show agent-generated memories</label>
         </div>
-        <div>
+        <div class="toolbar-actions">
+            <span class="read-only-note">Read-only view</span>
             <button class="secondary" onclick="refresh()">Refresh</button>
-            <button class="danger" onclick="clearScope()">Clear All...</button>
         </div>
     </div>
 
@@ -556,34 +526,10 @@ export class MemoryPanel {
 
         function clearFilters() {
             document.getElementById('searchInput').value = '';
-            document.getElementById('scopeFilter').value = 'all';
+            document.getElementById('scopeFilter').value = 'local';
             document.getElementById('categoryFilter').value = '';
             document.getElementById('tagFilter').value = '';
             search();
-        }
-
-        function deleteMemory(id) {
-            if (confirm('Are you sure you want to delete this memory?')) {
-                vscode.postMessage({
-                    command: 'delete',
-                    id: id
-                });
-            }
-        }
-
-        function recordUsage(id) {
-            vscode.postMessage({
-                command: 'recordUsage',
-                id: id
-            });
-        }
-
-        function clearScope() {
-            const scope = document.getElementById('scopeFilter').value;
-            vscode.postMessage({
-                command: 'clearScope',
-                scope: scope === 'all' ? 'all' : scope
-            });
         }
 
         function refresh() {
@@ -670,10 +616,7 @@ export class MemoryPanel {
                                         <span>Used: \${memory.usedCount} times</span>
                                         <span>From: \${escapeHtml(memory.learnedFrom)}</span>
                                     </div>
-                                    <div class="memory-actions">
-                                        <button class="secondary" onclick="recordUsage('\${memory.id}')">Use</button>
-                                        <button class="danger" onclick="deleteMemory('\${memory.id}')">Delete</button>
-                                    </div>
+                                    <div class="read-only-note">Read-only view</div>
                                 </div>
                             </div>
                         \`).join('');
@@ -703,7 +646,7 @@ export class MemoryPanel {
       const emptyMessage = this.showSystemMemories ? 'No memories yet' : 'No user memories yet';
       const helpText = this.showSystemMemories
         ? 'Use the "Gofer: Remember" command to create your first memory'
-        : 'Create your first memory with "Gofer: Remember" command. System memories are hidden. Toggle "Show system memories" to see telemetry.';
+        : 'Create your first repo memory with "Gofer: Remember". Agent-generated and cross-repo memories are hidden by default.';
 
       return `
                 <div class="empty-state">
@@ -738,10 +681,7 @@ export class MemoryPanel {
                         <span>Used: ${memory.usedCount} times</span>
                         <span>From: ${memory.learnedFrom}</span>
                     </div>
-                    <div class="memory-actions">
-                        <button class="secondary" onclick="recordUsage('${memory.id}')">Use</button>
-                        <button class="danger" onclick="deleteMemory('${memory.id}')">Delete</button>
-                    </div>
+                    <div class="read-only-note">Read-only view</div>
                 </div>
             </div>
         `
@@ -764,5 +704,22 @@ export class MemoryPanel {
       "'": '&#039;',
     };
     return text.replace(/[&<>"']/g, (m) => map[m]);
+  }
+
+  private filterMemoriesForView(
+    memories: Memory[],
+    options: { includeGenerated: boolean; scope: MemoryScopeFilter }
+  ): Memory[] {
+    return memories.filter((memory) => {
+      if (options.scope !== 'all' && memory.scope !== options.scope) {
+        return false;
+      }
+
+      if (!options.includeGenerated && isGeneratedMemory(memory)) {
+        return false;
+      }
+
+      return true;
+    });
   }
 }

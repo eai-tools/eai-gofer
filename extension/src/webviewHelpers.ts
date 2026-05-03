@@ -47,10 +47,11 @@ interface MemoryPathDocument {
 }
 
 interface MemoryContentDocument {
+  id?: string;
   content: string;
   notePath?: string;
   category?: string;
-  created?: string;
+  created?: string | number;
   tags?: string[];
   usedCount?: number;
   learnedFrom?: string;
@@ -81,6 +82,23 @@ function hasPathDocument(document: unknown): document is MemoryPathDocument {
 async function openMarkdownFile(uri: vscode.Uri): Promise<void> {
   const config = vscode.workspace.getConfiguration('gofer');
   const viewer = config.get<string>('markdownViewer', 'preview');
+
+  await openMarkdownFileWith(uri, viewer);
+}
+
+async function openEditableMarkdownDocument(uri: vscode.Uri): Promise<void> {
+  const document = await vscode.workspace.openTextDocument(uri);
+  await vscode.window.showTextDocument(document, { preview: false });
+}
+
+async function openPreferredMarkdownEditorOrDocument(uri: vscode.Uri): Promise<void> {
+  const config = vscode.workspace.getConfiguration('gofer');
+  const viewer = config.get<string>('markdownViewer', 'preview');
+
+  if (viewer === 'preview') {
+    await openEditableMarkdownDocument(uri);
+    return;
+  }
 
   await openMarkdownFileWith(uri, viewer);
 }
@@ -132,6 +150,15 @@ async function openMarkdownFileWith(uri: vscode.Uri, viewer: string): Promise<vo
       await vscode.commands.executeCommand('markdown.showPreview', uri);
       break;
   }
+}
+
+function escapeHtml(text: string): string {
+  return text
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
 }
 
 /**
@@ -249,30 +276,30 @@ export function showTaskDetailsWebview(
 }
 
 /**
- * Show article details using VSCode's native markdown preview
+ * Show article details in editable markdown
  */
 export async function showArticleDetailsWebview(
   _context: vscode.ExtensionContext,
   _article: ArticleLike
 ): Promise<void> {
-  await openConstitutionPreview();
+  await openConstitutionEditor();
 }
 
 /**
- * Show section details using VSCode's native markdown preview
+ * Show section details in editable markdown
  */
 export async function showSectionDetailsWebview(
   _context: vscode.ExtensionContext,
   _section: SectionLike,
   _article: ArticleLike
 ): Promise<void> {
-  await openConstitutionPreview();
+  await openConstitutionEditor();
 }
 
 /**
- * Helper to open constitution.md in markdown preview
+ * Helper to open constitution.md in editable markdown
  */
-async function openConstitutionPreview(): Promise<void> {
+async function openConstitutionEditor(): Promise<void> {
   const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
   if (!workspaceFolder) {
     vscode.window.showErrorMessage('No workspace folder open');
@@ -287,87 +314,75 @@ async function openConstitutionPreview(): Promise<void> {
   );
   try {
     const uri = vscode.Uri.file(constitutionFile);
-    await vscode.workspace.openTextDocument(uri);
-
-    // Open with user's preferred viewer
-    await openMarkdownFile(uri);
+    await openPreferredMarkdownEditorOrDocument(uri);
   } catch (error) {
     vscode.window.showErrorMessage(`Failed to open constitution: ${error}`);
   }
 }
 
+async function resolveEditableMemoryUri(
+  document: MemoryContentDocument | MemoryPathDocument
+): Promise<vscode.Uri | null> {
+  if (hasPathDocument(document)) {
+    return vscode.Uri.file(document.path);
+  }
+
+  const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+  if (!workspaceFolder) {
+    return null;
+  }
+
+  if (document.notePath) {
+    const noteUri = vscode.Uri.file(
+      path.join(workspaceFolder.uri.fsPath, '.specify', 'memory', document.notePath)
+    );
+    try {
+      await vscode.workspace.fs.stat(noteUri);
+      return noteUri;
+    } catch {
+      // Fall through to lazy note creation below.
+    }
+  }
+
+  if (document.id) {
+    const { getSharedMemoryManager } = await import('./autonomousCommands');
+    const memoryManager = getSharedMemoryManager();
+    if (memoryManager) {
+      const notePath = await memoryManager.ensureMarkdownNote(document.id);
+      if (notePath) {
+        return vscode.Uri.file(notePath);
+      }
+    }
+  }
+
+  return null;
+}
+
 /**
- * Show memory document using VSCode's native markdown preview.
- * Accepts either a Memory object (from tree view click) or a document with a path property.
+ * Show memory document in editable markdown.
  */
 export async function showMemoryDocumentWebview(
   _context: vscode.ExtensionContext,
   document: MemoryContentDocument | MemoryPathDocument
 ): Promise<void> {
   try {
-    // If this is a Memory object (from memoryProvider tree view click),
-    // it has 'content' and optionally 'notePath', but no 'path' property.
-    if (isMemoryContentDocument(document) && !document.path) {
-      // If a companion markdown file exists, open it directly
-      if (document.notePath) {
-        const workspaceFolders = vscode.workspace.workspaceFolders;
-        if (workspaceFolders) {
-          const notePath = path.join(workspaceFolders[0].uri.fsPath, document.notePath);
-          const uri = vscode.Uri.file(notePath);
-          try {
-            await vscode.workspace.fs.stat(uri);
-            await openMarkdownFile(uri);
-            return;
-          } catch {
-            // Note file doesn't exist, fall through to content display
-          }
-        }
-      }
-
-      // Render the memory content in a virtual document
-      const category = document.category || 'memory';
-      const created = document.created ? new Date(document.created).toLocaleString() : 'Unknown';
-      const tags = (document.tags || []).join(', ');
-      const markdownContent = [
-        `# Memory: ${category}`,
-        '',
-        `**Category:** ${category}`,
-        tags ? `**Tags:** ${tags}` : '',
-        `**Created:** ${created}`,
-        `**Used:** ${document.usedCount || 0} times`,
-        document.learnedFrom ? `**Source:** ${document.learnedFrom}` : '',
-        '',
-        '---',
-        '',
-        document.content,
-      ]
-        .filter(Boolean)
-        .join('\n');
-
-      const doc = await vscode.workspace.openTextDocument({
-        content: markdownContent,
-        language: 'markdown',
-      });
-      await vscode.window.showTextDocument(doc, { preview: true });
-      return;
+    if (!hasPathDocument(document) && !isMemoryContentDocument(document)) {
+      throw new Error('Document metadata is missing');
     }
 
-    // Original behavior: document has a 'path' property (e.g., constitution sections)
-    if (!hasPathDocument(document)) {
-      throw new Error('Document path is missing');
+    const uri = await resolveEditableMemoryUri(document);
+    if (!uri) {
+      throw new Error('Markdown file is missing');
     }
 
-    const uri = vscode.Uri.file(document.path);
-    await vscode.workspace.openTextDocument(uri);
-    await openMarkdownFile(uri);
+    await openPreferredMarkdownEditorOrDocument(uri);
   } catch (error) {
     vscode.window.showErrorMessage(`Failed to open memory document: ${error}`);
   }
 }
 
 /**
- * Show memory section using VSCode's native markdown preview
- * Opens the document and scrolls to the section
+ * Show memory section in editable markdown.
  */
 export async function showMemorySectionWebview(
   _context: vscode.ExtensionContext,
@@ -375,24 +390,11 @@ export async function showMemorySectionWebview(
   document: MemoryPathDocument
 ): Promise<void> {
   try {
-    const uri = vscode.Uri.file(document.path);
-    const doc = await vscode.workspace.openTextDocument(uri);
-
-    // Open in editor first (to allow scrolling to line)
-    const editor = await vscode.window.showTextDocument(doc, {
-      preview: true,
-      viewColumn: vscode.ViewColumn.One,
-    });
-
-    // Scroll to the section line
-    const position = new vscode.Position(section.line - 1, 0);
-    editor.selection = new vscode.Selection(position, position);
-    editor.revealRange(new vscode.Range(position, position), vscode.TextEditorRevealType.InCenter);
-
-    // Then show with user's preferred viewer
-    await openMarkdownFile(uri);
+    await openPreferredMarkdownEditorOrDocument(vscode.Uri.file(document.path));
   } catch (error) {
-    vscode.window.showErrorMessage(`Failed to open memory section: ${error}`);
+    vscode.window.showErrorMessage(
+      `Failed to open memory section "${escapeHtml(section.title)}": ${error}`
+    );
   }
 }
 

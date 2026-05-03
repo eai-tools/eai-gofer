@@ -37,6 +37,7 @@ import { telemetry } from './telemetryIntegration';
 import type { ContextUsageLogger } from './ContextUsageLogger';
 import { MemoryStorage } from './MemoryStorage';
 import { MemoryConsolidator, type ConsolidationResult } from './MemoryConsolidator';
+import { isGeneratedMemory } from './memoryFilters';
 import { parseGoferURI } from './memory/GoferURI';
 
 /**
@@ -143,12 +144,18 @@ export class MemoryManager implements IMemoryManager {
 
     while (queue.length > 0) {
       const { id, depth } = queue.shift()!;
-      if (visited.has(id) || depth > maxDepth) {continue;}
+      if (visited.has(id) || depth > maxDepth) {
+        continue;
+      }
       visited.add(id);
 
       const memory = this.storage.get(id);
-      if (!memory) {continue;}
-      if (id !== startId) {result.push(memory);}
+      if (!memory) {
+        continue;
+      }
+      if (id !== startId) {
+        result.push(memory);
+      }
 
       // Follow forward links (relatedMemories)
       for (const link of memory.relatedMemories || []) {
@@ -456,6 +463,98 @@ export class MemoryManager implements IMemoryManager {
   }
 
   /**
+   * Ensure a local memory has a markdown note on disk and return its absolute path.
+   *
+   * Used by the sidebar so memories open like normal editable markdown files
+   * instead of transient read-only views.
+   */
+  async ensureMarkdownNote(id: string): Promise<string | null> {
+    await this.ensureStorageReady();
+
+    const memory = await this.storage.getWithFullContent(id);
+    if (!memory || memory.scope !== 'local') {
+      return null;
+    }
+
+    const relativeNotePath = memory.notePath || `memory-notes/${memory.id}.md`;
+    const absoluteNotePath = path.join(this.workspaceRoot, '.specify', 'memory', relativeNotePath);
+
+    try {
+      await fsPromises.access(absoluteNotePath);
+    } catch {
+      await fsPromises.mkdir(path.dirname(absoluteNotePath), { recursive: true });
+      await fsPromises.writeFile(absoluteNotePath, this.formatMemoryMarkdown(memory), 'utf-8');
+    }
+
+    if (memory.notePath !== relativeNotePath) {
+      await this.storage.update(memory.id, { notePath: relativeNotePath });
+    }
+
+    return absoluteNotePath;
+  }
+
+  /**
+   * Sync an edited markdown note back into local memory storage.
+   *
+   * Returns the updated memory when the saved document is a managed memory note.
+   */
+  async syncMarkdownNoteDocument(filePath: string): Promise<Memory | null> {
+    if (!this.isManagedMemoryNotePath(filePath)) {
+      return null;
+    }
+
+    await this.ensureStorageReady();
+
+    const markdown = await fsPromises.readFile(filePath, 'utf-8');
+    const parsed = this.parseMemoryMarkdown(markdown);
+    const fallbackId = path.basename(filePath, '.md');
+    const memoryId = parsed.id || fallbackId;
+    const existing = this.storage.get(memoryId);
+
+    if (!existing || existing.scope !== 'local') {
+      return null;
+    }
+
+    const relativeNotePath = path
+      .relative(path.join(this.workspaceRoot, '.specify', 'memory'), filePath)
+      .split(path.sep)
+      .join('/');
+
+    const updatedMemory: Memory = {
+      ...existing,
+      category: parsed.category || existing.category,
+      tags: parsed.tags || existing.tags,
+      content: parsed.content,
+      learnedFrom: parsed.learnedFrom || existing.learnedFrom,
+      created: parsed.created ?? existing.created,
+      lastUsed: parsed.lastUsed ?? existing.lastUsed,
+      usedCount: parsed.usedCount ?? existing.usedCount,
+      notePath: relativeNotePath,
+    };
+
+    const validation = this.validateContent(updatedMemory);
+    if (!validation.valid) {
+      throw new Error(`Memory note validation failed: ${validation.errors.join(', ')}`);
+    }
+
+    return this.storage.update(memoryId, {
+      category: updatedMemory.category,
+      tags: updatedMemory.tags,
+      content: updatedMemory.content,
+      learnedFrom: updatedMemory.learnedFrom,
+      created: updatedMemory.created,
+      lastUsed: updatedMemory.lastUsed,
+      usedCount: updatedMemory.usedCount,
+      notePath: updatedMemory.notePath,
+    });
+  }
+
+  isManagedMemoryNotePath(filePath: string): boolean {
+    const notesRoot = path.join(this.workspaceRoot, '.specify', 'memory', 'memory-notes') + path.sep;
+    return filePath.startsWith(notesRoot) && filePath.endsWith('.md');
+  }
+
+  /**
    * Search for memories matching query criteria.
    *
    * @param query - Search parameters (all optional)
@@ -477,9 +576,7 @@ export class MemoryManager implements IMemoryManager {
       // Global memories: load and filter in-memory (legacy path)
       let globalMemories = await this.loadGlobal();
       if (query.excludeSystemMemories) {
-        globalMemories = globalMemories.filter(
-          (m) => Array.isArray(m.tags) && !m.tags.includes('#auto')
-        );
+        globalMemories = globalMemories.filter((m) => !isGeneratedMemory(m));
       }
       if (query.keywords) {
         const keywords = query.keywords.toLowerCase();
@@ -868,6 +965,94 @@ export class MemoryManager implements IMemoryManager {
     return { valid: errors.length === 0, errors };
   }
 
+  private formatMemoryMarkdown(memory: Memory): string {
+    return [
+      '---',
+      `id: ${memory.id}`,
+      `category: ${memory.category}`,
+      `scope: ${memory.scope}`,
+      `created: ${new Date(memory.created).toISOString()}`,
+      `lastUsed: ${new Date(memory.lastUsed).toISOString()}`,
+      `usedCount: ${memory.usedCount}`,
+      `learnedFrom: ${memory.learnedFrom}`,
+      `tags: ${JSON.stringify(memory.tags || [])}`,
+      '---',
+      '',
+      memory.content,
+      '',
+    ].join('\n');
+  }
+
+  private parseMemoryMarkdown(markdown: string): {
+    id?: string;
+    category?: string;
+    tags?: string[];
+    created?: number;
+    lastUsed?: number;
+    usedCount?: number;
+    learnedFrom?: string;
+    content: string;
+  } {
+    const match = markdown.match(/^---\n([\s\S]*?)\n---\n?/);
+    if (!match) {
+      return { content: markdown.trim() };
+    }
+
+    const metadata = new Map<string, string>();
+    for (const line of match[1].split('\n')) {
+      const separatorIndex = line.indexOf(':');
+      if (separatorIndex <= 0) {
+        continue;
+      }
+
+      const key = line.slice(0, separatorIndex).trim();
+      const value = line.slice(separatorIndex + 1).trim();
+      metadata.set(key, value);
+    }
+
+    const parseTimestamp = (value: string | undefined): number | undefined => {
+      if (!value) {
+        return undefined;
+      }
+
+      const parsed = Date.parse(value);
+      return Number.isNaN(parsed) ? undefined : parsed;
+    };
+
+    const parseInteger = (value: string | undefined): number | undefined => {
+      if (!value) {
+        return undefined;
+      }
+
+      const parsed = Number.parseInt(value, 10);
+      return Number.isNaN(parsed) ? undefined : parsed;
+    };
+
+    let tags: string[] | undefined;
+    const tagsValue = metadata.get('tags');
+    if (tagsValue) {
+      try {
+        const parsed = JSON.parse(tagsValue) as unknown;
+        if (Array.isArray(parsed) && parsed.every((tag) => typeof tag === 'string')) {
+          tags = parsed;
+        }
+      } catch {
+        tags = undefined;
+      }
+    }
+
+    return {
+      id: metadata.get('id'),
+      category: metadata.get('category'),
+      tags,
+      created: parseTimestamp(metadata.get('created')),
+      lastUsed: parseTimestamp(metadata.get('lastUsed')),
+      usedCount: parseInteger(metadata.get('usedCount')),
+      learnedFrom: metadata.get('learnedFrom'),
+      content: markdown.slice(match[0].length).trim(),
+    };
+  }
+
   /**
    * Suggest saving a memory based on pattern detection.
    * Called when user explains the same concept multiple times.
@@ -915,12 +1100,16 @@ export class MemoryManager implements IMemoryManager {
       relevanceWeight = 0.6,
       minScore = 0,
       scope = 'both',
+      excludeSystemMemories = false,
     } = options;
 
     this.logger.debug('Loading memories by priority', { limit, hasTaskContext: !!taskContext });
 
     // Load all memories from requested scope
-    const memories = await this.load(scope);
+    const loadedMemories = await this.load(scope);
+    const memories = excludeSystemMemories
+      ? loadedMemories.filter((memory) => !isGeneratedMemory(memory))
+      : loadedMemories;
     const totalConsidered = memories.length;
 
     // Calculate scores for each memory

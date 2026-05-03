@@ -72,12 +72,10 @@ describe('ContextBuilder', () => {
     await fs.promises.mkdir(path.join(tempDir, '.specify', 'memory'), { recursive: true });
 
     // Create mocked instances
-    const { MemoryManager: MockedMemoryManager } = await import(
-      '../../../extension/src/autonomous/MemoryManager'
-    );
-    const { HintLoader: MockedHintLoader } = await import(
-      '../../../extension/src/autonomous/HintLoader'
-    );
+    const { MemoryManager: MockedMemoryManager } =
+      await import('../../../extension/src/autonomous/MemoryManager');
+    const { HintLoader: MockedHintLoader } =
+      await import('../../../extension/src/autonomous/HintLoader');
     memoryManager = new MockedMemoryManager() as unknown as MemoryManager;
     hintLoader = new MockedHintLoader() as unknown as HintLoader;
   });
@@ -656,6 +654,7 @@ describe('ContextBuilder', () => {
         limit: 10,
         taskContext: 'Implement authentication feature',
         scope: 'both',
+        excludeSystemMemories: true,
       });
     });
 
@@ -776,9 +775,8 @@ describe('ContextBuilder', () => {
       });
 
       // Mock HintLoader to return content
-      const { HintLoader: MockedHintLoader } = await import(
-        '../../../extension/src/autonomous/HintLoader'
-      );
+      const { HintLoader: MockedHintLoader } =
+        await import('../../../extension/src/autonomous/HintLoader');
       const mockHintLoader = new MockedHintLoader() as unknown as HintLoader;
       (mockHintLoader.loadForTask as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         mergedContent: 'Research content for gaps',
@@ -908,9 +906,8 @@ describe('ContextBuilder', () => {
         filtered: false,
       });
 
-      const { HintLoader: MockedHintLoader } = await import(
-        '../../../extension/src/autonomous/HintLoader'
-      );
+      const { HintLoader: MockedHintLoader } =
+        await import('../../../extension/src/autonomous/HintLoader');
       const mockHintLoader = new MockedHintLoader() as unknown as HintLoader;
       (mockHintLoader.loadForTask as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         mergedContent: 'Research content',
@@ -1315,11 +1312,7 @@ describe('ContextBuilder', () => {
         filtered: false,
       });
 
-      const detailResult = await builder.buildTieredMemoryContext(
-        'Task description',
-        'detail',
-        30
-      );
+      const detailResult = await builder.buildTieredMemoryContext('Task description', 'detail', 30);
       expect(detailResult.selectedLayer).toBe('detail');
 
       const abstractResult = await builder.buildTieredMemoryContext(

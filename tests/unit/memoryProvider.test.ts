@@ -6,6 +6,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import * as fs from 'fs';
 import type { Memory } from '../../extension/src/autonomous/memory';
 
 // Mock vscode module
@@ -64,7 +65,7 @@ function makeMemory(overrides: Partial<Memory> = {}): Memory {
     created: Date.now() - 3600000, // 1 hour ago
     lastUsed: Date.now(),
     usedCount: 2,
-    source: 'user_interaction',
+    learnedFrom: 'user_interaction',
     ...overrides,
   };
 }
@@ -83,16 +84,30 @@ describe('MemoryProvider', () => {
   });
 
   describe('root sections', () => {
-    it('shows 2 top-level sections: Memories and Decisions', async () => {
+    it('shows 3 top-level items: Constitution, Decisions, and Memories', async () => {
       const children = await provider.getChildren();
-      expect(children).toHaveLength(2);
-      expect(children[0].label).toBe('Memories');
+      expect(children).toHaveLength(3);
+      expect(children[0].label).toBe('Constitution');
       expect(children[1].label).toBe('Decisions');
+      expect(children[2].label).toBe('Memories');
     });
 
-    it('all root items are section kind', async () => {
+    it('root items include one file item and two section items', async () => {
       const children = await provider.getChildren();
-      children.forEach((c) => expect(c.kind).toBe('section'));
+      expect(children[0].kind).toBe('file-item');
+      expect(children[1].kind).toBe('section');
+      expect(children[2].kind).toBe('section');
+    });
+
+    it('opens constitution through the editable memory document command', async () => {
+      vi.mocked(fs.existsSync).mockReturnValue(true);
+
+      const children = await provider.getChildren();
+      expect(children[0].command).toEqual({
+        command: 'gofer.showMemoryDocument',
+        title: 'Open Constitution',
+        arguments: [{ path: '/test/workspace/.specify/memory/constitution.md' }],
+      });
     });
 
     it('Memories section shows entry count', async () => {
@@ -222,7 +237,74 @@ describe('MemoryProvider', () => {
       const children = await provider.getChildren(memoriesSection as never);
       expect(children).toHaveLength(1);
       expect(children[0].kind).toBe('info');
-      expect(children[0].label).toBe('No memories stored yet');
+      expect(children[0].label).toBe('No user memories stored yet');
+    });
+
+    it('filters out system memories tagged with #auto', async () => {
+      const memories = [
+        makeMemory({ category: 'pattern', content: 'User memory', tags: ['#user'] }),
+        makeMemory({
+          category: 'auto_decision',
+          content: 'System memory',
+          tags: ['#auto', '#loading_decision'],
+        }),
+      ];
+      const mockManager = createMockMemoryManager(memories);
+      provider.setMemoryManager(mockManager);
+
+      const root = await provider.getChildren();
+      const memoriesItem = root.find((c) => c.label === 'Memories');
+      expect(memoriesItem?.description).toBe('1 entries');
+
+      const memoriesSection = root.find((c) => c.section === 'memories');
+      const categories = await provider.getChildren(memoriesSection as never);
+      expect(categories).toHaveLength(1);
+      expect(categories[0].category).toBe('pattern');
+    });
+
+    it('shows empty state when only system memories exist', async () => {
+      const memories = [
+        makeMemory({
+          category: 'auto_decision',
+          content: 'System memory',
+          tags: ['#auto', '#loading_decision'],
+        }),
+      ];
+      const mockManager = createMockMemoryManager(memories);
+      provider.setMemoryManager(mockManager);
+
+      const root = await provider.getChildren();
+      const memoriesItem = root.find((c) => c.label === 'Memories');
+      expect(memoriesItem?.description).toBe('0 entries');
+
+      const memoriesSection = root.find((c) => c.section === 'memories');
+      const children = await provider.getChildren(memoriesSection as never);
+      expect(children).toHaveLength(1);
+      expect(children[0].label).toBe('No user memories stored yet');
+    });
+
+    it('shows only repo-local human memories in the sidebar tree', async () => {
+      const memories = [
+        makeMemory({ category: 'pattern', content: 'Repo memory', scope: 'local', tags: ['#user'] }),
+        makeMemory({ category: 'pattern', content: 'Cross-repo memory', scope: 'global', tags: ['#user'] }),
+        makeMemory({
+          category: 'error_resolution',
+          content: 'Auto-learned repo memory',
+          scope: 'local',
+          tags: ['#auto-learned', '#error-fix'],
+        }),
+      ];
+      const mockManager = createMockMemoryManager(memories);
+      provider.setMemoryManager(mockManager);
+
+      const root = await provider.getChildren();
+      const memoriesItem = root.find((c) => c.label === 'Memories');
+      expect(memoriesItem?.description).toBe('1 entries');
+
+      const memoriesSection = root.find((c) => c.section === 'memories');
+      const categories = await provider.getChildren(memoriesSection as never);
+      expect(categories).toHaveLength(1);
+      expect(categories[0].category).toBe('pattern');
     });
   });
 
@@ -317,6 +399,49 @@ describe('MemoryProvider', () => {
       expect(entries[0].command!.command).toBe('gofer.showMemoryDocument');
       expect(entries[0].command!.arguments).toHaveLength(1);
       expect(entries[0].command!.arguments![0]).toEqual(memories[0]);
+    });
+  });
+
+  describe('decision entries', () => {
+    it('shows only ADR markdown files in Decisions', async () => {
+      vi.mocked(fs.readdirSync).mockReturnValue([
+        '# Memory: auto_decision.md',
+        '001-real-decision.md',
+        'README.md',
+      ] as never);
+      vi.mocked(fs.readFileSync).mockImplementation((filePath: fs.PathOrFileDescriptor) => {
+        if (String(filePath).endsWith('001-real-decision.md')) {
+          return '# ADR-001: Real decision' as never;
+        }
+        return '# Memory: auto_decision' as never;
+      });
+
+      const root = await provider.getChildren();
+      const decisionsSection = root.find((c) => c.section === 'decisions');
+      const decisions = await provider.getChildren(decisionsSection as never);
+
+      expect(decisions).toHaveLength(1);
+      expect(decisions[0].label).toBe('001-real-decision');
+    });
+
+    it('opens decisions through the editable memory document command', async () => {
+      vi.mocked(fs.readdirSync).mockReturnValue(['001-real-decision.md'] as never);
+      vi.mocked(fs.readFileSync).mockReturnValue('# ADR-001: Real decision' as never);
+
+      const root = await provider.getChildren();
+      const decisionsSection = root.find((c) => c.section === 'decisions');
+      const decisions = await provider.getChildren(decisionsSection as never);
+
+      expect(decisions).toHaveLength(1);
+      expect(decisions[0].command).toEqual({
+        command: 'gofer.showMemoryDocument',
+        title: 'Open Decision',
+        arguments: [
+          {
+            path: '/test/workspace/.specify/memory/decisions/001-real-decision.md',
+          },
+        ],
+      });
     });
   });
 

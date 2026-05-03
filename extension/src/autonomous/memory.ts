@@ -211,9 +211,9 @@ export interface MemoryQuery {
   excludeStale?: boolean;
 
   /**
-   * Exclude system-generated memories (tagged with #auto).
-   * When true, filters out all memories containing the '#auto' tag.
-   * Used by Memory Panel to show only user-created memories by default.
+   * Exclude generated memories (tagged with #auto, #auto-learned, or
+   * #auto_extracted). When true, filters out generated telemetry and
+   * low-signal agent-extracted memories from default search results.
    * @default false
    */
   excludeSystemMemories?: boolean;
@@ -254,6 +254,9 @@ export interface LoadByPriorityOptions {
 
   /** Scope filter */
   scope?: 'local' | 'global' | 'both';
+
+  /** Exclude generated memories from ranked results */
+  excludeSystemMemories?: boolean;
 }
 
 /**

@@ -156,7 +156,10 @@ describe('MemoryLayerManager', () => {
 
       const result = await manager.searchArchival('authentication');
 
-      expect(mockMM.search).toHaveBeenCalledWith({ keywords: 'authentication' });
+      expect(mockMM.search).toHaveBeenCalledWith({
+        keywords: 'authentication',
+        excludeSystemMemories: true,
+      });
       expect(result.memories).toHaveLength(1);
     });
   });

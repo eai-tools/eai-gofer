@@ -25,10 +25,13 @@ export interface MemoryManagerLike {
     keywords?: string;
     tags?: string[];
     scope?: string;
+    excludeSystemMemories?: boolean;
   }): Promise<{ memories: MemoryItem[] }>;
   loadByPriority(options: {
     limit?: number;
     taskContext?: string;
+    scope?: 'local' | 'global' | 'both';
+    excludeSystemMemories?: boolean;
   }): Promise<{ memories: MemoryItem[] }>;
 }
 
@@ -134,7 +137,10 @@ export class MemoryLayerManager {
     if (this.memoryManager) {
       for (const tag of this.config.coreTags) {
         try {
-          const result = await this.memoryManager.search({ tags: [tag] });
+          const result = await this.memoryManager.search({
+            tags: [tag],
+            excludeSystemMemories: true,
+          });
           for (const mem of result.memories) {
             if (!memories.find((m) => m.id === mem.id)) {
               memories.push(mem);
@@ -169,7 +175,10 @@ export class MemoryLayerManager {
     }
 
     try {
-      const result = await this.memoryManager.loadByPriority({ limit: recallLimit });
+      const result = await this.memoryManager.loadByPriority({
+        limit: recallLimit,
+        excludeSystemMemories: true,
+      });
       const now = Date.now();
       const windowStart = now - this.config.recallWindowMs;
 
@@ -202,7 +211,10 @@ export class MemoryLayerManager {
     }
 
     try {
-      const result = await this.memoryManager.search({ keywords: query });
+      const result = await this.memoryManager.search({
+        keywords: query,
+        excludeSystemMemories: true,
+      });
       const tokenEstimate = result.memories.reduce(
         (sum, m) => sum + Math.ceil(m.content.length / 4),
         0
@@ -230,7 +242,9 @@ export class MemoryLayerManager {
    * @returns Number of memories demoted
    */
   async demoteMemories(currentTask?: string): Promise<number> {
-    if (!this.memoryManager) {return 0;}
+    if (!this.memoryManager) {
+      return 0;
+    }
 
     try {
       const recall = await this.getRecallMemory(50); // Get more than usual for demotion candidates
@@ -262,7 +276,9 @@ export class MemoryLayerManager {
     let demoted = 0;
 
     for (const mem of candidates) {
-      if (this.llmProvider!.isRateLimited()) {break;}
+      if (this.llmProvider!.isRateLimited()) {
+        break;
+      }
 
       try {
         const prompt = `Rate the relevance of this memory to the current task on a scale of 0-10. Return ONLY a number.\n\nTask: ${currentTask.slice(0, 500)}\n\nMemory: ${mem.content.slice(0, 500)}`;

@@ -325,9 +325,9 @@
         },
         {
           "id": "goferMemory",
-          "name": "Memory",
+          "name": "Rules and Memory",
           "icon": "$(database)",
-          "contextualTitle": "Project Memory"
+          "contextualTitle": "Rules and Memory"
         }
       ]
     },

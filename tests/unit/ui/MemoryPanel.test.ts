@@ -45,10 +45,11 @@ describe('MemoryPanel - System Memory Filtering', () => {
   let mockExtensionUri: vscode.Uri;
   let userMemories: Memory[];
   let systemMemories: Memory[];
+  let agentMemories: Memory[];
   let allMemories: Memory[];
 
   beforeEach(() => {
-    // Create test data: 5 user memories + 5 system memories
+    // Create test data: user memories, generated telemetry, and auto-learned agent memories.
     userMemories = [
       {
         id: 'u1',
@@ -165,7 +166,21 @@ describe('MemoryPanel - System Memory Filtering', () => {
       },
     ];
 
-    allMemories = [...userMemories, ...systemMemories];
+    agentMemories = [
+      {
+        id: 'a1',
+        content: 'Agent learned file knowledge',
+        category: 'file_knowledge',
+        tags: ['#auto-learned', '#files'],
+        scope: 'local' as const,
+        created: Date.now(),
+        lastAccessed: Date.now(),
+        usageCount: 1,
+        importance: 1,
+      },
+    ];
+
+    allMemories = [...userMemories, ...systemMemories, ...agentMemories];
 
     // Mock MemoryManager
     mockMemoryManager = {
@@ -189,7 +204,7 @@ describe('MemoryPanel - System Memory Filtering', () => {
   });
 
   // T024: Toggle OFF filters out system memories
-  it('should filter out system memories when toggle is OFF (default)', async () => {
+  it('should show repo-local human memories only when toggle is OFF (default)', async () => {
     // Arrange: Create panel with default state (toggle OFF)
     const panel = MemoryPanel.createOrShow(mockExtensionUri, mockMemoryManager);
 
@@ -201,25 +216,28 @@ describe('MemoryPanel - System Memory Filtering', () => {
     };
     const html = await panelInternal.getHtmlContent();
 
-    // Assert: HTML should NOT contain system memory IDs (s1-s5)
+    // Assert: HTML should NOT contain generated or cross-repo memories
     expect(panelInternal.showSystemMemories).toBe(false);
     expect(html).not.toContain('System memory 1');
     expect(html).not.toContain('System memory 2');
+    expect(html).not.toContain('Agent learned file knowledge');
     expect(html).not.toContain('auto_decision');
     expect(html).not.toContain('discovery');
+    expect(html).not.toContain('User memory 3');
 
-    // Assert: HTML should contain user memory content
+    // Assert: HTML should contain repo-local user memory content
     expect(html).toContain('User memory 1');
     expect(html).toContain('User memory 2');
     expect(html).toContain('pattern');
     expect(html).toContain('gotcha');
 
-    // Assert: Results count shows only user memories (5 of 10)
-    expect(html).toContain('5 memories');
+    // Assert: Results count shows only local human memories
+    expect(html).toContain('4 memories');
+    expect(html).toContain('<option value="local" selected>');
   });
 
-  // T025: Toggle ON includes all memories
-  it('should include all memories when toggle is ON', async () => {
+  // T025: Toggle ON includes all local generated memories
+  it('should include local generated memories when toggle is ON', async () => {
     // Arrange: Create panel and set toggle ON
     const panel = MemoryPanel.createOrShow(mockExtensionUri, mockMemoryManager);
     const panelInternal = panel as unknown as {
@@ -239,15 +257,18 @@ describe('MemoryPanel - System Memory Filtering', () => {
     // Assert: Toggle state is ON
     expect(panelInternal.showSystemMemories).toBe(true);
 
-    // Assert: HTML contains BOTH user and system memories
+    // Assert: HTML contains local user, system, and auto-learned memories
     expect(html).toContain('User memory 1');
     expect(html).toContain('System memory 1');
+    expect(html).toContain('Agent learned file knowledge');
     expect(html).toContain('pattern');
     expect(html).toContain('auto_decision');
     expect(html).toContain('discovery');
+    expect(html).toContain('file_knowledge');
+    expect(html).not.toContain('User memory 3');
 
-    // Assert: Results count shows all memories (10 total)
-    expect(html).toContain('10 memories');
+    // Assert: Results count shows all local memories (4 user + 4 system + 1 auto-learned)
+    expect(html).toContain('9 memories');
 
     // Assert: Checkbox is checked
     expect(html).toContain('checked');
@@ -272,7 +293,7 @@ describe('MemoryPanel - System Memory Filtering', () => {
     // Assert: Category dropdown should include user categories
     expect(htmlOff).toContain('<option value="pattern">');
     expect(htmlOff).toContain('<option value="gotcha">');
-    expect(htmlOff).toContain('<option value="decision">');
+    expect(htmlOff).not.toContain('<option value="decision">');
 
     // Act: Toggle ON
     await panelInternal.handleMessage({
@@ -284,6 +305,7 @@ describe('MemoryPanel - System Memory Filtering', () => {
     // Assert: Category dropdown NOW includes system categories
     expect(htmlOn).toContain('<option value="auto_decision">');
     expect(htmlOn).toContain('<option value="discovery">');
+    expect(htmlOn).toContain('<option value="file_knowledge">');
   });
 
   // T027: Tags filtered by toggle state
@@ -298,10 +320,11 @@ describe('MemoryPanel - System Memory Filtering', () => {
     // Act: Get HTML with toggle OFF
     const htmlOff = await panelInternal.getHtmlContent();
 
-    // Assert: Tag dropdown should NOT include #auto tag (check for <option> tags)
+    // Assert: Tag dropdown should NOT include generated-memory tags
     expect(htmlOff).not.toContain('<option value="#auto">');
     expect(htmlOff).not.toContain('<option value="#budget">');
-    expect(htmlOff).not.toContain('<option value="#scope">');
+    expect(htmlOff).not.toContain('<option value="#auto-learned">');
+    expect(htmlOff).not.toContain('<option value="#files">');
 
     // Assert: Tag dropdown should include user tags
     expect(htmlOff).toContain('<option value="#user">');
@@ -315,9 +338,43 @@ describe('MemoryPanel - System Memory Filtering', () => {
     });
     const htmlOn = await panelInternal.getHtmlContent();
 
-    // Assert: Tag dropdown NOW includes #auto tag
+    // Assert: Tag dropdown NOW includes generated-memory tags from local scope
     expect(htmlOn).toContain('<option value="#auto">');
     expect(htmlOn).toContain('<option value="#budget">');
-    expect(htmlOn).toContain('<option value="#scope">');
+    expect(htmlOn).toContain('<option value="#auto-learned">');
+    expect(htmlOn).toContain('<option value="#files">');
+  });
+
+  it('should render the memory panel as a read-only view', async () => {
+    const panel = MemoryPanel.createOrShow(mockExtensionUri, mockMemoryManager);
+    const panelInternal = panel as unknown as {
+      getHtmlContent: () => Promise<string>;
+    };
+
+    const html = await panelInternal.getHtmlContent();
+
+    expect(html).toContain('Read-only view');
+    expect(html).not.toContain('Clear All...');
+    expect(html).not.toContain('Delete</button>');
+    expect(html).not.toContain('Use</button>');
+  });
+
+  it('should reject mutation messages from the memory panel', async () => {
+    const panel = MemoryPanel.createOrShow(mockExtensionUri, mockMemoryManager);
+    const panelInternal = panel as unknown as {
+      handleMessage: (message: { command: string; [key: string]: unknown }) => Promise<void>;
+    };
+
+    await panelInternal.handleMessage({ command: 'delete', id: 'u1' });
+    await panelInternal.handleMessage({ command: 'recordUsage', id: 'u1' });
+    await panelInternal.handleMessage({ command: 'clearScope', scope: 'all' });
+
+    expect(mockMemoryManager.forget).not.toHaveBeenCalled();
+    expect(mockMemoryManager.recordUsage).not.toHaveBeenCalled();
+    expect(mockMemoryManager.clear).not.toHaveBeenCalled();
+    expect(vscode.window.showWarningMessage).toHaveBeenCalledTimes(3);
+    expect(vscode.window.showWarningMessage).toHaveBeenCalledWith(
+      'Gofer Memories is read-only. Use dedicated memory commands to add, forget, or clear memories.'
+    );
   });
 });

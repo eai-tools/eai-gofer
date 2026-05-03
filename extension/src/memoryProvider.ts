@@ -1,23 +1,26 @@
 /**
  * MemoryProvider
  *
- * TreeDataProvider for the "Memory" panel in the Gofer sidebar.
- * Shows learned knowledge: memories (by category) and decisions (ADRs).
+ * TreeDataProvider for the "Rules and Memory" panel in the Gofer sidebar.
+ * Shows project rules and learned knowledge: constitution, decisions (ADRs),
+ * and memories (by category).
  *
  * Tree structure:
+ *   Constitution
+ *   Decisions (1)
  *   Memories (3)
  *     ├─ Discovery (2)
  *     │   ├─ "Found API pattern..." — memory entry
  *     │   └─ "Discovered auth..."   — memory entry
  *     └─ Patterns (1)
  *         └─ "Use singleton..."     — memory entry
- *   Decisions (1)                   — ADRs
  */
 
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 import type { Memory } from './autonomous/memory';
+import { isRepoLocalHumanMemory } from './autonomous/memoryFilters';
 import { INTERVALS } from './config/intervals';
 
 export type MemoryTreeItemKind = 'section' | 'category' | 'memory' | 'file-item' | 'info';
@@ -34,6 +37,7 @@ const CATEGORY_DISPLAY: Record<string, { displayName: string; icon: string }> = 
 };
 
 const DEFAULT_CATEGORY_DISPLAY = { displayName: 'Other', icon: 'tag' };
+const ADR_FILE_PATTERN = /^\d{3}-[a-z0-9][a-z0-9-]*\.md$/i;
 
 /** Memory type to icon mapping */
 const MEMORY_TYPE_ICONS: Record<string, string> = {
@@ -115,7 +119,7 @@ export class MemoryProvider implements vscode.TreeDataProvider<MemoryTreeItem> {
   }
 
   /**
-   * Root items: Memories, Decisions
+   * Root items: Constitution, Decisions, Memories
    */
   private async getRootItems(): Promise<MemoryTreeItem[]> {
     const items: MemoryTreeItem[] = [];
@@ -125,19 +129,29 @@ export class MemoryProvider implements vscode.TreeDataProvider<MemoryTreeItem> {
       await this.loadMemories();
     }
 
-    // 1. Memories section
-    const memoryCount = this.cachedMemories.length;
-    const memoriesItem = new MemoryTreeItem(
-      'Memories',
-      'section',
-      memoryCount > 0
-        ? vscode.TreeItemCollapsibleState.Expanded
-        : vscode.TreeItemCollapsibleState.None
+    const visibleMemories = this.getVisibleMemories();
+
+    // 1. Constitution document
+    const constitutionPath = this.getConstitutionPath();
+    const constitutionExists = fs.existsSync(constitutionPath);
+    const constitutionItem = new MemoryTreeItem(
+      'Constitution',
+      'file-item',
+      vscode.TreeItemCollapsibleState.None
     );
-    memoriesItem.section = 'memories';
-    memoriesItem.description = `${memoryCount} entries`;
-    memoriesItem.iconPath = new vscode.ThemeIcon('brain');
-    items.push(memoriesItem);
+    constitutionItem.filePath = constitutionPath;
+    constitutionItem.description = constitutionExists ? 'constitution.md' : 'Missing';
+    constitutionItem.iconPath = new vscode.ThemeIcon('law');
+    constitutionItem.tooltip = constitutionExists
+      ? 'Project constitution\nClick to edit in Markdown'
+      : `Constitution file not found at ${constitutionPath}`;
+    constitutionItem.contextValue = 'memory-document';
+    constitutionItem.command = {
+      command: 'gofer.showMemoryDocument',
+      title: 'Open Constitution',
+      arguments: [{ path: constitutionPath }],
+    };
+    items.push(constitutionItem);
 
     // 2. Decisions section
     const decisions = this.listDecisions();
@@ -152,6 +166,20 @@ export class MemoryProvider implements vscode.TreeDataProvider<MemoryTreeItem> {
     decItem.description = `${decisions.length} ADRs`;
     decItem.iconPath = new vscode.ThemeIcon('law');
     items.push(decItem);
+
+    // 3. Memories section
+    const memoryCount = visibleMemories.length;
+    const memoriesItem = new MemoryTreeItem(
+      'Memories',
+      'section',
+      memoryCount > 0
+        ? vscode.TreeItemCollapsibleState.Expanded
+        : vscode.TreeItemCollapsibleState.None
+    );
+    memoriesItem.section = 'memories';
+    memoriesItem.description = `${memoryCount} entries`;
+    memoriesItem.iconPath = new vscode.ThemeIcon('brain');
+    items.push(memoriesItem);
 
     return items;
   }
@@ -174,13 +202,14 @@ export class MemoryProvider implements vscode.TreeDataProvider<MemoryTreeItem> {
    * Memory sub-categories grouped by category (Discovery, Patterns, etc.)
    */
   private getMemoryCategoryItems(): MemoryTreeItem[] {
-    if (this.cachedMemories.length === 0) {
-      const infoItem = new MemoryTreeItem('No memories stored yet', 'info');
+    const visibleMemories = this.getVisibleMemories();
+    if (visibleMemories.length === 0) {
+      const infoItem = new MemoryTreeItem('No user memories stored yet', 'info');
       infoItem.iconPath = new vscode.ThemeIcon('info');
       return [infoItem];
     }
 
-    const grouped = this.groupByCategory(this.cachedMemories);
+    const grouped = this.groupByCategory(visibleMemories);
     const sortedCategories = Array.from(grouped.keys()).sort();
 
     return sortedCategories.map((category) => {
@@ -203,7 +232,7 @@ export class MemoryProvider implements vscode.TreeDataProvider<MemoryTreeItem> {
 
   /** Memory entry items with truncated content */
   private getMemoryItems(category: string): MemoryTreeItem[] {
-    const memories = this.cachedMemories.filter((m) => m.category === category);
+    const memories = this.getVisibleMemories().filter((m) => m.category === category);
 
     return memories.map((memory) => {
       // Truncate content to 60 chars
@@ -240,6 +269,7 @@ export class MemoryProvider implements vscode.TreeDataProvider<MemoryTreeItem> {
         title: 'Show Memory',
         arguments: [memory],
       };
+      item.contextValue = 'memory-document';
 
       return item;
     });
@@ -261,11 +291,12 @@ export class MemoryProvider implements vscode.TreeDataProvider<MemoryTreeItem> {
       const item = new MemoryTreeItem(baseName, 'file-item');
       item.iconPath = new vscode.ThemeIcon('file-text');
       item.filePath = fp;
-      item.tooltip = `Decision: ${baseName}\nClick to view`;
+      item.tooltip = `Decision: ${baseName}\nClick to edit in Markdown`;
+      item.contextValue = 'memory-document';
       item.command = {
-        command: 'vscode.open',
+        command: 'gofer.showMemoryDocument',
         title: 'Open Decision',
-        arguments: [vscode.Uri.file(fp)],
+        arguments: [{ path: fp }],
       };
       return item;
     });
@@ -278,11 +309,28 @@ export class MemoryProvider implements vscode.TreeDataProvider<MemoryTreeItem> {
       const dir = path.join(this.workspacePath, '.specify', 'memory', 'decisions');
       return fs
         .readdirSync(dir)
-        .filter((f) => f.endsWith('.md') && f !== 'README.md')
+        .filter((f) => this.isDecisionRecord(path.join(dir, f), f))
         .map((f) => path.join(dir, f))
         .sort();
     } catch {
       return [];
+    }
+  }
+
+  private getConstitutionPath(): string {
+    return path.join(this.workspacePath, '.specify', 'memory', 'constitution.md');
+  }
+
+  private isDecisionRecord(filePath: string, fileName: string): boolean {
+    if (!ADR_FILE_PATTERN.test(fileName)) {
+      return false;
+    }
+
+    try {
+      const header = fs.readFileSync(filePath, 'utf-8').slice(0, 400);
+      return header.startsWith('---') || header.includes('# ADR-');
+    } catch {
+      return false;
     }
   }
 
@@ -310,6 +358,10 @@ export class MemoryProvider implements vscode.TreeDataProvider<MemoryTreeItem> {
     }
   }
 
+  private getVisibleMemories(): Memory[] {
+    return this.cachedMemories.filter((memory) => isRepoLocalHumanMemory(memory));
+  }
+
   private formatRelativeTime(timestamp: number): string {
     const now = Date.now();
     const diff = now - timestamp;
@@ -317,10 +369,18 @@ export class MemoryProvider implements vscode.TreeDataProvider<MemoryTreeItem> {
     const hours = Math.floor(diff / INTERVALS.MS_PER_HOUR);
     const days = Math.floor(diff / INTERVALS.MS_PER_DAY);
 
-    if (minutes < 1) {return 'just now';}
-    if (minutes < 60) {return `${minutes}m ago`;}
-    if (hours < 24) {return `${hours}h ago`;}
-    if (days < 30) {return `${days}d ago`;}
+    if (minutes < 1) {
+      return 'just now';
+    }
+    if (minutes < 60) {
+      return `${minutes}m ago`;
+    }
+    if (hours < 24) {
+      return `${hours}h ago`;
+    }
+    if (days < 30) {
+      return `${days}d ago`;
+    }
     return `${Math.floor(days / 30)}mo ago`;
   }
 }

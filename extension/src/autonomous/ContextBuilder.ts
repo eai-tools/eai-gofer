@@ -30,11 +30,7 @@ import {
   type ObservationMaskerConfig,
   type ObservationType,
 } from './ObservationMasker';
-import {
-  type GoferStage,
-  type StageContextProfile,
-  DEFAULT_PROFILES,
-} from './StageContextProfile';
+import { type GoferStage, type StageContextProfile, DEFAULT_PROFILES } from './StageContextProfile';
 import { StageContextProfileLoader } from './StageContextProfileLoader';
 import { ResearchChunker } from './ResearchChunker';
 import type { ContextUsageLogger } from './ContextUsageLogger';
@@ -597,9 +593,13 @@ export class ContextBuilder extends EventEmitter {
       content: string | undefined,
       maxTokens: number
     ): string | undefined => {
-      if (!content) {return content;}
+      if (!content) {
+        return content;
+      }
       const currentTokens = this.estimateTokens(content);
-      if (currentTokens <= maxTokens) {return content;}
+      if (currentTokens <= maxTokens) {
+        return content;
+      }
       const maxChars = maxTokens * 4;
       return (
         content.slice(0, maxChars) +
@@ -734,6 +734,7 @@ export class ContextBuilder extends EventEmitter {
       limit: 10,
       taskContext: taskDescription,
       scope: 'both',
+      excludeSystemMemories: true,
     });
     const memories = priorityResult.memories;
 
@@ -771,7 +772,9 @@ export class ContextBuilder extends EventEmitter {
     memories: Memory[],
     layer: 'abstract' | 'overview' | 'detail'
   ): string {
-    if (memories.length === 0) {return '';}
+    if (memories.length === 0) {
+      return '';
+    }
 
     const lines: string[] = [];
     for (const m of memories) {
@@ -1036,6 +1039,7 @@ export class ContextBuilder extends EventEmitter {
         limit: this.config.memoryPriorityLimit,
         taskContext: task.description,
         scope: 'both',
+        excludeSystemMemories: true,
       });
       memories = priorityResult.memories;
 
@@ -1176,7 +1180,9 @@ export class ContextBuilder extends EventEmitter {
     loadingDecisions: LoadingDecision[],
     memoryCoverage?: MemoryCoverage
   ): void {
-    if (!this.config.logLoadingDecisions) {return;}
+    if (!this.config.logLoadingDecisions) {
+      return;
+    }
 
     for (const decision of loadingDecisions) {
       this.emit('loading-decision', decision);
@@ -1350,6 +1356,8 @@ export class ContextBuilder extends EventEmitter {
       keywords.map((keyword) =>
         this.memoryManager.search({
           tags: [keyword],
+          scope: 'both',
+          excludeSystemMemories: true,
         })
       )
     );

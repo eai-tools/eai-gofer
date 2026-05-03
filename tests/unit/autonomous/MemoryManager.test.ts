@@ -1179,6 +1179,102 @@ describe('MemoryManager', () => {
       expect(result.loadTime).toBeGreaterThanOrEqual(0);
       expect(result.loadTime).toBeLessThan(1000);
     });
+
+    it('should exclude generated memories when requested', async () => {
+      await memoryManager.save({
+        category: 'auto_decision',
+        tags: ['#auto', '#loading_decision'],
+        scope: 'local',
+        content: 'Loading decision telemetry',
+        lastUsed: Date.now(),
+        usedCount: 50,
+        learnedFrom: 'test',
+      });
+
+      const result = await memoryManager.loadByPriority({
+        limit: 10,
+        excludeSystemMemories: true,
+      });
+
+      expect(result.memories.some((memory) => memory.tags.includes('#auto'))).toBe(false);
+      expect(result.totalConsidered).toBe(5);
+    });
+  });
+
+  describe('markdown-backed memory editing', () => {
+    it('should create a markdown note for a local memory on demand', async () => {
+      const saved = await memoryManager.save({
+        category: 'preferences',
+        tags: ['#human'],
+        scope: 'local',
+        content: 'Always review the active spec before validating implementation.',
+        lastUsed: Date.now(),
+        usedCount: 0,
+        learnedFrom: 'user_interaction',
+      });
+
+      const notePath = await memoryManager.ensureMarkdownNote(saved.id);
+
+      expect(notePath).toBe(
+        path.join(testWorkspaceRoot, '.specify', 'memory', 'memory-notes', `${saved.id}.md`)
+      );
+      expect(fs.existsSync(notePath!)).toBe(true);
+
+      const noteContent = fs.readFileSync(notePath!, 'utf-8');
+      expect(noteContent).toContain(`id: ${saved.id}`);
+      expect(noteContent).toContain('category: preferences');
+      expect(noteContent).toContain('Always review the active spec before validating implementation.');
+
+      const loaded = await memoryManager.load('local');
+      expect(loaded[0].notePath).toBe(`memory-notes/${saved.id}.md`);
+    });
+
+    it('should sync edited markdown notes back into memory storage', async () => {
+      const saved = await memoryManager.save({
+        category: 'preferences',
+        tags: ['#human'],
+        scope: 'local',
+        content: 'Initial memory content',
+        lastUsed: Date.now(),
+        usedCount: 0,
+        learnedFrom: 'user_interaction',
+      });
+
+      const notePath = await memoryManager.ensureMarkdownNote(saved.id);
+      expect(notePath).toBeTruthy();
+
+      fs.writeFileSync(
+        notePath!,
+        [
+          '---',
+          `id: ${saved.id}`,
+          'category: rules',
+          'scope: local',
+          'created: 2026-05-03T00:00:00.000Z',
+          'lastUsed: 2026-05-03T00:00:00.000Z',
+          'usedCount: 7',
+          'learnedFrom: user_interaction',
+          'tags: ["#human","#repo"]',
+          '---',
+          '',
+          'Updated markdown-backed memory content',
+          '',
+        ].join('\n'),
+        'utf-8'
+      );
+
+      const updated = await memoryManager.syncMarkdownNoteDocument(notePath!);
+
+      expect(updated).not.toBeNull();
+      expect(updated?.category).toBe('rules');
+      expect(updated?.tags).toEqual(['#human', '#repo']);
+      expect(updated?.content).toBe('Updated markdown-backed memory content');
+      expect(updated?.usedCount).toBe(7);
+
+      const loaded = await memoryManager.load('local');
+      expect(loaded[0].content).toBe('Updated markdown-backed memory content');
+      expect(loaded[0].category).toBe('rules');
+    });
   });
 
   // ============================================================================

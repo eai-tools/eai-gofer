@@ -14,6 +14,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as crypto from 'crypto';
 import type { Memory, MemoryType, MemoryQuery, StoredMemories } from './memory';
+import { isGeneratedMemory } from './memoryFilters';
 
 // ============================================================================
 // Constants
@@ -97,7 +98,9 @@ export class MemoryStorage {
    * Initialize storage: migrate from legacy if needed, build index from JSONL.
    */
   async initialize(): Promise<void> {
-    if (this.initialized) {return;}
+    if (this.initialized) {
+      return;
+    }
 
     await fs.mkdir(this.memoryDir, { recursive: true });
 
@@ -129,7 +132,9 @@ export class MemoryStorage {
         memories = (parsed as StoredMemories).memories;
       }
 
-      if (memories.length === 0) {return;}
+      if (memories.length === 0) {
+        return;
+      }
 
       // Write each memory as a JSONL line
       const lines = memories.map((m) => JSON.stringify(m)).join('\n') + '\n';
@@ -155,7 +160,9 @@ export class MemoryStorage {
       for (const line of lines) {
         try {
           const record = JSON.parse(line) as Record<string, unknown>;
-          if (!record.id) {continue;}
+          if (!record.id) {
+            continue;
+          }
 
           // Handle tombstone records (deleted memories)
           if (record._deleted) {
@@ -317,7 +324,9 @@ export class MemoryStorage {
     await this.ensureInitialized();
 
     const existing = this.index.get(id);
-    if (!existing) {return null;}
+    if (!existing) {
+      return null;
+    }
 
     const updated: Memory = {
       ...existing.memory,
@@ -344,7 +353,9 @@ export class MemoryStorage {
   async remove(id: string): Promise<boolean> {
     await this.ensureInitialized();
 
-    if (!this.index.has(id)) {return false;}
+    if (!this.index.has(id)) {
+      return false;
+    }
 
     // Append tombstone
     const tombstone = JSON.stringify({ id, _deleted: true }) + '\n';
@@ -373,7 +384,9 @@ export class MemoryStorage {
    */
   async getWithFullContent(id: string): Promise<Memory | null> {
     const memory = this.get(id);
-    if (!memory) {return null;}
+    if (!memory) {
+      return null;
+    }
 
     // If memory has a notePath and content looks truncated, read from markdown
     if (memory.notePath && memory.content.endsWith('[see markdown note]')) {
@@ -396,14 +409,14 @@ export class MemoryStorage {
    * Query memories with filters. Returns matching memories sorted by priority.
    *
    * Applies filters in sequence:
-   * 1. excludeSystemMemories - removes memories tagged with #auto
+   * 1. excludeSystemMemories - removes generated memories
    * 2. category - filters by exact category match
    * 3. tags - filters memories containing all specified tags
    * 4. scope - filters by global or local scope
    * 5. query - text search in content field
    *
    * @param query - Filter criteria and search parameters
-   * @param query.excludeSystemMemories - When true, excludes #auto tagged memories
+   * @param query.excludeSystemMemories - When true, excludes generated memories
    * @param query.category - Filter by exact category name
    * @param query.tags - Array of tags (memory must have all)
    * @param query.scope - Filter by 'global' or 'local' scope
@@ -413,9 +426,9 @@ export class MemoryStorage {
   query(query: MemoryQuery): Memory[] {
     let results = Array.from(this.index.values());
 
-    // Exclude system-generated memories (tagged with #auto)
+    // Exclude generated memories by default in human-facing views/searches
     if (query.excludeSystemMemories) {
-      results = results.filter((e) => Array.isArray(e.tags) && !e.tags.includes('#auto'));
+      results = results.filter((e) => !isGeneratedMemory(e.memory));
     }
 
     // Filter by type
@@ -511,7 +524,9 @@ export class MemoryStorage {
       }
     }
 
-    if (toArchive.length === 0) {return 0;}
+    if (toArchive.length === 0) {
+      return 0;
+    }
 
     // Append to archive JSONL
     const lines = toArchive.map((m) => JSON.stringify(m)).join('\n') + '\n';

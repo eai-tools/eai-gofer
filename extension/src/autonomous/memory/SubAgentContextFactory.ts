@@ -102,6 +102,7 @@ export class SubAgentContextFactory {
       taskContext,
       priorityWeight: 0.4,
       relevanceWeight: 0.6,
+      excludeSystemMemories: true,
     });
 
     // T029: Filter by category-specific tags
@@ -140,6 +141,7 @@ export class SubAgentContextFactory {
       taskContext,
       priorityWeight: 0.35,
       relevanceWeight: 0.65,
+      excludeSystemMemories: true,
     });
 
     // T071: Filter to research-relevant tags
@@ -214,9 +216,7 @@ export class SubAgentContextFactory {
     }
 
     const tagSet = new Set(tags.map((t) => t.toLowerCase()));
-    return memories.filter((m) =>
-      m.tags.some((tag) => tagSet.has(tag.toLowerCase()))
-    );
+    return memories.filter((m) => m.tags.some((tag) => tagSet.has(tag.toLowerCase())));
   }
 
   /**

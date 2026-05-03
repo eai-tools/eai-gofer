@@ -37,8 +37,6 @@ import { registerSpecCommands } from './commands/specCommands';
 import { registerCouncilCommands } from './commands/councilCommands';
 // Context Health Monitoring (Spec 012)
 import { ContextHealthStatusBar } from './ui/ContextHealthStatusBar';
-// Real Context Monitoring (Spec 014)
-import { ContinuousMemoryWriter } from './autonomous/ContinuousMemoryWriter';
 import { ScopeGuard } from './autonomous/ScopeGuard';
 import { ToolAuditLogger } from './autonomous/ToolAuditLogger';
 import { RunLedger } from './autonomous/RunLedger';
@@ -235,8 +233,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     workspacePath,
     context,
     progressProvider: state.progressProvider,
+    memoryProvider: state.memoryProvider,
     branchSpecManager: state.branchSpecManager,
     sharedContextBuilder: state.sharedContextBuilder,
+    memoryManager: state.memoryManager,
     workspaceContextProvider: state.workspaceContextProvider,
     hookBridgeWatcher: state.hookBridgeWatcher,
     scopeGuard: state.scopeGuard,
@@ -474,6 +474,11 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
     // contextBuilder is available after ContextBuilder wiring below
   }
 
+  if (eventHandlerDeps) {
+    eventHandlerDeps.memoryManager = state.memoryManager;
+    eventHandlerDeps.memoryProvider = state.memoryProvider;
+  }
+
   // Wire shared ContextBuilder (Feature 024) — activates ~3,700 LOC of dead code
   // Must be created AFTER MemoryManager and BEFORE CommandRegistry.registerAll()
   if (state.memoryManager) {
@@ -489,10 +494,10 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
       contextBuilder.setUsageLogger(state.contextUsageLogger);
     }
 
-    // Wire ContinuousMemoryWriter (activates automatic event-driven memory persistence)
-    const continuousMemoryWriter = new ContinuousMemoryWriter(state.memoryManager);
-    continuousMemoryWriter.connectToContextBuilder(contextBuilder);
-    state.continuousMemoryWriter = continuousMemoryWriter;
+    // Do not persist ContextBuilder telemetry as first-class memories by default.
+    // The sidebar and AI retrieval paths should be driven by durable human-relevant
+    // memories, not repeated loading/budget events.
+    state.continuousMemoryWriter = undefined;
 
     // Wire AutoHandoffTrigger to ContextBuilder
     if (state.autoHandoffTrigger) {

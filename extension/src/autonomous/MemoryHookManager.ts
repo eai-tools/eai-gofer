@@ -193,6 +193,7 @@ export class MemoryHookManager {
       scope: 'both',
       sortByPriority: true,
       excludeStale: true,
+      excludeSystemMemories: true,
       taskContext: context.taskContext,
     };
 
@@ -267,7 +268,6 @@ export class MemoryHookManager {
 
     // Build tags
     const tags = [
-      '#auto',
       '#task-completion',
       `#task-${context.taskId}`,
       `#spec-${context.specId}`,
@@ -347,7 +347,6 @@ export class MemoryHookManager {
 
     // Build tags
     const tags = [
-      '#auto',
       '#error-recovery',
       `#error-${context.errorType.toLowerCase().replace(/\s+/g, '-')}`,
       `#stage-${this.currentStage}`,
@@ -411,7 +410,7 @@ export class MemoryHookManager {
     }
 
     // Build tags
-    const tags = ['#auto', '#preference', `#stage-${this.currentStage}`, ...(context.tags ?? [])];
+    const tags = ['#preference', `#stage-${this.currentStage}`, ...(context.tags ?? [])];
 
     if (context.specId) {
       tags.push(`#spec-${context.specId}`);

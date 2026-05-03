@@ -12,8 +12,10 @@ import * as vscode from 'vscode';
 import { Logger } from './Logger';
 import { ConfigManager } from '../config';
 import type { ProgressProvider } from '../progressProvider';
+import type { MemoryProvider } from '../memoryProvider';
 import type { BranchSpecManager } from '../branchSpecManager';
 import type { ContextBuilder } from '../autonomous/ContextBuilder';
+import type { MemoryManager } from '../autonomous/MemoryManager';
 import type { WorkspaceContextProvider } from '../autonomous/WorkspaceContextProvider';
 import type { HookBridgeWatcher } from '../autonomous/HookBridgeWatcher';
 import type { ScopeGuard } from '../autonomous/ScopeGuard';
@@ -26,8 +28,10 @@ export interface EventHandlerDependencies {
   workspacePath: string;
   context: vscode.ExtensionContext;
   progressProvider?: ProgressProvider;
+  memoryProvider?: MemoryProvider;
   branchSpecManager?: BranchSpecManager;
   sharedContextBuilder?: ContextBuilder;
+  memoryManager?: MemoryManager;
   workspaceContextProvider?: WorkspaceContextProvider;
   hookBridgeWatcher?: HookBridgeWatcher;
   scopeGuard?: ScopeGuard;
@@ -320,9 +324,24 @@ export class EventHandlers {
     const slopReducer = new SlopReducer(deps.workspacePath);
 
     deps.context.subscriptions.push(
-      vscode.workspace.onDidSaveTextDocument((doc) => {
+      vscode.workspace.onDidSaveTextDocument(async (doc) => {
         const config = ConfigManager.getInstance();
         config.refresh();
+
+        try {
+          const syncedMemory = await deps.memoryManager?.syncMarkdownNoteDocument(doc.uri.fsPath);
+          if (syncedMemory) {
+            deps.memoryProvider?.refresh();
+          }
+        } catch (error) {
+          this.logger.warn('EventHandlers', 'Failed to sync memory markdown note', {
+            filePath: doc.uri.fsPath,
+            error: error instanceof Error ? error.message : String(error),
+          });
+          vscode.window.showErrorMessage(
+            `Failed to sync edited memory note: ${error instanceof Error ? error.message : String(error)}`
+          );
+        }
 
         if (!config.getSlopReductionEnabled()) {return;}
 

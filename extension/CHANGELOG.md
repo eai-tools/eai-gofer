@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [3.2.2] - 2026-05-03
+
+Refine the Rules and Memory panel, restore editable markdown flows, and tighten memory curation behavior
+
 ## [3.2.1] - 2026-05-03
 
 Harden release automation and verify script-driven patch publishing

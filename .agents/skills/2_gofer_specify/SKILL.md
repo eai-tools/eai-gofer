@@ -1,28 +1,11 @@
 ---
 name: 2_gofer_specify
-description: Create feature specification informed by codebase research
-gofer:
-  workflowProfile: enterpriseai
-  canonicalSource: .specify/commands/2_gofer_specify.md
-  canonicalChecksum: 35db62133b41369e3db88117d22201c70e208024c5bea89104c691a1e13b548a
-  metadataSource: extension/src/services/migration/ResourceSyncer.ts
-arguments:
-  - name: feature
-    description: Feature name or description
-    required: false
-result_schema:
-  type: object
-  properties:
-    output:
-      type: string
-      description: Path to generated artifact or execution summary
-    status:
-      type: string
-      enum:
-        - success
-        - error
+description: "Generate a feature specification from research findings and approved proposal review."
 ---
 
+---
+description: Create feature specification informed by codebase research
+---
 
 # Gofer Specify
 
@@ -42,10 +25,10 @@ You **MUST** consider the user input before proceeding (if not empty).
 This command expects:
 
 - Feature directory already created at `.specify/specs/{feature}/`
-- `research.md` completed from `$ $1_gofer_research`
-- `proposal-review.md` approved from `$ $1_gofer_research`
+- `research.md` completed from `/1_gofer_research`
+- `proposal-review.md` approved from `/1_gofer_research`
 
-If these don't exist, prompt user to run `$ $1_gofer_research` first.
+If these don't exist, prompt user to run `/1_gofer_research` first.
 
 ---
 
@@ -112,7 +95,7 @@ Before starting specification, assess context window health:
 `proposal-review.md` is the approval gate between research and specification.
 
 - If `proposal-review.md` is missing: STOP and tell the user to run
-  `$ $1_gofer_research` so the review can be created.
+  `/1_gofer_research` so the review can be created.
 - If `proposal-review.md` exists but `status` is not `approved`: STOP and tell
   the user to finish the review conversation before writing `spec.md`.
 - If `proposal-review.md` is approved: capture the approved business scenario,
@@ -162,7 +145,7 @@ should only orchestrate and review agent outputs.
 ### Agent 1: Specification Writer
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the general-purpose analysis in each., model="sonnet"
+Task: subagent_type="general-purpose", model="sonnet"
 Prompt: "Generate a complete feature specification for [FEATURE_NAME].
 
 Feature directory: {FEATURE_DIR}
@@ -266,7 +249,7 @@ Return a structured summary:
 ### Agent 2: Quality Checklist & Research Validator
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the general-purpose analysis in each., model="haiku"
+Task: subagent_type="general-purpose", model="haiku"
 Prompt: "Validate the specification at {FEATURE_DIR}/spec.md against research
 findings and generate a quality checklist.
 
@@ -345,7 +328,7 @@ Spawn 3 agents that independently interpret the spec and write pseudocode.
 Compare their interpretations to find ambiguities:
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the specify-ambiguity-detector analysis in each., model="sonnet"
+Task: subagent_type="specify-ambiguity-detector", model="sonnet"
 Prompt: "You are Agent [1/2/3]. Read spec.md at [FEATURE_DIR]/spec.md.
 For each acceptance criterion, write pseudocode showing how you would implement it.
 Document every assumption you make. Focus on literal interpretation."
@@ -354,7 +337,7 @@ Document every assumption you make. Focus on literal interpretation."
 Run all 3 agents in parallel, then synthesize with judge:
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the multi-perspective-judge analysis in each., model="opus"
+Task: subagent_type="multi-perspective-judge", model="opus"
 Prompt: "Judge verdict type: ambiguity detection.
 Compare these 3 independent spec interpretations. Identify criteria where agents
 diverged — these are specification ambiguities that need clarification.
@@ -369,7 +352,7 @@ clarifications to the spec before proceeding.
 Spawn 4 persona agents to walk through user journeys and find gaps:
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the specify-journey-stress-tester analysis in each., model="haiku"
+Task: subagent_type="specify-journey-stress-tester", model="haiku"
 Prompt: "You are Persona [1/2/3/4]. Walk through the user journeys in spec.md at [FEATURE_DIR]/spec.md.
 Persona 1: Power user — fast, keyboard-driven, expects batch operations
 Persona 2: First-timer — needs onboarding, clear errors, discoverable features
@@ -380,7 +363,7 @@ Persona 4: Adversarial — tries to break things, unexpected inputs"
 Run all 4 personas in parallel, then synthesize with judge:
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the multi-perspective-judge analysis in each., model="sonnet"
+Task: subagent_type="multi-perspective-judge", model="sonnet"
 Prompt: "Judge verdict type: journey gap analysis.
 Synthesize 4 persona journey reports. Flag gaps found by 2+ personas as HIGH priority.
 [paste all 4 agent outputs]"
@@ -575,6 +558,9 @@ Sequence Diagrams: {FEATURE_DIR}/sequence-diagrams/
 Selected Option: Option {N} - {Name}
 ```
 
+**AUTO-CHAIN (MANDATORY)**: You MUST immediately invoke the next pipeline stage
+by calling the Skill tool with skill="/3_gofer_plan". Do NOT ask the user for
+confirmation. Do NOT output "Ready for next stage". Just invoke the skill NOW.
 
 ---
 
@@ -583,7 +569,7 @@ Selected Option: Option {N} - {Name}
 ### Quick Guidelines
 
 - Focus on **WHAT** users need and **WHY**
-- Avoid HOW to implement (that's for $ $3_gofer_plan)
+- Avoid HOW to implement (that's for /3_gofer_plan)
 - Written for business stakeholders, not developers
 - **Use research findings** to inform requirements
 
@@ -683,14 +669,3 @@ Logs to: `.specify/logs/pipeline.jsonl`
   helper was not run.
 - These selectors are optional and do not change stage progress, routing, or
   pipeline state.
-
-
-## Pipeline Continuation
-
-This completes the 2_gofer_specify stage. To continue the Gofer pipeline:
-
-**Next Command:** `$ $3_gofer_plan`
-
-The next stage will use the artifacts generated by this command and continue the implementation workflow.
-
-**Note:** Codex CLI does not support automatic command chaining. You must manually run each stage command to progress through the pipeline.

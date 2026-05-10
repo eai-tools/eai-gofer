@@ -618,10 +618,29 @@ separation from `tasks.md`:
   failure when the implementation is missing or incomplete.
 - Implement only against the approved `contract-pack.md`, `context-bundle.md`,
   `reuse-scan.md`, `journeys/base-journey.md`, and `plan.md`.
+- For application delivery, stop and return to the preview loop if
+  `{FEATURE_DIR}/ui-approval.md` is missing or not approved. App-delivery runs
+  MUST NOT continue as though the UI is settled when approval has not been
+  recorded.
+- For application delivery, use the Vertical Template already installed in the
+  workspace as the default UI lego-block source. Any create-new UI concept must
+  be justified in the approved plan and approval artifacts.
 - For application delivery, implement the four-step-or-fewer AI-augmented
   process as the user-facing spine. Each step must preserve its business goal,
   AI assistance mode, contextual prefill or conversational support, completion
   criteria, human controls, audit trail, and fallback/escalation path.
+- For application delivery, before showing any new MVP preview to the
+  stakeholder, collect screenshot, local render proof, or Playwright-style
+  self-review evidence and append it to `{FEATURE_DIR}/ui-review-log.md`.
+- For application delivery, after UI approval and before treating platform
+  selection as complete, update `{FEATURE_DIR}/service-fit-matrix.md` with
+  tenant-aware evidence from `eai --describe`, `eai whoami`, `eai tenant
+  select`, `eai resources schema`, `eai verify calls --format json`, or
+  equivalent approved platform evidence. The matrix must distinguish
+  accessible now, purchasable but unavailable now, and unavailable without new
+  platform work.
+- For non-app work, skip the preview, approval, branding, and service-fit gates
+  while preserving the same numbered stage flow.
 - Do not add extra user-facing app steps unless `plan.md` records why they
   cannot be combined, automated, or handled by generative AI assistance.
 - Re-run the same tests and validation checks after implementation.

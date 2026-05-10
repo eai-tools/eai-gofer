@@ -1,7 +1,7 @@
 ---
 generated: true
-generated_at: "2026-05-10T13:38:38.782Z"
-source_commit: "d7fa4cc243aeb1b82cdcc44fd69e610fb02dc507"
+generated_at: "2026-05-10T14:25:47.936Z"
+source_commit: "6b457ddd796d13c0da957e8a57840f3ca1e8b190"
 ---
 # Gofer - Technical Overview
 
@@ -14,7 +14,7 @@ source_commit: "d7fa4cc243aeb1b82cdcc44fd69e610fb02dc507"
 | **Primary Users** | Software development teams using Claude Code, GitHub Copilot, OpenAI Codex, or Gemini CLI for feature implementation |
 | **Data Sensitivity** | Low - stores specifications, plans, and code artifacts locally in repository workspace |
 | **Current Status** | Active Development (v3.3.0) - Production-ready with enterprise AI workflow enhancements |
-| **Last Material Change** | 2026-05-10 - Release v3.3.0 with vulnerability patches and documentation validation |
+| **Last Material Change** | 2026-05-10 - Retired legacy gofer docs root, updated documentation surfaces |
 
 ## Service Identity
 
@@ -24,7 +24,7 @@ source_commit: "d7fa4cc243aeb1b82cdcc44fd69e610fb02dc507"
 **Publisher:** Enterprise AI Pty Ltd
 **Description:** Spec-driven development system for AI assistants. Provides 40+ MCP tools that enable Claude Code, GitHub Copilot, OpenAI Codex, and Gemini CLI to autonomously implement features from specifications with UI-first app delivery workflow support.
 
-**Repository:** [https://github.com/enterpriseaigroup/tech-docs](https://github.com/enterpriseaigroup/tech-docs)
+**Repository:** [https://github.com/eai-tools/gofer](https://github.com/eai-tools/gofer)
 
 ## Purpose
 
@@ -179,7 +179,7 @@ gofer/
 1. **Install Extension**
 
    ```bash
-   gh release download --repo enterpriseaigroup/tech-docs --pattern "*.vsix"
+   gh release download --repo eai-tools/gofer --pattern "*.vsix"
    code --install-extension gofer-*.vsix
    ```
 
@@ -306,6 +306,7 @@ This repository maintains multiple documentation surfaces:
 ## Current Status
 
 - Nightly-managed `.tech-docs/` content is present for this repository.
-- Source commit: `d7fa4cc243ae`
+- Source commit: `6b457ddd796d`
 - Version: 3.3.0 (Released 2026-05-10)
-- Additional repo-local docs surfaces detected: 2
+- Additional repo-local docs surfaces detected: 1 (docs-site/)
+- Legacy documentation archived in `.tech-docs/legacy-src/docs/`

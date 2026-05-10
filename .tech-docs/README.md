@@ -1,13 +1,13 @@
 ---
 generated: true
-generated_at: "2026-05-10T13:38:38.782Z"
-source_commit: "d7fa4cc243aeb1b82cdcc44fd69e610fb02dc507"
+generated_at: "2026-05-10T14:25:47.936Z"
+source_commit: "6b457ddd796d13c0da957e8a57840f3ca1e8b190"
 ---
 # Technical Documentation Index
 
-**Repository:** [enterpriseaigroup/tech-docs](https://github.com/enterpriseaigroup/tech-docs)
+**Repository:** [eai-tools/gofer](https://github.com/eai-tools/gofer)
 **Version:** 3.3.0
-**Generated:** 2026-05-10T13:35:23Z
+**Generated:** 2026-05-10T14:23:11Z
 
 This directory contains comprehensive technical documentation for the Gofer VSCode extension project.
 
@@ -21,6 +21,7 @@ This directory contains comprehensive technical documentation for the Gofer VSCo
 - **Zero Breaking Changes** - Security patches applied without functionality impact
 
 ### Documentation & Testing
+- **Legacy Docs Retirement** - Consolidated documentation structure, archived legacy docs to `.tech-docs/legacy-src/`
 - **Enhanced Validation** - Realigned documentation validation test coverage
 - **Release Automation** - Improved VSIX packaging and GitHub release management
 

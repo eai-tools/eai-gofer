@@ -1,0 +1,16 @@
+{
+  "mcp": {
+    "servers": {
+      "gofer": {
+        "command": "node",
+        "args": [
+          "/Users/local-user/.vscode/extensions/enterpriseai.gofer-3.2.2/language-server/dist/server.js"
+        ],
+        "env": {
+          "ANTHROPIC_API_KEY": "${env:ANTHROPIC_API_KEY}"
+        },
+        "description": "Gofer - Spec-driven development orchestrator"
+      }
+    }
+  }
+}

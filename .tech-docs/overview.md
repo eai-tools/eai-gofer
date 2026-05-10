@@ -1,17 +1,28 @@
 ---
 generated: true
-generated_at: "2026-05-10T11:17:59.779Z"
-source_commit: "57666de1cd235757b2f0444b82e4f82aef6b8108"
+generated_at: "2026-05-10T12:23:06.706Z"
+source_commit: "ec462e53d60882a1959c0bf22456684e76b73cdc"
 ---
 # Gofer - Technical Overview
+
+## Executive Summary
+
+| Attribute | Value |
+|-----------|-------|
+| **Service Name** | Gofer for EnterpriseAI Vertical App Delivery |
+| **Primary Capability** | Spec-driven development workflow system with UI-first app delivery and multi-platform AI assistant support |
+| **Primary Users** | Software development teams using Claude Code, GitHub Copilot, OpenAI Codex, or Gemini CLI for feature implementation |
+| **Data Sensitivity** | Low - stores specifications, plans, and code artifacts locally in repository workspace |
+| **Current Status** | Active Development (v3.2.2) - Production-ready with enterprise AI workflow enhancements |
+| **Last Material Change** | 2026-05-10 - UI-first app delivery workflow and command parity improvements |
 
 ## Service Identity
 
 **Name:** Gofer
-**Version:** 3.2.0
-**Documentation Updated:** 2026-05-02
+**Version:** 3.2.2
+**Documentation Updated:** 2026-05-10
 **Publisher:** Enterprise AI Pty Ltd
-**Description:** Spec-driven development system for AI assistants. Provides 40+ MCP tools that enable Claude Code, GitHub Copilot, OpenAI Codex, and Gemini CLI to autonomously implement features from specifications.
+**Description:** Spec-driven development system for AI assistants. Provides 40+ MCP tools that enable Claude Code, GitHub Copilot, OpenAI Codex, and Gemini CLI to autonomously implement features from specifications with UI-first app delivery workflow support.
 
 **Repository:** [https://github.com/eai-tools/gofer](https://github.com/eai-tools/gofer)
 
@@ -57,7 +68,7 @@ Gofer is a VSCode extension that bridges human specifications with AI implementa
 - Initializes dependency injection container (TSyringe)
 - Starts Language Server and MCP tools
 - Sets up file watchers for real-time spec updates
-- **Extension file count:** 246 TypeScript files (across all modules)
+- **Extension file count:** 263 TypeScript files (across all modules)
 
 ### Language Server Entry Point
 
@@ -135,9 +146,10 @@ npx vsce package
 - Specifications stored in `.specify/specs/` directory
 - Constitution principles defined in `.specify/memory/constitution.md`
 
-**Active Specifications (2026-05-02):**
+**Active Specifications (2026-05-10):**
 
-- **031-skills-pipeline-augmentation** - Augmenting the Gofer skills pipeline with enhanced capabilities (Status: Active)
+- **032-gofer-ui-first-builder** - UI-first app delivery workflow with preview, approval, and service-fit gates (Status: Ready)
+- **031-skills-pipeline-augmentation** - Enhanced agent coordination and skill composition (Status: Active)
 
 ## Project Structure
 
@@ -236,6 +248,7 @@ gofer/
 - **Context REPL** - MCP tools for progressive context management (peek/grep/fold/expand/undo)
 - **Research Chunking** - On-demand loading of large research.md files to reduce context bloat
 - **Skills Pipeline Augmentation** - Enhanced agent coordination and skill composition (v3.2)
+- **UI-First App Delivery** - Preview-approval-service-fit workflow for vertical apps (v3.2.2)
 
 ## Data Storage
 
@@ -249,33 +262,49 @@ All data is stored in the `.specify/` directory:
 
 No database required - all data is file-based for Git-friendly version control.
 
-## Executive Summary
-
-This repository is documented through the standardized nightly `.tech-docs/` contract. **Description:** Spec-driven development system for AI assistants. Provides 40+ MCP tools that enable Claude Code, GitHub Copilot, OpenAI Codex, and Gemini CLI to autonomously impl
-
-| Attribute | Value |
-|---|---|
-| Repository | `gofer` |
-| Primary capability | **Description:** Spec-driven development system for AI assistants. Provides 40+ MCP tools that enable Claude Code, GitHub Copilot, OpenAI Codex, and Gemini CLI to autonomously impl |
-| Current status | Nightly-managed strict documentation contract applied |
-| Source commit | `57666de1cd23` |
-| Additional docs surfaces | 1 |
-
 ## Critical Integrations
 
-- See `dependencies.md` for the full upstream and downstream dependency map.
-- See `deployment.md` for runtime and publishing topology.
-- See `documentation-surfaces.md` for repo-local documentation and publishing surfaces.
+### Primary Integrations
+
+| System | Type | Purpose | Criticality |
+|--------|------|---------|-------------|
+| **VS Code Extension API** | Platform | Extension host, commands, views, language server protocol | Required |
+| **Anthropic API** | Upstream | Claude 3.5 Sonnet/Haiku for autonomous implementation | Optional (Claude Code only) |
+| **Google AI API** | Upstream | Gemini 1.5 Pro/Flash for LLM Council validation | Optional |
+| **OpenAI API** | Upstream | GPT-4 for LLM Council validation | Optional |
+| **Claude Code CLI** | Downstream | Primary consumer of MCP tools (40+ tools) | Primary |
+| **GitHub Copilot** | Downstream | Consumer of prompt files (`.github/prompts/`) | Core |
+| **OpenAI Codex CLI** | Downstream | Consumer of skill files (`.agents/skills/`) | Core |
+| **Gemini CLI** | Downstream | Consumer of command files (`.gemini/commands/gofer/`) | Core |
+
+### Secondary Integrations
+
+- **Twilio API** - Optional WhatsApp notifications for orchestrator runs
+- **GitHub API** - Optional auto-update checking
+- **GitHub Pages** - Documentation hosting for Docusaurus site
+
+See `./dependencies.md` for the full upstream and downstream dependency map.
+
+## Documentation Surfaces
+
+This repository maintains multiple documentation surfaces:
+
+| Path | Purpose | Publishing Workflow | Nightly Pipeline |
+|------|---------|---------------------|------------------|
+| `.tech-docs/` | Canonical technical snapshot (this documentation) | Auto-generated, triggers Pages deployment | Yes |
+| `docs-site/` | Docusaurus-based public documentation site | Built and deployed to GitHub Pages via `.github/workflows/pages.yml` | Consumes `.tech-docs/` |
+| `README.md` | Quick start and repository overview | Manually maintained | No |
+| `AGENTS.md` | Agent conventions and guidelines | Manually maintained | No |
+| `CLAUDE.md` | Project-specific instructions for Claude | Manually maintained | No |
+
+**Key Notes:**
+- `.tech-docs/` is the source of truth for technical documentation
+- `docs-site/` publishes `.tech-docs/` content to [https://enterpriseaigroup.github.io/tech-docs](https://enterpriseaigroup.github.io/tech-docs) (or equivalent GitHub Pages URL)
+- Changes to `.tech-docs/` automatically trigger a documentation site rebuild
+- Documentation site requires Node 24+ and uses Docusaurus 3.6.3
 
 ## Current Status
 
 - Nightly-managed `.tech-docs/` content is present for this repository.
-- Source commit: `57666de1cd23`
-- Additional repo-local docs surfaces detected: 1
-
-## Documentation Surfaces
-
-| Path | Purpose | Nightly managed |
-|---|---|---|
-| `.tech-docs/` | Canonical generated technical snapshot | Yes |
-| `docs-site/` | Repo-local documentation surface | No |
+- Source commit: `ec462e53d608`
+- Additional repo-local docs surfaces detected: 2

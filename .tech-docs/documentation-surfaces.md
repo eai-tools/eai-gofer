@@ -1,7 +1,7 @@
 ---
 generated: true
-generated_at: "2026-05-10T11:17:59.779Z"
-source_commit: "57666de1cd235757b2f0444b82e4f82aef6b8108"
+generated_at: "2026-05-10T12:23:06.706Z"
+source_commit: "ec462e53d60882a1959c0bf22456684e76b73cdc"
 ---
 # Documentation Surfaces
 
@@ -28,7 +28,7 @@ The central nightly `tech-docs` process treats `.tech-docs/` as the canonical ge
 
 ## Consolidation Status
 
-- Repo: `gofer`
+- Repo: `tech-docs`
 - Canonical nightly-generated surface: `.tech-docs/`
 - Additional surfaces detected: 2
 - Additional docs workflows detected: 1

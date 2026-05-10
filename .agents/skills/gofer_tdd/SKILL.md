@@ -1,26 +1,6 @@
 ---
 name: gofer:tdd
-description: Gofer TDD
-gofer:
-  workflowProfile: enterpriseai
-  canonicalSource: .specify/commands/gofer_tdd.md
-  canonicalChecksum: c6792a024bb9514eafd9fe08018e160be2fcce5d14d52c7fe12ac7b55d694255
-  metadataSource: extension/src/services/migration/ResourceSyncer.ts
-arguments:
-  - name: feature
-    description: Feature name or description
-    required: false
-result_schema:
-  type: object
-  properties:
-    output:
-      type: string
-      description: Path to generated artifact or execution summary
-    status:
-      type: string
-      enum:
-        - success
-        - error
+description: "Guide a red-green-refactor loop tied to spec acceptance criteria."
 ---
 
 
@@ -30,7 +10,7 @@ Guide a red-green-refactor loop for the active feature and write the cycle log
 to `.specify/specs/{feature}/tdd-session.md`.
 
 Use this helper when you want to work test-first inside the existing Gofer
-implementation flow without replacing `$ $5_gofer_implement` or `$ $9_gofer_tests`.
+implementation flow without replacing `/5_gofer_implement` or `/9_gofer_tests`.
 
 When you run this helper:
 

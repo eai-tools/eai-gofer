@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [3.3.0] - 2026-05-10
+
+Refresh live validation for 031/032, restore release/doc validation contracts, and remediate vulnerable transitive dependencies.
+
 ## [3.2.2] - 2026-05-03
 
 Refine the Rules and Memory panel, restore editable markdown flows, and tighten memory curation behavior

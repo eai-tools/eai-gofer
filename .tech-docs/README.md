@@ -1,8 +1,8 @@
 ---
-generated: "2026-05-02T17:49:07Z"
-source_commit: "46486d94a7292a485629613e8e8277c4d2e6e1d1"
+generated: true
+generated_at: "2026-05-10T11:17:59.779Z"
+source_commit: "57666de1cd235757b2f0444b82e4f82aef6b8108"
 ---
-
 # Technical Documentation Index
 
 **Repository:** [eai-tools/gofer](https://github.com/eai-tools/gofer)
@@ -368,10 +368,10 @@ When making changes, update these files if applicable:
 
 ## External References
 
-- **User Documentation:** [README.md](../README.md)
-- **Agent Guidelines:** [AGENTS.md](../AGENTS.md)
-- **Project Instructions:** [CLAUDE.md](../CLAUDE.md)
-- **CLI Support Guide:** [docs/cli-support.md](../docs/cli-support.md) (v3.0+)
+- **User Documentation:** README.md (`README.md`)
+- **Agent Guidelines:** AGENTS.md (`AGENTS.md`)
+- **Project Instructions:** CLAUDE.md (`CLAUDE.md`)
+- **CLI Support Guide:** docs/cli-support.md (`../docs/cli-support.md`) (v3.0+)
 - **GitHub Repository:** [https://github.com/eai-tools/gofer](https://github.com/eai-tools/gofer)
 
 ---

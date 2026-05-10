@@ -443,15 +443,15 @@ print_success "Pre-push validation complete"
 # the repo validations pass. This keeps failed release attempts from mutating
 # the published release feed state in the working tree.
 print_info "Preparing GitHub Pages release assets..."
-mkdir -p docs/releases
-cp "gofer-$NEW_VERSION.vsix" "docs/releases/"
-print_success "Copied VSIX to docs/releases/ for GitHub Pages hosting"
+mkdir -p docs-site/static/releases
+cp "gofer-$NEW_VERSION.vsix" "docs-site/static/releases/"
+print_success "Copied VSIX to docs-site/static/releases/ for GitHub Pages hosting"
 
 # Update GitHub Pages releases.json with GitHub Pages download URLs.
 print_info "Updating GitHub Pages releases.json..."
-if [ -f "docs/update-releases.js" ]; then
+if [ -f "scripts/update-releases.js" ]; then
     GITHUB_PAGES_URL="https://eai-tools.github.io/gofer/releases/gofer-$NEW_VERSION.vsix"
-    node docs/update-releases.js "$NEW_VERSION" "$RELEASE_NOTES" "$GITHUB_PAGES_URL"
+    node scripts/update-releases.js "$NEW_VERSION" "$RELEASE_NOTES" "$GITHUB_PAGES_URL"
     print_success "Updated GitHub Pages release data with assets"
 else
     print_warning "GitHub Pages update script not found, skipping..."
@@ -505,7 +505,7 @@ fi
 # Wait for GitHub Pages deployment
 print_info "Waiting for GitHub Pages deployment..."
 echo ""
-print_info "The GitHub Pages workflow will automatically deploy when it detects changes to docs/"
+print_info "The GitHub Pages workflow will automatically deploy when it detects changes to docs-site/"
 print_info "This typically takes 1-2 minutes."
 echo ""
 print_info "Checking deployment status in 30 seconds..."

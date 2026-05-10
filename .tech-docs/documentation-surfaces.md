@@ -1,7 +1,7 @@
 ---
 generated: true
-generated_at: "2026-05-10T13:38:38.782Z"
-source_commit: "d7fa4cc243aeb1b82cdcc44fd69e610fb02dc507"
+generated_at: "2026-05-10T14:25:47.936Z"
+source_commit: "6b457ddd796d13c0da957e8a57840f3ca1e8b190"
 ---
 # Documentation Surfaces
 
@@ -17,7 +17,6 @@ The central nightly `tech-docs` process treats `.tech-docs/` as the canonical ge
 
 | Path | Role | Central nightly aggregation |
 |---|---|---|
-| `docs/` | Published or authored docs tree | No; should be summarized into `.tech-docs/` |
 | `docs-site/` | Docs-site framework project | No; should be summarized into `.tech-docs/` |
 
 ## Documentation Workflows
@@ -30,5 +29,5 @@ The central nightly `tech-docs` process treats `.tech-docs/` as the canonical ge
 
 - Repo: `tech-docs`
 - Canonical nightly-generated surface: `.tech-docs/`
-- Additional surfaces detected: 2
+- Additional surfaces detected: 1
 - Additional docs workflows detected: 1

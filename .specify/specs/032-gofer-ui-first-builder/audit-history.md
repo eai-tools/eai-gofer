@@ -1,6 +1,7 @@
 ---
 feature: '032-gofer-ui-first-builder'
 created: '2026-05-10T09:31:57Z'
+updated: '2026-05-10T12:38:00Z'
 workflowProfile: enterpriseai
 ---
 
@@ -8,13 +9,17 @@ workflowProfile: enterpriseai
 
 ## Finding Register
 
-| Finding ID | Source | Severity | Status | Recurrence | Owner | Expiry | Evidence |
-| ---------- | ------ | -------- | ------ | ---------- | ----- | ------ | -------- |
-| AUD-001 | focused validation slice | Gray | Accepted | 1 | workflow maintainer | 2026-06-10 | validation-report.md |
+| Finding ID | Source                                                         | Severity | Status | Recurrence | Owner               | Expiry | Evidence             |
+| ---------- | -------------------------------------------------------------- | -------- | ------ | ---------- | ------------------- | ------ | -------------------- |
+| AUD-001    | live validation baseline gap from the earlier focused-only run | Gray     | Fixed  | 1          | workflow maintainer | —      | validation-report.md |
 
-## Accepted Exceptions
+## Resolution Notes
 
-| Finding ID | Decision Owner | Reason | Compensating Control | Expiry | Review Cadence |
-| ---------- | -------------- | ------ | -------------------- | ------ | -------------- |
-| AUD-001 | workflow maintainer | unrelated baseline assumptions in `tests/integration/command-generation.test.ts` reference files/specs missing in the current working tree and were not modified by this feature | feature-owned validation used generator/build/focused tests that directly cover the changed surface | 2026-06-10 | next repo hygiene pass |
-
+- The historical focused-only validation exception is now closed.
+- Fresh live validation on `2026-05-10` includes:
+  - `npm run gofer:generate` PASS
+  - focused `032` Vitest slice PASS (`4` files / `35` tests)
+  - `npm run build` PASS
+  - repo-wide `npm test` PASS (`251` files / `3363` tests)
+- Current status: `110/110 PASS`, `blast_radius_verdict: CONTAINED`,
+  `engineering-review-report.md: PASS`.

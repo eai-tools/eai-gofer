@@ -1,28 +1,12 @@
 ---
 name: gofer_constitution
-description: Create or update project constitution with coding principles and guidelines
-gofer:
-  workflowProfile: enterpriseai
-  canonicalSource: .specify/commands/gofer_constitution.md
-  canonicalChecksum: acafc770f093d95c90afbd3cf7dbd4603e9811a141722761f143701168690e54
-  metadataSource: extension/src/services/migration/ResourceSyncer.ts
-arguments:
-  - name: feature
-    description: Feature name or description
-    required: false
-result_schema:
-  type: object
-  properties:
-    output:
-      type: string
-      description: Path to generated artifact or execution summary
-    status:
-      type: string
-      enum:
-        - success
-        - error
+description: "Create or update project constitution with coding principles and guidelines."
 ---
 
+---
+description:
+  Create or update project constitution with coding principles and guidelines
+---
 
 # Gofer Constitution
 
@@ -147,7 +131,7 @@ What would you like to update in the constitution?
 Before writing principles, understand current codebase:
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the codebase-pattern-finder analysis in each., model="haiku"
+Task: subagent_type="codebase-pattern-finder", model="haiku"
 Prompt: "Analyze the codebase for existing patterns and conventions.
 Find:
 - Naming conventions (files, variables, functions)
@@ -454,7 +438,7 @@ After creating/updating, validate:
 ### Codebase Alignment Check
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the codebase-analyzer analysis in each., model="sonnet"
+Task: subagent_type="codebase-analyzer", model="sonnet"
 Prompt: "Check if the codebase follows these constitution principles:
 [List key principles]
 Report any violations or areas needing attention."
@@ -496,7 +480,7 @@ Report any violations or areas needing attention."
   1. Review with team
   2. Address any violations found
   3. Add to onboarding documentation
-  4. Reference in $ $3_gofer_plan for alignment checks
+  4. Reference in /3_gofer_plan for alignment checks
 
 ================================================================
 ```
@@ -505,7 +489,7 @@ Report any violations or areas needing attention."
 
 ## Integration with Pipeline
 
-### During Planning ($ $3_gofer_plan)
+### During Planning (/3_gofer_plan)
 
 ```markdown
 ## Constitution Check
@@ -515,11 +499,11 @@ Report any violations or areas needing attention."
 - [ ] P3: [Principle] - Exception needed (see ADR-NNN)
 ```
 
-### During Implementation ($ $5_gofer_implement)
+### During Implementation (/5_gofer_implement)
 
 Before each task, verify implementation follows constitution.
 
-### During Validation ($ $6_gofer_validate)
+### During Validation (/6_gofer_validate)
 
 ```markdown
 ## Constitution Compliance
@@ -537,7 +521,7 @@ Before each task, verify implementation follows constitution.
 
 When learnings emerge from feature work:
 
-1. Run `$ $gofer_constitution` with update flag
+1. Run `/gofer_constitution` with update flag
 2. Add new principles or modify existing
 3. Create ADR for significant changes
 4. Update version history

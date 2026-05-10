@@ -14,14 +14,14 @@ branch: release-vscode-surface-truth
 
 ### Pipeline Progress
 
-| Stage | Status | Artifact |
-| --- | --- | --- |
-| 1_gofer_research | done | research.md, proposal-review.md, context-bundle.md, reuse-scan.md |
-| 2_gofer_specify | done | spec.md |
-| 3_gofer_plan | done | plan.md, data-model.md, contracts/ |
-| 4_gofer_tasks | done | tasks.md |
-| 5_gofer_implement | done | command sources, generator/runtime/install changes, mirror regeneration |
-| 6_gofer_validate | done | validation-report.md, blast-radius-report.md, traceability.md |
+| Stage             | Status | Artifact                                                                |
+| ----------------- | ------ | ----------------------------------------------------------------------- |
+| 1_gofer_research  | done   | research.md, proposal-review.md, context-bundle.md, reuse-scan.md       |
+| 2_gofer_specify   | done   | spec.md                                                                 |
+| 3_gofer_plan      | done   | plan.md, data-model.md, contracts/                                      |
+| 4_gofer_tasks     | done   | tasks.md                                                                |
+| 5_gofer_implement | done   | command sources, generator/runtime/install changes, mirror regeneration |
+| 6_gofer_validate  | done   | validation-report.md, blast-radius-report.md, traceability.md           |
 
 ### Active Task
 
@@ -30,8 +30,7 @@ branch: release-vscode-surface-truth
 - **Primary Files Being Modified**:
   `extension/src/services/migration/UpgradeService.ts`,
   `extension/src/goferMigrator.ts`,
-  `.specify/scripts/node/generate-commands.mjs`,
-  `docs/cli-support.md`,
+  `.specify/scripts/node/generate-commands.mjs`, `docs/cli-support.md`,
   `tests/integration/command-generation.test.ts`
 - **What Was Happening**: the Codex install model was aligned to the current
   official repo-local `.agents/skills` behavior, default VS Code install/update
@@ -51,19 +50,18 @@ branch: release-vscode-surface-truth
 ### Committed This Session
 
 No new commit was created for this work during this save. Current branch head is
-still:
-`54a2ac1 docs: update .tech-docs/ [nightly-automated]`
+still: `54a2ac1 docs: update .tech-docs/ [nightly-automated]`
 
 ### Uncommitted Changes
 
-| File | Status | Description |
-| --- | --- | --- |
-| `extension/src/services/migration/UpgradeService.ts` | Modified | Removed automatic `~/.codex/skills` setup from normal update/upgrade flow |
-| `extension/src/goferMigrator.ts` | Modified | Kept global Codex symlink logic as legacy-only helper; missing-resource sync no longer calls it |
-| `.specify/scripts/node/generate-commands.mjs` and generator companions | Modified | Canonical Codex emission stays flat under `.agents/skills` with path-based config sample |
-| `docs/cli-support.md`, `README.md`, `MULTI_CLI_SETUP.md`, `docs/quickstart.md`, `docs/setup-codex-cli.md` | Modified | Documentation updated to the repo-local Codex install model |
-| `tests/integration/command-generation.test.ts`, `tests/integration/cross-platform-parity.test.ts`, `tests/integration/mcp-integration.test.ts` | Modified | Stale `.system/skills/gofer/...` expectations updated to canonical `.agents/skills/...` behavior |
-| `.agents/skills/*`, `.system/skills/*`, `extension/resources/**`, `.claude/**`, `.github/prompts/**`, `.gemini/**` | Modified / New / Deleted | Regenerated mirrors and deleted legacy nested `gofer/` Codex trees |
+| File                                                                                                                                           | Status                   | Description                                                                                      |
+| ---------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------ |
+| `extension/src/services/migration/UpgradeService.ts`                                                                                           | Modified                 | Removed automatic `~/.codex/skills` setup from normal update/upgrade flow                        |
+| `extension/src/goferMigrator.ts`                                                                                                               | Modified                 | Kept global Codex symlink logic as legacy-only helper; missing-resource sync no longer calls it  |
+| `.specify/scripts/node/generate-commands.mjs` and generator companions                                                                         | Modified                 | Canonical Codex emission stays flat under `.agents/skills` with path-based config sample         |
+| `docs/cli-support.md`, `README.md`, `MULTI_CLI_SETUP.md`, `docs/quickstart.md`, `docs/setup-codex-cli.md`                                      | Modified                 | Documentation updated to the repo-local Codex install model                                      |
+| `tests/integration/command-generation.test.ts`, `tests/integration/cross-platform-parity.test.ts`, `tests/integration/mcp-integration.test.ts` | Modified                 | Stale `.system/skills/gofer/...` expectations updated to canonical `.agents/skills/...` behavior |
+| `.agents/skills/*`, `.system/skills/*`, `extension/resources/**`, `.claude/**`, `.github/prompts/**`, `.gemini/**`                             | Modified / New / Deleted | Regenerated mirrors and deleted legacy nested `gofer/` Codex trees                               |
 
 Working tree summary at save time:
 
@@ -95,8 +93,8 @@ Working tree summary at save time:
 3. **Cross-CLI parity remains mandatory**: Claude, Copilot, Codex, and Gemini
    must continue to emit from the same canonical command set without breaking
    their existing surfaces.
-4. **The feature is validated complete**: `validation-report.md` is `PASS
-   110/110`, `traceability.md` covers `4/4` user stories and `18/18`
+4. **The feature is validated complete**: `validation-report.md` is
+   `PASS 110/110`, `traceability.md` covers `4/4` user stories and `18/18`
    acceptance criteria, and the current full test suite passed `247` files /
    `3335` tests.
 5. **Release packaging still depends on canonical sync**: `extension/resources`
@@ -158,9 +156,8 @@ git checkout release-vscode-surface-truth
 ## Test Status
 
 - [x] Build passes: `npm run build`
-- [x] Tests pass: `npm test` (`247` files / `3335` tests)
-- [ ] Lint passes: not rerun after the latest install-model/doc/test updates in
-      this session
+- [x] Tests pass: `npm test` (`251` files / `3363` tests)
+- [x] Lint passes: `npm run lint`
 - [x] Extension compile passes: `cd extension && npm run compile`
 - [x] Context health: healthy (`2%`, estimated)
 
@@ -172,3 +169,19 @@ git checkout release-vscode-surface-truth
   alignment work, not because context pressure forced a save.
 - Normal Gofer installs should now work on anyone's machine without depending on
   a user-specific Codex home-directory symlink.
+
+## Revalidation: 2026-05-10 (`main`)
+
+- This checkpoint remains historically accurate for the saved
+  `release-vscode-surface-truth` branch state, but it does not match the current
+  `main` worktree.
+- Revalidation on `main` temporarily reopened `T030`, `T033`, and `T037` in
+  `.specify/specs/031-skills-pipeline-augmentation/tasks.md`, then closed them
+  again after the repo-root `AGENTS.md` manifest was restored.
+- The `AGENTS.md` blocker is cleared:
+  `tests/unit/scripts/agents-md-shape.test.ts` and the full `npm test` suite now
+  pass on `main`.
+- Effective task status on `main`: `39/39` complete.
+- Fresh live validation on `2026-05-10` also passed `npm run gofer:generate`,
+  `npm run gofer:codex-doctor`, focused `031` validation (`15` files / `298`
+  tests), `npm run build:all`, and `npm --prefix extension run lint`.

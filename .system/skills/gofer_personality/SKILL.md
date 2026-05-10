@@ -1,26 +1,6 @@
 ---
 name: gofer:personality
-description: Gofer Personality
-gofer:
-  workflowProfile: enterpriseai
-  canonicalSource: .specify/commands/gofer_personality.md
-  canonicalChecksum: a4550e37f65b7f9140226caf4a3507bc9db6959038714f0cc984975278be2e79
-  metadataSource: extension/src/services/migration/ResourceSyncer.ts
-arguments:
-  - name: feature
-    description: Feature name or description
-    required: false
-result_schema:
-  type: object
-  properties:
-    output:
-      type: string
-      description: Path to generated artifact or execution summary
-    status:
-      type: string
-      enum:
-        - success
-        - error
+description: "Set the assistant personality for this Gofer session: friendly, pragmatic, or none (default)."
 ---
 
 

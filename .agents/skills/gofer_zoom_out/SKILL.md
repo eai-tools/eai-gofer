@@ -1,26 +1,6 @@
 ---
 name: gofer:zoom-out
-description: Gofer Zoom Out
-gofer:
-  workflowProfile: enterpriseai
-  canonicalSource: .specify/commands/gofer_zoom_out.md
-  canonicalChecksum: e42e56e75cff49c45d92540206747c189871f096d8573fb168d4987c8044119c
-  metadataSource: extension/src/services/migration/ResourceSyncer.ts
-arguments:
-  - name: feature
-    description: Feature name or description
-    required: false
-result_schema:
-  type: object
-  properties:
-    output:
-      type: string
-      description: Path to generated artifact or execution summary
-    status:
-      type: string
-      enum:
-        - success
-        - error
+description: "Show how the current feature connects to broader system boundaries."
 ---
 
 

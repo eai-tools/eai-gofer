@@ -1,26 +1,6 @@
 ---
 name: gofer:vocabulary
-description: Gofer Vocabulary
-gofer:
-  workflowProfile: enterpriseai
-  canonicalSource: .specify/commands/gofer_vocabulary.md
-  canonicalChecksum: 8ebad3720bfefd6da61879221a06f41e9fc8a1626d7173483b2086f62c0302f3
-  metadataSource: extension/src/services/migration/ResourceSyncer.ts
-arguments:
-  - name: feature
-    description: Feature name or description
-    required: false
-result_schema:
-  type: object
-  properties:
-    output:
-      type: string
-      description: Path to generated artifact or execution summary
-    status:
-      type: string
-      enum:
-        - success
-        - error
+description: "Extract domain terminology into a canonical feature glossary."
 ---
 
 

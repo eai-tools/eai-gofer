@@ -1,29 +1,30 @@
 ---
 generated: true
-generated_at: "2026-05-10T11:17:59.779Z"
-source_commit: "57666de1cd235757b2f0444b82e4f82aef6b8108"
+generated_at: "2026-05-10T12:23:06.706Z"
+source_commit: "ec462e53d60882a1959c0bf22456684e76b73cdc"
 ---
 # Technical Documentation Index
 
 **Repository:** [eai-tools/gofer](https://github.com/eai-tools/gofer)
-**Version:** 3.2.0
-**Generated:** 2026-05-02T17:49:07Z
+**Version:** 3.2.2
+**Generated:** 2026-05-10T12:19:48Z
 
 This directory contains comprehensive technical documentation for the Gofer VSCode extension project.
 
 ---
 
-## What's New in v3.2
+## What's New in v3.2.2
 
-### Skills Pipeline Augmentation
-- **Enhanced Agent Coordination** - Better multi-agent orchestration
-- **Improved Skill Composition** - More flexible skill chaining
-- **Pipeline Optimizations** - Faster stage transitions
+### UI-First App Delivery Workflow
+- **Preview-Approval-Service-Fit Gates** - App delivery converges on UI earlier
+- **Dual-Mode Shared Pipeline** - App and non-app work coexist in numbered stages
+- **Vertical Template Integration** - Constrained previews with branding workflow
+- **Self-Review Evidence** - Preview validation before stakeholder presentation
 
-### Infrastructure Improvements
-- **Deduplicated Release Index** - Cleaner release artifact management
-- **Automated Documentation** - Nightly tech docs updates
-- **Release Retention Policy** - Keep last 5 VSIX releases
+### Command Parity & Infrastructure
+- **Restored Command Compatibility** - Fixed CLI surface synchronization across platforms
+- **Standardized Documentation** - Enhanced `.tech-docs/` format with executive summaries
+- **Skills Pipeline Augmentation** - Enhanced agent coordination (v3.2.0)
 
 ---
 
@@ -59,11 +60,14 @@ This directory contains comprehensive technical documentation for the Gofer VSCo
 Service identity, tech stack, and quick start guide.
 
 **Contents:**
+- Executive summary with service identity table
 - Service purpose and description
 - Technology stack table (TypeScript 5.7.2, Node 20.x, VSCode 1.85.0+)
-- Key entry points (246 TypeScript files across all modules)
+- Key entry points (263 TypeScript files across all modules)
 - Local development setup
 - Multi-platform CLI support (v3.0+)
+- Critical integrations matrix
+- Documentation surfaces catalog
 - Team/ownership
 
 ---
@@ -301,11 +305,11 @@ Design patterns and technical debt analysis.
 
 ### Version Tracking
 
-- **Version:** 3.2.0
-- **Commit:** 46486d94a7292a485629613e8e8277c4d2e6e1d1
-- **Generated:** 2026-05-02T17:49:07Z
-- **Previous Update:** 2026-05-01 (65a155c8c10add0b07607d3669e450d458df9d9f)
-- **Change Summary:** Updated to v3.2.0 with skills pipeline augmentation and release management fixes
+- **Version:** 3.2.2
+- **Commit:** ec462e53d60882a1959c0bf22456684e76b73cdc
+- **Generated:** 2026-05-10T12:19:48Z
+- **Previous Update:** 2026-05-10 11:17 UTC (57666de1cd235757b2f0444b82e4f82aef6b8108)
+- **Change Summary:** Updated to v3.2.2 with UI-first app delivery workflow, command parity restoration, and standardized documentation
 
 ### Regenerating Documentation
 
@@ -380,9 +384,9 @@ When making changes, update these files if applicable:
 
 | Metric                      | Value                           |
 | --------------------------- | ------------------------------- |
-| Version                     | 3.2.0                           |
-| TypeScript Files            | 246 files (all modules)         |
-| Active Specifications       | 1 (031-skills-pipeline-augmentation) |
+| Version                     | 3.2.2                           |
+| TypeScript Files            | 263 files (all modules)         |
+| Active Specifications       | 2 (032-ui-first-builder, 031-skills-pipeline) |
 | Archived Specifications     | 30+ specs                       |
 | MCP Tools                   | 40+ tools                       |
 | VSCode Commands             | 30+ commands                    |

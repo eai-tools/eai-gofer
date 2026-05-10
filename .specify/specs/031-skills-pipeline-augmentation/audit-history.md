@@ -219,6 +219,8 @@ Source:
   Gofer bundles detected.
 - Focused `031` validation slice passed: `15` files / `298` tests.
 - Full repo validation passed: `251` files / `3363` tests.
+- Publish-prep rerun remained green after follow-up docs/test maintenance for
+  release contracts and `.tech-docs` path realignment.
 - `HAS_UI=false` and `DEPLOY_IN_SCOPE=false` remained correct for this
   workflow-platform feature.
 - Latest validation result: `110/110 PASS` with

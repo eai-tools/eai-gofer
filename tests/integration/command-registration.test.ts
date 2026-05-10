@@ -99,29 +99,28 @@ interface PackageJson {
 const COMMAND_DOC_PATHS = [
   '../../README.md',
   '../../extension/README.md',
-  '../../.tech-docs/legacy-src/docs/README.md',
-  '../../.tech-docs/legacy-src/docs/quickstart.md',
-  '../../.tech-docs/legacy-src/docs/cli-support.md',
-  '../../.tech-docs/legacy-src/docs/setup-claude-code.md',
-  '../../.tech-docs/legacy-src/docs/setup-copilot-chat.md',
-  '../../.tech-docs/legacy-src/docs/setup-codex-cli.md',
-  '../../.tech-docs/legacy-src/docs/multi-provider-cli-support.md',
+  '../../.tech-docs/README.md',
+  '../../.tech-docs/overview.md',
+  '../../.tech-docs/data-model.md',
 ];
-const COMMAND_ID_DOC_PATHS = ['../../.tech-docs/legacy-src/docs/agentic-coding/AGENT_TOOLING_REFERENCE.md'];
-const COMMAND_PALETTE_DOC_PATHS = ['../../.tech-docs/legacy-src/docs/API_KEY_SETUP.md'];
+const COMMAND_ID_DOC_PATHS = ['../../.tech-docs/review/patterns.md'];
+const COMMAND_PALETTE_DOC_PATHS = [
+  '../../README.md',
+  '../../extension/README.md',
+  '../../.tech-docs/overview.md',
+];
 
 const SETTINGS_DOC_PATHS = [
   '../../README.md',
   '../../extension/README.md',
-  '../../.tech-docs/legacy-src/docs/API_KEY_SETUP.md',
-  '../../.tech-docs/legacy-src/docs/guides/configuration.md',
-  '../../.tech-docs/legacy-src/docs/guides/session-management.md',
+  '../../.tech-docs/README.md',
+  '../../.tech-docs/configuration.md',
 ];
-const SETTINGS_DEFAULT_DOC_PATHS = [
-  '../../.tech-docs/legacy-src/docs/guides/configuration.md',
-  '../../.tech-docs/legacy-src/docs/guides/session-management.md',
+const SETTINGS_DEFAULT_DOC_PATHS = ['../../.tech-docs/configuration.md'];
+const LEGACY_DOC_PREFIX_PATHS = [
+  '../../.tech-docs/architecture.md',
+  '../../.tech-docs/review/patterns.md',
 ];
-const LEGACY_DOC_PREFIX_PATHS = ['../../.tech-docs/legacy-src/docs/agentic-coding/AGENT_TOOLING_REFERENCE.md'];
 const DELETED_LEGACY_DOC_PATHS = [
   'docs/migration-guide.md',
   'docs/WHATSAPP_SETUP.md',
@@ -541,7 +540,7 @@ describe('Command Registration Validation', () => {
   it('should surface unexpected spec picker load failures through the shared logger and UI', () => {
     expect(specCommandsSource).toContain("Logger.for('SpecCommands')");
     expect(specCommandsSource).toContain("logger.error('Failed to load specs for picker'");
-    expect(specCommandsSource).toContain("showErrorMessage(`Failed to load specs:");
+    expect(specCommandsSource).toContain('showErrorMessage(`Failed to load specs:');
     expect(specCommandsSource).not.toContain('console.error(');
   });
 

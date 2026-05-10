@@ -1,28 +1,12 @@
 ---
 name: 10_gofer_cloud
-description: READ-ONLY cloud infrastructure analysis for Azure, AWS, GCP deployments
-gofer:
-  workflowProfile: enterpriseai
-  canonicalSource: .specify/commands/10_gofer_cloud.md
-  canonicalChecksum: 243126b1ceb3b5cd213829b030483a7fb250a87578070a43081ab6c0fd3a94fe
-  metadataSource: extension/src/services/migration/ResourceSyncer.ts
-arguments:
-  - name: feature
-    description: Feature name or description
-    required: false
-result_schema:
-  type: object
-  properties:
-    output:
-      type: string
-      description: Path to generated artifact or execution summary
-    status:
-      type: string
-      enum:
-        - success
-        - error
+description: "Deploy and configure the Gofer cloud integration for remote pipeline execution."
 ---
 
+---
+description:
+  READ-ONLY cloud infrastructure analysis for Azure, AWS, GCP deployments
+---
 
 # Gofer Cloud
 

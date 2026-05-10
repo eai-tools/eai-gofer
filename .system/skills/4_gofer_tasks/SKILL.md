@@ -1,28 +1,11 @@
 ---
 name: 4_gofer_tasks
-description: Generate actionable task breakdown from implementation plan
-gofer:
-  workflowProfile: enterpriseai
-  canonicalSource: .specify/commands/4_gofer_tasks.md
-  canonicalChecksum: f205d4d782c400ee58e9854fe5079a580e6ae54ad7c53d844dddf66deac4a432
-  metadataSource: extension/src/services/migration/ResourceSyncer.ts
-arguments:
-  - name: feature
-    description: Feature name or description
-    required: false
-result_schema:
-  type: object
-  properties:
-    output:
-      type: string
-      description: Path to generated artifact or execution summary
-    status:
-      type: string
-      enum:
-        - success
-        - error
+description: "Break down the implementation plan into dependency-ordered, parallelisable tasks."
 ---
 
+---
+description: Generate actionable task breakdown from implementation plan
+---
 
 # Gofer Tasks
 
@@ -41,9 +24,9 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 This command expects in `.specify/specs/{feature}/`:
 
-- `research.md` - Codebase analysis (from $ $1_gofer_research)
-- `spec.md` - Feature specification (from $ $2_gofer_specify)
-- `plan.md` - Implementation plan (from $ $3_gofer_plan)
+- `research.md` - Codebase analysis (from /1_gofer_research)
+- `spec.md` - Feature specification (from /2_gofer_specify)
+- `plan.md` - Implementation plan (from /3_gofer_plan)
 
 If missing, prompt user to run the prerequisite stage.
 
@@ -105,7 +88,7 @@ orchestrate and review agent outputs.
 ### Agent 1: Task Breakdown Generator
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the general-purpose analysis in each., model="sonnet"
+Task: subagent_type="general-purpose", model="sonnet"
 Prompt: "Generate a complete, dependency-ordered task breakdown for [FEATURE_NAME].
 
 Feature directory: {FEATURE_DIR}
@@ -169,7 +152,7 @@ Return a structured summary:
 ### Agent 2: Traceability Analyzer
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the general-purpose analysis in each., model="haiku"
+Task: subagent_type="general-purpose", model="haiku"
 Prompt: "Generate a requirement traceability artifact for [FEATURE_NAME].
 
 Feature directory: {FEATURE_DIR}
@@ -246,7 +229,7 @@ catch misalignment early.
 **Agent 1**: engineer-review (sonnet) — cross-check spec↔plan↔tasks alignment
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the engineer-review analysis in each., model="sonnet"
+Task: subagent_type="engineer-review", model="sonnet"
 Prompt: "Review alignment between spec.md, plan.md, and tasks.md in {FEATURE_DIR}.
 Find every gap, inconsistency, and misalignment. Report Red/Yellow/Gray findings."
 ```
@@ -254,7 +237,7 @@ Find every gap, inconsistency, and misalignment. Report Red/Yellow/Gray findings
 **Agent 2**: codebase-analyzer (sonnet) — verify file paths and code patterns
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the codebase-analyzer analysis in each., model="sonnet"
+Task: subagent_type="codebase-analyzer", model="sonnet"
 Prompt: "Verify that the tasks at {FEATURE_DIR}/tasks.md reference correct
 file paths and follow existing codebase patterns from {FEATURE_DIR}/research.md.
 Report Red/Yellow/Gray findings."
@@ -264,7 +247,7 @@ Report Red/Yellow/Gray findings."
 coverage
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the validation-correctness analysis in each., model="sonnet"
+Task: subagent_type="validation-correctness", model="sonnet"
 Prompt: "Verify that every acceptance criterion in {FEATURE_DIR}/spec.md
 is covered by at least one task in {FEATURE_DIR}/tasks.md.
 Report Red/Yellow/Gray findings with coverage gaps."
@@ -291,7 +274,7 @@ time-constrained.**
 Spawn 5 agents scanning for missing cross-cutting concerns:
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the tasks-cross-cutting-scanner analysis in each., model="haiku"
+Task: subagent_type="tasks-cross-cutting-scanner", model="haiku"
 Prompt: "Scan tasks.md at [FEATURE_DIR]/tasks.md for missing cross-cutting concerns.
 Dimension [1-5]:
 1: Logging/observability  2: Accessibility  3: Internationalization
@@ -302,7 +285,7 @@ Spec: [FEATURE_DIR]/spec.md"
 Run all 5 in parallel, then synthesize with judge:
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the multi-perspective-judge analysis in each., model="sonnet"
+Task: subagent_type="multi-perspective-judge", model="sonnet"
 Prompt: "Judge verdict type: cross-cutting concern gap analysis.
 Identify which missing concerns should be added as tasks before implementation.
 [paste all 5 agent outputs]"
@@ -315,7 +298,7 @@ Add HIGH priority missing tasks to tasks.md if the judge recommends them.
 Plan rollback for each implementation phase:
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the tasks-rollback-planner analysis in each., model="sonnet"
+Task: subagent_type="tasks-rollback-planner", model="sonnet"
 Prompt: "Analyze tasks.md at [FEATURE_DIR]/tasks.md.
 For each phase, design a rollback plan. Identify irreversible steps that need checkpoints."
 ```
@@ -399,7 +382,7 @@ Display the task summary and request explicit approval:
 
 | Response                    | Action                                                       |
 | --------------------------- | ------------------------------------------------------------ |
-| `approved` / `lgtm` / `yes` | Update status to `approved`, proceed to `$ $5_gofer_implement` |
+| `approved` / `lgtm` / `yes` | Update status to `approved`, proceed to `/5_gofer_implement` |
 | `modify [feedback]`         | Update tasks based on feedback, re-present for approval      |
 | `stop`                      | Halt pipeline, document reason in tasks.md                   |
 
@@ -431,6 +414,10 @@ After approval received:
 Engineering Review: PASSED (cycle [N] of 5)
 ```
 
+**AUTO-CHAIN (MANDATORY)**: You MUST immediately invoke the next pipeline stage
+by calling the Skill tool with skill="/5_gofer_implement". Do NOT ask the user
+for confirmation. Do NOT output "Ready for next stage". Just invoke the skill
+NOW.
 
 ---
 
@@ -468,7 +455,7 @@ manifest artifacts exist before any deploy command runs.
    - Inherits the `major.minor` pin recorded in `plan.md`.
 
 <!-- prettier-ignore -->
-The ordering above is non-negotiable: tasks.md MUST instruct the pipeline to scaffold before deployment, validate before deploy, and only then invoke pinned `eai-cli major.minor` deployment tasks. Breaking the order causes deployment preflight gating in `$ $5_gofer_implement` to fail.
+The ordering above is non-negotiable: tasks.md MUST instruct the pipeline to scaffold before deployment, validate before deploy, and only then invoke pinned `eai-cli major.minor` deployment tasks. Breaking the order causes deployment preflight gating in `/5_gofer_implement` to fail.
 
 ### App-Delivery Preconditions Inside Shared Stages
 
@@ -532,18 +519,6 @@ At stage completion, log metrics:
 Logs to: `.specify/logs/pipeline.jsonl`
 
 ---
-
-
-
-## Pipeline Continuation
-
-This completes the 4_gofer_tasks stage. To continue the Gofer pipeline:
-
-**Next Command:** `$ $5_gofer_implement`
-
-The next stage will use the artifacts generated by this command and continue the implementation workflow.
-
-**Note:** Codex CLI does not support automatic command chaining. You must manually run each stage command to progress through the pipeline.
 
 ## Key Rules
 

@@ -1,26 +1,6 @@
 ---
 name: gofer:plan
-description: Gofer Plan Mode Toggle
-gofer:
-  workflowProfile: enterpriseai
-  canonicalSource: .specify/commands/gofer_plan.md
-  canonicalChecksum: fd86cccc2fe623a6ef6041af7d16c311dce97bd52f7377f4c394e4ddcd43e129
-  metadataSource: extension/src/services/migration/ResourceSyncer.ts
-arguments:
-  - name: feature
-    description: Feature name or description
-    required: false
-result_schema:
-  type: object
-  properties:
-    output:
-      type: string
-      description: Path to generated artifact or execution summary
-    status:
-      type: string
-      enum:
-        - success
-        - error
+description: "Toggle plan mode in the active CLI session for the next user prompt; non-pipeline control command."
 ---
 
 

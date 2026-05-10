@@ -1,14 +1,14 @@
 ---
 generated: true
-generated_at: "2026-05-10T13:38:38.782Z"
-source_commit: "d7fa4cc243aeb1b82cdcc44fd69e610fb02dc507"
+generated_at: "2026-05-10T14:25:47.936Z"
+source_commit: "6b457ddd796d13c0da957e8a57840f3ca1e8b190"
 ---
 # Changelog
 
 ## Changes Since Last Documentation Update
 
-**Previous Update:** 2026-05-10 12:19 UTC (commit `ec462e53d60882a1959c0bf22456684e76b73cdc`)
-**Current Update:** 2026-05-10 13:35 UTC (commit `d7fa4cc243aeb1b82cdcc44fd69e610fb02dc507`)
+**Previous Update:** 2026-05-10 13:38 UTC (commit `d7fa4cc243aeb1b82cdcc44fd69e610fb02dc507`)
+**Current Update:** 2026-05-10 14:23 UTC (commit `6b457ddd796d13c0da957e8a57840f3ca1e8b190`)
 
 ### Version Updates
 
@@ -16,7 +16,22 @@ source_commit: "d7fa4cc243aeb1b82cdcc44fd69e610fb02dc507"
 
 ### Significant Changes
 
-#### 1. Dependency Security Patches (v3.3.0)
+#### 1. Legacy Documentation Retirement (2026-05-10)
+
+**Commit:** `6b457dd` - docs: retire legacy gofer docs root
+
+- Retired legacy documentation root that conflicted with unified `.tech-docs/` structure
+- Moved retired documentation to `.tech-docs/legacy-src/docs/legacy-workflow.md` for historical reference
+- Consolidated all active documentation surfaces under `.tech-docs/` and `docs-site/`
+- Aligned with nightly documentation generation pipeline
+
+**Impact:**
+- Cleaner documentation structure with single source of truth
+- Reduced documentation maintenance overhead
+- Better integration with automated documentation workflows
+- Legacy content preserved for reference but removed from active documentation
+
+#### 2. Dependency Security Patches (v3.3.0)
 
 **Commits:** `a3865a8` - chore(deps): override vulnerable transitive packages
 
@@ -30,7 +45,7 @@ source_commit: "d7fa4cc243aeb1b82cdcc44fd69e610fb02dc507"
 - No breaking changes to functionality
 - All transitive dependency vulnerabilities resolved
 
-#### 2. Documentation Validation and Coverage (v3.3.0)
+#### 3. Documentation Validation and Coverage (v3.3.0)
 
 **Commit:** `b1d4f6e` - test(gofer): realign docs validation coverage
 
@@ -44,7 +59,7 @@ source_commit: "d7fa4cc243aeb1b82cdcc44fd69e610fb02dc507"
 - Ensures generated documentation meets quality standards
 - Better test coverage for documentation generation
 
-#### 3. Release Automation Improvements (v3.3.0)
+#### 4. Release Automation Improvements (v3.3.0)
 
 **Commit:** `7f9e125` - fix(release): restore legacy workflow contract
 
@@ -58,7 +73,7 @@ source_commit: "d7fa4cc243aeb1b82cdcc44fd69e610fb02dc507"
 - Consistent VSIX package generation
 - Better GitHub release notes generation
 
-#### 4. UI-First App Delivery Workflow (v3.2.2)
+#### 5. UI-First App Delivery Workflow (v3.2.2)
 
 **Commits:** `3bef899`, `f3b6eca` - feat: add ui-first app delivery workflow
 
@@ -74,7 +89,7 @@ source_commit: "d7fa4cc243aeb1b82cdcc44fd69e610fb02dc507"
 - Non-app work continues through existing shared stages without app-only gates
 - Better alignment with EnterpriseAI vertical app delivery requirements
 
-#### 2. Command Parity Restoration (v3.2.2)
+#### 6. Command Parity Restoration (v3.2.2)
 
 **Commit:** `57666de` - fix: restore command parity compatibility
 
@@ -82,7 +97,7 @@ source_commit: "d7fa4cc243aeb1b82cdcc44fd69e610fb02dc507"
 - Ensured Claude Code, Copilot, Codex, and Gemini maintain feature parity
 - Resolved command generation synchronization issues
 
-#### 3. Documentation Standardization (v3.2.2)
+#### 7. Documentation Standardization (v3.2.2)
 
 **Commit:** `ec462e5` - docs: standardize nightly tech docs
 
@@ -100,6 +115,11 @@ None in this release.
 None in this release.
 
 ### New Features
+
+- **Legacy Documentation Archive** (2026-05-10)
+  - Retired legacy documentation moved to `.tech-docs/legacy-src/`
+  - Preserved for historical reference while consolidating active docs
+  - Supports unified documentation maintenance workflow
 
 - **Dependency Security Hardening** (v3.3.0)
   - Package override system for transitive dependency vulnerabilities
@@ -125,8 +145,10 @@ None in this release.
 
 ### Infrastructure Changes
 
+- Retired legacy documentation root in favor of unified `.tech-docs/` structure
 - Standardized nightly `.tech-docs/` generation format
 - Enhanced documentation structure with executive summaries
+- Improved documentation archival strategy with `.tech-docs/legacy-src/`
 
 ### Configuration Changes
 
@@ -213,5 +235,5 @@ No new configuration options added in this release.
 This `.tech-docs/` directory is automatically updated nightly to reflect the latest codebase state. The documentation is synchronized with the source code via automated CI workflows.
 
 **Update Frequency:** Nightly (automated via GitHub Actions)
-**Last Update:** 2026-05-10 13:35 UTC
+**Last Update:** 2026-05-10 14:23 UTC
 **Next Scheduled Update:** 2026-05-11 (nightly)

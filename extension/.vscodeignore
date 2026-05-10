@@ -1,0 +1,32 @@
+.vscode/**
+.vscode-test/**
+src/**
+.gitignore
+.yarnrc
+webpack.config.js
+**/tsconfig.json
+**/.eslintrc.json
+**/*.map
+**/*.ts
+# Keep the Language Server (copied during build)
+!language-server/dist/**
+!language-server/package.json
+!language-server/node_modules/**
+# Exclude Language Server source
+language-server/src/**
+# Exclude all node_modules by default
+node_modules/**
+# But keep node-pty-prebuilt-multiarch with all platform binaries
+!node_modules/node-pty-prebuilt-multiarch/**
+# Explicitly exclude only the build directory (platform-specific artifacts)
+# BUT keep the prebuilds directory (multi-platform binaries)
+node_modules/node-pty-prebuilt-multiarch/build/**
+!node_modules/node-pty-prebuilt-multiarch/prebuilds/**
+# Persona-pack visuals + canonical command source-of-truth must ship in VSIX
+# (T171 — feature 001-cli-innovations-visuals).
+!resources/templates/visuals/**
+!resources/templates/visuals/*.md
+!resources/claude-commands/**
+!resources/copilot-prompts/**
+!resources/specify-commands/**
+!resources/templates/**

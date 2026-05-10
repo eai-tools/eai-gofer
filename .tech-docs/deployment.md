@@ -1,7 +1,7 @@
 ---
 generated: true
-generated_at: "2026-05-10T12:23:06.706Z"
-source_commit: "ec462e53d60882a1959c0bf22456684e76b73cdc"
+generated_at: "2026-05-10T13:38:38.782Z"
+source_commit: "d7fa4cc243aeb1b82cdcc44fd69e610fb02dc507"
 ---
 # Deployment
 
@@ -197,10 +197,10 @@ Prompts for version number and release notes.
 
 ```bash
 # Latest release
-gh release download --repo eai-tools/gofer --pattern "*.vsix"
+gh release download --repo enterpriseaigroup/tech-docs --pattern "*.vsix"
 
 # Specific version
-gh release download v3.2.0 --repo eai-tools/gofer --pattern "*.vsix"
+gh release download v3.2.0 --repo enterpriseaigroup/tech-docs --pattern "*.vsix"
 ```
 
 **Install:**
@@ -228,7 +228,7 @@ code --install-extension gofer-3.2.0.vsix
 **From Source:**
 
 ```bash
-git clone https://github.com/eai-tools/gofer.git
+git clone https://github.com/enterpriseaigroup/tech-docs.git
 cd gofer
 npm install
 npm run build:all
@@ -505,7 +505,7 @@ git push origin main
 **Recovery:**
 
 ```bash
-git clone https://github.com/eai-tools/gofer.git
+git clone https://github.com/enterpriseaigroup/tech-docs.git
 ```
 
 ---

@@ -1,7 +1,7 @@
 ---
 generated: true
-generated_at: "2026-05-10T12:23:06.706Z"
-source_commit: "ec462e53d60882a1959c0bf22456684e76b73cdc"
+generated_at: "2026-05-10T13:38:38.782Z"
+source_commit: "d7fa4cc243aeb1b82cdcc44fd69e610fb02dc507"
 ---
 # Gofer - Technical Overview
 
@@ -13,18 +13,18 @@ source_commit: "ec462e53d60882a1959c0bf22456684e76b73cdc"
 | **Primary Capability** | Spec-driven development workflow system with UI-first app delivery and multi-platform AI assistant support |
 | **Primary Users** | Software development teams using Claude Code, GitHub Copilot, OpenAI Codex, or Gemini CLI for feature implementation |
 | **Data Sensitivity** | Low - stores specifications, plans, and code artifacts locally in repository workspace |
-| **Current Status** | Active Development (v3.2.2) - Production-ready with enterprise AI workflow enhancements |
-| **Last Material Change** | 2026-05-10 - UI-first app delivery workflow and command parity improvements |
+| **Current Status** | Active Development (v3.3.0) - Production-ready with enterprise AI workflow enhancements |
+| **Last Material Change** | 2026-05-10 - Release v3.3.0 with vulnerability patches and documentation validation |
 
 ## Service Identity
 
 **Name:** Gofer
-**Version:** 3.2.2
+**Version:** 3.3.0
 **Documentation Updated:** 2026-05-10
 **Publisher:** Enterprise AI Pty Ltd
 **Description:** Spec-driven development system for AI assistants. Provides 40+ MCP tools that enable Claude Code, GitHub Copilot, OpenAI Codex, and Gemini CLI to autonomously implement features from specifications with UI-first app delivery workflow support.
 
-**Repository:** [https://github.com/eai-tools/gofer](https://github.com/eai-tools/gofer)
+**Repository:** [https://github.com/enterpriseaigroup/tech-docs](https://github.com/enterpriseaigroup/tech-docs)
 
 ## Purpose
 
@@ -68,7 +68,7 @@ Gofer is a VSCode extension that bridges human specifications with AI implementa
 - Initializes dependency injection container (TSyringe)
 - Starts Language Server and MCP tools
 - Sets up file watchers for real-time spec updates
-- **Extension file count:** 263 TypeScript files (across all modules)
+- **Extension file count:** 247 TypeScript files (across all modules)
 
 ### Language Server Entry Point
 
@@ -148,8 +148,8 @@ npx vsce package
 
 **Active Specifications (2026-05-10):**
 
-- **032-gofer-ui-first-builder** - UI-first app delivery workflow with preview, approval, and service-fit gates (Status: Ready)
-- **031-skills-pipeline-augmentation** - Enhanced agent coordination and skill composition (Status: Active)
+- **032-gofer-ui-first-builder** - UI-first app delivery workflow with preview, approval, and service-fit gates (Status: Completed, Released in v3.2.2)
+- **031-skills-pipeline-augmentation** - Enhanced agent coordination and skill composition (Status: Completed, Released in v3.2.0)
 
 ## Project Structure
 
@@ -179,7 +179,7 @@ gofer/
 1. **Install Extension**
 
    ```bash
-   gh release download --repo eai-tools/gofer --pattern "*.vsix"
+   gh release download --repo enterpriseaigroup/tech-docs --pattern "*.vsix"
    code --install-extension gofer-*.vsix
    ```
 
@@ -299,12 +299,13 @@ This repository maintains multiple documentation surfaces:
 
 **Key Notes:**
 - `.tech-docs/` is the source of truth for technical documentation
-- `docs-site/` publishes `.tech-docs/` content to [https://enterpriseaigroup.github.io/tech-docs](https://enterpriseaigroup.github.io/tech-docs) (or equivalent GitHub Pages URL)
+- `docs-site/` publishes `.tech-docs/` content to GitHub Pages (configuration in progress)
 - Changes to `.tech-docs/` automatically trigger a documentation site rebuild
 - Documentation site requires Node 24+ and uses Docusaurus 3.6.3
 
 ## Current Status
 
 - Nightly-managed `.tech-docs/` content is present for this repository.
-- Source commit: `ec462e53d608`
+- Source commit: `d7fa4cc243ae`
+- Version: 3.3.0 (Released 2026-05-10)
 - Additional repo-local docs surfaces detected: 2

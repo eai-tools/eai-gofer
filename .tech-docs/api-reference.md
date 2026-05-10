@@ -1,7 +1,7 @@
 ---
 generated: true
-generated_at: "2026-05-10T12:23:06.706Z"
-source_commit: "ec462e53d60882a1959c0bf22456684e76b73cdc"
+generated_at: "2026-05-10T13:38:38.782Z"
+source_commit: "d7fa4cc243aeb1b82cdcc44fd69e610fb02dc507"
 ---
 # API Reference
 
@@ -841,7 +841,7 @@ end_date: 2026-04-30
 
 **Base URL:** [https://api.github.com](https://api.github.com)
 
-**Endpoint:** `GET /repos/eai-tools/gofer/releases/latest`
+**Endpoint:** `GET /repos/enterpriseaigroup/tech-docs/releases/latest`
 
 **No authentication required** (public repository)
 
@@ -853,7 +853,7 @@ end_date: 2026-04-30
   "assets": [
     {
       "name": "gofer-3.1.0.vsix",
-      "browser_download_url": "https://github.com/eai-tools/gofer/releases/download/v3.1.0/gofer-3.1.0.vsix"
+      "browser_download_url": "https://github.com/enterpriseaigroup/tech-docs/releases/download/v3.1.0/gofer-3.1.0.vsix"
     }
   ]
 }

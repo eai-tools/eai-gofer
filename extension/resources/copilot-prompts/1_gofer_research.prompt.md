@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: enterpriseai
   canonicalSource: .specify/commands/1_gofer_research.md
-  canonicalChecksum: 8275a05dcf3e78a1468f03b80c8bba00103dfce4c405292f3c19533c40cc9546
+  canonicalChecksum: d95dcba083abf5d7c230cb58f490e1ac6d5c96a6f6ed1d8a2cf396d05c09268f
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -47,6 +47,7 @@ This is the **first stage** of the unified Gofer pipeline. Your job is to:
 - `.specify/specs/{feature}/research.md`
 - `.specify/specs/{feature}/proposal-review.md`
 - `.specify/specs/{feature}/journeys/base-journey.md` (application delivery default)
+- `.specify/specs/{feature}/ui-preview-brief.md` (application delivery default)
 - `.specify/specs/{feature}/context-bundle.md` (EnterpriseAI default)
 - `.specify/specs/{feature}/reuse-scan.md` (EnterpriseAI default)
 
@@ -87,6 +88,8 @@ If discovery.md exists:
      app journey is required
    - AI-Augmented Journey → If app delivery, preserve the four-step-or-fewer
      journey as the scope spine for research
+   - Shared numbered-stage contract → if non-app, preserve the current shared
+     stages without adding app-only preview or service-fit requirements
 
 2. **Use discovery to guide agent prompts**:
    - Codebase Locator: Focus on areas related to the discovered problem
@@ -293,6 +296,19 @@ the standard profile, generate:
    - Decision for each candidate: reuse, extend, or create new.
    - Rationale, evidence path, and stakeholder/architecture owner if a new
      platform concept is recommended.
+3. `{FEATURE_DIR}/ui-preview-brief.md` (application delivery only)
+   - MVP preview scope: target users, must-have screens, target workflow, and
+     the smallest useful UI slice to show first.
+   - Vertical Template constraint map: which approved template blocks or layout
+     patterns the preview should use before any create-new UI concept is
+     considered.
+   - Branding inputs: whether client styling, logos, colors, copy tone, or
+     other corporate-brand artifacts must be applied.
+   - Preview validation plan: what screenshot, browser-render, or
+     Playwright-style self-review evidence must exist before Gofer presents the
+     preview to the stakeholder.
+   - Non-app runs MUST skip this artifact and record "Not applicable" in
+     `research.md`.
 
 Do not recommend a new EnterpriseAI object type, API/event, workflow, or module
 until the reuse-before-create scan is complete.
@@ -326,6 +342,11 @@ Once all agents complete:
    - Primary value delivered
    - Quantified or measurable goal
    - Why this should be EnterpriseAI-first
+4. **Application-Delivery Gate Summary** (app delivery only)
+   - Preview-first rationale and the smallest useful MVP to show first
+   - Vertical Template reuse constraints and any approved extension gaps
+   - Candidate capability-discovery inputs for the later service-fit gate
+   - Non-app runs must explicitly state "Not applicable"
 
 ### Novice Walkthrough Guardrail (MANDATORY)
 

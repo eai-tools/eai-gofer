@@ -1,7 +1,7 @@
 ---
 generated: true
-generated_at: "2026-05-10T13:38:38.782Z"
-source_commit: "d7fa4cc243aeb1b82cdcc44fd69e610fb02dc507"
+generated_at: "2026-05-10T14:25:47.936Z"
+source_commit: "6b457ddd796d13c0da957e8a57840f3ca1e8b190"
 ---
 # Architecture
 

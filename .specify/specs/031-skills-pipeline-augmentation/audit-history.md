@@ -1,6 +1,6 @@
 ---
 feature: '031-skills-pipeline-augmentation'
-updated: '2026-05-01'
+updated: '2026-05-10'
 owner: 'Gofer maintainers'
 status: active
 ---
@@ -9,17 +9,17 @@ status: active
 
 ## Rollout Tracking Table
 
-| Finding ID | Scenario | Owner | Review cadence | Exit condition | Linked task / test | Next validation expectation |
-| --- | --- | --- | --- | --- | --- | --- |
-| `VAL-TRUTH-001` | Missing executed test output forces Categories 1/2 = 0 | Gofer maintainers | Every `/6` run until 10 clean runs | Close after 10 consecutive clean runs with evidence table populated | T035, T036, `tests/unit/scripts/validation-evidence-gates.test.ts` | Every `/6` report must cite real executed test output before Categories 1/2 can score |
-| `VAL-TRUTH-002` | Missing runtime integration proof forces Category 5 = 0 | Gofer maintainers | Every `/6` run until 10 clean runs | Close after 10 consecutive clean runs with verified integration evidence | T035, T036, `tests/unit/scripts/validation-evidence-gates.test.ts` | Every `/6` report must cite runtime wiring proof or integration-test execution before Category 5 can score |
-| `VAL-TRUTH-003` | Missing required Category 3 render/deploy proof forces Category 3 = 0 | Gofer maintainers | Any UI-bearing `/6` run immediately | Close after 3 consecutive clean UI-bearing runs with the right proof type recorded | T035, T036, `tests/unit/scripts/validation-evidence-gates.test.ts`, `tests/unit/scripts/validation-report-compat.test.ts` | `HAS_UI = false` may redistribute; `HAS_UI = true` must cite local render proof or deploy/live proof depending on `DEPLOY_IN_SCOPE` |
-| `VAL-TRUTH-004` | Codex description budget regression (> 2048 bytes) blocks helper emission | Gofer maintainers | Every generator change | Close when budget stays green across 3 consecutive helper additions | T034, `tests/unit/scripts/helper-commands-cross-cli-parity.test.ts` | Every generator run must remain at or below the Codex byte budget before release |
+| Finding ID      | Scenario                                                                  | Owner             | Review cadence                      | Exit condition                                                                     | Linked task / test                                                                                                        | Next validation expectation                                                                                                         |
+| --------------- | ------------------------------------------------------------------------- | ----------------- | ----------------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `VAL-TRUTH-001` | Missing executed test output forces Categories 1/2 = 0                    | Gofer maintainers | Every `/6` run until 10 clean runs  | Close after 10 consecutive clean runs with evidence table populated                | T035, T036, `tests/unit/scripts/validation-evidence-gates.test.ts`                                                        | Every `/6` report must cite real executed test output before Categories 1/2 can score                                               |
+| `VAL-TRUTH-002` | Missing runtime integration proof forces Category 5 = 0                   | Gofer maintainers | Every `/6` run until 10 clean runs  | Close after 10 consecutive clean runs with verified integration evidence           | T035, T036, `tests/unit/scripts/validation-evidence-gates.test.ts`                                                        | Every `/6` report must cite runtime wiring proof or integration-test execution before Category 5 can score                          |
+| `VAL-TRUTH-003` | Missing required Category 3 render/deploy proof forces Category 3 = 0     | Gofer maintainers | Any UI-bearing `/6` run immediately | Close after 3 consecutive clean UI-bearing runs with the right proof type recorded | T035, T036, `tests/unit/scripts/validation-evidence-gates.test.ts`, `tests/unit/scripts/validation-report-compat.test.ts` | `HAS_UI = false` may redistribute; `HAS_UI = true` must cite local render proof or deploy/live proof depending on `DEPLOY_IN_SCOPE` |
+| `VAL-TRUTH-004` | Codex description budget regression (> 2048 bytes) blocks helper emission | Gofer maintainers | Every generator change              | Close when budget stays green across 3 consecutive helper additions                | T034, `tests/unit/scripts/helper-commands-cross-cli-parity.test.ts`                                                       | Every generator run must remain at or below the Codex byte budget before release                                                    |
 
 ## Rollout Evidence Notes
 
-This file records the rollout evidence that is actually available in the repo and
-this session. The original false-PASS incident that motivated feature 031 is
+This file records the rollout evidence that is actually available in the repo
+and this session. The original false-PASS incident that motivated feature 031 is
 retained as historical context, but the required T6.4 smoke excerpts are now
 backed by real persisted smoke runs archived under:
 
@@ -33,10 +33,12 @@ backed by real persisted smoke runs archived under:
 
 - **Owner**: Gofer maintainers
 - **Review cadence**: Every `/6` run until 10 clean runs
-- **Exit condition**: Close after 10 consecutive clean runs with evidence table populated
-- **Linked task / test**: T035, T036, `tests/unit/scripts/validation-evidence-gates.test.ts`
-- **Next validation expectation**: Categories 1 and 2 must stay at 0 whenever `/6`
-  lacks real executed test output.
+- **Exit condition**: Close after 10 consecutive clean runs with evidence table
+  populated
+- **Linked task / test**: T035, T036,
+  `tests/unit/scripts/validation-evidence-gates.test.ts`
+- **Next validation expectation**: Categories 1 and 2 must stay at 0 whenever
+  `/6` lacks real executed test output.
 
 **Recorded smoke excerpt**
 
@@ -58,8 +60,10 @@ behavior.
 
 - **Owner**: Gofer maintainers
 - **Review cadence**: Every `/6` run until 10 clean runs
-- **Exit condition**: Close after 10 consecutive clean runs with verified integration evidence
-- **Linked task / test**: T035, T036, `tests/unit/scripts/validation-evidence-gates.test.ts`
+- **Exit condition**: Close after 10 consecutive clean runs with verified
+  integration evidence
+- **Linked task / test**: T035, T036,
+  `tests/unit/scripts/validation-evidence-gates.test.ts`
 - **Next validation expectation**: Category 5 must stay at 0 whenever `/6`
   cannot point to runtime wiring proof or integration-test execution.
 
@@ -96,8 +100,11 @@ Source:
 
 - **Owner**: Gofer maintainers
 - **Review cadence**: Any UI-bearing `/6` run immediately
-- **Exit condition**: Close after 3 consecutive clean UI-bearing runs with the right proof type recorded
-- **Linked task / test**: T035, T036, `tests/unit/scripts/validation-evidence-gates.test.ts`, `tests/unit/scripts/validation-report-compat.test.ts`
+- **Exit condition**: Close after 3 consecutive clean UI-bearing runs with the
+  right proof type recorded
+- **Linked task / test**: T035, T036,
+  `tests/unit/scripts/validation-evidence-gates.test.ts`,
+  `tests/unit/scripts/validation-report-compat.test.ts`
 - **Next validation expectation**: `HAS_UI = false` may redistribute Category 3;
   `HAS_UI = true` must cite either local render proof or deploy/live proof based
   on `DEPLOY_IN_SCOPE`.
@@ -108,8 +115,10 @@ Source:
 `.specify/specs/_archived/031-validation-smoke-deploy-gate/validation-report.md`
 
 > `status: FAIL`  
-> `HAS_UI = true` — `plan.md` declares `React web UI with Playwright browser coverage`  
-> `DEPLOY_IN_SCOPE = true` — `spec.md` / `plan.md` explicitly require rendered browser behavior on Azure staging  
+> `HAS_UI = true` — `plan.md` declares
+> `React web UI with Playwright browser coverage`  
+> `DEPLOY_IN_SCOPE = true` — `spec.md` / `plan.md` explicitly require rendered
+> browser behavior on Azure staging  
 > `| 3 | UI/E2E Verification | 10 | 0 | FAIL | HAS_UI = true and DEPLOY_IN_SCOPE = true, but no screenshot, browser assertion, curl transcript, deployment log, headless browser assertion, or smoke-check output proves rendered/live behavior on the declared Azure staging route. |`
 
 **Why this seed remains open**
@@ -138,8 +147,10 @@ Source:
 
 - **Owner**: Gofer maintainers
 - **Review cadence**: Every generator change
-- **Exit condition**: Close when budget stays green across 3 consecutive helper additions
-- **Linked task / test**: T034, `tests/unit/scripts/helper-commands-cross-cli-parity.test.ts`
+- **Exit condition**: Close when budget stays green across 3 consecutive helper
+  additions
+- **Linked task / test**: T034,
+  `tests/unit/scripts/helper-commands-cross-cli-parity.test.ts`
 - **Next validation expectation**: Generator output must stay under the Codex
   skill-description byte budget before release.
 
@@ -198,3 +209,17 @@ Source:
 > `## Risk Vectors`
 
 > `## Containment Summary`
+
+## Live Validation Run — 2026-05-10
+
+- `/6_gofer_validate` reran against the current `main` code and spec surfaces.
+- `npm run gofer:generate` passed with `24` emitted commands and `21` canonical
+  descriptions (`1610` bytes).
+- `npm run gofer:codex-doctor` passed at `1778 / 2048` bytes with `0` duplicate
+  Gofer bundles detected.
+- Focused `031` validation slice passed: `15` files / `298` tests.
+- Full repo validation passed: `251` files / `3363` tests.
+- `HAS_UI=false` and `DEPLOY_IN_SCOPE=false` remained correct for this
+  workflow-platform feature.
+- Latest validation result: `110/110 PASS` with
+  `blast_radius_verdict: CONTAINED`.

@@ -1,7 +1,7 @@
 ---
 feature: 031-skills-pipeline-augmentation
-validated: 2026-05-01T11:34:22Z
-validator: GitHub Copilot CLI
+validated: 2026-05-10T12:38:00Z
+validator: Codex
 status: PASS
 score: 110
 score_max: 110
@@ -10,7 +10,7 @@ has_ui: false
 deploy_in_scope: false
 blast_radius_verdict: CONTAINED
 blast_radius_report: blast-radius-report.md
-GeneratedAt: 2026-05-01T11:34:22Z
+GeneratedAt: 2026-05-10T12:38:00Z
 SourceCommandId: /6_gofer_validate
 SourceInputs:
   - spec.md
@@ -18,52 +18,55 @@ SourceInputs:
   - tasks.md
   - research.md
   - traceability.md
-  - audit-history.md
-  - archived smoke reports
-  - repo validation checks
-  - specialist agent findings
-OverwriteNoticeWhenApplicable: new file
+  - contract-pack.md
+  - npm run gofer:generate
+  - npm run gofer:codex-doctor
+  - npm run build
+  - npm run lint
+  - npm run typecheck
+  - npm test
+  - focused 031 Vitest slice
+OverwriteNoticeWhenApplicable:
+  Overwrote prior report with 2026-05-10 live validation evidence.
 ---
 
-# Validation Report: 031 Skills Pipeline Augmentation
-
-## Scope Determination
-
-- `HAS_UI = false` — feature 031 is a command/generator/release/resource-sync change, not a rendered product UI.
-- `DEPLOY_IN_SCOPE = false` — no live route, deployed browser surface, or named environment is part of this feature's acceptance criteria.
-- Category 3 is explicitly **not in scope** and its 10 points are redistributed as **+5 to Functional Correctness** and **+5 to Test Authenticity**.
-- The hardened `/6` contract itself is proven with three archived smoke fixtures:
-  - `_archived/031-validation-smoke-missing-evidence/` — FAIL on missing Categories 1/2/5 evidence
-  - `_archived/031-validation-smoke-deploy-gate/` — FAIL on missing Category 3 deploy/render proof
-  - `_archived/031-validation-smoke-complete-evidence/` — PASS with populated evidence table, provenance fields, and persisted Phase B output
+# Validation Report: 031-skills-pipeline-augmentation
 
 ## Rubric Score
 
-| # | Category | Points | Score | Status | Evidence |
-| --- | --- | --- | --- | --- | --- |
-| 1 | Functional Correctness | 20 | 20 | PASS | `npm test` passed (`247` files / `3335` tests); `traceability.md` maps `18/18` acceptance criteria; truthfulness gates are exercised by `tests/unit/scripts/validation-evidence-gates.test.ts` and the archived complete-evidence PASS smoke. |
-| 2 | Test Authenticity | 20 | 20 | PASS | No feature-owned placeholder or skipped tests remain; the archived complete-evidence smoke recorded `3` mock calls, `177` assertions, and a `1.67%` mock ratio for the closeout evidence slice. |
-| 3 | UI/E2E Verification | 0 | N/A | SKIP | `N/A — HAS_UI=false` |
-| 4 | Security Posture | 10 | 10 | PASS | `validation-security` passed; `ResourceSyncer` managed writes are symlink-safe and `sync-extension-resources.mjs` now rethrows non-`ENOENT` access errors. |
-| 5 | Integration Reality | 10 | 10 | PASS | `validation-integration` passed; release/resource-sync wiring is covered by `extension-package-wiring`, `hook-wiring`, `release-verification`, `vsix-packaging`, `command-generation`, and `ResourceSyncer.workspace-sync` tests plus the archived PASS smoke. |
-| 6 | Error Path Coverage | 10 | 10 | PASS | `tests/unit/scripts/sync-extension-resources.test.ts` covers non-`ENOENT` failures; `tests/unit/extension/ResourceSyncer.workspace-sync.test.ts` covers managed-write rejection/error paths. |
-| 7 | Architecture Compliance | 10 | 10 | PASS | `validation-standards` passed; no new numbered stages were introduced; plan/tasks/traceability inventories now match the final evidence chain. |
-| 8 | Performance Baseline | 5 | 5 | PASS | `validation-performance` passed with no blocking sync I/O, unbounded loops, or complexity findings in feature-owned scope. |
-| 9 | Code Hygiene | 10 | 10 | PASS | `validation-standards` found no feature-owned TODO/FIXME/HACK placeholders, empty catches, or hygiene findings above Gray. |
-| 10 | Specification Traceability | 5 | 5 | PASS | `traceability.md` records `4/4` user stories, `18/18` acceptance criteria, `6/6` plan phases, `5/5` data entities, `6/6` internal contracts, and `4/4` lifecycle events. |
-| 11 | Blast Radius Containment | 10 | 10 | PASS | `blast-radius-report.md` records `verdict: CONTAINED` with `red_count: 0`. |
-|  | **TOTAL** | **110** | **110** | **PASS** |  |
+| #   | Category                   | Points  | Score   | Status   | Evidence                                                                                                                                                           |
+| --- | -------------------------- | ------- | ------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | Functional Correctness     | 20      | 20      | PASS     | `npm test` passed (`251` files / `3363` tests); focused `031` slice passed (`15` files / `298` tests).                                                             |
+| 2   | Test Authenticity          | 20      | 20      | PASS     | No skips/placeholders in focused files; mock ratio `0%` (`0` mocks / `179` assertions); Stryker unavailable.                                                       |
+| 3   | UI/E2E Verification        | 0       | N/A     | SKIP     | `HAS_UI=false`; Category 3 redistributed `+5` to Category 1 and `+5` to Category 2.                                                                                |
+| 4   | Security Posture           | 10      | 10      | PASS     | No hardcoded secret/client-key patterns found in feature-owned files; helper additions are markdown/scripts only.                                                  |
+| 5   | Integration Reality        | 10      | 10      | PASS     | `npm run gofer:generate` emitted all `24` commands; `npm run gofer:codex-doctor` passed; `tests/integration/command-generation.test.ts` passed (`12` tests).       |
+| 6   | Error Path Coverage        | 10      | 10      | PASS     | `tests/unit/scripts/validation-evidence-gates.test.ts` passed (`4` tests); empty-catch scan on feature-owned files returned no actionable matches.                 |
+| 7   | Architecture Compliance    | 10      | 10      | PASS     | Five helper commands exist as canonical `.specify/commands/` sources; seams remain additive in `/1`, `/2`, `/5`; `/6` was hardened in place.                       |
+| 8   | Performance Baseline       | 5       | 5       | PASS     | `npm run build` and `npm run build:all` passed; feature-owned changes stay in markdown, generator scripts, and resource sync logic with no new hot-path loops.     |
+| 9   | Code Hygiene               | 10      | 10      | PASS     | Focused slop scan found no actionable TODO/FIXME/HACK, placeholder assertions, skipped tests, or empty catches in feature-owned files.                             |
+| 10  | Specification Traceability | 5       | 5       | PASS     | Helper parity, evidence-gate, stage-manifest, byte-equivalence, config-shape, and integration tests map directly to the four user stories and acceptance criteria. |
+| 11  | Blast Radius Containment   | 10      | 10      | PASS     | `blast-radius-report.md` verdict is `CONTAINED`; no feature-owned dependency or contract breakage detected.                                                        |
+|     | **TOTAL**                  | **110** | **110** | **PASS** |                                                                                                                                                                    |
 
 ## Automated Check Results
 
-| Check | Command | Result |
-| --- | --- | --- |
-| Build | `npm run build` | PASS |
-| Tests | `npm test` | PASS — `247` files / `3335` tests |
-| Lint | `npm run lint` | PASS |
-| TypeCheck | `npm run typecheck` | PASS |
-| Extension Compile | `cd extension && npm run compile` | PASS |
-| Extension Lint | `cd extension && npm run lint` | PASS — Node ESM warning only |
+| Check     | Command             | Result                            |
+| --------- | ------------------- | --------------------------------- |
+| Build     | `npm run build`     | PASS                              |
+| Tests     | `npm test`          | PASS (`251` files / `3363` tests) |
+| Lint      | `npm run lint`      | PASS                              |
+| TypeCheck | `npm run typecheck` | PASS                              |
+
+Supplemental evidence:
+
+- `npm run gofer:generate` PASS (`24` emitted commands, `21` canonical
+  descriptions, `1610` bytes)
+- `npm run gofer:codex-doctor` PASS (`1778 / 2048` bytes, `0` duplicate Gofer
+  bundles)
+- `npm run build:all` PASS
+- `npm --prefix extension run lint` PASS
+- Focused `031` Vitest slice PASS (`15` files / `298` tests)
 
 ## Mutation Testing
 
@@ -72,107 +75,116 @@ OverwriteNoticeWhenApplicable: new file
 
 ## Mock Ratio Analysis
 
-- **Targeted closeout slice**: archived complete-evidence smoke
-- **Total mock calls**: 3
-- **Total real assertions**: 177
-- **Mock ratio**: 1.67% (target: <= 30%)
-- **Justified mocks excluded**: 0
+- **Total mock calls**: `0`
+- **Total real assertions**: `179`
+- **Mock ratio**: `0%`
+- **Justified mocks excluded**: `0`
 
 ### Worst Offenders by File
 
-| File | Mocks | Assertions | Ratio | Status |
-| --- | ---: | ---: | ---: | --- |
-| `tests/unit/scripts/sync-extension-resources.test.ts` | 2 | 2 | 50.00% | OK — narrow error-path micro-test; suite-level ratio remains 1.67% |
-| `tests/unit/extension/ResourceSyncer.workspace-sync.test.ts` | 1 | 9 | 10.00% | OK |
-| `tests/integration/command-generation.test.ts` | 0 | 44 | 0.00% | OK |
+| File                                                          | Mocks | Assertions | Ratio | Status |
+| ------------------------------------------------------------- | ----- | ---------- | ----- | ------ |
+| `tests/unit/scripts/stage-manifest.test.ts`                   | 0     | 79         | 0%    | OK     |
+| `tests/unit/scripts/helper-commands-cross-cli-parity.test.ts` | 0     | 13         | 0%    | OK     |
+| `tests/integration/command-generation.test.ts`                | 0     | 12         | 0%    | OK     |
 
 ## Specialist Agent Findings
 
 ### Red (Blocking)
 
-| # | Category | Finding | File | Line |
-| --- | --- | --- | --- | --- |
-| — | — | None | — | — |
+| #   | Category | Finding | File | Line |
+| --- | -------- | ------- | ---- | ---- |
+| —   | —        | None    | —    | —    |
 
-### Yellow (Operational Follow-Up)
+### Yellow (Must Address)
 
-| # | Category | Finding | File | Line |
-| --- | --- | --- | --- | --- |
-| 1 | Blast Radius / Operational | The scripted generate/sync path remains part of the operational contract; bypassing it could stale packaged resources. | `package.json`, `release-auto.sh` | — |
-| 2 | Rollback Readiness | 031 should be reverted as a complete set rather than piecemeal because command sources, generated mirrors, release wiring, and report contracts move together. | `release-auto.sh`, `.specify/commands/6_gofer_validate.md` | — |
-| 3 | Runtime Smoke Depth | Release/resource-sync behavior is proven by contract tests and packaging parity, not a live release-script smoke. | `release-auto.sh`, `.specify/scripts/node/sync-extension-resources.mjs` | — |
+| #   | Category | Finding | File | Line |
+| --- | -------- | ------- | ---- | ---- |
+| —   | —        | None    | —    | —    |
 
 ### Gray (Informational)
 
-| # | Category | Finding | File | Line |
-| --- | --- | --- | --- | --- |
-| 1 | Generator Budget | The helper expansion remains within the Codex byte budget at `21` commands / `1610` bytes. | `.specify/scripts/node/canonical-descriptions.mjs`, `audit-history.md` | — |
-| 2 | Archived Evidence | The three smoke fixtures are intentional audit evidence and remain quarantined under `_archived/`. | `.specify/specs/_archived/031-validation-smoke-*` | — |
+| #   | Category | Finding | File | Line |
+| --- | -------- | ------- | ---- | ---- |
+| —   | —        | None    | —    | —    |
 
 ## AI Slop Detection Summary
 
-| Pattern | Count | Severity |
-| --- | ---: | --- |
-| Placeholder assertions | 0 | Red |
-| Skipped tests | 0 | Red |
-| TODO/FIXME placeholders | 0 | Yellow |
-| Empty catch blocks | 0 | Yellow |
-| Redundant comments | 0 | Yellow |
-| Over-engineered abstractions | 0 | Gray |
-| Magic numbers | 0 | Gray |
+| Pattern                      | Count | Severity |
+| ---------------------------- | ----- | -------- |
+| Placeholder assertions       | 0     | Red      |
+| Skipped tests                | 0     | Red      |
+| TODO/FIXME placeholders      | 0     | Yellow   |
+| Empty catch blocks           | 0     | Yellow   |
+| Redundant comments           | 0     | Yellow   |
+| Over-engineered abstractions | 0     | Gray     |
+| Magic numbers                | 0     | Gray     |
+
+Notes:
+
+- Intentional instructional tokens inside canonical command docs, such as
+  `FR-XXX` in `/3_gofer_plan` or example `TODO` strings inside
+  `/6_gofer_validate`, were reviewed and excluded because they are documentation
+  examples, not unfinished implementation markers in the feature-owned surface.
 
 ## Blast Radius Summary (Phase B)
 
 See `blast-radius-report.md` for the full dimension report.
 
-| Dimension | Agent | Red | Yellow | Gray | Verdict |
-| --- | --- | ---: | ---: | ---: | --- |
-| Change graph / ripple | `codebase-analyzer` | 0 | 0 | 1 | OK |
-| Interface contracts | `validation-integration` | 0 | 0 | 1 | OK |
-| Error logging & observability | `validation-standards` | 0 | 1 | 1 | OK |
-| Dependency & submodule impact | `research-dependency-evaluator` | 0 | 2 | 2 | OK |
-| Rollback readiness & release chklst | `tasks-rollback-planner` | 0 | 1 | 3 | OK |
-|  | **TOTAL** | **0** | **4** | **8** | **CONTAINED** |
+| Dimension                              | Agent                         | Red   | Yellow | Gray  | Verdict       |
+| -------------------------------------- | ----------------------------- | ----- | ------ | ----- | ------------- |
+| Change graph / ripple                  | codebase-analyzer             | 0     | 0      | 0     | OK            |
+| Interface contracts                    | validation-integration        | 0     | 0      | 0     | OK            |
+| Error logging & observability          | validation-standards          | 0     | 0      | 0     | OK            |
+| Dependency & submodule impact          | research-dependency-evaluator | 0     | 0      | 0     | OK            |
+| Rollback readiness & release checklist | tasks-rollback-planner        | 0     | 0      | 0     | OK            |
+|                                        | **TOTAL**                     | **0** | **0**  | **0** | **CONTAINED** |
 
 **Change Surface Summary**
 
-- Canonical command surfaces modified: `9`
-- Generator / packaging / sync surfaces modified: `5`
-- Validation / parity / release tests executed or updated: `10+`
-- Submodules touched: repo root, `extension/`
+- Modified files: feature-owned surface spans `5` new helper command
+  definitions, `4` numbered stage docs, `3` generator/support scripts, repo
+  manifests, emitted mirrors, and focused tests.
+- Submodules touched: `extension` generated resources and sync helpers.
+- Public-surface symbols modified: `5` new `gofer:*` helpers plus the
+  `/6_gofer_validate` evidence-gate contract.
 - Breaking API changes: `0`
 - New dependencies: `0`
-- New High/Critical CVEs: `0`
+- New High/Critical CVEs: `0` delta attributable to this feature
 - Irreversible migrations: `0`
-- CHANGELOG updated: N/A
-
-**Phase B Gate**: Category 11 scores 10 because the blast-radius verdict is **CONTAINED**.
+- CHANGELOG updated: `N/A` for feature validation; release remains managed by
+  `./release-auto.sh`
 
 ## Spec Compliance
 
 ### User Story 1 — Truthful Validation Gate
 
-- [x] Missing integration evidence forces Category 5 to `0` in the archived missing-evidence smoke.
-- [x] Missing executed test evidence forces Categories 1 and 2 to `0` in the archived missing-evidence smoke.
-- [x] Missing deploy/render proof forces Category 3 to `0` in the archived deploy-gate smoke.
-- [x] Fully evidenced `/6` PASS persists a populated evidence table and provenance fields in the archived complete-evidence smoke.
-- [x] Absent or unverifiable evidence scores exactly `0`.
+- [x] Missing test execution now forces failure via
+      `tests/unit/scripts/validation-evidence-gates.test.ts`.
+- [x] Missing integration proof now forces Category 5 = 0 via the same gate
+      suite.
+- [x] Evidence-table and honest-scoring contract exist in
+      `.specify/commands/6_gofer_validate.md`.
 
 ### User Story 2 — Cross-CLI Helper Commands
 
-- [x] Five helper definitions emit across Claude, Copilot, Codex, and Gemini.
-- [x] Helper work remains additive and does not change numbered stage routing or numbering.
+- [x] `gofer:vocabulary`, `gofer:diagnose`, `gofer:tdd`, `gofer:spec-summary`,
+      and `gofer:zoom-out` exist as canonical command sources.
+- [x] Generator parity holds across Claude, Copilot, Codex, and Gemini surfaces.
+- [x] Numbered stage sequence remains unchanged.
 
-### User Story 3 — Evidence Table in Validation Report
+### User Story 3 — Evidence Table In Validation Report
 
-- [x] PASS reports include a structured evidence table.
-- [x] FAIL smoke reports include explicit `0`-score categories and absent-reason proof.
-- [x] Legacy report compatibility remains covered by `tests/unit/scripts/validation-report-compat.test.ts`.
+- [x] PASS/FAIL evidence-table contract is present in the canonical `/6` command
+      source.
+- [x] Backward-compat coverage exists in
+      `tests/unit/scripts/validation-report-compat.test.ts`.
 
 ### User Story 4 — Stage-Local Augmentation
 
-- [x] `/1`, `/2`, and `/5` expose approved helper seams without changing numbered stage identities.
-- [x] Generator re-emits all supported CLI surfaces after seam changes.
+- [x] `/1_gofer_research` contains vocabulary + zoom-out seams.
+- [x] `/2_gofer_specify` contains vocabulary + spec-summary seams.
+- [x] `/5_gofer_implement` contains diagnose + tdd seams.
 
 ## Recommendations
 
@@ -182,25 +194,21 @@ See `blast-radius-report.md` for the full dimension report.
 
 ### Future Improvements (Informational)
 
-- Add a live smoke for `sync-extension-resources.mjs` `main()` so the CLI entrypoint itself is exercised.
-- Add a safe release dry-run harness for `release-auto.sh` ordering.
-- Keep the archived smoke fixtures quarantined and continue accumulating clean runs in `audit-history.md`.
+- None.
 
 ## Evidence Table
 
-| Category | Score | Evidence Artifact / Command Output | Absent / Reason for 0 |
-| --- | --- | --- | --- |
-| 1 — Functional Correctness | 20/20 | `npm test` (`247` files / `3335` tests); `tests/unit/scripts/validation-evidence-gates.test.ts`; `tests/unit/scripts/helper-commands-cross-cli-parity.test.ts`; archived `_archived/031-validation-smoke-complete-evidence/validation-report.md` | — |
-| 2 — Test Authenticity | 20/20 | archived `_archived/031-validation-smoke-complete-evidence/validation-report.md` (`3` mock calls, `177` assertions, `1.67%` mock ratio, `0` placeholders, `0` skips); `tests/unit/scripts/sync-extension-resources.test.ts` | — |
-| 3 — UI/E2E Verification | N/A | `N/A — HAS_UI=false` | No UI surface or deployment target is in scope for 031; Category 3 redistributed (+5 Category 1, +5 Category 2). |
-| 4 — Security Posture | 10/10 | `validation-security` PASS; `extension/src/services/migration/ResourceSyncer.ts`; `tests/unit/extension/ResourceSyncer.workspace-sync.test.ts`; `.specify/scripts/node/sync-extension-resources.mjs` | — |
-| 5 — Integration Reality | 10/10 | `tests/unit/scripts/extension-package-wiring.test.ts`; `tests/unit/scripts/hook-wiring.test.ts`; `tests/unit/release/release-verification.test.ts`; `tests/unit/scripts/vsix-packaging.test.ts`; `tests/integration/command-generation.test.ts`; `tests/unit/extension/ResourceSyncer.workspace-sync.test.ts`; archived complete-evidence smoke PASS | — |
-| 6 — Error Path Coverage | 10/10 | `tests/unit/scripts/sync-extension-resources.test.ts`; `tests/unit/extension/ResourceSyncer.workspace-sync.test.ts`; `validation-standards` PASS | — |
-| 7 — Architecture Compliance | 10/10 | `plan.md`; `tasks.md`; `traceability.md`; `validation-standards` PASS; no new numbered stages | — |
-| 8 — Performance Baseline | 5/5 | `validation-performance` PASS across feature-owned changed paths | — |
-| 9 — Code Hygiene | 10/10 | `validation-standards` PASS; no feature-owned TODO/FIXME/HACK, placeholder assertions, or empty catches | — |
-| 10 — Specification Traceability | 5/5 | `traceability.md` (`4/4` user stories, `18/18` ACs, `6/6` plan phases, `5/5` data entities, `6/6` internal contracts, `4/4` lifecycle events) | — |
-| 11 — Blast Radius Containment | 10/10 | `blast-radius-report.md` (`verdict: CONTAINED`, `red_count: 0`) | — |
-| **Total** | **110/110** |  |  |
-
-This evidence table is required on **every run (PASS and FAIL)**.
+| Category                        | Score       | Evidence Artifact / Command Output                                                                                                                                                                                                                                | Absent / Reason for 0                                                                  |
+| ------------------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| 1 — Functional Correctness      | 20/20       | `npm test` on `2026-05-10` (`251` files / `3363` tests PASS); focused `031` slice (`15` files / `298` tests PASS)                                                                                                                                                 | —                                                                                      |
+| 2 — Test Authenticity           | 20/20       | Mock-ratio scan (`0` mocks / `179` assertions / `0%`); placeholder/skip scan on focused files = `0`; `node_modules/.bin/stryker` unavailable                                                                                                                      | —                                                                                      |
+| 3 — UI/E2E Verification         | N/A         | `N/A — HAS_UI=false`                                                                                                                                                                                                                                              | No UI surface or deployment target in this feature; Category 3 redistributed `(+5/+5)` |
+| 4 — Security Posture            | 10/10       | Secret/client-key scan across feature-owned files returned no matches; changes are markdown/scripts only                                                                                                                                                          | —                                                                                      |
+| 5 — Integration Reality         | 10/10       | `npm run gofer:generate` PASS (`24` emitted commands); `npm run gofer:codex-doctor` PASS; `tests/integration/command-generation.test.ts` PASS (`12` tests)                                                                                                        | —                                                                                      |
+| 6 — Error Path Coverage         | 10/10       | `tests/unit/scripts/validation-evidence-gates.test.ts` PASS (`4` tests); empty-catch scan on feature-owned files returned no actionable matches                                                                                                                   | —                                                                                      |
+| 7 — Architecture Compliance     | 10/10       | `.specify/commands/gofer_*.md`; `.specify/commands/1_gofer_research.md`; `.specify/commands/2_gofer_specify.md`; `.specify/commands/5_gofer_implement.md`; `.specify/commands/6_gofer_validate.md`                                                                | —                                                                                      |
+| 8 — Performance Baseline        | 5/5         | `npm run build` PASS; `npm run build:all` PASS                                                                                                                                                                                                                    | —                                                                                      |
+| 9 — Code Hygiene                | 10/10       | Focused slop scan found no actionable TODO/FIXME/HACK, placeholder assertions, skipped tests, or empty catches in feature-owned files                                                                                                                             | —                                                                                      |
+| 10 — Specification Traceability | 5/5         | `tests/unit/scripts/helper-commands-cross-cli-parity.test.ts`; `tests/unit/scripts/validation-evidence-gates.test.ts`; `tests/unit/scripts/stage-manifest.test.ts`; `tests/unit/scripts/byte-equivalence.test.ts`; `tests/integration/command-generation.test.ts` | —                                                                                      |
+| 11 — Blast Radius Containment   | 10/10       | `blast-radius-report.md` (`CONTAINED`, `red_count: 0`)                                                                                                                                                                                                            | —                                                                                      |
+| **Total**                       | **110/110** |                                                                                                                                                                                                                                                                   |                                                                                        |

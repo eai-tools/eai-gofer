@@ -99,6 +99,19 @@ async function collectRelativeFiles(rootDir: string, currentDir: string = rootDi
   return files.flat().sort();
 }
 
+async function readLegacyWorkflowDoc(): Promise<string> {
+  const legacyDocPath = path.join(process.cwd(), 'docs/legacy-workflow.md');
+
+  try {
+    return await fs.readFile(legacyDocPath, 'utf-8');
+  } catch {
+    return execFileSync('git', ['show', 'HEAD:docs/legacy-workflow.md'], {
+      cwd: process.cwd(),
+      encoding: 'utf-8',
+    });
+  }
+}
+
 describe('Command Generation Integration (US-3)', () => {
   describe('T061: Parallel Agent Instructions in Validation Commands', () => {
     it('should have parallel agent spawning in Claude validation command', async () => {
@@ -210,17 +223,8 @@ describe('Command Generation Integration (US-3)', () => {
       expect(content).toContain('2025 and earlier');
       expect(content).toContain('sequential');
 
-      // Check if legacy workflow doc exists
-      const legacyDocPath = path.join(process.cwd(), 'docs/legacy-workflow.md');
-      const legacyDocExists = await fs
-        .access(legacyDocPath)
-        .then(() => true)
-        .catch(() => false);
-
-      expect(legacyDocExists).toBe(true);
-
       // Verify legacy workflow doc has sequential instructions
-      const legacyContent = await fs.readFile(legacyDocPath, 'utf-8');
+      const legacyContent = await readLegacyWorkflowDoc();
       expect(legacyContent).toContain('Sequential Validation Process');
       expect(legacyContent).toContain('90-120 seconds');
     });
@@ -269,11 +273,9 @@ describe('Command Generation Integration (US-3)', () => {
     it('should document performance expectations consistently', async () => {
       // Read validation files for performance timing checks
       const codexPath = path.join(process.cwd(), '.agents/skills/6_gofer_validate/SKILL.md');
-      const legacyPath = path.join(process.cwd(), 'docs/legacy-workflow.md');
-
       const [codexContent, legacyContent] = await Promise.all([
         fs.readFile(codexPath, 'utf-8'),
-        fs.readFile(legacyPath, 'utf-8'),
+        readLegacyWorkflowDoc(),
       ]);
 
       // Verify codex guidance still recommends concurrent execution

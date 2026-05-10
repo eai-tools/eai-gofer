@@ -1,26 +1,6 @@
 ---
 name: gofer:diagnose
-description: Gofer Diagnose
-gofer:
-  workflowProfile: enterpriseai
-  canonicalSource: .specify/commands/gofer_diagnose.md
-  canonicalChecksum: 457056bd7bc70b406aa605b07779407cfb69aa53d3ba27d561b4c174532461fe
-  metadataSource: extension/src/services/migration/ResourceSyncer.ts
-arguments:
-  - name: feature
-    description: Feature name or description
-    required: false
-result_schema:
-  type: object
-  properties:
-    output:
-      type: string
-      description: Path to generated artifact or execution summary
-    status:
-      type: string
-      enum:
-        - success
-        - error
+description: "Run a reproduce-minimize-instrument-fix loop for bugs and failing tests."
 ---
 
 

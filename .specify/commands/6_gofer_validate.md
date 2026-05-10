@@ -1883,9 +1883,27 @@ For application delivery, validation MUST also check
 - Each journey step preserves its business goal, AI assistance mode, data/context
   used, completion signal, human controls, evidence/confidence display, audit
   trail, and fallback/escalation path.
+- `{FEATURE_DIR}/ui-review-log.md` contains at least one pre-presentation
+  self-review entry for each preview round that was shown to the stakeholder,
+  with screenshot, local render proof, Playwright-style evidence, or an
+  explicit reasoned exception.
+- `{FEATURE_DIR}/ui-approval.md` records the approved preview, approved
+  branding/logo decisions, any approved Vertical Template exceptions, the
+  approver, and approval timestamp.
+- `{FEATURE_DIR}/service-fit-matrix.md` records each desired platform
+  capability, the evidence source used to evaluate it, and whether it is
+  accessible now, purchasable but unavailable now, or unavailable without new
+  platform work.
+- Validation confirms that app-delivery runs used Vertical Template blocks by
+  default and that any create-new UI concept was explicitly approved rather
+  than silently introduced.
 - Chatbot, voice, accessibility, translation, contextual prefill, validation,
   and step-goal assistance claims are covered by acceptance tests where they are
   in scope.
+
+For explicit non-app work, validation MUST treat `ui-preview-brief.md`,
+`ui-review-log.md`, `ui-approval.md`, and `service-fit-matrix.md` as
+**not applicable** rather than as missing blocking artifacts.
 
 ### Log Summary Entry
 

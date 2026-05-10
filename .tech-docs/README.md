@@ -1,15 +1,28 @@
 ---
 generated: true
-generated_at: "2026-05-10T12:23:06.706Z"
-source_commit: "ec462e53d60882a1959c0bf22456684e76b73cdc"
+generated_at: "2026-05-10T13:38:38.782Z"
+source_commit: "d7fa4cc243aeb1b82cdcc44fd69e610fb02dc507"
 ---
 # Technical Documentation Index
 
-**Repository:** [eai-tools/gofer](https://github.com/eai-tools/gofer)
-**Version:** 3.2.2
-**Generated:** 2026-05-10T12:19:48Z
+**Repository:** [enterpriseaigroup/tech-docs](https://github.com/enterpriseaigroup/tech-docs)
+**Version:** 3.3.0
+**Generated:** 2026-05-10T13:35:23Z
 
 This directory contains comprehensive technical documentation for the Gofer VSCode extension project.
+
+---
+
+## What's New in v3.3.0
+
+### Dependency Security Patches
+- **Vulnerability Resolution** - Addressed vulnerable transitive dependencies via package overrides
+- **Security Hardening** - Updated diff (^8.0.3), postcss (^8.5.10), serialize-javascript (^7.0.0)
+- **Zero Breaking Changes** - Security patches applied without functionality impact
+
+### Documentation & Testing
+- **Enhanced Validation** - Realigned documentation validation test coverage
+- **Release Automation** - Improved VSIX packaging and GitHub release management
 
 ---
 
@@ -305,11 +318,11 @@ Design patterns and technical debt analysis.
 
 ### Version Tracking
 
-- **Version:** 3.2.2
-- **Commit:** ec462e53d60882a1959c0bf22456684e76b73cdc
-- **Generated:** 2026-05-10T12:19:48Z
-- **Previous Update:** 2026-05-10 11:17 UTC (57666de1cd235757b2f0444b82e4f82aef6b8108)
-- **Change Summary:** Updated to v3.2.2 with UI-first app delivery workflow, command parity restoration, and standardized documentation
+- **Version:** 3.3.0
+- **Commit:** d7fa4cc243aeb1b82cdcc44fd69e610fb02dc507
+- **Generated:** 2026-05-10T13:35:23Z
+- **Previous Update:** 2026-05-10 12:19 UTC (ec462e53d60882a1959c0bf22456684e76b73cdc)
+- **Change Summary:** Updated to v3.3.0 with dependency security patches, documentation validation improvements, and release automation enhancements
 
 ### Regenerating Documentation
 
@@ -376,7 +389,7 @@ When making changes, update these files if applicable:
 - **Agent Guidelines:** AGENTS.md (`AGENTS.md`)
 - **Project Instructions:** CLAUDE.md (`CLAUDE.md`)
 - **CLI Support Guide:** docs/cli-support.md (`../docs/cli-support.md`) (v3.0+)
-- **GitHub Repository:** [https://github.com/eai-tools/gofer](https://github.com/eai-tools/gofer)
+- **GitHub Repository:** [https://github.com/enterpriseaigroup/tech-docs](https://github.com/enterpriseaigroup/tech-docs)
 
 ---
 
@@ -384,8 +397,8 @@ When making changes, update these files if applicable:
 
 | Metric                      | Value                           |
 | --------------------------- | ------------------------------- |
-| Version                     | 3.2.2                           |
-| TypeScript Files            | 263 files (all modules)         |
+| Version                     | 3.3.0                           |
+| TypeScript Files            | 247 files (all modules)         |
 | Active Specifications       | 2 (032-ui-first-builder, 031-skills-pipeline) |
 | Archived Specifications     | 30+ specs                       |
 | MCP Tools                   | 40+ tools                       |
@@ -404,8 +417,8 @@ When making changes, update these files if applicable:
 
 For questions, issues, or contributions:
 
-- **GitHub Issues:** [https://github.com/eai-tools/gofer/issues](https://github.com/eai-tools/gofer/issues)
-- **Documentation:** [https://github.com/eai-tools/gofer#readme](https://github.com/eai-tools/gofer#readme)
+- **GitHub Issues:** [https://github.com/enterpriseaigroup/tech-docs/issues](https://github.com/enterpriseaigroup/tech-docs/issues)
+- **Documentation:** [https://github.com/enterpriseaigroup/tech-docs#readme](https://github.com/enterpriseaigroup/tech-docs#readme)
 - **Owner:** Enterprise AI Pty Ltd
 - **Website:** [https://enterpriseai.com.au](https://enterpriseai.com.au)
 

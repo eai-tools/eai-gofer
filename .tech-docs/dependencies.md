@@ -1,7 +1,7 @@
 ---
 generated: true
-generated_at: "2026-05-10T12:23:06.706Z"
-source_commit: "ec462e53d60882a1959c0bf22456684e76b73cdc"
+generated_at: "2026-05-10T13:38:38.782Z"
+source_commit: "d7fa4cc243aeb1b82cdcc44fd69e610fb02dc507"
 ---
 # Dependencies
 
@@ -190,7 +190,7 @@ Services that Gofer **calls** or **depends on**.
 
 **Endpoints Used:**
 
-- `GET /repos/eai-tools/gofer/releases/latest`
+- `GET /repos/enterpriseaigroup/tech-docs/releases/latest`
 
 **Rate Limits:**
 

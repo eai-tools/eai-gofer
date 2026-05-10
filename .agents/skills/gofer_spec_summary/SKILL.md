@@ -1,26 +1,6 @@
 ---
 name: gofer:spec-summary
-description: Gofer Spec Summary
-gofer:
-  workflowProfile: enterpriseai
-  canonicalSource: .specify/commands/gofer_spec_summary.md
-  canonicalChecksum: 1942a70d10606601477bfdd271fe507a95d0af80812831df07c918452f2de08d
-  metadataSource: extension/src/services/migration/ResourceSyncer.ts
-arguments:
-  - name: feature
-    description: Feature name or description
-    required: false
-result_schema:
-  type: object
-  properties:
-    output:
-      type: string
-      description: Path to generated artifact or execution summary
-    status:
-      type: string
-      enum:
-        - success
-        - error
+description: "Generate a business-friendly summary of feature value and scope."
 ---
 
 

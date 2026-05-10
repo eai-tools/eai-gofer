@@ -261,7 +261,7 @@ set -e`);
     it('should update release feed assets only after repo validation passes', () => {
       const testsPassedIndex = RELEASE_AUTO_SCRIPT.indexOf('print_success "Tests passed"');
       const updateReleasesIndex = RELEASE_AUTO_SCRIPT.indexOf(
-        'node docs/update-releases.js "$NEW_VERSION" "$RELEASE_NOTES" "$GITHUB_PAGES_URL"'
+        'node scripts/update-releases.js "$NEW_VERSION" "$RELEASE_NOTES" "$GITHUB_PAGES_URL"'
       );
 
       expect(updateReleasesIndex).toBeGreaterThan(testsPassedIndex);

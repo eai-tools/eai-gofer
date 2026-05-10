@@ -1,30 +1,13 @@
 ---
 name: 9_gofer_tests
-description: >-
-  Define acceptance test cases using DSL approach before or during
-  implementation
-gofer:
-  workflowProfile: enterpriseai
-  canonicalSource: .specify/commands/9_gofer_tests.md
-  canonicalChecksum: 0a6baf44d5add8fccc5ee6deb6aed559ef42d0e19aa6f4afc2733335e42ef744
-  metadataSource: extension/src/services/migration/ResourceSyncer.ts
-arguments:
-  - name: feature
-    description: Feature name or description
-    required: false
-result_schema:
-  type: object
-  properties:
-    output:
-      type: string
-      description: Path to generated artifact or execution summary
-    status:
-      type: string
-      enum:
-        - success
-        - error
+description: "Generate comprehensive test suites from four testing perspectives for a target component."
 ---
 
+---
+description:
+  Define acceptance test cases using DSL approach before or during
+  implementation
+---
 
 # Gofer Tests
 
@@ -99,7 +82,7 @@ Parse JSON for FEATURE_DIR, then load:
 **CRITICAL**: Before writing any test cases, spawn a research agent:
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the codebase-pattern-finder analysis in each., model="haiku"
+Task: subagent_type="codebase-pattern-finder", model="haiku"
 Prompt: "Find existing test files and patterns in this codebase.
 Identify:
 - Test file locations and naming conventions
@@ -473,16 +456,16 @@ Add test implementation tasks to tasks.md:
 ### Before Implementation
 
 ```
-$ $1_gofer_research  →  $ $2_gofer_specify  →  $ $3_gofer_plan
+/1_gofer_research  →  /2_gofer_specify  →  /3_gofer_plan
                                                  ↓
-                                          $ $9_gofer_tests  ← Define tests here
+                                          /9_gofer_tests  ← Define tests here
                                                  ↓
-                                          $ $4_gofer_tasks  →  $ $5_gofer_implement
+                                          /4_gofer_tasks  →  /5_gofer_implement
 ```
 
 ### During Implementation
 
-After each task in `$ $5_gofer_implement`:
+After each task in `/5_gofer_implement`:
 
 1. Run relevant tests
 2. Verify behavior matches test expectations

@@ -1,30 +1,13 @@
 ---
 name: 6_gofer_validate
-description: >-
-  Unified validation, blast-radius analysis, and engineering review (3 phases,
-  110-point rubric)
-gofer:
-  workflowProfile: enterpriseai
-  canonicalSource: .specify/commands/6_gofer_validate.md
-  canonicalChecksum: f59ee36342178ed69de3d3685f83bb1a2955569a80d1d76a598af02923d60b49
-  metadataSource: extension/src/services/migration/ResourceSyncer.ts
-arguments:
-  - name: feature
-    description: Feature name or description
-    required: false
-result_schema:
-  type: object
-  properties:
-    output:
-      type: string
-      description: Path to generated artifact or execution summary
-    status:
-      type: string
-      enum:
-        - success
-        - error
+description: "Validate implemented work with evidence-backed scoring, blast-radius analysis, and engineering review."
 ---
 
+---
+description:
+  Unified validation, blast-radius analysis, and engineering review (3 phases,
+  110-point rubric)
+---
 
 # Gofer Validate
 
@@ -40,8 +23,8 @@ across **three phases**:
   to catch issues rubric-based validation might miss
 
 This is the **sixth stage** of the unified Gofer pipeline. It consolidates the
-former `$ $6_gofer_validate` and `$ $6a_gofer_engineering_review` stages into a
-single command; `$ $6a_gofer_engineering_review` is retained as a
+former `/6_gofer_validate` and `/6a_gofer_engineering_review` stages into a
+single command; `/6a_gofer_engineering_review` is retained as a
 backwards-compatibility stub that delegates here.
 
 A score of **110/110 on the rubric (Phases A + B) is required to pass**. Any
@@ -61,11 +44,11 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 This command expects in `.specify/specs/{feature}/`:
 
-- `research.md` - Codebase analysis (from $ $1_gofer_research)
-- `spec.md` - Feature specification (from $ $2_gofer_specify)
-- `plan.md` - Implementation plan (from $ $3_gofer_plan)
-- `tasks.md` - Task breakdown (from $ $4_gofer_tasks)
-- Implemented code (from $ $5_gofer_implement)
+- `research.md` - Codebase analysis (from /1_gofer_research)
+- `spec.md` - Feature specification (from /2_gofer_specify)
+- `plan.md` - Implementation plan (from /3_gofer_plan)
+- `tasks.md` - Task breakdown (from /4_gofer_tasks)
+- Implemented code (from /5_gofer_implement)
 
 ---
 
@@ -168,7 +151,7 @@ Before starting validation, assess context window health:
 
 - If **< 50%**: Proceed normally
 - If **50-70%**: Use sub-agents heavily, minimize main context
-- If **> 70%**: Run `$ $7_gofer_save`, start new session, run `$ $8_gofer_resume`
+- If **> 70%**: Run `/7_gofer_save`, start new session, run `/8_gofer_resume`
 
 Validation loads all artifacts and spawns 6 agents — context pressure is high.
 
@@ -237,7 +220,7 @@ Each agent receives the feature context and returns structured findings.
 ### Agent 1: Correctness Validator
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the validation-correctness analysis in each., model="sonnet"
+Task: subagent_type="validation-correctness", model="sonnet"
 Prompt: "Validate functional correctness for feature [FEATURE_NAME].
 
 Feature directory: {FEATURE_DIR}
@@ -252,7 +235,7 @@ Return findings in your standard report format (<2000 tokens)."
 ### Agent 2: Security Validator
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the validation-security analysis in each., model="sonnet"
+Task: subagent_type="validation-security", model="sonnet"
 Prompt: "Validate security posture for feature [FEATURE_NAME].
 
 Scan all new/modified files (from tasks.md file paths).
@@ -263,7 +246,7 @@ Return findings with Red/Yellow/Gray severity (<2000 tokens)."
 ### Agent 3: Performance Validator
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the validation-performance analysis in each., model="haiku"
+Task: subagent_type="validation-performance", model="haiku"
 Prompt: "Validate performance characteristics for feature [FEATURE_NAME].
 
 Scan all new/modified source files (from tasks.md file paths).
@@ -275,7 +258,7 @@ Return findings with complexity scores (<2000 tokens)."
 ### Agent 4: Test Quality Validator
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the validation-test-quality analysis in each., model="haiku"
+Task: subagent_type="validation-test-quality", model="haiku"
 Prompt: "Validate test quality for feature [FEATURE_NAME].
 
 Scan test files related to the feature.
@@ -287,7 +270,7 @@ Return findings with mock ratio calculation (<2000 tokens)."
 ### Agent 5: Integration Validator
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the validation-integration analysis in each., model="sonnet"
+Task: subagent_type="validation-integration", model="sonnet"
 Prompt: "Validate integration contracts for feature [FEATURE_NAME].
 
 Feature directory: {FEATURE_DIR}
@@ -299,7 +282,7 @@ Return findings with contract compliance status (<2000 tokens)."
 ### Agent 6: Standards Validator
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the validation-standards analysis in each., model="sonnet"
+Task: subagent_type="validation-standards", model="sonnet"
 Prompt: "Validate standards compliance for feature [FEATURE_NAME].
 
 Feature directory: {FEATURE_DIR}
@@ -317,23 +300,23 @@ strategy (#13):
 
 ```
 # Diverge: 3 attack perspectives
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the validate-security-red-team analysis in each., model="sonnet"
+Task: subagent_type="validate-security-red-team", model="sonnet"
 Prompt: "Perspective 1: OWASP Top 10 attack analysis for feature [FEATURE_NAME].
 Scan all new/modified files from tasks.md. Attack from OWASP perspective.
 Return findings with exploit steps (<2000 tokens)."
 
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the validate-security-red-team analysis in each., model="sonnet"
+Task: subagent_type="validate-security-red-team", model="sonnet"
 Prompt: "Perspective 2: Business logic abuse analysis for feature [FEATURE_NAME].
 Scan all new/modified files from tasks.md. Attack business logic.
 Return findings with exploit steps (<2000 tokens)."
 
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the validate-security-red-team analysis in each., model="sonnet"
+Task: subagent_type="validate-security-red-team", model="sonnet"
 Prompt: "Perspective 3: CVE search for feature [FEATURE_NAME].
 Check package.json dependencies for known CVEs.
 Return findings with advisory references (<2000 tokens)."
 
 # Converge: Judge synthesizes attack findings
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the multi-perspective-judge analysis in each., model="opus"
+Task: subagent_type="multi-perspective-judge", model="opus"
 Prompt: "Synthesize 3 security red team perspectives for [FEATURE_NAME].
 Perspective 1 (OWASP): [result]. Perspective 2 (Business Logic): [result].
 Perspective 3 (CVE): [result].
@@ -464,7 +447,7 @@ truth.
 ### Agent 8: Change Graph / Ripple Analyzer
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the codebase-analyzer analysis in each., model="sonnet"
+Task: subagent_type="codebase-analyzer", model="sonnet"
 Prompt: "Blast-radius change-graph analysis for feature [FEATURE_NAME].
 
 Feature directory: {FEATURE_DIR}
@@ -490,7 +473,7 @@ Return findings with Red/Yellow/Gray severity and a concise ripple summary
 ### Agent 9: Interface Contract Diff
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the validation-integration analysis in each., model="sonnet"
+Task: subagent_type="validation-integration", model="sonnet"
 Prompt: "Interface contract blast-radius analysis for feature [FEATURE_NAME].
 
 Feature directory: {FEATURE_DIR}
@@ -519,7 +502,7 @@ silent coverage regression). Return findings (<2000 tokens) with sections:
 ### Agent 10: Error Logging & Observability Integrity
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the validation-standards analysis in each., model="sonnet"
+Task: subagent_type="validation-standards", model="sonnet"
 Prompt: "Observability blast-radius analysis for feature [FEATURE_NAME].
 
 Feature directory: {FEATURE_DIR}
@@ -547,7 +530,7 @@ Logs', 'PII Risk', 'Metric Coverage Delta', 'Trace Propagation'."
 ### Agent 11: Dependency & Submodule Impact (with npm audit delta)
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the research-dependency-evaluator analysis in each., model="sonnet"
+Task: subagent_type="research-dependency-evaluator", model="sonnet"
 Prompt: "Dependency and submodule blast-radius analysis for feature
 [FEATURE_NAME].
 
@@ -578,7 +561,7 @@ Bumps', 'Lockfile Drift', 'CVE Delta', 'Submodule Boundary Crossings'."
 ### Agent 12: Rollback Readiness & Release Checklist
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the tasks-rollback-planner analysis in each., model="sonnet"
+Task: subagent_type="tasks-rollback-planner", model="sonnet"
 Prompt: "Rollback readiness + release-checklist review for feature
 [FEATURE_NAME].
 
@@ -650,7 +633,7 @@ feature: [Feature Name]
 generated: [ISO timestamp]
 reviewer: Claude
 GeneratedAt: [ISO timestamp]
-SourceCommandId: $ $6_gofer_validate
+SourceCommandId: /6_gofer_validate
 SourceInputs: [spec.md, plan.md, tasks.md, research.md, blast-radius inputs]
 OverwriteNoticeWhenApplicable: [new file or overwrite note]
 dimensions_checked:
@@ -1030,7 +1013,7 @@ frontmatter `pass:` marker is bumped from 1 to 2 so downstream consumers can
 tell which pass produced the artefact.
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the visual-canvas-writer analysis in each., model="sonnet"
+Task: subagent_type="visual-canvas-writer", model="sonnet"
 Prompt: "Pass-2 refresh for {FEATURE_DIR}/visuals/impact-canvas.md.
 Read validation council output from {FEATURE_DIR}/validation.md.
 Replace ONLY the topThreeRisks section with the council's top three risks.
@@ -1060,7 +1043,7 @@ top-quadrant entries that pass-1 (run from this same stage before validation)
 populated from the spec NFR / Out-of-Scope sections.
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the visual-risk-writer analysis in each., model="sonnet"
+Task: subagent_type="visual-risk-writer", model="sonnet"
 Prompt: "Pass 2: refresh risk heatmap for feature [FEATURE_NAME].
 
 Feature directory: {FEATURE_DIR}
@@ -1101,7 +1084,7 @@ deploy_in_scope: [true/false]
 blast_radius_verdict: [CONTAINED | BREACHED]
 blast_radius_report: blast-radius-report.md
 GeneratedAt: [ISO timestamp]
-SourceCommandId: $ $6_gofer_validate
+SourceCommandId: /6_gofer_validate
 SourceInputs: [spec.md, plan.md, tasks.md, research.md, automated checks, agent findings]
 OverwriteNoticeWhenApplicable: [new file or overwrite note]
 ---
@@ -1305,7 +1288,7 @@ Proceed to **Phase C: Engineering Review Loop** (inline, Step 10a below), then
 
 **No external auto-chain is needed** — Phase C runs inline in this command.
 After Phase C completes, the feature pipeline is complete. The legacy
-`$ $6a_gofer_engineering_review` stub will detect the
+`/6a_gofer_engineering_review` stub will detect the
 `engineering-review-report.md` artifact and no-op if invoked.
 
 ### If TOTAL < 110: FAIL
@@ -1402,7 +1385,7 @@ Output the routing instruction:
   REMEDIATION REQUIRED: [feature-name]
   Failed categories: [list]
   Iteration: [N] of 3
-  Route: $ $5_gofer_implement → focused on [failed areas]
+  Route: /5_gofer_implement → focused on [failed areas]
 
 ════════════════════════════════════════════════════════════════
 ```
@@ -1477,7 +1460,7 @@ cycle, catching issues that the rubric-based validation might miss (edge cases,
 race conditions, API-contract drift against the as-implemented code, spec spirit
 violations).
 
-Phase C is the terminal stage of `$ $6_gofer_validate`. After Phase C completes,
+Phase C is the terminal stage of `/6_gofer_validate`. After Phase C completes,
 the feature pipeline is complete.
 
 ## Step 10a: Initialize Phase C
@@ -1501,7 +1484,7 @@ feature context and returns structured findings.
 ### Agent 13: Engineer Review (Spec↔Plan↔Tasks↔Research Alignment)
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the engineer-review analysis in each., model="sonnet"
+Task: subagent_type="engineer-review", model="sonnet"
 Prompt: "Post-implementation engineering review for feature [FEATURE_NAME].
 
 Feature directory: {FEATURE_DIR}
@@ -1522,7 +1505,7 @@ Return findings in your standard report format (<2000 tokens)."
 ### Agent 14: Codebase Analyzer (Code↔Tasks Verification)
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the codebase-analyzer analysis in each., model="sonnet"
+Task: subagent_type="codebase-analyzer", model="sonnet"
 Prompt: "Post-implementation code verification for feature [FEATURE_NAME].
 
 Feature directory: {FEATURE_DIR}
@@ -1544,7 +1527,7 @@ Gray = style suggestions, optional improvements"
 ### Agent 15: Correctness Re-verification
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the validation-correctness analysis in each., model="sonnet"
+Task: subagent_type="validation-correctness", model="sonnet"
 Prompt: "Post-implementation correctness re-verification for feature [FEATURE_NAME].
 
 Feature directory: {FEATURE_DIR}
@@ -1749,12 +1732,12 @@ blast_radius_carryovers: [N]
   FEATURE PIPELINE COMPLETE!
 
   All Gofer stages finished:
-  1. $ $1_gofer_research ✓
-  2. $ $2_gofer_specify ✓
-  3. $ $3_gofer_plan ✓
-  4. $ $4_gofer_tasks ✓
-  5. $ $5_gofer_implement ✓
-  6. $ $6_gofer_validate ✓ (Phase A ✓, Phase B ✓, Phase C ✓)
+  1. /1_gofer_research ✓
+  2. /2_gofer_specify ✓
+  3. /3_gofer_plan ✓
+  4. /4_gofer_tasks ✓
+  5. /5_gofer_implement ✓
+  6. /6_gofer_validate ✓ (Phase A ✓, Phase B ✓, Phase C ✓)
 
   The feature is ready for review and merge.
 ════════════════════════════════════════════════════════════════
@@ -1777,12 +1760,12 @@ blast_radius_carryovers: [N]
   FEATURE PIPELINE COMPLETE!
 
   All Gofer stages finished:
-  1. $ $1_gofer_research ✓
-  2. $ $2_gofer_specify ✓
-  3. $ $3_gofer_plan ✓
-  4. $ $4_gofer_tasks ✓
-  5. $ $5_gofer_implement ✓
-  6. $ $6_gofer_validate ✓ (Phase A ✓, Phase B ✓, Phase C ⚠)
+  1. /1_gofer_research ✓
+  2. /2_gofer_specify ✓
+  3. /3_gofer_plan ✓
+  4. /4_gofer_tasks ✓
+  5. /5_gofer_implement ✓
+  6. /6_gofer_validate ✓ (Phase A ✓, Phase B ✓, Phase C ⚠)
 
   The feature is ready for review and merge (review Gray findings).
 ════════════════════════════════════════════════════════════════
@@ -2011,18 +1994,6 @@ This also logs quality metrics (rubric scores, finding counts) to:
 `.specify/logs/quality-metrics.jsonl`
 
 ---
-
-
-
-## Pipeline Continuation
-
-This completes the 6_gofer_validate stage. To continue the Gofer pipeline:
-
-**Next Command:** `$ $6a_gofer_engineering_review`
-
-The next stage will use the artifacts generated by this command and continue the implementation workflow.
-
-**Note:** Codex CLI does not support automatic command chaining. You must manually run each stage command to progress through the pipeline.
 
 ## Key Rules
 

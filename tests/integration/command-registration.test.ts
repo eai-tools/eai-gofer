@@ -99,29 +99,29 @@ interface PackageJson {
 const COMMAND_DOC_PATHS = [
   '../../README.md',
   '../../extension/README.md',
-  '../../docs/README.md',
-  '../../docs/quickstart.md',
-  '../../docs/cli-support.md',
-  '../../docs/setup-claude-code.md',
-  '../../docs/setup-copilot-chat.md',
-  '../../docs/setup-codex-cli.md',
-  '../../docs/multi-provider-cli-support.md',
+  '../../.tech-docs/legacy-src/docs/README.md',
+  '../../.tech-docs/legacy-src/docs/quickstart.md',
+  '../../.tech-docs/legacy-src/docs/cli-support.md',
+  '../../.tech-docs/legacy-src/docs/setup-claude-code.md',
+  '../../.tech-docs/legacy-src/docs/setup-copilot-chat.md',
+  '../../.tech-docs/legacy-src/docs/setup-codex-cli.md',
+  '../../.tech-docs/legacy-src/docs/multi-provider-cli-support.md',
 ];
-const COMMAND_ID_DOC_PATHS = ['../../docs/agentic-coding/AGENT_TOOLING_REFERENCE.md'];
-const COMMAND_PALETTE_DOC_PATHS = ['../../docs/API_KEY_SETUP.md'];
+const COMMAND_ID_DOC_PATHS = ['../../.tech-docs/legacy-src/docs/agentic-coding/AGENT_TOOLING_REFERENCE.md'];
+const COMMAND_PALETTE_DOC_PATHS = ['../../.tech-docs/legacy-src/docs/API_KEY_SETUP.md'];
 
 const SETTINGS_DOC_PATHS = [
   '../../README.md',
   '../../extension/README.md',
-  '../../docs/API_KEY_SETUP.md',
-  '../../docs/guides/configuration.md',
-  '../../docs/guides/session-management.md',
+  '../../.tech-docs/legacy-src/docs/API_KEY_SETUP.md',
+  '../../.tech-docs/legacy-src/docs/guides/configuration.md',
+  '../../.tech-docs/legacy-src/docs/guides/session-management.md',
 ];
 const SETTINGS_DEFAULT_DOC_PATHS = [
-  '../../docs/guides/configuration.md',
-  '../../docs/guides/session-management.md',
+  '../../.tech-docs/legacy-src/docs/guides/configuration.md',
+  '../../.tech-docs/legacy-src/docs/guides/session-management.md',
 ];
-const LEGACY_DOC_PREFIX_PATHS = ['../../docs/agentic-coding/AGENT_TOOLING_REFERENCE.md'];
+const LEGACY_DOC_PREFIX_PATHS = ['../../.tech-docs/legacy-src/docs/agentic-coding/AGENT_TOOLING_REFERENCE.md'];
 const DELETED_LEGACY_DOC_PATHS = [
   'docs/migration-guide.md',
   'docs/WHATSAPP_SETUP.md',

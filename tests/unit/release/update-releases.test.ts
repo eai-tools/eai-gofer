@@ -7,7 +7,7 @@ import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
 
-const SOURCE_SCRIPT_PATH = path.resolve(__dirname, '../../../docs/update-releases.js');
+const SOURCE_SCRIPT_PATH = path.resolve(__dirname, '../../../scripts/update-releases.js');
 
 interface ReleaseEntry {
   version: string;
@@ -32,17 +32,18 @@ function readReleasesJson(releasesPath: string): ReleasesJson {
 
 describe('update-releases.js', () => {
   let tmpRoot: string;
-  let docsDir: string;
+  let docsSiteStaticDir: string;
   let releasesPath: string;
   let scriptPath: string;
 
   beforeEach(() => {
     tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'update-releases-test-'));
-    docsDir = path.join(tmpRoot, 'docs');
-    releasesPath = path.join(docsDir, 'releases.json');
-    scriptPath = path.join(docsDir, 'update-releases.js');
+    docsSiteStaticDir = path.join(tmpRoot, 'docs-site', 'static');
+    releasesPath = path.join(docsSiteStaticDir, 'releases.json');
+    scriptPath = path.join(tmpRoot, 'scripts', 'update-releases.js');
 
-    fs.mkdirSync(path.join(docsDir, 'releases'), { recursive: true });
+    fs.mkdirSync(path.join(docsSiteStaticDir, 'releases'), { recursive: true });
+    fs.mkdirSync(path.dirname(scriptPath), { recursive: true });
     fs.copyFileSync(SOURCE_SCRIPT_PATH, scriptPath);
   });
 
@@ -52,7 +53,11 @@ describe('update-releases.js', () => {
 
   it('dedupes an existing version before prepending the new release entry', async () => {
     const duplicateVersion = '3.2.0';
-    const duplicateVsixPath = path.join(docsDir, 'releases', `gofer-${duplicateVersion}.vsix`);
+    const duplicateVsixPath = path.join(
+      docsSiteStaticDir,
+      'releases',
+      `gofer-${duplicateVersion}.vsix`
+    );
 
     fs.writeFileSync(
       releasesPath,

@@ -1,57 +1,53 @@
 ---
 generated: true
-generated_at: "2026-05-10T11:17:59.779Z"
-source_commit: "57666de1cd235757b2f0444b82e4f82aef6b8108"
+generated_at: "2026-05-10T12:23:06.706Z"
+source_commit: "ec462e53d60882a1959c0bf22456684e76b73cdc"
 ---
 # Changelog
 
 ## Changes Since Last Documentation Update
 
-**Previous Update:** 2026-05-01 (commit `65a155c8c10add0b07607d3669e450d458df9d9f`)
-**Current Update:** 2026-05-02 (commit `46486d94a7292a485629613e8e8277c4d2e6e1d1`)
+**Previous Update:** 2026-05-10 11:17 UTC (commit `57666de1cd235757b2f0444b82e4f82aef6b8108`)
+**Current Update:** 2026-05-10 12:19 UTC (commit `ec462e53d60882a1959c0bf22456684e76b73cdc`)
 
 ### Version Updates
 
-- **Version:** 3.1.0 → 3.2.0 (minor release)
+- **Version:** 3.2.2 (patch release, no change since last doc update)
 
 ### Significant Changes
 
-#### 1. Release Management (v3.2.0)
+#### 1. UI-First App Delivery Workflow (v3.2.2)
 
-**Commit:** `46486d9` - fix(release): dedupe releases index
+**Commits:** `3bef899`, `f3b6eca` - feat: add ui-first app delivery workflow
 
-- Fixed duplicate entries in releases index
-- Improved release artifact management
-- Enhanced VSIX versioning and packaging
-
-#### 2. Gofer Skills Pipeline Enhancement (v3.2.0)
-
-**Commit:** `caa782d` - feat(gofer): augment skills pipeline
-
-- **New Specification:** `031-skills-pipeline-augmentation`
-- Enhanced agent coordination capabilities
-- Improved skill composition and orchestration
-- Better integration with Claude Code, Copilot, Codex, and Gemini workflows
+- **New Specification:** `032-gofer-ui-first-builder`
+- Introduces preview-approval-service-fit workflow for vertical app delivery
+- Dual-mode shared pipeline supports both app and non-app work
+- App delivery now converges on UI and EnterpriseAI service fit earlier
+- Vertical Template reuse with optional branding inputs
+- Preview self-review evidence required before stakeholder presentation
 
 **Impact:**
-- More flexible AI agent coordination
-- Better task decomposition and parallel execution
-- Improved context handoff between pipeline stages
+- App delivery runs now UI-first with preview gates
+- Non-app work continues through existing shared stages without app-only gates
+- Better alignment with EnterpriseAI vertical app delivery requirements
 
-#### 3. Documentation Updates
+#### 2. Command Parity Restoration (v3.2.2)
 
-**Commit:** `54a2ac1` - docs: update .tech-docs/ [nightly-automated]
+**Commit:** `57666de` - fix: restore command parity compatibility
 
-- Automated nightly documentation refresh
-- Kept technical documentation in sync with codebase changes
+- Fixed command surface consistency across all CLI platforms
+- Ensured Claude Code, Copilot, Codex, and Gemini maintain feature parity
+- Resolved command generation synchronization issues
 
-#### 4. GitHub Releases Cleanup
+#### 3. Documentation Standardization (v3.2.2)
 
-**Commit:** `65a155c` - chore(pages): keep last five vsix releases
+**Commit:** `ec462e5` - docs: standardize nightly tech docs
 
-- GitHub Pages now retains only the last 5 VSIX releases
-- Reduces repository bloat from historical releases
-- Maintains sufficient release history for users
+- Standardized `.tech-docs/` directory structure and content
+- Improved executive summary format with tabular data
+- Enhanced critical integrations and documentation surfaces sections
+- Better alignment with nightly documentation generation contract
 
 ### Breaking Changes
 
@@ -63,20 +59,21 @@ None in this release.
 
 ### New Features
 
-- **Skills Pipeline Augmentation** (v3.2.0)
-  - Enhanced skill composition framework
-  - Improved agent coordination primitives
-  - Better support for multi-stage AI workflows
+- **UI-First App Delivery Workflow** (v3.2.2)
+  - Preview-approval-service-fit gates for vertical apps
+  - Dual-mode shared pipeline (app vs non-app detection)
+  - Vertical Template constraints and branding workflow
+  - Preview self-review before stakeholder presentation
 
 ### Bug Fixes
 
-- Fixed duplicate entries in releases index
-- Improved release artifact deduplication
+- Fixed command parity compatibility across CLI platforms
+- Resolved command surface synchronization issues
 
 ### Infrastructure Changes
 
-- Automated `.tech-docs/` nightly updates
-- VSIX release retention policy (last 5 releases)
+- Standardized nightly `.tech-docs/` generation format
+- Enhanced documentation structure with executive summaries
 
 ### Configuration Changes
 
@@ -97,6 +94,18 @@ No security-specific changes in this release.
 ---
 
 ## Recent Release History
+
+### v3.2.2 (2026-05-10)
+
+- **Focus:** UI-first app delivery workflow and command parity
+- **Key Features:** Preview-approval-service-fit workflow, dual-mode pipeline, Vertical Template integration
+- **Highlights:** App delivery converges on UI earlier, non-app work unaffected
+
+### v3.2.1 (2026-05-09)
+
+- **Focus:** Release automation hardening
+- **Key Features:** Improved release script reliability
+- **Highlights:** More robust VSIX packaging and GitHub release management
 
 ### v3.2.0 (2026-05-02)
 
@@ -120,11 +129,15 @@ No security-specific changes in this release.
 
 ## Active Specifications
 
-**Current Spec:** `031-skills-pipeline-augmentation`
-**Status:** Active (as of 2026-05-02)
-**Purpose:** Augment the Gofer skills pipeline with enhanced agent coordination and skill composition capabilities
+**Current Specs:**
+1. **032-gofer-ui-first-builder** - Status: Ready (as of 2026-05-10)
+   - UI-first app delivery workflow with preview, approval, and service-fit gates
+   - Dual-mode shared pipeline supporting app and non-app work
 
-**Archived Specs:** All previous specifications moved to `.specify/specs/_archived/`
+2. **031-skills-pipeline-augmentation** - Status: Active (as of 2026-05-02)
+   - Enhanced agent coordination and skill composition capabilities
+
+**Archived Specs:** 30+ previous specifications moved to `.specify/specs/_archived/`
 
 ---
 
@@ -132,6 +145,6 @@ No security-specific changes in this release.
 
 This `.tech-docs/` directory is automatically updated nightly to reflect the latest codebase state. The documentation is synchronized with the source code via automated CI workflows.
 
-**Update Frequency:** Nightly (automated)
-**Last Manual Review:** 2026-05-02
-**Next Scheduled Review:** 2026-05-09 (weekly)
+**Update Frequency:** Nightly (automated via GitHub Actions)
+**Last Update:** 2026-05-10 12:19 UTC
+**Next Scheduled Update:** 2026-05-11 (nightly)

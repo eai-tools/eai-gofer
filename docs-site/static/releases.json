@@ -1,8 +1,17 @@
 {
-  "latest_version": "3.2.2",
+  "latest_version": "3.3.0",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-05-03T09:20:16.201Z",
+  "last_updated": "2026-05-10T13:04:03.014Z",
   "releases": [
+    {
+      "version": "3.3.0",
+      "tag_name": "v3.3.0",
+      "published_at": "2026-05-10T13:04:03.013Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-3.3.0.vsix",
+      "notes": "Refresh live validation for 031/032, restore release/doc validation contracts, and remediate vulnerable transitive dependencies.",
+      "prerelease": false,
+      "size_mb": 11.3
+    },
     {
       "version": "3.2.2",
       "tag_name": "v3.2.2",

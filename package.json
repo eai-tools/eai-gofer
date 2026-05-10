@@ -83,6 +83,11 @@
     "vitest": "^3.2.4",
     "vitest-ctrf-json-reporter": "^0.0.3"
   },
+  "overrides": {
+    "diff": "^8.0.3",
+    "postcss": "^8.5.10",
+    "serialize-javascript": "^7.0.0"
+  },
   "lint-staged": {
     "src/**/*.{ts,js}": [
       "eslint --fix",

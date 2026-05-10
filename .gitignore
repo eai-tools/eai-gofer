@@ -9,3 +9,4 @@
 .specify/memory/context-health-state.json
 .specify/memory/observation-cache/
 .specify/specs/*/research-index.json
+node_modules

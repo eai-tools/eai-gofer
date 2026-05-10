@@ -1,26 +1,6 @@
 ---
 name: gofer:side
-description: Gofer Side Conversation
-gofer:
-  workflowProfile: enterpriseai
-  canonicalSource: .specify/commands/gofer_side.md
-  canonicalChecksum: d6478b91e1238bf5b1ae5787230bafadc5dfa5a5dd3f2a1bcd85eeffdb9a8ae6
-  metadataSource: extension/src/services/migration/ResourceSyncer.ts
-arguments:
-  - name: feature
-    description: Feature name or description
-    required: false
-result_schema:
-  type: object
-  properties:
-    output:
-      type: string
-      description: Path to generated artifact or execution summary
-    status:
-      type: string
-      enum:
-        - success
-        - error
+description: "Open a side conversation in the active CLI without disturbing the main pipeline state; resumable."
 ---
 
 

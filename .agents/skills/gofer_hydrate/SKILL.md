@@ -1,28 +1,11 @@
 ---
 name: gofer_hydrate
-description: Reverse-engineer specification from existing code (Hydration)
-gofer:
-  workflowProfile: enterpriseai
-  canonicalSource: .specify/commands/gofer_hydrate.md
-  canonicalChecksum: 6981b19710e2386426a0b651eeaa43c3b9690d39a24e0fa507f9766612ecd94a
-  metadataSource: extension/src/services/migration/ResourceSyncer.ts
-arguments:
-  - name: feature
-    description: Feature name or description
-    required: false
-result_schema:
-  type: object
-  properties:
-    output:
-      type: string
-      description: Path to generated artifact or execution summary
-    status:
-      type: string
-      enum:
-        - success
-        - error
+description: "Reverse-engineer specification from existing code (Hydration)."
 ---
 
+---
+description: Reverse-engineer specification from existing code (Hydration)
+---
 
 # Gofer Hydrate
 
@@ -73,7 +56,7 @@ Launch parallel agents to analyze the code:
 ### Agent 1: Code Analyzer
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the codebase-analyzer analysis in each., model="sonnet"
+Task: subagent_type="codebase-analyzer", model="sonnet"
 Prompt: "Analyze the implementation of [TARGET CODE].
 Identify:
 - Core functionality and purpose
@@ -86,7 +69,7 @@ Identify:
 ### Agent 2: Test Analyzer
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the codebase-locator analysis in each., model="haiku"
+Task: subagent_type="codebase-locator", model="haiku"
 Prompt: "Find all tests related to [TARGET CODE].
 Identify:
 - Test file locations
@@ -99,7 +82,7 @@ Identify:
 ### Agent 3: Usage Analyzer
 
 ```
-**Note**: Codex CLI does not support the Task tool. For parallel agent work, open multiple Codex CLI sessions and run the codebase-pattern-finder analysis in each., model="haiku"
+Task: subagent_type="codebase-pattern-finder", model="haiku"
 Prompt: "Find all usages of [TARGET CODE] in the codebase.
 Identify:
 - Who calls this code
@@ -185,7 +168,7 @@ source_files:
 # [Feature Title]
 
 > This specification was reverse-engineered from existing code using
-> `$ $gofer_hydrate`. It reflects the **current implementation**, not necessarily
+> `/gofer_hydrate`. It reflects the **current implementation**, not necessarily
 > the original requirements.
 
 ## Overview

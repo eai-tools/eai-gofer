@@ -1,0 +1,147 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version, for example v2.0.5'
+        required: true
+        type: string
+      prerelease:
+        description: 'Mark as prerelease'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+env:
+  NODE_VERSION: '20.x'
+
+concurrency:
+  group: release-${{ github.ref_name || inputs.version }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Build and Publish Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: |
+            package-lock.json
+            extension/package-lock.json
+            language-server/package-lock.json
+
+      - name: Resolve Release Version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            raw_version="${{ inputs.version }}"
+          else
+            raw_version="${GITHUB_REF_NAME}"
+          fi
+
+          tag_name="${raw_version#refs/tags/}"
+          if [[ "$tag_name" != v* ]]; then
+            tag_name="v$tag_name"
+          fi
+
+          {
+            echo "tag_name=$tag_name"
+            echo "version=${tag_name#v}"
+          } >> "$GITHUB_OUTPUT"
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.prerelease }}" = "true" ]; then
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install Dependencies
+        run: |
+          npm ci
+          npm --prefix extension ci
+          npm --prefix language-server ci
+
+      - name: Run Tests
+        run: npm test
+        env:
+          CI: true
+
+      - name: Build Components
+        run: |
+          npm run build
+          npm --prefix extension run compile
+          npm --prefix language-server run build
+
+      - name: Package VS Code Extension
+        working-directory: ./extension
+        run: npx @vscode/vsce package --out "gofer-${{ steps.version.outputs.version }}.vsix"
+
+      - name: Create Release Archive
+        run: |
+          mkdir -p release-assets/orchestrator release-assets/extension release-assets/language-server
+
+          cp -R dist/. release-assets/orchestrator/
+          cp -R extension/dist/. release-assets/extension/
+          cp -R language-server/dist/. release-assets/language-server/
+          cp "extension/gofer-${{ steps.version.outputs.version }}.vsix" release-assets/
+          cp README.md CHANGELOG.md LICENSE release-assets/
+
+          tar -czf "gofer-${{ steps.version.outputs.tag_name }}.tar.gz" release-assets/
+
+      - name: Generate Release Notes
+        run: |
+          tag_name="${{ steps.version.outputs.tag_name }}"
+
+          {
+            echo "# Gofer $tag_name"
+            echo
+            echo "## Changes"
+            echo
+          } > release-notes.md
+
+          if git describe --tags --abbrev=0 HEAD~1 >/dev/null 2>&1; then
+            last_tag="$(git describe --tags --abbrev=0 HEAD~1)"
+            echo "Changes since $last_tag:" >> release-notes.md
+            git log --pretty=format:"- %s" "$last_tag"..HEAD >> release-notes.md
+          else
+            echo "- Initial release" >> release-notes.md
+          fi
+
+          {
+            echo
+            echo "## Assets"
+            echo
+            echo "- VS Code extension package"
+            echo "- Gofer release archive"
+          } >> release-notes.md
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag_name }}
+          name: Gofer ${{ steps.version.outputs.tag_name }}
+          body_path: release-notes.md
+          draft: false
+          prerelease: ${{ steps.version.outputs.prerelease }}
+          files: |
+            gofer-${{ steps.version.outputs.tag_name }}.tar.gz
+            extension/gofer-${{ steps.version.outputs.version }}.vsix
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

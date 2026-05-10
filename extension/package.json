@@ -1,0 +1,982 @@
+{
+  "name": "gofer",
+  "displayName": "Gofer for EnterpriseAI Vertical App Delivery [PREVIEW]",
+  "description": "Guide repository work from business scenario to validated delivery inside VS Code, with EnterpriseAI-first workflow support when you want it.",
+  "version": "3.2.2",
+  "publisher": "EnterpriseAI",
+  "icon": "icon.png",
+  "author": {
+    "name": "Enterprise AI Pty Ltd",
+    "url": "https://enterpriseai.com.au"
+  },
+  "license": "SEE LICENSE IN LICENSE",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/eai-tools/gofer"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "AI",
+    "Testing",
+    "Other"
+  ],
+  "keywords": [
+    "spec-driven",
+    "gofer",
+    "enterpriseai",
+    "enterprise-ai",
+    "platform",
+    "github",
+    "claude",
+    "copilot",
+    "codex",
+    "gemini",
+    "ai",
+    "testing",
+    "playwright"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "onView:goferProgress",
+    "onView:goferAIUsage",
+    "onView:goferMemory"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "gofer.initialize",
+        "title": "Gofer: Initialize Repository",
+        "icon": "$(rocket)"
+      },
+      {
+        "command": "gofer.installOptionalTools",
+        "title": "Gofer: Install Optional Developer Tools",
+        "icon": "$(tools)"
+      },
+      {
+        "command": "gofer.upgrade",
+        "title": "Gofer: Upgrade to Gofer Format",
+        "icon": "$(arrow-up)"
+      },
+      {
+        "command": "gofer.showProgress",
+        "title": "Gofer: Show Progress Panel",
+        "icon": "$(dashboard)"
+      },
+      {
+        "command": "gofer.refreshSpecs",
+        "title": "Gofer: Refresh Specifications",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "gofer.checkForUpdates",
+        "title": "Gofer: Check for Updates",
+        "icon": "$(cloud-download)"
+      },
+      {
+        "command": "gofer.updateNow",
+        "title": "Gofer: Update Now",
+        "icon": "$(desktop-download)"
+      },
+      {
+        "command": "gofer.refreshConstitution",
+        "title": "Gofer: Refresh Constitution",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "gofer.refreshContextWindow",
+        "title": "Gofer: Refresh Context Window",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "gofer.refreshAIUsage",
+        "title": "Gofer: Refresh AI Usage",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "gofer.showAIUsage",
+        "title": "Gofer: Show AI Usage Details",
+        "icon": "$(graph)"
+      },
+      {
+        "command": "gofer.showContextCategoryContent",
+        "title": "Gofer: Show Context Category Content"
+      },
+      {
+        "command": "gofer.refreshMemory",
+        "title": "Gofer: Refresh Memory",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "gofer.remember",
+        "title": "Gofer: Remember",
+        "icon": "$(bookmark)"
+      },
+      {
+        "command": "gofer.searchMemory",
+        "title": "Gofer: Search Memory",
+        "icon": "$(search)"
+      },
+      {
+        "command": "gofer.forgetMemory",
+        "title": "Gofer: Forget Memory",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "gofer.clearMemory",
+        "title": "Gofer: Clear Memory",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "gofer.viewMemories",
+        "title": "Gofer: View Memories",
+        "icon": "$(library)"
+      },
+      {
+        "command": "gofer.migrateMemoriesToLayered",
+        "title": "Gofer: Migrate Memories to Layered Format",
+        "icon": "$(arrow-up)"
+      },
+      {
+        "command": "gofer.queryMemoryUsage",
+        "title": "Gofer: Query Memory Usage",
+        "icon": "$(graph)"
+      },
+      {
+        "command": "gofer.viewCompactionHistory",
+        "title": "Gofer: View Compaction History",
+        "icon": "$(history)"
+      },
+      {
+        "command": "gofer.createHintFile",
+        "title": "Gofer: Create Hint File",
+        "icon": "$(new-file)"
+      },
+      {
+        "command": "gofer.showConstitution",
+        "title": "Gofer: Show Constitution Panel",
+        "icon": "$(law)"
+      },
+      {
+        "command": "gofer.updateTemplates",
+        "title": "Gofer: Update Templates",
+        "icon": "$(cloud-download)"
+      },
+      {
+        "command": "gofer.fixSpecPaths",
+        "title": "Gofer: Fix Spec Path References (specs/ → .specify/specs/)",
+        "icon": "$(wrench)"
+      },
+      {
+        "command": "gofer.openSpec",
+        "title": "Gofer: Open Specification",
+        "icon": "$(file-text)"
+      },
+      {
+        "command": "gofer.createSpec",
+        "title": "Gofer: Create New Specification",
+        "icon": "$(file-add)"
+      },
+      {
+        "command": "gofer.showSpecDetails",
+        "title": "Gofer: Show Specification Details"
+      },
+      {
+        "command": "gofer.showSectionDetails",
+        "title": "Gofer: Show Constitution Section Details"
+      },
+      {
+        "command": "gofer.showArticleDetails",
+        "title": "Gofer: Show Constitution Article Details"
+      },
+      {
+        "command": "gofer.showMemoryDocument",
+        "title": "Gofer: Show Memory Document"
+      },
+      {
+        "command": "gofer.showMemorySection",
+        "title": "Gofer: Show Memory Section"
+      },
+      {
+        "command": "gofer.openWithPreview",
+        "title": "Open with Preview"
+      },
+      {
+        "command": "gofer.openWithMarkSharp",
+        "title": "Open with Mark Sharp"
+      },
+      {
+        "command": "gofer.openWithMarkdownEditor",
+        "title": "Open with Markdown Editor"
+      },
+      {
+        "command": "gofer.openWithMarkdownWYSIWYG",
+        "title": "Open with Markdown WYSIWYG"
+      },
+      {
+        "command": "gofer.executeAllPendingSpecs",
+        "title": "Gofer: Execute All Pending Specs (Dependency Order)",
+        "icon": "$(run-all)"
+      },
+      {
+        "command": "gofer.startClaudeCode",
+        "title": "Gofer: Start Claude Code Terminal",
+        "icon": "$(play)"
+      },
+      {
+        "command": "gofer.debugAIUsage",
+        "title": "Gofer: Debug AI Usage Panel"
+      },
+      {
+        "command": "gofer.stopClaudeCode",
+        "title": "Gofer: Stop Claude Code Terminal",
+        "icon": "$(stop)"
+      },
+      {
+        "command": "gofer.pauseClaudeCode",
+        "title": "Gofer: Pause Claude Code Terminal (Send ESC)",
+        "icon": "$(debug-pause)"
+      },
+      {
+        "command": "gofer.resumeClaudeCode",
+        "title": "Gofer: Resume Claude Code Autonomous Monitoring",
+        "icon": "$(play)"
+      },
+      {
+        "command": "gofer.showCouncilStatus",
+        "title": "Gofer: Show LLM Council Status",
+        "icon": "$(organization)"
+      },
+      {
+        "command": "gofer.checkForSlop",
+        "title": "Gofer: Check for Slop (AI Code Quality)",
+        "icon": "$(bug)"
+      },
+      {
+        "command": "gofer.resumeSession",
+        "title": "Gofer: Resume Session from Checkpoint",
+        "icon": "$(debug-continue)"
+      },
+      {
+        "command": "gofer.regenerateInstructions",
+        "title": "Gofer: Regenerate AI Instructions",
+        "icon": "$(refresh)"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "gofer.initialize",
+        "key": "ctrl+shift+alt+i",
+        "mac": "cmd+shift+alt+i",
+        "when": "editorTextFocus || explorerResourceIsFolder"
+      },
+      {
+        "command": "gofer.showProgress",
+        "key": "ctrl+shift+alt+p",
+        "mac": "cmd+shift+alt+p"
+      },
+      {
+        "command": "gofer.refreshSpecs",
+        "key": "ctrl+shift+alt+r",
+        "mac": "cmd+shift+alt+r"
+      },
+      {
+        "command": "gofer.showConstitution",
+        "key": "ctrl+shift+alt+c",
+        "mac": "cmd+shift+alt+c"
+      },
+      {
+        "command": "gofer.createSpec",
+        "key": "ctrl+shift+alt+n",
+        "mac": "cmd+shift+alt+n",
+        "when": "explorerResourceIsFolder"
+      },
+      {
+        "command": "gofer.checkForUpdates",
+        "key": "ctrl+shift+alt+u",
+        "mac": "cmd+shift+alt+u"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "gofer",
+          "title": "Gofer - Enterprise AI",
+          "icon": "$(notebook)"
+        }
+      ]
+    },
+    "views": {
+      "gofer": [
+        {
+          "id": "goferProgress",
+          "name": "Specifications",
+          "icon": "$(notebook)",
+          "contextualTitle": "Gofer"
+        },
+        {
+          "id": "goferAIUsage",
+          "name": "AI Token Usage",
+          "icon": "$(graph)",
+          "contextualTitle": "AI Usage"
+        },
+        {
+          "id": "goferMemory",
+          "name": "Rules and Memory",
+          "icon": "$(database)",
+          "contextualTitle": "Rules and Memory"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "goferProgress",
+        "contents": "Gofer helps turn a business scenario into a clear delivery path inside the repository: research, specification, planning, tasks, implementation, and validation.\n\nNo `.specify` workspace was found yet.\n\n[Initialize Gofer](command:gofer.initialize)\n\nA simple way to start:\n1. Initialize the workspace\n2. Open your AI chat/CLI and run `/0_business_scenario` (or `#0_business_scenario` in Copilot)\n3. Review `proposal-review.md`, then continue through spec → plan → tasks → implement → validate\n\nEnterpriseAI-first guidance is the default when you want that workflow. Set `gofer.workflowProfile=standard` only when you explicitly want the baseline Gofer workflow.\n\nUse **Gofer: Install Optional Developer Tools** if your preferred CLI is not installed locally."
+      },
+      {
+        "view": "goferAIUsage",
+        "contents": "No AI usage data yet.\n\nUsage will appear when AI API calls are logged."
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "gofer.refreshSpecs",
+          "when": "view == goferProgress",
+          "group": "navigation@1"
+        },
+        {
+          "command": "gofer.updateNow",
+          "when": "view == goferProgress",
+          "group": "navigation@2"
+        },
+        {
+          "command": "gofer.showConstitution",
+          "when": "view == goferProgress",
+          "group": "navigation@3"
+        },
+        {
+          "command": "gofer.refreshAIUsage",
+          "when": "view == goferAIUsage",
+          "group": "navigation"
+        },
+        {
+          "command": "gofer.refreshMemory",
+          "when": "view == goferMemory",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "gofer.openWithPreview",
+          "when": "viewItem == spec || viewItem == constitution-article || viewItem == constitution-section || viewItem == memory-document || viewItem == memory-section",
+          "group": "openwith@1"
+        },
+        {
+          "command": "gofer.openWithMarkSharp",
+          "when": "viewItem == spec || viewItem == constitution-article || viewItem == constitution-section || viewItem == memory-document || viewItem == memory-section",
+          "group": "openwith@2"
+        },
+        {
+          "command": "gofer.openWithMarkdownEditor",
+          "when": "viewItem == spec || viewItem == constitution-article || viewItem == constitution-section || viewItem == memory-document || viewItem == memory-section",
+          "group": "openwith@3"
+        },
+        {
+          "command": "gofer.openWithMarkdownWYSIWYG",
+          "when": "viewItem == spec || viewItem == constitution-article || viewItem == constitution-section || viewItem == memory-document || viewItem == memory-section",
+          "group": "openwith@4"
+        },
+        {
+          "command": "gofer.startClaudeCode",
+          "when": "viewItem == spec && !gofer.claudeCodeRunning",
+          "group": "inline@2"
+        },
+        {
+          "command": "gofer.pauseClaudeCode",
+          "when": "viewItem == spec && gofer.claudeCodeRunning && !gofer.autonomousMonitoringPaused",
+          "group": "inline@2"
+        },
+        {
+          "command": "gofer.resumeClaudeCode",
+          "when": "viewItem == spec && gofer.claudeCodeRunning && gofer.autonomousMonitoringPaused",
+          "group": "inline@2"
+        },
+        {
+          "command": "gofer.stopClaudeCode",
+          "when": "viewItem == spec && gofer.claudeCodeRunning",
+          "group": "inline@3"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "gofer.initialize",
+          "when": "explorerResourceIsFolder && !goferInitialized",
+          "group": "gofer@1"
+        },
+        {
+          "command": "gofer.createSpec",
+          "when": "explorerResourceIsFolder && goferInitialized",
+          "group": "gofer@2"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "gofer.initialize",
+          "when": "!goferInitialized"
+        },
+        {
+          "command": "gofer.showProgress",
+          "when": "goferInitialized"
+        },
+        {
+          "command": "gofer.showConstitution",
+          "when": "goferInitialized"
+        },
+        {
+          "command": "gofer.refreshSpecs",
+          "when": "goferInitialized"
+        },
+        {
+          "command": "gofer.refreshConstitution",
+          "when": "goferInitialized"
+        },
+        {
+          "command": "gofer.upgrade",
+          "when": "goferInitialized"
+        },
+        {
+          "command": "gofer.updateTemplates",
+          "when": "goferInitialized"
+        },
+        {
+          "command": "gofer.createSpec",
+          "when": "goferInitialized"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Gofer",
+      "properties": {
+        "gofer.anthropicApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Anthropic API Key for Claude (get yours at https://console.anthropic.com/settings/keys)",
+          "markdownDescription": "Your Anthropic API key for Claude. [Get one here](https://console.anthropic.com/settings/keys). This is stored in your VS Code settings profile unless you choose another mechanism such as environment variables, and Gofer does not commit it to git.",
+          "order": 0
+        },
+        "gofer.googleApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Google AI API Key for Gemini (get yours at https://aistudio.google.com/apikey)",
+          "markdownDescription": "Your Google AI API key for Gemini models. [Get one here](https://aistudio.google.com/apikey). Used by LLM Council feature for multi-provider execution.",
+          "order": 1
+        },
+        "gofer.openaiApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "OpenAI API Key for GPT models (get yours at https://platform.openai.com/api-keys)",
+          "markdownDescription": "Your OpenAI API key for GPT models. [Get one here](https://platform.openai.com/api-keys). Used by LLM Council feature for multi-provider execution.",
+          "order": 2
+        },
+        "gofer.anthropicAdminApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Anthropic Admin API Key for billing data access (starts with sk-ant-admin...)",
+          "markdownDescription": "Your Anthropic **Admin** API key for billing/usage data. [Get one here](https://console.anthropic.com/settings/keys). Required for the AI Token Usage panel to show real Anthropic spending. Admin keys start with `sk-ant-admin...`.",
+          "order": 3
+        },
+        "gofer.openaiAdminApiKey": {
+          "type": "string",
+          "default": "",
+          "description": "OpenAI Admin API Key for billing data access",
+          "markdownDescription": "Your OpenAI **Admin** API key for billing/usage data. Required for the AI Token Usage panel to show real OpenAI spending. Needs the `api.usage.read` scope.",
+          "order": 4
+        },
+        "gofer.aiUsage.api.pollingInterval": {
+          "type": "number",
+          "default": 60000,
+          "minimum": 15000,
+          "maximum": 300000,
+          "description": "How often to poll provider billing APIs for usage data (in milliseconds)",
+          "markdownDescription": "Polling interval for provider billing APIs in milliseconds. Default: 60000 (1 minute). Minimum: 15000 (15 seconds). Maximum: 300000 (5 minutes). Anthropic recommends polling no more than once per minute.",
+          "order": 5
+        },
+        "gofer.aiUsage.useApiClient": {
+          "type": "boolean",
+          "default": true,
+          "description": "Use billing API client for usage data (set to false to revert to local JSONL)",
+          "markdownDescription": "When `true`, fetches real billing data from Anthropic/OpenAI APIs. Set to `false` to revert to reading local `.specify/logs/council-usage.jsonl`.",
+          "order": 6
+        },
+        "gofer.autonomousMode": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable autonomous monitoring for Claude Code terminal sessions",
+          "markdownDescription": "When enabled, Gofer monitors Claude Code terminal sessions and prepares context-aware responses when questions are detected. Requires `gofer.anthropicApiKey` to be set.",
+          "order": 1
+        },
+        "gofer.autoInitialize": {
+          "type": "boolean",
+          "default": false,
+          "description": "Automatically offer to initialize Gofer when opening a repository without it"
+        },
+        "gofer.preferredAI": {
+          "type": "string",
+          "enum": [
+            "claude",
+            "copilot",
+            "ask"
+          ],
+          "default": "ask",
+          "description": "Preferred AI tool when sending tasks (ask, claude, copilot)"
+        },
+        "gofer.claudeCodeMode": {
+          "type": "string",
+          "enum": [
+            "standard",
+            "yolo",
+            "custom"
+          ],
+          "enumDescriptions": [
+            "Standard mode — Claude Code asks for permission before executing tools",
+            "Yolo mode — Skip all permission prompts (--dangerously-skip-permissions)",
+            "Custom — Use the command specified in gofer.claudeCodeCommand"
+          ],
+          "default": "standard",
+          "description": "How to launch Claude Code from the status bar",
+          "markdownDescription": "Controls how Claude Code is launched from the status bar.\n\n- **Standard**: `claude` — asks for permission before tools\n- **Yolo**: `claude --dangerously-skip-permissions` — skips all prompts\n- **Custom**: Uses the command from `gofer.claudeCodeCommand`",
+          "order": 3
+        },
+        "gofer.claudeCodeCommand": {
+          "type": "string",
+          "default": "claude",
+          "description": "Custom command to launch Claude Code (only used when mode is 'custom')",
+          "markdownDescription": "Custom command used when `gofer.claudeCodeMode` is set to `custom`.\n\nExamples:\n- `claude-skip` (shell alias)\n- `/usr/local/bin/claude --flag` (full path with flags)"
+        },
+        "gofer.cliProvider": {
+          "type": "string",
+          "enum": [
+            "claude",
+            "codex",
+            "copilot",
+            "gemini",
+            "auto"
+          ],
+          "enumDescriptions": [
+            "Use Claude Code CLI",
+            "Use Codex CLI",
+            "Use GitHub Copilot CLI (autonomous tasks use Claude/Codex fallback)",
+            "Use Gemini CLI (autonomous tasks use Claude/Codex fallback)",
+            "Auto-detect installed CLI"
+          ],
+          "default": "auto",
+          "description": "AI CLI provider for autonomous mode"
+        },
+        "gofer.defaultCLI": {
+          "type": "string",
+          "enum": [
+            "claude",
+            "copilot",
+            "codex",
+            "gemini",
+            "auto"
+          ],
+          "enumDescriptions": [
+            "Use Claude Code CLI for all Gofer commands",
+            "Use GitHub Copilot Chat for all Gofer commands",
+            "Use OpenAI Codex CLI for all Gofer commands",
+            "Use Gemini CLI command files for all Gofer commands",
+            "Auto-detect which CLI is installed and active"
+          ],
+          "default": "auto",
+          "description": "Default AI CLI for Gofer command routing",
+          "markdownDescription": "Choose which AI platform to use for Gofer slash commands (research, specify, plan, tasks, implement, validate).\n\n- **Claude**: Use `.claude/commands/*.md` files\n- **Copilot**: Use `.github/prompts/*.prompt.md` files\n- **Codex**: Use `.agents/skills/*/SKILL.md` files\n- **Gemini**: Use `.gemini/commands/gofer/*.toml` files\n- **Auto**: Automatically detect which CLI is active\n\nThis enables complete feature parity across Claude, Copilot, Codex, and Gemini.",
+          "order": 27
+        },
+        "gofer.workflowProfile": {
+          "type": "string",
+          "enum": [
+            "standard",
+            "enterpriseai"
+          ],
+          "enumDescriptions": [
+            "Standard Gofer behavior when explicitly requested",
+            "EnterpriseAI-focused workflow guidance and artifact defaults"
+          ],
+          "default": "enterpriseai",
+          "description": "Workflow profile used for Gofer pipeline guidance",
+          "markdownDescription": "Select the workflow profile Gofer uses during pipeline execution.\n\n- **enterpriseai**: Default EnterpriseAI-first guidance, templates, and artifacts\n- **standard**: Existing baseline behavior when explicitly requested\n\nThis setting is additive and does not remove existing Gofer functionality.",
+          "order": 28
+        },
+        "gofer.enterpriseAiUseExternalReferences": {
+          "type": "boolean",
+          "default": false,
+          "description": "Prefer external EnterpriseAI reference URLs during launch preflight instead of local fallback files",
+          "markdownDescription": "When enabled, Gofer uses external EnterpriseAI reference URLs during launch preflight before falling back to `.specify/references/eai/`.\n\nWhen disabled, Gofer uses local fallback references directly.",
+          "order": 29
+        },
+        "gofer.codexCommand": {
+          "type": "string",
+          "default": "codex",
+          "description": "Custom path to Codex CLI executable"
+        },
+        "gofer.markdownViewer": {
+          "type": "string",
+          "enum": [
+            "preview",
+            "mark-sharp",
+            "markdown-editor",
+            "markdown-wysiwyg"
+          ],
+          "enumDescriptions": [
+            "VSCode's built-in Markdown Preview (read-only)",
+            "Mark Sharp - Fast WYSIWYG editor with live preview (requires extension: JonathanYeung.mark-sharp)",
+            "Markdown Editor - Feature-rich WYSIWYG editor (requires extension: zaaack.markdown-editor)",
+            "Markdown WYSIWYG - Simple WYSIWYG editor (requires extension: adamerose.markdown-wysiwyg)"
+          ],
+          "default": "preview",
+          "description": "Choose how to view markdown files when clicking tree view items",
+          "markdownDescription": "Choose how to view markdown files when clicking tree view items.\n\n**Recommended WYSIWYG Extensions:**\n- [Mark Sharp](https://marketplace.visualstudio.com/items?itemName=JonathanYeung.mark-sharp) - Fast & modern\n- [Markdown Editor](https://marketplace.visualstudio.com/items?itemName=zaaack.markdown-editor) - Feature-rich\n- [Markdown WYSIWYG](https://marketplace.visualstudio.com/items?itemName=adamerose.markdown-wysiwyg) - Simple"
+        },
+        "gofer.autonomous.showTerminals": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show Claude Code terminals during autonomous execution",
+          "markdownDescription": "Whether to show Claude Code terminals when Gofer runs autonomous implementation.\n\n- `true`: Terminals are visible (you can watch progress)\n- `false`: Terminals are hidden (cleaner UI)"
+        },
+        "gofer.autonomous.maxRetries": {
+          "type": "number",
+          "default": 3,
+          "minimum": 1,
+          "maximum": 5,
+          "description": "Maximum number of retry attempts for errors (1-5)",
+          "markdownDescription": "How many times Gofer should retry when encountering recoverable errors.\n\n- **Default**: 3 retries with exponential backoff (10s, 30s, 60s)\n- **Minimum**: 1 (fail fast)\n- **Maximum**: 5 (very persistent)"
+        },
+        "gofer.autonomous.tokenWarningThreshold": {
+          "type": "number",
+          "default": 150000,
+          "description": "Show warning when context reaches this many tokens",
+          "markdownDescription": "Token count threshold for context window warnings.\n\n**Default**: 150,000 tokens (75% of Claude's 200K context)\n\nGofer will show a warning when approaching this limit."
+        },
+        "gofer.autonomous.tokenActionThreshold": {
+          "type": "number",
+          "default": 180000,
+          "description": "Spawn new terminal when context reaches this many tokens",
+          "markdownDescription": "Token count threshold for spawning a new terminal with fresh context.\n\n**Default**: 180,000 tokens (90% of Claude's 200K context)\n\nGofer will automatically create a new terminal with a context summary when this limit is reached."
+        },
+        "gofer.autonomous.compactionThreshold": {
+          "type": "number",
+          "default": 80,
+          "minimum": 50,
+          "maximum": 95,
+          "description": "Trigger context compaction at this percentage (50-95%)",
+          "markdownDescription": "Context window usage percentage that triggers automatic compaction.\n\n**Default**: 80% (160,000 tokens of 200K context)\n**Range**: 50-95%\n\nWhen context usage reaches this threshold, Gofer will automatically:\n1. Summarize completed tasks to free up space\n2. Preserve the last 10 tasks in full detail\n3. Reduce context by approximately 40-60%\n\n**Lower values** = more frequent compaction, smaller context\n**Higher values** = less frequent compaction, larger context"
+        },
+        "gofer.autonomous.questionTimeout": {
+          "type": "number",
+          "default": 300000,
+          "description": "How long to wait for user response to questions (milliseconds)",
+          "markdownDescription": "How long Gofer should wait for your response when it asks a question.\n\n**Default**: 300,000 ms (5 minutes)\n\nAfter this timeout, execution will pause and you'll need to manually resume."
+        },
+        "gofer.autonomous.runFinalValidation": {
+          "type": "boolean",
+          "default": true,
+          "description": "Run constitution validation check after implementation completes",
+          "markdownDescription": "Whether to run a final validation check against the project constitution after completing implementation.\n\n- `true`: Run validation (recommended)\n- `false`: Skip validation (faster, but may miss issues)"
+        },
+        "gofer.autonomous.validateConstitution": {
+          "type": "boolean",
+          "default": true,
+          "description": "Validate implementation against constitution principles",
+          "markdownDescription": "Whether to validate implementation against the project's constitutional principles.\n\n- `true`: Ensure compliance with constitution (recommended)\n- `false`: Skip constitution validation"
+        },
+        "gofer.autonomous.enableEngineeringReview": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable proactive engineering reviews during implementation",
+          "markdownDescription": "When enabled, Haiku will proactively request engineering reviews at strategic milestones (typically 40-80% completion).\n\n- `true`: Enable strategic reviews (recommended)\n- `false`: Disable reviews (faster, but may miss issues early)"
+        },
+        "gofer.autonomous.enablePerformanceReview": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable proactive performance reviews during implementation",
+          "markdownDescription": "When enabled, Haiku will proactively request performance and architecture reviews near completion (typically >70% completion).\n\n- `true`: Enable performance reviews (recommended)\n- `false`: Disable reviews (faster, but may miss optimizations)"
+        },
+        "gofer.autonomous.engineeringReviewMinCompletion": {
+          "type": "number",
+          "default": 40,
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Minimum completion % to trigger engineering review",
+          "markdownDescription": "Engineering reviews will only be triggered when completion is at least this percentage.\n\n**Default**: 40% (early enough to catch issues)\n\n**Range**: 0-100%"
+        },
+        "gofer.autonomous.engineeringReviewMaxCompletion": {
+          "type": "number",
+          "default": 80,
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Maximum completion % to trigger engineering review",
+          "markdownDescription": "Engineering reviews will only be triggered when completion is below this percentage.\n\n**Default**: 80% (before polish phase)\n\n**Range**: 0-100%"
+        },
+        "gofer.autonomous.performanceReviewMinCompletion": {
+          "type": "number",
+          "default": 70,
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Minimum completion % to trigger performance review",
+          "markdownDescription": "Performance reviews will only be triggered when completion is at least this percentage.\n\n**Default**: 70% (when core features are done)\n\n**Range**: 0-100%"
+        },
+        "gofer.autonomous.engineeringReviewPrompt": {
+          "type": "string",
+          "default": "Please perform an engineering review of the work completed so far:\n\n1. Compare the implemented code against the original specification\n2. Identify any gaps or deviations from the spec\n3. Check if the implementation aligns with the constitution principles\n4. Verify that completed tasks match their requirements in tasks.md\n\nProvide a brief summary of findings and recommendations for next steps.",
+          "description": "Custom prompt for engineering reviews",
+          "markdownDescription": "The prompt sent to Claude Code when requesting an engineering review.\n\n**Default**: Asks Claude to compare implementation vs spec, identify gaps, check constitution alignment, and verify task completion.\n\n**Tip**: You can customize this to focus on specific aspects of your project (e.g., security, accessibility, API design).",
+          "editPresentation": "multilineText"
+        },
+        "gofer.autonomous.performanceReviewPrompt": {
+          "type": "string",
+          "default": "Please perform a performance and architecture analysis of the implementation:\n\n1. Review the code against current best practices for each technology used\n2. Identify potential performance bottlenecks or optimization opportunities\n3. Check for architectural patterns that could be improved\n4. Verify proper error handling and edge case coverage\n5. Suggest any improvements for maintainability and scalability\n\nProvide specific, actionable recommendations.",
+          "description": "Custom prompt for performance reviews",
+          "markdownDescription": "The prompt sent to Claude Code when requesting a performance review.\n\n**Default**: Asks Claude to review best practices, identify bottlenecks, check architecture, verify error handling, and suggest improvements.\n\n**Tip**: You can customize this to focus on specific aspects (e.g., database queries, API performance, memory usage).",
+          "editPresentation": "multilineText"
+        },
+        "gofer.autonomous.haikuSystemPrompt": {
+          "type": "string",
+          "default": "You are an autonomous development assistant managing Claude Code's feature implementation workflow.\n\nYou have access to:\n- The project constitution (principles and standards)\n- The feature specification\n- The implementation plan\n- The task list\n- The recent terminal output from Claude Code\n- Latest best practices (you should consider current industry standards)\n\nYour job is to monitor Claude Code and decide whether to interrupt based on the situation.\n\n{WORK_STATE}\n\nRESPONSE TYPES:\n\n{RESPONSE_TYPES}\n\nDECISION PRINCIPLES:\n- If there's a question, answer it first (takes priority)\n- Otherwise, decide next action based on completion percentage\n- Keep work moving forward efficiently\n- Reviews are checkpoints, not blockers - use them strategically\n- Always align with constitution, spec, and plan\n\nThe goal is to autonomously drive feature completion with quality checks at appropriate milestones.",
+          "description": "System prompt for Haiku's decision-making",
+          "markdownDescription": "The system prompt that instructs Haiku on how to make decisions.\n\n**Variables**: `{WORK_STATE}` (working vs idle state), `{RESPONSE_TYPES}` (available actions)\n\n**Tip**: You can customize this to change Haiku's decision-making behavior.\n\n**Warning**: Incorrect prompts may cause Haiku to make poor decisions.",
+          "editPresentation": "multilineText"
+        },
+        "gofer.observationPreservePatterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Additional regex patterns for observations that should never be masked",
+          "markdownDescription": "Additional regex patterns (case-insensitive) for observation content that should **never** be masked during context management.\n\nBuilt-in patterns already preserve: `error`, `exception`, `failed`, `failure`, `critical`, `fatal`, `panic`, `unhandled`, `stack trace`.\n\n**Example**: `[\"timeout\", \"ECONNREFUSED\", \"segfault\"]`"
+        },
+        "gofer.useLayeredMemory": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable MemGPT-inspired three-layer memory (core/recall/archival)",
+          "markdownDescription": "Enable **MemGPT-inspired three-layer memory** architecture:\n- **Core**: Always-loaded high-priority memories\n- **Recall**: Recent session context\n- **Archival**: Long-term searchable storage\n\nWhen enabled, `buildContext()` uses layered memory instead of flat memory loading."
+        },
+        "gofer.stageDetectionStalenessMinutes": {
+          "type": "number",
+          "default": 30,
+          "minimum": 5,
+          "maximum": 120,
+          "description": "Minutes before stage detection data is considered stale",
+          "markdownDescription": "How many minutes before the cached stage detection data (from `current-stage.json`) is considered stale and falls back to heuristic detection."
+        },
+        "gofer.autonomous.haikuUserPromptTemplate": {
+          "type": "string",
+          "default": "# Recent Terminal Output (last 20,000 characters):\n{terminalOutput}\n\n# Constitution:\n{constitution}\n\n# Specification:\n{spec}\n\n# Implementation Plan:\n{plan}\n\n# Tasks:\n{tasks}\n\n---\n\nANALYZE THE TERMINAL AND DECIDE NEXT ACTION:\n\n{workState}\n\n**Your response must be ONE of:**\n- A direct answer (number or text)\n- ACTION: NO_INTERRUPT\n- ACTION: CONTINUE_IMPLEMENT\n- ACTION: ENGINEERING_REVIEW\n- ACTION: PERFORMANCE_REVIEW\n\nDecide NOW:",
+          "description": "User prompt template for Haiku with context",
+          "markdownDescription": "The user prompt template that provides context to Haiku.\n\n**Available variables**: `{terminalOutput}`, `{constitution}`, `{spec}`, `{plan}`, `{tasks}`, `{workState}`\n\n**Tip**: You can customize this to include different context or formatting.\n\n**Warning**: Incorrect templates may cause Haiku to miss important context.",
+          "editPresentation": "multilineText"
+        },
+        "gofer.yoloSlopReduction.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable automatic slop reduction on file save",
+          "markdownDescription": "When enabled, Gofer automatically fixes common code quality issues ('slop') when you save a file:\n\n- **console.log** statements are removed\n- **debugger** statements are removed\n- **@ts-ignore** is upgraded to `@ts-expect-error`\n\nAll fixes are logged to `.specify/logs/slop-reduction.jsonl` for audit.\n\n**Note**: Only affects `.ts/.tsx/.js/.jsx` files. Test files are excluded."
+        },
+        "gofer.yoloSlopReduction.notifyEvery": {
+          "type": "number",
+          "default": 10,
+          "minimum": 1,
+          "description": "Show notification every N slop fixes (default: 10)",
+          "markdownDescription": "How often to show a notification about slop reductions.\n\n**Default**: Every 10 fixes\n\nThe notification shows the cumulative count of fixes in this session."
+        },
+        "gofer.contextWindow.autoExecuteSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically execute /7_gofer_save when context reaches auto-save threshold",
+          "markdownDescription": "When enabled, Gofer will automatically execute `/7_gofer_save` when context utilization reaches the auto-save threshold.\n\n**Default**: Enabled (automatic context management)\n\n**When enabled**: Automatically sends `/7_gofer_save` to Claude Code terminal\n**When disabled**: Shows notification instead, requiring manual action\n\n**Safety**: Only executes when a real Claude Code session is detected, not during testing.\n\n**Tip**: Keep enabled for seamless context continuity without manual intervention."
+        },
+        "gofer.contextWindow.autoSaveThreshold": {
+          "type": "number",
+          "default": 0.65,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Context utilization threshold for automatic session save (0.0-1.0, default: 0.65 = 65%)",
+          "markdownDescription": "The context utilization ratio that triggers automatic session save.\n\n**Default**: 0.65 (65%)\n\n**Range**: 0.0 to 1.0\n\n**How it works**:\n- Gofer monitors context usage continuously\n- When utilization crosses this threshold, the auto-save event is triggered\n- If `autoExecuteSave` is enabled, `/7_gofer_save` executes automatically\n- If `autoExecuteSave` is disabled, a notification is shown instead\n\n**Research-based**: 65% gives a safety margin before accuracy degradation begins. Going above 70% significantly degrades LLM accuracy."
+        },
+        "gofer.contextWindow.autoResumeAfterSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically execute /8_gofer_resume after /7_gofer_save completes",
+          "markdownDescription": "When enabled, automatically sends `/8_gofer_resume` to Claude Code terminal immediately after `/7_gofer_save`.\n\n**Default**: Enabled (automatic resume after save)\n\n**How it works**:\n1. Context reaches auto-save threshold (65%)\n2. `/7_gofer_save` executes automatically (saves session state)\n3. `/8_gofer_resume` executes immediately after (loads fresh context)\n4. Claude Code continues with clean context window\n\n**Benefits**:\n- Zero-interruption context continuity\n- Automatic context refresh without manual intervention\n- Maintains full session state across save/resume cycle\n\n**Note**: Only works when `autoExecuteSave` is also enabled. Both commands execute in the same Claude Code session sequentially."
+        },
+        "gofer.contextWindow.continuousSlopReduction.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable periodic background workspace-wide slop scans",
+          "markdownDescription": "When enabled, Gofer periodically runs `SlopReducer.reduceWorkspace()` across the entire workspace.\n\n**Default**: Disabled\n\nThis is disabled by default because repeated whole-workspace scans across many open VS Code windows can add cumulative CPU and disk pressure. Manual and save-triggered slop reduction paths remain available."
+        },
+        "gofer.contextWindow.continuousSlopReduction.intervalMs": {
+          "type": "number",
+          "default": 120000,
+          "minimum": 60000,
+          "maximum": 1800000,
+          "description": "Interval in milliseconds for background slop scans",
+          "markdownDescription": "How often Gofer runs the background workspace-wide slop scan when `continuousSlopReduction.enabled` is turned on.\n\n**Default**: 120000 (2 minutes)\n**Range**: 60000-1800000"
+        },
+        "gofer.scopeGuard.mode": {
+          "type": "string",
+          "default": "warning",
+          "enum": [
+            "advisory",
+            "warning",
+            "blocking"
+          ],
+          "enumDescriptions": [
+            "Log scope violations to console only — no user-facing warnings",
+            "Show warnings when agents access protected files — recommended default",
+            "Block file access that violates protected boundaries — strictest mode"
+          ],
+          "description": "ScopeGuard enforcement mode for protected file boundaries",
+          "markdownDescription": "Controls how ScopeGuard enforces protected file boundaries defined in spec.md `## Protected Boundaries` sections.\n\n- **advisory**: Violations logged to console only\n- **warning**: Violations produce VSCode diagnostics (Information/Warning)\n- **blocking**: Violations throw `ScopeViolationError` and prevent file access\n\nAll checks are logged to `.specify/logs/tool-audit.jsonl` for audit."
+        },
+        "gofer.budgets.maxCostUsd": {
+          "type": "number",
+          "default": 10,
+          "minimum": 0,
+          "description": "Maximum cost in USD per pipeline run before enforcement kicks in",
+          "markdownDescription": "Maximum cost in USD for a single pipeline run. When cumulative token cost exceeds this threshold, the configured enforcement mode activates.\n\nCost is estimated using per-provider token rates (Anthropic, Google, OpenAI)."
+        },
+        "gofer.budgets.maxTokensPerRun": {
+          "type": "number",
+          "default": 500000,
+          "minimum": 0,
+          "description": "Maximum total tokens (input + output) per pipeline run",
+          "markdownDescription": "Maximum total tokens (input + output) allowed in a single pipeline run. Whichever limit (cost or tokens) is hit first triggers enforcement."
+        },
+        "gofer.budgets.enforcementMode": {
+          "type": "string",
+          "default": "advisory",
+          "enum": [
+            "advisory",
+            "truncate",
+            "blocking"
+          ],
+          "enumDescriptions": [
+            "Log budget warnings but allow pipeline to continue",
+            "Reduce context aggressively when budget is exceeded",
+            "Stop pipeline execution when budget is exceeded"
+          ],
+          "description": "How the cost budget is enforced when limits are exceeded",
+          "markdownDescription": "Controls what happens when a pipeline run exceeds the configured budget.\n\n- **advisory**: Warnings logged to console and status bar — pipeline continues\n- **truncate**: Context is aggressively reduced to lower costs\n- **blocking**: Pipeline execution halts until budget is reset\n\nBudget events are logged to `.specify/logs/gofer-run-ledger.jsonl`."
+        },
+        "gofer.memory.coverageThreshold": {
+          "type": "number",
+          "default": 30,
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Memory coverage threshold (0-100%)",
+          "markdownDescription": "**Memory Coverage Threshold** for tiered context loading (Feature 029).\n\nWhen memory coverage of task keywords meets or exceeds this percentage, research documents are skipped and memories are loaded exclusively, reducing context tokens by 30-60%.\n\n- `30` (default): Skip research docs when 30%+ of task keywords are covered by existing memories\n- Lower values: More aggressive memory-first loading\n- Higher values: Research docs loaded more often"
+        },
+        "gofer.aiUsage.statusBar.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show AI usage cost in the status bar",
+          "markdownDescription": "Show current session AI usage cost in the VSCode status bar.\n\n- `true`: Status bar shows `$(dollar) AI: $X.XX` (default)\n- `false`: Status bar item is hidden\n\nClick the status bar item to see a detailed provider breakdown."
+        },
+        "gofer.aiUsage.polling.interval": {
+          "type": "number",
+          "default": 3600000,
+          "minimum": 1000,
+          "maximum": 7200000,
+          "description": "Polling interval in ms for AI usage updates (fallback when file watcher is inactive)",
+          "markdownDescription": "How often (in milliseconds) to poll for usage data updates.\n\nThis is used as a fallback when the file system watcher is not active.\n\n**Default**: 3600000 (1 hour)\n**Range**: 1000-7200000"
+        },
+        "gofer.diagnostics.resourceSnapshots.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Write lightweight Gofer resource snapshots to the output log",
+          "markdownDescription": "When enabled, Gofer periodically logs lightweight resource snapshots including RSS, heap usage, active handles, and uptime.\n\nThese snapshots help attribute future long-running VS Code slowdowns or crashes without adding significant overhead."
+        },
+        "gofer.diagnostics.resourceSnapshots.intervalMs": {
+          "type": "number",
+          "default": 300000,
+          "minimum": 60000,
+          "maximum": 3600000,
+          "description": "Interval in milliseconds for Gofer resource snapshots",
+          "markdownDescription": "How often Gofer logs a resource snapshot when diagnostics are enabled.\n\n**Default**: 300000 (5 minutes)\n**Range**: 60000-3600000"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "postinstall": "echo 'Using prebuilt node-pty-prebuilt-multiarch, skipping rebuild'",
+    "rebuild-native": "echo 'Using prebuilt node-pty-prebuilt-multiarch, skipping rebuild'",
+    "vscode:prepublish": "npm run prepare-language-server && npm run rebuild-native && npm run package",
+    "prepare-language-server": "node scripts/prepare-language-server.mjs",
+    "compile": "webpack",
+    "watch": "webpack --watch",
+    "package": "webpack --mode production --devtool hidden-source-map",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@electron/rebuild": "^4.0.3",
+    "@eslint/js": "^9.39.2",
+    "@types/glob": "^8.1.0",
+    "@types/graphlib": "^2.1.12",
+    "@types/js-yaml": "^4.0.9",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^20.x",
+    "@types/uuid": "^10.0.0",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^8.32.0",
+    "@typescript-eslint/parser": "^8.32.0",
+    "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.7.1",
+    "eslint": "^9.26.0",
+    "glob": "^11.0.3",
+    "mocha": "^11.7.4",
+    "sharp": "^0.34.4",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.3.3",
+    "typescript-eslint": "^8.54.0",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4",
+    "yaml": "^2.8.1"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.67.0",
+    "@google/generative-ai": "^0.21.0",
+    "@lydell/node-pty": "^1.2.0-beta.3",
+    "@types/body-parser": "^1.19.6",
+    "@types/express": "^5.0.5",
+    "@types/jszip": "^3.4.0",
+    "ajv": "^8.18.0",
+    "body-parser": "^2.2.0",
+    "chokidar": "^3.5.3",
+    "express": "^5.1.0",
+    "fast-glob": "^3.3.2",
+    "fix-path": "^4.0.0",
+    "graphlib": "^2.1.8",
+    "jszip": "^3.10.1",
+    "node-pty-prebuilt-multiarch": "^0.10.1-pre.5",
+    "openai": "^4.104.0",
+    "reflect-metadata": "^0.2.2",
+    "tsyringe": "^4.10.0",
+    "twilio": "^5.3.0",
+    "uuid": "^10.0.0",
+    "vscode-languageclient": "^9.0.1",
+    "ws": "^8.18.0"
+  },
+  "optionalDependencies": {
+    "@achingbrain/node-pty-prebuilt-multiarch": "*"
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "name": "gofer",
+  "version": "3.2.2",
+  "description": "Enterprise AI Pty Ltd - Automated spec-driven development system with Claude Code integration",
+  "author": "Enterprise AI Pty Ltd",
+  "license": "SEE LICENSE IN LICENSE",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/eai-tools/gofer"
+  },
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:unit": "vitest run tests/unit",
+    "test:integration": "vitest run tests/integration",
+    "test:e2e": "vscode-test",
+    "test:e2e:playwright": "playwright test",
+    "test:performance": "vitest run tests/performance --reporter=verbose",
+    "test:coverage": "vitest run --coverage",
+    "test:coverage-report": "vitest run --coverage --reporter=verbose || true",
+    "test:all": "npm run test:unit && npm run test:integration && npm run test:e2e && npm run test:performance",
+    "quality": "npm run lint && npm run format:check && npm run typecheck && npm run test:coverage-report",
+    "quality:fix": "npm run lint:fix && npm run format && npm run test",
+    "test:ci": "vitest run --reporter=verbose",
+    "build:all": "npm run build && cd extension && npm run compile && cd ../language-server && (npm run build || tsc)",
+    "lint": "eslint src/ --ext .ts,.js",
+    "lint:fix": "eslint src/ --ext .ts,.js --fix",
+    "format": "prettier --write src/",
+    "format:check": "prettier --check src/",
+    "typecheck": "tsc --noEmit",
+    "ci:test": "npm run typecheck && npm run test:ci",
+    "ci:build": "npm run build:all",
+    "dashboard": "tsx scripts/quality-dashboard.ts",
+    "generate-commands": "tsx scripts/generate-commands.ts",
+    "_comment_codex_doctor": "extension subpackage may re-expose the same script but root is canonical for `npm test` discovery",
+    "gofer:generate": "node .specify/scripts/node/generate-commands.mjs && node .specify/scripts/node/sync-extension-resources.mjs",
+    "gofer:mermaid-export": "node .specify/scripts/node/mermaid-export.mjs",
+    "gofer:codex-doctor": "node .specify/scripts/node/codex-doctor.mjs",
+    "prepare": "husky"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.1",
+    "chokidar": "^4.0.3",
+    "dotenv": "^16.4.5",
+    "gray-matter": "^4.0.3",
+    "reflect-metadata": "^0.2.2",
+    "tsyringe": "^4.10.0",
+    "winston": "^3.17.0",
+    "ws": "^8.18.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "@google/generative-ai": "^0.21.0",
+    "@playwright/test": "^1.49.1",
+    "@types/chokidar": "^1.7.5",
+    "@types/graphlib": "^2.1.12",
+    "@types/node": "^22.18.12",
+    "@types/uuid": "^10.0.0",
+    "@types/ws": "^8.5.13",
+    "@typescript-eslint/eslint-plugin": "^8.32.0",
+    "@typescript-eslint/parser": "^8.32.0",
+    "@vitest/coverage-v8": "^3.2.4",
+    "@vitest/ui": "^3.2.4",
+    "@vscode/test-cli": "^0.0.12",
+    "@vscode/test-electron": "^2.5.2",
+    "eslint": "^9.26.0",
+    "graphlib": "^2.1.8",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.6",
+    "openai": "^4.104.0",
+    "prettier": "^3.0.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "uuid": "^10.0.0",
+    "typescript-eslint": "^8.54.0",
+    "vitest": "^3.2.4",
+    "vitest-ctrf-json-reporter": "^0.0.3"
+  },
+  "lint-staged": {
+    "src/**/*.{ts,js}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "extension/src/**/*.{ts,js}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "language-server/src/**/*.{ts,js}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "tests/**/*.{ts,js}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
+  }
+}

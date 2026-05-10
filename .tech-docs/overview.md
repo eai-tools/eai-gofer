@@ -1,8 +1,8 @@
 ---
-generated: "2026-05-02T17:49:07Z"
-source_commit: "46486d94a7292a485629613e8e8277c4d2e6e1d1"
+generated: true
+generated_at: "2026-05-10T11:17:59.779Z"
+source_commit: "57666de1cd235757b2f0444b82e4f82aef6b8108"
 ---
-
 # Gofer - Technical Overview
 
 ## Service Identity
@@ -248,3 +248,34 @@ All data is stored in the `.specify/` directory:
 - **State:** `.specify/current-stage.json`, `.specify/ipc/status.json`
 
 No database required - all data is file-based for Git-friendly version control.
+
+## Executive Summary
+
+This repository is documented through the standardized nightly `.tech-docs/` contract. **Description:** Spec-driven development system for AI assistants. Provides 40+ MCP tools that enable Claude Code, GitHub Copilot, OpenAI Codex, and Gemini CLI to autonomously impl
+
+| Attribute | Value |
+|---|---|
+| Repository | `gofer` |
+| Primary capability | **Description:** Spec-driven development system for AI assistants. Provides 40+ MCP tools that enable Claude Code, GitHub Copilot, OpenAI Codex, and Gemini CLI to autonomously impl |
+| Current status | Nightly-managed strict documentation contract applied |
+| Source commit | `57666de1cd23` |
+| Additional docs surfaces | 1 |
+
+## Critical Integrations
+
+- See `dependencies.md` for the full upstream and downstream dependency map.
+- See `deployment.md` for runtime and publishing topology.
+- See `documentation-surfaces.md` for repo-local documentation and publishing surfaces.
+
+## Current Status
+
+- Nightly-managed `.tech-docs/` content is present for this repository.
+- Source commit: `57666de1cd23`
+- Additional repo-local docs surfaces detected: 1
+
+## Documentation Surfaces
+
+| Path | Purpose | Nightly managed |
+|---|---|---|
+| `.tech-docs/` | Canonical generated technical snapshot | Yes |
+| `docs-site/` | Repo-local documentation surface | No |

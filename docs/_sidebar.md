@@ -1,7 +1,0 @@
-- [Home](/)
-- [Quick Start](quickstart.md)
-- [CLI Support](cli-support.md)
-- [What's New](whats-new.md)
-- [Pipeline](pipeline/README.md)
-- [Configuration](guides/configuration.md)
-- [Releases](/gofer/releases.html ':ignore')

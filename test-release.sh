@@ -47,9 +47,9 @@ else
     echo -e "${GREEN}✓${NC} Language server source directory exists"
 fi
 
-# 5. Check docs/update-releases.js exists
-if [ ! -f "docs/update-releases.js" ]; then
-    echo "✗ docs/update-releases.js not found"
+# 5. Check scripts/update-releases.js exists
+if [ ! -f "scripts/update-releases.js" ]; then
+    echo "✗ scripts/update-releases.js not found"
     exit 1
 else
     echo -e "${GREEN}✓${NC} Release update script exists"

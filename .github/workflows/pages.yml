@@ -4,7 +4,9 @@ on:
   push:
     branches: [main]
     paths:
-      - 'docs/**'
+      - '.tech-docs/**'
+      - 'docs-site/**'
+      - 'scripts/update-releases.js'
   workflow_dispatch:
   workflow_call:
 
@@ -27,13 +29,42 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: docs-site/package-lock.json
+
+      - name: Install docs-site dependencies
+        run: cd docs-site && npm ci
+
+      - name: Build Docusaurus docs site
+        run: cd docs-site && npm run build
+
+      - name: Verify generated site
+        run: |
+          REQUIRED_FILES=(
+            "docs-site/build/index.html"
+            "docs-site/build/docs/overview.html"
+            "docs-site/build/releases.html"
+            "docs-site/build/releases.json"
+          )
+
+          for file in "${REQUIRED_FILES[@]}"; do
+            if [ ! -f "$file" ]; then
+              echo "ERROR: Required file $file is missing!"
+              exit 1
+            fi
+          done
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './docs'
+          path: './docs-site/build'
 
       - name: Deploy to GitHub Pages
         id: deployment

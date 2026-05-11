@@ -133,6 +133,7 @@ Generate the COMPLETE plan.md with these sections:
    - Architecture (how components fit together, with diagram description)
    - Integration Points table (Component | File | Integration Type)
    - Key Dependencies (existing modules, libraries)
+   - State Authority & Ordered Write Flow for CLI/workflow-triggered platform mutations
 3. Selected Implementation Approach (if selected-option.md exists):
    - Option number, scores, Gen AI touchpoints
 4. Constitution Check (if constitution.md exists):
@@ -158,6 +159,9 @@ Rules:
 - Reference specific file paths for all components
 - Plan must be specific enough for task generation
 - Resolve all unknowns — no NEEDS CLARIFICATION in the plan
+- For CLI-driven or orchestrated multi-service state changes, the plan MUST
+  name the authoritative store for each datum, the layer that owns each write,
+  the exact ordered call chain, and the rollback or failure behavior.
 
 Write the complete plan to {FEATURE_DIR}/plan.md.
 

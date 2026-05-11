@@ -244,6 +244,9 @@ Rules:
 - Explicit non-app work MUST keep the shared numbered stages but MUST NOT be
   forced to create app-only preview, approval, branding, or service-fit
   sections beyond marking them "Not applicable"
+- When the feature depends on a CLI, workflow, or automation mutating platform
+  state, the spec and contract pack MUST name the authoritative persistence
+  location(s) and the required order of writes or side effects.
 
 Write the complete specification to {FEATURE_DIR}/spec.md.
 When EnterpriseAI is active or no profile is specified, also write
@@ -647,11 +650,15 @@ When EnterpriseAI is active or no profile is specified, generate
 | EnterpriseAI Service Fit | For app delivery: desired capabilities, evidence source, accessible now vs purchasable vs unavailable classification, selected direction, and blocked-capability handling |
 | Permissions and Tenant Boundaries | Identity, authorization, policy, isolation, and tenant assumptions |
 | APIs and Events | ResourceAPI surfaces, events, payload ownership, and contract-test hooks |
+| State Authority and Write Ordering | For command-triggered platform mutations: caller command, orchestrator endpoint, authoritative stores, ordered writes, failure gates, idempotency, and recovery path |
 | Deployment and Runtime | Environment, config, observability, rollback, and operating assumptions |
 | Acceptance Tests | Business, security, data, architecture, operational, and regression checks |
 
 The contract pack must link every new object type/API/workflow back to
 `reuse-scan.md` and must flag any "create new" decision that lacks evidence.
+When a feature expects a CLI command to "make it true in the platform," the
+contract pack must also distinguish authoritative platform writes from local
+mirror writes such as `.env.local` patching.
 
 ---
 

@@ -1,8 +1,9 @@
 ---
 generated: true
-generated_at: "2026-05-12T18:20:10.614Z"
-source_commit: "47970f3821d877082c57c015853454b8f25a9309"
+generated_at: '2026-05-12T18:20:10.614Z'
+source_commit: '47970f3821d877082c57c015853454b8f25a9309'
 ---
+
 # Deployment
 
 ## Deployment Model
@@ -107,31 +108,31 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20.x'
-      
+
       - name: Install dependencies
         run: |
           npm install
           cd extension && npm install
           cd ../language-server && npm install
-      
+
       - name: Build all
         run: npm run build:all
-      
+
       - name: Run tests
         run: npm test
-      
+
       - name: Package extension
         run: |
           cd extension
           npm run package
           npx vsce package
-      
+
       - name: Upload VSIX
         uses: actions/upload-artifact@v4
         with:
           name: vsix
           path: extension/*.vsix
-      
+
       - name: Create Release
         uses: ncipollo/release-action@v1
         with:
@@ -499,8 +500,7 @@ git push origin main
 
 ### Source Code Backup
 
-**Primary:** GitHub repository
-**Backup:** Developer local clones
+**Primary:** GitHub repository **Backup:** Developer local clones
 
 **Recovery:**
 
@@ -512,8 +512,7 @@ git clone https://github.com/enterpriseaigroup/tech-docs.git
 
 ### Release Artifacts Backup
 
-**Primary:** GitHub Releases
-**Backup:** Git tags (rebuild from source)
+**Primary:** GitHub Releases **Backup:** Git tags (rebuild from source)
 
 **Recovery:**
 

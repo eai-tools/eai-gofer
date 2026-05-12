@@ -1,45 +1,57 @@
 ---
 generated: true
-generated_at: "2026-05-10T14:25:47.936Z"
-source_commit: "6b457ddd796d13c0da957e8a57840f3ca1e8b190"
+generated_at: '2026-05-12T18:20:10.614Z'
+source_commit: '47970f3821d877082c57c015853454b8f25a9309'
 ---
+
 # Gofer - Technical Overview
 
 ## Executive Summary
 
-| Attribute | Value |
-|-----------|-------|
-| **Service Name** | Gofer for EnterpriseAI Vertical App Delivery |
-| **Primary Capability** | Spec-driven development workflow system with UI-first app delivery and multi-platform AI assistant support |
-| **Primary Users** | Software development teams using Claude Code, GitHub Copilot, OpenAI Codex, or Gemini CLI for feature implementation |
-| **Data Sensitivity** | Low - stores specifications, plans, and code artifacts locally in repository workspace |
-| **Current Status** | Active Development (v3.3.0) - Production-ready with enterprise AI workflow enhancements |
-| **Last Material Change** | 2026-05-10 - Retired legacy gofer docs root, updated documentation surfaces |
+| Attribute                | Value                                                                                                                |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------- |
+| **Service Name**         | Gofer for EnterpriseAI Vertical App Delivery                                                                         |
+| **Primary Capability**   | Spec-driven development workflow system with UI-first app delivery and multi-platform AI assistant support           |
+| **Primary Users**        | Software development teams using Claude Code, GitHub Copilot, OpenAI Codex, or Gemini CLI for feature implementation |
+| **Data Sensitivity**     | Low - stores specifications, plans, and code artifacts locally in repository workspace                               |
+| **Current Status**       | Active Development (v3.3.0) - Production-ready with enterprise AI workflow enhancements                              |
+| **Last Material Change** | 2026-05-12 - Platform builder experience documentation, write ordering updates                                       |
 
 ## Service Identity
 
-**Name:** Gofer
-**Version:** 3.3.0
-**Documentation Updated:** 2026-05-10
-**Publisher:** Enterprise AI Pty Ltd
-**Description:** Spec-driven development system for AI assistants. Provides 40+ MCP tools that enable Claude Code, GitHub Copilot, OpenAI Codex, and Gemini CLI to autonomously implement features from specifications with UI-first app delivery workflow support.
+**Name:** Gofer **Version:** 3.3.0 **Documentation Updated:** 2026-05-12
+**Publisher:** Enterprise AI Pty Ltd **Description:** Spec-driven development
+system for AI assistants. Provides 40+ MCP tools that enable Claude Code, GitHub
+Copilot, OpenAI Codex, and Gemini CLI to autonomously implement features from
+specifications with UI-first app delivery workflow support.
 
-**Repository:** [https://github.com/eai-tools/gofer](https://github.com/eai-tools/gofer)
+**Repository:**
+[https://github.com/eai-tools/gofer](https://github.com/eai-tools/gofer)
 
 ## Purpose
 
-Gofer is a VSCode extension that bridges human specifications with AI implementation. It provides:
+Gofer is a VSCode extension that bridges human specifications with AI
+implementation. It provides:
 
-1. **Model Context Protocol (MCP) Tools** - 40+ tools that AI assistants call directly to read specs, execute tasks, validate code, and manage context
-2. **Specification Framework** - Structured `.specify/` directory format for feature specs, plans, and tasks
-3. **Multi-Platform CLI Support** - Commands for Claude Code, GitHub Copilot Chat, OpenAI Codex, and Gemini CLI
-4. **Autonomous Execution** - Optional orchestrator that drives Claude Code through full implementation cycles
-5. **Context Health Management** - Monitors and manages AI context window usage to maintain accuracy (auto-save at 65% threshold)
-6. **Constitution-Based Validation** - Enforces project principles and coding standards
-7. **Visual Artifacts** - 10 persona-pack templates (Impact Canvas, C4, ERD, Risk Heatmap, etc.)
-8. **Cost Budget Enforcement** - Tracks token usage and enforces cost limits per pipeline run
+1. **Model Context Protocol (MCP) Tools** - 40+ tools that AI assistants call
+   directly to read specs, execute tasks, validate code, and manage context
+2. **Specification Framework** - Structured `.specify/` directory format for
+   feature specs, plans, and tasks
+3. **Multi-Platform CLI Support** - Commands for Claude Code, GitHub Copilot
+   Chat, OpenAI Codex, and Gemini CLI
+4. **Autonomous Execution** - Optional orchestrator that drives Claude Code
+   through full implementation cycles
+5. **Context Health Management** - Monitors and manages AI context window usage
+   to maintain accuracy (auto-save at 65% threshold)
+6. **Constitution-Based Validation** - Enforces project principles and coding
+   standards
+7. **Visual Artifacts** - 10 persona-pack templates (Impact Canvas, C4, ERD,
+   Risk Heatmap, etc.)
+8. **Cost Budget Enforcement** - Tracks token usage and enforces cost limits per
+   pipeline run
 9. **Scope Guard** - Prevents AI from accessing protected files defined in specs
-10. **Memory Management** - MemGPT-inspired three-layer memory system with automatic compaction
+10. **Memory Management** - MemGPT-inspired three-layer memory system with
+    automatic compaction
 
 ## Tech Stack
 
@@ -136,20 +148,24 @@ npx vsce package
 
 ## Team/Ownership
 
-**Owner:** Enterprise AI Pty Ltd
-**Contact:** [https://enterpriseai.com.au](https://enterpriseai.com.au)
+**Owner:** Enterprise AI Pty Ltd **Contact:**
+[https://enterpriseai.com.au](https://enterpriseai.com.au)
 
 **Key Maintainer Information:**
 
-- Based on CLAUDE.md, the project follows a structured workflow with autonomous bug fixing and self-improvement loops
-- Uses Gofer's own pipeline for development (`/0_business_scenario` → research → specify → plan → tasks → implement → validate)
+- Based on CLAUDE.md, the project follows a structured workflow with autonomous
+  bug fixing and self-improvement loops
+- Uses Gofer's own pipeline for development (`/0_business_scenario` → research →
+  specify → plan → tasks → implement → validate)
 - Specifications stored in `.specify/specs/` directory
 - Constitution principles defined in `.specify/memory/constitution.md`
 
 **Active Specifications (2026-05-10):**
 
-- **032-gofer-ui-first-builder** - UI-first app delivery workflow with preview, approval, and service-fit gates (Status: Completed, Released in v3.2.2)
-- **031-skills-pipeline-augmentation** - Enhanced agent coordination and skill composition (Status: Completed, Released in v3.2.0)
+- **032-gofer-ui-first-builder** - UI-first app delivery workflow with preview,
+  approval, and service-fit gates (Status: Completed, Released in v3.2.2)
+- **031-skills-pipeline-augmentation** - Enhanced agent coordination and skill
+  composition (Status: Completed, Released in v3.2.0)
 
 ## Project Structure
 
@@ -211,12 +227,15 @@ gofer/
 - **GitHub Copilot Chat** - Core features + 2026+ enhancements
 - **OpenAI Codex CLI** - Full feature support via skill system
 - **Gemini CLI** - Command files with namespace support
-- **Auto-detection** - `gofer.defaultCLI` setting (`auto`, `claude`, `copilot`, `codex`, `gemini`)
+- **Auto-detection** - `gofer.defaultCLI` setting (`auto`, `claude`, `copilot`,
+  `codex`, `gemini`)
 
 ### CLI Innovations (v3.0+)
 
-- **Source-of-Truth Generator** - Single canonical `.specify/commands/<stage>.md` file emits to 8 CLI surfaces
-- **Visual Artifacts** - 10 persona-pack templates (Impact Canvas, C4, ERD, Heatmaps, etc.)
+- **Source-of-Truth Generator** - Single canonical
+  `.specify/commands/<stage>.md` file emits to 8 CLI surfaces
+- **Visual Artifacts** - 10 persona-pack templates (Impact Canvas, C4, ERD,
+  Heatmaps, etc.)
 - **7 Visual Writer Agents** - Specialized agents for each diagram type
 - **Namespace Aliases** - `/gofer:*` prefix for all commands
 - **Mermaid Export** - `npm run gofer:mermaid-export` (optional)
@@ -228,27 +247,43 @@ gofer/
 - **Progress Tracking** - Real-time status in Gofer sidebar
 - **Task Dependencies** - Executes tasks in dependency order
 - **Context Health** - Monitors AI context window usage (status bar)
-- **Memory Management** - Continuous memory compaction and layered storage (JSONL-based)
-- **Scope Guard** - Prevents AI from accessing protected files (advisory/warning/blocking modes)
-- **Cost Budget** - Tracks and enforces per-run cost limits ($10 default, configurable)
+- **Memory Management** - Continuous memory compaction and layered storage
+  (JSONL-based)
+- **Scope Guard** - Prevents AI from accessing protected files
+  (advisory/warning/blocking modes)
+- **Cost Budget** - Tracks and enforces per-run cost limits ($10 default,
+  configurable)
 - **GitHub Codespaces** - Automatic installation in Codespaces
-- **Auto-Context-Continuity (ACC)** - Automatic session save/resume at 65% context
-- **Slop Reduction** - Auto-removes console.log, debugger, @ts-ignore on save (opt-in)
-- **Tool Audit Logging** - All file access logged to `.specify/logs/tool-audit.jsonl`
+- **Auto-Context-Continuity (ACC)** - Automatic session save/resume at 65%
+  context
+- **Slop Reduction** - Auto-removes console.log, debugger, @ts-ignore on save
+  (opt-in)
+- **Tool Audit Logging** - All file access logged to
+  `.specify/logs/tool-audit.jsonl`
 
 ### Recent Additions (v3.0-3.2)
 
-- **Memory Panel Filter** - Toggle to hide system-generated memories (533 → 0 by default)
-- **Cross-Platform Command Parity** - All 16 Gofer commands on Claude, Copilot, Codex, Gemini
-- **Parallel Validation** - 6 validation agents run concurrently (<60s vs 90-120s)
+- **Memory Panel Filter** - Toggle to hide system-generated memories (533 → 0 by
+  default)
+- **Cross-Platform Command Parity** - All 16 Gofer commands on Claude, Copilot,
+  Codex, Gemini
+- **Parallel Validation** - 6 validation agents run concurrently (<60s vs
+  90-120s)
 - **Codex Budget Doctor** - `npm run gofer:codex-doctor` diagnostic tool
-- **Plugin Manifests** - `.claude-plugin/`, `.gemini/`, `codex-config.toml` support
-- **AI Usage Panel** - Real-time token usage and cost tracking via provider billing APIs
-- **Resource Diagnostics** - Lightweight performance snapshots (5min intervals, opt-in)
-- **Context REPL** - MCP tools for progressive context management (peek/grep/fold/expand/undo)
-- **Research Chunking** - On-demand loading of large research.md files to reduce context bloat
-- **Skills Pipeline Augmentation** - Enhanced agent coordination and skill composition (v3.2)
-- **UI-First App Delivery** - Preview-approval-service-fit workflow for vertical apps (v3.2.2)
+- **Plugin Manifests** - `.claude-plugin/`, `.gemini/`, `codex-config.toml`
+  support
+- **AI Usage Panel** - Real-time token usage and cost tracking via provider
+  billing APIs
+- **Resource Diagnostics** - Lightweight performance snapshots (5min intervals,
+  opt-in)
+- **Context REPL** - MCP tools for progressive context management
+  (peek/grep/fold/expand/undo)
+- **Research Chunking** - On-demand loading of large research.md files to reduce
+  context bloat
+- **Skills Pipeline Augmentation** - Enhanced agent coordination and skill
+  composition (v3.2)
+- **UI-First App Delivery** - Preview-approval-service-fit workflow for vertical
+  apps (v3.2.2)
 
 ## Data Storage
 
@@ -257,7 +292,8 @@ All data is stored in the `.specify/` directory:
 - **Specs:** `.specify/specs/{spec-id}/spec.md` (Markdown with YAML frontmatter)
 - **Tasks:** `.specify/specs/{spec-id}/tasks.md` (Markdown checklist format)
 - **Memory:** `.specify/memory/memories.jsonl` (Append-only JSONL)
-- **Logs:** `.specify/logs/` (council-usage.jsonl, tool-audit.jsonl, slop-reduction.jsonl, gofer-run-ledger.jsonl)
+- **Logs:** `.specify/logs/` (council-usage.jsonl, tool-audit.jsonl,
+  slop-reduction.jsonl, gofer-run-ledger.jsonl)
 - **State:** `.specify/current-stage.json`, `.specify/ipc/status.json`
 
 No database required - all data is file-based for Git-friendly version control.
@@ -266,16 +302,16 @@ No database required - all data is file-based for Git-friendly version control.
 
 ### Primary Integrations
 
-| System | Type | Purpose | Criticality |
-|--------|------|---------|-------------|
-| **VS Code Extension API** | Platform | Extension host, commands, views, language server protocol | Required |
-| **Anthropic API** | Upstream | Claude 3.5 Sonnet/Haiku for autonomous implementation | Optional (Claude Code only) |
-| **Google AI API** | Upstream | Gemini 1.5 Pro/Flash for LLM Council validation | Optional |
-| **OpenAI API** | Upstream | GPT-4 for LLM Council validation | Optional |
-| **Claude Code CLI** | Downstream | Primary consumer of MCP tools (40+ tools) | Primary |
-| **GitHub Copilot** | Downstream | Consumer of prompt files (`.github/prompts/`) | Core |
-| **OpenAI Codex CLI** | Downstream | Consumer of skill files (`.agents/skills/`) | Core |
-| **Gemini CLI** | Downstream | Consumer of command files (`.gemini/commands/gofer/`) | Core |
+| System                    | Type       | Purpose                                                   | Criticality                 |
+| ------------------------- | ---------- | --------------------------------------------------------- | --------------------------- |
+| **VS Code Extension API** | Platform   | Extension host, commands, views, language server protocol | Required                    |
+| **Anthropic API**         | Upstream   | Claude 3.5 Sonnet/Haiku for autonomous implementation     | Optional (Claude Code only) |
+| **Google AI API**         | Upstream   | Gemini 1.5 Pro/Flash for LLM Council validation           | Optional                    |
+| **OpenAI API**            | Upstream   | GPT-4 for LLM Council validation                          | Optional                    |
+| **Claude Code CLI**       | Downstream | Primary consumer of MCP tools (40+ tools)                 | Primary                     |
+| **GitHub Copilot**        | Downstream | Consumer of prompt files (`.github/prompts/`)             | Core                        |
+| **OpenAI Codex CLI**      | Downstream | Consumer of skill files (`.agents/skills/`)               | Core                        |
+| **Gemini CLI**            | Downstream | Consumer of command files (`.gemini/commands/gofer/`)     | Core                        |
 
 ### Secondary Integrations
 
@@ -289,24 +325,28 @@ See `./dependencies.md` for the full upstream and downstream dependency map.
 
 This repository maintains multiple documentation surfaces:
 
-| Path | Purpose | Publishing Workflow | Nightly Pipeline |
-|------|---------|---------------------|------------------|
-| `.tech-docs/` | Canonical technical snapshot (this documentation) | Auto-generated, triggers Pages deployment | Yes |
-| `docs-site/` | Docusaurus-based public documentation site | Built and deployed to GitHub Pages via `.github/workflows/pages.yml` | Consumes `.tech-docs/` |
-| `README.md` | Quick start and repository overview | Manually maintained | No |
-| `AGENTS.md` | Agent conventions and guidelines | Manually maintained | No |
-| `CLAUDE.md` | Project-specific instructions for Claude | Manually maintained | No |
+| Path          | Purpose                                           | Publishing Workflow                                                  | Nightly Pipeline       |
+| ------------- | ------------------------------------------------- | -------------------------------------------------------------------- | ---------------------- |
+| `.tech-docs/` | Canonical technical snapshot (this documentation) | Auto-generated, triggers Pages deployment                            | Yes                    |
+| `docs-site/`  | Docusaurus-based public documentation site        | Built and deployed to GitHub Pages via `.github/workflows/pages.yml` | Consumes `.tech-docs/` |
+| `README.md`   | Quick start and repository overview               | Manually maintained                                                  | No                     |
+| `AGENTS.md`   | Agent conventions and guidelines                  | Manually maintained                                                  | No                     |
+| `CLAUDE.md`   | Project-specific instructions for Claude          | Manually maintained                                                  | No                     |
 
 **Key Notes:**
+
 - `.tech-docs/` is the source of truth for technical documentation
-- `docs-site/` publishes `.tech-docs/` content to GitHub Pages (configuration in progress)
+- `docs-site/` publishes `.tech-docs/` content to GitHub Pages (configuration in
+  progress)
 - Changes to `.tech-docs/` automatically trigger a documentation site rebuild
 - Documentation site requires Node 24+ and uses Docusaurus 3.6.3
 
 ## Current Status
 
 - Nightly-managed `.tech-docs/` content is present for this repository.
-- Source commit: `6b457ddd796d`
+- Source commit: `47970f3821d8`
 - Version: 3.3.0 (Released 2026-05-10)
 - Additional repo-local docs surfaces detected: 1 (docs-site/)
 - Legacy documentation archived in `.tech-docs/legacy-src/docs/`
+- Recent focus: Platform builder experience documentation and Gofer prompt write
+  ordering

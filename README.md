@@ -19,8 +19,9 @@ standard workflow as an explicit opt-out. Set `gofer.workflowProfile` to
 When the EnterpriseAI workflow profile is active, Gofer must distinguish public
 builder knowledge from private platform implementation detail. Public artifacts
 can reference EAI CLI commands, PublicAPI behavior, template conventions,
-support documentation, and product-safe statuses such as `operator_required` or
-`upgrade_required`. They must not describe private service topology, secret
+support documentation, and product-safe statuses such as `available`,
+`operator_required`, `paid_upgrade_required`, `rate_limited`, `blocked`, and
+`unsupported`. They must not describe private service topology, secret
 locations, direct downstream credentials, or bypass paths around plan and AuthZ
 controls.
 

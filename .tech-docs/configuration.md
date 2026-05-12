@@ -1,8 +1,9 @@
 ---
 generated: true
-generated_at: "2026-05-10T14:25:47.936Z"
-source_commit: "6b457ddd796d13c0da957e8a57840f3ca1e8b190"
+generated_at: '2026-05-12T18:20:10.614Z'
+source_commit: '47970f3821d877082c57c015853454b8f25a9309'
 ---
+
 # Configuration
 
 ## Environment Variables
@@ -57,7 +58,8 @@ Configure via `Cmd/Ctrl+,` or `.vscode/settings.json`
 
 - **Description:** Your Anthropic API key for Claude
 - **Usage:** Orchestrator, autonomous mode, LLM council
-- **Get Key:** [https://console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys)
+- **Get Key:**
+  [https://console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys)
 - **Storage:** Securely stored in VSCode settings
 
 **Anthropic Admin API Key**
@@ -70,7 +72,8 @@ Configure via `Cmd/Ctrl+,` or `.vscode/settings.json`
 
 - **Description:** Your Anthropic Admin API key for billing data
 - **Usage:** AI Usage Panel - real-time cost tracking
-- **Get Key:** [https://console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys)
+- **Get Key:**
+  [https://console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys)
 - **Required for:** Provider billing API integration
 
 **Google AI API Key**
@@ -83,7 +86,8 @@ Configure via `Cmd/Ctrl+,` or `.vscode/settings.json`
 
 - **Description:** Your Google AI API key for Gemini
 - **Usage:** LLM council (optional)
-- **Get Key:** [https://aistudio.google.com/apikey](https://aistudio.google.com/apikey)
+- **Get Key:**
+  [https://aistudio.google.com/apikey](https://aistudio.google.com/apikey)
 
 **OpenAI API Key**
 
@@ -95,7 +99,8 @@ Configure via `Cmd/Ctrl+,` or `.vscode/settings.json`
 
 - **Description:** Your OpenAI API key for GPT models
 - **Usage:** LLM council (optional)
-- **Get Key:** [https://platform.openai.com/api-keys](https://platform.openai.com/api-keys)
+- **Get Key:**
+  [https://platform.openai.com/api-keys](https://platform.openai.com/api-keys)
 
 **OpenAI Admin API Key**
 
@@ -236,7 +241,8 @@ Configure via `Cmd/Ctrl+,` or `.vscode/settings.json`
 ```
 
 - **Default:** `false`
-- **Description:** Enable MemGPT-inspired three-layer memory (core/recall/archival)
+- **Description:** Enable MemGPT-inspired three-layer memory
+  (core/recall/archival)
 
 **Memory Coverage Threshold**
 
@@ -542,7 +548,8 @@ Configure via `Cmd/Ctrl+,` or `.vscode/settings.json`
 
 ## Feature Flags
 
-Gofer does not use traditional feature flags. All features are controlled via VSCode settings (see above).
+Gofer does not use traditional feature flags. All features are controlled via
+VSCode settings (see above).
 
 **Feature Toggle Settings:**
 

@@ -1,8 +1,21 @@
-# Tasks - Gofer
+---
+feature: "026-public-platform-builder-experience"
+repo: "Gofer"
+status: complete-for-bootstrap-pr
+created: "2026-05-12T00:00:00Z"
+---
 
-- [ ] Add public/private boundary prompts to research, specify, plan, implement, and validate skills.
-- [ ] Add PublicAPI capability evidence checklist.
-- [ ] Add platform gap classification for missing public capabilities.
-- [ ] Add validation rubric items for private-detail leakage.
-- [ ] Add Strategy Monitor as a reference scenario for workflow readiness and secret rotation gaps.
+# Tasks
 
+## Current PR Tasks
+
+- [x] T001 Create repo-owned Feature 026 specification at `.specify/specs/026-public-platform-builder-experience/spec.md`.
+- [x] T002 Add research and approved proposal artifacts.
+- [x] T003 Add implementation plan, data model, quickstart, and traceability artifacts.
+- [x] T004 Add Gofer validation artifact for the specification/bootstrap PR.
+
+## Protected Boundaries
+
+- Runtime source code is protected in this PR.
+- Public-facing docs must not expose private platform internals.
+- Follow-up implementation work must use a separate PR with its own tests and validation.

@@ -1,8 +1,9 @@
 ---
 generated: true
-generated_at: "2026-05-10T14:25:47.936Z"
-source_commit: "6b457ddd796d13c0da957e8a57840f3ca1e8b190"
+generated_at: '2026-05-12T18:20:10.614Z'
+source_commit: '47970f3821d877082c57c015853454b8f25a9309'
 ---
+
 # Dependencies
 
 ## Dependency Overview
@@ -47,11 +48,8 @@ Services that Gofer **calls** or **depends on**.
 
 ### 1. VSCode Platform (Required)
 
-**Dependency:** VSCode Extension API
-**Type:** Platform
-**Version:** 1.85.0+
-**Usage:** Core extension functionality
-**Critical:** Yes
+**Dependency:** VSCode Extension API **Type:** Platform **Version:** 1.85.0+
+**Usage:** Core extension functionality **Critical:** Yes
 
 **APIs Used:**
 
@@ -69,11 +67,9 @@ Services that Gofer **calls** or **depends on**.
 
 ### 2. Anthropic API (Optional)
 
-**Dependency:** Claude 3.5 Sonnet, Claude 3.5 Haiku
-**Type:** External API
-**Configuration:** `gofer.anthropicApiKey`
-**Usage:** Autonomous mode, LLM council
-**Critical:** No (optional feature)
+**Dependency:** Claude 3.5 Sonnet, Claude 3.5 Haiku **Type:** External API
+**Configuration:** `gofer.anthropicApiKey` **Usage:** Autonomous mode, LLM
+council **Critical:** No (optional feature)
 
 **Endpoints Used:**
 
@@ -103,11 +99,9 @@ Services that Gofer **calls** or **depends on**.
 
 ### 3. Google AI API (Optional)
 
-**Dependency:** Gemini 1.5 Pro, Gemini 1.5 Flash
-**Type:** External API
-**Configuration:** `gofer.googleApiKey`
-**Usage:** LLM council (multi-provider validation)
-**Critical:** No
+**Dependency:** Gemini 1.5 Pro, Gemini 1.5 Flash **Type:** External API
+**Configuration:** `gofer.googleApiKey` **Usage:** LLM council (multi-provider
+validation) **Critical:** No
 
 **Endpoints Used:**
 
@@ -130,11 +124,8 @@ Services that Gofer **calls** or **depends on**.
 
 ### 4. OpenAI API (Optional)
 
-**Dependency:** GPT-4, GPT-4 Turbo
-**Type:** External API
-**Configuration:** `gofer.openaiApiKey`
-**Usage:** LLM council (optional)
-**Critical:** No
+**Dependency:** GPT-4, GPT-4 Turbo **Type:** External API **Configuration:**
+`gofer.openaiApiKey` **Usage:** LLM council (optional) **Critical:** No
 
 **Endpoints Used:**
 
@@ -157,11 +148,9 @@ Services that Gofer **calls** or **depends on**.
 
 ### 5. Twilio API (Optional)
 
-**Dependency:** Twilio WhatsApp Business API
-**Type:** External API
-**Configuration:** Environment variables
-**Usage:** Autonomous execution notifications
-**Critical:** No
+**Dependency:** Twilio WhatsApp Business API **Type:** External API
+**Configuration:** Environment variables **Usage:** Autonomous execution
+notifications **Critical:** No
 
 **Endpoints Used:**
 
@@ -183,10 +172,8 @@ Services that Gofer **calls** or **depends on**.
 
 ### 6. GitHub API (Optional)
 
-**Dependency:** GitHub REST API
-**Type:** External API
-**Usage:** Extension auto-update checks
-**Critical:** No
+**Dependency:** GitHub REST API **Type:** External API **Usage:** Extension
+auto-update checks **Critical:** No
 
 **Endpoints Used:**
 
@@ -210,9 +197,7 @@ Services and tools that **depend on** Gofer.
 
 ### 1. Claude Code CLI (Optional Integration)
 
-**Type:** AI CLI Tool
-**Version:** Latest
-**Usage:** MCP tool consumer
+**Type:** AI CLI Tool **Version:** Latest **Usage:** MCP tool consumer
 
 **Integration:**
 
@@ -230,9 +215,7 @@ Services and tools that **depend on** Gofer.
 
 ### 2. GitHub Copilot Chat (Optional Integration)
 
-**Type:** AI Chat Tool
-**Version:** Latest
-**Usage:** Prompt consumer
+**Type:** AI Chat Tool **Version:** Latest **Usage:** Prompt consumer
 
 **Integration:**
 
@@ -249,9 +232,7 @@ Services and tools that **depend on** Gofer.
 
 ### 3. OpenAI Codex CLI (Optional Integration)
 
-**Type:** AI CLI Tool
-**Version:** Latest
-**Usage:** Skill consumer
+**Type:** AI CLI Tool **Version:** Latest **Usage:** Skill consumer
 
 **Integration:**
 
@@ -268,9 +249,7 @@ Services and tools that **depend on** Gofer.
 
 ### 4. Gemini CLI (Optional Integration)
 
-**Type:** AI CLI Tool
-**Version:** Latest
-**Usage:** Command file consumer
+**Type:** AI CLI Tool **Version:** Latest **Usage:** Command file consumer
 
 **Integration:**
 
@@ -289,9 +268,8 @@ Services and tools that **depend on** Gofer.
 
 ### NPM Registry
 
-**Type:** Package Registry
-**Usage:** Dependency installation
-**Critical:** Yes (build time only)
+**Type:** Package Registry **Usage:** Dependency installation **Critical:** Yes
+(build time only)
 
 **Packages:**
 
@@ -309,10 +287,8 @@ Services and tools that **depend on** Gofer.
 
 ### Node.js Runtime
 
-**Type:** JavaScript Runtime
-**Version:** 20.x
-**Usage:** Extension runtime, build tools
-**Critical:** Yes
+**Type:** JavaScript Runtime **Version:** 20.x **Usage:** Extension runtime,
+build tools **Critical:** Yes
 
 **Requirements:**
 
@@ -331,11 +307,11 @@ graph LR
     LS --> MCP_HANDLER[MCPToolHandler]
     ORCH --> AGENT[Agents]
     ORCH --> QUEUE[Task Queue]
-    
+
     EXT --> DI[DI Container<br/>TSyringe]
     EXT --> LSP_CLIENT[LSP Client]
     EXT --> FILE_MONITOR[File Monitor]
-    
+
     LS --> SPEC_CACHE[Spec Cache]
     LS --> RESEARCH_CHUNKER[Research Chunker]
     LS --> VALIDATION[Validation Service]
@@ -347,45 +323,45 @@ graph LR
 
 ### Production Dependencies (Extension)
 
-| Package                      | Version      | Purpose                          |
-| ---------------------------- | ------------ | -------------------------------- |
-| @anthropic-ai/sdk            | ^0.67.0      | Anthropic API client             |
-| @google/generative-ai        | ^0.21.0      | Google Gemini API client         |
-| openai                       | ^4.104.0     | OpenAI API client                |
-| vscode-languageclient        | ^9.0.1       | LSP client                       |
-| tsyringe                     | ^4.10.0      | Dependency injection             |
-| ws                           | ^8.18.0      | WebSocket support                |
-| node-pty-prebuilt-multiarch  | ^0.10.1-pre.5| Terminal emulation               |
-| chokidar                     | ^3.5.3       | File watching                    |
-| fast-glob                    | ^3.3.2       | Fast file globbing               |
-| graphlib                     | ^2.1.8       | Dependency graph resolution      |
-| ajv                          | ^8.18.0      | JSON schema validation           |
-| jszip                        | ^3.10.1      | ZIP file handling                |
-| express                      | ^5.1.0       | HTTP server (optional features)  |
-| twilio                       | ^5.3.0       | WhatsApp notifications           |
-| uuid                         | ^10.0.0      | UUID generation                  |
+| Package                     | Version       | Purpose                         |
+| --------------------------- | ------------- | ------------------------------- |
+| @anthropic-ai/sdk           | ^0.67.0       | Anthropic API client            |
+| @google/generative-ai       | ^0.21.0       | Google Gemini API client        |
+| openai                      | ^4.104.0      | OpenAI API client               |
+| vscode-languageclient       | ^9.0.1        | LSP client                      |
+| tsyringe                    | ^4.10.0       | Dependency injection            |
+| ws                          | ^8.18.0       | WebSocket support               |
+| node-pty-prebuilt-multiarch | ^0.10.1-pre.5 | Terminal emulation              |
+| chokidar                    | ^3.5.3        | File watching                   |
+| fast-glob                   | ^3.3.2        | Fast file globbing              |
+| graphlib                    | ^2.1.8        | Dependency graph resolution     |
+| ajv                         | ^8.18.0       | JSON schema validation          |
+| jszip                       | ^3.10.1       | ZIP file handling               |
+| express                     | ^5.1.0        | HTTP server (optional features) |
+| twilio                      | ^5.3.0        | WhatsApp notifications          |
+| uuid                        | ^10.0.0       | UUID generation                 |
 
 ### Production Dependencies (Root)
 
-| Package            | Version   | Purpose                  |
-| ------------------ | --------- | ------------------------ |
-| @anthropic-ai/sdk  | ^0.32.1   | Anthropic API client     |
-| zod                | ^3.24.1   | Schema validation        |
-| winston            | ^3.17.0   | Logging                  |
-| gray-matter        | ^4.0.3    | YAML frontmatter parsing |
-| reflect-metadata   | ^0.2.2    | TypeScript decorators    |
+| Package           | Version | Purpose                  |
+| ----------------- | ------- | ------------------------ |
+| @anthropic-ai/sdk | ^0.32.1 | Anthropic API client     |
+| zod               | ^3.24.1 | Schema validation        |
+| winston           | ^3.17.0 | Logging                  |
+| gray-matter       | ^4.0.3  | YAML frontmatter parsing |
+| reflect-metadata  | ^0.2.2  | TypeScript decorators    |
 
 ### Development Dependencies
 
-| Package                      | Version  | Purpose                    |
-| ---------------------------- | -------- | -------------------------- |
-| typescript                   | ^5.7.2   | TypeScript compiler        |
-| webpack                      | ^5.89.0  | Bundler                    |
-| vitest                       | ^3.2.4   | Testing framework          |
-| playwright                   | ^1.49.1  | E2E testing                |
-| eslint                       | ^9.26.0  | Linting                    |
-| prettier                     | ^3.0.0   | Code formatting            |
-| @vscode/vsce                 | ^3.7.1   | VSIX packaging             |
+| Package      | Version | Purpose             |
+| ------------ | ------- | ------------------- |
+| typescript   | ^5.7.2  | TypeScript compiler |
+| webpack      | ^5.89.0 | Bundler             |
+| vitest       | ^3.2.4  | Testing framework   |
+| playwright   | ^1.49.1 | E2E testing         |
+| eslint       | ^9.26.0 | Linting             |
+| prettier     | ^3.0.0  | Code formatting     |
+| @vscode/vsce | ^3.7.1  | VSIX packaging      |
 
 ---
 
@@ -441,10 +417,8 @@ Gofer can operate in offline mode with limited functionality:
 
 **Status:** ✅ All dependencies healthy
 
-**Last Audit:** 2026-05-02
-**Critical Vulnerabilities:** 0
-**High Vulnerabilities:** 0
-**Outdated Packages:** 0 major, 2 minor
+**Last Audit:** 2026-05-02 **Critical Vulnerabilities:** 0 **High
+Vulnerabilities:** 0 **Outdated Packages:** 0 major, 2 minor
 
 **Automated Monitoring:**
 

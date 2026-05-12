@@ -1,13 +1,16 @@
 ---
 generated: true
-generated_at: "2026-05-10T14:25:47.936Z"
-source_commit: "6b457ddd796d13c0da957e8a57840f3ca1e8b190"
+generated_at: '2026-05-12T18:20:10.614Z'
+source_commit: '47970f3821d877082c57c015853454b8f25a9309'
 ---
+
 # Data Model
 
 ## Storage Architecture
 
-Gofer uses a file-based storage architecture with no database dependencies. All data is stored in the `.specify/` directory using JSONL (JSON Lines), JSON, and Markdown formats, making it Git-friendly and human-readable.
+Gofer uses a file-based storage architecture with no database dependencies. All
+data is stored in the `.specify/` directory using JSONL (JSON Lines), JSON, and
+Markdown formats, making it Git-friendly and human-readable.
 
 ```mermaid
 erDiagram
@@ -370,17 +373,17 @@ All API endpoints must respond within 200ms (p95).
 
 ```typescript
 interface MemoryEntry {
-  id: string;                    // UUID v4
-  content: string;               // Memory text
+  id: string; // UUID v4
+  content: string; // Memory text
   layer: 'core' | 'recall' | 'archival'; // MemGPT layer
-  timestamp: number;             // Unix timestamp (ms)
-  priority: number;              // 0-100 (higher = more important)
-  tags?: string[];               // Optional tags (#auto, #user, etc.)
-  category?: string;             // Optional category
+  timestamp: number; // Unix timestamp (ms)
+  priority: number; // 0-100 (higher = more important)
+  tags?: string[]; // Optional tags (#auto, #user, etc.)
+  category?: string; // Optional category
   metadata?: {
-    source?: string;             // Where this memory came from
-    lastAccessed?: number;       // Last access timestamp
-    accessCount?: number;        // How many times accessed
+    source?: string; // Where this memory came from
+    lastAccessed?: number; // Last access timestamp
+    accessCount?: number; // How many times accessed
   };
 }
 ```
@@ -399,8 +402,8 @@ In-memory index built on load:
 ```typescript
 interface MemoryIndex {
   byId: Map<string, MemoryEntry>;
-  byLayer: Map<string, Set<string>>;  // layer -> memory IDs
-  byTag: Map<string, Set<string>>;    // tag -> memory IDs
+  byLayer: Map<string, Set<string>>; // layer -> memory IDs
+  byTag: Map<string, Set<string>>; // tag -> memory IDs
   byCategory: Map<string, Set<string>>; // category -> memory IDs
 }
 ```
@@ -434,23 +437,34 @@ interface MemoryIndex {
 
 ```typescript
 interface CouncilUsageEntry {
-  timestamp: number;             // Unix timestamp (ms)
+  timestamp: number; // Unix timestamp (ms)
   provider: 'anthropic' | 'google' | 'openai';
-  model: string;                 // e.g., "claude-3-5-sonnet-20241022"
+  model: string; // e.g., "claude-3-5-sonnet-20241022"
   inputTokens: number;
   outputTokens: number;
   totalTokens: number;
-  cost: number;                  // USD
-  runId?: string;                // Optional run ID for cost attribution
-  specId?: string;               // Optional spec ID
-  stage?: string;                // Optional pipeline stage
+  cost: number; // USD
+  runId?: string; // Optional run ID for cost attribution
+  specId?: string; // Optional spec ID
+  stage?: string; // Optional pipeline stage
 }
 ```
 
 **Example:**
 
 ```jsonl
-{"timestamp":1704067200000,"provider":"anthropic","model":"claude-3-5-sonnet-20241022","inputTokens":5000,"outputTokens":2000,"totalTokens":7000,"cost":0.06,"runId":"run_xyz","specId":"auth-001","stage":"implement"}
+{
+  "timestamp": 1704067200000,
+  "provider": "anthropic",
+  "model": "claude-3-5-sonnet-20241022",
+  "inputTokens": 5000,
+  "outputTokens": 2000,
+  "totalTokens": 7000,
+  "cost": 0.06,
+  "runId": "run_xyz",
+  "specId": "auth-001",
+  "stage": "implement"
+}
 ```
 
 ### Tool Audit Log
@@ -464,12 +478,12 @@ interface CouncilUsageEntry {
 ```typescript
 interface ToolAuditEntry {
   timestamp: number;
-  tool: string;                  // MCP tool name
+  tool: string; // MCP tool name
   operation: 'read' | 'write' | 'execute';
-  path?: string;                 // File path if applicable
-  allowed: boolean;              // Whether operation was allowed
-  scopeViolation?: boolean;      // Whether ScopeGuard blocked it
-  userId?: string;               // Optional user ID
+  path?: string; // File path if applicable
+  allowed: boolean; // Whether operation was allowed
+  scopeViolation?: boolean; // Whether ScopeGuard blocked it
+  userId?: string; // Optional user ID
 }
 ```
 
@@ -491,11 +505,11 @@ interface ToolAuditEntry {
 ```typescript
 interface SlopReductionEntry {
   timestamp: number;
-  file: string;                  // File path
+  file: string; // File path
   fixes: {
-    console: number;             // console.log removals
-    debugger: number;            // debugger removals
-    tsIgnore: number;            // @ts-ignore upgrades
+    console: number; // console.log removals
+    debugger: number; // debugger removals
+    tsIgnore: number; // @ts-ignore upgrades
   };
   trigger: 'save' | 'manual' | 'continuous';
 }
@@ -504,7 +518,16 @@ interface SlopReductionEntry {
 **Example:**
 
 ```jsonl
-{"timestamp":1704067200000,"file":"src/auth.ts","fixes":{"console":3,"debugger":1,"tsIgnore":0},"trigger":"save"}
+{
+  "timestamp": 1704067200000,
+  "file": "src/auth.ts",
+  "fixes": {
+    "console": 3,
+    "debugger": 1,
+    "tsIgnore": 0
+  },
+  "trigger": "save"
+}
 ```
 
 ### Run Ledger
@@ -517,16 +540,17 @@ interface SlopReductionEntry {
 
 ```typescript
 interface RunLedgerEntry {
-  runId: string;                 // UUID v4
+  runId: string; // UUID v4
   specId: string;
-  stage: string;                 // Pipeline stage
+  stage: string; // Pipeline stage
   startTime: number;
   endTime?: number;
   status: 'running' | 'completed' | 'failed';
   totalTokens: number;
-  totalCost: number;             // USD
+  totalCost: number; // USD
   providers: {
-    [key: string]: {             // provider name
+    [key: string]: {
+      // provider name
       tokens: number;
       cost: number;
     };
@@ -537,7 +561,22 @@ interface RunLedgerEntry {
 **Example:**
 
 ```jsonl
-{"runId":"run_xyz","specId":"auth-001","stage":"implement","startTime":1704067200000,"endTime":1704074400000,"status":"completed","totalTokens":150000,"totalCost":0.75,"providers":{"anthropic":{"tokens":150000,"cost":0.75}}}
+{
+  "runId": "run_xyz",
+  "specId": "auth-001",
+  "stage": "implement",
+  "startTime": 1704067200000,
+  "endTime": 1704074400000,
+  "status": "completed",
+  "totalTokens": 150000,
+  "totalCost": 0.75,
+  "providers": {
+    "anthropic": {
+      "tokens": 150000,
+      "cost": 0.75
+    }
+  }
+}
 ```
 
 ## State Management
@@ -561,7 +600,8 @@ interface RunLedgerEntry {
 
 **Staleness Detection:**
 
-If `lastUpdated` is older than 30 minutes (configurable), mark as `stale: true` and fall back to heuristic detection.
+If `lastUpdated` is older than 30 minutes (configurable), mark as `stale: true`
+and fall back to heuristic detection.
 
 ### IPC Status
 

@@ -132,6 +132,9 @@ Validation checks before writing:
 - Every data model entity has implementing tasks
 - Every API contract endpoint has implementing tasks
 - Task file paths match plan.md File Structure section
+- For CLI-driven platform mutations, task order must reflect authoritative
+  store setup before orchestrator writes, orchestrator writes before CLI
+  consumption, and platform persistence before local mirror patching.
 
 Write the complete task breakdown to {FEATURE_DIR}/tasks.md.
 
@@ -433,10 +436,10 @@ EnterpriseAI is the default profile. Standard profile task generation is used
 only when the user explicitly opts out.
 
 When the workflow profile is `enterpriseai` or no profile is specified,
-`tasks.md` MUST emit deployment
-tasks in the following ordered chain. Each task is independently runnable and
-the ordering enforces scaffold before deployment so that configuration and
-manifest artifacts exist before any deploy command runs.
+`tasks.md` MUST emit deployment tasks in the following ordered chain. Each task
+is independently runnable and the ordering enforces scaffold before deployment
+so that configuration and manifest artifacts exist before any deploy command
+runs.
 
 1. **Vertical Template scaffolding -> `eai-cli scaffold`**
    - Command: `eai-cli scaffold --template vertical --name <app-name>`
@@ -457,9 +460,9 @@ The ordering above is non-negotiable: tasks.md MUST instruct the pipeline to sca
 For **application delivery**, task generation MUST treat the UI-first gate as a
 precondition to downstream implementation tasks:
 
-- If `{FEATURE_DIR}/ui-approval.md` does not exist or is not approved, emit
-  only the blocking preview/approval tasks needed to reach approval; do **not**
-  emit downstream implementation tasks as if the UI were already settled.
+- If `{FEATURE_DIR}/ui-approval.md` does not exist or is not approved, emit only
+  the blocking preview/approval tasks needed to reach approval; do **not** emit
+  downstream implementation tasks as if the UI were already settled.
 - If `{FEATURE_DIR}/service-fit-matrix.md` is missing or does not distinguish
   accessible now vs purchasable vs unavailable platform capabilities, emit a
   blocking service-fit task group before normal build tasks.
@@ -487,9 +490,9 @@ precondition to downstream implementation tasks:
   - update `ui-review-log.md`
   - block downstream work until `ui-approval.md` is approved
 - App-delivery service-fit tasks that update `service-fit-matrix.md` using
-  tenant-aware evidence from `eai --describe`, `eai whoami`, `eai tenant
-  select`, `eai resources schema`, `eai verify calls --format json`, or
-  equivalent approved platform evidence.
+  tenant-aware evidence from `eai --describe`, `eai whoami`,
+  `eai tenant select`, `eai resources schema`, `eai verify calls --format json`,
+  or equivalent approved platform evidence.
 - A scope-control task that checks whether any user-facing app process exceeds
   four steps and either combines/automates extra steps or records the approved
   exception and rationale.
@@ -500,6 +503,22 @@ precondition to downstream implementation tasks:
   then re-run validation.
 - Audit-history tasks that preserve stable finding IDs, recurring findings,
   accepted exceptions, owner, expiry, and review cadence.
+
+### CLI-Driven Platform State Ordering
+
+When a command-line workflow is expected to update platform state, `tasks.md`
+MUST order work like this unless the plan proves a different authoritative
+dependency:
+
+1. Define or extend the authoritative storage model.
+2. Implement platform-side orchestrator writes into those stores.
+3. Implement secret/config persistence if secrets or environment state are part
+   of the success contract.
+4. Implement CLI or UX consumption of the new platform response.
+5. Add regression tests for create, repair, recovery, and failure gates.
+
+The CLI must not be treated as the source of truth when the plan says the
+platform owns persistence.
 
 ---
 

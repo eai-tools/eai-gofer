@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: enterpriseai
   canonicalSource: .specify/commands/4_gofer_tasks.md
-  canonicalChecksum: aae5848c6b22f76f1b119f4b636806a820ed91201383afbc175372ebe9382116
+  canonicalChecksum: ed8396813be7dd5347cc8745d178a4f59bfa42b43d3f5a07f036b2eac5fd3afa
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -147,6 +147,9 @@ Validation checks before writing:
 - Every data model entity has implementing tasks
 - Every API contract endpoint has implementing tasks
 - Task file paths match plan.md File Structure section
+- For CLI-driven platform mutations, task order must reflect authoritative
+  store setup before orchestrator writes, orchestrator writes before CLI
+  consumption, and platform persistence before local mirror patching.
 
 Write the complete task breakdown to {FEATURE_DIR}/tasks.md.
 
@@ -511,6 +514,22 @@ precondition to downstream implementation tasks:
   then re-run validation.
 - Audit-history tasks that preserve stable finding IDs, recurring findings,
   accepted exceptions, owner, expiry, and review cadence.
+
+### CLI-Driven Platform State Ordering
+
+When a command-line workflow is expected to update platform state, `tasks.md`
+MUST order work like this unless the plan proves a different authoritative
+dependency:
+
+1. Define or extend the authoritative storage model.
+2. Implement platform-side orchestrator writes into those stores.
+3. Implement secret/config persistence if secrets or environment state are part
+   of the success contract.
+4. Implement CLI or UX consumption of the new platform response.
+5. Add regression tests for create, repair, recovery, and failure gates.
+
+The CLI must not be treated as the source of truth when the plan says the
+platform owns persistence.
 
 ---
 

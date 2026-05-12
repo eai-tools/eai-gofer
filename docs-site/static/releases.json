@@ -1,8 +1,17 @@
 {
-  "latest_version": "3.3.0",
+  "latest_version": "3.3.1",
   "repository": "eai-tools/gofer",
-  "last_updated": "2026-05-10T13:04:03.014Z",
+  "last_updated": "2026-05-12T23:44:41.756Z",
   "releases": [
+    {
+      "version": "3.3.1",
+      "tag_name": "v3.3.1",
+      "published_at": "2026-05-12T23:44:41.755Z",
+      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-3.3.1.vsix",
+      "notes": "Add public platform builder workflow guidance",
+      "prerelease": false,
+      "size_mb": 11.3
+    },
     {
       "version": "3.3.0",
       "tag_name": "v3.3.0",

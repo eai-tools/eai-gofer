@@ -1,8 +1,9 @@
 ---
 generated: true
-generated_at: "2026-05-12T18:20:10.614Z"
-source_commit: "47970f3821d877082c57c015853454b8f25a9309"
+generated_at: '2026-05-12T18:20:10.614Z'
+source_commit: '47970f3821d877082c57c015853454b8f25a9309'
 ---
+
 # Patterns and Tech Debt
 
 ## Design Patterns Identified
@@ -382,7 +383,8 @@ For `ContextBuilder.ts` (1787 lines):
 - Extract context loading strategies
 - Extract budget enforcement logic
 - Extract masking logic
-- Split into: ContextBuilder (core), ContextLoader, BudgetEnforcer, ContextMasker
+- Split into: ContextBuilder (core), ContextLoader, BudgetEnforcer,
+  ContextMasker
 - Target: <400 lines per file
 
 For `ResourceSyncer.ts` (1787 lines):
@@ -554,23 +556,23 @@ await this.writeSummary(summary);
 
 ## Tech Debt Table
 
-| Item                               | Severity | Location                                                           | Recommendation                         | Effort      |
-| ---------------------------------- | -------- | ------------------------------------------------------------------ | -------------------------------------- | ----------- |
-| **Mega-File Anti-Pattern**         | CRITICAL | 5+ files >1200 LOC, top 2 at 1787 LOC                              | Break into focused modules (<500 LOC)  | 3-4 weeks   |
-| **Synchronous File Operations**    | HIGH     | 59 instances in `goferMigrator.ts`, migration services             | Convert to async fs/promises           | 1-2 days    |
-| **No Concurrency Protection**      | HIGH     | `ContextBuilder.ts`, `ContextHealthMonitor.ts`                     | Add mutex/lock for state mutations     | 4-6 hours   |
-| **Missing File Size Limits**       | HIGH     | `autonomous/ContextBuilder.ts` (1787 LOC)                          | Add size checks, streaming, timeouts   | 4-6 hours   |
-| **Pattern Inconsistency - Async**  | MEDIUM   | 8 .then() instances in autonomous files                            | Standardize on async/await             | 2-3 hours   |
-| **Pattern Inconsistency - Logging** | MEDIUM   | 20 console.log vs Logger service                                   | Replace with Logger service            | 2-3 hours   |
-| **Spec Parsing Duplication**       | MEDIUM   | `extension/SpecLoader.ts`, `language-server/goferLoader.ts`        | Create shared @gofer/spec-parser       | 4-6 hours   |
-| **Legacy Migration Incomplete**    | MEDIUM   | `src/orchestrator/AutonomousOrchestrator_new.ts`                   | Complete migration, remove old code    | 1-2 days    |
-| **Magic Number Thresholds**        | MEDIUM   | `ContextHealthMonitor.ts`, `AutoHandoffTrigger.ts`, etc.           | Extract to ContextThresholds config    | 2-3 hours   |
-| **No Path Traversal Checks**       | MEDIUM   | `language-server/src/utils/goferLoader.ts`                         | Add path normalization, boundary checks | 2-3 hours   |
-| **String Concatenation**           | LOW      | `autonomous/ContextBuilder.ts`                                     | Use array join pattern                 | 1-2 hours   |
-| **TODO Comments Without Issues**   | LOW      | 9 TODOs found, some without issue references                       | Link TODOs to issues or remove         | 1-2 hours   |
-| **Test Data Scattered**            | LOW      | Fixtures not consolidated                                          | Consolidate in tests/fixtures/         | 2-3 hours   |
-| **No Coverage Reporting in CI**    | LOW      | Coverage target exists but not enforced                            | Add coverage reports to CI             | 2-3 hours   |
-| **No Security Audit in CI**        | MEDIUM   | npm audit not in CI pipeline                                       | Add npm audit, Dependabot              | 2-3 hours   |
+| Item                                | Severity | Location                                                    | Recommendation                          | Effort    |
+| ----------------------------------- | -------- | ----------------------------------------------------------- | --------------------------------------- | --------- |
+| **Mega-File Anti-Pattern**          | CRITICAL | 5+ files >1200 LOC, top 2 at 1787 LOC                       | Break into focused modules (<500 LOC)   | 3-4 weeks |
+| **Synchronous File Operations**     | HIGH     | 59 instances in `goferMigrator.ts`, migration services      | Convert to async fs/promises            | 1-2 days  |
+| **No Concurrency Protection**       | HIGH     | `ContextBuilder.ts`, `ContextHealthMonitor.ts`              | Add mutex/lock for state mutations      | 4-6 hours |
+| **Missing File Size Limits**        | HIGH     | `autonomous/ContextBuilder.ts` (1787 LOC)                   | Add size checks, streaming, timeouts    | 4-6 hours |
+| **Pattern Inconsistency - Async**   | MEDIUM   | 8 .then() instances in autonomous files                     | Standardize on async/await              | 2-3 hours |
+| **Pattern Inconsistency - Logging** | MEDIUM   | 20 console.log vs Logger service                            | Replace with Logger service             | 2-3 hours |
+| **Spec Parsing Duplication**        | MEDIUM   | `extension/SpecLoader.ts`, `language-server/goferLoader.ts` | Create shared @gofer/spec-parser        | 4-6 hours |
+| **Legacy Migration Incomplete**     | MEDIUM   | `src/orchestrator/AutonomousOrchestrator_new.ts`            | Complete migration, remove old code     | 1-2 days  |
+| **Magic Number Thresholds**         | MEDIUM   | `ContextHealthMonitor.ts`, `AutoHandoffTrigger.ts`, etc.    | Extract to ContextThresholds config     | 2-3 hours |
+| **No Path Traversal Checks**        | MEDIUM   | `language-server/src/utils/goferLoader.ts`                  | Add path normalization, boundary checks | 2-3 hours |
+| **String Concatenation**            | LOW      | `autonomous/ContextBuilder.ts`                              | Use array join pattern                  | 1-2 hours |
+| **TODO Comments Without Issues**    | LOW      | 9 TODOs found, some without issue references                | Link TODOs to issues or remove          | 1-2 hours |
+| **Test Data Scattered**             | LOW      | Fixtures not consolidated                                   | Consolidate in tests/fixtures/          | 2-3 hours |
+| **No Coverage Reporting in CI**     | LOW      | Coverage target exists but not enforced                     | Add coverage reports to CI              | 2-3 hours |
+| **No Security Audit in CI**         | MEDIUM   | npm audit not in CI pipeline                                | Add npm audit, Dependabot               | 2-3 hours |
 
 **Total Estimated Effort:** 6-8 weeks for all items
 
@@ -599,17 +601,19 @@ await this.writeSummary(summary);
 
 **Spec Overview:**
 
-- Addresses documentation drift between VS Code manifest and actual implementation
+- Addresses documentation drift between VS Code manifest and actual
+  implementation
 - Focus: Command surface, configuration surface, setup paths
 - Priority: P1 (Maintainer trustworthy surfaces)
 
 **Alignment Analysis:**
 
-- ✅ **Spec correctly identifies real problem:** Documentation and manifest drift
-  is a genuine issue
+- ✅ **Spec correctly identifies real problem:** Documentation and manifest
+  drift is a genuine issue
 - ✅ **Acknowledges current state:** Spec references 41 active specs but actual
   is 1 active + 40 archived
-- ✅ **Clear acceptance criteria:** Testable requirements for command/config parity
+- ✅ **Clear acceptance criteria:** Testable requirements for command/config
+  parity
 - ⚠️ **Spec doesn't address mega-file problem:** Surface truth cleanup is
   important but mega-files are more urgent
 - ⚠️ **May be hard to maintain:** Without addressing underlying code complexity,
@@ -640,8 +644,8 @@ await this.writeSummary(summary);
 
 - ✅ Strong spec infrastructure
 - ✅ Comprehensive documentation per feature
-- ⚠️ **BUT:** Implementation quality (mega-files) suggests specs aren't preventing
-  tech debt accumulation
+- ⚠️ **BUT:** Implementation quality (mega-files) suggests specs aren't
+  preventing tech debt accumulation
 
 ---
 
@@ -902,13 +906,13 @@ Files of 1787 lines are:
 - Impossible to refactor safely
 - Violations of every SOLID principle
 
-**Overall Assessment:** The patterns and architecture **were production-quality at
-inception, but rapid growth without refactoring discipline has created technical
-debt that now threatens the project's sustainability**. The active spec
-(030-vscode-surface-truth-cleanup) addresses symptoms (documentation drift) but
-not the root cause (code complexity). **Recommend pausing new features for 3-4
-weeks to break up mega-files before debt becomes insurmountable.**
+**Overall Assessment:** The patterns and architecture **were production-quality
+at inception, but rapid growth without refactoring discipline has created
+technical debt that now threatens the project's sustainability**. The active
+spec (030-vscode-surface-truth-cleanup) addresses symptoms (documentation drift)
+but not the root cause (code complexity). **Recommend pausing new features for
+3-4 weeks to break up mega-files before debt becomes insurmountable.**
 
 **Prognosis:** Without immediate intervention, the codebase will become
-unmaintainable within 6-12 months as files continue growing and patterns continue
-diverging.
+unmaintainable within 6-12 months as files continue growing and patterns
+continue diverging.

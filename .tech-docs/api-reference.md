@@ -1,22 +1,27 @@
 ---
 generated: true
-generated_at: "2026-05-12T18:20:10.614Z"
-source_commit: "47970f3821d877082c57c015853454b8f25a9309"
+generated_at: '2026-05-12T18:20:10.614Z'
+source_commit: '47970f3821d877082c57c015853454b8f25a9309'
 ---
+
 # API Reference
 
 ## Overview
 
-Gofer does not expose REST HTTP endpoints. Instead, it provides two protocol-based APIs:
+Gofer does not expose REST HTTP endpoints. Instead, it provides two
+protocol-based APIs:
 
-1. **MCP (Model Context Protocol)** - 40+ tools for AI assistants (Claude Code, Copilot, etc.)
-2. **LSP (Language Server Protocol)** - Custom methods for extension-server communication
+1. **MCP (Model Context Protocol)** - 40+ tools for AI assistants (Claude Code,
+   Copilot, etc.)
+2. **LSP (Language Server Protocol)** - Custom methods for extension-server
+   communication
 
 All communication happens via JSON-RPC over stdio/IPC channels.
 
 ## MCP Tools (Model Context Protocol)
 
-AI assistants interact with Gofer via MCP tools. These tools are implemented in `language-server/src/mcp/toolHandler.ts`.
+AI assistants interact with Gofer via MCP tools. These tools are implemented in
+`language-server/src/mcp/toolHandler.ts`.
 
 ### Spec Management Tools
 
@@ -27,6 +32,7 @@ AI assistants interact with Gofer via MCP tools. These tools are implemented in 
 **Parameters:** None
 
 **Returns:**
+
 ```json
 {
   "specs": [
@@ -62,13 +68,15 @@ AI assistants interact with Gofer via MCP tools. These tools are implemented in 
 **Purpose:** Get the next task to work on based on dependency order
 
 **Parameters:**
+
 ```json
 {
-  "spec_id": "001-authentication"  // Optional - defaults to current spec
+  "spec_id": "001-authentication" // Optional - defaults to current spec
 }
 ```
 
 **Returns:**
+
 ```json
 {
   "task": {
@@ -96,6 +104,7 @@ AI assistants interact with Gofer via MCP tools. These tools are implemented in 
 **Purpose:** Mark a task as in-progress and receive full context
 
 **Parameters:**
+
 ```json
 {
   "task_id": "FR-002",
@@ -104,6 +113,7 @@ AI assistants interact with Gofer via MCP tools. These tools are implemented in 
 ```
 
 **Returns:**
+
 ```json
 {
   "success": true,
@@ -136,16 +146,18 @@ AI assistants interact with Gofer via MCP tools. These tools are implemented in 
 **Purpose:** Update task status (completed/failed)
 
 **Parameters:**
+
 ```json
 {
   "task_id": "FR-002",
   "spec_id": "001-authentication",
-  "status": "completed",  // or "failed"
+  "status": "completed", // or "failed"
   "notes": "Implemented JWT middleware with 15min expiry"
 }
 ```
 
 **Returns:**
+
 ```json
 {
   "success": true,
@@ -167,6 +179,7 @@ AI assistants interact with Gofer via MCP tools. These tools are implemented in 
 **Purpose:** Validate code against constitution principles
 
 **Parameters:**
+
 ```json
 {
   "files": ["src/auth.ts", "src/middleware.ts"],
@@ -175,6 +188,7 @@ AI assistants interact with Gofer via MCP tools. These tools are implemented in 
 ```
 
 **Returns:**
+
 ```json
 {
   "valid": false,
@@ -187,7 +201,7 @@ AI assistants interact with Gofer via MCP tools. These tools are implemented in 
       "message": "Found hardcoded API key on line 42"
     }
   ],
-  "score": 85,  // Out of 100
+  "score": 85, // Out of 100
   "recommendations": [
     "Move API keys to environment variables",
     "Add input validation to login endpoint"
@@ -204,14 +218,16 @@ AI assistants interact with Gofer via MCP tools. These tools are implemented in 
 **Purpose:** Execute test suite (auto-detects vitest/jest/pytest)
 
 **Parameters:**
+
 ```json
 {
   "spec_id": "001-authentication",
-  "testPattern": "auth.test.ts"  // Optional - defaults to all tests
+  "testPattern": "auth.test.ts" // Optional - defaults to all tests
 }
 ```
 
 **Returns:**
+
 ```json
 {
   "success": true,
@@ -249,9 +265,10 @@ AI assistants interact with Gofer via MCP tools. These tools are implemented in 
 **Parameters:** None
 
 **Returns:**
+
 ```json
 {
-  "utilization": 0.67,  // 67% of context window used
+  "utilization": 0.67, // 67% of context window used
   "tokens": {
     "used": 134000,
     "total": 200000,
@@ -277,20 +294,22 @@ AI assistants interact with Gofer via MCP tools. These tools are implemented in 
 **Purpose:** Trigger auto-context-continuity (save/resume)
 
 **Parameters:**
+
 ```json
 {
-  "reason": "approaching_limit",  // or "manual_request"
+  "reason": "approaching_limit", // or "manual_request"
   "saveCheckpoint": true
 }
 ```
 
 **Returns:**
+
 ```json
 {
   "success": true,
   "checkpointFile": ".specify/checkpoints/2026-04-30T22-50-00.md",
   "resumeCommand": "/8_gofer_resume",
-  "estimatedContextReduction": 0.60  // Expect 60% reduction
+  "estimatedContextReduction": 0.6 // Expect 60% reduction
 }
 ```
 
@@ -305,6 +324,7 @@ AI assistants interact with Gofer via MCP tools. These tools are implemented in 
 **Purpose:** Get index of research.md chunks for progressive loading
 
 **Parameters:**
+
 ```json
 {
   "spec_id": "001-authentication"
@@ -312,6 +332,7 @@ AI assistants interact with Gofer via MCP tools. These tools are implemented in 
 ```
 
 **Returns:**
+
 ```json
 {
   "chunks": [
@@ -344,6 +365,7 @@ AI assistants interact with Gofer via MCP tools. These tools are implemented in 
 **Purpose:** Load a specific research chunk
 
 **Parameters:**
+
 ```json
 {
   "spec_id": "001-authentication",
@@ -352,6 +374,7 @@ AI assistants interact with Gofer via MCP tools. These tools are implemented in 
 ```
 
 **Returns:**
+
 ```json
 {
   "content": "# Authentication Patterns\n\n## JWT Overview\n...",
@@ -374,6 +397,7 @@ AI assistants interact with Gofer via MCP tools. These tools are implemented in 
 **Purpose:** Preview an observation without loading it into context
 
 **Parameters:**
+
 ```json
 {
   "observation_id": "obs-1234"
@@ -381,6 +405,7 @@ AI assistants interact with Gofer via MCP tools. These tools are implemented in 
 ```
 
 **Returns:**
+
 ```json
 {
   "preview": "First 500 characters of observation...",
@@ -399,6 +424,7 @@ AI assistants interact with Gofer via MCP tools. These tools are implemented in 
 **Purpose:** Mask/collapse an observation to save context
 
 **Parameters:**
+
 ```json
 {
   "observation_id": "obs-1234",
@@ -407,6 +433,7 @@ AI assistants interact with Gofer via MCP tools. These tools are implemented in 
 ```
 
 **Returns:**
+
 ```json
 {
   "success": true,
@@ -421,6 +448,7 @@ AI assistants interact with Gofer via MCP tools. These tools are implemented in 
 **Purpose:** Search across observations by pattern
 
 **Parameters:**
+
 ```json
 {
   "pattern": "error|exception",
@@ -430,6 +458,7 @@ AI assistants interact with Gofer via MCP tools. These tools are implemented in 
 ```
 
 **Returns:**
+
 ```json
 {
   "matches": [
@@ -452,6 +481,7 @@ AI assistants interact with Gofer via MCP tools. These tools are implemented in 
 **Purpose:** Preview a context section without loading
 
 **Parameters:**
+
 ```json
 {
   "section": "research" | "memory" | "code" | "spec" | "plan",
@@ -460,6 +490,7 @@ AI assistants interact with Gofer via MCP tools. These tools are implemented in 
 ```
 
 **Returns:**
+
 ```json
 {
   "preview": "First 1000 tokens...",
@@ -475,6 +506,7 @@ AI assistants interact with Gofer via MCP tools. These tools are implemented in 
 **Purpose:** Search context by pattern
 
 **Parameters:**
+
 ```json
 {
   "pattern": "authentication",
@@ -484,6 +516,7 @@ AI assistants interact with Gofer via MCP tools. These tools are implemented in 
 ```
 
 **Returns:**
+
 ```json
 {
   "matches": [
@@ -503,6 +536,7 @@ AI assistants interact with Gofer via MCP tools. These tools are implemented in 
 **Purpose:** Collapse a context section to save tokens
 
 **Parameters:**
+
 ```json
 {
   "section": "research",
@@ -511,6 +545,7 @@ AI assistants interact with Gofer via MCP tools. These tools are implemented in 
 ```
 
 **Returns:**
+
 ```json
 {
   "success": true,
@@ -527,6 +562,7 @@ AI assistants interact with Gofer via MCP tools. These tools are implemented in 
 **Purpose:** Expand a previously folded section
 
 **Parameters:**
+
 ```json
 {
   "section": "research"
@@ -534,6 +570,7 @@ AI assistants interact with Gofer via MCP tools. These tools are implemented in 
 ```
 
 **Returns:**
+
 ```json
 {
   "success": true,
@@ -551,6 +588,7 @@ AI assistants interact with Gofer via MCP tools. These tools are implemented in 
 **Parameters:** None
 
 **Returns:**
+
 ```json
 {
   "success": true,
@@ -568,6 +606,7 @@ AI assistants interact with Gofer via MCP tools. These tools are implemented in 
 **Parameters:** None
 
 **Returns:**
+
 ```json
 {
   "operations": [
@@ -594,6 +633,7 @@ AI assistants interact with Gofer via MCP tools. These tools are implemented in 
 **Purpose:** Batch execute multiple context operations
 
 **Parameters:**
+
 ```json
 {
   "operations": [
@@ -605,6 +645,7 @@ AI assistants interact with Gofer via MCP tools. These tools are implemented in 
 ```
 
 **Returns:**
+
 ```json
 {
   "results": [
@@ -625,6 +666,7 @@ AI assistants interact with Gofer via MCP tools. These tools are implemented in 
 **Purpose:** Detect code quality issues (console.log, debugger, @ts-ignore)
 
 **Parameters:**
+
 ```json
 {
   "files": ["src/**/*.ts"],
@@ -633,6 +675,7 @@ AI assistants interact with Gofer via MCP tools. These tools are implemented in 
 ```
 
 **Returns:**
+
 ```json
 {
   "issues": [
@@ -664,7 +707,8 @@ AI assistants interact with Gofer via MCP tools. These tools are implemented in 
 
 ## LSP Custom Methods
 
-These methods are used for extension-server communication, not directly by AI assistants.
+These methods are used for extension-server communication, not directly by AI
+assistants.
 
 ### `gofer/getSpecs`
 
@@ -683,6 +727,7 @@ These methods are used for extension-server communication, not directly by AI as
 **Purpose:** Extension request to execute a task
 
 **Parameters:**
+
 ```json
 {
   "taskId": "FR-002",
@@ -699,6 +744,7 @@ These methods are used for extension-server communication, not directly by AI as
 **Purpose:** Extension request to update task status
 
 **Parameters:**
+
 ```json
 {
   "taskId": "FR-002",
@@ -718,6 +764,7 @@ These methods are used for extension-server communication, not directly by AI as
 **Direction:** Server → Extension (notification, not request)
 
 **Payload:**
+
 ```json
 {
   "taskId": "FR-002",
@@ -744,17 +791,20 @@ Gofer integrates with external APIs for billing/usage data and notifications.
 #### GET `/v1/organization/billing/usage`
 
 **Headers:**
+
 ```
 x-api-key: {gofer.anthropicAdminApiKey}
 ```
 
 **Query Parameters:**
+
 ```
 start_date: 2026-04-01
 end_date: 2026-04-30
 ```
 
 **Response:**
+
 ```json
 {
   "usage": [
@@ -777,11 +827,13 @@ end_date: 2026-04-30
 #### GET `/v1/organization/billing/costs`
 
 **Headers:**
+
 ```
 x-api-key: {gofer.anthropicAdminApiKey}
 ```
 
 **Response:**
+
 ```json
 {
   "costs": [
@@ -807,17 +859,20 @@ x-api-key: {gofer.anthropicAdminApiKey}
 #### GET `/v1/usage`
 
 **Headers:**
+
 ```
 Authorization: Bearer {gofer.openaiAdminApiKey}
 ```
 
 **Query Parameters:**
+
 ```
 start_date: 2026-04-01
 end_date: 2026-04-30
 ```
 
 **Response:**
+
 ```json
 {
   "data": [
@@ -825,7 +880,7 @@ end_date: 2026-04-30
       "date": "2026-04-30",
       "model": "gpt-4",
       "tokens": 2000000,
-      "cost_usd": 40.00
+      "cost_usd": 40.0
     }
   ]
 }
@@ -846,6 +901,7 @@ end_date: 2026-04-30
 **No authentication required** (public repository)
 
 **Response:**
+
 ```json
 {
   "tag_name": "v3.1.0",
@@ -909,17 +965,20 @@ All MCP tools return consistent error format:
 
 ## Authentication & Authorization
 
-**MCP Tools:** No authentication required - runs in trusted VSCode extension context
+**MCP Tools:** No authentication required - runs in trusted VSCode extension
+context
 
 **LSP Methods:** No authentication required - communication over stdio/IPC
 
 **External APIs:**
+
 - Anthropic Admin API: Requires admin API key (`sk-ant-admin-...`)
 - OpenAI Admin API: Requires admin API key with `api.usage.read` scope
 - GitHub API: No authentication (public repository)
 - Twilio API: Account SID + Auth Token (optional feature)
 
-**API Keys Storage:** VSCode settings (per-user or per-workspace), not committed to git
+**API Keys Storage:** VSCode settings (per-user or per-workspace), not committed
+to git
 
 ---
 
@@ -928,11 +987,14 @@ All MCP tools return consistent error format:
 **MCP Tools:** No rate limits (local execution)
 
 **External APIs:**
+
 - Anthropic Admin API: 60s minimum polling interval recommended
 - OpenAI Admin API: Standard rate limits apply
-- GitHub API: 60 requests/hour (unauthenticated), 5000 requests/hour (authenticated)
+- GitHub API: 60 requests/hour (unauthenticated), 5000 requests/hour
+  (authenticated)
 
 **File System:**
+
 - JSONL logs: Append-only, no read rate limits
 - Spec parsing: Cached in memory, invalidated on file change
 
@@ -945,6 +1007,7 @@ All MCP tools return consistent error format:
 **LSP Protocol Version:** 3.17
 
 **API Stability:**
+
 - MCP tools: Stable since v3.0
 - LSP methods: Stable since v2.0
 - External API integrations: Follows provider versioning

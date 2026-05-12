@@ -592,13 +592,20 @@ When the workflow profile is `enterpriseai`, `plan.md` MUST capture:
    - unavailable without new platform work
    The plan must source this evidence from `eai --describe`, `eai whoami`,
    `eai tenant select`, `eai resources schema`, `eai verify calls --format
-   json`, or documented equivalent platform evidence.
+   json`, `eai workflow readiness <workflow-key>`, `eai workflow status
+   <workflow-key>`, `eai workflow request <workflow-key>`, `eai provision
+   entra --rotate-secret`, or documented equivalent public platform evidence.
 8. **Reuse-before-create decision log** — reference `{FEATURE_DIR}/reuse-scan.md`
    for every new or extended EnterpriseAI object type, API/event, workflow, or
    module.
 9. **Audit history seed** — create or update `{FEATURE_DIR}/audit-history.md`
    with stable finding IDs, decision exceptions, owner, expiry, and review
    cadence so validation can track recurring issues.
+10. **Public/private knowledge split** — identify which implementation facts
+    are safe for public docs, Gofer guidance, EAI CLI help, or Vertical Template
+    comments, and which facts are internal-only. Plans must express blocked
+    states as public-safe actions (`operator_required`, `upgrade_required`, or
+    documented support URL) rather than exposing private service topology.
 
 ### EnterpriseAI Flow and Journey Separation
 

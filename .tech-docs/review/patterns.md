@@ -1,7 +1,7 @@
 ---
 generated: true
-generated_at: "2026-05-10T14:25:47.936Z"
-source_commit: "6b457ddd796d13c0da957e8a57840f3ca1e8b190"
+generated_at: "2026-05-12T18:20:10.614Z"
+source_commit: "47970f3821d877082c57c015853454b8f25a9309"
 ---
 # Patterns and Tech Debt
 

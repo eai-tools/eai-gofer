@@ -1,13 +1,15 @@
 ---
 generated: true
-generated_at: "2026-05-10T14:25:47.936Z"
-source_commit: "6b457ddd796d13c0da957e8a57840f3ca1e8b190"
+generated_at: '2026-05-12T18:20:10.614Z'
+source_commit: '47970f3821d877082c57c015853454b8f25a9309'
 ---
+
 # Architecture
 
 ## System Overview
 
-Gofer is a three-component system that enables AI assistants to autonomously implement features from specifications.
+Gofer is a three-component system that enables AI assistants to autonomously
+implement features from specifications.
 
 ```mermaid
 flowchart TB
@@ -58,6 +60,7 @@ flowchart TB
 **Purpose:** VSCode UI integration layer
 
 **Entry Point:** `extension.ts` (lines 173-287)
+
 - Dependency injection container initialization (TSyringe)
 - Command registration (30+ commands)
 - Tree view provider registration (3 panels)
@@ -80,54 +83,54 @@ flowchart TB
 
 **Autonomous Subsystem (`src/autonomous/`):**
 
-| Module                 | File                                 | Description                                |
-| ---------------------- | ------------------------------------ | ------------------------------------------ |
-| Context Builder        | `ContextBuilder.ts`                  | Builds context for AI prompts              |
-| Memory Manager         | `MemoryManager.ts`                   | JSONL-based memory with 30min compaction   |
-| Memory Storage         | `MemoryStorage.ts`                   | Append-only JSONL with in-memory index     |
-| Memory Layer Manager   | `MemoryLayerManager.ts`              | MemGPT-inspired 3-layer memory             |
-| Context Health Monitor | `ContextHealthMonitor.ts`            | Tracks context usage                       |
-| Scope Guard            | `ScopeGuard.ts`                      | Enforces file access boundaries            |
-| Cost Budget Enforcer   | `CostBudgetEnforcer.ts`              | Tracks API costs per run                   |
-| ACC Orchestrator       | `ACCOrchestrator.ts`                 | Auto-context-continuity orchestrator       |
-| AI Usage Monitor       | `AIUsageMonitor.ts`                  | File watcher + polling for usage data      |
-| Usage API Client       | `UsageApiClient.ts`                  | Anthropic/OpenAI billing API integration   |
-| Slop Reducer           | `SlopReducer.ts`                     | Auto-removes console.log, debugger         |
-| Tool Audit Logger      | `ToolAuditLogger.ts`                 | Logs all tool access to JSONL              |
-| Run Ledger             | `RunLedger.ts`                       | Pipeline run tracking for cost attribution |
-| Observation Bridge     | `ObservationBridge.ts`               | Bridges terminal observations to context   |
-| Resource Diagnostics   | `ResourceDiagnostics.ts`             | Lightweight performance snapshots (5min)   |
-| Sub Agent Dispatcher   | `SubAgentDispatcher.ts`              | Dispatches work to specialized agents      |
-| Continuous Memory      | `ContinuousMemoryWriter.ts`          | Background memory updates                  |
-| Pipeline State Manager | `PipelineStateManager.ts`            | Per-spec pipeline state tracking           |
-| Stage Detector         | `StageDetector.ts`                   | Detects current pipeline stage             |
-| Observation Masker     | `ObservationMasker.ts`               | Redacts sensitive content from logs        |
-| Hook Bridge Watcher    | `autonomous/HookBridgeWatcher.ts`    | Monitors Claude Code hook events           |
-| Multi Session Watcher  | `autonomous/MultiSessionWatcher.ts`  | Tracks multiple Claude Code sessions       |
+| Module                 | File                                  | Description                                |
+| ---------------------- | ------------------------------------- | ------------------------------------------ |
+| Context Builder        | `ContextBuilder.ts`                   | Builds context for AI prompts              |
+| Memory Manager         | `MemoryManager.ts`                    | JSONL-based memory with 30min compaction   |
+| Memory Storage         | `MemoryStorage.ts`                    | Append-only JSONL with in-memory index     |
+| Memory Layer Manager   | `MemoryLayerManager.ts`               | MemGPT-inspired 3-layer memory             |
+| Context Health Monitor | `ContextHealthMonitor.ts`             | Tracks context usage                       |
+| Scope Guard            | `ScopeGuard.ts`                       | Enforces file access boundaries            |
+| Cost Budget Enforcer   | `CostBudgetEnforcer.ts`               | Tracks API costs per run                   |
+| ACC Orchestrator       | `ACCOrchestrator.ts`                  | Auto-context-continuity orchestrator       |
+| AI Usage Monitor       | `AIUsageMonitor.ts`                   | File watcher + polling for usage data      |
+| Usage API Client       | `UsageApiClient.ts`                   | Anthropic/OpenAI billing API integration   |
+| Slop Reducer           | `SlopReducer.ts`                      | Auto-removes console.log, debugger         |
+| Tool Audit Logger      | `ToolAuditLogger.ts`                  | Logs all tool access to JSONL              |
+| Run Ledger             | `RunLedger.ts`                        | Pipeline run tracking for cost attribution |
+| Observation Bridge     | `ObservationBridge.ts`                | Bridges terminal observations to context   |
+| Resource Diagnostics   | `ResourceDiagnostics.ts`              | Lightweight performance snapshots (5min)   |
+| Sub Agent Dispatcher   | `SubAgentDispatcher.ts`               | Dispatches work to specialized agents      |
+| Continuous Memory      | `ContinuousMemoryWriter.ts`           | Background memory updates                  |
+| Pipeline State Manager | `PipelineStateManager.ts`             | Per-spec pipeline state tracking           |
+| Stage Detector         | `StageDetector.ts`                    | Detects current pipeline stage             |
+| Observation Masker     | `ObservationMasker.ts`                | Redacts sensitive content from logs        |
+| Hook Bridge Watcher    | `autonomous/HookBridgeWatcher.ts`     | Monitors Claude Code hook events           |
+| Multi Session Watcher  | `autonomous/MultiSessionWatcher.ts`   | Tracks multiple Claude Code sessions       |
 | Workspace Context      | `autonomous/WorkspaceContextProvider` | Provides workspace-wide context            |
 
 **Service Layer (DI Container):**
 
 ```typescript
 // services/index.ts exports
-Logger                  // Centralized logging to Output Channel
-StateManager            // Extension state (global + workspace)
-DisposalService         // Resource cleanup coordination
-EventHandlers           // Event coordination across modules
-InitializationService   // Startup sequence orchestration
-CommandRegistry         // Command registration
-OptionalToolInstaller   // CLI tool installation helper
-ConfigManager           // Settings management
+Logger; // Centralized logging to Output Channel
+StateManager; // Extension state (global + workspace)
+DisposalService; // Resource cleanup coordination
+EventHandlers; // Event coordination across modules
+InitializationService; // Startup sequence orchestration
+CommandRegistry; // Command registration
+OptionalToolInstaller; // CLI tool installation helper
+ConfigManager; // Settings management
 ```
 
 **Cross-Platform Support (`src/council/`):**
 
-| Module                       | File                               | Description                              |
-| ---------------------------- | ---------------------------------- | ---------------------------------------- |
-| Cross Platform Command Router | `CrossPlatformCommandRouter.ts`    | Routes to Claude/Codex/Copilot/Gemini    |
-| Platform Detector            | `PlatformDetector.ts`              | Auto-detects installed CLIs              |
-| Usage Logger                 | `UsageLogger.ts`                   | Logs usage to council-usage.jsonl        |
-| LLM Council                  | `LLMCouncil.ts`                    | Multi-provider execution (Anthropic/Google/OpenAI) |
+| Module                        | File                            | Description                                        |
+| ----------------------------- | ------------------------------- | -------------------------------------------------- |
+| Cross Platform Command Router | `CrossPlatformCommandRouter.ts` | Routes to Claude/Codex/Copilot/Gemini              |
+| Platform Detector             | `PlatformDetector.ts`           | Auto-detects installed CLIs                        |
+| Usage Logger                  | `UsageLogger.ts`                | Logs usage to council-usage.jsonl                  |
+| LLM Council                   | `LLMCouncil.ts`                 | Multi-provider execution (Anthropic/Google/OpenAI) |
 
 **File Count:** 140+ TypeScript files
 
@@ -139,19 +142,20 @@ ConfigManager           // Settings management
 
 **Key Modules:**
 
-| Module           | File                   | Description                       |
-| ---------------- | ---------------------- | --------------------------------- |
-| Server Entry     | `server.ts`            | LSP connection + MCP handler      |
-| MCP Tool Handler | `mcp/toolHandler.ts`   | Implements 40+ MCP tools          |
-| Gofer Loader     | `utils/goferLoader.ts` | Parses spec.md files              |
-| Research Chunker | `utils/ResearchChunker.ts` | Chunks large research.md files |
-| Spec Cache       | `utils/specCache.ts`   | In-memory spec caching            |
-| Validation Service | `utils/ValidationService.ts` | Constitution validation      |
-| Test Harness Generator | `utils/TestHarnessGenerator.ts` | Auto-generates test runners |
+| Module                 | File                            | Description                    |
+| ---------------------- | ------------------------------- | ------------------------------ |
+| Server Entry           | `server.ts`                     | LSP connection + MCP handler   |
+| MCP Tool Handler       | `mcp/toolHandler.ts`            | Implements 40+ MCP tools       |
+| Gofer Loader           | `utils/goferLoader.ts`          | Parses spec.md files           |
+| Research Chunker       | `utils/ResearchChunker.ts`      | Chunks large research.md files |
+| Spec Cache             | `utils/specCache.ts`            | In-memory spec caching         |
+| Validation Service     | `utils/ValidationService.ts`    | Constitution validation        |
+| Test Harness Generator | `utils/TestHarnessGenerator.ts` | Auto-generates test runners    |
 
 **MCP Tools Implemented (40+ tools):**
 
 **Spec Management:**
+
 1. `gofer_get_specs` - List all specs and tasks
 2. `gofer_get_next_task` - Get next task based on dependencies
 3. `gofer_execute_task` - Mark task in-progress, return context
@@ -159,31 +163,26 @@ ConfigManager           // Settings management
 5. `gofer_validate_code` - Check against constitution
 6. `gofer_run_tests` - Execute tests (vitest/jest/pytest auto-detect)
 
-**Context Management:**
-7. `gofer_get_context_health` - Current context utilization
-8. `gofer_expand_observation` - Expand masked observations
-9. `gofer_trigger_handoff` - Trigger session save/resume
+**Context Management:** 7. `gofer_get_context_health` - Current context
+utilization 8. `gofer_expand_observation` - Expand masked observations 9.
+`gofer_trigger_handoff` - Trigger session save/resume
 
-**Research Chunking:**
-10. `gofer_get_research_index` - Get research.md chunk index
-11. `gofer_load_research_chunk` - Load specific research chunk
+**Research Chunking:** 10. `gofer_get_research_index` - Get research.md chunk
+index 11. `gofer_load_research_chunk` - Load specific research chunk
 
-**Observation Management:**
-12. `gofer_peek_observation` - Preview observation without loading
-13. `gofer_fold_observation` - Mask observation to save context
-14. `gofer_grep_observations` - Search across observations
+**Observation Management:** 12. `gofer_peek_observation` - Preview observation
+without loading 13. `gofer_fold_observation` - Mask observation to save
+context 14. `gofer_grep_observations` - Search across observations
 
-**Context REPL (Progressive Context Management):**
-15. `gofer_context_peek` - Preview context section
-16. `gofer_context_grep` - Search context by pattern
-17. `gofer_context_fold` - Collapse context section
-18. `gofer_context_expand` - Expand collapsed section
-19. `gofer_context_undo` - Undo last context operation
-20. `gofer_context_history` - Show context operation history
-21. `gofer_context_repl` - Batch context operations
+**Context REPL (Progressive Context Management):** 15. `gofer_context_peek` -
+Preview context section 16. `gofer_context_grep` - Search context by pattern 17.
+`gofer_context_fold` - Collapse context section 18. `gofer_context_expand` -
+Expand collapsed section 19. `gofer_context_undo` - Undo last context
+operation 20. `gofer_context_history` - Show context operation history 21.
+`gofer_context_repl` - Batch context operations
 
-**Code Quality:**
-22. `gofer_check_slop` - Detect console.log, debugger, @ts-ignore
+**Code Quality:** 22. `gofer_check_slop` - Detect console.log, debugger,
+@ts-ignore
 
 **Additional Tools:** (20+ more tools for advanced workflows)
 
@@ -228,15 +227,15 @@ sequenceDiagram
 
 **Key Modules:**
 
-| Module                  | File                                         | Description                        |
-| ----------------------- | -------------------------------------------- | ---------------------------------- |
-| Autonomous Orchestrator | `orchestrator/AutonomousOrchestrator_new.ts` | Main coordinator                   |
-| Spec Loader             | `orchestrator/SpecLoader.ts`                 | Loads specs from filesystem        |
-| Task Queue              | `orchestrator/TaskQueue.ts`                  | Manages task execution order       |
-| Engineer Agent          | `agents/EngineerAgent.ts`                    | Code validation agent              |
-| Test Agent              | `agents/TestAgent.ts`                        | Test execution agent               |
-| Logger                  | `utils/Logger.ts`                            | Logging utility                    |
-| Notification Service    | `utils/NotificationService.ts`               | WhatsApp/Email notifications       |
+| Module                  | File                                         | Description                  |
+| ----------------------- | -------------------------------------------- | ---------------------------- |
+| Autonomous Orchestrator | `orchestrator/AutonomousOrchestrator_new.ts` | Main coordinator             |
+| Spec Loader             | `orchestrator/SpecLoader.ts`                 | Loads specs from filesystem  |
+| Task Queue              | `orchestrator/TaskQueue.ts`                  | Manages task execution order |
+| Engineer Agent          | `agents/EngineerAgent.ts`                    | Code validation agent        |
+| Test Agent              | `agents/TestAgent.ts`                        | Test execution agent         |
+| Logger                  | `utils/Logger.ts`                            | Logging utility              |
+| Notification Service    | `utils/NotificationService.ts`               | WhatsApp/Email notifications |
 
 **Orchestrator Flow:**
 
@@ -390,7 +389,8 @@ class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
 }
 ```
 
-**Usage:** Progress panel, constitution panel, memory panel, context window panel, AI usage panel
+**Usage:** Progress panel, constitution panel, memory panel, context window
+panel, AI usage panel
 
 ### 3. Observer Pattern (Event Emitters)
 
@@ -407,7 +407,8 @@ class ContextHealthMonitor {
 }
 ```
 
-**Usage:** Context health monitoring, spec refreshes, memory updates, AI usage updates
+**Usage:** Context health monitoring, spec refreshes, memory updates, AI usage
+updates
 
 ### 4. Strategy Pattern (Memory Layers)
 
@@ -435,9 +436,12 @@ commands.registerCommand('gofer.initialize', async () => {
   await initializationService.initializeRepository();
 });
 
-commands.registerCommand('gofer.startClaudeCode', async (specItem: SpecItem) => {
-  await claudeCodeBridge.startSession(specItem.spec);
-});
+commands.registerCommand(
+  'gofer.startClaudeCode',
+  async (specItem: SpecItem) => {
+    await claudeCodeBridge.startSession(specItem.spec);
+  }
+);
 ```
 
 **Usage:** All VSCode commands (30+ commands)
@@ -493,7 +497,7 @@ interface Spec {
   description: string;
   requirements: Requirement[];
   successCriteria: string[];
-  protectedBoundaries?: string[];  // ScopeGuard rules
+  protectedBoundaries?: string[]; // ScopeGuard rules
 }
 ```
 
@@ -501,10 +505,10 @@ interface Spec {
 
 ```typescript
 interface Task {
-  id: string;           // FR-001, T001
+  id: string; // FR-001, T001
   description: string;
   status: 'pending' | 'in-progress' | 'completed' | 'failed';
-  dependencies: string[];  // [FR-002, T003]
+  dependencies: string[]; // [FR-002, T003]
   assignedTo?: string;
   estimatedTokens?: number;
 }
@@ -514,11 +518,11 @@ interface Task {
 
 ```typescript
 interface StageProfile {
-  researchBudget: number;      // 0.15 = 15% of context
-  memoryBudget: number;        // 0.25 = 25% of context
-  codeBudget: number;          // 0.40 = 40% of context
-  observationWindow: number;   // Keep last 5 turns
-  enableChunking: boolean;     // Use research chunking
+  researchBudget: number; // 0.15 = 15% of context
+  memoryBudget: number; // 0.25 = 25% of context
+  codeBudget: number; // 0.40 = 40% of context
+  observationWindow: number; // Keep last 5 turns
+  enableChunking: boolean; // Use research chunking
 }
 ```
 
@@ -533,7 +537,7 @@ interface Memory {
   priority: number;
   category: 'user' | 'project' | 'technical';
   tags: string[];
-  embedding?: number[];  // Future: Vector search
+  embedding?: number[]; // Future: Vector search
 }
 ```
 
@@ -556,15 +560,15 @@ interface UsageRecord {
 
 ### External Services
 
-| Service       | Purpose                        | Configuration                    |
-| ------------- | ------------------------------ | -------------------------------- |
-| Anthropic API | Claude models for orchestrator | `gofer.anthropicApiKey`          |
-| Anthropic Admin API | Billing/usage data        | `gofer.anthropicAdminApiKey`     |
-| Google AI API | Gemini models for LLM council  | `gofer.googleApiKey`             |
-| OpenAI API    | GPT models for LLM council     | `gofer.openaiApiKey`             |
-| OpenAI Admin API | Usage data                 | `gofer.openaiAdminApiKey`        |
-| Twilio        | WhatsApp notifications         | Environment variables            |
-| GitHub API    | Extension auto-updates         | Public API (no auth)             |
+| Service             | Purpose                        | Configuration                |
+| ------------------- | ------------------------------ | ---------------------------- |
+| Anthropic API       | Claude models for orchestrator | `gofer.anthropicApiKey`      |
+| Anthropic Admin API | Billing/usage data             | `gofer.anthropicAdminApiKey` |
+| Google AI API       | Gemini models for LLM council  | `gofer.googleApiKey`         |
+| OpenAI API          | GPT models for LLM council     | `gofer.openaiApiKey`         |
+| OpenAI Admin API    | Usage data                     | `gofer.openaiAdminApiKey`    |
+| Twilio              | WhatsApp notifications         | Environment variables        |
+| GitHub API          | Extension auto-updates         | Public API (no auth)         |
 
 ### VSCode Integration Points
 
@@ -588,12 +592,14 @@ interface UsageRecord {
 ### File System Integration
 
 **Watched Directories:**
+
 - `.specify/specs/` - Spec changes trigger UI refresh
 - `.specify/logs/council-usage.jsonl` - Usage data updates
 - `.specify/memory/memories.jsonl` - Memory updates
 - `.claude/commands/` - CLI command surface updates
 
 **Written Files:**
+
 - `.specify/logs/tool-audit.jsonl` - All file access
 - `.specify/logs/slop-reduction.jsonl` - Code quality fixes
 - `.specify/logs/gofer-run-ledger.jsonl` - Pipeline runs
@@ -615,9 +621,13 @@ interface UsageRecord {
 
 ## Security Features
 
-1. **Scope Guard** - Prevents AI from accessing files outside `.specify/specs/{spec-id}/protected-boundaries`
-2. **Tool Audit Logging** - All file access logged with timestamps and scope violations
+1. **Scope Guard** - Prevents AI from accessing files outside
+   `.specify/specs/{spec-id}/protected-boundaries`
+2. **Tool Audit Logging** - All file access logged with timestamps and scope
+   violations
 3. **API Key Storage** - VSCode settings (not committed to git)
-4. **Path Traversal Protection** - CrossPlatformCommandRouter validates all paths
-5. **Observation Masking** - Redacts sensitive content (API keys, credentials) from logs
+4. **Path Traversal Protection** - CrossPlatformCommandRouter validates all
+   paths
+5. **Observation Masking** - Redacts sensitive content (API keys, credentials)
+   from logs
 6. **Budget Enforcement** - Prevents runaway API costs (default $10 cap)

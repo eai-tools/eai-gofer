@@ -1,27 +1,34 @@
 ---
 generated: true
-generated_at: "2026-05-10T14:25:47.936Z"
-source_commit: "6b457ddd796d13c0da957e8a57840f3ca1e8b190"
+generated_at: '2026-05-12T18:20:10.614Z'
+source_commit: '47970f3821d877082c57c015853454b8f25a9309'
 ---
+
 # Technical Documentation Index
 
 **Repository:** [eai-tools/gofer](https://github.com/eai-tools/gofer)
-**Version:** 3.3.0
-**Generated:** 2026-05-10T14:23:11Z
+**Version:** 3.3.0 **Generated:** 2026-05-12T18:18:03Z
 
-This directory contains comprehensive technical documentation for the Gofer VSCode extension project.
+This directory contains comprehensive technical documentation for the Gofer
+VSCode extension project.
 
 ---
 
 ## What's New in v3.3.0
 
 ### Dependency Security Patches
-- **Vulnerability Resolution** - Addressed vulnerable transitive dependencies via package overrides
-- **Security Hardening** - Updated diff (^8.0.3), postcss (^8.5.10), serialize-javascript (^7.0.0)
-- **Zero Breaking Changes** - Security patches applied without functionality impact
+
+- **Vulnerability Resolution** - Addressed vulnerable transitive dependencies
+  via package overrides
+- **Security Hardening** - Updated diff (^8.0.3), postcss (^8.5.10),
+  serialize-javascript (^7.0.0)
+- **Zero Breaking Changes** - Security patches applied without functionality
+  impact
 
 ### Documentation & Testing
-- **Legacy Docs Retirement** - Consolidated documentation structure, archived legacy docs to `.tech-docs/legacy-src/`
+
+- **Legacy Docs Retirement** - Consolidated documentation structure, archived
+  legacy docs to `.tech-docs/legacy-src/`
 - **Enhanced Validation** - Realigned documentation validation test coverage
 - **Release Automation** - Improved VSIX packaging and GitHub release management
 
@@ -30,14 +37,20 @@ This directory contains comprehensive technical documentation for the Gofer VSCo
 ## What's New in v3.2.2
 
 ### UI-First App Delivery Workflow
+
 - **Preview-Approval-Service-Fit Gates** - App delivery converges on UI earlier
-- **Dual-Mode Shared Pipeline** - App and non-app work coexist in numbered stages
-- **Vertical Template Integration** - Constrained previews with branding workflow
+- **Dual-Mode Shared Pipeline** - App and non-app work coexist in numbered
+  stages
+- **Vertical Template Integration** - Constrained previews with branding
+  workflow
 - **Self-Review Evidence** - Preview validation before stakeholder presentation
 
 ### Command Parity & Infrastructure
-- **Restored Command Compatibility** - Fixed CLI surface synchronization across platforms
-- **Standardized Documentation** - Enhanced `.tech-docs/` format with executive summaries
+
+- **Restored Command Compatibility** - Fixed CLI surface synchronization across
+  platforms
+- **Standardized Documentation** - Enhanced `.tech-docs/` format with executive
+  summaries
 - **Skills Pipeline Augmentation** - Enhanced agent coordination (v3.2.0)
 
 ---
@@ -45,6 +58,7 @@ This directory contains comprehensive technical documentation for the Gofer VSCo
 ## What's New in v3.0+
 
 ### Multi-Platform CLI Support
+
 - **Claude Code** - Full MCP tool support (40+ tools)
 - **GitHub Copilot Chat** - Prompt files in `.github/prompts/`
 - **OpenAI Codex CLI** - Skill files in `.agents/skills/`
@@ -52,13 +66,17 @@ This directory contains comprehensive technical documentation for the Gofer VSCo
 - **Auto-detection** - `gofer.defaultCLI` setting with smart detection
 
 ### CLI Innovations
-- **Source-of-Truth Generator** - Single `.specify/commands/<stage>.md` → 8 CLI surfaces
-- **Visual Artifacts** - 10 persona-pack templates (Impact Canvas, C4, ERD, Heatmaps)
+
+- **Source-of-Truth Generator** - Single `.specify/commands/<stage>.md` → 8 CLI
+  surfaces
+- **Visual Artifacts** - 10 persona-pack templates (Impact Canvas, C4, ERD,
+  Heatmaps)
 - **7 Visual Writer Agents** - Specialized diagram generators
 - **Namespace Aliases** - `/gofer:*` prefix for all commands
 - **Codex Budget Doctor** - `npm run gofer:codex-doctor` diagnostic
 
 ### Feature Improvements
+
 - **Memory Panel Filter** - Toggle system memories (533 → 0 by default)
 - **Parallel Validation** - 6 agents run concurrently (<60s vs 90-120s)
 - **Cross-Platform Commands** - All 16 pipeline stages on all platforms
@@ -74,6 +92,7 @@ This directory contains comprehensive technical documentation for the Gofer VSCo
 Service identity, tech stack, and quick start guide.
 
 **Contents:**
+
 - Executive summary with service identity table
 - Service purpose and description
 - Technology stack table (TypeScript 5.7.2, Node 20.x, VSCode 1.85.0+)
@@ -91,6 +110,7 @@ Service identity, tech stack, and quick start guide.
 Internal architecture and component breakdown.
 
 **Contents:**
+
 - System overview with Mermaid diagrams
 - Component breakdown (Extension, Language Server, Orchestrator)
 - Data flow diagrams
@@ -105,6 +125,7 @@ Internal architecture and component breakdown.
 MCP tools, VSCode commands, and LSP endpoints.
 
 **Contents:**
+
 - 40+ MCP tools (detailed parameters/responses)
 - VSCode commands (30+ commands)
 - LSP notifications and requests
@@ -119,6 +140,7 @@ MCP tools, VSCode commands, and LSP endpoints.
 File system schema and data structures.
 
 **Contents:**
+
 - Storage architecture with ER diagram
 - Specification directory structure (1 active spec, many archived)
 - File formats (spec.md, tasks.md, plan.md, research.md)
@@ -133,6 +155,7 @@ File system schema and data structures.
 Environment variables and settings.
 
 **Contents:**
+
 - Environment variables (optional - Anthropic, Google, OpenAI, Twilio)
 - VSCode settings (60+ settings in v3.2)
 - **Key Settings:**
@@ -153,6 +176,7 @@ Environment variables and settings.
 Build, release, and deployment processes.
 
 **Contents:**
+
 - Build pipeline (npm, webpack, vsce)
 - CI/CD workflow (GitHub Actions)
 - Release process (release-auto.sh)
@@ -169,6 +193,7 @@ Build, release, and deployment processes.
 Service dependencies and integration points.
 
 **Contents:**
+
 - Upstream dependencies:
   - VSCode Platform (required)
   - Anthropic API (optional - Claude 3.5 Sonnet/Haiku)
@@ -193,6 +218,7 @@ Service dependencies and integration points.
 Recent changes summary.
 
 **Contents:**
+
 - **v3.2.0** - Current release (2026-05-02)
   - Skills pipeline augmentation
   - Release index deduplication
@@ -217,6 +243,7 @@ Recent changes summary.
 Code quality assessment across 6 dimensions.
 
 **Scores (v3.2.0):**
+
 - **Readability:** 9/10
 - **Correctness:** 8/10
 - **Performance:** 8/10
@@ -227,6 +254,7 @@ Code quality assessment across 6 dimensions.
 **Overall:** 8.5/10
 
 **Key Findings:**
+
 - ✅ Strong TypeScript usage (95%+ adoption)
 - ✅ Comprehensive test coverage (80%+ target)
 - ✅ Excellent architecture (DI, separation of concerns)
@@ -236,6 +264,7 @@ Code quality assessment across 6 dimensions.
 - ⚠️ Missing error boundaries (large file reads)
 
 **Recommendations:**
+
 1. Add mutex/lock for context updates
 2. Add file size limits and timeouts
 3. Reduce integration test gaps
@@ -249,6 +278,7 @@ Code quality assessment across 6 dimensions.
 Design patterns and technical debt analysis.
 
 **Patterns Identified:**
+
 1. **Dependency Injection** (tsyringe) - Excellent
 2. **Provider Pattern** (VSCode TreeDataProvider) - Consistent
 3. **Observer Pattern** (Event Emitters) - Type-safe
@@ -259,6 +289,7 @@ Design patterns and technical debt analysis.
 8. **Repository Pattern** - Spec loading
 
 **Anti-Patterns Found:**
+
 - God Object (extension.ts - 800+ lines)
 - Spec parsing duplication (extension + language server)
 - Magic number thresholds (configurable, mitigated)
@@ -267,6 +298,7 @@ Design patterns and technical debt analysis.
 **Tech Debt:** 3-4 weeks estimated effort for all items
 
 **Priority Order:**
+
 1. God Object refactoring (improves maintainability)
 2. Race condition fix (prevents bugs)
 3. Missing error boundaries (improves robustness)
@@ -295,7 +327,8 @@ Design patterns and technical debt analysis.
 
 1. **Claude Code users** - MCP tools work out of the box (40+ tools)
 2. **GitHub Copilot users** - Commands in `.github/prompts/`
-3. **OpenAI Codex users** - Skills in `.agents/skills/`, run `npm run gofer:codex-doctor`
+3. **OpenAI Codex users** - Skills in `.agents/skills/`, run
+   `npm run gofer:codex-doctor`
 4. **Gemini CLI users** - Commands in `.gemini/commands/gofer/`
 5. **Platform selection** - Set `gofer.defaultCLI` in VSCode settings
 
@@ -320,10 +353,12 @@ Design patterns and technical debt analysis.
 ### Version Tracking
 
 - **Version:** 3.3.0
-- **Commit:** d7fa4cc243aeb1b82cdcc44fd69e610fb02dc507
-- **Generated:** 2026-05-10T13:35:23Z
-- **Previous Update:** 2026-05-10 12:19 UTC (ec462e53d60882a1959c0bf22456684e76b73cdc)
-- **Change Summary:** Updated to v3.3.0 with dependency security patches, documentation validation improvements, and release automation enhancements
+- **Commit:** 47970f3821d877082c57c015853454b8f25a9309
+- **Generated:** 2026-05-12T18:18:03Z
+- **Previous Update:** 2026-05-10 14:25 UTC
+  (6b457ddd796d13c0da957e8a57840f3ca1e8b190)
+- **Change Summary:** Platform builder experience documentation and Gofer prompt
+  write ordering updates
 
 ### Regenerating Documentation
 
@@ -335,6 +370,7 @@ To regenerate this documentation:
 ```
 
 The documentation generator:
+
 - Reads package.json, README.md, source code
 - Analyzes architecture and patterns
 - Generates Mermaid diagrams
@@ -346,18 +382,22 @@ The documentation generator:
 When making changes, update these files if applicable:
 
 **Architecture changes:**
+
 - Update [architecture.md](architecture.md) - Component diagrams
 - Update [dependencies.md](dependencies.md) - New service dependencies
 
 **API changes:**
+
 - Update [api-reference.md](api-reference.md) - New tools/commands
 - Update [data-model.md](data-model.md) - Schema changes
 
 **Configuration changes:**
+
 - Update [configuration.md](configuration.md) - New settings
 - Update [deployment.md](deployment.md) - Build process changes
 
 **Release changes:**
+
 - Update [changelog.md](changelog.md) - New release notes
 - Bump `generated` timestamp in frontmatter
 - Update version numbers throughout
@@ -390,27 +430,28 @@ When making changes, update these files if applicable:
 - **Agent Guidelines:** AGENTS.md (`AGENTS.md`)
 - **Project Instructions:** CLAUDE.md (`CLAUDE.md`)
 - **CLI Support Guide:** docs/cli-support.md (`../docs/cli-support.md`) (v3.0+)
-- **GitHub Repository:** [https://github.com/enterpriseaigroup/tech-docs](https://github.com/enterpriseaigroup/tech-docs)
+- **GitHub Repository:**
+  [https://github.com/enterpriseaigroup/tech-docs](https://github.com/enterpriseaigroup/tech-docs)
 
 ---
 
 ## Key Metrics
 
-| Metric                      | Value                           |
-| --------------------------- | ------------------------------- |
-| Version                     | 3.3.0                           |
-| TypeScript Files            | 247 files (all modules)         |
-| Active Specifications       | 2 (032-ui-first-builder, 031-skills-pipeline) |
-| Archived Specifications     | 30+ specs                       |
-| MCP Tools                   | 40+ tools                       |
-| VSCode Commands             | 30+ commands                    |
-| VSCode Settings             | 60+ configuration options       |
-| Test Coverage Target        | 80%+                            |
-| Supported AI Platforms      | 4 (Claude, Copilot, Codex, Gemini) |
-| Code Quality Score          | 8.5/10                          |
-| Tech Debt Effort (all)      | 3-4 weeks                       |
-| Node Version Required       | 20.x                            |
-| VSCode Version Required     | 1.85.0+                         |
+| Metric                  | Value                                         |
+| ----------------------- | --------------------------------------------- |
+| Version                 | 3.3.0                                         |
+| TypeScript Files        | 247 files (all modules)                       |
+| Active Specifications   | 2 (032-ui-first-builder, 031-skills-pipeline) |
+| Archived Specifications | 30+ specs                                     |
+| MCP Tools               | 40+ tools                                     |
+| VSCode Commands         | 30+ commands                                  |
+| VSCode Settings         | 60+ configuration options                     |
+| Test Coverage Target    | 80%+                                          |
+| Supported AI Platforms  | 4 (Claude, Copilot, Codex, Gemini)            |
+| Code Quality Score      | 8.5/10                                        |
+| Tech Debt Effort (all)  | 3-4 weeks                                     |
+| Node Version Required   | 20.x                                          |
+| VSCode Version Required | 1.85.0+                                       |
 
 ---
 
@@ -418,8 +459,10 @@ When making changes, update these files if applicable:
 
 For questions, issues, or contributions:
 
-- **GitHub Issues:** [https://github.com/enterpriseaigroup/tech-docs/issues](https://github.com/enterpriseaigroup/tech-docs/issues)
-- **Documentation:** [https://github.com/enterpriseaigroup/tech-docs#readme](https://github.com/enterpriseaigroup/tech-docs#readme)
+- **GitHub Issues:**
+  [https://github.com/enterpriseaigroup/tech-docs/issues](https://github.com/enterpriseaigroup/tech-docs/issues)
+- **Documentation:**
+  [https://github.com/enterpriseaigroup/tech-docs#readme](https://github.com/enterpriseaigroup/tech-docs#readme)
 - **Owner:** Enterprise AI Pty Ltd
 - **Website:** [https://enterpriseai.com.au](https://enterpriseai.com.au)
 

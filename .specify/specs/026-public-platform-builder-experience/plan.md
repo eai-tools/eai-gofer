@@ -1,22 +1,25 @@
 ---
-feature: "026-public-platform-builder-experience"
-repo: "Gofer"
-status: ready
-created: "2026-05-12T00:00:00Z"
+feature: '026-public-platform-builder-experience'
+repo: 'Gofer'
+status: implemented
+created: '2026-05-12T00:00:00Z'
 ---
 
 # Implementation Plan
 
 ## Technical Context
 
-This PR is a Gofer specification/bootstrap change for Gofer. It adds Markdown artifacts under `.specify/specs/026-public-platform-builder-experience/` and does not modify runtime source code.
+This PR strengthens Gofer's public EnterpriseAI platform guidance and keeps the
+Gofer specification artifacts under
+`.specify/specs/026-public-platform-builder-experience/` aligned with the
+documentation changes.
 
 ## Current PR Scope
 
 - Add research and approved proposal context.
 - Preserve Gofer's public/private responsibility boundary.
+- Document public-safe status vocabulary and PublicAPI-first checks.
 - Add task, traceability, quickstart, and validation artifacts.
-- Keep runtime implementation as a follow-up delivery stream.
 
 ## File Structure
 
@@ -36,10 +39,10 @@ This PR is a Gofer specification/bootstrap change for Gofer. It adds Markdown ar
 ## Implementation Roadmap
 
 1. Bootstrap the Gofer artifacts in this PR.
-2. Open follow-up implementation PRs for the runtime work described in `spec.md`.
-3. Add repo-specific tests with each runtime implementation PR.
-4. Run CI and `$6_gofer_validate` after each implementation PR reaches green.
-5. Regenerate `.tech-docs/` for this repository after runtime implementation
+2. Update Gofer public guidance to use PublicAPI/eai checks and public-safe
+   blocker states.
+3. Run CI and `$6_gofer_validate` after implementation reaches green.
+4. Regenerate `.tech-docs/` for this repository after runtime implementation
    lands, then let the central `tech-docs` aggregation workflow publish the
    updated technical documentation into Docusaurus.
 
@@ -52,8 +55,8 @@ validation contract, and verify central aggregation/build before release.
 
 ## Risk Assessment
 
-| Risk | Impact | Mitigation |
-| --- | --- | --- |
-| Public docs leak private details | Security/commercial exposure | Public/private validation scans and content review |
-| Spec PR mistaken for runtime implementation | Delivery confusion | Validation explicitly scopes this PR as bootstrap only |
-| Follow-up implementation loses traceability | Rework | Keep repo-owned plan/tasks/traceability artifacts |
+| Risk                                        | Impact                       | Mitigation                                             |
+| ------------------------------------------- | ---------------------------- | ------------------------------------------------------ |
+| Public docs leak private details            | Security/commercial exposure | Public/private validation scans and content review     |
+| Spec PR mistaken for runtime implementation | Delivery confusion           | Validation explicitly scopes this PR as bootstrap only |
+| Follow-up implementation loses traceability | Rework                       | Keep repo-owned plan/tasks/traceability artifacts      |

@@ -1,25 +1,81 @@
 ---
 generated: true
-generated_at: '2026-05-12T18:20:10.614Z'
-source_commit: '47970f3821d877082c57c015853454b8f25a9309'
+generated_at: "2026-05-13T18:17:29.824Z"
+source_commit: "cc10762094a3ecae3428cd8b60bfd1f2ec4aa00c"
 ---
-
 # Changelog
 
 ## Changes Since Last Documentation Update
 
-**Previous Update:** 2026-05-10 14:25 UTC (commit
-`6b457ddd796d13c0da957e8a57840f3ca1e8b190`) **Current Update:** 2026-05-12 18:18
-UTC (commit `47970f3821d877082c57c015853454b8f25a9309`)
+**Previous Update:** 2026-05-12 18:18 UTC (commit
+`47970f3821d877082c57c015853454b8f25a9309`) **Current Update:** 2026-05-13 18:14
+UTC (commit `cc10762094a3ecae3428cd8b60bfd1f2ec4aa00c`)
 
 ### Version Updates
 
-- **Version:** 3.3.0 (minor release with dependency security patches and
-  documentation improvements)
+- **Version:** 3.3.1 (patch release with security improvements and public platform builder boundary documentation)
 
 ### Significant Changes
 
-#### 1. Platform Builder Experience Documentation (2026-05-12)
+#### 1. Environment Variable Security Enhancement (2026-05-13)
+
+**Commit:** `d874f58` - chore: add .env to .gitignore to prevent committing environment variables
+
+- Added `.env` to `.gitignore` to prevent accidental commits of sensitive environment variables
+- Protects API keys and credentials from being committed to version control
+- Aligns with security best practices for credential management
+
+**Impact:**
+
+- Improved security posture by preventing credential leaks
+- Safer local development with environment variables
+- Reduced risk of accidental API key exposure
+
+#### 2. Public Platform Builder Boundary Documentation (2026-05-13)
+
+**Commits:** `d5eccec`, `f3338de` - docs: define public platform builder boundary, clarify public platform status vocabulary
+
+- Documented public platform builder experience workflow and boundaries
+- Clarified platform builder vocabulary and status terminology
+- Defined clear boundaries between public builder APIs and internal platform implementation
+- Enhanced guidance for platform-safe artifact generation
+
+**Impact:**
+
+- Clearer separation between public and private platform APIs
+- Better understanding of what builders can safely depend on
+- Reduced risk of builders relying on internal implementation details
+- Improved documentation for vertical app delivery use cases
+
+#### 3. Version 3.3.1 Release (2026-05-10)
+
+**Commit:** `1c3608e` - release: v3.3.1
+
+- Patch release with security improvements and documentation enhancements
+- Public builder runtime integration merged
+- Enhanced platform boundary documentation
+
+**Impact:**
+
+- Production-ready release with improved security
+- Better platform builder experience
+- Enhanced documentation for enterprise AI workflows
+
+#### 4. Vitest Results Management (2026-05-13)
+
+**Commits:** `cc10762`, `2179ee1` - chore: stop tracking vitest results, ignore generated vitest results
+
+- Removed vitest results from version control
+- Added vitest results to `.gitignore`
+- Prevents unnecessary repository bloat from test artifacts
+
+**Impact:**
+
+- Cleaner git history without test result artifacts
+- Smaller repository size
+- Reduced noise in pull requests
+
+#### 5. Platform Builder Experience Documentation (2026-05-12)
 
 **Commit:** `47970f3` - docs: specify public platform builder experience
 
@@ -171,6 +227,17 @@ None in this release.
 
 ### New Features
 
+- **Public Platform Builder Boundary** (2026-05-13)
+  - Documented clear boundaries between public builder APIs and internal platform
+  - Platform builder vocabulary and status terminology clarified
+  - Safe artifact generation guidance for builders
+  - Public API contract documentation
+
+- **Environment Variable Security** (2026-05-13)
+  - Added `.env` to `.gitignore` for credential protection
+  - Prevents accidental commits of API keys and secrets
+  - Aligns with security best practices
+
 - **Platform Builder Experience Documentation** (2026-05-12)
   - Comprehensive documentation for platform builder workflows
   - Enhanced vertical app delivery patterns and guidance
@@ -234,6 +301,11 @@ No new configuration options added in this release.
 
 ### Security Updates
 
+**v3.3.1:**
+
+- Added `.env` to `.gitignore` to prevent credential exposure
+- Enhanced environment variable security practices
+
 **v3.3.0:**
 
 - Addressed vulnerable transitive dependencies via package overrides
@@ -243,6 +315,14 @@ No new configuration options added in this release.
 ---
 
 ## Recent Release History
+
+### v3.3.1 (2026-05-10)
+
+- **Focus:** Security improvements and public platform builder boundary documentation
+- **Key Features:** Environment variable security, platform builder API boundaries
+- **Highlights:** Clear separation between public and private platform APIs, improved credential protection
+- **Breaking Changes:** None
+- **Security:** Added `.env` to `.gitignore`, documented public platform boundaries
 
 ### v3.3.0 (2026-05-10)
 
@@ -314,4 +394,4 @@ latest codebase state. The documentation is synchronized with the source code
 via automated CI workflows.
 
 **Update Frequency:** Nightly (automated via GitHub Actions) **Last Update:**
-2026-05-12 18:18 UTC **Next Scheduled Update:** 2026-05-13 (nightly)
+2026-05-13 18:14 UTC **Next Scheduled Update:** 2026-05-14 (nightly)

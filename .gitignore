@@ -11,3 +11,4 @@
 .specify/specs/*/research-index.json
 node_modules
 .env
+test-results/vitest-results.json

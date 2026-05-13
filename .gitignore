@@ -12,3 +12,4 @@
 node_modules
 .env
 test-results/vitest-results.json
+test-results/vitest-results.json

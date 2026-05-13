@@ -1,16 +1,43 @@
 ---
 generated: true
-generated_at: '2026-05-12T18:20:10.614Z'
-source_commit: '47970f3821d877082c57c015853454b8f25a9309'
+generated_at: "2026-05-13T18:17:29.824Z"
+source_commit: "cc10762094a3ecae3428cd8b60bfd1f2ec4aa00c"
 ---
-
 # Technical Documentation Index
 
 **Repository:** [eai-tools/gofer](https://github.com/eai-tools/gofer)
-**Version:** 3.3.0 **Generated:** 2026-05-12T18:18:03Z
+**Version:** 3.3.1 **Generated:** 2026-05-13T18:14:14Z
 
 This directory contains comprehensive technical documentation for the Gofer
 VSCode extension project.
+
+---
+
+## What's New in v3.3.1
+
+### Security Improvements
+
+- **Environment Variable Protection** - Added `.env` to `.gitignore` to prevent
+  accidental commits of credentials
+- **Credential Safety** - Protects API keys and secrets from being committed to
+  version control
+- **Best Practices** - Aligns with security best practices for credential
+  management
+
+### Platform Builder Boundary Documentation
+
+- **Public Platform APIs** - Clear documentation of public platform builder
+  boundaries
+- **Status Vocabulary** - Clarified platform builder status terminology
+- **Safe Artifacts** - Enhanced guidance for platform-safe artifact generation
+- **Internal vs Public** - Defined separation between public builder APIs and
+  internal platform implementation
+
+### Code Quality Improvements
+
+- **Test Artifact Management** - Removed vitest results from version control
+- **Repository Cleanup** - Added vitest results to `.gitignore`
+- **Reduced Noise** - Cleaner git history without test artifacts
 
 ---
 
@@ -352,13 +379,13 @@ Design patterns and technical debt analysis.
 
 ### Version Tracking
 
-- **Version:** 3.3.0
-- **Commit:** 47970f3821d877082c57c015853454b8f25a9309
-- **Generated:** 2026-05-12T18:18:03Z
-- **Previous Update:** 2026-05-10 14:25 UTC
-  (6b457ddd796d13c0da957e8a57840f3ca1e8b190)
-- **Change Summary:** Platform builder experience documentation and Gofer prompt
-  write ordering updates
+- **Version:** 3.3.1
+- **Commit:** cc10762094a3ecae3428cd8b60bfd1f2ec4aa00c
+- **Generated:** 2026-05-13T18:14:14Z
+- **Previous Update:** 2026-05-12 18:18 UTC
+  (47970f3821d877082c57c015853454b8f25a9309)
+- **Change Summary:** Security improvements (environment variable protection),
+  public platform builder boundary documentation
 
 ### Regenerating Documentation
 
@@ -439,7 +466,7 @@ When making changes, update these files if applicable:
 
 | Metric                  | Value                                         |
 | ----------------------- | --------------------------------------------- |
-| Version                 | 3.3.0                                         |
+| Version                 | 3.3.1                                         |
 | TypeScript Files        | 247 files (all modules)                       |
 | Active Specifications   | 2 (032-ui-first-builder, 031-skills-pipeline) |
 | Archived Specifications | 30+ specs                                     |

@@ -1,7 +1,7 @@
 ---
 generated: true
-generated_at: "2026-05-13T18:17:29.824Z"
-source_commit: "cc10762094a3ecae3428cd8b60bfd1f2ec4aa00c"
+generated_at: "2026-05-14T18:18:14.181Z"
+source_commit: "7541a0a758170703011699d9820fba42198e0aa0"
 ---
 # Gofer - Technical Overview
 
@@ -14,11 +14,11 @@ source_commit: "cc10762094a3ecae3428cd8b60bfd1f2ec4aa00c"
 | **Primary Users**        | Software development teams using Claude Code, GitHub Copilot, OpenAI Codex, or Gemini CLI for feature implementation |
 | **Data Sensitivity**     | Low - stores specifications, plans, and code artifacts locally in repository workspace                               |
 | **Current Status**       | Active Development (v3.3.1) - Production-ready with enterprise AI workflow enhancements                              |
-| **Last Material Change** | 2026-05-13 - Release v3.3.1, public platform builder boundary documentation                                          |
+| **Last Material Change** | 2026-05-14 - Documentation refresh, v3.3.1 in production                                                             |
 
 ## Service Identity
 
-**Name:** Gofer **Version:** 3.3.1 **Documentation Updated:** 2026-05-13
+**Name:** Gofer **Version:** 3.3.1 **Documentation Updated:** 2026-05-14
 **Publisher:** Enterprise AI Pty Ltd **Description:** Spec-driven development
 system for AI assistants. Provides 40+ MCP tools that enable Claude Code, GitHub
 Copilot, OpenAI Codex, and Gemini CLI to autonomously implement features from
@@ -159,7 +159,7 @@ npx vsce package
 - Specifications stored in `.specify/specs/` directory
 - Constitution principles defined in `.specify/memory/constitution.md`
 
-**Active Specifications (2026-05-10):**
+**Active Specifications (2026-05-14):**
 
 - **032-gofer-ui-first-builder** - UI-first app delivery workflow with preview,
   approval, and service-fit gates (Status: Completed, Released in v3.2.2)
@@ -343,7 +343,7 @@ This repository maintains multiple documentation surfaces:
 ## Current Status
 
 - Nightly-managed `.tech-docs/` content is present for this repository.
-- Source commit: `cc10762094a3`
+- Source commit: `7541a0a758170703`
 - Version: 3.3.1 (Released 2026-05-10)
 - Additional repo-local docs surfaces detected: 1 (docs-site/)
 - Legacy documentation archived in `.tech-docs/legacy-src/docs/`

@@ -1,23 +1,38 @@
 ---
 generated: true
-generated_at: "2026-05-13T18:17:29.824Z"
-source_commit: "cc10762094a3ecae3428cd8b60bfd1f2ec4aa00c"
+generated_at: "2026-05-14T18:18:14.181Z"
+source_commit: "7541a0a758170703011699d9820fba42198e0aa0"
 ---
 # Changelog
 
 ## Changes Since Last Documentation Update
 
-**Previous Update:** 2026-05-12 18:18 UTC (commit
-`47970f3821d877082c57c015853454b8f25a9309`) **Current Update:** 2026-05-13 18:14
-UTC (commit `cc10762094a3ecae3428cd8b60bfd1f2ec4aa00c`)
+**Previous Update:** 2026-05-13 18:17 UTC (commit
+`cc10762094a3ecae3428cd8b60bfd1f2ec4aa00c`) **Current Update:** 2026-05-14 18:16
+UTC (commit `7541a0a758170703011699d9820fba42198e0aa0`)
 
 ### Version Updates
 
-- **Version:** 3.3.1 (patch release with security improvements and public platform builder boundary documentation)
+- **Version:** 3.3.1 (stable - documentation refresh)
 
 ### Significant Changes
 
-#### 1. Environment Variable Security Enhancement (2026-05-13)
+#### 1. Automated Documentation Refresh (2026-05-13)
+
+**Commit:** `7541a0a` - docs: update .tech-docs/ [nightly-automated]
+
+- Automated nightly documentation refresh completed
+- Updated `.tech-docs/` with latest codebase changes
+- Synchronized technical documentation with source code state
+- Refreshed all generated documentation frontmatter
+
+**Impact:**
+
+- Documentation remains current with codebase
+- Consistent documentation format across updates
+- Improved traceability with commit references
+
+#### 2. Environment Variable Security Enhancement (2026-05-13)
 
 **Commit:** `d874f58` - chore: add .env to .gitignore to prevent committing environment variables
 
@@ -31,7 +46,7 @@ UTC (commit `cc10762094a3ecae3428cd8b60bfd1f2ec4aa00c`)
 - Safer local development with environment variables
 - Reduced risk of accidental API key exposure
 
-#### 2. Public Platform Builder Boundary Documentation (2026-05-13)
+#### 3. Public Platform Builder Boundary Documentation (2026-05-13)
 
 **Commits:** `d5eccec`, `f3338de` - docs: define public platform builder boundary, clarify public platform status vocabulary
 
@@ -47,7 +62,7 @@ UTC (commit `cc10762094a3ecae3428cd8b60bfd1f2ec4aa00c`)
 - Reduced risk of builders relying on internal implementation details
 - Improved documentation for vertical app delivery use cases
 
-#### 3. Version 3.3.1 Release (2026-05-10)
+#### 4. Version 3.3.1 Release (2026-05-10)
 
 **Commit:** `1c3608e` - release: v3.3.1
 
@@ -61,7 +76,7 @@ UTC (commit `cc10762094a3ecae3428cd8b60bfd1f2ec4aa00c`)
 - Better platform builder experience
 - Enhanced documentation for enterprise AI workflows
 
-#### 4. Vitest Results Management (2026-05-13)
+#### 5. Vitest Results Management (2026-05-13)
 
 **Commits:** `cc10762`, `2179ee1` - chore: stop tracking vitest results, ignore generated vitest results
 
@@ -75,7 +90,7 @@ UTC (commit `cc10762094a3ecae3428cd8b60bfd1f2ec4aa00c`)
 - Smaller repository size
 - Reduced noise in pull requests
 
-#### 5. Platform Builder Experience Documentation (2026-05-12)
+#### 6. Platform Builder Experience Documentation (2026-05-12)
 
 **Commit:** `47970f3` - docs: specify public platform builder experience
 
@@ -90,7 +105,7 @@ UTC (commit `cc10762094a3ecae3428cd8b60bfd1f2ec4aa00c`)
 - Clearer understanding of Gofer's role in platform workflows
 - Improved documentation for vertical app delivery use cases
 
-#### 2. Gofer Prompt Write Ordering (2026-05-12)
+#### 7. Gofer Prompt Write Ordering (2026-05-12)
 
 **Commit:** `e78d1c9` - docs: capture platform write ordering in Gofer prompts
 
@@ -105,7 +120,7 @@ UTC (commit `cc10762094a3ecae3428cd8b60bfd1f2ec4aa00c`)
 - Better understanding of stage dependencies
 - Reduced risk of out-of-order operations
 
-#### 3. Automated Documentation Update (2026-05-12)
+#### 8. Automated Documentation Update (2026-05-12)
 
 **Commit:** `4a9c3d5` - docs: update .tech-docs/ [nightly-automated]
 
@@ -119,7 +134,7 @@ UTC (commit `cc10762094a3ecae3428cd8b60bfd1f2ec4aa00c`)
 - Automated quality assurance for documentation
 - Consistent documentation format across updates
 
-#### 4. Legacy Documentation Retirement (2026-05-10)
+#### 9. Legacy Documentation Retirement (2026-05-10)
 
 **Commit:** `6b457dd` - docs: retire legacy gofer docs root
 
@@ -138,7 +153,7 @@ UTC (commit `cc10762094a3ecae3428cd8b60bfd1f2ec4aa00c`)
 - Better integration with automated documentation workflows
 - Legacy content preserved for reference but removed from active documentation
 
-#### 5. Dependency Security Patches (v3.3.0)
+#### 10. Dependency Security Patches (v3.3.0)
 
 **Commits:** `a3865a8` - chore(deps): override vulnerable transitive packages
 

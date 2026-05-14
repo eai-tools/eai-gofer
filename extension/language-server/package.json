@@ -18,16 +18,16 @@
   "author": "Enterprise AI Pty Ltd",
   "license": "PROPRIETARY",
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.30.0",
-    "chokidar": "^3.5.3",
-    "glob": "^11.1.0",
-    "gray-matter": "^4.0.3",
-    "vscode-languageserver": "^9.0.1",
-    "vscode-languageserver-textdocument": "^1.0.11",
-    "yaml": "^2.3.4"
+    "@anthropic-ai/sdk": "0.30.1",
+    "chokidar": "3.6.0",
+    "glob": "11.1.0",
+    "gray-matter": "4.0.3",
+    "vscode-languageserver": "9.0.1",
+    "vscode-languageserver-textdocument": "1.0.12",
+    "yaml": "2.8.3"
   },
   "devDependencies": {
-    "@types/node": "^20.10.0",
-    "typescript": "^5.3.3"
+    "@types/node": "20.19.37",
+    "typescript": "5.9.3"
   }
 }

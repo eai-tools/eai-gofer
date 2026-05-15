@@ -1,7 +1,7 @@
 ---
 generated: true
-generated_at: "2026-05-14T18:18:14.181Z"
-source_commit: "7541a0a758170703011699d9820fba42198e0aa0"
+generated_at: "2026-05-15T18:08:19.998Z"
+source_commit: "a5a97f2a8a47a2855c9219a6506db27d39d8c9a9"
 ---
 # Gofer - Technical Overview
 
@@ -14,15 +14,15 @@ source_commit: "7541a0a758170703011699d9820fba42198e0aa0"
 | **Primary Users**        | Software development teams using Claude Code, GitHub Copilot, OpenAI Codex, or Gemini CLI for feature implementation |
 | **Data Sensitivity**     | Low - stores specifications, plans, and code artifacts locally in repository workspace                               |
 | **Current Status**       | Active Development (v3.3.1) - Production-ready with enterprise AI workflow enhancements                              |
-| **Last Material Change** | 2026-05-14 - Documentation refresh, v3.3.1 in production                                                             |
+| **Last Material Change** | 2026-05-15 - Documentation updates including public platform builder boundary clarification                          |
 
 ## Service Identity
 
-**Name:** Gofer **Version:** 3.3.1 **Documentation Updated:** 2026-05-14
+**Name:** Gofer **Version:** 3.3.1 **Documentation Updated:** 2026-05-15
 **Publisher:** Enterprise AI Pty Ltd **Description:** Spec-driven development
 system for AI assistants. Provides 40+ MCP tools that enable Claude Code, GitHub
 Copilot, OpenAI Codex, and Gemini CLI to autonomously implement features from
-specifications with UI-first app delivery workflow support.
+specifications with UI-first app delivery workflow support and EnterpriseAI platform integration.
 
 **Repository:**
 [https://github.com/eai-tools/gofer](https://github.com/eai-tools/gofer)
@@ -159,12 +159,14 @@ npx vsce package
 - Specifications stored in `.specify/specs/` directory
 - Constitution principles defined in `.specify/memory/constitution.md`
 
-**Active Specifications (2026-05-14):**
+**Active Specifications (2026-05-15):**
 
 - **032-gofer-ui-first-builder** - UI-first app delivery workflow with preview,
   approval, and service-fit gates (Status: Completed, Released in v3.2.2)
 - **031-skills-pipeline-augmentation** - Enhanced agent coordination and skill
   composition (Status: Completed, Released in v3.2.0)
+- **027-public-builder-runtime** - Public platform builder boundary clarification
+  and EnterpriseAI workflow profile support (Status: Completed, Released in v3.3.1)
 
 ## Project Structure
 
@@ -343,8 +345,8 @@ This repository maintains multiple documentation surfaces:
 ## Current Status
 
 - Nightly-managed `.tech-docs/` content is present for this repository.
-- Source commit: `7541a0a758170703`
+- Source commit: `a5a97f2a8a47a2855c9219a6506db27d39d8c9a9`
 - Version: 3.3.1 (Released 2026-05-10)
 - Additional repo-local docs surfaces detected: 1 (docs-site/)
 - Legacy documentation archived in `.tech-docs/legacy-src/docs/`
-- Recent focus: Public platform builder boundary documentation, environment variable security improvements
+- Recent focus: Documentation updates, public platform builder boundary clarification, environment variable security (`.env` now in `.gitignore`)

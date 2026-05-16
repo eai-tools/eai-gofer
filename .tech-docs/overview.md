@@ -1,7 +1,7 @@
 ---
 generated: true
-generated_at: "2026-05-15T18:08:19.998Z"
-source_commit: "a5a97f2a8a47a2855c9219a6506db27d39d8c9a9"
+generated_at: "2026-05-16T17:57:36.381Z"
+source_commit: "2de388b2ea4e8c6081ab0fd8983ce52deeb17984"
 ---
 # Gofer - Technical Overview
 
@@ -14,11 +14,11 @@ source_commit: "a5a97f2a8a47a2855c9219a6506db27d39d8c9a9"
 | **Primary Users**        | Software development teams using Claude Code, GitHub Copilot, OpenAI Codex, or Gemini CLI for feature implementation |
 | **Data Sensitivity**     | Low - stores specifications, plans, and code artifacts locally in repository workspace                               |
 | **Current Status**       | Active Development (v3.3.1) - Production-ready with enterprise AI workflow enhancements                              |
-| **Last Material Change** | 2026-05-15 - Documentation updates including public platform builder boundary clarification                          |
+| **Last Material Change** | 2026-05-16 - Comprehensive documentation refresh with updated architecture, API catalog, and data models              |
 
 ## Service Identity
 
-**Name:** Gofer **Version:** 3.3.1 **Documentation Updated:** 2026-05-15
+**Name:** Gofer **Version:** 3.3.1 **Documentation Updated:** 2026-05-16
 **Publisher:** Enterprise AI Pty Ltd **Description:** Spec-driven development
 system for AI assistants. Provides 40+ MCP tools that enable Claude Code, GitHub
 Copilot, OpenAI Codex, and Gemini CLI to autonomously implement features from

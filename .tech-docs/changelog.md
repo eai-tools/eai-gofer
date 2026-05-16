@@ -1,36 +1,45 @@
 ---
 generated: true
-generated_at: "2026-05-15T18:08:19.998Z"
-source_commit: "a5a97f2a8a47a2855c9219a6506db27d39d8c9a9"
+generated_at: "2026-05-16T17:57:36.381Z"
+source_commit: "2de388b2ea4e8c6081ab0fd8983ce52deeb17984"
 ---
 # Changelog
 
 ## Changes Since Last Documentation Update
 
-**Previous Update:** 2026-05-14 18:18 UTC (commit
-`7541a0a758170703011699d9820fba42198e0aa0`) **Current Update:** 2026-05-15 18:06
-UTC (commit `a5a97f2a8a47a2855c9219a6506db27d39d8c9a9`)
+**Previous Update:** 2026-05-15 18:08 UTC (commit
+`a5a97f2a8a47a2855c9219a6506db27d39d8c9a9`) **Current Update:** 2026-05-16 17:50
+UTC (commit `2de388b2ea4e8c6081ab0fd8983ce52deeb17984`)
 
 ### Version Updates
 
-- **Version:** 3.3.1 (stable - documentation refresh)
+- **Version:** 3.3.1 (stable - comprehensive documentation refresh)
 
 ### Significant Changes
 
-#### 1. Automated Documentation Refresh (2026-05-15)
+#### 1. Comprehensive Documentation Analysis (2026-05-16)
 
-**Commit:** `a5a97f2` - docs: update .tech-docs/ [nightly-automated]
+**Commit:** `2de388b` - docs: update .tech-docs/ [nightly-automated]
 
-- Automated nightly documentation refresh completed
-- Updated `.tech-docs/` with latest codebase changes
-- Synchronized technical documentation with source code state
-- Refreshed all generated documentation frontmatter
+- Comprehensive documentation refresh with deep codebase analysis
+- Updated all `.tech-docs/` files with current architectural state
+- Refreshed frontmatter timestamps and commit references across all documentation files
+- Verified accuracy of component descriptions, data models, and API references
+
+**Analysis Coverage:**
+
+- Architecture and component breakdown (extension, language-server, orchestrator)
+- API catalog (60+ VS Code commands, 30+ MCP tools, 24 CLI commands, 70+ settings)
+- Data models and schemas (Memory, Specs, Pipeline State, Observations, Research)
+- Dependencies and integration points
+- Deployment and CI/CD workflows
 
 **Impact:**
 
-- Documentation remains current with codebase
-- Consistent documentation format across updates
-- Improved traceability with commit references
+- Documentation fully synchronized with codebase state
+- Comprehensive API reference for all interfaces
+- Detailed architectural documentation for new contributors
+- Up-to-date data model specifications
 
 #### 2. Previous Documentation Refresh (2026-05-14)
 

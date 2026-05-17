@@ -7,16 +7,16 @@ if [ -n "$1" ]; then
     VSIX_FILE="$1"
 else
     # Find the most recent VSIX file in the current directory
-    VSIX_FILE=$(ls -t gofer-*.vsix 2>/dev/null | head -1)
+    VSIX_FILE=$(ls -t eai-gofer-*.vsix 2>/dev/null | head -1)
     if [ -z "$VSIX_FILE" ]; then
         echo "❌ No VSIX file found!"
         exit 1
     fi
-    VSIX_FILE="/Users/douglaswross/Code/gofer/$VSIX_FILE"
+    VSIX_FILE="/Users/douglaswross/Code/eai-gofer/$VSIX_FILE"
 fi
 
 # Extract version from filename
-VERSION=$(basename "$VSIX_FILE" | sed 's/gofer-\(.*\)\.vsix/\1/')
+VERSION=$(basename "$VSIX_FILE" | sed 's/eai-gofer-\(.*\)\.vsix/\1/')
 
 echo "🔧 Installing Gofer v$VERSION..."
 

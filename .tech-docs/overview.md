@@ -1,8 +1,9 @@
 ---
 generated: true
-generated_at: "2026-05-16T17:57:36.381Z"
-source_commit: "2de388b2ea4e8c6081ab0fd8983ce52deeb17984"
+generated_at: '2026-05-16T17:57:36.381Z'
+source_commit: '2de388b2ea4e8c6081ab0fd8983ce52deeb17984'
 ---
+
 # Gofer - Technical Overview
 
 ## Executive Summary
@@ -14,7 +15,7 @@ source_commit: "2de388b2ea4e8c6081ab0fd8983ce52deeb17984"
 | **Primary Users**        | Software development teams using Claude Code, GitHub Copilot, OpenAI Codex, or Gemini CLI for feature implementation |
 | **Data Sensitivity**     | Low - stores specifications, plans, and code artifacts locally in repository workspace                               |
 | **Current Status**       | Active Development (v3.3.1) - Production-ready with enterprise AI workflow enhancements                              |
-| **Last Material Change** | 2026-05-16 - Comprehensive documentation refresh with updated architecture, API catalog, and data models              |
+| **Last Material Change** | 2026-05-16 - Comprehensive documentation refresh with updated architecture, API catalog, and data models             |
 
 ## Service Identity
 
@@ -22,10 +23,11 @@ source_commit: "2de388b2ea4e8c6081ab0fd8983ce52deeb17984"
 **Publisher:** Enterprise AI Pty Ltd **Description:** Spec-driven development
 system for AI assistants. Provides 40+ MCP tools that enable Claude Code, GitHub
 Copilot, OpenAI Codex, and Gemini CLI to autonomously implement features from
-specifications with UI-first app delivery workflow support and EnterpriseAI platform integration.
+specifications with UI-first app delivery workflow support and EnterpriseAI
+platform integration.
 
 **Repository:**
-[https://github.com/eai-tools/gofer](https://github.com/eai-tools/gofer)
+[https://github.com/eai-tools/eai-gofer](https://github.com/eai-tools/eai-gofer)
 
 ## Purpose
 
@@ -165,8 +167,9 @@ npx vsce package
   approval, and service-fit gates (Status: Completed, Released in v3.2.2)
 - **031-skills-pipeline-augmentation** - Enhanced agent coordination and skill
   composition (Status: Completed, Released in v3.2.0)
-- **027-public-builder-runtime** - Public platform builder boundary clarification
-  and EnterpriseAI workflow profile support (Status: Completed, Released in v3.3.1)
+- **027-public-builder-runtime** - Public platform builder boundary
+  clarification and EnterpriseAI workflow profile support (Status: Completed,
+  Released in v3.3.1)
 
 ## Project Structure
 
@@ -196,8 +199,8 @@ gofer/
 1. **Install Extension**
 
    ```bash
-   gh release download --repo eai-tools/gofer --pattern "*.vsix"
-   code --install-extension gofer-*.vsix
+   gh release download --repo eai-tools/eai-gofer --pattern "*.vsix"
+   code --install-extension eai-gofer-*.vsix
    ```
 
 2. **Initialize Repository**
@@ -349,4 +352,5 @@ This repository maintains multiple documentation surfaces:
 - Version: 3.3.1 (Released 2026-05-10)
 - Additional repo-local docs surfaces detected: 1 (docs-site/)
 - Legacy documentation archived in `.tech-docs/legacy-src/docs/`
-- Recent focus: Documentation updates, public platform builder boundary clarification, environment variable security (`.env` now in `.gitignore`)
+- Recent focus: Documentation updates, public platform builder boundary
+  clarification, environment variable security (`.env` now in `.gitignore`)

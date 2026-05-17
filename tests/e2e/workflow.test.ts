@@ -11,7 +11,7 @@ import { join } from 'path';
  * using file system operations and the autonomous orchestrator
  */
 
-const WORKSPACE_PATH = process.env.WORKSPACE_PATH || '/tmp/gofer-e2e-test';
+const WORKSPACE_PATH = process.env.WORKSPACE_PATH || '/tmp/eai-gofer-e2e-test';
 const SPEC_DIR = join(WORKSPACE_PATH, '.specify');
 
 test.describe('Gofer E2E Workflow', () => {
@@ -409,7 +409,7 @@ async function getTaskStatus(specId: string, taskId: string): Promise<string> {
     }
 
     return 'not_found';
-  } catch (error) {
+  } catch {
     return 'error';
   }
 }
@@ -421,7 +421,7 @@ async function getSpecStatus(specId: string): Promise<string> {
 
     const statusMatch = content.match(/status:\s*"([^"]+)"/);
     return statusMatch ? statusMatch[1] : 'unknown';
-  } catch (error) {
+  } catch {
     return 'error';
   }
 }

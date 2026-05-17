@@ -129,7 +129,7 @@ Working tree summary at save time:
 ### Quick Resume
 
 ```bash
-cd /Users/douglaswross/Code/eai/eai-tools/gofer
+cd /Users/douglaswross/Code/eai/eai-tools/eai-gofer
 git checkout release-vscode-surface-truth
 /8_gofer_resume
 ```

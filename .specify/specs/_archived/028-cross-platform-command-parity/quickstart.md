@@ -170,19 +170,19 @@ cd ..
 
 # Build extension (VSIX file)
 ./release-auto.sh patch "Development build for testing"
-# Output: extension/gofer-*.vsix
+# Output: extension/eai-gofer-*.vsix
 ```
 
 ### Install Extension in VSCode
 
 ```bash
 # Option A: Via Command Line
-code --install-extension extension/gofer-*.vsix --force
+code --install-extension extension/eai-gofer-*.vsix --force
 
 # Option B: Via VSCode UI
 # 1. Open VSCode Extensions panel (Cmd+Shift+X)
 # 2. Click "Install from VSIX..."
-# 3. Select extension/gofer-*.vsix
+# 3. Select extension/eai-gofer-*.vsix
 # 4. Click "Install"
 ```
 
@@ -302,8 +302,8 @@ platforms
 
 ```bash
 # Create test workspace
-mkdir -p /tmp/gofer-test-{claude,copilot,codex}
-cd /tmp/gofer-test-claude
+mkdir -p /tmp/eai-gofer-test-{claude,copilot,codex}
+cd /tmp/eai-gofer-test-claude
 ```
 
 #### Test 2A: Claude Code CLI Auto-Chain
@@ -1339,7 +1339,7 @@ Use this checklist to track manual testing progress:
 
 **Testing Complete**: Date \***\*\_\*\***
 
-**Tester Name**: ****\*\*****\_****\*\*****
+**Tester Name**: \***\*\*\*\*\***\_\***\*\*\*\*\***
 
 **Scenarios Passed**: **\_** / 18
 

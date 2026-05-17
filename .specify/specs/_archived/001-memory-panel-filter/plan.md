@@ -1,7 +1,7 @@
 ---
 feature: 001-memory-panel-filter
-spec: /Users/douglaswross/Code/gofer/.specify/specs/001-memory-panel-filter/spec.md
-research: /Users/douglaswross/Code/gofer/.specify/specs/001-memory-panel-filter/research.md
+spec: /Users/douglaswross/Code/eai-gofer/.specify/specs/001-memory-panel-filter/spec.md
+research: /Users/douglaswross/Code/eai-gofer/.specify/specs/001-memory-panel-filter/research.md
 status: ready
 created: 2026-03-20
 ---

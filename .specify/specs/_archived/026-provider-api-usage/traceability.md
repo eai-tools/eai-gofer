@@ -8,29 +8,32 @@ document_type: traceability-matrix
 
 # Requirement Traceability Matrix: Feature 026 - Provider API Usage Tracking
 
-**Generated**: 2026-03-15
-**Feature Branch**: `026-provider-api-usage`
-**Specification Base**: `/Users/douglaswross/Code/gofer/.specify/specs/026-provider-api-usage/`
+**Generated**: 2026-03-15 **Feature Branch**: `026-provider-api-usage`
+**Specification Base**:
+`/Users/douglaswross/Code/eai-gofer/.specify/specs/026-provider-api-usage/`
 
 ---
 
 ## Executive Summary
 
-This document provides complete traceability between feature requirements (user stories, functional requirements, success criteria) and implementation tasks, with coverage analysis and validation status.
+This document provides complete traceability between feature requirements (user
+stories, functional requirements, success criteria) and implementation tasks,
+with coverage analysis and validation status.
 
 ### Coverage Overview
 
-| Category | Total Items | Covered | Coverage % | Status |
-|----------|-------------|---------|------------|--------|
-| **User Stories** | 5 | 5 | 100% | ✅ PASS |
-| **Functional Requirements (FR)** | 25 | 25 | 100% | ✅ PASS |
-| **Non-Functional Requirements (NFR)** | 8 | 8 | 100% | ✅ PASS |
-| **Success Criteria (SC)** | 10 | 10 | 100% | ✅ PASS |
-| **Edge Cases** | 9 | 9 | 100% | ✅ PASS |
-| **API Contracts** | 4 | 4 | 100% | ✅ PASS |
-| **Implementation Tasks** | 48 | 48 | 100% | ✅ PASS |
+| Category                              | Total Items | Covered | Coverage % | Status  |
+| ------------------------------------- | ----------- | ------- | ---------- | ------- |
+| **User Stories**                      | 5           | 5       | 100%       | ✅ PASS |
+| **Functional Requirements (FR)**      | 25          | 25      | 100%       | ✅ PASS |
+| **Non-Functional Requirements (NFR)** | 8           | 8       | 100%       | ✅ PASS |
+| **Success Criteria (SC)**             | 10          | 10      | 100%       | ✅ PASS |
+| **Edge Cases**                        | 9           | 9       | 100%       | ✅ PASS |
+| **API Contracts**                     | 4           | 4       | 100%       | ✅ PASS |
+| **Implementation Tasks**              | 48          | 48      | 100%       | ✅ PASS |
 
-**Overall Traceability: 100%** - All specification items have corresponding implementation tasks and/or tests.
+**Overall Traceability: 100%** - All specification items have corresponding
+implementation tasks and/or tests.
 
 ---
 
@@ -38,67 +41,70 @@ This document provides complete traceability between feature requirements (user 
 
 ### 1.1 User Stories → Implementation Tasks
 
-| User Story | Priority | AC Count | Plan Section | Task IDs | Status |
-|------------|----------|----------|--------------|----------|--------|
-| **US-1: View Anthropic API Usage** | P1 | 4 | Phase 2-4 | T005, T006, T009, T011, T017, T025, T037, T039 | ✅ Covered |
-| **US-2: View OpenAI API Usage** | P1 | 3 | Phase 2-4 | T007, T008, T010, T011, T017, T025, T037, T039 | ✅ Covered |
-| **US-3: Configure Admin API Keys** | P2 | 3 | Phase 1, 3, 4 | T001, T021, T028, T043 | ✅ Covered |
-| **US-4: Graceful Degradation** | P2 | 3 | Phase 3 | T013, T018, T019, T039, T040 | ✅ Covered |
-| **US-5: Automatic Refresh** | P3 | 3 | Phase 3, 5 | T020, T021, T031, T032, T038 | ✅ Covered |
+| User Story                         | Priority | AC Count | Plan Section  | Task IDs                                       | Status     |
+| ---------------------------------- | -------- | -------- | ------------- | ---------------------------------------------- | ---------- |
+| **US-1: View Anthropic API Usage** | P1       | 4        | Phase 2-4     | T005, T006, T009, T011, T017, T025, T037, T039 | ✅ Covered |
+| **US-2: View OpenAI API Usage**    | P1       | 3        | Phase 2-4     | T007, T008, T010, T011, T017, T025, T037, T039 | ✅ Covered |
+| **US-3: Configure Admin API Keys** | P2       | 3        | Phase 1, 3, 4 | T001, T021, T028, T043                         | ✅ Covered |
+| **US-4: Graceful Degradation**     | P2       | 3        | Phase 3       | T013, T018, T019, T039, T040                   | ✅ Covered |
+| **US-5: Automatic Refresh**        | P3       | 3        | Phase 3, 5    | T020, T021, T031, T032, T038                   | ✅ Covered |
 
 **Mapping Notes**:
+
 - Each user story has one or more acceptance criteria (3-4 per story)
 - Tasks are assigned to specification phases (Phase 1-6 in plan.md)
-- Some tasks contribute to multiple user stories (e.g., T011 touches US-1 and US-2)
+- Some tasks contribute to multiple user stories (e.g., T011 touches US-1 and
+  US-2)
 
 ---
 
 ### 1.2 Functional Requirements → Implementation Tasks
 
-| FR ID | Requirement | Category | Task IDs | Test Coverage | Status |
-|-------|-------------|----------|----------|---------------|--------|
-| **FR-001** | Call Anthropic usage API | Data Source | T005 | T037, T039 | ✅ |
-| **FR-002** | Call Anthropic cost API | Data Source | T006 | T037, T039 | ✅ |
-| **FR-003** | Call OpenAI usage API | Data Source | T007 | T037, T039 | ✅ |
-| **FR-004** | Call OpenAI cost API | Data Source | T008 | T037, T039 | ✅ |
-| **FR-005** | Validate admin API key format | Configuration | T011, T028 | T037, T047 | ✅ |
-| **FR-006** | Use 1h bucket for "Today" | Query Params | T005, T007, T016 | T037 | ✅ |
-| **FR-007** | Use 1d bucket for "Week"/"Month" | Query Params | T005, T007, T016 | T037 | ✅ |
-| **FR-008** | Send ISO 8601 timestamps (Anthropic) | Query Params | T005, T006, T016 | T037, T046 | ✅ |
-| **FR-009** | Send Unix timestamps (OpenAI) | Query Params | T007, T008, T016 | T037, T046 | ✅ |
-| **FR-010** | Group by model | Query Params | T005, T006, T007, T008 | T037 | ✅ |
-| **FR-011** | Transform to UsageSummary | Data Transform | T009, T010, T011 | T037, T039 | ✅ |
-| **FR-012** | Anthropic API version header | Headers | T005, T006 | T037 | ✅ |
-| **FR-013** | Anthropic x-api-key header | Headers | T005, T006 | T037 | ✅ |
-| **FR-014** | OpenAI Authorization Bearer header | Headers | T007, T008 | T037 | ✅ |
-| **FR-015** | Poll at configurable interval (60s default) | Polling | T020 | T038, T047 | ✅ |
-| **FR-016** | Stop polling when no admin keys | Polling | T020 | T038 | ✅ |
-| **FR-017** | Three-tier fallback | Fallback | T018 | T039, T040 | ✅ |
-| **FR-018** | Google "API not available" | Fallback | T018 | T039 | ✅ |
-| **FR-019** | Detect config changes within 5s | Config Listener | T021 | T038, T047 | ✅ |
-| **FR-020** | Preserve UI components unchanged | Stability | T019, T041 | T038, T048 | ✅ |
-| **FR-021** | Use Node.js https module (no new deps) | Dependencies | T005-T008, T012 | T045 (package.json check) | ✅ |
-| **FR-022** | Retry with exponential backoff | Error Handling | T014 | T037, T039 | ✅ |
-| **FR-023** | Cache last successful response | Caching | T015 | T037, T039 | ✅ |
-| **FR-024** | Log API errors without exposing keys | Logging | T012 | Unit tests | ✅ |
-| **FR-025** | Aggregate cache tokens separately | Token Aggregation | T009, T037 | T037, T046 | ✅ |
+| FR ID      | Requirement                                 | Category          | Task IDs               | Test Coverage             | Status |
+| ---------- | ------------------------------------------- | ----------------- | ---------------------- | ------------------------- | ------ |
+| **FR-001** | Call Anthropic usage API                    | Data Source       | T005                   | T037, T039                | ✅     |
+| **FR-002** | Call Anthropic cost API                     | Data Source       | T006                   | T037, T039                | ✅     |
+| **FR-003** | Call OpenAI usage API                       | Data Source       | T007                   | T037, T039                | ✅     |
+| **FR-004** | Call OpenAI cost API                        | Data Source       | T008                   | T037, T039                | ✅     |
+| **FR-005** | Validate admin API key format               | Configuration     | T011, T028             | T037, T047                | ✅     |
+| **FR-006** | Use 1h bucket for "Today"                   | Query Params      | T005, T007, T016       | T037                      | ✅     |
+| **FR-007** | Use 1d bucket for "Week"/"Month"            | Query Params      | T005, T007, T016       | T037                      | ✅     |
+| **FR-008** | Send ISO 8601 timestamps (Anthropic)        | Query Params      | T005, T006, T016       | T037, T046                | ✅     |
+| **FR-009** | Send Unix timestamps (OpenAI)               | Query Params      | T007, T008, T016       | T037, T046                | ✅     |
+| **FR-010** | Group by model                              | Query Params      | T005, T006, T007, T008 | T037                      | ✅     |
+| **FR-011** | Transform to UsageSummary                   | Data Transform    | T009, T010, T011       | T037, T039                | ✅     |
+| **FR-012** | Anthropic API version header                | Headers           | T005, T006             | T037                      | ✅     |
+| **FR-013** | Anthropic x-api-key header                  | Headers           | T005, T006             | T037                      | ✅     |
+| **FR-014** | OpenAI Authorization Bearer header          | Headers           | T007, T008             | T037                      | ✅     |
+| **FR-015** | Poll at configurable interval (60s default) | Polling           | T020                   | T038, T047                | ✅     |
+| **FR-016** | Stop polling when no admin keys             | Polling           | T020                   | T038                      | ✅     |
+| **FR-017** | Three-tier fallback                         | Fallback          | T018                   | T039, T040                | ✅     |
+| **FR-018** | Google "API not available"                  | Fallback          | T018                   | T039                      | ✅     |
+| **FR-019** | Detect config changes within 5s             | Config Listener   | T021                   | T038, T047                | ✅     |
+| **FR-020** | Preserve UI components unchanged            | Stability         | T019, T041             | T038, T048                | ✅     |
+| **FR-021** | Use Node.js https module (no new deps)      | Dependencies      | T005-T008, T012        | T045 (package.json check) | ✅     |
+| **FR-022** | Retry with exponential backoff              | Error Handling    | T014                   | T037, T039                | ✅     |
+| **FR-023** | Cache last successful response              | Caching           | T015                   | T037, T039                | ✅     |
+| **FR-024** | Log API errors without exposing keys        | Logging           | T012                   | Unit tests                | ✅     |
+| **FR-025** | Aggregate cache tokens separately           | Token Aggregation | T009, T037             | T037, T046                | ✅     |
 
-**Summary**: All 25 functional requirements have explicit task coverage and measurable tests.
+**Summary**: All 25 functional requirements have explicit task coverage and
+measurable tests.
 
 ---
 
 ### 1.3 Non-Functional Requirements → Implementation Tasks
 
-| NFR ID | Requirement | Task IDs | Test Coverage | Target | Status |
-|--------|-------------|----------|---------------|--------|--------|
-| **NFR-001** | Initial load < 5s (target 2s) | T011, T025 | T045 | < 5s | ✅ |
-| **NFR-002** | API polling non-blocking (async) | T020, T029 | T045 | No frame drops | ✅ |
-| **NFR-003** | API timeout after 10s | T012 | T037, T045 | 10s max | ✅ |
-| **NFR-004** | No new npm dependencies | All tasks | T045 | 0 new | ✅ |
-| **NFR-005** | Admin keys stored as secrets | T001 | Manual test | Masked in UI | ✅ |
-| **NFR-006** | Memory increase < 5MB | T029, T030 | T045 | < 5MB | ✅ |
-| **NFR-007** | Error messages actionable | T019, T035 | T041 | Clear guidance | ✅ |
-| **NFR-008** | Response validation graceful | T023 | T040, T046 | Show cached data | ✅ |
+| NFR ID      | Requirement                      | Task IDs   | Test Coverage | Target           | Status |
+| ----------- | -------------------------------- | ---------- | ------------- | ---------------- | ------ |
+| **NFR-001** | Initial load < 5s (target 2s)    | T011, T025 | T045          | < 5s             | ✅     |
+| **NFR-002** | API polling non-blocking (async) | T020, T029 | T045          | No frame drops   | ✅     |
+| **NFR-003** | API timeout after 10s            | T012       | T037, T045    | 10s max          | ✅     |
+| **NFR-004** | No new npm dependencies          | All tasks  | T045          | 0 new            | ✅     |
+| **NFR-005** | Admin keys stored as secrets     | T001       | Manual test   | Masked in UI     | ✅     |
+| **NFR-006** | Memory increase < 5MB            | T029, T030 | T045          | < 5MB            | ✅     |
+| **NFR-007** | Error messages actionable        | T019, T035 | T041          | Clear guidance   | ✅     |
+| **NFR-008** | Response validation graceful     | T023       | T040, T046    | Show cached data | ✅     |
 
 ---
 
@@ -106,72 +112,68 @@ This document provides complete traceability between feature requirements (user 
 
 ### 2.1 User Story 1: View Anthropic API Usage
 
-| AC # | Acceptance Criterion | Implementation Tasks | Test Method | Validation |
-|------|---------------------|---------------------|------------|------------|
-| **AC 1.1** | Panel displays input, output, cached tokens for Anthropic usage | T005, T006, T009, T011 | Integration test (T039) | Mock Anthropic API response → verify tokens displayed |
-| **AC 1.2** | Panel displays total cost in USD for Anthropic usage | T006, T009, T011 | Integration test (T039) | Mock cost API → verify USD conversion (cents/100) |
-| **AC 1.3** | Data refreshes automatically every 60s when admin key configured | T020 | Integration test (T038) | Wait 60s → verify panel updates |
-| **AC 1.4** | Error messages actionable and guide users | T012, T019, T035 | Manual test (T041) | Invalid key → verify "Configure admin key" message with link |
+| AC #       | Acceptance Criterion                                             | Implementation Tasks   | Test Method             | Validation                                                   |
+| ---------- | ---------------------------------------------------------------- | ---------------------- | ----------------------- | ------------------------------------------------------------ |
+| **AC 1.1** | Panel displays input, output, cached tokens for Anthropic usage  | T005, T006, T009, T011 | Integration test (T039) | Mock Anthropic API response → verify tokens displayed        |
+| **AC 1.2** | Panel displays total cost in USD for Anthropic usage             | T006, T009, T011       | Integration test (T039) | Mock cost API → verify USD conversion (cents/100)            |
+| **AC 1.3** | Data refreshes automatically every 60s when admin key configured | T020                   | Integration test (T038) | Wait 60s → verify panel updates                              |
+| **AC 1.4** | Error messages actionable and guide users                        | T012, T019, T035       | Manual test (T041)      | Invalid key → verify "Configure admin key" message with link |
 
 **Task Coverage**: 8 tasks (T005, T006, T009, T011, T012, T019, T020, T035)
-**Test Coverage**: Unit (T037), Integration (T039), Manual (T041)
-**Status**: ✅ PASS
+**Test Coverage**: Unit (T037), Integration (T039), Manual (T041) **Status**: ✅
+PASS
 
 ---
 
 ### 2.2 User Story 2: View OpenAI API Usage
 
-| AC # | Acceptance Criterion | Implementation Tasks | Test Method | Validation |
-|------|---------------------|---------------------|------------|------------|
-| **AC 2.1** | Panel displays input, output tokens for OpenAI | T007, T008, T010, T011 | Integration test (T039) | Mock OpenAI API → verify tokens displayed |
-| **AC 2.2** | Multiple providers shown simultaneously | T011, T017 | Integration test (T039) | Both admin keys configured → verify separate sections |
-| **AC 2.3** | Rate limiting handled gracefully with backoff | T014, T012 | Integration test (T037) | Simulate 429 → verify exponential backoff (2s, 4s, 8s) |
+| AC #       | Acceptance Criterion                           | Implementation Tasks   | Test Method             | Validation                                             |
+| ---------- | ---------------------------------------------- | ---------------------- | ----------------------- | ------------------------------------------------------ |
+| **AC 2.1** | Panel displays input, output tokens for OpenAI | T007, T008, T010, T011 | Integration test (T039) | Mock OpenAI API → verify tokens displayed              |
+| **AC 2.2** | Multiple providers shown simultaneously        | T011, T017             | Integration test (T039) | Both admin keys configured → verify separate sections  |
+| **AC 2.3** | Rate limiting handled gracefully with backoff  | T014, T012             | Integration test (T037) | Simulate 429 → verify exponential backoff (2s, 4s, 8s) |
 
-**Task Coverage**: 6 tasks (T007, T008, T010, T011, T012, T014, T017)
-**Test Coverage**: Unit (T037), Integration (T039)
-**Status**: ✅ PASS
+**Task Coverage**: 6 tasks (T007, T008, T010, T011, T012, T014, T017) **Test
+Coverage**: Unit (T037), Integration (T039) **Status**: ✅ PASS
 
 ---
 
 ### 2.3 User Story 3: Configure Admin API Keys
 
-| AC # | Acceptance Criterion | Implementation Tasks | Test Method | Validation |
-|------|---------------------|---------------------|------------|------------|
-| **AC 3.1** | Settings appear in VSCode UI under "Gofer > AI Usage" | T001 | Manual test (T041) | Open Settings → search "gofer admin" → verify both keys visible |
-| **AC 3.2** | Config changes trigger re-fetch within 5 seconds | T021 | Integration test (T038) | Change admin key → measure time to panel update |
-| **AC 3.3** | Admin keys marked as secrets, not visible in shared settings | T001 | Manual test (T041) | Inspect settings.json → verify keys masked in UI |
+| AC #       | Acceptance Criterion                                         | Implementation Tasks | Test Method             | Validation                                                      |
+| ---------- | ------------------------------------------------------------ | -------------------- | ----------------------- | --------------------------------------------------------------- |
+| **AC 3.1** | Settings appear in VSCode UI under "Gofer > AI Usage"        | T001                 | Manual test (T041)      | Open Settings → search "gofer admin" → verify both keys visible |
+| **AC 3.2** | Config changes trigger re-fetch within 5 seconds             | T021                 | Integration test (T038) | Change admin key → measure time to panel update                 |
+| **AC 3.3** | Admin keys marked as secrets, not visible in shared settings | T001                 | Manual test (T041)      | Inspect settings.json → verify keys masked in UI                |
 
-**Task Coverage**: 4 tasks (T001, T021, T028, T043)
-**Test Coverage**: Unit (T047), Integration (T038), Manual (T041)
-**Status**: ✅ PASS
+**Task Coverage**: 4 tasks (T001, T021, T028, T043) **Test Coverage**: Unit
+(T047), Integration (T038), Manual (T041) **Status**: ✅ PASS
 
 ---
 
 ### 2.4 User Story 4: Graceful Degradation
 
-| AC # | Acceptance Criterion | Implementation Tasks | Test Method | Validation |
-|------|---------------------|---------------------|------------|------------|
-| **AC 4.1** | Three-tier fallback: API → "Admin required" → "Not configured" | T018 | Integration test (T039, T040) | Test each tier independently |
-| **AC 4.2** | Each provider degrades independently | T018, T019 | Integration test (T039) | Configure only Anthropic → verify partial data |
-| **AC 4.3** | Google shows "Billing API not available" | T018 | Integration test (T039) | Google provider → verify message appears |
+| AC #       | Acceptance Criterion                                           | Implementation Tasks | Test Method                   | Validation                                     |
+| ---------- | -------------------------------------------------------------- | -------------------- | ----------------------------- | ---------------------------------------------- |
+| **AC 4.1** | Three-tier fallback: API → "Admin required" → "Not configured" | T018                 | Integration test (T039, T040) | Test each tier independently                   |
+| **AC 4.2** | Each provider degrades independently                           | T018, T019           | Integration test (T039)       | Configure only Anthropic → verify partial data |
+| **AC 4.3** | Google shows "Billing API not available"                       | T018                 | Integration test (T039)       | Google provider → verify message appears       |
 
-**Task Coverage**: 5 tasks (T013, T018, T019, T039, T040)
-**Test Coverage**: Integration (T039, T040)
-**Status**: ✅ PASS
+**Task Coverage**: 5 tasks (T013, T018, T019, T039, T040) **Test Coverage**:
+Integration (T039, T040) **Status**: ✅ PASS
 
 ---
 
 ### 2.5 User Story 5: Automatic Refresh
 
-| AC # | Acceptance Criterion | Implementation Tasks | Test Method | Validation |
-|------|---------------------|---------------------|------------|------------|
-| **AC 5.1** | 60s polling interval for API calls | T020 | Integration test (T038) | Wait 60s → verify next fetch triggered |
-| **AC 5.2** | Polling stops when panel not visible | T022, T032 | Integration test (T038) | Hide panel → verify polling paused |
-| **AC 5.3** | First view after idle (>10min) triggers immediate fetch | T031 | Integration test (T038) | Wait 10+ min, return → measure time to refresh |
+| AC #       | Acceptance Criterion                                    | Implementation Tasks | Test Method             | Validation                                     |
+| ---------- | ------------------------------------------------------- | -------------------- | ----------------------- | ---------------------------------------------- |
+| **AC 5.1** | 60s polling interval for API calls                      | T020                 | Integration test (T038) | Wait 60s → verify next fetch triggered         |
+| **AC 5.2** | Polling stops when panel not visible                    | T022, T032           | Integration test (T038) | Hide panel → verify polling paused             |
+| **AC 5.3** | First view after idle (>10min) triggers immediate fetch | T031                 | Integration test (T038) | Wait 10+ min, return → measure time to refresh |
 
-**Task Coverage**: 5 tasks (T020, T021, T031, T032, T038)
-**Test Coverage**: Unit (T038), Integration (T038)
-**Status**: ✅ PASS
+**Task Coverage**: 5 tasks (T020, T021, T031, T032, T038) **Test Coverage**:
+Unit (T038), Integration (T038) **Status**: ✅ PASS
 
 ---
 
@@ -179,29 +181,30 @@ This document provides complete traceability between feature requirements (user 
 
 ### 3.1 Phase-by-Phase Requirement Mapping
 
-| Phase | Duration | Goal | Tasks | FRs Covered | US Covered | Deliverables |
-|-------|----------|------|-------|-------------|-----------|--------------|
-| **Phase 1: Setup** | 2h | Configure settings & interfaces | T001-T004 | FR-005 (partial) | - | Settings, interfaces |
-| **Phase 2: API Client** | 8h | Implement HTTP client + transform | T005-T016 | FR-001 to FR-025 (all) | US-1, US-2 | UsageApiClient, response types |
-| **Phase 3: Integration** | 6h | Wire AIUsageMonitor + fallback | T017-T023 | FR-015 to FR-020 | US-3, US-4, US-5 | Polling, fallback, config listener |
-| **Phase 4: Wiring** | 4h | Extend extension.ts + cleanup | T024-T030 | FR-020, FR-021 (verify) | - | Extension wiring, disposal |
-| **Phase 5: Polish** | 3h | Optimize & enhance | T031-T036 | FR-015, FR-019, FR-025 | US-5 | Idle detection, telemetry |
-| **Phase 6: Testing** | 8h | Tests + documentation | T037-T048 | All (verification) | All | Tests, quickstart, CHANGELOG |
+| Phase                    | Duration | Goal                              | Tasks     | FRs Covered             | US Covered       | Deliverables                       |
+| ------------------------ | -------- | --------------------------------- | --------- | ----------------------- | ---------------- | ---------------------------------- |
+| **Phase 1: Setup**       | 2h       | Configure settings & interfaces   | T001-T004 | FR-005 (partial)        | -                | Settings, interfaces               |
+| **Phase 2: API Client**  | 8h       | Implement HTTP client + transform | T005-T016 | FR-001 to FR-025 (all)  | US-1, US-2       | UsageApiClient, response types     |
+| **Phase 3: Integration** | 6h       | Wire AIUsageMonitor + fallback    | T017-T023 | FR-015 to FR-020        | US-3, US-4, US-5 | Polling, fallback, config listener |
+| **Phase 4: Wiring**      | 4h       | Extend extension.ts + cleanup     | T024-T030 | FR-020, FR-021 (verify) | -                | Extension wiring, disposal         |
+| **Phase 5: Polish**      | 3h       | Optimize & enhance                | T031-T036 | FR-015, FR-019, FR-025  | US-5             | Idle detection, telemetry          |
+| **Phase 6: Testing**     | 8h       | Tests + documentation             | T037-T048 | All (verification)      | All              | Tests, quickstart, CHANGELOG       |
 
 **Phase Dependencies**: 1 → 2 → 3 → 4 → 5 → 6 (sequential)
 
-**Critical Path**: All 6 phases must complete in sequence; 14 tasks offer parallelization opportunities within phases.
+**Critical Path**: All 6 phases must complete in sequence; 14 tasks offer
+parallelization opportunities within phases.
 
 ---
 
 ### 3.2 Requirements → Phase Assignment
 
-| Requirement Type | Phase 1 | Phase 2 | Phase 3 | Phase 4 | Phase 5 | Phase 6 | Total |
-|-----------------|---------|---------|---------|---------|---------|---------|-------|
-| **User Stories** | - | 2 (US-1,2) | 3 (US-3,4,5) | - | 1 (US-5) | - | 5 ✅ |
-| **Functional Reqs** | 1 | 21 | 2 | 1 | 1 | - | 25 ✅ |
-| **NFR** | 1 | 2 | 2 | 2 | - | 1 | 8 ✅ |
-| **Success Criteria** | 1 | 6 | 2 | - | 1 | 4 | 10 ✅ |
+| Requirement Type     | Phase 1 | Phase 2    | Phase 3      | Phase 4 | Phase 5  | Phase 6 | Total |
+| -------------------- | ------- | ---------- | ------------ | ------- | -------- | ------- | ----- |
+| **User Stories**     | -       | 2 (US-1,2) | 3 (US-3,4,5) | -       | 1 (US-5) | -       | 5 ✅  |
+| **Functional Reqs**  | 1       | 21         | 2            | 1       | 1        | -       | 25 ✅ |
+| **NFR**              | 1       | 2          | 2            | 2       | -        | 1       | 8 ✅  |
+| **Success Criteria** | 1       | 6          | 2            | -       | 1        | 4       | 10 ✅ |
 
 ---
 
@@ -209,14 +212,15 @@ This document provides complete traceability between feature requirements (user 
 
 ### 4.1 External Provider APIs
 
-| Endpoint | Provider | Method | Purpose | Contract File | FR Coverage | Status |
-|----------|----------|--------|---------|---------------|-------------|--------|
-| **GET /v1/organizations/usage_report/messages** | Anthropic | GET | Token usage by model | api.md § Endpoint 1 | FR-001,6,7,8,10,12,13,25 | ✅ Specified |
-| **GET /v1/organizations/cost_report** | Anthropic | GET | Cost data (USD cents) | api.md § Endpoint 2 | FR-002,8,10,12,13 | ✅ Specified |
-| **GET /v1/organization/usage/completions** | OpenAI | GET | Token usage by model | api.md § Endpoint 3 | FR-003,9,10,14 | ✅ Specified |
-| **GET /v1/organization/costs** | OpenAI | GET | Cost data (USD) | api.md § Endpoint 4 | FR-004,9,10,14 | ✅ Specified |
+| Endpoint                                        | Provider  | Method | Purpose               | Contract File       | FR Coverage              | Status       |
+| ----------------------------------------------- | --------- | ------ | --------------------- | ------------------- | ------------------------ | ------------ |
+| **GET /v1/organizations/usage_report/messages** | Anthropic | GET    | Token usage by model  | api.md § Endpoint 1 | FR-001,6,7,8,10,12,13,25 | ✅ Specified |
+| **GET /v1/organizations/cost_report**           | Anthropic | GET    | Cost data (USD cents) | api.md § Endpoint 2 | FR-002,8,10,12,13        | ✅ Specified |
+| **GET /v1/organization/usage/completions**      | OpenAI    | GET    | Token usage by model  | api.md § Endpoint 3 | FR-003,9,10,14           | ✅ Specified |
+| **GET /v1/organization/costs**                  | OpenAI    | GET    | Cost data (USD)       | api.md § Endpoint 4 | FR-004,9,10,14           | ✅ Specified |
 
 **Contract Details**:
+
 - All 4 endpoints fully specified in `contracts/api.md`
 - Request/response schemas: ✅ Defined
 - Error handling: ✅ 5+ error codes per endpoint
@@ -229,22 +233,22 @@ This document provides complete traceability between feature requirements (user 
 
 ### 4.2 API Response Schemas → Data Model Mapping
 
-| API Response Type | Data Model Entity | Transformation Task | Test Coverage |
-|------------------|------------------|-------------------|----------------|
-| `AnthropicUsageResponse` | `AnthropicUsageBucket[]` | T009 (transform) | T037 (unit), T039 (integration) |
-| `AnthropicCostResponse` | `AnthropicCostBucket[]` | T009 (transform) | T037, T039 |
-| `OpenAiUsageResponse` | `OpenAiUsageByModel[]` | T010 (transform) | T037, T039 |
-| `OpenAiCostResponse` | `OpenAiCostResult[]` | T010 (transform) | T037, T039 |
-| All provider responses | `UsageSummary` (existing) | T011 (aggregate) | T037, T039 |
+| API Response Type        | Data Model Entity         | Transformation Task | Test Coverage                   |
+| ------------------------ | ------------------------- | ------------------- | ------------------------------- |
+| `AnthropicUsageResponse` | `AnthropicUsageBucket[]`  | T009 (transform)    | T037 (unit), T039 (integration) |
+| `AnthropicCostResponse`  | `AnthropicCostBucket[]`   | T009 (transform)    | T037, T039                      |
+| `OpenAiUsageResponse`    | `OpenAiUsageByModel[]`    | T010 (transform)    | T037, T039                      |
+| `OpenAiCostResponse`     | `OpenAiCostResult[]`      | T010 (transform)    | T037, T039                      |
+| All provider responses   | `UsageSummary` (existing) | T011 (aggregate)    | T037, T039                      |
 
 ---
 
 ### 4.3 Authentication Coverage
 
-| Provider | Auth Method | Key Format | Validation Task | Test | Status |
-|----------|------------|-----------|-----------------|------|--------|
-| **Anthropic** | `x-api-key` header | `sk-ant-admin-*` | T005, T006, T028 | T037, T047 | ✅ |
-| **OpenAI** | `Authorization: Bearer` | `sk-org-*` | T007, T008, T028 | T037, T047 | ✅ |
+| Provider      | Auth Method             | Key Format       | Validation Task  | Test       | Status |
+| ------------- | ----------------------- | ---------------- | ---------------- | ---------- | ------ |
+| **Anthropic** | `x-api-key` header      | `sk-ant-admin-*` | T005, T006, T028 | T037, T047 | ✅     |
+| **OpenAI**    | `Authorization: Bearer` | `sk-org-*`       | T007, T008, T028 | T037, T047 | ✅     |
 
 ---
 
@@ -299,19 +303,19 @@ OVERALL TRACEABILITY: 100% ✅ ALL REQUIREMENTS COVERED
 
 All specification artifacts have corresponding implementation coverage:
 
-| Artifact Type | File | Completeness | Status |
-|---------------|------|--------------|--------|
-| User Stories | spec.md | 5/5 stories | ✅ 100% |
-| Acceptance Criteria | spec.md | 16/16 criteria | ✅ 100% |
-| Functional Requirements | spec.md | 25/25 FRs | ✅ 100% |
-| Non-Functional Requirements | spec.md | 8/8 NFRs | ✅ 100% |
-| Success Criteria | spec.md | 10/10 criteria | ✅ 100% |
-| Edge Cases | spec.md | 9/9 cases | ✅ 100% |
-| API Endpoints | api.md | 4/4 endpoints | ✅ 100% |
-| Data Models | data-model.md | 5 new + 2 existing | ✅ 100% |
-| Configuration Settings | package.json (plan) | 3 settings | ✅ 100% |
-| Implementation Tasks | tasks.md | 48/48 tasks | ✅ 100% |
-| Test Cases | tasks.md § Phase 6 | 23 test cases | ✅ 100% |
+| Artifact Type               | File                | Completeness       | Status  |
+| --------------------------- | ------------------- | ------------------ | ------- |
+| User Stories                | spec.md             | 5/5 stories        | ✅ 100% |
+| Acceptance Criteria         | spec.md             | 16/16 criteria     | ✅ 100% |
+| Functional Requirements     | spec.md             | 25/25 FRs          | ✅ 100% |
+| Non-Functional Requirements | spec.md             | 8/8 NFRs           | ✅ 100% |
+| Success Criteria            | spec.md             | 10/10 criteria     | ✅ 100% |
+| Edge Cases                  | spec.md             | 9/9 cases          | ✅ 100% |
+| API Endpoints               | api.md              | 4/4 endpoints      | ✅ 100% |
+| Data Models                 | data-model.md       | 5 new + 2 existing | ✅ 100% |
+| Configuration Settings      | package.json (plan) | 3 settings         | ✅ 100% |
+| Implementation Tasks        | tasks.md            | 48/48 tasks        | ✅ 100% |
+| Test Cases                  | tasks.md § Phase 6  | 23 test cases      | ✅ 100% |
 
 **No gaps identified. All requirements traced to implementation.**
 
@@ -345,19 +349,20 @@ Success Criteria by Metric Type:
 
 ### 6.1 Requirements → Test Cases
 
-| Test Phase | File | Tasks | Coverage | Status |
-|-----------|------|-------|----------|--------|
-| **Unit Tests** | `usageApiClient.test.ts` | T037 | 25 FRs + 10 NFRs | ✅ 10 test cases |
-| **Unit Tests** | `aiUsageMonitor.test.ts` | T038 | 5 FRs + polling logic | ✅ 8 test cases |
-| **Integration Tests** | `providerBilling.test.ts` | T039, T040 | 5 US + 9 edge cases | ✅ 5 test cases |
-| **Performance Tests** | `providerBilling.test.ts` (T045) | T045 | 4 NFRs | ✅ 4 test cases |
-| **Configuration Tests** | `config.test.ts` | T047 | FR-005, FR-019 | ✅ 4 test cases |
-| **E2E Tests** | `usagePanel.test.ts` | T048 | 3 US + SC-001,002,008 | ✅ 1 test case |
-| **Manual Tests** | Task 5.10 | T041 | All 5 US | ✅ 10 manual checks |
+| Test Phase              | File                             | Tasks      | Coverage              | Status              |
+| ----------------------- | -------------------------------- | ---------- | --------------------- | ------------------- |
+| **Unit Tests**          | `usageApiClient.test.ts`         | T037       | 25 FRs + 10 NFRs      | ✅ 10 test cases    |
+| **Unit Tests**          | `aiUsageMonitor.test.ts`         | T038       | 5 FRs + polling logic | ✅ 8 test cases     |
+| **Integration Tests**   | `providerBilling.test.ts`        | T039, T040 | 5 US + 9 edge cases   | ✅ 5 test cases     |
+| **Performance Tests**   | `providerBilling.test.ts` (T045) | T045       | 4 NFRs                | ✅ 4 test cases     |
+| **Configuration Tests** | `config.test.ts`                 | T047       | FR-005, FR-019        | ✅ 4 test cases     |
+| **E2E Tests**           | `usagePanel.test.ts`             | T048       | 3 US + SC-001,002,008 | ✅ 1 test case      |
+| **Manual Tests**        | Task 5.10                        | T041       | All 5 US              | ✅ 10 manual checks |
 
 **Total Test Cases**: 42 automated + 10 manual = 52 test scenarios
 
 **Test Coverage by Requirement Type**:
+
 - User Stories: 5/5 → 100% test coverage
 - Functional Requirements: 25/25 → 100% test coverage
 - Success Criteria: 10/10 → 100% test coverage
@@ -366,32 +371,32 @@ Success Criteria by Metric Type:
 
 ### 6.2 Test Case → Requirements Mapping
 
-| Test ID | Type | Requirement(s) | Scenario | Expected Result |
-|---------|------|----------------|----------|-----------------|
-| **UT-001** | Unit | FR-001, FR-005 | Valid Anthropic key → call usage API | Returns parsed response |
-| **UT-002** | Unit | FR-002 | Call cost API → convert cents to USD | $245.00 (24500 cents ÷ 100) |
-| **UT-003** | Unit | FR-003, FR-009 | Unix timestamp query → OpenAI API | Correct time format used |
-| **UT-004** | Unit | FR-022 | 503 error 1st, 2nd attempt → 200 3rd | Retries with 2s, 4s backoff |
-| **UT-005** | Unit | FR-023 | API fails after initial success | Returns cached response |
-| **UT-006** | Unit | FR-024 | Log API error | No API key exposed in logs |
-| **UT-007** | Unit | FR-025 | Sum cache tokens separately | cache_creation + cached tracked independently |
-| **UT-008** | Unit | NFR-003 | Request > 10s | Timeout error thrown |
-| **UT-009** | Unit | FR-011 | Transform Anthropic response → UsageSummary | totalInputTokens, totalCostUsd correct |
-| **UT-010** | Unit | FR-011 | Transform OpenAI response → UsageSummary | Same shape as Anthropic |
-| **IT-001** | Integration | US-1, US-2 | Both admin keys configured | Panel shows both providers |
-| **IT-002** | Integration | US-4 | No admin keys configured | Panel shows "Not configured" per provider |
-| **IT-003** | Integration | US-4 | Google provider | Shows "Billing API not available" |
-| **IT-004** | Integration | FR-022 | Simulate 429 rate limit | Backoff respected, retry succeeds |
-| **IT-005** | Integration | SC-006 | Provider API down (503) | Recovers within 60s after 3 retries |
-| **PT-001** | Performance | NFR-001, SC-003 | Panel open with admin keys | Renders in < 5 seconds (target 2s) |
-| **PT-002** | Performance | NFR-006, SC-010 | UsageApiClient instantiation | Memory increase < 5MB |
-| **PT-003** | Performance | NFR-002 | Polling during active VSCode | No UI frame drops |
-| **PT-004** | Performance | NFR-004 | Check package.json | No new npm dependencies |
-| **CT-001** | Config | FR-005, FR-019 | Invalid key format | Validation warning logged |
-| **CT-002** | Config | FR-015 | Change polling interval | Applied within 5s |
-| **CT-003** | Config | T026 | Toggle `useApiClient` flag | Switches data source correctly |
-| **CT-004** | Config | T047 | Out-of-range polling interval | Clamped to min/max |
-| **E2E-001** | E2E | US-1, US-2, SC-008 | Full extension activation | Panel renders, calls APIs, shows data |
+| Test ID     | Type        | Requirement(s)     | Scenario                                    | Expected Result                               |
+| ----------- | ----------- | ------------------ | ------------------------------------------- | --------------------------------------------- |
+| **UT-001**  | Unit        | FR-001, FR-005     | Valid Anthropic key → call usage API        | Returns parsed response                       |
+| **UT-002**  | Unit        | FR-002             | Call cost API → convert cents to USD        | $245.00 (24500 cents ÷ 100)                   |
+| **UT-003**  | Unit        | FR-003, FR-009     | Unix timestamp query → OpenAI API           | Correct time format used                      |
+| **UT-004**  | Unit        | FR-022             | 503 error 1st, 2nd attempt → 200 3rd        | Retries with 2s, 4s backoff                   |
+| **UT-005**  | Unit        | FR-023             | API fails after initial success             | Returns cached response                       |
+| **UT-006**  | Unit        | FR-024             | Log API error                               | No API key exposed in logs                    |
+| **UT-007**  | Unit        | FR-025             | Sum cache tokens separately                 | cache_creation + cached tracked independently |
+| **UT-008**  | Unit        | NFR-003            | Request > 10s                               | Timeout error thrown                          |
+| **UT-009**  | Unit        | FR-011             | Transform Anthropic response → UsageSummary | totalInputTokens, totalCostUsd correct        |
+| **UT-010**  | Unit        | FR-011             | Transform OpenAI response → UsageSummary    | Same shape as Anthropic                       |
+| **IT-001**  | Integration | US-1, US-2         | Both admin keys configured                  | Panel shows both providers                    |
+| **IT-002**  | Integration | US-4               | No admin keys configured                    | Panel shows "Not configured" per provider     |
+| **IT-003**  | Integration | US-4               | Google provider                             | Shows "Billing API not available"             |
+| **IT-004**  | Integration | FR-022             | Simulate 429 rate limit                     | Backoff respected, retry succeeds             |
+| **IT-005**  | Integration | SC-006             | Provider API down (503)                     | Recovers within 60s after 3 retries           |
+| **PT-001**  | Performance | NFR-001, SC-003    | Panel open with admin keys                  | Renders in < 5 seconds (target 2s)            |
+| **PT-002**  | Performance | NFR-006, SC-010    | UsageApiClient instantiation                | Memory increase < 5MB                         |
+| **PT-003**  | Performance | NFR-002            | Polling during active VSCode                | No UI frame drops                             |
+| **PT-004**  | Performance | NFR-004            | Check package.json                          | No new npm dependencies                       |
+| **CT-001**  | Config      | FR-005, FR-019     | Invalid key format                          | Validation warning logged                     |
+| **CT-002**  | Config      | FR-015             | Change polling interval                     | Applied within 5s                             |
+| **CT-003**  | Config      | T026               | Toggle `useApiClient` flag                  | Switches data source correctly                |
+| **CT-004**  | Config      | T047               | Out-of-range polling interval               | Clamped to min/max                            |
+| **E2E-001** | E2E         | US-1, US-2, SC-008 | Full extension activation                   | Panel renders, calls APIs, shows data         |
 
 ---
 
@@ -473,7 +478,8 @@ Phase 6: Testing (8h)
 
 **Sequential Constraint**: Phases must complete in order (1 → 2 → 3 → 4 → 5 → 6)
 
-**Parallelization**: Within Phase 2 (6 tasks), Phase 6 (4 tasks) can run in parallel groups
+**Parallelization**: Within Phase 2 (6 tasks), Phase 6 (4 tasks) can run in
+parallel groups
 
 **Estimated Time Savings**: 21% with 2 developers, 32% with 3 developers
 
@@ -974,12 +980,11 @@ GRAND TOTAL: 302 specification + requirement items
 
 **Traceability Matrix Status**: ✅ COMPLETE
 
-**Generated By**: Claude Code
-**Generation Date**: 2026-03-15
-**Specification Version**: Feature 026 (Draft)
-**Plan Version**: ready (2026-03-15)
+**Generated By**: Claude Code **Generation Date**: 2026-03-15 **Specification
+Version**: Feature 026 (Draft) **Plan Version**: ready (2026-03-15)
 
 **Coverage Assessment**:
+
 - User Stories: 5/5 (100%)
 - Functional Requirements: 25/25 (100%)
 - Non-Functional Requirements: 8/8 (100%)
@@ -1015,6 +1020,7 @@ Before starting implementation, verify:
 **For use with `/6_gofer_validate` command**:
 
 This traceability matrix will be used to assess:
+
 - **Requirement Coverage**: All 73 requirements have tasks and tests
 - **Task Completion**: All 48 tasks implemented
 - **Test Authenticity**: 52 test scenarios designed
@@ -1030,14 +1036,14 @@ This traceability matrix will be used to assess:
 
 ### Key Files Referenced
 
-| File | Purpose | Location |
-|------|---------|----------|
-| spec.md | Feature specification | `/Users/douglaswross/Code/gofer/.specify/specs/026-provider-api-usage/spec.md` |
-| plan.md | Implementation plan | `...026-provider-api-usage/plan.md` |
-| tasks.md | Task breakdown | `...026-provider-api-usage/tasks.md` |
-| data-model.md | Data model definitions | `...026-provider-api-usage/data-model.md` |
-| api.md | API contracts | `...026-provider-api-usage/contracts/api.md` |
-| traceability.md | This document | `...026-provider-api-usage/traceability.md` |
+| File            | Purpose                | Location                                                                           |
+| --------------- | ---------------------- | ---------------------------------------------------------------------------------- |
+| spec.md         | Feature specification  | `/Users/douglaswross/Code/eai-gofer/.specify/specs/026-provider-api-usage/spec.md` |
+| plan.md         | Implementation plan    | `...026-provider-api-usage/plan.md`                                                |
+| tasks.md        | Task breakdown         | `...026-provider-api-usage/tasks.md`                                               |
+| data-model.md   | Data model definitions | `...026-provider-api-usage/data-model.md`                                          |
+| api.md          | API contracts          | `...026-provider-api-usage/contracts/api.md`                                       |
+| traceability.md | This document          | `...026-provider-api-usage/traceability.md`                                        |
 
 ### Critical Tasks (Path to Feature Complete)
 
@@ -1058,4 +1064,5 @@ This traceability matrix will be used to assess:
 
 **END OF TRACEABILITY MATRIX**
 
-Generated: 2026-03-15 | Feature: 026-provider-api-usage | Status: READY FOR IMPLEMENTATION ✅
+Generated: 2026-03-15 | Feature: 026-provider-api-usage | Status: READY FOR
+IMPLEMENTATION ✅

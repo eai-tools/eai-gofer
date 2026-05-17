@@ -277,18 +277,17 @@ package_extension() {
     
     # Create output directory
     mkdir -p "$OUTPUT_DIR"
+
+    PACKAGE_VERSION=$(node -p "require('./package.json').version")
+    VSIX_NAME="eai-gofer-${PACKAGE_VERSION}.vsix"
     
     # Package with vsce
-    vsce package --no-dependencies
+    vsce package --no-dependencies --out "$VSIX_NAME"
     
     if [ $? -ne 0 ]; then
         print_error "Extension packaging failed"
         exit 1
     fi
-    
-    # Get the generated VSIX name
-    PACKAGE_VERSION=$(node -p "require('./package.json').version")
-    VSIX_NAME="gofer-${PACKAGE_VERSION}.vsix"
     
     # Move to output directory if different
     if [ "$OUTPUT_DIR" != "$EXTENSION_DIR" ]; then

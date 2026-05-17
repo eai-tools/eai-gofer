@@ -17,7 +17,7 @@ suite('enterpriseai reference fallback notice (extension integration)', () => {
     await fs.rm(fixturesDir, { recursive: true, force: true });
     const fallbackDir = path.join(fixturesDir, '.specify', 'references', 'eai');
     await fs.mkdir(fallbackDir, { recursive: true });
-    await fs.writeFile(path.join(fallbackDir, 'eai-cli.md'), '# eai cli fallback\n', 'utf8');
+    await fs.writeFile(path.join(fallbackDir, 'eai.md'), '# eai cli fallback\n', 'utf8');
     await fs.writeFile(
       path.join(fallbackDir, 'vertical-template.md'),
       '# vertical fallback\n',
@@ -51,7 +51,7 @@ suite('enterpriseai reference fallback notice (extension integration)', () => {
     const result = await resolveEnterpriseAiReferences(
       {
         runId: 'run_029_0001',
-        referenceTypes: ['eai_cli_docs', 'vertical_template_docs'],
+        referenceTypes: ['eai_docs', 'vertical_template_docs'],
         externalReferencesEnabled: false,
         fallbackPath: '.specify/references/eai/',
       },
@@ -71,7 +71,7 @@ suite('enterpriseai reference fallback notice (extension integration)', () => {
     assert.strictEqual(result.response.status, 'resolved');
     assert.strictEqual(result.response.userNoticeRequired, true);
     assert.deepStrictEqual(result.response.unavailableExternalReferences, [
-      'eai-cli',
+      'eai',
       'vertical-template',
     ]);
     assert.strictEqual(
@@ -89,12 +89,44 @@ suite('enterpriseai reference fallback notice (extension integration)', () => {
     assert.strictEqual(eventHandlers.consumerCount(), 0);
   });
 
+  test('accepts legacy eai reference aliases and fallback filenames', async () => {
+    const fallbackDir = path.join(fixturesDir, '.specify', 'references', 'eai');
+    const legacyReferenceName = ['eai', 'cli'].join('-');
+    const legacyDocsReferenceName = ['eai', 'cli', 'docs'].join('_');
+    await fs.rm(path.join(fallbackDir, 'eai.md'), { force: true });
+    await fs.writeFile(
+      path.join(fallbackDir, `${legacyReferenceName}.md`),
+      '# legacy eai fallback\n',
+      'utf8'
+    );
+
+    const result = await resolveEnterpriseAiReferences(
+      {
+        runId: 'run_legacy_eai_alias',
+        referenceTypes: [legacyDocsReferenceName],
+        externalReferencesEnabled: false,
+        fallbackPath: '.specify/references/eai/',
+      },
+      {
+        workspaceRoot: fixturesDir,
+      }
+    );
+
+    assert.deepStrictEqual(result.response.resolvedReferences, [
+      {
+        type: 'eai',
+        source: 'local-fallback',
+        path: `.specify/references/eai/${legacyReferenceName}.md`,
+      },
+    ]);
+  });
+
   test('rejects fallback paths outside workspace allowlist', async () => {
     await assert.rejects(
       resolveEnterpriseAiReferences(
         {
           runId: 'run_029_unsafe',
-          referenceTypes: ['eai-cli'],
+          referenceTypes: ['eai'],
           externalReferencesEnabled: false,
           fallbackPath: '/etc',
         },
@@ -110,20 +142,20 @@ suite('enterpriseai reference fallback notice (extension integration)', () => {
     const result = await resolveEnterpriseAiReferences(
       {
         runId: 'run_029_external_unreachable',
-        referenceTypes: ['eai-cli'],
+        referenceTypes: ['eai'],
         externalReferencesEnabled: true,
         fallbackPath: '.specify/references/eai/',
       },
       {
         workspaceRoot: fixturesDir,
-        externalReferenceResolver: (): string | undefined => 'https://example.invalid/eai-cli',
+        externalReferenceResolver: (): string | undefined => 'https://example.invalid/eai',
         externalReferenceAvailabilityChecker: async (): Promise<boolean> => false,
       }
     );
 
     assert.strictEqual(result.response.status, 'resolved');
     assert.strictEqual(result.response.userNoticeRequired, true);
-    assert.deepStrictEqual(result.response.unavailableExternalReferences, ['eai-cli']);
+    assert.deepStrictEqual(result.response.unavailableExternalReferences, ['eai']);
     assert.strictEqual(result.response.resolvedReferences[0]?.source, 'local-fallback');
   });
 });

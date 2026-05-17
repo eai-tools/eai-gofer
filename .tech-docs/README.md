@@ -1,11 +1,12 @@
 ---
 generated: true
-generated_at: "2026-05-16T17:57:36.381Z"
-source_commit: "2de388b2ea4e8c6081ab0fd8983ce52deeb17984"
+generated_at: '2026-05-16T17:57:36.381Z'
+source_commit: '2de388b2ea4e8c6081ab0fd8983ce52deeb17984'
 ---
+
 # Technical Documentation Index
 
-**Repository:** [eai-tools/gofer](https://github.com/eai-tools/gofer)
+**Repository:** [eai-tools/eai-gofer](https://github.com/eai-tools/eai-gofer)
 **Version:** 3.3.1 **Generated:** 2026-05-16T17:50:14Z
 
 This directory contains comprehensive technical documentation for the Gofer

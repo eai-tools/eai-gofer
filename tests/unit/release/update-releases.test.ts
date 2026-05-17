@@ -56,7 +56,7 @@ describe('update-releases.js', () => {
     const duplicateVsixPath = path.join(
       docsSiteStaticDir,
       'releases',
-      `gofer-${duplicateVersion}.vsix`
+      `eai-gofer-${duplicateVersion}.vsix`
     );
 
     fs.writeFileSync(
@@ -64,7 +64,7 @@ describe('update-releases.js', () => {
       JSON.stringify(
         {
           latest_version: '3.1.9',
-          repository: 'eai-tools/gofer',
+          repository: 'eai-tools/eai-gofer',
           last_updated: '2026-05-01T00:00:00.000Z',
           releases: [
             {
@@ -80,7 +80,7 @@ describe('update-releases.js', () => {
               version: '3.1.9',
               tag_name: 'v3.1.9',
               published_at: '2026-04-30T00:00:00.000Z',
-              download_url: 'https://eai-tools.github.io/gofer/releases/gofer-3.1.9.vsix',
+              download_url: 'https://eai-tools.github.io/eai-gofer/releases/eai-gofer-3.1.9.vsix',
               notes: 'Previous release',
               prerelease: false,
               size_mb: 8.5,
@@ -105,7 +105,7 @@ describe('update-releases.js', () => {
     expect(updated.releases[0].tag_name).toBe(`v${duplicateVersion}`);
     expect(updated.releases[0].notes).toBe('Fresh release notes');
     expect(updated.releases[0].download_url).toBe(
-      `https://eai-tools.github.io/gofer/releases/gofer-${duplicateVersion}.vsix`
+      `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-${duplicateVersion}.vsix`
     );
     expect(updated.releases[0].size_mb).toBe(1);
     expect(updated.releases[1].version).toBe('3.1.9');
@@ -114,14 +114,14 @@ describe('update-releases.js', () => {
   it('honors a custom download URL when one is provided', async () => {
     const version = '3.2.1';
     const customUrl =
-      'https://github.com/eai-tools/gofer/releases/download/v3.2.1/gofer-3.2.1.vsix';
+      'https://github.com/eai-tools/eai-gofer/releases/download/v3.2.1/eai-gofer-3.2.1.vsix';
 
     fs.writeFileSync(
       releasesPath,
       JSON.stringify(
         {
           latest_version: '3.2.0',
-          repository: 'eai-tools/gofer',
+          repository: 'eai-tools/eai-gofer',
           last_updated: '2026-05-01T00:00:00.000Z',
           releases: [],
         },

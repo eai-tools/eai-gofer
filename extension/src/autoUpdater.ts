@@ -9,6 +9,15 @@ import { promisify } from 'util';
 import { Logger } from './services/Logger';
 
 const execAsync = promisify(exec);
+const RELEASES_HOST = 'eai-tools.github.io';
+const RELEASES_PATH_PREFIX = '/eai-gofer/releases/';
+const GITHUB_RELEASES_HOST = 'github.com';
+const GITHUB_RELEASES_PATH_PREFIX = '/eai-tools/eai-gofer/releases/download/';
+const GITHUB_ASSET_HOSTS = new Set([
+  'objects.githubusercontent.com',
+  'github-releases.githubusercontent.com',
+]);
+const VSIX_FILE_PATTERN = /^(?:eai-gofer|gofer)-\d+\.\d+\.\d+\.vsix$/;
 
 interface ReleaseRecord {
   version: string;
@@ -34,10 +43,10 @@ export class AutoUpdater {
   constructor(
     githubRepo: string,
     currentVersion: string,
-    extensionName: string = 'gofer',
+    extensionName: string = 'eai-gofer',
     logger?: Logger
   ) {
-    this.githubRepo = githubRepo; // e.g., "eai-tools/gofer"
+    this.githubRepo = githubRepo; // e.g., "eai-tools/eai-gofer"
     this.currentVersion = currentVersion;
     this.extensionName = extensionName;
     this.logger = logger;
@@ -91,7 +100,7 @@ export class AutoUpdater {
     return new Promise((resolve, reject) => {
       const options = {
         hostname: 'eai-tools.github.io',
-        path: '/gofer/releases.json',
+        path: '/eai-gofer/releases.json',
         headers: {
           userAgent: 'VSCode-Extension-Updater',
           accept: 'application/json',
@@ -164,9 +173,14 @@ export class AutoUpdater {
   /**
    * Download file from URL
    */
-  private downloadFile(url: string, destPath: string): Promise<void> {
+  private downloadFile(url: string, destPath: string, redirectDepth = 0): Promise<void> {
     return new Promise((resolve, reject) => {
-      const file = fsSync.createWriteStream(destPath);
+      try {
+        this.assertAllowedDownloadUrl(url, redirectDepth > 0);
+      } catch (error) {
+        reject(error);
+        return;
+      }
 
       https
         .get(url, { headers: { userAgent: 'VSCode-Extension-Updater' } }, (response) => {
@@ -174,7 +188,22 @@ export class AutoUpdater {
           if (response.statusCode === 302 || response.statusCode === 301) {
             const redirectUrl = response.headers.location;
             if (redirectUrl) {
-              this.downloadFile(redirectUrl, destPath).then(resolve).catch(reject);
+              if (redirectDepth >= 3) {
+                reject(new Error('Too many redirects while downloading update'));
+                return;
+              }
+
+              const nextUrl = new URL(redirectUrl, url).toString();
+              try {
+                this.assertAllowedDownloadUrl(nextUrl, true);
+              } catch (error) {
+                reject(error);
+                return;
+              }
+
+              this.downloadFile(nextUrl, destPath, redirectDepth + 1)
+                .then(resolve)
+                .catch(reject);
               return;
             }
           }
@@ -184,6 +213,7 @@ export class AutoUpdater {
             return;
           }
 
+          const file = fsSync.createWriteStream(destPath);
           response.pipe(file);
 
           file.on('finish', () => {
@@ -205,7 +235,7 @@ export class AutoUpdater {
     return new Promise((resolve, reject) => {
       const options = {
         hostname: 'eai-tools.github.io',
-        path: '/gofer/releases.json',
+        path: '/eai-gofer/releases.json',
         headers: {
           userAgent: 'VSCode-Extension-Updater',
           accept: 'application/json',
@@ -228,6 +258,7 @@ export class AutoUpdater {
               const release = releaseData.releases?.find((r) => r.version === version);
 
               if (release && release.download_url) {
+                this.assertAllowedDownloadUrl(release.download_url, false);
                 resolve(release.download_url);
               } else {
                 reject(new Error(`No download URL found for version ${version}`));
@@ -239,6 +270,40 @@ export class AutoUpdater {
         })
         .on('error', reject);
     });
+  }
+
+  private assertAllowedDownloadUrl(rawUrl: string, allowGitHubAssetRedirect: boolean): void {
+    if (!this.isAllowedDownloadUrl(rawUrl, allowGitHubAssetRedirect)) {
+      throw new Error(`Refusing to download update from untrusted URL: ${rawUrl}`);
+    }
+  }
+
+  private isAllowedDownloadUrl(rawUrl: string, allowGitHubAssetRedirect = false): boolean {
+    let parsed: URL;
+    try {
+      parsed = new URL(rawUrl);
+    } catch {
+      return false;
+    }
+
+    if (parsed.protocol !== 'https:') {
+      return false;
+    }
+
+    const fileName = path.posix.basename(parsed.pathname);
+    if (!VSIX_FILE_PATTERN.test(fileName)) {
+      return false;
+    }
+
+    if (parsed.hostname === RELEASES_HOST) {
+      return parsed.pathname.startsWith(RELEASES_PATH_PREFIX);
+    }
+
+    if (parsed.hostname === GITHUB_RELEASES_HOST) {
+      return parsed.pathname.startsWith(GITHUB_RELEASES_PATH_PREFIX);
+    }
+
+    return allowGitHubAssetRedirect && GITHUB_ASSET_HOSTS.has(parsed.hostname);
   }
 
   /**
@@ -303,7 +368,7 @@ export class AutoUpdater {
         if (errorMsg.includes('command not found') || errorMsg.includes('not found')) {
           throw new Error(`Cannot auto-install update. Please install manually:
 
-1. Download: https://eai-tools.github.io/gofer/releases/gofer-${this.getCurrentVersionFromPath(vsixPath)}.vsix
+1. Download: https://eai-tools.github.io/eai-gofer/releases/eai-gofer-${this.getCurrentVersionFromPath(vsixPath)}.vsix
 2. Open VS Code Command Palette (Cmd+Shift+P / Ctrl+Shift+P)
 3. Run "Extensions: Install from VSIX..."
 4. Select the downloaded file
@@ -438,7 +503,7 @@ Or install VS Code CLI: https://code.visualstudio.com/docs/editor/command-line`)
 
         if (manualChoice === 'Download & Install Manually') {
           // Open the GitHub Pages release page directly
-          vscode.env.openExternal(vscode.Uri.parse('https://eai-tools.github.io/gofer/'));
+          vscode.env.openExternal(vscode.Uri.parse('https://eai-tools.github.io/eai-gofer/'));
 
           // Show installation instructions
           vscode.window.showInformationMessage(
@@ -465,7 +530,7 @@ Or install VS Code CLI: https://code.visualstudio.com/docs/editor/command-line`)
         );
 
         if (fallbackChoice === 'Download Manually') {
-          vscode.env.openExternal(vscode.Uri.parse('https://eai-tools.github.io/gofer/'));
+          vscode.env.openExternal(vscode.Uri.parse('https://eai-tools.github.io/eai-gofer/'));
         }
       }
     }
@@ -493,13 +558,13 @@ Or install VS Code CLI: https://code.visualstudio.com/docs/editor/command-line`)
       if (errorMessage.includes('not found') || errorMessage.includes('404')) {
         vscode.window
           .showInformationMessage(
-            `� GitHub Pages release site not found.\n\nCurrent version: v${this.currentVersion}\n\nPlease check that GitHub Pages is enabled for the repository.\n\nSite URL: https://eai-tools.github.io/gofer`,
+            `� GitHub Pages release site not found.\n\nCurrent version: v${this.currentVersion}\n\nPlease check that GitHub Pages is enabled for the repository.\n\nSite URL: https://eai-tools.github.io/eai-gofer`,
             'Open Release Site',
             'OK'
           )
           .then((choice) => {
             if (choice === 'Open Release Site') {
-              vscode.env.openExternal(vscode.Uri.parse('https://eai-tools.github.io/gofer'));
+              vscode.env.openExternal(vscode.Uri.parse('https://eai-tools.github.io/eai-gofer'));
             }
           });
       } else if (errorMessage.includes('rate limit')) {

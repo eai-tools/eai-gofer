@@ -44,7 +44,7 @@ the memory system.
 
 **Path encoding**: Workspace path with `/` replaced by `-`
 
-- `/Users/douglaswross/Code/gofer` → `-Users-douglaswross-Code-gofer`
+- `/Users/douglaswross/Code/eai-gofer` → `-Users-douglaswross-Code-gofer`
 - Extension has `workspacePath` → can compute encoded path
 
 #### Session Discovery
@@ -69,11 +69,11 @@ Contains:
       "created": "2026-01-28T21:25:35.261Z",
       "modified": "2026-01-28T21:55:00.300Z",
       "gitBranch": "main",
-      "projectPath": "/Users/douglaswross/Code/gofer",
+      "projectPath": "/Users/douglaswross/Code/eai-gofer",
       "isSidechain": false
     }
   ],
-  "originalPath": "/Users/douglaswross/Code/gofer"
+  "originalPath": "/Users/douglaswross/Code/eai-gofer"
 }
 ```
 
@@ -84,7 +84,7 @@ Lock files at `~/.claude/ide/{port}.lock` contain workspace info:
 ```json
 {
   "pid": 75472,
-  "workspaceFolders": ["/Users/douglaswross/Code/gofer"],
+  "workspaceFolders": ["/Users/douglaswross/Code/eai-gofer"],
   "ideName": "Visual Studio Code",
   "transport": "ws",
   "authToken": "..."

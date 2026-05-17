@@ -10,7 +10,7 @@
 - Node.js 20.x
 - npm
 - git
-- Local checkout of `eai-tools/gofer` with permission to run repo scripts
+- Local checkout of `eai-tools/eai-gofer` with permission to run repo scripts
 - VS Code 1.85+ (recommended for extension/resource smoke checks)
 - Shell tools on `PATH`: `rg`, `grep`, and `curl`
 
@@ -286,11 +286,11 @@ feature-local, then rerun the helper and recheck the output path.
 set of helper commands.
 
 **Fix**: Update the helper-surface and budget tests that own the command-count
-expectations (`control-commands-surfaces.test.ts`,
-`description-budget.test.ts`, `canonical-descriptions.test.ts`,
-`canonical-set-cumulative-budget.test.ts`, and the dedicated helper parity
-suite), then regenerate the mirrored surfaces in the same change. Do **not**
-edit `tests/integration/cross-platform-parity.test.ts` for this feature.
+expectations (`control-commands-surfaces.test.ts`, `description-budget.test.ts`,
+`canonical-descriptions.test.ts`, `canonical-set-cumulative-budget.test.ts`, and
+the dedicated helper parity suite), then regenerate the mirrored surfaces in the
+same change. Do **not** edit `tests/integration/cross-platform-parity.test.ts`
+for this feature.
 
 ### `/6` still awards implied credit without proof
 

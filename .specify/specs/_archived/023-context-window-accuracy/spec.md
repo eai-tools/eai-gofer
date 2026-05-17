@@ -216,13 +216,13 @@ when users click them:
 
 ## Glossary
 
-| Term                 | Definition                                                                        |
-| -------------------- | --------------------------------------------------------------------------------- |
-| Bridge Data          | JSON file written by Claude Code hooks containing real-time session metrics       |
-| Auto Memory          | Claude Code's persistent memory at `~/.claude/projects/{encoded}/memory/`         |
-| Path Encoding        | Converting `/Users/x/Code/gofer` to `-Users-x-Code-gofer` for directory lookup    |
-| Residual Calculation | Deriving conversation tokens as total minus all measurable file-based tokens      |
-| System Overhead      | Invisible system prompt + tool schemas baked into every API call (~14,800 tokens) |
+| Term                 | Definition                                                                             |
+| -------------------- | -------------------------------------------------------------------------------------- |
+| Bridge Data          | JSON file written by Claude Code hooks containing real-time session metrics            |
+| Auto Memory          | Claude Code's persistent memory at `~/.claude/projects/{encoded}/memory/`              |
+| Path Encoding        | Converting `/Users/x/Code/eai-gofer` to `-Users-x-Code-eai-gofer` for directory lookup |
+| Residual Calculation | Deriving conversation tokens as total minus all measurable file-based tokens           |
+| System Overhead      | Invisible system prompt + tool schemas baked into every API call (~14,800 tokens)      |
 
 ## Research Traceability
 

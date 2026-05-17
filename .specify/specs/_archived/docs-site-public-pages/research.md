@@ -21,7 +21,7 @@ details or source code architecture should be exposed on the public site.
 ### Current `docs/` Structure
 
 The existing `docs/` folder is deployed as-is (no build step) to GitHub Pages at
-`https://eai-tools.github.io/gofer/`.
+`https://eai-tools.github.io/eai-gofer/`.
 
 | File/Dir                         | Purpose                                    | Keep Public? |
 | -------------------------------- | ------------------------------------------ | ------------ |
@@ -46,13 +46,14 @@ The existing `docs/` folder is deployed as-is (no build step) to GitHub Pages at
 `release-auto.sh` touches `docs/` in these specific ways:
 
 1. **Line 289**: `mkdir -p docs/releases` - creates releases dir
-2. **Line 290**: `cp "gofer-$NEW_VERSION.vsix" "docs/releases/"` - copies VSIX
+2. **Line 290**: `cp "eai-gofer-$NEW_VERSION.vsix" "docs/releases/"` - copies
+   VSIX
 3. **Line 295-298**: Runs `node docs/update-releases.js` - updates releases.json
 4. **Line 299, 340**: `git add docs/releases.json docs/releases/` - stages files
-5. **Line 385**: Polls `https://eai-tools.github.io/gofer/releases.json` to
+5. **Line 385**: Polls `https://eai-tools.github.io/eai-gofer/releases.json` to
    verify deployment
 6. **Line 409**: Prints download URL
-   `https://eai-tools.github.io/gofer/releases/gofer-X.Y.Z.vsix`
+   `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-X.Y.Z.vsix`
 
 **Critical paths that must remain unchanged:**
 
@@ -67,7 +68,7 @@ The existing `docs/` folder is deployed as-is (no build step) to GitHub Pages at
 - **Hostname**: `eai-tools.github.io` (line 74)
 - **Path**: `/gofer/releases.json` (line 75)
 - **Download URLs**:
-  `https://eai-tools.github.io/gofer/releases/gofer-X.Y.Z.vsix`
+  `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-X.Y.Z.vsix`
 
 These URLs must resolve correctly after the site redesign.
 
@@ -168,8 +169,8 @@ From `extension/package.json` and `README.md`:
 
 - **Choice**: `site: 'https://eai-tools.github.io'`, `base: '/gofer'`
 - **Rationale**: The site is deployed to a subpath
-  (`eai-tools.github.io/gofer/`). Astro needs `base` set so all internal links
-  and asset paths include the `/gofer` prefix.
+  (`eai-tools.github.io/eai-gofer/`). Astro needs `base` set so all internal
+  links and asset paths include the `/gofer` prefix.
 
 ## Content Architecture
 
@@ -205,9 +206,10 @@ From `extension/package.json` and `README.md`:
 1. **`release-auto.sh` must not change**: Script writes to `docs/releases/` and
    `docs/releases.json`. These paths are hardcoded and used by the auto-updater.
 
-2. **Auto-updater URLs are fixed**: `eai-tools.github.io/gofer/releases.json`
-   and `eai-tools.github.io/gofer/releases/gofer-X.Y.Z.vsix` must continue to
-   resolve. The deployed site must serve these at the same paths.
+2. **Auto-updater URLs are fixed**:
+   `eai-tools.github.io/eai-gofer/releases.json` and
+   `eai-tools.github.io/eai-gofer/releases/eai-gofer-X.Y.Z.vsix` must continue
+   to resolve. The deployed site must serve these at the same paths.
 
 3. **VSIX files are large**: 8 files totaling ~130MB in `docs/releases/`. These
    should NOT be in the Astro project -- they're copied at deploy time.

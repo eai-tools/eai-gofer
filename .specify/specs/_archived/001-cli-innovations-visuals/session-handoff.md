@@ -79,7 +79,7 @@ session_context_at_save: 96000 / 120000 (Critical)
 
 ```bash
 # Open a fresh Claude Code session in this repo
-cd /Users/douglaswross/Code/eai/eai-tools/gofer
+cd /Users/douglaswross/Code/eai/eai-tools/eai-gofer
 
 # Run the resume command
 /8_gofer_resume

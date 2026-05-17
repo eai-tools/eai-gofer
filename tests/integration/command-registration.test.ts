@@ -888,6 +888,7 @@ describe('Package.json Validation', () => {
   });
 
   it('should have required metadata', () => {
+    // Keep the VS Code extension ID stable as EnterpriseAI.gofer so installed users upgrade cleanly.
     expect(packageJson.name).toBe('gofer');
     expect(packageJson.displayName).toBeDefined();
     expect(packageJson.description).toBeDefined();

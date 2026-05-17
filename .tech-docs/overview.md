@@ -1,7 +1,7 @@
 ---
 generated: true
-generated_at: "2026-05-16T17:57:36.381Z"
-source_commit: "2de388b2ea4e8c6081ab0fd8983ce52deeb17984"
+generated_at: "2026-05-17T17:52:23.514Z"
+source_commit: "347c971273d89c79adb9e37e41b93a7a8388f035"
 ---
 # Gofer - Technical Overview
 
@@ -14,11 +14,11 @@ source_commit: "2de388b2ea4e8c6081ab0fd8983ce52deeb17984"
 | **Primary Users**        | Software development teams using Claude Code, GitHub Copilot, OpenAI Codex, or Gemini CLI for feature implementation |
 | **Data Sensitivity**     | Low - stores specifications, plans, and code artifacts locally in repository workspace                               |
 | **Current Status**       | Active Development (v3.3.1) - Production-ready with enterprise AI workflow enhancements                              |
-| **Last Material Change** | 2026-05-16 - Comprehensive documentation refresh with updated architecture, API catalog, and data models              |
+| **Last Material Change** | 2026-05-17 - Automated nightly documentation refresh maintaining synchronization with codebase                        |
 
 ## Service Identity
 
-**Name:** Gofer **Version:** 3.3.1 **Documentation Updated:** 2026-05-16
+**Name:** Gofer **Version:** 3.3.1 **Documentation Updated:** 2026-05-17
 **Publisher:** Enterprise AI Pty Ltd **Description:** Spec-driven development
 system for AI assistants. Provides 40+ MCP tools that enable Claude Code, GitHub
 Copilot, OpenAI Codex, and Gemini CLI to autonomously implement features from
@@ -345,8 +345,8 @@ This repository maintains multiple documentation surfaces:
 ## Current Status
 
 - Nightly-managed `.tech-docs/` content is present for this repository.
-- Source commit: `a5a97f2a8a47a2855c9219a6506db27d39d8c9a9`
+- Source commit: `347c971273d89c79adb9e37e41b93a7a8388f035`
 - Version: 3.3.1 (Released 2026-05-10)
 - Additional repo-local docs surfaces detected: 1 (docs-site/)
 - Legacy documentation archived in `.tech-docs/legacy-src/docs/`
-- Recent focus: Documentation updates, public platform builder boundary clarification, environment variable security (`.env` now in `.gitignore`)
+- Recent focus: Automated nightly documentation maintenance, public platform builder boundary clarification, environment variable security (`.env` in `.gitignore`)

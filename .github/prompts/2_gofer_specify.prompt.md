@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: enterpriseai
   canonicalSource: .specify/commands/2_gofer_specify.md
-  canonicalChecksum: 0dd448afc134159b4b8758dd019ed7a65e118f260f1a1f2a0b216ac1408a6ba5
+  canonicalChecksum: 7323a55bd1334c790cef8f6c51d133f8f2fb8a182aaef494f35013115d607018
   metadataSource: scripts/generate-commands.ts
 ---
 

@@ -436,10 +436,10 @@ EnterpriseAI is the default profile. Standard profile task generation is used
 only when the user explicitly opts out.
 
 When the workflow profile is `enterpriseai` or no profile is specified,
-`tasks.md` MUST emit deployment
-tasks in the following ordered chain. Each task is independently runnable and
-the ordering enforces scaffold before deployment so that configuration and
-manifest artifacts exist before any deploy command runs.
+`tasks.md` MUST emit deployment tasks in the following ordered chain. Each task
+is independently runnable and the ordering enforces scaffold before deployment
+so that configuration and manifest artifacts exist before any deploy command
+runs.
 
 1. **Vertical Template scaffolding -> `eai init`**
    - Command: `eai init <app-name>`
@@ -460,9 +460,9 @@ The ordering above is non-negotiable: tasks.md MUST instruct the pipeline to sca
 For **application delivery**, task generation MUST treat the UI-first gate as a
 precondition to downstream implementation tasks:
 
-- If `{FEATURE_DIR}/ui-approval.md` does not exist or is not approved, emit
-  only the blocking preview/approval tasks needed to reach approval; do **not**
-  emit downstream implementation tasks as if the UI were already settled.
+- If `{FEATURE_DIR}/ui-approval.md` does not exist or is not approved, emit only
+  the blocking preview/approval tasks needed to reach approval; do **not** emit
+  downstream implementation tasks as if the UI were already settled.
 - If `{FEATURE_DIR}/service-fit-matrix.md` is missing or does not distinguish
   accessible now vs purchasable vs unavailable platform capabilities, emit a
   blocking service-fit task group before normal build tasks.
@@ -490,9 +490,9 @@ precondition to downstream implementation tasks:
   - update `ui-review-log.md`
   - block downstream work until `ui-approval.md` is approved
 - App-delivery service-fit tasks that update `service-fit-matrix.md` using
-  tenant-aware evidence from `eai --describe`, `eai whoami`, `eai tenant
-  select`, `eai resources schema`, `eai verify calls --format json`, or
-  equivalent approved platform evidence.
+  tenant-aware evidence from `eai --describe`, `eai whoami`,
+  `eai tenant select`, `eai resources schema`, `eai verify calls --format json`,
+  or equivalent approved platform evidence.
 - A scope-control task that checks whether any user-facing app process exceeds
   four steps and either combines/automates extra steps or records the approved
   exception and rationale.

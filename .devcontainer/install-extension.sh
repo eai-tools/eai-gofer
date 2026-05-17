@@ -73,7 +73,7 @@ install_from_source() {
 if code --list-extensions 2>/dev/null | grep -qE "EnterpriseAI\.(gofer|eai-gofer)"; then
   echo "ℹ️  EAI-GOFER extension already installed, reinstalling to ensure latest version..."
   code --uninstall-extension EnterpriseAI.gofer 2>/dev/null || true
-  code --uninstall-extension EnterpriseAI.eai-gofer 2>/dev/null || true
+  code --uninstall-extension EnterpriseAI.gofer 2>/dev/null || true
 fi
 
 # Try GitHub releases first, fall back to local build

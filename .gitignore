@@ -11,5 +11,7 @@
 .specify/specs/*/research-index.json
 node_modules
 .env
+*.vsix
+docs-site/static/releases/*.vsix
 test-results/vitest-results.json
 test-results/vitest-results.json

@@ -1,15 +1,16 @@
 ---
 generated: true
-generated_at: "2026-05-16T17:57:36.381Z"
-source_commit: "2de388b2ea4e8c6081ab0fd8983ce52deeb17984"
+generated_at: '2026-05-17T17:52:23.514Z'
+source_commit: '347c971273d89c79adb9e37e41b93a7a8388f035'
 ---
+
 # Changelog
 
 ## Changes Since Last Documentation Update
 
-**Previous Update:** 2026-05-15 18:08 UTC (commit
-`a5a97f2a8a47a2855c9219a6506db27d39d8c9a9`) **Current Update:** 2026-05-16 17:50
-UTC (commit `2de388b2ea4e8c6081ab0fd8983ce52deeb17984`)
+**Previous Update:** 2026-05-16 17:57 UTC (commit
+`2de388b2ea4e8c6081ab0fd8983ce52deeb17984`) **Current Update:** 2026-05-17 17:49
+UTC (commit `347c971273d89c79adb9e37e41b93a7a8388f035`)
 
 ### Version Updates
 
@@ -17,20 +18,40 @@ UTC (commit `2de388b2ea4e8c6081ab0fd8983ce52deeb17984`)
 
 ### Significant Changes
 
-#### 1. Comprehensive Documentation Analysis (2026-05-16)
+#### 1. Automated Nightly Documentation Refresh (2026-05-17)
+
+**Commit:** `347c971` - docs: update .tech-docs/ [nightly-automated]
+
+- Automated nightly documentation update maintaining synchronization with
+  codebase
+- Updated all `.tech-docs/` frontmatter timestamps and commit references
+- No code changes since previous update - pure documentation maintenance
+- Verified documentation accuracy and completeness
+
+**Impact:**
+
+- Documentation remains current with latest repository state
+- Consistent automated quality assurance for technical documentation
+- Maintained synchronization across all documentation surfaces
+
+#### 2. Comprehensive Documentation Analysis (2026-05-16)
 
 **Commit:** `2de388b` - docs: update .tech-docs/ [nightly-automated]
 
 - Comprehensive documentation refresh with deep codebase analysis
 - Updated all `.tech-docs/` files with current architectural state
-- Refreshed frontmatter timestamps and commit references across all documentation files
+- Refreshed frontmatter timestamps and commit references across all
+  documentation files
 - Verified accuracy of component descriptions, data models, and API references
 
 **Analysis Coverage:**
 
-- Architecture and component breakdown (extension, language-server, orchestrator)
-- API catalog (60+ VS Code commands, 30+ MCP tools, 24 CLI commands, 70+ settings)
-- Data models and schemas (Memory, Specs, Pipeline State, Observations, Research)
+- Architecture and component breakdown (extension, language-server,
+  orchestrator)
+- API catalog (60+ VS Code commands, 30+ MCP tools, 24 CLI commands, 70+
+  settings)
+- Data models and schemas (Memory, Specs, Pipeline State, Observations,
+  Research)
 - Dependencies and integration points
 - Deployment and CI/CD workflows
 
@@ -50,9 +71,11 @@ UTC (commit `2de388b2ea4e8c6081ab0fd8983ce52deeb17984`)
 
 #### 3. Environment Variable Security Enhancement (2026-05-13)
 
-**Commit:** `d874f58` - chore: add .env to .gitignore to prevent committing environment variables
+**Commit:** `d874f58` - chore: add .env to .gitignore to prevent committing
+environment variables
 
-- Added `.env` to `.gitignore` to prevent accidental commits of sensitive environment variables
+- Added `.env` to `.gitignore` to prevent accidental commits of sensitive
+  environment variables
 - Protects API keys and credentials from being committed to version control
 - Aligns with security best practices for credential management
 
@@ -64,11 +87,13 @@ UTC (commit `2de388b2ea4e8c6081ab0fd8983ce52deeb17984`)
 
 #### 4. Public Platform Builder Boundary Documentation (2026-05-13)
 
-**Commits:** `d5eccec`, `f3338de` - docs: define public platform builder boundary, clarify public platform status vocabulary
+**Commits:** `d5eccec`, `f3338de` - docs: define public platform builder
+boundary, clarify public platform status vocabulary
 
 - Documented public platform builder experience workflow and boundaries
 - Clarified platform builder vocabulary and status terminology
-- Defined clear boundaries between public builder APIs and internal platform implementation
+- Defined clear boundaries between public builder APIs and internal platform
+  implementation
 - Enhanced guidance for platform-safe artifact generation
 
 **Impact:**
@@ -94,7 +119,8 @@ UTC (commit `2de388b2ea4e8c6081ab0fd8983ce52deeb17984`)
 
 #### 5. Vitest Results Management (2026-05-13)
 
-**Commits:** `cc10762`, `2179ee1` - chore: stop tracking vitest results, ignore generated vitest results
+**Commits:** `cc10762`, `2179ee1` - chore: stop tracking vitest results, ignore
+generated vitest results
 
 - Removed vitest results from version control
 - Added vitest results to `.gitignore`
@@ -259,7 +285,8 @@ None in this release.
 ### New Features
 
 - **Public Platform Builder Boundary** (2026-05-13)
-  - Documented clear boundaries between public builder APIs and internal platform
+  - Documented clear boundaries between public builder APIs and internal
+    platform
   - Platform builder vocabulary and status terminology clarified
   - Safe artifact generation guidance for builders
   - Public API contract documentation
@@ -308,6 +335,7 @@ None in this release.
 
 ### Infrastructure Changes
 
+- **2026-05-17:** Automated nightly documentation refresh cycle completed
 - Retired legacy documentation root in favor of unified `.tech-docs/` structure
 - Standardized nightly `.tech-docs/` generation format
 - Enhanced documentation structure with executive summaries
@@ -349,11 +377,15 @@ No new configuration options added in this release.
 
 ### v3.3.1 (2026-05-10)
 
-- **Focus:** Security improvements and public platform builder boundary documentation
-- **Key Features:** Environment variable security, platform builder API boundaries
-- **Highlights:** Clear separation between public and private platform APIs, improved credential protection
+- **Focus:** Security improvements and public platform builder boundary
+  documentation
+- **Key Features:** Environment variable security, platform builder API
+  boundaries
+- **Highlights:** Clear separation between public and private platform APIs,
+  improved credential protection
 - **Breaking Changes:** None
-- **Security:** Added `.env` to `.gitignore`, documented public platform boundaries
+- **Security:** Added `.env` to `.gitignore`, documented public platform
+  boundaries
 
 ### v3.3.0 (2026-05-10)
 
@@ -425,4 +457,4 @@ latest codebase state. The documentation is synchronized with the source code
 via automated CI workflows.
 
 **Update Frequency:** Nightly (automated via GitHub Actions) **Last Update:**
-2026-05-13 18:14 UTC **Next Scheduled Update:** 2026-05-14 (nightly)
+2026-05-17 17:49 UTC **Next Scheduled Update:** 2026-05-18 (nightly)

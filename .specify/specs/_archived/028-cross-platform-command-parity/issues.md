@@ -35,19 +35,19 @@ node .specify/scripts/node/create-github-issues.js unknown
 
 ---
 
-## Issue #1: T001 - Create `.system/skills/` directory with README.md at `/Users/douglaswross/Code/gofer/.system/skills/README.md` explaining Codex CLI integration
+## Issue #1: T001 - Create `.system/skills/` directory with README.md at `/Users/douglaswross/Code/eai-gofer/.system/skills/README.md` explaining Codex CLI integration
 
 **Labels**: `enhancement`, `phase-1-setup-shared-infrastructure-`, `parallel`
 **Assignees**: @MikeNowosadko **Title**: [Feature]: T001 - Create
 `.system/skills/` directory with README.md at
-`/Users/douglaswross/Code/gofer/.system/skills/README.md` explaining Codex CLI
-integration
+`/Users/douglaswross/Code/eai-gofer/.system/skills/README.md` explaining Codex
+CLI integration
 
 ### Screen described (Mike)
 
 This task involves: Create `.system/skills/` directory with README.md at
-`/Users/douglaswross/Code/gofer/.system/skills/README.md` explaining Codex CLI
-integration
+`/Users/douglaswross/Code/eai-gofer/.system/skills/README.md` explaining Codex
+CLI integration
 
 N/A - Configuration or infrastructure task
 
@@ -7384,12 +7384,12 @@ Feature Parity Tests (Priority: P2)
 
 ---
 
-## Issue #85: T085 - [US-7] Update README.md in `/Users/douglaswross/Code/gofer/README.md` with Platform Capabilities section: comparison table (Feature × Platform matrix), rows for 18 commands + MCP + autonomous mode + context + auto-chain + parallel agents, columns for Claude/Copilot/Codex, cells with ✓/⚠/✗ status and footnotes
+## Issue #85: T085 - [US-7] Update README.md in `/Users/douglaswross/Code/eai-gofer/README.md` with Platform Capabilities section: comparison table (Feature × Platform matrix), rows for 18 commands + MCP + autonomous mode + context + auto-chain + parallel agents, columns for Claude/Copilot/Codex, cells with ✓/⚠/✗ status and footnotes
 
 **Labels**: `enhancement`,
 `phase-9-user-story-7-capability-matrix-documentation-priority-p3-`, `parallel`
 **Assignees**: @MikeNowosadko **Title**: [Feature]: T085 - [US-7] Update
-README.md in `/Users/douglaswross/Code/gofer/README.md` with Platform
+README.md in `/Users/douglaswross/Code/eai-gofer/README.md` with Platform
 Capabilities section: comparison table (Feature × Platform matrix), rows for 18
 commands + MCP + autonomous mode + context + auto-chain + parallel agents,
 columns for Claude/Copilot/Codex, cells with ✓/⚠/✗ status and footnotes
@@ -7397,9 +7397,9 @@ columns for Claude/Copilot/Codex, cells with ✓/⚠/✗ status and footnotes
 ### Screen described (Mike)
 
 This task involves: [US-7] Update README.md in
-`/Users/douglaswross/Code/gofer/README.md` with Platform Capabilities section:
-comparison table (Feature × Platform matrix), rows for 18 commands + MCP +
-autonomous mode + context + auto-chain + parallel agents, columns for
+`/Users/douglaswross/Code/eai-gofer/README.md` with Platform Capabilities
+section: comparison table (Feature × Platform matrix), rows for 18 commands +
+MCP + autonomous mode + context + auto-chain + parallel agents, columns for
 Claude/Copilot/Codex, cells with ✓/⚠/✗ status and footnotes
 
 N/A - Configuration or infrastructure task
@@ -7821,18 +7821,18 @@ Documentation (Priority: P3)
 
 ---
 
-## Issue #90: T090 - Update CHANGELOG.md in `/Users/douglaswross/Code/gofer/CHANGELOG.md` with feature summary: major version bump, list all 18 commands available in Codex/Copilot, document new `gofer.defaultCLI` setting, link to setup guides
+## Issue #90: T090 - Update CHANGELOG.md in `/Users/douglaswross/Code/eai-gofer/CHANGELOG.md` with feature summary: major version bump, list all 18 commands available in Codex/Copilot, document new `gofer.defaultCLI` setting, link to setup guides
 
 **Labels**: `enhancement`, `phase-10-polish-cross-cutting-concerns`, `parallel`
 **Assignees**: @MikeNowosadko **Title**: [Feature]: T090 - Update CHANGELOG.md
-in `/Users/douglaswross/Code/gofer/CHANGELOG.md` with feature summary: major
+in `/Users/douglaswross/Code/eai-gofer/CHANGELOG.md` with feature summary: major
 version bump, list all 18 commands available in Codex/Copilot, document new
 `gofer.defaultCLI` setting, link to setup guides
 
 ### Screen described (Mike)
 
 This task involves: Update CHANGELOG.md in
-`/Users/douglaswross/Code/gofer/CHANGELOG.md` with feature summary: major
+`/Users/douglaswross/Code/eai-gofer/CHANGELOG.md` with feature summary: major
 version bump, list all 18 commands available in Codex/Copilot, document new
 `gofer.defaultCLI` setting, link to setup guides
 

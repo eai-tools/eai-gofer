@@ -1,18 +1,18 @@
 ---
-id: "023-documentation-site"
-title: "Documentation Website for eai-tools.github.io/gofer/"
-status: "draft"
-created: "2026-03-09"
-updated: "2026-03-23"
-priority: "medium"
-assignee: "engineer-agent"
+id: '023-documentation-site'
+title: 'Documentation Website for eai-tools.github.io/eai-gofer/'
+status: 'draft'
+created: '2026-03-09'
+updated: '2026-03-23'
+priority: 'medium'
+assignee: 'engineer-agent'
 ---
 
-# Documentation Website for eai-tools.github.io/gofer/
+# Documentation Website for eai-tools.github.io/eai-gofer/
 
 ## Overview
 
-The Gofer project's public website at `eai-tools.github.io/gofer/` currently
+The Gofer project's public website at `eai-tools.github.io/eai-gofer/` currently
 serves only as a release download portal. Users who discover Gofer have no way
 to learn what it does, how to get started, or how the pipeline works without
 cloning the repository and reading internal files.
@@ -36,9 +36,9 @@ whether it fits my workflow and install it quickly
 **Why this priority**: Without a clear landing page and quickstart, potential
 users bounce. This is the primary conversion funnel.
 
-**Independent Test**: Visit `eai-tools.github.io/gofer/` and within 2 minutes
-understand what Gofer is, see its key features, and find the installation
-instructions.
+**Independent Test**: Visit `eai-tools.github.io/eai-gofer/` and within 2
+minutes understand what Gofer is, see its key features, and find the
+installation instructions.
 
 **Acceptance Criteria**:
 
@@ -285,7 +285,7 @@ within 2 clicks.
 ## Out of Scope
 
 - Server-side rendering or pre-rendering of documentation pages
-- Custom domain setup (remains at `eai-tools.github.io/gofer/`)
+- Custom domain setup (remains at `eai-tools.github.io/eai-gofer/`)
 - Documentation versioning (multiple versions of docs for different releases)
 - User authentication or gated content
 - Analytics or tracking integration

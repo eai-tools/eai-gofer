@@ -60,17 +60,17 @@ graph TD
 **Duration**: 1 day
 
 - [x] T001 [P] Create
-      `/Users/douglaswross/Code/gofer/extension/src/autonomous/memory/`
+      `/Users/douglaswross/Code/eai-gofer/extension/src/autonomous/memory/`
       directory structure
 - [x] T002 [P] Add ContextLayer interface to
-      `/Users/douglaswross/Code/gofer/extension/src/autonomous/types.ts`
+      `/Users/douglaswross/Code/eai-gofer/extension/src/autonomous/types.ts`
       (L0/L1/L2 structure per data-model.md lines 194-265)
 - [x] T003 [P] Extend Memory interface in
-      `/Users/douglaswross/Code/gofer/extension/src/autonomous/memory.ts` with
-      optional layers field (lines 19-79)
+      `/Users/douglaswross/Code/eai-gofer/extension/src/autonomous/memory.ts`
+      with optional layers field (lines 19-79)
 - [x] T004 [P] Create unit test
-      `/Users/douglaswross/Code/gofer/tests/unit/autonomous/types.test.ts` for
-      ContextLayer validation
+      `/Users/douglaswross/Code/eai-gofer/tests/unit/autonomous/types.test.ts`
+      for ContextLayer validation
 
 **Verification**:
 
@@ -92,48 +92,48 @@ all user stories
 ### Infrastructure Tasks
 
 - [x] T005 Implement GoferURI parser in
-      `/Users/douglaswross/Code/gofer/extension/src/autonomous/memory/GoferURI.ts`
+      `/Users/douglaswross/Code/eai-gofer/extension/src/autonomous/memory/GoferURI.ts`
       (~200 LOC, per plan.md Task 1.2)
 - [x] T006 Implement GoferURIResolver with scope mapping
       (specs/memory/agent/session/user) in GoferURI.ts (per data-model.md lines
       268-393)
 - [x] T007 [P] Create unit test
-      `/Users/douglaswross/Code/gofer/tests/unit/autonomous/GoferURI.test.ts`
+      `/Users/douglaswross/Code/eai-gofer/tests/unit/autonomous/GoferURI.test.ts`
       for URI parsing and resolution (~150 LOC)
 - [x] T008 [P] Add contract tests for path traversal prevention and glob
       patterns in GoferURI.test.ts (per FR-002)
 - [x] T009 Update JSONL schema in
-      `/Users/douglaswross/Code/gofer/extension/src/autonomous/MemoryStorage.ts`
+      `/Users/douglaswross/Code/eai-gofer/extension/src/autonomous/MemoryStorage.ts`
       with abstract/overview fields (lines 166-272, per plan.md Task 1.3)
 - [x] T010 [P] Implement layer save/load logic in MemoryStorage.ts (backward
       compatible, per plan.md Task 1.3)
 - [x] T011 [P] Create unit test
-      `/Users/douglaswross/Code/gofer/tests/unit/autonomous/MemoryStorage.test.ts`
+      `/Users/douglaswross/Code/eai-gofer/tests/unit/autonomous/MemoryStorage.test.ts`
       for layered JSONL schema
 - [x] T012 Implement LLMExtractor in
-      `/Users/douglaswross/Code/gofer/extension/src/autonomous/memory/LLMExtractor.ts`
+      `/Users/douglaswross/Code/eai-gofer/extension/src/autonomous/memory/LLMExtractor.ts`
       (~250 LOC, Claude Haiku-based summarization per plan.md Task 2.1)
 - [x] T013 [P] Add generateAbstract() method to LLMExtractor (one-sentence, ~100
       tokens per FR-001)
 - [x] T014 [P] Add generateOverview() method to LLMExtractor (key points, ~2k
       tokens per FR-001)
 - [x] T015 [P] Create unit test
-      `/Users/douglaswross/Code/gofer/tests/unit/autonomous/LLMExtractor.test.ts`
+      `/Users/douglaswross/Code/eai-gofer/tests/unit/autonomous/LLMExtractor.test.ts`
       with mocked Claude API responses
 - [x] T016 Extend MemoryStorage.save() with automatic layer generation in
       MemoryStorage.ts (lines 166-272, per plan.md Task 2.1)
 - [x] T017 Implement lazy L2 detail loading in MemoryStorage.load() (lines
       240-270, per plan.md Task 2.2)
 - [x] T018 [P] Add integration test
-      `/Users/douglaswross/Code/gofer/tests/integration/autonomous/MemoryStorage.integration.test.ts`
+      `/Users/douglaswross/Code/eai-gofer/tests/integration/autonomous/MemoryStorage.integration.test.ts`
       for lazy L2 loading performance (<500ms for 10 memories per NFR-002)
 - [x] T019 Integrate GoferURI with MemoryManager by adding loadByURI() method in
-      `/Users/douglaswross/Code/gofer/extension/src/autonomous/MemoryManager.ts`
+      `/Users/douglaswross/Code/eai-gofer/extension/src/autonomous/MemoryManager.ts`
       (lines 400-450, per plan.md Task 1.4)
 - [x] T020 [P] Add layer selection logic to MemoryManager.loadByURI() (L0/L1/L2
       per plan.md Task 1.4)
 - [x] T021 [P] Create integration test
-      `/Users/douglaswross/Code/gofer/tests/integration/autonomous/MemoryManager.integration.test.ts`
+      `/Users/douglaswross/Code/eai-gofer/tests/integration/autonomous/MemoryManager.integration.test.ts`
       for URI-based loading with all layers
 
 ### Migration and Compatibility Tasks
@@ -141,12 +141,12 @@ all user stories
 - [x] T022 Implement backward compatible migration logic in
       MemoryManager.initialize() (lines 96-130, per plan.md Task 2.3)
 - [x] T023 [P] Create migration command in
-      `/Users/douglaswross/Code/gofer/extension/src/commands/migrateMemories.ts`
+      `/Users/douglaswross/Code/eai-gofer/extension/src/commands/migrateMemories.ts`
       (~150 LOC, per plan.md Task 2.4)
 - [x] T024 [P] Register migrateMemoriesToLayered command in
-      `/Users/douglaswross/Code/gofer/extension/src/extension.ts` (line 200)
+      `/Users/douglaswross/Code/eai-gofer/extension/src/extension.ts` (line 200)
 - [x] T025 [P] Create integration test
-      `/Users/douglaswross/Code/gofer/tests/integration/commands/migrateMemories.integration.test.ts`
+      `/Users/douglaswross/Code/eai-gofer/tests/integration/commands/migrateMemories.integration.test.ts`
       for migration command
 - [x] T026 [P] Add backward compatibility test for loading pre-layered memories
       (fallback to detail tier per FR-026)
@@ -178,7 +178,7 @@ includes 5-10 memories tagged #security, verify citation rate ≥50%
 ### Implementation Tasks
 
 - [x] T027 [US-P1-01] Create SubAgentContextFactory in
-      `/Users/douglaswross/Code/gofer/extension/src/autonomous/memory/SubAgentContextFactory.ts`
+      `/Users/douglaswross/Code/eai-gofer/extension/src/autonomous/memory/SubAgentContextFactory.ts`
       (~400 LOC, per plan.md Task 3.1)
 - [x] T028 [US-P1-01] [P] Implement buildValidationContext() method for 6
       categories
@@ -191,31 +191,31 @@ includes 5-10 memories tagged #security, verify citation rate ≥50%
 - [x] T031 [US-P1-01] [P] Add formatMemories() method with L1 layer selection in
       SubAgentContextFactory.ts (per AC-3, plan.md lines 875-901)
 - [x] T032 [US-P1-01] Add configurable coverage threshold in
-      `/Users/douglaswross/Code/gofer/extension/src/config.ts` ConfigManager
+      `/Users/douglaswross/Code/eai-gofer/extension/src/config.ts` ConfigManager
       class (per plan.md Task 3.1, lines 766-788)
 - [x] T033 [US-P1-01] Add gofer.memory.coverageThreshold setting to
-      `/Users/douglaswross/Code/gofer/extension/package.json` (default: 30, per
-      FR-004)
+      `/Users/douglaswross/Code/eai-gofer/extension/package.json` (default: 30,
+      per FR-004)
 - [x] T034 [US-P1-01] [P] Create unit test
-      `/Users/douglaswross/Code/gofer/tests/unit/autonomous/SubAgentContextFactory.test.ts`
+      `/Users/douglaswross/Code/eai-gofer/tests/unit/autonomous/SubAgentContextFactory.test.ts`
       for validation context generation (~250 LOC)
 - [x] T035 [US-P1-01] [P] Verify category filtering (security memories for
       security agent) in SubAgentContextFactory.test.ts
 - [x] T036 [US-P1-01] [P] Verify token budget enforcement in
       SubAgentContextFactory.test.ts (stops at 5k-10k)
 - [x] T037 [US-P1-01] Update
-      `/Users/douglaswross/Code/gofer/.claude/commands/6_gofer_validate.md` with
-      memory injection instructions (lines 136-180, per plan.md Task 3.3)
+      `/Users/douglaswross/Code/eai-gofer/.claude/commands/6_gofer_validate.md`
+      with memory injection instructions (lines 136-180, per plan.md Task 3.3)
 - [x] T038 [US-P1-01] Add SubAgentContextFactory invocation before Task tool
       dispatch in 6_gofer_validate.md (per plan.md lines 997-1040)
 - [x] T039 [US-P1-01] [P] Create integration test
-      `/Users/douglaswross/Code/gofer/tests/integration/commands/validate.integration.test.ts`
+      `/Users/douglaswross/Code/eai-gofer/tests/integration/commands/validate.integration.test.ts`
       for validation with memory injection
 
 ### Memory Citation Tracking Tasks (AC-6)
 
 - [x] T040 [US-P1-01] Create MemoryCitationTracker in
-      `/Users/douglaswross/Code/gofer/extension/src/autonomous/memory/MemoryCitationTracker.ts`
+      `/Users/douglaswross/Code/eai-gofer/extension/src/autonomous/memory/MemoryCitationTracker.ts`
       (~200 LOC, per plan.md Task 3.8)
 - [x] T041 [US-P1-01] [P] Implement trackInjectedMemories() method in
       MemoryCitationTracker.ts (per plan.md lines 1353-1368)
@@ -226,10 +226,10 @@ includes 5-10 memories tagged #security, verify citation rate ≥50%
 - [x] T044 [US-P1-01] Update 6_gofer_validate.md with citation verification step
       (lines 180-200, per plan.md Task 3.8)
 - [x] T045 [US-P1-01] [P] Create unit test
-      `/Users/douglaswross/Code/gofer/tests/unit/autonomous/MemoryCitationTracker.test.ts`
+      `/Users/douglaswross/Code/eai-gofer/tests/unit/autonomous/MemoryCitationTracker.test.ts`
       for citation verification (~150 LOC)
 - [x] T046 [US-P1-01] [P] Verify citation tracking logs to
-      `/Users/douglaswross/Code/gofer/.specify/logs/memory-usage.jsonl` with
+      `/Users/douglaswross/Code/eai-gofer/.specify/logs/memory-usage.jsonl` with
       per-category rates (per plan.md lines 1461-1477)
 
 **Checkpoint**: Validation agents receive targeted memories and cite them in
@@ -260,7 +260,7 @@ validation_pattern memories created with correct tags and citations
 ### Implementation Tasks
 
 - [x] T047 [US-P1-02] Create ValidationPatternExtractor in
-      `/Users/douglaswross/Code/gofer/extension/src/autonomous/memory/ValidationPatternExtractor.ts`
+      `/Users/douglaswross/Code/eai-gofer/extension/src/autonomous/memory/ValidationPatternExtractor.ts`
       (~300 LOC, per plan.md Task 3.4)
 - [x] T048 [US-P1-02] [P] Implement extractFromValidationReport() method with
       Red → validation_pattern mapping in ValidationPatternExtractor.ts (per
@@ -271,23 +271,24 @@ validation_pattern memories created with correct tags and citations
       markdown parsing in ValidationPatternExtractor.ts (per plan.md lines
       1115-1119)
 - [x] T051 [US-P1-02] [P] Create unit test
-      `/Users/douglaswross/Code/gofer/tests/unit/autonomous/ValidationPatternExtractor.test.ts`
+      `/Users/douglaswross/Code/eai-gofer/tests/unit/autonomous/ValidationPatternExtractor.test.ts`
       for extraction logic (~200 LOC)
 - [x] T052 [US-P1-02] [P] Verify memory metadata includes agentId, featureId,
       severity in ValidationPatternExtractor.test.ts (per AC-4)
 - [x] T053 [US-P1-02] Create EngineeringReviewExtractor in
-      `/Users/douglaswross/Code/gofer/extension/src/autonomous/memory/EngineeringReviewExtractor.ts`
+      `/Users/douglaswross/Code/eai-gofer/extension/src/autonomous/memory/EngineeringReviewExtractor.ts`
       (~200 LOC, per plan.md Task 3.5)
 - [x] T054 [US-P1-02] [P] Implement extractFromEngineeringReview() method in
       EngineeringReviewExtractor.ts (per FR-007)
 - [x] T055 [US-P1-02] [P] Create unit test
-      `/Users/douglaswross/Code/gofer/tests/unit/autonomous/EngineeringReviewExtractor.test.ts`
+      `/Users/douglaswross/Code/eai-gofer/tests/unit/autonomous/EngineeringReviewExtractor.test.ts`
       for engineering review extraction (~150 LOC)
 - [x] T056 [US-P1-02] Update
-      `/Users/douglaswross/Code/gofer/.claude/commands/6_gofer_validate.md` with
-      extraction step after validation (lines 250-270, per plan.md Task 3.6)
+      `/Users/douglaswross/Code/eai-gofer/.claude/commands/6_gofer_validate.md`
+      with extraction step after validation (lines 250-270, per plan.md Task
+      3.6)
 - [x] T057 [US-P1-02] Update
-      `/Users/douglaswross/Code/gofer/.claude/commands/6a_gofer_engineering_review.md`
+      `/Users/douglaswross/Code/eai-gofer/.claude/commands/6a_gofer_engineering_review.md`
       with extraction step (lines 100-120, per plan.md Task 3.6)
 - [x] T058 [US-P1-02] [P] Create integration test for extraction integration in
       validate.test.ts (verify extraction triggered, memories saved,
@@ -323,7 +324,7 @@ verify full content. Compare stage 5 context with/without tiered loading.
 ### Implementation Tasks
 
 - [x] T059 [US-P1-03] Extend ContextBuilder with tiered loading in
-      `/Users/douglaswross/Code/gofer/extension/src/autonomous/ContextBuilder.ts`
+      `/Users/douglaswross/Code/eai-gofer/extension/src/autonomous/ContextBuilder.ts`
       (lines 816-875, per plan.md Task 2.5)
 - [x] T060 [US-P1-03] [P] Implement calculateCoverage() method in
       ContextBuilder.ts using TF-IDF + trigram similarity (threshold 0.3, per
@@ -333,7 +334,7 @@ verify full content. Compare stage 5 context with/without tiered loading.
 - [x] T062 [US-P1-03] [P] Implement spec artifact tiered loading (research.md,
       spec.md, plan.md) in ContextBuilder.ts (per AC-3)
 - [x] T063 [US-P1-03] [P] Create unit test
-      `/Users/douglaswross/Code/gofer/tests/unit/autonomous/ContextBuilder.test.ts`
+      `/Users/douglaswross/Code/eai-gofer/tests/unit/autonomous/ContextBuilder.test.ts`
       for tiered loading logic
 - [x] T064 [US-P1-03] [P] Verify coverage calculation with various keyword
       overlap percentages in ContextBuilder.test.ts
@@ -372,13 +373,13 @@ gofer://specs/029-\*/research.md, verify scoped search.
 ### Implementation Tasks
 
 - [x] T066 [US-P1-04] Document URI conventions in
-      `/Users/douglaswross/Code/gofer/.specify/memory/constitution.md` (per
+      `/Users/douglaswross/Code/eai-gofer/.specify/memory/constitution.md` (per
       AC-6)
 - [x] T067 [US-P1-04] [P] Add URI resolver examples to SubAgentContextFactory
       (using gofer:// for spec loading per plan.md line 857)
 - [x] T068 [US-P1-04] [P] Update validation/research agent prompts with gofer://
       URI examples in
-      `/Users/douglaswross/Code/gofer/.claude/agents/validation-*.md` files
+      `/Users/douglaswross/Code/eai-gofer/.claude/agents/validation-*.md` files
 - [x] T069 [US-P1-04] [P] Create integration test for URI-based context building
       in SubAgentContextFactory.test.ts (verify scope resolution, glob patterns)
 
@@ -417,8 +418,8 @@ patterns from feature 027, verify agent references prior patterns in output
 - [x] T072 [US-P2-01] [P] Implement getResearchGuidance() for agent-specific
       guidance in SubAgentContextFactory.ts (per plan.md lines 958-968)
 - [x] T073 [US-P2-01] Update
-      `/Users/douglaswross/Code/gofer/.claude/commands/1_gofer_research.md` with
-      memory injection instructions (lines 96-140, per plan.md Task 3.3)
+      `/Users/douglaswross/Code/eai-gofer/.claude/commands/1_gofer_research.md`
+      with memory injection instructions (lines 96-140, per plan.md Task 3.3)
 - [x] T074 [US-P2-01] [P] Create unit test for research context generation in
       SubAgentContextFactory.test.ts
 - [x] T075 [US-P2-01] [P] Verify write-back of new codebase_pattern memories
@@ -457,7 +458,7 @@ skipped.
 - [x] T077 [US-P2-02] [P] Add coverage decision logic (IF coverage >= 30%: skip
       research docs, load memories only) in ContextBuilder.ts (per AC-3)
 - [x] T078 [US-P2-02] [P] Implement logCoverageCalculation() in
-      `/Users/douglaswross/Code/gofer/extension/src/autonomous/ContextUsageLogger.ts`
+      `/Users/douglaswross/Code/eai-gofer/extension/src/autonomous/ContextUsageLogger.ts`
       (per plan.md lines 1608-1620)
 - [x] T079 [US-P2-02] [P] Create unit test for coverage calculation with various
       thresholds in ContextBuilder.test.ts
@@ -494,7 +495,7 @@ review issues. Wait for consolidation. Verify 5 new memories extracted.
 
 - [x] T081 [US-P2-03] Enhance MemoryConsolidator with extractFromPipelineRuns()
       in
-      `/Users/douglaswross/Code/gofer/extension/src/autonomous/MemoryConsolidator.ts`
+      `/Users/douglaswross/Code/eai-gofer/extension/src/autonomous/MemoryConsolidator.ts`
       (lines 76-150, per plan.md Task 3.7)
 - [x] T082 [US-P2-03] [P] Read pipeline.jsonl events (stage_complete) in
       MemoryConsolidator.ts (per AC-2)
@@ -502,10 +503,10 @@ review issues. Wait for consolidation. Verify 5 new memories extracted.
       session) in MemoryConsolidator.ts (per plan.md lines 1274-1279)
 - [x] T084 [US-P2-03] Update MemoryManager consolidation timer with extraction
       call in
-      `/Users/douglaswross/Code/gofer/extension/src/autonomous/MemoryManager.ts`
+      `/Users/douglaswross/Code/eai-gofer/extension/src/autonomous/MemoryManager.ts`
       (lines 96-114, per plan.md lines 1295-1311)
 - [x] T085 [US-P2-03] [P] Create unit test
-      `/Users/douglaswross/Code/gofer/tests/unit/autonomous/MemoryConsolidator.test.ts`
+      `/Users/douglaswross/Code/eai-gofer/tests/unit/autonomous/MemoryConsolidator.test.ts`
       for pipeline extraction
 - [x] T086 [US-P2-03] [P] Verify non-blocking behavior (consolidation failure
       doesn't crash extension per AC-4)
@@ -546,21 +547,21 @@ events for each memory with decision (loaded/skipped) and reason.
 - [x] T089 [US-P2-04] [P] Implement logLoadingDecision() in
       ContextUsageLogger.ts (per plan.md lines 1600-1606)
 - [x] T090 [US-P2-04] Update MemoryTreeProvider in
-      `/Users/douglaswross/Code/gofer/extension/src/memoryProvider.ts` with last
-      loaded tracking (add lastLoadedMap field, update getChildren() to include
-      loading metadata per plan.md Task 4.2)
+      `/Users/douglaswross/Code/eai-gofer/extension/src/memoryProvider.ts` with
+      last loaded tracking (add lastLoadedMap field, update getChildren() to
+      include loading metadata per plan.md Task 4.2)
 - [x] T091 [US-P2-04] [P] Add tooltip rendering to MemoryTreeProvider items
       showing last loaded timestamp, reason, tokens, and layer (extend
       MemoryTreeItem creation in memoryProvider.ts per plan.md Task 4.2)
 - [x] T092 [US-P2-04] [P] Implement getLoadingSummary() in ContextBuilder.ts for
       inline annotations (lines 1600-1650, per plan.md Task 4.3)
 - [x] T093 [US-P2-04] Create queryMemoryUsage command in
-      `/Users/douglaswross/Code/gofer/extension/src/commands/queryMemoryUsage.ts`
+      `/Users/douglaswross/Code/eai-gofer/extension/src/commands/queryMemoryUsage.ts`
       (~200 LOC, per plan.md Task 4.4)
 - [x] T094 [US-P2-04] [P] Register queryMemoryUsage command in extension.ts
       (line 210)
 - [x] T095 [US-P2-04] [P] Create integration test
-      `/Users/douglaswross/Code/gofer/tests/integration/commands/queryMemoryUsage.integration.test.ts`
+      `/Users/douglaswross/Code/eai-gofer/tests/integration/commands/queryMemoryUsage.integration.test.ts`
 - [x] T096 [US-P2-04] [P] Verify events logged to context-usage.jsonl with all
       required fields (source, decision, reason, tokens, layer per AC-1)
 
@@ -612,7 +613,7 @@ memory, stage profiles
 ### US-P3-04: Stage-Specific Memory Profiles
 
 - [x] T106 [US-P3-04] Extend StageContextProfile with memoryBudget field in
-      `/Users/douglaswross/Code/gofer/extension/src/autonomous/StageContextProfileLoader.ts`
+      `/Users/douglaswross/Code/eai-gofer/extension/src/autonomous/StageContextProfileLoader.ts`
 - [x] T107 [US-P3-04] [P] Create stage-profiles.json config file in
       `.specify/memory/` with default budgets (research 40%, implement 20%,
       validate 15%)
@@ -643,18 +644,18 @@ memory, stage profiles
 - [x] T110 [P] Implement L2 detail caching with LRU eviction in MemoryStorage.ts
       (lines 50-80, per plan.md Task 5.1)
 - [x] T111 [P] Create TokenEstimator in
-      `/Users/douglaswross/Code/gofer/extension/src/autonomous/memory/TokenEstimator.ts`
+      `/Users/douglaswross/Code/eai-gofer/extension/src/autonomous/memory/TokenEstimator.ts`
       (~150 LOC, per plan.md Task 5.2)
 - [x] T112 [P] Add heuristic-based token estimation (code adjustment, markdown
       compression) in TokenEstimator.ts
 - [x] T113 [P] Create unit test
-      `/Users/douglaswross/Code/gofer/tests/unit/autonomous/TokenEstimator.test.ts`
+      `/Users/douglaswross/Code/eai-gofer/tests/unit/autonomous/TokenEstimator.test.ts`
       (verify ±10% accuracy)
 
 ### End-to-End Testing
 
 - [x] T114 Create E2E pipeline test in
-      `/Users/douglaswross/Code/gofer/tests/e2e/pipeline-with-memory.test.ts`
+      `/Users/douglaswross/Code/eai-gofer/tests/e2e/pipeline-with-memory.test.ts`
       (~500 LOC, per plan.md Task 5.3)
 - [x] T115 [P] Verify full pipeline (research → validate) with memory injection
       and extraction in pipeline-with-memory.test.ts
@@ -668,7 +669,7 @@ memory, stage profiles
 ### Performance Benchmarks
 
 - [x] T119 Create performance benchmark suite in
-      `/Users/douglaswross/Code/gofer/tests/performance/memory-performance.test.ts`
+      `/Users/douglaswross/Code/eai-gofer/tests/performance/memory-performance.test.ts`
       (~300 LOC, per plan.md Task 5.4)
 - [x] T120 [P] Verify 10 L1 memories load <500ms (NFR-002)
 - [x] T121 [P] Verify search 1000 memories <100ms (NFR-003)
@@ -678,7 +679,7 @@ memory, stage profiles
 ### Backward Compatibility
 
 - [x] T124 Create backward compatibility test suite in
-      `/Users/douglaswross/Code/gofer/tests/integration/backward-compatibility.integration.test.ts`
+      `/Users/douglaswross/Code/eai-gofer/tests/integration/backward-compatibility.integration.test.ts`
       (~250 LOC, per plan.md Task 5.5)
 - [x] T125 [P] Verify pre-layered memories load via detail tier (FR-026)
 - [x] T126 [P] Verify migration preserves all memories and content (FR-027)
@@ -687,10 +688,10 @@ memory, stage profiles
 ### Documentation
 
 - [x] T128 [P] Create migration guide in
-      `/Users/douglaswross/Code/gofer/.specify/specs/029-memory-system-v2/migration-guide.md`
+      `/Users/douglaswross/Code/eai-gofer/.specify/specs/029-memory-system-v2/migration-guide.md`
       (~500 lines, per plan.md Task 5.6)
 - [x] T129 [P] Create API reference in
-      `/Users/douglaswross/Code/gofer/.specify/specs/029-memory-system-v2/api-reference.md`
+      `/Users/douglaswross/Code/eai-gofer/.specify/specs/029-memory-system-v2/api-reference.md`
       (~800 lines)
 - [x] T130 [P] Update package.json contribution points for new commands
       (migrateMemoriesToLayered, queryMemoryUsage)

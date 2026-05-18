@@ -288,19 +288,19 @@ Effort**: M (4-8 hours) **Phase**: Unknown Phase
 
 ---
 
-## Issue #4: T004 - [US-ALL] Seed local fallback references in `.specify/references/eai/README.md`, `.specify/references/eai/eai-cli.md`, `.specify/references/eai/vertical-template.md`, and `.specify/references/eai/deployment-repo.md`.
+## Issue #4: T004 - [US-ALL] Seed local fallback references in `.specify/references/eai/README.md`, `.specify/references/eai/eai.md`, `.specify/references/eai/vertical-template.md`, and `.specify/references/eai/deployment-repo.md`.
 
 **Labels**: `enhancement`, `unknown-phase`, `parallel` **Assignees**:
 @MikeNowosadko **Title**: [Feature]: T004 - [US-ALL] Seed local fallback
 references in `.specify/references/eai/README.md`,
-`.specify/references/eai/eai-cli.md`,
+`.specify/references/eai/eai.md`,
 `.specify/references/eai/vertical-template.md`, and
 `.specify/references/eai/deployment-repo.md`.
 
 ### Screen described (Mike)
 
 This task involves: [US-ALL] Seed local fallback references in
-`.specify/references/eai/README.md`, `.specify/references/eai/eai-cli.md`,
+`.specify/references/eai/README.md`, `.specify/references/eai/eai.md`,
 `.specify/references/eai/vertical-template.md`, and
 `.specify/references/eai/deployment-repo.md`.
 
@@ -460,16 +460,16 @@ Effort**: M (4-8 hours) **Phase**: Unknown Phase
 
 ---
 
-## Issue #6: T006 - [US-ALL] Add `eai-cli` major.minor metadata placeholders to `.specify/templates/plan-template.md` and `.specify/templates/tasks-template.md`.
+## Issue #6: T006 - [US-ALL] Add `eai` major.minor metadata placeholders to `.specify/templates/plan-template.md` and `.specify/templates/tasks-template.md`.
 
 **Labels**: `enhancement`, `unknown-phase` **Assignees**: @MikeNowosadko
-**Title**: [Feature]: T006 - [US-ALL] Add `eai-cli` major.minor metadata
+**Title**: [Feature]: T006 - [US-ALL] Add `eai` major.minor metadata
 placeholders to `.specify/templates/plan-template.md` and
 `.specify/templates/tasks-template.md`.
 
 ### Screen described (Mike)
 
-This task involves: [US-ALL] Add `eai-cli` major.minor metadata placeholders to
+This task involves: [US-ALL] Add `eai` major.minor metadata placeholders to
 `.specify/templates/plan-template.md` and
 `.specify/templates/tasks-template.md`.
 
@@ -1391,16 +1391,16 @@ Effort**: M (4-8 hours) **Phase**: Unknown Phase
 
 ---
 
-## Issue #17: T017 - [US-ALL] Implement installed `eai-cli` version detection and major.minor parser in `extension/src/services/enterpriseai/EaiCliVersion.ts`.
+## Issue #17: T017 - [US-ALL] Implement installed `eai` version detection and major.minor parser in `extension/src/services/enterpriseai/EaiCliVersion.ts`.
 
 **Labels**: `enhancement`, `unknown-phase` **Assignees**: @MikeNowosadko
-**Title**: [Feature]: T017 - [US-ALL] Implement installed `eai-cli` version
+**Title**: [Feature]: T017 - [US-ALL] Implement installed `eai` version
 detection and major.minor parser in
 `extension/src/services/enterpriseai/EaiCliVersion.ts`.
 
 ### Screen described (Mike)
 
-This task involves: [US-ALL] Implement installed `eai-cli` version detection and
+This task involves: [US-ALL] Implement installed `eai` version detection and
 major.minor parser in `extension/src/services/enterpriseai/EaiCliVersion.ts`.
 
 N/A - Configuration or infrastructure task
@@ -2328,17 +2328,17 @@ Effort**: M (4-8 hours) **Phase**: Unknown Phase
 
 ---
 
-## Issue #28: T027 - [US-ALL] Add unit tests for profile parsing, fallback resolution, and `eai-cli` pin metadata in `extension/src/test/suite/enterpriseai/workflow-profile-contracts.test.ts`.
+## Issue #28: T027 - [US-ALL] Add unit tests for profile parsing, fallback resolution, and `eai` pin metadata in `extension/src/test/suite/enterpriseai/workflow-profile-contracts.test.ts`.
 
 **Labels**: `enhancement`, `unknown-phase`, `parallel` **Assignees**:
 @MikeNowosadko **Title**: [Feature]: T027 - [US-ALL] Add unit tests for profile
-parsing, fallback resolution, and `eai-cli` pin metadata in
+parsing, fallback resolution, and `eai` pin metadata in
 `extension/src/test/suite/enterpriseai/workflow-profile-contracts.test.ts`.
 
 ### Screen described (Mike)
 
 This task involves: [US-ALL] Add unit tests for profile parsing, fallback
-resolution, and `eai-cli` pin metadata in
+resolution, and `eai` pin metadata in
 `extension/src/test/suite/enterpriseai/workflow-profile-contracts.test.ts`.
 
 N/A - Configuration or infrastructure task
@@ -3864,17 +3864,17 @@ Effort**: M (4-8 hours) **Phase**: Unknown Phase
 
 ---
 
-## Issue #46: T045 - [US-002] Update deployment convention and `eai-cli` major.minor requirements in `.claude/commands/3_gofer_plan.md`.
+## Issue #46: T045 - [US-002] Update deployment convention and `eai` major.minor requirements in `.claude/commands/3_gofer_plan.md`.
 
 **Labels**: `enhancement`, `unknown-phase`, `parallel` **Assignees**:
 @MikeNowosadko **Title**: [Feature]: T045 - [US-002] Update deployment
-convention and `eai-cli` major.minor requirements in
+convention and `eai` major.minor requirements in
 `.claude/commands/3_gofer_plan.md`.
 
 ### Screen described (Mike)
 
-This task involves: [US-002] Update deployment convention and `eai-cli`
-major.minor requirements in `.claude/commands/3_gofer_plan.md`.
+This task involves: [US-002] Update deployment convention and `eai` major.minor
+requirements in `.claude/commands/3_gofer_plan.md`.
 
 N/A - Configuration or infrastructure task
 
@@ -4291,14 +4291,14 @@ Effort**: M (4-8 hours) **Phase**: Unknown Phase
 
 ---
 
-## Issue #51: T050 - [US-002] Implement `IAP-006 planning.generateEnterpriseAiPlanAndTasks` and publish `EVT-006 artifacts.plan.tasks.generated.v1`, generating/attaching `market-analysis.md` metadata when competitive analysis is enabled and enforcing required reference indicators plus pinned `eai-cli` metadata in `extension/src/services/enterpriseai/internalApi/GenerateEnterpriseAiPlanAndTasks.ts`.
+## Issue #51: T050 - [US-002] Implement `IAP-006 planning.generateEnterpriseAiPlanAndTasks` and publish `EVT-006 artifacts.plan.tasks.generated.v1`, generating/attaching `market-analysis.md` metadata when competitive analysis is enabled and enforcing required reference indicators plus pinned `eai` metadata in `extension/src/services/enterpriseai/internalApi/GenerateEnterpriseAiPlanAndTasks.ts`.
 
 **Labels**: `enhancement`, `unknown-phase` **Assignees**: @MikeNowosadko
 **Title**: [Feature]: T050 - [US-002] Implement
 `IAP-006 planning.generateEnterpriseAiPlanAndTasks` and publish
 `EVT-006 artifacts.plan.tasks.generated.v1`, generating/attaching
 `market-analysis.md` metadata when competitive analysis is enabled and enforcing
-required reference indicators plus pinned `eai-cli` metadata in
+required reference indicators plus pinned `eai` metadata in
 `extension/src/services/enterpriseai/internalApi/GenerateEnterpriseAiPlanAndTasks.ts`.
 
 ### Screen described (Mike)
@@ -4307,7 +4307,7 @@ This task involves: [US-002] Implement
 `IAP-006 planning.generateEnterpriseAiPlanAndTasks` and publish
 `EVT-006 artifacts.plan.tasks.generated.v1`, generating/attaching
 `market-analysis.md` metadata when competitive analysis is enabled and enforcing
-required reference indicators plus pinned `eai-cli` metadata in
+required reference indicators plus pinned `eai` metadata in
 `extension/src/services/enterpriseai/internalApi/GenerateEnterpriseAiPlanAndTasks.ts`.
 
 N/A - Configuration or infrastructure task
@@ -4382,19 +4382,19 @@ Effort**: M (4-8 hours) **Phase**: Unknown Phase
 
 ---
 
-## Issue #52: T051 - [US-002] Add root integration test for EnterpriseAI plan/tasks generation (integration map, deployment conventions, `market-analysis.md` generation/reference, pinned `eai-cli`) in `tests/integration/enterpriseai/plan-task-generation.integration.test.ts`.
+## Issue #52: T051 - [US-002] Add root integration test for EnterpriseAI plan/tasks generation (integration map, deployment conventions, `market-analysis.md` generation/reference, pinned `eai`) in `tests/integration/enterpriseai/plan-task-generation.integration.test.ts`.
 
 **Labels**: `enhancement`, `unknown-phase` **Assignees**: @MikeNowosadko
 **Title**: [Feature]: T051 - [US-002] Add root integration test for EnterpriseAI
 plan/tasks generation (integration map, deployment conventions,
-`market-analysis.md` generation/reference, pinned `eai-cli`) in
+`market-analysis.md` generation/reference, pinned `eai`) in
 `tests/integration/enterpriseai/plan-task-generation.integration.test.ts`.
 
 ### Screen described (Mike)
 
 This task involves: [US-002] Add root integration test for EnterpriseAI
 plan/tasks generation (integration map, deployment conventions,
-`market-analysis.md` generation/reference, pinned `eai-cli`) in
+`market-analysis.md` generation/reference, pinned `eai`) in
 `tests/integration/enterpriseai/plan-task-generation.integration.test.ts`.
 
 N/A - Configuration or infrastructure task
@@ -9447,17 +9447,17 @@ Effort**: M (4-8 hours) **Phase**: Unknown Phase
 
 ---
 
-## Issue #111: T110 - [US-ALL] Update release-readiness assertions for deployment conventions, `eai-cli` pinning, and Marp path in `.specify/specs/029-enterpriseai-student-vertical-builder/quickstart.md`.
+## Issue #111: T110 - [US-ALL] Update release-readiness assertions for deployment conventions, `eai` pinning, and Marp path in `.specify/specs/029-enterpriseai-student-vertical-builder/quickstart.md`.
 
 **Labels**: `enhancement`, `unknown-phase` **Assignees**: @MikeNowosadko
 **Title**: [Feature]: T110 - [US-ALL] Update release-readiness assertions for
-deployment conventions, `eai-cli` pinning, and Marp path in
+deployment conventions, `eai` pinning, and Marp path in
 `.specify/specs/029-enterpriseai-student-vertical-builder/quickstart.md`.
 
 ### Screen described (Mike)
 
 This task involves: [US-ALL] Update release-readiness assertions for deployment
-conventions, `eai-cli` pinning, and Marp path in
+conventions, `eai` pinning, and Marp path in
 `.specify/specs/029-enterpriseai-student-vertical-builder/quickstart.md`.
 
 N/A - Configuration or infrastructure task

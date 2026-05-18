@@ -8,10 +8,9 @@ created: 2026-05-01
 
 # Implementation Plan: 031 — Skills Pipeline Augmentation
 
-**Branch**: `031-skills-pipeline-augmentation`
-**Date**: 2026-05-01
-**Spec**: `.specify/specs/031-skills-pipeline-augmentation/spec.md`
-**Input**: Specification, research, contract-pack, reuse-scan, context-bundle in
+**Branch**: `031-skills-pipeline-augmentation` **Date**: 2026-05-01 **Spec**:
+`.specify/specs/031-skills-pipeline-augmentation/spec.md` **Input**:
+Specification, research, contract-pack, reuse-scan, context-bundle in
 `.specify/specs/031-skills-pipeline-augmentation/`
 
 ---
@@ -45,14 +44,15 @@ scripts); TypeScript 5.7.2 strict mode (test suite only — no new TypeScript
 source files are introduced by this feature).
 
 **Primary Dependencies**:
+
 - `.specify/scripts/node/generate-commands.mjs` — surface emitter; accepts new
   `gofer_*.md` files without schema changes (confirmed by `gofer_side.md`,
   `gofer_constitution.md`, `gofer_hydrate.md` precedents).
 - `.specify/scripts/node/canonical-descriptions.mjs` — Codex budget registry;
-  must receive 5 new entries and pass `validateDescriptions()` (≤ 2048 cumulative
-  bytes).
-- `.specify/scripts/node/parse-stage-command.mjs` — YAML frontmatter parser;
-  new helper files follow the same schema as existing control commands.
+  must receive 5 new entries and pass `validateDescriptions()` (≤ 2048
+  cumulative bytes).
+- `.specify/scripts/node/parse-stage-command.mjs` — YAML frontmatter parser; new
+  helper files follow the same schema as existing control commands.
 
 **Storage**: Filesystem only. All artifacts are Markdown files in
 `.specify/commands/`, `.specify/specs/{feature}/`, and generated surface
@@ -60,6 +60,7 @@ directories.
 
 **Testing**: Vitest (existing test harness, `npm test` at repo root). New tests
 follow the patterns established in:
+
 - `tests/unit/scripts/control-commands-surfaces.test.ts`
 - `tests/unit/codex/canonical-set-cumulative-budget.test.ts`
 - `tests/integration/cross-platform-parity.test.ts`
@@ -76,6 +77,7 @@ without errors. `npm run gofer:codex-doctor` must report ≤ 2048 cumulative byt
 after adding 5 new entries.
 
 **Constraints**:
+
 - Numbered pipeline stages 0–10 must remain unchanged (IDs, files, routing).
 - No new `/6A.x` sub-stages.
 - No verbatim mirroring of `mattpocock/skills` content.
@@ -114,9 +116,9 @@ established by `.specify/commands/gofer_side.md`:
 - Artifact output paths are always `{FEATURE_DIR}/` (i.e.,
   `.specify/specs/{feature}/`) — never repo root or ad hoc paths.
 
-After each helper file is authored, `generate-commands.mjs` propagates it to
-all four CLI surface directories automatically. The Codex path additionally
-requires a matching entry in `canonical-descriptions.mjs`.
+After each helper file is authored, `generate-commands.mjs` propagates it to all
+four CLI surface directories automatically. The Codex path additionally requires
+a matching entry in `canonical-descriptions.mjs`.
 
 Actual emitted helper skill files live at:
 
@@ -134,11 +136,11 @@ Optional inline hints are added to three numbered stage files as lightweight
 augmentation seams. These are additive callout blocks only — they do not change
 stage IDs, routing, or artifact contracts:
 
-| Stage file | Helper seam added | Invocation mode |
-| --- | --- | --- |
-| `.specify/commands/1_gofer_research.md` | `gofer:vocabulary` + `gofer:zoom-out` hints | Optional; requires `research.md`; graceful skip when absent |
-| `.specify/commands/2_gofer_specify.md` | `gofer:vocabulary` + `gofer:spec-summary` hints | Optional; requires `spec.md`; graceful skip when absent |
-| `.specify/commands/5_gofer_implement.md` | `gofer:tdd` + `gofer:diagnose` hints | Optional; graceful skip when artifacts absent |
+| Stage file                               | Helper seam added                               | Invocation mode                                             |
+| ---------------------------------------- | ----------------------------------------------- | ----------------------------------------------------------- |
+| `.specify/commands/1_gofer_research.md`  | `gofer:vocabulary` + `gofer:zoom-out` hints     | Optional; requires `research.md`; graceful skip when absent |
+| `.specify/commands/2_gofer_specify.md`   | `gofer:vocabulary` + `gofer:spec-summary` hints | Optional; requires `spec.md`; graceful skip when absent     |
+| `.specify/commands/5_gofer_implement.md` | `gofer:tdd` + `gofer:diagnose` hints            | Optional; graceful skip when artifacts absent               |
 
 The seam blocks are enclosed in a clearly marked "Optional Helper" section so
 they cannot be confused with required steps. These changes are strictly additive
@@ -176,8 +178,8 @@ DEPLOY_SIGNAL_3: plan.md declares a UI/rendered experience AND
 DEPLOY_IN_SCOPE = DEPLOY_SIGNAL_1 OR DEPLOY_SIGNAL_2 OR DEPLOY_SIGNAL_3
 ```
 
-This determination is made once during Step 1 and stored as `DEPLOY_IN_SCOPE =
-true | false`. For workflow-only features (like 031 itself),
+This determination is made once during Step 1 and stored as
+`DEPLOY_IN_SCOPE = true | false`. For workflow-only features (like 031 itself),
 `DEPLOY_IN_SCOPE = false` is expected. Category 3 only redistributes when
 `HAS_UI = false`; if a feature still has a rendered UI while
 `DEPLOY_IN_SCOPE = false`, local render proof is required.
@@ -236,17 +238,16 @@ If any GATE_FAIL = true:
 
 Added as an explicit rubric note below the scoring rules table:
 
-> **Honest-scoring rule**: If an agent cannot find evidence, it MUST report
-> that clearly using the phrase "EVIDENCE ABSENT:". The orchestrating `/6`
-> stage MUST score that category 0. Phrases like "likely correct", "appears
-> wired", or "should be passing" are NOT evidence and MUST NOT contribute to
-> any score.
+> **Honest-scoring rule**: If an agent cannot find evidence, it MUST report that
+> clearly using the phrase "EVIDENCE ABSENT:". The orchestrating `/6` stage MUST
+> score that category 0. Phrases like "likely correct", "appears wired", or
+> "should be passing" are NOT evidence and MUST NOT contribute to any score.
 
 #### Evidence Table (FR-013, FR-014)
 
-Added as a required section in **Step 8: Generate Validation Report**.
-The evidence table is appended to the existing `validation-report.md` format
-after the rubric summary. Structure matches `contract-pack.md § 6`.
+Added as a required section in **Step 8: Generate Validation Report**. The
+evidence table is appended to the existing `validation-report.md` format after
+the rubric summary. Structure matches `contract-pack.md § 6`.
 
 ---
 
@@ -254,16 +255,16 @@ after the rubric summary. Structure matches `contract-pack.md § 6`.
 
 **Gate: Must pass before Phase 1. Re-checked after Phase 3.**
 
-| Principle | Check | Status |
-| --- | --- | --- |
-| I. Test-Driven Development | Tests authored in Phase 5 before Phase 6 smoke-run; acceptance tests (AT-001 through AT-008) drive Phase 3 and Phase 4 authoring | PASS |
-| II. MCP-First Architecture | No new MCP tools; feature is workflow-only. N/A for this feature. | N/A |
-| III. Spec Kit Format Compliance | All new `.specify/commands/` files follow the existing command schema (`name`, `description`, `title`, `category`, `surfaces`). `plan.md` and `audit-history.md` remain feature-scoped Spec Kit artifacts. | PASS |
-| IV. Strict TypeScript & Code Quality | No new TypeScript production code. New test files follow `unknown`-over-`any` rule; explicit return types; no `require()`. | PASS |
-| V. Security by Default | No auth, secrets, or input validation involved. N/A. | N/A |
-| VI. Performance Requirements | Generator runtime is not user-interactive. Budget check via `gofer:codex-doctor` is the only perf gate. | PASS |
-| VII. 80% Test Coverage | All new acceptance tests (AT-001–AT-008) are covered by plan tests in Phase 5. No uncovered FRs. | PASS |
-| VIII. Minimal Necessary Changes | The feature stays focused on canonical command docs, generator/runtime parity glue, repo-root manifests, installer/resource-sync wiring, and targeted tests/fixtures. `PipelineStateManager.ts` and `pipeline-state.sh` remain untouched; `CommandGenerator.ts`, router, and parity coverage are allowed only where needed to preserve truthful cross-CLI behavior. | PASS |
+| Principle                            | Check                                                                                                                                                                                                                                                                                                                                                               | Status |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| I. Test-Driven Development           | Tests authored in Phase 5 before Phase 6 smoke-run; acceptance tests (AT-001 through AT-008) drive Phase 3 and Phase 4 authoring                                                                                                                                                                                                                                    | PASS   |
+| II. MCP-First Architecture           | No new MCP tools; feature is workflow-only. N/A for this feature.                                                                                                                                                                                                                                                                                                   | N/A    |
+| III. Spec Kit Format Compliance      | All new `.specify/commands/` files follow the existing command schema (`name`, `description`, `title`, `category`, `surfaces`). `plan.md` and `audit-history.md` remain feature-scoped Spec Kit artifacts.                                                                                                                                                          | PASS   |
+| IV. Strict TypeScript & Code Quality | No new TypeScript production code. New test files follow `unknown`-over-`any` rule; explicit return types; no `require()`.                                                                                                                                                                                                                                          | PASS   |
+| V. Security by Default               | No auth, secrets, or input validation involved. N/A.                                                                                                                                                                                                                                                                                                                | N/A    |
+| VI. Performance Requirements         | Generator runtime is not user-interactive. Budget check via `gofer:codex-doctor` is the only perf gate.                                                                                                                                                                                                                                                             | PASS   |
+| VII. 80% Test Coverage               | All new acceptance tests (AT-001–AT-008) are covered by plan tests in Phase 5. No uncovered FRs.                                                                                                                                                                                                                                                                    | PASS   |
+| VIII. Minimal Necessary Changes      | The feature stays focused on canonical command docs, generator/runtime parity glue, repo-root manifests, installer/resource-sync wiring, and targeted tests/fixtures. `PipelineStateManager.ts` and `pipeline-state.sh` remain untouched; `CommandGenerator.ts`, router, and parity coverage are allowed only where needed to preserve truthful cross-CLI behavior. | PASS   |
 
 **Complexity Tracking**: No constitution violations. No TypeScript production
 code changes. No abstractions introduced.
@@ -287,15 +288,14 @@ artifact already exists, overwrite it in place and prepend
   - Frontmatter: `name: gofer:vocabulary`, `title: "Gofer Vocabulary"`,
     `category: control`, all 9 surfaces, description ≤ 140 chars.
   - Body: Gofer-owned instructions. Extract domain terminology from
-  `.specify/specs/{feature}/spec.md` and `.specify/specs/{feature}/plan.md`.
-  Write canonical term definitions to `.specify/specs/{feature}/glossary.md`.
-  Require the generated artifact to record `GeneratedAt`, `SourceCommandId`,
-  `SourceInputs`, and `OverwriteNoticeWhenApplicable` (when the file is being
-  replaced).
-  If the file already exists, overwrite with a `<!-- regenerated at HH:MM -->`
-  header so traceability is preserved (AC for edge case in spec §2).
-    Do NOT write to repo root. Do NOT use any `mattpocock/ubiquitous-language`
-    verbatim text.
+    `.specify/specs/{feature}/spec.md` and `.specify/specs/{feature}/plan.md`.
+    Write canonical term definitions to `.specify/specs/{feature}/glossary.md`.
+    Require the generated artifact to record `GeneratedAt`, `SourceCommandId`,
+    `SourceInputs`, and `OverwriteNoticeWhenApplicable` (when the file is being
+    replaced). If the file already exists, overwrite with a
+    `<!-- regenerated at HH:MM -->` header so traceability is preserved (AC for
+    edge case in spec §2). Do NOT write to repo root. Do NOT use any
+    `mattpocock/ubiquitous-language` verbatim text.
   - Verify: run a real parse call such as
     `node --input-type=module -e "import { parseStageCommand } from './.specify/scripts/node/parse-stage-command.mjs'; await parseStageCommand('.specify/commands/gofer_vocabulary.md')"`
     and confirm frontmatter `title`, `surfaces`, and `description` all validate.
@@ -304,15 +304,13 @@ artifact already exists, overwrite it in place and prepend
   - Frontmatter: `name: gofer:diagnose`, `title: "Gofer Diagnose"`,
     `category: control`, all 9 surfaces.
   - Body: Reproduce-minimize-instrument-fix loop. Write findings to
-  `.specify/specs/{feature}/diagnose-report.md`. Requires reproduction steps,
-  minimization result, instrumentation output, and proposed fix.
-  Require the generated artifact to record `GeneratedAt`, `SourceCommandId`,
-  `SourceInputs`, and `OverwriteNoticeWhenApplicable` (when the file is being
-  replaced).
-  Must not mirror `mattpocock/diagnose` verbatim; preserve the real
-  feedback-loop discipline in Gofer terms.
-    If `diagnose-report.md` already exists, overwrite it using the shared
-    regeneration header policy above.
+    `.specify/specs/{feature}/diagnose-report.md`. Requires reproduction steps,
+    minimization result, instrumentation output, and proposed fix. Require the
+    generated artifact to record `GeneratedAt`, `SourceCommandId`,
+    `SourceInputs`, and `OverwriteNoticeWhenApplicable` (when the file is being
+    replaced). Must not mirror `mattpocock/diagnose` verbatim; preserve the real
+    feedback-loop discipline in Gofer terms. If `diagnose-report.md` already
+    exists, overwrite it using the shared regeneration header policy above.
   - Verify: same real `parseStageCommand()` invocation pattern + frontmatter
     checks as T1.1.
 
@@ -320,14 +318,13 @@ artifact already exists, overwrite it in place and prepend
   - Frontmatter: `name: gofer:tdd`, `title: "Gofer TDD"`, `category: control`,
     all 9 surfaces.
   - Body: Red-green-refactor micro-loop. Operates within `/5_gofer_implement`
-  and `/9_gofer_tests` task scope; does NOT replace those numbered stages.
-  Write cycle log to `.specify/specs/{feature}/tdd-session.md`. Aligned to
-  spec acceptance criteria, not a standalone lifecycle.
-  Require the generated artifact to record `GeneratedAt`, `SourceCommandId`,
-  `SourceInputs`, and `OverwriteNoticeWhenApplicable` (when the file is being
-  replaced).
-  If `tdd-session.md` already exists, overwrite it using the shared
-  regeneration header policy above.
+    and `/9_gofer_tests` task scope; does NOT replace those numbered stages.
+    Write cycle log to `.specify/specs/{feature}/tdd-session.md`. Aligned to
+    spec acceptance criteria, not a standalone lifecycle. Require the generated
+    artifact to record `GeneratedAt`, `SourceCommandId`, `SourceInputs`, and
+    `OverwriteNoticeWhenApplicable` (when the file is being replaced). If
+    `tdd-session.md` already exists, overwrite it using the shared regeneration
+    header policy above.
   - Verify: same real `parseStageCommand()` invocation pattern + frontmatter
     checks as T1.1.
 
@@ -335,15 +332,13 @@ artifact already exists, overwrite it in place and prepend
   - Frontmatter: `name: gofer:spec-summary`, `title: "Gofer Spec Summary"`,
     `category: control`, all 9 surfaces.
   - Body: Business-friendly summary of feature purpose, value, and acceptance
-  criteria without implementation detail. Write to
-  `.specify/specs/{feature}/spec-summary.md`. Remove all issue-tracker
-  publish dependency from any Matt Pocock `to-prd` inspiration — Gofer owns
-  the artifact.
-  Require the generated artifact to record `GeneratedAt`, `SourceCommandId`,
-  `SourceInputs`, and `OverwriteNoticeWhenApplicable` (when the file is being
-  replaced).
-  If `spec-summary.md` already exists, overwrite it using the shared
-  regeneration header policy above.
+    criteria without implementation detail. Write to
+    `.specify/specs/{feature}/spec-summary.md`. Remove all issue-tracker publish
+    dependency from any Matt Pocock `to-prd` inspiration — Gofer owns the
+    artifact. Require the generated artifact to record `GeneratedAt`,
+    `SourceCommandId`, `SourceInputs`, and `OverwriteNoticeWhenApplicable` (when
+    the file is being replaced). If `spec-summary.md` already exists, overwrite
+    it using the shared regeneration header policy above.
   - Verify: same real `parseStageCommand()` invocation pattern + frontmatter
     checks as T1.1.
 
@@ -351,14 +346,12 @@ artifact already exists, overwrite it in place and prepend
   - Frontmatter: `name: gofer:zoom-out`, `title: "Gofer Zoom Out"`,
     `category: control`, all 9 surfaces.
   - Body: System-context expansion. Show how the current feature connects to
-  broader architectural boundaries. Write to
-  `.specify/specs/{feature}/zoom-out-report.md`. Minimal adaptation from
-  `zoom-out` concept.
-  Require the generated artifact to record `GeneratedAt`, `SourceCommandId`,
-  `SourceInputs`, and `OverwriteNoticeWhenApplicable` (when the file is being
-  replaced).
-  If `zoom-out-report.md` already exists, overwrite it using the shared
-  regeneration header policy above.
+    broader architectural boundaries. Write to
+    `.specify/specs/{feature}/zoom-out-report.md`. Minimal adaptation from
+    `zoom-out` concept. Require the generated artifact to record `GeneratedAt`,
+    `SourceCommandId`, `SourceInputs`, and `OverwriteNoticeWhenApplicable` (when
+    the file is being replaced). If `zoom-out-report.md` already exists,
+    overwrite it using the shared regeneration header policy above.
   - Verify: same real `parseStageCommand()` invocation pattern + frontmatter
     checks as T1.1.
 
@@ -389,14 +382,14 @@ budget, run the generator, and confirm all four CLI surfaces are emitted.
 #### Tasks
 
 - [ ] **T2.1** Update `.specify/scripts/node/canonical-descriptions.mjs` and
-  `.specify/scripts/node/codex-doctor.mjs`:
-  Add five new helper entries to `CANONICAL_DESCRIPTIONS`, revise the existing
-  `6_gofer_validate` description to truthful 110-point evidence-backed wording,
-  and update `.specify/scripts/node/codex-doctor.mjs` so its canonical skill
-  inventory recognizes the same five helpers (reassessing the bundle-threshold
-  heuristic if needed). Each description must be ≤ 140 chars. Cumulative byte
-  total must remain ≤ 2048 bytes after addition. Suggested helper entries
-  (confirm bytes before committing):
+      `.specify/scripts/node/codex-doctor.mjs`: Add five new helper entries to
+      `CANONICAL_DESCRIPTIONS`, revise the existing `6_gofer_validate`
+      description to truthful 110-point evidence-backed wording, and update
+      `.specify/scripts/node/codex-doctor.mjs` so its canonical skill inventory
+      recognizes the same five helpers (reassessing the bundle-threshold
+      heuristic if needed). Each description must be ≤ 140 chars. Cumulative
+      byte total must remain ≤ 2048 bytes after addition. Suggested helper
+      entries (confirm bytes before committing):
 
   ```javascript
   'gofer:vocabulary':
@@ -413,12 +406,15 @@ budget, run the generator, and confirm all four CLI surfaces are emitted.
 
   After updating both files, call `validateDescriptions()` in a quick node
   check:
+
   ```bash
    node -e "import('.specify/scripts/node/canonical-descriptions.mjs')
      .then(m => console.log(m.validateDescriptions()))"
-   ```
+  ```
+
   Then run the stricter wire-format budget check used by the Codex cumulative
   budget test:
+
   ```bash
   node -e "import('.specify/scripts/node/canonical-descriptions.mjs').then(m => {
     let total = 0;
@@ -429,29 +425,33 @@ budget, run the generator, and confirm all four CLI surfaces are emitted.
     if (total > 2048) process.exit(1);
   })"
   ```
+
   If this check fails or the total exceeds 2048 bytes, treat Codex helper
   emission as **blocked**. Do not accept partially emitted helper surfaces;
   shorten descriptions first, then rerun generation.
 
 - [ ] **T2.2** Run the generator in dry-run mode first:
+
   ```bash
   npm run gofer:generate -- --dry-run
   ```
+
   Confirm the dry-run output lists:
   - the helper names in the `[dry-run] Stages:` line
   - the selected surface set in the `[dry-run] Would emit to surfaces:` line,
     including `claude`, `claude-mirror`, `copilot`, `github-prompts`,
-    `agents-skills`, `system-skills`, `gemini`, `agents-md`, and
-    `codex-config`
-  - zero validation errors before any file is written. The generator
-    dry-run lists all emitter surfaces, not only the user-facing CLI surfaces.
+    `agents-skills`, `system-skills`, `gemini`, `agents-md`, and `codex-config`
+  - zero validation errors before any file is written. The generator dry-run
+    lists all emitter surfaces, not only the user-facing CLI surfaces.
 
 - [ ] **T2.3** Run the generator for real:
+
   ```bash
   npm run gofer:generate
   ```
-  Verify the following output paths are written (non-exhaustive; confirm
-  against `generate-commands.mjs` emitter routing):
+
+  Verify the following output paths are written (non-exhaustive; confirm against
+  `generate-commands.mjs` emitter routing):
   - `.claude/commands/gofer:vocabulary.md` (and 4 other helpers)
   - `extension/resources/claude-commands/gofer:vocabulary.md`
   - `.github/prompts/gofer:vocabulary.prompt.md`
@@ -467,10 +467,10 @@ budget, run the generator, and confirm all four CLI surfaces are emitted.
   ```bash
   npm run gofer:codex-doctor
   ```
-  Expect exit 0 when local Codex skills are present. If the workstation does
-  not have a readable `~/.codex/skills` root, record that limitation and rely
-  on the Phase 2 wire-format check plus the Phase 5 source-tree budget tests as
-  the authoritative gate. Treat this as a supplementary installed-surface
+  Expect exit 0 when local Codex skills are present. If the workstation does not
+  have a readable `~/.codex/skills` root, record that limitation and rely on the
+  Phase 2 wire-format check plus the Phase 5 source-tree budget tests as the
+  authoritative gate. Treat this as a supplementary installed-surface
   verification. If either gate reports a budget regression (> 2048 bytes), the
   helper release is blocked and partially emitted helper surfaces are not
   accepted. Log any reported byte total for the audit trail.
@@ -497,8 +497,8 @@ Phase A.
 #### Tasks
 
 - [ ] **T3.1** Add **Deployment/Render Scope Detection** subsection to Step 1
-  (Load Context), immediately after the `HAS_UI` detection block (after line
-  containing `HAS_UI = false → apply point redistribution`).
+      (Load Context), immediately after the `HAS_UI` detection block (after line
+      containing `HAS_UI = false → apply point redistribution`).
 
   Content to add (verbatim block):
 
@@ -508,36 +508,37 @@ Phase A.
   Scan `spec.md`, `plan.md`, `contract-pack.md`, and `quickstart.md` (when
   present) for the following signals:
 
-  - DEPLOY_SIGNAL_1: any acceptance criterion contains the keywords:
-    `rendered`, `live route`, `live API`, `deployed`, `production`, `staging`,
-    `SharePoint`, `Azure`, `smoke`, `E2E`, `browser`
-  - DEPLOY_SIGNAL_2: `plan.md`, `contract-pack.md`, or `quickstart.md` names a deployment target:
-    SharePoint, Azure, staging, production, Vercel, Netlify, Docker, Kubernetes,
-    or any server/environment referenced in the acceptance chain
+  - DEPLOY_SIGNAL_1: any acceptance criterion contains the keywords: `rendered`,
+    `live route`, `live API`, `deployed`, `production`, `staging`, `SharePoint`,
+    `Azure`, `smoke`, `E2E`, `browser`
+  - DEPLOY_SIGNAL_2: `plan.md`, `contract-pack.md`, or `quickstart.md` names a
+    deployment target: SharePoint, Azure, staging, production, Vercel, Netlify,
+    Docker, Kubernetes, or any server/environment referenced in the acceptance
+    chain
   - DEPLOY_SIGNAL_3: `plan.md` declares a UI/rendered experience AND at least
     one acceptance criterion uses: `sees`, `displays`, `shows`, `renders`,
     `navigates to`
 
-  Set `DEPLOY_IN_SCOPE = true` if ANY signal is present.
-  Set `DEPLOY_IN_SCOPE = false` if NO signal is present.
-  Record the determination in the validation report preamble.
+  Set `DEPLOY_IN_SCOPE = true` if ANY signal is present. Set
+  `DEPLOY_IN_SCOPE = false` if NO signal is present. Record the determination in
+  the validation report preamble.
 
-  Example for workflow-only features: `DEPLOY_IN_SCOPE = false` —
-  Category 3 redistributes only when `HAS_UI = false`; otherwise a local render
-  artifact is still required.
+  Example for workflow-only features: `DEPLOY_IN_SCOPE = false` — Category 3
+  redistributes only when `HAS_UI = false`; otherwise a local render artifact is
+  still required.
   ```
 
 - [ ] **T3.2** Add **Step 2.2: Evidence Gate Pre-Check** block as a new step
-  heading between the "Run all 6 core agents in parallel" instruction and the
-  "Collect all results before proceeding" instruction in Phase A. This step runs
-  in the main context after Step 2 agents have been _launched_ but _before_
-  scoring. Content to add per the Architecture section above (GATE-1, GATE-2,
-  GATE-3 logic with GATE_FAIL semantics). Also update the existing Step 7
-  Category 3 scoring text so it references `DEPLOY_IN_SCOPE` / `GATE-3` instead
-  of relying on `HAS_UI` alone.
+      heading between the "Run all 6 core agents in parallel" instruction and
+      the "Collect all results before proceeding" instruction in Phase A. This
+      step runs in the main context after Step 2 agents have been _launched_ but
+      _before_ scoring. Content to add per the Architecture section above
+      (GATE-1, GATE-2, GATE-3 logic with GATE_FAIL semantics). Also update the
+      existing Step 7 Category 3 scoring text so it references `DEPLOY_IN_SCOPE`
+      / `GATE-3` instead of relying on `HAS_UI` alone.
 
 - [ ] **T3.3** Add **Honest-Scoring Rule** paragraph to the Scoring Rules
-  subsection (the section that currently ends with "Anything less = FAIL"):
+      subsection (the section that currently ends with "Anything less = FAIL"):
 
   > **Honest-scoring rule (FR-012)**: If an agent reports "EVIDENCE ABSENT:",
   > the orchestrating stage MUST score that category 0 regardless of other
@@ -547,67 +548,69 @@ Phase A.
   > scores exactly 0 — no partial credit.
 
 - [ ] **T3.4** Add **Evidence Table** requirement to Step 8 (Generate Validation
-  Report). Append the following instruction after the existing
-  report-writing block:
+      Report). Append the following instruction after the existing
+      report-writing block:
 
   ```markdown
   **Required: Evidence Table** (FR-013, FR-014)
 
-  Append an evidence table to `validation-report.md` on EVERY run (PASS and FAIL).
-  Start the section with the exact heading `## Evidence Table`.
-  Use the exact structure from `contract-pack.md § 6`:
+  Append an evidence table to `validation-report.md` on EVERY run (PASS and
+  FAIL). Start the section with the exact heading `## Evidence Table`. Use the
+  exact structure from `contract-pack.md § 6`:
 
-  | Category | Score | Evidence Artifact / Command Output | Absent / Reason for 0 |
-  | --- | --- | --- | --- |
-  | 1 — Functional Correctness | [pts] | [path or "npm test output, run at HH:MM"] | [if 0: reason] |
-  | 2 — Test Authenticity | [pts] | [path or mutation score] | [if 0: reason] |
-| 3 — UI/E2E Verification | [pts] | ["N/A — HAS_UI=false", "Render proof only — deployment target not in scope", or render/deploy artifact] | [if 0: reason] |
-  | 4 — Security Posture | [pts] | [agent finding reference] | [if 0: reason] |
-  | 5 — Integration Reality | [pts] | [runtime wiring proof: file:line or test output] | [if 0: reason] |
-  | 6 — Error Path Coverage | [pts] | [agent finding reference] | [if 0: reason] |
-  | 7 — Architecture Compliance | [pts] | [agent finding reference] | [if 0: reason] |
-  | 8 — Performance Baseline | [pts] | [agent finding reference] | [if 0: reason] |
-  | 9 — Code Hygiene | [pts] | [agent finding reference] | [if 0: reason] |
-  | 10 — Specification Traceability | [pts] | [agent finding reference] | [if 0: reason] |
-  | 11 — Blast Radius Containment | [pts] | [blast-radius-report.md reference] | [if 0: reason] |
-  | **Total** | **[total]/110** | | |
+  | Category                        | Score           | Evidence Artifact / Command Output                                                                      | Absent / Reason for 0 |
+  | ------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------- | --------------------- |
+  | 1 — Functional Correctness      | [pts]           | [path or "npm test output, run at HH:MM"]                                                               | [if 0: reason]        |
+  | 2 — Test Authenticity           | [pts]           | [path or mutation score]                                                                                | [if 0: reason]        |
+  | 3 — UI/E2E Verification         | [pts]           | ["N/A — HAS_UI=false", "Render proof only — deployment target not in scope", or render/deploy artifact] | [if 0: reason]        |
+  | 4 — Security Posture            | [pts]           | [agent finding reference]                                                                               | [if 0: reason]        |
+  | 5 — Integration Reality         | [pts]           | [runtime wiring proof: file:line or test output]                                                        | [if 0: reason]        |
+  | 6 — Error Path Coverage         | [pts]           | [agent finding reference]                                                                               | [if 0: reason]        |
+  | 7 — Architecture Compliance     | [pts]           | [agent finding reference]                                                                               | [if 0: reason]        |
+  | 8 — Performance Baseline        | [pts]           | [agent finding reference]                                                                               | [if 0: reason]        |
+  | 9 — Code Hygiene                | [pts]           | [agent finding reference]                                                                               | [if 0: reason]        |
+  | 10 — Specification Traceability | [pts]           | [agent finding reference]                                                                               | [if 0: reason]        |
+  | 11 — Blast Radius Containment   | [pts]           | [blast-radius-report.md reference]                                                                      | [if 0: reason]        |
+  | **Total**                       | **[total]/110** |                                                                                                         |                       |
 
   Each `Evidence Artifact / Command Output` cell MUST contain at least one of:
+
   - A file path visible in the current session
   - An executed command and its real output (with timestamp)
   - A sub-agent finding citation (agent name + finding ID)
 
-  This evidence-table section is additive: it must be appended after the existing
-  report sections and must not remove or rewrite legacy `validation-report.md`
-  content.
+  This evidence-table section is additive: it must be appended after the
+  existing report sections and must not remove or rewrite legacy
+  `validation-report.md` content.
 
-  An empty evidence cell or a cell containing only inferences/assumptions
-  MUST cause that category to score 0.
-  `validation-report.md` must record `/6` provenance fields sufficient to trace
-  the run: `GeneratedAt`, `SourceCommandId`, `SourceInputs`, and
-  `OverwriteNoticeWhenApplicable` when the report is rewritten.
-  Category 11's evidence cell MUST cite `blast-radius-report.md`.
-  When Category 3 is not in scope, the report preamble or row text MUST make
-  redistribution explicit enough that normalization/effective contribution
-  remains derivable from the persisted report.
+  An empty evidence cell or a cell containing only inferences/assumptions MUST
+  cause that category to score 0. `validation-report.md` must record `/6`
+  provenance fields sufficient to trace the run: `GeneratedAt`,
+  `SourceCommandId`, `SourceInputs`, and `OverwriteNoticeWhenApplicable` when
+  the report is rewritten. Category 11's evidence cell MUST cite
+  `blast-radius-report.md`. When Category 3 is not in scope, the report preamble
+  or row text MUST make redistribution explicit enough that
+  normalization/effective contribution remains derivable from the persisted
+  report.
   ```
 
 - [ ] **T3.5** Verify the file change is additive except for the minimal wording
-  correction required to align any stale Phase B / Step 3 order summary with the
-  actual step headings and pending-gate semantics. The existing phase structure,
-  rubric table, and scoring rules must still be intact, with `Step 2.2` as the
-  only additive numbered-step insertion. Confirm via diff that no unrelated
-  pre-existing lines were removed, only new content appended/inserted plus that
-  targeted outline clarification. Also update
-  `tests/unit/autonomous/WorkspaceContextProvider.test.ts` so the existing
-  `validation-report.md` consumer is exercised with a legacy pre-evidence-table
-  report body and still detects the `validate` stage without requiring
-  `## Evidence Table`. Add `tests/unit/scripts/validation-report-compat.test.ts`
-  to exercise a legacy pre-evidence-table report sample and a post-feature
-  sample, confirming the legacy sections remain readable when
-  `## Evidence Table` is appended. Update any stale `/6` metadata/frontmatter
-  wording in `.specify/commands/6_gofer_validate.md` so it no longer describes
-  validation as "six quality dimensions" or a "100-point rubric".
+      correction required to align any stale Phase B / Step 3 order summary with
+      the actual step headings and pending-gate semantics. The existing phase
+      structure, rubric table, and scoring rules must still be intact, with
+      `Step 2.2` as the only additive numbered-step insertion. Confirm via diff
+      that no unrelated pre-existing lines were removed, only new content
+      appended/inserted plus that targeted outline clarification. Also update
+      `tests/unit/autonomous/WorkspaceContextProvider.test.ts` so the existing
+      `validation-report.md` consumer is exercised with a legacy
+      pre-evidence-table report body and still detects the `validate` stage
+      without requiring `## Evidence Table`. Add
+      `tests/unit/scripts/validation-report-compat.test.ts` to exercise a legacy
+      pre-evidence-table report sample and a post-feature sample, confirming the
+      legacy sections remain readable when `## Evidence Table` is appended.
+      Update any stale `/6` metadata/frontmatter wording in
+      `.specify/commands/6_gofer_validate.md` so it no longer describes
+      validation as "six quality dimensions" or a "100-point rubric".
 
 #### Verification Criteria (Phase 3)
 
@@ -629,40 +632,37 @@ ls .specify/commands/ | grep "6[aA]" | grep -v "6a_gofer_engineering_review"
 ### Phase 4 — Stage-Local Augmentation Seams (US-4, P3)
 
 Add selector-driven optional helper seams to three existing numbered stage
-files. These are purely additive blocks: they define provider-neutral
-activation selectors and inline helper behavior, but they do not change stage
-numbering, routing, or persisted pipeline state.
+files. These are purely additive blocks: they define provider-neutral activation
+selectors and inline helper behavior, but they do not change stage numbering,
+routing, or persisted pipeline state.
 
 #### Tasks
 
 - [ ] **T4.1** Add `gofer:vocabulary` and `gofer:zoom-out` selector-driven seam
-  guidance to
-  `.specify/commands/1_gofer_research.md`.
-  Location: end of the stage body, in a new fenced section:
+      guidance to `.specify/commands/1_gofer_research.md`. Location: end of the
+      stage body, in a new fenced section:
+
   ```markdown
   ---
   ## Optional Helpers: Vocabulary Extraction and Zoom-Out
   If the operator explicitly requests the `vocabulary` selector after
   `research.md` exists, run `gofer:vocabulary` inline and write
-  `.specify/specs/{feature}/glossary.md` using the same artifact contract as
-  the standalone helper.
-  If the operator explicitly requests the `zoom-out` selector after
-  `research.md` exists, run `gofer:zoom-out` inline and write
-  `.specify/specs/{feature}/zoom-out-report.md` using the same artifact
-  contract as the standalone helper.
-  If `research.md` is missing, continue the stage normally and report that the
-  helper was not run.
-  These selectors are optional and do not change stage progress, routing, or
-  pipeline state.
+  `.specify/specs/{feature}/glossary.md` using the same artifact contract as the
+  standalone helper. If the operator explicitly requests the `zoom-out` selector
+  after `research.md` exists, run `gofer:zoom-out` inline and write
+  `.specify/specs/{feature}/zoom-out-report.md` using the same artifact contract
+  as the standalone helper. If `research.md` is missing, continue the stage
+  normally and report that the helper was not run. These selectors are optional
+  and do not change stage progress, routing, or pipeline state.
   ---
   ```
 
 - [ ] **T4.2** Add `gofer:vocabulary` and `gofer:spec-summary` selector-driven
-  seam guidance to
-  `.specify/commands/2_gofer_specify.md`.
-  Same fenced section format at end of body. Vocabulary extraction is
-  particularly useful after spec.md is stabilized; `gofer:spec-summary` is the
-  optional business-facing summary seam for the same stage.
+      seam guidance to `.specify/commands/2_gofer_specify.md`. Same fenced
+      section format at end of body. Vocabulary extraction is particularly
+      useful after spec.md is stabilized; `gofer:spec-summary` is the optional
+      business-facing summary seam for the same stage.
+
   ```markdown
   ---
   ## Optional Helpers: Vocabulary Extraction and Spec Summary
@@ -682,8 +682,8 @@ numbering, routing, or persisted pipeline state.
   ```
 
 - [ ] **T4.3** Add `gofer:tdd` and `gofer:diagnose` selector-driven seam
-  guidance to
-  `.specify/commands/5_gofer_implement.md`.
+      guidance to `.specify/commands/5_gofer_implement.md`.
+
   ```markdown
   ---
   ## Optional Helpers: TDD and Diagnose
@@ -737,9 +737,9 @@ git diff --name-only | grep -E "PipelineStateManager|pipeline-state\.sh|CommandG
 
 ### Phase 5 — Test Suite
 
-Add new test assertions to existing test files and create focused new test
-files for the acceptance tests defined in `contract-pack.md § 9`. All tests
-follow existing Vitest patterns.
+Add new test assertions to existing test files and create focused new test files
+for the acceptance tests defined in `contract-pack.md § 9`. All tests follow
+existing Vitest patterns.
 
 **Protected boundary**: leave `tests/integration/cross-platform-parity.test.ts`
 unchanged in this feature. That suite currently exercises legacy flat
@@ -750,7 +750,8 @@ proven in a dedicated helper test against the real generator outputs under
 #### Tasks
 
 - [ ] **T5.1** Update `tests/unit/scripts/control-commands-surfaces.test.ts`:
-  Add the five new helpers to the `CONTROL_COMMANDS` array:
+      Add the five new helpers to the `CONTROL_COMMANDS` array:
+
   ```typescript
   const CONTROL_COMMANDS = [
     'gofer_plan.md',
@@ -764,15 +765,17 @@ proven in a dedicated helper test against the real generator outputs under
     'gofer_zoom_out.md',
   ];
   ```
+
   The existing surface-set check (`EXPECTED_SURFACES`) must pass for all five.
   Also update the human-readable assertion label from
   `all three control-command files exist on disk` to
   `all control-command files exist on disk`; make no behavioral changes beyond
   the expanded helper list and label refresh.
 
-- [ ] **T5.2** Update `tests/unit/scripts/description-budget.test.ts`:
-  Extend `EXPECTED_STAGES` with the five new helper names and update the hard
-  count assertions from `16` to `21`:
+- [ ] **T5.2** Update `tests/unit/scripts/description-budget.test.ts`: Extend
+      `EXPECTED_STAGES` with the five new helper names and update the hard count
+      assertions from `16` to `21`:
+
   ```typescript
   'gofer:vocabulary',
   'gofer:diagnose',
@@ -780,10 +783,13 @@ proven in a dedicated helper test against the real generator outputs under
   'gofer:spec-summary',
   'gofer:zoom-out',
   ```
+
   Update:
-  - `contains exactly 16 stage descriptions` → `contains exactly 21 stage descriptions`
-  - `contains all 16 expected stage names` → `contains all 21 expected stage names`
-  Keep the existing per-description and cumulative-byte assertions unchanged.
+  - `contains exactly 16 stage descriptions` →
+    `contains exactly 21 stage descriptions`
+  - `contains all 16 expected stage names` →
+    `contains all 21 expected stage names` Keep the existing per-description and
+    cumulative-byte assertions unchanged.
 
 - [ ] **T5.3** Update `tests/unit/scripts/canonical-descriptions.test.ts`:
   - Import `beforeAll` from `vitest` (the file already calls it via Vitest
@@ -793,22 +799,25 @@ proven in a dedicated helper test against the real generator outputs under
     - `has exactly 16 stage descriptions` → `has exactly 21 stage descriptions`
     - `validateDescriptions() returns correct count ...` expected `16` → `21`
 
-- [ ] **T5.4** Update `tests/unit/codex/canonical-set-cumulative-budget.test.ts`:
-  Update the `canonical set has 16 descriptions` assertion to `21`:
+- [ ] **T5.4** Update
+      `tests/unit/codex/canonical-set-cumulative-budget.test.ts`: Update the
+      `canonical set has 16 descriptions` assertion to `21`:
+
   ```typescript
   it('canonical set has 21 descriptions', () => {
     expect(Object.keys(CANONICAL_DESCRIPTIONS)).toHaveLength(21);
   });
   ```
+
   The existing `≤ 2048 bytes` wire-format assertion remains authoritative — keep
   the budget logic unchanged, but ensure the new helper descriptions are short
   enough for it to pass and mirror the same check in Phase 2 before running the
   full suite.
 
 - [ ] **T5.5** Create
-  `tests/unit/scripts/helper-commands-cross-cli-parity.test.ts`:
-  Tests AT-005, AT-006, and AT-008 (acceptance test coverage for US-2,
-  cross-CLI parity, artifact path correctness, no verbatim mirroring).
+      `tests/unit/scripts/helper-commands-cross-cli-parity.test.ts`: Tests
+      AT-005, AT-006, and AT-008 (acceptance test coverage for US-2, cross-CLI
+      parity, artifact path correctness, no verbatim mirroring).
 
   Assertions:
   - all five helper source files exist in `.specify/commands/`
@@ -832,7 +841,8 @@ proven in a dedicated helper test against the real generator outputs under
   - normalize the emitted provider surfaces and assert the user-observable
     helper contract is equivalent across Claude, Copilot, Codex, and Gemini:
     same helper identifier, same artifact path, same overwrite/provenance
-    instructions, and same selector tokens where the source command defines a seam
+    instructions, and same selector tokens where the source command defines a
+    seam
   - stage-local seam blocks in `/1`, `/2`, and `/5` reference the same helper
     names, artifact filenames, and explicit same-contract language as the
     standalone command definitions
@@ -852,20 +862,19 @@ proven in a dedicated helper test against the real generator outputs under
   - numbered stage file set remains unchanged and the only lettered stage file
     is the existing `6a_gofer_engineering_review.md`
 
-- [ ] **T5.6** Create
-  `tests/unit/scripts/validation-evidence-gates.test.ts`:
-  Tests AT-001, AT-002, AT-003, AT-004 (validation truthfulness gates).
-  These are specification-level contract tests: they verify the
-  `6_gofer_validate.md` command file contains the required gate language,
-  rather than attempting to execute a full `/6` run (which requires a full
-  pipeline context).
+- [ ] **T5.6** Create `tests/unit/scripts/validation-evidence-gates.test.ts`:
+      Tests AT-001, AT-002, AT-003, AT-004 (validation truthfulness gates).
+      These are specification-level contract tests: they verify the
+      `6_gofer_validate.md` command file contains the required gate language,
+      rather than attempting to execute a full `/6` run (which requires a full
+      pipeline context).
 
   Assertions:
   - `GATE-1` integration proof block exists, names Category 5, and sets
     `GATE_FAIL`, `final scoring time`, and the Step 3 re-check language
-  - `GATE-2` test execution block exists, names Categories 1 and 2, and
-    requires real executed `npm test` output already present or produced by
-    Step 3 automated checks before final scoring
+  - `GATE-2` test execution block exists, names Categories 1 and 2, and requires
+    real executed `npm test` output already present or produced by Step 3
+    automated checks before final scoring
   - `GATE-3` deployment/render block exists, includes the `HAS_UI = false`,
     `HAS_UI = true AND DEPLOY_IN_SCOPE = false`, and
     `HAS_UI = true AND DEPLOY_IN_SCOPE = true` branches, names Category 3, and
@@ -877,8 +886,8 @@ proven in a dedicated helper test against the real generator outputs under
     proof mandatory
   - deployment/render scope detection includes `DEPLOY_SIGNAL_1`,
     `DEPLOY_SIGNAL_2`, `DEPLOY_SIGNAL_3`, and `DEPLOY_IN_SCOPE`
-  - evidence table is required on **EVERY run (PASS and FAIL)** and includes
-    the exact heading `## Evidence Table`, `Evidence Artifact / Command Output`,
+  - evidence table is required on **EVERY run (PASS and FAIL)** and includes the
+    exact heading `## Evidence Table`, `Evidence Artifact / Command Output`,
     `Absent / Reason for 0`, and the `Total` row after the 11 rubric categories
   - the evidence-table instructions explicitly state the section is appended /
     additive and does not rewrite prior `validation-report.md` content
@@ -888,16 +897,17 @@ proven in a dedicated helper test against the real generator outputs under
   - the `HAS_UI = true AND DEPLOY_IN_SCOPE = false` path makes render-only
     scoring explicit enough to derive normalization/effective contribution from
     the persisted report
-  - PASS-path language states a fully evidenced run writes `validation-report.md`
-    with a populated evidence table and does not grant PASS when gated evidence
-    is absent
+  - PASS-path language states a fully evidenced run writes
+    `validation-report.md` with a populated evidence table and does not grant
+    PASS when gated evidence is absent
   - honest-scoring rule includes `EVIDENCE ABSENT` and `exactly 0`
   - no new `/6A.x` headings or sub-stage definitions are introduced
 
-- [ ] **T5.7** Update `tests/unit/scripts/byte-equivalence.test.ts`:
-  Add the five new helper filenames to the `CONTROL_COMMAND_FILES` exclusion
-  set so the suite continues to treat control commands as golden-fixture
-  exemptions:
+- [ ] **T5.7** Update `tests/unit/scripts/byte-equivalence.test.ts`: Add the
+      five new helper filenames to the `CONTROL_COMMAND_FILES` exclusion set so
+      the suite continues to treat control commands as golden-fixture
+      exemptions:
+
   ```typescript
   'gofer_vocabulary.md',
   'gofer_diagnose.md',
@@ -905,18 +915,20 @@ proven in a dedicated helper test against the real generator outputs under
   'gofer_spec_summary.md',
   'gofer_zoom_out.md',
   ```
+
   Keep the fixture-count expectation aligned with the exclusion behavior; no new
   golden fixtures are required for these helpers.
 
-- [ ] **T5.8** Update `tests/unit/scripts/stage-manifest.test.ts`:
-  Extend `EXPECTED_CONTROL_COMMANDS` with the five new helpers and update the
-  derived control/total command counts from `3/19` to `8/24` so the manifest
-  assertions match the live `.specify/commands/` directory after Phase 1.
+- [ ] **T5.8** Update `tests/unit/scripts/stage-manifest.test.ts`: Extend
+      `EXPECTED_CONTROL_COMMANDS` with the five new helpers and update the
+      derived control/total command counts from `3/19` to `8/24` so the manifest
+      assertions match the live `.specify/commands/` directory after Phase 1.
 
-- [ ] **T5.9** Update `tests/unit/scripts/generator-regression.test.ts`:
-  Extend `EXPECTED_CONTROL_COMMANDS` with the five new helper slugs and update
-  the derived total command count from `19` to `24`. Refresh the test comment so
-  it reflects `16` numbered/lettered pipeline stages plus `8` control commands.
+- [ ] **T5.9** Update `tests/unit/scripts/generator-regression.test.ts`: Extend
+      `EXPECTED_CONTROL_COMMANDS` with the five new helper slugs and update the
+      derived total command count from `19` to `24`. Refresh the test comment so
+      it reflects `16` numbered/lettered pipeline stages plus `8` control
+      commands.
 
 - [ ] **T5.10** Update source-of-truth and manifest inventory tests:
   - `tests/unit/scripts/alias-uniqueness.test.ts`
@@ -930,11 +942,11 @@ proven in a dedicated helper test against the real generator outputs under
   - `AGENTS.md`
 
   Adjust hardcoded source-of-truth / generated-command totals from `19` to `24`
-  and refresh the human-readable labels so they reference `16`
-  numbered/lettered pipeline/utility commands plus `8` control commands.
-  `AGENTS.md` at repo root and `.claude-plugin/plugin.json` are hand-maintained,
-  non-authoritative manifests for current tests; `.specify/commands/*.md`
-  remains the sole source of truth. Keep `e2e-pipeline-smoke.test.ts` and
+  and refresh the human-readable labels so they reference `16` numbered/lettered
+  pipeline/utility commands plus `8` control commands. `AGENTS.md` at repo root
+  and `.claude-plugin/plugin.json` are hand-maintained, non-authoritative
+  manifests for current tests; `.specify/commands/*.md` remains the sole source
+  of truth. Keep `e2e-pipeline-smoke.test.ts` and
   `numbered-vs-namespaced-parity.test.ts` as the automated pipeline-sequence
   guards for AT-007 / SC-006. Use the real identifier conventions for each
   hand-maintained file:
@@ -943,20 +955,21 @@ proven in a dedicated helper test against the real generator outputs under
   - `.claude-plugin/plugin.json` command names use namespaced identifiers such
     as `gofer:vocabulary`
   - `codex-config.toml` entries use `gofer/gofer:*` identifiers such as
-    `gofer/gofer:vocabulary`
-  Also update the stale `/6` copy in both `AGENTS.md` and
-  `.claude-plugin/plugin.json`: replace the outdated "100-point rubric" /
-  "six quality dimensions" wording with the current truthful 110-point
-  evidence-backed contract language.
+    `gofer/gofer:vocabulary` Also update the stale `/6` copy in both `AGENTS.md`
+    and `.claude-plugin/plugin.json`: replace the outdated "100-point rubric" /
+    "six quality dimensions" wording with the current truthful 110-point
+    evidence-backed contract language.
 
 - [ ] **T5.11** Update Codex/Gemini inventory tests, Codex doctor coverage, and
-  the repo-root Codex manifest:
+      the repo-root Codex manifest:
   - `tests/unit/codex/e2e-codex-clean-environment.test.ts` — update
     `validateDescriptions().count` from `16` to `21`
-  - `tests/unit/codex/codex-only-emit.test.ts` — update the allowed helper/control
-    command set and emitted-count expectations for the five new helpers
+  - `tests/unit/codex/codex-only-emit.test.ts` — update the allowed
+    helper/control command set and emitted-count expectations for the five new
+    helpers
   - `tests/unit/codex/codex-doctor.test.ts` — update canonical-skill fixture
-    inventory and expected skill-file totals to the 21-skill helper-inclusive set
+    inventory and expected skill-file totals to the 21-skill helper-inclusive
+    set
   - `tests/unit/codex/e2e-codex-doctor-smoke.test.ts` — update duplicate-bundle
     smoke fixtures to the same 21-skill helper-inclusive set
   - `tests/unit/scripts/gemini-extension-manifest-valid.test.ts` — update
@@ -965,13 +978,12 @@ proven in a dedicated helper test against the real generator outputs under
     count from `19` to `24`
   - `tests/unit/codex/codex-config-toml-shape.test.ts` — update
     `[[skills.config]]` block count from `19` to `24`
-  - `codex-config.toml` — refresh/sync the committed repo-root downstream copy so
-    it contains the five new helper `[[skills.config]]` blocks and matches the
-    generated
-    `.specify/outputs/codex-config-fragment.toml`
+  - `codex-config.toml` — refresh/sync the committed repo-root downstream copy
+    so it contains the five new helper `[[skills.config]]` blocks and matches
+    the generated `.specify/outputs/codex-config-fragment.toml`
 
 - [ ] **T5.12** Refresh byte-equivalence golden fixtures for the four modified
-  numbered stage files after Phases 3 and 4 finalize:
+      numbered stage files after Phases 3 and 4 finalize:
   - `tests/fixtures/golden/claude-commands/1_gofer_research.md`
   - `tests/fixtures/golden/claude-commands/2_gofer_specify.md`
   - `tests/fixtures/golden/claude-commands/5_gofer_implement.md`
@@ -1004,29 +1016,34 @@ Full end-to-end verification that the feature delivers everything in the spec.
 #### Tasks
 
 - [ ] **T6.1** Run the full test suite:
+
   ```bash
   npm test
   ```
-  All tests must pass. Capture real pass/fail counts (required by the
-  validation truthfulness standard this feature introduces).
+
+  All tests must pass. Capture real pass/fail counts (required by the validation
+  truthfulness standard this feature introduces).
 
 - [ ] **T6.2** Run the generator and Codex doctor as a final smoke check:
+
   ```bash
   npm run gofer:generate -- --dry-run
   npm run gofer:generate && npm run gofer:codex-doctor
   ```
+
   Expect a clean generator run. Expect `gofer:codex-doctor` to exit 0 when the
   local Codex skill root is available; otherwise record that the doctor could
-  not scan the installed skill root and rely on the Phase 2/5 source-tree
-  budget checks as authoritative. Log:
+  not scan the installed skill root and rely on the Phase 2/5 source-tree budget
+  checks as authoritative. Log:
   - the dry-run surface list
   - the dry-run stage list containing all five helpers
   - the final Codex byte total from `gofer:codex-doctor`.
 
 - [ ] **T6.3** Create
-  `.specify/specs/031-skills-pipeline-augmentation/audit-history.md` with the
-  initial truthfulness rollout entries:
-  - `VAL-TRUTH-001` — missing executed test output forces Categories 1 and 2 to 0
+      `.specify/specs/031-skills-pipeline-augmentation/audit-history.md` with
+      the initial truthfulness rollout entries:
+  - `VAL-TRUTH-001` — missing executed test output forces Categories 1 and 2 to
+    0
   - `VAL-TRUTH-002` — missing runtime integration proof forces Category 5 to 0
   - `VAL-TRUTH-003` — `DEPLOY_IN_SCOPE = true` with no render/deploy proof
     forces Category 3 to 0
@@ -1037,8 +1054,8 @@ Full end-to-end verification that the feature delivers everything in the spec.
   the remediation expectation for the next validation run.
 
 - [ ] **T6.4** Execute and record three smoke checks in `audit-history.md`:
-  1. an actual missing-evidence `/6_gofer_validate` run that proves Category 5 = 0
-     and Categories 1/2 = 0 with FAIL when runtime integration proof and
+  1. an actual missing-evidence `/6_gofer_validate` run that proves Category 5 =
+     0 and Categories 1/2 = 0 with FAIL when runtime integration proof and
      executed test output are absent
   2. a deploy-in-scope run (signals present, render/deployment artifact absent)
      that proves Category 3 = 0 with FAIL
@@ -1054,30 +1071,30 @@ Full end-to-end verification that the feature delivers everything in the spec.
   Because `/6_gofer_validate` is a command-definition artifact, these are
   operator/manual smoke checks backed by saved excerpts, but each smoke item
   still requires an actual `/6_gofer_validate` invocation against a prepared
-  feature context.
-  For smoke check #2, use a synthetic scratch feature or another feature
-  directory whose `spec.md` contains deploy-scope signals, since feature 031
-  itself is workflow-only and defaults to `DEPLOY_IN_SCOPE = false`.
+  feature context. For smoke check #2, use a synthetic scratch feature or
+  another feature directory whose `spec.md` contains deploy-scope signals, since
+  feature 031 itself is workflow-only and defaults to `DEPLOY_IN_SCOPE = false`.
 
 - [ ] **T6.5** Verify all acceptance tests from `contract-pack.md § 9` are
-  covered:
+      covered:
 
-  | AT ID | Coverage | Test File |
-  | --- | --- | --- |
-  | AT-001 | Contractual gate presence for GATE-1 and live smoke excerpt | `validation-evidence-gates.test.ts` + T6.4 |
-  | AT-002 | Contractual gate presence for GATE-2 and live smoke excerpt | `validation-evidence-gates.test.ts` + T6.4 |
-  | AT-003 | Evidence table section presence on PASS and FAIL runs | `validation-evidence-gates.test.ts` + T6.4 |
-  | AT-004 | Evidence table on FAIL runs | `validation-evidence-gates.test.ts` + T6.4 |
-  | AT-005 | Generator emits all 4 surfaces per helper | `helper-commands-cross-cli-parity.test.ts` + T6.2 smoke |
-  | AT-006 | Exact artifact path in command body | `helper-commands-cross-cli-parity.test.ts` |
-  | AT-007 | Stage sequence unchanged | `e2e-pipeline-smoke.test.ts` + `numbered-vs-namespaced-parity.test.ts` + T6.1 + T6.7 |
-  | AT-008 | No verbatim Matt Pocock text | `helper-commands-cross-cli-parity.test.ts` + T6.7 manual review |
+  | AT ID  | Coverage                                                    | Test File                                                                            |
+  | ------ | ----------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+  | AT-001 | Contractual gate presence for GATE-1 and live smoke excerpt | `validation-evidence-gates.test.ts` + T6.4                                           |
+  | AT-002 | Contractual gate presence for GATE-2 and live smoke excerpt | `validation-evidence-gates.test.ts` + T6.4                                           |
+  | AT-003 | Evidence table section presence on PASS and FAIL runs       | `validation-evidence-gates.test.ts` + T6.4                                           |
+  | AT-004 | Evidence table on FAIL runs                                 | `validation-evidence-gates.test.ts` + T6.4                                           |
+  | AT-005 | Generator emits all 4 surfaces per helper                   | `helper-commands-cross-cli-parity.test.ts` + T6.2 smoke                              |
+  | AT-006 | Exact artifact path in command body                         | `helper-commands-cross-cli-parity.test.ts`                                           |
+  | AT-007 | Stage sequence unchanged                                    | `e2e-pipeline-smoke.test.ts` + `numbered-vs-namespaced-parity.test.ts` + T6.1 + T6.7 |
+  | AT-008 | No verbatim Matt Pocock text                                | `helper-commands-cross-cli-parity.test.ts` + T6.7 manual review                      |
 
   US-4 AC-1 parity is additionally covered by the seam-to-standalone artifact
   assertions in `helper-commands-cross-cli-parity.test.ts` plus the manual
   stage-local seam spot-check in T6.7.
 
 - [ ] **T6.6** Verify protected files are untouched:
+
   ```bash
   git diff --name-only | grep -E \
     "PipelineStateManager\.ts|pipeline-state\.sh|CommandGenerator\.ts|CrossPlatformCommandRouter\.ts|cross-platform-parity\.test\.ts"
@@ -1104,16 +1121,16 @@ Full end-to-end verification that the feature delivers everything in the spec.
      `.specify/specs/{feature}/diagnose-report.md` is written with the expected
      `reproduce`, `minimize`, `instrument`, and `fix` sections.
   7. Invoke `/1_gofer_research` with the `vocabulary` and `zoom-out` selectors
-      on a scratch feature that already has `research.md`. Confirm the inline
-      `glossary.md` and `zoom-out-report.md` outputs match the standalone helper
-      contracts.
+     on a scratch feature that already has `research.md`. Confirm the inline
+     `glossary.md` and `zoom-out-report.md` outputs match the standalone helper
+     contracts.
   8. Invoke `/2_gofer_specify` with the `vocabulary` and `spec-summary`
-      selectors on a scratch feature that already has `spec.md`. Confirm the
-      inline `glossary.md` and `spec-summary.md` outputs match the standalone
-      helper contracts.
+     selectors on a scratch feature that already has `spec.md`. Confirm the
+     inline `glossary.md` and `spec-summary.md` outputs match the standalone
+     helper contracts.
   9. Follow the approved `gofer:tdd` seam from `/5_gofer_implement` and confirm
-      the resulting artifact shape matches the standalone helper contract for
-      `tdd-session.md`.
+     the resulting artifact shape matches the standalone helper contract for
+     `tdd-session.md`.
   10. Invoke `/5_gofer_implement` with the `diagnose` selector, `spec.md`, and
       failing-output context. Confirm the inline `diagnose-report.md` output
       matches the standalone helper contract.
@@ -1243,29 +1260,29 @@ extension/resources/copilot-prompts/gofer:vocabulary.prompt.md  (and 4 others)
 
 ### Protected Files (No Changes)
 
-| File | Protection Reason |
-| --- | --- |
-| `extension/src/autonomous/PipelineStateManager.ts` | Hardcodes `VALID_STAGES` array; helpers are not stages |
-| `extension/resources/bash-scripts/pipeline-state.sh` | Hardcodes `VALID_STAGES` bash array; same reason |
-| `extension/src/council/CommandGenerator.ts` | High-risk runtime surface emitter; targeted fixes are allowed, but numbered-stage sequencing must remain unchanged |
-| `extension/src/council/CrossPlatformCommandRouter.ts` | High-risk runtime routing layer; targeted fixes are allowed to preserve nested Codex + Gemini helper parity |
-| `tests/integration/cross-platform-parity.test.ts` | High-signal regression suite; update only when needed to reflect real emitted helper/runtime paths |
-| Any `.specify/commands/0_*.md` through `10_*.md` (except seam additions) | Pipeline stage sequence frozen |
+| File                                                                     | Protection Reason                                                                                                  |
+| ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
+| `extension/src/autonomous/PipelineStateManager.ts`                       | Hardcodes `VALID_STAGES` array; helpers are not stages                                                             |
+| `extension/resources/bash-scripts/pipeline-state.sh`                     | Hardcodes `VALID_STAGES` bash array; same reason                                                                   |
+| `extension/src/council/CommandGenerator.ts`                              | High-risk runtime surface emitter; targeted fixes are allowed, but numbered-stage sequencing must remain unchanged |
+| `extension/src/council/CrossPlatformCommandRouter.ts`                    | High-risk runtime routing layer; targeted fixes are allowed to preserve nested Codex + Gemini helper parity        |
+| `tests/integration/cross-platform-parity.test.ts`                        | High-signal regression suite; update only when needed to reflect real emitted helper/runtime paths                 |
+| Any `.specify/commands/0_*.md` through `10_*.md` (except seam additions) | Pipeline stage sequence frozen                                                                                     |
 
 ---
 
 ## Risk Assessment
 
-| Risk | Likelihood | Impact | Mitigation |
-| --- | --- | --- | --- |
-| **Codex skill budget exceeded** — 5 new entries push cumulative bytes > 2048 | Medium | High — Codex surface silently breaks | T2.1 calculates bytes before commit; T5.2–T5.4 assert ≤ 2048; `gofer:codex-doctor` gates T6.2 |
-| **Generator schema rejects new frontmatter** — parse-stage-command.mjs fails on helper files | Low | High — generator fails entirely, no surfaces emitted | Established precedent (`gofer_side.md`). T1.1–T1.5 verify parse; T2.2 dry-run before live run |
-| **030-vscode-surface-truth-cleanup schema changes break 031** — Feature 030 modifies the command schema | Medium | High — helper files fail parsing | Monitor 030 branch. If 030 lands first, align helper frontmatter to new schema before Phase 1 |
-| **Stage-local seams alter numbered stage behavior** — seam blocks accidentally modify step flow | Low | Medium — breaks existing pipeline users | T4.4 verifies stage file integrity; seams are fenced optional blocks only |
-| **FR-011 detection produces false positives** — workflow-only features wrongly flagged as deploy-in-scope | Low | Medium — validate run blocks unnecessarily | Keyword set is conservative; `DEPLOY_IN_SCOPE = false` is the default path and `HAS_UI = false` still redistributes cleanly |
-| **Evidence gates break valid PASS runs** — legitimate implementations blocked by overly strict gates | Low | High — developer trust erosion | Gates only require evidence present in the current session context; T6.4 records the first negative smoke results |
-| **Matt Pocock verbatim content introduced** — AT-008 fails | Low | Low-Medium — IP/quality concern | T5.5 scans for forbidden strings; Phase 1 authors are briefed on FR-017 |
-| **Legacy flat vs nested Codex skill paths** — helper parity tests accidentally assert `.system/skills/<name>/SKILL.md` instead of emitted `.system/skills/gofer/<name>/SKILL.md` | Medium | Medium — CI fails for the wrong reason | T5.5 asserts actual generator paths; `cross-platform-parity.test.ts` remains untouched in this feature |
+| Risk                                                                                                                                                                             | Likelihood | Impact                                               | Mitigation                                                                                                                  |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- | ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| **Codex skill budget exceeded** — 5 new entries push cumulative bytes > 2048                                                                                                     | Medium     | High — Codex surface silently breaks                 | T2.1 calculates bytes before commit; T5.2–T5.4 assert ≤ 2048; `gofer:codex-doctor` gates T6.2                               |
+| **Generator schema rejects new frontmatter** — parse-stage-command.mjs fails on helper files                                                                                     | Low        | High — generator fails entirely, no surfaces emitted | Established precedent (`gofer_side.md`). T1.1–T1.5 verify parse; T2.2 dry-run before live run                               |
+| **030-vscode-surface-truth-cleanup schema changes break 031** — Feature 030 modifies the command schema                                                                          | Medium     | High — helper files fail parsing                     | Monitor 030 branch. If 030 lands first, align helper frontmatter to new schema before Phase 1                               |
+| **Stage-local seams alter numbered stage behavior** — seam blocks accidentally modify step flow                                                                                  | Low        | Medium — breaks existing pipeline users              | T4.4 verifies stage file integrity; seams are fenced optional blocks only                                                   |
+| **FR-011 detection produces false positives** — workflow-only features wrongly flagged as deploy-in-scope                                                                        | Low        | Medium — validate run blocks unnecessarily           | Keyword set is conservative; `DEPLOY_IN_SCOPE = false` is the default path and `HAS_UI = false` still redistributes cleanly |
+| **Evidence gates break valid PASS runs** — legitimate implementations blocked by overly strict gates                                                                             | Low        | High — developer trust erosion                       | Gates only require evidence present in the current session context; T6.4 records the first negative smoke results           |
+| **Matt Pocock verbatim content introduced** — AT-008 fails                                                                                                                       | Low        | Low-Medium — IP/quality concern                      | T5.5 scans for forbidden strings; Phase 1 authors are briefed on FR-017                                                     |
+| **Legacy flat vs nested Codex skill paths** — helper parity tests accidentally assert `.system/skills/<name>/SKILL.md` instead of emitted `.system/skills/gofer/<name>/SKILL.md` | Medium     | Medium — CI fails for the wrong reason               | T5.5 asserts actual generator paths; `cross-platform-parity.test.ts` remains untouched in this feature                      |
 
 ---
 
@@ -1273,79 +1290,79 @@ extension/resources/copilot-prompts/gofer:vocabulary.prompt.md  (and 4 others)
 
 ### User Story Coverage
 
-| User Story | Priority | Covered By | Phases |
-| --- | --- | --- | --- |
-| US-1 — Truthful Validation Gate | P1 | FR-009–FR-012 + T3.1–T3.5 + T5.6 + T6.4 | 3, 5, 6 |
-| US-2 — Cross-CLI Helper Commands | P1 | FR-001–FR-008 + T1.1–T1.5 + T2.1–T2.4 + T5.1–T5.5 + T6.2/T6.7 | 1, 2, 5, 6 |
-| US-3 — Evidence Table in Validation Report | P2 | FR-013–FR-014 + T3.4 + T5.6 + T6.4 | 3, 5, 6 |
-| US-4 — Stage-Local Augmentation | P3 | FR-007–FR-008 + T4.1–T4.4 + T5.5 | 4, 5, 6 |
+| User Story                                 | Priority | Covered By                                                    | Phases     |
+| ------------------------------------------ | -------- | ------------------------------------------------------------- | ---------- |
+| US-1 — Truthful Validation Gate            | P1       | FR-009–FR-012 + T3.1–T3.5 + T5.6 + T6.4                       | 3, 5, 6    |
+| US-2 — Cross-CLI Helper Commands           | P1       | FR-001–FR-008 + T1.1–T1.5 + T2.1–T2.4 + T5.1–T5.5 + T6.2/T6.7 | 1, 2, 5, 6 |
+| US-3 — Evidence Table in Validation Report | P2       | FR-013–FR-014 + T3.4 + T5.6 + T6.4                            | 3, 5, 6    |
+| US-4 — Stage-Local Augmentation            | P3       | FR-007–FR-008 + T4.1–T4.4 + T5.5                              | 4, 5, 6    |
 
 **Coverage: 4/4 user stories** (100%).
 
 ### Functional Requirement Coverage
 
-| FR | Requirement Summary | Covered By | Phase |
-| --- | --- | --- | --- |
-| FR-001 | `gofer:vocabulary` helper → `glossary.md` | T1.1, T4.1–T4.2, T5.5 AT-006, T6.7 | 1, 4, 5, 6 |
-| FR-002 | `gofer:diagnose` helper → `diagnose-report.md` | T1.2, T4.3, T5.5 | 1, 4, 5 |
-| FR-003 | `gofer:tdd` helper (within /5 and /9) | T1.3, T4.3, T5.5 | 1, 4, 5 |
-| FR-004 | `gofer:spec-summary` helper → `spec-summary.md` | T1.4, T4.2, T5.5 | 1, 4, 5 |
-| FR-005 | `gofer:zoom-out` helper → `zoom-out-report.md` | T1.5, T4.1, T5.5 | 1, 4, 5 |
-| FR-006 | All 5 helpers emit to Claude/Copilot/Codex/Gemini via generator | T2.1–T2.4, T5.1–T5.5, T6.2 | 2, 5, 6 |
-| FR-007 | Helpers must not modify pipeline stage sequence | T4.1–T4.4, T5.5 AT-007, T6.6 | 4, 5, 6 |
-| FR-008 | Helpers named in `gofer:*` namespace, not numbered | T1.1–T1.5, T5.5 | 1, 5 |
-| FR-009 | `/6` requires runtime integration proof for Category 5 | T3.2 (GATE-1), T5.6, T6.4 | 3, 5, 6 |
-| FR-010 | `/6` requires real test execution output for Categories 1 and 2 | T3.2 (GATE-2), T5.6, T6.4 | 3, 5, 6 |
-| FR-011 | Deterministic deployment/render scope detection and enforcement | T3.1, T3.2 (GATE-3), T5.6, T6.4 | 3, 5, 6 |
-| FR-012 | Zero score for absent/unverifiable evidence | T3.2, T3.3, T5.6, T6.4 | 3, 5, 6 |
-| FR-013 | Evidence table in `validation-report.md` | T3.4, T5.6 | 3, 5 |
-| FR-014 | Evidence table present on both PASS and FAIL | T3.4, T5.6, T6.4 | 3, 5, 6 |
-| FR-015 | No new `/6A.x` stages created | T3.5, T5.6, T6.6 | 3, 5, 6 |
-| FR-016 | `.specify/commands/` remains sole source of truth | T2.1–T2.4, T5.5, T6.6 | 2, 5, 6 |
-| FR-017 | No verbatim Matt Pocock skill mirroring | T1.1–T1.5, T5.5 AT-008 | 1, 5 |
+| FR     | Requirement Summary                                             | Covered By                         | Phase      |
+| ------ | --------------------------------------------------------------- | ---------------------------------- | ---------- |
+| FR-001 | `gofer:vocabulary` helper → `glossary.md`                       | T1.1, T4.1–T4.2, T5.5 AT-006, T6.7 | 1, 4, 5, 6 |
+| FR-002 | `gofer:diagnose` helper → `diagnose-report.md`                  | T1.2, T4.3, T5.5                   | 1, 4, 5    |
+| FR-003 | `gofer:tdd` helper (within /5 and /9)                           | T1.3, T4.3, T5.5                   | 1, 4, 5    |
+| FR-004 | `gofer:spec-summary` helper → `spec-summary.md`                 | T1.4, T4.2, T5.5                   | 1, 4, 5    |
+| FR-005 | `gofer:zoom-out` helper → `zoom-out-report.md`                  | T1.5, T4.1, T5.5                   | 1, 4, 5    |
+| FR-006 | All 5 helpers emit to Claude/Copilot/Codex/Gemini via generator | T2.1–T2.4, T5.1–T5.5, T6.2         | 2, 5, 6    |
+| FR-007 | Helpers must not modify pipeline stage sequence                 | T4.1–T4.4, T5.5 AT-007, T6.6       | 4, 5, 6    |
+| FR-008 | Helpers named in `gofer:*` namespace, not numbered              | T1.1–T1.5, T5.5                    | 1, 5       |
+| FR-009 | `/6` requires runtime integration proof for Category 5          | T3.2 (GATE-1), T5.6, T6.4          | 3, 5, 6    |
+| FR-010 | `/6` requires real test execution output for Categories 1 and 2 | T3.2 (GATE-2), T5.6, T6.4          | 3, 5, 6    |
+| FR-011 | Deterministic deployment/render scope detection and enforcement | T3.1, T3.2 (GATE-3), T5.6, T6.4    | 3, 5, 6    |
+| FR-012 | Zero score for absent/unverifiable evidence                     | T3.2, T3.3, T5.6, T6.4             | 3, 5, 6    |
+| FR-013 | Evidence table in `validation-report.md`                        | T3.4, T5.6                         | 3, 5       |
+| FR-014 | Evidence table present on both PASS and FAIL                    | T3.4, T5.6, T6.4                   | 3, 5, 6    |
+| FR-015 | No new `/6A.x` stages created                                   | T3.5, T5.6, T6.6                   | 3, 5, 6    |
+| FR-016 | `.specify/commands/` remains sole source of truth               | T2.1–T2.4, T5.5, T6.6              | 2, 5, 6    |
+| FR-017 | No verbatim Matt Pocock skill mirroring                         | T1.1–T1.5, T5.5 AT-008             | 1, 5       |
 
 **Coverage: 17/17 FRs** (100%).
 
 ### Non-Functional Requirement Coverage
 
-| NFR | Summary | Covered By |
-| --- | --- | --- |
-| NFR-001 Cross-CLI Parity | Identical behavior across all 4 surfaces | T2.1–T2.4, T5.1–T5.5, T6.2 |
-| NFR-002 Generator Stability | Existing 15+ commands unaffected | T2.2 dry-run; T5.2–T5.4 canonical-description tests; full `npm test` in T6.1 |
-| NFR-003 No Pipeline Regression | Stages 0–10 unchanged; state files untouched | T4.4, T5.5 AT-007, T6.6 |
-| NFR-004 Validation Backward Compatibility | Evidence table is additive | T3.4 (additive append); T3.5 diff check |
-| NFR-005 Evidence Provenance | Session-visible artifacts only | T3.2 (gate language), T5.6, T6.4 |
-| NFR-006 Artifact Path Consistency | All outputs to `.specify/specs/{feature}/` | T1.1–T1.5, T5.5 AT-006, T6.7 |
+| NFR                                       | Summary                                      | Covered By                                                                   |
+| ----------------------------------------- | -------------------------------------------- | ---------------------------------------------------------------------------- |
+| NFR-001 Cross-CLI Parity                  | Identical behavior across all 4 surfaces     | T2.1–T2.4, T5.1–T5.5, T6.2                                                   |
+| NFR-002 Generator Stability               | Existing 15+ commands unaffected             | T2.2 dry-run; T5.2–T5.4 canonical-description tests; full `npm test` in T6.1 |
+| NFR-003 No Pipeline Regression            | Stages 0–10 unchanged; state files untouched | T4.4, T5.5 AT-007, T6.6                                                      |
+| NFR-004 Validation Backward Compatibility | Evidence table is additive                   | T3.4 (additive append); T3.5 diff check                                      |
+| NFR-005 Evidence Provenance               | Session-visible artifacts only               | T3.2 (gate language), T5.6, T6.4                                             |
+| NFR-006 Artifact Path Consistency         | All outputs to `.specify/specs/{feature}/`   | T1.1–T1.5, T5.5 AT-006, T6.7                                                 |
 
 ### Success Criteria Coverage
 
-| SC | Criterion | Covered By |
-| --- | --- | --- |
-| SC-001 | 5 helper files present in `.specify/commands/` | T1.1–T1.5, T5.5 |
-| SC-002 | 4/4 surfaces emitted per helper | T2.1–T2.4, T5.5, T6.2 |
-| SC-003 | `/6` rejects Category 5 without integration proof | T3.2 GATE-1, T5.6, T6.4 |
-| SC-004 | `/6` rejects Categories 1/2 without test output | T3.2 GATE-2, T5.6, T6.4 |
-| SC-005 | Evidence table in every validation report | T3.4, T5.6, T6.4 |
-| SC-006 | Stage sequence unchanged | T4.4, T5.5 AT-007, T6.6 |
-| SC-007 | No mirrored Matt Pocock skills | T5.5 AT-008 |
-| SC-008 | `gofer:vocabulary` produces `glossary.md` in spec dir | T1.1, T5.5 AT-006, T6.7 |
-| SC-009 | 0 false PASses in first 10 runs | T6.3 audit-history seed + T6.4 smoke logs + rollout monitoring |
+| SC     | Criterion                                             | Covered By                                                     |
+| ------ | ----------------------------------------------------- | -------------------------------------------------------------- |
+| SC-001 | 5 helper files present in `.specify/commands/`        | T1.1–T1.5, T5.5                                                |
+| SC-002 | 4/4 surfaces emitted per helper                       | T2.1–T2.4, T5.5, T6.2                                          |
+| SC-003 | `/6` rejects Category 5 without integration proof     | T3.2 GATE-1, T5.6, T6.4                                        |
+| SC-004 | `/6` rejects Categories 1/2 without test output       | T3.2 GATE-2, T5.6, T6.4                                        |
+| SC-005 | Evidence table in every validation report             | T3.4, T5.6, T6.4                                               |
+| SC-006 | Stage sequence unchanged                              | T4.4, T5.5 AT-007, T6.6                                        |
+| SC-007 | No mirrored Matt Pocock skills                        | T5.5 AT-008                                                    |
+| SC-008 | `gofer:vocabulary` produces `glossary.md` in spec dir | T1.1, T5.5 AT-006, T6.7                                        |
+| SC-009 | 0 false PASses in first 10 runs                       | T6.3 audit-history seed + T6.4 smoke logs + rollout monitoring |
 
 ---
 
 ## EnterpriseAI Metadata / Handoff
 
 > **Adapted for non-application workflow/platform feature.** There is no
-> application runtime, tenant model, deployment topology, or end-user UI.
-> The EnterpriseAI handoff focuses on platform behavioral guarantees and
-> maintainer workflow boundaries.
+> application runtime, tenant model, deployment topology, or end-user UI. The
+> EnterpriseAI handoff focuses on platform behavioral guarantees and maintainer
+> workflow boundaries.
 
 ### Profile Metadata
 
-- **EAI CLI Version Pin**: `N/A` — `eai-cli` is not installed in the current
+- **EAI CLI Version Pin**: `N/A` — `eai` is not installed in the current
   workspace and this feature has no EAI runtime or deployment tasks.
-- **Vertical Template Reference**: `N/A` — workflow/platform feature, not an
-  app vertical delivery.
+- **Vertical Template Reference**: `N/A` — workflow/platform feature, not an app
+  vertical delivery.
 - **Deployment Repo Reference**: `N/A` — no deployment target is changed.
 - **Primary Handoff Inputs**:
   - `.specify/specs/031-skills-pipeline-augmentation/contract-pack.md`
@@ -1357,12 +1374,12 @@ extension/resources/copilot-prompts/gofer:vocabulary.prompt.md  (and 4 others)
 
 ### Feature Classification
 
-| Field | Value |
-| --- | --- |
-| Feature type | Workflow platform augmentation |
-| Application classification | Non-application |
-| AI journey required | No |
-| Deployment target | None (workflow/platform only) |
+| Field                                         | Value                                                 |
+| --------------------------------------------- | ----------------------------------------------------- |
+| Feature type                                  | Workflow platform augmentation                        |
+| Application classification                    | Non-application                                       |
+| AI journey required                           | No                                                    |
+| Deployment target                             | None (workflow/platform only)                         |
 | DEPLOY_IN_SCOPE for this feature's own /6 run | `false` (`HAS_UI = false`, so Category 3 remains N/A) |
 
 ### Maintainer Handoff Checklist
@@ -1373,7 +1390,8 @@ extension/resources/copilot-prompts/gofer:vocabulary.prompt.md  (and 4 others)
 - [ ] Generator run succeeds with zero errors; all four surfaces emitted.
 - [ ] `6_gofer_validate.md` change reviewed: three evidence gates present,
       FR-011 detection block present, evidence table section present.
-- [ ] Stage-local seams in `/1`, `/2`, `/5` are additive only; no behavior change.
+- [ ] Stage-local seams in `/1`, `/2`, `/5` are additive only; no behavior
+      change.
 - [ ] `audit-history.md` created with `VAL-TRUTH-001` through `VAL-TRUTH-004`
       and the first smoke-check excerpts.
 - [ ] All acceptance tests (AT-001 through AT-008) pass in `npm test`.
@@ -1417,11 +1435,11 @@ Writes .specify/specs/{feature}/glossary.md
 
 ### Stage-Local Optional Helper Map
 
-| Numbered stage | Optional helper seams | Output contract |
-| --- | --- | --- |
-| `/1_gofer_research` | `gofer:vocabulary`, `gofer:zoom-out` | `glossary.md`, `zoom-out-report.md` |
-| `/2_gofer_specify` | `gofer:vocabulary`, `gofer:spec-summary` | `glossary.md`, `spec-summary.md` |
-| `/5_gofer_implement` | `gofer:tdd`, `gofer:diagnose` | `tdd-session.md`, `diagnose-report.md` |
+| Numbered stage       | Optional helper seams                    | Output contract                        |
+| -------------------- | ---------------------------------------- | -------------------------------------- |
+| `/1_gofer_research`  | `gofer:vocabulary`, `gofer:zoom-out`     | `glossary.md`, `zoom-out-report.md`    |
+| `/2_gofer_specify`   | `gofer:vocabulary`, `gofer:spec-summary` | `glossary.md`, `spec-summary.md`       |
+| `/5_gofer_implement` | `gofer:tdd`, `gofer:diagnose`            | `tdd-session.md`, `diagnose-report.md` |
 
 ---
 
@@ -1429,12 +1447,12 @@ Writes .specify/specs/{feature}/glossary.md
 
 ### Seed Entries for `audit-history.md`
 
-| Finding ID | Scenario | Owner | Review cadence | Exit / expiry condition |
-| --- | --- | --- | --- | --- |
-| `VAL-TRUTH-001` | Missing executed test output forces Categories 1/2 = 0 | Gofer maintainers | Review every `/6` run until 10 clean runs | Close after 10 consecutive clean runs with evidence table populated |
-| `VAL-TRUTH-002` | Missing runtime integration proof forces Category 5 = 0 | Gofer maintainers | Review every `/6` run until 10 clean runs | Close after 10 consecutive clean runs with verified integration evidence |
-| `VAL-TRUTH-003` | `DEPLOY_IN_SCOPE = true` without render/deploy proof forces Category 3 = 0 | Gofer maintainers | Review any deploy-scoped feature immediately | Close after first 3 deploy-scoped clean runs |
-| `VAL-TRUTH-004` | Codex description budget regression (> 2048 bytes) blocks helper emission | Gofer maintainers | Review on every generator change | Close when budget remains green across 3 consecutive helper additions |
+| Finding ID      | Scenario                                                                   | Owner             | Review cadence                               | Exit / expiry condition                                                  |
+| --------------- | -------------------------------------------------------------------------- | ----------------- | -------------------------------------------- | ------------------------------------------------------------------------ |
+| `VAL-TRUTH-001` | Missing executed test output forces Categories 1/2 = 0                     | Gofer maintainers | Review every `/6` run until 10 clean runs    | Close after 10 consecutive clean runs with evidence table populated      |
+| `VAL-TRUTH-002` | Missing runtime integration proof forces Category 5 = 0                    | Gofer maintainers | Review every `/6` run until 10 clean runs    | Close after 10 consecutive clean runs with verified integration evidence |
+| `VAL-TRUTH-003` | `DEPLOY_IN_SCOPE = true` without render/deploy proof forces Category 3 = 0 | Gofer maintainers | Review any deploy-scoped feature immediately | Close after first 3 deploy-scoped clean runs                             |
+| `VAL-TRUTH-004` | Codex description budget regression (> 2048 bytes) blocks helper emission  | Gofer maintainers | Review on every generator change             | Close when budget remains green across 3 consecutive helper additions    |
 
 ### Why This Change Is Backward-Compatible
 
@@ -1458,20 +1476,19 @@ historical reports. Specifically:
    all new `/6` runs produce evidence tables and apply evidence gates.
 2. **Phase 1 + 2 merge together** (helpers + generator wiring). The five helpers
    become available on all four surfaces simultaneously.
-3. **Phase 4** (stage-local seams) merges after helper parity is green; seams are
-   additive and have no behavioral dependency on phases 1–3.
+3. **Phase 4** (stage-local seams) merges after helper parity is green; seams
+   are additive and have no behavioral dependency on phases 1–3.
 4. **Phase 6** seeds `audit-history.md` and records the first negative smoke
    excerpts before rollout is called complete.
 5. Tests (Phase 5) must pass before any phase merges.
 
 `tasks.md` implementation order must follow the same rollout intent: complete
 the `/6` hardening phases before helper-command rollout, even though the helper
-phase is numbered earlier in the dependency graph.
-Phase 2 foundational registry/budget work (`T2.1` / `T003`) is required
-pre-hardening groundwork. It may land before the `/6` command-body changes
-because it is non-user-facing shared metadata/budget prep, but it does not
-count as helper rollout and does not relax the `/6`-first rollout rule for
-behavioral changes.
+phase is numbered earlier in the dependency graph. Phase 2 foundational
+registry/budget work (`T2.1` / `T003`) is required pre-hardening groundwork. It
+may land before the `/6` command-body changes because it is non-user-facing
+shared metadata/budget prep, but it does not count as helper rollout and does
+not relax the `/6`-first rollout rule for behavioral changes.
 
 ### First-Run Behavior After Hardening
 
@@ -1479,8 +1496,9 @@ On the first `/6` run after this feature lands:
 
 - If `HAS_UI = false`: Category 3 redistributes normally and no Category 3 gate
   blocks the run.
-- If `HAS_UI = true` and `DEPLOY_IN_SCOPE = false`: deployment artifacts stay out
-  of scope, but local render proof is still required before Category 3 can pass.
+- If `HAS_UI = true` and `DEPLOY_IN_SCOPE = false`: deployment artifacts stay
+  out of scope, but local render proof is still required before Category 3 can
+  pass.
 - If the runner provides real `npm test` output and real integration wiring
   proof in session context: all gates pass; evidence table is populated and
   shows evidence for each category.

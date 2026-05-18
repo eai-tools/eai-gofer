@@ -8,8 +8,9 @@ implementation locations in the Gofer codebase
 ## Overview
 
 This document provides a detailed implementation guide for addressing the 10
-gaps identified in the [Gofer Gap Analysis](./gofer-gap-analysis-jan-2026.md).
-Each gap is mapped to:
+gaps identified in the
+[Gofer Gap Analysis](./eai-gofer-gap-analysis-jan-2026.md). Each gap is mapped
+to:
 
 - **Files to modify** (existing commands, scripts, templates)
 - **Files to create** (new scripts, templates)

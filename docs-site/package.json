@@ -1,5 +1,5 @@
 {
-  "name": "gofer-docs-site",
+  "name": "eai-gofer-docs-site",
   "version": "0.1.0",
   "private": true,
   "description": "Nightly-generated documentation site for Gofer",

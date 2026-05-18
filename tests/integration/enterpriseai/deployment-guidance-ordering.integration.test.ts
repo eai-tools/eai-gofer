@@ -27,10 +27,10 @@ describe('enterpriseai deployment guidance ordering (root integration)', () => {
     const implementCommand = readCommandFile('5_gofer_implement.md');
 
     expect(tasksCommand).toContain('Ordered Runnable Task-Generation Guidance');
-    expect(tasksCommand).toContain('Vertical Template scaffolding -> `eai-cli scaffold`');
-    expect(tasksCommand).toContain('eai-cli scaffold --template vertical --name <app-name>');
-    expect(tasksCommand).toContain('eai-cli validate');
-    expect(tasksCommand).toContain('eai-cli deploy --env <environment>');
+    expect(tasksCommand).toContain('Vertical Template scaffolding -> `eai init`');
+    expect(tasksCommand).toContain('eai init <app-name>');
+    expect(tasksCommand).toContain('eai verify');
+    expect(tasksCommand).toContain('eai deploy trigger --repo <org/repo>');
 
     expect(implementCommand).toContain('EnterpriseAI Deployment Preflight Gate (Manifest/Config)');
     expect(implementCommand).toContain('deployment preflight checks (manifest/config gate)');

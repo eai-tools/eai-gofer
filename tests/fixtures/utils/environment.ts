@@ -13,10 +13,10 @@ export interface TestEnvironmentConfig {
 export class TestEnvironment {
   private static config: TestEnvironmentConfig = {
     workspace: process.cwd(),
-    tempDir: '/tmp/gofer-tests',
+    tempDir: '/tmp/eai-gofer-tests',
     fixtures: 'tests/fixtures',
     timeout: 30000,
-    cleanupAfterTest: true
+    cleanupAfterTest: true,
   };
 
   /**
@@ -60,9 +60,9 @@ export class TestEnvironment {
   public static async createTempDir(testName: string): Promise<string> {
     const fs = await import('fs');
     const path = await import('path');
-    
+
     const tempPath = path.join(this.config.tempDir, testName);
-    
+
     await fs.promises.mkdir(tempPath, { recursive: true });
     return tempPath;
   }
@@ -74,12 +74,12 @@ export class TestEnvironment {
     if (!this.config.cleanupAfterTest) {
       return;
     }
-    
+
     const fs = await import('fs');
-    
+
     try {
       await fs.promises.rm(this.config.tempDir, { recursive: true, force: true });
-    } catch (error) {
+    } catch {
       // Ignore cleanup errors
     }
   }
@@ -91,7 +91,7 @@ export class TestEnvironment {
     process.env.NODE_ENV = 'test';
     process.env.SPEC_DIR = '.specify';
     process.env.WORKSPACE_DIR = this.config.workspace;
-    
+
     // Mock API keys for testing
     process.env.ANTHROPIC_API_KEY = 'test-claude-key-12345';
     process.env.WHATSAPP_ENABLED = 'true';

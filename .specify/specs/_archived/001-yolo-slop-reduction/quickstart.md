@@ -26,7 +26,7 @@
 ### Automated Tests
 
 ```bash
-cd /Users/douglaswross/Code/gofer
+cd /Users/douglaswross/Code/eai-gofer
 npx vitest run tests/unit/slopReducer.test.ts
 ```
 

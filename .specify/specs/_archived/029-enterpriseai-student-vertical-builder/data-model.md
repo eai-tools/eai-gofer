@@ -17,8 +17,8 @@ as an additive overlay. It aligns with:
 
 - `gofer.workflowProfile` activation values: `standard` and `enterpriseai`
 - local fallback reference library path: `.specify/references/eai/`
-- EAI CLI version contract: record installed `eai-cli` **major.minor** in
-  generated plan/task artifacts
+- EAI CLI version contract: record installed `eai` **major.minor** in generated
+  plan/task artifacts
 
 ## Entity Definitions
 
@@ -82,15 +82,15 @@ CLI pin metadata.
 
 Catalog of EnterpriseAI guidance sources used by research/plan/tasks stages.
 
-| Field                | Type                                                                    | Required | Description                                           |
-| -------------------- | ----------------------------------------------------------------------- | -------- | ----------------------------------------------------- |
-| `referenceId`        | string (UUID)                                                           | Yes      | Unique reference source ID.                           |
-| `referenceType`      | enum (`eai_cli_docs`, `vertical_template_docs`, `deployment_repo_docs`) | Yes      | Reference category.                                   |
-| `localFallbackPath`  | string (path)                                                           | Yes      | Local fallback path under `.specify/references/eai/`. |
-| `externalSourceUrl`  | string (URL)                                                            | No       | Approved external source location if reachable.       |
-| `availabilityStatus` | enum (`external_available`, `external_unavailable`, `local_only`)       | Yes      | Runtime availability outcome.                         |
-| `lastCheckedAt`      | ISO8601 datetime                                                        | Yes      | Last availability check timestamp.                    |
-| `versionTag`         | string                                                                  | No       | Optional doc/version marker (commit/tag/date).        |
+| Field                | Type                                                                | Required | Description                                           |
+| -------------------- | ------------------------------------------------------------------- | -------- | ----------------------------------------------------- |
+| `referenceId`        | string (UUID)                                                       | Yes      | Unique reference source ID.                           |
+| `referenceType`      | enum (`eai_docs`, `vertical_template_docs`, `deployment_repo_docs`) | Yes      | Reference category.                                   |
+| `localFallbackPath`  | string (path)                                                       | Yes      | Local fallback path under `.specify/references/eai/`. |
+| `externalSourceUrl`  | string (URL)                                                        | No       | Approved external source location if reachable.       |
+| `availabilityStatus` | enum (`external_available`, `external_unavailable`, `local_only`)   | Yes      | Runtime availability outcome.                         |
+| `lastCheckedAt`      | ISO8601 datetime                                                    | Yes      | Last availability check timestamp.                    |
+| `versionTag`         | string                                                              | No       | Optional doc/version marker (commit/tag/date).        |
 
 **Validation Rules**:
 
@@ -176,27 +176,27 @@ Metadata for each generated stage artifact in the spec directory.
 Structured task entries extracted from `tasks.md` for ordering and deployability
 checks.
 
-| Field               | Type                                                                                                    | Required | Description                                           |
-| ------------------- | ------------------------------------------------------------------------------------------------------- | -------- | ----------------------------------------------------- |
-| `taskId`            | string (UUID)                                                                                           | Yes      | Unique task item ID.                                  |
-| `runId`             | string (FK → PipelineRun)                                                                               | Yes      | Parent run.                                           |
-| `artifactId`        | string (FK → ArtifactRecord)                                                                            | Yes      | Parent tasks artifact record.                         |
-| `taskType`          | enum (`vertical_template_scaffold`, `eai_cli_deploy`, `deployment_convention`, `validation`, `generic`) | Yes      | Task classification for required-sequence validation. |
-| `orderIndex`        | integer                                                                                                 | Yes      | Ordered position in task list.                        |
-| `title`             | string                                                                                                  | Yes      | Task headline.                                        |
-| `commandSnippet`    | string                                                                                                  | No       | Optional command/guidance snippet.                    |
-| `dependsOnTaskId`   | string (FK → TaskItem)                                                                                  | No       | Upstream task dependency.                             |
-| `requiredFilesJson` | JSON array                                                                                              | No       | Required deployment files (manifest/config/etc.).     |
-| `validationStatus`  | enum (`not_checked`, `checked`, `failed`)                                                               | Yes      | Required-file validation outcome.                     |
+| Field               | Type                                                                                                | Required | Description                                           |
+| ------------------- | --------------------------------------------------------------------------------------------------- | -------- | ----------------------------------------------------- |
+| `taskId`            | string (UUID)                                                                                       | Yes      | Unique task item ID.                                  |
+| `runId`             | string (FK → PipelineRun)                                                                           | Yes      | Parent run.                                           |
+| `artifactId`        | string (FK → ArtifactRecord)                                                                        | Yes      | Parent tasks artifact record.                         |
+| `taskType`          | enum (`vertical_template_scaffold`, `eai_deploy`, `deployment_convention`, `validation`, `generic`) | Yes      | Task classification for required-sequence validation. |
+| `orderIndex`        | integer                                                                                             | Yes      | Ordered position in task list.                        |
+| `title`             | string                                                                                              | Yes      | Task headline.                                        |
+| `commandSnippet`    | string                                                                                              | No       | Optional command/guidance snippet.                    |
+| `dependsOnTaskId`   | string (FK → TaskItem)                                                                              | No       | Upstream task dependency.                             |
+| `requiredFilesJson` | JSON array                                                                                          | No       | Required deployment files (manifest/config/etc.).     |
+| `validationStatus`  | enum (`not_checked`, `checked`, `failed`)                                                           | Yes      | Required-file validation outcome.                     |
 
 **Validation Rules**:
 
 - `artifactId` MUST reference an `ArtifactRecord` where `artifactType=tasks`.
 - For `enterpriseai` runs, at least one `vertical_template_scaffold` and one
-  `eai_cli_deploy` task MUST exist.
-- First `eai_cli_deploy` task MUST occur after at least one scaffold task (by
+  `eai_deploy` task MUST exist.
+- First `eai_deploy` task MUST occur after at least one scaffold task (by
   `orderIndex` or dependency).
-- `eai_cli_deploy` task command guidance MUST reference parent
+- `eai_deploy` task command guidance MUST reference parent
   `eaiCliMajorMinorPin`.
 - Deployment tasks cannot be marked complete unless required-file validation is
   `checked`.
@@ -382,19 +382,19 @@ stateDiagram-v2
 
 ### Indexing Recommendations (if persisted in relational store)
 
-| Table/Entity                      | Recommended Index                                                               | Purpose                                                       |
-| --------------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| `PipelineRun`                     | `(featureId, startedAt DESC)`                                                   | Fast access to latest run for a feature.                      |
-| `PipelineRun`                     | `(workflowProfileSnapshot, status)`                                             | Monitor profile-specific run health.                          |
-| `ArtifactRecord`                  | Unique `(runId, stage, artifactType)`                                           | Prevent duplicate artifacts per stage/type.                   |
-| `ArtifactRecord`                  | `(profileContext, artifactType)`                                                | Query EAI-only outputs quickly.                               |
-| `TaskItem`                        | `(runId, orderIndex)`                                                           | Preserve and query execution ordering.                        |
-| `TaskItem`                        | Partial index on `taskType IN ('vertical_template_scaffold', 'eai_cli_deploy')` | Validate required EAI task presence/order efficiently.        |
-| `EaiReferenceSource`              | `(referenceType, availabilityStatus)`                                           | Fallback availability checks.                                 |
-| `MirrorPropagationRecord`         | Unique `(artifactId, targetPlatform)`                                           | Ensure exactly one mirror row per platform target.            |
-| `MirrorPropagationRecord`         | `(syncStatus, targetPlatform)`                                                  | Fast parity failure triage.                                   |
-| `CapabilityRemovalApprovalRecord` | Unique `(changeSetId, capabilityAffected)`                                      | Enforce one explicit approval decision per capability change. |
-| `CapabilityRemovalApprovalRecord` | `(runId, decisionAt DESC)`                                                      | Fast audit retrieval for release and regression gates.        |
+| Table/Entity                      | Recommended Index                                                           | Purpose                                                       |
+| --------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| `PipelineRun`                     | `(featureId, startedAt DESC)`                                               | Fast access to latest run for a feature.                      |
+| `PipelineRun`                     | `(workflowProfileSnapshot, status)`                                         | Monitor profile-specific run health.                          |
+| `ArtifactRecord`                  | Unique `(runId, stage, artifactType)`                                       | Prevent duplicate artifacts per stage/type.                   |
+| `ArtifactRecord`                  | `(profileContext, artifactType)`                                            | Query EAI-only outputs quickly.                               |
+| `TaskItem`                        | `(runId, orderIndex)`                                                       | Preserve and query execution ordering.                        |
+| `TaskItem`                        | Partial index on `taskType IN ('vertical_template_scaffold', 'eai_deploy')` | Validate required EAI task presence/order efficiently.        |
+| `EaiReferenceSource`              | `(referenceType, availabilityStatus)`                                       | Fallback availability checks.                                 |
+| `MirrorPropagationRecord`         | Unique `(artifactId, targetPlatform)`                                       | Ensure exactly one mirror row per platform target.            |
+| `MirrorPropagationRecord`         | `(syncStatus, targetPlatform)`                                              | Fast parity failure triage.                                   |
+| `CapabilityRemovalApprovalRecord` | Unique `(changeSetId, capabilityAffected)`                                  | Enforce one explicit approval decision per capability change. |
+| `CapabilityRemovalApprovalRecord` | `(runId, decisionAt DESC)`                                                  | Fast audit retrieval for release and regression gates.        |
 
 ### Migration Approach
 

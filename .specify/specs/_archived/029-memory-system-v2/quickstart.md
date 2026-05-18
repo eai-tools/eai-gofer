@@ -48,7 +48,7 @@ Before starting, verify these directories exist:
 ### 1. Install Dependencies
 
 ```bash
-cd /Users/douglaswross/Code/gofer/extension
+cd /Users/douglaswross/Code/eai-gofer/extension
 npm install
 ```
 
@@ -419,7 +419,7 @@ npm test -- GoferURI.test.ts -t "resolves exact memory URI"
 ```
 ✓ Resolves exact memory URI
   Input: gofer://memory/core/task-context.md
-  Output: /Users/douglaswross/Code/gofer/.specify/memory/memory-notes/task-context.md
+  Output: /Users/douglaswross/Code/eai-gofer/.specify/memory/memory-notes/task-context.md
 ```
 
 2. Resolve spec URI:
@@ -433,7 +433,7 @@ npm test -- GoferURI.test.ts -t "resolves spec URI"
 ```
 ✓ Resolves spec URI
   Input: gofer://specs/029-memory-system-v2/research.md
-  Output: /Users/douglaswross/Code/gofer/.specify/specs/029-memory-system-v2/research.md
+  Output: /Users/douglaswross/Code/eai-gofer/.specify/specs/029-memory-system-v2/research.md
 ```
 
 3. Resolve glob pattern URI:
@@ -448,8 +448,8 @@ npm test -- GoferURI.test.ts -t "resolves glob pattern URI"
 ✓ Resolves glob pattern URI
   Input: gofer://specs/029-*/research.md
   Matches: [
-    /Users/douglaswross/Code/gofer/.specify/specs/029-memory-system-v2/research.md,
-    /Users/douglaswross/Code/gofer/.specify/specs/029-advanced-features/research.md
+    /Users/douglaswross/Code/eai-gofer/.specify/specs/029-memory-system-v2/research.md,
+    /Users/douglaswross/Code/eai-gofer/.specify/specs/029-advanced-features/research.md
   ]
 ```
 
@@ -704,7 +704,7 @@ npm test -- --grep "memory|context|uri" --run
 **Solution**:
 
 ```bash
-cd /Users/douglaswross/Code/gofer/extension
+cd /Users/douglaswross/Code/eai-gofer/extension
 npm run compile
 npm test -- ContextBuilder.test.ts --run
 ```

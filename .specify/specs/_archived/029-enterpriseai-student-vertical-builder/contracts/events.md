@@ -159,7 +159,7 @@ references are used.
   "eventId": "evt_004",
   "runId": "run_029_0001",
   "fallbackPath": ".specify/references/eai/",
-  "unavailableExternalReferences": ["eai-cli-docs", "deployment-repo-docs"],
+  "unavailableExternalReferences": ["eai-docs", "deployment-repo-docs"],
   "userNoticeRequired": true
 }
 ```
@@ -268,10 +268,10 @@ steps, and deployment conventions.
 
 ### Error Codes
 
-| Code                             | Description                                 |
-| -------------------------------- | ------------------------------------------- |
-| EVT_PLAN_TASKS_INCOMPLETE        | Required EAI plan/task fields are missing.  |
-| EVT_EAI_VERSION_CONTRACT_MISSING | `eai-cli` major.minor metadata not present. |
+| Code                             | Description                                |
+| -------------------------------- | ------------------------------------------ |
+| EVT_PLAN_TASKS_INCOMPLETE        | Required EAI plan/task fields are missing. |
+| EVT_EAI_VERSION_CONTRACT_MISSING | `eai` major.minor metadata not present.    |
 
 ### User Story and FR Mapping
 

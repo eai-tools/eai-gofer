@@ -91,7 +91,7 @@ jobs:
 
       - name: Package VS Code Extension
         working-directory: ./extension
-        run: npx @vscode/vsce package --out "gofer-${{ steps.version.outputs.version }}.vsix"
+        run: npx @vscode/vsce package --out "eai-gofer-${{ steps.version.outputs.version }}.vsix"
 
       - name: Create Release Archive
         run: |
@@ -100,7 +100,7 @@ jobs:
           cp -R dist/. release-assets/orchestrator/
           cp -R extension/dist/. release-assets/extension/
           cp -R language-server/dist/. release-assets/language-server/
-          cp "extension/gofer-${{ steps.version.outputs.version }}.vsix" release-assets/
+          cp "extension/eai-gofer-${{ steps.version.outputs.version }}.vsix" release-assets/
           cp README.md CHANGELOG.md LICENSE release-assets/
 
           tar -czf "gofer-${{ steps.version.outputs.tag_name }}.tar.gz" release-assets/
@@ -142,6 +142,6 @@ jobs:
           prerelease: ${{ steps.version.outputs.prerelease }}
           files: |
             gofer-${{ steps.version.outputs.tag_name }}.tar.gz
-            extension/gofer-${{ steps.version.outputs.version }}.vsix
+            extension/eai-gofer-${{ steps.version.outputs.version }}.vsix
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

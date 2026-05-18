@@ -1,10 +1,12 @@
 # Feature 028: Manual Verification Checklist
 
-Complete these manual verification tasks to validate cross-platform command parity.
+Complete these manual verification tasks to validate cross-platform command
+parity.
 
 ## Prerequisites
 
 1. Install all three AI CLIs:
+
    ```bash
    # Claude Code CLI
    npm install -g @anthropic-ai/claude-code
@@ -28,9 +30,11 @@ Complete these manual verification tasks to validate cross-platform command pari
 
 ## T094: Codex CLI Routing Verification
 
-**Goal**: Verify setting `gofer.defaultCLI` to "codex" routes commands to Codex skills
+**Goal**: Verify setting `gofer.defaultCLI` to "codex" routes commands to Codex
+skills
 
 **Steps**:
+
 1. Open VSCode Settings (`Cmd/Ctrl+,`)
 2. Search for "gofer.defaultCLI"
 3. Set value to **"codex"**
@@ -39,32 +43,39 @@ Complete these manual verification tasks to validate cross-platform command pari
 6. Verify command executes from `.system/skills/1-gofer-research/SKILL.md`
 
 **Verification**:
+
 - [ ] Command routes to Codex skill (check terminal output)
 - [ ] Skill file path shown in logs: `.system/skills/1-gofer-research/`
 - [ ] No errors about missing Claude commands
 
-**Expected Behavior**: Codex should execute the skill and show "Running skill: 1-gofer-research"
+**Expected Behavior**: Codex should execute the skill and show "Running skill:
+1-gofer-research"
 
 ---
 
 ## T095: Copilot Chat Routing Verification
 
-**Goal**: Verify setting `gofer.defaultCLI` to "copilot" routes commands to Copilot prompts
+**Goal**: Verify setting `gofer.defaultCLI` to "copilot" routes commands to
+Copilot prompts
 
 **Steps**:
+
 1. Open VSCode Settings
 2. Set `gofer.defaultCLI` to **"copilot"**
 3. Reload VSCode window
 4. Open Copilot Chat panel
-5. Run: `#1_gofer_research Test feature` or `@gofer /1_gofer_research Test feature`
+5. Run: `#1_gofer_research Test feature` or
+   `@gofer /1_gofer_research Test feature`
 6. Verify command executes from `.github/prompts/1_gofer_research.prompt.md`
 
 **Verification**:
+
 - [ ] Command routes to Copilot prompt
 - [ ] Prompt file loaded: `.github/prompts/1_gofer_research.prompt.md`
 - [ ] Copilot responds with research output
 
-**Expected Behavior**: Copilot should execute the prompt and show research results
+**Expected Behavior**: Copilot should execute the prompt and show research
+results
 
 ---
 
@@ -73,6 +84,7 @@ Complete these manual verification tasks to validate cross-platform command pari
 **Goal**: Verify "auto" setting detects which CLI is active
 
 **Steps**:
+
 1. Open VSCode Settings
 2. Set `gofer.defaultCLI` to **"auto"**
 3. Reload VSCode window
@@ -83,12 +95,14 @@ Complete these manual verification tasks to validate cross-platform command pari
 5. Verify each routes to correct platform
 
 **Verification**:
+
 - [ ] Claude Code routes to `.claude/commands/`
 - [ ] Copilot Chat routes to `.github/prompts/`
 - [ ] Codex CLI routes to `.system/skills/`
 - [ ] No cross-platform routing errors
 
-**Expected Behavior**: Auto-detection should choose the active CLI's command directory
+**Expected Behavior**: Auto-detection should choose the active CLI's command
+directory
 
 ---
 
@@ -97,6 +111,7 @@ Complete these manual verification tasks to validate cross-platform command pari
 **Goal**: Verify orchestrator command auto-chains through all 7 stages
 
 **Steps**:
+
 1. Set `gofer.defaultCLI` to **"claude"** (Claude has full auto-chain support)
 2. Reload VSCode window
 3. In Claude Code chat, run:
@@ -113,14 +128,17 @@ Complete these manual verification tasks to validate cross-platform command pari
    - Stage 7: Engineering review
 
 **Verification**:
+
 - [ ] All 7 stages execute without manual intervention
 - [ ] Each stage completes and auto-invokes next stage
 - [ ] Final output: validation-report.md and engineering-review-report.md
 - [ ] Total pipeline time: <5 minutes for simple feature
 
-**Expected Behavior**: Pipeline should auto-chain through all stages, creating artifacts in `.specify/specs/{feature}/`
+**Expected Behavior**: Pipeline should auto-chain through all stages, creating
+artifacts in `.specify/specs/{feature}/`
 
-**Note**: For Copilot pre-2026, stages must be run manually. For Codex, auto-chaining works via skill dependencies.
+**Note**: For Copilot pre-2026, stages must be run manually. For Codex,
+auto-chaining works via skill dependencies.
 
 ---
 
@@ -129,6 +147,7 @@ Complete these manual verification tasks to validate cross-platform command pari
 **Goal**: Verify validation command spawns 6 agents in parallel
 
 **Steps**:
+
 1. Create a test feature with implementation:
    ```bash
    mkdir -p .specify/specs/test-validation/
@@ -140,6 +159,7 @@ Complete these manual verification tasks to validate cross-platform command pari
 5. Check for parallel agent spawning
 
 **Verification**:
+
 - [ ] 6 validation agents spawn concurrently:
   - validation-correctness
   - validation-security
@@ -150,9 +170,11 @@ Complete these manual verification tasks to validate cross-platform command pari
 - [ ] Total validation time: <60 seconds
 - [ ] All 6 agent reports generated in parallel
 
-**Expected Behavior**: Output panel should show "Spawning 6 validation agents in parallel..." and complete in <60s
+**Expected Behavior**: Output panel should show "Spawning 6 validation agents in
+parallel..." and complete in <60s
 
 **Log Check**:
+
 ```bash
 # Check logs for parallel execution
 grep -r "validation agent" .specify/logs/
@@ -165,6 +187,7 @@ grep -r "validation agent" .specify/logs/
 **Goal**: Verify conversation history preserved when switching providers
 
 **Steps**:
+
 1. Start in Claude Code CLI
 2. Have a conversation (10+ messages):
    ```
@@ -187,7 +210,9 @@ grep -r "validation agent" .specify/logs/
 6. Verify full context preserved
 
 **Verification**:
-- [ ] Codex can reference Claude conversation ("the security patterns we discussed")
+
+- [ ] Codex can reference Claude conversation ("the security patterns we
+      discussed")
 - [ ] Claude remembers full history after switch
 - [ ] No credential leakage in preserved history (API keys redacted)
 - [ ] Conversation context intact across Claude → Codex → Claude
@@ -195,6 +220,7 @@ grep -r "validation agent" .specify/logs/
 **Expected Behavior**: Each CLI should have full context from previous provider
 
 **Log Check**:
+
 ```bash
 # Verify credential redaction
 grep -r "REDACTED" .specify/logs/
@@ -207,6 +233,7 @@ grep -r "REDACTED" .specify/logs/
 **Goal**: Verify MCP initialization skipped for Codex (log message present)
 
 **Steps**:
+
 1. Set `gofer.defaultCLI` to **"codex"**
 2. Reload VSCode window
 3. Open Output panel (`Cmd/Ctrl+Shift+U`)
@@ -214,12 +241,14 @@ grep -r "REDACTED" .specify/logs/
 5. Look for MCP skip message
 
 **Verification**:
+
 - [ ] Log message: "Skipping MCP setup - Codex CLI does not support MCP servers"
 - [ ] No MCP server initialization errors
 - [ ] `.vscode/mcp.json` NOT created/updated for Codex
 - [ ] Extension activates successfully without MCP
 
-**Expected Behavior**: Gofer should log that MCP is skipped for Codex, but continue initialization
+**Expected Behavior**: Gofer should log that MCP is skipped for Codex, but
+continue initialization
 
 **Log Location**: VSCode Output panel → "Gofer" channel
 
@@ -230,12 +259,14 @@ grep -r "REDACTED" .specify/logs/
 **Goal**: Verify Settings UI shows dropdown with descriptions
 
 **Steps**:
+
 1. Open VSCode Settings UI (`Cmd/Ctrl+,`)
 2. Search for "gofer.defaultCLI"
 3. Click the dropdown
 4. Verify options and descriptions
 
 **Verification**:
+
 - [ ] Dropdown shows 4 options:
   - "Use Claude Code CLI for all Gofer commands"
   - "Use GitHub Copilot Chat for all Gofer commands"
@@ -245,7 +276,8 @@ grep -r "REDACTED" .specify/logs/
 - [ ] Markdown description visible below dropdown
 - [ ] Description explains platform directories (.claude/, .github/, .system/)
 
-**Expected Behavior**: Settings UI should show rich dropdown with helpful descriptions
+**Expected Behavior**: Settings UI should show rich dropdown with helpful
+descriptions
 
 **Screenshot**: Take screenshot and attach to verification report
 
@@ -256,12 +288,14 @@ grep -r "REDACTED" .specify/logs/
 **Goal**: Verify capability matrix in README renders correctly
 
 **Steps**:
+
 1. Open `README.md` in VSCode
 2. Enable Markdown preview (`Cmd/Ctrl+K V`)
 3. Scroll to "Platform Capabilities" section
 4. Verify table rendering
 
 **Verification**:
+
 - [ ] Table has 11 feature rows:
   - All 16 Gofer commands
   - Auto-chaining pipeline
@@ -279,7 +313,8 @@ grep -r "REDACTED" .specify/logs/
 - [ ] Footnotes (1-5) link correctly
 - [ ] Setup guide links work: [Claude](docs/setup-claude-code.md)
 
-**Expected Behavior**: Markdown preview should show formatted table with emojis and working links
+**Expected Behavior**: Markdown preview should show formatted table with emojis
+and working links
 
 **Visual Check**: Compare rendered table with expected layout in tasks.md
 
@@ -310,7 +345,7 @@ If any verification fails:
 1. Document exact steps to reproduce
 2. Capture screenshots/logs
 3. Note VSCode version, platform, CLI versions
-4. Create GitHub issue: https://github.com/eai-tools/gofer/issues
+4. Create GitHub issue: https://github.com/eai-tools/eai-gofer/issues
 5. Tag with `feature-028` and `verification-failure`
 
 ---

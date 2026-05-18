@@ -5,7 +5,12 @@ import {
 } from '../../../services/enterpriseai/validation/ArtifactSchemas';
 import { validatePlaceholderConventions } from '../../../services/enterpriseai/validation/PlaceholderConventions';
 import { validateSecretSafety } from '../../../services/enterpriseai/validation/SecretSafetyValidator';
-import { type ArtifactRecord } from '../../../services/enterpriseai/models/Artifacts';
+import {
+  validateEnterpriseAiTaskOrdering,
+  validateTaskItem,
+  type ArtifactRecord,
+  type TaskItem,
+} from '../../../services/enterpriseai/models/Artifacts';
 
 suite('enterpriseai artifact validation contracts', () => {
   test('accepts market-analysis payload with required gates', () => {
@@ -61,6 +66,35 @@ suite('enterpriseai artifact validation contracts', () => {
 
     const result = validateRunCompletionGates(artifacts);
     assert.strictEqual(result.valid, true);
+  });
+
+  test('accepts legacy deploy task type as eai_deploy for compatibility', () => {
+    const legacyDeployTaskType = ['eai', 'cli', 'deploy'].join('_');
+    const scaffoldTask: TaskItem = {
+      taskId: 'task_scaffold',
+      runId: 'run_001',
+      artifactId: 'artifact_tasks',
+      taskType: 'vertical_template_scaffold',
+      orderIndex: 0,
+      title: 'Scaffold app template',
+      validationStatus: 'checked',
+      completionStatus: 'completed',
+    };
+    const deployTask = {
+      taskId: 'task_deploy',
+      runId: 'run_001',
+      artifactId: 'artifact_tasks',
+      taskType: legacyDeployTaskType,
+      orderIndex: 1,
+      title: 'Deploy app',
+      commandSnippet: 'eai deploy --version 2.8',
+      validationStatus: 'checked',
+      completionStatus: 'completed',
+      eaiCliMajorMinorPin: '2.8',
+    } as TaskItem;
+
+    assert.strictEqual(validateTaskItem(deployTask).valid, true);
+    assert.strictEqual(validateEnterpriseAiTaskOrdering([scaffoldTask, deployTask]).valid, true);
   });
 
   test('flags legacy placeholder formats and accepts standard runtime placeholders', () => {

@@ -96,7 +96,7 @@ sequenceDiagram
 | ----------------------------- | -------- | ----------------------------------------------------- | ---------------------------- | ----- |
 | discovery-flow                | workflow | Business/problem discovery and requirement framing    | student, gofer               | 1     |
 | research-artifacts            | docs     | Research, proposal, and architecture artifacts        | gofer, student               | 2-3   |
-| eai-cli-flow                  | cli      | EnterpriseAI scaffolding and deployment command flow  | gofer, eai-platform          | 4, 6  |
+| eai-flow                      | cli      | EnterpriseAI scaffolding and deployment command flow  | gofer, eai-platform          | 4, 6  |
 | vertical-template-integration | code     | Vertical Template based app structure and integration | gofer, student, eai-platform | 4-5   |
 | marp-output                   | docs     | Presentation deck generation using Marp               | gofer, student               | 7     |
 

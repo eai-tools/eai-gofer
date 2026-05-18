@@ -194,7 +194,7 @@ documented outcome is achieved.
 ### Functional Requirements
 
 - **FR-001**: Site MUST be built with Astro SSG and output static HTML that
-  deploys to GitHub Pages at `https://eai-tools.github.io/gofer/`.
+  deploys to GitHub Pages at `https://eai-tools.github.io/eai-gofer/`.
 - **FR-002**: Site source MUST live in the `docs/` directory, with the Astro
   project built in-place. Release assets (`releases/`, `releases.json`,
   `update-releases.js`) MUST be placed in Astro's `public/` folder so they pass
@@ -202,10 +202,10 @@ documented outcome is achieved.
 - **FR-003**: GitHub Actions workflow MUST install dependencies, build the Astro
   site from `docs/`, and deploy the build output to GitHub Pages.
 - **FR-004**: The auto-updater endpoint `releases.json` MUST remain accessible
-  at `https://eai-tools.github.io/gofer/releases.json` with the same JSON
+  at `https://eai-tools.github.io/eai-gofer/releases.json` with the same JSON
   structure.
 - **FR-005**: VSIX download URLs MUST remain accessible at
-  `https://eai-tools.github.io/gofer/releases/gofer-X.Y.Z.vsix`.
+  `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-X.Y.Z.vsix`.
 - **FR-006**: `release-auto.sh` MUST continue to function correctly. Its output
   paths will be updated from `docs/releases/` to `docs/public/releases/` and
   `docs/releases.json` to `docs/public/releases.json` so that Astro's `public/`

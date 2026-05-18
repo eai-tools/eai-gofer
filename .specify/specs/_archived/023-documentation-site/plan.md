@@ -21,7 +21,7 @@ created: 2026-03-09
 ### Architecture
 
 ```
-docs/                              → https://eai-tools.github.io/gofer/
+docs/                              → https://eai-tools.github.io/eai-gofer/
 ├── index.html                     → Landing page + Docsify app shell
 ├── _sidebar.md                    → Navigation structure (Docsify)
 ├── _navbar.md                     → Top navigation bar (Docsify)

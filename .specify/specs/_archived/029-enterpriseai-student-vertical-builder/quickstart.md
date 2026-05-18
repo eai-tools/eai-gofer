@@ -15,7 +15,7 @@
 | **Node.js 18+**         | Runtime for Gofer extension and language server                 | `node --version` (expect v18+)                   |
 | **VS Code 1.85+**       | Host environment for Gofer extension                            | Help > About                                     |
 | **Gofer Extension**     | Latest version with EAI profile support installed               | Extensions marketplace or local `.vsix`          |
-| **eai-cli binary**      | Installed and accessible in `$PATH` for EAI CLI version pinning | `eai-cli --version`                              |
+| **eai binary**          | Installed and accessible in `$PATH` for EAI CLI version pinning | `eai --version`                                  |
 | **EnterpriseAI tenant** | Active student or developer access to EAI platform              | EAI management console                           |
 | **Git 2.30+**           | For version control and artifact commit operations              | `git --version`                                  |
 | **npm 8+** (optional)   | For running test suite and building artifacts                   | `npm --version`                                  |
@@ -28,13 +28,13 @@
 | `gofer.workflowProfile`    | `enterpriseai`                             | Activates EAI-specific guidance, artifacts, and outputs     | VS Code settings.json      |
 | `gofer.defaultCLI`         | `claude` \| `copilot` \| `codex` \| `auto` | Selects which AI assistant to route commands to             | VS Code settings.json      |
 | `.specify/references/eai/` | Directory with vendored EAI reference docs | Fallback guidance when external EAI docs unavailable        | Project root (must exist)  |
-| `eai-cli` major.minor      | Auto-detected from installed binary        | Pinned in generated plan/task artifacts for reproducibility | Auto-detected on first run |
+| `eai` major.minor          | Auto-detected from installed binary        | Pinned in generated plan/task artifacts for reproducibility | Auto-detected on first run |
 
 ### 1.3 Acceptance Criteria for Prerequisites
 
 - [ ] `npm test` passes on current codebase (baseline regression check)
 - [ ] `node -e "console.log(process.version)"` reports Node.js 18+
-- [ ] `eai-cli --version` returns major.minor value
+- [ ] `eai --version` returns major.minor value
 - [ ] `git status` returns clean or documented untracked files
 - [ ] `.specify/references/eai/` directory exists with at least one guidance
       document
@@ -59,14 +59,14 @@ npm test
 
 # 4. Install/reload Gofer extension
 # Option A: From marketplace
-code --install-extension enterpriseai.gofer
+code --install-extension enterpriseai.eai-gofer
 
 # Option B: From local VSIX (dev/testing)
-code --install-extension ./gofer-1.27.1.vsix
+code --install-extension ./eai-gofer-1.27.1.vsix
 
-# 5. Verify eai-cli is installed and accessible
-which eai-cli && eai-cli --version
-# Expected output: eai-cli version X.Y.Z
+# 5. Verify eai is installed and accessible
+which eai && eai --version
+# Expected output: eai version X.Y.Z
 ```
 
 ### 2.2 Configure VS Code Settings
@@ -89,24 +89,24 @@ ls -la .specify/references/eai/
 
 # Expected output:
 # README.md                 (Fallback reference index)
-# eai-cli.md                (EAI CLI command syntax and examples)
+# eai.md                (EAI CLI command syntax and examples)
 # vertical-template.md      (Vertical Template scaffolding guidance)
 # deployment-repo.md        (Branch naming, environment targeting, manifest)
 
 # If missing, create minimal stubs:
 mkdir -p .specify/references/eai/
-cat > .specify/references/eai/eai-cli.md << 'EOF'
+cat > .specify/references/eai/eai.md << 'EOF'
 # EAI CLI Reference
 
 ## Installation
 \`\`\`bash
-npm install -g eai-cli
+npm install -g eai
 \`\`\`
 
 ## Key Commands
-- \`eai-cli scaffold <template>\` — Create vertical app scaffold
-- \`eai-cli deploy --env <env>\` — Deploy to target environment
-- \`eai-cli validate\` — Validate manifest and configuration
+- \`eai init <app-name>\` — Create vertical app scaffold
+- \`eai deploy trigger --repo <org/repo>\` — Deploy to target environment
+- \`eai verify\` — Validate manifest and configuration
 
 See official documentation for complete reference.
 EOF
@@ -119,7 +119,7 @@ EOF
 - [ ] `gofer.workflowProfile` appears in settings.json with value `enterpriseai`
 - [ ] `.specify/references/eai/` directory exists and contains at least one
       `.md` file
-- [ ] `eai-cli --version` returns a valid major.minor value
+- [ ] `eai --version` returns a valid major.minor value
 - [ ] Command palette shows Gofer commands prefixed with `gofer.`
 
 ---
@@ -205,7 +205,7 @@ In `plan.md`:
 
 - Explicit section: "EnterpriseAI Architecture & Integration Map" with diagram
   reference or ASCII diagram
-- References to "`eai-cli scaffold`" or "`eai-cli deploy`" command syntax
+- References to "`eai init`" or "`eai deploy`" command syntax
 - Mentions of "Vertical Template" structure and customization steps
 - Deployment repository conventions (branch naming, environment targeting)
   sourced from `.specify/references/eai/deployment-repo.md`
@@ -215,8 +215,8 @@ In `tasks.md`:
 - At least one task explicitly labeled "Scaffold vertical app with EAI CLI" with
   command syntax
 - At least one task labeled "Configure Vertical Template" with specific steps
-- All tasks reference the installed `eai-cli` major.minor version (e.g., "using
-  eai-cli 2.1")
+- All tasks reference the installed `eai` major.minor version (e.g., "using eai
+  2.1")
 - Deployment-stage tasks reference `.specify/references/eai/deployment-repo.md`
 
 - **Pass if**: Both artifacts contain EAI CLI tasks AND Vertical Template tasks
@@ -388,27 +388,26 @@ functional.
 
 ### Scenario 9: Version Pinning in Plan/Task Artifacts (Acceptance Criteria: FR-002, SC-006)
 
-**Objective**: Verify eai-cli major.minor version is recorded in generated
+**Objective**: Verify eai major.minor version is recorded in generated
 artifacts.
 
 **Steps**:
 
-1. Check installed eai-cli version:
+1. Check installed eai version:
    ```bash
-   eai-cli --version
-   # Output: eai-cli 2.1.5
+   eai --version
+   # Output: eai 2.1.5
    # Expected major.minor: 2.1
    ```
 2. Complete the full pipeline with `gofer.workflowProfile=enterpriseai`
 3. Review `plan.md` and `tasks.md` artifacts
-4. Search for version string (e.g., "eai-cli 2.1" or "using version X.Y")
+4. Search for version string (e.g., "eai 2.1" or "using version X.Y")
 
 **Expected Result**:
 
-- Both `plan.md` and `tasks.md` contain the installed eai-cli version
-  (major.minor only)
-- Version appears in context (e.g., "using eai-cli 2.1, run:
-  `eai-cli scaffold --template vertical`")
+- Both `plan.md` and `tasks.md` contain the installed eai version (major.minor
+  only)
+- Version appears in context (e.g., "using eai 2.1, run: `eai init <app-name>`")
 - Version is recorded consistently across both artifacts
 - Version matches the system-installed version (no mismatch or stale values)
 - **Pass if**: Version pinning is recorded in both artifacts and matches
@@ -541,7 +540,7 @@ cd ../language-server && npm run build
 npm run package
 
 # Verify no build errors and output .vsix file present
-ls -la gofer-*.vsix
+ls -la eai-gofer-*.vsix
 ```
 
 ---
@@ -559,7 +558,7 @@ ls -la gofer-*.vsix
 | `.specify/specs/029-enterpriseai-student-vertical-builder/spec.md`             | Full feature specification; source of truth for acceptance criteria and requirements                 | Reference                                            | Defines locked decisions and success criteria                              |
 | `.specify/specs/029-enterpriseai-student-vertical-builder/research.md`         | Research findings; documents analysis, patterns, integration points, and constraints                 | Reference                                            | Informs all implementation decisions                                       |
 | `.specify/references/eai/README.md`                                            | Local fallback reference index for EnterpriseAI docs                                                 | Reference                                            | Must enumerate the fallback file set used by the pipeline                  |
-| `.specify/references/eai/eai-cli.md`                                           | Local vendored reference for EAI CLI commands; fallback when external docs unavailable               | Reference                                            | Must be kept in sync with EAI CLI documentation                            |
+| `.specify/references/eai/eai.md`                                               | Local vendored reference for EAI CLI commands; fallback when external docs unavailable               | Reference                                            | Must be kept in sync with EAI CLI documentation                            |
 | `.specify/references/eai/vertical-template.md`                                 | Local vendored reference for Vertical Template scaffolding; fallback guidance                        | Reference                                            | Provides deterministic template guidance                                   |
 | `.specify/references/eai/deployment-repo.md`                                   | Local vendored reference for deployment conventions (branch naming, environment targeting)           | Reference                                            | Must document EAI deployment patterns                                      |
 | `extension/src/lspClient.ts`                                                   | LSP client configuration; must route profile settings to language server                             | Review only                                          | No changes expected for this feature                                       |
@@ -616,7 +615,7 @@ cd extension && npm run compile && code --reload-extensions
 
 ---
 
-### Issue 2: `eai-cli --version` Returns Error or Not Found
+### Issue 2: `eai --version` Returns Error or Not Found
 
 **Symptom**: Command returns "command not found" or error when trying to pin
 version.
@@ -626,18 +625,18 @@ version.
 **Resolution**:
 
 ```bash
-# 1. Check if eai-cli is installed
-which eai-cli
+# 1. Check if eai is installed
+which eai
 
 # 2. If not found, install (example using npm)
-npm install -g eai-cli
+npm install -g eai
 
 # 3. Verify installation
-eai-cli --version
-# Expected: eai-cli X.Y.Z
+eai --version
+# Expected: eai X.Y.Z
 
 # 4. If installed but not in PATH, add to shell profile
-export PATH="/path/to/eai-cli/bin:$PATH"
+export PATH="/path/to/eai/bin:$PATH"
 
 # 5. If EAI CLI is not available, pipeline should still complete using local references:
 #    Check for fallback notice in VS Code output panel
@@ -759,8 +758,8 @@ profile-aware.
 **Resolution**:
 
 ```bash
-# 1. Verify eai-cli is accessible
-which eai-cli && eai-cli --version
+# 1. Verify eai is accessible
+which eai && eai --version
 
 # 2. Check profile setting is active
 grep gofer.workflowProfile ~/.vscode/settings.json
@@ -770,17 +769,17 @@ ls -la .specify/references/eai/
 
 # 4. If references missing, create stubs
 mkdir -p .specify/references/eai/
-cat > .specify/references/eai/eai-cli.md << 'EOF'
+cat > .specify/references/eai/eai.md << 'EOF'
 # EAI CLI Commands
 
 ## Scaffold
 \`\`\`bash
-eai-cli scaffold --template vertical --name my-app
+eai init <app-name> --name my-app
 \`\`\`
 
 ## Deploy
 \`\`\`bash
-eai-cli deploy --env production
+eai deploy trigger --repo <org/repo>
 \`\`\`
 EOF
 
@@ -788,14 +787,14 @@ EOF
 /4_gofer_tasks
 
 # 6. Verify tasks.md now includes EAI CLI steps
-grep -i "eai-cli" .specify/specs/029-enterpriseai-student-vertical-builder/tasks.md
+grep -i "eai" .specify/specs/029-enterpriseai-student-vertical-builder/tasks.md
 ```
 
 ---
 
 ### Issue 7: Version Pinning Not Recorded in Artifacts
 
-**Symptom**: Generated `plan.md` and `tasks.md` do not contain eai-cli version
+**Symptom**: Generated `plan.md` and `tasks.md` do not contain eai version
 (major.minor).
 
 **Cause**: Version detection logic not integrated or not executed during
@@ -804,23 +803,23 @@ artifact generation.
 **Resolution**:
 
 ```bash
-# 1. Verify eai-cli version
-eai-cli --version
-# Expected output: eai-cli 2.1.5 (record major.minor: 2.1)
+# 1. Verify eai version
+eai --version
+# Expected output: eai 2.1.5 (record major.minor: 2.1)
 
 # 2. Check if artifact generation includes version capture
-grep -n "eai-cli" .claude/commands/3_gofer_plan.md | grep -i version
+grep -n "eai" .claude/commands/3_gofer_plan.md | grep -i version
 
 # 3. If not found, version capture may not be integrated
 #    Check implementation details with dev team
 
 # 4. Manually verify version appears in final artifacts
-grep "2\.1\|eai-cli" .specify/specs/029-enterpriseai-student-vertical-builder/plan.md .specify/specs/029-enterpriseai-student-vertical-builder/tasks.md
+grep "2\.1\|eai" .specify/specs/029-enterpriseai-student-vertical-builder/plan.md .specify/specs/029-enterpriseai-student-vertical-builder/tasks.md
 
 # 5. If missing after regeneration, it's a known limitation
 #    Version can be manually added to artifacts as a workaround:
 echo "## Version Pinning" >> .specify/specs/029-enterpriseai-student-vertical-builder/plan.md
-echo "This plan uses \`eai-cli $(eai-cli --version | awk '{print $3}')\`" >> .specify/specs/029-enterpriseai-student-vertical-builder/plan.md
+echo "This plan uses \`eai $(eai --version | awk '{print $3}')\`" >> .specify/specs/029-enterpriseai-student-vertical-builder/plan.md
 ```
 
 ---
@@ -935,8 +934,7 @@ After completing all testing scenarios, confirm:
       when external docs unavailable
 - [ ] Scenario 8 passes: All provider routing remains intact and no providers
       are disabled
-- [ ] Scenario 9 passes: eai-cli version is recorded in both plan and task
-      artifacts
+- [ ] Scenario 9 passes: eai version is recorded in both plan and task artifacts
 - [ ] Scenario 10 passes: Artifact parity tests show 0 diffs across all platform
       mirrors
 
@@ -953,8 +951,8 @@ After completing all testing scenarios, confirm:
 - [ ] Release-readiness assertion: deployment conventions are explicitly
       referenced in generated plan/task outputs via
       `.specify/references/eai/deployment-repo.md`
-- [ ] Release-readiness assertion: `eai-cli` major.minor pin is present in
-      plan/task outputs and matches installed binary version
+- [ ] Release-readiness assertion: `eai` major.minor pin is present in plan/task
+      outputs and matches installed binary version
 - [ ] Release-readiness assertion: Marp artifact path is `presentation.marp.md`
       and is validated in stakeholder comms output
 - [ ] All locked decisions from spec are reflected in implementation:
@@ -1030,7 +1028,7 @@ After completing all testing scenarios, confirm:
 **Total Common Issues Documented**: **10**
 
 1. Profile setting not visible
-2. eai-cli not found
+2. eai not found
 3. Artifacts missing EAI sections
 4. Parity test failures
 5. Marp syntax errors
@@ -1073,9 +1071,9 @@ npm test                    # Validate no regressions
 ### Verify Version Pinning
 
 ```bash
-eai-cli --version                           # Check installed version
-grep -i "eai-cli\|version" .specify/specs/029-enterpriseai-student-vertical-builder/plan.md  # Verify in artifacts
-grep -i "eai-cli\|version" .specify/specs/029-enterpriseai-student-vertical-builder/tasks.md
+eai --version                           # Check installed version
+grep -i "eai\|version" .specify/specs/029-enterpriseai-student-vertical-builder/plan.md  # Verify in artifacts
+grep -i "eai\|version" .specify/specs/029-enterpriseai-student-vertical-builder/tasks.md
 ```
 
 ### Render Marp Deck

@@ -1,11 +1,11 @@
 ---
-id: "026-provider-api-usage"
-title: "Provider API Usage Tracking"
-status: "draft"
-created: "2026-03-15"
-updated: "2026-03-24"
-priority: "medium"
-assignee: "engineer-agent"
+id: '026-provider-api-usage'
+title: 'Provider API Usage Tracking'
+status: 'draft'
+created: '2026-03-15'
+updated: '2026-03-24'
+priority: 'medium'
+assignee: 'engineer-agent'
 ---
 
 # Feature Specification: Provider API Usage Tracking
@@ -484,7 +484,7 @@ The following components MUST NOT be modified to maintain system stability:
 This specification is derived from the following research artifacts:
 
 - **Research Document**:
-  `/Users/douglaswross/Code/gofer/.specify/specs/026-provider-api-usage/research.md`
+  `/Users/douglaswross/Code/eai-gofer/.specify/specs/026-provider-api-usage/research.md`
   (completed 2026-03-15)
 - **Codebase Analysis**: AIUsageMonitor, ProviderFactory, AIUsageProvider,
   UsageLogger components analyzed for integration points

@@ -12,7 +12,7 @@
 1. Clone and install:
 
    ```bash
-   cd /Users/douglaswross/Code/gofer
+   cd /Users/douglaswross/Code/eai-gofer
    npm install
    ```
 

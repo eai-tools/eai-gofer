@@ -64,7 +64,7 @@ VSCode → Code → About Visual Studio Code
 **Check**: Verify repository exists locally:
 
 ```bash
-cd /Users/douglaswross/Code/gofer
+cd /Users/douglaswross/Code/eai-gofer
 git status
 ```
 
@@ -84,7 +84,7 @@ cd gofer
 **Check**: Run from repository root:
 
 ```bash
-cd /Users/douglaswross/Code/gofer/extension
+cd /Users/douglaswross/Code/eai-gofer/extension
 npm ls | head -20
 ```
 
@@ -99,7 +99,7 @@ npm ls | head -20
 **Check**: Verify test framework is available:
 
 ```bash
-cd /Users/douglaswross/Code/gofer/extension
+cd /Users/douglaswross/Code/eai-gofer/extension
 npm test -- --version
 ```
 
@@ -118,7 +118,7 @@ Run these steps once before testing:
 From repository root:
 
 ```bash
-cd /Users/douglaswross/Code/gofer/extension
+cd /Users/douglaswross/Code/eai-gofer/extension
 npm install
 ```
 
@@ -167,7 +167,7 @@ To test UI changes manually:
 
 ```bash
 # From VSCode extension root
-cd /Users/douglaswross/Code/gofer/extension
+cd /Users/douglaswross/Code/eai-gofer/extension
 ```
 
 Then in VSCode:
@@ -412,7 +412,7 @@ No crash ✅
 1. **Run Full Test Suite**:
 
    ```bash
-   cd /Users/douglaswross/Code/gofer/extension
+   cd /Users/douglaswross/Code/eai-gofer/extension
    npm test
    ```
 
@@ -455,7 +455,7 @@ Run these commands to verify implementation automatically:
 ### Test Suite 1: Run All Tests
 
 ```bash
-cd /Users/douglaswross/Code/gofer/extension
+cd /Users/douglaswross/Code/eai-gofer/extension
 npm test
 ```
 
@@ -635,7 +635,7 @@ export expected symbols
 1. Check pricing.ts exports:
 
    ```bash
-   grep -n "export" /Users/douglaswross/Code/gofer/extension/src/config/pricing.ts | head -10
+   grep -n "export" /Users/douglaswross/Code/eai-gofer/extension/src/config/pricing.ts | head -10
    ```
 
 2. Verify imports in test files match exports:
@@ -654,7 +654,7 @@ export expected symbols
 
 3. Update imports if needed:
    ```bash
-   cd /Users/douglaswross/Code/gofer/extension
+   cd /Users/douglaswross/Code/eai-gofer/extension
    npm test  # Re-run after fixes
    ```
 
@@ -680,8 +680,8 @@ Actual:   Haiku cost = $0.30 (old Sonnet rate)
 
    ```bash
    grep -n "COST_PER_1K_TOKENS.*=.*{" \
-     /Users/douglaswross/Code/gofer/extension/src/autonomous/CostBudgetEnforcer.ts \
-     /Users/douglaswross/Code/gofer/extension/src/council/UsageLogger.ts
+     /Users/douglaswross/Code/eai-gofer/extension/src/autonomous/CostBudgetEnforcer.ts \
+     /Users/douglaswross/Code/eai-gofer/extension/src/council/UsageLogger.ts
    ```
 
    Should return no results (only pricing.ts should have it)
@@ -690,8 +690,8 @@ Actual:   Haiku cost = $0.30 (old Sonnet rate)
 
    ```bash
    grep -n "import.*pricing" \
-     /Users/douglaswross/Code/gofer/extension/src/autonomous/CostBudgetEnforcer.ts \
-     /Users/douglaswross/Code/gofer/extension/src/council/UsageLogger.ts
+     /Users/douglaswross/Code/eai-gofer/extension/src/autonomous/CostBudgetEnforcer.ts \
+     /Users/douglaswross/Code/eai-gofer/extension/src/council/UsageLogger.ts
    ```
 
    Should show: `import { COST_PER_1K_TOKENS } from '../config/pricing'`
@@ -719,7 +719,7 @@ undefined
 
    ```bash
    grep -A 30 "function getPricingForModel" \
-     /Users/douglaswross/Code/gofer/extension/src/config/pricing.ts
+     /Users/douglaswross/Code/eai-gofer/extension/src/config/pricing.ts
    ```
 
 2. Verify all 4 fallback levels are present:
@@ -862,7 +862,7 @@ Use this checklist to confirm all fixes are working:
 Here's what a successful test run looks like:
 
 ```bash
-$ cd /Users/douglaswross/Code/gofer/extension && npm test
+$ cd /Users/douglaswross/Code/eai-gofer/extension && npm test
 
 > @gofer/extension@1.22.0 test
 > vitest run
@@ -921,8 +921,8 @@ Here's a sample checklist you can use when manually testing:
 
 ### Test Session: March 19, 2026
 
-**Tester Name**: ******\_\_\_\_****** **Date**: ******\_\_\_\_****** **Test
-Environment**: VSCode 1.87.0, Node 20.10.0
+**Tester Name**: **\*\***\_\_\_\_**\*\*** **Date**: **\*\***\_\_\_\_**\*\***
+**Test Environment**: VSCode 1.87.0, Node 20.10.0
 
 #### Scenario 1: Model Costs
 
@@ -970,7 +970,8 @@ Environment**: VSCode 1.87.0, Node 20.10.0
 
 **Overall Result**: PASS / FAIL
 
-**Notes**: ******************************\_\_\_\_******************************
+**Notes**:
+**************\*\***************\_\_\_\_**************\*\***************
 
 ---
 

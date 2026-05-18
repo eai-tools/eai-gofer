@@ -25,7 +25,8 @@ losing its existing non-app functionality.
 
 **Acceptance Criteria**:
 
-- [x] Shared-stage app vs non-app behavior is explicit in `/0_business_scenario`.
+- [x] Shared-stage app vs non-app behavior is explicit in
+      `/0_business_scenario`.
 - [x] Non-app work is not forced through preview, branding, approval, or
       service-fit gates.
 
@@ -58,8 +59,8 @@ stay in sync so the new workflow ships consistently across CLIs.
 
 - **FR-001**: `/0_business_scenario` MUST define a shared numbered-stage
   contract for app-delivery and non-app work.
-- **FR-002**: App-delivery guidance MUST default to a UI-first flow:
-  brief -> preview -> approval -> service fit.
+- **FR-002**: App-delivery guidance MUST default to a UI-first flow: brief ->
+  preview -> approval -> service fit.
 - **FR-003**: App-delivery preview guidance MUST constrain first-pass UI work to
   Vertical Template blocks before create-new UI concepts are introduced.
 - **FR-004**: App-delivery guidance MUST allow client branding/logo inputs.
@@ -68,11 +69,12 @@ stay in sync so the new workflow ships consistently across CLIs.
 - **FR-006**: App-delivery guidance MUST require explicit UI approval before
   downstream plan/tasks are treated as complete.
 - **FR-007**: App-delivery guidance MUST require a post-approval service-fit
-  gate using `eai-cli` and platform evidence.
+  gate using `eai` and platform evidence.
 - **FR-008**: Non-app work MUST explicitly skip app-only artifacts and gates.
 - **FR-009**: Canonical templates MUST exist for preview brief, review log,
   approval, and service-fit artifacts.
-- **FR-010**: Generated mirrors and golden stage bodies MUST remain synchronized.
+- **FR-010**: Generated mirrors and golden stage bodies MUST remain
+  synchronized.
 
 ## Non-Functional Requirements
 
@@ -84,16 +86,15 @@ stay in sync so the new workflow ships consistently across CLIs.
 
 ## Success Criteria
 
-| Metric | Target |
-| ------ | ------ |
-| Shared-stage compatibility | explicit and tested |
+| Metric                         | Target                              |
+| ------------------------------ | ----------------------------------- |
+| Shared-stage compatibility     | explicit and tested                 |
 | App-delivery guidance coverage | present across stages 0/1/2/3/4/5/6 |
-| Mirror/template parity | pass |
-| Focused validation | pass |
+| Mirror/template parity         | pass                                |
+| Focused validation             | pass                                |
 
 ## Out Of Scope
 
 - Runtime implementation of an actual preview renderer inside Gofer
 - New platform object types or backend APIs
 - Cleanup of unrelated failing or dirty working-tree areas
-

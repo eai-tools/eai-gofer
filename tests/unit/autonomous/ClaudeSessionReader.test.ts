@@ -37,8 +37,8 @@ describe('ClaudeSessionReader', () => {
 
   describe('encodeWorkspacePath (T010)', () => {
     it('should encode macOS path correctly', () => {
-      const encoded = reader.encodeWorkspacePath('/Users/douglaswross/Code/gofer');
-      expect(encoded).toBe('-Users-douglaswross-Code-gofer');
+      const encoded = reader.encodeWorkspacePath('/Users/douglaswross/Code/eai-gofer');
+      expect(encoded).toBe('-Users-douglaswross-Code-eai-gofer');
     });
 
     it('should encode Linux path correctly', () => {
@@ -47,8 +47,8 @@ describe('ClaudeSessionReader', () => {
     });
 
     it('should encode Windows path correctly', () => {
-      const encoded = reader.encodeWorkspacePath('C:\\Users\\dev\\Code\\gofer');
-      expect(encoded).toBe('C:-Users-dev-Code-gofer');
+      const encoded = reader.encodeWorkspacePath('C:\\Users\\dev\\Code\\eai-gofer');
+      expect(encoded).toBe('C:-Users-dev-Code-eai-gofer');
     });
 
     it('should encode root path', () => {
@@ -73,9 +73,9 @@ describe('ClaudeSessionReader', () => {
 
   describe('getProjectDir', () => {
     it('should return correct project directory', () => {
-      const r = new ClaudeSessionReader('/Users/dev/Code/gofer');
+      const r = new ClaudeSessionReader('/Users/dev/Code/eai-gofer');
       const projectDir = r.getProjectDir();
-      const expected = path.join(os.homedir(), '.claude', 'projects', '-Users-dev-Code-gofer');
+      const expected = path.join(os.homedir(), '.claude', 'projects', '-Users-dev-Code-eai-gofer');
       expect(projectDir).toBe(expected);
     });
   });

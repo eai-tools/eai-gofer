@@ -202,7 +202,7 @@ Expected after deployment:
 1. **Build new version:**
 
    ```bash
-   cd /Users/douglaswross/Code/gofer
+   cd /Users/douglaswross/Code/eai-gofer
    ./release-auto.sh patch "Fix critical memory leaks causing VSCode crashes"
    ```
 

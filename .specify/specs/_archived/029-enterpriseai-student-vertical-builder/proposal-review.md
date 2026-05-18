@@ -104,8 +104,8 @@ Adopt a **profile-driven architecture**:
   one-by-one approval**
 - Clarification (locked): **EnterpriseAI profile activation via
   `gofer.workflowProfile` (`standard` | `enterpriseai`)**
-- Clarification (locked): **Pin generated EAI CLI guidance to installed
-  `eai-cli` major.minor and record in artifacts**
+- Clarification (locked): **Pin generated EAI CLI guidance to installed `eai`
+  major.minor and record in artifacts**
 - Clarification (locked): **Use `.specify/references/eai/` for vendored EAI
   references**
 

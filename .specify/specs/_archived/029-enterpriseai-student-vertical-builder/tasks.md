@@ -1,7 +1,7 @@
 ---
 feature: 'EnterpriseAI Student Vertical Builder'
-spec: '/Users/douglaswross/Code/gofer/.specify/specs/029-enterpriseai-student-vertical-builder/spec.md'
-plan: '/Users/douglaswross/Code/gofer/.specify/specs/029-enterpriseai-student-vertical-builder/plan.md'
+spec: '/Users/douglaswross/Code/eai-gofer/.specify/specs/029-enterpriseai-student-vertical-builder/spec.md'
+plan: '/Users/douglaswross/Code/eai-gofer/.specify/specs/029-enterpriseai-student-vertical-builder/plan.md'
 status: approved
 approvedBy: 'user'
 approvedAt: 2026-04-09T04:38:14Z
@@ -58,12 +58,12 @@ references, and standard-profile regression baselines.
 - [x] T003 [P] [US-ALL] Document phased rollout default (`standard`) and profile
       activation in `README.md` and `extension/README.md`.
 - [x] T004 [P] [US-ALL] Seed local fallback references in
-      `.specify/references/eai/README.md`, `.specify/references/eai/eai-cli.md`,
+      `.specify/references/eai/README.md`, `.specify/references/eai/eai.md`,
       `.specify/references/eai/vertical-template.md`, and
       `.specify/references/eai/deployment-repo.md`.
 - [x] T005 [US-ALL] Preserve one-by-one architecture approval and no-removal
       governance instructions in `.claude/commands/0_business_scenario.md`.
-- [x] T006 [US-ALL] Add `eai-cli` major.minor metadata placeholders to
+- [x] T006 [US-ALL] Add `eai` major.minor metadata placeholders to
       `.specify/templates/plan-template.md` and
       `.specify/templates/tasks-template.md`.
 - [x] T007 [P] [US-ALL] Add `standard` profile regression baseline test in
@@ -105,9 +105,8 @@ contract schema foundations that block all user stories.
       `extension/src/services/enterpriseai/models/EntityMappings.ts`.
 - [x] T016 [US-ALL] Implement external→local fallback resolver in
       `extension/src/services/EAIReferenceResolver.ts`.
-- [x] T017 [US-ALL] Implement installed `eai-cli` version detection and
-      major.minor parser in
-      `extension/src/services/enterpriseai/EaiCliVersion.ts`.
+- [x] T017 [US-ALL] Implement installed `eai` version detection and major.minor
+      parser in `extension/src/services/enterpriseai/EaiCliVersion.ts`.
 - [x] T018 [US-ALL] Implement artifact schemas for `business-analysis.md`,
       `market-analysis.md`, and Marp outputs, including run-completion gates for
       `referencedInSpec=true` and `referencedInPlan=true`, in
@@ -139,7 +138,7 @@ contract schema foundations that block all user stories.
       this feature (no `language-server/` code changes required) in
       `.specify/specs/029-enterpriseai-student-vertical-builder/traceability.md`.
 - [x] T027 [P] [US-ALL] Add unit tests for profile parsing, fallback resolution,
-      and `eai-cli` pin metadata in
+      and `eai` pin metadata in
       `extension/src/test/suite/enterpriseai/workflow-profile-contracts.test.ts`.
 - [x] T028 [P] [US-ALL] Add unit tests for artifact schema, placeholder
       conventions, and secret-safety validation in
@@ -225,11 +224,11 @@ version pinning, integration maps, and runnable sequencing.
 **Independent Test Criteria**: Running spec/plan/tasks with EnterpriseAI profile
 generates integration map, EAI CLI + Vertical Template guidance, deployment
 conventions, `market-analysis.md` generation/reference behavior, and pinned
-`eai-cli` major.minor without breaking standard profile output.
+`eai` major.minor without breaking standard profile output.
 
 - [x] T044 [P] [US-002] Update EnterpriseAI integration-map requirements in
       `.claude/commands/2_gofer_specify.md`.
-- [x] T045 [P] [US-002] Update deployment convention and `eai-cli` major.minor
+- [x] T045 [P] [US-002] Update deployment convention and `eai` major.minor
       requirements in `.claude/commands/3_gofer_plan.md`.
 - [x] T046 [US-002] Update ordered runnable task-generation guidance in
       `.claude/commands/4_gofer_tasks.md`.
@@ -248,11 +247,11 @@ conventions, `market-analysis.md` generation/reference behavior, and pinned
       `IAP-006 planning.generateEnterpriseAiPlanAndTasks` and publish
       `EVT-006 artifacts.plan.tasks.generated.v1`, generating/attaching
       `market-analysis.md` metadata when competitive analysis is enabled and
-      enforcing required reference indicators plus pinned `eai-cli` metadata in
+      enforcing required reference indicators plus pinned `eai` metadata in
       `extension/src/services/enterpriseai/internalApi/GenerateEnterpriseAiPlanAndTasks.ts`.
 - [x] T051 [US-002] Add root integration test for EnterpriseAI plan/tasks
       generation (integration map, deployment conventions, `market-analysis.md`
-      generation/reference, pinned `eai-cli`) in
+      generation/reference, pinned `eai`) in
       `tests/integration/enterpriseai/plan-task-generation.integration.test.ts`.
 - [x] T052 [US-002] Add extension integration test for EnterpriseAI plan/tasks
       generation and `market-analysis.md` reference propagation in
@@ -265,7 +264,7 @@ conventions, `market-analysis.md` generation/reference behavior, and pinned
 
 - [x] Spec/plan/tasks include EnterpriseAI integration map and deployment
       conventions.
-- [x] `eai-cli` major.minor pin is recorded in generated artifacts.
+- [x] `eai` major.minor pin is recorded in generated artifacts.
 - [x] `market-analysis.md` generation/reference indicators are present when
       competitive analysis is enabled.
 - [x] `IAP-001/002/003/006` handlers and `EVT-001/002/003/006` publishing are
@@ -542,7 +541,7 @@ contract-coverage, and release-readiness gates.
       `enterpriseai`) that executes existing unit/integration/parity suites
       unchanged in `scripts/enterpriseai-validation-matrix.sh`.
 - [x] T110 [US-ALL] Update release-readiness assertions for deployment
-      conventions, `eai-cli` pinning, and Marp path in
+      conventions, `eai` pinning, and Marp path in
       `.specify/specs/029-enterpriseai-student-vertical-builder/quickstart.md`.
 - [x] T111 [US-ALL] Execute generation + sync + validation matrix using
       `scripts/generate-commands.ts` and

@@ -17,9 +17,9 @@ legitimate issues remain, 3 of which have been fixed.
 
 **Files Created**:
 
-- `/Users/douglaswross/Code/gofer/tests/unit/council/providers/cli/ClaudeOutputParser.test.ts`
+- `/Users/douglaswross/Code/eai-gofer/tests/unit/council/providers/cli/ClaudeOutputParser.test.ts`
   (23 tests)
-- `/Users/douglaswross/Code/gofer/tests/unit/council/providers/cli/CodexOutputParser.test.ts`
+- `/Users/douglaswross/Code/eai-gofer/tests/unit/council/providers/cli/CodexOutputParser.test.ts`
   (31 tests)
 
 **Status**: ✅ **54/54 tests passing**
@@ -35,7 +35,7 @@ legitimate issues remain, 3 of which have been fixed.
 
 **File Modified**:
 
-- `/Users/douglaswross/Code/gofer/extension/src/council/providers/cli/CLIProviderAdapter.ts`
+- `/Users/douglaswross/Code/eai-gofer/extension/src/council/providers/cli/CLIProviderAdapter.ts`
 
 **Changes**:
 
@@ -71,7 +71,7 @@ legitimate issues remain, 3 of which have been fixed.
 
 **Required Files**:
 
-- `/Users/douglaswross/Code/gofer/docs/multi-provider-cli-support.md`
+- `/Users/douglaswross/Code/eai-gofer/docs/multi-provider-cli-support.md`
 
 **Content**:
 

@@ -439,20 +439,13 @@ fi
 echo ""
 print_success "Pre-push validation complete"
 
-# Create releases directory and copy VSIX for GitHub Pages hosting only after
-# the repo validations pass. This keeps failed release attempts from mutating
-# the published release feed state in the working tree.
-print_info "Preparing GitHub Pages release assets..."
-mkdir -p docs-site/static/releases
-cp "eai-gofer-$NEW_VERSION.vsix" "docs-site/static/releases/"
-print_success "Copied VSIX to docs-site/static/releases/ for GitHub Pages hosting"
-
-# Update GitHub Pages releases.json with GitHub Pages download URLs.
+# Update GitHub Pages releases.json with GitHub Release asset URLs. Keep VSIX
+# binaries out of the repository; GitHub Releases is the binary artifact store.
 print_info "Updating GitHub Pages releases.json..."
 if [ -f "scripts/update-releases.js" ]; then
-    GITHUB_PAGES_URL="https://eai-tools.github.io/eai-gofer/releases/eai-gofer-$NEW_VERSION.vsix"
-    node scripts/update-releases.js "$NEW_VERSION" "$RELEASE_NOTES" "$GITHUB_PAGES_URL"
-    print_success "Updated GitHub Pages release data with assets"
+    DOWNLOAD_URL="https://github.com/eai-tools/eai-gofer/releases/download/v$NEW_VERSION/eai-gofer-$NEW_VERSION.vsix"
+    node scripts/update-releases.js "$NEW_VERSION" "$RELEASE_NOTES" "$DOWNLOAD_URL"
+    print_success "Updated GitHub Pages release feed with GitHub Release asset URL"
 else
     print_warning "GitHub Pages update script not found, skipping..."
 fi
@@ -540,14 +533,14 @@ done
 set +e
 
 # Verify the VSIX file is actually downloadable
-VSIX_URL="https://eai-tools.github.io/eai-gofer/releases/eai-gofer-$NEW_VERSION.vsix"
+VSIX_URL="https://github.com/eai-tools/eai-gofer/releases/download/v$NEW_VERSION/eai-gofer-$NEW_VERSION.vsix"
 print_info "Verifying VSIX is downloadable at: $VSIX_URL"
 HTTP_STATUS=$(curl -sL -o /dev/null -w "%{http_code}" "$VSIX_URL?cachebust=$(date +%s)")
 if [ "$HTTP_STATUS" = "200" ]; then
     print_success "VSIX file is accessible (HTTP $HTTP_STATUS)"
 else
     print_warning "VSIX file returned HTTP $HTTP_STATUS - users may not be able to auto-update"
-    print_warning "Check GitHub Pages deployment: https://github.com/eai-tools/eai-gofer/actions/workflows/pages.yml"
+    print_warning "Check GitHub release assets: https://github.com/eai-tools/eai-gofer/releases/tag/v$NEW_VERSION"
 fi
 
 # Simulate auto-updater flow (what other VSCode instances will do)
@@ -586,7 +579,7 @@ print_success "🎉 Release $NEW_VERSION complete!"
 echo ""
 print_success "Extension Update:"
 echo "  • Users can now update to v$NEW_VERSION via the extension's update button"
-echo "  • Download URL: https://eai-tools.github.io/eai-gofer/releases/eai-gofer-$NEW_VERSION.vsix"
+echo "  • Download URL: https://github.com/eai-tools/eai-gofer/releases/download/v$NEW_VERSION/eai-gofer-$NEW_VERSION.vsix"
 echo ""
 print_info "GitHub Resources:"
 echo "  • Releases: https://github.com/eai-tools/eai-gofer/releases"

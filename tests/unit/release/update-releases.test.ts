@@ -80,7 +80,8 @@ describe('update-releases.js', () => {
               version: '3.1.9',
               tag_name: 'v3.1.9',
               published_at: '2026-04-30T00:00:00.000Z',
-              download_url: 'https://eai-tools.github.io/eai-gofer/releases/eai-gofer-3.1.9.vsix',
+              download_url:
+                'https://github.com/eai-tools/eai-gofer/releases/download/v3.1.9/eai-gofer-3.1.9.vsix',
               notes: 'Previous release',
               prerelease: false,
               size_mb: 8.5,
@@ -105,7 +106,7 @@ describe('update-releases.js', () => {
     expect(updated.releases[0].tag_name).toBe(`v${duplicateVersion}`);
     expect(updated.releases[0].notes).toBe('Fresh release notes');
     expect(updated.releases[0].download_url).toBe(
-      `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-${duplicateVersion}.vsix`
+      `https://github.com/eai-tools/eai-gofer/releases/download/v${duplicateVersion}/eai-gofer-${duplicateVersion}.vsix`
     );
     expect(updated.releases[0].size_mb).toBe(1);
     expect(updated.releases[1].version).toBe('3.1.9');
@@ -137,5 +138,48 @@ describe('update-releases.js', () => {
     expect(updated.latest_version).toBe(version);
     expect(updated.releases[0].download_url).toBe(customUrl);
     expect(updated.releases[0].tag_name).toBe(`v${version}`);
+  });
+
+  it('keeps only the latest five releases', async () => {
+    const version = '3.3.2';
+    const existingReleases = ['3.3.1', '3.3.0', '3.2.2', '3.2.1', '3.2.0'].map(
+      (releaseVersion) => ({
+        version: releaseVersion,
+        tag_name: `v${releaseVersion}`,
+        published_at: '2026-05-01T00:00:00.000Z',
+        download_url: `https://github.com/eai-tools/eai-gofer/releases/download/v${releaseVersion}/eai-gofer-${releaseVersion}.vsix`,
+        notes: `Release ${releaseVersion}`,
+        prerelease: false,
+        size_mb: 8.5,
+      })
+    );
+
+    fs.writeFileSync(
+      releasesPath,
+      JSON.stringify(
+        {
+          latest_version: '3.3.1',
+          repository: 'eai-tools/eai-gofer',
+          last_updated: '2026-05-01T00:00:00.000Z',
+          releases: existingReleases,
+        },
+        null,
+        2
+      )
+    );
+
+    await execFileAsync('node', [scriptPath, version, 'New retention-capped release']);
+
+    const updated = readReleasesJson(releasesPath);
+
+    expect(updated.releases).toHaveLength(5);
+    expect(updated.releases.map((release) => release.version)).toEqual([
+      version,
+      '3.3.1',
+      '3.3.0',
+      '3.2.2',
+      '3.2.1',
+    ]);
+    expect(updated.releases.some((release) => release.version === '3.2.0')).toBe(false);
   });
 });

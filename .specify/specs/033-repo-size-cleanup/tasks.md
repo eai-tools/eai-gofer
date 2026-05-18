@@ -1,8 +1,8 @@
 ---
 feature: repo-size-cleanup
-stage: audit-and-safe-cleanup
-tasksCompleted: 6/6 (100%)
-GeneratedAt: 2026-05-18T10:41:29+10:00
+stage: history-rewrite-complete
+tasksCompleted: 8/8 (100%)
+GeneratedAt: 2026-05-18T13:05:00+10:00
 ---
 
 # Tasks: Repository Size Cleanup
@@ -23,3 +23,10 @@ GeneratedAt: 2026-05-18T10:41:29+10:00
       binary downloads while keeping GitHub Pages as the release feed.
 - [x] T006 Prune release metadata and GitHub Releases to keep only the latest
       five versions while preserving historical git tags.
+
+## Phase 3: History Rewrite
+
+- [x] T007 Rewrite branch and tag history to remove historical `.vsix`,
+      `.specify/logs/context-usage.jsonl`, and `docs/CodingAgents.pdf` objects.
+- [x] T008 Force-push rewritten heads/tags and verify a fresh normal GitHub
+      clone has zero targeted historical objects.

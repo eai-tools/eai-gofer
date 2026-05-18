@@ -1,8 +1,8 @@
 ---
 feature: repo-size-cleanup
-stage: audit-and-safe-cleanup
-status: SAFE_CLEANUP_IMPLEMENTED
-generatedAt: 2026-05-18T10:41:29+10:00
+stage: history-rewrite-complete
+status: HISTORY_REWRITE_COMPLETED
+generatedAt: 2026-05-18T13:05:00+10:00
 ---
 
 # Repository Size Audit
@@ -34,32 +34,33 @@ generatedAt: 2026-05-18T10:41:29+10:00
 - Deleted older GitHub Release records/assets for `v3.1.0`, `v3.0.1`, `v3.0.0`,
   `v2.0.11`, and `v2.0.10` while preserving their git tags.
 
-## Remaining Size Work
+## History Rewrite Completed
 
-This branch reduces the checked-out source tree, but it does not rewrite Git
-history. A full clone will still download old blobs until the repository history
-is rewritten and force-pushed.
+- Merged the safe cleanup branch into `main` before rewriting history.
+- Created local mirror backups before rewriting:
+  `history-backups/eai-gofer-pre-history-rewrite-20260518-1209.git` and
+  `history-backups/eai-gofer-post-merge-pre-history-rewrite-20260518-1253.git`.
+- Rewrote branch and tag history with `git-filter-repo`.
+- Removed all historical `.vsix` files.
+- Removed all historical `.specify/logs/context-usage.jsonl` blobs.
+- Removed historical `docs/CodingAgents.pdf`.
+- Force-pushed the rewritten heads and tags to GitHub.
+- Expired local reflogs and garbage-collected the submodule checkout.
 
-History rewrite candidates:
+## Verification
 
-- `docs/releases/*.vsix`
-- `docs-site/static/releases/*.vsix`
-- `*.vsix`
-- `.specify/logs/context-usage.jsonl`
-- `docs/CodingAgents.pdf`
+- Fresh normal clone from GitHub: `0` matching historical `.vsix`,
+  `context-usage.jsonl`, or `CodingAgents.pdf` objects.
+- Fresh normal clone Git object store: about `14M`.
+- Local submodule Git object store after garbage collection: about `13M`.
+- Latest GitHub Release records retained: `v3.3.1`, `v3.3.0`, `v3.2.2`,
+  `v3.2.1`, and `v3.2.0`.
 
-Recommended history cleanup command, after team coordination and a fresh mirror
-backup:
+## GitHub Hidden Ref Note
 
-```bash
-git filter-repo --path-glob 'docs/releases/*.vsix' \
-  --path-glob 'docs-site/static/releases/*.vsix' \
-  --path-glob '*.vsix' \
-  --path '.specify/logs/context-usage.jsonl' \
-  --path 'docs/CodingAgents.pdf' \
-  --invert-paths
-```
-
-That step is intentionally not performed in this branch because it rewrites
-shared history and requires a force push plus every collaborator to re-clone or
-repair local history.
+Branch and tag history is clean. A GitHub mirror clone still advertises
+provider-managed `refs/pull/*` refs for older closed or merged pull requests,
+and those hidden refs still point to pre-rewrite objects. GitHub rejects direct
+deletion of those refs with `deny updating a hidden ref`; removing them requires
+GitHub-side repository support/maintenance. Normal clones do not fetch those
+hidden refs.

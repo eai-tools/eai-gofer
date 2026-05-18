@@ -1,4 +1,4 @@
-# Gofer
+# Enterprise AI Gofer
 
 Gofer is a spec-driven workflow for repositories. It helps teams move work from
 an initial business scenario through research, specification, planning, tasks,

@@ -1,633 +1,721 @@
 ---
 generated: true
-generated_at: '2026-05-17T17:52:23.514Z'
-source_commit: '347c971273d89c79adb9e37e41b93a7a8388f035'
+generated_at: "2026-05-18T18:29:37.022Z"
+source_commit: "d71d0b38af3ecb01dee9c3d3001ef1abe9dc5510"
 ---
+# Gofer - Architecture
 
-# Architecture
+## Executive Summary
 
-## System Overview
+Gofer implements a dual-protocol architecture (LSP + MCP) that bridges VSCode Extension API with AI assistant tools. The system uses dependency injection (tsyringe) for service lifecycle management and follows a progressive context management strategy through Adaptive Context Compaction (ACC). Trust boundaries are enforced via ScopeGuard, and all tool invocations are audited to `.specify/logs/tool-audit.jsonl`.
 
-Gofer is a three-component system that enables AI assistants to autonomously
-implement features from specifications.
+## High-Level System Context
 
 ```mermaid
 flowchart TB
-    subgraph VSCode
-        EXT[Extension<br/>extension/src]
-        UI[UI Components<br/>Panels, Status Bars]
-        CMD[Command Handlers<br/>30+ Commands]
-        EXT --> UI
-        EXT --> CMD
+    subgraph "User Environment"
+        VSCode["VS Code IDE"]
+        User["Developer"]
     end
 
-    subgraph LanguageServer["Language Server (Dual Protocol)"]
-        LSP[LSP Server<br/>language-server/src]
-        MCP[MCP Tools<br/>40+ Tools]
-        LOADER[GoferLoader<br/>Spec Parser]
-        LSP --> MCP
-        LSP --> LOADER
+    subgraph "Gofer Extension"
+        ExtHost["Extension Host<br/>(extension.ts)"]
+        LSPClient["LSP Client<br/>(lspClient.ts)"]
+        UI["UI Providers<br/>Progress, AI Usage, Memory"]
+        StateManager["State Manager<br/>(Global State)"]
     end
 
-    subgraph Orchestrator["Orchestrator (Optional)"]
-        ORCH[AutonomousOrchestrator]
-        AGENT[Agents<br/>Engineer, Test]
-        QUEUE[Task Queue<br/>Dependency Resolver]
-        ORCH --> AGENT
-        ORCH --> QUEUE
+    subgraph "Language Server"
+        LSPServer["Language Server<br/>(server.ts)"]
+        MCPHandler["MCP Tool Handler<br/>(29 tools)"]
+        GoferLoader["Gofer Loader<br/>(Spec Cache)"]
     end
 
-    subgraph Filesystem
-        SPEC[.specify/<br/>Specs, Plans, Tasks]
-        MEM[Memory<br/>Constitution, Hints]
-        LOGS[Logs<br/>JSONL Audit Trails]
+    subgraph "AI Assistants"
+        Claude["Claude Code CLI"]
+        Copilot["GitHub Copilot Chat"]
+        Codex["OpenAI Codex CLI"]
+        Gemini["Gemini CLI"]
     end
 
-    EXT <--> LSP
-    LSP <--> SPEC
-    LSP <--> MEM
-    LSP <--> LOGS
-    MCP <--> AI[Claude Code /<br/>GitHub Copilot /<br/>Codex / Gemini]
-    ORCH --> EXT
-    ORCH --> AI
-    CMD --> ORCH
+    subgraph "File System"
+        Specify[".specify/<br/>specs, memory, logs"]
+        Generated["Generated Commands<br/>.claude, .github, .agents, .gemini"]
+    end
+
+    subgraph "External Services"
+        AnthropicAPI["Anthropic API<br/>(Claude 3.5)"]
+        GoogleAPI["Google AI API<br/>(Gemini)"]
+        OpenAIAPI["OpenAI API<br/>(GPT-4)"]
+    end
+
+    User -->|Invokes Commands| VSCode
+    VSCode -->|Hosts| ExtHost
+    ExtHost -->|Spawns| LSPServer
+    ExtHost -->|IPC| LSPClient
+    LSPClient <-->|LSP + MCP| LSPServer
+    LSPServer -->|Executes| MCPHandler
+    MCPHandler -->|Reads/Writes| Specify
+    MCPHandler -->|Loads| GoferLoader
+    
+    ExtHost -->|Renders| UI
+    ExtHost -->|Reads| StateManager
+    ExtHost -->|Generates| Generated
+    
+    Claude -->|Calls MCP Tools| LSPServer
+    Copilot -->|Calls MCP Tools| LSPServer
+    Codex -->|Reads Skills| Generated
+    Gemini -->|Reads Commands| Generated
+    
+    Claude -->|API Calls| AnthropicAPI
+    Copilot -->|Built-in| OpenAIAPI
+    Codex -->|API Calls| OpenAIAPI
+    Gemini -->|API Calls| GoogleAPI
+
+    style "Gofer Extension" fill:#e1f5ff
+    style "Language Server" fill:#fff4e1
+    style "AI Assistants" fill:#e8f5e9
+    style "File System" fill:#f3e5f5
+    style "External Services" fill:#fce4ec
 ```
 
-## Component Breakdown
-
-### 1. Extension (`extension/src/`)
-
-**Purpose:** VSCode UI integration layer
-
-**Entry Point:** `extension.ts` (lines 173-287)
-
-- Dependency injection container initialization (TSyringe)
-- Command registration (30+ commands)
-- Tree view provider registration (3 panels)
-- Language server client startup
-- File system watchers for real-time updates
-
-**Key Modules:**
-
-| Module                  | File                       | Description                               |
-| ----------------------- | -------------------------- | ----------------------------------------- |
-| Extension Entry         | `extension.ts`             | Main activation point, DI container setup |
-| Progress Provider       | `progressProvider.ts`      | Spec tree view in sidebar                 |
-| AI Usage Provider       | `ui/AIUsageProvider.ts`    | Token usage and cost tracking panel       |
-| Constitution Provider   | `constitutionProvider.ts`  | Constitution tree view                    |
-| Memory Provider         | `memoryProvider.ts`        | Memory management UI with filter toggle   |
-| Context Window Provider | `contextWindowProvider.ts` | Context health visualization              |
-| LSP Client              | `lspClient.ts`             | Connects to language server via stdio     |
-| Auto Updater            | `autoUpdater.ts`           | Checks GitHub releases (24h interval)     |
-| Branch Spec Manager     | `branchSpecManager.ts`     | Git branch-aware spec filtering           |
-
-**Autonomous Subsystem (`src/autonomous/`):**
-
-| Module                 | File                                  | Description                                |
-| ---------------------- | ------------------------------------- | ------------------------------------------ |
-| Context Builder        | `ContextBuilder.ts`                   | Builds context for AI prompts              |
-| Memory Manager         | `MemoryManager.ts`                    | JSONL-based memory with 30min compaction   |
-| Memory Storage         | `MemoryStorage.ts`                    | Append-only JSONL with in-memory index     |
-| Memory Layer Manager   | `MemoryLayerManager.ts`               | MemGPT-inspired 3-layer memory             |
-| Context Health Monitor | `ContextHealthMonitor.ts`             | Tracks context usage                       |
-| Scope Guard            | `ScopeGuard.ts`                       | Enforces file access boundaries            |
-| Cost Budget Enforcer   | `CostBudgetEnforcer.ts`               | Tracks API costs per run                   |
-| ACC Orchestrator       | `ACCOrchestrator.ts`                  | Auto-context-continuity orchestrator       |
-| AI Usage Monitor       | `AIUsageMonitor.ts`                   | File watcher + polling for usage data      |
-| Usage API Client       | `UsageApiClient.ts`                   | Anthropic/OpenAI billing API integration   |
-| Slop Reducer           | `SlopReducer.ts`                      | Auto-removes console.log, debugger         |
-| Tool Audit Logger      | `ToolAuditLogger.ts`                  | Logs all tool access to JSONL              |
-| Run Ledger             | `RunLedger.ts`                        | Pipeline run tracking for cost attribution |
-| Observation Bridge     | `ObservationBridge.ts`                | Bridges terminal observations to context   |
-| Resource Diagnostics   | `ResourceDiagnostics.ts`              | Lightweight performance snapshots (5min)   |
-| Sub Agent Dispatcher   | `SubAgentDispatcher.ts`               | Dispatches work to specialized agents      |
-| Continuous Memory      | `ContinuousMemoryWriter.ts`           | Background memory updates                  |
-| Pipeline State Manager | `PipelineStateManager.ts`             | Per-spec pipeline state tracking           |
-| Stage Detector         | `StageDetector.ts`                    | Detects current pipeline stage             |
-| Observation Masker     | `ObservationMasker.ts`                | Redacts sensitive content from logs        |
-| Hook Bridge Watcher    | `autonomous/HookBridgeWatcher.ts`     | Monitors Claude Code hook events           |
-| Multi Session Watcher  | `autonomous/MultiSessionWatcher.ts`   | Tracks multiple Claude Code sessions       |
-| Workspace Context      | `autonomous/WorkspaceContextProvider` | Provides workspace-wide context            |
-
-**Service Layer (DI Container):**
-
-```typescript
-// services/index.ts exports
-Logger; // Centralized logging to Output Channel
-StateManager; // Extension state (global + workspace)
-DisposalService; // Resource cleanup coordination
-EventHandlers; // Event coordination across modules
-InitializationService; // Startup sequence orchestration
-CommandRegistry; // Command registration
-OptionalToolInstaller; // CLI tool installation helper
-ConfigManager; // Settings management
-```
-
-**Cross-Platform Support (`src/council/`):**
-
-| Module                        | File                            | Description                                        |
-| ----------------------------- | ------------------------------- | -------------------------------------------------- |
-| Cross Platform Command Router | `CrossPlatformCommandRouter.ts` | Routes to Claude/Codex/Copilot/Gemini              |
-| Platform Detector             | `PlatformDetector.ts`           | Auto-detects installed CLIs                        |
-| Usage Logger                  | `UsageLogger.ts`                | Logs usage to council-usage.jsonl                  |
-| LLM Council                   | `LLMCouncil.ts`                 | Multi-provider execution (Anthropic/Google/OpenAI) |
-
-**File Count:** 140+ TypeScript files
-
-### 2. Language Server (`language-server/src/`)
-
-**Purpose:** Dual-protocol server (LSP + MCP)
-
-**Entry Point:** `server.ts` (lines 129-537)
-
-**Key Modules:**
-
-| Module                 | File                            | Description                    |
-| ---------------------- | ------------------------------- | ------------------------------ |
-| Server Entry           | `server.ts`                     | LSP connection + MCP handler   |
-| MCP Tool Handler       | `mcp/toolHandler.ts`            | Implements 40+ MCP tools       |
-| Gofer Loader           | `utils/goferLoader.ts`          | Parses spec.md files           |
-| Research Chunker       | `utils/ResearchChunker.ts`      | Chunks large research.md files |
-| Spec Cache             | `utils/specCache.ts`            | In-memory spec caching         |
-| Validation Service     | `utils/ValidationService.ts`    | Constitution validation        |
-| Test Harness Generator | `utils/TestHarnessGenerator.ts` | Auto-generates test runners    |
-
-**MCP Tools Implemented (40+ tools):**
-
-**Spec Management:**
-
-1. `gofer_get_specs` - List all specs and tasks
-2. `gofer_get_next_task` - Get next task based on dependencies
-3. `gofer_execute_task` - Mark task in-progress, return context
-4. `gofer_update_task_status` - Mark task completed/failed
-5. `gofer_validate_code` - Check against constitution
-6. `gofer_run_tests` - Execute tests (vitest/jest/pytest auto-detect)
-
-**Context Management:** 7. `gofer_get_context_health` - Current context
-utilization 8. `gofer_expand_observation` - Expand masked observations 9.
-`gofer_trigger_handoff` - Trigger session save/resume
-
-**Research Chunking:** 10. `gofer_get_research_index` - Get research.md chunk
-index 11. `gofer_load_research_chunk` - Load specific research chunk
-
-**Observation Management:** 12. `gofer_peek_observation` - Preview observation
-without loading 13. `gofer_fold_observation` - Mask observation to save
-context 14. `gofer_grep_observations` - Search across observations
-
-**Context REPL (Progressive Context Management):** 15. `gofer_context_peek` -
-Preview context section 16. `gofer_context_grep` - Search context by pattern 17.
-`gofer_context_fold` - Collapse context section 18. `gofer_context_expand` -
-Expand collapsed section 19. `gofer_context_undo` - Undo last context
-operation 20. `gofer_context_history` - Show context operation history 21.
-`gofer_context_repl` - Batch context operations
-
-**Code Quality:** 22. `gofer_check_slop` - Detect console.log, debugger,
-@ts-ignore
-
-**Additional Tools:** (20+ more tools for advanced workflows)
-
-**LSP Custom Methods:**
-
-- `gofer/getSpecs` - Spec list for extension UI
-- `gofer/executeTask` - Task execution request
-- `gofer/updateTaskStatus` - Task status update
-- `gofer/taskProgress` - Notification to extension on task progress
-
-**Protocol Flow:**
+## Runtime Flow: Task Execution
 
 ```mermaid
 sequenceDiagram
-    participant AI as Claude Code
-    participant MCP as MCP Handler
-    participant LOADER as GoferLoader
-    participant FS as Filesystem
+    participant User
+    participant Claude as Claude Code CLI
+    participant LSP as Language Server
+    participant MCP as MCP Tool Handler
+    participant Loader as Gofer Loader
+    participant Context as Context Builder
+    participant FS as File System (.specify/)
 
-    AI->>MCP: gofer_get_specs()
-    MCP->>LOADER: loadSpecs()
-    LOADER->>FS: Read .specify/specs/*/spec.md
-    FS-->>LOADER: Spec files
-    LOADER-->>MCP: Parsed specs
-    MCP-->>AI: Spec list with tasks
-
-    AI->>MCP: gofer_get_next_task()
-    MCP->>LOADER: getNextTask()
-    LOADER-->>MCP: Next task (FR-001)
-    MCP-->>AI: Task details + dependencies
-
-    AI->>MCP: gofer_update_task_status(completed)
-    MCP->>FS: Update tasks.md
-    MCP-->>AI: Success
+    User->>Claude: /0_business_scenario Add auth
+    Claude->>LSP: tools/call: gofer_get_specs
+    LSP->>MCP: executeGetSpecs()
+    MCP->>Loader: loadAllSpecs()
+    Loader->>FS: Read .specify/specs/**/spec.md
+    FS-->>Loader: Spec metadata
+    Loader-->>MCP: List of specs
+    MCP-->>LSP: {specs: [...]}
+    LSP-->>Claude: Spec list
+    
+    Claude->>Claude: Create spec.md for "auth"
+    Claude->>LSP: tools/call: gofer_execute_task<br/>(specId: auth, taskId: T001)
+    LSP->>MCP: executeTask()
+    MCP->>MCP: validateSpecId(), validateTaskId()
+    MCP->>Loader: loadSpec(auth)
+    Loader->>FS: Read auth/spec.md, tasks.md
+    FS-->>Loader: Spec + tasks
+    
+    MCP->>MCP: readEnrichedContext(auth, T001)
+    MCP->>FS: Read enriched-context.json
+    alt Context fresh (< 60s)
+        FS-->>MCP: Cached context
+    else Context stale
+        MCP->>Context: buildContext(auth, T001)
+        Context->>FS: Load constitution, memories, hints
+        Context->>FS: Check memory coverage
+        alt Coverage < 30%
+            Context->>FS: Load research chunks
+        end
+        Context-->>MCP: Enriched context
+        MCP->>FS: Write enriched-context.json
+    end
+    
+    MCP-->>LSP: {spec, task, constitution, memories, hints}
+    LSP-->>Claude: Task context
+    Claude->>Claude: Implement task
+    
+    Claude->>LSP: tools/call: gofer_update_task_status<br/>(specId: auth, taskId: T001, status: completed)
+    LSP->>MCP: updateTaskStatus()
+    MCP->>Loader: updateTaskStatus()
+    Loader->>FS: Update tasks.md checkbox
+    FS-->>Loader: Success
+    MCP->>LSP: sendNotification('gofer/taskProgress')
+    LSP->>User: UI refresh (Harvey ball icon)
+    MCP-->>LSP: {success: true}
+    LSP-->>Claude: Task updated
 ```
 
-### 3. Orchestrator (`src/`)
+## Component Architecture
 
-**Purpose:** Optional autonomous execution engine
-
-**Entry Point:** `src/index.ts` (lines 9-47)
-
-**Key Modules:**
-
-| Module                  | File                                         | Description                  |
-| ----------------------- | -------------------------------------------- | ---------------------------- |
-| Autonomous Orchestrator | `orchestrator/AutonomousOrchestrator_new.ts` | Main coordinator             |
-| Spec Loader             | `orchestrator/SpecLoader.ts`                 | Loads specs from filesystem  |
-| Task Queue              | `orchestrator/TaskQueue.ts`                  | Manages task execution order |
-| Engineer Agent          | `agents/EngineerAgent.ts`                    | Code validation agent        |
-| Test Agent              | `agents/TestAgent.ts`                        | Test execution agent         |
-| Logger                  | `utils/Logger.ts`                            | Logging utility              |
-| Notification Service    | `utils/NotificationService.ts`               | WhatsApp/Email notifications |
-
-**Orchestrator Flow:**
+### Extension Layer (extension/src/)
 
 ```mermaid
 flowchart LR
-    START[User Starts] --> LOAD[Load Spec]
-    LOAD --> QUEUE[Build Task Queue]
-    QUEUE --> NEXT[Get Next Task]
-    NEXT --> SEND[Send to Claude Code]
-    SEND --> MONITOR[Monitor Terminal]
-    MONITOR --> DONE{Task Done?}
-    DONE -->|No| MONITOR
-    DONE -->|Yes| VALIDATE[Validate Code]
-    VALIDATE --> NEXT_CHECK{More Tasks?}
-    NEXT_CHECK -->|Yes| NEXT
-    NEXT_CHECK -->|No| REPORT[Generate Report]
-    REPORT --> IPC[Write IPC Status]
-```
-
-**IPC Communication:**
-
-```typescript
-// .specify/ipc/status.json
-{
-  "timestamp": "2026-04-30T22:50:00Z",
-  "state": "working" | "idle" | "question",
-  "last_output": "Completed task FR-001",
-  "pending_input": null | "Answer required"
-}
-```
-
-## Data Flow
-
-### Specification Read Flow
-
-```mermaid
-graph LR
-    FS[.specify/specs/] --> PARSER[GoferLoader]
-    PARSER --> FRONTMATTER[Parse YAML Frontmatter]
-    FRONTMATTER --> MARKDOWN[Parse Markdown]
-    MARKDOWN --> TASKS[Extract FR-XXX Tasks]
-    TASKS --> DEPS[Calculate Dependencies]
-    DEPS --> CACHE[Cache in Memory]
-    CACHE --> API[Return via MCP]
-```
-
-### Context Building Flow
-
-```mermaid
-graph TB
-    TRIGGER[Context Request] --> STAGE[Detect Stage]
-    STAGE --> PROFILE[Load Stage Profile]
-    PROFILE --> RESEARCH[Load Research<br/>Chunked on Demand]
-    RESEARCH --> MEMORY[Load Memories<br/>3-Layer System]
-    MEMORY --> CODE[Load Code Context]
-    CODE --> SCOPE[Apply Scope Guard]
-    SCOPE --> COMPRESS[Apply Compression]
-    COMPRESS --> OUTPUT[Return Context String]
-```
-
-### Context Health Monitoring
-
-```mermaid
-sequenceDiagram
-    participant TERM as Claude Code Terminal
-    participant HOOK as HookBridgeWatcher
-    participant MONITOR as ContextHealthMonitor
-    participant STATUS as Status Bar
-    participant AUTO as ACC Orchestrator
-
-    TERM->>HOOK: Hook event (tool call)
-    HOOK->>MONITOR: Update context data
-    MONITOR->>MONITOR: Calculate utilization
-    MONITOR->>STATUS: Update status bar (%)
-
-    alt Utilization > 65%
-        MONITOR->>AUTO: Trigger auto-save
-        AUTO->>TERM: Send /7_gofer_save
-        TERM->>AUTO: Save complete
-        AUTO->>TERM: Send /8_gofer_resume
-        AUTO->>MONITOR: Reset utilization
-    end
-```
-
-### AI Usage Tracking Flow
-
-```mermaid
-sequenceDiagram
-    participant EXT as Extension
-    participant MONITOR as AIUsageMonitor
-    participant CLIENT as UsageApiClient
-    participant API as Provider APIs
-    participant UI as AIUsageProvider
-
-    EXT->>MONITOR: Initialize (on activation)
-    MONITOR->>MONITOR: Start file watcher (council-usage.jsonl)
-    MONITOR->>MONITOR: Start 60s polling timer
-
-    loop Every 60s
-        MONITOR->>CLIENT: fetchUsageData()
-        CLIENT->>API: GET /v1/organization/billing/usage
-        API-->>CLIENT: Usage data
-        CLIENT-->>MONITOR: Aggregated usage
-        MONITOR->>UI: Update tree view
-        MONITOR->>STATUS: Update status bar ($X.XX)
+    subgraph "Entry Point"
+        Activate["activate()<br/>extension.ts:171"]
     end
 
-    Note over MONITOR: Also watches JSONL for local events
+    subgraph "Dependency Injection"
+        Container["TSyringe Container"]
+        Logger["Logger Service"]
+        Disposal["Disposal Service"]
+        Init["Initialization Service"]
+        CommandReg["Command Registry"]
+    end
+
+    subgraph "State Management"
+        StateManager["State Manager<br/>(Global State)"]
+        Config["Config Manager<br/>(Settings)"]
+    end
+
+    subgraph "UI Layer"
+        ProgressProvider["Progress Provider<br/>(Spec Tree View)"]
+        AIUsageProvider["AI Usage Provider<br/>(Token Tracking)"]
+        MemoryProvider["Memory Provider<br/>(Rules & Memory)"]
+        StatusBars["Status Bars<br/>(Context, AI Usage)"]
+    end
+
+    subgraph "Autonomous Layer"
+        ContextBuilder["Context Builder<br/>(Memory-First)"]
+        ACCOrch["ACC Orchestrator<br/>(5-Stage Compaction)"]
+        ScopeGuard["Scope Guard<br/>(Boundary Enforcement)"]
+        ObsBridge["Observation Bridge<br/>(Terminal Capture)"]
+        MemoryMgr["Memory Manager<br/>(TF-IDF Retrieval)"]
+    end
+
+    subgraph "Services Layer"
+        LSPClient["LSP Client<br/>(IPC Bridge)"]
+        BranchSpec["Branch Spec Manager<br/>(Git Detection)"]
+        AutoUpdater["Auto Updater"]
+        ClaudeBridge["Claude Code Bridge"]
+    end
+
+    Activate -->|registerServices()| Container
+    Container -->|Provides| Logger
+    Container -->|Provides| Disposal
+    Container -->|Provides| Init
+    Container -->|Provides| CommandReg
+    
+    Activate -->|setupLSP()| LSPClient
+    Activate -->|registerTreeViews()| ProgressProvider
+    Activate -->|registerTreeViews()| AIUsageProvider
+    Activate -->|registerTreeViews()| MemoryProvider
+    Activate -->|initializeForWorkspace()| StateManager
+    
+    StateManager -->|Holds| ContextBuilder
+    StateManager -->|Holds| ACCOrch
+    StateManager -->|Holds| ScopeGuard
+    StateManager -->|Holds| ObsBridge
+    StateManager -->|Holds| MemoryMgr
+    
+    ContextBuilder -->|Uses| MemoryMgr
+    ContextBuilder -->|Uses| ScopeGuard
+    ACCOrch -->|Monitors| ContextBuilder
+    ObsBridge -->|Feeds| ContextBuilder
+
+    style "Dependency Injection" fill:#e1f5ff
+    style "State Management" fill:#fff4e1
+    style "UI Layer" fill:#e8f5e9
+    style "Autonomous Layer" fill:#f3e5f5
+    style "Services Layer" fill:#fce4ec
 ```
 
-## Design Patterns
+### Language Server Layer (language-server/src/)
 
-### 1. Dependency Injection (tsyringe)
+```mermaid
+flowchart TB
+    subgraph "Server Entry"
+        InitLSP["connection.onInitialize()<br/>server.ts:129"]
+        RegisterTools["Register 29 MCP Tools<br/>server.ts:164-178"]
+    end
 
-**Pattern:** Constructor injection with decorators
+    subgraph "LSP Protocol"
+        LSPMethods["Custom LSP Methods<br/>gofer/*, tasks/*"]
+        Notifications["Notifications<br/>gofer/taskProgress"]
+    end
 
-```typescript
-// Service definition
-@injectable()
-class ContextBuilder {
-  constructor(
-    @inject(Logger) private logger: Logger,
-    @inject(MemoryManager) private memory: MemoryManager
-  ) {}
-}
+    subgraph "MCP Protocol"
+        ToolCall["connection.onRequest('tools/call')<br/>server.ts:719"]
+        ToolHandler["MCP Tool Handler<br/>toolHandler.ts"]
+    end
 
-// Container registration (di/index.ts)
-container.register(ContextBuilder, { useClass: ContextBuilder });
+    subgraph "Tool Categories"
+        WorkflowTools["Workflow Tools<br/>gofer_get_specs<br/>gofer_execute_task<br/>gofer_update_task_status"]
+        ContextTools["Context Tools<br/>gofer_get_context_health<br/>gofer_expand_observation<br/>gofer_peek_observation"]
+        REPLTools["Context REPL<br/>gofer_context_peek<br/>gofer_context_grep<br/>gofer_context_fold"]
+        QualityTools["Quality Tools<br/>gofer_check_slop<br/>gofer_validate_code<br/>gofer_run_tests"]
+    end
 
-// Resolution
-const builder = container.resolve(ContextBuilder);
+    subgraph "Security Layer"
+        Validate["Input Validation<br/>validateSpecId()<br/>validateTaskId()"]
+        AuditLog["Security Audit<br/>logSecurityViolation()"]
+    end
+
+    subgraph "Data Layer"
+        GoferLoader["Gofer Loader<br/>(Spec Cache, 5min TTL)"]
+        EnrichedContext["Enriched Context Reader<br/>(60s freshness)"]
+        SpecCache["Spec Cache<br/>(100 spec limit)"]
+    end
+
+    InitLSP -->|Registers| RegisterTools
+    RegisterTools -->|Exposes| LSPMethods
+    RegisterTools -->|Exposes| ToolCall
+    
+    ToolCall -->|Dispatches| ToolHandler
+    ToolHandler -->|Validates| Validate
+    Validate -->|Logs violations| AuditLog
+    
+    ToolHandler -->|Implements| WorkflowTools
+    ToolHandler -->|Implements| ContextTools
+    ToolHandler -->|Implements| REPLTools
+    ToolHandler -->|Implements| QualityTools
+    
+    WorkflowTools -->|Loads| GoferLoader
+    ContextTools -->|Reads| EnrichedContext
+    GoferLoader -->|Caches| SpecCache
+
+    style "LSP Protocol" fill:#e1f5ff
+    style "MCP Protocol" fill:#fff4e1
+    style "Tool Categories" fill:#e8f5e9
+    style "Security Layer" fill:#ffebee
+    style "Data Layer" fill:#f3e5f5
 ```
 
-**Usage:** Extension initialization, service layer
+## Data Flow Architecture
 
-### 2. Provider Pattern (VSCode TreeDataProvider)
+### Spec Loading Pipeline
 
-**Pattern:** Tree view data providers
+```mermaid
+flowchart LR
+    subgraph "File System"
+        SpecMD[".specify/specs/{id}/spec.md"]
+        TasksMD["tasks.md"]
+        PlanMD["plan.md"]
+        ResearchMD["research.md"]
+    end
+
+    subgraph "Branch Detection"
+        GitBranch["Git Branch<br/>(async detection)"]
+        BranchFilter["Branch-Aware Filtering"]
+    end
+
+    subgraph "Loading Layer"
+        GoferLoader["Gofer Loader<br/>goferLoader.ts"]
+        SpecCache["Spec Cache<br/>(5min TTL, 100 limit)"]
+        Frontmatter["Frontmatter Parser<br/>(YAML + GitHub Gofer)"]
+    end
+
+    subgraph "Context Assembly"
+        SpecLoader["Spec Loader<br/>(autonomous/)"]
+        ContextBuilder["Context Builder"]
+        EnrichedJSON["enriched-context.json<br/>(60s TTL)"]
+    end
+
+    subgraph "MCP Tools"
+        GetSpecs["gofer_get_specs"]
+        ExecuteTask["gofer_execute_task"]
+    end
+
+    SpecMD -->|Read| GoferLoader
+    TasksMD -->|Read| GoferLoader
+    PlanMD -->|Read| GoferLoader
+    ResearchMD -->|Chunk| GoferLoader
+    
+    GoferLoader -->|Parse| Frontmatter
+    GoferLoader -->|Cache| SpecCache
+    GoferLoader -->|Filter| BranchFilter
+    BranchFilter -->|Uses| GitBranch
+    
+    SpecCache -->|Provides| SpecLoader
+    SpecLoader -->|Builds| ContextBuilder
+    ContextBuilder -->|Writes| EnrichedJSON
+    
+    EnrichedJSON -->|Consumed by| GetSpecs
+    EnrichedJSON -->|Consumed by| ExecuteTask
+
+    style "File System" fill:#f3e5f5
+    style "Loading Layer" fill:#e1f5ff
+    style "Context Assembly" fill:#fff4e1
+    style "MCP Tools" fill:#e8f5e9
+```
+
+### Context Building Pipeline (Memory-First)
+
+```mermaid
+flowchart TB
+    subgraph "Input"
+        TaskRequest["Task Request<br/>(specId, taskId)"]
+    end
+
+    subgraph "Priority 1: Task Context"
+        TaskDesc["Task Description"]
+        TaskDeps["Task Dependencies"]
+    end
+
+    subgraph "Priority 2: Hints"
+        DirHints["Directory Hints<br/>(priority: 10)"]
+        ProjHints["Project Hints<br/>(priority: 5)"]
+        GlobalHints["Global Hints<br/>(priority: 1)"]
+    end
+
+    subgraph "Priority 3: Memory"
+        MemoryMgr["Memory Manager<br/>(TF-IDF Retrieval)"]
+        MemoryCoverage["Coverage Check<br/>(threshold: 30%)"]
+    end
+
+    subgraph "Priority 4: Research (Conditional)"
+        ResearchIndex["Research Index<br/>(Chunk metadata)"]
+        ResearchChunk["Load Chunk<br/>(On-demand)"]
+    end
+
+    subgraph "Priority 5: Constitution"
+        ConstitutionMD["constitution.md"]
+    end
+
+    subgraph "Priority 6: Knowledge Graph"
+        EntityGraph["Entity-Based Context<br/>(Affected files)"]
+    end
+
+    subgraph "Output"
+        EnrichedContext["enriched-context.json<br/>(60s TTL)"]
+    end
+
+    TaskRequest -->|Extract| TaskDesc
+    TaskRequest -->|Resolve| TaskDeps
+    
+    TaskDesc -->|Load| DirHints
+    TaskDesc -->|Load| ProjHints
+    TaskDesc -->|Load| GlobalHints
+    
+    DirHints -->|Query| MemoryMgr
+    MemoryMgr -->|Calculate| MemoryCoverage
+    
+    MemoryCoverage -->|< 30%| ResearchIndex
+    ResearchIndex -->|Load| ResearchChunk
+    MemoryCoverage -->|>= 30%| ConstitutionMD
+    
+    ResearchChunk -->|Load| ConstitutionMD
+    ConstitutionMD -->|Load| EntityGraph
+    EntityGraph -->|Write| EnrichedContext
+
+    style "Priority 1: Task Context" fill:#ffebee
+    style "Priority 2: Hints" fill:#e8f5e9
+    style "Priority 3: Memory" fill:#e1f5ff
+    style "Priority 4: Research (Conditional)" fill:#fff4e1
+    style "Priority 5: Constitution" fill:#f3e5f5
+```
+
+## Adaptive Context Compaction (ACC)
+
+```mermaid
+flowchart TB
+    subgraph "Context Monitoring"
+        HealthMonitor["Context Health Monitor<br/>(30s state TTL)"]
+        TokenBreakdown["Token Breakdown<br/>spec, memories, hints,<br/>observations, system, conversation"]
+    end
+
+    subgraph "ACC Stages"
+        Stage1["Stage 1: 70%<br/>Delegation Advisory"]
+        Stage2["Stage 2: 80%<br/>Observation Masking<br/>(5-turn threshold)"]
+        Stage3["Stage 3: 85%<br/>Fast Pruning<br/>(budget cap truncate)"]
+        Stage4["Stage 4: 90%<br/>Aggressive Masking<br/>(force all masked)"]
+        Stage5["Stage 5: 99%<br/>Full Compaction"]
+    end
+
+    subgraph "Compaction Actions"
+        SubAgentDispatch["Sub-Agent Dispatcher<br/>(Delegate research)"]
+        ObservationMasker["Observation Masker<br/>(3-tier decay)"]
+        BudgetEnforcer["Budget Enforcer<br/>(Truncate mode)"]
+        ContextCompactor["Context Compactor<br/>(Summarize history)"]
+    end
+
+    subgraph "Cooldown"
+        Cooldown30s["30s Cooldown<br/>per stage"]
+    end
+
+    HealthMonitor -->|Tracks| TokenBreakdown
+    HealthMonitor -->|Emits events| Stage1
+    
+    Stage1 -->|Triggers| SubAgentDispatch
+    Stage1 -->|Check| Cooldown30s
+    Cooldown30s -->|Proceed| Stage2
+    
+    Stage2 -->|Triggers| ObservationMasker
+    Stage2 -->|Check| Cooldown30s
+    Cooldown30s -->|Proceed| Stage3
+    
+    Stage3 -->|Triggers| BudgetEnforcer
+    Stage3 -->|Check| Cooldown30s
+    Cooldown30s -->|Proceed| Stage4
+    
+    Stage4 -->|Triggers| ObservationMasker
+    Stage4 -->|Check| Cooldown30s
+    Cooldown30s -->|Proceed| Stage5
+    
+    Stage5 -->|Triggers| ContextCompactor
+
+    style "Context Monitoring" fill:#e1f5ff
+    style "ACC Stages" fill:#fff4e1
+    style "Compaction Actions" fill:#e8f5e9
+    style "Cooldown" fill:#ffebee
+```
+
+## Trust Boundaries & Security
+
+### ScopeGuard Enforcement
+
+```mermaid
+flowchart TB
+    subgraph "Protected Boundaries"
+        SpecMD["spec.md<br/>## Protected Boundaries"]
+        Patterns["File Path Patterns<br/>path/to/protected/*.ts"]
+    end
+
+    subgraph "ScopeGuard"
+        LoadPatterns["loadFromSpec()"]
+        CheckPath["check(filePath)"]
+        Modes["Enforcement Mode<br/>advisory | warning | blocking"]
+    end
+
+    subgraph "Enforcement Actions"
+        Advisory["advisory:<br/>Log to console"]
+        Warning["warning:<br/>Log + VSCode diagnostic"]
+        Blocking["blocking:<br/>Throw ScopeViolationError"]
+    end
+
+    subgraph "Audit Trail"
+        ToolAudit["tool-audit.jsonl"]
+        RunLedger["gofer-run-ledger.jsonl"]
+    end
+
+    SpecMD -->|Parse| LoadPatterns
+    LoadPatterns -->|Extract| Patterns
+    Patterns -->|Validate against| CheckPath
+    CheckPath -->|Apply| Modes
+    
+    Modes -->|advisory| Advisory
+    Modes -->|warning| Warning
+    Modes -->|blocking| Blocking
+    
+    Advisory -->|Log| ToolAudit
+    Warning -->|Log| ToolAudit
+    Blocking -->|Log| ToolAudit
+    ToolAudit -->|Correlate| RunLedger
+
+    style "Protected Boundaries" fill:#ffebee
+    style "ScopeGuard" fill:#e1f5ff
+    style "Enforcement Actions" fill:#fff4e1
+    style "Audit Trail" fill:#f3e5f5
+```
+
+### MCP Tool Security
+
+```mermaid
+flowchart LR
+    subgraph "Input Validation"
+        SpecIdVal["validateSpecId()<br/>alphanumeric + - _<br/>≤ 100 chars"]
+        TaskIdVal["validateTaskId()<br/>T001, #1, 1<br/>≤ 20 chars"]
+        PathTraversal["Path Traversal Check<br/>.., /, \ detection"]
+        UUIDVal["validateObservationId()<br/>UUID v4 format"]
+    end
+
+    subgraph "Audit Logging"
+        SecurityViolation["logSecurityViolation()<br/>tool-audit.jsonl"]
+        Outcome["Outcome:<br/>allowed, warned, blocked"]
+    end
+
+    subgraph "Tool Execution"
+        ToolHandler["MCP Tool Handler"]
+        ScopeGuard["Scope Guard Check"]
+        Execute["Execute Tool Logic"]
+    end
+
+    SpecIdVal -->|Valid| ToolHandler
+    TaskIdVal -->|Valid| ToolHandler
+    PathTraversal -->|No traversal| ToolHandler
+    UUIDVal -->|Valid| ToolHandler
+    
+    ToolHandler -->|Check boundaries| ScopeGuard
+    ScopeGuard -->|Allowed| Execute
+    ScopeGuard -->|Warned/Blocked| SecurityViolation
+    Execute -->|Log| SecurityViolation
+    SecurityViolation -->|Record| Outcome
+
+    style "Input Validation" fill:#ffebee
+    style "Audit Logging" fill:#f3e5f5
+    style "Tool Execution" fill:#e1f5ff
+```
+
+## Key Design Patterns
+
+### 1. Dependency Injection (TSyringe)
+
+**Location:** `extension/src/di/index.ts`
 
 ```typescript
-class ProgressProvider implements vscode.TreeDataProvider<SpecItem> {
-  private _onDidChangeTreeData = new vscode.EventEmitter<SpecItem | undefined>();
-  readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
+// Service registration
+container.registerSingleton<Logger>(Logger);
+container.registerSingleton<DisposalService>(DisposalService);
+container.registerSingleton<StateManager>(StateManager);
 
-  getTreeItem(element: SpecItem): vscode.TreeItem { ... }
-  getChildren(element?: SpecItem): Promise<SpecItem[]> { ... }
+// Service resolution
+const logger = container.resolve(Logger);
+```
 
-  refresh(): void {
-    this._onDidChangeTreeData.fire(undefined);
+**Benefits:**
+- Testability (mock injection)
+- Lifecycle management
+- Decoupling
+
+### 2. Repository Pattern (Gofer Loader)
+
+**Location:** `language-server/src/utils/goferLoader.ts`
+
+```typescript
+class GoferLoader {
+  private specCache = new SpecCache(5 * 60 * 1000, 100); // 5min TTL, 100 limit
+  
+  async loadSpec(specId: string): Promise<Spec> {
+    const cached = this.specCache.get(specId);
+    if (cached) return cached;
+    
+    const spec = await this.readSpecFromDisk(specId);
+    this.specCache.set(specId, spec);
+    return spec;
   }
 }
 ```
 
-**Usage:** Progress panel, constitution panel, memory panel, context window
-panel, AI usage panel
+**Benefits:**
+- Caching layer
+- Abstraction over file system
+- Consistent error handling
 
-### 3. Observer Pattern (Event Emitters)
+### 3. Observer Pattern (Event Subscriptions)
 
-**Pattern:** Event-driven state updates
+**Location:** `extension/src/autonomous/ACCOrchestrator.ts:66-104`
 
 ```typescript
-class ContextHealthMonitor {
-  private _onDidChangeHealth = new vscode.EventEmitter<ContextHealth>();
-  readonly onDidChangeHealth = this._onDidChangeHealth.event;
+connect() {
+  this.contextHealthMonitor.onUtilizationUpdate((util) => {
+    if (util >= 0.70) this.handleDelegationAdvisory();
+    if (util >= 0.80) this.handleObservationMasking();
+    if (util >= 0.85) this.handleFastPruning();
+    if (util >= 0.90) this.handleAggressiveMasking();
+    if (util >= 0.99) this.handleFullCompaction();
+  });
+}
+```
 
-  updateHealth(health: ContextHealth) {
-    this._onDidChangeHealth.fire(health);
+**Benefits:**
+- Loose coupling
+- Event-driven architecture
+- Progressive enhancement
+
+### 4. Strategy Pattern (Enforcement Modes)
+
+**Location:** `extension/src/autonomous/ScopeGuard.ts`
+
+```typescript
+class ScopeGuard {
+  check(filePath: string): CheckResult {
+    const violation = this.detectViolation(filePath);
+    if (!violation) return { allowed: true };
+    
+    switch (this.mode) {
+      case 'advisory': return this.logOnly(violation);
+      case 'warning': return this.logAndWarn(violation);
+      case 'blocking': throw new ScopeViolationError(violation);
+    }
   }
 }
 ```
 
-**Usage:** Context health monitoring, spec refreshes, memory updates, AI usage
-updates
+**Benefits:**
+- Configurable behavior
+- Runtime mode switching
+- Policy encapsulation
 
-### 4. Strategy Pattern (Memory Layers)
+### 5. Facade Pattern (State Manager)
 
-**Pattern:** Pluggable memory storage strategies
-
-```typescript
-interface MemoryLayer {
-  get(key: string): Promise<string | null>;
-  set(key: string, value: string): Promise<void>;
-}
-
-class CoreLayer implements MemoryLayer { ... }      // Always-loaded essentials
-class RecallLayer implements MemoryLayer { ... }    // Recent context
-class ArchivalLayer implements MemoryLayer { ... }  // Long-term storage
-```
-
-**Usage:** Layered memory management (MemGPT-inspired)
-
-### 5. Command Pattern
-
-**Pattern:** Encapsulated command execution
+**Location:** `extension/src/services/StateManager.ts`
 
 ```typescript
-commands.registerCommand('gofer.initialize', async () => {
-  await initializationService.initializeRepository();
-});
-
-commands.registerCommand(
-  'gofer.startClaudeCode',
-  async (specItem: SpecItem) => {
-    await claudeCodeBridge.startSession(specItem.spec);
-  }
-);
-```
-
-**Usage:** All VSCode commands (30+ commands)
-
-### 6. Singleton Pattern (DI Container)
-
-**Pattern:** Single instance per service
-
-```typescript
-export function getContainer(): DependencyContainer {
-  return container;
-}
-
-export function getStateManager(): StateManager {
-  return container.resolve(StateManager);
+class StateManager {
+  public progressProvider?: ProgressProvider;
+  public memoryProvider?: MemoryProvider;
+  public contextBuilder?: ContextBuilder;
+  public scopeGuard?: ScopeGuard;
+  // ... 20+ more services
+  
+  // Provides single access point to all services
 }
 ```
 
-**Usage:** Logger, StateManager, ConfigManager, MemoryManager
+**Benefits:**
+- Simplified access
+- Global coordination
+- State isolation
 
-### 7. Repository Pattern (JSONL Storage)
+## Performance Optimizations
 
-**Pattern:** Abstraction over data persistence
+### 1. Spec Cache (5-minute TTL)
 
-```typescript
-class MemoryStorage {
-  private indexById = new Map<string, Memory>();
-  private indexByTag = new Map<string, Set<string>>();
+- LRU eviction (100 spec limit)
+- Reduces disk I/O
+- Shared across all MCP tool calls
 
-  async append(memory: Memory): Promise<void> {
-    // Append to JSONL
-    // Update in-memory indexes
-  }
+### 2. Enriched Context Cache (60s freshness)
 
-  async findByTag(tag: string): Promise<Memory[]> {
-    // Fast lookup via index
-  }
-}
-```
+- Avoids rebuilding context on every tool call
+- Memory-first loading strategy (30% coverage threshold)
+- Progressive invalidation
 
-**Usage:** Memory storage, usage logs, tool audit logs
+### 3. Non-Blocking Initialization
 
-## Key Abstractions
+- LSP server setup deferred (`extension/src/extension.ts:204-216`)
+- Workspace initialization async (`initializeForWorkspace()`, line 272-284)
+- Git operations use `execFileAsync()` (no blocking `execSync`)
 
-### Specification (`Spec`)
+### 4. Observation Masking (3-tier decay)
 
-```typescript
-interface Spec {
-  feature: string;
-  status: 'draft' | 'in-progress' | 'completed';
-  created: string;
-  title: string;
-  description: string;
-  requirements: Requirement[];
-  successCriteria: string[];
-  protectedBoundaries?: string[]; // ScopeGuard rules
-}
-```
+- **Full**: Complete observation content
+- **Key-points**: Summary only
+- **Masked**: Observation ID only
+- Automatic decay after N turns (configurable)
 
-### Task (`Task`)
+### 5. Research Chunking
 
-```typescript
-interface Task {
-  id: string; // FR-001, T001
-  description: string;
-  status: 'pending' | 'in-progress' | 'completed' | 'failed';
-  dependencies: string[]; // [FR-002, T003]
-  assignedTo?: string;
-  estimatedTokens?: number;
-}
-```
+- Index-based loading (`gofer_get_research_index`)
+- On-demand chunk retrieval (`gofer_load_research_chunk`)
+- Skipped when memory coverage >= 30%
 
-### Context Profile (`StageProfile`)
+### 6. Parallel Validation
 
-```typescript
-interface StageProfile {
-  researchBudget: number; // 0.15 = 15% of context
-  memoryBudget: number; // 0.25 = 25% of context
-  codeBudget: number; // 0.40 = 40% of context
-  observationWindow: number; // Keep last 5 turns
-  enableChunking: boolean; // Use research chunking
-}
-```
+- 6 validation agents run concurrently
+- Reduced validation time from 90-120s to <60s
 
-### Memory Entry (`Memory`)
+## Critical File References
 
-```typescript
-interface Memory {
-  id: string;
-  content: string;
-  layer: 'core' | 'recall' | 'archival';
-  timestamp: number;
-  priority: number;
-  category: 'user' | 'project' | 'technical';
-  tags: string[];
-  embedding?: number[]; // Future: Vector search
-}
-```
+### Entry Points
+- `extension/src/extension.ts:171` - Extension activation
+- `language-server/src/server.ts:129` - LSP+MCP server initialization
+- `language-server/src/mcp/toolHandler.ts` - MCP tool implementations
 
-### Usage Record (`UsageRecord`)
+### Autonomous Components
+- `extension/src/autonomous/ContextBuilder.ts` - Context assembly
+- `extension/src/autonomous/ACCOrchestrator.ts` - 5-stage compaction
+- `extension/src/autonomous/ScopeGuard.ts` - Boundary enforcement
+- `extension/src/autonomous/MemoryManager.ts` - TF-IDF memory retrieval
+- `extension/src/autonomous/ObservationBridge.ts` - Terminal output capture
+- `extension/src/autonomous/ContextHealthMonitor.ts` - Token tracking
 
-```typescript
-interface UsageRecord {
-  provider: 'anthropic' | 'google' | 'openai';
-  model: string;
-  inputTokens: number;
-  outputTokens: number;
-  costUsd: number;
-  timestamp: string;
-  sessionId: string;
-  councilId?: string;
-}
-```
+### Data Layer
+- `language-server/src/utils/goferLoader.ts` - Spec loading & caching
+- `extension/src/autonomous/ResearchChunker.ts` - Research chunking
+- `extension/src/autonomous/KnowledgeGraph.ts` - Entity relationships
 
-## Integration Points
+### UI Providers
+- `extension/src/progressProvider.ts` - Spec/task tree view
+- `extension/src/ui/AIUsageProvider.ts` - Token usage panel
+- `extension/src/memoryProvider.ts` - Memory panel
 
-### External Services
-
-| Service             | Purpose                        | Configuration                |
-| ------------------- | ------------------------------ | ---------------------------- |
-| Anthropic API       | Claude models for orchestrator | `gofer.anthropicApiKey`      |
-| Anthropic Admin API | Billing/usage data             | `gofer.anthropicAdminApiKey` |
-| Google AI API       | Gemini models for LLM council  | `gofer.googleApiKey`         |
-| OpenAI API          | GPT models for LLM council     | `gofer.openaiApiKey`         |
-| OpenAI Admin API    | Usage data                     | `gofer.openaiAdminApiKey`    |
-| Twilio              | WhatsApp notifications         | Environment variables        |
-| GitHub API          | Extension auto-updates         | Public API (no auth)         |
-
-### VSCode Integration Points
-
-- **Extension Host** - Main process (extension.ts)
-- **Language Server** - Separate process via stdio (server.ts)
-- **Terminal API** - Claude Code session monitoring (node-pty)
-- **File System Watcher** - Spec file changes (chokidar)
-- **WebView API** - Context content panel
-- **TreeView API** - Sidebar panels (3 panels)
-- **Status Bar API** - Context health, AI usage cost
-- **Output Channel** - Centralized logging
-
-### AI Assistant Integration
-
-- **Claude Code** - Via native VSCode MCP support (40+ tools)
-- **GitHub Copilot** - Via `.github/prompts/*.prompt.md` files
-- **OpenAI Codex** - Via `.system/skills/*/SKILL.md` files
-- **Gemini CLI** - Via `.gemini/commands/gofer/*.toml` files
-- **Custom AI Tools** - Any MCP-compatible client
-
-### File System Integration
-
-**Watched Directories:**
-
-- `.specify/specs/` - Spec changes trigger UI refresh
-- `.specify/logs/council-usage.jsonl` - Usage data updates
-- `.specify/memory/memories.jsonl` - Memory updates
-- `.claude/commands/` - CLI command surface updates
-
-**Written Files:**
-
-- `.specify/logs/tool-audit.jsonl` - All file access
-- `.specify/logs/slop-reduction.jsonl` - Code quality fixes
-- `.specify/logs/gofer-run-ledger.jsonl` - Pipeline runs
-- `.specify/current-stage.json` - Current pipeline stage
-- `.specify/ipc/status.json` - Orchestrator IPC
-
-## Performance Considerations
-
-1. **Spec Parsing** - Cached in memory, invalidated on file change (chokidar)
-2. **Context Building** - Chunked and compressed based on stage profiles
-3. **Memory Compaction** - Triggered at 80% context threshold (configurable)
-4. **File Watching** - Debounced with chokidar (500ms debounce)
-5. **Terminal Monitoring** - Hook-based (non-polling) via HookBridgeWatcher
-6. **Language Server** - Single process for both LSP and MCP
-7. **Research Loading** - Chunked on-demand (default 50KB chunks)
-8. **AI Usage Polling** - 60s minimum interval (Anthropic recommendation)
-9. **Resource Snapshots** - 5min intervals (opt-in, lightweight)
-10. **JSONL Indexing** - In-memory indexes for fast tag/category lookups
-
-## Security Features
-
-1. **Scope Guard** - Prevents AI from accessing files outside
-   `.specify/specs/{spec-id}/protected-boundaries`
-2. **Tool Audit Logging** - All file access logged with timestamps and scope
-   violations
-3. **API Key Storage** - VSCode settings (not committed to git)
-4. **Path Traversal Protection** - CrossPlatformCommandRouter validates all
-   paths
-5. **Observation Masking** - Redacts sensitive content (API keys, credentials)
-   from logs
-6. **Budget Enforcement** - Prevents runaway API costs (default $10 cap)
+### Services
+- `extension/src/services/StateManager.ts` - Global state
+- `extension/src/config/index.ts` - Configuration manager
+- `extension/src/services/InitializationService.ts` - Workspace init
+- `extension/src/services/DisposalService.ts` - Resource cleanup

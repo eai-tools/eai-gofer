@@ -15,3 +15,6 @@ node_modules
 docs-site/static/releases/*.vsix
 test-results/vitest-results.json
 test-results/vitest-results.json
+
+# QAgent runtime artifacts
+.qagent/

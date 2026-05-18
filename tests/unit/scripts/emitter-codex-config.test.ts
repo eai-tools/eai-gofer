@@ -14,6 +14,7 @@ import path from 'path';
 import os from 'os';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
+import { fileURLToPath } from 'node:url';
 
 const execFileAsync = promisify(execFile);
 
@@ -166,7 +167,7 @@ beforeAll(async () => {
     await writeFile(path.join(tmpRoot, '.specify', 'commands', stage.filename), stage.content);
   }
 
-  const scriptPath = new URL(generateCommandsUrl).pathname;
+  const scriptPath = fileURLToPath(generateCommandsUrl);
   await execFileAsync('node', [scriptPath, '--root', tmpRoot, '--surfaces', 'codex-config']);
 });
 
@@ -238,9 +239,7 @@ describe('codex-config emitter (T068)', () => {
     const outPath = path.join(tmpRoot, '.specify', 'outputs', 'codex-config-fragment.toml');
     const content = await readFile(outPath);
     for (const stage of formerlyClaudeOnlyStages) {
-      expect(content).toContain(
-        `path = "/full/path/to/repo/.agents/skills/${toSkillDir(stage)}"`
-      );
+      expect(content).toContain(`path = "/full/path/to/repo/.agents/skills/${toSkillDir(stage)}"`);
     }
   });
 

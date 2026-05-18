@@ -1,9 +1,7 @@
 ---
 name: 7a_stakeholder_comms
-description:
-  'Generate stakeholder-facing communications: release notes, demo scripts, and
-  change briefs.'
-title: 'Stakeholder Communications'
+description: "Generate stakeholder-facing communications: release notes, demo scripts, and change briefs."
+title: "Stakeholder Communications"
 category: utility
 surfaces:
   - claude
@@ -17,12 +15,10 @@ surfaces:
   - system-skills
 aliases: [gofer:comms]
 ---
-
 ---
-
-description: Generate stakeholder communications package including release
-notes, demo script, change management brief, and success metrics
-
+description:
+  Generate stakeholder communications package including release notes, demo
+  script, change management brief, and success metrics
 ---
 
 # Gofer Stakeholder Communications
@@ -336,18 +332,18 @@ Every section title above (`Problem Statement`,
 
 Generate these additional decks under `{FEATURE_DIR}/presentations/`:
 
-| Deck                              | Decision-Rights Audience | Required Focus                                               |
-| --------------------------------- | ------------------------ | ------------------------------------------------------------ |
-| `executive.marp.md`               | Executive committee      | Strategic value, funding gate, risk appetite                 |
-| `business.marp.md`                | Business owner           | User journey, operational value, adoption                    |
-| `internal-delivery.marp.md`       | Delivery lead            | Dependency plan, red/green loop, delivery risks              |
-| `enterprise-architecture.marp.md` | Enterprise architecture  | Platform fit, context bundle, contract pack, reuse decisions |
-| `ciso.marp.md`                    | CISO                     | Identity, tenant boundary, controls, residual risk           |
-| `data-architecture.marp.md`       | Data architecture        | Object types, lineage, quality, governance                   |
-| `cio.marp.md`                     | CIO                      | Platform strategy, operating model, reuse roadmap            |
-| `cfo.marp.md`                     | CFO                      | Investment case, benefit tracking, cost risk                 |
-| `coo.marp.md`                     | COO                      | Process change, rollout readiness, support model             |
-| `risk-compliance.marp.md`         | Risk/compliance          | Obligations, evidence, exceptions, audit trail               |
+| Deck | Decision-Rights Audience | Required Focus |
+| ---- | ------------------------ | -------------- |
+| `executive.marp.md` | Executive committee | Strategic value, funding gate, risk appetite |
+| `business.marp.md` | Business owner | User journey, operational value, adoption |
+| `internal-delivery.marp.md` | Delivery lead | Dependency plan, red/green loop, delivery risks |
+| `enterprise-architecture.marp.md` | Enterprise architecture | Platform fit, context bundle, contract pack, reuse decisions |
+| `ciso.marp.md` | CISO | Identity, tenant boundary, controls, residual risk |
+| `data-architecture.marp.md` | Data architecture | Object types, lineage, quality, governance |
+| `cio.marp.md` | CIO | Platform strategy, operating model, reuse roadmap |
+| `cfo.marp.md` | CFO | Investment case, benefit tracking, cost risk |
+| `coo.marp.md` | COO | Process change, rollout readiness, support model |
+| `risk-compliance.marp.md` | Risk/compliance | Obligations, evidence, exceptions, audit trail |
 
 Every persona deck MUST include:
 

@@ -9,6 +9,7 @@
  */
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { promises as fs } from 'fs';
+import { fileURLToPath } from 'url';
 import path from 'path';
 import os from 'os';
 import { execFile } from 'child_process';
@@ -26,7 +27,7 @@ const execFileAsync = promisify(execFile);
 // Paths
 // ---------------------------------------------------------------------------
 
-const PROJECT_ROOT = path.resolve(new URL('../../../', import.meta.url).pathname);
+const PROJECT_ROOT = path.resolve(fileURLToPath(new URL('../../../', import.meta.url)));
 const GENERATOR_SCRIPT = path.join(
   PROJECT_ROOT,
   '.specify',

@@ -13,8 +13,9 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'node:url';
 
-const PROJECT_ROOT = path.resolve(new URL('../../../', import.meta.url).pathname);
+const PROJECT_ROOT = path.resolve(fileURLToPath(new URL('../../../', import.meta.url)));
 
 const FORBIDDEN_KEY = 'skills_context_budget_percent';
 

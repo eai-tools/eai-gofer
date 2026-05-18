@@ -8,6 +8,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
+import { fileURLToPath } from 'node:url';
 
 // ---------------------------------------------------------------------------
 // Module URL — mirrors the pattern used in other script tests
@@ -195,7 +196,7 @@ describe('generate-commands emitters (integration)', () => {
     const { promisify } = await import('util');
     const execFileAsync = promisify(execFile);
 
-    const scriptPath = new URL(generateCommandsUrl).pathname;
+    const scriptPath = fileURLToPath(generateCommandsUrl);
     await execFileAsync('node', [
       scriptPath,
       '--root',

@@ -4,7 +4,8 @@ created: '2026-05-10T09:31:57Z'
 status: approved
 recommendedScenario: 'shared-stages-dual-mode'
 recommendedArchitecture: 'canonical-command-contract-update'
-selectedOption: 'update canonical command and template sources, then regenerate mirrors'
+selectedOption:
+  'update canonical command and template sources, then regenerate mirrors'
 approvedBy: 'user'
 approvedAt: '2026-05-10T09:31:57Z'
 ---
@@ -14,9 +15,9 @@ approvedAt: '2026-05-10T09:31:57Z'
 ## What We Found
 
 The requested feature lives in Gofer's canonical command and template sources.
-The correct implementation path is to add app-delivery-only preview/approval
-and service-fit gates inside the shared numbered stages, then regenerate all
-shipped command surfaces and lock the behavior with targeted tests.
+The correct implementation path is to add app-delivery-only preview/approval and
+service-fit gates inside the shared numbered stages, then regenerate all shipped
+command surfaces and lock the behavior with targeted tests.
 
 ## Pipeline Mode Decision
 
@@ -39,7 +40,7 @@ the source of truth, then regenerate and sync all mirrors.
 ## Key Decisions And Why
 
 - **Shared stages, not split pipelines**: protects existing Gofer functionality.
-- **Vertical Template first**: keeps preview generation aligned to `eai-cli`
+- **Vertical Template first**: keeps preview generation aligned to `eai`
   installed scaffolds.
 - **Focused validation**: proves the feature-owned surface directly.
 
@@ -47,4 +48,3 @@ the source of truth, then regenerate and sync all mirrors.
 
 - Status: approved
 - Next action: specification, planning, implementation, and validation complete
-

@@ -50,7 +50,7 @@ The following interfaces and event contracts must NOT be changed:
 - [x] T001 Create `ClaudeSessionReader` class skeleton with constructor
       accepting workspacePath in extension/src/autonomous/ClaudeSessionReader.ts
 - [x] T002 Implement `encodeWorkspacePath(workspacePath: string): string` that
-      converts `/Users/x/Code/gofer` to `-Users-x-Code-gofer` in
+      converts `/Users/x/Code/eai-gofer` to `-Users-x-Code-eai-gofer` in
       extension/src/autonomous/ClaudeSessionReader.ts
 - [x] T003 Implement `getProjectDir(): string` that resolves
       `os.homedir()/.claude/projects/{encoded}` in

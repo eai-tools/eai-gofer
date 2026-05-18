@@ -93,7 +93,7 @@ export class ClaudeSessionReader {
 
   /**
    * Encodes a workspace path to the Claude Code project directory format.
-   * Converts `/Users/x/Code/gofer` to `-Users-x-Code-gofer`.
+   * Converts `/Users/x/Code/eai-gofer` to `-Users-x-Code-eai-gofer`.
    *
    * @param workspacePath - Absolute workspace path
    * @returns Encoded directory name

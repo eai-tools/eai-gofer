@@ -169,7 +169,7 @@ None. All discovery questions answered by user during consultative interview.
 
 ```bash
 # In NEW Claude Code session (fresh context window):
-cd /Users/douglaswross/Code/gofer
+cd /Users/douglaswross/Code/eai-gofer
 git checkout main
 /8_gofer_resume
 ```

@@ -1,5 +1,5 @@
 {
-  "sourceFile": "/Users/douglaswross/Code/gofer/.specify/specs/001-memory-panel-filter/research.md",
+  "sourceFile": "/Users/douglaswross/Code/eai-gofer/.specify/specs/001-memory-panel-filter/research.md",
   "totalTokens": 4019,
   "chunkCount": 22,
   "created": 1774129831864,
@@ -399,16 +399,7 @@
       "id": "chunk-025-migration-notes",
       "title": "Migration Notes",
       "tokens": 26,
-      "keywords": [
-        "migration",
-        "notes",
-        "needed",
-        "purely",
-        "filtering",
-        "storage",
-        "remains",
-        "unchanged"
-      ]
+      "keywords": ["migration", "notes", "needed", "purely", "filtering", "storage", "remains", "unchanged"]
     },
     {
       "id": "chunk-026-performance-considerations",

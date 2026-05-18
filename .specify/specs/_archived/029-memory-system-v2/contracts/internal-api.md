@@ -545,7 +545,7 @@ const factory = new SubAgentContextFactory(contextBuilder, memoryManager);
 
 const context = await factory.buildValidationContext(
   'security',
-  '/Users/douglaswross/Code/gofer/.specify/specs/029-memory-system-v2'
+  '/Users/douglaswross/Code/eai-gofer/.specify/specs/029-memory-system-v2'
 );
 ```
 
@@ -698,7 +698,7 @@ async buildResearchContext(
 ```typescript
 const context = await factory.buildResearchContext(
   'codebase-patterns',
-  '/Users/douglaswross/Code/gofer/.specify/specs/029-memory-system-v2'
+  '/Users/douglaswross/Code/eai-gofer/.specify/specs/029-memory-system-v2'
 );
 ```
 
@@ -793,7 +793,7 @@ const overview = await contextBuilder.loadLayer(
 
 // Load spec.md with L0 layer (abstract only)
 const abstract = await contextBuilder.loadLayer(
-  '/Users/douglaswross/Code/gofer/.specify/specs/029-memory-system-v2/spec.md',
+  '/Users/douglaswross/Code/eai-gofer/.specify/specs/029-memory-system-v2/spec.md',
   'L0'
 );
 // Returns: ~100 tokens of one-sentence summary

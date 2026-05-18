@@ -12,10 +12,7 @@ import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import {
-  FORMERLY_CLAUDE_ONLY_STAGES,
-  FULL_COMMAND_COUNT,
-} from '../../helpers/goferCommandSet';
+import { FORMERLY_CLAUDE_ONLY_STAGES, FULL_COMMAND_COUNT } from '../../helpers/goferCommandSet';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -36,7 +33,7 @@ describe('e2e gemini extension shape (T162)', () => {
 
   it('.gemini/extension.json has required top-level fields', (): void => {
     const manifest = JSON.parse(fs.readFileSync(GEMINI_EXTENSION_JSON, 'utf8'));
-    expect(manifest.name).toBe('gofer');
+    expect(manifest.name).toBe('eai-gofer');
     expect(typeof manifest.version).toBe('string');
     expect(typeof manifest.description).toBe('string');
     expect(typeof manifest.commands).toBe('string');

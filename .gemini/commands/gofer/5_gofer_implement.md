@@ -573,13 +573,13 @@ when the user explicitly opts out.
 
 Before any deployment task emitted by `/4_gofer_tasks` completes, this stage
 MUST execute deployment preflight checks (manifest/config gate). A task that
-invokes `eai-cli deploy` is not marked complete until all of the following files
-are present at the workspace root and pass their readiness checks:
+invokes `eai deploy` is not marked complete until all of the following files are
+present at the workspace root and pass their readiness checks:
 
-| Required File  | Purpose                                                 |
-| -------------- | ------------------------------------------------------- |
-| `manifest.yml` | Vertical application manifest (from `eai-cli scaffold`) |
-| `config.json`  | Runtime configuration bundle (environment-specific)     |
+| Required File  | Purpose                                             |
+| -------------- | --------------------------------------------------- |
+| `manifest.yml` | Vertical application manifest (from `eai init`)     |
+| `config.json`  | Runtime configuration bundle (environment-specific) |
 
 ### Gate behaviour
 
@@ -616,9 +616,9 @@ separation from `tasks.md`:
   self-review evidence and append it to `{FEATURE_DIR}/ui-review-log.md`.
 - For application delivery, after UI approval and before treating platform
   selection as complete, update `{FEATURE_DIR}/service-fit-matrix.md` with
-  tenant-aware evidence from `eai --describe`, `eai whoami`, `eai tenant
-  select`, `eai resources schema`, `eai verify calls --format json`, or
-  equivalent approved platform evidence. The matrix must distinguish
+  tenant-aware evidence from `eai --describe`, `eai whoami`,
+  `eai tenant select`, `eai resources schema`, `eai verify calls --format json`,
+  or equivalent approved platform evidence. The matrix must distinguish
   accessible now, purchasable but unavailable now, and unavailable without new
   platform work.
 - For non-app work, skip the preview, approval, branding, and service-fit gates
@@ -665,8 +665,8 @@ Logs to: `.specify/logs/pipeline.jsonl`
 - If the operator explicitly requests `diagnose` and `spec.md` is present, run
   `gofer:diagnose` inline; bug context, failing output, or equivalent failure
   evidence may supplement the investigation. Write
-  `.specify/specs/{feature}/diagnose-report.md` using the same artifact
-  contract as the standalone helper.
+  `.specify/specs/{feature}/diagnose-report.md` using the same artifact contract
+  as the standalone helper.
 - If the required inputs are missing, continue the stage normally and report
   that the helper was not run.
 - These selectors are optional and do not change stage progress, routing, or

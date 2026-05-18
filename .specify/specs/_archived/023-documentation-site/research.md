@@ -5,12 +5,12 @@ feature: '023-documentation-site'
 status: complete
 ---
 
-# Research: Documentation Website for eai-tools.github.io/gofer/
+# Research: Documentation Website for eai-tools.github.io/eai-gofer/
 
 ## Feature Summary
 
 Transform the current single-page releases portal at
-`eai-tools.github.io/gofer/` into a comprehensive documentation website with
+`eai-tools.github.io/eai-gofer/` into a comprehensive documentation website with
 quickstart guides, pipeline command reference, usage documentation, and the
 existing releases/download functionality. The site must continue to serve
 `releases.json` for the extension auto-updater.
@@ -238,12 +238,12 @@ a key navigation aid.
 
 ### Constraints & Limitations
 
-| Constraint Type   | Description                                          | Impact on Implementation                 |
-| ----------------- | ---------------------------------------------------- | ---------------------------------------- |
-| No build step     | GitHub Pages deploys docs/ as-is                     | Must use client-side rendering (Docsify) |
-| Auto-updater API  | releases.json must stay at docs/releases.json        | Cannot restructure docs root             |
-| VSIX distribution | 68 files in docs/releases/                           | Framework must ignore this directory     |
-| Existing URLs     | Users may have bookmarked eai-tools.github.io/gofer/ | Landing page URL must not break          |
+| Constraint Type   | Description                                              | Impact on Implementation                 |
+| ----------------- | -------------------------------------------------------- | ---------------------------------------- |
+| No build step     | GitHub Pages deploys docs/ as-is                         | Must use client-side rendering (Docsify) |
+| Auto-updater API  | releases.json must stay at docs/releases.json            | Cannot restructure docs root             |
+| VSIX distribution | 68 files in docs/releases/                               | Framework must ignore this directory     |
+| Existing URLs     | Users may have bookmarked eai-tools.github.io/eai-gofer/ | Landing page URL must not break          |
 
 ### Areas Requiring Extra Caution
 

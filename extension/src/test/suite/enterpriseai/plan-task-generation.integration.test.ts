@@ -23,16 +23,16 @@ suite('enterpriseai plan/task generation (extension integration)', () => {
 
     assert.ok(/Ordered Runnable Task-Generation Guidance/.test(tasksCommand));
     assert.ok(/scaffold before/.test(tasksCommand));
-    assert.ok(/pinned `eai-cli major\.minor` deployment tasks/.test(tasksCommand));
+    assert.ok(/pinned `eai major\.minor` deployment tasks/.test(tasksCommand));
   });
 
-  test('propagates market-analysis reference indicators and eai-cli pin metadata for IAP-006 and EVT-006', () => {
+  test('propagates market-analysis reference indicators and eai pin metadata for IAP-006 and EVT-006', () => {
     const result = generateEnterpriseAiPlanAndTasks({
       runId: 'run_029_0001',
       workflowProfile: 'enterpriseai',
       specPath: '.specify/specs/029-enterpriseai-student-vertical-builder/spec.md',
       resolvedReferences: {
-        eaiCli: '.specify/references/eai/eai-cli.md',
+        eaiCli: '.specify/references/eai/eai.md',
         verticalTemplate: '.specify/references/eai/vertical-template.md',
         deploymentRepo: '.specify/references/eai/deployment-repo.md',
       },

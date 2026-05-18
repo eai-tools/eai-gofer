@@ -1,7 +1,7 @@
 ---
 feature: 001-memory-panel-filter
-spec: /Users/douglaswross/Code/gofer/.specify/specs/001-memory-panel-filter/spec.md
-plan: /Users/douglaswross/Code/gofer/.specify/specs/001-memory-panel-filter/plan.md
+spec: /Users/douglaswross/Code/eai-gofer/.specify/specs/001-memory-panel-filter/spec.md
+plan: /Users/douglaswross/Code/eai-gofer/.specify/specs/001-memory-panel-filter/plan.md
 status: approved
 approvedBy: 'user'
 approvedAt: '2026-03-20T17:15:00Z'
@@ -117,17 +117,17 @@ scaffolding before implementation begins.
 - [x] T001 Create feature branch `001-memory-panel-filter` from `main`
 - [x] T002 Extend `MemoryQuery` interface with `excludeSystemMemories?: boolean`
       field in
-      `/Users/douglaswross/Code/gofer/extension/src/autonomous/memory.ts:212`
+      `/Users/douglaswross/Code/eai-gofer/extension/src/autonomous/memory.ts:212`
 - [x] T003 Add JSDoc comment for `excludeSystemMemories`: "Exclude
       system-generated memories (tagged with #auto). When true, filters out all
       memories containing the '#auto' tag. Used by Memory Panel to show only
       user-created memories by default. @default false"
 - [x] T004 [P] Create test file structure:
-      `/Users/douglaswross/Code/gofer/tests/unit/ui/MemoryPanel.test.ts`,
-      `/Users/douglaswross/Code/gofer/tests/unit/autonomous/MemoryStorage.filter.test.ts`,
-      `/Users/douglaswross/Code/gofer/tests/integration/memory-panel-filtering.test.ts`
+      `/Users/douglaswross/Code/eai-gofer/tests/unit/ui/MemoryPanel.test.ts`,
+      `/Users/douglaswross/Code/eai-gofer/tests/unit/autonomous/MemoryStorage.filter.test.ts`,
+      `/Users/douglaswross/Code/eai-gofer/tests/integration/memory-panel-filtering.test.ts`
 - [x] T005 [P] Set up test fixtures:
-      `/Users/douglaswross/Code/gofer/tests/fixtures/memories-with-auto-tag.jsonl`
+      `/Users/douglaswross/Code/eai-gofer/tests/fixtures/memories-with-auto-tag.jsonl`
       (10 user memories without #auto tag, 100 system memories with #auto tag)
 - [x] T006 Verify TypeScript compilation passes with new MemoryQuery field:
       `cd extension && npm run compile`
@@ -153,25 +153,25 @@ implementing the filter (TDD Red phase).
 ### Tasks
 
 - [x] T007 [P] Write unit test in
-      `/Users/douglaswross/Code/gofer/tests/unit/autonomous/MemoryStorage.filter.test.ts`:
+      `/Users/douglaswross/Code/eai-gofer/tests/unit/autonomous/MemoryStorage.filter.test.ts`:
       `MemoryStorage.query()` with `excludeSystemMemories: true` filters out
       memories tagged with `#auto` (Arrange: Load fixture with 10 user + 100
       system memories, Act: Call
       `storage.query({ excludeSystemMemories: true })`, Assert: Result contains
       exactly 10 memories, none have `#auto` tag)
 - [x] T008 [P] Write unit test in
-      `/Users/douglaswross/Code/gofer/tests/unit/autonomous/MemoryStorage.filter.test.ts`:
+      `/Users/douglaswross/Code/eai-gofer/tests/unit/autonomous/MemoryStorage.filter.test.ts`:
       `MemoryStorage.query()` with `excludeSystemMemories: false` includes all
       memories (Arrange: Same fixture as T007, Act: Call
       `storage.query({ excludeSystemMemories: false })`, Assert: Result contains
       110 memories)
 - [x] T009 [P] Write unit test in
-      `/Users/douglaswross/Code/gofer/tests/unit/autonomous/MemoryStorage.filter.test.ts`:
+      `/Users/douglaswross/Code/eai-gofer/tests/unit/autonomous/MemoryStorage.filter.test.ts`:
       `MemoryStorage.query()` with `excludeSystemMemories: undefined` includes
       all memories for backward compatibility (Arrange: Same fixture as T007,
       Act: Call `storage.query({})`, Assert: Result contains 110 memories)
 - [x] T010 Write unit test in
-      `/Users/douglaswross/Code/gofer/tests/unit/autonomous/MemoryStorage.filter.test.ts`:
+      `/Users/douglaswross/Code/eai-gofer/tests/unit/autonomous/MemoryStorage.filter.test.ts`:
       `excludeSystemMemories` combines with category filter (Arrange: Fixture
       with user memories in category "pattern", system memories in category
       "auto_decision", Act: Call
@@ -201,17 +201,17 @@ make tests pass (TDD Green phase).
 ### Tasks
 
 - [x] T012 Implement `excludeSystemMemories` filter in
-      `/Users/douglaswross/Code/gofer/extension/src/autonomous/MemoryStorage.ts`
+      `/Users/douglaswross/Code/eai-gofer/extension/src/autonomous/MemoryStorage.ts`
       at line ~390: Add filter BEFORE existing category filter:
       `if (query.excludeSystemMemories) { results = results.filter((e) => !e.tags.includes('#auto')); }`
 - [x] T013 Update `MemoryManager.search()` in
-      `/Users/douglaswross/Code/gofer/extension/src/autonomous/MemoryManager.ts:404-453`
+      `/Users/douglaswross/Code/eai-gofer/extension/src/autonomous/MemoryManager.ts:404-453`
       to forward `excludeSystemMemories` flag to `storage.query()` (no logic
       changes, just parameter pass-through)
 - [x] T014 Run unit tests and verify ALL tests PASS (Green phase of TDD):
       `cd extension && npm test -- MemoryStorage.filter.test.ts`
 - [x] T015 Add integration test in
-      `/Users/douglaswross/Code/gofer/tests/integration/memory-panel-filtering.test.ts`:
+      `/Users/douglaswross/Code/eai-gofer/tests/integration/memory-panel-filtering.test.ts`:
       MemoryManager.search() respects `excludeSystemMemories` flag end-to-end
       (Arrange: Initialize MemoryManager with test storage, Act: Call
       `manager.search({ excludeSystemMemories: true })`, Assert:
@@ -243,37 +243,37 @@ Telemetry), US3 (Persistent Filter Preference)
 ### Implementation Tasks
 
 - [x] T017 [US1] [US3] Add instance variable to MemoryPanel class in
-      `/Users/douglaswross/Code/gofer/extension/src/ui/MemoryPanel.ts` after
+      `/Users/douglaswross/Code/eai-gofer/extension/src/ui/MemoryPanel.ts` after
       line 19: `private showSystemMemories: boolean = false;` (default to false
       = hide system memories by default per FR-001)
 - [x] T018 [US1] Modify `getHtmlContent()` in
-      `/Users/douglaswross/Code/gofer/extension/src/ui/MemoryPanel.ts:175-184`
+      `/Users/douglaswross/Code/eai-gofer/extension/src/ui/MemoryPanel.ts:175-184`
       to filter memories before building dropdowns (after
       `const allMemories = await this.memoryManager.load('both');` add:
       `const visibleMemories = this.showSystemMemories ? allMemories : allMemories.filter(m => !m.tags.includes('#auto'));`,
       then replace `allMemories` with `visibleMemories` in category/tag
       extraction at lines 180, 183-184)
 - [x] T019 [P] [US1] [US2] Add HTML checkbox toggle to webview template in
-      `/Users/douglaswross/Code/gofer/extension/src/ui/MemoryPanel.ts` after
+      `/Users/douglaswross/Code/eai-gofer/extension/src/ui/MemoryPanel.ts` after
       results-info div (~line 220-285 in toolbar section): Insert checkbox with
       label "Show system memories" and CSS styling matching VSCode theme
 - [x] T020 [P] [US2] Wire checkbox onchange event to postMessage in
-      `/Users/douglaswross/Code/gofer/extension/src/ui/MemoryPanel.ts` webview
-      script section: Add JavaScript listener that posts `toggleSystemMemories`
-      command with checkbox state
+      `/Users/douglaswross/Code/eai-gofer/extension/src/ui/MemoryPanel.ts`
+      webview script section: Add JavaScript listener that posts
+      `toggleSystemMemories` command with checkbox state
 - [x] T021 [US2] Add message handler for 'toggleSystemMemories' command in
       `handleMessage()` in
-      `/Users/douglaswross/Code/gofer/extension/src/ui/MemoryPanel.ts` at line
-      ~104: Insert new case that sets
+      `/Users/douglaswross/Code/eai-gofer/extension/src/ui/MemoryPanel.ts` at
+      line ~104: Insert new case that sets
       `this.showSystemMemories = message.showSystemMemories` and calls
       `await this.update()` to rebuild webview with new filter state
 - [x] T022 [US1] Update 'search' message handler in
-      `/Users/douglaswross/Code/gofer/extension/src/ui/MemoryPanel.ts:106-111`
+      `/Users/douglaswross/Code/eai-gofer/extension/src/ui/MemoryPanel.ts:106-111`
       to include `excludeSystemMemories` in MemoryQuery: Add to query object:
       `excludeSystemMemories: !this.showSystemMemories`
 - [x] T023 [US1] Add empty state rendering in
-      `/Users/douglaswross/Code/gofer/extension/src/ui/MemoryPanel.ts` webview
-      template: Check filtered results count, if count === 0 and
+      `/Users/douglaswross/Code/eai-gofer/extension/src/ui/MemoryPanel.ts`
+      webview template: Check filtered results count, if count === 0 and
       !showSystemMemories, display empty state HTML with guidance message: "No
       user memories yet. Create your first memory with 'Gofer: Remember'
       command. System memories are hidden. Toggle 'Show system memories' to see
@@ -282,19 +282,20 @@ Telemetry), US3 (Persistent Filter Preference)
 ### Test Tasks
 
 - [x] T024 [P] [US2] Write integration test in
-      `/Users/douglaswross/Code/gofer/tests/unit/ui/MemoryPanel.test.ts`: Toggle
-      change triggers search refresh (simulate toggle change, verify postMessage
-      called with correct command, verify webview updated with filtered results)
+      `/Users/douglaswross/Code/eai-gofer/tests/unit/ui/MemoryPanel.test.ts`:
+      Toggle change triggers search refresh (simulate toggle change, verify
+      postMessage called with correct command, verify webview updated with
+      filtered results)
 - [x] T025 [P] [US1] Write integration test in
-      `/Users/douglaswross/Code/gofer/tests/unit/ui/MemoryPanel.test.ts`:
+      `/Users/douglaswross/Code/eai-gofer/tests/unit/ui/MemoryPanel.test.ts`:
       Category dropdown excludes system categories when toggle OFF (load
       memories with "auto_decision" and "pattern" categories, verify dropdown
       options with toggle OFF shows only "pattern", toggle ON shows both)
 - [x] T026 [P] [US1] Write integration test in
-      `/Users/douglaswross/Code/gofer/tests/unit/ui/MemoryPanel.test.ts`: Tag
-      dropdown excludes "#auto" when toggle OFF
+      `/Users/douglaswross/Code/eai-gofer/tests/unit/ui/MemoryPanel.test.ts`:
+      Tag dropdown excludes "#auto" when toggle OFF
 - [x] T027 [US1] Write E2E test in
-      `/Users/douglaswross/Code/gofer/tests/integration/memory-panel-filtering.test.ts`:
+      `/Users/douglaswross/Code/eai-gofer/tests/integration/memory-panel-filtering.test.ts`:
       Create user memory via "Gofer: Remember", verify it appears with system
       memories hidden, toggle system memories ON, verify system memories now
       appear
@@ -322,33 +323,33 @@ performance, prepare for merge.
 ### Tasks
 
 - [ ] T028 [P] Extract HTML template generation from
-      `/Users/douglaswross/Code/gofer/extension/src/ui/MemoryPanel.ts` to reduce
-      file size below 500 lines: Create new file
-      `/Users/douglaswross/Code/gofer/extension/src/ui/MemoryPanelTemplate.ts`,
+      `/Users/douglaswross/Code/eai-gofer/extension/src/ui/MemoryPanel.ts` to
+      reduce file size below 500 lines: Create new file
+      `/Users/douglaswross/Code/eai-gofer/extension/src/ui/MemoryPanelTemplate.ts`,
       move HTML generation logic (lines ~186-600) to `generateHtml()` function,
       import and call from MemoryPanel.ts, verify MemoryPanel.ts <500 lines and
       MemoryPanelTemplate.ts <500 lines
 - [ ] T029 [P] Add JSDoc comments to all new public methods in
-      `/Users/douglaswross/Code/gofer/extension/src/ui/MemoryPanel.ts`:
+      `/Users/douglaswross/Code/eai-gofer/extension/src/ui/MemoryPanel.ts`:
       showSystemMemories field, toggleSystemMemories message handler
-- [ ] T030 [P] Update `/Users/douglaswross/Code/gofer/CHANGELOG.md` with feature
-      summary: Add entry under "Features": "Memory Panel now filters out system
-      telemetry by default, showing only user-created memories. Toggle 'Show
-      system memories' to view all."
+- [ ] T030 [P] Update `/Users/douglaswross/Code/eai-gofer/CHANGELOG.md` with
+      feature summary: Add entry under "Features": "Memory Panel now filters out
+      system telemetry by default, showing only user-created memories. Toggle
+      'Show system memories' to view all."
 - [ ] T031 [P] Run performance test with 1000 memories: Create fixture with 1000
       memories (900 system, 100 user) in
-      `/Users/douglaswross/Code/gofer/tests/fixtures/memories-large.jsonl`,
+      `/Users/douglaswross/Code/eai-gofer/tests/fixtures/memories-large.jsonl`,
       profile toggle change operation, verify <100ms target met
 - [ ] T032 [P] Run full test suite and verify 80%+ coverage:
       `cd extension && npm test -- --coverage`, generate coverage report, verify
       line coverage ≥80% and branch coverage ≥80%
 - [ ] T033 Manual validation with real `memories.jsonl` file: Load existing
-      `/Users/douglaswross/Code/gofer/.specify/memory/memories.jsonl` (533+
+      `/Users/douglaswross/Code/eai-gofer/.specify/memory/memories.jsonl` (533+
       entries), verify user memories appear by default, verify toggle exposes
       system memories, test category/tag dropdowns, test keyword search respects
       filter
 - [ ] T034 Update
-      `/Users/douglaswross/Code/gofer/.specify/specs/001-memory-panel-filter/spec.md`
+      `/Users/douglaswross/Code/eai-gofer/.specify/specs/001-memory-panel-filter/spec.md`
       traceability matrix with implementation references: Map each FR-### to
       implemented files/functions, verify 100% requirement coverage
 - [ ] T035 Create pull request with summary of changes: Title: "feat: Filter

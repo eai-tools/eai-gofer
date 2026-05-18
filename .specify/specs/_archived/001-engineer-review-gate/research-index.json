@@ -1,5 +1,5 @@
 {
-  "sourceFile": "/Users/douglaswross/Code/gofer/.specify/specs/001-engineer-review-gate/research.md",
+  "sourceFile": "/Users/douglaswross/Code/eai-gofer/.specify/specs/001-engineer-review-gate/research.md",
   "totalTokens": 2351,
   "chunkCount": 20,
   "created": 1771812385997,
@@ -74,50 +74,31 @@
       "id": "chunk-006-core-responsibilities",
       "title": "Core Responsibilities",
       "tokens": 6,
-      "keywords": [
-        "core",
-        "responsibilities"
-      ]
+      "keywords": ["core", "responsibilities"]
     },
     {
       "id": "chunk-007-analysis-strategy-step-n-title",
       "title": "Analysis Strategy (### Step N: Title)",
       "tokens": 10,
-      "keywords": [
-        "analysis",
-        "strategy",
-        "step",
-        "title"
-      ]
+      "keywords": ["analysis", "strategy", "step", "title"]
     },
     {
       "id": "chunk-008-output-format-2000-tokens",
       "title": "Output Format (<2000 tokens)",
       "tokens": 8,
-      "keywords": [
-        "output",
-        "format",
-        "2000",
-        "tokens"
-      ]
+      "keywords": ["output", "format", "2000", "tokens"]
     },
     {
       "id": "chunk-009-blocking-criteria",
       "title": "Blocking Criteria",
       "tokens": 5,
-      "keywords": [
-        "blocking",
-        "criteria"
-      ]
+      "keywords": ["blocking", "criteria"]
     },
     {
       "id": "chunk-010-important-guidelines",
       "title": "Important Guidelines",
       "tokens": 6,
-      "keywords": [
-        "important",
-        "guidelines"
-      ]
+      "keywords": ["important", "guidelines"]
     },
     {
       "id": "chunk-011-llm-council-mode",

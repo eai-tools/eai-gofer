@@ -28,7 +28,7 @@ Before running tests, ensure the following are installed and configured:
 ### 1. Verify Feature Branch is Checked Out
 
 ```bash
-cd /Users/douglaswross/Code/gofer
+cd /Users/douglaswross/Code/eai-gofer
 git status
 # Expected: On branch 001-memory-panel-filter
 # Expected: Files modified in extension/src/
@@ -43,7 +43,7 @@ git checkout 001-memory-panel-filter
 ### 2. Install Project Dependencies
 
 ```bash
-cd /Users/douglaswross/Code/gofer
+cd /Users/douglaswross/Code/eai-gofer
 npm install
 ```
 
@@ -66,7 +66,7 @@ $ tsc
 ### 4. Build the Extension
 
 ```bash
-cd /Users/douglaswross/Code/gofer
+cd /Users/douglaswross/Code/eai-gofer
 npm run build
 ```
 
@@ -460,7 +460,7 @@ state.
 ### Running All Tests
 
 ```bash
-cd /Users/douglaswross/Code/gofer
+cd /Users/douglaswross/Code/eai-gofer
 npm test
 ```
 

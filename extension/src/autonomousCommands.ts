@@ -197,14 +197,14 @@ const ENTERPRISE_AI_REFERENCE_COMMANDS = new Set<string>([
 ]);
 
 const ENTERPRISE_AI_REFERENCE_TYPES: readonly string[] = [
-  'eai-cli',
+  'eai',
   'vertical-template',
   'deployment-repo',
 ];
 
 const ENTERPRISE_AI_EXTERNAL_REFERENCE_URLS: Readonly<Record<EnterpriseAiReferenceType, string>> = {
-  'eai-cli': 'https://github.com/eai-tools/eai-cli',
-  'vertical-template': 'https://github.com/eai-tools/Vertical-Template',
+  eai: 'https://github.com/eai-tools/eai',
+  'vertical-template': 'https://github.com/eai-tools/eai-app-template',
   'deployment-repo': 'https://github.com/EAI-Website/com.enterpriseaigroup',
 };
 

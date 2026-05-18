@@ -298,7 +298,7 @@ print_info "Using prebuilt node-pty-prebuilt-multiarch binaries (cross-platform)
 print_success "Skipping rebuild to preserve multi-platform support"
 
 # Run vsce package and capture both success and failure
-if npx @vscode/vsce package --out "gofer-$NEW_VERSION.vsix" 2>&1; then
+if npx @vscode/vsce package --out "eai-gofer-$NEW_VERSION.vsix" 2>&1; then
     print_success "VSIX package built successfully"
 else
     print_error "Failed to build VSIX package"
@@ -309,17 +309,17 @@ fi
 cd ..
 
 # Move VSIX file and verify it exists
-if [ -f "extension/gofer-$NEW_VERSION.vsix" ]; then
-    mv "extension/gofer-$NEW_VERSION.vsix" "./gofer-$NEW_VERSION.vsix"
-    print_success "Built gofer-$NEW_VERSION.vsix"
+if [ -f "extension/eai-gofer-$NEW_VERSION.vsix" ]; then
+    mv "extension/eai-gofer-$NEW_VERSION.vsix" "./eai-gofer-$NEW_VERSION.vsix"
+    print_success "Built eai-gofer-$NEW_VERSION.vsix"
 else
-    print_error "VSIX file was not created: extension/gofer-$NEW_VERSION.vsix"
+    print_error "VSIX file was not created: extension/eai-gofer-$NEW_VERSION.vsix"
     exit 1
 fi
 
 # Validate VSIX contains cross-platform binaries (critical for Codespaces/Linux)
 print_info "Validating cross-platform binary support..."
-VSIX_FILE="./gofer-$NEW_VERSION.vsix"
+VSIX_FILE="./eai-gofer-$NEW_VERSION.vsix"
 
 # Check for linux-x64 prebuilds (required for Codespaces)
 if unzip -l "$VSIX_FILE" | grep -q "prebuilds/linux-x64/node.abi"; then
@@ -365,7 +365,7 @@ print_success "Cross-platform validation passed"
 # Test VSIX activation before releasing
 print_info "Running VSIX pre-flight tests including activation..."
 if [ -f "./test-vsix.sh" ]; then
-    if ./test-vsix.sh "./gofer-$NEW_VERSION.vsix" --test-activation; then
+    if ./test-vsix.sh "./eai-gofer-$NEW_VERSION.vsix" --test-activation; then
         print_success "VSIX passed all pre-flight tests including activation"
     else
         print_error "VSIX failed pre-flight tests!"
@@ -444,13 +444,13 @@ print_success "Pre-push validation complete"
 # the published release feed state in the working tree.
 print_info "Preparing GitHub Pages release assets..."
 mkdir -p docs-site/static/releases
-cp "gofer-$NEW_VERSION.vsix" "docs-site/static/releases/"
+cp "eai-gofer-$NEW_VERSION.vsix" "docs-site/static/releases/"
 print_success "Copied VSIX to docs-site/static/releases/ for GitHub Pages hosting"
 
 # Update GitHub Pages releases.json with GitHub Pages download URLs.
 print_info "Updating GitHub Pages releases.json..."
 if [ -f "scripts/update-releases.js" ]; then
-    GITHUB_PAGES_URL="https://eai-tools.github.io/gofer/releases/gofer-$NEW_VERSION.vsix"
+    GITHUB_PAGES_URL="https://eai-tools.github.io/eai-gofer/releases/eai-gofer-$NEW_VERSION.vsix"
     node scripts/update-releases.js "$NEW_VERSION" "$RELEASE_NOTES" "$GITHUB_PAGES_URL"
     print_success "Updated GitHub Pages release data with assets"
 else
@@ -494,7 +494,7 @@ fi
 
 # Create GitHub release with VSIX attachment
 print_info "Creating GitHub release..."
-if gh release create "v$NEW_VERSION" "./gofer-$NEW_VERSION.vsix" \
+if gh release create "v$NEW_VERSION" "./eai-gofer-$NEW_VERSION.vsix" \
     --title "v$NEW_VERSION" \
     --notes "$RELEASE_NOTES" 2>&1; then
     print_success "GitHub release created: v$NEW_VERSION"
@@ -515,7 +515,7 @@ sleep 30
 EXPECTED_VERSION="$NEW_VERSION"
 print_info "Verifying GitHub Pages deployment..."
 for i in {1..6}; do
-    DEPLOYED_VERSION=$(curl -s "https://eai-tools.github.io/gofer/releases.json?cachebust=$(date +%s)" | grep -o '"latest_version"[^,]*' | cut -d'"' -f4 || echo "")
+    DEPLOYED_VERSION=$(curl -s "https://eai-tools.github.io/eai-gofer/releases.json?cachebust=$(date +%s)" | grep -o '"latest_version"[^,]*' | cut -d'"' -f4 || echo "")
     
     if [ "$DEPLOYED_VERSION" = "$EXPECTED_VERSION" ]; then
         print_success "GitHub Pages deployed successfully! Latest version: $DEPLOYED_VERSION"
@@ -527,7 +527,7 @@ for i in {1..6}; do
             print_warning "Expected version: $EXPECTED_VERSION"
             echo ""
             print_info "The deployment may still be in progress. Check:"
-            echo "  https://github.com/eai-tools/gofer/actions/workflows/pages.yml"
+            echo "  https://github.com/eai-tools/eai-gofer/actions/workflows/pages.yml"
             break
         fi
         print_info "Waiting for deployment... (attempt $i/6, deployed: $DEPLOYED_VERSION, expected: $EXPECTED_VERSION)"
@@ -540,19 +540,19 @@ done
 set +e
 
 # Verify the VSIX file is actually downloadable
-VSIX_URL="https://eai-tools.github.io/gofer/releases/gofer-$NEW_VERSION.vsix"
+VSIX_URL="https://eai-tools.github.io/eai-gofer/releases/eai-gofer-$NEW_VERSION.vsix"
 print_info "Verifying VSIX is downloadable at: $VSIX_URL"
 HTTP_STATUS=$(curl -sL -o /dev/null -w "%{http_code}" "$VSIX_URL?cachebust=$(date +%s)")
 if [ "$HTTP_STATUS" = "200" ]; then
     print_success "VSIX file is accessible (HTTP $HTTP_STATUS)"
 else
     print_warning "VSIX file returned HTTP $HTTP_STATUS - users may not be able to auto-update"
-    print_warning "Check GitHub Pages deployment: https://github.com/eai-tools/gofer/actions/workflows/pages.yml"
+    print_warning "Check GitHub Pages deployment: https://github.com/eai-tools/eai-gofer/actions/workflows/pages.yml"
 fi
 
 # Simulate auto-updater flow (what other VSCode instances will do)
 print_info "Simulating auto-update flow for other VSCode instances..."
-RELEASES_JSON=$(curl -s "https://eai-tools.github.io/gofer/releases.json?cachebust=$(date +%s)")
+RELEASES_JSON=$(curl -s "https://eai-tools.github.io/eai-gofer/releases.json?cachebust=$(date +%s)")
 
 # Parse latest_version (try/catch guards against malformed JSON from partial deployment)
 REMOTE_VERSION=$(echo "$RELEASES_JSON" | node -e "try { const d=require('fs').readFileSync('/dev/stdin','utf8'); const j=JSON.parse(d); console.log(j.latest_version || 'MISSING'); } catch(e) { console.log('MISSING'); }" 2>/dev/null || echo "MISSING")
@@ -586,11 +586,11 @@ print_success "🎉 Release $NEW_VERSION complete!"
 echo ""
 print_success "Extension Update:"
 echo "  • Users can now update to v$NEW_VERSION via the extension's update button"
-echo "  • Download URL: https://eai-tools.github.io/gofer/releases/gofer-$NEW_VERSION.vsix"
+echo "  • Download URL: https://eai-tools.github.io/eai-gofer/releases/eai-gofer-$NEW_VERSION.vsix"
 echo ""
 print_info "GitHub Resources:"
-echo "  • Releases: https://github.com/eai-tools/gofer/releases"
-echo "  • Actions: https://github.com/eai-tools/gofer/actions"
-echo "  • GitHub Pages: https://eai-tools.github.io/gofer/"
+echo "  • Releases: https://github.com/eai-tools/eai-gofer/releases"
+echo "  • Actions: https://github.com/eai-tools/eai-gofer/actions"
+echo "  • GitHub Pages: https://eai-tools.github.io/eai-gofer/"
 echo ""
-print_info "Local VSIX file: ./gofer-$NEW_VERSION.vsix"
+print_info "Local VSIX file: ./eai-gofer-$NEW_VERSION.vsix"

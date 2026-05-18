@@ -210,7 +210,7 @@ points + 5 constraints) are fully addressed in the specification.
 ## Deliverables
 
 **Created**:
-`/Users/douglaswross/Code/gofer/.specify/specs/029-memory-system-v2/checklists/requirements.md`
+`/Users/douglaswross/Code/eai-gofer/.specify/specs/029-memory-system-v2/checklists/requirements.md`
 
 This file contains:
 

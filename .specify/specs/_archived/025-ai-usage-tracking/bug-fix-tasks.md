@@ -79,10 +79,10 @@ graph TD
 ### Tasks
 
 - [x] T000 [P] Create test infrastructure directories and baseline files -
-      Create `/Users/douglaswross/Code/gofer/tests/unit/config/` directory -
+      Create `/Users/douglaswross/Code/eai-gofer/tests/unit/config/` directory -
       Create
-      `/Users/douglaswross/Code/gofer/.specify/specs/025-ai-usage-tracking/invoice-validation/`
-      directory - Create `/Users/douglaswross/Code/gofer/CHANGELOG.md` with
+      `/Users/douglaswross/Code/eai-gofer/.specify/specs/025-ai-usage-tracking/invoice-validation/`
+      directory - Create `/Users/douglaswross/Code/eai-gofer/CHANGELOG.md` with
       initial structure - Verify directory structure matches existing test
       patterns
 
@@ -106,35 +106,35 @@ code.
 ### Tasks
 
 - [x] T001 Create MODEL_PRICING table in
-      `/Users/douglaswross/Code/gofer/extension/src/config/pricing.ts` with 60+
-      model entries (Anthropic: Opus 4.6/4.5 $5/$25/M, Sonnet 4.5/4 $3/$15/M,
-      Haiku 4.5 $1/$5/M, Haiku 3.5 $0.25/$1.25/M; OpenAI: GPT-4 $30/$60/M,
-      GPT-4-turbo $10/$30/M, GPT-4o $5/$15/M, GPT-3.5-turbo $0.50/$1.50/M, o1
-      $15/$60/M, o1-mini $3/$12/M; Google: Gemini 1.5 Pro $1.25/$5/M, Gemini 1.5
-      Flash $0.075/$0.30/M, Gemini Pro $0.50/$1.50/M) including dated variants
-      with prefix keys
+      `/Users/douglaswross/Code/eai-gofer/extension/src/config/pricing.ts` with
+      60+ model entries (Anthropic: Opus 4.6/4.5 $5/$25/M, Sonnet 4.5/4
+      $3/$15/M, Haiku 4.5 $1/$5/M, Haiku 3.5 $0.25/$1.25/M; OpenAI: GPT-4
+      $30/$60/M, GPT-4-turbo $10/$30/M, GPT-4o $5/$15/M, GPT-3.5-turbo
+      $0.50/$1.50/M, o1 $15/$60/M, o1-mini $3/$12/M; Google: Gemini 1.5 Pro
+      $1.25/$5/M, Gemini 1.5 Flash $0.075/$0.30/M, Gemini Pro $0.50/$1.50/M)
+      including dated variants with prefix keys
 
 - [x] T002 Add DEFAULT_MODELS mapping in
-      `/Users/douglaswross/Code/gofer/extension/src/config/pricing.ts`
+      `/Users/douglaswross/Code/eai-gofer/extension/src/config/pricing.ts`
       (anthropic → 'claude-sonnet-4-5', openai → 'gpt-4-turbo', google →
       'gemini-1.5-flash')
 
 - [x] T003 Add getPricingForModel(modelId: string, providerId: string) helper
       function in
-      `/Users/douglaswross/Code/gofer/extension/src/config/pricing.ts` with
+      `/Users/douglaswross/Code/eai-gofer/extension/src/config/pricing.ts` with
       exact match → prefix match → DEFAULT_MODELS fallback → COST_PER_1K_TOKENS
       fallback hierarchy, logging warnings when fallback used
 
 - [x] T004 Update calculateCost() signature in
-      `/Users/douglaswross/Code/gofer/extension/src/config/pricing.ts` to accept
-      optional modelId parameter (Old: calculateCost(inputTokens, outputTokens,
-      providerId?), New: calculateCost(inputTokens, outputTokens, providerId?,
-      modelId?)) with implementation using getPricingForModel() when modelId
-      provided, else COST_PER_1K_TOKENS for backward compatibility
+      `/Users/douglaswross/Code/eai-gofer/extension/src/config/pricing.ts` to
+      accept optional modelId parameter (Old: calculateCost(inputTokens,
+      outputTokens, providerId?), New: calculateCost(inputTokens, outputTokens,
+      providerId?, modelId?)) with implementation using getPricingForModel()
+      when modelId provided, else COST_PER_1K_TOKENS for backward compatibility
 
 - [x] T005 [P] CREATE new unit test file for getPricingForModel() at
-      `/Users/douglaswross/Code/gofer/tests/unit/config/pricing.test.ts` (NEW
-      FILE - Test exact match: getPricingForModel('claude-sonnet-4-5',
+      `/Users/douglaswross/Code/eai-gofer/tests/unit/config/pricing.test.ts`
+      (NEW FILE - Test exact match: getPricingForModel('claude-sonnet-4-5',
       'anthropic') returns {input: 0.003, output: 0.015}; Test prefix match:
       getPricingForModel('claude-sonnet-4-5-20250929', 'anthropic') returns
       Sonnet rates; Test fallback to provider default:
@@ -143,8 +143,8 @@ code.
       DEFAULT_PROVIDER rates) - tests MUST fail before implementation
 
 - [x] T006 [P] Add unit tests for calculateCost() backward compatibility in
-      `/Users/douglaswross/Code/gofer/tests/unit/config/pricing.test.ts` (ADD TO
-      FILE created in T005 - Test without modelId parameter:
+      `/Users/douglaswross/Code/eai-gofer/tests/unit/config/pricing.test.ts`
+      (ADD TO FILE created in T005 - Test without modelId parameter:
       calculateCost(100000, 50000, 'anthropic') uses COST_PER_1K_TOKENS; Test
       with modelId parameter: calculateCost(100000, 50000, 'anthropic',
       'claude-haiku-3-5') uses MODEL_PRICING; Verify costs differ: Haiku
@@ -171,7 +171,7 @@ Codex CLI users).
 ### Tasks
 
 - [x] T007 Update ClaudeCodeUsageAdapter.ts line 198 in
-      `/Users/douglaswross/Code/gofer/extension/src/autonomous/ClaudeCodeUsageAdapter.ts`
+      `/Users/douglaswross/Code/eai-gofer/extension/src/autonomous/ClaudeCodeUsageAdapter.ts`
       to pass provider and model variables (Replace: calculateCost(inputTokens +
       cacheCreationTokens, outputTokens, 'anthropic'), With:
       calculateCost(inputTokens + cacheCreationTokens, outputTokens, provider,
@@ -180,19 +180,19 @@ Codex CLI users).
 
 - [x] T008 Add model extraction to CodexUsageAdapter.ts parseHistoryEntry method
       in
-      `/Users/douglaswross/Code/gofer/extension/src/autonomous/CodexUsageAdapter.ts`
+      `/Users/douglaswross/Code/eai-gofer/extension/src/autonomous/CodexUsageAdapter.ts`
       (Extract model from Codex history.json: entry.model ||
       entry.request?.model || 'gpt-4-turbo', store in local variable before
       calculateCost() call)
 
 - [x] T009 Update CodexUsageAdapter.ts line 181 in
-      `/Users/douglaswross/Code/gofer/extension/src/autonomous/CodexUsageAdapter.ts`
+      `/Users/douglaswross/Code/eai-gofer/extension/src/autonomous/CodexUsageAdapter.ts`
       to pass model parameter (Replace: calculateCost(inputTokens, outputTokens,
       'openai'), With: calculateCost(inputTokens, outputTokens, 'openai',
       model))
 
 - [ ] T010 [P] CREATE new integration test file for model-based cost accuracy at
-      `/Users/douglaswross/Code/gofer/tests/integration/autonomous/AIUsageAccuracy.integration.test.ts`
+      `/Users/douglaswross/Code/eai-gofer/tests/integration/autonomous/AIUsageAccuracy.integration.test.ts`
       (NEW FILE - Test Opus vs Sonnet vs Haiku costs for same token count -
       should differ by 20x; Test GPT-4 vs GPT-3.5 costs for same token count -
       should differ by 60x; Verify 100K input + 50K output Haiku 3.5 = $0.0875
@@ -223,18 +223,18 @@ models, integration tests pass, real log parsing produces expected costs
 ### Tasks
 
 - [ ] T012 Update CostBudgetEnforcer.recordUsage() signature in
-      `/Users/douglaswross/Code/gofer/extension/src/autonomous/CostBudgetEnforcer.ts`
+      `/Users/douglaswross/Code/eai-gofer/extension/src/autonomous/CostBudgetEnforcer.ts`
       to add optional modelId parameter (New signature: recordUsage(inputTokens,
       outputTokens, providerId?, modelId?), forward modelId to calculateCost()
       call at line 72)
 
 - [ ] T013 Update ContextUsageLogger.logLLMCall() in
-      `/Users/douglaswross/Code/gofer/extension/src/autonomous/ContextUsageLogger.ts`
+      `/Users/douglaswross/Code/eai-gofer/extension/src/autonomous/ContextUsageLogger.ts`
       to accept and forward modelId (Add modelId parameter to method signature,
       include modelId in log entry data)
 
 - [ ] T014 Add model field to UsageLogEntry interface in
-      `/Users/douglaswross/Code/gofer/extension/src/council/UsageLogger.ts`
+      `/Users/douglaswross/Code/eai-gofer/extension/src/council/UsageLogger.ts`
       (CORRECT FILE PATH - Add model?: string field to UsageLogEntry interface
       (line 19), update parsers to handle optional model field in JSONL log
       entries)
@@ -245,7 +245,7 @@ models, integration tests pass, real log parsing produces expected costs
       not available for backward compatibility)
 
 - [ ] T016 [P] CREATE new integration test file for model propagation at
-      `/Users/douglaswross/Code/gofer/tests/integration/autonomous/ModelPropagation.integration.test.ts`
+      `/Users/douglaswross/Code/eai-gofer/tests/integration/autonomous/ModelPropagation.integration.test.ts`
       (NEW FILE - Verify model flows from adapter → recordUsage() →
       calculateCost() → log entry; Verify council-usage.jsonl entries include
       model field; Verify budget tracking uses model-specific rates) - tests
@@ -272,12 +272,13 @@ principle).
 
 - [ ] T017 Remove duplicate COST_PER_1K_TOKENS from CostBudgetEnforcer.ts lines
       16-20 in
-      `/Users/douglaswross/Code/gofer/extension/src/autonomous/CostBudgetEnforcer.ts`
+      `/Users/douglaswross/Code/eai-gofer/extension/src/autonomous/CostBudgetEnforcer.ts`
       (Delete local constant definition, add import: import { COST_PER_1K_TOKENS
       } from '../config/pricing' for backward compatibility fallback)
 
 - [ ] T018 Remove duplicate COST_PER_1K_TOKENS from UsageLogger.ts lines 72-78
-      in `/Users/douglaswross/Code/gofer/extension/src/council/UsageLogger.ts`
+      in
+      `/Users/douglaswross/Code/eai-gofer/extension/src/council/UsageLogger.ts`
       (Delete local constant definition, add import: import { MODEL_PRICING,
       getPricingForModel } from '../config/pricing')
 
@@ -312,7 +313,7 @@ pass, no hardcoded rates outside pricing.ts, DRY principle satisfied
 ### Tasks
 
 - [ ] T022 Compare calculated costs to actual Anthropic invoices in
-      `/Users/douglaswross/Code/gofer/.specify/specs/025-ai-usage-tracking/invoice-validation/`
+      `/Users/douglaswross/Code/eai-gofer/.specify/specs/025-ai-usage-tracking/invoice-validation/`
       (Collect 5+ real conversation logs with known token counts, calculate
       costs using new model-based pricing, compare to actual Anthropic invoice
       line items for same conversations, measure error percentage:
@@ -321,7 +322,7 @@ pass, no hardcoded rates outside pricing.ts, DRY principle satisfied
 
 - [ ] T023 Compare calculated costs to actual OpenAI invoices if Codex logs
       available in
-      `/Users/douglaswross/Code/gofer/.specify/specs/025-ai-usage-tracking/invoice-validation/`
+      `/Users/douglaswross/Code/eai-gofer/.specify/specs/025-ai-usage-tracking/invoice-validation/`
       (Repeat process with Codex CLI conversation logs, verify GPT-4,
       GPT-4-turbo, GPT-3.5 costs match invoices, measure error < 1%)
 
@@ -333,25 +334,25 @@ pass, no hardcoded rates outside pricing.ts, DRY principle satisfied
       inconclusive/non-issue)
 
 - [ ] T025 Update PRICING_LAST_UPDATED timestamp to '2026-03-19' in
-      `/Users/douglaswross/Code/gofer/extension/src/config/pricing.ts` (Change
-      date in pricing.ts:33 from 2026-03-15 to 2026-03-19, document in comment
-      that pricing rates verified against provider docs)
+      `/Users/douglaswross/Code/eai-gofer/extension/src/config/pricing.ts`
+      (Change date in pricing.ts:33 from 2026-03-15 to 2026-03-19, document in
+      comment that pricing rates verified against provider docs)
 
 - [ ] T026 [P] Document model pricing sources in code comments in
-      `/Users/douglaswross/Code/gofer/extension/src/config/pricing.ts` (Add
+      `/Users/douglaswross/Code/eai-gofer/extension/src/config/pricing.ts` (Add
       comments to MODEL_PRICING table with source URLs: Anthropic
       https://platform.claude.com/docs/en/about-claude/pricing, OpenAI
       https://openai.com/pricing, Google https://ai.google.dev/pricing)
 
 - [ ] T027 [P] Add migration notes to CHANGELOG.md in
-      `/Users/douglaswross/Code/gofer/CHANGELOG.md` (ADD TO FILE created in
+      `/Users/douglaswross/Code/eai-gofer/CHANGELOG.md` (ADD TO FILE created in
       T000 - Document breaking changes: None, backward compatible; Document new
       features: Model-based pricing, getPricingForModel() helper; Document
       fixes: Hardcoded provider strings, provider-level pricing; Document
       migration: Existing code continues to work, gradually update call sites)
 
 - [ ] T028 [P] Update feature validation report in
-      `/Users/douglaswross/Code/gofer/.specify/specs/025-ai-usage-tracking/VALIDATION-REPORT.md`
+      `/Users/douglaswross/Code/eai-gofer/.specify/specs/025-ai-usage-tracking/VALIDATION-REPORT.md`
       (CORRECT FILENAME - uppercase; Document cost accuracy improvement: 1100%
       error → <1% error; Document bug fixes completed; Update success metrics:
       Cost accuracy within 1% achieved)
@@ -624,7 +625,8 @@ CHANGELOG.md                          [T000, T027] NEW file created, migration n
 
 ## Notes
 
-- All tasks reference absolute file paths from `/Users/douglaswross/Code/gofer/`
+- All tasks reference absolute file paths from
+  `/Users/douglaswross/Code/eai-gofer/`
 - Test tasks (T005, T006, T010, T016) must FAIL before implementation (TDD
   requirement)
 - Optional parameters maintain 100% backward compatibility (no breaking changes)

@@ -5,7 +5,7 @@ research: research.md
 status: ready
 created: 2026-04-25
 workflowProfile: enterpriseai
-eaiCliVersion: 'N/A — internal pipeline tooling, no eai-cli runtime dependency'
+eaiCliVersion: 'N/A — internal pipeline tooling, no eai runtime dependency'
 phaseOrder: strict-1-2-3
 architecture: A — template-and-sub-agent pipeline with source-of-truth generator
 aiLeverageTaxonomy: ['Replace', 'Augment', 'Automate', 'Observe']
@@ -283,7 +283,7 @@ documentation pass.)
 > Populated because `gofer.workflowProfile=enterpriseai`.
 
 - **EAI CLI Version Pin**:
-  `N/A — internal pipeline tooling, no eai-cli runtime dependency.` This feature
+  `N/A — internal pipeline tooling, no eai runtime dependency.` This feature
   uplifts the Gofer pipeline itself; it is not a vertical-app deployment to an
   EAI service. The metadata block is retained per template requirement and to
   keep the EnterpriseAI Integration Map (below) traceable.

@@ -80,8 +80,8 @@ command file format documentation.
 ### Setup Tasks
 
 - [x] T001 [P] Create `.system/skills/` directory with README.md at
-      `/Users/douglaswross/Code/gofer/.system/skills/README.md` explaining Codex
-      CLI integration
+      `/Users/douglaswross/Code/eai-gofer/.system/skills/README.md` explaining
+      Codex CLI integration
 - [x] T002 [P] Add `gofer.defaultCLI` VSCode setting to `extension/package.json`
       with enum ["claude", "copilot", "codex", "auto"], default "auto", order 27
 - [x] T003 Add CONFIG_KEYS entry `defaultCLI: 'gofer.defaultCLI'` and DEFAULTS
@@ -554,7 +554,7 @@ complete for accurate data)
 ### Implementation for User Story 7
 
 - [x] T085 [P] [US-7] Update README.md in
-      `/Users/douglaswross/Code/gofer/README.md` with Platform Capabilities
+      `/Users/douglaswross/Code/eai-gofer/README.md` with Platform Capabilities
       section: comparison table (Feature × Platform matrix), rows for 16
       commands + MCP + autonomous mode + context + auto-chain + parallel agents,
       columns for Claude/Copilot/Codex, cells with ✓/⚠/✗ status and footnotes
@@ -587,9 +587,9 @@ preparation.
 ### Polish Tasks
 
 - [x] T090 [P] Update CHANGELOG.md in
-      `/Users/douglaswross/Code/gofer/CHANGELOG.md` with feature summary: major
-      version bump, list all 16 commands available in Codex/Copilot, document
-      new `gofer.defaultCLI` setting, link to setup guides
+      `/Users/douglaswross/Code/eai-gofer/CHANGELOG.md` with feature summary:
+      major version bump, list all 16 commands available in Codex/Copilot,
+      document new `gofer.defaultCLI` setting, link to setup guides
 - [x] T091 [P] Add npm script
       `"generate-commands": "ts-node scripts/generate-commands.ts"` in
       `package.json` (added to root package.json)

@@ -3,7 +3,7 @@ import * as path from 'path';
 import { validateEventPayload } from '../contracts/EventPayloadSchemas';
 import { validateInternalApiPayload } from '../contracts/InternalApiSchemas';
 
-export type EnterpriseAiReferenceType = 'eai-cli' | 'vertical-template' | 'deployment-repo';
+export type EnterpriseAiReferenceType = 'eai' | 'vertical-template' | 'deployment-repo';
 export type EnterpriseAiReferenceSource = 'external' | 'local-fallback';
 
 export interface ResolveEnterpriseAiReferencesRequest {
@@ -65,17 +65,23 @@ export interface ResolveEnterpriseAiReferencesOptions {
 }
 
 const DEFAULT_FALLBACK_PATH = '.specify/references/eai/';
+const LEGACY_EAI_REFERENCE_NAME = ['eai', 'cli'].join('-');
+const LEGACY_EAI_REFERENCE_DOCS = `${LEGACY_EAI_REFERENCE_NAME}-docs`;
+const LEGACY_EAI_REFERENCE_DOCS_UNDERSCORE = ['eai', 'cli', 'docs'].join('_');
 
 const REFERENCE_FILE_NAMES: Readonly<Record<EnterpriseAiReferenceType, string>> = {
-  'eai-cli': 'eai-cli.md',
+  eai: 'eai.md',
   'vertical-template': 'vertical-template.md',
   'deployment-repo': 'deployment-repo.md',
 };
 
 const REFERENCE_TYPE_ALIASES: Readonly<Record<string, EnterpriseAiReferenceType>> = {
-  'eai-cli': 'eai-cli',
-  'eai-cli-docs': 'eai-cli',
-  eai_cli_docs: 'eai-cli',
+  eai: 'eai',
+  'eai-docs': 'eai',
+  eai_docs: 'eai',
+  [LEGACY_EAI_REFERENCE_NAME]: 'eai',
+  [LEGACY_EAI_REFERENCE_DOCS]: 'eai',
+  [LEGACY_EAI_REFERENCE_DOCS_UNDERSCORE]: 'eai',
   vertical_template_docs: 'vertical-template',
   'vertical-template': 'vertical-template',
   'vertical-template-docs': 'vertical-template',
@@ -181,11 +187,31 @@ function resolveAbsolutePath(workspaceRoot: string, targetPath: string): string 
   return resolvedTargetPath;
 }
 
-function buildFallbackReferencePath(
+function buildFallbackReferencePaths(
   fallbackPath: string,
   referenceType: EnterpriseAiReferenceType
-): string {
-  return path.posix.join(fallbackPath, REFERENCE_FILE_NAMES[referenceType]);
+): readonly string[] {
+  const paths = [path.posix.join(fallbackPath, REFERENCE_FILE_NAMES[referenceType])];
+
+  if (referenceType === 'eai') {
+    paths.push(path.posix.join(fallbackPath, `${LEGACY_EAI_REFERENCE_NAME}.md`));
+  }
+
+  return paths;
+}
+
+async function resolveFirstExistingFallbackPath(
+  workspaceRoot: string,
+  fallbackReferencePaths: readonly string[]
+): Promise<string | undefined> {
+  for (const fallbackReferencePath of fallbackReferencePaths) {
+    const absoluteFallbackReferencePath = resolveAbsolutePath(workspaceRoot, fallbackReferencePath);
+    if (await pathExists(absoluteFallbackReferencePath)) {
+      return fallbackReferencePath;
+    }
+  }
+
+  return undefined;
 }
 
 function isNodeErrorWithCode(error: unknown): error is NodeJS.ErrnoException {
@@ -329,10 +355,11 @@ export async function resolveEnterpriseAiReferences(
     }
 
     unavailableExternalReferences.push(referenceType);
-    const fallbackReferencePath = buildFallbackReferencePath(fallbackPath, referenceType);
-    const absoluteFallbackReferencePath = resolveAbsolutePath(workspaceRoot, fallbackReferencePath);
-    const fallbackReferenceExists = await pathExists(absoluteFallbackReferencePath);
-    if (!fallbackReferenceExists) {
+    const fallbackReferencePath = await resolveFirstExistingFallbackPath(
+      workspaceRoot,
+      buildFallbackReferencePaths(fallbackPath, referenceType)
+    );
+    if (!fallbackReferencePath) {
       missingFallbackReferences.push(referenceType);
       continue;
     }

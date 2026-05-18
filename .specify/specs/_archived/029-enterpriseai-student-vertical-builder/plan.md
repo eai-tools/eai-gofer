@@ -1,7 +1,7 @@
 ---
 feature: 'EnterpriseAI Student Vertical Builder'
-spec: '/Users/douglaswross/Code/gofer/.specify/specs/029-enterpriseai-student-vertical-builder/spec.md'
-research: '/Users/douglaswross/Code/gofer/.specify/specs/029-enterpriseai-student-vertical-builder/research.md'
+spec: '/Users/douglaswross/Code/eai-gofer/.specify/specs/029-enterpriseai-student-vertical-builder/spec.md'
+research: '/Users/douglaswross/Code/eai-gofer/.specify/specs/029-enterpriseai-student-vertical-builder/research.md'
 status: ready
 created: 2026-04-09T03:25:45Z
 ---
@@ -72,7 +72,7 @@ additive **EnterpriseAI workflow profile** on top:
   - Existing cross-platform parity and regression test suites
   - Existing one-by-one architecture decision loop logic
 - **External dependencies**:
-  - Installed `eai-cli` for version-aware guidance (major.minor pinning)
+  - Installed `eai` for version-aware guidance (major.minor pinning)
   - Vendored EnterpriseAI references under `.specify/references/eai/`
   - Optional Marp renderer/toolchain for deck rendering validation
 
@@ -121,10 +121,10 @@ reference foundations without altering existing behavior.
 - [ ] **P1.2** Implement phased rollout defaults (default `standard`) and
       profile activation documentation in `README.md` and `extension/README.md`.
 - [ ] **P1.3** Create/seed local fallback reference set in
-      `.specify/references/eai/{README.md,eai-cli.md,vertical-template.md,deployment-repo.md}`.
+      `.specify/references/eai/{README.md,eai.md,vertical-template.md,deployment-repo.md}`.
 - [ ] **P1.4** Preserve and emphasize one-by-one architecture approval +
       no-removal governance in `.claude/commands/0_business_scenario.md`.
-- [ ] **P1.5** Define plan/task metadata contract to record installed `eai-cli`
+- [ ] **P1.5** Define plan/task metadata contract to record installed `eai`
       major.minor in generated artifacts.
 - [ ] **P1.6** Establish `standard` profile regression baselines in integration
       tests (no behavior drift allowed).
@@ -154,8 +154,8 @@ fallback behavior, and version traceability.
       competitive-analysis flag, and artifact metadata.
 - [ ] **P2.2** Implement EnterpriseAI reference resolver
       (`external -> local fallback`) with structured fallback notice payloads.
-- [ ] **P2.3** Implement `eai-cli` version discovery/parser that captures
-      installed major.minor for artifact pinning.
+- [ ] **P2.3** Implement `eai` version discovery/parser that captures installed
+      major.minor for artifact pinning.
 - [ ] **P2.4** Define artifact data schemas for `business-analysis.md`,
       `market-analysis.md`, and Marp deck content sourcing, including
       `market-analysis` constraints for `alternativeCount >= 3` and reference
@@ -184,7 +184,7 @@ fallback behavior, and version traceability.
 
 - **V2.1** Resolver chooses local vendored references when external docs are
   unavailable.
-- **V2.2** Generated metadata includes installed `eai-cli` major.minor.
+- **V2.2** Generated metadata includes installed `eai` major.minor.
 - **V2.3** Artifact schema validations pass for business/market/Marp payloads.
 - **V2.4** `market-analysis` schema validation enforces at least 3 alternatives
   and records reference indicators for both `spec.md` and `plan.md`.
@@ -333,7 +333,7 @@ additive rollout.
 - [ ] **P5.5** Validate context-size/conciseness, context-budget warning
       emission behavior, and secret-safety constraints for generated artifacts.
 - [ ] **P5.6** Final release-readiness check: confirm deployment conventions and
-      pinned `eai-cli` major.minor appear in generated plan/task artifacts.
+      pinned `eai` major.minor appear in generated plan/task artifacts.
 - [ ] **P5.7** Add implementation-stage deployment readiness gate that validates
       required deployment files (manifest/config) before any deployment task can
       be marked complete.
@@ -371,7 +371,7 @@ additive rollout.
 
 .specify/references/eai/                           # new
 ├── README.md
-├── eai-cli.md
+├── eai.md
 ├── vertical-template.md
 └── deployment-repo.md
 
@@ -423,7 +423,7 @@ tests/integration/                                 # modified/new
 | **Regression in existing non-EAI workflows** (HIGH)                 | Breaks current users and violates reliability/no-removal constraints | Baseline regression gates, dual-profile test matrix, approval audit for removals (P1.6, P5.3, P5.4)                    |
 | **Resource sync migration overwrites user workspace assets** (HIGH) | Data/config disruption in existing workspaces                        | Non-destructive sync changes + migration safety tests (P4.3, P5.2)                                                     |
 | External EAI references become unavailable or stale (MEDIUM)        | Incomplete or failing deployment guidance                            | Local vendored fallback references + explicit notice path + periodic refresh cadence (P1.3, P2.2, P4.6)                |
-| Incorrect `eai-cli` version detection across environments (MEDIUM)  | Wrong command guidance in plan/tasks                                 | Version parser tests across output variants + recorded metadata traceability (P2.3, P2.6, P5.6)                        |
+| Incorrect `eai` version detection across environments (MEDIUM)      | Wrong command guidance in plan/tasks                                 | Version parser tests across output variants + recorded metadata traceability (P2.3, P2.6, P5.6)                        |
 | Artifact size/context bloat from added outputs (MEDIUM)             | Reduced context health and stage reliability                         | Enforce concise templates + output checks for size thresholds + threshold warning emission gates (P4.7, P5.5)          |
 
 ## Spec Traceability

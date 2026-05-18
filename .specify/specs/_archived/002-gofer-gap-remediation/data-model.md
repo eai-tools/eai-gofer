@@ -39,7 +39,7 @@ Persisted at `.specify/specs/{feature}/pipeline-state.json`.
 {
   "runId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
   "featureId": "002-gofer-gap-remediation",
-  "featureDir": "/Users/dev/Code/gofer/.specify/specs/002-gofer-gap-remediation",
+  "featureDir": "/Users/dev/Code/eai-gofer/.specify/specs/002-gofer-gap-remediation",
   "currentStage": "3_plan",
   "completedStages": ["1_research", "2_specify"],
   "startedAt": "2026-02-28T14:00:00Z",

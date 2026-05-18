@@ -9,7 +9,7 @@
 - Node.js 20.x
 - npm
 - VS Code 1.85+
-- Local checkout of `eai-tools/gofer` with permission to run repo scripts
+- Local checkout of `eai-tools/eai-gofer` with permission to run repo scripts
 
 ## 2. Setup Steps
 
@@ -29,22 +29,22 @@ npm run test:integration
    - `extension/package.json`
    - `extension/src/extension.ts`
    - `extension/src/services/CommandRegistry.ts`
-    - `extension/src/config.ts`
-    - `extension/README.md`
-    - `README.md`
-    - `docs/API_KEY_SETUP.md`
-    - `docs/guides/configuration.md`
-    - `docs/guides/session-management.md`
-    - `docs/agentic-coding/AGENT_TOOLING_REFERENCE.md`
-3. If you update canonical command docs under `.specify/commands/`, plan to rerun
-   `npm run gofer:generate` before the parity checks.
+   - `extension/src/config.ts`
+   - `extension/README.md`
+   - `README.md`
+   - `docs/API_KEY_SETUP.md`
+   - `docs/guides/configuration.md`
+   - `docs/guides/session-management.md`
+   - `docs/agentic-coding/AGENT_TOOLING_REFERENCE.md`
+3. If you update canonical command docs under `.specify/commands/`, plan to
+   rerun `npm run gofer:generate` before the parity checks.
 
 ## 3. Manual Testing Scenarios
 
 ### Scenario 1: Public Command Truth Audit (AT-001, AT-002)
 
-**Objective**: Confirm that every user-facing VS Code command described in active
-docs maps to the current manifest and to live runtime registration.
+**Objective**: Confirm that every user-facing VS Code command described in
+active docs maps to the current manifest and to live runtime registration.
 
 **Steps**:
 
@@ -71,8 +71,8 @@ settings contract.
 
 1. Review `docs/guides/configuration.md`, `docs/guides/session-management.md`,
    and configuration examples in `extension/README.md` and `README.md`.
-2. Compare every documented key and default value with
-    `extension/package.json` under `contributes.configuration.properties`.
+2. Compare every documented key and default value with `extension/package.json`
+   under `contributes.configuration.properties`.
 3. Cross-check `extension/src/config.ts` plus direct runtime fallback reads to
    make sure helper keys/defaults do not drift from the manifest.
 4. Verify unsupported or internal-only settings are removed from user-facing
@@ -112,17 +112,18 @@ surface.
 1. If `.specify/commands/*.md` changed, run `npm run gofer:generate` from the
    repo root.
 2. Run `npm run generate-commands -- --verbose` to refresh the checked-in
-   `.github/`, `.system/`, and `.agents/` mirrors from the current Claude bodies.
+   `.github/`, `.system/`, and `.agents/` mirrors from the current Claude
+   bodies.
 3. If bundled extension resources must pick up refreshed surfaces, run
    `./scripts/sync-extension-resources.sh` and review diffs under
    `extension/resources/`, especially `extension/resources/claude-agents/` and
    `extension/resources/gemini/`.
-4. Review diffs under `.claude/`, `.github/`, `.gemini/`, `.agents/`, `.system/`,
-   and the bundled copies under `extension/resources/`.
+4. Review diffs under `.claude/`, `.github/`, `.gemini/`, `.agents/`,
+   `.system/`, and the bundled copies under `extension/resources/`.
 5. Verify regenerated mirrors do not advertise commands or behaviors outside the
    current manifest-backed contract.
-6. Run the command-generation parity and packaged-resource parity checks from the
-   automated section.
+6. Run the command-generation parity and packaged-resource parity checks from
+   the automated section.
 
 **Expected result**: Generated mirrors and packaged extension copies reflect the
 cleaned canonical command content only, with no manual mirror-only edits
@@ -189,22 +190,22 @@ npm test
 
 ## 5. Key Files
 
-| File | Why it matters |
-| --- | --- |
-| `extension/package.json` | Authoritative public contract for contributed commands, menus, keybindings, and settings |
-| `extension/src/extension.ts` | Global activation and command registration entry point |
-| `extension/src/services/CommandRegistry.ts` | Main workspace command wiring surface |
-| `extension/src/config.ts` | Typed settings helper that must stay aligned with manifest keys/defaults |
-| `extension/src/commands/specCommands.ts` | Holds the hydrate prompt resource reference that must use the correct filename |
-| `extension/README.md` | Highest-risk extension-facing command and setup documentation |
-| `README.md` | Active top-level repo guidance that can repeat stale VS Code claims |
-| `docs/API_KEY_SETUP.md` | Active API-key onboarding that must not name dead-end commands |
-| `docs/guides/configuration.md` | User-facing settings reference to reconcile with the manifest |
-| `docs/guides/session-management.md` | Active context-window settings guide that must keep defaults truthful |
-| `docs/agentic-coding/AGENT_TOOLING_REFERENCE.md` | Active command/tooling reference that must use current IDs and tool names |
-| `tests/integration/command-registration.test.ts` | Existing manifest-to-runtime parity guard |
-| `tests/integration/command-generation.test.ts` | Existing canonical-to-mirror parity guard |
-| `tests/unit/extension/Config.test.ts` | Reused config helper/constants unit suite that complements the manifest-backed integration checks and still contains some broader legacy assertions |
+| File                                             | Why it matters                                                                                                                                      |
+| ------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `extension/package.json`                         | Authoritative public contract for contributed commands, menus, keybindings, and settings                                                            |
+| `extension/src/extension.ts`                     | Global activation and command registration entry point                                                                                              |
+| `extension/src/services/CommandRegistry.ts`      | Main workspace command wiring surface                                                                                                               |
+| `extension/src/config.ts`                        | Typed settings helper that must stay aligned with manifest keys/defaults                                                                            |
+| `extension/src/commands/specCommands.ts`         | Holds the hydrate prompt resource reference that must use the correct filename                                                                      |
+| `extension/README.md`                            | Highest-risk extension-facing command and setup documentation                                                                                       |
+| `README.md`                                      | Active top-level repo guidance that can repeat stale VS Code claims                                                                                 |
+| `docs/API_KEY_SETUP.md`                          | Active API-key onboarding that must not name dead-end commands                                                                                      |
+| `docs/guides/configuration.md`                   | User-facing settings reference to reconcile with the manifest                                                                                       |
+| `docs/guides/session-management.md`              | Active context-window settings guide that must keep defaults truthful                                                                               |
+| `docs/agentic-coding/AGENT_TOOLING_REFERENCE.md` | Active command/tooling reference that must use current IDs and tool names                                                                           |
+| `tests/integration/command-registration.test.ts` | Existing manifest-to-runtime parity guard                                                                                                           |
+| `tests/integration/command-generation.test.ts`   | Existing canonical-to-mirror parity guard                                                                                                           |
+| `tests/unit/extension/Config.test.ts`            | Reused config helper/constants unit suite that complements the manifest-backed integration checks and still contains some broader legacy assertions |
 
 ## 6. Common Issues
 
@@ -221,8 +222,9 @@ keybinding, or tree-action references in the same change.
 **Problem**: Canonical command content changed, but generated mirror artifacts
 were not refreshed.
 
-**Fix**: Rerun `npm run gofer:generate`, `npm run generate-commands -- --verbose`,
-and `./scripts/sync-extension-resources.sh`, then recheck diffs under both repo
+**Fix**: Rerun `npm run gofer:generate`,
+`npm run generate-commands -- --verbose`, and
+`./scripts/sync-extension-resources.sh`, then recheck diffs under both repo
 mirrors and `extension/resources/` instead of hand-editing generated outputs.
 
 ### Settings or defaults still drift

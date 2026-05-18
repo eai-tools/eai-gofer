@@ -11,7 +11,7 @@ import { UsageLogger } from '../../extension/src/council/UsageLogger';
 
 describe.skip('Real Sync Test', () => {
   it('should sync real context-usage.jsonl data to council log', async () => {
-    const workspacePath = '/Users/douglaswross/Code/gofer';
+    const workspacePath = '/Users/douglaswross/Code/eai-gofer';
     const councilLogPath = path.join(workspacePath, '.specify/logs/council-usage.jsonl');
 
     // Clear existing council log

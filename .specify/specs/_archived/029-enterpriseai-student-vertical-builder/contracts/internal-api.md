@@ -168,7 +168,7 @@ back to `.specify/references/eai/` when unavailable.
 ```json
 {
   "runId": "run_029_0001",
-  "referenceTypes": ["eai-cli", "vertical-template", "deployment-repo"],
+  "referenceTypes": ["eai", "vertical-template", "deployment-repo"],
   "externalReferencesEnabled": true,
   "fallbackPath": ".specify/references/eai/"
 }
@@ -181,9 +181,9 @@ back to `.specify/references/eai/` when unavailable.
   "status": "resolved",
   "resolvedReferences": [
     {
-      "type": "eai-cli",
+      "type": "eai",
       "source": "local-fallback",
-      "path": ".specify/references/eai/eai-cli.md"
+      "path": ".specify/references/eai/eai.md"
     }
   ],
   "unavailableExternalReferences": ["deployment-repo"],
@@ -278,7 +278,7 @@ pinning and deployment convention guidance.
   "workflowProfile": "enterpriseai",
   "specPath": ".specify/specs/029-enterpriseai-student-vertical-builder/spec.md",
   "resolvedReferences": {
-    "eaiCli": ".specify/references/eai/eai-cli.md",
+    "eaiCli": ".specify/references/eai/eai.md",
     "verticalTemplate": ".specify/references/eai/vertical-template.md",
     "deploymentRepo": ".specify/references/eai/deployment-repo.md"
   },
@@ -300,11 +300,11 @@ pinning and deployment convention guidance.
 
 ### Error Codes
 
-| Code                             | Description                                    |
-| -------------------------------- | ---------------------------------------------- |
-| PLAN_EAI_CLI_VERSION_UNAVAILABLE | Installed `eai-cli` version could not be read. |
-| PLAN_DEPLOYMENT_GUIDANCE_MISSING | Deployment conventions source is missing.      |
-| PLAN_ARTIFACT_GENERATION_FAILED  | Plan/tasks generation failed.                  |
+| Code                             | Description                                |
+| -------------------------------- | ------------------------------------------ |
+| PLAN_EAI_CLI_VERSION_UNAVAILABLE | Installed `eai` version could not be read. |
+| PLAN_DEPLOYMENT_GUIDANCE_MISSING | Deployment conventions source is missing.  |
+| PLAN_ARTIFACT_GENERATION_FAILED  | Plan/tasks generation failed.              |
 
 ### User Story and FR Mapping
 

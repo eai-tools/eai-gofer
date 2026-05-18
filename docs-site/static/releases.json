@@ -1,13 +1,13 @@
 {
   "latest_version": "3.3.1",
-  "repository": "eai-tools/gofer",
+  "repository": "eai-tools/eai-gofer",
   "last_updated": "2026-05-12T23:44:41.756Z",
   "releases": [
     {
       "version": "3.3.1",
       "tag_name": "v3.3.1",
       "published_at": "2026-05-12T23:44:41.755Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-3.3.1.vsix",
+      "download_url": "https://eai-tools.github.io/eai-gofer/releases/gofer-3.3.1.vsix",
       "notes": "Add public platform builder workflow guidance",
       "prerelease": false,
       "size_mb": 11.3
@@ -16,7 +16,7 @@
       "version": "3.3.0",
       "tag_name": "v3.3.0",
       "published_at": "2026-05-10T13:04:03.013Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-3.3.0.vsix",
+      "download_url": "https://eai-tools.github.io/eai-gofer/releases/gofer-3.3.0.vsix",
       "notes": "Refresh live validation for 031/032, restore release/doc validation contracts, and remediate vulnerable transitive dependencies.",
       "prerelease": false,
       "size_mb": 11.3
@@ -25,7 +25,7 @@
       "version": "3.2.2",
       "tag_name": "v3.2.2",
       "published_at": "2026-05-03T09:20:16.201Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-3.2.2.vsix",
+      "download_url": "https://eai-tools.github.io/eai-gofer/releases/gofer-3.2.2.vsix",
       "notes": "Refine the Rules and Memory panel, restore editable markdown flows, and tighten memory curation behavior",
       "prerelease": false,
       "size_mb": 12
@@ -34,7 +34,7 @@
       "version": "3.2.1",
       "tag_name": "v3.2.1",
       "published_at": "2026-05-02T21:41:26.787Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-3.2.1.vsix",
+      "download_url": "https://eai-tools.github.io/eai-gofer/releases/gofer-3.2.1.vsix",
       "notes": "Harden release automation and verify script-driven patch publishing",
       "prerelease": false,
       "size_mb": 12
@@ -43,7 +43,7 @@
       "version": "3.2.0",
       "tag_name": "v3.2.0",
       "published_at": "2026-05-02T04:57:49.803Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-3.2.0.vsix",
+      "download_url": "https://eai-tools.github.io/eai-gofer/releases/gofer-3.2.0.vsix",
       "notes": "Augment skills pipeline with new helpers and stricter validation",
       "prerelease": false,
       "size_mb": 12
@@ -52,7 +52,7 @@
       "version": "3.1.0",
       "tag_name": "v3.1.0",
       "published_at": "2026-04-30T05:00:27.904Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-3.1.0.vsix",
+      "download_url": "https://eai-tools.github.io/eai-gofer/releases/gofer-3.1.0.vsix",
       "notes": "Adds EnterpriseAI-first cross-CLI delivery for Gofer.\n\n- Emits the full Gofer command set across Claude, Copilot, Codex, and Gemini.\n- Makes EnterpriseAI the default workflow with explicit standard-profile opt-out.\n- Adds app/non-app classification and a four-step AI-augmented process model for application delivery.\n- Adds context bundle, contract pack, reuse scan, audit history, and red/green validation guardrails.\n- Generates persona-specific Marp decks for enterprise decision makers.",
       "prerelease": false,
       "size_mb": 11.2
@@ -61,7 +61,7 @@
       "version": "3.0.1",
       "tag_name": "v3.0.1",
       "published_at": "2026-04-28T04:57:19.797Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-3.0.1.vsix",
+      "download_url": "https://eai-tools.github.io/eai-gofer/releases/gofer-3.0.1.vsix",
       "notes": "Fix Codex install repair and cross-CLI docs",
       "prerelease": false,
       "size_mb": 10.5
@@ -70,7 +70,7 @@
       "version": "3.0.0",
       "tag_name": "v3.0.0",
       "published_at": "2026-04-25T03:14:48.692Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-3.0.0.vsix",
+      "download_url": "https://eai-tools.github.io/eai-gofer/releases/gofer-3.0.0.vsix",
       "notes": "Phase 1+2+3 source-of-truth generator + persona-pack visuals",
       "prerelease": false,
       "size_mb": 10.4
@@ -79,7 +79,7 @@
       "version": "2.0.11",
       "tag_name": "v2.0.11",
       "published_at": "2026-04-21T01:43:50.355Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-2.0.11.vsix",
+      "download_url": "https://eai-tools.github.io/eai-gofer/releases/gofer-2.0.11.vsix",
       "notes": "security: fix 48 of 55 npm audit vulnerabilities — remove unused wdio-vscode-service + @wdio/cli (23 CVEs in dev-only webdriverio v8 tree), remove deprecated electron-rebuild duplicate, bump @electron/rebuild 3.7.2 → 4.0.3. Remaining 7 are mocha's transitive diff/serialize-javascript — no upstream fix. Purely dev-only. All 2549 tests pass.",
       "prerelease": false,
       "size_mb": 10.4
@@ -88,7 +88,7 @@
       "version": "2.0.10",
       "tag_name": "v2.0.10",
       "published_at": "2026-04-20T13:47:12.075Z",
-      "download_url": "https://eai-tools.github.io/gofer/releases/gofer-2.0.10.vsix",
+      "download_url": "https://eai-tools.github.io/eai-gofer/releases/gofer-2.0.10.vsix",
       "notes": "infra(release): add scripts/sync-extension-resources.sh and wire into release-auto.sh so every VSIX bundles current canonical content. Adds 10 missing templates (stakeholder-comms, business-metrics, discovery, problem-brief, assumptions, brownfield-analysis, spec-summary, session-handoff, journey/, sequence-diagrams/) to extension/resources/templates/ so eai init delivers them. Prevents the v2.0.5-v2.0.8 class of stale-bundle regressions.",
       "prerelease": false,
       "size_mb": 10.4

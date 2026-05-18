@@ -236,21 +236,21 @@ real integration gaps.
 
 **High Priority (Phase 1)**:
 
-1. `/Users/douglaswross/Code/gofer/extension/src/extension.ts` - Fix history
+1. `/Users/douglaswross/Code/eai-gofer/extension/src/extension.ts` - Fix history
    preservation, doc links, config watcher
-2. `/Users/douglaswross/Code/gofer/extension/src/autonomous/AutonomousDriver.ts` -
+2. `/Users/douglaswross/Code/eai-gofer/extension/src/autonomous/AutonomousDriver.ts` -
    Wire provider, fix type signature
-3. `/Users/douglaswross/Code/gofer/extension/src/config.ts` - Add ConfigManager
-   methods
-4. `/Users/douglaswross/Code/gofer/extension/src/claudeCodeBridge.ts` - Accept
-   conversation history in constructor
+3. `/Users/douglaswross/Code/eai-gofer/extension/src/config.ts` - Add
+   ConfigManager methods
+4. `/Users/douglaswross/Code/eai-gofer/extension/src/claudeCodeBridge.ts` -
+   Accept conversation history in constructor
 
 **High Priority (Phase 2)**: 5.
-`/Users/douglaswross/Code/gofer/tests/integration/cli-provider-switching.test.ts`
+`/Users/douglaswross/Code/eai-gofer/tests/integration/cli-provider-switching.test.ts`
 (NEW) 6.
-`/Users/douglaswross/Code/gofer/tests/e2e/pipeline-provider-parity.e2e.test.ts`
+`/Users/douglaswross/Code/eai-gofer/tests/e2e/pipeline-provider-parity.e2e.test.ts`
 (NEW) 7.
-`/Users/douglaswross/Code/gofer/tests/e2e/autonomous-provider-switching.e2e.test.ts`
+`/Users/douglaswross/Code/eai-gofer/tests/e2e/autonomous-provider-switching.e2e.test.ts`
 (NEW)
 
 ## Summary

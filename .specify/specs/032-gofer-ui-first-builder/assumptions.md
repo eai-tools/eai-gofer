@@ -9,9 +9,8 @@ status: reviewed
 - [x] Gofer's shipped behavior is primarily defined by canonical
       `.specify/commands/*.md` sources plus generated mirrors.
 - [x] The Vertical Template remains the approved app-delivery UI lego-block
-      source for `eai-cli`-initialized projects.
+      source for `eai`-initialized projects.
 - [x] Non-app workflows should stay in the same numbered stages and skip
       app-only preview/approval/service-fit gates.
 - [x] Feature-owned validation can be judged with targeted generator/build/test
       evidence even if unrelated working-tree failures exist elsewhere.
-

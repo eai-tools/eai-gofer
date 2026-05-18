@@ -326,24 +326,24 @@ quality.
 
 **High Priority (Red Findings)**:
 
-1. `/Users/douglaswross/Code/gofer/extension/src/extension.ts` - Add config
+1. `/Users/douglaswross/Code/eai-gofer/extension/src/extension.ts` - Add config
    watcher, health check
-2. `/Users/douglaswross/Code/gofer/extension/src/council/providers/cli/ClaudeCodeCLIProvider.ts` -
+2. `/Users/douglaswross/Code/eai-gofer/extension/src/council/providers/cli/ClaudeCodeCLIProvider.ts` -
    Sanitize prompts
-3. `/Users/douglaswross/Code/gofer/extension/src/council/providers/cli/CodexCLIProvider.ts` -
+3. `/Users/douglaswross/Code/eai-gofer/extension/src/council/providers/cli/CodexCLIProvider.ts` -
    Sanitize prompts
-4. `/Users/douglaswross/Code/gofer/extension/src/council/providers/cli/CLIProviderAdapter.ts` -
+4. `/Users/douglaswross/Code/eai-gofer/extension/src/council/providers/cli/CLIProviderAdapter.ts` -
    Add mutex, retry logic
-5. `/Users/douglaswross/Code/gofer/extension/src/autonomous/ClaudeCodeUsageAdapter.ts` -
+5. `/Users/douglaswross/Code/eai-gofer/extension/src/autonomous/ClaudeCodeUsageAdapter.ts` -
    Convert sync I/O
-6. `/Users/douglaswross/Code/gofer/extension/src/autonomous/CodexUsageAdapter.ts` -
+6. `/Users/douglaswross/Code/eai-gofer/extension/src/autonomous/CodexUsageAdapter.ts` -
    Convert sync I/O
 
 **Missing Files (Must Create)**: 7.
-`/Users/douglaswross/Code/gofer/tests/unit/council/providers/cli/ClaudeOutputParser.test.ts` 8.
-`/Users/douglaswross/Code/gofer/tests/unit/council/providers/cli/CodexOutputParser.test.ts` 9.
-`/Users/douglaswross/Code/gofer/tests/e2e/cli-provider-parity.e2e.test.ts` 10.
-`/Users/douglaswross/Code/gofer/docs/multi-provider-cli-support.md`
+`/Users/douglaswross/Code/eai-gofer/tests/unit/council/providers/cli/ClaudeOutputParser.test.ts` 8.
+`/Users/douglaswross/Code/eai-gofer/tests/unit/council/providers/cli/CodexOutputParser.test.ts` 9.
+`/Users/douglaswross/Code/eai-gofer/tests/e2e/cli-provider-parity.e2e.test.ts` 10.
+`/Users/douglaswross/Code/eai-gofer/docs/multi-provider-cli-support.md`
 
 ---
 

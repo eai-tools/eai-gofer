@@ -11,7 +11,7 @@ import { type EaiReferenceSource } from '../../../services/enterpriseai/models/G
 
 suite('enterpriseai workflow profile contracts', () => {
   const fixturesRoot = path.join(__dirname, 'fixtures-workflow');
-  const fallbackFile = path.join(fixturesRoot, '.specify', 'references', 'eai', 'eai-cli.md');
+  const fallbackFile = path.join(fixturesRoot, '.specify', 'references', 'eai', 'eai.md');
 
   setup(async () => {
     await fs.mkdir(path.dirname(fallbackFile), { recursive: true });
@@ -33,8 +33,8 @@ suite('enterpriseai workflow profile contracts', () => {
     const sources: readonly EaiReferenceSource[] = [
       {
         referenceId: 'ref_001',
-        referenceType: 'eai_cli_docs',
-        localFallbackPath: '.specify/references/eai/eai-cli.md',
+        referenceType: 'eai_docs',
+        localFallbackPath: '.specify/references/eai/eai.md',
         availabilityStatus: 'external_unavailable',
         lastCheckedAt: new Date().toISOString(),
       },
@@ -46,11 +46,11 @@ suite('enterpriseai workflow profile contracts', () => {
     assert.strictEqual(result.resolvedReferences.length, 1);
     assert.strictEqual(result.resolvedReferences[0].source, 'local-fallback');
     assert.strictEqual(result.userNoticeRequired, true);
-    assert.deepStrictEqual(result.unavailableExternalReferences, ['eai_cli_docs']);
+    assert.deepStrictEqual(result.unavailableExternalReferences, ['eai_docs']);
   });
 
-  test('extracts eai-cli version and major.minor pin metadata', () => {
-    const versionOutput = 'eai-cli version 2.7.4 (build 2191)';
+  test('extracts eai version and major.minor pin metadata', () => {
+    const versionOutput = 'eai version 2.7.4 (build 2191)';
     const info = extractEaiCliVersionInfo(versionOutput);
 
     assert.ok(info);

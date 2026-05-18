@@ -115,8 +115,8 @@
     <script>
         window.$docsify = {
             name: 'Gofer',
-            nameLink: '/gofer/',
-            repo: 'https://github.com/eai-tools/gofer',
+            nameLink: '/eai-gofer/',
+            repo: 'https://github.com/eai-tools/eai-gofer',
             loadSidebar: false,
             loadNavbar: false,
             subMaxLevel: 3,
@@ -129,11 +129,11 @@
                         nav.className = 'app-nav';
                         nav.innerHTML =
                             '<ul>' +
-                                '<li><a href="/gofer/">Home</a></li>' +
-                                '<li><a href="/gofer/#/quickstart">Quick Start</a></li>' +
-                                '<li><a href="/gofer/#/pipeline/README">Pipeline</a></li>' +
-                                '<li class="active"><a href="/gofer/releases.html">Releases</a></li>' +
-                                '<li><a href="https://github.com/eai-tools/gofer">GitHub</a></li>' +
+                                '<li><a href="/eai-gofer/">Home</a></li>' +
+                                '<li><a href="/eai-gofer/#/quickstart">Quick Start</a></li>' +
+                                '<li><a href="/eai-gofer/#/pipeline/README">Pipeline</a></li>' +
+                                '<li class="active"><a href="/eai-gofer/releases.html">Releases</a></li>' +
+                                '<li><a href="https://github.com/eai-tools/eai-gofer">GitHub</a></li>' +
                             '</ul>';
                         var body = document.body;
                         body.insertBefore(nav, body.firstChild);
@@ -180,7 +180,7 @@
                 try {
                     response = await fetch('./releases.json');
                 } catch (e) {
-                    response = await fetch('https://eai-tools.github.io/gofer/releases.json');
+                    response = await fetch('https://eai-tools.github.io/eai-gofer/releases.json');
                 }
                 if (!response.ok) {
                     throw new Error('HTTP ' + response.status + ': ' + response.statusText);

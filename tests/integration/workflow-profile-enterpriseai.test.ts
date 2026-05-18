@@ -16,7 +16,7 @@ describe('Workflow profile enterpriseai activation', () => {
 
   it('provides local EnterpriseAI fallback references', () => {
     const referenceDir = path.join(process.cwd(), '.specify', 'references', 'eai');
-    const requiredFiles = ['README.md', 'eai-cli.md', 'vertical-template.md', 'deployment-repo.md'];
+    const requiredFiles = ['README.md', 'eai.md', 'vertical-template.md', 'deployment-repo.md'];
 
     requiredFiles.forEach((fileName) => {
       const fullPath = path.join(referenceDir, fileName);

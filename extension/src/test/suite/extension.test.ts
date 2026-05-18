@@ -11,12 +11,12 @@ suite('Extension Test Suite', () => {
   test('Should activate successfully', async () => {
     const extension = vscode.extensions.getExtension('EnterpriseAI.gofer');
     assert.ok(extension);
-    
+
     // The extension should activate when needed
     if (!extension.isActive) {
       await extension.activate();
     }
-    
+
     assert.ok(extension.isActive);
   });
 });

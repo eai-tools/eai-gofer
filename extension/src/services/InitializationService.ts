@@ -202,7 +202,7 @@ export class InitializationService {
       await migrator.upgrade();
       // After upgrade, handled in handleGoferFormat path
     } else if (choice === 'Learn More') {
-      vscode.env.openExternal(vscode.Uri.parse('https://github.com/github/gofer'));
+      vscode.env.openExternal(vscode.Uri.parse('https://github.com/eai-tools/eai-gofer'));
     }
   }
 
@@ -537,8 +537,12 @@ export class InitializationService {
       const aPart = aParts[i] || 0;
       const bPart = bParts[i] || 0;
 
-      if (aPart > bPart) {return 1;}
-      if (aPart < bPart) {return -1;}
+      if (aPart > bPart) {
+        return 1;
+      }
+      if (aPart < bPart) {
+        return -1;
+      }
     }
 
     return 0;

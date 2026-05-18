@@ -2,11 +2,15 @@
 
 ## Problem
 
-The AI Usage Panel was showing $0.00 despite council-usage.jsonl containing $16.69 in usage data.
+The AI Usage Panel was showing $0.00 despite council-usage.jsonl containing
+$16.69 in usage data.
 
 ## Root Cause
 
-The issue was that if `initializeForWorkspace()` failed at ANY point before the AI Usage Monitor section, the monitor would never be created and `setMonitor()` would never be called on AIUsageProvider. Without a monitor, the provider returns empty data (showing as $0).
+The issue was that if `initializeForWorkspace()` failed at ANY point before the
+AI Usage Monitor section, the monitor would never be created and `setMonitor()`
+would never be called on AIUsageProvider. Without a monitor, the provider
+returns empty data (showing as $0).
 
 ## Data Flow (Normal Operation)
 
@@ -34,8 +38,10 @@ The issue was that if `initializeForWorkspace()` failed at ANY point before the 
 
 **Line 543-648**: Wrapped AIUsageMonitor initialization in try-catch block
 
-- **Before**: Any failure in earlier initialization steps would prevent AIUsageMonitor from being created
-- **After**: AIUsageMonitor initialization is isolated and will succeed even if other components fail
+- **Before**: Any failure in earlier initialization steps would prevent
+  AIUsageMonitor from being created
+- **After**: AIUsageMonitor initialization is isolated and will succeed even if
+  other components fail
 - **Added**: Error message to user if initialization fails
 - **Added**: Detailed logging to track initialization progress
 
@@ -75,7 +81,9 @@ try {
 this.logger.info('[setMonitor.onUpdate] Received usage-update event:', {
   trigger: event.trigger,
   periodCount: event.periods.length,
-  totalCosts: event.periods.map(p => `${p.period}: $${p.totalCostUsd.toFixed(2)}`),
+  totalCosts: event.periods.map(
+    (p) => `${p.period}: $${p.totalCostUsd.toFixed(2)}`
+  ),
 });
 ```
 
@@ -92,17 +100,19 @@ this.logger.info('[setMonitor.onUpdate] Received usage-update event:', {
 ### Manual Test (Integration)
 
 ```bash
-cd /Users/douglaswross/Code/gofer
+cd /Users/douglaswross/Code/eai-gofer
 node test-ai-usage-flow.cjs
 ```
 
 **Result**:
+
 ```
 ✓ SUCCESS: Data flow is working correctly
   Panel should show: $16.69
 ```
 
 This test verifies:
+
 1. UsageLogger correctly reads council-usage.jsonl
 2. mapSummaryToUsageData correctly converts the summary
 3. Final output matches expected cost
@@ -129,15 +139,19 @@ This test verifies:
 Check the logs for:
 
 1. **Monitor not set**:
+
    ```
    [getPeriodItems] CRITICAL: No monitor set! Extension initialization may have failed.
    ```
+
    → Check for "Workspace initialization failed" earlier in logs
 
 2. **Monitor initialization failed**:
+
    ```
    [AIUsage] CRITICAL: Failed to initialize AIUsageMonitor
    ```
+
    → Check the error details in the log
 
 3. **Monitor set but no data**:
@@ -145,7 +159,8 @@ Check the logs for:
    [setMonitor.onUpdate] Received usage-update event: { totalCosts: [...] }
    [getPeriodItems] Creating items from data: { totalCosts: [...] }
    ```
-   → If these show $0.00, the data source (UsageLogger) is returning empty summaries
+   → If these show $0.00, the data source (UsageLogger) is returning empty
+   summaries
 
 ## Configuration
 
@@ -163,11 +178,13 @@ Ensure `.vscode/settings.json` has:
 ## Data Source
 
 The panel reads from:
+
 ```
-/Users/douglaswross/Code/gofer/.specify/logs/council-usage.jsonl
+/Users/douglaswross/Code/eai-gofer/.specify/logs/council-usage.jsonl
 ```
 
 Current state:
+
 - **17 entries**
 - **Total cost**: $16.69
 - **Date range**: 2026-03-09 to 2026-03-16

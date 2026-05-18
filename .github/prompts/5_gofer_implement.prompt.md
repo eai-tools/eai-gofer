@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: enterpriseai
   canonicalSource: .specify/commands/5_gofer_implement.md
-  canonicalChecksum: 2012faf6e6354352a5767490a4427832e315fce072f0668925a1345767fae018
+  canonicalChecksum: 6d5fbe3e549a22ff78d855bf6e3a6daba260fe9d431c9ea6b20974f48c1c463f
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -584,12 +584,12 @@ when the user explicitly opts out.
 
 Before any deployment task emitted by `#4_gofer_tasks` completes, this stage
 MUST execute deployment preflight checks (manifest/config gate). A task that
-invokes `eai-cli deploy` is not marked complete until all of the following files
+invokes `eai deploy` is not marked complete until all of the following files
 are present at the workspace root and pass their readiness checks:
 
 | Required File  | Purpose                                                 |
 | -------------- | ------------------------------------------------------- |
-| `manifest.yml` | Vertical application manifest (from `eai-cli scaffold`) |
+| `manifest.yml` | Vertical application manifest (from `eai init`) |
 | `config.json`  | Runtime configuration bundle (environment-specific)     |
 
 ### Gate behaviour

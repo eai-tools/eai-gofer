@@ -8,11 +8,13 @@ Add public platform builder workflow guidance
 
 ## [3.3.0] - 2026-05-10
 
-Refresh live validation for 031/032, restore release/doc validation contracts, and remediate vulnerable transitive dependencies.
+Refresh live validation for 031/032, restore release/doc validation contracts,
+and remediate vulnerable transitive dependencies.
 
 ## [3.2.2] - 2026-05-03
 
-Refine the Rules and Memory panel, restore editable markdown flows, and tighten memory curation behavior
+Refine the Rules and Memory panel, restore editable markdown flows, and tighten
+memory curation behavior
 
 ## [3.2.1] - 2026-05-03
 
@@ -34,9 +36,9 @@ Augment skills pipeline with new helpers and stricter validation
   older hidden context-window setting examples.
 - Removed the unsupported autonomous notification-route settings
   `gofer.autonomous.notificationChannel`,
-  `gofer.autonomous.whatsappPhoneNumber`, and
-  `gofer.autonomous.emailAddress` from the public VS Code configuration
-  surface and deleted outdated migration / WhatsApp guides.
+  `gofer.autonomous.whatsappPhoneNumber`, and `gofer.autonomous.emailAddress`
+  from the public VS Code configuration surface and deleted outdated migration /
+  WhatsApp guides.
 - Removed the no-op public settings `gofer.claudeTerminalName`,
   `gofer.autoValidate`, and `gofer.showWelcome` from the manifest-backed VS Code
   settings surface after confirming they no longer had runtime consumers.
@@ -46,9 +48,12 @@ Augment skills pipeline with new helpers and stricter validation
 Adds EnterpriseAI-first cross-CLI delivery for Gofer.
 
 - Emits the full Gofer command set across Claude, Copilot, Codex, and Gemini.
-- Makes EnterpriseAI the default workflow with explicit standard-profile opt-out.
-- Adds app/non-app classification and a four-step AI-augmented process model for application delivery.
-- Adds context bundle, contract pack, reuse scan, audit history, and red/green validation guardrails.
+- Makes EnterpriseAI the default workflow with explicit standard-profile
+  opt-out.
+- Adds app/non-app classification and a four-step AI-augmented process model for
+  application delivery.
+- Adds context bundle, contract pack, reuse scan, audit history, and red/green
+  validation guardrails.
 - Generates persona-specific Marp decks for enterprise decision makers.
 
 ## [3.0.1] - 2026-04-28
@@ -111,7 +116,7 @@ pre-blast-radius content because extension/resources was stale.
 
 feat(install): add copilot) case to optional-tools install scripts (bash +
 powershell) — installs @github/copilot alongside existing claude,
-@openai/codex-cli, and @google/gemini-cli. Reconciles drift with eai-cli bundled
+@openai/codex-cli, and @google/gemini-cli. Reconciles drift with eai bundled
 copy.
 
 ## [2.0.7] - 2026-04-20

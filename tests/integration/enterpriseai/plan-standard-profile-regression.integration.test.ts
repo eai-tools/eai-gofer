@@ -36,7 +36,7 @@ describe('enterpriseai plan standard profile regression (root integration)', () 
       workflowProfile: 'standard',
       specPath: '.specify/specs/029-enterpriseai-student-vertical-builder/spec.md',
       resolvedReferences: {
-        eaiCli: '.specify/references/eai/eai-cli.md',
+        eaiCli: '.specify/references/eai/eai.md',
         verticalTemplate: '.specify/references/eai/vertical-template.md',
         deploymentRepo: '.specify/references/eai/deployment-repo.md',
       },

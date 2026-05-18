@@ -1,5 +1,5 @@
 {
-  "name": "gofer",
+  "name": "eai-gofer",
   "version": "1.0.0",
   "description": "Gofer pipeline: research, specify, plan, tasks, implement, validate workflow with multi-persona visuals.",
   "author": "Gofer team",

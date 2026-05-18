@@ -9,12 +9,12 @@ interchangeably with Gofer!
 
 Gofer now supports **4 AI CLIs** with automatic command synchronization:
 
-| CLI              | Directory           | Invocation               | Auto-Generated       |
-| ---------------- | ------------------- | ------------------------ | -------------------- |
-| **Claude Code**  | `.claude/commands/` | `/0_business_scenario`   | ✅ Yes (bundled)     |
-| **Codex**        | `.agents/skills/`   | `$ $0_business_scenario` | ✅ Yes (from Claude) |
+| CLI              | Directory           | Invocation                   | Auto-Generated       |
+| ---------------- | ------------------- | ---------------------------- | -------------------- |
+| **Claude Code**  | `.claude/commands/` | `/0_business_scenario`       | ✅ Yes (bundled)     |
+| **Codex**        | `.agents/skills/`   | `$ $0_business_scenario`     | ✅ Yes (from Claude) |
 | **Gemini**       | `.gemini/commands/` | `/gofer:0_business_scenario` | ✅ Yes (from Claude) |
-| **Copilot Chat** | `.github/prompts/`  | `#0_business_scenario`   | ✅ Yes (bundled)     |
+| **Copilot Chat** | `.github/prompts/`  | `#0_business_scenario`       | ✅ Yes (bundled)     |
 
 ---
 
@@ -155,15 +155,15 @@ $ $0_business_scenario "Add user authentication"
 
 ## Feature Parity Matrix
 
-| Feature                         | Claude    | Codex         | Gemini       | Copilot   |
-| ------------------------------- | --------- | ------------- | ------------ | --------- |
-| **Gofer Pipeline**              | ✅ Full   | ✅ Full       | ✅ Full      | ✅ Full   |
-| **Global CLI Access**           | ✅ Native | Repo-local    | ✅ Native    | ✅ Native |
-| **Task Tool (Parallel Agents)** | ✅ Yes    | ❌ No\*       | ✅ Yes (MCP) | ❌ No\*   |
-| **Auto-Chaining**               | ✅ Yes    | ❌ Manual     | ❌ Manual    | ✅ Yes    |
-| **Memory/Context**              | ✅ Yes    | ✅ Yes        | ✅ Yes       | ✅ Yes    |
-| **Max Context Window**          | 200k      | 128k          | 2M†          | 128k      |
-| **VSCode Integration**          | ✅ Native | ❌ CLI only   | ❌ CLI only  | ✅ Native |
+| Feature                         | Claude    | Codex       | Gemini       | Copilot   |
+| ------------------------------- | --------- | ----------- | ------------ | --------- |
+| **Gofer Pipeline**              | ✅ Full   | ✅ Full     | ✅ Full      | ✅ Full   |
+| **Global CLI Access**           | ✅ Native | Repo-local  | ✅ Native    | ✅ Native |
+| **Task Tool (Parallel Agents)** | ✅ Yes    | ❌ No\*     | ✅ Yes (MCP) | ❌ No\*   |
+| **Auto-Chaining**               | ✅ Yes    | ❌ Manual   | ❌ Manual    | ✅ Yes    |
+| **Memory/Context**              | ✅ Yes    | ✅ Yes      | ✅ Yes       | ✅ Yes    |
+| **Max Context Window**          | 200k      | 128k        | 2M†          | 128k      |
+| **VSCode Integration**          | ✅ Native | ❌ CLI only | ❌ CLI only  | ✅ Native |
 
 \*Codex and Copilot commands include notes about manual workflow when Task tool
 is unavailable †Gemini 1.5 Pro supports up to 2M tokens
@@ -394,9 +394,9 @@ CLI-agnostic. You can start a feature in one CLI and continue in another.
 
 ### Community
 
-- [Gofer GitHub Repository](https://github.com/eai-tools/gofer)
-- [Report Issues](https://github.com/eai-tools/gofer/issues)
-- [Feature Requests](https://github.com/eai-tools/gofer/discussions)
+- [Gofer GitHub Repository](https://github.com/eai-tools/eai-gofer)
+- [Report Issues](https://github.com/eai-tools/eai-gofer/issues)
+- [Feature Requests](https://github.com/eai-tools/eai-gofer/discussions)
 
 ---
 
@@ -443,4 +443,4 @@ context is CLI-specific. Each CLI maintains its own session history.
    memory
 
 **Need help?** Open an issue at
-[github.com/eai-tools/gofer/issues](https://github.com/eai-tools/gofer/issues)
+[github.com/eai-tools/eai-gofer/issues](https://github.com/eai-tools/eai-gofer/issues)

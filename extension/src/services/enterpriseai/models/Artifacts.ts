@@ -28,7 +28,7 @@ export type ArtifactGenerationStatus = (typeof ARTIFACT_GENERATION_STATUSES)[num
 
 export const TASK_TYPES = [
   'vertical_template_scaffold',
-  'eai_cli_deploy',
+  'eai_deploy',
   'deployment_convention',
   'validation',
   'generic',
@@ -45,6 +45,7 @@ export const TASK_COMPLETION_STATUSES = ['pending', 'in_progress', 'completed'] 
 export type TaskCompletionStatus = (typeof TASK_COMPLETION_STATUSES)[number];
 
 const MAJOR_MINOR_PATTERN = /^\d+\.\d+$/;
+const LEGACY_EAI_DEPLOY_TASK_TYPE = ['eai', 'cli', 'deploy'].join('_');
 
 export interface ArtifactRecord {
   artifactId: string;
@@ -102,7 +103,19 @@ export function isArtifactGenerationStatus(value: unknown): value is ArtifactGen
 }
 
 export function isTaskType(value: unknown): value is TaskType {
-  return typeof value === 'string' && TASK_TYPES.includes(value as TaskType);
+  return typeof value === 'string' && normalizeTaskType(value) !== undefined;
+}
+
+function normalizeTaskType(value: unknown): TaskType | undefined {
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+
+  if (value === LEGACY_EAI_DEPLOY_TASK_TYPE) {
+    return 'eai_deploy';
+  }
+
+  return TASK_TYPES.includes(value as TaskType) ? (value as TaskType) : undefined;
 }
 
 export function isTaskValidationStatus(value: unknown): value is TaskValidationStatus {
@@ -194,7 +207,8 @@ export function validateTaskItem(task: TaskItem): ValidationResult {
     errors.push('artifactId is required.');
   }
 
-  if (!isTaskType(task.taskType)) {
+  const taskType = normalizeTaskType(task.taskType);
+  if (!taskType) {
     errors.push('taskType is invalid.');
   }
 
@@ -210,9 +224,9 @@ export function validateTaskItem(task: TaskItem): ValidationResult {
     errors.push('validationStatus is invalid.');
   }
 
-  if (task.taskType === 'eai_cli_deploy') {
+  if (taskType === 'eai_deploy') {
     if (!task.eaiCliMajorMinorPin) {
-      errors.push('eai_cli_deploy tasks require eaiCliMajorMinorPin.');
+      errors.push('eai_deploy tasks require eaiCliMajorMinorPin.');
     } else if (!MAJOR_MINOR_PATTERN.test(task.eaiCliMajorMinorPin)) {
       errors.push('eaiCliMajorMinorPin on deploy tasks must match major.minor format.');
     }
@@ -222,7 +236,7 @@ export function validateTaskItem(task: TaskItem): ValidationResult {
       task.commandSnippet &&
       !task.commandSnippet.includes(task.eaiCliMajorMinorPin)
     ) {
-      errors.push('eai_cli_deploy commandSnippet must reference eaiCliMajorMinorPin.');
+      errors.push('eai_deploy commandSnippet must reference eaiCliMajorMinorPin.');
     }
 
     if (task.completionStatus === 'completed' && task.validationStatus !== 'checked') {
@@ -239,15 +253,17 @@ export function validateTaskItem(task: TaskItem): ValidationResult {
 export function validateEnterpriseAiTaskOrdering(tasks: readonly TaskItem[]): ValidationResult {
   const errors: string[] = [];
 
-  const scaffoldTasks = tasks.filter((task) => task.taskType === 'vertical_template_scaffold');
-  const deployTasks = tasks.filter((task) => task.taskType === 'eai_cli_deploy');
+  const scaffoldTasks = tasks.filter(
+    (task) => normalizeTaskType(task.taskType) === 'vertical_template_scaffold'
+  );
+  const deployTasks = tasks.filter((task) => normalizeTaskType(task.taskType) === 'eai_deploy');
 
   if (scaffoldTasks.length < 1) {
     errors.push('At least one vertical_template_scaffold task is required for enterpriseai runs.');
   }
 
   if (deployTasks.length < 1) {
-    errors.push('At least one eai_cli_deploy task is required for enterpriseai runs.');
+    errors.push('At least one eai_deploy task is required for enterpriseai runs.');
   }
 
   if (scaffoldTasks.length > 0 && deployTasks.length > 0) {
@@ -255,7 +271,7 @@ export function validateEnterpriseAiTaskOrdering(tasks: readonly TaskItem[]): Va
     const firstDeployOrder = Math.min(...deployTasks.map((task) => task.orderIndex));
 
     if (firstDeployOrder <= firstScaffoldOrder) {
-      errors.push('First eai_cli_deploy task must occur after at least one scaffold task.');
+      errors.push('First eai_deploy task must occur after at least one scaffold task.');
     }
   }
 

@@ -38,9 +38,8 @@ If missing, prompt user to run the prerequisite stage.
 6. Spec coverage validation
 7. Output: `plan.md`, `data-model.md`, `contracts/`, `quickstart.md`
 8. EnterpriseAI default output: task-ready references to `context-bundle.md`,
-   `contract-pack.md`, `reuse-scan.md`, `audit-history.md`, and for app
-   delivery `ui-review-log.md`, `ui-approval.md`, and
-   `service-fit-matrix.md`
+   `contract-pack.md`, `reuse-scan.md`, `audit-history.md`, and for app delivery
+   `ui-review-log.md`, `ui-approval.md`, and `service-fit-matrix.md`
 
 ---
 
@@ -74,8 +73,8 @@ Planning dispatches multiple agents — keep main context lightweight.
    directly):
    - Note feature name from FEATURE_DIR
    - Note whether `discovery.md`, `.specify/memory/constitution.md` exist
-   - Note whether `ui-preview-brief.md`, `ui-review-log.md`,
-     `ui-approval.md`, and `service-fit-matrix.md` exist
+   - Note whether `ui-preview-brief.md`, `ui-review-log.md`, `ui-approval.md`,
+     and `service-fit-matrix.md` exist
    - Note whether `{FEATURE_DIR}/sequence-diagrams/selected-option.md` exists
 
 3. **Note template path**: `.specify/templates/plan-template.md`
@@ -545,11 +544,11 @@ When council mode is enabled for `gofer_plan` stage:
 
 When the workflow profile is `enterpriseai`, `plan.md` MUST capture:
 
-1. **EAI CLI version pin** — record the installed `eai-cli` version as a
+1. **EAI CLI version pin** — record the installed `eai` version as a
    `major.minor` pin (for example `2.0`). The plan stage resolves the local
-   version via `eai-cli --version`, strips the patch component, and writes the
-   pin to the `EnterpriseAI Profile Metadata` block of `plan-template.md` so
-   every downstream task is reproducible. Plans MUST apply
+   version via `eai --version`, strips the patch component, and writes the pin
+   to the `EnterpriseAI Profile Metadata` block of `plan-template.md` so every
+   downstream task is reproducible. Plans MUST apply
    `pin guidance to `major.minor`` and never to a specific patch release.
 2. **Deployment convention** — reference
    `.specify/references/eai/deployment-repo.md` for the canonical deployment
@@ -584,20 +583,22 @@ When the workflow profile is `enterpriseai`, `plan.md` MUST capture:
    before tasks are treated as complete. The matrix must distinguish:
    - accessible now
    - purchasable but unavailable now
-   - unavailable without new platform work
-   The plan must source this evidence from `eai --describe`, `eai whoami`,
-   `eai tenant select`, `eai resources schema`, `eai verify calls --format
-   json`, `eai workflow readiness <workflow-key>`, `eai workflow status
-   <workflow-key>`, `eai workflow request <workflow-key>`, `eai provision
-   entra --rotate-secret`, or documented equivalent public platform evidence.
-8. **Reuse-before-create decision log** — reference `{FEATURE_DIR}/reuse-scan.md`
-   for every new or extended EnterpriseAI object type, API/event, workflow, or
-   module.
+   - unavailable without new platform work The plan must source this evidence
+     from `eai --describe`, `eai whoami`, `eai tenant select`,
+     `eai resources schema`, `eai verify calls --format json`,
+     `eai workflow readiness <workflow-key>`,
+     `eai workflow status <workflow-key>`,
+     `eai workflow request <workflow-key>`,
+     `eai provision entra --rotate-secret`, or documented equivalent public
+     platform evidence.
+8. **Reuse-before-create decision log** — reference
+   `{FEATURE_DIR}/reuse-scan.md` for every new or extended EnterpriseAI object
+   type, API/event, workflow, or module.
 9. **Audit history seed** — create or update `{FEATURE_DIR}/audit-history.md`
    with stable finding IDs, decision exceptions, owner, expiry, and review
    cadence so validation can track recurring issues.
-10. **Public/private knowledge split** — identify which implementation facts
-    are safe for public docs, Gofer guidance, EAI CLI help, or Vertical Template
+10. **Public/private knowledge split** — identify which implementation facts are
+    safe for public docs, Gofer guidance, EAI CLI help, or Vertical Template
     comments, and which facts are internal-only. Plans must express blocked
     states as public-safe actions (`operator_required`, `upgrade_required`, or
     documented support URL) rather than exposing private service topology.

@@ -9,9 +9,9 @@ settings, and Claude Code terminal helpers so business, delivery, and
 engineering work can stay aligned from discovery through validation while
 artifacts remain under `.specify/specs/{feature}/`.
 
-EnterpriseAI-first workflow guidance is the default. Set
-`gofer.workflowProfile` to `standard` only when you explicitly want the
-baseline workflow.
+EnterpriseAI-first vertical app delivery workflow guidance is the default. Set
+`gofer.workflowProfile` to `standard` only when you explicitly want the baseline
+workflow.
 
 ## What Gofer Helps With
 
@@ -23,34 +23,35 @@ baseline workflow.
 
 ## Quick Start
 
-1. Open the Command Palette (`Cmd/Ctrl+Shift+P`) and run
-   **Gofer: Initialize Repository**.
+1. Open the Command Palette (`Cmd/Ctrl+Shift+P`) and run **Gofer: Initialize
+   Repository**.
 2. Optional: run **Gofer: Install Optional Developer Tools** to install or
    update supported CLIs.
 3. Start with `#0_business_scenario` in Copilot Chat or `/0_business_scenario`
    in slash-command CLIs.
-4. Continue through `research -> specify -> plan -> tasks -> implement ->
-   validate`, reviewing the repo artifacts at each stage.
+4. Continue through
+   `research -> specify -> plan -> tasks -> implement -> validate`, reviewing
+   the repo artifacts at each stage.
 
 ## Sidebar Views
 
-| View | Purpose |
-| ---- | ------- |
+| View           | Purpose                                                                     |
+| -------------- | --------------------------------------------------------------------------- |
 | Specifications | Follow current specs, sections, and task state from the Gofer activity view |
-| AI Token Usage | Review AI usage details when provider data or local logs are available |
-| Memory | Browse saved project context and related memory actions |
+| AI Token Usage | Review AI usage details when provider data or local logs are available      |
+| Memory         | Browse saved project context and related memory actions                     |
 
 ## Common Commands
 
 The Command Palette and `extension/package.json` are the authoritative command
 surface. Common command groups:
 
-| Area | Supported commands |
-| ---- | ------------------ |
-| Setup | `Gofer: Initialize Repository`, `Gofer: Install Optional Developer Tools`, `Gofer: Upgrade to Gofer Format`, `Gofer: Update Templates`, `Gofer: Check for Updates`, `Gofer: Update Now` |
-| Specs and views | `Gofer: Create New Specification`, `Gofer: Open Specification`, `Gofer: Execute All Pending Specs (Dependency Order)`, `Gofer: Show Progress Panel`, `Gofer: Show Constitution Panel`, `Gofer: Show AI Usage Details`, `Gofer: Refresh Specifications`, `Gofer: Refresh Constitution`, `Gofer: Refresh AI Usage`, `Gofer: Refresh Memory` |
-| Claude Code terminal | `Gofer: Start Claude Code Terminal`, `Gofer: Pause Claude Code Terminal (Send ESC)`, `Gofer: Stop Claude Code Terminal`, `Gofer: Resume Claude Code Autonomous Monitoring`, `Gofer: Resume Session from Checkpoint`, `Gofer: Check for Slop (AI Code Quality)` |
-| Memory | `Gofer: Remember`, `Gofer: Search Memory`, `Gofer: Forget Memory`, `Gofer: Clear Memory`, `Gofer: View Memories`, `Gofer: Query Memory Usage`, `Gofer: View Compaction History` |
+| Area                 | Supported commands                                                                                                                                                                                                                                                                                                                        |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Setup                | `Gofer: Initialize Repository`, `Gofer: Install Optional Developer Tools`, `Gofer: Upgrade to Gofer Format`, `Gofer: Update Templates`, `Gofer: Check for Updates`, `Gofer: Update Now`                                                                                                                                                   |
+| Specs and views      | `Gofer: Create New Specification`, `Gofer: Open Specification`, `Gofer: Execute All Pending Specs (Dependency Order)`, `Gofer: Show Progress Panel`, `Gofer: Show Constitution Panel`, `Gofer: Show AI Usage Details`, `Gofer: Refresh Specifications`, `Gofer: Refresh Constitution`, `Gofer: Refresh AI Usage`, `Gofer: Refresh Memory` |
+| Claude Code terminal | `Gofer: Start Claude Code Terminal`, `Gofer: Pause Claude Code Terminal (Send ESC)`, `Gofer: Stop Claude Code Terminal`, `Gofer: Resume Claude Code Autonomous Monitoring`, `Gofer: Resume Session from Checkpoint`, `Gofer: Check for Slop (AI Code Quality)`                                                                            |
+| Memory               | `Gofer: Remember`, `Gofer: Search Memory`, `Gofer: Forget Memory`, `Gofer: Clear Memory`, `Gofer: View Memories`, `Gofer: Query Memory Usage`, `Gofer: View Compaction History`                                                                                                                                                           |
 
 ## Claude Code Terminal Workflow
 

@@ -104,7 +104,7 @@ if "$CODE_CMD" --list-extensions | grep -qi "gofer"; then
     print_success "Gofer extension is installed"
 else
     print_warning "Gofer extension not installed. Install it first with:"
-    echo "  $CODE_CMD --install-extension ./gofer-*.vsix"
+    echo "  $CODE_CMD --install-extension ./eai-gofer-*.vsix"
     exit 1
 fi
 

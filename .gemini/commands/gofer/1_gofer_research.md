@@ -31,7 +31,8 @@ This is the **first stage** of the unified Gofer pipeline. Your job is to:
 
 - `.specify/specs/{feature}/research.md`
 - `.specify/specs/{feature}/proposal-review.md`
-- `.specify/specs/{feature}/journeys/base-journey.md` (application delivery default)
+- `.specify/specs/{feature}/journeys/base-journey.md` (application delivery
+  default)
 - `.specify/specs/{feature}/ui-preview-brief.md` (application delivery default)
 - `.specify/specs/{feature}/context-bundle.md` (EnterpriseAI default)
 - `.specify/specs/{feature}/reuse-scan.md` (EnterpriseAI default)
@@ -69,8 +70,8 @@ If discovery.md exists:
    - Target Users → Research UX patterns appropriate for these users
    - Value Proposition → Research metrics and measurement approaches
    - Competitive Analysis → If researched, focus on differentiation
-   - Application Classification → Determine whether a four-step AI-augmented
-     app journey is required
+   - Application Classification → Determine whether a four-step AI-augmented app
+     journey is required
    - AI-Augmented Journey → If app delivery, preserve the four-step-or-fewer
      journey as the scope spine for research
    - Shared numbered-stage contract → if non-app, preserve the current shared
@@ -287,8 +288,12 @@ the standard profile, generate:
    - Vertical Template constraint map: which approved template blocks or layout
      patterns the preview should use before any create-new UI concept is
      considered.
-   - Branding inputs: whether client styling, logos, colors, copy tone, or
-     other corporate-brand artifacts must be applied.
+   - Block catalog evidence: run `eai --describe`, `eai blocks list`,
+     `eai blocks describe <id>` for each candidate, and `eai resources schema`;
+     record stable block IDs, required resources, data/action bindings,
+     theme/override points, and any custom-block exception that needs approval.
+   - Branding inputs: whether client styling, logos, colors, copy tone, or other
+     corporate-brand artifacts must be applied.
    - Preview validation plan: what screenshot, browser-render, or
      Playwright-style self-review evidence must exist before Gofer presents the
      preview to the stakeholder.
@@ -423,14 +428,16 @@ status: complete
 - **Relevant Specs**: [Existing specs to carry forward]
 - **Relevant Code Paths**: [Files/directories and why they matter]
 - **EnterpriseAI Object Types**: [Known or candidate object types]
-- **Tenant and Deployment Assumptions**: [Tenant, identity, runtime, target environment]
-- **Validation Criteria**: [Business, security, data, architecture, and operational checks]
+- **Tenant and Deployment Assumptions**: [Tenant, identity, runtime, target
+  environment]
+- **Validation Criteria**: [Business, security, data, architecture, and
+  operational checks]
 
 ## Reuse-Before-Create Scan
 
-| Candidate | Existing Evidence | Decision | Rationale | Owner |
-| --------- | ----------------- | -------- | --------- | ----- |
-| [Object type/API/workflow/module/spec] | [Path or reference] | Reuse/Extend/Create New | [Why] | [Owner] |
+| Candidate                              | Existing Evidence   | Decision                | Rationale | Owner   |
+| -------------------------------------- | ------------------- | ----------------------- | --------- | ------- |
+| [Object type/API/workflow/module/spec] | [Path or reference] | Reuse/Extend/Create New | [Why]     | [Owner] |
 
 ## Business Scenario Analysis
 

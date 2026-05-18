@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: enterpriseai
   canonicalSource: .specify/commands/3_gofer_plan.md
-  canonicalChecksum: cd59a65660ab9237128c856e9dbb2423f8827ca295ed41170764a76524d17b1d
+  canonicalChecksum: 61f6bea64c9cae8c312ca1277dcf9daac3f8c32fa2b16b3b817a2ed65e10b8df
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -585,6 +585,11 @@ When the workflow profile is `enterpriseai`, `plan.md` MUST capture:
    the preview loop before plan/tasks are considered complete. The plan MUST:
    - keep the first preview constrained to Vertical Template blocks unless an
      approved extension is recorded
+   - cite `eai blocks describe <id>` evidence for every selected block ID,
+     plus the ResourceAPI/Object Type fields from `eai resources schema` that
+     feed each block
+   - record override points for theme tokens, `presentationConfig`, copy,
+     data/action bindings, and client extension blocks
    - capture whether client branding/logos are in scope
    - require screenshot, local render proof, or Playwright-style self-review
      evidence before stakeholder presentation

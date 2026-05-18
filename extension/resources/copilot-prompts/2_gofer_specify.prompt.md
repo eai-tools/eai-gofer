@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: enterpriseai
   canonicalSource: .specify/commands/2_gofer_specify.md
-  canonicalChecksum: 7323a55bd1334c790cef8f6c51d133f8f2fb8a182aaef494f35013115d607018
+  canonicalChecksum: 257c8274d59d396190694989285e4c8a99df546d8e4eb314ec63f3ddb440af5e
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -210,6 +210,10 @@ If journeys/base-journey.md exists and is classified as app delivery, use it to:
 If ui-preview-brief.md exists, use it to:
 - Require the first MVP preview to stay inside the approved Vertical Template
   blocks before any create-new UI concept is proposed
+- Require every proposed UI building block to cite an `eai blocks describe`
+  result by stable ID; ambiguous display names are not acceptable
+- Require any unknown UI component to be recorded as a custom-block exception
+  with manifest shape, component owner, data/resource binding, and approval path
 - Carry forward branding/logo requirements as explicit scope, not as implied
   polish
 - Require preview self-review evidence such as screenshot, local render proof,

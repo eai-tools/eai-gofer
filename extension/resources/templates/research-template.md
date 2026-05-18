@@ -91,12 +91,19 @@ Why relevant: [Explanation]
 
 - **Smallest useful MVP to show first**: [description]
 - **Vertical Template constraints**: [approved blocks/patterns to reuse first]
+- **Block catalog discovery**: [`eai --describe`, `eai blocks list`, candidate
+  `eai blocks describe <id>` results, and `eai resources schema` evidence]
+- **Selected block IDs**: [stable IDs, required resources, bindings, override
+  points, and custom-block exceptions]
 - **Branding inputs**: [logos, colors, voice, or "not in scope"]
-- **Preview validation expectation**: [screenshot, local render proof, Playwright-style checks]
+- **Preview validation expectation**: [screenshot, local render proof,
+  Playwright-style checks]
 
 ### Service-Fit Discovery Inputs
 
-- **Capability discovery sources**: [`eai --describe`, `eai whoami`, `eai tenant select`, `eai resources schema`, `eai verify calls --format json`, or equivalent]
+- **Capability discovery sources**: [`eai --describe`, `eai whoami`, `eai tenant
+  select`, `eai resources schema`, `eai verify calls --format json`, or
+  equivalent]
 - **What must be decided after UI approval**: [service selection questions]
 - **Non-app note**: [write "Not applicable" when this feature is non-app work]
 

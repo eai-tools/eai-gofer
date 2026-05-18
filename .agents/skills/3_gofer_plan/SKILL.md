@@ -579,6 +579,11 @@ When the workflow profile is `enterpriseai`, `plan.md` MUST capture:
    the preview loop before plan/tasks are considered complete. The plan MUST:
    - keep the first preview constrained to Vertical Template blocks unless an
      approved extension is recorded
+   - cite `eai blocks describe <id>` evidence for every selected block ID,
+     plus the ResourceAPI/Object Type fields from `eai resources schema` that
+     feed each block
+   - record override points for theme tokens, `presentationConfig`, copy,
+     data/action bindings, and client extension blocks
    - capture whether client branding/logos are in scope
    - require screenshot, local render proof, or Playwright-style self-review
      evidence before stakeholder presentation

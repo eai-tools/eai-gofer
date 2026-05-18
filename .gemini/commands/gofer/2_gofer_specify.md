@@ -195,6 +195,10 @@ If journeys/base-journey.md exists and is classified as app delivery, use it to:
 If ui-preview-brief.md exists, use it to:
 - Require the first MVP preview to stay inside the approved Vertical Template
   blocks before any create-new UI concept is proposed
+- Require every proposed UI building block to cite an `eai blocks describe`
+  result by stable ID; ambiguous display names are not acceptable
+- Require any unknown UI component to be recorded as a custom-block exception
+  with manifest shape, component owner, data/resource binding, and approval path
 - Carry forward branding/logo requirements as explicit scope, not as implied
   polish
 - Require preview self-review evidence such as screenshot, local render proof,

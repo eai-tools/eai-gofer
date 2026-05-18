@@ -1,8 +1,7 @@
 ---
 name: 0_business_scenario
-description:
-  'Define the business problem and scenario for Gofer to analyse and solve.'
-title: 'Business Scenario'
+description: "Define the business problem and scenario for Gofer to analyse and solve."
+title: "Business Scenario"
 category: pipeline
 surfaces:
   - claude
@@ -16,10 +15,9 @@ surfaces:
   - system-skills
 aliases: [gofer:scenario]
 ---
-
 ---
-
-## description: Triage business scenario and orchestrate the unified Gofer pipeline
+description: Triage business scenario and orchestrate the unified Gofer pipeline
+---
 
 # Gofer Orchestrator
 
@@ -291,6 +289,16 @@ status: complete
 | Problem Focus | [Choice] | [Why]     |
 | User Target   | [Choice] | [Why]     |
 | Value Metric  | [Choice] | [Why]     |
+
+## AI-Readable Blocks Bridge
+
+| Field | Decision |
+| ----- | -------- |
+| Profile Choice | External / Internal / Hybrid |
+| Package Lane | {{public-package | internal-app | hybrid-adapter | app-local}} |
+| Coupling Status | {{daisy-coupled | daisy-decoupled | hybrid-adapter}} |
+| Public-Readiness Target | {{required | deferred | not-applicable}} |
+| Block Porting Need | {{reuse | port | custom-block-exception}} |
 ```
 
 ### Store in Memory
@@ -358,11 +366,11 @@ If non-app, record this explicitly in `discovery.md`:
 ```markdown
 ## Application Classification
 
-| Field                         | Decision                               |
-| ----------------------------- | -------------------------------------- |
-| Classification                | Non-application work                   |
-| Reason                        | {{why-this-is-not-an-app-or-workflow}} |
-| Four-step AI journey required | No                                     |
+| Field | Decision |
+| ----- | -------- |
+| Classification | Non-application work |
+| Reason | {{why-this-is-not-an-app-or-workflow}} |
+| Four-step AI journey required | No |
 ```
 
 Then continue through the pipeline without creating a four-step AI-augmented app
@@ -377,21 +385,22 @@ Gofer MUST keep the same numbered stages for both classifications. The
 classification changes the behavior inside the shared stages; it does **not**
 remove existing non-app functionality or fork Gofer into unrelated products.
 
-| Mode                 | Stage Behavior                                                                                                                                                                                                                                        |
-| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Mode | Stage Behavior |
+| ---- | -------------- |
 | Application delivery | Shared stages gain a UI-first interview, a Vertical Template constrained preview loop, preview self-review, optional branding intake, an explicit UI approval gate, and a post-approval EnterpriseAI service-fit gate before plan/tasks are finalized |
-| Non-app work         | Shared stages preserve the current research, documentation, exploration, bug-fix, migration, audit, and other non-app workflows without app-only preview, branding, or service-fit requirements                                                       |
+| Non-app work | Shared stages preserve the current research, documentation, exploration, bug-fix, migration, audit, and other non-app workflows without app-only preview, branding, or service-fit requirements |
 
 ---
 
 ## Step 2.7: AI-Augmented Journey Confirmation (For Application Delivery)
 
-When the request is classified as **application delivery**, confirm the customer
-journey before routing to the rest of the pipeline. For application delivery,
-the default target is a concise **four-step or fewer AI-augmented process**.
-Even when the current business process has more than four steps, Gofer should
-use generative AI to compress, combine, or simplify the process into four
-business-goal-driven stages unless the user explicitly rejects that structure.
+When the request is classified as **application delivery**, confirm the
+customer journey before routing to the rest of the pipeline. For application
+delivery, the default target is a concise **four-step or fewer AI-augmented
+process**. Even when the current business process has more than four steps,
+Gofer should use generative AI to compress, combine, or simplify the process
+into four business-goal-driven stages unless the user explicitly rejects that
+structure.
 
 ### UI-First App-Delivery Default
 
@@ -401,20 +410,39 @@ For app delivery, the default early process is:
    screens, target users, workflow goals, and whether client branding or logos
    must be applied.
 2. **Constrained MVP preview** — generate the first preview from the Vertical
-   Template blocks already installed in the project by `eai`, rather than from
-   an unconstrained custom UI.
+   Template blocks already installed in the project by `eai`, rather than
+   from an unconstrained custom UI.
 3. **Preview self-review and approval** — use screenshot or Playwright-style
    local review before showing the preview, then iterate with the stakeholder
    until the UI is explicitly approved.
-4. **EnterpriseAI service-fit gate** — after UI approval, review which platform
-   services are accessible now, purchasable but unavailable now, or unsupported,
-   and lock that decision before plan/tasks are treated as complete.
+4. **EnterpriseAI service-fit gate** — after UI approval, review which
+   platform services are accessible now, purchasable but unavailable now, or
+   unsupported, and lock that decision before plan/tasks are treated as
+   complete.
+
+### AI-Readable Blocks Bridge Intake
+
+For EnterpriseAI app delivery, the interview must also capture the packaging
+and coupling path before research starts:
+
+| Intake Field | Required Decision |
+| ------------ | ----------------- |
+| Profile choice | External, internal, or hybrid package profile |
+| Package lane | Public reusable block package, internal vertical app, hybrid adapter, or app-local implementation |
+| Coupling status | DAISY-coupled, DAISY-decoupled, or hybrid adapter boundary |
+| Public-readiness target | Whether the first delivery must be ready for external package consumers |
+| Block porting need | Reuse existing block, port a Vertical Template block, or request a custom-block exception |
+
+External and hybrid profile choices require explicit public-readiness,
+block-porting, DAISY decoupling, Storybook, and theme-override evidence in the
+later Gofer artifacts. Internal-only choices still record why public readiness
+is not required now.
 
 **First, offer the option to skip:**
 
-| Option                                    | Description                                                                 |
-| ----------------------------------------- | --------------------------------------------------------------------------- |
-| **Confirm AI Journey (Recommended)**      | Review the four-step AI-augmented process for this app                      |
+| Option                                   | Description                                                                 |
+| ---------------------------------------- | --------------------------------------------------------------------------- |
+| **Confirm AI Journey (Recommended)**     | Review the four-step AI-augmented process for this app                      |
 | **Classify as Non-App / Skip AI Journey** | Use only when this is strategy, research, documentation, audit, or analysis |
 
 If the user selects "Classify as Non-App / Skip AI Journey", capture the
@@ -448,12 +476,13 @@ Based on the discovery answers, extract:
      Playwright/self-review outputs when the feature includes a UI
 
 4. **AI augmentation**: How does generative AI help?
-   - Conversational help: chatbot, voice, accessibility, translations, or guided
-     explanation
-   - Contextual prefill: populate fields from screen context, known data, user
-     profile, customer record, document, or prior workflow state
+   - Conversational help: chatbot, voice, accessibility, translations, or
+     guided explanation
+   - Contextual prefill: populate fields from screen context, known data,
+     user profile, customer record, document, or prior workflow state
    - Step-goal assistance: understand the goal of the step, recommend next
-     actions, validate completeness, and drive the user to successful completion
+     actions, validate completeness, and drive the user to successful
+     completion
    - Human control: show confidence, evidence, edit controls, escalation path,
      and audit trail
    - Preview critique: review the generated MVP before presentation and suggest
@@ -478,23 +507,23 @@ Use AskUserQuestion to present the extracted journey:
 
 "Here's the main flow I've identified:"
 
-| Option | Description                                                                                        |
-| ------ | -------------------------------------------------------------------------------------------------- |
+| Option | Description                                                                                         |
+| ------ | --------------------------------------------------------------------------------------------------- |
 | A      | Step 1: [goal] → Step 2: [goal] → Step 3: [goal] → Step 4: [goal] (Confirm this AI-augmented flow) |
-| B      | I need to modify some steps                                                                        |
-| C      | Show me all steps, AI assistance, and completion criteria in detail first                          |
+| B      | I need to modify some steps                                                                         |
+| C      | Show me all steps, AI assistance, and completion criteria in detail first                           |
 
 **Question 2a: Confirm AI Assistance**
 
 "For each step, how should generative AI help the user complete the goal?"
 
-| Option | Description                                                                          |
-| ------ | ------------------------------------------------------------------------------------ |
+| Option | Description                                                                         |
+| ------ | ----------------------------------------------------------------------------------- |
 | A      | Chat/voice/accessibility/translations help the user understand and complete the step |
 | B      | Prefill or recommend data using screen context, user context, and EnterpriseAI data  |
 | C      | Validate completion, explain missing information, and guide the user to success      |
-| D      | Mix all of the above, with human review and audit trail controls                     |
-| Custom | Describe the AI assistance for each step                                             |
+| D      | Mix all of the above, with human review and audit trail controls                    |
+| Custom | Describe the AI assistance for each step                                            |
 
 **Question 3: Identify Key Touchpoints**
 
@@ -541,12 +570,13 @@ maxSteps: 4
 
 ### Step 1: {{business-goal}}
 
-**Actor**: {{actor-id}} **User action**: {{action-description}} **AI
-assistance**:
+**Actor**: {{actor-id}}
+**User action**: {{action-description}}
+**AI assistance**:
 {{chatbot-or-voice-or-accessibility-or-translation-or-prefill-or-guidance}}
 **Context used**: {{screen-context-user-data-enterpriseai-data-documents}}
-**Completion criteria**: {{how-we-know-this-step-is-successful}} **Controls**:
-{{human-review-confidence-evidence-audit-escalation}}
+**Completion criteria**: {{how-we-know-this-step-is-successful}}
+**Controls**: {{human-review-confidence-evidence-audit-escalation}}
 
 ### Step 2: {{business-goal}}
 
@@ -589,6 +619,7 @@ sequenceDiagram
 - [x] Actors confirmed
 - [x] Steps confirmed
 - [x] Touchpoints identified
+
 ````
 
 ### Store Journey in Memory
@@ -625,7 +656,7 @@ resume information:
 
 ```bash
 .specify/scripts/bash/pipeline-state.sh read --json
-```
+````
 
 If `pipeline-state.json` exists and `status` is `in_progress`, resume from
 `currentStage`. This takes priority over file-existence heuristics because
@@ -843,17 +874,17 @@ When the workflow profile is `enterpriseai` or no profile is specified:
 Every EnterpriseAI discovery must preserve enough information for downstream
 stages to create these artifacts without re-interviewing the user:
 
-| Artifact                   | Required Content                                                                                                                                                                                         |
-| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `journeys/base-journey.md` | Application classification, four-step-or-fewer AI-augmented customer journey, step goals, AI assistance, context used, controls, completion criteria                                                     |
-| `ui-preview-brief.md`      | App-delivery-only preview brief: target screens, Vertical Template component constraints, branding inputs, preview validation expectations                                                               |
-| `ui-review-log.md`         | App-delivery-only iteration log: preview evidence, requested changes, accepted changes, unresolved issues                                                                                                |
-| `ui-approval.md`           | App-delivery-only approval gate: approved preview, approved branding, approved component exceptions, approver and timestamp                                                                              |
-| `service-fit-matrix.md`    | App-delivery-only service selection evidence: desired platform capability, evidence source, accessible now vs purchasable vs unavailable, selected direction                                             |
-| `context-bundle.md`        | Compact feature context, selected scenario, app/non-app decision, AI-augmented journey summary, EnterpriseAI object types, tenant assumptions, API surfaces, deployment assumptions, validation criteria |
-| `contract-pack.md`         | Actors, object types, workflows/journeys, four-step AI assistance contract, permissions, tenant boundaries, APIs/events, runtime assumptions, acceptance tests                                           |
-| `reuse-scan.md`            | Existing specs, platform references, object types, APIs, workflows, modules, and the reuse/extend/create decision                                                                                        |
-| `audit-history.md`         | Stable finding IDs, recurring-finding history, accepted exceptions, owner, expiry, and review cadence                                                                                                    |
+| Artifact | Required Content |
+| -------- | ---------------- |
+| `journeys/base-journey.md` | Application classification, four-step-or-fewer AI-augmented customer journey, step goals, AI assistance, context used, controls, completion criteria |
+| `ui-preview-brief.md` | App-delivery-only preview brief: target screens, Vertical Template component constraints, branding inputs, preview validation expectations |
+| `ui-review-log.md` | App-delivery-only iteration log: preview evidence, requested changes, accepted changes, unresolved issues |
+| `ui-approval.md` | App-delivery-only approval gate: approved preview, approved branding, approved component exceptions, approver and timestamp |
+| `service-fit-matrix.md` | App-delivery-only service selection evidence: desired platform capability, evidence source, accessible now vs purchasable vs unavailable, selected direction |
+| `context-bundle.md` | Compact feature context, selected scenario, app/non-app decision, AI-augmented journey summary, EnterpriseAI object types, tenant assumptions, API surfaces, deployment assumptions, validation criteria |
+| `contract-pack.md` | Actors, object types, workflows/journeys, four-step AI assistance contract, permissions, tenant boundaries, APIs/events, runtime assumptions, acceptance tests |
+| `reuse-scan.md` | Existing specs, platform references, object types, APIs, workflows, modules, and the reuse/extend/create decision |
+| `audit-history.md` | Stable finding IDs, recurring-finding history, accepted exceptions, owner, expiry, and review cadence |
 
 Use these artifacts as decision evidence for executive, architecture, CISO,
 data, delivery, CIO, CFO, COO, and risk/compliance stakeholders.

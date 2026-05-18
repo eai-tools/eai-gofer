@@ -24,27 +24,42 @@ describe('enterpriseai ui-first app-delivery guidance (root integration)', () =>
     expect(researchCommand).toContain('ui-preview-brief.md');
     expect(researchCommand).toContain('Vertical Template constraint map');
     expect(researchCommand).toContain('Preview validation plan');
+    expect(researchCommand).toContain('external/internal/hybrid profile');
+    expect(researchCommand).toContain('DAISY decoupling');
+    expect(researchCommand).toContain('Storybook story IDs');
+    expect(researchCommand).toContain('theme override points');
 
     expect(planCommand).toContain('ui-review-log.md');
     expect(planCommand).toContain('ui-approval.md');
     expect(planCommand).toContain('service-fit-matrix.md');
     expect(planCommand).toContain('eai --describe');
     expect(planCommand).toContain('eai verify calls --format');
+    expect(planCommand).toContain('public-readiness');
+    expect(planCommand).toContain('block-porting');
+    expect(planCommand).toContain('package-profile');
 
     expect(tasksCommand).toContain('App-Delivery Preconditions Inside Shared Stages');
     expect(tasksCommand).toContain('ui-approval.md');
     expect(tasksCommand).toContain('service-fit-matrix.md');
     expect(tasksCommand).toContain('Vertical Template');
+    expect(tasksCommand).toContain('package lane');
+    expect(tasksCommand).toContain('coupling status');
+    expect(tasksCommand).toContain('custom-block exceptions');
+    expect(tasksCommand).toContain('external/internal/hybrid');
 
     expect(implementCommand).toContain('ui-approval.md');
     expect(implementCommand).toContain('ui-review-log.md');
     expect(implementCommand).toContain('service-fit-matrix.md');
     expect(implementCommand).toContain('For non-app work, skip the preview');
+    expect(implementCommand).toContain('public-readiness');
+    expect(implementCommand).toContain('DAISY internals');
 
     expect(validateCommand).toContain('ui-review-log.md');
     expect(validateCommand).toContain('ui-approval.md');
     expect(validateCommand).toContain('service-fit-matrix.md');
     expect(validateCommand).toContain('For explicit non-app work');
+    expect(validateCommand).toContain('Storybook story IDs');
+    expect(validateCommand).toContain('theme override points');
   });
 
   it('ships app-delivery templates for preview, approval, and service-fit artifacts', () => {
@@ -53,6 +68,9 @@ describe('enterpriseai ui-first app-delivery guidance (root integration)', () =>
       '.specify/templates/ui-review-log-template.md',
       '.specify/templates/ui-approval-template.md',
       '.specify/templates/service-fit-matrix-template.md',
+      '.specify/templates/contract-pack-template.md',
+      '.specify/templates/reuse-scan-template.md',
+      '.specify/templates/context-bundle-template.md',
     ];
     const mirroredTemplates = canonicalTemplates.map((templatePath) =>
       templatePath.replace('.specify/templates', 'extension/resources/templates')

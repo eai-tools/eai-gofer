@@ -68,8 +68,8 @@ releases.releases.unshift(newRelease);
 releases.latest_version = version;
 releases.last_updated = new Date().toISOString();
 
-// Keep only last 10 releases
-releases.releases = releases.releases.slice(0, 10);
+// Keep only the latest five releases to avoid advertising stale downloads.
+releases.releases = releases.releases.slice(0, 5);
 
 // Write back to file
 fs.writeFileSync(releasesPath, JSON.stringify(releases, null, 2));

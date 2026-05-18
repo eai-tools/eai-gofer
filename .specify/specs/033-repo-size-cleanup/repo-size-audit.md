@@ -29,6 +29,10 @@ generatedAt: 2026-05-18T10:41:29+10:00
   keep VSIX binaries in GitHub Releases instead of committing them to GitHub
   Pages source.
 - Added ignore rules for `*.vsix` and `docs-site/static/releases/*.vsix`.
+- Pruned release metadata to the latest five versions: `v3.3.1`, `v3.3.0`,
+  `v3.2.2`, `v3.2.1`, and `v3.2.0`.
+- Deleted older GitHub Release records/assets for `v3.1.0`, `v3.0.1`, `v3.0.0`,
+  `v2.0.11`, and `v2.0.10` while preserving their git tags.
 
 ## Remaining Size Work
 

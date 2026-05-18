@@ -1,7 +1,7 @@
 ---
 feature: repo-size-cleanup
 stage: audit-and-safe-cleanup
-tasksCompleted: 5/5 (100%)
+tasksCompleted: 6/6 (100%)
 GeneratedAt: 2026-05-18T10:41:29+10:00
 ---
 
@@ -21,3 +21,5 @@ GeneratedAt: 2026-05-18T10:41:29+10:00
       commits with ignore rules.
 - [x] T005 Update release metadata and automation to use GitHub Releases for
       binary downloads while keeping GitHub Pages as the release feed.
+- [x] T006 Prune release metadata and GitHub Releases to keep only the latest
+      five versions while preserving historical git tags.

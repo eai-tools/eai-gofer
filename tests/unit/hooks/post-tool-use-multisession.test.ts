@@ -9,7 +9,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 
 const HOOK_SCRIPT = path.resolve(
   __dirname,
@@ -32,7 +32,7 @@ describe('post-tool-use.mjs multi-session bridge files', () => {
 
   function runHook(stdinPayload: Record<string, unknown>): void {
     const input = JSON.stringify(stdinPayload);
-    execSync(`node ${HOOK_SCRIPT}`, {
+    execFileSync('node', [HOOK_SCRIPT], {
       input,
       env: { ...process.env, CLAUDE_PROJECT_DIR: tmpDir },
       timeout: 10000,

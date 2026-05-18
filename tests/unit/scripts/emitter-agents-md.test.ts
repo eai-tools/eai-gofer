@@ -12,6 +12,7 @@ import path from 'path';
 import os from 'os';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
+import { fileURLToPath } from 'node:url';
 
 const execFileAsync = promisify(execFile);
 
@@ -166,7 +167,7 @@ beforeAll(async () => {
   );
   await writeFile(path.join(tmpRoot, '.specify', 'commands', '7_gofer_save.md'), GOFER_SAVE_STAGE);
 
-  const scriptPath = new URL(generateCommandsUrl).pathname;
+  const scriptPath = fileURLToPath(generateCommandsUrl);
   await execFileAsync('node', [scriptPath, '--root', tmpRoot, '--surfaces', 'agents-md']);
 });
 

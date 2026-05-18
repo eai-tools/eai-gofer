@@ -270,7 +270,11 @@ export class ResourceSyncer implements IResourceOperations {
         return;
       }
 
-      const summary = await this.syncDirectoryNonDestructive(sourcePath, targetPath, makeExecutableExtensions);
+      const summary = await this.syncDirectoryNonDestructive(
+        sourcePath,
+        targetPath,
+        makeExecutableExtensions
+      );
       this.logger.info('ResourceSyncer', `Successfully synced ${resourceType}`, {
         source: sourcePath,
         target: targetPath,
@@ -512,8 +516,7 @@ export class ResourceSyncer implements IResourceOperations {
     const workspaceRoot = this.getWorkspaceRoot();
     const relativePath = path.relative(workspaceRoot, targetPath);
     return (
-      relativePath === '' ||
-      (!relativePath.startsWith('..') && !path.isAbsolute(relativePath))
+      relativePath === '' || (!relativePath.startsWith('..') && !path.isAbsolute(relativePath))
     );
   }
 
@@ -1483,7 +1486,7 @@ AI agents validate code against the constitution before implementation.
 
 ## Learn More
 
-- **Full Documentation**: https://github.com/eai-tools/gofer
+- **Full Documentation**: https://github.com/eai-tools/eai-gofer
 - **AI Agent Guidelines**: See AGENTS.md in your project root
 - **Gofer Extension**: View specs and progress in VSCode sidebar
 `;
@@ -1841,7 +1844,10 @@ AI agents validate code against the constitution before implementation.
   private async writeMigratedSpec(spec: LegacyJsonSpec, specId: string): Promise<void> {
     const specDir = path.join(this.specifyPath, 'specs', specId);
     await this.ensureManagedDirectory(specDir);
-    await this.writeManagedFile(path.join(specDir, 'spec.md'), this.convertJsonToMarkdown(spec, specId));
+    await this.writeManagedFile(
+      path.join(specDir, 'spec.md'),
+      this.convertJsonToMarkdown(spec, specId)
+    );
 
     if (Array.isArray(spec.tasks) && spec.tasks.length > 0) {
       await this.writeManagedFile(

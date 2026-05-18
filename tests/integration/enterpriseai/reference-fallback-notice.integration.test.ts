@@ -23,12 +23,51 @@ function createFixtureDir(prefix: string): string {
 function seedFallbackReferences(workspaceRoot: string): void {
   const fallbackDir = path.join(workspaceRoot, '.specify', 'references', 'eai');
   fs.mkdirSync(fallbackDir, { recursive: true });
-  fs.writeFileSync(path.join(fallbackDir, 'eai-cli.md'), '# eai cli fallback\n', 'utf8');
+  fs.writeFileSync(path.join(fallbackDir, 'eai.md'), '# eai cli fallback\n', 'utf8');
   fs.writeFileSync(path.join(fallbackDir, 'vertical-template.md'), '# vertical fallback\n', 'utf8');
   fs.writeFileSync(path.join(fallbackDir, 'deployment-repo.md'), '# deployment fallback\n', 'utf8');
 }
 
 describe('enterpriseai reference fallback notice (root integration)', () => {
+  it('accepts legacy eai reference aliases and fallback filenames', async () => {
+    const fixturesDir = createFixtureDir('fixtures-reference-fallback-legacy-eai');
+    const legacyReferenceName = ['eai', 'cli'].join('-');
+    const legacyDocsReferenceName = ['eai', 'cli', 'docs'].join('_');
+    fs.rmSync(fixturesDir, { recursive: true, force: true });
+
+    try {
+      const fallbackDir = path.join(fixturesDir, '.specify', 'references', 'eai');
+      fs.mkdirSync(fallbackDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(fallbackDir, `${legacyReferenceName}.md`),
+        '# legacy eai fallback\n',
+        'utf8'
+      );
+
+      const result = await resolveEnterpriseAiReferences(
+        {
+          runId: 'run_legacy_eai_alias',
+          referenceTypes: [legacyDocsReferenceName],
+          externalReferencesEnabled: false,
+          fallbackPath: '.specify/references/eai/',
+        },
+        {
+          workspaceRoot: fixturesDir,
+        }
+      );
+
+      expect(result.response.resolvedReferences).toEqual([
+        {
+          type: 'eai',
+          source: 'local-fallback',
+          path: `.specify/references/eai/${legacyReferenceName}.md`,
+        },
+      ]);
+    } finally {
+      fs.rmSync(fixturesDir, { recursive: true, force: true });
+    }
+  });
+
   it('uses local fallback references and dispatches user notice when external references are unavailable', async () => {
     const fixturesDir = createFixtureDir('fixtures-reference-fallback-notice');
     fs.rmSync(fixturesDir, { recursive: true, force: true });
@@ -51,7 +90,7 @@ describe('enterpriseai reference fallback notice (root integration)', () => {
       const result = await resolveEnterpriseAiReferences(
         {
           runId: 'run_029_0001',
-          referenceTypes: ['eai-cli', 'vertical-template', 'deployment-repo'],
+          referenceTypes: ['eai', 'vertical-template', 'deployment-repo'],
           externalReferencesEnabled: true,
           fallbackPath: '.specify/references/eai/',
         },
@@ -77,12 +116,9 @@ describe('enterpriseai reference fallback notice (root integration)', () => {
       expect(result.contractId).toBe('IAP-004');
       expect(result.response.status).toBe('resolved');
       expect(result.response.userNoticeRequired).toBe(true);
-      expect(result.response.unavailableExternalReferences).toEqual([
-        'eai-cli',
-        'vertical-template',
-      ]);
+      expect(result.response.unavailableExternalReferences).toEqual(['eai', 'vertical-template']);
       expect(
-        result.response.resolvedReferences.find((reference) => reference.type === 'eai-cli')?.source
+        result.response.resolvedReferences.find((reference) => reference.type === 'eai')?.source
       ).toBe('local-fallback');
       expect(
         result.response.resolvedReferences.find((reference) => reference.type === 'deployment-repo')
@@ -109,7 +145,7 @@ describe('enterpriseai reference fallback notice (root integration)', () => {
         resolveEnterpriseAiReferences(
           {
             runId: 'run_029_unsafe',
-            referenceTypes: ['eai-cli'],
+            referenceTypes: ['eai'],
             externalReferencesEnabled: false,
             fallbackPath: '/etc',
           },

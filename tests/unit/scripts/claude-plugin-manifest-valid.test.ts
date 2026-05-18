@@ -20,7 +20,10 @@ const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
 
 const MANIFEST_PATH = path.join(REPO_ROOT, '.claude-plugin', 'plugin.json');
 const MANIFEST_DIR = path.dirname(MANIFEST_PATH);
-const parseModuleUrl = new URL('../../../.specify/scripts/node/parse-stage-command.mjs', import.meta.url);
+const parseModuleUrl = new URL(
+  '../../../.specify/scripts/node/parse-stage-command.mjs',
+  import.meta.url
+);
 
 interface Command {
   name: string;
@@ -61,7 +64,7 @@ describe('claude plugin manifest (T166)', () => {
 
   it('has top-level fields name, version, description, commands', (): void => {
     const manifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf8')) as Manifest;
-    expect(manifest.name).toBe('gofer');
+    expect(manifest.name).toBe('eai-gofer');
     expect(typeof manifest.version).toBe('string');
     expect(typeof manifest.description).toBe('string');
     expect(Array.isArray(manifest.commands)).toBe(true);

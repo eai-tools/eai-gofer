@@ -21,10 +21,10 @@ const releasesPath = path.join(__dirname, '../docs-site/static/releases.json');
 const releases = JSON.parse(fs.readFileSync(releasesPath, 'utf8'));
 
 // Determine download URL - use custom URL if provided, otherwise default to GitHub Pages
-const downloadUrl = customDownloadUrl || `https://eai-tools.github.io/gofer/releases/gofer-${version}.vsix`;
+const downloadUrl = customDownloadUrl || `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-${version}.vsix`;
 
 // Calculate actual file size if the VSIX exists in docs-site/static/releases/
-const vsixPath = path.join(__dirname, '../docs-site/static/releases', `gofer-${version}.vsix`);
+const vsixPath = path.join(__dirname, '../docs-site/static/releases', `eai-gofer-${version}.vsix`);
 let fileSize = 8.5; // Default approximate size
 if (fs.existsSync(vsixPath)) {
   const stats = fs.statSync(vsixPath);

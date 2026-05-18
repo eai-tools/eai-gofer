@@ -36,6 +36,8 @@ suite('E2E GitHub API Tests', () => {
 
   suite('GitHub API Connectivity', () => {
     test('should connect to GitHub API', async function () {
+      this.timeout(10000);
+
       // Skip if no network access (CI environment)
       if (process.env.CI || process.env.SKIP_NETWORK_TESTS) {
         this.skip();
@@ -48,6 +50,8 @@ suite('E2E GitHub API Tests', () => {
     });
 
     test('should handle rate limiting gracefully', async function () {
+      this.timeout(10000);
+
       // Skip if no network access
       if (process.env.CI || process.env.SKIP_NETWORK_TESTS) {
         this.skip();
@@ -71,6 +75,8 @@ suite('E2E GitHub API Tests', () => {
     });
 
     test('should fetch latest Gofer release', async function () {
+      this.timeout(10000);
+
       if (process.env.CI || process.env.SKIP_NETWORK_TESTS) {
         this.skip();
         return;
@@ -84,6 +90,8 @@ suite('E2E GitHub API Tests', () => {
     });
 
     test('should fetch Gofer template releases', async function () {
+      this.timeout(10000);
+
       if (process.env.CI || process.env.SKIP_NETWORK_TESTS) {
         this.skip();
         return;

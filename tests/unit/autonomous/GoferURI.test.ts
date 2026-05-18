@@ -110,7 +110,7 @@ describe('GoferURI Parser', () => {
 
 describe('GoferURIResolver', () => {
   let resolver: GoferURIResolver;
-  const workspaceRoot = '/Users/test/Code/gofer';
+  const workspaceRoot = '/Users/test/Code/eai-gofer';
   const userHome = os.homedir();
 
   beforeEach(() => {

@@ -1,17 +1,15 @@
-import { chromium, FullConfig } from '@playwright/test';
+import { promises as fs } from 'fs';
+import * as path from 'path';
 
-async function globalSetup(config: FullConfig) {
+async function globalSetup() {
   console.log('🚀 Starting Gofer E2E Test Suite Global Setup');
 
   // Setup test environment
   process.env.NODE_ENV = 'test';
-  process.env.WORKSPACE_DIR = '/tmp/gofer-e2e-test';
-  process.env.SPEC_DIR = '/tmp/gofer-e2e-test/.specify';
+  process.env.WORKSPACE_DIR = '/tmp/eai-gofer-e2e-test';
+  process.env.SPEC_DIR = '/tmp/eai-gofer-e2e-test/.specify';
 
   // Ensure test workspace exists
-  const fs = require('fs').promises;
-  const path = require('path');
-  
   const workspaceDir = process.env.WORKSPACE_DIR;
   const specDir = process.env.SPEC_DIR;
 
@@ -20,7 +18,7 @@ async function globalSetup(config: FullConfig) {
     await fs.mkdir(path.join(specDir, 'memory'), { recursive: true });
     await fs.mkdir(path.join(workspaceDir, 'src'), { recursive: true });
     await fs.mkdir(path.join(workspaceDir, 'tests'), { recursive: true });
-    
+
     console.log('✅ Test workspace created');
   } catch (error) {
     console.error('❌ Failed to create test workspace:', error);
@@ -34,13 +32,13 @@ async function globalSetup(config: FullConfig) {
     private: true,
     scripts: {
       test: 'vitest',
-      build: 'tsc'
+      build: 'tsc',
     },
     devDependencies: {
       '@types/node': '^18.0.0',
-      'typescript': '^5.0.0',
-      'vitest': '^1.0.0'
-    }
+      typescript: '^5.0.0',
+      vitest: '^1.0.0',
+    },
   };
 
   try {
@@ -65,16 +63,13 @@ async function globalSetup(config: FullConfig) {
       noEmit: true,
       esModuleInterop: true,
       skipLibCheck: true,
-      forceConsistentCasingInFileNames: true
+      forceConsistentCasingInFileNames: true,
     },
-    include: ['src/**/*', 'tests/**/*']
+    include: ['src/**/*', 'tests/**/*'],
   };
 
   try {
-    await fs.writeFile(
-      path.join(workspaceDir, 'tsconfig.json'),
-      JSON.stringify(tsConfig, null, 2)
-    );
+    await fs.writeFile(path.join(workspaceDir, 'tsconfig.json'), JSON.stringify(tsConfig, null, 2));
     console.log('✅ Test tsconfig.json created');
   } catch (error) {
     console.error('❌ Failed to create tsconfig.json:', error);
@@ -131,10 +126,7 @@ async function globalSetup(config: FullConfig) {
 `;
 
   try {
-    await fs.writeFile(
-      path.join(specDir, 'memory', 'constitution.md'),
-      constitutionContent
-    );
+    await fs.writeFile(path.join(specDir, 'memory', 'constitution.md'), constitutionContent);
     console.log('✅ Constitution file created');
   } catch (error) {
     console.error('❌ Failed to create constitution:', error);

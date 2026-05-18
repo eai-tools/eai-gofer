@@ -6,14 +6,14 @@ echo "🔌 Installing EAI-GOFER extension..."
 # Try to install from GitHub releases
 install_from_github() {
   echo "   Attempting to install from GitHub releases..."
-  RELEASES_JSON="https://eai-tools.github.io/gofer/releases.json"
+  RELEASES_JSON="https://eai-tools.github.io/eai-gofer/releases.json"
   
   # Try to get latest version
   LATEST_VERSION=$(curl -s "$RELEASES_JSON" 2>/dev/null | grep -o '"latest_version": "[^"]*"' | cut -d'"' -f4)
   
   if [ -n "$LATEST_VERSION" ]; then
     # Try the new name first, then fall back to old name
-    VSIX_URL="https://eai-tools.github.io/gofer/releases/eai-gofer-${LATEST_VERSION}.vsix"
+    VSIX_URL="https://eai-tools.github.io/eai-gofer/releases/eai-gofer-${LATEST_VERSION}.vsix"
     VSIX_FILE="/tmp/eai-gofer-${LATEST_VERSION}.vsix"
     
     echo "   Downloading version $LATEST_VERSION..."
@@ -26,8 +26,8 @@ install_from_github() {
       fi
     fi
     
-    # Fall back to old naming convention
-    VSIX_URL="https://eai-tools.github.io/gofer/releases/gofer-${LATEST_VERSION}.vsix"
+    # Fall back to the historical VSIX filename for already-published releases.
+    VSIX_URL="https://eai-tools.github.io/eai-gofer/releases/gofer-${LATEST_VERSION}.vsix"
     VSIX_FILE="/tmp/gofer-${LATEST_VERSION}.vsix"
     
     echo "   Trying legacy filename..."
@@ -48,7 +48,7 @@ install_from_github() {
 # Build and install from local source
 install_from_source() {
   echo "   Building extension from source..."
-  cd /workspaces/gofer/extension
+  cd /workspaces/eai-gofer/extension
   
   # Ensure dependencies are installed
   npm install --silent 2>/dev/null || true
@@ -59,12 +59,12 @@ install_from_source() {
     if code --install-extension /tmp/eai-gofer-local.vsix --force 2>/dev/null; then
       rm -f /tmp/eai-gofer-local.vsix
       echo "✅ EAI-GOFER extension installed from local build!"
-      cd /workspaces/gofer
+      cd /workspaces/eai-gofer
       return 0
     fi
   fi
   
-  cd /workspaces/gofer
+  cd /workspaces/eai-gofer
   echo "❌ Failed to build and install extension from source"
   return 1
 }
@@ -73,7 +73,7 @@ install_from_source() {
 if code --list-extensions 2>/dev/null | grep -qE "EnterpriseAI\.(gofer|eai-gofer)"; then
   echo "ℹ️  EAI-GOFER extension already installed, reinstalling to ensure latest version..."
   code --uninstall-extension EnterpriseAI.gofer 2>/dev/null || true
-  code --uninstall-extension EnterpriseAI.eai-gofer 2>/dev/null || true
+  code --uninstall-extension EnterpriseAI.gofer 2>/dev/null || true
 fi
 
 # Try GitHub releases first, fall back to local build
@@ -82,7 +82,7 @@ if ! install_from_github; then
   if ! install_from_source; then
     echo "❌ Failed to install EAI-GOFER extension"
     echo "   You can manually install by running:"
-    echo "   cd /workspaces/gofer && ./test-vsix.sh"
+    echo "   cd /workspaces/eai-gofer && ./test-vsix.sh"
     exit 0  # Don't fail the container startup
   fi
 fi

@@ -48,7 +48,7 @@ function seedStakeholderInputs(workspaceRoot: string): void {
 function seedFallbackReferences(workspaceRoot: string): void {
   const referencesDirPath = path.join(workspaceRoot, '.specify', 'references', 'eai');
   fs.mkdirSync(referencesDirPath, { recursive: true });
-  fs.writeFileSync(path.join(referencesDirPath, 'eai-cli.md'), '# eai-cli reference\n', 'utf8');
+  fs.writeFileSync(path.join(referencesDirPath, 'eai.md'), '# eai reference\n', 'utf8');
   fs.writeFileSync(
     path.join(referencesDirPath, 'vertical-template.md'),
     '# vertical-template reference\n',
@@ -181,7 +181,7 @@ describe('enterpriseai novice e2e walkthrough (root integration)', () => {
       const referencesResult = await resolveEnterpriseAiReferences(
         {
           runId: 'run_029_novice_flow',
-          referenceTypes: ['eai-cli', 'vertical-template', 'deployment-repo'],
+          referenceTypes: ['eai', 'vertical-template', 'deployment-repo'],
           externalReferencesEnabled: false,
           fallbackPath: '.specify/references/eai/',
         },
@@ -215,7 +215,7 @@ describe('enterpriseai novice e2e walkthrough (root integration)', () => {
           },
           reference
         ) => {
-          if (reference.type === 'eai-cli') {
+          if (reference.type === 'eai') {
             acc.eaiCli = reference.path;
           } else if (reference.type === 'vertical-template') {
             acc.verticalTemplate = reference.path;

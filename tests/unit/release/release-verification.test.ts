@@ -37,17 +37,17 @@ function extractDownloadUrl(json: ReleasesJson, version: string): string {
 
 /** Builds expected VSIX URL from version (mirrors release-auto.sh logic) */
 function buildExpectedVsixUrl(version: string): string {
-  return `https://eai-tools.github.io/gofer/releases/gofer-${version}.vsix`;
+  return `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-${version}.vsix`;
 }
 
 const VALID_RELEASES_JSON: ReleasesJson = {
   latest_version: '1.16.1',
-  repository: 'eai-tools/gofer',
+  repository: 'eai-tools/eai-gofer',
   releases: [
     {
       version: '1.16.1',
       tag_name: 'v1.16.1',
-      download_url: 'https://eai-tools.github.io/gofer/releases/gofer-1.16.1.vsix',
+      download_url: 'https://eai-tools.github.io/eai-gofer/releases/eai-gofer-1.16.1.vsix',
       notes: 'Fix validation findings',
       prerelease: false,
       size_mb: 30.3,
@@ -55,7 +55,7 @@ const VALID_RELEASES_JSON: ReleasesJson = {
     {
       version: '1.16.0',
       tag_name: 'v1.16.0',
-      download_url: 'https://eai-tools.github.io/gofer/releases/gofer-1.16.0.vsix',
+      download_url: 'https://eai-tools.github.io/eai-gofer/releases/eai-gofer-1.16.0.vsix',
       notes: 'Auto-generate AI instruction files',
       prerelease: false,
       size_mb: 30.3,
@@ -95,12 +95,12 @@ describe('Release Verification', () => {
   describe('extractDownloadUrl', () => {
     it('should extract download_url for an existing version', () => {
       const url = extractDownloadUrl(VALID_RELEASES_JSON, '1.16.1');
-      expect(url).toBe('https://eai-tools.github.io/gofer/releases/gofer-1.16.1.vsix');
+      expect(url).toBe('https://eai-tools.github.io/eai-gofer/releases/eai-gofer-1.16.1.vsix');
     });
 
     it('should extract download_url for an older version', () => {
       const url = extractDownloadUrl(VALID_RELEASES_JSON, '1.16.0');
-      expect(url).toBe('https://eai-tools.github.io/gofer/releases/gofer-1.16.0.vsix');
+      expect(url).toBe('https://eai-tools.github.io/eai-gofer/releases/eai-gofer-1.16.0.vsix');
     });
 
     it('should return MISSING for a version not in releases', () => {
@@ -129,13 +129,13 @@ describe('Release Verification', () => {
   describe('buildExpectedVsixUrl', () => {
     it('should build correct GitHub Pages URL from version', () => {
       expect(buildExpectedVsixUrl('1.16.1')).toBe(
-        'https://eai-tools.github.io/gofer/releases/gofer-1.16.1.vsix'
+        'https://eai-tools.github.io/eai-gofer/releases/eai-gofer-1.16.1.vsix'
       );
     });
 
     it('should handle major version bumps', () => {
       expect(buildExpectedVsixUrl('2.0.0')).toBe(
-        'https://eai-tools.github.io/gofer/releases/gofer-2.0.0.vsix'
+        'https://eai-tools.github.io/eai-gofer/releases/eai-gofer-2.0.0.vsix'
       );
     });
   });
@@ -169,7 +169,7 @@ describe('Release Verification', () => {
           {
             ...VALID_RELEASES_JSON.releases[0],
             download_url:
-              'https://github.com/eai-tools/gofer/releases/download/v1.16.1/gofer-1.16.1.vsix',
+              'https://github.com/eai-tools/eai-gofer/releases/download/v1.16.1/gofer-1.16.1.vsix',
           },
         ],
       };

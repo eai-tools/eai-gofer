@@ -3,10 +3,9 @@
  * Run with: npm test -- tests/manual/verify-panel-display.test.ts
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
-import { ClaudeCodeUsageAdapter } from '../../extension/src/autonomous/ClaudeCodeUsageAdapter';
 import { UsageLogger } from '../../extension/src/council/UsageLogger';
 import { AIUsageMonitor } from '../../extension/src/autonomous/AIUsageMonitor';
 import { AIUsageProvider } from '../../extension/src/ui/AIUsageProvider';
@@ -85,7 +84,7 @@ vi.mock('../../extension/src/utils/logger', () => ({
 }));
 
 describe.skip('AI Usage Panel Display Verification', () => {
-  const workspacePath = '/Users/douglaswross/Code/gofer';
+  const workspacePath = '/Users/douglaswross/Code/eai-gofer';
   const councilLogPath = path.join(workspacePath, '.specify/logs/council-usage.jsonl');
 
   it('should display real data in the panel TreeView', async () => {
@@ -104,7 +103,9 @@ describe.skip('AI Usage Panel Display Verification', () => {
 
     console.log(`\n💰 UsageLogger Summary:`);
     console.log(`   Total cost: $${summary.totalCostUsd.toFixed(2)}`);
-    console.log(`   Total tokens: ${(summary.totalInputTokens + summary.totalOutputTokens).toLocaleString()}`);
+    console.log(
+      `   Total tokens: ${(summary.totalInputTokens + summary.totalOutputTokens).toLocaleString()}`
+    );
     console.log(`   Providers: ${Object.keys(summary.byProvider).join(', ')}`);
 
     expect(summary.totalCostUsd).toBeGreaterThan(0);
@@ -123,12 +124,15 @@ describe.skip('AI Usage Panel Display Verification', () => {
     const weekData = await monitor.getUsageData('week');
 
     console.log(`\n📊 AIUsageMonitor Data:`);
-    console.log(`   Current Session: $${currentData.totalCostUsd.toFixed(2)} (${currentData.providers.length} providers)`);
+    console.log(
+      `   Current Session: $${currentData.totalCostUsd.toFixed(2)} (${currentData.providers.length} providers)`
+    );
     console.log(`   Today: $${todayData.totalCostUsd.toFixed(2)}`);
     console.log(`   This Week: $${weekData.totalCostUsd.toFixed(2)}`);
 
     // Verify at least one period has data
-    const hasData = currentData.totalCostUsd > 0 || todayData.totalCostUsd > 0 || weekData.totalCostUsd > 0;
+    const hasData =
+      currentData.totalCostUsd > 0 || todayData.totalCostUsd > 0 || weekData.totalCostUsd > 0;
     expect(hasData).toBe(true);
 
     // Step 3: Create AIUsageProvider and wire to monitor
@@ -139,7 +143,7 @@ describe.skip('AI Usage Panel Display Verification', () => {
     await monitor.forceRefresh();
 
     // Give the event loop time to process
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     // Step 4: Get TreeView items (what the panel displays)
     const rootItems = await provider.getChildren();
@@ -152,11 +156,11 @@ describe.skip('AI Usage Panel Display Verification', () => {
     expect(rootItems).toHaveLength(3); // Current Session, Today, This Week
 
     // Verify descriptions contain cost data
-    const descriptions = rootItems.map(item => item.description || '').join(' ');
+    const descriptions = rootItems.map((item) => item.description || '').join(' ');
     console.log(`\n✅ Panel Descriptions: ${descriptions}`);
 
     // At least one period should show non-zero cost
-    const hasNonZeroCost = rootItems.some(item => {
+    const hasNonZeroCost = rootItems.some((item) => {
       const desc = item.description || '';
       return desc.includes('$') && !desc.includes('$0.00');
     });
@@ -167,7 +171,10 @@ describe.skip('AI Usage Panel Display Verification', () => {
       console.error('  Summary total:', summary.totalCostUsd);
       console.error('  Monitor current:', currentData.totalCostUsd);
       console.error('  Monitor week:', weekData.totalCostUsd);
-      console.error('  Panel items:', rootItems.map(i => ({ label: i.label, desc: i.description })));
+      console.error(
+        '  Panel items:',
+        rootItems.map((i) => ({ label: i.label, desc: i.description }))
+      );
     }
 
     expect(hasNonZeroCost).toBe(true);

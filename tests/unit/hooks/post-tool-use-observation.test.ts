@@ -9,7 +9,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 
 const HOOK_SCRIPT = path.resolve(
   __dirname,
@@ -35,7 +35,7 @@ describe('post-tool-use.mjs observation extraction (T018)', () => {
 
   function runHook(stdinPayload: Record<string, unknown>): void {
     const input = JSON.stringify(stdinPayload);
-    execSync(`node ${HOOK_SCRIPT}`, {
+    execFileSync('node', [HOOK_SCRIPT], {
       input,
       env: { ...process.env, CLAUDE_PROJECT_DIR: tmpDir },
       timeout: 10000,
@@ -60,7 +60,7 @@ describe('post-tool-use.mjs observation extraction (T018)', () => {
 
     // Observation file should exist
     expect(fs.existsSync(observationsDir)).toBe(true);
-    const files = fs.readdirSync(observationsDir).filter(f => f.endsWith('.json'));
+    const files = fs.readdirSync(observationsDir).filter((f) => f.endsWith('.json'));
     expect(files.length).toBe(1);
 
     const obs = JSON.parse(fs.readFileSync(path.join(observationsDir, files[0]), 'utf-8'));
@@ -86,7 +86,7 @@ describe('post-tool-use.mjs observation extraction (T018)', () => {
 
     // No observation file should be created
     if (fs.existsSync(observationsDir)) {
-      const files = fs.readdirSync(observationsDir).filter(f => f.endsWith('.json'));
+      const files = fs.readdirSync(observationsDir).filter((f) => f.endsWith('.json'));
       expect(files.length).toBe(0);
     }
   });
@@ -101,7 +101,7 @@ describe('post-tool-use.mjs observation extraction (T018)', () => {
       tool_response: largeContent,
     });
 
-    const files = fs.readdirSync(observationsDir).filter(f => f.endsWith('.json'));
+    const files = fs.readdirSync(observationsDir).filter((f) => f.endsWith('.json'));
     const obs = JSON.parse(fs.readFileSync(path.join(observationsDir, files[0]), 'utf-8'));
     expect(obs.truncated).toBe(true);
     expect(obs.toolResponse).toContain('[truncated at 10KB]');
@@ -117,7 +117,7 @@ describe('post-tool-use.mjs observation extraction (T018)', () => {
       tool_response: { matches: ['file1.ts:10', 'file2.ts:20'] },
     });
 
-    const files = fs.readdirSync(observationsDir).filter(f => f.endsWith('.json'));
+    const files = fs.readdirSync(observationsDir).filter((f) => f.endsWith('.json'));
     const obs = JSON.parse(fs.readFileSync(path.join(observationsDir, files[0]), 'utf-8'));
     expect(obs.toolResponse).toContain('file1.ts:10');
     expect(obs.truncated).toBe(false);
@@ -160,7 +160,7 @@ describe('post-tool-use.mjs full flow integration (T021)', () => {
 
   function runHook(stdinPayload: Record<string, unknown>): void {
     const input = JSON.stringify(stdinPayload);
-    execSync(`node ${HOOK_SCRIPT}`, {
+    execFileSync('node', [HOOK_SCRIPT], {
       input,
       env: { ...process.env, CLAUDE_PROJECT_DIR: tmpDir },
       timeout: 10000,
@@ -187,7 +187,7 @@ describe('post-tool-use.mjs full flow integration (T021)', () => {
     });
 
     // Should have 2 observation files
-    const files = fs.readdirSync(observationsDir).filter(f => f.endsWith('.json'));
+    const files = fs.readdirSync(observationsDir).filter((f) => f.endsWith('.json'));
     expect(files.length).toBe(2);
 
     // Bridge should reflect latest tool call

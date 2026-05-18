@@ -15,6 +15,7 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'node:url';
 import {
   CONTROL_COMMANDS,
   PIPELINE_STAGE_COUNT,
@@ -34,7 +35,7 @@ const parseStageCommandUrl = new URL(
 // Paths
 // ---------------------------------------------------------------------------
 
-const PROJECT_ROOT = path.resolve(new URL('../../../', import.meta.url).pathname);
+const PROJECT_ROOT = path.resolve(fileURLToPath(new URL('../../../', import.meta.url)));
 const SPECIFY_COMMANDS_DIR = path.join(PROJECT_ROOT, '.specify', 'commands');
 const GOLDEN_DIR = path.join(PROJECT_ROOT, 'tests', 'fixtures', 'golden', 'claude-commands');
 
@@ -107,9 +108,7 @@ beforeAll(async () => {
 
   // Control and helper commands do not participate in the legacy golden-fixture
   // body gate. Their structure and emitted parity are covered elsewhere.
-  const CONTROL_COMMAND_FILES = new Set(
-    CONTROL_COMMANDS.map((command) => `${command.file}.md`)
-  );
+  const CONTROL_COMMAND_FILES = new Set(CONTROL_COMMANDS.map((command) => `${command.file}.md`));
 
   const entries = await fs.readdir(SPECIFY_COMMANDS_DIR);
   const mdFiles = entries

@@ -26,7 +26,7 @@ describe('enterpriseai plan/task generation (root integration)', () => {
 
     expect(tasksCommand).toContain('Ordered Runnable Task-Generation Guidance');
     expect(tasksCommand).toContain('scaffold before');
-    expect(tasksCommand).toContain('pinned `eai-cli major.minor` deployment tasks');
+    expect(tasksCommand).toContain('pinned `eai major.minor` deployment tasks');
   });
 
   it('wires IAP-001, IAP-002, and IAP-003 through EVT-001/002/003 payload emission', () => {
@@ -74,13 +74,13 @@ describe('enterpriseai plan/task generation (root integration)', () => {
     expect(approvalResult.response.pipelineMayProceed).toBe(true);
   });
 
-  it('generates IAP-006 and EVT-006 metadata with integration map, deployment conventions, market analysis references, and pinned eai-cli major.minor', () => {
+  it('generates IAP-006 and EVT-006 metadata with integration map, deployment conventions, market analysis references, and pinned eai major.minor', () => {
     const result = generateEnterpriseAiPlanAndTasks({
       runId: 'run_029_0001',
       workflowProfile: 'enterpriseai',
       specPath: '.specify/specs/029-enterpriseai-student-vertical-builder/spec.md',
       resolvedReferences: {
-        eaiCli: '.specify/references/eai/eai-cli.md',
+        eaiCli: '.specify/references/eai/eai.md',
         verticalTemplate: '.specify/references/eai/vertical-template.md',
         deploymentRepo: '.specify/references/eai/deployment-repo.md',
       },

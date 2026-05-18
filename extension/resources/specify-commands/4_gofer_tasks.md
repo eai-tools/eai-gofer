@@ -1,7 +1,9 @@
 ---
 name: 4_gofer_tasks
-description: "Break down the implementation plan into dependency-ordered, parallelisable tasks."
-title: "Gofer Tasks"
+description:
+  'Break down the implementation plan into dependency-ordered, parallelisable
+  tasks.'
+title: 'Gofer Tasks'
 category: pipeline
 surfaces:
   - claude
@@ -15,9 +17,10 @@ surfaces:
   - system-skills
 aliases: [gofer:tasks]
 ---
+
 ---
-description: Generate actionable task breakdown from implementation plan
----
+
+## description: Generate actionable task breakdown from implementation plan
 
 # Gofer Tasks
 
@@ -453,37 +456,37 @@ EnterpriseAI is the default profile. Standard profile task generation is used
 only when the user explicitly opts out.
 
 When the workflow profile is `enterpriseai` or no profile is specified,
-`tasks.md` MUST emit deployment
-tasks in the following ordered chain. Each task is independently runnable and
-the ordering enforces scaffold before deployment so that configuration and
-manifest artifacts exist before any deploy command runs.
+`tasks.md` MUST emit deployment tasks in the following ordered chain. Each task
+is independently runnable and the ordering enforces scaffold before deployment
+so that configuration and manifest artifacts exist before any deploy command
+runs.
 
-1. **Vertical Template scaffolding -> `eai-cli scaffold`**
-   - Command: `eai-cli scaffold --template vertical --name <app-name>`
+1. **Vertical Template scaffolding -> `eai init`**
+   - Command: `eai init <app-name>`
    - Produces the working directory, `manifest.yml`, and `config.json` expected
      by subsequent tasks.
-2. **Local validation -> `eai-cli validate`**
-   - Command: `eai-cli validate`
+2. **Local validation -> `eai verify`**
+   - Command: `eai verify`
    - Confirms manifest/config correctness before any deploy attempt.
-3. **Pinned `eai-cli major.minor` deployment tasks -> `eai-cli deploy`**
-   - Command: `eai-cli deploy --env <environment>`
+3. **Pinned `eai major.minor` deployment tasks -> `eai deploy`**
+   - Command: `eai deploy trigger --repo <org/repo>`
    - Inherits the `major.minor` pin recorded in `plan.md`.
 
 <!-- prettier-ignore -->
-The ordering above is non-negotiable: tasks.md MUST instruct the pipeline to scaffold before deployment, validate before deploy, and only then invoke pinned `eai-cli major.minor` deployment tasks. Breaking the order causes deployment preflight gating in `/5_gofer_implement` to fail.
+The ordering above is non-negotiable: tasks.md MUST instruct the pipeline to scaffold before deployment, validate before deploy, and only then invoke pinned `eai major.minor` deployment tasks. Breaking the order causes deployment preflight gating in `/5_gofer_implement` to fail.
 
 ### App-Delivery Preconditions Inside Shared Stages
 
 For **application delivery**, task generation MUST treat the UI-first gate as a
 precondition to downstream implementation tasks:
 
-- If `{FEATURE_DIR}/ui-approval.md` does not exist or is not approved, emit
-  only the blocking preview/approval tasks needed to reach approval; do **not**
-  emit downstream implementation tasks as if the UI were already settled.
+- If `{FEATURE_DIR}/ui-approval.md` does not exist or is not approved, emit only
+  the blocking preview/approval tasks needed to reach approval; do **not** emit
+  downstream implementation tasks as if the UI were already settled.
 - If `{FEATURE_DIR}/service-fit-matrix.md` is missing or does not distinguish
   accessible now vs purchasable vs unavailable platform capabilities, emit a
   blocking service-fit task group before normal build tasks.
-- Use the Vertical Template already scaffolded by `eai-cli` as the default UI
+- Use the Vertical Template already scaffolded by `eai` as the default UI
   lego-block source. Any create-new UI concept must appear as an explicit
   exception task with rationale.
 - For **non-app work**, keep the shared numbered stages but skip these
@@ -507,9 +510,9 @@ precondition to downstream implementation tasks:
   - update `ui-review-log.md`
   - block downstream work until `ui-approval.md` is approved
 - App-delivery service-fit tasks that update `service-fit-matrix.md` using
-  tenant-aware evidence from `eai --describe`, `eai whoami`, `eai tenant
-  select`, `eai resources schema`, `eai verify calls --format json`, or
-  equivalent approved platform evidence.
+  tenant-aware evidence from `eai --describe`, `eai whoami`,
+  `eai tenant select`, `eai resources schema`, `eai verify calls --format json`,
+  or equivalent approved platform evidence.
 - A scope-control task that checks whether any user-facing app process exceeds
   four steps and either combines/automates extra steps or records the approved
   exception and rationale.

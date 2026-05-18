@@ -4,7 +4,7 @@
       "gofer": {
         "command": "node",
         "args": [
-          "/Users/local-user/.vscode/extensions/enterpriseai.gofer-3.2.2/language-server/dist/server.js"
+          "${env:GOFER_LANGUAGE_SERVER_PATH}"
         ],
         "env": {
           "ANTHROPIC_API_KEY": "${env:ANTHROPIC_API_KEY}"

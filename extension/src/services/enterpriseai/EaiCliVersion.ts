@@ -105,7 +105,7 @@ export async function detectInstalledEaiCliVersion(
 
   for (const args of attempts) {
     try {
-      const result = await commandRunner('eai-cli', args);
+      const result = await commandRunner('eai', args);
       const combinedOutput = `${result.stdout}\n${result.stderr}`.trim();
 
       if (!combinedOutput) {
@@ -123,7 +123,7 @@ export async function detectInstalledEaiCliVersion(
 
       const errorMessage = error instanceof Error ? error.message : String(error);
       throw new Error(
-        `EAI_CLI_VERSION_DETECTION_FAILED: eai-cli ${args.join(' ')} failed with unexpected error: ${errorMessage}`
+        `EAI_CLI_VERSION_DETECTION_FAILED: eai ${args.join(' ')} failed with unexpected error: ${errorMessage}`
       );
     }
   }

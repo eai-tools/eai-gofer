@@ -1,12 +1,12 @@
 {
-  "name": "gofer",
+  "name": "eai-gofer",
   "version": "3.3.1",
   "description": "Enterprise AI Pty Ltd - Automated spec-driven development system with Claude Code integration",
   "author": "Enterprise AI Pty Ltd",
   "license": "SEE LICENSE IN LICENSE",
   "repository": {
     "type": "git",
-    "url": "https://github.com/eai-tools/gofer"
+    "url": "https://github.com/eai-tools/eai-gofer"
   },
   "main": "dist/index.js",
   "type": "module",

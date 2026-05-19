@@ -14,7 +14,10 @@ const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
 
 const MANIFEST_FILES = [
   path.join(REPO_ROOT, '.claude-plugin', 'plugin.json'),
+  path.join(REPO_ROOT, '.codex-plugin', 'plugin.json'),
+  path.join(REPO_ROOT, '.github', 'plugin', 'marketplace.json'),
   path.join(REPO_ROOT, '.gemini', 'extension.json'),
+  path.join(REPO_ROOT, 'plugin.json'),
   path.join(REPO_ROOT, 'AGENTS.md'),
   path.join(REPO_ROOT, 'codex-config.toml'),
 ];
@@ -25,6 +28,7 @@ const REFERENCED_SCRIPTS = [
   path.join(REPO_ROOT, '.specify', 'scripts', 'node', 'mermaid-export.mjs'),
   path.join(REPO_ROOT, '.specify', 'scripts', 'node', 'parse-stage-command.mjs'),
   path.join(REPO_ROOT, '.specify', 'scripts', 'node', 'canonical-descriptions.mjs'),
+  path.join(REPO_ROOT, '.specify', 'scripts', 'node', 'package-agent-plugin.mjs'),
 ];
 
 function stripComments(content: string, ext: string): string {

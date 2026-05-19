@@ -10,7 +10,11 @@
 .specify/memory/observation-cache/
 .specify/specs/*/research-index.json
 node_modules
+dist/
+release-assets/
 .env
+*.zip
+*.tar.gz
 *.vsix
 docs-site/static/releases/*.vsix
 test-results/vitest-results.json

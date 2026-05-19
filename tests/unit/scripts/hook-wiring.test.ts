@@ -55,6 +55,13 @@ describe('hook-wiring (T056)', () => {
     ).toHaveProperty('gofer:mermaid-export');
   });
 
+  it('gofer:package-plugin script is present', () => {
+    expect(
+      packageJson.scripts,
+      'package.json is missing gofer:package-plugin script'
+    ).toHaveProperty('gofer:package-plugin');
+  });
+
   // -------------------------------------------------------------------------
   // Script file path checks
   // -------------------------------------------------------------------------
@@ -96,6 +103,12 @@ describe('hook-wiring (T056)', () => {
     expect(script).toContain('.specify/scripts/node/');
   });
 
+  it('gofer:package-plugin references package-agent-plugin.mjs', () => {
+    const script = packageJson.scripts['gofer:package-plugin'];
+    expect(script).toContain('package-agent-plugin.mjs');
+    expect(script).toContain('.specify/scripts/node/');
+  });
+
   // -------------------------------------------------------------------------
   // Script invocation style — should use node directly (not tsx/ts-node)
   // -------------------------------------------------------------------------
@@ -112,6 +125,11 @@ describe('hook-wiring (T056)', () => {
 
   it('gofer:mermaid-export uses node to invoke the script', () => {
     const script = packageJson.scripts['gofer:mermaid-export'];
+    expect(script).toMatch(/^node\s/);
+  });
+
+  it('gofer:package-plugin uses node to invoke the script', () => {
+    const script = packageJson.scripts['gofer:package-plugin'];
     expect(script).toMatch(/^node\s/);
   });
 
@@ -153,5 +171,17 @@ describe('hook-wiring (T056)', () => {
     const scriptPath = path.join(PROJECT_ROOT, '.specify', 'scripts', 'node', 'mermaid-export.mjs');
     const stat = await fs.stat(scriptPath).catch(() => null);
     expect(stat, `mermaid-export.mjs not found at ${scriptPath}`).not.toBeNull();
+  });
+
+  it('package-agent-plugin.mjs exists on disk', async () => {
+    const scriptPath = path.join(
+      PROJECT_ROOT,
+      '.specify',
+      'scripts',
+      'node',
+      'package-agent-plugin.mjs'
+    );
+    const stat = await fs.stat(scriptPath).catch(() => null);
+    expect(stat, `package-agent-plugin.mjs not found at ${scriptPath}`).not.toBeNull();
   });
 });

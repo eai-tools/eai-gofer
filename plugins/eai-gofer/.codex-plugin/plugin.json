@@ -4,10 +4,10 @@
   "description": "Public Gofer spec-driven delivery workflow for Claude, Codex, Copilot, Gemini, and VS Code.",
   "author": {
     "name": "Enterprise AI Pty Ltd",
-    "url": "https://github.com/eai-tools/gofer"
+    "url": "https://github.com/eai-tools/eai-gofer"
   },
-  "homepage": "https://github.com/eai-tools/gofer",
-  "repository": "https://github.com/eai-tools/gofer",
+  "homepage": "https://github.com/eai-tools/eai-gofer",
+  "repository": "https://github.com/eai-tools/eai-gofer",
   "license": "SEE LICENSE IN LICENSE",
   "keywords": ["eai-gofer", "gofer", "codex", "claude", "copilot", "spec-driven-development"],
   "skills": "./skills/",
@@ -18,7 +18,7 @@
     "developerName": "EnterpriseAI",
     "category": "Coding",
     "capabilities": ["Interactive", "Write"],
-    "websiteURL": "https://github.com/eai-tools/gofer",
+    "websiteURL": "https://github.com/eai-tools/eai-gofer",
     "defaultPrompt": [
       "Run Gofer research for this feature",
       "Create a Gofer implementation plan",

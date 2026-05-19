@@ -71,16 +71,16 @@ VS Code Marketplace when the release workflow has `VSCE_PAT` configured.
 
 | Surface            | Marketplace / published mode                                                                                                                                          | Local release-test mode                                                                                      |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| Claude Code        | `claude plugin marketplace add eai-tools/gofer --scope user` then `claude plugin install eai-gofer@eai-gofer --scope user`                                            | Download the GitHub Release zip, unzip to `~/plugins/eai-gofer`, then install `eai-gofer@eai-gofer-local`    |
+| Claude Code        | `claude plugin marketplace add eai-tools/eai-gofer --scope user` then `claude plugin install eai-gofer@eai-gofer --scope user`                                        | Download the GitHub Release zip, unzip to `~/plugins/eai-gofer`, then install `eai-gofer@eai-gofer-local`    |
 | Codex              | Public marketplace publishing is prepared by `.codex-plugin/plugin.json`; local/import is the supported test path until external marketplace publication is available | Add `~/plugins/eai-gofer` through Codex local marketplace/import and keep the stable path unchanged          |
-| GitHub Copilot CLI | `copilot plugin marketplace add eai-tools/gofer` then `copilot plugin install eai-gofer@eai-gofer`                                                                    | `copilot plugin marketplace add ~/plugins/eai-gofer` then `copilot plugin install eai-gofer@eai-gofer-local` |
+| GitHub Copilot CLI | `copilot plugin marketplace add eai-tools/eai-gofer` then `copilot plugin install eai-gofer@eai-gofer`                                                                | `copilot plugin marketplace add ~/plugins/eai-gofer` then `copilot plugin install eai-gofer@eai-gofer-local` |
 
 ### Claude Code Plugin
 
 Register the public Gofer plugin marketplace from the repository:
 
 ```bash
-claude plugin marketplace add eai-tools/gofer --scope user
+claude plugin marketplace add eai-tools/eai-gofer --scope user
 claude plugin install eai-gofer@eai-gofer --scope user
 ```
 
@@ -88,7 +88,7 @@ For local release testing, use the stable folder flow:
 
 ```bash
 gh release download v3.4.0 \
-  --repo eai-tools/gofer \
+  --repo eai-tools/eai-gofer \
   --pattern "eai-gofer-agent-plugin-3.4.0.zip" \
   --dir /tmp/eai-gofer-plugin
 
@@ -129,12 +129,10 @@ contents:
 
 ### GitHub Copilot CLI Plugin
 
-Install directly from the public repo or through the repo marketplace:
+Install through the repo marketplace:
 
 ```bash
-copilot plugin install eai-tools/gofer
-
-copilot plugin marketplace add eai-tools/gofer
+copilot plugin marketplace add eai-tools/eai-gofer
 copilot plugin install eai-gofer@eai-gofer
 ```
 

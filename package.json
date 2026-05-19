@@ -1,6 +1,6 @@
 {
   "name": "eai-gofer",
-  "version": "3.3.1",
+  "version": "3.4.0",
   "description": "Enterprise AI Pty Ltd - Automated spec-driven development system with Claude Code integration",
   "author": "Enterprise AI Pty Ltd",
   "license": "SEE LICENSE IN LICENSE",
@@ -40,6 +40,7 @@
     "generate-commands": "tsx scripts/generate-commands.ts",
     "_comment_codex_doctor": "extension subpackage may re-expose the same script but root is canonical for `npm test` discovery",
     "gofer:generate": "node .specify/scripts/node/generate-commands.mjs && node .specify/scripts/node/sync-extension-resources.mjs",
+    "gofer:package-plugin": "node .specify/scripts/node/package-agent-plugin.mjs",
     "gofer:mermaid-export": "node .specify/scripts/node/mermaid-export.mjs",
     "gofer:codex-doctor": "node .specify/scripts/node/codex-doctor.mjs",
     "prepare": "husky"

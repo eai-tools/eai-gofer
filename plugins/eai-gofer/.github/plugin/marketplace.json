@@ -1,0 +1,24 @@
+{
+  "name": "eai-gofer-local",
+  "description": "Local EAI Gofer plugin marketplace for agentic spec-driven delivery workflows.",
+  "owner": {
+    "name": "EnterpriseAI",
+    "url": "https://github.com/eai-tools/gofer"
+  },
+  "plugins": [
+    {
+      "name": "eai-gofer",
+      "source": "./",
+      "description": "Public Gofer workflow for business scenario, research, specification, planning, implementation, validation, and stakeholder communications.",
+      "version": "3.4.0",
+      "author": {
+        "name": "Enterprise AI Pty Ltd",
+        "url": "https://github.com/eai-tools/gofer"
+      },
+      "homepage": "https://github.com/eai-tools/gofer",
+      "repository": "https://github.com/eai-tools/gofer",
+      "category": "Coding",
+      "tags": ["eai-gofer", "gofer", "claude", "codex", "copilot", "spec-driven-development"]
+    }
+  ]
+}

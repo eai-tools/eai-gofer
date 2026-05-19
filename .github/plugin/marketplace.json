@@ -3,7 +3,7 @@
   "description": "Public EAI Gofer plugin marketplace for agentic spec-driven delivery workflows.",
   "owner": {
     "name": "EnterpriseAI",
-    "url": "https://github.com/eai-tools/gofer"
+    "url": "https://github.com/eai-tools/eai-gofer"
   },
   "metadata": {
     "description": "Install the EAI Gofer agent plugin for Claude Code, Codex, or Copilot CLI.",
@@ -17,10 +17,10 @@
       "version": "3.4.0",
       "author": {
         "name": "Enterprise AI Pty Ltd",
-        "url": "https://github.com/eai-tools/gofer"
+        "url": "https://github.com/eai-tools/eai-gofer"
       },
-      "homepage": "https://github.com/eai-tools/gofer",
-      "repository": "https://github.com/eai-tools/gofer",
+      "homepage": "https://github.com/eai-tools/eai-gofer",
+      "repository": "https://github.com/eai-tools/eai-gofer",
       "license": "SEE LICENSE IN LICENSE",
       "category": "Coding",
       "tags": ["eai-gofer", "gofer", "claude", "codex", "copilot", "spec-driven-development"]

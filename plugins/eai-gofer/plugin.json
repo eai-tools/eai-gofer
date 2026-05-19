@@ -1,0 +1,18 @@
+{
+  "name": "eai-gofer",
+  "version": "3.4.0",
+  "description": "Public Gofer spec-driven delivery workflow: business scenario, research, specify, plan, tasks, implement, validate, and communicate.",
+  "author": {
+    "name": "Enterprise AI Pty Ltd",
+    "url": "https://github.com/eai-tools/gofer"
+  },
+  "homepage": "https://github.com/eai-tools/gofer",
+  "repository": "https://github.com/eai-tools/gofer",
+  "license": "SEE LICENSE IN LICENSE",
+  "keywords": ["eai-gofer", "gofer", "claude-code", "codex", "copilot", "spec-driven-development"],
+  "category": "Coding",
+  "tags": ["eai-gofer", "gofer", "agentic-coding"],
+  "skills": "./skills/",
+  "agents": "./agents/",
+  "commands": "./commands/"
+}

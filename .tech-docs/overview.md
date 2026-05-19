@@ -1,7 +1,7 @@
 ---
 generated: true
-generated_at: "2026-05-18T18:29:37.022Z"
-source_commit: "d71d0b38af3ecb01dee9c3d3001ef1abe9dc5510"
+generated_at: "2026-05-19T18:18:46.548Z"
+source_commit: "d2e265da14627f007f17ed8e89d6b201f4ce1ead"
 ---
 # Gofer - Technical Overview
 
@@ -13,16 +13,16 @@ source_commit: "d71d0b38af3ecb01dee9c3d3001ef1abe9dc5510"
 | **Primary Capability**   | Spec-driven development workflow system with UI-first app delivery and multi-platform AI assistant support           |
 | **Primary Users**        | Software development teams using Claude Code, GitHub Copilot, OpenAI Codex, or Gemini CLI for feature implementation |
 | **Data Sensitivity**     | Low - stores specifications, plans, and code artifacts locally in repository workspace                               |
-| **Current Status**       | Active Development (v3.3.1) - Production-ready with enterprise AI workflow enhancements                              |
-| **Last Material Change** | 2026-05-18 - EAI block catalog requirement for UI generation enforced                                                |
+| **Current Status**       | Active Development (v3.4.0) - Production-ready with agent plugin marketplace distribution                            |
+| **Last Material Change** | 2026-05-19 - Agent plugin packaging and marketplace distribution system added                                        |
 
 ## Service Identity
 
 **Name:** Gofer  
-**Version:** 3.3.1  
-**Documentation Updated:** 2026-05-18  
+**Version:** 3.4.0  
+**Documentation Updated:** 2026-05-19  
 **Publisher:** Enterprise AI Pty Ltd  
-**Repository:** [https://github.com/enterpriseaigroup/tech-docs](https://github.com/enterpriseaigroup/tech-docs)
+**Repository:** [https://github.com/eai-tools/eai-gofer](https://github.com/eai-tools/eai-gofer)
 
 **Description:** Spec-driven development system for AI assistants. Provides 29+ MCP tools that enable Claude Code, GitHub Copilot, OpenAI Codex, and Gemini CLI to autonomously implement features from specifications with UI-first app delivery workflow support and EnterpriseAI platform integration.
 

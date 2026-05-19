@@ -1,15 +1,40 @@
 ---
 generated: true
-generated_at: "2026-05-18T18:29:37.022Z"
-source_commit: "d71d0b38af3ecb01dee9c3d3001ef1abe9dc5510"
+generated_at: "2026-05-19T18:18:46.548Z"
+source_commit: "d2e265da14627f007f17ed8e89d6b201f4ce1ead"
 ---
 # Technical Documentation Index
 
-**Repository:** [eai-tools/eai-gofer](https://github.com/eai-tools/eai-gofer)
-**Version:** 3.3.1 **Generated:** 2026-05-17T17:49:48Z
+**Repository:** [eai-tools/eai-gofer](https://github.com/eai-tools/eai-gofer)  
+**Version:** 3.4.0  
+**Generated:** 2026-05-19T18:13:00Z
 
 This directory contains comprehensive technical documentation for the Gofer
 VSCode extension project.
+
+---
+
+## What's New in v3.4.0
+
+### Agent Plugin Packaging System
+
+- **Unified Distribution** - Single packaged plugin for Claude Code, Copilot, Codex, and Gemini
+- **Marketplace Integration** - Published to plugin marketplaces for easy installation
+- **Complete Command Surface** - 24 workflow commands + 29 specialized agents
+- **Template Library** - Full specification templates included in distribution
+- **Release Automation** - Plugin zip automatically generated and attached to GitHub releases
+
+### Installation Examples
+
+```bash
+# Claude Code
+claude plugin marketplace add eai-tools/eai-gofer --scope user
+claude plugin install eai-gofer@eai-gofer --scope user
+
+# GitHub Copilot
+copilot plugin marketplace add eai-tools/eai-gofer
+copilot plugin install eai-gofer@eai-gofer
+```
 
 ---
 

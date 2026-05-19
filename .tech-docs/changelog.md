@@ -1,22 +1,78 @@
 ---
 generated: true
-generated_at: "2026-05-18T18:29:37.022Z"
-source_commit: "d71d0b38af3ecb01dee9c3d3001ef1abe9dc5510"
+generated_at: "2026-05-19T18:18:46.548Z"
+source_commit: "d2e265da14627f007f17ed8e89d6b201f4ce1ead"
 ---
 # Changelog
 
 ## Changes Since Last Documentation Update
 
-**Previous Update:** 2026-05-17 17:52 UTC (commit `347c971273d89c79adb9e37e41b93a7a8388f035`)  
-**Current Update:** 2026-05-18 18:30 UTC (commit `d71d0b38af3ecb01dee9c3d3001ef1abe9dc5510`)
+**Previous Update:** 2026-05-18 18:30 UTC (commit `d71d0b38af3ecb01dee9c3d3001ef1abe9dc5510`)  
+**Current Update:** 2026-05-19 18:13 UTC (commit `d2e265da14627f007f17ed8e89d6b201f4ce1ead`)
 
 ### Version Updates
 
-- **Version:** 3.3.1 (stable - EAI block catalog enforcement + security hardening)
+- **Version:** 3.4.0 (stable - agent plugin marketplace distribution)
 
 ### Significant Changes
 
-#### 1. EAI Block Catalog Requirement for UI Generation (2026-05-18)
+#### 1. Agent Plugin Packaging and Marketplace Distribution (2026-05-19)
+
+**Commit:** `b3fbb25` - feat: add EAI Gofer agent plugin packaging (#18)
+
+- Created comprehensive agent plugin packaging system
+- Added `.specify/scripts/node/package-agent-plugin.mjs` for automated plugin packaging
+- Generated complete `plugins/eai-gofer/` distribution tree with:
+  - Claude Code commands (`.claude/commands/`)
+  - GitHub Copilot prompts (`.github/prompts/`)
+  - Codex skills (`.agents/skills/`)
+  - Gemini commands (`.gemini/commands/gofer/`)
+  - 29 agent definitions in `agents/` directory
+  - Complete template library in `.specify/templates/`
+- Added marketplace manifests for all platforms:
+  - Claude Code: `.claude-plugin/marketplace.json`
+  - GitHub Copilot: `.github/plugin/marketplace.json`
+  - Codex: `.codex-plugin/plugin.json`
+- Integrated plugin packaging into release workflow
+- Added comprehensive plugin packaging tests
+
+**Impact:**
+- Unified distribution model for all AI assistant platforms
+- Simplified installation via marketplace commands
+- Consistent command surface across Claude Code, Copilot, Codex, and Gemini
+- Automated release asset generation
+- GitHub Releases now include `eai-gofer-agent-plugin-<version>.zip`
+
+**Installation Examples:**
+```bash
+# Claude Code
+claude plugin marketplace add eai-tools/eai-gofer --scope user
+claude plugin install eai-gofer@eai-gofer --scope user
+
+# GitHub Copilot
+copilot plugin marketplace add eai-tools/eai-gofer
+copilot plugin install eai-gofer@eai-gofer
+```
+
+**Related:**
+- Agent plugin architecture (feature packaging-system)
+- Multi-platform command generation (v3.0.0 foundation)
+
+#### 2. Marketplace Links Alignment (2026-05-19)
+
+**Commit:** `d2e265d` - fix: align eai gofer release marketplace links
+
+- Fixed marketplace repository references across all plugin manifests
+- Aligned GitHub repository URLs to canonical `eai-tools/eai-gofer`
+- Ensured consistent marketplace discovery paths
+- Updated documentation links
+
+**Impact:**
+- Correct marketplace discovery for all platforms
+- Consistent branding and source attribution
+- Simplified troubleshooting and support
+
+#### 3. EAI Block Catalog Requirement for UI Generation (2026-05-18)
 
 **Commit:** `d71d0b3` - feat: require EAI block catalog for UI generation (#16)
 
@@ -132,14 +188,17 @@ None in this update cycle.
 
 | Metric | Value |
 |--------|-------|
-| Total Commits (since last doc update) | 9 |
-| Files Changed | 15+ |
-| Lines Added | ~500 |
-| Lines Removed | ~200 (after binary removal) |
+| Total Commits (since last doc update) | 2 |
+| Files Changed | 321 |
+| Lines Added | ~73,900 |
+| Lines Removed | ~1,930 |
+| Plugin Distribution Files Created | 300+ |
 | Documentation Files Updated | 9 |
 | MCP Tools Documented | 29 |
 | VS Code Commands Documented | 67 |
 | Configuration Settings Documented | 91 |
+| Agent Definitions | 29 |
+| Packaged Commands (per platform) | 24 |
 
 ## Historical Changes
 
@@ -198,6 +257,6 @@ This changelog is automatically updated during nightly documentation refresh cyc
 - **Breaking Changes** - Changes requiring user action
 - **Metrics** - Quantitative impact measurements
 
-**Last Automated Update:** 2026-05-18T18:30:00Z  
+**Last Automated Update:** 2026-05-19T18:13:00Z  
 **Documentation Pipeline:** `.tech-docs/` → `docs-site/` → GitHub Pages  
 **Update Cadence:** Nightly (weekdays)

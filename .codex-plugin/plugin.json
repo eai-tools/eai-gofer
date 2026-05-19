@@ -1,0 +1,61 @@
+{
+  "name": "eai-gofer",
+  "version": "3.4.0",
+  "description": "Public Gofer spec-driven delivery workflow for Claude, Codex, Copilot, Gemini, and VS Code.",
+  "author": {
+    "name": "Enterprise AI Pty Ltd",
+    "url": "https://github.com/eai-tools/gofer"
+  },
+  "homepage": "https://github.com/eai-tools/gofer",
+  "repository": "https://github.com/eai-tools/gofer",
+  "license": "SEE LICENSE IN LICENSE",
+  "keywords": ["eai-gofer", "gofer", "codex", "claude", "copilot", "spec-driven-development"],
+  "skills": "./.agents/skills/",
+  "interface": {
+    "displayName": "EAI Gofer",
+    "shortDescription": "Spec-driven delivery workflow for agentic coding",
+    "longDescription": "Run the public Gofer workflow from business scenario through research, specification, planning, tasks, implementation, validation, and stakeholder communications.",
+    "developerName": "EnterpriseAI",
+    "category": "Coding",
+    "capabilities": ["Interactive", "Write"],
+    "websiteURL": "https://github.com/eai-tools/gofer",
+    "defaultPrompt": [
+      "Run Gofer research for this feature",
+      "Create a Gofer implementation plan",
+      "Validate this branch with Gofer"
+    ],
+    "brandColor": "#145DA0",
+    "composerIcon": "./assets/eai-gofer-icon.png",
+    "logo": "./assets/eai-gofer-icon.png"
+  },
+  "gofer": {
+    "stages": [
+      "0_business_scenario",
+      "0a_problem_validation",
+      "1_gofer_research",
+      "2_gofer_specify",
+      "3_gofer_plan",
+      "4_gofer_tasks",
+      "5_gofer_implement",
+      "6_gofer_validate",
+      "6a_gofer_engineering_review",
+      "7_gofer_save",
+      "7a_stakeholder_comms",
+      "8_gofer_resume",
+      "9_gofer_tests",
+      "10_gofer_cloud",
+      "gofer_constitution",
+      "gofer:diagnose",
+      "gofer_hydrate",
+      "gofer:personality",
+      "gofer:plan",
+      "gofer:side",
+      "gofer:spec-summary",
+      "gofer:tdd",
+      "gofer:vocabulary",
+      "gofer:zoom-out"
+    ],
+    "marketplacePath": "./plugins/eai-gofer",
+    "releaseAsset": "eai-gofer-agent-plugin-3.4.0.zip"
+  }
+}

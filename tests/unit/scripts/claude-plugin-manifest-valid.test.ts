@@ -1,138 +1,78 @@
 /**
- * T166 — Validates .claude-plugin/plugin.json shape.
- *
- *   1. Is valid JSON
- *   2. Has top-level fields: name, version, description, commands
- *   3. Each command has name, description, file
- *   4. All command file paths resolve and exist on disk
- *   5. Each description ≤140 chars
- *   6. Cumulative description bytes ≤2048
+ * Validates the committed Claude/Copilot plugin metadata shape.
  */
-import { beforeAll, describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { FULL_COMMAND_COUNT } from '../../helpers/goferCommandSet';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
 
-const MANIFEST_PATH = path.join(REPO_ROOT, '.claude-plugin', 'plugin.json');
-const MANIFEST_DIR = path.dirname(MANIFEST_PATH);
-const parseModuleUrl = new URL(
-  '../../../.specify/scripts/node/parse-stage-command.mjs',
-  import.meta.url
-);
+const CLAUDE_MANIFEST_PATH = path.join(REPO_ROOT, '.claude-plugin', 'plugin.json');
+const CLAUDE_MARKETPLACE_PATH = path.join(REPO_ROOT, '.claude-plugin', 'marketplace.json');
+const COPILOT_MANIFEST_PATH = path.join(REPO_ROOT, 'plugin.json');
+const COPILOT_MARKETPLACE_PATH = path.join(REPO_ROOT, '.github', 'plugin', 'marketplace.json');
 
-interface Command {
-  name: string;
-  description: string;
-  file: string;
-}
-
-interface ParseResult {
-  frontmatter: Record<string, unknown>;
-  body: string;
-}
-
-interface Manifest {
+interface PluginManifest {
   name: string;
   version: string;
   description: string;
-  author?: string;
-  commands: Command[];
-  agents?: Array<{ name: string; file: string }>;
+  author: { name: string; url?: string };
+  skills: string;
+  agents?: string;
+  commands?: string;
 }
 
-describe('claude plugin manifest (T166)', () => {
-  let parseStageCommand: (filePath: string) => Promise<ParseResult>;
+interface Marketplace {
+  name: string;
+  plugins: Array<{
+    name: string;
+    source: string;
+    version: string;
+  }>;
+}
 
-  beforeAll(async (): Promise<void> => {
-    const mod = await import(parseModuleUrl.href);
-    parseStageCommand = mod.parseStageCommand;
-  });
+function readJson<T>(filePath: string): T {
+  return JSON.parse(fs.readFileSync(filePath, 'utf8')) as T;
+}
 
-  it('plugin.json exists', (): void => {
-    expect(fs.existsSync(MANIFEST_PATH)).toBe(true);
-  });
+describe('agent plugin manifests', () => {
+  it('Claude plugin manifest exists and uses current metadata schema', (): void => {
+    expect(fs.existsSync(CLAUDE_MANIFEST_PATH)).toBe(true);
+    const manifest = readJson<PluginManifest>(CLAUDE_MANIFEST_PATH);
 
-  it('plugin.json is valid JSON', (): void => {
-    const content = fs.readFileSync(MANIFEST_PATH, 'utf8');
-    expect(() => JSON.parse(content)).not.toThrow();
-  });
-
-  it('has top-level fields name, version, description, commands', (): void => {
-    const manifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf8')) as Manifest;
     expect(manifest.name).toBe('eai-gofer');
-    expect(typeof manifest.version).toBe('string');
-    expect(typeof manifest.description).toBe('string');
-    expect(Array.isArray(manifest.commands)).toBe(true);
-    expect(manifest.commands.length).toBe(FULL_COMMAND_COUNT);
+    expect(manifest.version).toBe('3.4.0');
+    expect(manifest.author.name).toBe('Enterprise AI Pty Ltd');
+    expect(Array.isArray((manifest as unknown as { commands?: unknown }).commands)).toBe(false);
+    expect(manifest.skills).toBe('./.agents/skills/');
+    expect(manifest.agents).toBeUndefined();
+    expect(manifest.commands).toBeUndefined();
   });
 
-  it('each command has name, description, file', (): void => {
-    const manifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf8')) as Manifest;
-    for (const cmd of manifest.commands) {
-      expect(typeof cmd.name).toBe('string');
-      expect(cmd.name.length).toBeGreaterThan(0);
-      expect(typeof cmd.description).toBe('string');
-      expect(cmd.description.length).toBeGreaterThan(0);
-      expect(typeof cmd.file).toBe('string');
-      expect(cmd.file.length).toBeGreaterThan(0);
-    }
+  it('Copilot root plugin manifest exists for direct installs', (): void => {
+    expect(fs.existsSync(COPILOT_MANIFEST_PATH)).toBe(true);
+    const manifest = readJson<PluginManifest>(COPILOT_MANIFEST_PATH);
+
+    expect(manifest.name).toBe('eai-gofer');
+    expect(manifest.version).toBe('3.4.0');
+    expect(manifest.skills).toBe('./.agents/skills/');
+    expect(manifest.agents).toBe('./.claude/agents/');
+    expect(manifest.commands).toBe('./.claude/commands/');
   });
 
-  it('all command file paths resolve to existing source files', (): void => {
-    const manifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf8')) as Manifest;
-    for (const cmd of manifest.commands) {
-      const resolved = path.resolve(MANIFEST_DIR, cmd.file);
-      expect(
-        fs.existsSync(resolved),
-        `command '${cmd.name}' file '${cmd.file}' does not exist (resolved to ${resolved})`
-      ).toBe(true);
-    }
-  });
+  it('Claude and Copilot marketplaces point at the repo-local plugin bundle', (): void => {
+    const claudeMarketplace = readJson<Marketplace>(CLAUDE_MARKETPLACE_PATH);
+    const copilotMarketplace = readJson<Marketplace>(COPILOT_MARKETPLACE_PATH);
 
-  it('keeps command names and descriptions aligned with canonical source frontmatter', async (): Promise<void> => {
-    const manifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf8')) as Manifest;
-    for (const cmd of manifest.commands) {
-      const resolved = path.resolve(MANIFEST_DIR, cmd.file);
-      const { frontmatter } = await parseStageCommand(resolved);
-
-      expect(cmd.name).toBe(String(frontmatter.name));
-      expect(cmd.description).toBe(String(frontmatter.description));
-    }
-  });
-
-  it('each command description ≤140 chars', (): void => {
-    const manifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf8')) as Manifest;
-    for (const cmd of manifest.commands) {
-      expect(
-        cmd.description.length,
-        `command '${cmd.name}' description has ${cmd.description.length} chars`
-      ).toBeLessThanOrEqual(140);
-    }
-  });
-
-  it('cumulative description bytes ≤2048', (): void => {
-    const manifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf8')) as Manifest;
-    let total = 0;
-    for (const cmd of manifest.commands) {
-      total += Buffer.byteLength(cmd.description, 'utf8');
-    }
-    expect(total).toBeLessThanOrEqual(2048);
-  });
-
-  it('agent file paths resolve when present', (): void => {
-    const manifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf8')) as Manifest;
-    if (!manifest.agents) return;
-    for (const agent of manifest.agents) {
-      const resolved = path.resolve(MANIFEST_DIR, agent.file);
-      expect(
-        fs.existsSync(resolved),
-        `agent '${agent.name}' file '${agent.file}' does not exist (resolved to ${resolved})`
-      ).toBe(true);
+    for (const marketplace of [claudeMarketplace, copilotMarketplace]) {
+      expect(marketplace.name).toBe('eai-gofer');
+      expect(marketplace.plugins).toHaveLength(1);
+      expect(marketplace.plugins[0].name).toBe('eai-gofer');
+      expect(marketplace.plugins[0].version).toBe('3.4.0');
+      expect(marketplace.plugins[0].source).toBe('./plugins/eai-gofer');
     }
   });
 });

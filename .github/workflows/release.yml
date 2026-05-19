@@ -78,6 +78,9 @@ jobs:
           npm --prefix extension ci
           npm --prefix language-server ci
 
+      - name: Regenerate Command Surfaces
+        run: npm run gofer:generate
+
       - name: Run Tests
         run: npm test
         env:
@@ -93,6 +96,27 @@ jobs:
         working-directory: ./extension
         run: npx @vscode/vsce package --out "eai-gofer-${{ steps.version.outputs.version }}.vsix"
 
+      - name: Package Agent Plugin
+        run: npm run gofer:package-plugin -- --version "${{ steps.version.outputs.version }}" --sync-repo
+
+      - name: Publish VS Code Marketplace Extension
+        working-directory: ./extension
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+          IS_PRERELEASE: ${{ steps.version.outputs.prerelease }}
+        run: |
+          if [ "$IS_PRERELEASE" = "true" ]; then
+            echo "Skipping VS Code Marketplace publish for prerelease."
+            exit 0
+          fi
+
+          if [ -z "$VSCE_PAT" ]; then
+            echo "Skipping VS Code Marketplace publish because VSCE_PAT is not configured."
+            exit 0
+          fi
+
+          npx @vscode/vsce publish --packagePath "eai-gofer-${{ steps.version.outputs.version }}.vsix" -p "$VSCE_PAT"
+
       - name: Create Release Archive
         run: |
           mkdir -p release-assets/orchestrator release-assets/extension release-assets/language-server
@@ -101,6 +125,7 @@ jobs:
           cp -R extension/dist/. release-assets/extension/
           cp -R language-server/dist/. release-assets/language-server/
           cp "extension/eai-gofer-${{ steps.version.outputs.version }}.vsix" release-assets/
+          cp "dist/eai-gofer-agent-plugin-${{ steps.version.outputs.version }}.zip" release-assets/
           cp README.md CHANGELOG.md LICENSE release-assets/
 
           tar -czf "gofer-${{ steps.version.outputs.tag_name }}.tar.gz" release-assets/
@@ -129,7 +154,35 @@ jobs:
             echo "## Assets"
             echo
             echo "- VS Code extension package"
+            echo "- Claude/Codex/Copilot agent plugin package"
             echo "- Gofer release archive"
+            echo
+            echo "## Local Agent Plugin Install"
+            echo
+            echo '```bash'
+            echo "gh release download $tag_name \\"
+            echo "  --repo eai-tools/gofer \\"
+            echo "  --pattern \"eai-gofer-agent-plugin-${{ steps.version.outputs.version }}.zip\" \\"
+            echo "  --dir /tmp/eai-gofer-plugin"
+            echo
+            echo "rm -rf ~/plugins/eai-gofer"
+            echo "unzip /tmp/eai-gofer-plugin/eai-gofer-agent-plugin-${{ steps.version.outputs.version }}.zip -d ~/plugins"
+            echo '```'
+            echo
+            echo "Claude Code:"
+            echo
+            echo '```bash'
+            echo "claude plugin marketplace add ~/plugins/eai-gofer --scope user"
+            echo "claude plugin install eai-gofer@eai-gofer-local --scope user"
+            echo '```'
+            echo
+            echo "Copilot CLI:"
+            echo
+            echo '```bash'
+            echo "copilot plugin install ~/plugins/eai-gofer"
+            echo "copilot plugin marketplace add eai-tools/gofer"
+            echo "copilot plugin install eai-gofer@eai-gofer"
+            echo '```'
           } >> release-notes.md
 
       - name: Publish GitHub Release
@@ -143,5 +196,6 @@ jobs:
           files: |
             gofer-${{ steps.version.outputs.tag_name }}.tar.gz
             extension/eai-gofer-${{ steps.version.outputs.version }}.vsix
+            dist/eai-gofer-agent-plugin-${{ steps.version.outputs.version }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

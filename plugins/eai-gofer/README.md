@@ -10,9 +10,9 @@ replace the VSIX UI, status views, updater, or language-server features.
 
 | Surface            | Marketplace / published mode                                                                                                                                          | Local release-test mode                                                                                      |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| Claude Code        | `claude plugin marketplace add eai-tools/gofer --scope user` then `claude plugin install eai-gofer@eai-gofer --scope user`                                            | Unzip this release to `~/plugins/eai-gofer`, then install `eai-gofer@eai-gofer-local`                        |
+| Claude Code        | `claude plugin marketplace add eai-tools/eai-gofer --scope user` then `claude plugin install eai-gofer@eai-gofer --scope user`                                        | Unzip this release to `~/plugins/eai-gofer`, then install `eai-gofer@eai-gofer-local`                        |
 | Codex              | Public marketplace publishing is prepared by `.codex-plugin/plugin.json`; local/import is the supported test path until external marketplace publication is available | Add `~/plugins/eai-gofer` through Codex local marketplace/import and keep the stable path unchanged          |
-| GitHub Copilot CLI | `copilot plugin marketplace add eai-tools/gofer` then `copilot plugin install eai-gofer@eai-gofer`                                                                    | `copilot plugin marketplace add ~/plugins/eai-gofer` then `copilot plugin install eai-gofer@eai-gofer-local` |
+| GitHub Copilot CLI | `copilot plugin marketplace add eai-tools/eai-gofer` then `copilot plugin install eai-gofer@eai-gofer`                                                                | `copilot plugin marketplace add ~/plugins/eai-gofer` then `copilot plugin install eai-gofer@eai-gofer-local` |
 
 ## Install Or Update Locally
 
@@ -27,7 +27,7 @@ Download this release asset, remove the old folder, unzip the package into
 
 ```bash
 gh release download v3.4.0 \
-  --repo eai-tools/gofer \
+  --repo eai-tools/eai-gofer \
   --pattern "eai-gofer-agent-plugin-3.4.0.zip" \
   --dir /tmp/eai-gofer-plugin
 

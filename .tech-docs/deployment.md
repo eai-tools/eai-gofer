@@ -1,19 +1,70 @@
 ---
 generated: true
-generated_at: "2026-05-18T18:29:37.022Z"
-source_commit: "d71d0b38af3ecb01dee9c3d3001ef1abe9dc5510"
+generated_at: "2026-05-19T18:18:46.548Z"
+source_commit: "d2e265da14627f007f17ed8e89d6b201f4ce1ead"
 ---
 # Deployment
 
 ## Deployment Model
 
-Gofer is a **VSCode extension** distributed via:
+Gofer is distributed in two complementary forms:
+
+1. **VSCode Extension** - Installed via VS Code Marketplace or VSIX file
+2. **Agent Plugin** - Installed via AI assistant plugin marketplaces (Claude Code, GitHub Copilot, Codex)
+
+### VSCode Extension Distribution
 
 1. **GitHub Releases** (primary)
 2. **VSCode Marketplace** (planned)
 3. **Manual VSIX installation**
 
 No cloud infrastructure required - runs entirely locally in VSCode.
+
+### Agent Plugin Distribution
+
+**Since:** v3.4.0
+
+Gofer can be installed as a plugin for AI assistants without the VSCode UI. The plugin distribution includes:
+
+- **Commands** - Generated for Claude Code, Copilot, Codex, Gemini
+- **Agents** - 29 specialized agent definitions
+- **Skills** - Skill manifests for Codex integration
+- **Templates** - Complete specification templates
+
+**Distribution Channels:**
+
+| Platform | Installation Command |
+|----------|---------------------|
+| **Claude Code** | `claude plugin marketplace add eai-tools/eai-gofer --scope user`<br/>`claude plugin install eai-gofer@eai-gofer --scope user` |
+| **GitHub Copilot** | `copilot plugin marketplace add eai-tools/eai-gofer`<br/>`copilot plugin install eai-gofer@eai-gofer` |
+| **Codex** | Import from local marketplace or `~/plugins/eai-gofer` |
+| **Local Testing** | Download release zip, extract to `~/plugins/eai-gofer`, register as local marketplace |
+
+**Plugin Package Contents:**
+
+```
+plugins/eai-gofer/
+├── commands/           # 24 workflow commands
+├── agents/            # 29 specialized agents
+├── skills/            # Codex skill manifests
+├── .claude-plugin/    # Claude marketplace manifest
+├── .github/plugin/    # Copilot marketplace manifest
+├── .codex-plugin/     # Codex plugin manifest
+├── .gemini/commands/  # Gemini command definitions
+├── .specify/          # Command sources and templates
+├── assets/            # Icons and branding
+├── AGENTS.md          # Agent documentation
+├── README.md          # Plugin usage guide
+└── plugin.json        # Universal plugin manifest
+```
+
+**Packaging Script:**
+
+```bash
+npm run gofer:package-plugin -- --version 3.4.0 --sync-repo
+```
+
+**Output:** `eai-gofer-agent-plugin-3.4.0.zip` (attached to GitHub Release)
 
 ---
 
@@ -56,7 +107,8 @@ npx vsce package
 
 - `extension/dist/extension.js` - Bundled extension
 - `language-server/dist/server.js` - Language server
-- `gofer-3.2.0.vsix` - Installable package
+- `gofer-3.4.0.vsix` - Installable extension package
+- `eai-gofer-agent-plugin-3.4.0.zip` - Agent plugin distribution (v3.4.0+)
 
 ---
 
@@ -79,9 +131,11 @@ flowchart LR
     VERSION --> BUILD[Build All]
     BUILD --> TEST[Run Tests]
     TEST --> PACKAGE[Create VSIX]
-    PACKAGE --> TAG[Git Tag]
+    PACKAGE --> PLUGIN[Package Plugin]
+    PLUGIN --> TAG[Git Tag]
     TAG --> RELEASE[GitHub Release]
-    RELEASE --> UPLOAD[Upload VSIX]
+    RELEASE --> UPLOADVSIX[Upload VSIX]
+    RELEASE --> UPLOADPLUGIN[Upload Plugin Zip]
 ```
 
 **Workflow:**
@@ -126,16 +180,26 @@ jobs:
           npm run package
           npx vsce package
 
+      - name: Package agent plugin
+        run: |
+          npm run gofer:package-plugin -- --version ${{ github.ref_name }} --sync-repo
+
       - name: Upload VSIX
         uses: actions/upload-artifact@v4
         with:
           name: vsix
           path: extension/*.vsix
 
+      - name: Upload Plugin Zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugin
+          path: 'eai-gofer-agent-plugin-*.zip'
+
       - name: Create Release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: 'extension/*.vsix'
+          artifacts: 'extension/*.vsix,eai-gofer-agent-plugin-*.zip'
           token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
@@ -168,12 +232,14 @@ jobs:
    - `language-server/package.json`
    - `.specify/.gofer-version`
 4. Updates `CHANGELOG.md`
-5. Commits changes
-6. Creates git tag
-7. Pushes to remote
-8. Triggers GitHub Actions workflow
-9. Creates GitHub release
-10. Uploads VSIX to releases
+5. Regenerates commands (`npm run gofer:generate`)
+6. Packages agent plugin (`npm run gofer:package-plugin`)
+7. Commits changes
+8. Creates git tag
+9. Pushes to remote
+10. Triggers GitHub Actions workflow
+11. Creates GitHub release
+12. Uploads VSIX and plugin zip to releases
 
 ---
 

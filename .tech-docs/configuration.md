@@ -1,152 +1,229 @@
 ---
 generated: true
-generated_at: "2026-05-19T18:18:46.548Z"
-source_commit: "d2e265da14627f007f17ed8e89d6b201f4ce1ead"
+generated_at: "2026-05-20T18:34:35.325Z"
+source_commit: "f8627eca842fa72136a17e0b208b9410b832357c"
 ---
-# Configuration
+# Gofer - Configuration
 
-## Environment Variables
+## Executive Summary
 
-### Required
+Gofer configuration is managed through VS Code settings (91+ settings), environment variables (`.env` for secrets), and file-based config (`.specify/` directory). Configuration is layered: defaults → user settings → workspace settings, with workspace taking precedence.
 
-None - Gofer works out of the box without environment variables.
-
-### Optional (Autonomous Mode)
-
-| Variable              | Purpose                            | Default | Required |
-| --------------------- | ---------------------------------- | ------- | -------- |
-| `ANTHROPIC_API_KEY`   | Claude API access for orchestrator | -       | No       |
-| `GOOGLE_API_KEY`      | Gemini API for LLM council         | -       | No       |
-| `OPENAI_API_KEY`      | GPT API for LLM council            | -       | No       |
-| `TWILIO_ACCOUNT_SID`  | WhatsApp notifications             | -       | No       |
-| `TWILIO_AUTH_TOKEN`   | WhatsApp notifications             | -       | No       |
-| `TWILIO_PHONE_NUMBER` | WhatsApp sender                    | -       | No       |
-
-**Note:** These can be set via `.env` file in project root or VSCode settings
-(preferred).
-
-**Security:** `.env` is included in `.gitignore` to prevent accidental commits
-of credentials. Always use `.env.example` as a template and never commit your
-actual `.env` file with real credentials.
-
-### Example `.env`
-
-```bash
-# Optional: For autonomous mode
-ANTHROPIC_API_KEY=sk-ant-api03-...
-GOOGLE_API_KEY=AIza...
-OPENAI_API_KEY=sk-proj-...
-
-# Optional: For WhatsApp notifications
-TWILIO_ACCOUNT_SID=AC...
-TWILIO_AUTH_TOKEN=...
-TWILIO_PHONE_NUMBER=+1234567890
-```
-
----
-
-## VSCode Settings
-
-Configure via `Cmd/Ctrl+,` or `.vscode/settings.json`
+## VS Code Settings
 
 ### API Keys
 
-**Anthropic API Key**
+| Setting | Type | Default | Description |
+| ------- | ---- | ------- | ----------- |
+| `gofer.anthropicApiKey` | string | `""` | Anthropic API key for Claude models |
+| `gofer.googleApiKey` | string | `""` | Google AI API key for Gemini models |
+| `gofer.openaiApiKey` | string | `""` | OpenAI API key for GPT models |
+| `gofer.anthropicAdminApiKey` | string | `""` | Anthropic admin API key for billing data |
+| `gofer.openaiAdminApiKey` | string | `""` | OpenAI admin API key for billing data |
 
-```json
-{
-  "gofer.anthropicApiKey": "sk-ant-api03-..."
-}
+**Security Notes:**
+- API keys are stored in VS Code settings (encrypted by VS Code)
+- Never commit API keys to version control
+- Admin keys are optional and only used for cost tracking
+
+### Workflow Profile
+
+| Setting | Type | Default | Description |
+| ------- | ---- | ------- | ----------- |
+| `gofer.workflowProfile` | enum | `"enterpriseai"` | Workflow profile: `enterpriseai` or `standard` |
+| `gofer.autoInitialize` | boolean | `false` | Auto-initialize `.specify/` on workspace open |
+| `gofer.preferredAI` | enum | `"ask"` | Preferred AI assistant: `ask`, `claude`, `copilot`, `codex`, `gemini` |
+| `gofer.defaultCLI` | enum | `"auto"` | Default CLI surface: `auto`, `claude`, `copilot`, `codex`, `gemini` |
+
+### Context Management
+
+| Setting | Type | Default | Description |
+| ------- | ---- | ------- | ----------- |
+| `gofer.contextHealth.enabled` | boolean | `true` | Enable context health monitoring |
+| `gofer.contextHealth.pollInterval` | number | `30000` | Poll interval in milliseconds (30s) |
+| `gofer.contextHealth.thresholds.delegation` | number | `70` | Delegation advisory threshold (%) |
+| `gofer.contextHealth.thresholds.masking` | number | `80` | Observation masking threshold (%) |
+| `gofer.contextHealth.thresholds.pruning` | number | `85` | Fast pruning threshold (%) |
+| `gofer.contextHealth.thresholds.aggressive` | number | `90` | Aggressive masking threshold (%) |
+| `gofer.contextHealth.thresholds.compaction` | number | `99` | Full compaction threshold (%) |
+| `gofer.acc.maskingTurnThreshold` | number | `5` | Turns before observation masking |
+
+### Memory Management
+
+| Setting | Type | Default | Description |
+| ------- | ---- | ------- | ----------- |
+| `gofer.memory.enabled` | boolean | `true` | Enable memory system |
+| `gofer.memory.layered` | boolean | `false` | Use 3-layer memory system (opt-in) |
+| `gofer.memory.maxMemories` | number | `1000` | Maximum memories to keep |
+| `gofer.memory.compactionThreshold` | number | `0.8` | Compaction trigger (80% full) |
+| `gofer.memory.tfidfMinScore` | number | `0.1` | Minimum TF-IDF score for retrieval |
+| `gofer.memory.showSystemMemories` | boolean | `false` | Show system-generated memories in panel |
+
+### Scope Guard
+
+| Setting | Type | Default | Description |
+| ------- | ---- | ------- | ----------- |
+| `gofer.scopeGuard.mode` | enum | `"advisory"` | Protection mode: `advisory`, `warning`, `blocking` |
+| `gofer.scopeGuard.enabled` | boolean | `true` | Enable file access protection |
+| `gofer.scopeGuard.logViolations` | boolean | `true` | Log violations to tool-audit.jsonl |
+
+### Cost Budget
+
+| Setting | Type | Default | Description |
+| ------- | ---- | ------- | ----------- |
+| `gofer.budget.enabled` | boolean | `true` | Enable cost budget enforcement |
+| `gofer.budget.maxCostPerRun` | number | `10.0` | Maximum cost per pipeline run (USD) |
+| `gofer.budget.warnThreshold` | number | `0.8` | Warning threshold (80% of budget) |
+
+### LLM Council
+
+| Setting | Type | Default | Description |
+| ------- | ---- | ------- | ----------- |
+| `gofer.council.enabled` | boolean | `false` | Enable multi-model validation |
+| `gofer.council.models` | array | `["claude-3-5-sonnet-20241022", "gemini-1.5-pro", "gpt-4o"]` | Models for validation |
+| `gofer.council.consensusThreshold` | number | `0.67` | Consensus threshold (2/3) |
+
+### Slop Reduction
+
+| Setting | Type | Default | Description |
+| ------- | ---- | ------- | ----------- |
+| `gofer.slopReduction.enabled` | boolean | `false` | Auto-remove console.log, debugger, etc. (opt-in) |
+| `gofer.slopReduction.patterns` | array | `["console.log", "debugger", "@ts-ignore"]` | Patterns to detect |
+| `gofer.slopReduction.onSave` | boolean | `false` | Run on file save |
+
+### Auto-Update
+
+| Setting | Type | Default | Description |
+| ------- | ---- | ------- | ----------- |
+| `gofer.autoUpdate.enabled` | boolean | `true` | Check for extension updates |
+| `gofer.autoUpdate.frequency` | enum | `"daily"` | Check frequency: `daily`, `weekly`, `never` |
+
+### UI Preferences
+
+| Setting | Type | Default | Description |
+| ------- | ---- | ------- | ----------- |
+| `gofer.ui.progressIcons` | enum | `"harvey-balls"` | Progress icons: `harvey-balls`, `percentages`, `checkmarks` |
+| `gofer.ui.showBranchInTitle` | boolean | `true` | Show Git branch in spec title |
+| `gofer.ui.compactView` | boolean | `false` | Use compact tree view |
+
+## Environment Variables
+
+Configuration via `.env` file (never commit to Git):
+
+| Variable | Required | Default | Description |
+| -------- | -------- | ------- | ----------- |
+| `ANTHROPIC_API_KEY` | No | - | Anthropic API key (alternative to VS Code setting) |
+| `GOOGLE_API_KEY` | No | - | Google AI API key |
+| `OPENAI_API_KEY` | No | - | OpenAI API key |
+| `TWILIO_ACCOUNT_SID` | No | - | Twilio account SID (optional notifications) |
+| `TWILIO_AUTH_TOKEN` | No | - | Twilio auth token |
+| `TWILIO_WHATSAPP_NUMBER` | No | - | Twilio WhatsApp number |
+| `WHATSAPP_PHONE_NUMBER` | No | - | Recipient WhatsApp number |
+| `LOG_LEVEL` | No | `info` | Logging level: `debug`, `info`, `warn`, `error` |
+| `SPECS_DIR` | No | `.specify/specs` | Specifications directory |
+| `MAX_RETRIES` | No | `3` | Max retries for failed operations |
+
+**Example `.env`:**
+
+```bash
+# LLM API Keys
+ANTHROPIC_API_KEY=OPENAI_API_KEY_REDACTED
+GOOGLE_API_KEY=AIza-your-key-here
+OPENAI_API_KEY=sk-your-key-here
+
+# Optional: Twilio WhatsApp Integration
+TWILIO_ACCOUNT_SID=your_twilio_account_sid_here
+TWILIO_AUTH_TOKEN=your_twilio_auth_token_here
+TWILIO_WHATSAPP_NUMBER=+14155238886
+WHATSAPP_PHONE_NUMBER=+1234567890
+
+# Logging
+LOG_LEVEL=info
+
+# Orchestrator
+SPECS_DIR=.specify/specs
+MAX_RETRIES=3
 ```
 
-- **Description:** Your Anthropic API key for Claude
-- **Usage:** Orchestrator, autonomous mode, LLM council
-- **Get Key:**
-  [https://console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys)
-- **Storage:** Securely stored in VSCode settings
+## File-Based Configuration
 
-**Anthropic Admin API Key**
+### Constitution (`.specify/memory/constitution.md`)
 
-```json
-{
-  "gofer.anthropicAdminApiKey": "sk-ant-admin-..."
-}
+Project-specific coding principles and guidelines enforced by ScopeGuard and validation agents.
+
+**Example:**
+
+```markdown
+# Project Constitution
+
+## Coding Principles
+
+### Error Handling
+- All async functions must have try-catch blocks
+- User-facing errors must be translated to readable messages
+- Never log sensitive data (passwords, tokens)
+
+### Security
+- Never store passwords in plaintext
+- Use bcrypt for password hashing (min 10 rounds)
+- JWT tokens expire after 1 hour
+
+### Testing
+- All new functions require unit tests
+- Integration tests for API endpoints
+- Minimum 80% code coverage
 ```
 
-- **Description:** Your Anthropic Admin API key for billing data
-- **Usage:** AI Usage Panel - real-time cost tracking
-- **Get Key:**
-  [https://console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys)
-- **Required for:** Provider billing API integration
+### Spec Frontmatter Configuration
 
-**Google AI API Key**
+Each spec can override global settings via YAML frontmatter:
 
-```json
-{
-  "gofer.googleApiKey": "AIza..."
-}
-```
-
-- **Description:** Your Google AI API key for Gemini
-- **Usage:** LLM council (optional)
-- **Get Key:**
-  [https://aistudio.google.com/apikey](https://aistudio.google.com/apikey)
-
-**OpenAI API Key**
-
-```json
-{
-  "gofer.openaiApiKey": "sk-proj-..."
-}
-```
-
-- **Description:** Your OpenAI API key for GPT models
-- **Usage:** LLM council (optional)
-- **Get Key:**
-  [https://platform.openai.com/api-keys](https://platform.openai.com/api-keys)
-
-**OpenAI Admin API Key**
-
-```json
-{
-  "gofer.openaiAdminApiKey": "sk-proj-..."
-}
-```
-
-- **Description:** Your OpenAI Admin API key for billing data
-- **Usage:** AI Usage Panel - real-time cost tracking
-- **Required for:** Provider billing API integration with `api.usage.read` scope
-
+```yaml
 ---
-
-### Autonomous Mode
-
-**Enable Autonomous Mode**
-
-```json
-{
-  "gofer.autonomousMode": true
-}
+id: "001-login-feature"
+status: "in_progress"
+protected_files:
+  - "src/auth/*.ts"
+  - ".env"
+budget_override: 5.0  # Override global budget for this spec
+council_enabled: true  # Enable LLM Council for this spec
+---
 ```
 
-- **Default:** `true`
-- **Description:** Automatically answer Claude Code questions using Haiku
-- **Requires:** `gofer.anthropicApiKey`
+## Configuration Precedence
 
-**Default CLI Platform (v3.0+)**
+1. **Workspace Settings** (`.vscode/settings.json`)
+2. **User Settings** (VS Code global settings)
+3. **Spec Frontmatter** (spec-specific overrides)
+4. **Environment Variables** (`.env`)
+5. **Defaults** (hardcoded in extension)
 
-```json
-{
-  "gofer.defaultCLI": "auto"
-}
-```
+## Secrets Management
 
-- **Options:** `"auto"`, `"claude"`, `"copilot"`, `"codex"`, `"gemini"`
-- **Default:** `"auto"`
-- **Description:** AI CLI for Gofer command routing
-- **Auto-detection:** Automatically detects installed CLI
+### Where to Store API Keys
 
-**Workflow Profile (v3.0+)**
+1. **Recommended:** VS Code User Settings (encrypted by VS Code)
+   - `Cmd/Ctrl+Shift+P` → "Preferences: Open User Settings (JSON)"
+   - Add: `"gofer.anthropicApiKey": "sk-ant-api03-..."`
+
+2. **Alternative:** Environment variables in `.env` file
+   - Create `.env` in repository root
+   - Add to `.gitignore` to prevent commit
+   - Load via `dotenv` in orchestrator
+
+3. **Not Recommended:** Workspace settings (`.vscode/settings.json`)
+   - May be committed to Git if not careful
+   - Use only for non-sensitive settings
+
+### Secret Rotation
+
+- No built-in secret rotation
+- Manually update API keys in VS Code settings or `.env`
+- Keys are never logged or committed by Gofer
+
+## Required Configuration for Features
+
+### Minimum Configuration (VS Code Extension Only)
 
 ```json
 {
@@ -154,442 +231,67 @@ Configure via `Cmd/Ctrl+,` or `.vscode/settings.json`
 }
 ```
 
-- **Options:** `"standard"`, `"enterpriseai"`
-- **Default:** `"enterpriseai"`
-- **Description:** EnterpriseAI-focused workflow guidance
-
-**Use External References**
+### Full AI Assistant Integration
 
 ```json
 {
-  "gofer.enterpriseAiUseExternalReferences": false
+  "gofer.anthropicApiKey": "sk-ant-api03-...",
+  "gofer.googleApiKey": "AIza-...",
+  "gofer.openaiApiKey": "sk-...",
+  "gofer.defaultCLI": "auto",
+  "gofer.council.enabled": true
 }
 ```
 
-- **Default:** `false`
-- **Description:** Prefer external EnterpriseAI URLs vs local fallback
-
-**Preferred AI Tool (Legacy)**
+### Autonomous Orchestration
 
 ```json
 {
-  "gofer.preferredAI": "claude"
+  "gofer.anthropicApiKey": "sk-ant-api03-...",
+  "gofer.budget.enabled": true,
+  "gofer.budget.maxCostPerRun": 10.0,
+  "gofer.scopeGuard.mode": "warning",
+  "gofer.memory.layered": true,
+  "gofer.contextHealth.enabled": true
 }
 ```
 
-- **Options:** `"claude"`, `"copilot"`, `"ask"`
-- **Default:** `"ask"`
-- **Description:** Which AI to use when sending tasks (legacy setting)
+## Troubleshooting
 
----
+### Issue: API Key Not Recognized
 
-### Context Management
+- **Cause:** Key not set or invalid format
+- **Fix:** Verify key in VS Code settings: `Cmd/Ctrl+Shift+P` → "Preferences: Open User Settings (JSON)"
+- **Verify:** Check extension output: `View` → `Output` → Select "Gofer"
 
-**Auto-Save Threshold**
+### Issue: Context Health Not Updating
 
-```json
-{
-  "gofer.contextWindow.autoSaveThreshold": 0.65
-}
-```
+- **Cause:** Polling disabled or cache stale
+- **Fix:** Enable polling: `"gofer.contextHealth.enabled": true`
+- **Verify:** Check status bar shows context percentage
 
-- **Default:** `0.65` (65%)
-- **Range:** `0.0` to `1.0`
-- **Description:** Context utilization threshold for automatic session save
+### Issue: Memory Not Persisting
 
-**Auto-Execute Save**
+- **Cause:** Memory system disabled or file permissions
+- **Fix:** Enable memory: `"gofer.memory.enabled": true`
+- **Verify:** Check `.specify/memory/memories.jsonl` exists and is writable
 
-```json
-{
-  "gofer.contextWindow.autoExecuteSave": true
-}
-```
+### Issue: Cost Budget Exceeded
 
-- **Default:** `true`
-- **Description:** Automatically execute `/7_gofer_save` when threshold reached
+- **Cause:** Budget too low or unexpected high token usage
+- **Fix:** Increase budget: `"gofer.budget.maxCostPerRun": 20.0`
+- **Verify:** Check `.specify/logs/gofer-run-ledger.jsonl` for actual costs
 
-**Auto-Resume After Save**
+## Configuration Migration
 
-```json
-{
-  "gofer.contextWindow.autoResumeAfterSave": true
-}
-```
+### From v2.x to v3.x
 
-- **Default:** `true`
-- **Description:** Automatically execute `/8_gofer_resume` after save
+- **Old:** `gofer.claudeApiKey` → **New:** `gofer.anthropicApiKey`
+- **Old:** `gofer.enableCouncil` → **New:** `gofer.council.enabled`
+- **Old:** `gofer.contextThreshold` → **New:** `gofer.contextHealth.thresholds.compaction`
 
-**Compaction Threshold**
+### From Standard to EnterpriseAI Workflow
 
-```json
-{
-  "gofer.autonomous.compactionThreshold": 80
-}
-```
-
-- **Default:** `80` (80%)
-- **Range:** `50-95`
-- **Description:** Context usage percentage that triggers auto-compaction
-
----
-
-### Memory Management
-
-**Use Layered Memory**
-
-```json
-{
-  "gofer.useLayeredMemory": false
-}
-```
-
-- **Default:** `false`
-- **Description:** Enable MemGPT-inspired three-layer memory
-  (core/recall/archival)
-
-**Memory Coverage Threshold**
-
-```json
-{
-  "gofer.memory.coverageThreshold": 30
-}
-```
-
-- **Default:** `30` (30%)
-- **Range:** `0-100`
-- **Description:** Memory coverage threshold for tiered context loading
-
----
-
-### Code Quality
-
-**Slop Reduction**
-
-```json
-{
-  "gofer.yoloSlopReduction.enabled": false
-}
-```
-
-- **Default:** `false`
-- **Description:** Auto-remove console.log, debugger, @ts-ignore on save
-
-**Slop Notification Frequency**
-
-```json
-{
-  "gofer.yoloSlopReduction.notifyEvery": 10
-}
-```
-
-- **Default:** `10`
-- **Description:** Show notification every N slop fixes
-
-**Continuous Slop Reduction**
-
-```json
-{
-  "gofer.contextWindow.continuousSlopReduction.enabled": false
-}
-```
-
-- **Default:** `false`
-- **Description:** Enable periodic background workspace-wide slop scans
-
-**Continuous Slop Interval**
-
-```json
-{
-  "gofer.contextWindow.continuousSlopReduction.intervalMs": 120000
-}
-```
-
-- **Default:** `120000` (2 minutes)
-- **Range:** `60000-1800000`
-- **Description:** Interval for background slop scans
-
----
-
-### Scope Guard
-
-**Scope Guard Mode**
-
-```json
-{
-  "gofer.scopeGuard.mode": "warning"
-}
-```
-
-- **Options:** `"advisory"`, `"warning"`, `"blocking"`
-- **Default:** `"warning"`
-- **Description:** ScopeGuard enforcement mode for protected file boundaries
-
----
-
-### Budget Enforcement
-
-**Max Cost (USD)**
-
-```json
-{
-  "gofer.budgets.maxCostUsd": 10
-}
-```
-
-- **Default:** `10`
-- **Description:** Maximum cost in USD per pipeline run
-
-**Max Tokens Per Run**
-
-```json
-{
-  "gofer.budgets.maxTokensPerRun": 500000
-}
-```
-
-- **Default:** `500000`
-- **Description:** Maximum total tokens (input + output) per run
-
-**Budget Enforcement Mode**
-
-```json
-{
-  "gofer.budgets.enforcementMode": "advisory"
-}
-```
-
-- **Options:** `"advisory"`, `"truncate"`, `"blocking"`
-- **Default:** `"advisory"`
-- **Description:** How cost budget is enforced when limits exceeded
-
----
-
-### AI Usage Tracking
-
-**Use API Client**
-
-```json
-{
-  "gofer.aiUsage.useApiClient": true
-}
-```
-
-- **Default:** `true`
-- **Description:** Use billing API client for usage data
-
-**Polling Interval**
-
-```json
-{
-  "gofer.aiUsage.api.pollingInterval": 60000
-}
-```
-
-- **Default:** `60000` (1 minute)
-- **Range:** `15000-300000`
-- **Description:** How often to poll provider billing APIs
-
-**Status Bar Enabled**
-
-```json
-{
-  "gofer.aiUsage.statusBar.enabled": true
-}
-```
-
-- **Default:** `true`
-- **Description:** Show AI usage cost in status bar
-
----
-
-### Engineering Reviews
-
-**Enable Engineering Review**
-
-```json
-{
-  "gofer.autonomous.enableEngineeringReview": true
-}
-```
-
-- **Default:** `true`
-- **Description:** Enable proactive engineering reviews during implementation
-
-**Enable Performance Review**
-
-```json
-{
-  "gofer.autonomous.enablePerformanceReview": true
-}
-```
-
-- **Default:** `true`
-- **Description:** Enable proactive performance reviews during implementation
-
-**Engineering Review Min Completion**
-
-```json
-{
-  "gofer.autonomous.engineeringReviewMinCompletion": 40
-}
-```
-
-- **Default:** `40` (40%)
-- **Range:** `0-100`
-- **Description:** Minimum completion % to trigger engineering review
-
-**Engineering Review Max Completion**
-
-```json
-{
-  "gofer.autonomous.engineeringReviewMaxCompletion": 80
-}
-```
-
-- **Default:** `80` (80%)
-- **Range:** `0-100`
-- **Description:** Maximum completion % to trigger engineering review
-
-**Performance Review Min Completion**
-
-```json
-{
-  "gofer.autonomous.performanceReviewMinCompletion": 70
-}
-```
-
-- **Default:** `70` (70%)
-- **Range:** `0-100`
-- **Description:** Minimum completion % to trigger performance review
-
----
-
-### Diagnostics
-
-**Resource Snapshots Enabled**
-
-```json
-{
-  "gofer.diagnostics.resourceSnapshots.enabled": true
-}
-```
-
-- **Default:** `true`
-- **Description:** Write lightweight resource snapshots to output log
-
-**Resource Snapshots Interval**
-
-```json
-{
-  "gofer.diagnostics.resourceSnapshots.intervalMs": 300000
-}
-```
-
-- **Default:** `300000` (5 minutes)
-- **Range:** `60000-3600000`
-- **Description:** Interval for resource snapshots
-
----
-
-## Configuration Files
-
-### `.specify/` Directory Structure
-
-```
-.specify/
-├── specs/               # Feature specifications
-│   └── {spec-id}/
-│       ├── spec.md      # Main specification
-│       ├── plan.md      # Implementation plan
-│       ├── tasks.md     # Task breakdown
-│       └── research.md  # Research findings
-├── memory/              # Project memory
-│   ├── constitution.md  # Coding principles
-│   ├── memories.jsonl   # Memory storage
-│   └── hints/           # Context hints
-├── logs/                # JSONL logs
-│   ├── council-usage.jsonl
-│   ├── tool-audit.jsonl
-│   ├── slop-reduction.jsonl
-│   └── gofer-run-ledger.jsonl
-├── commands/            # CLI command sources
-└── current-stage.json   # Current pipeline stage
-```
-
-### Extension Manifest
-
-**File:** `extension/package.json`
-
-- Defines all VSCode commands (30+)
-- Defines all configuration settings (50+)
-- Defines views and panels (3)
-- Activation events
-
-### Claude Code Plugin
-
-**File:** `.claude-plugin/plugin.json`
-
-- MCP tool definitions
-- Plugin metadata
-- Tool categories
-
-### Gemini CLI Extension
-
-**File:** `.gemini/extension.json`
-
-- Gemini command metadata
-- Extension configuration
-
-### Codex Configuration
-
-**File:** `codex-config.toml`
-
-- Codex skill configuration scaffold
-- Skill discovery paths
-
----
-
-## Feature Flags
-
-Gofer does not use traditional feature flags. All features are controlled via
-VSCode settings (see above).
-
-**Feature Toggle Settings:**
-
-- `gofer.autonomousMode` - Autonomous execution
-- `gofer.yoloSlopReduction.enabled` - Slop reduction
-- `gofer.useLayeredMemory` - Layered memory system
-- `gofer.aiUsage.useApiClient` - Billing API client
-- `gofer.contextWindow.autoExecuteSave` - Auto-save execution
-- `gofer.autonomous.enableEngineeringReview` - Engineering reviews
-- `gofer.autonomous.enablePerformanceReview` - Performance reviews
-
----
-
-## Secrets and Credentials
-
-**Required Secrets:** None (extension works without API keys)
-
-**Optional Secrets:**
-
-1. **Anthropic API Key** - For Claude AI access
-2. **Anthropic Admin API Key** - For billing data
-3. **Google API Key** - For Gemini AI
-4. **OpenAI API Key** - For GPT models
-5. **OpenAI Admin API Key** - For billing data
-6. **Twilio Credentials** - For WhatsApp notifications
-
-**Storage:**
-
-- VSCode Settings (encrypted by VSCode)
-- Environment variables (`.env` file, gitignored)
-- Never committed to git
-- Never logged to output channels
-
-**Best Practices:**
-
-- Use VSCode settings for API keys (preferred)
-- Use environment variables for CI/CD
-- Never hardcode credentials
-- Rotate keys periodically
-- Use separate keys for dev/prod
+- Set `"gofer.workflowProfile": "enterpriseai"`
+- Add EnterpriseAI platform integration settings (if applicable)
+- No breaking changes to existing specs

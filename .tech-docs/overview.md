@@ -1,7 +1,7 @@
 ---
 generated: true
-generated_at: "2026-05-19T18:18:46.548Z"
-source_commit: "d2e265da14627f007f17ed8e89d6b201f4ce1ead"
+generated_at: "2026-05-20T18:34:35.325Z"
+source_commit: "f8627eca842fa72136a17e0b208b9410b832357c"
 ---
 # Gofer - Technical Overview
 
@@ -14,13 +14,13 @@ source_commit: "d2e265da14627f007f17ed8e89d6b201f4ce1ead"
 | **Primary Users**        | Software development teams using Claude Code, GitHub Copilot, OpenAI Codex, or Gemini CLI for feature implementation |
 | **Data Sensitivity**     | Low - stores specifications, plans, and code artifacts locally in repository workspace                               |
 | **Current Status**       | Active Development (v3.4.0) - Production-ready with agent plugin marketplace distribution                            |
-| **Last Material Change** | 2026-05-19 - Agent plugin packaging and marketplace distribution system added                                        |
+| **Last Material Change** | 2026-05-20 - Documentation update and EAI Gofer agent plugin packaging alignment                                     |
 
 ## Service Identity
 
 **Name:** Gofer  
 **Version:** 3.4.0  
-**Documentation Updated:** 2026-05-19  
+**Documentation Updated:** 2026-05-20  
 **Publisher:** Enterprise AI Pty Ltd  
 **Repository:** [https://github.com/eai-tools/eai-gofer](https://github.com/eai-tools/eai-gofer)
 
@@ -32,7 +32,7 @@ Gofer is a VSCode extension that bridges human specifications with AI implementa
 
 1. **Model Context Protocol (MCP) Tools** - 29+ tools that AI assistants call directly to read specs, execute tasks, validate code, and manage context
 2. **Specification Framework** - Structured `.specify/` directory format for feature specs, plans, and tasks
-3. **Multi-Platform CLI Support** - Commands for Claude Code, GitHub Copilot Chat, OpenAI Codex, and Gemini CLI (24 commands)
+3. **Multi-Platform CLI Support** - Commands for Claude Code, GitHub Copilot Chat, OpenAI Codex, and Gemini CLI (24+ commands)
 4. **Autonomous Execution** - Optional orchestrator that drives Claude Code through full implementation cycles with Haiku-based decision making
 5. **Adaptive Context Compaction (ACC)** - 5-stage progressive context management (70%, 80%, 85%, 90%, 99% thresholds)
 6. **Constitution-Based Validation** - Enforces project principles and coding standards through ScopeGuard
@@ -43,19 +43,19 @@ Gofer is a VSCode extension that bridges human specifications with AI implementa
 
 ## Tech Stack
 
-| Component            | Technology                 | Version       |
-| -------------------- | -------------------------- | ------------- |
-| Language             | TypeScript                 | 5.9.3         |
-| Runtime              | Node.js                    | 20.x          |
-| Framework            | VSCode Extension API       | 1.93.0+       |
-| Build Tool           | Webpack                    | 5.105.4       |
-| Testing              | Vitest + Playwright        | 3.2.4 / 1.58.2|
-| AI SDK               | Anthropic SDK              | 0.67.1 (ext)  |
-| Language Server      | vscode-languageserver      | 9.0.1         |
-| Dependency Injection | tsyringe                   | 4.10.0        |
-| Terminal Emulation   | node-pty-prebuilt-multiarch| 0.10.1-pre.5  |
-| Schema Validation    | Zod                        | 3.25.76       |
-| File Watching        | chokidar                   | 3.6.0/4.0.3   |
+| Component            | Technology                  | Version        |
+| -------------------- | --------------------------- | -------------- |
+| Language             | TypeScript                  | 5.9.3          |
+| Runtime              | Node.js                     | 24.x           |
+| Framework            | VSCode Extension API        | 1.93.0+        |
+| Build Tool           | Webpack                     | 5.x            |
+| Testing              | Vitest + Playwright         | 3.2.4 / 1.58.2 |
+| AI SDK               | Anthropic SDK               | 0.32.1         |
+| Language Server      | vscode-languageserver       | 9.0.1          |
+| Dependency Injection | tsyringe                    | 4.10.0         |
+| Schema Validation    | Zod                         | 3.25.76        |
+| File Watching        | chokidar                    | 4.0.3          |
+| Logging              | winston                     | 3.19.0         |
 
 ## Key Entry Points
 
@@ -64,20 +64,20 @@ Gofer is a VSCode extension that bridges human specifications with AI implementa
 **File:** `extension/src/extension.ts`
 
 - Activates on startup (`onStartupFinished`)
-- Line 171: `activate()` initializes DI container via tsyringe
-- Line 204-216: `setupLSP()` starts Language Server (non-blocking)
-- Line 218: `registerTreeViews()` creates Progress, AI Usage, Memory panels
-- Line 272-284: `initializeForWorkspace()` deferred initialization
-- Registers 67 commands, 3 views, 2 status bars
-- **Extension file count:** 247 TypeScript files (across all modules)
+- Line 100: `activate()` initializes DI container via tsyringe
+- Line 49: `registerServices()` registers all injectable services
+- Registers 67+ commands, 3 views, 2 status bars
+- Initializes LSP client for communication with language server
+- Sets up autonomous orchestration (ACCOrchestrator), memory management, and context health monitoring
+- **Extension file count:** 247+ TypeScript files (across all modules)
 
 ### Language Server Entry Point
 
 **File:** `language-server/src/server.ts`
 
 - Dual-protocol server (LSP + MCP)
-- Line 129-537: `connection.onInitialize()` registers 29 MCP tools
-- Line 719-875: `connection.onRequest('tools/call')` handles MCP tool invocations
+- Line 129+: `connection.onInitialize()` registers 29 MCP tools
+- Line 719+: `connection.onRequest('tools/call')` handles MCP tool invocations
 - Implements custom LSP methods for spec/task management
 - Exposes tools to Claude Code, GitHub Copilot via VSCode MCP bridge
 - **Server file count:** 10+ TypeScript files
@@ -86,7 +86,7 @@ Gofer is a VSCode extension that bridges human specifications with AI implementa
 
 **File:** `src/orchestrator/AutonomousOrchestrator_new.ts`
 
-- Optional autonomous execution mode (CLI-based, deprecated)
+- Optional autonomous execution mode (CLI-based)
 - Coordinates Claude Code terminal sessions
 - Manages task queue and dependencies
 - IPC status signaling via `.specify/ipc/status.json`
@@ -138,12 +138,13 @@ npm run package
 npx vsce package
 ```
 
-### 6. Generate Commands
+### 6. Generate Commands and Package Plugin
 
 ```bash
-npm run gofer:generate      # Generate CLI command surfaces
-npm run gofer:mermaid-export # Export Mermaid diagrams (optional)
-npm run gofer:codex-doctor  # Diagnostic tool
+npm run gofer:generate                              # Generate CLI command surfaces
+npm run gofer:package-plugin -- --version 3.4.0     # Package agent plugin zip
+npm run gofer:mermaid-export                        # Export Mermaid diagrams (optional)
+npm run gofer:codex-doctor                          # Diagnostic tool
 ```
 
 ## Team/Ownership
@@ -169,29 +170,29 @@ npm run gofer:codex-doctor  # Diagnostic tool
 ```
 gofer/
 ├── extension/           # VSCode extension (UI, commands, views)
-│   ├── src/             # TypeScript source (247 files)
+│   ├── src/             # TypeScript source (247+ files)
 │   │   ├── autonomous/  # ACC, context management, scope guard
 │   │   ├── council/     # LLM Council, command generation
 │   │   ├── services/    # DI services, config, state
 │   │   └── ui/          # Tree view providers
 │   ├── language-server/ # Bundled LSP server (copied during build)
-│   └── package.json     # Extension manifest (67 commands, 91 settings)
+│   └── package.json     # Extension manifest (67+ commands, 91+ settings)
 ├── language-server/     # LSP + MCP server (source)
 │   ├── src/             # Server implementation
 │   │   ├── mcp/         # MCP tool handler (29 tools)
 │   │   └── utils/       # Gofer loader, spec cache
 │   └── package.json
-├── src/                 # Orchestrator (autonomous execution, deprecated)
+├── src/                 # Orchestrator (autonomous execution)
 │   ├── orchestrator/    # Main orchestration loop
 │   └── types/           # Shared type definitions
 ├── .specify/            # Specifications and memory
-│   ├── commands/        # Canonical command definitions (24 files)
+│   ├── commands/        # Canonical command definitions (24+ files)
 │   ├── specs/           # Feature specifications
 │   ├── memory/          # Constitution, enriched context, observations
 │   ├── logs/            # JSONL logs (usage, audit, slop, ledger)
 │   ├── templates/       # Document templates
 │   └── scripts/         # Automation (bash, node, hooks)
-├── docs/                # Documentation
+├── docs/                # Legacy documentation (archived)
 ├── docs-site/           # Docusaurus-based public site
 ├── tests/               # Test suites (unit, integration, e2e)
 └── scripts/             # Build and automation scripts
@@ -228,7 +229,7 @@ gofer/
 5. **Let AI Implement**
    - In Claude Code: `/0_business_scenario Add user authentication`
    - In GitHub Copilot: `#0_business_scenario Add user authentication`
-   - In OpenAI Codex: `$ $0_business_scenario Add user authentication`
+   - In OpenAI Codex: Ask to use the `0_business_scenario` skill
    - In Gemini CLI: `/gofer:0_business_scenario Add user authentication`
    - Pipeline auto-chains through all stages
 
@@ -249,7 +250,7 @@ gofer/
 - **7 Visual Writer Agents** - Specialized agents for each diagram type
 - **Namespace Aliases** - `/gofer:*` prefix for all commands
 - **Mermaid Export** - `npm run gofer:mermaid-export` (optional)
-- **24 Pipeline Commands** - Numbered stages + helper commands + control commands
+- **24+ Pipeline Commands** - Numbered stages + helper commands + control commands
 
 ### Adaptive Context Compaction (ACC) v3.2+
 
@@ -276,10 +277,10 @@ gofer/
 - **Tool Audit Logging** - All file access logged to `.specify/logs/tool-audit.jsonl`
 - **Research Chunking** - On-demand loading with memory-first strategy (30% coverage threshold)
 
-### Recent Additions (v3.0-3.3)
+### Recent Additions (v3.0-3.4)
 
 - **Memory Panel Filter** - Toggle to hide system-generated memories
-- **Cross-Platform Command Parity** - All 24 Gofer commands on Claude, Copilot, Codex, Gemini
+- **Cross-Platform Command Parity** - All 24+ Gofer commands on Claude, Copilot, Codex, Gemini
 - **Parallel Validation** - 6 validation agents run concurrently
 - **Codex Budget Doctor** - `npm run gofer:codex-doctor` diagnostic tool
 - **Plugin Manifests** - `.claude-plugin/`, `.gemini/`, `codex-config.toml` support
@@ -289,6 +290,7 @@ gofer/
 - **Skills Pipeline Augmentation** - Enhanced agent coordination (v3.2)
 - **UI-First App Delivery** - Preview-approval-service-fit workflow for vertical apps (v3.2.2)
 - **EAI Block Catalog Requirement** - UI generation enforced via block catalog (v3.3.1)
+- **Agent Plugin Packaging** - Automated marketplace distribution for Claude Code, Codex, Copilot CLI (v3.4.0)
 
 ## Data Storage
 
@@ -328,7 +330,7 @@ No database required - all data is file-based for Git-friendly version control.
 - **GitHub API** - Optional auto-update checking
 - **GitHub Pages** - Documentation hosting for Docusaurus site
 
-See `./dependencies.md` for the full upstream and downstream dependency map.
+See [./dependencies.md](./dependencies.md) for the full upstream and downstream dependency map.
 
 ## Documentation Surfaces
 
@@ -348,12 +350,12 @@ This repository maintains multiple documentation surfaces:
 - `docs-site/` publishes `.tech-docs/` content to GitHub Pages
 - Changes to `.tech-docs/` automatically trigger a documentation site rebuild
 - Documentation site requires Node 24+ and uses Docusaurus 3.6.3
+- Legacy documentation from `docs/` archived in `.tech-docs/legacy-src/docs/`
 
 ## Current Status
 
-- Nightly-managed `.tech-docs/` content is present for this repository.
-- Source commit: `d71d0b38af3ecb01dee9c3d3001ef1abe9dc5510`
-- Version: 3.3.1 (Released 2026-05-10)
+- Active development at v3.4.0
+- Nightly-managed `.tech-docs/` content is present for this repository
+- Source commit: `f8627eca842fa72136a17e0b208b9410b832357c`
 - Additional repo-local docs surfaces detected: 1 (docs-site/)
-- Legacy documentation archived in `.tech-docs/legacy-src/docs/`
-- Recent focus: EAI block catalog requirement enforcement, environment variable security (`.env` in `.gitignore`)
+- Recent focus: Agent plugin marketplace distribution, EAI Gofer release alignment, cross-platform command parity

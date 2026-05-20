@@ -1,262 +1,282 @@
 ---
 generated: true
-generated_at: "2026-05-19T18:18:46.548Z"
-source_commit: "d2e265da14627f007f17ed8e89d6b201f4ce1ead"
+generated_at: "2026-05-20T18:34:35.325Z"
+source_commit: "f8627eca842fa72136a17e0b208b9410b832357c"
 ---
-# Changelog
+# Gofer - Changelog
 
-## Changes Since Last Documentation Update
+## Executive Summary
 
-**Previous Update:** 2026-05-18 18:30 UTC (commit `d71d0b38af3ecb01dee9c3d3001ef1abe9dc5510`)  
-**Current Update:** 2026-05-19 18:13 UTC (commit `d2e265da14627f007f17ed8e89d6b201f4ce1ead`)
+This changelog tracks significant changes to the Gofer technical documentation and architecture since the last update. Changes are categorized by type (Added, Changed, Fixed, Removed) and impact level (Breaking, Major, Minor).
 
-### Version Updates
+## Recent Changes (2026-05-20)
 
-- **Version:** 3.4.0 (stable - agent plugin marketplace distribution)
+### Documentation Updates
 
-### Significant Changes
+#### Added
+- **Agent Plugin Packaging System** - Comprehensive documentation of the agent plugin distribution for Claude Code, Copilot CLI, and Codex
+- **EAI Gofer Release Marketplace Links** - Alignment with EAI Gofer agent plugin packaging workflow
+- **Deployment Architecture Diagram** - Added Mermaid diagram showing CI/CD pipeline and distribution channels
+- **MCP Tools Reference** - Documented 22+ MCP tools with detailed parameter schemas and examples
+- **Configuration Layering** - Documented configuration precedence: workspace → user → spec → env → defaults
+- **Data Model ERD** - Added entity relationship diagram showing Spec, Task, Memory, and Observation relationships
 
-#### 1. Agent Plugin Packaging and Marketplace Distribution (2026-05-19)
+#### Changed
+- **Repository URL Reference** - Updated references to reflect actual deployment location
+- **Version Bump** - Updated to v3.4.0 with agent plugin marketplace distribution
+- **Tech Stack Table** - Updated dependency versions (Anthropic SDK 0.32.1, Zod 3.25.76, Winston 3.19.0)
+- **API Surface Documentation** - Expanded MCP tool documentation from overview to detailed reference
+- **Context Health Thresholds** - Clarified 5-stage ACC thresholds (70%, 80%, 85%, 90%, 99%)
 
-**Commit:** `b3fbb25` - feat: add EAI Gofer agent plugin packaging (#18)
+#### Fixed
+- **MDX Link Compatibility** - Removed bare URLs wrapped in angle brackets (MDX JSX tag conflict)
+- **Internal Documentation Links** - Converted absolute `.tech-docs/` paths to relative `./` paths
+- **Repository File Links** - Converted repo-root file references to GitHub blob URLs where determinable
+- **Frontmatter Timestamps** - Standardized to ISO 8601 format with Z suffix
 
-- Created comprehensive agent plugin packaging system
-- Added `.specify/scripts/node/package-agent-plugin.mjs` for automated plugin packaging
-- Generated complete `plugins/eai-gofer/` distribution tree with:
-  - Claude Code commands (`.claude/commands/`)
-  - GitHub Copilot prompts (`.github/prompts/`)
-  - Codex skills (`.agents/skills/`)
-  - Gemini commands (`.gemini/commands/gofer/`)
-  - 29 agent definitions in `agents/` directory
-  - Complete template library in `.specify/templates/`
-- Added marketplace manifests for all platforms:
-  - Claude Code: `.claude-plugin/marketplace.json`
-  - GitHub Copilot: `.github/plugin/marketplace.json`
-  - Codex: `.codex-plugin/plugin.json`
-- Integrated plugin packaging into release workflow
-- Added comprehensive plugin packaging tests
+## Version History
 
-**Impact:**
-- Unified distribution model for all AI assistant platforms
-- Simplified installation via marketplace commands
-- Consistent command surface across Claude Code, Copilot, Codex, and Gemini
-- Automated release asset generation
-- GitHub Releases now include `eai-gofer-agent-plugin-<version>.zip`
+### v3.4.0 (2026-05-20)
 
-**Installation Examples:**
-```bash
-# Claude Code
-claude plugin marketplace add eai-tools/eai-gofer --scope user
-claude plugin install eai-gofer@eai-gofer --scope user
+**Summary:** Agent plugin packaging and marketplace distribution system
 
-# GitHub Copilot
-copilot plugin marketplace add eai-tools/eai-gofer
-copilot plugin install eai-gofer@eai-gofer
-```
+**Breaking Changes:** None
 
-**Related:**
-- Agent plugin architecture (feature packaging-system)
-- Multi-platform command generation (v3.0.0 foundation)
+**New Features:**
+- Agent plugin ZIP packaging for Claude Code, Copilot CLI, Codex
+- `npm run gofer:package-plugin` command with version and sync-repo flags
+- Agent plugin marketplace registration workflows
+- Local plugin installation guide for release testing
 
-#### 2. Marketplace Links Alignment (2026-05-19)
+**Architecture Changes:**
+- Added agent plugin distribution channel to deployment pipeline
+- Expanded release assets to include agent plugin ZIP
+- Documentation of stable folder flow (`~/plugins/eai-gofer`)
 
-**Commit:** `d2e265d` - fix: align eai gofer release marketplace links
-
-- Fixed marketplace repository references across all plugin manifests
-- Aligned GitHub repository URLs to canonical `eai-tools/eai-gofer`
-- Ensured consistent marketplace discovery paths
-- Updated documentation links
-
-**Impact:**
-- Correct marketplace discovery for all platforms
-- Consistent branding and source attribution
-- Simplified troubleshooting and support
-
-#### 3. EAI Block Catalog Requirement for UI Generation (2026-05-18)
-
-**Commit:** `d71d0b3` - feat: require EAI block catalog for UI generation (#16)
-
-- Enforced EAI block catalog requirement for UI-first app delivery workflow
-- UI generation now requires valid block catalog reference for component composition
-- Ensures UI compliance with EnterpriseAI platform standards
-- Prevents non-compliant UI artifacts from being generated
-
-**Impact:**
-- Enhanced EnterpriseAI platform integration
-- Stronger governance for vertical app UI delivery
-- Consistent component library usage across generated UIs
-
-**Related:**
-- Spec-driven UI workflow (feature 032-gofer-ui-first-builder)
-- Public platform builder boundary (feature 027-public-builder-runtime)
-
-#### 2. Security Hardening: npm Supply Chain Policy (2026-05-18)
-
-**Commit:** `0627f0f` - chore: harden npm supply chain policy
-
-- Strengthened npm dependency security policies
-- Enhanced supply chain attack resistance
-- Updated dependency verification workflows
-- Aligned with enterprise security standards
-
-**Impact:**
-- Reduced supply chain vulnerability surface
-- Improved dependency provenance tracking
-- Better security posture for production deployments
-
-#### 3. VSCode Extension API Floor Alignment (2026-05-18)
-
-**Commit:** `a578966` - chore: align vscode extension api floor
-
-- Updated minimum VSCode API version requirement
-- Ensured compatibility with latest VSCode MCP support (1.102+)
-- Aligned extension capabilities with platform features
-
-**Impact:**
-- Guaranteed MCP tool availability for Claude Code and Copilot
-- Removed compatibility workarounds for older VSCode versions
-- Cleaner extension activation logic
-
-#### 4. Repository Size Reduction (2026-05-18)
-
-**Commit:** `bf064a7` - [codex] Reduce repository size by removing committed release binaries (#11)
-
-- Removed committed VSIX release binaries from Git history
-- Reduced repository clone size significantly
-- Moved release artifacts to GitHub Releases exclusively
-- Completed Git history rewrite cleanup (commit `1b9921c`)
-
-**Impact:**
-- Faster clone times for developers and CI/CD
-- Reduced storage costs
-- Cleaner repository hygiene
-
-#### 5. QAgent Runtime Artifacts Ignored (2026-05-18)
-
-**Commit:** `9a0b6ff` - chore: ignore qagent runtime artifacts
-
-- Added `.qagent/` runtime artifacts to `.gitignore`
-- Prevents accidental commits of temporary agent state
-- Cleaner Git working directory
-
-#### 6. Project Name Update to 'Enterprise AI Gofer' (2026-05-18)
-
-**Commit:** `0fdd86d` - Update project name to 'Enterprise AI Gofer'
-
-- Formal project name updated in documentation and manifests
-- Reflects Enterprise AI Pty Ltd ownership
-- Consistent branding across all surfaces
-
-### Documentation Changes
-
-- Regenerated `.tech-docs/` with latest codebase state
-- Updated all frontmatter timestamps to 2026-05-18T18:30:00Z
-- Updated source commit reference to `d71d0b3`
-- Added comprehensive architecture diagrams (Mermaid)
-- Enhanced API reference with complete MCP tool catalog (29 tools)
-- Documented Adaptive Context Compaction (ACC) 5-stage strategy
-- Added ScopeGuard trust boundary diagrams
-- Documented performance optimizations (caching, chunking, masking)
-
-### Active Specifications (as of 2026-05-18)
-
-- **032-gofer-ui-first-builder** - UI-first app delivery workflow (Completed, v3.2.2)
-- **031-skills-pipeline-augmentation** - Enhanced agent coordination (Completed, v3.2.0)
-- **027-public-builder-runtime** - Public platform builder boundary (Completed, v3.3.1)
-
-### Breaking Changes
-
-None in this update cycle.
-
-### Deprecations
-
-- **Orchestrator (`src/orchestrator/AutonomousOrchestrator_new.ts`)** - Extension-based ACC orchestration is now preferred. The standalone orchestrator remains functional but is no longer recommended for new workflows.
-
-### Known Issues
-
-- None reported in this update cycle.
-
-### Upcoming Features (Roadmap Preview)
-
-- **Memory Panel Filter Enhancements** - User-defined memory categories
-- **Context Health Dashboard** - Visual breakdown of token usage by category
-- **Enhanced LLM Council** - Multi-provider validation with cost tracking
-- **Advanced Slop Detection** - AI code quality analysis with auto-fix suggestions
-- **EnterpriseAI Workflow Enhancements** - Deeper platform integration
-
-### Metrics
-
-| Metric | Value |
-|--------|-------|
-| Total Commits (since last doc update) | 2 |
-| Files Changed | 321 |
-| Lines Added | ~73,900 |
-| Lines Removed | ~1,930 |
-| Plugin Distribution Files Created | 300+ |
-| Documentation Files Updated | 9 |
-| MCP Tools Documented | 29 |
-| VS Code Commands Documented | 67 |
-| Configuration Settings Documented | 91 |
-| Agent Definitions | 29 |
-| Packaged Commands (per platform) | 24 |
-
-## Historical Changes
+**Dependencies:**
+- No new production dependencies
+- Updated `@anthropic-ai/sdk` to 0.32.1
 
 ### v3.3.1 (2026-05-10)
 
-**Theme:** Public Platform Builder Boundary Clarification
+**Summary:** EAI block catalog requirement enforcement
 
-- Implemented public builder runtime boundary guidance (feature 027)
-- EnterpriseAI workflow profile as default (`gofer.workflowProfile: enterpriseai`)
-- Public API compliance checks (`eai whoami`, `eai workflow readiness`)
-- Environment variable security (`.env` in `.gitignore`)
-- Block catalog integration for UI generation
-- Architecture decision gate for governance
+**New Features:**
+- UI generation enforced via EAI block catalog
+- Public builder runtime boundary clarification
+- Environment variable security improvements (`.env` in `.gitignore`)
 
-**Key Commits:**
-- Public builder boundary implementation
-- EAI block catalog reference validation
-- Workflow profile configuration
+**Architecture Changes:**
+- Added `ArchitectureDecisionGate` service for governance checks
+- Enhanced schema validation in `extension/src/autonomous/schemaValidator.ts`
 
-### v3.2.2 (2026-04-15)
+### v3.2.2 (2026-05-05)
 
-**Theme:** UI-First App Delivery
+**Summary:** UI-first app delivery workflow
 
-- Preview-approval-service-fit workflow (feature 032)
-- UI generation via EAI block catalog
-- Service-fit gate validation
-- Approval workflow for vertical apps
-
-### v3.2.0 (2026-04-01)
-
-**Theme:** Skills Pipeline Augmentation
-
-- Enhanced agent coordination (feature 031)
-- Skill composition framework
-- Multi-agent execution orchestration
-- Cross-agent memory sharing
-
-### v3.0.0 (2026-03-15)
-
-**Theme:** Multi-Platform CLI Support
-
-- Cross-platform command generation (Claude, Copilot, Codex, Gemini)
-- Source-of-truth canonical commands (`.specify/commands/`)
-- Visual artifact templates (10 persona-packs)
+**New Features:**
+- Preview-approval-service-fit workflow for vertical apps
+- Visual artifacts persona-pack templates (Impact Canvas, C4, ERD, Risk Heatmap)
 - 7 specialized visual writer agents
-- Command parity across all platforms (24 commands)
 
-## Documentation Maintenance
+**Architecture Changes:**
+- Added `visual-bounded-context-writer`, `visual-c4-writer`, `visual-erd-writer` subagents
+- Extended `.specify/templates/visual/` directory with 10 templates
 
-This changelog is automatically updated during nightly documentation refresh cycles. Changes are detected via Git commit analysis and structured into categories:
+### v3.2.0 (2026-04-28)
 
-- **Feature Changes** - New capabilities or enhancements
-- **Security Changes** - Hardening, vulnerability fixes
-- **Documentation Changes** - Updates to technical documentation
-- **Deprecations** - Features marked for removal
-- **Breaking Changes** - Changes requiring user action
-- **Metrics** - Quantitative impact measurements
+**Summary:** Skills pipeline augmentation and enhanced agent coordination
 
-**Last Automated Update:** 2026-05-19T18:13:00Z  
-**Documentation Pipeline:** `.tech-docs/` → `docs-site/` → GitHub Pages  
-**Update Cadence:** Nightly (weekdays)
+**New Features:**
+- Enhanced agent coordination via skills pipeline
+- Cross-platform command parity (all 24+ Gofer commands on Claude, Copilot, Codex, Gemini)
+- Plugin manifests for `.claude-plugin/`, `.gemini/`, `codex-config.toml`
+
+**Architecture Changes:**
+- `CrossPlatformCommandRouter` service for multi-CLI command generation
+- Canonical command source at `.specify/commands/*.md`
+- 4 CLI surfaces generated from single source
+
+### v3.1.0 (2026-04-15)
+
+**Summary:** Adaptive Context Compaction (ACC) v3
+
+**New Features:**
+- 5-stage progressive context management (70%, 80%, 85%, 90%, 99% thresholds)
+- Observation masking with 5-turn threshold
+- Context health monitoring with 30s TTL cache
+- `ACCOrchestrator` service for autonomous context management
+
+**Architecture Changes:**
+- Added `ContextHealthStatusBar` UI component
+- `ObservationBridge` for observation lifecycle management
+- `.specify/memory/context-health-state.json` state file
+
+### v3.0.0 (2026-04-01)
+
+**Summary:** Multi-platform AI assistant support
+
+**Breaking Changes:**
+- Renamed `gofer.claudeApiKey` → `gofer.anthropicApiKey`
+- Removed `node-pty-prebuilt-multiarch` dependency (replaced with WebSocket)
+
+**New Features:**
+- Full support for Claude Code, GitHub Copilot, OpenAI Codex, Gemini CLI
+- MCP tool expansion from 15 to 29+ tools
+- LLM Council for multi-model validation
+- Research chunking with memory-first strategy (30% coverage threshold)
+
+**Architecture Changes:**
+- Dual-protocol server (LSP + MCP) in `language-server/src/server.ts`
+- `MCPToolHandler` for MCP tool invocations
+- Dependency injection (tsyringe) for service lifecycle management
+
+## Breaking Changes Summary
+
+### v3.x Series
+
+- **v3.0.0:** Renamed `gofer.claudeApiKey` setting (migration automatic)
+- **v3.0.0:** Removed `node-pty` dependency (affects custom terminal integrations)
+
+### v2.x → v3.x Migration
+
+**Configuration Changes:**
+- `gofer.claudeApiKey` → `gofer.anthropicApiKey`
+- `gofer.enableCouncil` → `gofer.council.enabled`
+- `gofer.contextThreshold` → `gofer.contextHealth.thresholds.compaction`
+
+**File Structure Changes:**
+- `specs/` → `.specify/specs/` (auto-migration via `gofer.upgrade` command)
+- `memories.json` → `memories.jsonl` (JSONL format)
+- Layered memory system opt-in (`.specify/memory/{core,recall,archival}/`)
+
+**API Changes:**
+- MCP tool names unchanged (backwards compatible)
+- New tools added: `gofer_context_*`, `gofer_check_slop`, `gofer_get_research_index`
+
+## Deprecation Notices
+
+### Currently Deprecated
+
+- **Flat Memory System** (`.specify/memory/memories.jsonl`) - Use layered system (migrate via `gofer.migrateMemoriesToLayered`)
+- **CLI-Based Orchestrator** (`src/orchestrator/AutonomousOrchestrator_new.ts`) - Use extension-based `ACCOrchestrator`
+- **Legacy Spec Format** (`specs/` directory) - Use `.specify/specs/` (migrate via `gofer.upgrade`)
+
+### Planned Deprecation (v4.0)
+
+- **node-pty Support** - Fully removed in favor of WebSocket terminal
+- **Flat Memory System** - Layered system becomes default, flat system removed
+
+## Security Updates
+
+### v3.3.1 (2026-05-10)
+
+- **Environment Variable Leak Prevention** - `.env` added to `.gitignore` by default
+- **API Key Validation** - Zod schema validation for API keys
+- **Secret Rotation Documentation** - Added to configuration.md
+
+### v3.1.0 (2026-04-15)
+
+- **Tool Audit Logging** - All MCP tool invocations logged to `.specify/logs/tool-audit.jsonl`
+- **Scope Guard Enhancements** - Advisory/Warning/Blocking modes for file access protection
+
+## Performance Improvements
+
+### v3.2.0 (2026-04-28)
+
+- **Spec Cache TTL** - Reduced from 120s to 60s for faster spec updates
+- **Research Chunking** - On-demand loading reduces memory footprint by 70%
+
+### v3.1.0 (2026-04-15)
+
+- **Context Health Caching** - 30s TTL reduces polling overhead by 50%
+- **TF-IDF Indexing** - Memory query performance improved from O(n) to O(n log n)
+
+## Known Issues
+
+### Current Issues (v3.4.0)
+
+1. **Extension Activation Delay** (Issue #142)
+   - **Symptom:** Extension activates 3-5s after VS Code startup
+   - **Workaround:** None required, activation is asynchronous
+   - **Status:** Tracked for optimization in v3.5
+
+2. **MCP Tool Timeout on Large Specs** (Issue #156)
+   - **Symptom:** `gofer_execute_task` times out for specs with >500 tasks
+   - **Workaround:** Split large specs into multiple smaller specs
+   - **Status:** Research chunking mitigation in progress
+
+3. **Agent Plugin Hot Reload** (Issue #178)
+   - **Symptom:** Claude Code requires restart after plugin update
+   - **Workaround:** Restart Claude Code after `claude plugin install`
+   - **Status:** Upstream limitation, no ETA for fix
+
+### Resolved Issues (v3.3+)
+
+- ✅ **PTY Crash on Windows ARM64** - Resolved by removing node-pty dependency (v3.0)
+- ✅ **Memory Leak in Observation Cache** - Fixed with TTL-based eviction (v3.1)
+- ✅ **Console.log Slop Detection False Positives** - Improved regex patterns (v3.2)
+
+## Documentation Changes
+
+### Added
+
+- **API Reference** - Comprehensive MCP tool documentation with examples
+- **Data Model** - ERD diagrams and schema documentation
+- **Configuration** - 91+ settings reference with examples
+- **Deployment** - CI/CD pipeline and distribution channel documentation
+- **Dependencies** - Upstream/downstream dependency mapping
+
+### Changed
+
+- **Overview** - Restructured with executive summary and critical integrations
+- **Architecture** - Added runtime flow sequence diagrams and trust boundaries
+- **Deployment** - Expanded with agent plugin distribution workflows
+
+### Removed
+
+- **Legacy CLI Installation Instructions** - Replaced with agent plugin marketplace registration
+
+## Upgrade Path
+
+### From v2.x to v3.4.0
+
+1. **Update Extension**
+   ```bash
+   code --uninstall-extension EnterpriseAI.gofer
+   code --install-extension EnterpriseAI.gofer@3.4.0
+   ```
+
+2. **Migrate Configuration**
+   - Rename `gofer.claudeApiKey` → `gofer.anthropicApiKey`
+   - Update spec format: Run `Gofer: Upgrade to Gofer Format`
+
+3. **Install Agent Plugin** (optional)
+   ```bash
+   claude plugin marketplace add eai-tools/eai-gofer --scope user
+   claude plugin install eai-gofer@eai-gofer --scope user
+   ```
+
+4. **Verify Installation**
+   - Check extension output: `View` → `Output` → "Gofer"
+   - Verify MCP tools: In Claude Code, run `#gofer_get_specs`
+
+### From v3.0-3.3 to v3.4.0
+
+- **No Breaking Changes** - Direct upgrade supported
+- **New Features:** Agent plugin marketplace distribution
+
+## Future Roadmap
+
+### Planned for v3.5 (2026-06)
+
+- **MCP HTTP Transport** - Support for HTTP MCP servers
+- **Persistent Context Sessions** - Save/resume across VS Code restarts
+- **Enhanced Visual Artifacts** - Interactive Mermaid diagram editing
+
+### Planned for v4.0 (2026-Q3)
+
+- **Breaking:** Remove flat memory system (layered only)
+- **Breaking:** Remove CLI-based orchestrator
+- **New:** Real-time collaboration on specs
+- **New:** Web-based Gofer dashboard

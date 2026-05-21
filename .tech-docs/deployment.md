@@ -1,7 +1,7 @@
 ---
 generated: true
-generated_at: "2026-05-20T18:34:35.325Z"
-source_commit: "f8627eca842fa72136a17e0b208b9410b832357c"
+generated_at: "2026-05-21T18:15:34.171Z"
+source_commit: "0344d6df21fba9738d8bd9f6c26d7602c4e0775e"
 ---
 # Gofer - Deployment
 
@@ -73,7 +73,7 @@ flowchart TB
 
 ### GitHub Repository
 
-- **Repository:** [https://github.com/eai-tools/eai-gofer](https://github.com/eai-tools/eai-gofer)
+- **Repository:** [enterpriseaigroup/tech-docs](https://github.com/enterpriseaigroup/tech-docs)
 - **Primary Branch:** `main`
 - **Protected Branches:** `main`, `develop`
 - **Required Checks:** CI tests, linting, type checking
@@ -144,7 +144,7 @@ flowchart TB
    - Upload artifact
    - Deploy to GitHub Pages
 
-**Published URL:** [https://eai-tools.github.io/eai-gofer](https://eai-tools.github.io/eai-gofer)
+**Published URL:** [enterpriseaigroup.github.io/tech-docs](https://enterpriseaigroup.github.io/tech-docs)
 
 ### GitHub Pages
 
@@ -164,7 +164,7 @@ flowchart TB
 
 ### CI Health Monitoring
 
-- **GitHub Actions Status:** [https://github.com/eai-tools/eai-gofer/actions](https://github.com/eai-tools/eai-gofer/actions)
+- **GitHub Actions Status:** [enterpriseaigroup/tech-docs/actions](https://github.com/enterpriseaigroup/tech-docs/actions)
 - **Coverage Reports:** Artifacts uploaded to GitHub Actions
 - **Test Results:** CTRF JSON reports
 
@@ -291,7 +291,7 @@ copilot plugin install eai-gofer@eai-gofer-local
 ### Rollback Extension
 
 1. **Identify Last Known Good Version**
-   - Check GitHub Releases: [https://github.com/eai-tools/eai-gofer/releases](https://github.com/eai-tools/eai-gofer/releases)
+   - Check GitHub Releases: [enterpriseaigroup/tech-docs/releases](https://github.com/enterpriseaigroup/tech-docs/releases)
    - Example: `v3.3.1`
 
 2. **Download Previous VSIX**
@@ -379,7 +379,7 @@ copilot plugin install eai-gofer@eai-gofer-local
 
 ```bash
 # Clone repository
-git clone https://github.com/eai-tools/eai-gofer.git
+git clone https://github.com/enterpriseaigroup/tech-docs.git
 cd eai-gofer
 
 # Install dependencies

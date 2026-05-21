@@ -1,7 +1,7 @@
 ---
 generated: true
-generated_at: "2026-05-20T18:34:35.325Z"
-source_commit: "f8627eca842fa72136a17e0b208b9410b832357c"
+generated_at: "2026-05-21T18:15:34.171Z"
+source_commit: "0344d6df21fba9738d8bd9f6c26d7602c4e0775e"
 ---
 # Gofer - Technical Overview
 
@@ -14,15 +14,15 @@ source_commit: "f8627eca842fa72136a17e0b208b9410b832357c"
 | **Primary Users**        | Software development teams using Claude Code, GitHub Copilot, OpenAI Codex, or Gemini CLI for feature implementation |
 | **Data Sensitivity**     | Low - stores specifications, plans, and code artifacts locally in repository workspace                               |
 | **Current Status**       | Active Development (v3.4.0) - Production-ready with agent plugin marketplace distribution                            |
-| **Last Material Change** | 2026-05-20 - Documentation update and EAI Gofer agent plugin packaging alignment                                     |
+| **Last Material Change** | 2026-05-21 - Nightly automated documentation update                                                                  |
 
 ## Service Identity
 
 **Name:** Gofer  
 **Version:** 3.4.0  
-**Documentation Updated:** 2026-05-20  
+**Documentation Updated:** 2026-05-21  
 **Publisher:** Enterprise AI Pty Ltd  
-**Repository:** [https://github.com/eai-tools/eai-gofer](https://github.com/eai-tools/eai-gofer)
+**Repository:** [enterpriseaigroup/tech-docs](https://github.com/enterpriseaigroup/tech-docs)
 
 **Description:** Spec-driven development system for AI assistants. Provides 29+ MCP tools that enable Claude Code, GitHub Copilot, OpenAI Codex, and Gemini CLI to autonomously implement features from specifications with UI-first app delivery workflow support and EnterpriseAI platform integration.
 
@@ -150,7 +150,7 @@ npm run gofer:codex-doctor                          # Diagnostic tool
 ## Team/Ownership
 
 **Owner:** Enterprise AI Pty Ltd  
-**Contact:** [https://enterpriseai.com.au](https://enterpriseai.com.au)
+**Contact:** [enterpriseai.com.au](https://enterpriseai.com.au)
 
 **Key Maintainer Information:**
 
@@ -356,6 +356,6 @@ This repository maintains multiple documentation surfaces:
 
 - Active development at v3.4.0
 - Nightly-managed `.tech-docs/` content is present for this repository
-- Source commit: `f8627eca842fa72136a17e0b208b9410b832357c`
+- Source commit: `0344d6df21fba9738d8bd9f6c26d7602c4e0775e`
 - Additional repo-local docs surfaces detected: 1 (docs-site/)
 - Recent focus: Agent plugin marketplace distribution, EAI Gofer release alignment, cross-platform command parity

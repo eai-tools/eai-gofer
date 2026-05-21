@@ -1,13 +1,13 @@
 ---
 generated: true
-generated_at: "2026-05-20T18:34:35.325Z"
-source_commit: "f8627eca842fa72136a17e0b208b9410b832357c"
+generated_at: "2026-05-21T18:15:34.171Z"
+source_commit: "0344d6df21fba9738d8bd9f6c26d7602c4e0775e"
 ---
 # Technical Documentation Index
 
-**Repository:** [eai-tools/eai-gofer](https://github.com/eai-tools/eai-gofer)  
+**Repository:** [enterpriseaigroup/tech-docs](https://github.com/enterpriseaigroup/tech-docs)  
 **Version:** 3.4.0  
-**Generated:** 2026-05-19T18:13:00Z
+**Generated:** 2026-05-21T18:13:03Z
 
 This directory contains comprehensive technical documentation for the Gofer
 VSCode extension project.
@@ -404,13 +404,11 @@ Design patterns and technical debt analysis.
 
 ### Version Tracking
 
-- **Version:** 3.3.1
-- **Commit:** cc10762094a3ecae3428cd8b60bfd1f2ec4aa00c
-- **Generated:** 2026-05-13T18:14:14Z
-- **Previous Update:** 2026-05-12 18:18 UTC
-  (47970f3821d877082c57c015853454b8f25a9309)
-- **Change Summary:** Security improvements (environment variable protection),
-  public platform builder boundary documentation
+- **Version:** 3.4.0
+- **Commit:** 0344d6df21fba9738d8bd9f6c26d7602c4e0775e
+- **Generated:** 2026-05-21T18:13:03Z
+- **Previous Update:** 2026-05-20 18:34 UTC (f8627eca842fa72136a17e0b208b9410b832357c)
+- **Change Summary:** Nightly automated documentation update
 
 ### Regenerating Documentation
 
@@ -482,8 +480,7 @@ When making changes, update these files if applicable:
 - **Agent Guidelines:** AGENTS.md (`AGENTS.md`)
 - **Project Instructions:** CLAUDE.md (`CLAUDE.md`)
 - **CLI Support Guide:** docs/cli-support.md (`../docs/cli-support.md`) (v3.0+)
-- **GitHub Repository:**
-  [https://github.com/enterpriseaigroup/tech-docs](https://github.com/enterpriseaigroup/tech-docs)
+- **GitHub Repository:** [enterpriseaigroup/tech-docs](https://github.com/enterpriseaigroup/tech-docs)
 
 ---
 
@@ -491,7 +488,7 @@ When making changes, update these files if applicable:
 
 | Metric                  | Value                                         |
 | ----------------------- | --------------------------------------------- |
-| Version                 | 3.3.1                                         |
+| Version                 | 3.4.0                                         |
 | TypeScript Files        | 247 files (all modules)                       |
 | Active Specifications   | 2 (032-ui-first-builder, 031-skills-pipeline) |
 | Archived Specifications | 30+ specs                                     |
@@ -511,12 +508,10 @@ When making changes, update these files if applicable:
 
 For questions, issues, or contributions:
 
-- **GitHub Issues:**
-  [https://github.com/enterpriseaigroup/tech-docs/issues](https://github.com/enterpriseaigroup/tech-docs/issues)
-- **Documentation:**
-  [https://github.com/enterpriseaigroup/tech-docs#readme](https://github.com/enterpriseaigroup/tech-docs#readme)
+- **GitHub Issues:** [enterpriseaigroup/tech-docs/issues](https://github.com/enterpriseaigroup/tech-docs/issues)
+- **Documentation:** [enterpriseaigroup/tech-docs#readme](https://github.com/enterpriseaigroup/tech-docs#readme)
 - **Owner:** Enterprise AI Pty Ltd
-- **Website:** [https://enterpriseai.com.au](https://enterpriseai.com.au)
+- **Website:** [enterpriseai.com.au](https://enterpriseai.com.au)
 
 ---
 

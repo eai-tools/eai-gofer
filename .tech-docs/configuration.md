@@ -1,7 +1,7 @@
 ---
 generated: true
-generated_at: "2026-05-20T18:34:35.325Z"
-source_commit: "f8627eca842fa72136a17e0b208b9410b832357c"
+generated_at: "2026-05-21T18:15:34.171Z"
+source_commit: "0344d6df21fba9738d8bd9f6c26d7602c4e0775e"
 ---
 # Gofer - Configuration
 

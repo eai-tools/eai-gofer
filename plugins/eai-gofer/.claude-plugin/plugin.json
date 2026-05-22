@@ -1,6 +1,6 @@
 {
   "name": "eai-gofer",
-  "version": "3.4.2",
+  "version": "3.4.3",
   "description": "Public Gofer spec-driven delivery workflow: business scenario, research, specify, plan, tasks, implement, validate, and communicate.",
   "author": {
     "name": "Enterprise AI Pty Ltd",

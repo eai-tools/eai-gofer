@@ -14,6 +14,25 @@ print_success() { echo -e "${GREEN}✓${NC} $1"; }
 print_warning() { echo -e "${YELLOW}⚠${NC} $1"; }
 print_error() { echo -e "${RED}✗${NC} $1"; }
 
+ensure_release_paths_tracked() {
+    local missing=0
+
+    for tracked_path in "$@"; do
+        if git ls-files --error-unmatch "$tracked_path" >/dev/null 2>&1; then
+            continue
+        fi
+
+        print_error "Required public release asset is not tracked by git: $tracked_path"
+        missing=1
+    done
+
+    if [ "$missing" -ne 0 ]; then
+        print_error "Public release binaries must be committed so GitHub Pages can publish them."
+        print_error "Check .gitignore and release asset mirroring before retrying."
+        exit 1
+    fi
+}
+
 repo_has_changes() {
     [ -n "$(git status --porcelain)" ]
 }
@@ -470,6 +489,11 @@ fi
 # Commit
 print_info "Committing changes..."
 git add -A
+ensure_release_paths_tracked \
+    "docs-site/static/releases/eai-gofer-$NEW_VERSION.vsix" \
+    "docs-site/static/releases/eai-gofer-latest.vsix" \
+    "docs-site/static/releases/eai-gofer-agent-plugin-$NEW_VERSION.zip" \
+    "docs-site/static/releases/eai-gofer-agent-plugin-latest.zip"
 
 git commit --no-verify -m "release: v$NEW_VERSION
 

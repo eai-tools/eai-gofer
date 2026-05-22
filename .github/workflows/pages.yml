@@ -49,6 +49,10 @@ jobs:
             "docs-site/build/docs/overview.html"
             "docs-site/build/releases.html"
             "docs-site/build/releases.json"
+            "docs-site/build/releases/eai-gofer-latest.vsix"
+            "docs-site/build/releases/eai-gofer-agent-plugin-latest.zip"
+            "docs-site/build/releases/plugins/eai-gofer/claude-marketplace.json"
+            "docs-site/build/releases/plugins/eai-gofer/codex-plugin.json"
           )
 
           for file in "${REQUIRED_FILES[@]}"; do

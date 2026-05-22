@@ -17,6 +17,8 @@ release-assets/
 *.tar.gz
 *.vsix
 docs-site/static/releases/*.vsix
+!docs-site/static/releases/*.vsix
+!docs-site/static/releases/*.zip
 test-results/vitest-results.json
 test-results/vitest-results.json
 

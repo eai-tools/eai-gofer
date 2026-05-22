@@ -1,6 +1,6 @@
 # EAI Gofer Agent Plugin
 
-Version: 3.4.2
+Version: 3.4.3
 
 This package is the portable Claude, Codex, and Copilot workflow layer for public Gofer. It is released beside the VS Code extension, but it does not replace the VSIX UI, status views, updater, or language-server features.
 
@@ -14,8 +14,8 @@ https://eai-tools.github.io/eai-gofer/releases
 
 That host publishes:
 
-- VS Code extension: `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-3.4.2.vsix`
-- Agent plugin zip: `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-3.4.2.zip`
+- VS Code extension: `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-3.4.3.vsix`
+- Agent plugin zip: `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-3.4.3.zip`
 - Stable public plugin bundle: `https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer`
 
 ## Distribution Modes
@@ -37,10 +37,10 @@ Keep the local install path stable:
 Download the public release asset, remove the old folder, unzip the package into `~/plugins`, then reload Codex, Claude Code, or Copilot CLI.
 
 ```bash
-curl -fsSL https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-3.4.2.zip -o /tmp/eai-gofer-agent-plugin-3.4.2.zip
+curl -fsSL https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-3.4.3.zip -o /tmp/eai-gofer-agent-plugin-3.4.3.zip
 
 rm -rf ~/plugins/eai-gofer
-unzip /tmp/eai-gofer-agent-plugin-3.4.2.zip -d ~/plugins
+unzip /tmp/eai-gofer-agent-plugin-3.4.3.zip -d ~/plugins
 ```
 
 ## Claude Code

@@ -64,46 +64,51 @@ Gofer ships in two complementary forms:
 Install **Gofer for EnterpriseAI Vertical App Delivery** from the VS Code
 Marketplace, or install the release VSIX from GitHub Releases.
 
-Release automation publishes the VSIX to GitHub Releases every time and to the
-VS Code Marketplace when the release workflow has `VSCE_PAT` configured.
+Release automation publishes the VSIX to the public GitHub Pages release host
+at `https://eai-tools.github.io/eai-gofer/releases/` every time and to the VS
+Code Marketplace when the release workflow has `VSCE_PAT` configured.
 
 ### Agent Plugin Distribution Modes
 
 | Surface            | Marketplace / published mode                                                                                                                                          | Local release-test mode                                                                                      |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| Claude Code        | `claude plugin marketplace add eai-tools/eai-gofer --scope user` then `claude plugin install eai-gofer@eai-gofer --scope user`                                        | Download the GitHub Release zip, unzip to `~/plugins/eai-gofer`, then install `eai-gofer@eai-gofer-local`    |
-| Codex              | Public marketplace publishing is prepared by `.codex-plugin/plugin.json`; local/import is the supported test path until external marketplace publication is available | Add `~/plugins/eai-gofer` through Codex local marketplace/import and keep the stable path unchanged          |
-| GitHub Copilot CLI | `copilot plugin marketplace add eai-tools/eai-gofer` then `copilot plugin install eai-gofer@eai-gofer`                                                                | `copilot plugin marketplace add ~/plugins/eai-gofer` then `copilot plugin install eai-gofer@eai-gofer-local` |
+| Claude Code        | `claude plugin marketplace add https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer --scope user` then `claude plugin install eai-gofer@eai-gofer --scope user` | Download the public zip, unzip to `~/plugins/eai-gofer`, then install `eai-gofer@eai-gofer` |
+| Codex              | Import `https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer` in the Codex plugin UI, or download the public zip and keep the installed folder stable | Keep the installed plugin folder at `~/plugins/eai-gofer` when using a downloaded bundle |
+| GitHub Copilot CLI | `copilot plugin marketplace add https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer` then `copilot plugin install eai-gofer@eai-gofer` | `copilot plugin marketplace add ~/plugins/eai-gofer` then `copilot plugin install eai-gofer@eai-gofer` |
 
 ### Claude Code Plugin
 
-Register the public Gofer plugin marketplace from the repository:
+Register the public Gofer plugin marketplace from the public release host:
 
 ```bash
-claude plugin marketplace add eai-tools/eai-gofer --scope user
+claude plugin marketplace add https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer --scope user
 claude plugin install eai-gofer@eai-gofer --scope user
 ```
 
 For local release testing, use the stable folder flow:
 
 ```bash
-gh release download v3.4.0 \
-  --repo eai-tools/eai-gofer \
-  --pattern "eai-gofer-agent-plugin-3.4.0.zip" \
-  --dir /tmp/eai-gofer-plugin
+curl -fsSL https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-3.4.0.zip \
+  -o /tmp/eai-gofer-agent-plugin-3.4.0.zip
 
 rm -rf ~/plugins/eai-gofer
-unzip /tmp/eai-gofer-plugin/eai-gofer-agent-plugin-3.4.0.zip -d ~/plugins
+unzip /tmp/eai-gofer-agent-plugin-3.4.0.zip -d ~/plugins
 
 claude plugin marketplace add ~/plugins/eai-gofer --scope user
-claude plugin install eai-gofer@eai-gofer-local --scope user
+claude plugin install eai-gofer@eai-gofer --scope user
 ```
 
 The local marketplace source is the unzipped folder, not the release zip.
 
 ### Codex Plugin
 
-For Codex local plugin testing, keep the stable folder path:
+For Codex plugin installs, the public hosted bundle is:
+
+```text
+https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer
+```
+
+For downloaded installs, keep the stable folder path:
 
 ```text
 ~/plugins/eai-gofer/
@@ -117,7 +122,7 @@ contents:
   "name": "eai-gofer",
   "source": {
     "source": "local",
-    "path": "./plugins/eai-gofer"
+    "path": "./"
   },
   "policy": {
     "installation": "AVAILABLE",
@@ -129,10 +134,10 @@ contents:
 
 ### GitHub Copilot CLI Plugin
 
-Install through the repo marketplace:
+Install through the public release-hosted marketplace:
 
 ```bash
-copilot plugin marketplace add eai-tools/eai-gofer
+copilot plugin marketplace add https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer
 copilot plugin install eai-gofer@eai-gofer
 ```
 
@@ -141,20 +146,24 @@ marketplace, then install from that marketplace:
 
 ```bash
 copilot plugin marketplace add ~/plugins/eai-gofer
-copilot plugin install eai-gofer@eai-gofer-local
+copilot plugin install eai-gofer@eai-gofer
 ```
 
 ### Release Asset Update Flow
 
-For every new Gofer release, bump the package versions, regenerate command
-surfaces, package the VSIX, and package the agent plugin zip:
+For every new Gofer release, use the canonical release script. It bumps
+versions, regenerates command surfaces, packages the VSIX, packages the agent
+plugin zip, updates the public release host, runs validation, and publishes the
+release:
 
 ```bash
-npm run gofer:generate
-npm run gofer:package-plugin -- --version 3.4.0 --sync-repo
+./release.sh patch "Fix validation findings"
 ```
 
-The GitHub Release must include:
+`release-auto.sh` remains as a compatibility wrapper and forwards to
+`release.sh`.
+
+The published GitHub Release must include:
 
 - `eai-gofer-<version>.vsix`
 - `eai-gofer-agent-plugin-<version>.zip`

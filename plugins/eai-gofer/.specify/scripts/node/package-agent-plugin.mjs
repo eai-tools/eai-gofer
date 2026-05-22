@@ -21,6 +21,9 @@ const PLUGIN_DISPLAY_NAME = 'EAI Gofer';
 const PLUGIN_ICON_SOURCE = 'extension/icon.png';
 const PLUGIN_ICON_TARGET = 'assets/eai-gofer-icon.png';
 const REPOSITORY_URL = 'https://github.com/eai-tools/eai-gofer';
+const PUBLIC_SITE_URL = 'https://eai-tools.github.io/eai-gofer';
+const PUBLIC_RELEASES_URL = `${PUBLIC_SITE_URL}/releases`;
+const PUBLIC_PLUGIN_URL = `${PUBLIC_RELEASES_URL}/plugins/${PLUGIN_NAME}`;
 const PERSONAL_PATH_PATTERN =
   /(^|[\s"'])(\/Users\/[^/\s"']+|\/home\/[^/\s"']+|[A-Za-z]:\\Users\\[^\\\s"']+)/;
 
@@ -101,6 +104,14 @@ function stageNames(stages) {
   return stages.map((stage) => String(stage.frontmatter.name));
 }
 
+function buildPublicVsixUrl(version) {
+  return `${PUBLIC_RELEASES_URL}/eai-gofer-${version}.vsix`;
+}
+
+function buildPublicAgentPluginZipUrl(version) {
+  return `${PUBLIC_RELEASES_URL}/eai-gofer-agent-plugin-${version}.zip`;
+}
+
 function buildCodexManifest(version, stages, paths = {}) {
   return {
     name: PLUGIN_NAME,
@@ -136,8 +147,9 @@ function buildCodexManifest(version, stages, paths = {}) {
     },
     gofer: {
       stages: stageNames(stages),
-      marketplacePath: './plugins/eai-gofer',
-      releaseAsset: `eai-gofer-agent-plugin-${version}.zip`,
+      marketplacePath: PUBLIC_PLUGIN_URL,
+      releaseAsset: buildPublicAgentPluginZipUrl(version),
+      vsixAsset: buildPublicVsixUrl(version),
     },
   };
 }
@@ -184,10 +196,10 @@ function buildClaudeManifest(version, paths = {}) {
   };
 }
 
-function buildLocalMarketplace(version) {
+function buildBundleMarketplace(version) {
   return {
-    name: 'eai-gofer-local',
-    description: 'Local EAI Gofer plugin marketplace for agentic spec-driven delivery workflows.',
+    name: 'eai-gofer',
+    description: 'Public EAI Gofer plugin marketplace for agentic spec-driven delivery workflows.',
     owner: {
       name: 'EnterpriseAI',
       url: REPOSITORY_URL,
@@ -221,13 +233,14 @@ function buildRepoMarketplace(version) {
       url: REPOSITORY_URL,
     },
     metadata: {
-      description: 'Install the EAI Gofer agent plugin for Claude Code, Codex, or Copilot CLI.',
+      description:
+        'Install the EAI Gofer agent plugin for Claude Code, Codex, or Copilot CLI from the public release host.',
       version,
     },
     plugins: [
       {
         name: PLUGIN_NAME,
-        source: './plugins/eai-gofer',
+        source: PUBLIC_PLUGIN_URL,
         description:
           'Public Gofer workflow for business scenario, research, specification, planning, implementation, validation, and stakeholder communications.',
         version,
@@ -245,18 +258,18 @@ function buildRepoMarketplace(version) {
   };
 }
 
-function buildCodexLocalMarketplace(version) {
+function buildBundleCodexMarketplace(version) {
   return {
-    name: 'eai-gofer-local',
+    name: 'eai-gofer',
     interface: {
-      displayName: 'EAI Gofer Local Plugins',
+      displayName: 'EAI Gofer',
     },
     plugins: [
       {
         name: PLUGIN_NAME,
         source: {
           source: 'local',
-          path: './plugins/eai-gofer',
+          path: './',
         },
         policy: {
           installation: 'AVAILABLE',
@@ -274,7 +287,7 @@ function buildUmbrellaSkill(version, stages) {
     .map((stage) => `- \`${stage.frontmatter.name}\` - ${stage.frontmatter.description}`)
     .join('\n');
 
-  return `---\nname: eai-gofer\ndescription: "Run the public Gofer spec-driven delivery workflow in Claude, Codex, or Copilot."\n---\n\n# EAI Gofer\n\nVersion: ${version}\n\nUse this skill when the user asks to run, install, update, or understand Gofer without the VS Code extension UI.\n\n## Pipeline Skills\n\n${stageList}\n\n## Stable Local Install Path\n\nInstall or update this plugin by replacing the stable local folder:\n\n\`\`\`text\n~/plugins/eai-gofer\n\`\`\`\n\nThe Codex local marketplace entry should continue to point at \`./plugins/eai-gofer\`.\n`;
+  return `---\nname: eai-gofer\ndescription: "Run the public Gofer spec-driven delivery workflow in Claude, Codex, or Copilot."\n---\n\n# EAI Gofer\n\nVersion: ${version}\n\nUse this skill when the user asks to run, install, update, or understand Gofer without the VS Code extension UI.\n\n## Pipeline Skills\n\n${stageList}\n\n## Stable Local Install Path\n\nInstall or update this plugin by replacing the stable local folder:\n\n\`\`\`text\n~/plugins/eai-gofer\n\`\`\`\n\nThe public hosted plugin bundle is available at:\n\n\`\`\`text\n${PUBLIC_PLUGIN_URL}\n\`\`\`\n`;
 }
 
 function buildStageSkill(stage) {
@@ -282,7 +295,7 @@ function buildStageSkill(stage) {
 }
 
 function buildPluginReadme(version) {
-  return `# EAI Gofer Agent Plugin\n\nVersion: ${version}\n\nThis package is the portable Claude, Codex, and Copilot workflow layer for public Gofer. It is released beside the VS Code extension, but it does not replace the VSIX UI, status views, updater, or language-server features.\n\n## Distribution Modes\n\n| Surface | Marketplace / published mode | Local release-test mode |\n| ------- | ---------------------------- | ----------------------- |\n| Claude Code | \`claude plugin marketplace add eai-tools/eai-gofer --scope user\` then \`claude plugin install eai-gofer@eai-gofer --scope user\` | Unzip this release to \`~/plugins/eai-gofer\`, then install \`eai-gofer@eai-gofer-local\` |\n| Codex | Public marketplace publishing is prepared by \`.codex-plugin/plugin.json\`; local/import is the supported test path until external marketplace publication is available | Add \`~/plugins/eai-gofer\` through Codex local marketplace/import and keep the stable path unchanged |\n| GitHub Copilot CLI | \`copilot plugin marketplace add eai-tools/eai-gofer\` then \`copilot plugin install eai-gofer@eai-gofer\` | \`copilot plugin marketplace add ~/plugins/eai-gofer\` then \`copilot plugin install eai-gofer@eai-gofer-local\` |\n\n## Install Or Update Locally\n\nKeep the local install path stable:\n\n\`\`\`text\n~/plugins/eai-gofer\n\`\`\`\n\nDownload this release asset, remove the old folder, unzip the package into \`~/plugins\`, then reload Codex, Claude Code, or Copilot CLI.\n\n\`\`\`bash\ngh release download v${version} \\\n  --repo eai-tools/eai-gofer \\\n  --pattern "eai-gofer-agent-plugin-${version}.zip" \\\n  --dir /tmp/eai-gofer-plugin\n\nrm -rf ~/plugins/eai-gofer\nunzip /tmp/eai-gofer-plugin/eai-gofer-agent-plugin-${version}.zip -d ~/plugins\n\`\`\`\n\n## Claude Code\n\n\`\`\`bash\nclaude plugin marketplace add ~/plugins/eai-gofer --scope user\nclaude plugin install eai-gofer@eai-gofer-local --scope user\n\`\`\`\n\n## Codex Local Marketplace Entry\n\n\`\`\`json\n{\n  "name": "eai-gofer",\n  "source": {\n    "source": "local",\n    "path": "./plugins/eai-gofer"\n  },\n  "policy": {\n    "installation": "AVAILABLE",\n    "authentication": "ON_INSTALL"\n  },\n  "category": "Coding"\n}\n\`\`\`\n\n## Copilot CLI\n\nRegister the unzipped folder as a local marketplace, then install from that marketplace:\n\n\`\`\`bash\ncopilot plugin marketplace add ~/plugins/eai-gofer\ncopilot plugin install eai-gofer@eai-gofer-local\n\`\`\`\n`;
+  return `# EAI Gofer Agent Plugin\n\nVersion: ${version}\n\nThis package is the portable Claude, Codex, and Copilot workflow layer for public Gofer. It is released beside the VS Code extension, but it does not replace the VSIX UI, status views, updater, or language-server features.\n\n## Public Release Host\n\nAll public release artifacts ship under:\n\n\`\`\`text\n${PUBLIC_RELEASES_URL}\n\`\`\`\n\nThat host publishes:\n\n- VS Code extension: \`${buildPublicVsixUrl(version)}\`\n- Agent plugin zip: \`${buildPublicAgentPluginZipUrl(version)}\`\n- Stable public plugin bundle: \`${PUBLIC_PLUGIN_URL}\`\n\n## Distribution Modes\n\n| Surface | Public install / update path | Stable local folder path |\n| ------- | ---------------------------- | ------------------------ |\n| Claude Code | \`claude plugin marketplace add ${PUBLIC_PLUGIN_URL} --scope user\` then \`claude plugin install eai-gofer@eai-gofer --scope user\` | \`~/plugins/eai-gofer\` |\n| Codex | Import the public plugin bundle URL \`${PUBLIC_PLUGIN_URL}\` in the Codex plugin UI, or download the zip below and keep the installed folder path stable | \`~/plugins/eai-gofer\` |\n| GitHub Copilot CLI | \`copilot plugin marketplace add ${PUBLIC_PLUGIN_URL}\` then \`copilot plugin install eai-gofer@eai-gofer\` | \`~/plugins/eai-gofer\` |\n\n## Download And Replace The Local Folder\n\nKeep the local install path stable:\n\n\`\`\`text\n~/plugins/eai-gofer\n\`\`\`\n\nDownload the public release asset, remove the old folder, unzip the package into \`~/plugins\`, then reload Codex, Claude Code, or Copilot CLI.\n\n\`\`\`bash\ncurl -fsSL ${buildPublicAgentPluginZipUrl(version)} -o /tmp/eai-gofer-agent-plugin-${version}.zip\n\nrm -rf ~/plugins/eai-gofer\nunzip /tmp/eai-gofer-agent-plugin-${version}.zip -d ~/plugins\n\`\`\`\n\n## Claude Code\n\n\`\`\`bash\nclaude plugin marketplace add ${PUBLIC_PLUGIN_URL} --scope user\nclaude plugin install eai-gofer@eai-gofer --scope user\n\`\`\`\n\n## Codex\n\nUse the public plugin bundle URL in the Codex plugin import / marketplace UI:\n\n\`\`\`text\n${PUBLIC_PLUGIN_URL}\n\`\`\`\n\nIf you prefer a downloaded folder install, replace \`~/plugins/eai-gofer\` from the zip above and keep the Codex plugin entry pointed at that stable folder.\n\n## Copilot CLI\n\nRegister the public bundle as a marketplace or use the same downloaded local folder:\n\n\`\`\`bash\ncopilot plugin marketplace add ${PUBLIC_PLUGIN_URL}\ncopilot plugin install eai-gofer@eai-gofer\n\`\`\`\n`;
 }
 
 async function writeJson(filePath, payload) {
@@ -373,15 +386,21 @@ async function writePluginFolder(pluginRoot, root, version, stages) {
   const pluginManifest = buildPluginManifest(version);
   const claudeManifest = buildClaudeManifest(version);
   const codexManifest = buildCodexManifest(version, stages);
-  const localMarketplace = buildLocalMarketplace(version);
+  const bundleMarketplace = buildBundleMarketplace(version);
 
   await writeJson(path.join(pluginRoot, 'plugin.json'), pluginManifest);
   await writeJson(path.join(pluginRoot, '.github', 'plugin', 'plugin.json'), pluginManifest);
-  await writeJson(path.join(pluginRoot, '.github', 'plugin', 'marketplace.json'), localMarketplace);
+  await writeJson(
+    path.join(pluginRoot, '.github', 'plugin', 'marketplace.json'),
+    bundleMarketplace
+  );
   await writeJson(path.join(pluginRoot, '.codex-plugin', 'plugin.json'), codexManifest);
   await writeJson(path.join(pluginRoot, '.claude-plugin', 'plugin.json'), claudeManifest);
-  await writeJson(path.join(pluginRoot, '.claude-plugin', 'marketplace.json'), localMarketplace);
-  await writeJson(path.join(pluginRoot, '.agents', 'plugins', 'marketplace.json'), buildCodexLocalMarketplace(version));
+  await writeJson(path.join(pluginRoot, '.claude-plugin', 'marketplace.json'), bundleMarketplace);
+  await writeJson(
+    path.join(pluginRoot, '.agents', 'plugins', 'marketplace.json'),
+    buildBundleCodexMarketplace(version)
+  );
 
   await writeText(path.join(pluginRoot, 'skills', 'eai-gofer', 'SKILL.md'), buildUmbrellaSkill(version, stages));
   for (const stage of stages) {

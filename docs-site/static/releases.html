@@ -62,6 +62,17 @@
             gap: 8px;
         }
         .download-btn:hover { background: var(--theme-color-dark, #3182ce); }
+        .download-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .download-btn.secondary {
+            background: #2d3748;
+        }
+        .download-btn.secondary:hover {
+            background: #1a202c;
+        }
         .release-notes {
             background: var(--bg-light, #f7fafc);
             padding: 15px;
@@ -167,6 +178,7 @@
                                     '<li>Restart VS Code</li>' +
                                     '<li>Open a workspace with a <span class="code-inline">.specify/</span> folder to activate Gofer</li>' +
                                 '</ol>' +
+                                '<p><strong>Claude / Codex / Copilot plugin:</strong> use the public bundle at <span class="code-inline">https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer</span> or download the agent plugin zip from the latest release card.</p>' +
                             '</div>';
                         loadReleases();
                     });
@@ -202,13 +214,26 @@
             }
             currentVersionEl.textContent = 'v' + data.latest_version;
             var releasesHTML = data.releases.map(function(release, i) {
+                var downloadButtons = [
+                    '<a href="' + escapeHtml(release.download_url) + '" class="download-btn">Download VSIX</a>'
+                ];
+                if (release.assets && release.assets.claude && release.assets.claude.download_url) {
+                    downloadButtons.push(
+                        '<a href="' + escapeHtml(release.assets.claude.download_url) + '" class="download-btn secondary">Download Agent Plugin Zip</a>'
+                    );
+                }
+                if (release.assets && release.assets.claude && release.assets.claude.bundle_url) {
+                    downloadButtons.push(
+                        '<a href="' + escapeHtml(release.assets.claude.bundle_url) + '" class="download-btn secondary">Open Public Plugin Bundle</a>'
+                    );
+                }
                 return '<div class="release-item">' +
                     '<div class="release-header">' +
                         '<div class="version-info">' +
                             '<h3>Version ' + escapeHtml(release.version) + (i === 0 ? ' (Latest)' : '') + '</h3>' +
                             '<div class="release-date">' + formatDate(release.published_at) + '</div>' +
                         '</div>' +
-                        '<a href="' + escapeHtml(release.download_url) + '" class="download-btn">Download VSIX</a>' +
+                        '<div class="download-row">' + downloadButtons.join('') + '</div>' +
                     '</div>' +
                     '<div class="release-notes">' +
                         '<h4>Release Notes</h4>' +

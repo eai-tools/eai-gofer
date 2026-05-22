@@ -9,9 +9,20 @@
   "homepage": "https://github.com/eai-tools/eai-gofer",
   "repository": "https://github.com/eai-tools/eai-gofer",
   "license": "SEE LICENSE IN LICENSE",
-  "keywords": ["eai-gofer", "gofer", "claude-code", "codex", "copilot", "spec-driven-development"],
+  "keywords": [
+    "eai-gofer",
+    "gofer",
+    "claude-code",
+    "codex",
+    "copilot",
+    "spec-driven-development"
+  ],
   "category": "Coding",
-  "tags": ["eai-gofer", "gofer", "agentic-coding"],
+  "tags": [
+    "eai-gofer",
+    "gofer",
+    "agentic-coding"
+  ],
   "skills": "./.agents/skills/",
   "agents": "./.claude/agents/",
   "commands": "./.claude/commands/"

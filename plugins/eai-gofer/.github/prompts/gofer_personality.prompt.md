@@ -16,6 +16,7 @@ gofer:
   metadataSource: scripts/generate-commands.ts
 ---
 
+
 # Gofer Personality
 
 Set the assistant personality for the current Gofer session. The chosen preset

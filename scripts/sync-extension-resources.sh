@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Sync canonical Gofer source dirs into extension/resources/ so the VSIX bundle
-# ships current content. Called automatically by release-auto.sh before
+# ships current content. Called automatically by release.sh before
 # `vsce package`; also safe to run manually.
 #
 # Without this sync, edits to .claude/commands/, .github/prompts/, .specify/

@@ -1,3 +1,4 @@
+
 # Gofer Plan Mode Toggle
 
 When invoked, this command signals the host CLI to enter plan mode for the next

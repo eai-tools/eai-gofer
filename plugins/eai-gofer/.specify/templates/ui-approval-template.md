@@ -17,8 +17,7 @@ status: pending
 
 - **Vertical Template baseline preserved**: {{yes-no}}
 - **Approved profile choice**: {{external-internal-hybrid}}
-- **Approved package lane**:
-  {{public-package-internal-app-hybrid-adapter-app-local}}
+- **Approved package lane**: {{public-package-internal-app-hybrid-adapter-app-local}}
 - **Approved coupling status**: {{daisy-coupled-daisy-decoupled-hybrid-adapter}}
 - **Approved Storybook story IDs**: {{storybook-story-ids-or-exceptions}}
 - **Approved theme override points**: {{theme-override-points}}

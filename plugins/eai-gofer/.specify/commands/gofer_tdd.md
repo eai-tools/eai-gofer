@@ -1,6 +1,6 @@
 ---
 name: gofer:tdd
-description: 'Guide a red-green-refactor loop tied to spec acceptance criteria.'
+description: "Guide a red-green-refactor loop tied to spec acceptance criteria."
 title: 'Gofer TDD'
 category: control
 surfaces:

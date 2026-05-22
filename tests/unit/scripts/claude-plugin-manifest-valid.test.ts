@@ -63,7 +63,7 @@ describe('agent plugin manifests', () => {
     expect(manifest.commands).toBe('./.claude/commands/');
   });
 
-  it('Claude and Copilot marketplaces point at the repo-local plugin bundle', (): void => {
+  it('Claude and Copilot marketplaces point at the public release-hosted plugin bundle', (): void => {
     const claudeMarketplace = readJson<Marketplace>(CLAUDE_MARKETPLACE_PATH);
     const copilotMarketplace = readJson<Marketplace>(COPILOT_MARKETPLACE_PATH);
 
@@ -72,7 +72,9 @@ describe('agent plugin manifests', () => {
       expect(marketplace.plugins).toHaveLength(1);
       expect(marketplace.plugins[0].name).toBe('eai-gofer');
       expect(marketplace.plugins[0].version).toBe('3.4.0');
-      expect(marketplace.plugins[0].source).toBe('./plugins/eai-gofer');
+      expect(marketplace.plugins[0].source).toBe(
+        'https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer'
+      );
     }
   });
 });

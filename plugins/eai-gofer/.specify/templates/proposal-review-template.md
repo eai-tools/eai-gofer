@@ -55,10 +55,8 @@ approvedAt: ''
 
 - [Decision]: [Rationale]
 - [Decision]: [Rationale]
-- [Preview strategy]: [Why this is the right first MVP or why it is not
-  applicable]
-- [Service-fit approach]: [Why this capability-selection approach is right or
-  not applicable]
+- [Preview strategy]: [Why this is the right first MVP or why it is not applicable]
+- [Service-fit approach]: [Why this capability-selection approach is right or not applicable]
 
 ## What Can Change Before Specification
 

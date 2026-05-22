@@ -56,6 +56,7 @@ describe('EAI Gofer agent plugin package', () => {
         'eai-gofer/plugin.json',
         'eai-gofer/.codex-plugin/plugin.json',
         'eai-gofer/.claude-plugin/plugin.json',
+        'eai-gofer/.agents/plugins/marketplace.json',
         'eai-gofer/.github/plugin/marketplace.json',
         'eai-gofer/README.md',
         'eai-gofer/assets/eai-gofer-icon.png',
@@ -76,6 +77,14 @@ describe('EAI Gofer agent plugin package', () => {
       const codexManifest = readJson<{ name: string; version: string; skills: string }>(
         path.join(pluginRoot, '.codex-plugin', 'plugin.json')
       );
+      const claudeMarketplace = readJson<{
+        name: string;
+        plugins: Array<{ name: string; source: string; version: string }>;
+      }>(path.join(pluginRoot, '.claude-plugin', 'marketplace.json'));
+      const codexMarketplace = readJson<{
+        name: string;
+        plugins: Array<{ name: string; source: { source: string; path: string }; version: string }>;
+      }>(path.join(pluginRoot, '.agents', 'plugins', 'marketplace.json'));
 
       for (const manifest of [copilotManifest, claudeManifest, codexManifest]) {
         expect(manifest.name).toBe('eai-gofer');
@@ -86,6 +95,13 @@ describe('EAI Gofer agent plugin package', () => {
       expect(claudeManifest.agents).toBeUndefined();
       expect(claudeManifest.commands).toBeUndefined();
       expect(codexManifest.skills).toBe('./skills/');
+      expect(claudeMarketplace.name).toBe('eai-gofer');
+      expect(claudeMarketplace.plugins[0].source).toBe('./');
+      expect(codexMarketplace.name).toBe('eai-gofer');
+      expect(codexMarketplace.plugins[0].source).toEqual({
+        source: 'local',
+        path: './',
+      });
 
       for (const command of FULL_COMMAND_FILES) {
         expect(fs.existsSync(path.join(pluginRoot, 'commands', `${command}.md`))).toBe(true);

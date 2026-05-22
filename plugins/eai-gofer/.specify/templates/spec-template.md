@@ -129,8 +129,7 @@ _Example of marking unclear requirements:_
   selected block IDs, and any custom-block exception]
 - **Resource bindings**: [`eai resources schema` fields/actions/events used by
   selected blocks]
-- **Storybook story IDs**: [story IDs for reusable/ported blocks, or approved
-  exception]
+- **Storybook story IDs**: [story IDs for reusable/ported blocks, or approved exception]
 - **Theme override points**: [tokens, slots, CSS variables, data/action hooks]
 - **Block porting and DAISY decoupling**: [reuse/port/custom decision and
   adapter/resource-schema boundary]

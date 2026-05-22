@@ -19,8 +19,8 @@ evidence. You are the last line of defense against wasted implementation effort.
    phase with matching scope
 3. **Contracts ↔ Tasks alignment** — Every contract/API endpoint defined in
    plan.md or contracts/ has tasks to implement it
-4. **Data Model ↔ Tasks alignment** — Every data model entity has tasks covering
-   all its fields and relationships
+4. **Data Model ↔ Tasks alignment** — Every data model entity has tasks
+   covering all its fields and relationships
 5. **Architecture ↔ Tasks alignment** — The planned file structure and patterns
    from plan.md are reflected in task descriptions
 

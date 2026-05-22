@@ -1,11 +1,11 @@
 ---
 name: gofer_hydrate
-description: 'Reverse-engineer specification from existing code (Hydration).'
+description: "Reverse-engineer specification from existing code (Hydration)."
 ---
 
 ---
-
-## description: Reverse-engineer specification from existing code (Hydration)
+description: Reverse-engineer specification from existing code (Hydration)
+---
 
 # Gofer Hydrate
 

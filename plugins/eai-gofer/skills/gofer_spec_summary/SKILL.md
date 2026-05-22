@@ -1,6 +1,6 @@
 ---
 name: gofer:spec-summary
-description: 'Generate a business-friendly summary of feature value and scope.'
+description: "Generate a business-friendly summary of feature value and scope."
 ---
 
 # Gofer Spec Summary

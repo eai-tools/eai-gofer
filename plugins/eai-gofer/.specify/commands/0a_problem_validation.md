@@ -1,9 +1,7 @@
 ---
 name: 0a_problem_validation
-description:
-  'Validate the business problem using 5 Whys root-cause analysis and
-  stakeholder mapping.'
-title: 'Problem Validation'
+description: "Validate the business problem using 5 Whys root-cause analysis and stakeholder mapping."
+title: "Problem Validation"
 category: pipeline
 surfaces:
   - claude
@@ -17,12 +15,10 @@ surfaces:
   - system-skills
 aliases: [gofer:validate-problem]
 ---
-
 ---
-
-description: Validate business problem using 5 Whys analysis, stakeholder impact
-mapping, and market landscape research before any solution design
-
+description:
+  Validate business problem using 5 Whys analysis, stakeholder impact mapping,
+  and market landscape research before any solution design
 ---
 
 # Gofer Problem Validation

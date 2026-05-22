@@ -1,7 +1,7 @@
 ---
 name: 8_gofer_resume
-description: 'Resume a previous Gofer session from a saved checkpoint file.'
-title: 'Gofer Resume'
+description: "Resume a previous Gofer session from a saved checkpoint file."
+title: "Gofer Resume"
 category: utility
 surfaces:
   - claude
@@ -15,12 +15,9 @@ surfaces:
   - system-skills
 aliases: [gofer:resume]
 ---
-
 ---
-
-description: Resume work from saved session checkpoint with full context
-restoration
-
+description:
+  Resume work from saved session checkpoint with full context restoration
 ---
 
 # Gofer Resume

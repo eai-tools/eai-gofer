@@ -1,8 +1,6 @@
 ---
 name: 10_gofer_cloud
-description:
-  Deploy and configure the Gofer cloud integration for remote pipeline
-  execution.
+description: Deploy and configure the Gofer cloud integration for remote pipeline execution.
 agent: copilot-workspace
 tools:
   - Read
@@ -17,6 +15,7 @@ gofer:
   canonicalChecksum: 243126b1ceb3b5cd213829b030483a7fb250a87578070a43081ab6c0fd3a94fe
   metadataSource: scripts/generate-commands.ts
 ---
+
 
 # Gofer Cloud
 

@@ -1,15 +1,12 @@
 ---
 name: 9_gofer_tests
+description: "Generate comprehensive test suites from four testing perspectives for a target component."
+---
+
+---
 description:
-  'Generate comprehensive test suites from four testing perspectives for a
-  target component.'
----
-
----
-
-description: Define acceptance test cases using DSL approach before or during
-implementation
-
+  Define acceptance test cases using DSL approach before or during
+  implementation
 ---
 
 # Gofer Tests

@@ -157,31 +157,38 @@ jobs:
             echo "- Claude/Codex/Copilot agent plugin package"
             echo "- Gofer release archive"
             echo
-            echo "## Local Agent Plugin Install"
+            echo "## Public Release Host"
+            echo
+            echo "https://eai-tools.github.io/eai-gofer/releases/"
+            echo
+            echo "## Public Agent Plugin Install"
             echo
             echo '```bash'
-            echo "gh release download $tag_name \\"
-            echo "  --repo eai-tools/eai-gofer \\"
-            echo "  --pattern \"eai-gofer-agent-plugin-${{ steps.version.outputs.version }}.zip\" \\"
-            echo "  --dir /tmp/eai-gofer-plugin"
+            echo "curl -fsSL https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-${{ steps.version.outputs.version }}.zip \\"
+            echo "  -o /tmp/eai-gofer-agent-plugin-${{ steps.version.outputs.version }}.zip"
             echo
             echo "rm -rf ~/plugins/eai-gofer"
-            echo "unzip /tmp/eai-gofer-plugin/eai-gofer-agent-plugin-${{ steps.version.outputs.version }}.zip -d ~/plugins"
+            echo "unzip /tmp/eai-gofer-agent-plugin-${{ steps.version.outputs.version }}.zip -d ~/plugins"
             echo '```'
             echo
             echo "Claude Code:"
             echo
             echo '```bash'
-            echo "claude plugin marketplace add ~/plugins/eai-gofer --scope user"
-            echo "claude plugin install eai-gofer@eai-gofer-local --scope user"
+            echo "claude plugin marketplace add https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer --scope user"
+            echo "claude plugin install eai-gofer@eai-gofer --scope user"
+            echo '```'
+            echo
+            echo "Codex:"
+            echo
+            echo '```text'
+            echo "Import the plugin bundle URL in the Codex plugin UI:"
+            echo "https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer"
             echo '```'
             echo
             echo "Copilot CLI:"
             echo
             echo '```bash'
-            echo "copilot plugin marketplace add ~/plugins/eai-gofer"
-            echo "copilot plugin install eai-gofer@eai-gofer-local"
-            echo "copilot plugin marketplace add eai-tools/eai-gofer"
+            echo "copilot plugin marketplace add https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer"
             echo "copilot plugin install eai-gofer@eai-gofer"
             echo '```'
           } >> release-notes.md

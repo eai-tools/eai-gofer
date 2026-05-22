@@ -11,6 +11,36 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const PUBLIC_RELEASES_BASE_URL = 'https://eai-tools.github.io/eai-gofer/releases';
+
+function buildVsixUrl(version) {
+  return `${PUBLIC_RELEASES_BASE_URL}/eai-gofer-${version}.vsix`;
+}
+
+function buildLatestVsixUrl() {
+  return `${PUBLIC_RELEASES_BASE_URL}/eai-gofer-latest.vsix`;
+}
+
+function buildAgentPluginZipUrl(version) {
+  return `${PUBLIC_RELEASES_BASE_URL}/eai-gofer-agent-plugin-${version}.zip`;
+}
+
+function buildLatestAgentPluginZipUrl() {
+  return `${PUBLIC_RELEASES_BASE_URL}/eai-gofer-agent-plugin-latest.zip`;
+}
+
+function buildPublicPluginBundleUrl() {
+  return `${PUBLIC_RELEASES_BASE_URL}/plugins/eai-gofer`;
+}
+
+function sizeInMb(candidatePath) {
+  const stats = fs.statSync(candidatePath);
+  return Number((stats.size / (1024 * 1024)).toFixed(1));
+}
+
+function firstExistingPath(candidates) {
+  return candidates.find((candidate) => fs.existsSync(candidate));
+}
 
 // Get version from command line or package.json
 const version =
@@ -22,11 +52,13 @@ const customDownloadUrl = process.argv[4]; // Optional custom download URL
 const releasesPath = path.join(__dirname, '../docs-site/static/releases.json');
 const releases = JSON.parse(fs.readFileSync(releasesPath, 'utf8'));
 
-// Determine download URL - use custom URL if provided, otherwise default to GitHub Releases.
-// VSIX binaries should not be committed to docs-site/static/releases.
-const downloadUrl =
-  customDownloadUrl ||
-  `https://github.com/eai-tools/eai-gofer/releases/download/v${version}/eai-gofer-${version}.vsix`;
+// Determine download URL - use custom URL if provided, otherwise default to the
+// GitHub Pages release host that mirrors the shipped binaries.
+const downloadUrl = customDownloadUrl || buildVsixUrl(version);
+const agentPluginDownloadUrl = buildAgentPluginZipUrl(version);
+const publicPluginBundleUrl = buildPublicPluginBundleUrl();
+const latestVsixUrl = buildLatestVsixUrl();
+const latestAgentPluginZipUrl = buildLatestAgentPluginZipUrl();
 
 // Calculate actual file size from local release output if available.
 const candidateVsixPaths = [
@@ -37,13 +69,14 @@ const candidateVsixPaths = [
   path.join(__dirname, '../docs-site/static/releases', `eai-gofer-${version}.vsix`),
   path.join(__dirname, '../docs-site/static/releases', `gofer-${version}.vsix`),
 ];
-const vsixPath = candidateVsixPaths.find((candidate) => fs.existsSync(candidate));
-let fileSize = 8.5; // Default approximate size
-if (vsixPath) {
-  const stats = fs.statSync(vsixPath);
-  fileSize = (stats.size / (1024 * 1024)).toFixed(1); // Convert bytes to MB
-} else {
-}
+const candidatePluginZipPaths = [
+  path.join(__dirname, '../dist', `eai-gofer-agent-plugin-${version}.zip`),
+  path.join(__dirname, '../docs-site/static/releases', `eai-gofer-agent-plugin-${version}.zip`),
+];
+const vsixPath = firstExistingPath(candidateVsixPaths);
+const pluginZipPath = firstExistingPath(candidatePluginZipPaths);
+const vsixSizeMb = vsixPath ? sizeInMb(vsixPath) : 8.5;
+const agentPluginSizeMb = pluginZipPath ? sizeInMb(pluginZipPath) : 1.5;
 
 // Create new release entry
 const newRelease = {
@@ -53,7 +86,40 @@ const newRelease = {
   download_url: downloadUrl,
   notes: releaseNotes,
   prerelease: false,
-  size_mb: parseFloat(fileSize),
+  size_mb: vsixSizeMb,
+  public_base_url: PUBLIC_RELEASES_BASE_URL,
+  assets: {
+    vscode: {
+      file_name: `eai-gofer-${version}.vsix`,
+      download_url: downloadUrl,
+      latest_download_url: latestVsixUrl,
+      size_mb: vsixSizeMb,
+    },
+    claude: {
+      bundle_url: publicPluginBundleUrl,
+      marketplace_url: `${publicPluginBundleUrl}/claude-marketplace.json`,
+      manifest_url: `${publicPluginBundleUrl}/claude-plugin.json`,
+      download_url: agentPluginDownloadUrl,
+      latest_download_url: latestAgentPluginZipUrl,
+      size_mb: agentPluginSizeMb,
+    },
+    codex: {
+      bundle_url: publicPluginBundleUrl,
+      marketplace_url: `${publicPluginBundleUrl}/codex-marketplace.json`,
+      manifest_url: `${publicPluginBundleUrl}/codex-plugin.json`,
+      download_url: agentPluginDownloadUrl,
+      latest_download_url: latestAgentPluginZipUrl,
+      size_mb: agentPluginSizeMb,
+    },
+    copilot: {
+      bundle_url: publicPluginBundleUrl,
+      marketplace_url: `${publicPluginBundleUrl}/copilot-marketplace.json`,
+      manifest_url: `${publicPluginBundleUrl}/copilot-plugin.json`,
+      download_url: agentPluginDownloadUrl,
+      latest_download_url: latestAgentPluginZipUrl,
+      size_mb: agentPluginSizeMb,
+    },
+  },
 };
 
 // Replace any existing entry for the same version before prepending the latest.
@@ -67,6 +133,7 @@ releases.releases.unshift(newRelease);
 // Update latest version
 releases.latest_version = version;
 releases.last_updated = new Date().toISOString();
+releases.public_base_url = PUBLIC_RELEASES_BASE_URL;
 
 // Keep only the latest five releases to avoid advertising stale downloads.
 releases.releases = releases.releases.slice(0, 5);

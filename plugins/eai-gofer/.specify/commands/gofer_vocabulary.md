@@ -1,6 +1,6 @@
 ---
 name: gofer:vocabulary
-description: 'Extract domain terminology into a canonical feature glossary.'
+description: "Extract domain terminology into a canonical feature glossary."
 title: 'Gofer Vocabulary'
 category: control
 surfaces:
@@ -17,8 +17,8 @@ surfaces:
 
 # Gofer Vocabulary
 
-Extract the feature's shared domain language into a canonical glossary and write
-it to `.specify/specs/{feature}/glossary.md`.
+Extract the feature's shared domain language into a canonical glossary and
+write it to `.specify/specs/{feature}/glossary.md`.
 
 Use this when research, specification, contracts, or implementation rely on
 terms that need stable definitions across Claude, Copilot, Codex, and Gemini
@@ -48,5 +48,5 @@ The generated glossary must contain these sections:
 - `## Definitions`
 - `## Source Artifacts`
 
-Keep the content Gofer-owned and concise. Do not copy upstream Matt Pocock skill
-text verbatim.
+Keep the content Gofer-owned and concise. Do not copy upstream Matt Pocock
+skill text verbatim.

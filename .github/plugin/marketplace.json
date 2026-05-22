@@ -7,14 +7,14 @@
   },
   "metadata": {
     "description": "Install the EAI Gofer agent plugin for Claude Code, Codex, or Copilot CLI from the public release host.",
-    "version": "3.4.0"
+    "version": "3.4.1"
   },
   "plugins": [
     {
       "name": "eai-gofer",
       "source": "https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer",
       "description": "Public Gofer workflow for business scenario, research, specification, planning, implementation, validation, and stakeholder communications.",
-      "version": "3.4.0",
+      "version": "3.4.1",
       "author": {
         "name": "Enterprise AI Pty Ltd",
         "url": "https://github.com/eai-tools/eai-gofer"

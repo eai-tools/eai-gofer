@@ -1,7 +1,7 @@
 ---
 generated: true
-generated_at: "2026-05-21T18:15:34.171Z"
-source_commit: "0344d6df21fba9738d8bd9f6c26d7602c4e0775e"
+generated_at: "2026-05-22T18:15:06.936Z"
+source_commit: "c909d5e497762e9ac614a02d35e58afd5e46dae2"
 ---
 # Gofer - Data Model
 

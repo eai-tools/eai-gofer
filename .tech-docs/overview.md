@@ -1,7 +1,7 @@
 ---
 generated: true
-generated_at: "2026-05-21T18:15:34.171Z"
-source_commit: "0344d6df21fba9738d8bd9f6c26d7602c4e0775e"
+generated_at: "2026-05-22T18:15:06.936Z"
+source_commit: "c909d5e497762e9ac614a02d35e58afd5e46dae2"
 ---
 # Gofer - Technical Overview
 
@@ -13,16 +13,16 @@ source_commit: "0344d6df21fba9738d8bd9f6c26d7602c4e0775e"
 | **Primary Capability**   | Spec-driven development workflow system with UI-first app delivery and multi-platform AI assistant support           |
 | **Primary Users**        | Software development teams using Claude Code, GitHub Copilot, OpenAI Codex, or Gemini CLI for feature implementation |
 | **Data Sensitivity**     | Low - stores specifications, plans, and code artifacts locally in repository workspace                               |
-| **Current Status**       | Active Development (v3.4.0) - Production-ready with agent plugin marketplace distribution                            |
-| **Last Material Change** | 2026-05-21 - Nightly automated documentation update                                                                  |
+| **Current Status**       | Active Development (v3.4.3) - Production-ready with agent plugin marketplace distribution                            |
+| **Last Material Change** | 2026-05-22 - Release v3.4.3 with pre-release updates                                                                 |
 
 ## Service Identity
 
 **Name:** Gofer  
-**Version:** 3.4.0  
-**Documentation Updated:** 2026-05-21  
+**Version:** 3.4.3  
+**Documentation Updated:** 2026-05-22  
 **Publisher:** Enterprise AI Pty Ltd  
-**Repository:** [enterpriseaigroup/tech-docs](https://github.com/enterpriseaigroup/tech-docs)
+**Repository:** [eai-tools/eai-gofer](https://github.com/eai-tools/eai-gofer)
 
 **Description:** Spec-driven development system for AI assistants. Provides 29+ MCP tools that enable Claude Code, GitHub Copilot, OpenAI Codex, and Gemini CLI to autonomously implement features from specifications with UI-first app delivery workflow support and EnterpriseAI platform integration.
 

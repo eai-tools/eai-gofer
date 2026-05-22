@@ -237,13 +237,19 @@ set -e`);
 
     it('should not push to origin/main before validation and release commit succeed', () => {
       const testsPassedIndex = RELEASE_SCRIPT.indexOf('print_success "Tests passed"');
+      const trackedAssetsIndex = RELEASE_SCRIPT.indexOf(
+        'ensure_release_paths_tracked \\\n' +
+          '    "docs-site/static/releases/eai-gofer-$NEW_VERSION.vsix"'
+      );
       const releaseCommitIndex = RELEASE_SCRIPT.indexOf(
         'git commit --no-verify -m "release: v$NEW_VERSION'
       );
       const pushMainIndex = RELEASE_SCRIPT.indexOf('git push --no-verify origin HEAD:main');
 
       expect(testsPassedIndex).toBeGreaterThan(-1);
+      expect(trackedAssetsIndex).toBeGreaterThan(testsPassedIndex);
       expect(releaseCommitIndex).toBeGreaterThan(testsPassedIndex);
+      expect(releaseCommitIndex).toBeGreaterThan(trackedAssetsIndex);
       expect(pushMainIndex).toBeGreaterThan(releaseCommitIndex);
       expect(RELEASE_SCRIPT).not.toContain('--force-with-lease');
     });

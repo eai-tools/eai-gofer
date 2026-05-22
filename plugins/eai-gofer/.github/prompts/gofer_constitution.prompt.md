@@ -1,7 +1,6 @@
 ---
 name: gofer_constitution
-description:
-  Create or update project constitution with coding principles and guidelines.
+description: Create or update project constitution with coding principles and guidelines.
 agent: copilot-workspace
 tools:
   - Read
@@ -16,6 +15,7 @@ gofer:
   canonicalChecksum: acafc770f093d95c90afbd3cf7dbd4603e9811a141722761f143701168690e54
   metadataSource: scripts/generate-commands.ts
 ---
+
 
 # Gofer Constitution
 
@@ -44,15 +44,15 @@ when updating:
    source-of-truth.**
 
 2. **Codex distribution path (FR-010)**: Codex discovers skills at
-   `.agents/skills/` (one folder per skill: `.agents/skills/<stage>/SKILL.md`).
-   This is NOT the same as `.claude/skills/`, and it is the only repo-local path
-   Codex should rely on for normal Gofer installs. The constitution MUST capture
-   that distinction explicitly so future authors do not conflate the two paths
-   or recreate duplicate global Gofer bundles. The official Codex disable knob
-   is a per-skill `[[skills.config]]` entry with a
-   `path = "/full/path/to/skill"` plus `enabled = false` in
-   `~/.codex/config.toml`; there is no global skill-budget percentage key
-   (FR-011).
+   `.agents/skills/` (one folder per skill:
+   `.agents/skills/<stage>/SKILL.md`). This is NOT the same as
+   `.claude/skills/`, and it is the only repo-local path Codex should rely on
+   for normal Gofer installs. The constitution MUST capture that distinction
+   explicitly so future authors do not conflate the two paths or recreate
+   duplicate global Gofer bundles. The official Codex disable knob is a
+   per-skill `[[skills.config]]` entry with a `path = "/full/path/to/skill"`
+   plus `enabled = false` in `~/.codex/config.toml`; there is no global
+   skill-budget percentage key (FR-011).
 
 When updating the constitution, ensure both sections survive the edit pass.
 

@@ -76,6 +76,7 @@ describe('runtime offline after publish (T170)', () => {
         if (u.includes('localhost')) return false;
         if (u.includes('127.0.0.1')) return false;
         if (u.includes('github.com')) return false;
+        if (u.includes('eai-tools.github.io')) return false;
         if (u.includes('enterpriseai.com.au')) return false;
         if (u.includes('anthropic.com')) return false;
         if (u.includes('developers.openai.com')) return false;

@@ -2,19 +2,31 @@
 
 Version: 3.4.0
 
-This package is the portable Claude, Codex, and Copilot workflow layer for
-public Gofer. It is released beside the VS Code extension, but it does not
-replace the VSIX UI, status views, updater, or language-server features.
+This package is the portable Claude, Codex, and Copilot workflow layer for public Gofer. It is released beside the VS Code extension, but it does not replace the VSIX UI, status views, updater, or language-server features.
+
+## Public Release Host
+
+All public release artifacts ship under:
+
+```text
+https://eai-tools.github.io/eai-gofer/releases
+```
+
+That host publishes:
+
+- VS Code extension: `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-3.4.0.vsix`
+- Agent plugin zip: `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-3.4.0.zip`
+- Stable public plugin bundle: `https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer`
 
 ## Distribution Modes
 
-| Surface            | Marketplace / published mode                                                                                                                                          | Local release-test mode                                                                                      |
-| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| Claude Code        | `claude plugin marketplace add eai-tools/eai-gofer --scope user` then `claude plugin install eai-gofer@eai-gofer --scope user`                                        | Unzip this release to `~/plugins/eai-gofer`, then install `eai-gofer@eai-gofer-local`                        |
-| Codex              | Public marketplace publishing is prepared by `.codex-plugin/plugin.json`; local/import is the supported test path until external marketplace publication is available | Add `~/plugins/eai-gofer` through Codex local marketplace/import and keep the stable path unchanged          |
-| GitHub Copilot CLI | `copilot plugin marketplace add eai-tools/eai-gofer` then `copilot plugin install eai-gofer@eai-gofer`                                                                | `copilot plugin marketplace add ~/plugins/eai-gofer` then `copilot plugin install eai-gofer@eai-gofer-local` |
+| Surface | Public install / update path | Stable local folder path |
+| ------- | ---------------------------- | ------------------------ |
+| Claude Code | `claude plugin marketplace add https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer --scope user` then `claude plugin install eai-gofer@eai-gofer --scope user` | `~/plugins/eai-gofer` |
+| Codex | Import the public plugin bundle URL `https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer` in the Codex plugin UI, or download the zip below and keep the installed folder path stable | `~/plugins/eai-gofer` |
+| GitHub Copilot CLI | `copilot plugin marketplace add https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer` then `copilot plugin install eai-gofer@eai-gofer` | `~/plugins/eai-gofer` |
 
-## Install Or Update Locally
+## Download And Replace The Local Folder
 
 Keep the local install path stable:
 
@@ -22,49 +34,37 @@ Keep the local install path stable:
 ~/plugins/eai-gofer
 ```
 
-Download this release asset, remove the old folder, unzip the package into
-`~/plugins`, then reload Codex, Claude Code, or Copilot CLI.
+Download the public release asset, remove the old folder, unzip the package into `~/plugins`, then reload Codex, Claude Code, or Copilot CLI.
 
 ```bash
-gh release download v3.4.0 \
-  --repo eai-tools/eai-gofer \
-  --pattern "eai-gofer-agent-plugin-3.4.0.zip" \
-  --dir /tmp/eai-gofer-plugin
+curl -fsSL https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-3.4.0.zip -o /tmp/eai-gofer-agent-plugin-3.4.0.zip
 
 rm -rf ~/plugins/eai-gofer
-unzip /tmp/eai-gofer-plugin/eai-gofer-agent-plugin-3.4.0.zip -d ~/plugins
+unzip /tmp/eai-gofer-agent-plugin-3.4.0.zip -d ~/plugins
 ```
 
 ## Claude Code
 
 ```bash
-claude plugin marketplace add ~/plugins/eai-gofer --scope user
-claude plugin install eai-gofer@eai-gofer-local --scope user
+claude plugin marketplace add https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer --scope user
+claude plugin install eai-gofer@eai-gofer --scope user
 ```
 
-## Codex Local Marketplace Entry
+## Codex
 
-```json
-{
-  "name": "eai-gofer",
-  "source": {
-    "source": "local",
-    "path": "./plugins/eai-gofer"
-  },
-  "policy": {
-    "installation": "AVAILABLE",
-    "authentication": "ON_INSTALL"
-  },
-  "category": "Coding"
-}
+Use the public plugin bundle URL in the Codex plugin import / marketplace UI:
+
+```text
+https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer
 ```
+
+If you prefer a downloaded folder install, replace `~/plugins/eai-gofer` from the zip above and keep the Codex plugin entry pointed at that stable folder.
 
 ## Copilot CLI
 
-Register the unzipped folder as a local marketplace, then install from that
-marketplace:
+Register the public bundle as a marketplace or use the same downloaded local folder:
 
 ```bash
-copilot plugin marketplace add ~/plugins/eai-gofer
-copilot plugin install eai-gofer@eai-gofer-local
+copilot plugin marketplace add https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer
+copilot plugin install eai-gofer@eai-gofer
 ```

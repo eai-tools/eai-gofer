@@ -65,9 +65,9 @@ rationale.
 
 ## AI-Readable Blocks Bridge Context
 
-| Block ID     | Package Lane | Storybook Story ID | Theme Override Points | Coupling Status     | Porting / Decoupling Decision    |
-| ------------ | ------------ | ------------------ | --------------------- | ------------------- | -------------------------------- |
-| {{block-id}} | {{lane}}     | {{story-id-or-na}} | {{theme-overrides}}   | {{coupling-status}} | {{reuse-port-adapter-exception}} |
+| Block ID | Package Lane | Storybook Story ID | Theme Override Points | Coupling Status | Porting / Decoupling Decision |
+| -------- | ------------ | ------------------ | --------------------- | --------------- | ----------------------------- |
+| {{block-id}} | {{lane}} | {{story-id-or-na}} | {{theme-overrides}} | {{coupling-status}} | {{reuse-port-adapter-exception}} |
 
 ## Next Agent Instructions
 

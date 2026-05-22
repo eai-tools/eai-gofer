@@ -1,9 +1,7 @@
 ---
 name: 10_gofer_cloud
-description:
-  'Deploy and configure the Gofer cloud integration for remote pipeline
-  execution.'
-title: 'Gofer Cloud'
+description: "Deploy and configure the Gofer cloud integration for remote pipeline execution."
+title: "Gofer Cloud"
 category: utility
 surfaces:
   - claude
@@ -17,12 +15,9 @@ surfaces:
   - system-skills
 aliases: [gofer:cloud]
 ---
-
 ---
-
-description: READ-ONLY cloud infrastructure analysis for Azure, AWS, GCP
-deployments
-
+description:
+  READ-ONLY cloud infrastructure analysis for Azure, AWS, GCP deployments
 ---
 
 # Gofer Cloud

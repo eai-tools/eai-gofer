@@ -17,12 +17,38 @@ interface ReleaseEntry {
   notes: string;
   prerelease: boolean;
   size_mb: number;
+  public_base_url?: string;
+  assets?: {
+    claude?: {
+      bundle_url: string;
+      marketplace_url: string;
+      manifest_url: string;
+      download_url: string;
+      latest_download_url: string;
+      size_mb: number;
+    };
+    codex?: {
+      bundle_url: string;
+      marketplace_url: string;
+      manifest_url: string;
+      download_url: string;
+      latest_download_url: string;
+      size_mb: number;
+    };
+    vscode?: {
+      file_name: string;
+      download_url: string;
+      latest_download_url: string;
+      size_mb: number;
+    };
+  };
 }
 
 interface ReleasesJson {
   latest_version: string;
   repository: string;
   last_updated: string;
+  public_base_url?: string;
   releases: ReleaseEntry[];
 }
 
@@ -80,8 +106,7 @@ describe('update-releases.js', () => {
               version: '3.1.9',
               tag_name: 'v3.1.9',
               published_at: '2026-04-30T00:00:00.000Z',
-              download_url:
-                'https://github.com/eai-tools/eai-gofer/releases/download/v3.1.9/eai-gofer-3.1.9.vsix',
+              download_url: 'https://eai-tools.github.io/eai-gofer/releases/eai-gofer-3.1.9.vsix',
               notes: 'Previous release',
               prerelease: false,
               size_mb: 8.5,
@@ -102,20 +127,29 @@ describe('update-releases.js', () => {
     );
 
     expect(updated.latest_version).toBe(duplicateVersion);
+    expect(updated.public_base_url).toBe('https://eai-tools.github.io/eai-gofer/releases');
     expect(matchingEntries).toHaveLength(1);
     expect(updated.releases[0].tag_name).toBe(`v${duplicateVersion}`);
     expect(updated.releases[0].notes).toBe('Fresh release notes');
     expect(updated.releases[0].download_url).toBe(
-      `https://github.com/eai-tools/eai-gofer/releases/download/v${duplicateVersion}/eai-gofer-${duplicateVersion}.vsix`
+      `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-${duplicateVersion}.vsix`
     );
     expect(updated.releases[0].size_mb).toBe(1);
+    expect(updated.releases[0].assets?.claude?.download_url).toBe(
+      `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-${duplicateVersion}.zip`
+    );
+    expect(updated.releases[0].assets?.claude?.bundle_url).toBe(
+      'https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer'
+    );
+    expect(updated.releases[0].assets?.codex?.manifest_url).toBe(
+      'https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/codex-plugin.json'
+    );
     expect(updated.releases[1].version).toBe('3.1.9');
   });
 
   it('honors a custom download URL when one is provided', async () => {
     const version = '3.2.1';
-    const customUrl =
-      'https://github.com/eai-tools/eai-gofer/releases/download/v3.2.1/eai-gofer-3.2.1.vsix';
+    const customUrl = 'https://cdn.example.invalid/releases/eai-gofer-3.2.1.vsix';
 
     fs.writeFileSync(
       releasesPath,
@@ -147,7 +181,7 @@ describe('update-releases.js', () => {
         version: releaseVersion,
         tag_name: `v${releaseVersion}`,
         published_at: '2026-05-01T00:00:00.000Z',
-        download_url: `https://github.com/eai-tools/eai-gofer/releases/download/v${releaseVersion}/eai-gofer-${releaseVersion}.vsix`,
+        download_url: `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-${releaseVersion}.vsix`,
         notes: `Release ${releaseVersion}`,
         prerelease: false,
         size_mb: 8.5,

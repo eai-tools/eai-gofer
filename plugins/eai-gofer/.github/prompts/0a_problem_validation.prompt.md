@@ -1,8 +1,6 @@
 ---
 name: 0a_problem_validation
-description:
-  Validate the business problem using 5 Whys root-cause analysis and stakeholder
-  mapping.
+description: Validate the business problem using 5 Whys root-cause analysis and stakeholder mapping.
 agent: copilot-workspace
 tools:
   - Read
@@ -17,6 +15,7 @@ gofer:
   canonicalChecksum: 930892c2f6e47bc9ee1761c15bca5cda51aa60e754bb159a0b754f1fa6d4916f
   metadataSource: scripts/generate-commands.ts
 ---
+
 
 # Gofer Problem Validation
 
@@ -311,6 +310,7 @@ After saving artifacts:
 
 If recommendation is PROCEED or user confirms they want to continue:
 
+
 ---
 
 ## Step 10: Observability Logging
@@ -358,14 +358,13 @@ so they include plain-English companion sections in their outputs.
   /7a_stakeholder_comms
 ```
 
+
 ## Pipeline Continuation
 
 This completes the 0a_problem_validation stage. To continue the Gofer pipeline:
 
 **Next Command:** `#1_gofer_research`
 
-The next stage will read the artifacts from this stage and continue the workflow
-automatically.
+The next stage will read the artifacts from this stage and continue the workflow automatically.
 
-**Note:** Copilot Chat supports context preservation. Your conversation history
-will be maintained as you progress through pipeline stages.
+**Note:** Copilot Chat supports context preservation. Your conversation history will be maintained as you progress through pipeline stages.

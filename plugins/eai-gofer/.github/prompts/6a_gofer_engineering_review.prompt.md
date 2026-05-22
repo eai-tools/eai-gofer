@@ -1,7 +1,6 @@
 ---
 name: 6a_gofer_engineering_review
-description:
-  Run a targeted engineering review on a specific component or concern.
+description: Run a targeted engineering review on a specific component or concern.
 agent: copilot-workspace
 tools:
   - Read
@@ -16,6 +15,7 @@ gofer:
   canonicalChecksum: a3b6ac7813e3420dba49d75a6f69bc644216b208a591253a8cee32d937df3db6
   metadataSource: scripts/generate-commands.ts
 ---
+
 
 # Gofer Engineering Review (Back-Compat Stub)
 

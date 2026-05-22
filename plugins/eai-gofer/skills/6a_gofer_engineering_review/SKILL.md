@@ -1,14 +1,11 @@
 ---
 name: 6a_gofer_engineering_review
+description: "Run a targeted engineering review on a specific component or concern."
+---
+
+---
 description:
-  'Run a targeted engineering review on a specific component or concern.'
----
-
----
-
-description: Backwards-compat stub — engineering review is now Phase C of
-/6_gofer_validate
-
+  Backwards-compat stub — engineering review is now Phase C of /6_gofer_validate
 ---
 
 # Gofer Engineering Review (Back-Compat Stub)

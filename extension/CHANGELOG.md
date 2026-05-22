@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [3.4.1] - 2026-05-22
+
+Consolidate release automation and publish unified public VSIX, Claude, and Codex plugin assets
+
 ## [3.3.1] - 2026-05-13
 
 Add public platform builder workflow guidance

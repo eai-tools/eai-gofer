@@ -1,22 +1,30 @@
 ---
 generated: true
-generated_at: "2026-05-21T18:15:34.171Z"
-source_commit: "0344d6df21fba9738d8bd9f6c26d7602c4e0775e"
+generated_at: "2026-05-22T18:15:06.936Z"
+source_commit: "c909d5e497762e9ac614a02d35e58afd5e46dae2"
 ---
 # Technical Documentation Index
 
-**Repository:** [enterpriseaigroup/tech-docs](https://github.com/enterpriseaigroup/tech-docs)  
-**Version:** 3.4.0  
-**Generated:** 2026-05-21T18:13:03Z
+**Repository:** [eai-tools/eai-gofer](https://github.com/eai-tools/eai-gofer)  
+**Version:** 3.4.3  
+**Generated:** 2026-05-22T18:12:41Z
 
 This directory contains comprehensive technical documentation for the Gofer
 VSCode extension project.
 
 ---
 
-## What's New in v3.4.0
+## What's New in v3.4.3
 
-### Agent Plugin Packaging System
+### Patch Release Updates
+
+- **Version Alignment** - Updated to v3.4.3 with pre-release commit updates
+- **Documentation Refresh** - Updated technical documentation to reflect current state
+- **Stable Release** - Production-ready with agent plugin marketplace distribution
+
+### Previous Release (v3.4.0)
+
+#### Agent Plugin Packaging System
 
 - **Unified Distribution** - Single packaged plugin for Claude Code, Copilot, Codex, and Gemini
 - **Marketplace Integration** - Published to plugin marketplaces for easy installation
@@ -24,15 +32,15 @@ VSCode extension project.
 - **Template Library** - Full specification templates included in distribution
 - **Release Automation** - Plugin zip automatically generated and attached to GitHub releases
 
-### Installation Examples
+#### Installation Examples
 
 ```bash
 # Claude Code
-claude plugin marketplace add eai-tools/eai-gofer --scope user
+claude plugin marketplace add https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer --scope user
 claude plugin install eai-gofer@eai-gofer --scope user
 
 # GitHub Copilot
-copilot plugin marketplace add eai-tools/eai-gofer
+copilot plugin marketplace add https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer
 copilot plugin install eai-gofer@eai-gofer
 ```
 
@@ -404,11 +412,11 @@ Design patterns and technical debt analysis.
 
 ### Version Tracking
 
-- **Version:** 3.4.0
-- **Commit:** 0344d6df21fba9738d8bd9f6c26d7602c4e0775e
-- **Generated:** 2026-05-21T18:13:03Z
-- **Previous Update:** 2026-05-20 18:34 UTC (f8627eca842fa72136a17e0b208b9410b832357c)
-- **Change Summary:** Nightly automated documentation update
+- **Version:** 3.4.3
+- **Commit:** c909d5e497762e9ac614a02d35e58afd5e46dae2
+- **Generated:** 2026-05-22T18:12:41Z
+- **Previous Update:** 2026-05-21T18:15:34Z (0344d6df21fba9738d8bd9f6c26d7602c4e0775e)
+- **Change Summary:** Release v3.4.3 with pre-release updates and documentation refresh
 
 ### Regenerating Documentation
 
@@ -480,7 +488,7 @@ When making changes, update these files if applicable:
 - **Agent Guidelines:** AGENTS.md (`AGENTS.md`)
 - **Project Instructions:** CLAUDE.md (`CLAUDE.md`)
 - **CLI Support Guide:** docs/cli-support.md (`../docs/cli-support.md`) (v3.0+)
-- **GitHub Repository:** [enterpriseaigroup/tech-docs](https://github.com/enterpriseaigroup/tech-docs)
+- **GitHub Repository:** [eai-tools/eai-gofer](https://github.com/eai-tools/eai-gofer)
 
 ---
 
@@ -488,7 +496,7 @@ When making changes, update these files if applicable:
 
 | Metric                  | Value                                         |
 | ----------------------- | --------------------------------------------- |
-| Version                 | 3.4.0                                         |
+| Version                 | 3.4.3                                         |
 | TypeScript Files        | 247 files (all modules)                       |
 | Active Specifications   | 2 (032-ui-first-builder, 031-skills-pipeline) |
 | Archived Specifications | 30+ specs                                     |
@@ -508,8 +516,8 @@ When making changes, update these files if applicable:
 
 For questions, issues, or contributions:
 
-- **GitHub Issues:** [enterpriseaigroup/tech-docs/issues](https://github.com/enterpriseaigroup/tech-docs/issues)
-- **Documentation:** [enterpriseaigroup/tech-docs#readme](https://github.com/enterpriseaigroup/tech-docs#readme)
+- **GitHub Issues:** [eai-tools/eai-gofer/issues](https://github.com/eai-tools/eai-gofer/issues)
+- **Documentation:** [eai-tools/eai-gofer#readme](https://github.com/eai-tools/eai-gofer#readme)
 - **Owner:** Enterprise AI Pty Ltd
 - **Website:** [enterpriseai.com.au](https://enterpriseai.com.au)
 

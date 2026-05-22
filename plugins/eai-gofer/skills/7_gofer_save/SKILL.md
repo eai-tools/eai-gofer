@@ -1,13 +1,11 @@
 ---
 name: 7_gofer_save
-description:
-  'Save session state and create a handoff checkpoint for resumption in a new
-  context.'
+description: "Save session state and create a handoff checkpoint for resumption in a new context."
 ---
 
 ---
-
-## description: Save session progress with comprehensive checkpoint for resumption
+description: Save session progress with comprehensive checkpoint for resumption
+---
 
 # Gofer Save
 

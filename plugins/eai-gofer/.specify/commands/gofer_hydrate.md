@@ -1,7 +1,7 @@
 ---
 name: gofer_hydrate
-description: 'Reverse-engineer specification from existing code (Hydration).'
-title: 'Gofer Hydrate'
+description: "Reverse-engineer specification from existing code (Hydration)."
+title: "Gofer Hydrate"
 category: utility
 surfaces:
   - claude
@@ -15,10 +15,9 @@ surfaces:
   - system-skills
 aliases: [gofer:hydrate]
 ---
-
 ---
-
-## description: Reverse-engineer specification from existing code (Hydration)
+description: Reverse-engineer specification from existing code (Hydration)
+---
 
 # Gofer Hydrate
 

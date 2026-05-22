@@ -6,13 +6,13 @@
     "url": "https://github.com/eai-tools/eai-gofer"
   },
   "metadata": {
-    "description": "Install the EAI Gofer agent plugin for Claude Code, Codex, or Copilot CLI.",
+    "description": "Install the EAI Gofer agent plugin for Claude Code, Codex, or Copilot CLI from the public release host.",
     "version": "3.4.0"
   },
   "plugins": [
     {
       "name": "eai-gofer",
-      "source": "./plugins/eai-gofer",
+      "source": "https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer",
       "description": "Public Gofer workflow for business scenario, research, specification, planning, implementation, validation, and stakeholder communications.",
       "version": "3.4.0",
       "author": {
@@ -23,7 +23,14 @@
       "repository": "https://github.com/eai-tools/eai-gofer",
       "license": "SEE LICENSE IN LICENSE",
       "category": "Coding",
-      "tags": ["eai-gofer", "gofer", "claude", "codex", "copilot", "spec-driven-development"]
+      "tags": [
+        "eai-gofer",
+        "gofer",
+        "claude",
+        "codex",
+        "copilot",
+        "spec-driven-development"
+      ]
     }
   ]
 }

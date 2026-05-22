@@ -7,7 +7,7 @@ source_commit: "0344d6df21fba9738d8bd9f6c26d7602c4e0775e"
 
 ## Executive Summary
 
-Gofer configuration is managed through VS Code settings (91+ settings), environment variables (`.env` for secrets), and file-based config (`.specify/` directory). Configuration is layered: defaults → user settings → workspace settings, with workspace taking precedence.
+Gofer configuration is managed through VS Code settings (50+ manifest-backed settings), environment variables (`.env` for secrets), and file-based config (`.specify/` directory). Configuration is layered: defaults → user settings → workspace settings, with workspace taking precedence.
 
 ## VS Code Settings
 
@@ -35,76 +35,71 @@ Gofer configuration is managed through VS Code settings (91+ settings), environm
 | `gofer.preferredAI` | enum | `"ask"` | Preferred AI assistant: `ask`, `claude`, `copilot`, `codex`, `gemini` |
 | `gofer.defaultCLI` | enum | `"auto"` | Default CLI surface: `auto`, `claude`, `copilot`, `codex`, `gemini` |
 
-### Context Management
+### AI Usage and Billing
 
 | Setting | Type | Default | Description |
 | ------- | ---- | ------- | ----------- |
-| `gofer.contextHealth.enabled` | boolean | `true` | Enable context health monitoring |
-| `gofer.contextHealth.pollInterval` | number | `30000` | Poll interval in milliseconds (30s) |
-| `gofer.contextHealth.thresholds.delegation` | number | `70` | Delegation advisory threshold (%) |
-| `gofer.contextHealth.thresholds.masking` | number | `80` | Observation masking threshold (%) |
-| `gofer.contextHealth.thresholds.pruning` | number | `85` | Fast pruning threshold (%) |
-| `gofer.contextHealth.thresholds.aggressive` | number | `90` | Aggressive masking threshold (%) |
-| `gofer.contextHealth.thresholds.compaction` | number | `99` | Full compaction threshold (%) |
-| `gofer.acc.maskingTurnThreshold` | number | `5` | Turns before observation masking |
+| `gofer.aiUsage.useApiClient` | boolean | `true` | Fetch provider billing data from Anthropic/OpenAI APIs instead of local usage logs |
+| `gofer.aiUsage.api.pollingInterval` | number | `60000` | Polling interval for provider billing APIs in milliseconds |
+| `gofer.aiUsage.statusBar.enabled` | boolean | `true` | Show current session AI usage cost in the VS Code status bar |
+| `gofer.aiUsage.polling.interval` | number | `3600000` | Fallback usage polling interval when the watcher is not active |
 
-### Memory Management
+### CLI and Workflow Selection
 
 | Setting | Type | Default | Description |
 | ------- | ---- | ------- | ----------- |
-| `gofer.memory.enabled` | boolean | `true` | Enable memory system |
-| `gofer.memory.layered` | boolean | `false` | Use 3-layer memory system (opt-in) |
-| `gofer.memory.maxMemories` | number | `1000` | Maximum memories to keep |
-| `gofer.memory.compactionThreshold` | number | `0.8` | Compaction trigger (80% full) |
-| `gofer.memory.tfidfMinScore` | number | `0.1` | Minimum TF-IDF score for retrieval |
-| `gofer.memory.showSystemMemories` | boolean | `false` | Show system-generated memories in panel |
+| `gofer.cliProvider` | enum | `"auto"` | AI CLI provider for autonomous mode: `claude`, `codex`, `copilot`, `gemini`, `auto` |
+| `gofer.claudeCodeMode` | enum | `"standard"` | Launch mode for Claude Code: `standard`, `yolo`, `custom` |
+| `gofer.claudeCodeCommand` | string | `"claude"` | Custom command used when `gofer.claudeCodeMode` is `custom` |
+| `gofer.codexCommand` | string | `"codex"` | Custom path to the Codex CLI executable |
+| `gofer.markdownViewer` | enum | `"preview"` | Markdown viewer integration to open when clicking files |
+| `gofer.enterpriseAiUseExternalReferences` | boolean | `false` | Use EnterpriseAI external references before local fallbacks |
 
-### Scope Guard
-
-| Setting | Type | Default | Description |
-| ------- | ---- | ------- | ----------- |
-| `gofer.scopeGuard.mode` | enum | `"advisory"` | Protection mode: `advisory`, `warning`, `blocking` |
-| `gofer.scopeGuard.enabled` | boolean | `true` | Enable file access protection |
-| `gofer.scopeGuard.logViolations` | boolean | `true` | Log violations to tool-audit.jsonl |
-
-### Cost Budget
+### Autonomous Orchestration
 
 | Setting | Type | Default | Description |
 | ------- | ---- | ------- | ----------- |
-| `gofer.budget.enabled` | boolean | `true` | Enable cost budget enforcement |
-| `gofer.budget.maxCostPerRun` | number | `10.0` | Maximum cost per pipeline run (USD) |
-| `gofer.budget.warnThreshold` | number | `0.8` | Warning threshold (80% of budget) |
+| `gofer.autonomousMode` | boolean | `true` | Enable Gofer’s autonomous Claude Code session monitoring and response flow |
+| `gofer.autonomous.showTerminals` | boolean | `true` | Keep autonomous Claude Code terminals visible while work is running |
+| `gofer.autonomous.maxRetries` | number | `3` | Maximum recoverable retry attempts during autonomous execution |
+| `gofer.autonomous.tokenWarningThreshold` | number | `150000` | Token threshold for warning that the context window is nearing capacity |
+| `gofer.autonomous.tokenActionThreshold` | number | `180000` | Token threshold that triggers a fresh terminal/context handoff |
+| `gofer.autonomous.compactionThreshold` | number | `80` | Context usage percentage that triggers automatic compaction |
+| `gofer.autonomous.questionTimeout` | number | `300000` | Milliseconds to wait for a human answer before pausing |
+| `gofer.autonomous.runFinalValidation` | boolean | `true` | Run final validation after implementation completes |
+| `gofer.autonomous.validateConstitution` | boolean | `true` | Validate completed work against the project constitution |
+| `gofer.autonomous.enableEngineeringReview` | boolean | `true` | Request engineering reviews at configured completion milestones |
+| `gofer.autonomous.enablePerformanceReview` | boolean | `true` | Request performance reviews near completion |
+| `gofer.autonomous.engineeringReviewMinCompletion` | number | `40` | Minimum completion percentage before engineering review can trigger |
+| `gofer.autonomous.engineeringReviewMaxCompletion` | number | `80` | Maximum completion percentage for engineering review triggering |
+| `gofer.autonomous.performanceReviewMinCompletion` | number | `70` | Minimum completion percentage before performance review can trigger |
 
-### LLM Council
-
-| Setting | Type | Default | Description |
-| ------- | ---- | ------- | ----------- |
-| `gofer.council.enabled` | boolean | `false` | Enable multi-model validation |
-| `gofer.council.models` | array | `["claude-3-5-sonnet-20241022", "gemini-1.5-pro", "gpt-4o"]` | Models for validation |
-| `gofer.council.consensusThreshold` | number | `0.67` | Consensus threshold (2/3) |
-
-### Slop Reduction
-
-| Setting | Type | Default | Description |
-| ------- | ---- | ------- | ----------- |
-| `gofer.slopReduction.enabled` | boolean | `false` | Auto-remove console.log, debugger, etc. (opt-in) |
-| `gofer.slopReduction.patterns` | array | `["console.log", "debugger", "@ts-ignore"]` | Patterns to detect |
-| `gofer.slopReduction.onSave` | boolean | `false` | Run on file save |
-
-### Auto-Update
+### Context and Memory
 
 | Setting | Type | Default | Description |
 | ------- | ---- | ------- | ----------- |
-| `gofer.autoUpdate.enabled` | boolean | `true` | Check for extension updates |
-| `gofer.autoUpdate.frequency` | enum | `"daily"` | Check frequency: `daily`, `weekly`, `never` |
+| `gofer.useLayeredMemory` | boolean | `false` | Enable MemGPT-style layered memory (core, recall, archival) |
+| `gofer.memory.coverageThreshold` | number | `30` | Memory coverage percentage needed before skipping research documents |
+| `gofer.observationPreservePatterns` | array | `[]` | Extra regex patterns whose observations must never be masked |
+| `gofer.stageDetectionStalenessMinutes` | number | `30` | How long cached stage detection stays fresh before heuristic fallback |
+| `gofer.contextWindow.autoExecuteSave` | boolean | `true` | Automatically execute `/7_gofer_save` when context usage crosses the save threshold |
+| `gofer.contextWindow.autoSaveThreshold` | number | `0.65` | Context utilization ratio that triggers an automatic save |
+| `gofer.contextWindow.autoResumeAfterSave` | boolean | `true` | Automatically execute `/8_gofer_resume` after `/7_gofer_save` |
+| `gofer.contextWindow.continuousSlopReduction.enabled` | boolean | `false` | Enable periodic workspace-wide slop reduction scans |
+| `gofer.contextWindow.continuousSlopReduction.intervalMs` | number | `120000` | Interval for background workspace-wide slop reduction scans |
+| `gofer.yoloSlopReduction.enabled` | boolean | `false` | Remove common slop patterns on save for supported source files |
+| `gofer.yoloSlopReduction.notifyEvery` | number | `10` | How often to surface slop-reduction notifications |
 
-### UI Preferences
+### Guardrails and Diagnostics
 
 | Setting | Type | Default | Description |
 | ------- | ---- | ------- | ----------- |
-| `gofer.ui.progressIcons` | enum | `"harvey-balls"` | Progress icons: `harvey-balls`, `percentages`, `checkmarks` |
-| `gofer.ui.showBranchInTitle` | boolean | `true` | Show Git branch in spec title |
-| `gofer.ui.compactView` | boolean | `false` | Use compact tree view |
+| `gofer.scopeGuard.mode` | enum | `"warning"` | ScopeGuard enforcement mode: `advisory`, `warning`, `blocking` |
+| `gofer.budgets.maxCostUsd` | number | `10` | Maximum estimated USD cost for a single pipeline run |
+| `gofer.budgets.maxTokensPerRun` | number | `500000` | Maximum total tokens allowed for a single pipeline run |
+| `gofer.budgets.enforcementMode` | enum | `"advisory"` | Budget response mode: `advisory`, `truncate`, `blocking` |
+| `gofer.diagnostics.resourceSnapshots.enabled` | boolean | `true` | Periodically log lightweight process resource snapshots |
+| `gofer.diagnostics.resourceSnapshots.intervalMs` | number | `300000` | Interval for logging resource snapshots |
 
 ## Environment Variables
 
@@ -239,7 +234,7 @@ council_enabled: true  # Enable LLM Council for this spec
   "gofer.googleApiKey": "AIza-...",
   "gofer.openaiApiKey": "sk-...",
   "gofer.defaultCLI": "auto",
-  "gofer.council.enabled": true
+  "gofer.aiUsage.useApiClient": true
 }
 ```
 
@@ -248,11 +243,11 @@ council_enabled: true  # Enable LLM Council for this spec
 ```json
 {
   "gofer.anthropicApiKey": "sk-ant-api03-...",
-  "gofer.budget.enabled": true,
-  "gofer.budget.maxCostPerRun": 10.0,
+  "gofer.budgets.maxCostUsd": 10,
+  "gofer.budgets.enforcementMode": "advisory",
   "gofer.scopeGuard.mode": "warning",
-  "gofer.memory.layered": true,
-  "gofer.contextHealth.enabled": true
+  "gofer.useLayeredMemory": true,
+  "gofer.contextWindow.autoExecuteSave": true
 }
 ```
 
@@ -264,31 +259,30 @@ council_enabled: true  # Enable LLM Council for this spec
 - **Fix:** Verify key in VS Code settings: `Cmd/Ctrl+Shift+P` → "Preferences: Open User Settings (JSON)"
 - **Verify:** Check extension output: `View` → `Output` → Select "Gofer"
 
-### Issue: Context Health Not Updating
+### Issue: Automatic Context Save Not Triggering
 
-- **Cause:** Polling disabled or cache stale
-- **Fix:** Enable polling: `"gofer.contextHealth.enabled": true`
-- **Verify:** Check status bar shows context percentage
+- **Cause:** Auto-save disabled or threshold set too high
+- **Fix:** Enable auto-save: `"gofer.contextWindow.autoExecuteSave": true`
+- **Verify:** Check that `/7_gofer_save` is sent when usage crosses `gofer.contextWindow.autoSaveThreshold`
 
-### Issue: Memory Not Persisting
+### Issue: Layered Memory Not Loading
 
-- **Cause:** Memory system disabled or file permissions
-- **Fix:** Enable memory: `"gofer.memory.enabled": true`
-- **Verify:** Check `.specify/memory/memories.jsonl` exists and is writable
+- **Cause:** Layered memory is not enabled
+- **Fix:** Enable layered memory: `"gofer.useLayeredMemory": true`
+- **Verify:** Check that context assembly prefers memory coverage when it meets `gofer.memory.coverageThreshold`
 
 ### Issue: Cost Budget Exceeded
 
 - **Cause:** Budget too low or unexpected high token usage
-- **Fix:** Increase budget: `"gofer.budget.maxCostPerRun": 20.0`
+- **Fix:** Increase budget: `"gofer.budgets.maxCostUsd": 20`
 - **Verify:** Check `.specify/logs/gofer-run-ledger.jsonl` for actual costs
 
 ## Configuration Migration
 
 ### From v2.x to v3.x
 
-- **Old:** `gofer.claudeApiKey` → **New:** `gofer.anthropicApiKey`
-- **Old:** `gofer.enableCouncil` → **New:** `gofer.council.enabled`
-- **Old:** `gofer.contextThreshold` → **New:** `gofer.contextHealth.thresholds.compaction`
+- Review the manifest-backed settings above and remove any legacy workspace or user settings that no longer appear in the current `gofer.*` manifest.
+- Refresh saved workspace examples to use the current budget keys (`gofer.budgets.*`) and layered memory key (`gofer.useLayeredMemory`).
 
 ### From Standard to EnterpriseAI Workflow
 

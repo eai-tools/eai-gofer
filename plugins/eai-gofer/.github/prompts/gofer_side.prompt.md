@@ -1,8 +1,6 @@
 ---
 name: gofer:side
-description:
-  Open a side conversation in the active CLI without disturbing the main
-  pipeline state; resumable.
+description: Open a side conversation in the active CLI without disturbing the main pipeline state; resumable.
 agent: copilot-workspace
 tools:
   - Read
@@ -17,6 +15,7 @@ gofer:
   canonicalChecksum: d6478b91e1238bf5b1ae5787230bafadc5dfa5a5dd3f2a1bcd85eeffdb9a8ae6
   metadataSource: scripts/generate-commands.ts
 ---
+
 
 # Gofer Side Conversation
 

@@ -1,8 +1,6 @@
 ---
 name: 9_gofer_tests
-description:
-  Generate comprehensive test suites from four testing perspectives for a target
-  component.
+description: Generate comprehensive test suites from four testing perspectives for a target component.
 agent: copilot-workspace
 tools:
   - Read
@@ -17,6 +15,7 @@ gofer:
   canonicalChecksum: 0a6baf44d5add8fccc5ee6deb6aed559ef42d0e19aa6f4afc2733335e42ef744
   metadataSource: scripts/generate-commands.ts
 ---
+
 
 # Gofer Tests
 

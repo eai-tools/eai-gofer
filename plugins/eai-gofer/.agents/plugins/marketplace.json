@@ -1,14 +1,14 @@
 {
-  "name": "eai-gofer-local",
+  "name": "eai-gofer",
   "interface": {
-    "displayName": "EAI Gofer Local Plugins"
+    "displayName": "EAI Gofer"
   },
   "plugins": [
     {
       "name": "eai-gofer",
       "source": {
         "source": "local",
-        "path": "./plugins/eai-gofer"
+        "path": "./"
       },
       "policy": {
         "installation": "AVAILABLE",

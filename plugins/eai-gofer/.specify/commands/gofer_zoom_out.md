@@ -1,7 +1,6 @@
 ---
 name: gofer:zoom-out
-description:
-  'Show how the current feature connects to broader system boundaries.'
+description: "Show how the current feature connects to broader system boundaries."
 title: 'Gofer Zoom Out'
 category: control
 surfaces:
@@ -22,8 +21,8 @@ Expand the current feature into its surrounding system context and write the
 result to `.specify/specs/{feature}/zoom-out-report.md`.
 
 Use this helper when the feature needs broader architectural framing: upstream
-dependencies, downstream consumers, or cross-cutting risks that are easy to miss
-inside a narrow task view.
+dependencies, downstream consumers, or cross-cutting risks that are easy to
+miss inside a narrow task view.
 
 When you run this helper:
 
@@ -32,7 +31,8 @@ When you run this helper:
 2. Map the upstream inputs, downstream consumers, and cross-cutting impacts that
    materially affect the feature.
 3. Keep the output feature-local and architecture-focused.
-4. Write the artifact only to `.specify/specs/{feature}/zoom-out-report.md`.
+4. Write the artifact only to
+   `.specify/specs/{feature}/zoom-out-report.md`.
 5. If the target file already exists, replace it and prepend a regeneration note
    such as `<!-- regenerated at [ISO timestamp] -->`.
 6. Include the minimum provenance schema:

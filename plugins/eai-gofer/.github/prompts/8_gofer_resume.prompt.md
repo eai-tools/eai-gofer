@@ -16,6 +16,7 @@ gofer:
   metadataSource: scripts/generate-commands.ts
 ---
 
+
 # Gofer Resume
 
 You are resuming previously saved work by restoring full context and continuing

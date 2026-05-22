@@ -1,3 +1,4 @@
+
 # Gofer Side Conversation
 
 Open a side conversation in the active CLI without disturbing the main Gofer

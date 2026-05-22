@@ -1,7 +1,6 @@
 ---
 name: gofer:diagnose
-description:
-  'Run a reproduce-minimize-instrument-fix loop for bugs and failing tests.'
+description: "Run a reproduce-minimize-instrument-fix loop for bugs and failing tests."
 title: 'Gofer Diagnose'
 category: control
 surfaces:
@@ -33,7 +32,8 @@ When you run this helper:
 3. Minimize the problem to the smallest reliable failing slice.
 4. Instrument the likely fault boundaries to prove or disprove hypotheses.
 5. Record the recommended fix path without inventing evidence.
-6. Write the artifact only to `.specify/specs/{feature}/diagnose-report.md`.
+6. Write the artifact only to
+   `.specify/specs/{feature}/diagnose-report.md`.
 7. If the target file already exists, replace it and prepend a regeneration note
    such as `<!-- regenerated at [ISO timestamp] -->`.
 8. Include the minimum provenance schema:

@@ -105,10 +105,10 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] T009 Setup environment configuration management
 - [ ] T010 Lock external/internal/hybrid package profile and package lane from
       `ui-preview-brief.md`
-- [ ] T011 Run `eai --describe`, `eai blocks list`, `eai blocks describe <id>`,
-      and `eai resources schema`; record block IDs, resource bindings, coupling
-      status, Storybook story IDs, theme override points, and custom-block
-      exceptions
+- [ ] T011 Run `eai --describe`, `eai blocks list`,
+      `eai blocks describe <id>`, and `eai resources schema`; record block IDs,
+      resource bindings, coupling status, Storybook story IDs, theme override
+      points, and custom-block exceptions
 - [ ] T012 Add block-porting, DAISY decoupling, and public-readiness work for
       external or hybrid package lanes
 

@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [3.4.3] - 2026-05-22
+
+Fix GitHub Pages publishing for public VSIX and agent plugin updates
+
 ## [3.4.2] - 2026-05-22
 
 Consolidate release automation and publish unified public VSIX, Claude, and Codex plugin assets

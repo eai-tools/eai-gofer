@@ -2,7 +2,7 @@
   "name": "gofer",
   "displayName": "Gofer for EnterpriseAI Vertical App Delivery [PREVIEW]",
   "description": "Guide repository work from business scenario to validated delivery inside VS Code, with EnterpriseAI-first workflow support when you want it.",
-  "version": "3.4.0",
+  "version": "3.4.1",
   "publisher": "EnterpriseAI",
   "icon": "icon.png",
   "author": {

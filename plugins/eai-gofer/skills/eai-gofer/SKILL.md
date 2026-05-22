@@ -5,7 +5,7 @@ description: "Run the public Gofer spec-driven delivery workflow in Claude, Code
 
 # EAI Gofer
 
-Version: 3.4.0
+Version: 3.4.1
 
 Use this skill when the user asks to run, install, update, or understand Gofer without the VS Code extension UI.
 

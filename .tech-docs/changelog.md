@@ -1,7 +1,7 @@
 ---
 generated: true
-generated_at: "2026-05-22T18:15:06.936Z"
-source_commit: "c909d5e497762e9ac614a02d35e58afd5e46dae2"
+generated_at: "2026-05-23T17:54:39.953Z"
+source_commit: "047baa06f9bdd86354d43413563a98f893685fb3"
 ---
 # Gofer - Changelog
 
@@ -9,7 +9,23 @@ source_commit: "c909d5e497762e9ac614a02d35e58afd5e46dae2"
 
 This changelog tracks significant changes to the Gofer technical documentation and architecture since the last update. Changes are categorized by type (Added, Changed, Fixed, Removed) and impact level (Breaking, Major, Minor).
 
-## Recent Changes (2026-05-22)
+## Recent Changes (2026-05-23)
+
+### Documentation Accuracy Updates (v3.4.3)
+
+#### Changed
+- **Documentation Timestamp** - Updated to 2026-05-23 for nightly automated run
+- **Source Commit** - Updated to `047baa06f9bdd86354d43413563a98f893685fb3`
+- **MCP Tool Count** - Corrected from 29 tools to 23 tools across all documentation files
+- **VS Code Commands** - Updated from 67+ to 75+ commands to reflect current extension manifest
+- **Anthropic SDK Version** - Updated from 0.32.1 to 0.67.1 (extension package version)
+- **Node.js Runtime** - Updated from "24.x" to "20.x+" to reflect actual compatibility
+- **Repository URL** - Corrected deployment.md repository reference from enterpriseaigroup/tech-docs to eai-tools/eai-gofer
+- **Last Material Change** - Updated executive summary to reflect today's documentation refresh
+
+**Impact:** Minor - Documentation accuracy improvements only, no code changes
+
+## Previous Changes (2026-05-22)
 
 ### Latest Updates (v3.4.3)
 

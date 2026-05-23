@@ -1,7 +1,7 @@
 ---
 generated: true
-generated_at: "2026-05-22T18:15:06.936Z"
-source_commit: "c909d5e497762e9ac614a02d35e58afd5e46dae2"
+generated_at: "2026-05-23T17:54:39.953Z"
+source_commit: "047baa06f9bdd86354d43413563a98f893685fb3"
 ---
 # Gofer - Technical Overview
 
@@ -14,7 +14,7 @@ source_commit: "c909d5e497762e9ac614a02d35e58afd5e46dae2"
 | **Primary Users**        | Software development teams using Claude Code, GitHub Copilot, OpenAI Codex, or Gemini CLI for feature implementation |
 | **Data Sensitivity**     | Low - stores specifications, plans, and code artifacts locally in repository workspace                               |
 | **Current Status**       | Active Development (v3.4.3) - Production-ready with agent plugin marketplace distribution                            |
-| **Last Material Change** | 2026-05-22 - Release v3.4.3 with pre-release updates                                                                 |
+| **Last Material Change** | 2026-05-23 - Documentation refresh with updated version numbers and MCP tool count                                   |
 
 ## Service Identity
 
@@ -24,13 +24,13 @@ source_commit: "c909d5e497762e9ac614a02d35e58afd5e46dae2"
 **Publisher:** Enterprise AI Pty Ltd  
 **Repository:** [eai-tools/eai-gofer](https://github.com/eai-tools/eai-gofer)
 
-**Description:** Spec-driven development system for AI assistants. Provides 29+ MCP tools that enable Claude Code, GitHub Copilot, OpenAI Codex, and Gemini CLI to autonomously implement features from specifications with UI-first app delivery workflow support and EnterpriseAI platform integration.
+**Description:** Spec-driven development system for AI assistants. Provides 23+ MCP tools that enable Claude Code, GitHub Copilot, OpenAI Codex, and Gemini CLI to autonomously implement features from specifications with UI-first app delivery workflow support and EnterpriseAI platform integration.
 
 ## Purpose
 
 Gofer is a VSCode extension that bridges human specifications with AI implementation through a dual-protocol architecture (LSP + MCP). It provides:
 
-1. **Model Context Protocol (MCP) Tools** - 29+ tools that AI assistants call directly to read specs, execute tasks, validate code, and manage context
+1. **Model Context Protocol (MCP) Tools** - 23+ tools that AI assistants call directly to read specs, execute tasks, validate code, and manage context
 2. **Specification Framework** - Structured `.specify/` directory format for feature specs, plans, and tasks
 3. **Multi-Platform CLI Support** - Commands for Claude Code, GitHub Copilot Chat, OpenAI Codex, and Gemini CLI (24+ commands)
 4. **Autonomous Execution** - Optional orchestrator that drives Claude Code through full implementation cycles with Haiku-based decision making
@@ -46,11 +46,11 @@ Gofer is a VSCode extension that bridges human specifications with AI implementa
 | Component            | Technology                  | Version        |
 | -------------------- | --------------------------- | -------------- |
 | Language             | TypeScript                  | 5.9.3          |
-| Runtime              | Node.js                     | 24.x           |
+| Runtime              | Node.js                     | 20.x+          |
 | Framework            | VSCode Extension API        | 1.93.0+        |
 | Build Tool           | Webpack                     | 5.x            |
 | Testing              | Vitest + Playwright         | 3.2.4 / 1.58.2 |
-| AI SDK               | Anthropic SDK               | 0.32.1         |
+| AI SDK               | Anthropic SDK               | 0.67.1         |
 | Language Server      | vscode-languageserver       | 9.0.1          |
 | Dependency Injection | tsyringe                    | 4.10.0         |
 | Schema Validation    | Zod                         | 3.25.76        |
@@ -66,7 +66,7 @@ Gofer is a VSCode extension that bridges human specifications with AI implementa
 - Activates on startup (`onStartupFinished`)
 - Line 100: `activate()` initializes DI container via tsyringe
 - Line 49: `registerServices()` registers all injectable services
-- Registers 67+ commands, 3 views, 2 status bars
+- Registers 75+ commands, 3 views, 2 status bars
 - Initializes LSP client for communication with language server
 - Sets up autonomous orchestration (ACCOrchestrator), memory management, and context health monitoring
 - **Extension file count:** 247+ TypeScript files (across all modules)
@@ -76,7 +76,7 @@ Gofer is a VSCode extension that bridges human specifications with AI implementa
 **File:** `language-server/src/server.ts`
 
 - Dual-protocol server (LSP + MCP)
-- Line 129+: `connection.onInitialize()` registers 29 MCP tools
+- Line 129+: `connection.onInitialize()` registers 23 MCP tools
 - Line 719+: `connection.onRequest('tools/call')` handles MCP tool invocations
 - Implements custom LSP methods for spec/task management
 - Exposes tools to Claude Code, GitHub Copilot via VSCode MCP bridge
@@ -319,7 +319,7 @@ No database required - all data is file-based for Git-friendly version control.
 | **Anthropic API**         | Upstream   | Claude 3.5 Sonnet/Haiku for autonomous implementation     | Optional (Claude Code only) |
 | **Google AI API**         | Upstream   | Gemini 1.5 Pro/Flash for LLM Council validation           | Optional                    |
 | **OpenAI API**            | Upstream   | GPT-4 for LLM Council validation                          | Optional                    |
-| **Claude Code CLI**       | Downstream | Primary consumer of MCP tools (29 tools)                  | Primary                     |
+| **Claude Code CLI**       | Downstream | Primary consumer of MCP tools (23 tools)                  | Primary                     |
 | **GitHub Copilot**        | Downstream | Consumer of prompt files (`.github/prompts/`)             | Core                        |
 | **OpenAI Codex CLI**      | Downstream | Consumer of skill files (`.agents/skills/`)               | Core                        |
 | **Gemini CLI**            | Downstream | Consumer of command files (`.gemini/commands/gofer/`)     | Core                        |

@@ -1,7 +1,7 @@
 ---
 generated: true
-generated_at: "2026-05-22T18:15:06.936Z"
-source_commit: "c909d5e497762e9ac614a02d35e58afd5e46dae2"
+generated_at: "2026-05-23T17:54:39.953Z"
+source_commit: "047baa06f9bdd86354d43413563a98f893685fb3"
 ---
 # Gofer - Architecture
 
@@ -28,7 +28,7 @@ flowchart TB
 
     subgraph "Language Server"
         LSPServer["Language Server<br/>(server.ts)"]
-        MCPHandler["MCP Tool Handler<br/>(29 tools)"]
+        MCPHandler["MCP Tool Handler<br/>(23 tools)"]
         GoferLoader["Gofer Loader<br/>(Spec Cache)"]
     end
 
@@ -181,7 +181,7 @@ flowchart LR
         Init["onInitialize<br/>Capability registration"]
     end
     
-    subgraph "MCP Tools (29 tools)"
+    subgraph "MCP Tools (23 tools)"
         SpecTools["Spec Management<br/>read_spec, create_spec"]
         TaskTools["Task Execution<br/>execute_task, query_tasks"]
         MemoryTools["Memory Operations<br/>query_memory, store_memory"]
@@ -409,7 +409,7 @@ protected_files:
 
 ### Model Context Protocol (MCP)
 
-- **Tools:** 29 tools exposed via LSP custom requests
+- **Tools:** 23 tools exposed via LSP custom requests
 - **Transport:** LSP stdio (vs. HTTP or WebSocket)
 - **Tool Discovery:** `tools/list` request
 - **Tool Execution:** `tools/call` request with JSON-RPC 2.0 format
@@ -418,7 +418,7 @@ protected_files:
 
 | Assistant      | Integration Method          | Command Discovery         | Tool Access            |
 | -------------- | --------------------------- | ------------------------- | ---------------------- |
-| Claude Code    | MCP via LSP                 | `.claude/commands/`       | Direct (29 tools)      |
+| Claude Code    | MCP via LSP                 | `.claude/commands/`       | Direct (23 tools)      |
 | GitHub Copilot | Prompt files                | `.github/prompts/`        | Indirect (files only)  |
 | OpenAI Codex   | Skill files                 | `.agents/skills/`         | Indirect (files only)  |
 | Gemini CLI     | Command files               | `.gemini/commands/gofer/` | Indirect (files only)  |

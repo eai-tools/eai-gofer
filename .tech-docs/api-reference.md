@@ -1,7 +1,7 @@
 ---
 generated: true
-generated_at: "2026-05-22T18:15:06.936Z"
-source_commit: "c909d5e497762e9ac614a02d35e58afd5e46dae2"
+generated_at: "2026-05-23T17:54:39.953Z"
+source_commit: "047baa06f9bdd86354d43413563a98f893685fb3"
 ---
 # Gofer - API Reference
 
@@ -9,9 +9,9 @@ source_commit: "c909d5e497762e9ac614a02d35e58afd5e46dae2"
 
 Gofer exposes three API surfaces:
 
-1. **Model Context Protocol (MCP) Tools** - 22+ tools for AI assistants to manage specs, tasks, memory, and context
+1. **Model Context Protocol (MCP) Tools** - 23+ tools for AI assistants to manage specs, tasks, memory, and context
 2. **Language Server Protocol (LSP) Methods** - Custom LSP methods for extension-to-server communication
-3. **VS Code Extension Commands** - 67+ commands registered in VS Code command palette
+3. **VS Code Extension Commands** - 75+ commands registered in VS Code command palette
 
 All APIs use JSON for request/response payloads and follow error handling conventions with typed error codes.
 

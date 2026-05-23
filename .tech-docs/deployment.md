@@ -1,7 +1,7 @@
 ---
 generated: true
-generated_at: "2026-05-22T18:15:06.936Z"
-source_commit: "c909d5e497762e9ac614a02d35e58afd5e46dae2"
+generated_at: "2026-05-23T17:54:39.953Z"
+source_commit: "047baa06f9bdd86354d43413563a98f893685fb3"
 ---
 # Gofer - Deployment
 
@@ -73,7 +73,7 @@ flowchart TB
 
 ### GitHub Repository
 
-- **Repository:** [enterpriseaigroup/tech-docs](https://github.com/enterpriseaigroup/tech-docs)
+- **Repository:** [eai-tools/eai-gofer](https://github.com/eai-tools/eai-gofer)
 - **Primary Branch:** `main`
 - **Protected Branches:** `main`, `develop`
 - **Required Checks:** CI tests, linting, type checking

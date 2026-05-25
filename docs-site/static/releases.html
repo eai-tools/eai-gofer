@@ -143,7 +143,7 @@
                                 '<li><a href="/eai-gofer/">Home</a></li>' +
                                 '<li><a href="/eai-gofer/#/quickstart">Quick Start</a></li>' +
                                 '<li><a href="/eai-gofer/#/pipeline/README">Pipeline</a></li>' +
-                                '<li class="active"><a href="/eai-gofer/releases.html">Releases</a></li>' +
+                                '<li class="active"><a href="/eai-gofer/releases.html#/">Releases</a></li>' +
                                 '<li><a href="https://github.com/eai-tools/eai-gofer">GitHub</a></li>' +
                             '</ul>';
                         var body = document.body;
@@ -152,39 +152,46 @@
                 },
                 function(hook) {
                     hook.doneEach(function() {
-                        var content = document.querySelector('.markdown-section');
-                        if (!content) return;
-                        // Only inject releases if we haven't already
-                        if (content.querySelector('.releases-container')) return;
-                        content.innerHTML =
-                            '<h1>Releases</h1>' +
-                            '<div class="releases-container">' +
-                                '<div class="releases-header">' +
-                                    '<h2>Available Releases</h2>' +
-                                    '<span class="current-version" id="currentVersion">Loading...</span>' +
-                                '</div>' +
-                                '<div id="releasesContent">' +
-                                    '<div class="loading"><p>Loading releases...</p></div>' +
-                                '</div>' +
-                            '</div>' +
-                            '<div class="installation-guide">' +
-                                '<h3>Installation Instructions</h3>' +
-                                '<ol class="installation-steps">' +
-                                    '<li>Download the latest <span class="code-inline">.vsix</span> file from above</li>' +
-                                    '<li>Open VS Code</li>' +
-                                    '<li>Press <span class="code-inline">Cmd+Shift+P</span> (macOS) or <span class="code-inline">Ctrl+Shift+P</span> (Windows/Linux)</li>' +
-                                    '<li>Type "Extensions: Install from VSIX"</li>' +
-                                    '<li>Select the downloaded <span class="code-inline">.vsix</span> file</li>' +
-                                    '<li>Restart VS Code</li>' +
-                                    '<li>Open a workspace with a <span class="code-inline">.specify/</span> folder to activate Gofer</li>' +
-                                '</ol>' +
-                                '<p><strong>Claude / Codex / Copilot plugin:</strong> use the public bundle at <span class="code-inline">https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer</span> or download the agent plugin zip from the latest release card.</p>' +
-                            '</div>';
-                        loadReleases();
+                        renderReleaseShell();
                     });
                 }
             ]
         };
+
+        function renderReleaseShell() {
+            var content = document.querySelector('.markdown-section') || document.getElementById('app');
+            if (!content) return;
+            if (content.querySelector('.releases-container')) return;
+            content.innerHTML =
+                '<h1>Releases</h1>' +
+                '<div class="releases-container">' +
+                    '<div class="releases-header">' +
+                        '<h2>Available Releases</h2>' +
+                        '<span class="current-version" id="currentVersion">Loading...</span>' +
+                    '</div>' +
+                    '<div id="releasesContent">' +
+                        '<div class="loading"><p>Loading releases...</p></div>' +
+                    '</div>' +
+                '</div>' +
+                '<div class="installation-guide">' +
+                    '<h3>Installation Instructions</h3>' +
+                    '<ol class="installation-steps">' +
+                        '<li>Download the latest <span class="code-inline">.vsix</span> file from above</li>' +
+                        '<li>Open VS Code</li>' +
+                        '<li>Press <span class="code-inline">Cmd+Shift+P</span> (macOS) or <span class="code-inline">Ctrl+Shift+P</span> (Windows/Linux)</li>' +
+                        '<li>Type "Extensions: Install from VSIX"</li>' +
+                        '<li>Select the downloaded <span class="code-inline">.vsix</span> file</li>' +
+                        '<li>Restart VS Code</li>' +
+                        '<li>Open a workspace with a <span class="code-inline">.specify/</span> folder to activate Gofer</li>' +
+                    '</ol>' +
+                    '<p><strong>Claude / Codex / Copilot plugin:</strong> use the public bundle at <span class="code-inline">https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer</span> or download the agent plugin zip from the latest release card.</p>' +
+                '</div>';
+            loadReleases();
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            renderReleaseShell();
+        });
 
         async function loadReleases() {
             try {

@@ -1,8 +1,63 @@
 ---
 generated: true
-generated_at: "2026-05-23T17:54:39.953Z"
-source_commit: "047baa06f9bdd86354d43413563a98f893685fb3"
+generated_at: '2026-05-23T17:54:39.953Z'
+source_commit: '047baa06f9bdd86354d43413563a98f893685fb3'
 ---
+
+# Gofer
+
+Gofer is the public EAI spec-driven delivery workflow for VS Code and AI CLIs.
+It ships a full VS Code extension and portable Claude Code, Codex, and Copilot
+workflow packages. Gofer uses `.specify/`, `gofer.*` VS Code commands, `gofer_*`
+MCP tools, and the `0_business_scenario` through `8_gofer_resume` command set.
+
+## Pipeline
+
+Gofer has one public delivery pipeline with core delivery stages and resumption
+helpers:
+
+| Stage             | Command                | Purpose                                                                         |
+| ----------------- | ---------------------- | ------------------------------------------------------------------------------- |
+| Business Scenario | `/0_business_scenario` | Define the business problem and route the full Gofer pipeline.                  |
+| Research          | `/1_gofer_research`    | Research the codebase, CLI integrations, and technology landscape.              |
+| Specify           | `/2_gofer_specify`     | Create the feature specification from research and approved proposal review.    |
+| Plan              | `/3_gofer_plan`        | Produce architecture, data model, contracts, and implementation plan.           |
+| Tasks             | `/4_gofer_tasks`       | Break the plan into dependency-ordered, parallelizable work.                    |
+| Implement         | `/5_gofer_implement`   | Make code and documentation changes with implementation evidence.               |
+| Validate          | `/6_gofer_validate`    | Validate behavior, tests, risks, blast radius, and engineering review evidence. |
+| Save              | `/7_gofer_save`        | Create a handoff checkpoint for later resumption.                               |
+| Resume            | `/8_gofer_resume`      | Resume a saved Gofer session from checkpoint state.                             |
+
+## Current Release Feed
+
+VS Code updates use the Gofer Pages feed:
+
+```text
+https://eai-tools.github.io/eai-gofer/releases.json
+```
+
+VSIX and agent plugin packages are published under:
+
+```text
+https://eai-tools.github.io/eai-gofer/releases/
+```
+
+The hosted Claude/Codex/Copilot plugin bundle is available at:
+
+```text
+https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer
+```
+
+## Start Here
+
+- [Technical Overview](overview.md)
+- [Architecture](architecture.md)
+- [Configuration](configuration.md)
+- [API Reference](api-reference.md)
+- [Release Downloads](https://eai-tools.github.io/eai-gofer/releases.html#/)
+
+---
+
 # Technical Documentation Index
 
 **Repository:** [eai-tools/eai-gofer](https://github.com/eai-tools/eai-gofer)  
@@ -19,18 +74,23 @@ VSCode extension project.
 ### Patch Release Updates
 
 - **Version Alignment** - Updated to v3.4.3 with pre-release commit updates
-- **Documentation Refresh** - Updated technical documentation to reflect current state
-- **Stable Release** - Production-ready with agent plugin marketplace distribution
+- **Documentation Refresh** - Updated technical documentation to reflect current
+  state
+- **Stable Release** - Production-ready with agent plugin marketplace
+  distribution
 
 ### Previous Release (v3.4.0)
 
 #### Agent Plugin Packaging System
 
-- **Unified Distribution** - Single packaged plugin for Claude Code, Copilot, Codex, and Gemini
-- **Marketplace Integration** - Published to plugin marketplaces for easy installation
+- **Unified Distribution** - Single packaged plugin for Claude Code, Copilot,
+  Codex, and Gemini
+- **Marketplace Integration** - Published to plugin marketplaces for easy
+  installation
 - **Complete Command Surface** - 24 workflow commands + 29 specialized agents
 - **Template Library** - Full specification templates included in distribution
-- **Release Automation** - Plugin zip automatically generated and attached to GitHub releases
+- **Release Automation** - Plugin zip automatically generated and attached to
+  GitHub releases
 
 #### Installation Examples
 
@@ -415,8 +475,10 @@ Design patterns and technical debt analysis.
 - **Version:** 3.4.3
 - **Commit:** c909d5e497762e9ac614a02d35e58afd5e46dae2
 - **Generated:** 2026-05-22T18:12:41Z
-- **Previous Update:** 2026-05-21T18:15:34Z (0344d6df21fba9738d8bd9f6c26d7602c4e0775e)
-- **Change Summary:** Release v3.4.3 with pre-release updates and documentation refresh
+- **Previous Update:** 2026-05-21T18:15:34Z
+  (0344d6df21fba9738d8bd9f6c26d7602c4e0775e)
+- **Change Summary:** Release v3.4.3 with pre-release updates and documentation
+  refresh
 
 ### Regenerating Documentation
 
@@ -488,7 +550,8 @@ When making changes, update these files if applicable:
 - **Agent Guidelines:** AGENTS.md (`AGENTS.md`)
 - **Project Instructions:** CLAUDE.md (`CLAUDE.md`)
 - **CLI Support Guide:** docs/cli-support.md (`../docs/cli-support.md`) (v3.0+)
-- **GitHub Repository:** [eai-tools/eai-gofer](https://github.com/eai-tools/eai-gofer)
+- **GitHub Repository:**
+  [eai-tools/eai-gofer](https://github.com/eai-tools/eai-gofer)
 
 ---
 
@@ -516,8 +579,10 @@ When making changes, update these files if applicable:
 
 For questions, issues, or contributions:
 
-- **GitHub Issues:** [eai-tools/eai-gofer/issues](https://github.com/eai-tools/eai-gofer/issues)
-- **Documentation:** [eai-tools/eai-gofer#readme](https://github.com/eai-tools/eai-gofer#readme)
+- **GitHub Issues:**
+  [eai-tools/eai-gofer/issues](https://github.com/eai-tools/eai-gofer/issues)
+- **Documentation:**
+  [eai-tools/eai-gofer#readme](https://github.com/eai-tools/eai-gofer#readme)
 - **Owner:** Enterprise AI Pty Ltd
 - **Website:** [enterpriseai.com.au](https://enterpriseai.com.au)
 

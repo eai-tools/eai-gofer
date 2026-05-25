@@ -64,17 +64,19 @@ Gofer ships in two complementary forms:
 Install **Gofer for EnterpriseAI Vertical App Delivery** from the VS Code
 Marketplace, or install the release VSIX from GitHub Releases.
 
-Release automation publishes the VSIX to the public GitHub Pages release host
-at `https://eai-tools.github.io/eai-gofer/releases/` every time and to the VS
-Code Marketplace when the release workflow has `VSCE_PAT` configured.
+Release automation publishes the VSIX and agent plugin zip to the public GitHub
+Pages release host at `https://eai-tools.github.io/eai-gofer/releases/` every
+time and to the VS Code Marketplace when the release workflow has `VSCE_PAT`
+configured. Releases from `v3.4.0` onward are kept available there for
+unauthenticated downloads.
 
 ### Agent Plugin Distribution Modes
 
-| Surface            | Marketplace / published mode                                                                                                                                          | Local release-test mode                                                                                      |
-| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| Claude Code        | `claude plugin marketplace add https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer --scope user` then `claude plugin install eai-gofer@eai-gofer --scope user` | Download the public zip, unzip to `~/plugins/eai-gofer`, then install `eai-gofer@eai-gofer` |
-| Codex              | Import `https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer` in the Codex plugin UI, or download the public zip and keep the installed folder stable | Keep the installed plugin folder at `~/plugins/eai-gofer` when using a downloaded bundle |
-| GitHub Copilot CLI | `copilot plugin marketplace add https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer` then `copilot plugin install eai-gofer@eai-gofer` | `copilot plugin marketplace add ~/plugins/eai-gofer` then `copilot plugin install eai-gofer@eai-gofer` |
+| Surface            | Marketplace / published mode                                                                                                                                                | Local release-test mode                                                                                |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Claude Code        | `claude plugin marketplace add https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer --scope user` then `claude plugin install eai-gofer@eai-gofer --scope user` | Download the public zip, unzip to `~/plugins/eai-gofer`, then install `eai-gofer@eai-gofer`            |
+| Codex              | Import `https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer` in the Codex plugin UI, or download the public zip and keep the installed folder stable           | Keep the installed plugin folder at `~/plugins/eai-gofer` when using a downloaded bundle               |
+| GitHub Copilot CLI | `copilot plugin marketplace add https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer` then `copilot plugin install eai-gofer@eai-gofer`                         | `copilot plugin marketplace add ~/plugins/eai-gofer` then `copilot plugin install eai-gofer@eai-gofer` |
 
 ### Claude Code Plugin
 
@@ -85,7 +87,8 @@ claude plugin marketplace add https://eai-tools.github.io/eai-gofer/releases/plu
 claude plugin install eai-gofer@eai-gofer --scope user
 ```
 
-For local release testing, use the stable folder flow:
+For local release testing or explicit version pinning, use the stable folder
+flow. Replace `3.4.0` with any public release version from `3.4.0` onward:
 
 ```bash
 curl -fsSL https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-3.4.0.zip \

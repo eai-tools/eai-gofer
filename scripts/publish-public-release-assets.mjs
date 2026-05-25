@@ -101,12 +101,29 @@ async function pruneOldVersionedAssets(releasesJsonPath) {
     }
 
     const [, version] = versionMatch;
+    if (isAtLeastVersion(version, '3.4.0')) {
+      continue;
+    }
+
     if (keptVersions.has(version)) {
       continue;
     }
 
     await fs.rm(path.join(PUBLIC_RELEASES_DIR, fileName), { force: true });
   }
+}
+
+function isAtLeastVersion(version, minimumVersion) {
+  const left = version.split('.').map((part) => Number.parseInt(part, 10));
+  const right = minimumVersion.split('.').map((part) => Number.parseInt(part, 10));
+  for (let index = 0; index < Math.max(left.length, right.length); index++) {
+    const leftPart = left[index] ?? 0;
+    const rightPart = right[index] ?? 0;
+    if (leftPart !== rightPart) {
+      return leftPart > rightPart;
+    }
+  }
+  return true;
 }
 
 async function main() {

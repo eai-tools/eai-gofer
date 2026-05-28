@@ -1,8 +1,6 @@
 ---
 name: gofer:check-workspace
-description:
-  Check whether this repo is initialized for Gofer and explain any missing or
-  stale scaffold.
+description: Check whether this repo is initialized for Gofer and explain any missing or stale scaffold.
 agent: copilot-workspace
 tools:
   - Read
@@ -17,6 +15,7 @@ gofer:
   canonicalChecksum: eaed0a328c0560d6d632a71218cdbdf56d4b09933f1345b8ac2bf7ca37813416
   metadataSource: scripts/generate-commands.ts
 ---
+
 
 # Gofer Workspace Check
 

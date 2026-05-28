@@ -116,7 +116,7 @@ function buildGeminiExtensionManifest(version) {
   return {
     name: 'eai-gofer',
     version,
-    description: 'Gofer pipeline as Gemini CLI extension',
+    description: 'Gofer core pipeline and helper commands as a Gemini CLI extension',
     commands: '.gemini/commands/gofer/',
     gofer: {
       bundle_url: PUBLIC_PLUGIN_URL,
@@ -422,6 +422,8 @@ function splitMarkdownFrontmatter(content) {
  */
 function transformClaudeContent(content, toPlatform) {
   let transformed = content;
+  const stageCommandPattern = /\/(\d+[a-z]?_[a-z0-9_]+)/g;
+  const helperCommandPattern = /\/(gofer_[a-z0-9_]+)/g;
 
   transformed = transformed.replace(/\*\*AUTO-CHAIN[^]*?(?=\n##|\n---|\n\*\*|$)/g, '');
   transformed = transformed.replace(
@@ -431,8 +433,8 @@ function transformClaudeContent(content, toPlatform) {
   transformed = transformed.replace(/Skill tool/g, 'next command');
 
   if (toPlatform === 'copilot') {
-    transformed = transformed.replace(/\/(\d+[a-z]?_gofer_\w+)/g, '#$1');
-    transformed = transformed.replace(/\/(gofer_\w+)/g, '#$1');
+    transformed = transformed.replace(stageCommandPattern, '#$1');
+    transformed = transformed.replace(helperCommandPattern, '#$1');
     transformed = transformed.replace(/(^SourceCommandId:\s*)#/gm, '$1/');
   }
 
@@ -496,7 +498,10 @@ function injectWorkspacePreflight(content, commandName, host = 'auto') {
   }
 
   if (content.includes('## Workspace Preflight')) {
-    return content;
+    return content.replace(
+      /`node \.specify\/scripts\/node\/gofer-workspace-check\.mjs --host [^`\n]+ --json`/,
+      `\`node .specify/scripts/node/gofer-workspace-check.mjs --host ${host} --json\``
+    );
   }
 
   const section = buildWorkspacePreflightSection(host);
@@ -518,14 +523,12 @@ function injectWorkspacePreflight(content, commandName, host = 'auto') {
 function getNextCommand(currentCommand) {
   const pipeline = [
     '0_business_scenario',
-    '0a_problem_validation',
     '1_gofer_research',
     '2_gofer_specify',
     '3_gofer_plan',
     '4_gofer_tasks',
     '5_gofer_implement',
     '6_gofer_validate',
-    '6a_gofer_engineering_review',
   ];
 
   const currentIndex = pipeline.indexOf(currentCommand);

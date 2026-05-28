@@ -5,7 +5,7 @@ description: "Run the public Gofer core pipeline and helper commands in Claude, 
 
 # EAI Gofer
 
-Version: 3.4.6
+Version: 3.4.7
 
 Use this skill when the user asks to run, install, update, or understand Gofer without the VS Code extension UI.
 

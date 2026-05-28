@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: enterpriseai
   canonicalSource: .specify/commands/1_gofer_research.md
-  canonicalChecksum: c4245708de4146ccab7988483ec73151bc04d6658064b3eadb61e9f36f390388
+  canonicalChecksum: 1cadaeaac24141467096af08759628c19620a30888d235504bf68c0b5cc690c4
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -58,26 +58,6 @@ $ARGUMENTS
 
 You **MUST** consider the user input before proceeding (if not empty).
 
-## Execution Depth And Public Risk Labels
-
-Classify the request before spawning agents. Use repository-neutral labels only:
-`docs-only`, `single-repo-code`, `api-contract`, `auth-security`,
-`data-model`, `infra-config`, `release-critical`, or `unknown`.
-
-- **fast**: docs-only or small clarification work. Use one locator/summarizer,
-  keep existing required artifacts concise, and skip optional councils unless
-  evidence contradicts the request.
-- **standard**: ordinary single-repository feature work. Use the core research
-  agents and write the normal artifact set.
-- **full**: API contracts, auth/security, data model, infra/config, release
-  risk, cross-repo impact, or unknown ownership. Use specialist fan-out,
-  explicit evidence, blast-radius notes, and richer test/release obligations.
-
-Artifact-churn rule: preserve existing required artifacts, but do not create
-large optional diagrams, councils, issue lists, or extended reports unless the
-classified risk or user request justifies them. Mark weak claims as inferred or
-unknown instead of inventing certainty.
-
 ## Outline
 
 This is the **first stage** of the unified Gofer pipeline. Your job is to:
@@ -87,12 +67,12 @@ This is the **first stage** of the unified Gofer pipeline. Your job is to:
 3. Research the codebase to find where it should be implemented
 4. Identify patterns, existing code, and integration points
 5. Document technology decisions, business scenarios, and architecture options
-6. Prepare a user-facing review before specification begins
+6. Prepare any supporting review context needed before specification begins
 
 **Output**:
 
 - `.specify/specs/{feature}/research.md`
-- `.specify/specs/{feature}/proposal-review.md`
+- `.specify/specs/{feature}/proposal-review.md` (optional supporting review context)
 - `.specify/specs/{feature}/journeys/base-journey.md` (application delivery default)
 - `.specify/specs/{feature}/ui-preview-brief.md` (application delivery default)
 - `.specify/specs/{feature}/context-bundle.md` (EnterpriseAI default)
@@ -205,9 +185,7 @@ Show: similar implementations we should model after.
 Include: file paths, code snippets, conventions used."
 ```
 
-**Run all three agents in parallel** for maximum efficiency in standard/full
-mode. In fast mode, collapse this into one concise locator/summarizer unless
-the feature touches a full-depth risk label.
+**Run all three agents in parallel** for maximum efficiency.
 
 ---
 
@@ -611,7 +589,7 @@ Why relevant: [Explanation]
 
 ---
 
-## Step 5.5: Generate Proposal Review Document
+## Step 5.5: Generate Supporting Proposal Review Document
 
 Write to `{FEATURE_DIR}/proposal-review.md`:
 
@@ -619,7 +597,7 @@ Write to `{FEATURE_DIR}/proposal-review.md`:
 ---
 feature: '[Feature Name]'
 created: [ISO timestamp]
-status: pending_review
+status: supporting_context
 recommendedScenario: '[short label]'
 recommendedArchitecture: '[short label]'
 selectedOption: ''
@@ -679,13 +657,13 @@ approvedAt: ''
 
 ## Approval
 
-- Status: pending_review
-- Next action: user approves or requests changes before `#2_gofer_specify`
+- Status: supporting_context
+- Next action: carry any user feedback into `#2_gofer_specify`
 `````
 
 ---
 
-## Step 6: Review, Discuss, and Gate Specification
+## Step 6: Review, Discuss, and Hand Off To Specification
 
 After saving `research.md` and `proposal-review.md`:
 
@@ -697,12 +675,10 @@ After saving `research.md` and `proposal-review.md`:
    - Options and trade-offs
    - Any open questions needing input
 
-2. **Ask the user to choose one path**:
-   - Approve and continue to specification
-   - Revise the business scenario
-   - Revise the architecture recommendation
-   - Explore an alternative option
-   - Stop after research
+2. **Ask focused follow-up questions only if needed**:
+   - Clarify the preferred business scenario if the research found real alternatives
+   - Clarify the preferred architecture direction if the trade-off is still ambiguous
+   - Confirm whether the user wants to stop after research or continue into specification
 
 3. **Run architecture questions one-by-one (MANDATORY when architecture options
    exist)**:
@@ -720,23 +696,22 @@ After saving `research.md` and `proposal-review.md`:
    2. Confirm the key trade-off priority (speed, flexibility, reliability, cost)
    3. Confirm non-negotiable constraints/integration boundaries
 
-4. **If the user approves**:
-   - Update `proposal-review.md` with `status: approved`
-   - Record `approvedBy`, `approvedAt`, and any selected option or override
-   - Immediately invoke `#2_gofer_specify`
-
-5. **If the user requests changes**:
+4. **If the user requests changes**:
    - Update `proposal-review.md` with the feedback in
      `User Feedback and Overrides`
-   - Set `status: needs_revision` if the recommendation must change
-   - Revise the recommendation and stop until the user approves
+   - Set `status: revised_supporting_context` if the recommendation must change
+   - Revise the recommendation before continuing
+
+5. **If the user wants to stop after research**:
+   - End after summarizing the current findings
+   - Do not auto-chain until the user explicitly asks to continue
 
 6. **Signal completion**:
 
 ```
 
 ✓ Research complete: {FEATURE_DIR}/research.md
-✓ Proposal review ready: {FEATURE_DIR}/proposal-review.md
+✓ Supporting review context ready: {FEATURE_DIR}/proposal-review.md
 
 Key findings:
 
@@ -963,11 +938,10 @@ Logs to: `.specify/logs/pipeline.jsonl`
 - **Structured Problem Statement + Persona + Value Proposition are required** in
   `research.md`
 - **Research must remain usable by novices without external docs**
-- **Research should inform the proposal review and specification** - focus on
-  what helps users discuss the business scenario and architecture before
-  `spec.md` is written
+- **Research should inform specification directly** - focus on what helps users
+  discuss the business scenario and architecture before `spec.md` is written
 - **Maximum 5 open questions** - make informed decisions for the rest
-- **Do not continue to specification until `proposal-review.md` is approved**
+- **Use `proposal-review.md` as optional supporting context, not as a blocking stage**
 - **Log stage completion** for observability tracking
 
 ---

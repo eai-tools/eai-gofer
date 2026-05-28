@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: enterpriseai
   canonicalSource: .specify/commands/2_gofer_specify.md
-  canonicalChecksum: d3aff84e06d4bafd5d1fe61597383082e7dd409d9e4abc547c2e7a010662f0fb
+  canonicalChecksum: 257f4aa3be6980997fabdc9cff596988278252266365787639b63afe89905016
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -57,30 +57,13 @@ $ARGUMENTS
 
 You **MUST** consider the user input before proceeding (if not empty).
 
-## Execution Depth And Artifact Churn
-
-Carry forward the `fast` / `standard` / `full` depth chosen in research. Keep
-labels generic: `docs-only`, `single-repo-code`, `api-contract`,
-`auth-security`, `data-model`, `infra-config`, `release-critical`, `unknown`.
-
-- **fast** specs should be short and scoped, with no new optional artifact set
-  unless research found implementation risk.
-- **standard** specs should include normal user stories, acceptance criteria,
-  test expectations, and protected boundaries.
-- **full** specs must explicitly capture contract, security, data, infra,
-  rollout, and validation obligations with evidence references.
-
-Do not rediscover context already summarized in `research.md` or
-`proposal-review.md`; consume it, cite it, and only reopen files when a claim is
-ambiguous.
-
 ## Prerequisites
 
 This command expects:
 
 - Feature directory already created at `.specify/specs/{feature}/`
 - `research.md` completed from `#1_gofer_research`
-- `proposal-review.md` approved from `#1_gofer_research`
+- `proposal-review.md` if research created supporting review context
 
 If these don't exist, prompt user to run `#1_gofer_research` first.
 
@@ -89,7 +72,7 @@ If these don't exist, prompt user to run `#1_gofer_research` first.
 ## Outline
 
 1. Context health check
-2. Validate approved proposal review and load existing findings
+2. Validate any supporting proposal review context and load existing findings
 3. Dispatch specification agents (sub-agents handle heavy generation)
 4. Review agent output, handle clarifications
 5. Optional multi-perspective review
@@ -144,16 +127,16 @@ Before starting specification, assess context window health:
 
 ---
 
-## Step 1.25: Proposal Approval Gate
+## Step 1.25: Optional Proposal Review Context
 
-`proposal-review.md` is the approval gate between research and specification.
+`proposal-review.md` is optional supporting context between research and specification.
 
-- If `proposal-review.md` is missing: STOP and tell the user to run
-  `#1_gofer_research` so the review can be created.
-- If `proposal-review.md` exists but `status` is not `approved`: STOP and tell
-  the user to finish the review conversation before writing `spec.md`.
-- If `proposal-review.md` is approved: capture the approved business scenario,
-  architecture direction, selected option, and any user overrides.
+- If `proposal-review.md` is missing: continue using `research.md` as the
+  source of truth.
+- If `proposal-review.md` exists: capture any business-scenario guidance,
+  architecture direction, selected option, and user overrides it records.
+- If `proposal-review.md` records a clear user-approved direction: treat that as
+  authoritative. Otherwise, treat it as advisory context.
 
 ---
 
@@ -176,7 +159,7 @@ If discovery.md exists, pass this mapping to the spec writer agent:
 discovery.md doesn't exist, the agent generates spec content from research.md
 and user input.
 
-If proposal-review.md exists and is approved, also pass this mapping:
+If proposal-review.md exists, also pass this mapping:
 
 ### Proposal Review → Spec Mapping
 
@@ -206,7 +189,7 @@ Feature directory: {FEATURE_DIR}
 
 Read these files for full context:
 - {FEATURE_DIR}/research.md — Codebase analysis, integration points, patterns, constraints
-- {FEATURE_DIR}/proposal-review.md — Approved business scenario, architecture direction, options, overrides
+- {FEATURE_DIR}/proposal-review.md — Supporting business scenario, architecture direction, options, overrides (read if exists, skip if not)
 - .specify/templates/spec-template.md — Template structure to follow
 - {FEATURE_DIR}/discovery.md — Business discovery findings (read if exists, skip if not)
 - {FEATURE_DIR}/journeys/base-journey.md — AI-augmented four-step application journey (read if exists, skip if not)
@@ -281,10 +264,10 @@ If service-fit-matrix.md exists, use it to:
 - Keep non-selected or blocked capabilities in Out of Scope, Assumptions, or
   Risks as appropriate
 
-If proposal-review.md exists and status is approved, use it to:
-- Treat Recommended Business Scenario as the authoritative scope for the spec
-- Reflect the approved architecture direction in Assumptions, Dependencies, and NFR framing
-- Carry forward any approved user overrides before finalizing requirements
+If proposal-review.md exists, use it to:
+- Treat explicitly user-approved directions as authoritative scope for the spec
+- Reflect the strongest architecture direction in Assumptions, Dependencies, and NFR framing
+- Carry forward any user overrides before finalizing requirements
 - Place non-selected options in Out of Scope or Assumptions where appropriate
 
 Rules:
@@ -293,7 +276,7 @@ Rules:
 - Maximum 3 [NEEDS CLARIFICATION] markers for genuinely ambiguous items
 - Acknowledge ALL constraints from research.md in Assumptions or NFRs
 - Reference ALL integration points from research.md in Dependencies
-- Honor the approved direction in proposal-review.md over unapproved alternatives
+- Prefer explicit user-approved directions in proposal-review.md when present; otherwise treat it as advisory context
 - Each functional requirement must include Validation and Integration references
 - Explicit non-app work MUST keep the shared numbered stages but MUST NOT be
   forced to create app-only preview, approval, branding, or service-fit
@@ -322,7 +305,7 @@ findings and generate a quality checklist.
 Read:
 - {FEATURE_DIR}/spec.md — The specification to validate
 - {FEATURE_DIR}/research.md — Research findings to cross-reference
-- {FEATURE_DIR}/proposal-review.md — Approved review decisions to cross-reference
+- {FEATURE_DIR}/proposal-review.md — Supporting review decisions to cross-reference when present
 
 Part 1: Research Integration Validation (GAP-04)
 For EACH integration point in research.md, check if it's addressed in spec:
@@ -330,7 +313,7 @@ For EACH integration point in research.md, check if it's addressed in spec:
 For EACH constraint from research.md, check if acknowledged in spec:
 - In Assumptions or Non-Functional Requirements
 For EACH technology decision, check if reflected in Dependencies.
-For EACH approved decision or override in proposal-review.md, check if it is
+For EACH decision or override captured in proposal-review.md, check if it is
 represented in Overview, Requirements, Assumptions, Dependencies, or Out of Scope.
 
 Build a coverage matrix:
@@ -364,8 +347,7 @@ After both agents complete:
    - All user stories have acceptance criteria
    - Success criteria are measurable and technology-agnostic
    - Dependencies reference correct codebase components from research
-   - Approved scenario and architecture choices from proposal-review.md are
-     reflected
+  - Scenario and architecture choices from proposal-review.md are reflected
    - Research traceability matrix is complete
 
 2. **Check research coverage** — From the validator agent:

@@ -23,8 +23,6 @@ export const CANONICAL_DESCRIPTIONS = {
     'Execute tasks phase by phase with feedback and review.',
   '6_gofer_validate':
     'Validate the work with scoring, blast-radius analysis, and review.',
-  '6a_gofer_engineering_review':
-    'Run a targeted engineering review on a specific component or concern.',
   '7_gofer_save':
     'Save session state for later resumption.',
   '7a_stakeholder_comms':

@@ -65,16 +65,16 @@ Task: subagent_type="validation-correctness"
       expect(transformed).not.toContain('/2_gofer_specify');
     });
 
-    it('transforms stage commands with alpha suffixes (for example 6a)', () => {
-      const content = 'Run /6a_gofer_engineering_review after validation.';
+    it('transforms stage commands with alpha suffixes (for example 0a)', () => {
+      const content = 'Run /0a_problem_validation before research.';
 
       const codexTransformed = generator.transformContent(content, 'claude', 'codex');
-      expect(codexTransformed).toContain('$ $6a_gofer_engineering_review');
-      expect(codexTransformed).not.toContain('/6a_gofer_engineering_review');
+      expect(codexTransformed).toContain('$ $0a_problem_validation');
+      expect(codexTransformed).not.toContain('/0a_problem_validation');
 
       const copilotTransformed = generator.transformContent(content, 'claude', 'copilot');
-      expect(copilotTransformed).toContain('#6a_gofer_engineering_review');
-      expect(copilotTransformed).not.toContain('/6a_gofer_engineering_review');
+      expect(copilotTransformed).toContain('#0a_problem_validation');
+      expect(copilotTransformed).not.toContain('/0a_problem_validation');
     });
 
     it('converts task tool mentions for codex', () => {
@@ -155,11 +155,7 @@ Task: subagent_type="validation-correctness"
 
     it('does not inject continuation for terminal pipeline stage', () => {
       const base = 'Final stage content';
-      const enhanced = generator.injectPlatformSections(
-        base,
-        'codex',
-        '6a_gofer_engineering_review'
-      );
+      const enhanced = generator.injectPlatformSections(base, 'codex', '6_gofer_validate');
       expect(enhanced).toBe(base);
     });
   });

@@ -29,10 +29,10 @@ describe('enterpriseai placeholder conventions (root integration)', () => {
   it('enforces placeholder conventions for feature 029 markdown artifacts and rejects legacy placeholders', () => {
     const featureDir = path.join(
       process.cwd(),
-      '.specify',
-      'specs',
-      '_archived',
-      '029-enterpriseai-student-vertical-builder'
+      'tests',
+      'fixtures',
+      'enterpriseai',
+      'placeholder-conventions'
     );
 
     const markdownFiles = collectMarkdownFiles(featureDir);

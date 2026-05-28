@@ -1,14 +1,34 @@
 
 # Gofer runtime files (auto-generated, should not be committed)
 .specify/hooks/
+.specify/specs/*
+!.specify/specs/.gitkeep
+extension/.specify/specs/*
 .specify/memory/local.json
 .specify/memory/dependency-graph.json
+.specify/memory/archive.jsonl
+.specify/memory/enriched-context.json
+.specify/memory/knowledge-graph.json
+.specify/memory/memories.jsonl
+.specify/memory/observations.jsonl
 .specify/specs/*/.branch-info.json
 .specify/logs/
 .specify/memory/checkpoints/
 .specify/memory/context-health-state.json
 .specify/memory/observation-cache/
 .specify/specs/*/research-index.json
+.claude/settings.local.json
+tests/manual/
+coverage-output-new.txt
+session-checkpoint-pty-removal.md
+session-checkpoint-pty-removal-complete.md
+CRASH_FIX_REPORT.md
+PTY-REMOVAL-VALIDATION-REPORT.md
+PTY-REMOVAL-FINAL-REPORT.md
+remediation-report-bug-fixes.md
+validation-report-bug-fixes.md
+CLAUDE-CODE-USAGE-FIX.md
+AI-USAGE-FIX-SUMMARY.md
 node_modules
 dist/
 release-assets/

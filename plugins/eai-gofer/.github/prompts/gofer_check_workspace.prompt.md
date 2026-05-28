@@ -1,6 +1,8 @@
 ---
 name: gofer:check-workspace
-description: Check whether this repo is initialized for Gofer and explain any missing or stale scaffold.
+description:
+  Check whether this repo is initialized for Gofer and explain any missing or
+  stale scaffold.
 agent: copilot-workspace
 tools:
   - Read
@@ -15,7 +17,6 @@ gofer:
   canonicalChecksum: eaed0a328c0560d6d632a71218cdbdf56d4b09933f1345b8ac2bf7ca37813416
   metadataSource: scripts/generate-commands.ts
 ---
-
 
 # Gofer Workspace Check
 
@@ -40,7 +41,7 @@ subdirectory. If needed, walk upward to the nearest directory containing one of:
 Inspect these paths relative to the workspace root:
 
 - `.specify/.gofer-version`
-- `.specify/commands/0_business_scenario.md`
+- `.specify/commands#0_business_scenario.md`
 - `.specify/templates/spec-template.md`
 - `.specify/scripts/bash/create-new-feature.sh`
 - `.specify/scripts/node/parse-stage-command.mjs`

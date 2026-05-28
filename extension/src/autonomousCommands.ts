@@ -192,7 +192,6 @@ const ENTERPRISE_AI_REFERENCE_COMMANDS = new Set<string>([
   '4_gofer_tasks',
   '5_gofer_implement',
   '6_gofer_validate',
-  '6a_gofer_engineering_review',
   '7a_stakeholder_comms',
 ]);
 

@@ -551,7 +551,9 @@ describe('Command Registration Validation', () => {
 
     expect(progressWelcome?.contents).toContain('[Initialize Gofer](command:gofer.initialize)');
     expect(progressWelcome?.contents).toContain('/0_business_scenario');
-    expect(progressWelcome?.contents).toContain('proposal-review.md');
+    expect(progressWelcome?.contents).toContain(
+      'research → specify → plan → tasks → implement → validate'
+    );
     expect(progressWelcome?.contents).toContain('gofer.workflowProfile=standard');
     expect(progressWelcome?.contents).toContain('Gofer: Install Optional Developer Tools');
     expect(progressWelcome?.contents).not.toContain('WhatsApp');

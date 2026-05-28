@@ -11,8 +11,8 @@ and this project adheres to
 
 ### Documentation
 
-- Trimmed the root and extension READMEs plus the VS Code configuration guide
-  to the current manifest-backed command and settings surface.
+- Trimmed the root and extension READMEs plus the VS Code configuration guide to
+  the current manifest-backed command and settings surface.
 - Removed the outdated migration and WhatsApp guides that still described dead
   VS Code commands, notification flows, and setup paths.
 
@@ -30,9 +30,9 @@ and this project adheres to
   - 7 visual-writer sub-agents: visual-canvas-writer, visual-c4-writer,
     visual-bounded-context-writer, visual-erd-writer, visual-heatmap-writer,
     visual-risk-writer, visual-value-stream-writer.
-  - `/gofer:*` namespace aliases for all 16 pipeline stages plus 3 new control
-    commands: `/gofer:plan` (plan-mode toggle), `/gofer:side` (side-channel),
-    `/gofer:personality` (tone preset).
+  - `/gofer:*` namespace aliases for the full pipeline/helper command surface
+    plus 3 new control commands: `/gofer:plan` (plan-mode toggle), `/gofer:side`
+    (side-channel), `/gofer:personality` (tone preset).
   - `gofer codex doctor` — read-only Codex skill-budget diagnostic.
   - Plugin manifests: `.claude-plugin/plugin.json`, `.gemini/extension.json`,
     root `AGENTS.md`, `codex-config.toml` scaffold.
@@ -68,8 +68,8 @@ and this project adheres to
   - 100% test coverage with 0% mock ratio (11 feature tests: 4 unit, 3
     integration, 4 UI)
 
-- **Cross-Platform Command Parity** (feature 028): All 16 Gofer commands now
-  available across Claude Code, GitHub Copilot Chat, and OpenAI Codex CLI
+- **Cross-Platform Command Parity** (feature 028): All core Gofer stage files
+  now available across Claude Code, GitHub Copilot Chat, and OpenAI Codex CLI
   - New `gofer.defaultCLI` setting to choose preferred AI platform (`claude`,
     `copilot`, `codex`, or `auto`)
   - Automatic command routing to `.claude/commands/`, `.github/prompts/`, or
@@ -90,7 +90,6 @@ and this project adheres to
 - `/4_gofer_tasks` - Create task breakdown
 - `/5_gofer_implement` - Execute tasks autonomously
 - `/6_gofer_validate` - Validate with 6 parallel agents
-- `/6a_gofer_engineering_review` - Post-implementation review
 - `/7_gofer_save` - Save session checkpoint
 - `/7a_stakeholder_comms` - Generate stakeholder communications
 - `/8_gofer_resume` - Resume from checkpoint

@@ -1459,20 +1459,25 @@ This automatically chains through all stages:
 3. **Plan** → Generates architecture and design
 4. **Tasks** → Breaks down into executable tasks
 5. **Implement** → Executes tasks phase by phase
-6. **Validate** → Verifies against spec and constitution
+6. **Validate** → Runs the terminal quality gate, including engineering review
 
-## Unified Gofer Pipeline
+## Core Gofer Pipeline
 
 | Stage | Command | Output |
 |-------|---------|--------|
+| 0. Business scenario | \`/0_business_scenario\` | Pipeline kickoff |
 | 1. Research | \`/1_gofer_research\` | research.md |
 | 2. Specify | \`/2_gofer_specify\` | spec.md |
 | 3. Plan | \`/3_gofer_plan\` | plan.md, data-model.md, contracts/ |
-| 4. Tasks | \`/4_gofer_tasks\` | tasks.md, issues.md |
+| 4. Tasks | \`/4_gofer_tasks\` | tasks.md, traceability.md, issues.md |
 | 5. Implement | \`/5_gofer_implement\` | Source code |
-| 6. Validate | \`/6_gofer_validate\` | validation-report.md |
+| 6. Validate | \`/6_gofer_validate\` | Validation artifacts |
 
 All artifacts are stored in: \`.specify/specs/{feature}/\`
+
+Optional helpers such as \`/0a_problem_validation\`, \`/7_gofer_save\`,
+\`/8_gofer_resume\`, and \`/7a_stakeholder_comms\` support the workflow without
+adding extra core pipeline stages.
 
 ## Constitution
 
@@ -1482,7 +1487,8 @@ Define your project principles in \`memory/constitution.md\`:
 - Security requirements
 - Testing policies
 
-AI agents validate code against the constitution before implementation.
+AI agents validate code against the constitution before and during the final
+\`/6_gofer_validate\` quality gate.
 
 ## Learn More
 

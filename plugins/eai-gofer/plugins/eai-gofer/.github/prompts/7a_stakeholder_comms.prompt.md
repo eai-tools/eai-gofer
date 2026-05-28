@@ -16,6 +16,35 @@ gofer:
   metadataSource: scripts/generate-commands.ts
 ---
 
+## Workspace Preflight
+
+Before doing stage/helper work:
+
+1. Resolve the repository root.
+2. Check the core Gofer sentinels:
+   - `.specify/.gofer-version`
+   - `.specify/commands/0_business_scenario.md`
+   - `.specify/templates/spec-template.md`
+   - `.specify/scripts/bash/create-new-feature.sh`
+   - `.specify/scripts/node/parse-stage-command.mjs`
+   - `.specify/scripts/hooks/post-tool-use.mjs`
+   - `.specify/scripts/powershell/install-optional-tools.ps1`
+   - `.specify/specs/`
+   - `.specify/memory/`
+3. Check host-specific repo-owned files when relevant:
+   - Claude: `AGENTS.md`, `CLAUDE.md`, `.claude/settings.json`
+   - Codex: `AGENTS.md`
+   - Copilot: `.github/copilot-instructions.md`
+   - VS Code extension mirrors Claude/Copilot/Gemini resources itself and should
+     still keep the core scaffold healthy
+4. If the repo already has the workspace checker script, prefer running:
+   - `node .specify/scripts/node/gofer-workspace-check.mjs --host copilot --json`
+5. If the workspace is missing or stale, ask exactly:
+   - **"This repo is missing or stale for Gofer. Initialize/update it now?"**
+6. If the user says yes, run the Gofer workspace bootstrap helper and then
+   resume this command from the top.
+7. If the user says no, stop and explain that Gofer stage/helper work depends on
+   the repo-owned scaffold.
 
 # Gofer Stakeholder Communications
 
@@ -328,18 +357,18 @@ Every section title above (`Problem Statement`,
 
 Generate these additional decks under `{FEATURE_DIR}/presentations/`:
 
-| Deck | Decision-Rights Audience | Required Focus |
-| ---- | ------------------------ | -------------- |
-| `executive.marp.md` | Executive committee | Strategic value, funding gate, risk appetite |
-| `business.marp.md` | Business owner | User journey, operational value, adoption |
-| `internal-delivery.marp.md` | Delivery lead | Dependency plan, red/green loop, delivery risks |
-| `enterprise-architecture.marp.md` | Enterprise architecture | Platform fit, context bundle, contract pack, reuse decisions |
-| `ciso.marp.md` | CISO | Identity, tenant boundary, controls, residual risk |
-| `data-architecture.marp.md` | Data architecture | Object types, lineage, quality, governance |
-| `cio.marp.md` | CIO | Platform strategy, operating model, reuse roadmap |
-| `cfo.marp.md` | CFO | Investment case, benefit tracking, cost risk |
-| `coo.marp.md` | COO | Process change, rollout readiness, support model |
-| `risk-compliance.marp.md` | Risk/compliance | Obligations, evidence, exceptions, audit trail |
+| Deck                              | Decision-Rights Audience | Required Focus                                               |
+| --------------------------------- | ------------------------ | ------------------------------------------------------------ |
+| `executive.marp.md`               | Executive committee      | Strategic value, funding gate, risk appetite                 |
+| `business.marp.md`                | Business owner           | User journey, operational value, adoption                    |
+| `internal-delivery.marp.md`       | Delivery lead            | Dependency plan, red/green loop, delivery risks              |
+| `enterprise-architecture.marp.md` | Enterprise architecture  | Platform fit, context bundle, contract pack, reuse decisions |
+| `ciso.marp.md`                    | CISO                     | Identity, tenant boundary, controls, residual risk           |
+| `data-architecture.marp.md`       | Data architecture        | Object types, lineage, quality, governance                   |
+| `cio.marp.md`                     | CIO                      | Platform strategy, operating model, reuse roadmap            |
+| `cfo.marp.md`                     | CFO                      | Investment case, benefit tracking, cost risk                 |
+| `coo.marp.md`                     | COO                      | Process change, rollout readiness, support model             |
+| `risk-compliance.marp.md`         | Risk/compliance          | Obligations, evidence, exceptions, audit trail               |
 
 Every persona deck MUST include:
 

@@ -5,7 +5,7 @@ description: "Run the public Gofer spec-driven delivery workflow in Claude, Gemi
 
 # EAI Gofer
 
-Version: 3.4.4
+Version: 3.4.5
 
 Use this skill when the user asks to run, install, update, or understand Gofer without the VS Code extension UI.
 
@@ -25,6 +25,8 @@ Use this skill when the user asks to run, install, update, or understand Gofer w
 - `8_gofer_resume` - Resume a previous Gofer session from a saved checkpoint file.
 - `9_gofer_tests` - Generate comprehensive test suites from four testing perspectives for a target component.
 - `10_gofer_cloud` - Deploy and configure the Gofer cloud integration for remote pipeline execution.
+- `gofer:bootstrap-workspace` - Create or update the repo-owned Gofer scaffold for the current workspace.
+- `gofer:check-workspace` - Check whether this repo is initialized for Gofer and explain any missing or stale scaffold.
 - `gofer_constitution` - Create or update project constitution with coding principles and guidelines.
 - `gofer:diagnose` - Run a reproduce-minimize-instrument-fix loop for bugs and failing tests.
 - `gofer_hydrate` - Reverse-engineer specification from existing code (Hydration).

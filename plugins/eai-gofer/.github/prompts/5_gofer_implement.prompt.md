@@ -35,16 +35,14 @@ Before doing stage/helper work:
    - Claude: `AGENTS.md`, `CLAUDE.md`, `.claude/settings.json`
    - Codex: `AGENTS.md`
    - Copilot: `.github/copilot-instructions.md`
-   - VS Code extension mirrors Claude/Copilot/Gemini resources itself and should
-     still keep the core scaffold healthy
+   - VS Code extension mirrors Claude/Copilot/Gemini resources itself and should still keep the core scaffold healthy
 4. If the repo already has the workspace checker script, prefer running:
    - `node .specify/scripts/node/gofer-workspace-check.mjs --host copilot --json`
 5. If the workspace is missing or stale, ask exactly:
    - **"This repo is missing or stale for Gofer. Initialize/update it now?"**
-6. If the user says yes, run the Gofer workspace bootstrap helper and then
-   resume this command from the top.
-7. If the user says no, stop and explain that Gofer stage/helper work depends on
-   the repo-owned scaffold.
+6. If the user says yes, run the Gofer workspace bootstrap helper and then resume this command from the top.
+7. If the user says no, stop and explain that Gofer stage/helper work depends on the repo-owned scaffold.
+
 
 # Gofer Implement
 
@@ -579,6 +577,7 @@ After implementation complete and review gate passes:
 ════════════════════════════════════════════════════════════════
 ```
 
+
 ---
 
 ## Resumption Support
@@ -612,13 +611,13 @@ when the user explicitly opts out.
 
 Before any deployment task emitted by `#4_gofer_tasks` completes, this stage
 MUST execute deployment preflight checks (manifest/config gate). A task that
-invokes `eai deploy` is not marked complete until all of the following files are
-present at the workspace root and pass their readiness checks:
+invokes `eai deploy` is not marked complete until all of the following files
+are present at the workspace root and pass their readiness checks:
 
-| Required File  | Purpose                                             |
-| -------------- | --------------------------------------------------- |
-| `manifest.yml` | Vertical application manifest (from `eai init`)     |
-| `config.json`  | Runtime configuration bundle (environment-specific) |
+| Required File  | Purpose                                                 |
+| -------------- | ------------------------------------------------------- |
+| `manifest.yml` | Vertical application manifest (from `eai init`) |
+| `config.json`  | Runtime configuration bundle (environment-specific)     |
 
 ### Gate behaviour
 
@@ -648,9 +647,9 @@ separation from `tasks.md`:
   be justified in the approved plan and approval artifacts.
 - Before implementing UI, run or inspect `eai --describe`, `eai blocks list`,
   `eai blocks describe <id>` for every selected block, and
-  `eai resources schema`. Implementation notes must cite the block IDs, required
-  resources, bindings, package lane, coupling status, Storybook story IDs, theme
-  override points, and any approved custom-block exception.
+  `eai resources schema`. Implementation notes must cite the block IDs,
+  required resources, bindings, package lane, coupling status, Storybook story
+  IDs, theme override points, and any approved custom-block exception.
 - Reject unknown component names during implementation unless `tasks.md` and
   `ui-approval.md` explicitly authorize a custom extension block and manifest.
 - Treat package-profile, block-porting, DAISY decoupling, and public-readiness
@@ -658,8 +657,8 @@ separation from `tasks.md`:
   profile work is incomplete until package exports, Storybook stories, theme
   overrides, consumer smoke checks, and unsupported custom-block exceptions are
   resolved or explicitly deferred by approval artifacts.
-- Do not let public or hybrid package lanes import DAISY internals directly. Use
-  `eai resources schema`, an adapter boundary, or an approved internal-only
+- Do not let public or hybrid package lanes import DAISY internals directly.
+  Use `eai resources schema`, an adapter boundary, or an approved internal-only
   exception; record the coupling status in implementation notes and
   `ui-review-log.md`.
 - For application delivery, implement the four-step-or-fewer AI-augmented
@@ -671,9 +670,9 @@ separation from `tasks.md`:
   self-review evidence and append it to `{FEATURE_DIR}/ui-review-log.md`.
 - For application delivery, after UI approval and before treating platform
   selection as complete, update `{FEATURE_DIR}/service-fit-matrix.md` with
-  tenant-aware evidence from `eai --describe`, `eai whoami`,
-  `eai tenant select`, `eai resources schema`, `eai verify calls --format json`,
-  or equivalent approved platform evidence. The matrix must distinguish
+  tenant-aware evidence from `eai --describe`, `eai whoami`, `eai tenant
+  select`, `eai resources schema`, `eai verify calls --format json`, or
+  equivalent approved platform evidence. The matrix must distinguish
   accessible now, purchasable but unavailable now, and unavailable without new
   platform work.
 - For non-app work, skip the preview, approval, branding, and service-fit gates
@@ -698,17 +697,17 @@ Logs to: `.specify/logs/pipeline.jsonl`
 
 ---
 
+
+
 ## Pipeline Continuation
 
 This completes the 5_gofer_implement stage. To continue the Gofer pipeline:
 
 **Next Command:** `#6_gofer_validate`
 
-The next stage will read the artifacts from this stage and continue the workflow
-automatically.
+The next stage will read the artifacts from this stage and continue the workflow automatically.
 
-**Note:** Copilot Chat supports context preservation. Your conversation history
-will be maintained as you progress through pipeline stages.
+**Note:** Copilot Chat supports context preservation. Your conversation history will be maintained as you progress through pipeline stages.
 
 ## Key Rules
 
@@ -732,8 +731,8 @@ will be maintained as you progress through pipeline stages.
 - If the operator explicitly requests `diagnose` and `spec.md` is present, run
   `gofer:diagnose` inline; bug context, failing output, or equivalent failure
   evidence may supplement the investigation. Write
-  `.specify/specs/{feature}/diagnose-report.md` using the same artifact contract
-  as the standalone helper.
+  `.specify/specs/{feature}/diagnose-report.md` using the same artifact
+  contract as the standalone helper.
 - If the required inputs are missing, continue the stage normally and report
   that the helper was not run.
 - These selectors are optional and do not change stage progress, routing, or

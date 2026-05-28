@@ -1,7 +1,6 @@
 ---
 name: gofer:bootstrap-workspace
-description:
-  Create or update the repo-owned Gofer scaffold for the current workspace.
+description: Create or update the repo-owned Gofer scaffold for the current workspace.
 agent: copilot-workspace
 tools:
   - Read
@@ -16,6 +15,7 @@ gofer:
   canonicalChecksum: 1b60462f494136777843139c1676dc72da2bd474947df0b18eebee0afa5c39bb
   metadataSource: scripts/generate-commands.ts
 ---
+
 
 # Gofer Workspace Bootstrap
 

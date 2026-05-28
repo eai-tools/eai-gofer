@@ -17,22 +17,17 @@ Before doing stage/helper work:
    - Claude: `AGENTS.md`, `CLAUDE.md`, `.claude/settings.json`
    - Codex: `AGENTS.md`
    - Copilot: `.github/copilot-instructions.md`
-   - VS Code extension mirrors Claude/Copilot/Gemini resources itself and should
-     still keep the core scaffold healthy
+   - VS Code extension mirrors Claude/Copilot/Gemini resources itself and should still keep the core scaffold healthy
 4. If the repo already has the workspace checker script, prefer running:
    - `node .specify/scripts/node/gofer-workspace-check.mjs --host gemini --json`
 5. If the workspace is missing or stale, ask exactly:
    - **"This repo is missing or stale for Gofer. Initialize/update it now?"**
-6. If the user says yes, run the Gofer workspace bootstrap helper and then
-   resume this command from the top.
-7. If the user says no, stop and explain that Gofer stage/helper work depends on
-   the repo-owned scaffold.
+6. If the user says yes, run the Gofer workspace bootstrap helper and then resume this command from the top.
+7. If the user says no, stop and explain that Gofer stage/helper work depends on the repo-owned scaffold.
 
 ---
-
-description: Generate technical implementation plan with architecture and
-contracts
-
+description:
+  Generate technical implementation plan with architecture and contracts
 ---
 
 # Gofer Plan
@@ -70,10 +65,10 @@ If missing, prompt user to run the prerequisite stage.
 6. Spec coverage validation
 7. Output: `plan.md`, `data-model.md`, `contracts/`, `quickstart.md`
 8. EnterpriseAI default output: task-ready references to `context-bundle.md`,
-   `contract-pack.md`, `reuse-scan.md`, `audit-history.md`, and for app delivery
-   `ui-review-log.md`, `ui-approval.md`, and `service-fit-matrix.md`, including
-   public-readiness, block-porting, DAISY decoupling, Storybook, theme override,
-   and package-profile decisions
+   `contract-pack.md`, `reuse-scan.md`, `audit-history.md`, and for app
+   delivery `ui-review-log.md`, `ui-approval.md`, and
+   `service-fit-matrix.md`, including public-readiness, block-porting, DAISY
+   decoupling, Storybook, theme override, and package-profile decisions
 
 ---
 
@@ -107,8 +102,8 @@ Planning dispatches multiple agents — keep main context lightweight.
    directly):
    - Note feature name from FEATURE_DIR
    - Note whether `discovery.md`, `.specify/memory/constitution.md` exist
-   - Note whether `ui-preview-brief.md`, `ui-review-log.md`, `ui-approval.md`,
-     and `service-fit-matrix.md` exist
+   - Note whether `ui-preview-brief.md`, `ui-review-log.md`,
+     `ui-approval.md`, and `service-fit-matrix.md` exist
    - Note external/internal/hybrid profile choice, package lane, coupling
      status, Storybook story IDs, theme override points, custom-block
      exceptions, and public-readiness status when app delivery applies
@@ -595,9 +590,9 @@ When the workflow profile is `enterpriseai`, `plan.md` MUST capture:
 
 1. **EAI CLI version pin** — record the installed `eai` version as a
    `major.minor` pin (for example `2.0`). The plan stage resolves the local
-   version via `eai --version`, strips the patch component, and writes the pin
-   to the `EnterpriseAI Profile Metadata` block of `plan-template.md` so every
-   downstream task is reproducible. Plans MUST apply
+   version via `eai --version`, strips the patch component, and writes the
+   pin to the `EnterpriseAI Profile Metadata` block of `plan-template.md` so
+   every downstream task is reproducible. Plans MUST apply
    `pin guidance to `major.minor`` and never to a specific patch release.
 2. **Deployment convention** — reference
    `.specify/references/eai/deployment-repo.md` for the canonical deployment
@@ -622,9 +617,9 @@ When the workflow profile is `enterpriseai`, `plan.md` MUST capture:
    the preview loop before plan/tasks are considered complete. The plan MUST:
    - keep the first preview constrained to Vertical Template blocks unless an
      approved extension is recorded
-   - cite `eai blocks describe <id>` evidence for every selected block ID, plus
-     the ResourceAPI/Object Type fields from `eai resources schema` that feed
-     each block
+   - cite `eai blocks describe <id>` evidence for every selected block ID,
+     plus the ResourceAPI/Object Type fields from `eai resources schema` that
+     feed each block
    - record override points for theme tokens, `presentationConfig`, copy,
      data/action bindings, and client extension blocks
    - capture whether client branding/logos are in scope
@@ -637,22 +632,20 @@ When the workflow profile is `enterpriseai`, `plan.md` MUST capture:
    before tasks are treated as complete. The matrix must distinguish:
    - accessible now
    - purchasable but unavailable now
-   - unavailable without new platform work The plan must source this evidence
-     from `eai --describe`, `eai whoami`, `eai tenant select`,
-     `eai resources schema`, `eai verify calls --format json`,
-     `eai workflow readiness <workflow-key>`,
-     `eai workflow status <workflow-key>`,
-     `eai workflow request <workflow-key>`,
-     `eai provision entra --rotate-secret`, or documented equivalent public
-     platform evidence.
-8. **Reuse-before-create decision log** — reference
-   `{FEATURE_DIR}/reuse-scan.md` for every new or extended EnterpriseAI object
-   type, API/event, workflow, or module.
+   - unavailable without new platform work
+   The plan must source this evidence from `eai --describe`, `eai whoami`,
+   `eai tenant select`, `eai resources schema`, `eai verify calls --format
+   json`, `eai workflow readiness <workflow-key>`, `eai workflow status
+   <workflow-key>`, `eai workflow request <workflow-key>`, `eai provision
+   entra --rotate-secret`, or documented equivalent public platform evidence.
+8. **Reuse-before-create decision log** — reference `{FEATURE_DIR}/reuse-scan.md`
+   for every new or extended EnterpriseAI object type, API/event, workflow, or
+   module.
 9. **Audit history seed** — create or update `{FEATURE_DIR}/audit-history.md`
    with stable finding IDs, decision exceptions, owner, expiry, and review
    cadence so validation can track recurring issues.
-10. **Public/private knowledge split** — identify which implementation facts are
-    safe for public docs, Gofer guidance, EAI CLI help, or Vertical Template
+10. **Public/private knowledge split** — identify which implementation facts
+    are safe for public docs, Gofer guidance, EAI CLI help, or Vertical Template
     comments, and which facts are internal-only. Plans must express blocked
     states as public-safe actions (`operator_required`, `upgrade_required`, or
     documented support URL) rather than exposing private service topology.

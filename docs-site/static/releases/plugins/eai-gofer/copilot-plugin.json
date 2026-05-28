@@ -1,6 +1,6 @@
 {
   "name": "eai-gofer",
-  "version": "3.4.4",
+  "version": "3.4.5",
   "description": "Public Gofer spec-driven delivery workflow for Claude, Gemini, Codex, Copilot, and VS Code.",
   "author": {
     "name": "Enterprise AI Pty Ltd",
@@ -25,7 +25,7 @@
     "agentic-coding",
     "gemini"
   ],
-  "skills": "./skills/",
+  "skills": "./plugin-skills/",
   "agents": "./agents/",
   "commands": "./commands/"
 }

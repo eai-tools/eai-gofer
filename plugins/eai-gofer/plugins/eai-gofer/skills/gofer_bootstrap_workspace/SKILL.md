@@ -1,7 +1,6 @@
 ---
 name: gofer:bootstrap-workspace
-description:
-  'Create or update the repo-owned Gofer scaffold for the current workspace.'
+description: "Create or update the repo-owned Gofer scaffold for the current workspace."
 ---
 
 # Gofer Workspace Bootstrap

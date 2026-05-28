@@ -17,21 +17,19 @@ Before doing stage/helper work:
    - Claude: `AGENTS.md`, `CLAUDE.md`, `.claude/settings.json`
    - Codex: `AGENTS.md`
    - Copilot: `.github/copilot-instructions.md`
-   - VS Code extension mirrors Claude/Copilot/Gemini resources itself and should
-     still keep the core scaffold healthy
+   - VS Code extension mirrors Claude/Copilot/Gemini resources itself and should still keep the core scaffold healthy
 4. If the repo already has the workspace checker script, prefer running:
    - `node .specify/scripts/node/gofer-workspace-check.mjs --host claude --json`
 5. If the workspace is missing or stale, ask exactly:
    - **"This repo is missing or stale for Gofer. Initialize/update it now?"**
-6. If the user says yes, run the Gofer workspace bootstrap helper and then
-   resume this command from the top.
-7. If the user says no, stop and explain that Gofer stage/helper work depends on
-   the repo-owned scaffold.
+6. If the user says yes, run the Gofer workspace bootstrap helper and then resume this command from the top.
+7. If the user says no, stop and explain that Gofer stage/helper work depends on the repo-owned scaffold.
+
 
 # Gofer Vocabulary
 
-Extract the feature's shared domain language into a canonical glossary and write
-it to `.specify/specs/{feature}/glossary.md`.
+Extract the feature's shared domain language into a canonical glossary and
+write it to `.specify/specs/{feature}/glossary.md`.
 
 Use this when research, specification, contracts, or implementation rely on
 terms that need stable definitions across Claude, Copilot, Codex, and Gemini
@@ -61,5 +59,5 @@ The generated glossary must contain these sections:
 - `## Definitions`
 - `## Source Artifacts`
 
-Keep the content Gofer-owned and concise. Do not copy upstream Matt Pocock skill
-text verbatim.
+Keep the content Gofer-owned and concise. Do not copy upstream Matt Pocock
+skill text verbatim.

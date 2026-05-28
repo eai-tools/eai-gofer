@@ -93,6 +93,15 @@ non-pipeline control command.
 Open a side conversation in the active CLI without disturbing the main pipeline
 state; resumable.
 
+### gofer:check-workspace
+
+Check whether this repo is initialized for Gofer and explain any missing or
+stale scaffold.
+
+### gofer:bootstrap-workspace
+
+Create or update the repo-owned Gofer scaffold for the current workspace.
+
 ### gofer:vocabulary
 
 Extract domain terminology into a canonical feature glossary.

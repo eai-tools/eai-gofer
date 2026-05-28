@@ -1,9 +1,7 @@
 ---
 name: gofer:check-workspace
-description:
-  'Check whether this repo is initialized for Gofer and explain any missing or
-  stale scaffold.'
-title: 'Gofer Workspace Check'
+description: "Check whether this repo is initialized for Gofer and explain any missing or stale scaffold."
+title: "Gofer Workspace Check"
 category: control
 surfaces:
   - claude

@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: enterpriseai
   canonicalSource: .specify/commands/2_gofer_specify.md
-  canonicalChecksum: 7c326654e15152bad89f160cea1cf84dd6a26766c083e1c7e296c3c6e2472e78
+  canonicalChecksum: d3aff84e06d4bafd5d1fe61597383082e7dd409d9e4abc547c2e7a010662f0fb
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -56,6 +56,23 @@ $ARGUMENTS
 ```
 
 You **MUST** consider the user input before proceeding (if not empty).
+
+## Execution Depth And Artifact Churn
+
+Carry forward the `fast` / `standard` / `full` depth chosen in research. Keep
+labels generic: `docs-only`, `single-repo-code`, `api-contract`,
+`auth-security`, `data-model`, `infra-config`, `release-critical`, `unknown`.
+
+- **fast** specs should be short and scoped, with no new optional artifact set
+  unless research found implementation risk.
+- **standard** specs should include normal user stories, acceptance criteria,
+  test expectations, and protected boundaries.
+- **full** specs must explicitly capture contract, security, data, infra,
+  rollout, and validation obligations with evidence references.
+
+Do not rediscover context already summarized in `research.md` or
+`proposal-review.md`; consume it, cite it, and only reopen files when a claim is
+ambiguous.
 
 ## Prerequisites
 

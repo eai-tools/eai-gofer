@@ -62,6 +62,20 @@ describe('hook-wiring (T056)', () => {
     ).toHaveProperty('gofer:package-plugin');
   });
 
+  it('gofer:perf-baseline script is present', () => {
+    expect(
+      packageJson.scripts,
+      'package.json is missing gofer:perf-baseline script'
+    ).toHaveProperty('gofer:perf-baseline');
+  });
+
+  it('gofer:version-check script is present', () => {
+    expect(
+      packageJson.scripts,
+      'package.json is missing gofer:version-check script'
+    ).toHaveProperty('gofer:version-check');
+  });
+
   // -------------------------------------------------------------------------
   // Script file path checks
   // -------------------------------------------------------------------------
@@ -109,6 +123,18 @@ describe('hook-wiring (T056)', () => {
     expect(script).toContain('.specify/scripts/node/');
   });
 
+  it('gofer:perf-baseline references gofer-performance-report.mjs', () => {
+    const script = packageJson.scripts['gofer:perf-baseline'];
+    expect(script).toContain('gofer-performance-report.mjs');
+    expect(script).toContain('.specify/scripts/node/');
+  });
+
+  it('gofer:version-check references check-version-alignment.mjs', () => {
+    const script = packageJson.scripts['gofer:version-check'];
+    expect(script).toContain('check-version-alignment.mjs');
+    expect(script).toContain('.specify/scripts/node/');
+  });
+
   // -------------------------------------------------------------------------
   // Script invocation style — should use node directly (not tsx/ts-node)
   // -------------------------------------------------------------------------
@@ -130,6 +156,16 @@ describe('hook-wiring (T056)', () => {
 
   it('gofer:package-plugin uses node to invoke the script', () => {
     const script = packageJson.scripts['gofer:package-plugin'];
+    expect(script).toMatch(/^node\s/);
+  });
+
+  it('gofer:perf-baseline uses node to invoke the script', () => {
+    const script = packageJson.scripts['gofer:perf-baseline'];
+    expect(script).toMatch(/^node\s/);
+  });
+
+  it('gofer:version-check uses node to invoke the script', () => {
+    const script = packageJson.scripts['gofer:version-check'];
     expect(script).toMatch(/^node\s/);
   });
 
@@ -183,5 +219,29 @@ describe('hook-wiring (T056)', () => {
     );
     const stat = await fs.stat(scriptPath).catch(() => null);
     expect(stat, `package-agent-plugin.mjs not found at ${scriptPath}`).not.toBeNull();
+  });
+
+  it('gofer-performance-report.mjs exists on disk', async () => {
+    const scriptPath = path.join(
+      PROJECT_ROOT,
+      '.specify',
+      'scripts',
+      'node',
+      'gofer-performance-report.mjs'
+    );
+    const stat = await fs.stat(scriptPath).catch(() => null);
+    expect(stat, `gofer-performance-report.mjs not found at ${scriptPath}`).not.toBeNull();
+  });
+
+  it('check-version-alignment.mjs exists on disk', async () => {
+    const scriptPath = path.join(
+      PROJECT_ROOT,
+      '.specify',
+      'scripts',
+      'node',
+      'check-version-alignment.mjs'
+    );
+    const stat = await fs.stat(scriptPath).catch(() => null);
+    expect(stat, `check-version-alignment.mjs not found at ${scriptPath}`).not.toBeNull();
   });
 });

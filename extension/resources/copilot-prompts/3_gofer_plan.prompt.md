@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: enterpriseai
   canonicalSource: .specify/commands/3_gofer_plan.md
-  canonicalChecksum: 30a6fb593f540f9bcff71f086c6afc5de168e19a1f6cb796ebe7a782cab2fb36
+  canonicalChecksum: 0d3743b1ec83dba959601c41bcaea90b2ec8c0740bf8fdf815f2cf48bcbd8d43
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -57,6 +57,22 @@ $ARGUMENTS
 ```
 
 You **MUST** consider the user input before proceeding (if not empty).
+
+## Execution Depth And Planning Surface
+
+Use the research/spec risk classification to choose planning depth:
+
+- **fast**: produce the smallest viable plan, only for docs-only or very small
+  low-risk work.
+- **standard**: produce the normal plan, data/contracts only when relevant, and
+  a concrete test strategy.
+- **full**: include contract compatibility, auth/security, data migration,
+  infra/config, rollback, and release sequencing where the generic risk labels
+  require them.
+
+Avoid artifact churn. Optional diagrams, extended architecture councils,
+generated issue packs, and broad release plans are only warranted when risk is
+full-depth or the user asks for them.
 
 ## Prerequisites
 

@@ -30,6 +30,9 @@ helpers:
 
 ## Current Release Feed
 
+Browse all releases and downloads on the
+**[Releases page](https://eai-tools.github.io/eai-gofer/releases)**.
+
 VS Code updates use the Gofer Pages feed:
 
 ```text
@@ -54,7 +57,7 @@ https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer
 - [Architecture](architecture.md)
 - [Configuration](configuration.md)
 - [API Reference](api-reference.md)
-- [Release Downloads](https://eai-tools.github.io/eai-gofer/releases.html#/)
+- [Release Downloads](https://eai-tools.github.io/eai-gofer/releases)
 
 ---
 

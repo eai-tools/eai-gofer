@@ -25,7 +25,6 @@ const PIPELINE_SEQUENCE = [
   '4_gofer_tasks',
   '5_gofer_implement',
   '6_gofer_validate',
-  '6a_gofer_engineering_review',
 ];
 
 function getNextCommand(currentCommand) {

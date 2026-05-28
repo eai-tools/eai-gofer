@@ -1,7 +1,7 @@
 {
   "name": "eai-gofer",
-  "version": "3.4.6",
-  "description": "Public Gofer spec-driven delivery workflow for Claude, Codex, Copilot, Gemini, and VS Code.",
+  "version": "3.4.5",
+  "description": "Public Gofer core pipeline and helper commands for Claude, Codex, Copilot, Gemini, and VS Code.",
   "author": {
     "name": "Enterprise AI Pty Ltd",
     "url": "https://github.com/eai-tools/eai-gofer"
@@ -9,26 +9,15 @@
   "homepage": "https://github.com/eai-tools/eai-gofer",
   "repository": "https://github.com/eai-tools/eai-gofer",
   "license": "SEE LICENSE IN LICENSE",
-  "keywords": [
-    "eai-gofer",
-    "gofer",
-    "codex",
-    "claude",
-    "copilot",
-    "gemini",
-    "spec-driven-development"
-  ],
+  "keywords": ["eai-gofer", "gofer", "codex", "claude", "copilot", "gemini", "spec-driven-development"],
   "skills": "./plugin-skills/",
   "interface": {
     "displayName": "EAI Gofer",
     "shortDescription": "Spec-driven delivery workflow for agentic coding",
-    "longDescription": "Run the public Gofer workflow from business scenario through research, specification, planning, tasks, implementation, validation, and stakeholder communications.",
+    "longDescription": "Run Gofer’s core /0_business_scenario → /6_gofer_validate workflow, with optional bootstrap, save/resume, testing, and communications helpers.",
     "developerName": "EnterpriseAI",
     "category": "Coding",
-    "capabilities": [
-      "Interactive",
-      "Write"
-    ],
+    "capabilities": ["Interactive", "Write"],
     "websiteURL": "https://github.com/eai-tools/eai-gofer",
     "defaultPrompt": [
       "Run Gofer research for this feature",
@@ -49,7 +38,6 @@
       "4_gofer_tasks",
       "5_gofer_implement",
       "6_gofer_validate",
-      "6a_gofer_engineering_review",
       "7_gofer_save",
       "7a_stakeholder_comms",
       "8_gofer_resume",
@@ -69,7 +57,7 @@
       "gofer:zoom-out"
     ],
     "marketplacePath": "https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer",
-    "releaseAsset": "https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-3.4.6.zip",
-    "vsixAsset": "https://eai-tools.github.io/eai-gofer/releases/eai-gofer-3.4.6.vsix"
+    "releaseAsset": "https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-3.4.5.zip",
+    "vsixAsset": "https://eai-tools.github.io/eai-gofer/releases/eai-gofer-3.4.5.vsix"
   }
 }

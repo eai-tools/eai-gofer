@@ -1,11 +1,13 @@
 ---
 name: 2_gofer_specify
-description: "Generate a feature specification from research findings and approved proposal review."
+description:
+  'Generate a feature specification from research findings and any supporting
+  review context.'
 ---
 
 ---
-description: Create feature specification informed by codebase research
----
+
+## description: Create feature specification informed by codebase research
 
 # Gofer Specify
 
@@ -43,7 +45,7 @@ This command expects:
 
 - Feature directory already created at `.specify/specs/{feature}/`
 - `research.md` completed from `/1_gofer_research`
-- `proposal-review.md` approved from `/1_gofer_research`
+- `proposal-review.md` if research created supporting review context
 
 If these don't exist, prompt user to run `/1_gofer_research` first.
 
@@ -52,7 +54,7 @@ If these don't exist, prompt user to run `/1_gofer_research` first.
 ## Outline
 
 1. Context health check
-2. Validate approved proposal review and load existing findings
+2. Validate any supporting proposal review context and load existing findings
 3. Dispatch specification agents (sub-agents handle heavy generation)
 4. Review agent output, handle clarifications
 5. Optional multi-perspective review
@@ -107,16 +109,17 @@ Before starting specification, assess context window health:
 
 ---
 
-## Step 1.25: Proposal Approval Gate
+## Step 1.25: Optional Proposal Review Context
 
-`proposal-review.md` is the approval gate between research and specification.
+`proposal-review.md` is optional supporting context between research and
+specification.
 
-- If `proposal-review.md` is missing: STOP and tell the user to run
-  `/1_gofer_research` so the review can be created.
-- If `proposal-review.md` exists but `status` is not `approved`: STOP and tell
-  the user to finish the review conversation before writing `spec.md`.
-- If `proposal-review.md` is approved: capture the approved business scenario,
-  architecture direction, selected option, and any user overrides.
+- If `proposal-review.md` is missing: continue using `research.md` as the source
+  of truth.
+- If `proposal-review.md` exists: capture any business-scenario guidance,
+  architecture direction, selected option, and user overrides it records.
+- If `proposal-review.md` records a clear user-approved direction: treat that as
+  authoritative. Otherwise, treat it as advisory context.
 
 ---
 
@@ -139,7 +142,7 @@ If discovery.md exists, pass this mapping to the spec writer agent:
 discovery.md doesn't exist, the agent generates spec content from research.md
 and user input.
 
-If proposal-review.md exists and is approved, also pass this mapping:
+If proposal-review.md exists, also pass this mapping:
 
 ### Proposal Review → Spec Mapping
 
@@ -169,7 +172,7 @@ Feature directory: {FEATURE_DIR}
 
 Read these files for full context:
 - {FEATURE_DIR}/research.md — Codebase analysis, integration points, patterns, constraints
-- {FEATURE_DIR}/proposal-review.md — Approved business scenario, architecture direction, options, overrides
+- {FEATURE_DIR}/proposal-review.md — Supporting business scenario, architecture direction, options, overrides (read if exists, skip if not)
 - .specify/templates/spec-template.md — Template structure to follow
 - {FEATURE_DIR}/discovery.md — Business discovery findings (read if exists, skip if not)
 - {FEATURE_DIR}/journeys/base-journey.md — AI-augmented four-step application journey (read if exists, skip if not)
@@ -244,10 +247,10 @@ If service-fit-matrix.md exists, use it to:
 - Keep non-selected or blocked capabilities in Out of Scope, Assumptions, or
   Risks as appropriate
 
-If proposal-review.md exists and status is approved, use it to:
-- Treat Recommended Business Scenario as the authoritative scope for the spec
-- Reflect the approved architecture direction in Assumptions, Dependencies, and NFR framing
-- Carry forward any approved user overrides before finalizing requirements
+If proposal-review.md exists, use it to:
+- Treat explicitly user-approved directions as authoritative scope for the spec
+- Reflect the strongest architecture direction in Assumptions, Dependencies, and NFR framing
+- Carry forward any user overrides before finalizing requirements
 - Place non-selected options in Out of Scope or Assumptions where appropriate
 
 Rules:
@@ -256,7 +259,7 @@ Rules:
 - Maximum 3 [NEEDS CLARIFICATION] markers for genuinely ambiguous items
 - Acknowledge ALL constraints from research.md in Assumptions or NFRs
 - Reference ALL integration points from research.md in Dependencies
-- Honor the approved direction in proposal-review.md over unapproved alternatives
+- Prefer explicit user-approved directions in proposal-review.md when present; otherwise treat it as advisory context
 - Each functional requirement must include Validation and Integration references
 - Explicit non-app work MUST keep the shared numbered stages but MUST NOT be
   forced to create app-only preview, approval, branding, or service-fit
@@ -285,7 +288,7 @@ findings and generate a quality checklist.
 Read:
 - {FEATURE_DIR}/spec.md — The specification to validate
 - {FEATURE_DIR}/research.md — Research findings to cross-reference
-- {FEATURE_DIR}/proposal-review.md — Approved review decisions to cross-reference
+- {FEATURE_DIR}/proposal-review.md — Supporting review decisions to cross-reference when present
 
 Part 1: Research Integration Validation (GAP-04)
 For EACH integration point in research.md, check if it's addressed in spec:
@@ -293,7 +296,7 @@ For EACH integration point in research.md, check if it's addressed in spec:
 For EACH constraint from research.md, check if acknowledged in spec:
 - In Assumptions or Non-Functional Requirements
 For EACH technology decision, check if reflected in Dependencies.
-For EACH approved decision or override in proposal-review.md, check if it is
+For EACH decision or override captured in proposal-review.md, check if it is
 represented in Overview, Requirements, Assumptions, Dependencies, or Out of Scope.
 
 Build a coverage matrix:
@@ -327,9 +330,9 @@ After both agents complete:
    - All user stories have acceptance criteria
    - Success criteria are measurable and technology-agnostic
    - Dependencies reference correct codebase components from research
-   - Approved scenario and architecture choices from proposal-review.md are
-     reflected
-   - Research traceability matrix is complete
+
+- Scenario and architecture choices from proposal-review.md are reflected
+- Research traceability matrix is complete
 
 2. **Check research coverage** — From the validator agent:
    - If MISSING items found: Edit spec.md to add missing coverage
@@ -654,23 +657,23 @@ stage can bind implementation tasks directly to specification clauses.
 When EnterpriseAI is active or no profile is specified, generate
 `{FEATURE_DIR}/contract-pack.md` with these required sections:
 
-| Section | Required Content |
-| ------- | ---------------- |
-| Actors | Business users, administrators, approvers, external systems, support roles |
-| Object Types | Reused, extended, and newly proposed EnterpriseAI object types with owners |
-| Workflows and Journeys | External user journeys and internal orchestration flows as separate views; app delivery must include the four-step-or-fewer AI-augmented journey |
-| UI Preview and Approval | For app delivery: preview brief, Vertical Template constraints, branding inputs, preview validation evidence expectations, review-log requirements, approval gate rules; for non-app work: mark not applicable |
-| AI Assistance Contract | Step goal, assistance mode, context used, generated output, user controls, confidence/evidence, audit trail, completion signal, and escalation for each app step |
-| EnterpriseAI Service Fit | For app delivery: desired capabilities, evidence source, accessible now vs purchasable vs unavailable classification, selected direction, and blocked-capability handling |
-| Public Platform Boundary | Public docs/help/CLI/PublicAPI behavior the builder may rely on; private platform details intentionally excluded; upgrade/operator-required paths expressed as product-safe user actions |
-| Permissions and Tenant Boundaries | Identity, authorization, policy, isolation, and tenant assumptions |
-| APIs and Events | ResourceAPI surfaces, events, payload ownership, and contract-test hooks |
-| Deployment and Runtime | Environment, config, observability, rollback, and operating assumptions |
-| Acceptance Tests | Business, security, data, architecture, operational, and regression checks |
+| Section                           | Required Content                                                                                                                                                                                               |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Actors                            | Business users, administrators, approvers, external systems, support roles                                                                                                                                     |
+| Object Types                      | Reused, extended, and newly proposed EnterpriseAI object types with owners                                                                                                                                     |
+| Workflows and Journeys            | External user journeys and internal orchestration flows as separate views; app delivery must include the four-step-or-fewer AI-augmented journey                                                               |
+| UI Preview and Approval           | For app delivery: preview brief, Vertical Template constraints, branding inputs, preview validation evidence expectations, review-log requirements, approval gate rules; for non-app work: mark not applicable |
+| AI Assistance Contract            | Step goal, assistance mode, context used, generated output, user controls, confidence/evidence, audit trail, completion signal, and escalation for each app step                                               |
+| EnterpriseAI Service Fit          | For app delivery: desired capabilities, evidence source, accessible now vs purchasable vs unavailable classification, selected direction, and blocked-capability handling                                      |
+| Public Platform Boundary          | Public docs/help/CLI/PublicAPI behavior the builder may rely on; private platform details intentionally excluded; upgrade/operator-required paths expressed as product-safe user actions                       |
+| Permissions and Tenant Boundaries | Identity, authorization, policy, isolation, and tenant assumptions                                                                                                                                             |
+| APIs and Events                   | ResourceAPI surfaces, events, payload ownership, and contract-test hooks                                                                                                                                       |
+| Deployment and Runtime            | Environment, config, observability, rollback, and operating assumptions                                                                                                                                        |
+| Acceptance Tests                  | Business, security, data, architecture, operational, and regression checks                                                                                                                                     |
 
 The contract pack must link every new object type/API/workflow back to
-`reuse-scan.md` and must flag any "create new" decision that lacks evidence.
-For EnterpriseAI public-facing work, the contract pack must also separate:
+`reuse-scan.md` and must flag any "create new" decision that lacks evidence. For
+EnterpriseAI public-facing work, the contract pack must also separate:
 
 - **Public builder knowledge**: EAI CLI commands, PublicAPI responses, template
   configuration, support documentation, and user-safe statuses such as
@@ -700,8 +703,8 @@ Logs to: `.specify/logs/pipeline.jsonl`
   is stabilized, run `gofer:vocabulary` inline and write
   `.specify/specs/{feature}/glossary.md` using the same artifact contract as the
   standalone helper.
-- If the operator explicitly requests the `spec-summary` selector after `spec.md`
-  is stabilized, run `gofer:spec-summary` inline and write
+- If the operator explicitly requests the `spec-summary` selector after
+  `spec.md` is stabilized, run `gofer:spec-summary` inline and write
   `.specify/specs/{feature}/spec-summary.md` using the same artifact contract as
   the standalone helper.
 - If `spec.md` is missing, continue the stage normally and report that the

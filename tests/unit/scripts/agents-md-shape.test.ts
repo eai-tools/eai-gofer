@@ -2,10 +2,10 @@
  * T168 — Validates AGENTS.md (at repo root) shape.
  *
  *   1. Exists
- *   2. Contains a `## Available stages` section
- *   3. Lists the full Gofer command set (one ### per command)
+ *   2. Contains the core + helper stage sections
+ *   3. Lists the full Gofer command set (one ### per command across both)
  *   4. Each description ≤140 chars
- *   5. Formerly Claude-only stages are listed in the stages section
+ *   5. Formerly Claude-only stages are listed in the helper-aware sections
  */
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
@@ -18,13 +18,17 @@ const __dirname = path.dirname(__filename);
 const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
 const AGENTS_MD_PATH = path.join(REPO_ROOT, 'AGENTS.md');
 
-function extractStagesSection(content: string): string {
-  const start = content.indexOf('## Available stages');
-  if (start === -1) return '';
-  // Section ends at the next `## ` heading at the same level
+function extractStageSections(content: string): string {
+  const coreStart = content.indexOf('## Core Pipeline Stages');
+  const helperStart = content.indexOf('## Optional Helper Commands');
+  if (coreStart === -1 && helperStart === -1) return '';
+
+  const start = coreStart !== -1 ? coreStart : helperStart;
   const after = content.slice(start);
-  const endRel = after.slice(3).search(/\n## /);
-  return endRel === -1 ? after : after.slice(0, endRel + 3);
+  const nextSectionRel = after
+    .slice(3)
+    .search(/\n## (?!Core Pipeline Stages|Optional Helper Commands)/);
+  return nextSectionRel === -1 ? after : after.slice(0, nextSectionRel + 3);
 }
 
 describe('AGENTS.md shape (T168)', () => {
@@ -32,14 +36,15 @@ describe('AGENTS.md shape (T168)', () => {
     expect(fs.existsSync(AGENTS_MD_PATH)).toBe(true);
   });
 
-  it('contains a `## Available stages` section', (): void => {
+  it('contains the core and helper stage sections', (): void => {
     const content = fs.readFileSync(AGENTS_MD_PATH, 'utf8');
-    expect(content).toContain('## Available stages');
+    expect(content).toContain('## Core Pipeline Stages');
+    expect(content).toContain('## Optional Helper Commands');
   });
 
   it(`lists exactly ${FULL_COMMAND_COUNT} Gofer stage/helper subsections (### <name>)`, (): void => {
     const content = fs.readFileSync(AGENTS_MD_PATH, 'utf8');
-    const section = extractStagesSection(content);
+    const section = extractStageSections(content);
     let foundCount = 0;
     for (const stage of FULL_COMMAND_NAMES) {
       const re = new RegExp(`^### ${stage.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'm');
@@ -50,7 +55,7 @@ describe('AGENTS.md shape (T168)', () => {
 
   it('each stage description in stages section is ≤140 chars', (): void => {
     const content = fs.readFileSync(AGENTS_MD_PATH, 'utf8');
-    const section = extractStagesSection(content);
+    const section = extractStageSections(content);
     // Find paragraphs immediately after each `### <name>` heading.
     const blocks = section.split(/^### /m).slice(1);
     for (const block of blocks) {
@@ -65,9 +70,9 @@ describe('AGENTS.md shape (T168)', () => {
     }
   });
 
-  it('formerly Claude-only stages are listed in the stages section', (): void => {
+  it('formerly Claude-only stages are listed in the helper-aware sections', (): void => {
     const content = fs.readFileSync(AGENTS_MD_PATH, 'utf8');
-    const section = extractStagesSection(content);
+    const section = extractStageSections(content);
     for (const stage of [
       '0_business_scenario',
       'gofer_constitution',

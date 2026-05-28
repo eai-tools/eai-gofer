@@ -374,7 +374,40 @@ function buildCodeStyleSection(projectInfo) {
 }
 
 export function buildAgentsMd(projectInfo, stages) {
-  const stageSections = stages
+  const corePipelineOrder = [
+    '0_business_scenario',
+    '1_gofer_research',
+    '2_gofer_specify',
+    '3_gofer_plan',
+    '4_gofer_tasks',
+    '5_gofer_implement',
+    '6_gofer_validate',
+  ];
+  const corePipelineSet = new Set(corePipelineOrder);
+  const helperStages = [];
+  const pipelineStages = [];
+
+  for (const stage of stages) {
+    if (corePipelineSet.has(String(stage.frontmatter.name))) {
+      pipelineStages.push(stage);
+    } else {
+      helperStages.push(stage);
+    }
+  }
+
+  pipelineStages.sort(
+    (a, b) =>
+      corePipelineOrder.indexOf(String(a.frontmatter.name)) -
+      corePipelineOrder.indexOf(String(b.frontmatter.name))
+  );
+
+  const pipelineSections = pipelineStages
+    .map(
+      (stage) =>
+        `### ${stage.frontmatter.name}\n\n${String(stage.frontmatter.description).trim()}`
+    )
+    .join('\n\n');
+  const helperSections = helperStages
     .map(
       (stage) =>
         `### ${stage.frontmatter.name}\n\n${String(stage.frontmatter.description).trim()}`
@@ -387,9 +420,13 @@ export function buildAgentsMd(projectInfo, stages) {
 
 **Project**: ${projectInfo.name} | **Language**: ${formatLanguage(projectInfo.language)}${frameworkLine} | **Package Manager**: ${projectInfo.packageManager || 'Not detected'}
 
-## Available stages
+## Core Pipeline Stages
 
-${stageSections}
+${pipelineSections}
+
+## Optional Helper Commands
+
+${helperSections}
 
 ## Commands
 
@@ -413,7 +450,7 @@ ${buildCodeStyleSection(projectInfo)}
 
 ## Gofer Pipeline
 
-This project uses Gofer for spec-driven development. Run \`/0_business_scenario\` to start the pipeline (research -> specify -> plan -> tasks -> implement -> validate). Artifacts in \`.specify/specs/{feature}/\`.
+This project uses Gofer for spec-driven development. Run \`/0_business_scenario\` to start the core pipeline (business scenario -> research -> specify -> plan -> tasks -> implement -> validate). \`/6_gofer_validate\` is the terminal quality gate and includes the final engineering review loop. Artifacts in \`.specify/specs/{feature}/\`.
 
 ## Core Principles
 
@@ -459,7 +496,7 @@ See @AGENTS.md for project conventions, commands, and code style.
 
 ## Gofer Pipeline
 
-Run \`/0_business_scenario\` to start the full pipeline: research -> specify -> plan -> tasks -> implement -> validate. Use \`/7_gofer_save\` and \`/8_gofer_resume\` for session continuity. Artifacts go to \`.specify/specs/{feature}/\`.
+Run \`/0_business_scenario\` to start the core pipeline: business scenario -> research -> specify -> plan -> tasks -> implement -> validate. \`/6_gofer_validate\` is the terminal quality gate and includes the final engineering review loop. Use \`/7_gofer_save\` and \`/8_gofer_resume\` for session continuity. Artifacts go to \`.specify/specs/{feature}/\`.
 `;
 }
 
@@ -473,9 +510,9 @@ export function buildCopilotInstructions(projectInfo) {
 
 ## Gofer Pipeline
 
-This project uses Gofer for spec-driven development. Run \`/0_business_scenario\` to start the full pipeline: research -> specify -> plan -> tasks -> implement -> validate.
+This project uses Gofer for spec-driven development. Run \`/0_business_scenario\` to start the core pipeline: business scenario -> research -> specify -> plan -> tasks -> implement -> validate.
 
-Key commands: \`/1_gofer_research\`, \`/2_gofer_specify\`, \`/3_gofer_plan\`, \`/4_gofer_tasks\`, \`/5_gofer_implement\`, \`/6_gofer_validate\`. Use \`/7_gofer_save\` and \`/8_gofer_resume\` for session continuity. Artifacts in \`.specify/specs/{feature}/\`.
+Key commands: \`/1_gofer_research\`, \`/2_gofer_specify\`, \`/3_gofer_plan\`, \`/4_gofer_tasks\`, \`/5_gofer_implement\`, \`/6_gofer_validate\`. \`/6_gofer_validate\` is the terminal quality gate and includes the final engineering review loop. Use \`/7_gofer_save\` and \`/8_gofer_resume\` for session continuity. Artifacts in \`.specify/specs/{feature}/\`.
 
 ## Code Quality
 
@@ -825,4 +862,3 @@ export function formatWorkspaceCheckReport(report) {
 
   return lines.join('\n');
 }
-

@@ -83,7 +83,10 @@ const REMOVED_SURFACE_PATTERNS: RemovedSurfacePattern[] = [
   },
 ];
 
-async function collectRelativeFiles(rootDir: string, currentDir: string = rootDir): Promise<string[]> {
+async function collectRelativeFiles(
+  rootDir: string,
+  currentDir: string = rootDir
+): Promise<string[]> {
   const entries = await fs.readdir(currentDir, { withFileTypes: true });
   const files = await Promise.all(
     entries.map(async (entry): Promise<string[]> => {
@@ -145,10 +148,7 @@ describe('Command Generation Integration (US-3)', () => {
 
     it('should preserve the execution-strategy table in the Codex validation skill', async () => {
       // Read Codex validation skill
-      const codexSkillPath = path.join(
-        process.cwd(),
-        '.agents/skills/6_gofer_validate/SKILL.md'
-      );
+      const codexSkillPath = path.join(process.cwd(), '.agents/skills/6_gofer_validate/SKILL.md');
 
       const content = await fs.readFile(codexSkillPath, 'utf-8');
 
@@ -432,23 +432,17 @@ describe('Command Generation Integration (US-3)', () => {
       expect(findings).toEqual([]);
     });
 
-    it('keeps completed and release specs archived instead of active at the top level', async () => {
-      const specsRoot = path.join(process.cwd(), '.specify', 'specs');
-      const entries = await fs.readdir(specsRoot, { withFileTypes: true });
-      const activeSpecDirs = entries
-        .filter((entry) => entry.isDirectory() && !entry.name.startsWith('.') && entry.name !== '_archived')
-        .map((entry) => entry.name)
+    it('does not ship tracked feature specs in the public repository', () => {
+      const tracked = execFileSync('git', ['ls-files', '.specify/specs'], {
+        cwd: process.cwd(),
+        encoding: 'utf8',
+      })
+        .split('\n')
+        .map((line) => line.trim())
+        .filter(Boolean)
         .sort();
-      const archivedSpecsRoot = path.join(specsRoot, '_archived');
-      const archivedSpecDirs = (await fs.readdir(archivedSpecsRoot, { withFileTypes: true }))
-        .filter((entry) => entry.isDirectory())
-        .map((entry) => entry.name);
 
-      expect(activeSpecDirs.length).toBeGreaterThan(0);
-      expect(activeSpecDirs).not.toContain('030-vscode-surface-truth-cleanup');
-      expect(activeSpecDirs).not.toContain('release-vscode-surface-truth');
-      expect(archivedSpecDirs).toContain('030-vscode-surface-truth-cleanup');
-      expect(archivedSpecDirs).toContain('release-vscode-surface-truth');
+      expect(tracked).toEqual(['.specify/specs/.gitkeep']);
     });
   });
 });

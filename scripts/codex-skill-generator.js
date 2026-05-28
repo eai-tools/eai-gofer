@@ -26,7 +26,6 @@ const PIPELINE_SEQUENCE = [
   '4_gofer_tasks',
   '5_gofer_implement',
   '6_gofer_validate',
-  '6a_gofer_engineering_review',
 ];
 
 function getNextCommand(currentCommand) {
@@ -55,6 +54,8 @@ function extractYamlFrontmatter(content) {
 
 function transformContent(content) {
   let transformed = content;
+  const stageCommandPattern = /\/(\d+[a-z]?_[a-z0-9_]+)/g;
+  const helperCommandPattern = /\/(gofer_[a-z0-9_]+)/g;
 
   // Remove Claude-specific AUTO-CHAIN sections
   transformed = transformed.replace(
@@ -76,12 +77,12 @@ function transformContent(content) {
   );
 
   // Transform command invocation syntax: / → $ $
-  // Handle numbered commands (including 6a style)
-  transformed = transformed.replace(/\/(\d+[a-z]?_gofer_\w+)/g, (match, capture) => {
+  // Handle numbered commands, including alpha suffix stages like 0a and 7a.
+  transformed = transformed.replace(stageCommandPattern, (match, capture) => {
     return `$ $${capture}`;
   });
   // Handle non-numbered commands
-  transformed = transformed.replace(/\/(gofer_\w+)/g, (match, capture) => {
+  transformed = transformed.replace(helperCommandPattern, (match, capture) => {
     return `$ $${capture}`;
   });
 

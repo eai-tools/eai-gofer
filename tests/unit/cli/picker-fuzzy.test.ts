@@ -2,7 +2,7 @@
  * T131 — picker-fuzzy.test.ts
  *
  * Verifies that Gofer commands are discoverable via fuzzy matching across
- * the 16 pipeline stages + 3 control commands (gofer:plan, gofer:side,
+ * the 15 pipeline stage files + 3 control commands (gofer:plan, gofer:side,
  * gofer:personality). This is the proxy for "Gofer commands appear in
  * Claude/Copilot/Gemini fuzzy suggestions" (US5 AC-2).
  */
@@ -29,7 +29,7 @@ function fuzzyMatch(needle: string, haystack: string[]): string[] {
   });
 }
 
-// 16 numbered stages + 16 namespaced aliases + helper/control commands.
+// 15 numbered stage files + namespaced aliases + helper/control commands.
 // We list both numbered and namespaced forms because the Claude picker
 // surfaces both, while Copilot's palette tends to show namespaced only.
 const ALL_COMMANDS: string[] = [
@@ -42,7 +42,6 @@ const ALL_COMMANDS: string[] = [
   '4_gofer_tasks',
   '5_gofer_implement',
   '6_gofer_validate',
-  '6a_gofer_engineering_review',
   '7_gofer_save',
   '7a_stakeholder_comms',
   '8_gofer_resume',

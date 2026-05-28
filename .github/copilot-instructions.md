@@ -6,9 +6,17 @@
 
 ## Gofer Pipeline
 
-This project uses Gofer for spec-driven development. Run `/0_business_scenario` to start the full pipeline: research -> specify -> plan -> tasks -> implement -> validate.
+This project uses Gofer for spec-driven development. Run `/0_business_scenario`
+to start the core pipeline: business scenario -> research -> specify -> plan ->
+tasks -> implement -> validate.
 
-Key commands: `/1_gofer_research`, `/2_gofer_specify`, `/3_gofer_plan`, `/4_gofer_tasks`, `/5_gofer_implement`, `/6_gofer_validate`. Use `/7_gofer_save` and `/8_gofer_resume` for session continuity. Artifacts in `.specify/specs/{feature}/`.
+Key commands: `/1_gofer_research`, `/2_gofer_specify`, `/3_gofer_plan`,
+`/4_gofer_tasks`, `/5_gofer_implement`, `/6_gofer_validate`. `/6_gofer_validate`
+is the terminal quality gate and includes the final engineering review loop. Use
+`/7_gofer_save` and `/8_gofer_resume` for session continuity. Optional helpers
+like `/0a_problem_validation`, `/7a_stakeholder_comms`,
+`/gofer:check-workspace`, and `/gofer:bootstrap-workspace` support the workflow
+without adding extra core stages. Artifacts in `.specify/specs/{feature}/`.
 
 ## Code Quality
 
@@ -29,6 +37,9 @@ Key commands: `/1_gofer_research`, `/2_gofer_specify`, `/3_gofer_plan`, `/4_gofe
 
 ## Core Principles
 
-- **Simplicity First**: Make every change as simple as possible. Impact minimal code.
-- **No Laziness**: Find root causes. No temporary fixes. Senior developer standards.
-- **Minimal Impact**: Changes should only touch what's necessary. Avoid introducing bugs.
+- **Simplicity First**: Make every change as simple as possible. Impact minimal
+  code.
+- **No Laziness**: Find root causes. No temporary fixes. Senior developer
+  standards.
+- **Minimal Impact**: Changes should only touch what's necessary. Avoid
+  introducing bugs.

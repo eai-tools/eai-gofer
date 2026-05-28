@@ -6,7 +6,7 @@
  *   2. The generator emits to all surfaces under --dry-run without throwing
  *   3. All persona-pack templates exist at .specify/templates/visuals/
  *   4. assemble-stakeholder-pack.mjs is importable
- *   5. quickstart.md lists 11 manual scenarios (A through K)
+ *   5. public quickstart fixture lists 11 manual scenarios (A through K)
  */
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
@@ -14,6 +14,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { FULL_COMMAND_COUNT, FULL_COMMAND_FILES } from '../../helpers/goferCommandSet';
+import { TRACEABILITY_QUICKSTART_PATH } from '../../helpers/traceabilityFixture';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -101,14 +102,7 @@ describe('e2e pipeline smoke (T160)', () => {
   });
 
   it('quickstart.md lists 11 manual scenarios', (): void => {
-    const quickstartPath = path.join(
-      REPO_ROOT,
-      '.specify',
-      'specs',
-      '_archived',
-      '001-cli-innovations-visuals',
-      'quickstart.md'
-    );
+    const quickstartPath = TRACEABILITY_QUICKSTART_PATH;
     expect(fs.existsSync(quickstartPath)).toBe(true);
     const content = fs.readFileSync(quickstartPath, 'utf8');
     // Each manual scenario header looks like "### Scenario X — ..."

@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: enterpriseai
   canonicalSource: .specify/commands/5_gofer_implement.md
-  canonicalChecksum: 78047f951d0498990d83eec13eccc83a4601c451ce0b2d4f377be1fbda2a361c
+  canonicalChecksum: c56c84a8caddc9498855ddd132be7d0c506f988baf875cff965e0a336f3ea3c1
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -56,6 +56,22 @@ $ARGUMENTS
 ```
 
 You **MUST** consider the user input before proceeding (if not empty).
+
+## Execution Depth During Implementation
+
+Before editing, re-check the planned depth and generic risk labels from
+`tasks.md` / `plan.md`:
+
+- **fast**: for `docs-only` or very small low-risk changes, make the smallest
+  scoped edit, run focused checks, and avoid regenerating optional artifacts
+  unless they are directly affected.
+- **standard**: implement phase by phase with normal focused test evidence.
+- **full**: open the relevant contracts, security, data, infra, release, and
+  rollback artifacts before code changes; update tests before or alongside the
+  fix.
+
+If the implementation reveals a higher-risk surface than planned, stop and
+upgrade the depth before continuing. Do not silently broaden scope.
 
 ## Prerequisites
 

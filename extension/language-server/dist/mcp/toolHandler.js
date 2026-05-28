@@ -670,7 +670,10 @@ class MCPToolHandler {
     async estimateTokensFromGlob(pattern) {
         try {
             const glob = await Promise.resolve().then(() => __importStar(require('glob')));
-            const files = await glob.glob(pattern, { cwd: this.workspacePath });
+            const files = await glob.glob(pattern, {
+                cwd: this.workspacePath,
+                ignore: this.getContextHealthGlobIgnore(pattern),
+            });
             let totalTokens = 0;
             for (const file of files) {
                 totalTokens += await this.estimateTokensFromFile(file);
@@ -680,6 +683,12 @@ class MCPToolHandler {
         catch {
             return 0;
         }
+    }
+    getContextHealthGlobIgnore(pattern) {
+        if (!pattern.startsWith('.specify/specs/')) {
+            return [];
+        }
+        return ['.specify/specs/_*/**', '.specify/specs/**/_*/**'];
     }
     /**
      * MCP Tool: gofer_get_research_index
@@ -900,12 +909,17 @@ ${notes || 'No additional notes.'}
             const cachePath = path.join(this.workspacePath, '.specify', 'memory', 'observation-cache', 'index.json');
             const cacheContent = await fs.readFile(cachePath, 'utf-8');
             const cache = JSON.parse(cacheContent);
-            const observation = cache.observations.find(o => o.id === observationId);
+            const observation = cache.observations.find((o) => o.id === observationId);
             if (!observation) {
-                return { success: false, error: 'Observation not found', errorCode: 'OBSERVATION_NOT_FOUND' };
+                return {
+                    success: false,
+                    error: 'Observation not found',
+                    errorCode: 'OBSERVATION_NOT_FOUND',
+                };
             }
             // Return key-points if available, otherwise first/last lines
-            const peek = observation.keyPointsContent || this.generateQuickPeek(observation.originalContent, observation.type);
+            const peek = observation.keyPointsContent ||
+                this.generateQuickPeek(observation.originalContent, observation.type);
             return {
                 success: true,
                 peek: {
@@ -938,21 +952,35 @@ ${notes || 'No additional notes.'}
                 return { success: false, error: validation.error, errorCode: 'INVALID_OBSERVATION_ID' };
             }
             if (!['collapsed', 'summary', 'expanded'].includes(foldLevel)) {
-                return { success: false, error: 'foldLevel must be collapsed, summary, or expanded', errorCode: 'INVALID_FOLD_LEVEL' };
+                return {
+                    success: false,
+                    error: 'foldLevel must be collapsed, summary, or expanded',
+                    errorCode: 'INVALID_FOLD_LEVEL',
+                };
             }
             const cachePath = path.join(this.workspacePath, '.specify', 'memory', 'observation-cache', 'index.json');
             const cacheContent = await fs.readFile(cachePath, 'utf-8');
             const cache = JSON.parse(cacheContent);
-            const observation = cache.observations.find(o => o.id === observationId);
+            const observation = cache.observations.find((o) => o.id === observationId);
             if (!observation) {
-                return { success: false, error: 'Observation not found', errorCode: 'OBSERVATION_NOT_FOUND' };
+                return {
+                    success: false,
+                    error: 'Observation not found',
+                    errorCode: 'OBSERVATION_NOT_FOUND',
+                };
             }
             const previousLevel = observation.foldLevel;
             observation.foldLevel = foldLevel;
             // Write back to disk
             await fs.writeFile(cachePath, JSON.stringify(cache, null, 2), 'utf-8');
             // Track in operation history
-            this.recordContextOperation({ type: 'fold', observationId, foldLevel, previousLevel, timestamp: Date.now() });
+            this.recordContextOperation({
+                type: 'fold',
+                observationId,
+                foldLevel,
+                previousLevel,
+                timestamp: Date.now(),
+            });
             return {
                 success: true,
                 result: {
@@ -977,7 +1005,11 @@ ${notes || 'No additional notes.'}
     async grepObservations(pattern, maxResults = 10) {
         try {
             if (!pattern || typeof pattern !== 'string' || pattern.length > 500) {
-                return { success: false, error: 'pattern must be a non-empty string (max 500 chars)', errorCode: 'INVALID_PATTERN' };
+                return {
+                    success: false,
+                    error: 'pattern must be a non-empty string (max 500 chars)',
+                    errorCode: 'INVALID_PATTERN',
+                };
             }
             const cachePath = path.join(this.workspacePath, '.specify', 'memory', 'observation-cache', 'index.json');
             const cacheContent = await fs.readFile(cachePath, 'utf-8');
@@ -1051,16 +1083,28 @@ ${notes || 'No additional notes.'}
                 const state = JSON.parse(content);
                 const sectionContent = state.sections?.[section];
                 if (sectionContent) {
-                    return { success: true, content: typeof sectionContent === 'string' ? sectionContent : JSON.stringify(sectionContent), section };
+                    return {
+                        success: true,
+                        content: typeof sectionContent === 'string' ? sectionContent : JSON.stringify(sectionContent),
+                        section,
+                    };
                 }
-                return { success: true, content: `Section '${section}' not found. Available: ${Object.keys(state.sections || {}).join(', ')}`, section };
+                return {
+                    success: true,
+                    content: `Section '${section}' not found. Available: ${Object.keys(state.sections || {}).join(', ')}`,
+                    section,
+                };
             }
             catch {
                 return { success: false, error: 'Context state not available', errorCode: 'NO_STATE' };
             }
         }
         catch (error) {
-            return { success: false, error: error instanceof Error ? error.message : 'Unknown error', errorCode: 'REPL_ERROR' };
+            return {
+                success: false,
+                error: error instanceof Error ? error.message : 'Unknown error',
+                errorCode: 'REPL_ERROR',
+            };
         }
     }
     /**
@@ -1070,7 +1114,11 @@ ${notes || 'No additional notes.'}
     async contextGrep(pattern) {
         try {
             if (!pattern || pattern.length > 500) {
-                return { success: false, error: 'pattern must be non-empty (max 500 chars)', errorCode: 'INVALID_PATTERN' };
+                return {
+                    success: false,
+                    error: 'pattern must be non-empty (max 500 chars)',
+                    errorCode: 'INVALID_PATTERN',
+                };
             }
             const statePath = path.join(this.workspacePath, '.specify', 'memory', 'context-health-state.json');
             const content = await fs.readFile(statePath, 'utf-8');
@@ -1102,11 +1150,19 @@ ${notes || 'No additional notes.'}
             }
             return {
                 success: true,
-                results: { pattern, sectionMatches, totalMatches: sectionMatches.reduce((s, m) => s + m.matchCount, 0) },
+                results: {
+                    pattern,
+                    sectionMatches,
+                    totalMatches: sectionMatches.reduce((s, m) => s + m.matchCount, 0),
+                },
             };
         }
         catch (error) {
-            return { success: false, error: error instanceof Error ? error.message : 'Unknown error', errorCode: 'GREP_ERROR' };
+            return {
+                success: false,
+                error: error instanceof Error ? error.message : 'Unknown error',
+                errorCode: 'GREP_ERROR',
+            };
         }
     }
     /**
@@ -1145,24 +1201,38 @@ ${notes || 'No additional notes.'}
                 try {
                     const cacheContent = await fs.readFile(cachePath, 'utf-8');
                     const cache = JSON.parse(cacheContent);
-                    const obs = cache.observations.find(o => o.id === lastOp.observationId);
+                    const obs = cache.observations.find((o) => o.id === lastOp.observationId);
                     if (obs) {
                         obs.foldLevel = previousLevel;
                         await fs.writeFile(cachePath, JSON.stringify(cache, null, 2), 'utf-8');
                     }
                 }
-                catch { /* cache may not exist */ }
-                return { success: true, content: `Undid fold: ${lastOp.observationId} reverted to ${previousLevel}`, section: 'undo' };
+                catch {
+                    /* cache may not exist */
+                }
+                return {
+                    success: true,
+                    content: `Undid fold: ${lastOp.observationId} reverted to ${previousLevel}`,
+                    section: 'undo',
+                };
             }
             else if (lastOp.type === 'context_fold' || lastOp.type === 'context_expand') {
                 const revertLevel = lastOp.type === 'context_fold' ? 'expanded' : 'collapsed';
                 await this.updateContextFoldState(lastOp.section || '', revertLevel);
-                return { success: true, content: `Undid ${lastOp.type}: ${lastOp.section} reverted to ${revertLevel}`, section: 'undo' };
+                return {
+                    success: true,
+                    content: `Undid ${lastOp.type}: ${lastOp.section} reverted to ${revertLevel}`,
+                    section: 'undo',
+                };
             }
             return { success: true, content: `Undid operation: ${lastOp.type}`, section: 'undo' };
         }
         catch (error) {
-            return { success: false, error: error instanceof Error ? error.message : 'Unknown error', errorCode: 'UNDO_ERROR' };
+            return {
+                success: false,
+                error: error instanceof Error ? error.message : 'Unknown error',
+                errorCode: 'UNDO_ERROR',
+            };
         }
     }
     /**
@@ -1174,7 +1244,7 @@ ${notes || 'No additional notes.'}
             const history = await this.loadOperationHistory();
             return {
                 success: true,
-                operations: history.slice(-10).map(op => ({
+                operations: history.slice(-10).map((op) => ({
                     type: op.type,
                     target: op.observationId || op.section || '',
                     detail: op.foldLevel || '',
@@ -1198,11 +1268,31 @@ ${notes || 'No additional notes.'}
             }
             // Inline slop scanning to avoid cross-package import
             const SLOP_PATTERNS = [
-                { regex: /\bit\.skip\b|\btest\.skip\b|\bdescribe\.skip\b/, name: 'disabled-test', severity: 'error', message: 'Disabled test found' },
-                { regex: /\bTODO\b(?!.*(?:#\d+|[A-Z]+-\d+))/, name: 'todo-no-issue', severity: 'warning', message: 'TODO without issue reference' },
-                { regex: /catch\s*\([^)]*\)\s*\{\s*\}/, name: 'empty-catch', severity: 'warning', message: 'Empty catch block' },
+                {
+                    regex: /\bit\.skip\b|\btest\.skip\b|\bdescribe\.skip\b/,
+                    name: 'disabled-test',
+                    severity: 'error',
+                    message: 'Disabled test found',
+                },
+                {
+                    regex: /\bTODO\b(?!.*(?:#\d+|[A-Z]+-\d+))/,
+                    name: 'todo-no-issue',
+                    severity: 'warning',
+                    message: 'TODO without issue reference',
+                },
+                {
+                    regex: /catch\s*\([^)]*\)\s*\{\s*\}/,
+                    name: 'empty-catch',
+                    severity: 'warning',
+                    message: 'Empty catch block',
+                },
                 { regex: /\bas\s+any\b/, name: 'as-any', severity: 'warning', message: 'as any cast' },
-                { regex: /\bdebugger\b/, name: 'debugger', severity: 'error', message: 'debugger statement' },
+                {
+                    regex: /\bdebugger\b/,
+                    name: 'debugger',
+                    severity: 'error',
+                    message: 'debugger statement',
+                },
             ];
             const SCAN_EXT = new Set(['.ts', '.tsx', '.js', '.jsx']);
             const matches = [];
@@ -1214,7 +1304,13 @@ ${notes || 'No additional notes.'}
                 for (let i = 0; i < lines.length; i++) {
                     for (const p of SLOP_PATTERNS) {
                         if (p.regex.test(lines[i])) {
-                            matches.push({ file: targetPath, line: i + 1, pattern: p.name, severity: p.severity, message: p.message });
+                            matches.push({
+                                file: targetPath,
+                                line: i + 1,
+                                pattern: p.name,
+                                severity: p.severity,
+                                message: p.message,
+                            });
                         }
                     }
                 }
@@ -1230,7 +1326,10 @@ ${notes || 'No additional notes.'}
                             if (filesScanned >= 200)
                                 return;
                             const fp = path.join(dir, entry.name);
-                            if (entry.isDirectory() && !entry.name.startsWith('.') && entry.name !== 'node_modules' && entry.name !== 'dist') {
+                            if (entry.isDirectory() &&
+                                !entry.name.startsWith('.') &&
+                                entry.name !== 'node_modules' &&
+                                entry.name !== 'dist') {
                                 walk(fp);
                             }
                             else if (entry.isFile() && SCAN_EXT.has(path.extname(entry.name))) {
@@ -1240,14 +1339,22 @@ ${notes || 'No additional notes.'}
                                 for (let i = 0; i < lines.length; i++) {
                                     for (const p of SLOP_PATTERNS) {
                                         if (p.regex.test(lines[i])) {
-                                            matches.push({ file: fp, line: i + 1, pattern: p.name, severity: p.severity, message: p.message });
+                                            matches.push({
+                                                file: fp,
+                                                line: i + 1,
+                                                pattern: p.name,
+                                                severity: p.severity,
+                                                message: p.message,
+                                            });
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                    catch { /* skip unreadable dirs */ }
+                    catch {
+                        /* skip unreadable dirs */
+                    }
                 };
                 walk(targetPath);
             }
@@ -1266,7 +1373,11 @@ ${notes || 'No additional notes.'}
     async contextRepl(operations) {
         try {
             if (!Array.isArray(operations) || operations.length === 0) {
-                return { success: false, results: [], error: 'Operations array is required and must be non-empty' };
+                return {
+                    success: false,
+                    results: [],
+                    error: 'Operations array is required and must be non-empty',
+                };
             }
             if (operations.length > 50) {
                 return { success: false, results: [], error: 'Maximum 50 operations per batch' };
@@ -1280,17 +1391,32 @@ ${notes || 'No additional notes.'}
                     switch (op) {
                         case 'fold': {
                             const foldResult = await this.updateContextFoldState(target, 'collapsed');
-                            results.push({ op, target, success: foldResult.success, message: foldResult.content || foldResult.error || '' });
+                            results.push({
+                                op,
+                                target,
+                                success: foldResult.success,
+                                message: foldResult.content || foldResult.error || '',
+                            });
                             break;
                         }
                         case 'expand': {
                             const expandResult = await this.updateContextFoldState(target, 'expanded');
-                            results.push({ op, target, success: expandResult.success, message: expandResult.content || expandResult.error || '' });
+                            results.push({
+                                op,
+                                target,
+                                success: expandResult.success,
+                                message: expandResult.content || expandResult.error || '',
+                            });
                             break;
                         }
                         case 'peek': {
                             const peekResult = await this.contextPeek(target);
-                            results.push({ op, target, success: peekResult.success, message: peekResult.content?.slice(0, 200) || peekResult.error || '' });
+                            results.push({
+                                op,
+                                target,
+                                success: peekResult.success,
+                                message: peekResult.content?.slice(0, 200) || peekResult.error || '',
+                            });
                             break;
                         }
                         case 'fold-all-older-than': {
@@ -1301,7 +1427,9 @@ ${notes || 'No additional notes.'}
                                 const content = await fs.readFile(foldStatePath, 'utf-8');
                                 foldState = JSON.parse(content);
                             }
-                            catch { /* start fresh */ }
+                            catch {
+                                /* start fresh */
+                            }
                             let foldCount = 0;
                             for (const [section] of Object.entries(foldState)) {
                                 if (foldState[section] !== 'collapsed') {
@@ -1314,7 +1442,12 @@ ${notes || 'No additional notes.'}
                                 foldState[`_bulk_fold_age_${age}`] = 'collapsed';
                             }
                             await fs.writeFile(foldStatePath, JSON.stringify(foldState, null, 2), 'utf-8');
-                            results.push({ op, target: `age>${age}`, success: true, message: `Folded ${foldCount} sections older than ${age} turns` });
+                            results.push({
+                                op,
+                                target: `age>${age}`,
+                                success: true,
+                                message: `Folded ${foldCount} sections older than ${age} turns`,
+                            });
                             break;
                         }
                         default:
@@ -1322,13 +1455,22 @@ ${notes || 'No additional notes.'}
                     }
                 }
                 catch (opError) {
-                    results.push({ op, target, success: false, message: opError instanceof Error ? opError.message : 'Operation failed' });
+                    results.push({
+                        op,
+                        target,
+                        success: false,
+                        message: opError instanceof Error ? opError.message : 'Operation failed',
+                    });
                 }
             }
             return { success: true, results };
         }
         catch (error) {
-            return { success: false, results: [], error: error instanceof Error ? error.message : 'Unknown error' };
+            return {
+                success: false,
+                results: [],
+                error: error instanceof Error ? error.message : 'Unknown error',
+            };
         }
     }
     // ─────────────────────────────────────────────────────────────────────────────
@@ -1398,14 +1540,30 @@ ${notes || 'No additional notes.'}
                 const output = (stdout + '\n' + stderr).trim();
                 // Parse results
                 const { passed, failed, total } = this.parseTestOutput(output, framework);
-                return { success: true, framework, command, passed, failed, total, output: output.slice(-2000) };
+                return {
+                    success: true,
+                    framework,
+                    command,
+                    passed,
+                    failed,
+                    total,
+                    output: output.slice(-2000),
+                };
             }
             catch (execError) {
                 // Test failures often exit non-zero
                 const err = execError;
                 const output = ((err.stdout || '') + '\n' + (err.stderr || '')).trim();
                 const { passed, failed, total } = this.parseTestOutput(output, framework);
-                return { success: true, framework, command, passed, failed, total, output: output.slice(-2000) };
+                return {
+                    success: true,
+                    framework,
+                    command,
+                    passed,
+                    failed,
+                    total,
+                    output: output.slice(-2000),
+                };
             }
         }
         catch (error) {
@@ -1447,15 +1605,30 @@ ${notes || 'No additional notes.'}
                 const content = await fs.readFile(foldStatePath, 'utf-8');
                 foldState = JSON.parse(content);
             }
-            catch { /* start fresh */ }
+            catch {
+                /* start fresh */
+            }
             const previous = foldState[section] || 'expanded';
             foldState[section] = level;
             await fs.writeFile(foldStatePath, JSON.stringify(foldState, null, 2), 'utf-8');
-            this.recordContextOperation({ type: level === 'collapsed' ? 'context_fold' : 'context_expand', section, timestamp: Date.now(), previousLevel: previous });
-            return { success: true, content: `Section '${section}' ${level === 'collapsed' ? 'folded' : 'expanded'}`, section };
+            this.recordContextOperation({
+                type: level === 'collapsed' ? 'context_fold' : 'context_expand',
+                section,
+                timestamp: Date.now(),
+                previousLevel: previous,
+            });
+            return {
+                success: true,
+                content: `Section '${section}' ${level === 'collapsed' ? 'folded' : 'expanded'}`,
+                section,
+            };
         }
         catch (error) {
-            return { success: false, error: error instanceof Error ? error.message : 'Unknown error', errorCode: 'FOLD_ERROR' };
+            return {
+                success: false,
+                error: error instanceof Error ? error.message : 'Unknown error',
+                errorCode: 'FOLD_ERROR',
+            };
         }
     }
     generateQuickPeek(content, type) {
@@ -1463,9 +1636,17 @@ ${notes || 'No additional notes.'}
         if (lines.length <= 5)
             return content;
         if (type === 'file_read') {
-            return [...lines.slice(0, 3), `  ... (${lines.length - 5} lines) ...`, ...lines.slice(-2)].join('\n');
+            return [
+                ...lines.slice(0, 3),
+                `  ... (${lines.length - 5} lines) ...`,
+                ...lines.slice(-2),
+            ].join('\n');
         }
-        return [...lines.slice(0, 5), `  ... (${lines.length - 10} lines) ...`, ...lines.slice(-5)].join('\n');
+        return [
+            ...lines.slice(0, 5),
+            `  ... (${lines.length - 10} lines) ...`,
+            ...lines.slice(-5),
+        ].join('\n');
     }
     recordContextOperation(op) {
         this.contextOperationHistory.push(op);

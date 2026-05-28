@@ -332,6 +332,7 @@ export declare class MCPToolHandler {
      * Uses 4 chars = 1 token approximation.
      */
     private estimateTokensFromGlob;
+    private getContextHealthGlobIgnore;
     /**
      * MCP Tool: gofer_get_research_index
      * Returns the index of available research chunks for a spec

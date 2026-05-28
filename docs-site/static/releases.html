@@ -117,6 +117,29 @@
             .release-item { padding: 15px; }
             .releases-header { padding: 15px 20px; }
         }
+        body { margin: 0; }
+        .app-nav {
+            position: static;
+            background: var(--bg-dark, #2d3748);
+            padding: 12px 30px;
+            text-align: right;
+        }
+        .app-nav ul {
+            list-style: none;
+            display: flex;
+            justify-content: flex-end;
+            gap: 22px;
+            margin: 0;
+            padding: 0;
+        }
+        .app-nav a { color: #e2e8f0; text-decoration: none; font-weight: 500; }
+        .app-nav a:hover, .app-nav li.active a { color: var(--theme-color, #4299e1); }
+        #app {
+            max-width: 920px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        #app > h1 { color: #2d3748; }
     </style>
 </head>
 <body>
@@ -124,42 +147,24 @@
         <p>Loading...</p>
     </div>
     <script>
-        window.$docsify = {
-            name: 'Gofer',
-            nameLink: '/eai-gofer/',
-            repo: 'https://github.com/eai-tools/eai-gofer',
-            loadSidebar: false,
-            loadNavbar: false,
-            subMaxLevel: 3,
-            auto2top: true,
-            plugins: [
-                function(hook) {
-                    // Custom navbar for releases page with absolute links back to main site
-                    hook.ready(function() {
-                        var nav = document.createElement('nav');
-                        nav.className = 'app-nav';
-                        nav.innerHTML =
-                            '<ul>' +
-                                '<li><a href="/eai-gofer/">Home</a></li>' +
-                                '<li><a href="/eai-gofer/#/quickstart">Quick Start</a></li>' +
-                                '<li><a href="/eai-gofer/#/pipeline/README">Pipeline</a></li>' +
-                                '<li class="active"><a href="/eai-gofer/releases.html#/">Releases</a></li>' +
-                                '<li><a href="https://github.com/eai-tools/eai-gofer">GitHub</a></li>' +
-                            '</ul>';
-                        var body = document.body;
-                        body.insertBefore(nav, body.firstChild);
-                    });
-                },
-                function(hook) {
-                    hook.doneEach(function() {
-                        renderReleaseShell();
-                    });
-                }
-            ]
-        };
+        // Custom navbar with absolute links back to the main Docusaurus site.
+        function renderNav() {
+            if (document.querySelector('nav.app-nav')) return;
+            var nav = document.createElement('nav');
+            nav.className = 'app-nav';
+            nav.innerHTML =
+                '<ul>' +
+                    '<li><a href="/eai-gofer/">Home</a></li>' +
+                    '<li><a href="/eai-gofer/#/quickstart">Quick Start</a></li>' +
+                    '<li><a href="/eai-gofer/#/pipeline/README">Pipeline</a></li>' +
+                    '<li class="active"><a href="/eai-gofer/releases.html">Releases</a></li>' +
+                    '<li><a href="https://github.com/eai-tools/eai-gofer">GitHub</a></li>' +
+                '</ul>';
+            document.body.insertBefore(nav, document.body.firstChild);
+        }
 
         function renderReleaseShell() {
-            var content = document.querySelector('.markdown-section') || document.getElementById('app');
+            var content = document.getElementById('app');
             if (!content) return;
             if (content.querySelector('.releases-container')) return;
             content.innerHTML =
@@ -190,6 +195,7 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
+            renderNav();
             renderReleaseShell();
         });
 
@@ -296,14 +302,5 @@
                 .replace(/\n/g, '<br>');
         }
     </script>
-    <!-- Docsify core -->
-    <script src="https://cdn.jsdelivr.net/npm/docsify@4.13.1/lib/docsify.min.js"></script>
-    <!-- Plugins -->
-    <script src="https://cdn.jsdelivr.net/npm/docsify@4.13.1/lib/plugins/search.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/docsify-copy-code@2/dist/docsify-copy-code.min.js"></script>
-    <!-- Syntax highlighting -->
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-typescript.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-json.min.js"></script>
 </body>
 </html>

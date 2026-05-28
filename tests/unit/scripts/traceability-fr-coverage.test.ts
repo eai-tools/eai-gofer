@@ -4,30 +4,14 @@
  * Parses spec.md to extract every FR-### identifier and asserts each is
  * referenced (case-sensitive) by at least one task in tasks.md.
  *
- * Source-of-truth: spec.md + tasks.md for feature 001-cli-innovations-visuals.
+ * Source-of-truth: public traceability fixture spec.md + tasks.md.
  */
 import { describe, it, expect, beforeAll } from 'vitest';
 import { promises as fs } from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'node:url';
-
-const PROJECT_ROOT = path.resolve(fileURLToPath(new URL('../../../', import.meta.url)));
-const SPEC_PATH = path.join(
-  PROJECT_ROOT,
-  '.specify',
-  'specs',
-  '_archived',
-  '001-cli-innovations-visuals',
-  'spec.md'
-);
-const TASKS_PATH = path.join(
-  PROJECT_ROOT,
-  '.specify',
-  'specs',
-  '_archived',
-  '001-cli-innovations-visuals',
-  'tasks.md'
-);
+import {
+  TRACEABILITY_SPEC_PATH as SPEC_PATH,
+  TRACEABILITY_TASKS_PATH as TASKS_PATH,
+} from '../../helpers/traceabilityFixture';
 
 const FR_PATTERN = /\bFR-\d{3}\b/g;
 

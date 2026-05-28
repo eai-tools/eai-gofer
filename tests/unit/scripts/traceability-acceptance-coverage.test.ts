@@ -6,6 +6,10 @@
  * that every acceptance criterion (US{N} AC-{M}) is referenced by at least
  * one task in tasks.md.
  *
+ * Public-repo note:
+ * Archived project specs are no longer tracked in git, so this test uses a
+ * dedicated public fixture that preserves the traceability format contract.
+ *
  * Spec format expectation:
  *   ### User Story <N> — <Title>
  *   ...
@@ -18,26 +22,10 @@
  */
 import { describe, it, expect, beforeAll } from 'vitest';
 import { promises as fs } from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'node:url';
-
-const PROJECT_ROOT = path.resolve(fileURLToPath(new URL('../../../', import.meta.url)));
-const SPEC_PATH = path.join(
-  PROJECT_ROOT,
-  '.specify',
-  'specs',
-  '_archived',
-  '001-cli-innovations-visuals',
-  'spec.md'
-);
-const TASKS_PATH = path.join(
-  PROJECT_ROOT,
-  '.specify',
-  'specs',
-  '_archived',
-  '001-cli-innovations-visuals',
-  'tasks.md'
-);
+import {
+  TRACEABILITY_SPEC_PATH as SPEC_PATH,
+  TRACEABILITY_TASKS_PATH as TASKS_PATH,
+} from '../../helpers/traceabilityFixture';
 
 interface AcceptanceCriterion {
   us: number;

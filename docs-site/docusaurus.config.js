@@ -69,6 +69,11 @@ const config = {
           label: 'Documentation',
         },
         {
+          to: '/releases',
+          label: 'Releases',
+          position: 'left',
+        },
+        {
           href: 'https://github.com/eai-tools/eai-gofer',
           label: 'GitHub',
           position: 'right',

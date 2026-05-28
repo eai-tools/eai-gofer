@@ -579,6 +579,7 @@ VSIX_URL="https://eai-tools.github.io/eai-gofer/releases/eai-gofer-$NEW_VERSION.
 AGENT_PLUGIN_URL="https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-$NEW_VERSION.zip"
 CLAUDE_MARKETPLACE_URL="https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/claude-marketplace.json"
 CODEX_PLUGIN_URL="https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/codex-plugin.json"
+GEMINI_EXTENSION_URL="https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/gemini-extension.json"
 print_info "Verifying VSIX is downloadable at: $VSIX_URL"
 HTTP_STATUS=$(curl -sL -o /dev/null -w "%{http_code}" "$VSIX_URL?cachebust=$(date +%s)")
 if [ "$HTTP_STATUS" = "200" ]; then
@@ -612,6 +613,14 @@ else
     print_warning "Codex plugin manifest returned HTTP $HTTP_STATUS"
 fi
 
+print_info "Verifying Gemini extension manifest is reachable at: $GEMINI_EXTENSION_URL"
+HTTP_STATUS=$(curl -sL -o /dev/null -w "%{http_code}" "$GEMINI_EXTENSION_URL?cachebust=$(date +%s)")
+if [ "$HTTP_STATUS" = "200" ]; then
+    print_success "Gemini extension manifest is accessible (HTTP $HTTP_STATUS)"
+else
+    print_warning "Gemini extension manifest returned HTTP $HTTP_STATUS"
+fi
+
 # Simulate auto-updater flow (what other VSCode instances will do)
 print_info "Simulating auto-update flow for other VSCode instances..."
 RELEASES_JSON=$(curl -s "https://eai-tools.github.io/eai-gofer/releases.json?cachebust=$(date +%s)")
@@ -622,6 +631,7 @@ REMOTE_VERSION=$(echo "$RELEASES_JSON" | node -e "try { const d=require('fs').re
 REMOTE_URL=$(echo "$RELEASES_JSON" | NEW_VERSION="$NEW_VERSION" node -e "try { const d=require('fs').readFileSync('/dev/stdin','utf8'); const j=JSON.parse(d); const v=process.env.NEW_VERSION; const r=j.releases?.find(r=>r.version===v); console.log(r?.download_url || 'MISSING'); } catch(e) { console.log('MISSING'); }" 2>/dev/null || echo "MISSING")
 REMOTE_CLAUDE_URL=$(echo "$RELEASES_JSON" | NEW_VERSION="$NEW_VERSION" node -e "try { const d=require('fs').readFileSync('/dev/stdin','utf8'); const j=JSON.parse(d); const v=process.env.NEW_VERSION; const r=j.releases?.find(r=>r.version===v); console.log(r?.assets?.claude?.marketplace_url || 'MISSING'); } catch(e) { console.log('MISSING'); }" 2>/dev/null || echo "MISSING")
 REMOTE_CODEX_URL=$(echo "$RELEASES_JSON" | NEW_VERSION="$NEW_VERSION" node -e "try { const d=require('fs').readFileSync('/dev/stdin','utf8'); const j=JSON.parse(d); const v=process.env.NEW_VERSION; const r=j.releases?.find(r=>r.version===v); console.log(r?.assets?.codex?.manifest_url || 'MISSING'); } catch(e) { console.log('MISSING'); }" 2>/dev/null || echo "MISSING")
+REMOTE_GEMINI_URL=$(echo "$RELEASES_JSON" | NEW_VERSION="$NEW_VERSION" node -e "try { const d=require('fs').readFileSync('/dev/stdin','utf8'); const j=JSON.parse(d); const v=process.env.NEW_VERSION; const r=j.releases?.find(r=>r.version===v); console.log(r?.assets?.gemini?.manifest_url || 'MISSING'); } catch(e) { console.log('MISSING'); }" 2>/dev/null || echo "MISSING")
 
 SIMULATION_PASS=true
 if [ "$REMOTE_VERSION" = "$NEW_VERSION" ]; then
@@ -652,6 +662,13 @@ else
     SIMULATION_PASS=false
 fi
 
+if [ "$REMOTE_GEMINI_URL" = "$GEMINI_EXTENSION_URL" ]; then
+    print_success "Gemini extension URL is correct"
+else
+    print_warning "Gemini extension URL mismatch: expected $GEMINI_EXTENSION_URL, got $REMOTE_GEMINI_URL"
+    SIMULATION_PASS=false
+fi
+
 if [ "$SIMULATION_PASS" = "true" ]; then
     print_success "Auto-update simulation passed - other VSCode instances will update correctly"
 else
@@ -667,8 +684,13 @@ echo "  • Users can now update to v$NEW_VERSION via the extension's update but
 echo "  • Download URL: https://eai-tools.github.io/eai-gofer/releases/eai-gofer-$NEW_VERSION.vsix"
 echo ""
 print_success "Agent Plugin Update:"
-echo "  • Claude/Codex/Copilot public bundle: https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer"
+echo "  • Shared public bundle directory: https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer"
 echo "  • Agent plugin zip: https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-$NEW_VERSION.zip"
+echo "  • Public repo install source: https://github.com/eai-tools/eai-gofer"
+echo "  • Claude repo marketplace path: .claude-plugin + plugins/eai-gofer"
+echo "  • Codex repo marketplace path: .agents/plugins + plugins/eai-gofer"
+echo "  • Copilot repo marketplace path: .github/plugin + plugins/eai-gofer"
+echo "  • Gemini manifest: https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/gemini-extension.json"
 echo ""
 print_info "GitHub Resources:"
 echo "  • Releases: https://github.com/eai-tools/eai-gofer/releases"

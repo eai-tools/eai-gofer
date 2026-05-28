@@ -20,6 +20,7 @@ const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
 
 const GEMINI_EXTENSION_JSON = path.join(REPO_ROOT, '.gemini', 'extension.json');
 const GEMINI_COMMANDS_DIR = path.join(REPO_ROOT, '.gemini', 'commands', 'gofer');
+const ROOT_PACKAGE_JSON = path.join(REPO_ROOT, 'package.json');
 
 describe('e2e gemini extension shape (T162)', () => {
   it('.gemini/extension.json exists', (): void => {
@@ -33,8 +34,9 @@ describe('e2e gemini extension shape (T162)', () => {
 
   it('.gemini/extension.json has required top-level fields', (): void => {
     const manifest = JSON.parse(fs.readFileSync(GEMINI_EXTENSION_JSON, 'utf8'));
+    const rootPackage = JSON.parse(fs.readFileSync(ROOT_PACKAGE_JSON, 'utf8'));
     expect(manifest.name).toBe('eai-gofer');
-    expect(typeof manifest.version).toBe('string');
+    expect(manifest.version).toBe(rootPackage.version);
     expect(typeof manifest.description).toBe('string');
     expect(typeof manifest.commands).toBe('string');
   });

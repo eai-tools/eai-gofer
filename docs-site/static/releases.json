@@ -1,12 +1,12 @@
 {
   "latest_version": "3.4.3",
   "repository": "eai-tools/eai-gofer",
-  "last_updated": "2026-05-25T00:20:55.529Z",
+  "last_updated": "2026-05-27T23:20:31.005Z",
   "releases": [
     {
       "version": "3.4.3",
       "tag_name": "v3.4.3",
-      "published_at": "2026-05-22T05:31:58.396Z",
+      "published_at": "2026-05-27T23:20:31.004Z",
       "download_url": "https://eai-tools.github.io/eai-gofer/releases/eai-gofer-3.4.3.vsix",
       "notes": "Fix GitHub Pages publishing for public VSIX and agent plugin updates",
       "prerelease": false,
@@ -39,6 +39,14 @@
           "bundle_url": "https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer",
           "marketplace_url": "https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/copilot-marketplace.json",
           "manifest_url": "https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/copilot-plugin.json",
+          "download_url": "https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-3.4.3.zip",
+          "latest_download_url": "https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-latest.zip",
+          "size_mb": 0.9
+        },
+        "gemini": {
+          "bundle_url": "https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer",
+          "manifest_url": "https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/gemini-extension.json",
+          "commands_manifest_url": "https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/gemini-commands-manifest.json",
           "download_url": "https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-3.4.3.zip",
           "latest_download_url": "https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-latest.zip",
           "size_mb": 0.9

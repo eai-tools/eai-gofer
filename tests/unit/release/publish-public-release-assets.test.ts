@@ -60,6 +60,7 @@ describe('publish-public-release-assets.mjs', () => {
     fs.mkdirSync(path.join(pluginRoot, '.codex-plugin'), { recursive: true });
     fs.mkdirSync(path.join(pluginRoot, '.agents', 'plugins'), { recursive: true });
     fs.mkdirSync(path.join(pluginRoot, '.github', 'plugin'), { recursive: true });
+    fs.mkdirSync(path.join(pluginRoot, '.gemini', 'commands', 'gofer'), { recursive: true });
     fs.writeFileSync(path.join(pluginRoot, '.claude-plugin', 'plugin.json'), '{"name":"eai-gofer"}');
     fs.writeFileSync(
       path.join(pluginRoot, '.claude-plugin', 'marketplace.json'),
@@ -74,6 +75,11 @@ describe('publish-public-release-assets.mjs', () => {
     fs.writeFileSync(
       path.join(pluginRoot, '.github', 'plugin', 'marketplace.json'),
       '{"name":"eai-gofer"}'
+    );
+    fs.writeFileSync(path.join(pluginRoot, '.gemini', 'extension.json'), '{"name":"eai-gofer"}');
+    fs.writeFileSync(
+      path.join(pluginRoot, '.gemini', 'commands', 'gofer', 'manifest.json'),
+      '{"commands":[]}'
     );
 
     fs.writeFileSync(
@@ -113,6 +119,10 @@ describe('publish-public-release-assets.mjs', () => {
     expect(fs.existsSync(path.join(publicPluginRoot, 'codex-plugin.json'))).toBe(true);
     expect(fs.existsSync(path.join(publicPluginRoot, 'copilot-marketplace.json'))).toBe(true);
     expect(fs.existsSync(path.join(publicPluginRoot, 'copilot-plugin.json'))).toBe(true);
+    expect(fs.existsSync(path.join(publicPluginRoot, 'gemini-extension.json'))).toBe(true);
+    expect(fs.existsSync(path.join(publicPluginRoot, 'gemini-commands-manifest.json'))).toBe(
+      true
+    );
 
     expect(fs.existsSync(path.join(publicReleasesDir, 'eai-gofer-3.2.0.vsix'))).toBe(false);
     expect(fs.existsSync(path.join(publicReleasesDir, 'eai-gofer-agent-plugin-3.2.0.zip'))).toBe(

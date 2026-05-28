@@ -63,6 +63,8 @@ async function writePublicPluginAliases(pluginDir) {
     ['.agents/plugins/marketplace.json', 'codex-marketplace.json'],
     ['.github/plugin/plugin.json', 'copilot-plugin.json'],
     ['.github/plugin/marketplace.json', 'copilot-marketplace.json'],
+    ['.gemini/extension.json', 'gemini-extension.json'],
+    ['.gemini/commands/gofer/manifest.json', 'gemini-commands-manifest.json'],
   ];
 
   for (const [sourceRelativePath, aliasRelativePath] of aliases) {

@@ -154,7 +154,7 @@ jobs:
             echo "## Assets"
             echo
             echo "- VS Code extension package"
-            echo "- Claude/Codex/Copilot agent plugin package"
+            echo "- Claude/Codex/Copilot/Gemini public bundle package"
             echo "- Gofer release archive"
             echo
             echo "## Public Release Host"
@@ -174,21 +174,27 @@ jobs:
             echo "Claude Code:"
             echo
             echo '```bash'
-            echo "claude plugin marketplace add https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer --scope user"
+            echo "claude plugin marketplace add https://github.com/eai-tools/eai-gofer --scope user --sparse .claude-plugin --sparse plugins/eai-gofer"
             echo "claude plugin install eai-gofer@eai-gofer --scope user"
             echo '```'
             echo
             echo "Codex:"
             echo
-            echo '```text'
-            echo "Import the plugin bundle URL in the Codex plugin UI:"
-            echo "https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer"
+            echo '```bash'
+            echo "codex plugin marketplace add https://github.com/eai-tools/eai-gofer --sparse .agents/plugins --sparse plugins/eai-gofer"
+            echo "codex plugin add eai-gofer@eai-gofer"
+            echo '```'
+            echo
+            echo "Gemini CLI:"
+            echo
+            echo '```bash'
+            echo "gemini extensions install https://github.com/eai-tools/eai-gofer"
             echo '```'
             echo
             echo "Copilot CLI:"
             echo
             echo '```bash'
-            echo "copilot plugin marketplace add https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer"
+            echo "copilot plugin marketplace add https://github.com/eai-tools/eai-gofer"
             echo "copilot plugin install eai-gofer@eai-gofer"
             echo '```'
           } >> release-notes.md

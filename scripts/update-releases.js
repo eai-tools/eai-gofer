@@ -119,6 +119,14 @@ const newRelease = {
       latest_download_url: latestAgentPluginZipUrl,
       size_mb: agentPluginSizeMb,
     },
+    gemini: {
+      bundle_url: publicPluginBundleUrl,
+      manifest_url: `${publicPluginBundleUrl}/gemini-extension.json`,
+      commands_manifest_url: `${publicPluginBundleUrl}/gemini-commands-manifest.json`,
+      download_url: agentPluginDownloadUrl,
+      latest_download_url: latestAgentPluginZipUrl,
+      size_mb: agentPluginSizeMb,
+    },
   },
 };
 

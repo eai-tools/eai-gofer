@@ -38,6 +38,10 @@ const ALL_SURFACES = [
   'codex-config',
 ];
 
+const PUBLIC_SITE_URL = 'https://eai-tools.github.io/eai-gofer';
+const PUBLIC_RELEASES_URL = `${PUBLIC_SITE_URL}/releases`;
+const PUBLIC_PLUGIN_URL = `${PUBLIC_RELEASES_URL}/plugins/eai-gofer`;
+
 // ---------------------------------------------------------------------------
 // Exclusion logic
 // ---------------------------------------------------------------------------
@@ -68,6 +72,46 @@ export function shouldExclude(stageName, surface) {
  */
 async function ensureDir(dirPath) {
   await fs.mkdir(dirPath, { recursive: true });
+}
+
+async function detectPackageVersion(root) {
+  const candidates = [
+    path.join(root, 'package.json'),
+    path.join(root, 'extension', 'package.json'),
+  ];
+
+  for (const candidate of candidates) {
+    try {
+      const parsed = JSON.parse(await fs.readFile(candidate, 'utf8'));
+      if (typeof parsed.version === 'string' && parsed.version.length > 0) {
+        return parsed.version;
+      }
+    } catch (error) {
+      if (error?.code !== 'ENOENT') {
+        throw error;
+      }
+    }
+  }
+
+  return '1.0.0';
+}
+
+function buildGeminiExtensionManifest(version) {
+  return {
+    name: 'eai-gofer',
+    version,
+    description: 'Gofer pipeline as Gemini CLI extension',
+    commands: '.gemini/commands/gofer/',
+    gofer: {
+      bundle_url: PUBLIC_PLUGIN_URL,
+      manifest_url: `${PUBLIC_PLUGIN_URL}/gemini-extension.json`,
+      commands_manifest_url: `${PUBLIC_PLUGIN_URL}/gemini-commands-manifest.json`,
+      download_url: `${PUBLIC_RELEASES_URL}/eai-gofer-agent-plugin-${version}.zip`,
+      latest_download_url: `${PUBLIC_RELEASES_URL}/eai-gofer-agent-plugin-latest.zip`,
+      vsix_url: `${PUBLIC_RELEASES_URL}/eai-gofer-${version}.vsix`,
+      latest_vsix_url: `${PUBLIC_RELEASES_URL}/eai-gofer-latest.vsix`,
+    },
+  };
 }
 
 /**
@@ -524,6 +568,7 @@ async function emitSystemSkills(stages, root, dryRun) {
 async function emitGemini(stages, root, dryRun) {
   const outDir = path.join(root, '.gemini', 'commands', 'gofer');
   const extensionPath = path.join(root, '.gemini', 'extension.json');
+  const version = await detectPackageVersion(root);
   const emittedNames = [];
   let count = 0;
 
@@ -577,16 +622,7 @@ async function emitGemini(stages, root, dryRun) {
     await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2) + '\n', 'utf8');
     await fs.writeFile(
       extensionPath,
-      JSON.stringify(
-        {
-          name: 'eai-gofer',
-          version: '1.0.0',
-          description: 'Gofer pipeline as Gemini CLI extension',
-          commands: '.gemini/commands/gofer/',
-        },
-        null,
-        2
-      ) + '\n',
+      JSON.stringify(buildGeminiExtensionManifest(version), null, 2) + '\n',
       'utf8'
     );
     console.log(`gemini: wrote manifest ${manifestPath}`);

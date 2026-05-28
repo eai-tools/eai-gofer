@@ -1,6 +1,6 @@
 ---
 name: eai-gofer
-description: "Run the public Gofer spec-driven delivery workflow in Claude, Codex, or Copilot."
+description: "Run the public Gofer spec-driven delivery workflow in Claude, Gemini, Codex, or Copilot."
 ---
 
 # EAI Gofer
@@ -49,3 +49,5 @@ The public hosted plugin bundle is available at:
 ```text
 https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer
 ```
+
+Gemini CLI users can also copy the bundled `.gemini/` directory into a repository root to activate the same command set there.

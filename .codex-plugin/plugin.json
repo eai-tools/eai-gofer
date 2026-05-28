@@ -15,6 +15,7 @@
     "codex",
     "claude",
     "copilot",
+    "gemini",
     "spec-driven-development"
   ],
   "skills": "./.agents/skills/",

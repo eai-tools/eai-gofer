@@ -53,6 +53,8 @@ jobs:
             "docs-site/build/releases/eai-gofer-agent-plugin-latest.zip"
             "docs-site/build/releases/plugins/eai-gofer/claude-marketplace.json"
             "docs-site/build/releases/plugins/eai-gofer/codex-plugin.json"
+            "docs-site/build/releases/plugins/eai-gofer/gemini-extension.json"
+            "docs-site/build/releases/plugins/eai-gofer/gemini-commands-manifest.json"
           )
 
           for file in "${REQUIRED_FILES[@]}"; do

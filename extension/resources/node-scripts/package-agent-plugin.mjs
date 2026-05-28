@@ -24,6 +24,11 @@ const REPOSITORY_URL = 'https://github.com/eai-tools/eai-gofer';
 const PUBLIC_SITE_URL = 'https://eai-tools.github.io/eai-gofer';
 const PUBLIC_RELEASES_URL = `${PUBLIC_SITE_URL}/releases`;
 const PUBLIC_PLUGIN_URL = `${PUBLIC_RELEASES_URL}/plugins/${PLUGIN_NAME}`;
+const CLAUDE_MARKETPLACE_URL = `${PUBLIC_PLUGIN_URL}/claude-marketplace.json`;
+const CODEX_PLUGIN_MANIFEST_URL = `${PUBLIC_PLUGIN_URL}/codex-plugin.json`;
+const CODEX_MARKETPLACE_URL = `${PUBLIC_PLUGIN_URL}/codex-marketplace.json`;
+const COPILOT_MARKETPLACE_URL = `${PUBLIC_PLUGIN_URL}/copilot-marketplace.json`;
+const GEMINI_EXTENSION_URL = `${PUBLIC_PLUGIN_URL}/gemini-extension.json`;
 const PERSONAL_PATH_PATTERN =
   /(^|[\s"'])(\/Users\/[^/\s"']+|\/home\/[^/\s"']+|[A-Za-z]:\\Users\\[^\\\s"']+)/;
 
@@ -112,6 +117,14 @@ function buildPublicAgentPluginZipUrl(version) {
   return `${PUBLIC_RELEASES_URL}/eai-gofer-agent-plugin-${version}.zip`;
 }
 
+function buildLatestPublicVsixUrl() {
+  return `${PUBLIC_RELEASES_URL}/eai-gofer-latest.vsix`;
+}
+
+function buildLatestPublicAgentPluginZipUrl() {
+  return `${PUBLIC_RELEASES_URL}/eai-gofer-agent-plugin-latest.zip`;
+}
+
 function buildCodexManifest(version, stages, paths = {}) {
   return {
     name: PLUGIN_NAME,
@@ -125,7 +138,15 @@ function buildCodexManifest(version, stages, paths = {}) {
     homepage: REPOSITORY_URL,
     repository: REPOSITORY_URL,
     license: 'SEE LICENSE IN LICENSE',
-    keywords: ['eai-gofer', 'gofer', 'codex', 'claude', 'copilot', 'spec-driven-development'],
+    keywords: [
+      'eai-gofer',
+      'gofer',
+      'codex',
+      'claude',
+      'copilot',
+      'gemini',
+      'spec-driven-development',
+    ],
     skills: paths.skills ?? './skills/',
     interface: {
       displayName: PLUGIN_DISPLAY_NAME,
@@ -154,12 +175,30 @@ function buildCodexManifest(version, stages, paths = {}) {
   };
 }
 
+function buildGeminiManifest(version, paths = {}) {
+  return {
+    name: PLUGIN_NAME,
+    version,
+    description: 'Gofer pipeline as Gemini CLI extension',
+    commands: paths.commands ?? '.gemini/commands/gofer/',
+    gofer: {
+      bundle_url: PUBLIC_PLUGIN_URL,
+      manifest_url: `${PUBLIC_PLUGIN_URL}/gemini-extension.json`,
+      commands_manifest_url: `${PUBLIC_PLUGIN_URL}/gemini-commands-manifest.json`,
+      download_url: buildPublicAgentPluginZipUrl(version),
+      latest_download_url: buildLatestPublicAgentPluginZipUrl(),
+      vsix_url: buildPublicVsixUrl(version),
+      latest_vsix_url: buildLatestPublicVsixUrl(),
+    },
+  };
+}
+
 function buildPluginManifest(version, paths = {}) {
   return {
     name: PLUGIN_NAME,
     version,
     description:
-      'Public Gofer spec-driven delivery workflow: business scenario, research, specify, plan, tasks, implement, validate, and communicate.',
+      'Public Gofer spec-driven delivery workflow for Claude, Gemini, Codex, Copilot, and VS Code.',
     author: {
       name: 'Enterprise AI Pty Ltd',
       url: REPOSITORY_URL,
@@ -167,9 +206,17 @@ function buildPluginManifest(version, paths = {}) {
     homepage: REPOSITORY_URL,
     repository: REPOSITORY_URL,
     license: 'SEE LICENSE IN LICENSE',
-    keywords: ['eai-gofer', 'gofer', 'claude-code', 'codex', 'copilot', 'spec-driven-development'],
+    keywords: [
+      'eai-gofer',
+      'gofer',
+      'claude-code',
+      'codex',
+      'copilot',
+      'gemini',
+      'spec-driven-development',
+    ],
     category: 'Coding',
-    tags: ['eai-gofer', 'gofer', 'agentic-coding'],
+    tags: ['eai-gofer', 'gofer', 'agentic-coding', 'gemini'],
     skills: paths.skills ?? './skills/',
     agents: paths.agents ?? './agents/',
     commands: paths.commands ?? './commands/',
@@ -199,7 +246,8 @@ function buildClaudeManifest(version, paths = {}) {
 function buildBundleMarketplace(version) {
   return {
     name: 'eai-gofer',
-    description: 'Public EAI Gofer plugin marketplace for agentic spec-driven delivery workflows.',
+    description:
+      'Public EAI Gofer bundle for Claude Code, Gemini CLI, Codex, and Copilot workflows.',
     owner: {
       name: 'EnterpriseAI',
       url: REPOSITORY_URL,
@@ -207,7 +255,7 @@ function buildBundleMarketplace(version) {
     plugins: [
       {
         name: PLUGIN_NAME,
-        source: './',
+        source: './plugins/eai-gofer',
         description:
           'Public Gofer workflow for business scenario, research, specification, planning, implementation, validation, and stakeholder communications.',
         version,
@@ -218,7 +266,15 @@ function buildBundleMarketplace(version) {
         homepage: REPOSITORY_URL,
         repository: REPOSITORY_URL,
         category: 'Coding',
-        tags: ['eai-gofer', 'gofer', 'claude', 'codex', 'copilot', 'spec-driven-development'],
+        tags: [
+          'eai-gofer',
+          'gofer',
+          'claude',
+          'codex',
+          'copilot',
+          'gemini',
+          'spec-driven-development',
+        ],
       },
     ],
   };
@@ -227,20 +283,21 @@ function buildBundleMarketplace(version) {
 function buildRepoMarketplace(version) {
   return {
     name: 'eai-gofer',
-    description: 'Public EAI Gofer plugin marketplace for agentic spec-driven delivery workflows.',
+    description:
+      'Public EAI Gofer bundle for Claude Code, Gemini CLI, Codex, and Copilot workflows.',
     owner: {
       name: 'EnterpriseAI',
       url: REPOSITORY_URL,
     },
     metadata: {
       description:
-        'Install the EAI Gofer agent plugin for Claude Code, Codex, or Copilot CLI from the public release host.',
+        'Install the EAI Gofer repo marketplace for Claude Code, Gemini CLI, Codex, or Copilot CLI from the public GitHub repository.',
       version,
     },
     plugins: [
       {
         name: PLUGIN_NAME,
-        source: PUBLIC_PLUGIN_URL,
+        source: './plugins/eai-gofer',
         description:
           'Public Gofer workflow for business scenario, research, specification, planning, implementation, validation, and stakeholder communications.',
         version,
@@ -252,7 +309,39 @@ function buildRepoMarketplace(version) {
         repository: REPOSITORY_URL,
         license: 'SEE LICENSE IN LICENSE',
         category: 'Coding',
-        tags: ['eai-gofer', 'gofer', 'claude', 'codex', 'copilot', 'spec-driven-development'],
+        tags: [
+          'eai-gofer',
+          'gofer',
+          'claude',
+          'codex',
+          'copilot',
+          'gemini',
+          'spec-driven-development',
+        ],
+      },
+    ],
+  };
+}
+
+function buildRepoCodexMarketplace(version) {
+  return {
+    name: 'eai-gofer',
+    interface: {
+      displayName: 'EAI Gofer',
+    },
+    plugins: [
+      {
+        name: PLUGIN_NAME,
+        source: {
+          source: 'local',
+          path: './plugins/eai-gofer',
+        },
+        policy: {
+          installation: 'AVAILABLE',
+          authentication: 'ON_INSTALL',
+        },
+        category: 'Coding',
+        version,
       },
     ],
   };
@@ -269,7 +358,7 @@ function buildBundleCodexMarketplace(version) {
         name: PLUGIN_NAME,
         source: {
           source: 'local',
-          path: './',
+          path: './plugins/eai-gofer',
         },
         policy: {
           installation: 'AVAILABLE',
@@ -287,7 +376,7 @@ function buildUmbrellaSkill(version, stages) {
     .map((stage) => `- \`${stage.frontmatter.name}\` - ${stage.frontmatter.description}`)
     .join('\n');
 
-  return `---\nname: eai-gofer\ndescription: "Run the public Gofer spec-driven delivery workflow in Claude, Codex, or Copilot."\n---\n\n# EAI Gofer\n\nVersion: ${version}\n\nUse this skill when the user asks to run, install, update, or understand Gofer without the VS Code extension UI.\n\n## Pipeline Skills\n\n${stageList}\n\n## Stable Local Install Path\n\nInstall or update this plugin by replacing the stable local folder:\n\n\`\`\`text\n~/plugins/eai-gofer\n\`\`\`\n\nThe public hosted plugin bundle is available at:\n\n\`\`\`text\n${PUBLIC_PLUGIN_URL}\n\`\`\`\n`;
+  return `---\nname: eai-gofer\ndescription: "Run the public Gofer spec-driven delivery workflow in Claude, Gemini, Codex, or Copilot."\n---\n\n# EAI Gofer\n\nVersion: ${version}\n\nUse this skill when the user asks to run, install, update, or understand Gofer without the VS Code extension UI.\n\n## Pipeline Skills\n\n${stageList}\n\n## Stable Local Install Path\n\nInstall or update this plugin by replacing the stable local folder:\n\n\`\`\`text\n~/plugins/eai-gofer\n\`\`\`\n\nThe public hosted plugin bundle is available at:\n\n\`\`\`text\n${PUBLIC_PLUGIN_URL}\n\`\`\`\n\nGemini CLI users can also copy the bundled \`.gemini/\` directory into a repository root to activate the same command set there.\n`;
 }
 
 function buildStageSkill(stage) {
@@ -295,7 +384,7 @@ function buildStageSkill(stage) {
 }
 
 function buildPluginReadme(version) {
-  return `# EAI Gofer Agent Plugin\n\nVersion: ${version}\n\nThis package is the portable Claude, Codex, and Copilot workflow layer for public Gofer. It is released beside the VS Code extension, but it does not replace the VSIX UI, status views, updater, or language-server features.\n\n## Public Release Host\n\nAll public release artifacts ship under:\n\n\`\`\`text\n${PUBLIC_RELEASES_URL}\n\`\`\`\n\nThat host publishes:\n\n- VS Code extension: \`${buildPublicVsixUrl(version)}\`\n- Agent plugin zip: \`${buildPublicAgentPluginZipUrl(version)}\`\n- Stable public plugin bundle: \`${PUBLIC_PLUGIN_URL}\`\n\n## Distribution Modes\n\n| Surface | Public install / update path | Stable local folder path |\n| ------- | ---------------------------- | ------------------------ |\n| Claude Code | \`claude plugin marketplace add ${PUBLIC_PLUGIN_URL} --scope user\` then \`claude plugin install eai-gofer@eai-gofer --scope user\` | \`~/plugins/eai-gofer\` |\n| Codex | Import the public plugin bundle URL \`${PUBLIC_PLUGIN_URL}\` in the Codex plugin UI, or download the zip below and keep the installed folder path stable | \`~/plugins/eai-gofer\` |\n| GitHub Copilot CLI | \`copilot plugin marketplace add ${PUBLIC_PLUGIN_URL}\` then \`copilot plugin install eai-gofer@eai-gofer\` | \`~/plugins/eai-gofer\` |\n\n## Download And Replace The Local Folder\n\nKeep the local install path stable:\n\n\`\`\`text\n~/plugins/eai-gofer\n\`\`\`\n\nDownload the public release asset, remove the old folder, unzip the package into \`~/plugins\`, then reload Codex, Claude Code, or Copilot CLI.\n\n\`\`\`bash\ncurl -fsSL ${buildPublicAgentPluginZipUrl(version)} -o /tmp/eai-gofer-agent-plugin-${version}.zip\n\nrm -rf ~/plugins/eai-gofer\nunzip /tmp/eai-gofer-agent-plugin-${version}.zip -d ~/plugins\n\`\`\`\n\n## Claude Code\n\n\`\`\`bash\nclaude plugin marketplace add ${PUBLIC_PLUGIN_URL} --scope user\nclaude plugin install eai-gofer@eai-gofer --scope user\n\`\`\`\n\n## Codex\n\nUse the public plugin bundle URL in the Codex plugin import / marketplace UI:\n\n\`\`\`text\n${PUBLIC_PLUGIN_URL}\n\`\`\`\n\nIf you prefer a downloaded folder install, replace \`~/plugins/eai-gofer\` from the zip above and keep the Codex plugin entry pointed at that stable folder.\n\n## Copilot CLI\n\nRegister the public bundle as a marketplace or use the same downloaded local folder:\n\n\`\`\`bash\ncopilot plugin marketplace add ${PUBLIC_PLUGIN_URL}\ncopilot plugin install eai-gofer@eai-gofer\n\`\`\`\n`;
+  return `# EAI Gofer Agent Plugin\n\nVersion: ${version}\n\nThis package is the portable Claude, Gemini, Codex, and Copilot workflow layer for public Gofer. It is released beside the VS Code extension, but it does not replace the VSIX UI, status views, updater, or language-server features.\n\n## Public Sources\n\nUse the public GitHub repository as the install source for Claude Code, Codex, Copilot CLI, and Gemini CLI:\n\n\`\`\`text\n${REPOSITORY_URL}\n\`\`\`\n\nUse the public release host for downloadable artifacts:\n\n\`\`\`text\n${PUBLIC_RELEASES_URL}\n\`\`\`\n\nThat host publishes:\n\n- Latest VS Code extension: \`${buildLatestPublicVsixUrl()}\`\n- Latest agent bundle zip: \`${buildLatestPublicAgentPluginZipUrl()}\`\n- This release VS Code extension: \`${buildPublicVsixUrl(version)}\`\n- This release agent bundle zip: \`${buildPublicAgentPluginZipUrl(version)}\`\n- Shared public bundle directory: \`${PUBLIC_PLUGIN_URL}\`\n- Gemini extension manifest alias: \`${GEMINI_EXTENSION_URL}\`\n\n## Distribution Modes\n\n| Surface | Public install / update path | Stable local path |\n| ------- | ---------------------------- | ----------------- |\n| Claude Code | \`claude plugin marketplace add ${REPOSITORY_URL} --scope user --sparse .claude-plugin --sparse plugins/eai-gofer\` then \`claude plugin install eai-gofer@eai-gofer --scope user\` | Unzip to \`~/plugins/eai-gofer\`, then \`claude plugin marketplace add ~/plugins/eai-gofer --scope user\` |\n| Codex | \`codex plugin marketplace add ${REPOSITORY_URL} --sparse .agents/plugins --sparse plugins/eai-gofer\` then \`codex plugin add eai-gofer@eai-gofer\` | Unzip to \`~/plugins/eai-gofer\`, then \`codex plugin marketplace add ~/plugins/eai-gofer\` |\n| GitHub Copilot CLI | \`copilot plugin marketplace add ${REPOSITORY_URL}\` then \`copilot plugin install eai-gofer@eai-gofer\` | Unzip to \`~/plugins/eai-gofer\`, then \`copilot plugin marketplace add ~/plugins/eai-gofer\` |\n| Gemini CLI | \`gemini extensions install ${REPOSITORY_URL}\` | Unzip to \`~/plugins/eai-gofer\`, then \`gemini extensions install ~/plugins/eai-gofer\` |\n\n## Download And Replace The Local Bundle Folder\n\nKeep the downloaded bundle path stable:\n\n\`\`\`text\n~/plugins/eai-gofer\n\`\`\`\n\nDownload the public release asset, remove the old folder, unzip the package into \`~/plugins\`.\n\n\`\`\`bash\ncurl -fsSL ${buildLatestPublicAgentPluginZipUrl()} -o /tmp/eai-gofer-agent-plugin-latest.zip\n\nrm -rf ~/plugins/eai-gofer\nunzip /tmp/eai-gofer-agent-plugin-latest.zip -d ~/plugins\n\`\`\`\n\n## Claude Code\n\nRecommended public install:\n\n\`\`\`bash\nclaude plugin marketplace add ${REPOSITORY_URL} --scope user --sparse .claude-plugin --sparse plugins/eai-gofer\nclaude plugin install eai-gofer@eai-gofer --scope user\n\`\`\`\n\nDownloaded bundle install:\n\n\`\`\`bash\nclaude plugin marketplace add ~/plugins/eai-gofer --scope user\nclaude plugin install eai-gofer@eai-gofer --scope user\n\`\`\`\n\n## Codex\n\nRecommended public install:\n\n\`\`\`bash\ncodex plugin marketplace add ${REPOSITORY_URL} --sparse .agents/plugins --sparse plugins/eai-gofer\ncodex plugin add eai-gofer@eai-gofer\n\`\`\`\n\nDownloaded bundle install:\n\n\`\`\`bash\ncodex plugin marketplace add ~/plugins/eai-gofer\ncodex plugin add eai-gofer@eai-gofer\n\`\`\`\n\n## Copilot CLI\n\nRecommended public install:\n\n\`\`\`bash\ncopilot plugin marketplace add ${REPOSITORY_URL}\ncopilot plugin install eai-gofer@eai-gofer\n\`\`\`\n\nDownloaded bundle install:\n\n\`\`\`bash\ncopilot plugin marketplace add ~/plugins/eai-gofer\ncopilot plugin install eai-gofer@eai-gofer\n\`\`\`\n\n## Gemini CLI\n\nRecommended public install:\n\n\`\`\`bash\ngemini extensions install ${REPOSITORY_URL}\n\`\`\`\n\nDownloaded bundle install:\n\n\`\`\`bash\ngemini extensions install ~/plugins/eai-gofer\n\`\`\`\n`;
 }
 
 async function writeJson(filePath, payload) {
@@ -386,6 +475,7 @@ async function writePluginFolder(pluginRoot, root, version, stages) {
   const pluginManifest = buildPluginManifest(version);
   const claudeManifest = buildClaudeManifest(version);
   const codexManifest = buildCodexManifest(version, stages);
+  const geminiManifest = buildGeminiManifest(version);
   const bundleMarketplace = buildBundleMarketplace(version);
 
   await writeJson(path.join(pluginRoot, 'plugin.json'), pluginManifest);
@@ -397,6 +487,8 @@ async function writePluginFolder(pluginRoot, root, version, stages) {
   await writeJson(path.join(pluginRoot, '.codex-plugin', 'plugin.json'), codexManifest);
   await writeJson(path.join(pluginRoot, '.claude-plugin', 'plugin.json'), claudeManifest);
   await writeJson(path.join(pluginRoot, '.claude-plugin', 'marketplace.json'), bundleMarketplace);
+  await writeJson(path.join(pluginRoot, '.gemini', 'extension.json'), geminiManifest);
+  await writeJson(path.join(pluginRoot, 'gemini-extension.json'), geminiManifest);
   await writeJson(
     path.join(pluginRoot, '.agents', 'plugins', 'marketplace.json'),
     buildBundleCodexMarketplace(version)
@@ -423,9 +515,19 @@ async function writePluginFolder(pluginRoot, root, version, stages) {
   for (const relativePath of copiedResources) {
     await copyIfExists(root, relativePath, pluginRoot);
   }
+  await writeJson(path.join(pluginRoot, '.gemini', 'extension.json'), geminiManifest);
   await copyIfExistsAs(root, '.claude/commands', 'commands', pluginRoot);
   await copyIfExistsAs(root, '.claude/agents', 'agents', pluginRoot);
   await copyPluginAssets(root, pluginRoot);
+
+  const nestedPluginRoot = path.join(pluginRoot, 'plugins', PLUGIN_NAME);
+  await fs.mkdir(path.dirname(nestedPluginRoot), { recursive: true });
+  await fs.cp(pluginRoot, nestedPluginRoot, {
+    recursive: true,
+    force: true,
+    dereference: false,
+    filter: (source) => !source.startsWith(path.join(pluginRoot, 'plugins')),
+  });
 }
 
 async function syncRepoManifests(root, version, stages, stagedPluginRoot) {
@@ -454,12 +556,18 @@ async function syncRepoManifests(root, version, stages, stagedPluginRoot) {
   );
   await writeJson(path.join(root, '.github', 'plugin', 'marketplace.json'), buildRepoMarketplace(version));
   await writeJson(
+    path.join(root, '.agents', 'plugins', 'marketplace.json'),
+    buildRepoCodexMarketplace(version)
+  );
+  await writeJson(
     path.join(root, '.claude-plugin', 'plugin.json'),
     buildClaudeManifest(version, {
       skills: './.agents/skills/',
     })
   );
   await writeJson(path.join(root, '.claude-plugin', 'marketplace.json'), buildRepoMarketplace(version));
+  await writeJson(path.join(root, '.gemini', 'extension.json'), buildGeminiManifest(version));
+  await writeJson(path.join(root, 'gemini-extension.json'), buildGeminiManifest(version));
 
   const iconSource = path.join(root, PLUGIN_ICON_SOURCE);
   const iconTarget = path.join(root, PLUGIN_ICON_TARGET);

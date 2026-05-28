@@ -1,1 +1,0 @@
-Build check omitted because npm run build writes dist/ outside the allowed smoke feature directory.

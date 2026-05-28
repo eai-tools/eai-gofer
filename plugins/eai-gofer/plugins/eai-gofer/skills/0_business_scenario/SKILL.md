@@ -1,13 +1,44 @@
 ---
 name: 0_business_scenario
-description: "Define the business problem and scenario for Gofer to analyse and solve."
+description:
+  'Define the business problem and scenario for Gofer to analyse and solve.'
 ---
 
 ---
-description: Triage business scenario and orchestrate the unified Gofer pipeline
----
+
+## description: Triage business scenario and orchestrate the unified Gofer pipeline
 
 # Gofer Orchestrator
+
+## Workspace Preflight
+
+Before doing stage/helper work:
+
+1. Resolve the repository root.
+2. Check the core Gofer sentinels:
+   - `.specify/.gofer-version`
+   - `.specify/commands/0_business_scenario.md`
+   - `.specify/templates/spec-template.md`
+   - `.specify/scripts/bash/create-new-feature.sh`
+   - `.specify/scripts/node/parse-stage-command.mjs`
+   - `.specify/scripts/hooks/post-tool-use.mjs`
+   - `.specify/scripts/powershell/install-optional-tools.ps1`
+   - `.specify/specs/`
+   - `.specify/memory/`
+3. Check host-specific repo-owned files when relevant:
+   - Claude: `AGENTS.md`, `CLAUDE.md`, `.claude/settings.json`
+   - Codex: `AGENTS.md`
+   - Copilot: `.github/copilot-instructions.md`
+   - VS Code extension mirrors Claude/Copilot/Gemini resources itself and should
+     still keep the core scaffold healthy
+4. If the repo already has the workspace checker script, prefer running:
+   - `node .specify/scripts/node/gofer-workspace-check.mjs --host auto --json`
+5. If the workspace is missing or stale, ask exactly:
+   - **"This repo is missing or stale for Gofer. Initialize/update it now?"**
+6. If the user says yes, run the Gofer workspace bootstrap helper and then
+   resume this command from the top.
+7. If the user says no, stop and explain that Gofer stage/helper work depends on
+   the repo-owned scaffold.
 
 You are the Gofer orchestrator. Your job is to understand the user's business
 scenario and route them through the **unified Gofer pipeline**.
@@ -19,29 +50,26 @@ scenario and route them through the **unified Gofer pipeline**.
 │                    UNIFIED GOFER PIPELINE                        │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                  │
-│  1. /1_gofer_research    → research.md, proposal-review.md      │
-│     Deep codebase exploration + business/technology synthesis    │
-│                         ↓ REVIEW                                 │
-│  1a. User approval gate   → approved proposal-review.md          │
-│      Confirm scenarios, architecture, options, and changes       │
-│                         ↓ AUTO AFTER APPROVAL                    │
+│  0. /0_business_scenario → kickoff, routing, discovery          │
+│     Business scenario intake + optional problem validation       │
+│                         ↓ AUTO                                   │
+│  1. /1_gofer_research    → research.md                           │
+│     Deep codebase exploration + supporting review context        │
+│                         ↓ AUTO                                   │
 │  2. /2_gofer_specify     → spec.md                              │
 │     Feature specification informed by research                   │
 │                         ↓ AUTO                                   │
 │  3. /3_gofer_plan        → plan.md, data-model.md, contracts/   │
 │     Technical architecture and design                            │
 │                         ↓ AUTO                                   │
-│  4. /4_gofer_tasks       → tasks.md, issues.md                  │
+│  4. /4_gofer_tasks       → tasks.md, traceability.md, issues.md │
 │     Dependency-ordered task breakdown                            │
 │                         ↓ AUTO                                   │
 │  5. /5_gofer_implement   → [source code]                        │
 │     Execute tasks phase by phase                                 │
 │                         ↓ AUTO                                   │
-│  6. /6_gofer_validate    → validation-report.md                 │
-│     Verify implementation matches plan and spec                  │
-│                         ↓ AUTO                                   │
-│  6a. /6a_gofer_engineering_review → engineering-review-report.md │
-│      Post-implementation review with iterative fix cycles        │
+│  6. /6_gofer_validate    → validation artifacts                 │
+│     Validation, blast radius, and final engineering review       │
 │                                                                  │
 │  All artifacts go to: .specify/specs/{feature}/                 │
 └─────────────────────────────────────────────────────────────────┘
@@ -49,14 +77,18 @@ scenario and route them through the **unified Gofer pipeline**.
 
 ## Auxiliary Gofer Commands
 
-| Command               | Purpose                                    |
-| --------------------- | ------------------------------------------ |
-| `/7_gofer_save`       | Save session checkpoint mid-implementation |
-| `/8_gofer_resume`     | Resume work from saved checkpoint          |
-| `/9_gofer_tests`      | Define acceptance test cases using DSL     |
-| `/10_gofer_cloud`     | READ-ONLY cloud infrastructure analysis    |
-| `/gofer_hydrate`      | Reverse-engineer spec from existing code   |
-| `/gofer_constitution` | Create/update project constitution         |
+| Command                      | Purpose                                         |
+| ---------------------------- | ----------------------------------------------- |
+| `/0a_problem_validation`     | Optional deeper problem framing before research |
+| `/7_gofer_save`              | Save session checkpoint mid-implementation      |
+| `/8_gofer_resume`            | Resume work from saved checkpoint               |
+| `/9_gofer_tests`             | Define acceptance test cases using DSL          |
+| `/10_gofer_cloud`            | READ-ONLY cloud infrastructure analysis         |
+| `/7a_stakeholder_comms`      | Optional post-validation communications package |
+| `/gofer_hydrate`             | Reverse-engineer spec from existing code        |
+| `/gofer_constitution`        | Create/update project constitution              |
+| `/gofer:check-workspace`     | Check whether the repo scaffold is healthy      |
+| `/gofer:bootstrap-workspace` | Create or update the repo-owned Gofer scaffold  |
 
 ---
 
@@ -77,16 +109,16 @@ ls -la .specify/memory/constitution.md 2>/dev/null
 
 ### What to Look For
 
-| Artifact                | Location                    | Indicates                    |
-| ----------------------- | --------------------------- | ---------------------------- |
-| `spec.md`               | `.specify/specs/{feature}/` | Feature specified            |
-| `research.md`           | `.specify/specs/{feature}/` | Research complete            |
-| `proposal-review.md`    | `.specify/specs/{feature}/` | Research reviewed / approved |
-| `plan.md`               | `.specify/specs/{feature}/` | Planning complete            |
-| `tasks.md`              | `.specify/specs/{feature}/` | Ready for implement          |
-| `session-checkpoint.md` | `.specify/specs/{feature}/` | Work paused (resumable)      |
-| `validation-report.md`  | `.specify/specs/{feature}/` | Feature validated            |
-| `constitution.md`       | `.specify/memory/`          | Project principles set       |
+| Artifact                | Location                    | Indicates                          |
+| ----------------------- | --------------------------- | ---------------------------------- |
+| `spec.md`               | `.specify/specs/{feature}/` | Feature specified                  |
+| `research.md`           | `.specify/specs/{feature}/` | Research complete                  |
+| `proposal-review.md`    | `.specify/specs/{feature}/` | Optional supporting review context |
+| `plan.md`               | `.specify/specs/{feature}/` | Planning complete                  |
+| `tasks.md`              | `.specify/specs/{feature}/` | Ready for implement                |
+| `session-checkpoint.md` | `.specify/specs/{feature}/` | Work paused (resumable)            |
+| `validation-report.md`  | `.specify/specs/{feature}/` | Feature validated                  |
+| `constitution.md`       | `.specify/memory/`          | Project principles set             |
 
 Report what you found before proceeding.
 
@@ -280,13 +312,13 @@ status: complete
 
 ## AI-Readable Blocks Bridge
 
-| Field | Decision |
-| ----- | -------- |
-| Profile Choice | External / Internal / Hybrid |
-| Package Lane | {{public-package | internal-app | hybrid-adapter | app-local}} |
-| Coupling Status | {{daisy-coupled | daisy-decoupled | hybrid-adapter}} |
-| Public-Readiness Target | {{required | deferred | not-applicable}} |
-| Block Porting Need | {{reuse | port | custom-block-exception}} |
+| Field                   | Decision                     |
+| ----------------------- | ---------------------------- | --------------- | ------------------------ | ----------- |
+| Profile Choice          | External / Internal / Hybrid |
+| Package Lane            | {{public-package             | internal-app    | hybrid-adapter           | app-local}} |
+| Coupling Status         | {{daisy-coupled              | daisy-decoupled | hybrid-adapter}}         |
+| Public-Readiness Target | {{required                   | deferred        | not-applicable}}         |
+| Block Porting Need      | {{reuse                      | port            | custom-block-exception}} |
 ```
 
 ### Store in Memory
@@ -354,11 +386,11 @@ If non-app, record this explicitly in `discovery.md`:
 ```markdown
 ## Application Classification
 
-| Field | Decision |
-| ----- | -------- |
-| Classification | Non-application work |
-| Reason | {{why-this-is-not-an-app-or-workflow}} |
-| Four-step AI journey required | No |
+| Field                         | Decision                               |
+| ----------------------------- | -------------------------------------- |
+| Classification                | Non-application work                   |
+| Reason                        | {{why-this-is-not-an-app-or-workflow}} |
+| Four-step AI journey required | No                                     |
 ```
 
 Then continue through the pipeline without creating a four-step AI-augmented app
@@ -373,22 +405,21 @@ Gofer MUST keep the same numbered stages for both classifications. The
 classification changes the behavior inside the shared stages; it does **not**
 remove existing non-app functionality or fork Gofer into unrelated products.
 
-| Mode | Stage Behavior |
-| ---- | -------------- |
+| Mode                 | Stage Behavior                                                                                                                                                                                                                                        |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Application delivery | Shared stages gain a UI-first interview, a Vertical Template constrained preview loop, preview self-review, optional branding intake, an explicit UI approval gate, and a post-approval EnterpriseAI service-fit gate before plan/tasks are finalized |
-| Non-app work | Shared stages preserve the current research, documentation, exploration, bug-fix, migration, audit, and other non-app workflows without app-only preview, branding, or service-fit requirements |
+| Non-app work         | Shared stages preserve the current research, documentation, exploration, bug-fix, migration, audit, and other non-app workflows without app-only preview, branding, or service-fit requirements                                                       |
 
 ---
 
 ## Step 2.7: AI-Augmented Journey Confirmation (For Application Delivery)
 
-When the request is classified as **application delivery**, confirm the
-customer journey before routing to the rest of the pipeline. For application
-delivery, the default target is a concise **four-step or fewer AI-augmented
-process**. Even when the current business process has more than four steps,
-Gofer should use generative AI to compress, combine, or simplify the process
-into four business-goal-driven stages unless the user explicitly rejects that
-structure.
+When the request is classified as **application delivery**, confirm the customer
+journey before routing to the rest of the pipeline. For application delivery,
+the default target is a concise **four-step or fewer AI-augmented process**.
+Even when the current business process has more than four steps, Gofer should
+use generative AI to compress, combine, or simplify the process into four
+business-goal-driven stages unless the user explicitly rejects that structure.
 
 ### UI-First App-Delivery Default
 
@@ -398,28 +429,27 @@ For app delivery, the default early process is:
    screens, target users, workflow goals, and whether client branding or logos
    must be applied.
 2. **Constrained MVP preview** — generate the first preview from the Vertical
-   Template blocks already installed in the project by `eai`, rather than
-   from an unconstrained custom UI.
+   Template blocks already installed in the project by `eai`, rather than from
+   an unconstrained custom UI.
 3. **Preview self-review and approval** — use screenshot or Playwright-style
    local review before showing the preview, then iterate with the stakeholder
    until the UI is explicitly approved.
-4. **EnterpriseAI service-fit gate** — after UI approval, review which
-   platform services are accessible now, purchasable but unavailable now, or
-   unsupported, and lock that decision before plan/tasks are treated as
-   complete.
+4. **EnterpriseAI service-fit gate** — after UI approval, review which platform
+   services are accessible now, purchasable but unavailable now, or unsupported,
+   and lock that decision before plan/tasks are treated as complete.
 
 ### AI-Readable Blocks Bridge Intake
 
-For EnterpriseAI app delivery, the interview must also capture the packaging
-and coupling path before research starts:
+For EnterpriseAI app delivery, the interview must also capture the packaging and
+coupling path before research starts:
 
-| Intake Field | Required Decision |
-| ------------ | ----------------- |
-| Profile choice | External, internal, or hybrid package profile |
-| Package lane | Public reusable block package, internal vertical app, hybrid adapter, or app-local implementation |
-| Coupling status | DAISY-coupled, DAISY-decoupled, or hybrid adapter boundary |
-| Public-readiness target | Whether the first delivery must be ready for external package consumers |
-| Block porting need | Reuse existing block, port a Vertical Template block, or request a custom-block exception |
+| Intake Field            | Required Decision                                                                                 |
+| ----------------------- | ------------------------------------------------------------------------------------------------- |
+| Profile choice          | External, internal, or hybrid package profile                                                     |
+| Package lane            | Public reusable block package, internal vertical app, hybrid adapter, or app-local implementation |
+| Coupling status         | DAISY-coupled, DAISY-decoupled, or hybrid adapter boundary                                        |
+| Public-readiness target | Whether the first delivery must be ready for external package consumers                           |
+| Block porting need      | Reuse existing block, port a Vertical Template block, or request a custom-block exception         |
 
 External and hybrid profile choices require explicit public-readiness,
 block-porting, DAISY decoupling, Storybook, and theme-override evidence in the
@@ -428,9 +458,9 @@ is not required now.
 
 **First, offer the option to skip:**
 
-| Option                                   | Description                                                                 |
-| ---------------------------------------- | --------------------------------------------------------------------------- |
-| **Confirm AI Journey (Recommended)**     | Review the four-step AI-augmented process for this app                      |
+| Option                                    | Description                                                                 |
+| ----------------------------------------- | --------------------------------------------------------------------------- |
+| **Confirm AI Journey (Recommended)**      | Review the four-step AI-augmented process for this app                      |
 | **Classify as Non-App / Skip AI Journey** | Use only when this is strategy, research, documentation, audit, or analysis |
 
 If the user selects "Classify as Non-App / Skip AI Journey", capture the
@@ -464,13 +494,12 @@ Based on the discovery answers, extract:
      Playwright/self-review outputs when the feature includes a UI
 
 4. **AI augmentation**: How does generative AI help?
-   - Conversational help: chatbot, voice, accessibility, translations, or
-     guided explanation
-   - Contextual prefill: populate fields from screen context, known data,
-     user profile, customer record, document, or prior workflow state
+   - Conversational help: chatbot, voice, accessibility, translations, or guided
+     explanation
+   - Contextual prefill: populate fields from screen context, known data, user
+     profile, customer record, document, or prior workflow state
    - Step-goal assistance: understand the goal of the step, recommend next
-     actions, validate completeness, and drive the user to successful
-     completion
+     actions, validate completeness, and drive the user to successful completion
    - Human control: show confidence, evidence, edit controls, escalation path,
      and audit trail
    - Preview critique: review the generated MVP before presentation and suggest
@@ -495,23 +524,23 @@ Use AskUserQuestion to present the extracted journey:
 
 "Here's the main flow I've identified:"
 
-| Option | Description                                                                                         |
-| ------ | --------------------------------------------------------------------------------------------------- |
+| Option | Description                                                                                        |
+| ------ | -------------------------------------------------------------------------------------------------- |
 | A      | Step 1: [goal] → Step 2: [goal] → Step 3: [goal] → Step 4: [goal] (Confirm this AI-augmented flow) |
-| B      | I need to modify some steps                                                                         |
-| C      | Show me all steps, AI assistance, and completion criteria in detail first                           |
+| B      | I need to modify some steps                                                                        |
+| C      | Show me all steps, AI assistance, and completion criteria in detail first                          |
 
 **Question 2a: Confirm AI Assistance**
 
 "For each step, how should generative AI help the user complete the goal?"
 
-| Option | Description                                                                         |
-| ------ | ----------------------------------------------------------------------------------- |
+| Option | Description                                                                          |
+| ------ | ------------------------------------------------------------------------------------ |
 | A      | Chat/voice/accessibility/translations help the user understand and complete the step |
 | B      | Prefill or recommend data using screen context, user context, and EnterpriseAI data  |
 | C      | Validate completion, explain missing information, and guide the user to success      |
-| D      | Mix all of the above, with human review and audit trail controls                    |
-| Custom | Describe the AI assistance for each step                                            |
+| D      | Mix all of the above, with human review and audit trail controls                     |
+| Custom | Describe the AI assistance for each step                                             |
 
 **Question 3: Identify Key Touchpoints**
 
@@ -558,13 +587,12 @@ maxSteps: 4
 
 ### Step 1: {{business-goal}}
 
-**Actor**: {{actor-id}}
-**User action**: {{action-description}}
-**AI assistance**:
+**Actor**: {{actor-id}} **User action**: {{action-description}} **AI
+assistance**:
 {{chatbot-or-voice-or-accessibility-or-translation-or-prefill-or-guidance}}
 **Context used**: {{screen-context-user-data-enterpriseai-data-documents}}
-**Completion criteria**: {{how-we-know-this-step-is-successful}}
-**Controls**: {{human-review-confidence-evidence-audit-escalation}}
+**Completion criteria**: {{how-we-know-this-step-is-successful}} **Controls**:
+{{human-review-confidence-evidence-audit-escalation}}
 
 ### Step 2: {{business-goal}}
 
@@ -607,7 +635,6 @@ sequenceDiagram
 - [x] Actors confirmed
 - [x] Steps confirmed
 - [x] Touchpoints identified
-
 ````
 
 ### Store Journey in Memory
@@ -644,7 +671,7 @@ resume information:
 
 ```bash
 .specify/scripts/bash/pipeline-state.sh read --json
-````
+```
 
 If `pipeline-state.json` exists and `status` is `in_progress`, resume from
 `currentStage`. This takes priority over file-existence heuristics because
@@ -653,14 +680,14 @@ pipeline-state.json is updated atomically by each stage on completion.
 **Fallback — File-existence heuristics** (used when no pipeline-state.json
 exists):
 
-| Has This                                  | Missing This                | Start At             |
-| ----------------------------------------- | --------------------------- | -------------------- |
-| tasks.md (unchecked)                      | -                           | `/5_gofer_implement` |
-| plan.md                                   | tasks.md                    | `/4_gofer_tasks`     |
-| spec.md                                   | plan.md                     | `/3_gofer_plan`      |
-| research.md + approved proposal-review.md | spec.md                     | `/2_gofer_specify`   |
-| research.md                               | approved proposal-review.md | `/1_gofer_research`  |
-| Nothing                                   | Everything                  | `/1_gofer_research`  |
+| Has This             | Missing This | Start At             |
+| -------------------- | ------------ | -------------------- |
+| tasks.md (unchecked) | -            | `/5_gofer_implement` |
+| plan.md              | tasks.md     | `/4_gofer_tasks`     |
+| spec.md              | plan.md      | `/3_gofer_plan`      |
+| research.md          | spec.md      | `/2_gofer_specify`   |
+| Nothing              | research.md  | `/1_gofer_research`  |
+| Nothing              | Everything   | `/1_gofer_research`  |
 
 #### For New Features
 
@@ -674,8 +701,8 @@ Output:
 ROUTING: GOFER PIPELINE
 FEATURE: {feature-name}
 STARTING: /1_gofer_research
-AUTO-CHAIN: research → proposal review → specify → plan → tasks → implement → validate → engineering-review
-APPROVAL GATE: proposal-review.md must be approved before `/2_gofer_specify`
+AUTO-CHAIN: research → specify → plan → tasks → implement → validate
+NOTE: research may also create optional supporting review artifacts
 REASON: [explanation]
 ```
 
@@ -704,7 +731,7 @@ Start with `/1_gofer_research` without auto-chaining:
 ```
 ROUTING: GOFER RESEARCH (STANDALONE)
 COMMAND: /1_gofer_research
-AUTO-CHAIN: disabled until proposal-review.md is approved
+AUTO-CHAIN: disabled after research until the user asks to continue
 REASON: User wants to explore the codebase first
 ```
 
@@ -759,13 +786,12 @@ After determining the route:
 The unified Gofer pipeline automatically chains commands:
 
 ```text
-/1_gofer_research completes → stops for proposal review and approval
-Approved proposal-review.md → auto-invokes /2_gofer_specify
+/1_gofer_research completes  → auto-invokes /2_gofer_specify unless user pauses
 /2_gofer_specify completes  → auto-invokes /3_gofer_plan
 /3_gofer_plan completes     → auto-invokes /4_gofer_tasks
 /4_gofer_tasks completes    → auto-invokes /5_gofer_implement
 /5_gofer_implement completes→ auto-invokes /6_gofer_validate
-/6_gofer_validate completes → auto-invokes /6a_gofer_engineering_review
+/6_gofer_validate completes → pipeline complete
 ```
 
 **The user only needs to run `/0_business_scenario` once** - the orchestrator
@@ -803,31 +829,34 @@ If context window is filling up:
 
 ---
 
-## Quick Reference: All Gofer Commands
+## Quick Reference: Core Pipeline And Helpers
 
-### Core Pipeline (Approval-Gated)
+### Core Pipeline
 
-| #   | Command                        | Output                          | Description                         |
-| --- | ------------------------------ | ------------------------------- | ----------------------------------- |
-| 1   | `/1_gofer_research`            | research.md, proposal-review.md | Research + review prep              |
-| 1a  | User approval gate             | approved proposal-review.md     | Business and architecture alignment |
-| 2   | `/2_gofer_specify`             | spec.md                         | Feature specification               |
-| 3   | `/3_gofer_plan`                | plan.md, data-model.md          | Technical architecture              |
-| 4   | `/4_gofer_tasks`               | tasks.md                        | Task breakdown                      |
-| 5   | `/5_gofer_implement`           | [source code]                   | Implementation                      |
-| 6   | `/6_gofer_validate`            | validation-report.md            | Verification                        |
-| 6a  | `/6a_gofer_engineering_review` | engineering-review-report.md    | Post-impl review + fixes            |
+| Stage | Command                | Main output                          | Description                             |
+| ----- | ---------------------- | ------------------------------------ | --------------------------------------- |
+| 0     | `/0_business_scenario` | Full pipeline kickoff                | Business scenario intake and routing    |
+| 1     | `/1_gofer_research`    | research.md                          | Research and supporting review prep     |
+| 2     | `/2_gofer_specify`     | spec.md                              | Feature specification                   |
+| 3     | `/3_gofer_plan`        | plan.md, data-model.md, contracts/   | Technical architecture and contracts    |
+| 4     | `/4_gofer_tasks`       | tasks.md, traceability.md, issues.md | Dependency-ordered task breakdown       |
+| 5     | `/5_gofer_implement`   | Code and doc changes                 | Execute the planned work                |
+| 6     | `/6_gofer_validate`    | Validation artifacts                 | Terminal quality gate, including review |
 
-### Auxiliary Commands
+### Helper Commands
 
-| Command               | Purpose                                   |
-| --------------------- | ----------------------------------------- |
-| `/7_gofer_save`       | Save session checkpoint                   |
-| `/8_gofer_resume`     | Resume from checkpoint                    |
-| `/9_gofer_tests`      | Define test cases (DSL approach)          |
-| `/10_gofer_cloud`     | Cloud infrastructure analysis (READ-ONLY) |
-| `/gofer_hydrate`      | Reverse-engineer spec from code           |
-| `/gofer_constitution` | Project principles and standards          |
+| Command                      | Purpose                                         |
+| ---------------------------- | ----------------------------------------------- |
+| `/0a_problem_validation`     | Optional deeper problem framing before research |
+| `/7_gofer_save`              | Save session checkpoint                         |
+| `/7a_stakeholder_comms`      | Post-validation communications                  |
+| `/8_gofer_resume`            | Resume from checkpoint                          |
+| `/9_gofer_tests`             | Define test cases (DSL approach)                |
+| `/10_gofer_cloud`            | Cloud infrastructure analysis (READ-ONLY)       |
+| `/gofer_hydrate`             | Reverse-engineer spec from code                 |
+| `/gofer_constitution`        | Project principles and standards                |
+| `/gofer:check-workspace`     | Check whether the repo scaffold is healthy      |
+| `/gofer:bootstrap-workspace` | Create or update the repo-owned scaffold        |
 
 ---
 
@@ -862,17 +891,17 @@ When the workflow profile is `enterpriseai` or no profile is specified:
 Every EnterpriseAI discovery must preserve enough information for downstream
 stages to create these artifacts without re-interviewing the user:
 
-| Artifact | Required Content |
-| -------- | ---------------- |
-| `journeys/base-journey.md` | Application classification, four-step-or-fewer AI-augmented customer journey, step goals, AI assistance, context used, controls, completion criteria |
-| `ui-preview-brief.md` | App-delivery-only preview brief: target screens, Vertical Template component constraints, branding inputs, preview validation expectations |
-| `ui-review-log.md` | App-delivery-only iteration log: preview evidence, requested changes, accepted changes, unresolved issues |
-| `ui-approval.md` | App-delivery-only approval gate: approved preview, approved branding, approved component exceptions, approver and timestamp |
-| `service-fit-matrix.md` | App-delivery-only service selection evidence: desired platform capability, evidence source, accessible now vs purchasable vs unavailable, selected direction |
-| `context-bundle.md` | Compact feature context, selected scenario, app/non-app decision, AI-augmented journey summary, EnterpriseAI object types, tenant assumptions, API surfaces, deployment assumptions, validation criteria |
-| `contract-pack.md` | Actors, object types, workflows/journeys, four-step AI assistance contract, permissions, tenant boundaries, APIs/events, runtime assumptions, acceptance tests |
-| `reuse-scan.md` | Existing specs, platform references, object types, APIs, workflows, modules, and the reuse/extend/create decision |
-| `audit-history.md` | Stable finding IDs, recurring-finding history, accepted exceptions, owner, expiry, and review cadence |
+| Artifact                   | Required Content                                                                                                                                                                                         |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `journeys/base-journey.md` | Application classification, four-step-or-fewer AI-augmented customer journey, step goals, AI assistance, context used, controls, completion criteria                                                     |
+| `ui-preview-brief.md`      | App-delivery-only preview brief: target screens, Vertical Template component constraints, branding inputs, preview validation expectations                                                               |
+| `ui-review-log.md`         | App-delivery-only iteration log: preview evidence, requested changes, accepted changes, unresolved issues                                                                                                |
+| `ui-approval.md`           | App-delivery-only approval gate: approved preview, approved branding, approved component exceptions, approver and timestamp                                                                              |
+| `service-fit-matrix.md`    | App-delivery-only service selection evidence: desired platform capability, evidence source, accessible now vs purchasable vs unavailable, selected direction                                             |
+| `context-bundle.md`        | Compact feature context, selected scenario, app/non-app decision, AI-augmented journey summary, EnterpriseAI object types, tenant assumptions, API surfaces, deployment assumptions, validation criteria |
+| `contract-pack.md`         | Actors, object types, workflows/journeys, four-step AI assistance contract, permissions, tenant boundaries, APIs/events, runtime assumptions, acceptance tests                                           |
+| `reuse-scan.md`            | Existing specs, platform references, object types, APIs, workflows, modules, and the reuse/extend/create decision                                                                                        |
+| `audit-history.md`         | Stable finding IDs, recurring-finding history, accepted exceptions, owner, expiry, and review cadence                                                                                                    |
 
 Use these artifacts as decision evidence for executive, architecture, CISO,
 data, delivery, CIO, CFO, COO, and risk/compliance stakeholders.

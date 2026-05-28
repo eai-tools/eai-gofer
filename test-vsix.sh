@@ -12,7 +12,7 @@ else
         echo "❌ No VSIX file found!"
         exit 1
     fi
-    VSIX_FILE="/Users/douglaswross/Code/eai-gofer/$VSIX_FILE"
+    VSIX_FILE="$(pwd)/$VSIX_FILE"
 fi
 
 # Extract version from filename

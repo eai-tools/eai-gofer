@@ -18,7 +18,7 @@ interface ParseResult {
 }
 
 /**
- * The 16 pipeline stage files (canonical numbered/named identifier -> expected alias).
+ * The 15 pipeline stage files (canonical numbered/named identifier -> expected alias).
  *
  * Both the numbered name and the `gofer:*` alias resolve to the same
  * source-of-truth file, so byte-equivalence is trivially the same file.
@@ -28,7 +28,7 @@ interface ParseResult {
  *
  * Frontmatter `category` is either 'pipeline' (core auto-chained phases)
  * or 'utility' (interactive stages and orchestration tools). Both kinds
- * are part of the 16-stage pipeline lineup; only `control` commands are
+ * are part of the 15-stage pipeline lineup; only `control` commands are
  * outside it.
  */
 const PIPELINE_STAGES: Array<{ file: string; name: string; alias: string; category: string }> = [
@@ -75,12 +75,6 @@ const PIPELINE_STAGES: Array<{ file: string; name: string; alias: string; catego
     alias: 'gofer:validate',
     category: 'pipeline',
   },
-  {
-    file: '6a_gofer_engineering_review.md',
-    name: '6a_gofer_engineering_review',
-    alias: 'gofer:engineering-review',
-    category: 'utility',
-  },
   { file: '7_gofer_save.md', name: '7_gofer_save', alias: 'gofer:save', category: 'utility' },
   {
     file: '7a_stakeholder_comms.md',
@@ -106,7 +100,7 @@ const PIPELINE_STAGES: Array<{ file: string; name: string; alias: string; catego
  * file IS the canonical surface; there is no separate aliases array
  * required for control commands (parity is namespaced-only).
  */
-const PIPELINE_STAGE_COUNT = 16;
+const PIPELINE_STAGE_COUNT = 15;
 
 describe('numbered vs namespaced stage parity', () => {
   let parseStageCommand: (filePath: string) => Promise<ParseResult>;

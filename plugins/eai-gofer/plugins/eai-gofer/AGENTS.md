@@ -2,16 +2,11 @@
 
 **Project**: gofer | **Language**: Unknown | **Package Manager**: Not detected
 
-## Available stages
+## Core Pipeline Stages
 
 ### 0_business_scenario
 
 Define the business problem and scenario for Gofer to analyse and solve.
-
-### 0a_problem_validation
-
-Validate the business problem using 5 Whys root-cause analysis and stakeholder
-mapping.
 
 ### 1_gofer_research
 
@@ -43,19 +38,17 @@ engineering review.
 Validate implemented work with evidence-backed scoring, blast-radius analysis,
 and engineering review.
 
-### 6a_gofer_engineering_review
+## Optional Helper Commands
 
-Run a targeted engineering review on a specific component or concern.
+### 0a_problem_validation
+
+Validate the business problem using 5 Whys root-cause analysis and stakeholder
+mapping when the kickoff needs deeper framing.
 
 ### 7_gofer_save
 
 Save session state and create a handoff checkpoint for resumption in a new
 context.
-
-### 7a_stakeholder_comms
-
-Generate stakeholder-facing communications: release notes, demo scripts, and
-change briefs.
 
 ### 8_gofer_resume
 
@@ -69,6 +62,11 @@ component.
 ### 10_gofer_cloud
 
 Deploy and configure the Gofer cloud integration for remote pipeline execution.
+
+### 7a_stakeholder_comms
+
+Generate stakeholder-facing communications after validation as an optional
+follow-up, not a core pipeline stage.
 
 ### gofer_constitution
 
@@ -150,8 +148,10 @@ No commands detected. Add build/test/lint scripts to your project.
 ## Gofer Pipeline
 
 This project uses Gofer for spec-driven development. Run `/0_business_scenario`
-to start the pipeline (research -> specify -> plan -> tasks -> implement ->
-validate). Artifacts in `.specify/specs/{feature}/`.
+to start the core pipeline (business scenario -> research -> specify -> plan ->
+tasks -> implement -> validate). `/6_gofer_validate` is the terminal quality
+gate and includes the final engineering review loop. Artifacts in
+`.specify/specs/{feature}/`.
 
 ## Core Principles
 

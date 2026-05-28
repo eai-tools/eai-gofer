@@ -6,8 +6,9 @@ business scenario to validated delivery.**
 Gofer helps teams turn a repository into a practical delivery workspace inside
 VS Code. It brings together Gofer views, manifest-backed commands, CLI routing
 settings, and Claude Code terminal helpers so business, delivery, and
-engineering work can stay aligned from discovery through validation while
-artifacts remain under `.specify/specs/{feature}/`.
+engineering work can stay aligned from business scenario through the core
+pipeline to unified validation while artifacts remain under
+`.specify/specs/{feature}/`.
 
 EnterpriseAI-first vertical app delivery workflow guidance is the default. Set
 `gofer.workflowProfile` to `standard` only when you explicitly want the baseline
@@ -29,9 +30,10 @@ workflow.
    update supported CLIs.
 3. Start with `#0_business_scenario` in Copilot Chat or `/0_business_scenario`
    in slash-command CLIs.
-4. Continue through
-   `research -> specify -> plan -> tasks -> implement -> validate`, reviewing
-   the repo artifacts at each stage.
+4. Continue through the core pipeline:
+   `business scenario -> research -> specify -> plan -> tasks -> implement -> validate`.
+   `/6_gofer_validate` is the terminal quality gate and includes the final
+   engineering review loop.
 
 ## Sidebar Views
 

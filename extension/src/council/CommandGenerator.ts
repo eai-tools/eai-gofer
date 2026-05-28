@@ -265,6 +265,8 @@ export class CommandGenerator {
     toPlatform: PlatformType
   ): string {
     let transformed = content;
+    const stageCommandPattern = /\/(\d+[a-z]?_[a-z0-9_]+)/g;
+    const helperCommandPattern = /\/(gofer_[a-z0-9_]+)/g;
 
     // Remove Claude-specific AUTO-CHAIN sections (replace with platform-specific)
     transformed = transformed.replace(/\*\*AUTO-CHAIN[^]*?(?=\n##|\n---|\n\*\*|$)/g, '');
@@ -291,16 +293,16 @@ export class CommandGenerator {
     // Transform command invocation syntax
     if (toPlatform === 'codex') {
       // Replace /command with $ $command
-      transformed = transformed.replace(/\/(\d+[a-z]?_gofer_\w+)/g, (_match, command: string) => {
+      transformed = transformed.replace(stageCommandPattern, (_match, command: string) => {
         return `$ $${command}`;
       });
-      transformed = transformed.replace(/\/(gofer_\w+)/g, (_match, command: string) => {
+      transformed = transformed.replace(helperCommandPattern, (_match, command: string) => {
         return `$ $${command}`;
       });
     } else if (toPlatform === 'copilot') {
       // Replace /command with #command
-      transformed = transformed.replace(/\/(\d+[a-z]?_gofer_\w+)/g, '#$1');
-      transformed = transformed.replace(/\/(gofer_\w+)/g, '#$1');
+      transformed = transformed.replace(stageCommandPattern, '#$1');
+      transformed = transformed.replace(helperCommandPattern, '#$1');
     }
 
     return transformed;
@@ -422,7 +424,6 @@ The next stage will read the artifacts from this stage and continue the workflow
       '4_gofer_tasks',
       '5_gofer_implement',
       '6_gofer_validate',
-      '6a_gofer_engineering_review',
     ];
 
     const currentIndex = pipeline.indexOf(currentCommand);

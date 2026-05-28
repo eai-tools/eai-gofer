@@ -184,7 +184,7 @@
                         '<li>Restart VS Code</li>' +
                         '<li>Open a workspace with a <span class="code-inline">.specify/</span> folder to activate Gofer</li>' +
                     '</ol>' +
-                    '<p><strong>Claude / Codex / Copilot plugin:</strong> use the public bundle at <span class="code-inline">https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer</span> or download the agent plugin zip from the latest release card.</p>' +
+                    '<p><strong>Agent surfaces:</strong> use the public GitHub repo <span class="code-inline">https://github.com/eai-tools/eai-gofer</span> as the install source for Claude, Codex, Copilot, and Gemini. Use the release card here for VSIX and downloadable zip artifacts.</p>' +
                 '</div>';
             loadReleases();
         }
@@ -229,9 +229,29 @@
                         '<a href="' + escapeHtml(release.assets.claude.download_url) + '" class="download-btn secondary">Download Agent Plugin Zip</a>'
                     );
                 }
+                if (release.assets && release.assets.claude && release.assets.claude.marketplace_url) {
+                    downloadButtons.push(
+                        '<a href="' + escapeHtml(release.assets.claude.marketplace_url) + '" class="download-btn secondary">Open Claude Marketplace</a>'
+                    );
+                }
                 if (release.assets && release.assets.claude && release.assets.claude.bundle_url) {
                     downloadButtons.push(
                         '<a href="' + escapeHtml(release.assets.claude.bundle_url) + '" class="download-btn secondary">Open Public Plugin Bundle</a>'
+                    );
+                }
+                if (release.assets && release.assets.codex && release.assets.codex.manifest_url) {
+                    downloadButtons.push(
+                        '<a href="' + escapeHtml(release.assets.codex.manifest_url) + '" class="download-btn secondary">Open Codex Manifest</a>'
+                    );
+                }
+                if (release.assets && release.assets.copilot && release.assets.copilot.marketplace_url) {
+                    downloadButtons.push(
+                        '<a href="' + escapeHtml(release.assets.copilot.marketplace_url) + '" class="download-btn secondary">Open Copilot Marketplace</a>'
+                    );
+                }
+                if (release.assets && release.assets.gemini && release.assets.gemini.manifest_url) {
+                    downloadButtons.push(
+                        '<a href="' + escapeHtml(release.assets.gemini.manifest_url) + '" class="download-btn secondary">Open Gemini Manifest</a>'
                     );
                 }
                 return '<div class="release-item">' +

@@ -35,6 +35,14 @@ interface ReleaseEntry {
       latest_download_url: string;
       size_mb: number;
     };
+    gemini?: {
+      bundle_url: string;
+      manifest_url: string;
+      commands_manifest_url: string;
+      download_url: string;
+      latest_download_url: string;
+      size_mb: number;
+    };
     vscode?: {
       file_name: string;
       download_url: string;
@@ -143,6 +151,12 @@ describe('update-releases.js', () => {
     );
     expect(updated.releases[0].assets?.codex?.manifest_url).toBe(
       'https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/codex-plugin.json'
+    );
+    expect(updated.releases[0].assets?.gemini?.manifest_url).toBe(
+      'https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/gemini-extension.json'
+    );
+    expect(updated.releases[0].assets?.gemini?.commands_manifest_url).toBe(
+      'https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/gemini-commands-manifest.json'
     );
     expect(updated.releases[1].version).toBe('3.1.9');
   });

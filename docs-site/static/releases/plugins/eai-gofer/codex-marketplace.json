@@ -8,7 +8,7 @@
       "name": "eai-gofer",
       "source": {
         "source": "local",
-        "path": "./"
+        "path": "./plugins/eai-gofer"
       },
       "policy": {
         "installation": "AVAILABLE",

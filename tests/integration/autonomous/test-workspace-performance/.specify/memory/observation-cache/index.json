@@ -2,7 +2,7 @@
   "version": 1,
   "observations": [
     {
-      "timestamp": 1779427909736,
+      "timestamp": 1779935138285,
       "turnNumber": 1,
       "type": "file_read",
       "originalContent": "File content 0",
@@ -10,16 +10,16 @@
         "path": "/file0.ts"
       },
       "summary": "Read file 0",
-      "id": "1faf4958-bda6-42fc-8c92-c84d786fd3d0",
+      "id": "41e1a92a-5916-4891-a7bf-20cebbf1db82",
       "contentHash": "c28de6d5a9919e5752f80b34cabb47a2d8c2f2bf8f020de82dbd348da13f278a",
       "tokenEstimate": 4,
       "masked": false,
       "decayTier": "key-points",
       "keyPointsContent": "File content 0",
-      "keyPointsAt": 1779427909743
+      "keyPointsAt": 1779935138296
     },
     {
-      "timestamp": 1779427909736,
+      "timestamp": 1779935138285,
       "turnNumber": 2,
       "type": "file_read",
       "originalContent": "File content 1",
@@ -27,16 +27,16 @@
         "path": "/file1.ts"
       },
       "summary": "Read file 1",
-      "id": "c99ef78b-85e0-4872-9166-5cda0d7aaf24",
+      "id": "e38508d7-4ebe-4fd7-a934-c93cc3144c02",
       "contentHash": "e3d59ebc30cec4a8a0bdb87089fec15cc5f38c7403e4c9c07b69490cab99787c",
       "tokenEstimate": 4,
       "masked": false,
       "decayTier": "key-points",
       "keyPointsContent": "File content 1",
-      "keyPointsAt": 1779427909743
+      "keyPointsAt": 1779935138296
     },
     {
-      "timestamp": 1779427909736,
+      "timestamp": 1779935138285,
       "turnNumber": 3,
       "type": "file_read",
       "originalContent": "File content 2",
@@ -44,16 +44,16 @@
         "path": "/file2.ts"
       },
       "summary": "Read file 2",
-      "id": "2b35b602-3c27-47ed-9be5-40fa2768baa0",
+      "id": "d44d49e2-a84b-41f5-b0d4-1b05c9411f12",
       "contentHash": "0918b2e74cacf1f5c298cc71d5832615d8e39b5aa3d3768faea9a0f9cf0dc025",
       "tokenEstimate": 4,
       "masked": false,
       "decayTier": "key-points",
       "keyPointsContent": "File content 2",
-      "keyPointsAt": 1779427909743
+      "keyPointsAt": 1779935138296
     },
     {
-      "timestamp": 1779427909736,
+      "timestamp": 1779935138285,
       "turnNumber": 4,
       "type": "file_read",
       "originalContent": "File content 3",
@@ -61,16 +61,16 @@
         "path": "/file3.ts"
       },
       "summary": "Read file 3",
-      "id": "ad2a1689-9edc-4185-bc42-3ea4181214d8",
+      "id": "d9f19290-1104-4dbc-a515-092c60215d7b",
       "contentHash": "49c2929414bc2e4c87c4a0dfad1d5118ae84c179f5a8b2847e38bcdcc95a3add",
       "tokenEstimate": 4,
       "masked": false,
       "decayTier": "key-points",
       "keyPointsContent": "File content 3",
-      "keyPointsAt": 1779427909743
+      "keyPointsAt": 1779935138296
     },
     {
-      "timestamp": 1779427909736,
+      "timestamp": 1779935138285,
       "turnNumber": 5,
       "type": "file_read",
       "originalContent": "File content 4",
@@ -78,14 +78,14 @@
         "path": "/file4.ts"
       },
       "summary": "Read file 4",
-      "id": "23bdae25-9073-4aa9-a1ae-ffca845bd9cd",
+      "id": "5588091b-92e7-412f-ae02-72f6932bfd4f",
       "contentHash": "c495136432e81438195966468a54a523bc64fe4da7216b0afd7c58a401c5e400",
       "tokenEstimate": 4,
       "masked": false,
       "decayTier": "full"
     },
     {
-      "timestamp": 1779427909736,
+      "timestamp": 1779935138285,
       "turnNumber": 6,
       "type": "file_read",
       "originalContent": "File content 5",
@@ -93,14 +93,14 @@
         "path": "/file5.ts"
       },
       "summary": "Read file 5",
-      "id": "d65447b6-7b72-472b-9409-fa169ae064b2",
+      "id": "90152b50-a504-4093-b9fc-8de19c7b52dd",
       "contentHash": "11d904ad4443e0a5ee750aa3ef8c55acd96134263e2b2c77a237954dadc01f2f",
       "tokenEstimate": 4,
       "masked": false,
       "decayTier": "full"
     },
     {
-      "timestamp": 1779427909736,
+      "timestamp": 1779935138285,
       "turnNumber": 7,
       "type": "file_read",
       "originalContent": "File content 6",
@@ -108,14 +108,14 @@
         "path": "/file6.ts"
       },
       "summary": "Read file 6",
-      "id": "1e176783-9ff8-4c7d-a1d1-d9243c4dade5",
+      "id": "06a5b4b1-b9f3-48c0-9aa3-88b970692454",
       "contentHash": "3854965438e22a9b1642ec96b9ff31c645ddf6d0454807d18e701c2c280d9f44",
       "tokenEstimate": 4,
       "masked": false,
       "decayTier": "full"
     },
     {
-      "timestamp": 1779427909736,
+      "timestamp": 1779935138285,
       "turnNumber": 8,
       "type": "file_read",
       "originalContent": "File content 7",
@@ -123,14 +123,14 @@
         "path": "/file7.ts"
       },
       "summary": "Read file 7",
-      "id": "a95ed091-3f38-4b89-9000-dbe81804c788",
+      "id": "e261d66a-3ff0-4e69-af4c-6071e3caa402",
       "contentHash": "11e498ff71f69c6864c825f541fe475cbe3b886c445a3c2e01783ea8e13bdb19",
       "tokenEstimate": 4,
       "masked": false,
       "decayTier": "full"
     },
     {
-      "timestamp": 1779427909736,
+      "timestamp": 1779935138285,
       "turnNumber": 9,
       "type": "file_read",
       "originalContent": "File content 8",
@@ -138,14 +138,14 @@
         "path": "/file8.ts"
       },
       "summary": "Read file 8",
-      "id": "59fd2c9f-b051-41ce-a936-7c7c4f43dd9a",
+      "id": "9ed37c7d-8611-46f8-b300-7ac4518b68e6",
       "contentHash": "58738775792278d9b0abd521c2f0c9edf3ef04ee85176358db6bc1c68e18a683",
       "tokenEstimate": 4,
       "masked": false,
       "decayTier": "full"
     },
     {
-      "timestamp": 1779427909736,
+      "timestamp": 1779935138285,
       "turnNumber": 10,
       "type": "file_read",
       "originalContent": "File content 9",
@@ -153,12 +153,12 @@
         "path": "/file9.ts"
       },
       "summary": "Read file 9",
-      "id": "5b452ea8-d796-4b65-86c1-e702ef4c07e8",
+      "id": "bbe10be9-d9fc-4441-893f-038a4aa84375",
       "contentHash": "828554f847442b81f4de23737ec42770d7085b2c992ac45a858c820198c8b800",
       "tokenEstimate": 4,
       "masked": false,
       "decayTier": "full"
     }
   ],
-  "lastSaved": 1779427909751
+  "lastSaved": 1779935138306
 }

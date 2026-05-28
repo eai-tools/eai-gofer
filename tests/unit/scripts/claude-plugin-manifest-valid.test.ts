@@ -67,9 +67,12 @@ describe('agent plugin manifests', () => {
 
     expect(manifest.name).toBe('eai-gofer');
     expect(manifest.version).toBe(expectedVersion());
-    expect(manifest.skills).toBe('./.agents/skills/');
+    expect(manifest.skills).toBe('./plugin-skills/');
     expect(manifest.agents).toBe('./.claude/agents/');
     expect(manifest.commands).toBe('./.claude/commands/');
+    expect(fs.existsSync(path.join(REPO_ROOT, 'plugin-skills', 'eai-gofer', 'SKILL.md'))).toBe(
+      true
+    );
   });
 
   it('Claude and Copilot marketplaces point at the repo-local plugin bundle for git/local marketplace installs', (): void => {

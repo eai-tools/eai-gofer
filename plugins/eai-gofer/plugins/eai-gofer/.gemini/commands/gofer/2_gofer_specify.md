@@ -1,6 +1,36 @@
+## Workspace Preflight
+
+Before doing stage/helper work:
+
+1. Resolve the repository root.
+2. Check the core Gofer sentinels:
+   - `.specify/.gofer-version`
+   - `.specify/commands/0_business_scenario.md`
+   - `.specify/templates/spec-template.md`
+   - `.specify/scripts/bash/create-new-feature.sh`
+   - `.specify/scripts/node/parse-stage-command.mjs`
+   - `.specify/scripts/hooks/post-tool-use.mjs`
+   - `.specify/scripts/powershell/install-optional-tools.ps1`
+   - `.specify/specs/`
+   - `.specify/memory/`
+3. Check host-specific repo-owned files when relevant:
+   - Claude: `AGENTS.md`, `CLAUDE.md`, `.claude/settings.json`
+   - Codex: `AGENTS.md`
+   - Copilot: `.github/copilot-instructions.md`
+   - VS Code extension mirrors Claude/Copilot/Gemini resources itself and should
+     still keep the core scaffold healthy
+4. If the repo already has the workspace checker script, prefer running:
+   - `node .specify/scripts/node/gofer-workspace-check.mjs --host gemini --json`
+5. If the workspace is missing or stale, ask exactly:
+   - **"This repo is missing or stale for Gofer. Initialize/update it now?"**
+6. If the user says yes, run the Gofer workspace bootstrap helper and then
+   resume this command from the top.
+7. If the user says no, stop and explain that Gofer stage/helper work depends on
+   the repo-owned scaffold.
+
 ---
-description: Create feature specification informed by codebase research
----
+
+## description: Create feature specification informed by codebase research
 
 # Gofer Specify
 
@@ -632,23 +662,23 @@ stage can bind implementation tasks directly to specification clauses.
 When EnterpriseAI is active or no profile is specified, generate
 `{FEATURE_DIR}/contract-pack.md` with these required sections:
 
-| Section | Required Content |
-| ------- | ---------------- |
-| Actors | Business users, administrators, approvers, external systems, support roles |
-| Object Types | Reused, extended, and newly proposed EnterpriseAI object types with owners |
-| Workflows and Journeys | External user journeys and internal orchestration flows as separate views; app delivery must include the four-step-or-fewer AI-augmented journey |
-| UI Preview and Approval | For app delivery: preview brief, Vertical Template constraints, branding inputs, preview validation evidence expectations, review-log requirements, approval gate rules; for non-app work: mark not applicable |
-| AI Assistance Contract | Step goal, assistance mode, context used, generated output, user controls, confidence/evidence, audit trail, completion signal, and escalation for each app step |
-| EnterpriseAI Service Fit | For app delivery: desired capabilities, evidence source, accessible now vs purchasable vs unavailable classification, selected direction, and blocked-capability handling |
-| Public Platform Boundary | Public docs/help/CLI/PublicAPI behavior the builder may rely on; private platform details intentionally excluded; upgrade/operator-required paths expressed as product-safe user actions |
-| Permissions and Tenant Boundaries | Identity, authorization, policy, isolation, and tenant assumptions |
-| APIs and Events | ResourceAPI surfaces, events, payload ownership, and contract-test hooks |
-| Deployment and Runtime | Environment, config, observability, rollback, and operating assumptions |
-| Acceptance Tests | Business, security, data, architecture, operational, and regression checks |
+| Section                           | Required Content                                                                                                                                                                                               |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Actors                            | Business users, administrators, approvers, external systems, support roles                                                                                                                                     |
+| Object Types                      | Reused, extended, and newly proposed EnterpriseAI object types with owners                                                                                                                                     |
+| Workflows and Journeys            | External user journeys and internal orchestration flows as separate views; app delivery must include the four-step-or-fewer AI-augmented journey                                                               |
+| UI Preview and Approval           | For app delivery: preview brief, Vertical Template constraints, branding inputs, preview validation evidence expectations, review-log requirements, approval gate rules; for non-app work: mark not applicable |
+| AI Assistance Contract            | Step goal, assistance mode, context used, generated output, user controls, confidence/evidence, audit trail, completion signal, and escalation for each app step                                               |
+| EnterpriseAI Service Fit          | For app delivery: desired capabilities, evidence source, accessible now vs purchasable vs unavailable classification, selected direction, and blocked-capability handling                                      |
+| Public Platform Boundary          | Public docs/help/CLI/PublicAPI behavior the builder may rely on; private platform details intentionally excluded; upgrade/operator-required paths expressed as product-safe user actions                       |
+| Permissions and Tenant Boundaries | Identity, authorization, policy, isolation, and tenant assumptions                                                                                                                                             |
+| APIs and Events                   | ResourceAPI surfaces, events, payload ownership, and contract-test hooks                                                                                                                                       |
+| Deployment and Runtime            | Environment, config, observability, rollback, and operating assumptions                                                                                                                                        |
+| Acceptance Tests                  | Business, security, data, architecture, operational, and regression checks                                                                                                                                     |
 
 The contract pack must link every new object type/API/workflow back to
-`reuse-scan.md` and must flag any "create new" decision that lacks evidence.
-For EnterpriseAI public-facing work, the contract pack must also separate:
+`reuse-scan.md` and must flag any "create new" decision that lacks evidence. For
+EnterpriseAI public-facing work, the contract pack must also separate:
 
 - **Public builder knowledge**: EAI CLI commands, PublicAPI responses, template
   configuration, support documentation, and user-safe statuses such as
@@ -678,8 +708,8 @@ Logs to: `.specify/logs/pipeline.jsonl`
   is stabilized, run `gofer:vocabulary` inline and write
   `.specify/specs/{feature}/glossary.md` using the same artifact contract as the
   standalone helper.
-- If the operator explicitly requests the `spec-summary` selector after `spec.md`
-  is stabilized, run `gofer:spec-summary` inline and write
+- If the operator explicitly requests the `spec-summary` selector after
+  `spec.md` is stabilized, run `gofer:spec-summary` inline and write
   `.specify/specs/{feature}/spec-summary.md` using the same artifact contract as
   the standalone helper.
 - If `spec.md` is missing, continue the stage normally and report that the

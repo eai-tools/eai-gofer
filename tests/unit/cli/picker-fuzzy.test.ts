@@ -29,7 +29,7 @@ function fuzzyMatch(needle: string, haystack: string[]): string[] {
   });
 }
 
-// 16 numbered stages + 16 namespaced aliases + 3 control commands.
+// 16 numbered stages + 16 namespaced aliases + helper/control commands.
 // We list both numbered and namespaced forms because the Claude picker
 // surfaces both, while Copilot's palette tends to show namespaced only.
 const ALL_COMMANDS: string[] = [
@@ -61,6 +61,8 @@ const ALL_COMMANDS: string[] = [
   'gofer:resume',
   'gofer:tests',
   'gofer:cloud',
+  'gofer:check-workspace',
+  'gofer:bootstrap-workspace',
   // Control commands (3)
   'gofer:plan',
   'gofer:side',
@@ -108,6 +110,16 @@ describe('CLI fuzzy picker (T131 / US5 AC-2)', () => {
   it('fuzzy("side") matches the side-conversation control command', () => {
     const matches = fuzzyMatch('side', ALL_COMMANDS);
     expect(matches).toContain('gofer:side');
+  });
+
+  it('fuzzy("boot") matches the workspace bootstrap helper', () => {
+    const matches = fuzzyMatch('boot', ALL_COMMANDS);
+    expect(matches).toContain('gofer:bootstrap-workspace');
+  });
+
+  it('fuzzy("work") matches the workspace check helper', () => {
+    const matches = fuzzyMatch('work', ALL_COMMANDS);
+    expect(matches).toContain('gofer:check-workspace');
   });
 
   it('fuzzy("pers") matches the personality control command', () => {

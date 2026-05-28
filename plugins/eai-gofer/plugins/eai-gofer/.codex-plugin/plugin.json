@@ -9,26 +9,15 @@
   "homepage": "https://github.com/eai-tools/eai-gofer",
   "repository": "https://github.com/eai-tools/eai-gofer",
   "license": "SEE LICENSE IN LICENSE",
-  "keywords": [
-    "eai-gofer",
-    "gofer",
-    "codex",
-    "claude",
-    "copilot",
-    "gemini",
-    "spec-driven-development"
-  ],
-  "skills": "./skills/",
+  "keywords": ["eai-gofer", "gofer", "codex", "claude", "copilot", "gemini", "spec-driven-development"],
+  "skills": "./plugin-skills/",
   "interface": {
     "displayName": "EAI Gofer",
     "shortDescription": "Spec-driven delivery workflow for agentic coding",
     "longDescription": "Run the public Gofer workflow from business scenario through research, specification, planning, tasks, implementation, validation, and stakeholder communications.",
     "developerName": "EnterpriseAI",
     "category": "Coding",
-    "capabilities": [
-      "Interactive",
-      "Write"
-    ],
+    "capabilities": ["Interactive", "Write"],
     "websiteURL": "https://github.com/eai-tools/eai-gofer",
     "defaultPrompt": [
       "Run Gofer research for this feature",
@@ -55,6 +44,8 @@
       "8_gofer_resume",
       "9_gofer_tests",
       "10_gofer_cloud",
+      "gofer:bootstrap-workspace",
+      "gofer:check-workspace",
       "gofer_constitution",
       "gofer:diagnose",
       "gofer_hydrate",

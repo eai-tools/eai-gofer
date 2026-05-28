@@ -29,6 +29,8 @@ export const LEGACY_CONTROL_COMMANDS: readonly ControlCommandExpectation[] = [
 ] as const;
 
 export const HELPER_COMMANDS: readonly ControlCommandExpectation[] = [
+  { file: 'gofer_check_workspace', name: 'gofer:check-workspace' },
+  { file: 'gofer_bootstrap_workspace', name: 'gofer:bootstrap-workspace' },
   { file: 'gofer_diagnose', name: 'gofer:diagnose' },
   { file: 'gofer_spec_summary', name: 'gofer:spec-summary' },
   { file: 'gofer_tdd', name: 'gofer:tdd' },

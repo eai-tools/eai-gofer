@@ -23,6 +23,8 @@ tests/fixtures/stage-commands/
 .github/prompts/
 extension/resources/copilot-prompts/
 extension/resources/claude-commands/
+extension/resources/gemini/
+extension/resources/specify-commands/
 .gemini/commands/
 *.tgz
 *.tar.gz

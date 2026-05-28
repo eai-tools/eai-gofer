@@ -1064,7 +1064,10 @@ export class MCPToolHandler {
   private async estimateTokensFromGlob(pattern: string): Promise<number> {
     try {
       const glob = await import('glob');
-      const files = await glob.glob(pattern, { cwd: this.workspacePath });
+      const files = await glob.glob(pattern, {
+        cwd: this.workspacePath,
+        ignore: this.getContextHealthGlobIgnore(pattern),
+      });
       let totalTokens = 0;
 
       for (const file of files) {
@@ -1075,6 +1078,14 @@ export class MCPToolHandler {
     } catch {
       return 0;
     }
+  }
+
+  private getContextHealthGlobIgnore(pattern: string): string[] {
+    if (!pattern.startsWith('.specify/specs/')) {
+      return [];
+    }
+
+    return ['.specify/specs/_*/**', '.specify/specs/**/_*/**'];
   }
 
   /**
@@ -1320,17 +1331,29 @@ ${notes || 'No additional notes.'}
         return { success: false, error: validation.error, errorCode: 'INVALID_OBSERVATION_ID' };
       }
 
-      const cachePath = path.join(this.workspacePath, '.specify', 'memory', 'observation-cache', 'index.json');
+      const cachePath = path.join(
+        this.workspacePath,
+        '.specify',
+        'memory',
+        'observation-cache',
+        'index.json'
+      );
       const cacheContent = await fs.readFile(cachePath, 'utf-8');
       const cache = JSON.parse(cacheContent) as { observations: Array<ObservationCacheEntry> };
 
-      const observation = cache.observations.find(o => o.id === observationId);
+      const observation = cache.observations.find((o) => o.id === observationId);
       if (!observation) {
-        return { success: false, error: 'Observation not found', errorCode: 'OBSERVATION_NOT_FOUND' };
+        return {
+          success: false,
+          error: 'Observation not found',
+          errorCode: 'OBSERVATION_NOT_FOUND',
+        };
       }
 
       // Return key-points if available, otherwise first/last lines
-      const peek = observation.keyPointsContent || this.generateQuickPeek(observation.originalContent, observation.type);
+      const peek =
+        observation.keyPointsContent ||
+        this.generateQuickPeek(observation.originalContent, observation.type);
 
       return {
         success: true,
@@ -1357,7 +1380,10 @@ ${notes || 'No additional notes.'}
    * MCP Tool: gofer_fold_observation
    * Sets the fold level for an observation in the cache.
    */
-  async foldObservation(observationId: string, foldLevel: 'collapsed' | 'summary' | 'expanded'): Promise<FoldObservationResponse> {
+  async foldObservation(
+    observationId: string,
+    foldLevel: 'collapsed' | 'summary' | 'expanded'
+  ): Promise<FoldObservationResponse> {
     try {
       const validation = this.validateObservationId(observationId);
       if (!validation.valid) {
@@ -1365,16 +1391,34 @@ ${notes || 'No additional notes.'}
       }
 
       if (!['collapsed', 'summary', 'expanded'].includes(foldLevel)) {
-        return { success: false, error: 'foldLevel must be collapsed, summary, or expanded', errorCode: 'INVALID_FOLD_LEVEL' };
+        return {
+          success: false,
+          error: 'foldLevel must be collapsed, summary, or expanded',
+          errorCode: 'INVALID_FOLD_LEVEL',
+        };
       }
 
-      const cachePath = path.join(this.workspacePath, '.specify', 'memory', 'observation-cache', 'index.json');
+      const cachePath = path.join(
+        this.workspacePath,
+        '.specify',
+        'memory',
+        'observation-cache',
+        'index.json'
+      );
       const cacheContent = await fs.readFile(cachePath, 'utf-8');
-      const cache = JSON.parse(cacheContent) as { version: number; observations: Array<ObservationCacheEntry>; lastSaved: number };
+      const cache = JSON.parse(cacheContent) as {
+        version: number;
+        observations: Array<ObservationCacheEntry>;
+        lastSaved: number;
+      };
 
-      const observation = cache.observations.find(o => o.id === observationId);
+      const observation = cache.observations.find((o) => o.id === observationId);
       if (!observation) {
-        return { success: false, error: 'Observation not found', errorCode: 'OBSERVATION_NOT_FOUND' };
+        return {
+          success: false,
+          error: 'Observation not found',
+          errorCode: 'OBSERVATION_NOT_FOUND',
+        };
       }
 
       const previousLevel = observation.foldLevel;
@@ -1384,7 +1428,13 @@ ${notes || 'No additional notes.'}
       await fs.writeFile(cachePath, JSON.stringify(cache, null, 2), 'utf-8');
 
       // Track in operation history
-      this.recordContextOperation({ type: 'fold', observationId, foldLevel, previousLevel, timestamp: Date.now() });
+      this.recordContextOperation({
+        type: 'fold',
+        observationId,
+        foldLevel,
+        previousLevel,
+        timestamp: Date.now(),
+      });
 
       return {
         success: true,
@@ -1407,13 +1457,26 @@ ${notes || 'No additional notes.'}
    * MCP Tool: gofer_grep_observations
    * Searches across all observation content for a pattern.
    */
-  async grepObservations(pattern: string, maxResults: number = 10): Promise<GrepObservationsResponse> {
+  async grepObservations(
+    pattern: string,
+    maxResults: number = 10
+  ): Promise<GrepObservationsResponse> {
     try {
       if (!pattern || typeof pattern !== 'string' || pattern.length > 500) {
-        return { success: false, error: 'pattern must be a non-empty string (max 500 chars)', errorCode: 'INVALID_PATTERN' };
+        return {
+          success: false,
+          error: 'pattern must be a non-empty string (max 500 chars)',
+          errorCode: 'INVALID_PATTERN',
+        };
       }
 
-      const cachePath = path.join(this.workspacePath, '.specify', 'memory', 'observation-cache', 'index.json');
+      const cachePath = path.join(
+        this.workspacePath,
+        '.specify',
+        'memory',
+        'observation-cache',
+        'index.json'
+      );
       const cacheContent = await fs.readFile(cachePath, 'utf-8');
       const cache = JSON.parse(cacheContent) as { observations: Array<ObservationCacheEntry> };
 
@@ -1424,7 +1487,13 @@ ${notes || 'No additional notes.'}
         regex = new RegExp(pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
       }
 
-      const matches: Array<{ id: string; type: string; matchCount: number; excerpts: string[]; metadata?: Record<string, unknown> }> = [];
+      const matches: Array<{
+        id: string;
+        type: string;
+        matchCount: number;
+        excerpts: string[];
+        metadata?: Record<string, unknown>;
+      }> = [];
 
       for (const observation of cache.observations) {
         const content = observation.originalContent || '';
@@ -1484,20 +1553,38 @@ ${notes || 'No additional notes.'}
    */
   async contextPeek(section: string): Promise<ContextReplResponse> {
     try {
-      const statePath = path.join(this.workspacePath, '.specify', 'memory', 'context-health-state.json');
+      const statePath = path.join(
+        this.workspacePath,
+        '.specify',
+        'memory',
+        'context-health-state.json'
+      );
       try {
         const content = await fs.readFile(statePath, 'utf-8');
         const state = JSON.parse(content);
         const sectionContent = state.sections?.[section];
         if (sectionContent) {
-          return { success: true, content: typeof sectionContent === 'string' ? sectionContent : JSON.stringify(sectionContent), section };
+          return {
+            success: true,
+            content:
+              typeof sectionContent === 'string' ? sectionContent : JSON.stringify(sectionContent),
+            section,
+          };
         }
-        return { success: true, content: `Section '${section}' not found. Available: ${Object.keys(state.sections || {}).join(', ')}`, section };
+        return {
+          success: true,
+          content: `Section '${section}' not found. Available: ${Object.keys(state.sections || {}).join(', ')}`,
+          section,
+        };
       } catch {
         return { success: false, error: 'Context state not available', errorCode: 'NO_STATE' };
       }
     } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error', errorCode: 'REPL_ERROR' };
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        errorCode: 'REPL_ERROR',
+      };
     }
   }
 
@@ -1508,10 +1595,19 @@ ${notes || 'No additional notes.'}
   async contextGrep(pattern: string): Promise<ContextGrepResponse> {
     try {
       if (!pattern || pattern.length > 500) {
-        return { success: false, error: 'pattern must be non-empty (max 500 chars)', errorCode: 'INVALID_PATTERN' };
+        return {
+          success: false,
+          error: 'pattern must be non-empty (max 500 chars)',
+          errorCode: 'INVALID_PATTERN',
+        };
       }
 
-      const statePath = path.join(this.workspacePath, '.specify', 'memory', 'context-health-state.json');
+      const statePath = path.join(
+        this.workspacePath,
+        '.specify',
+        'memory',
+        'context-health-state.json'
+      );
       const content = await fs.readFile(statePath, 'utf-8');
       const state = JSON.parse(content);
 
@@ -1525,7 +1621,8 @@ ${notes || 'No additional notes.'}
       const sectionMatches: Array<{ section: string; matchCount: number; excerpts: string[] }> = [];
 
       for (const [sectionName, sectionContent] of Object.entries(state.sections || {})) {
-        const text = typeof sectionContent === 'string' ? sectionContent : JSON.stringify(sectionContent);
+        const text =
+          typeof sectionContent === 'string' ? sectionContent : JSON.stringify(sectionContent);
         const matches = text.match(regex);
         if (matches && matches.length > 0) {
           const lines = text.split('\n');
@@ -1544,10 +1641,18 @@ ${notes || 'No additional notes.'}
 
       return {
         success: true,
-        results: { pattern, sectionMatches, totalMatches: sectionMatches.reduce((s, m) => s + m.matchCount, 0) },
+        results: {
+          pattern,
+          sectionMatches,
+          totalMatches: sectionMatches.reduce((s, m) => s + m.matchCount, 0),
+        },
       };
     } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error', errorCode: 'GREP_ERROR' };
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        errorCode: 'GREP_ERROR',
+      };
     }
   }
 
@@ -1588,26 +1693,50 @@ ${notes || 'No additional notes.'}
       // Revert the operation
       if (lastOp.type === 'fold' && lastOp.observationId) {
         const previousLevel = lastOp.previousLevel || 'expanded';
-        const cachePath = path.join(this.workspacePath, '.specify', 'memory', 'observation-cache', 'index.json');
+        const cachePath = path.join(
+          this.workspacePath,
+          '.specify',
+          'memory',
+          'observation-cache',
+          'index.json'
+        );
         try {
           const cacheContent = await fs.readFile(cachePath, 'utf-8');
-          const cache = JSON.parse(cacheContent) as { version: number; observations: Array<ObservationCacheEntry>; lastSaved: number };
-          const obs = cache.observations.find(o => o.id === lastOp.observationId);
+          const cache = JSON.parse(cacheContent) as {
+            version: number;
+            observations: Array<ObservationCacheEntry>;
+            lastSaved: number;
+          };
+          const obs = cache.observations.find((o) => o.id === lastOp.observationId);
           if (obs) {
             obs.foldLevel = previousLevel as 'collapsed' | 'summary' | 'expanded';
             await fs.writeFile(cachePath, JSON.stringify(cache, null, 2), 'utf-8');
           }
-        } catch { /* cache may not exist */ }
-        return { success: true, content: `Undid fold: ${lastOp.observationId} reverted to ${previousLevel}`, section: 'undo' };
+        } catch {
+          /* cache may not exist */
+        }
+        return {
+          success: true,
+          content: `Undid fold: ${lastOp.observationId} reverted to ${previousLevel}`,
+          section: 'undo',
+        };
       } else if (lastOp.type === 'context_fold' || lastOp.type === 'context_expand') {
         const revertLevel = lastOp.type === 'context_fold' ? 'expanded' : 'collapsed';
         await this.updateContextFoldState(lastOp.section || '', revertLevel);
-        return { success: true, content: `Undid ${lastOp.type}: ${lastOp.section} reverted to ${revertLevel}`, section: 'undo' };
+        return {
+          success: true,
+          content: `Undid ${lastOp.type}: ${lastOp.section} reverted to ${revertLevel}`,
+          section: 'undo',
+        };
       }
 
       return { success: true, content: `Undid operation: ${lastOp.type}`, section: 'undo' };
     } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error', errorCode: 'UNDO_ERROR' };
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        errorCode: 'UNDO_ERROR',
+      };
     }
   }
 
@@ -1620,7 +1749,7 @@ ${notes || 'No additional notes.'}
       const history = await this.loadOperationHistory();
       return {
         success: true,
-        operations: history.slice(-10).map(op => ({
+        operations: history.slice(-10).map((op) => ({
           type: op.type,
           target: op.observationId || op.section || '',
           detail: op.foldLevel || '',
@@ -1636,7 +1765,21 @@ ${notes || 'No additional notes.'}
   // 018 T066: SlopDetector MCP tool
   // ─────────────────────────────────────────────────────────────────────────────
 
-  async checkSlop(scanPath?: string): Promise<{ success: boolean; report?: { totalIssues: number; filesScanned: number; matches: Array<{ file: string; line: number; pattern: string; severity: string; message: string }> }; error?: string }> {
+  async checkSlop(scanPath?: string): Promise<{
+    success: boolean;
+    report?: {
+      totalIssues: number;
+      filesScanned: number;
+      matches: Array<{
+        file: string;
+        line: number;
+        pattern: string;
+        severity: string;
+        message: string;
+      }>;
+    };
+    error?: string;
+  }> {
     try {
       const targetPath = scanPath || path.join(this.workspacePath, 'extension', 'src');
       const fsSync = await import('fs');
@@ -1646,15 +1789,41 @@ ${notes || 'No additional notes.'}
 
       // Inline slop scanning to avoid cross-package import
       const SLOP_PATTERNS = [
-        { regex: /\bit\.skip\b|\btest\.skip\b|\bdescribe\.skip\b/, name: 'disabled-test', severity: 'error', message: 'Disabled test found' },
-        { regex: /\bTODO\b(?!.*(?:#\d+|[A-Z]+-\d+))/, name: 'todo-no-issue', severity: 'warning', message: 'TODO without issue reference' },
-        { regex: /catch\s*\([^)]*\)\s*\{\s*\}/, name: 'empty-catch', severity: 'warning', message: 'Empty catch block' },
+        {
+          regex: /\bit\.skip\b|\btest\.skip\b|\bdescribe\.skip\b/,
+          name: 'disabled-test',
+          severity: 'error',
+          message: 'Disabled test found',
+        },
+        {
+          regex: /\bTODO\b(?!.*(?:#\d+|[A-Z]+-\d+))/,
+          name: 'todo-no-issue',
+          severity: 'warning',
+          message: 'TODO without issue reference',
+        },
+        {
+          regex: /catch\s*\([^)]*\)\s*\{\s*\}/,
+          name: 'empty-catch',
+          severity: 'warning',
+          message: 'Empty catch block',
+        },
         { regex: /\bas\s+any\b/, name: 'as-any', severity: 'warning', message: 'as any cast' },
-        { regex: /\bdebugger\b/, name: 'debugger', severity: 'error', message: 'debugger statement' },
+        {
+          regex: /\bdebugger\b/,
+          name: 'debugger',
+          severity: 'error',
+          message: 'debugger statement',
+        },
       ];
       const SCAN_EXT = new Set(['.ts', '.tsx', '.js', '.jsx']);
 
-      const matches: Array<{ file: string; line: number; pattern: string; severity: string; message: string }> = [];
+      const matches: Array<{
+        file: string;
+        line: number;
+        pattern: string;
+        severity: string;
+        message: string;
+      }> = [];
       let filesScanned = 0;
 
       const stat = fsSync.statSync(targetPath);
@@ -1664,7 +1833,13 @@ ${notes || 'No additional notes.'}
         for (let i = 0; i < lines.length; i++) {
           for (const p of SLOP_PATTERNS) {
             if (p.regex.test(lines[i])) {
-              matches.push({ file: targetPath, line: i + 1, pattern: p.name, severity: p.severity, message: p.message });
+              matches.push({
+                file: targetPath,
+                line: i + 1,
+                pattern: p.name,
+                severity: p.severity,
+                message: p.message,
+              });
             }
           }
         }
@@ -1677,7 +1852,12 @@ ${notes || 'No additional notes.'}
             for (const entry of entries) {
               if (filesScanned >= 200) return;
               const fp = path.join(dir, entry.name);
-              if (entry.isDirectory() && !entry.name.startsWith('.') && entry.name !== 'node_modules' && entry.name !== 'dist') {
+              if (
+                entry.isDirectory() &&
+                !entry.name.startsWith('.') &&
+                entry.name !== 'node_modules' &&
+                entry.name !== 'dist'
+              ) {
                 walk(fp);
               } else if (entry.isFile() && SCAN_EXT.has(path.extname(entry.name))) {
                 filesScanned++;
@@ -1686,13 +1866,21 @@ ${notes || 'No additional notes.'}
                 for (let i = 0; i < lines.length; i++) {
                   for (const p of SLOP_PATTERNS) {
                     if (p.regex.test(lines[i])) {
-                      matches.push({ file: fp, line: i + 1, pattern: p.name, severity: p.severity, message: p.message });
+                      matches.push({
+                        file: fp,
+                        line: i + 1,
+                        pattern: p.name,
+                        severity: p.severity,
+                        message: p.message,
+                      });
                     }
                   }
                 }
               }
             }
-          } catch { /* skip unreadable dirs */ }
+          } catch {
+            /* skip unreadable dirs */
+          }
         };
         walk(targetPath);
       }
@@ -1710,10 +1898,18 @@ ${notes || 'No additional notes.'}
   // 019 T050-T053: Compound Context REPL
   // ─────────────────────────────────────────────────────────────────────────────
 
-  async contextRepl(operations: Array<Record<string, unknown>>): Promise<{ success: boolean; results: Array<{ op: string; target: string; success: boolean; message: string }>; error?: string }> {
+  async contextRepl(operations: Array<Record<string, unknown>>): Promise<{
+    success: boolean;
+    results: Array<{ op: string; target: string; success: boolean; message: string }>;
+    error?: string;
+  }> {
     try {
       if (!Array.isArray(operations) || operations.length === 0) {
-        return { success: false, results: [], error: 'Operations array is required and must be non-empty' };
+        return {
+          success: false,
+          results: [],
+          error: 'Operations array is required and must be non-empty',
+        };
       }
 
       if (operations.length > 50) {
@@ -1731,27 +1927,49 @@ ${notes || 'No additional notes.'}
           switch (op) {
             case 'fold': {
               const foldResult = await this.updateContextFoldState(target, 'collapsed');
-              results.push({ op, target, success: foldResult.success, message: foldResult.content || foldResult.error || '' });
+              results.push({
+                op,
+                target,
+                success: foldResult.success,
+                message: foldResult.content || foldResult.error || '',
+              });
               break;
             }
             case 'expand': {
               const expandResult = await this.updateContextFoldState(target, 'expanded');
-              results.push({ op, target, success: expandResult.success, message: expandResult.content || expandResult.error || '' });
+              results.push({
+                op,
+                target,
+                success: expandResult.success,
+                message: expandResult.content || expandResult.error || '',
+              });
               break;
             }
             case 'peek': {
               const peekResult = await this.contextPeek(target);
-              results.push({ op, target, success: peekResult.success, message: peekResult.content?.slice(0, 200) || peekResult.error || '' });
+              results.push({
+                op,
+                target,
+                success: peekResult.success,
+                message: peekResult.content?.slice(0, 200) || peekResult.error || '',
+              });
               break;
             }
             case 'fold-all-older-than': {
               // Fold all sections with observations older than N turns
-              const foldStatePath = path.join(this.workspacePath, '.specify', 'memory', 'context-fold-state.json');
+              const foldStatePath = path.join(
+                this.workspacePath,
+                '.specify',
+                'memory',
+                'context-fold-state.json'
+              );
               let foldState: Record<string, string> = {};
               try {
                 const content = await fs.readFile(foldStatePath, 'utf-8');
                 foldState = JSON.parse(content);
-              } catch { /* start fresh */ }
+              } catch {
+                /* start fresh */
+              }
 
               let foldCount = 0;
               for (const [section] of Object.entries(foldState)) {
@@ -1765,20 +1983,34 @@ ${notes || 'No additional notes.'}
                 foldState[`_bulk_fold_age_${age}`] = 'collapsed';
               }
               await fs.writeFile(foldStatePath, JSON.stringify(foldState, null, 2), 'utf-8');
-              results.push({ op, target: `age>${age}`, success: true, message: `Folded ${foldCount} sections older than ${age} turns` });
+              results.push({
+                op,
+                target: `age>${age}`,
+                success: true,
+                message: `Folded ${foldCount} sections older than ${age} turns`,
+              });
               break;
             }
             default:
               results.push({ op, target, success: false, message: `Unknown operation: ${op}` });
           }
         } catch (opError) {
-          results.push({ op, target, success: false, message: opError instanceof Error ? opError.message : 'Operation failed' });
+          results.push({
+            op,
+            target,
+            success: false,
+            message: opError instanceof Error ? opError.message : 'Operation failed',
+          });
         }
       }
 
       return { success: true, results };
     } catch (error) {
-      return { success: false, results: [], error: error instanceof Error ? error.message : 'Unknown error' };
+      return {
+        success: false,
+        results: [],
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
     }
   }
 
@@ -1786,7 +2018,19 @@ ${notes || 'No additional notes.'}
   // 019 T059-T061: Test Runner MCP Tool
   // ─────────────────────────────────────────────────────────────────────────────
 
-  async runTestsDetect(testPath?: string, filter?: string): Promise<{ success: boolean; framework?: string; command?: string; passed?: number; failed?: number; total?: number; output?: string; error?: string }> {
+  async runTestsDetect(
+    testPath?: string,
+    filter?: string
+  ): Promise<{
+    success: boolean;
+    framework?: string;
+    command?: string;
+    passed?: number;
+    failed?: number;
+    total?: number;
+    output?: string;
+    error?: string;
+  }> {
     try {
       const fsSync = await import('fs');
       const { execFile: execFileCb } = await import('child_process');
@@ -1805,8 +2049,10 @@ ${notes || 'No additional notes.'}
       }
       // Check for pytest
       if (framework === 'unknown') {
-        if (fsSync.existsSync(path.join(this.workspacePath, 'pytest.ini')) ||
-            fsSync.existsSync(path.join(this.workspacePath, 'pyproject.toml'))) {
+        if (
+          fsSync.existsSync(path.join(this.workspacePath, 'pytest.ini')) ||
+          fsSync.existsSync(path.join(this.workspacePath, 'pyproject.toml'))
+        ) {
           framework = 'pytest';
         }
       }
@@ -1851,21 +2097,42 @@ ${notes || 'No additional notes.'}
         // Parse results
         const { passed, failed, total } = this.parseTestOutput(output, framework);
 
-        return { success: true, framework, command, passed, failed, total, output: output.slice(-2000) };
+        return {
+          success: true,
+          framework,
+          command,
+          passed,
+          failed,
+          total,
+          output: output.slice(-2000),
+        };
       } catch (execError) {
         // Test failures often exit non-zero
         const err = execError as { stdout?: string; stderr?: string };
         const output = ((err.stdout || '') + '\n' + (err.stderr || '')).trim();
         const { passed, failed, total } = this.parseTestOutput(output, framework);
-        return { success: true, framework, command, passed, failed, total, output: output.slice(-2000) };
+        return {
+          success: true,
+          framework,
+          command,
+          passed,
+          failed,
+          total,
+          output: output.slice(-2000),
+        };
       }
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
 
-  private parseTestOutput(output: string, framework: string): { passed: number; failed: number; total: number } {
-    let passed = 0, failed = 0, total = 0;
+  private parseTestOutput(
+    output: string,
+    framework: string
+  ): { passed: number; failed: number; total: number } {
+    let passed = 0,
+      failed = 0,
+      total = 0;
 
     if (framework === 'vitest' || framework === 'jest') {
       // vitest/jest: "Tests  3 passed (3)"  or "Test Suites: 1 passed, 1 total"
@@ -1890,24 +2157,47 @@ ${notes || 'No additional notes.'}
   // Private helpers for context operations
   // ─────────────────────────────────────────────────────────────────────────────
 
-  private async updateContextFoldState(section: string, level: 'collapsed' | 'expanded'): Promise<ContextReplResponse> {
+  private async updateContextFoldState(
+    section: string,
+    level: 'collapsed' | 'expanded'
+  ): Promise<ContextReplResponse> {
     try {
-      const foldStatePath = path.join(this.workspacePath, '.specify', 'memory', 'context-fold-state.json');
+      const foldStatePath = path.join(
+        this.workspacePath,
+        '.specify',
+        'memory',
+        'context-fold-state.json'
+      );
       let foldState: Record<string, string> = {};
       try {
         const content = await fs.readFile(foldStatePath, 'utf-8');
         foldState = JSON.parse(content);
-      } catch { /* start fresh */ }
+      } catch {
+        /* start fresh */
+      }
 
       const previous = foldState[section] || 'expanded';
       foldState[section] = level;
       await fs.writeFile(foldStatePath, JSON.stringify(foldState, null, 2), 'utf-8');
 
-      this.recordContextOperation({ type: level === 'collapsed' ? 'context_fold' : 'context_expand', section, timestamp: Date.now(), previousLevel: previous });
+      this.recordContextOperation({
+        type: level === 'collapsed' ? 'context_fold' : 'context_expand',
+        section,
+        timestamp: Date.now(),
+        previousLevel: previous,
+      });
 
-      return { success: true, content: `Section '${section}' ${level === 'collapsed' ? 'folded' : 'expanded'}`, section };
+      return {
+        success: true,
+        content: `Section '${section}' ${level === 'collapsed' ? 'folded' : 'expanded'}`,
+        section,
+      };
     } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error', errorCode: 'FOLD_ERROR' };
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        errorCode: 'FOLD_ERROR',
+      };
     }
   }
 
@@ -1915,9 +2205,17 @@ ${notes || 'No additional notes.'}
     const lines = content.split('\n');
     if (lines.length <= 5) return content;
     if (type === 'file_read') {
-      return [...lines.slice(0, 3), `  ... (${lines.length - 5} lines) ...`, ...lines.slice(-2)].join('\n');
+      return [
+        ...lines.slice(0, 3),
+        `  ... (${lines.length - 5} lines) ...`,
+        ...lines.slice(-2),
+      ].join('\n');
     }
-    return [...lines.slice(0, 5), `  ... (${lines.length - 10} lines) ...`, ...lines.slice(-5)].join('\n');
+    return [
+      ...lines.slice(0, 5),
+      `  ... (${lines.length - 10} lines) ...`,
+      ...lines.slice(-5),
+    ].join('\n');
   }
 
   private contextOperationHistory: ContextOperation[] = [];
@@ -1933,7 +2231,12 @@ ${notes || 'No additional notes.'}
 
   private async loadOperationHistory(): Promise<ContextOperation[]> {
     try {
-      const histPath = path.join(this.workspacePath, '.specify', 'memory', 'context-operation-history.json');
+      const histPath = path.join(
+        this.workspacePath,
+        '.specify',
+        'memory',
+        'context-operation-history.json'
+      );
       const content = await fs.readFile(histPath, 'utf-8');
       this.contextOperationHistory = JSON.parse(content);
       return this.contextOperationHistory;
@@ -1943,7 +2246,12 @@ ${notes || 'No additional notes.'}
   }
 
   private async saveOperationHistory(history: ContextOperation[]): Promise<void> {
-    const histPath = path.join(this.workspacePath, '.specify', 'memory', 'context-operation-history.json');
+    const histPath = path.join(
+      this.workspacePath,
+      '.specify',
+      'memory',
+      'context-operation-history.json'
+    );
     const dir = path.dirname(histPath);
     await fs.mkdir(dir, { recursive: true });
     await fs.writeFile(histPath, JSON.stringify(history, null, 2), 'utf-8');

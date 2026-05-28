@@ -16,6 +16,26 @@ $ARGUMENTS
 
 You **MUST** consider the user input before proceeding (if not empty).
 
+## Execution Depth And Public Risk Labels
+
+Classify the request before spawning agents. Use repository-neutral labels only:
+`docs-only`, `single-repo-code`, `api-contract`, `auth-security`,
+`data-model`, `infra-config`, `release-critical`, or `unknown`.
+
+- **fast**: docs-only or small clarification work. Use one locator/summarizer,
+  keep existing required artifacts concise, and skip optional councils unless
+  evidence contradicts the request.
+- **standard**: ordinary single-repository feature work. Use the core research
+  agents and write the normal artifact set.
+- **full**: API contracts, auth/security, data model, infra/config, release
+  risk, cross-repo impact, or unknown ownership. Use specialist fan-out,
+  explicit evidence, blast-radius notes, and richer test/release obligations.
+
+Artifact-churn rule: preserve existing required artifacts, but do not create
+large optional diagrams, councils, issue lists, or extended reports unless the
+classified risk or user request justifies them. Mark weak claims as inferred or
+unknown instead of inventing certainty.
+
 ## Outline
 
 This is the **first stage** of the unified Gofer pipeline. Your job is to:
@@ -143,7 +163,9 @@ Show: similar implementations we should model after.
 Include: file paths, code snippets, conventions used."
 ```
 
-**Run all three agents in parallel** for maximum efficiency.
+**Run all three agents in parallel** for maximum efficiency in standard/full
+mode. In fast mode, collapse this into one concise locator/summarizer unless
+the feature touches a full-depth risk label.
 
 ---
 

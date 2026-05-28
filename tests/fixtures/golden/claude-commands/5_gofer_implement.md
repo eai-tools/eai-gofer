@@ -15,6 +15,22 @@ $ARGUMENTS
 
 You **MUST** consider the user input before proceeding (if not empty).
 
+## Execution Depth During Implementation
+
+Before editing, re-check the planned depth and generic risk labels from
+`tasks.md` / `plan.md`:
+
+- **fast**: for `docs-only` or very small low-risk changes, make the smallest
+  scoped edit, run focused checks, and avoid regenerating optional artifacts
+  unless they are directly affected.
+- **standard**: implement phase by phase with normal focused test evidence.
+- **full**: open the relevant contracts, security, data, infra, release, and
+  rollback artifacts before code changes; update tests before or alongside the
+  fix.
+
+If the implementation reveals a higher-risk surface than planned, stop and
+upgrade the depth before continuing. Do not silently broaden scope.
+
 ## Prerequisites
 
 This command expects in `.specify/specs/{feature}/`:

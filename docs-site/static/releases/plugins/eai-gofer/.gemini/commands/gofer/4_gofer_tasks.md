@@ -42,6 +42,23 @@ $ARGUMENTS
 
 You **MUST** consider the user input before proceeding (if not empty).
 
+## Execution Depth And Task Sizing
+
+Preserve the selected depth from earlier stages:
+
+- **fast**: for `docs-only` or very small low-risk changes, generate a short
+  task list with only the work needed to deliver the change and its
+  verification.
+- **standard**: generate normal dependency-ordered tasks with tests and
+  traceability.
+- **full**: add tasks for contract compatibility, security review, migration or
+  config safety, rollout/rollback, and blast-radius verification.
+
+Every task should name a real file or directory when known. If ownership or
+files are unknown, mark that as `unknown` and add a discovery task instead of
+fabricating a path. Keep optional artifacts out of the plan unless they support
+the selected risk label.
+
 ## Prerequisites
 
 This command expects in `.specify/specs/{feature}/`:

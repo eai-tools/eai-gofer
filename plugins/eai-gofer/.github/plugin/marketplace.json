@@ -10,7 +10,7 @@
       "name": "eai-gofer",
       "source": "./plugins/eai-gofer",
       "description": "Public Gofer workflow for business scenario, research, specification, planning, implementation, validation, and stakeholder communications.",
-      "version": "3.4.5",
+      "version": "3.4.6",
       "author": {
         "name": "Enterprise AI Pty Ltd",
         "url": "https://github.com/eai-tools/eai-gofer"

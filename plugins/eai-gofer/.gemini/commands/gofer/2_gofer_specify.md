@@ -42,6 +42,23 @@ $ARGUMENTS
 
 You **MUST** consider the user input before proceeding (if not empty).
 
+## Execution Depth And Artifact Churn
+
+Carry forward the `fast` / `standard` / `full` depth chosen in research. Keep
+labels generic: `docs-only`, `single-repo-code`, `api-contract`,
+`auth-security`, `data-model`, `infra-config`, `release-critical`, `unknown`.
+
+- **fast** specs should be short and scoped, with no new optional artifact set
+  unless research found implementation risk.
+- **standard** specs should include normal user stories, acceptance criteria,
+  test expectations, and protected boundaries.
+- **full** specs must explicitly capture contract, security, data, infra,
+  rollout, and validation obligations with evidence references.
+
+Do not rediscover context already summarized in `research.md` or
+`proposal-review.md`; consume it, cite it, and only reopen files when a claim is
+ambiguous.
+
 ## Prerequisites
 
 This command expects:

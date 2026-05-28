@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: enterpriseai
   canonicalSource: .specify/commands/6_gofer_validate.md
-  canonicalChecksum: 08cf2940efd1d871a1a4c161a16fd559eccceba52b6a78099e8a87d40ec4827e
+  canonicalChecksum: 7550d70b8a3c285a2175e57804baa7ae92194a441671c5d3b817675d157ed514
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -74,6 +74,21 @@ $ARGUMENTS
 ```
 
 You **MUST** consider the user input before proceeding (if not empty).
+
+## Execution Depth And Validation Cost
+
+Validation must respect the final risk label:
+
+- **fast**: for `docs-only` or very small low-risk changes, run focused checks
+  and verify no unnecessary artifact churn or unrelated files were changed.
+- **standard**: run the normal rubric, focused build/test/lint/typecheck
+  evidence, and traceability checks.
+- **full**: preserve the existing blast-radius, evidence gates, review loop,
+  scoring, and release-readiness checks; require evidence for contract,
+  security, data, infra/config, rollback, and cross-repository claims.
+
+Archived specs under `.specify/specs/_*/` are historical context and must not
+inflate active context-health estimates or current blast-radius manifests.
 
 ## Prerequisites
 

@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: enterpriseai
   canonicalSource: .specify/commands/4_gofer_tasks.md
-  canonicalChecksum: f60830318c3c930fd8b5d0cc0111d7ec1af6d5210a0233ae5c41a2e95b0958af
+  canonicalChecksum: 64e267a712edf110a32584e76c310ed55ee0dcdfb2388dc90a3905c48a65067c
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -56,6 +56,23 @@ $ARGUMENTS
 ```
 
 You **MUST** consider the user input before proceeding (if not empty).
+
+## Execution Depth And Task Sizing
+
+Preserve the selected depth from earlier stages:
+
+- **fast**: for `docs-only` or very small low-risk changes, generate a short
+  task list with only the work needed to deliver the change and its
+  verification.
+- **standard**: generate normal dependency-ordered tasks with tests and
+  traceability.
+- **full**: add tasks for contract compatibility, security review, migration or
+  config safety, rollout/rollback, and blast-radius verification.
+
+Every task should name a real file or directory when known. If ownership or
+files are unknown, mark that as `unknown` and add a discovery task instead of
+fabricating a path. Keep optional artifacts out of the plan unless they support
+the selected risk label.
 
 ## Prerequisites
 

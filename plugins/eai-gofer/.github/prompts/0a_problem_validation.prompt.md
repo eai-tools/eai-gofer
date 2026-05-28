@@ -1,6 +1,8 @@
 ---
 name: 0a_problem_validation
-description: Validate the business problem using 5 Whys root-cause analysis and stakeholder mapping.
+description:
+  Validate the business problem using 5 Whys root-cause analysis and stakeholder
+  mapping.
 agent: copilot-workspace
 tools:
   - Read
@@ -35,14 +37,16 @@ Before doing stage/helper work:
    - Claude: `AGENTS.md`, `CLAUDE.md`, `.claude/settings.json`
    - Codex: `AGENTS.md`
    - Copilot: `.github/copilot-instructions.md`
-   - VS Code extension mirrors Claude/Copilot/Gemini resources itself and should still keep the core scaffold healthy
+   - VS Code extension mirrors Claude/Copilot/Gemini resources itself and should
+     still keep the core scaffold healthy
 4. If the repo already has the workspace checker script, prefer running:
    - `node .specify/scripts/node/gofer-workspace-check.mjs --host copilot --json`
 5. If the workspace is missing or stale, ask exactly:
    - **"This repo is missing or stale for Gofer. Initialize/update it now?"**
-6. If the user says yes, run the Gofer workspace bootstrap helper and then resume this command from the top.
-7. If the user says no, stop and explain that Gofer stage/helper work depends on the repo-owned scaffold.
-
+6. If the user says yes, run the Gofer workspace bootstrap helper and then
+   resume this command from the top.
+7. If the user says no, stop and explain that Gofer stage/helper work depends on
+   the repo-owned scaffold.
 
 # Gofer Problem Validation
 
@@ -291,7 +295,7 @@ audits can find them at deterministic paths:
 - `{FEATURE_DIR}/business-analysis.md` — business case, ROI sketch,
   cost-of-doing-nothing summary, and stakeholder impact mapping. Emitted
   unconditionally; this is the primary record consumed by
-  `/7a_stakeholder_comms` and the validation council.
+  `#7a_stakeholder_comms` and the validation council.
 
 When `competitiveAnalysisEnabled=false`, the market-analysis.md file includes
 the following stub at the top so consumers can detect the disabled state
@@ -337,7 +341,6 @@ After saving artifacts:
 
 If recommendation is PROCEED or user confirms they want to continue:
 
-
 ---
 
 ## Step 10: Observability Logging
@@ -374,7 +377,7 @@ so they include plain-English companion sections in their outputs.
 ## Quick Reference: Pipeline Position
 
 ```text
-  /0a_problem_validation  ← YOU ARE HERE
+  #0a_problem_validation  ← YOU ARE HERE
        ↓ AUTO
   #1_gofer_research
        ↓ AUTO
@@ -382,16 +385,5 @@ so they include plain-English companion sections in their outputs.
        ↓ AUTO
   ... (rest of pipeline)
        ↓ AUTO
-  /7a_stakeholder_comms
+  #7a_stakeholder_comms
 ```
-
-
-## Pipeline Continuation
-
-This completes the 0a_problem_validation stage. To continue the Gofer pipeline:
-
-**Next Command:** `#1_gofer_research`
-
-The next stage will read the artifacts from this stage and continue the workflow automatically.
-
-**Note:** Copilot Chat supports context preservation. Your conversation history will be maintained as you progress through pipeline stages.

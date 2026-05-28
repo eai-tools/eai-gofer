@@ -1,9 +1,9 @@
 # Enterprise AI Gofer
 
 Gofer is a spec-driven workflow for repositories. It helps teams move work from
-an initial business scenario through research, specification, planning, tasks,
-implementation, and validation while keeping the working artifacts in
-`.specify/`.
+an initial business scenario through a core pipeline of research, specification,
+planning, tasks, implementation, and unified validation in `/6_gofer_validate`,
+while keeping the working artifacts in `.specify/`.
 
 It combines a VS Code extension, generated CLI command surfaces, and repo-local
 artifacts so the end-to-end flow stays visible and easier to review across
@@ -47,8 +47,10 @@ to depend on private internals.
 2. Run **Gofer: Initialize Repository** from the Command Palette.
 3. Start with `/0_business_scenario ...` in slash-command CLIs or
    `#0_business_scenario ...` in Copilot Chat.
-4. Continue through
-   `research -> specify -> plan -> tasks -> implement -> validate`.
+4. Continue through the core pipeline:
+   `business scenario -> research -> specify -> plan -> tasks -> implement -> validate`.
+   `/6_gofer_validate` is the terminal quality gate and includes the final
+   engineering review loop.
 
 ## Installation Options
 
@@ -224,6 +226,18 @@ The published GitHub Release must include:
 | Tasks             | `/4_gofer_tasks`       | `tasks.md`, `traceability.md`, `issues.md` |
 | Implement         | `/5_gofer_implement`   | Code and doc changes                       |
 | Validate          | `/6_gofer_validate`    | Validation artifacts                       |
+
+`/6_gofer_validate` is the final stage of the core pipeline. It absorbs the
+former standalone engineering-review gate and produces the terminal validation
+artifacts for the feature.
+
+Optional helpers remain available outside the core 0-6 pipeline:
+
+- `/0a_problem_validation` for deeper problem framing before research
+- `/7_gofer_save` and `/8_gofer_resume` for continuity
+- `/9_gofer_tests` for test generation support
+- `/7a_stakeholder_comms` for post-validation communications
+- `/gofer:check-workspace` and `/gofer:bootstrap-workspace` for repo bootstrap
 
 ## Assistant Surfaces
 

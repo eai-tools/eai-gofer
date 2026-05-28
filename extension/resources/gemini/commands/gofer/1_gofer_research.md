@@ -17,17 +17,20 @@ Before doing stage/helper work:
    - Claude: `AGENTS.md`, `CLAUDE.md`, `.claude/settings.json`
    - Codex: `AGENTS.md`
    - Copilot: `.github/copilot-instructions.md`
-   - VS Code extension mirrors Claude/Copilot/Gemini resources itself and should still keep the core scaffold healthy
+   - VS Code extension mirrors Claude/Copilot/Gemini resources itself and should
+     still keep the core scaffold healthy
 4. If the repo already has the workspace checker script, prefer running:
    - `node .specify/scripts/node/gofer-workspace-check.mjs --host gemini --json`
 5. If the workspace is missing or stale, ask exactly:
    - **"This repo is missing or stale for Gofer. Initialize/update it now?"**
-6. If the user says yes, run the Gofer workspace bootstrap helper and then resume this command from the top.
-7. If the user says no, stop and explain that Gofer stage/helper work depends on the repo-owned scaffold.
+6. If the user says yes, run the Gofer workspace bootstrap helper and then
+   resume this command from the top.
+7. If the user says no, stop and explain that Gofer stage/helper work depends on
+   the repo-owned scaffold.
 
 ---
-description: Deep codebase and technology research for feature implementation
----
+
+## description: Deep codebase and technology research for feature implementation
 
 # Gofer Research
 
@@ -72,13 +75,15 @@ This is the **first stage** of the unified Gofer pipeline. Your job is to:
 3. Research the codebase to find where it should be implemented
 4. Identify patterns, existing code, and integration points
 5. Document technology decisions, business scenarios, and architecture options
-6. Prepare a user-facing review before specification begins
+6. Prepare any supporting review context needed before specification begins
 
 **Output**:
 
 - `.specify/specs/{feature}/research.md`
-- `.specify/specs/{feature}/proposal-review.md`
-- `.specify/specs/{feature}/journeys/base-journey.md` (application delivery default)
+- `.specify/specs/{feature}/proposal-review.md` (optional supporting review
+  context)
+- `.specify/specs/{feature}/journeys/base-journey.md` (application delivery
+  default)
 - `.specify/specs/{feature}/ui-preview-brief.md` (application delivery default)
 - `.specify/specs/{feature}/context-bundle.md` (EnterpriseAI default)
 - `.specify/specs/{feature}/reuse-scan.md` (EnterpriseAI default)
@@ -116,8 +121,8 @@ If discovery.md exists:
    - Target Users → Research UX patterns appropriate for these users
    - Value Proposition → Research metrics and measurement approaches
    - Competitive Analysis → If researched, focus on differentiation
-   - Application Classification → Determine whether a four-step AI-augmented
-     app journey is required
+   - Application Classification → Determine whether a four-step AI-augmented app
+     journey is required
    - AI-Augmented Journey → If app delivery, preserve the four-step-or-fewer
      journey as the scope spine for research
    - Shared numbered-stage contract → if non-app, preserve the current shared
@@ -316,9 +321,9 @@ the standard profile, generate:
    - Feature summary and approved business scenario.
    - Application classification: app delivery or non-app work, with rationale.
    - Four-step-or-fewer AI-augmented journey summary when app delivery applies.
-   - AI-readable blocks bridge summary: external/internal/hybrid profile
-     choice, package lane, coupling status, public-readiness target, and block
-     porting posture.
+   - AI-readable blocks bridge summary: external/internal/hybrid profile choice,
+     package lane, coupling status, public-readiness target, and block porting
+     posture.
    - Relevant existing specs, code paths, platform references, and API surfaces.
    - EnterpriseAI object types, tenant assumptions, deployment target, and
      validation criteria.
@@ -345,10 +350,10 @@ the standard profile, generate:
      patterns the preview should use before any create-new UI concept is
      considered.
    - Block catalog evidence: run `eai --describe`, `eai blocks list`,
-     `eai blocks describe <id>` for each candidate, and
-     `eai resources schema`; record stable block IDs, required resources,
-     data/action bindings, Storybook story IDs, theme override points, package
-     lane, coupling status, and any custom-block exception that needs approval.
+     `eai blocks describe <id>` for each candidate, and `eai resources schema`;
+     record stable block IDs, required resources, data/action bindings,
+     Storybook story IDs, theme override points, package lane, coupling status,
+     and any custom-block exception that needs approval.
    - Block porting and DAISY decoupling evidence: identify whether each selected
      block is reused as-is, ported into a package lane, or blocked by DAISY
      coupling; define the adapter/resource-schema boundary for any decoupling
@@ -356,8 +361,8 @@ the standard profile, generate:
    - Public-readiness evidence: for external or hybrid profiles, capture package
      exports, consumer-facing constraints, accessibility/theming expectations,
      and what still prevents public consumption.
-   - Branding inputs: whether client styling, logos, colors, copy tone, or
-     other corporate-brand artifacts must be applied.
+   - Branding inputs: whether client styling, logos, colors, copy tone, or other
+     corporate-brand artifacts must be applied.
    - Preview validation plan: what screenshot, browser-render, or
      Playwright-style self-review evidence must exist before Gofer presents the
      preview to the stakeholder.
@@ -494,14 +499,16 @@ status: complete
 - **Relevant Specs**: [Existing specs to carry forward]
 - **Relevant Code Paths**: [Files/directories and why they matter]
 - **EnterpriseAI Object Types**: [Known or candidate object types]
-- **Tenant and Deployment Assumptions**: [Tenant, identity, runtime, target environment]
-- **Validation Criteria**: [Business, security, data, architecture, and operational checks]
+- **Tenant and Deployment Assumptions**: [Tenant, identity, runtime, target
+  environment]
+- **Validation Criteria**: [Business, security, data, architecture, and
+  operational checks]
 
 ## Reuse-Before-Create Scan
 
-| Candidate | Existing Evidence | Decision | Rationale | Owner |
-| --------- | ----------------- | -------- | --------- | ----- |
-| [Object type/API/workflow/module/spec] | [Path or reference] | Reuse/Extend/Create New | [Why] | [Owner] |
+| Candidate                              | Existing Evidence   | Decision                | Rationale | Owner   |
+| -------------------------------------- | ------------------- | ----------------------- | --------- | ------- |
+| [Object type/API/workflow/module/spec] | [Path or reference] | Reuse/Extend/Create New | [Why]     | [Owner] |
 
 ## Business Scenario Analysis
 
@@ -596,7 +603,7 @@ Why relevant: [Explanation]
 
 ---
 
-## Step 5.5: Generate Proposal Review Document
+## Step 5.5: Generate Supporting Proposal Review Document
 
 Write to `{FEATURE_DIR}/proposal-review.md`:
 
@@ -604,7 +611,7 @@ Write to `{FEATURE_DIR}/proposal-review.md`:
 ---
 feature: '[Feature Name]'
 created: [ISO timestamp]
-status: pending_review
+status: supporting_context
 recommendedScenario: '[short label]'
 recommendedArchitecture: '[short label]'
 selectedOption: ''
@@ -664,13 +671,13 @@ approvedAt: ''
 
 ## Approval
 
-- Status: pending_review
-- Next action: user approves or requests changes before `/2_gofer_specify`
+- Status: supporting_context
+- Next action: carry any user feedback into `/2_gofer_specify`
 `````
 
 ---
 
-## Step 6: Review, Discuss, and Gate Specification
+## Step 6: Review, Discuss, and Hand Off To Specification
 
 After saving `research.md` and `proposal-review.md`:
 
@@ -682,12 +689,13 @@ After saving `research.md` and `proposal-review.md`:
    - Options and trade-offs
    - Any open questions needing input
 
-2. **Ask the user to choose one path**:
-   - Approve and continue to specification
-   - Revise the business scenario
-   - Revise the architecture recommendation
-   - Explore an alternative option
-   - Stop after research
+2. **Ask focused follow-up questions only if needed**:
+   - Clarify the preferred business scenario if the research found real
+     alternatives
+   - Clarify the preferred architecture direction if the trade-off is still
+     ambiguous
+   - Confirm whether the user wants to stop after research or continue into
+     specification
 
 3. **Run architecture questions one-by-one (MANDATORY when architecture options
    exist)**:
@@ -705,23 +713,22 @@ After saving `research.md` and `proposal-review.md`:
    2. Confirm the key trade-off priority (speed, flexibility, reliability, cost)
    3. Confirm non-negotiable constraints/integration boundaries
 
-4. **If the user approves**:
-   - Update `proposal-review.md` with `status: approved`
-   - Record `approvedBy`, `approvedAt`, and any selected option or override
-   - Immediately invoke `/2_gofer_specify`
-
-5. **If the user requests changes**:
+4. **If the user requests changes**:
    - Update `proposal-review.md` with the feedback in
      `User Feedback and Overrides`
-   - Set `status: needs_revision` if the recommendation must change
-   - Revise the recommendation and stop until the user approves
+   - Set `status: revised_supporting_context` if the recommendation must change
+   - Revise the recommendation before continuing
+
+5. **If the user wants to stop after research**:
+   - End after summarizing the current findings
+   - Do not auto-chain until the user explicitly asks to continue
 
 6. **Signal completion**:
 
 ```
 
 ✓ Research complete: {FEATURE_DIR}/research.md
-✓ Proposal review ready: {FEATURE_DIR}/proposal-review.md
+✓ Supporting review context ready: {FEATURE_DIR}/proposal-review.md
 
 Key findings:
 
@@ -730,9 +737,9 @@ Key findings:
 
 ```
 
-**AUTO-CHAIN (MANDATORY AFTER APPROVAL)**: Do NOT invoke `/2_gofer_specify`
-until the user explicitly approves the proposal review. After approval, it is
-mandatory to invoke the Skill tool with `skill="/2_gofer_specify"` immediately.
+**AUTO-CHAIN (DEFAULT)**: Unless the user explicitly asks to stop after
+research, invoke the Skill tool with `skill="/2_gofer_specify"` immediately
+after the research summary and any critical clarification answers are captured.
 
 ---
 
@@ -951,11 +958,11 @@ Logs to: `.specify/logs/pipeline.jsonl`
 - **Structured Problem Statement + Persona + Value Proposition are required** in
   `research.md`
 - **Research must remain usable by novices without external docs**
-- **Research should inform the proposal review and specification** - focus on
-  what helps users discuss the business scenario and architecture before
-  `spec.md` is written
+- **Research should inform specification directly** - focus on what helps users
+  discuss the business scenario and architecture before `spec.md` is written
 - **Maximum 5 open questions** - make informed decisions for the rest
-- **Do not continue to specification until `proposal-review.md` is approved**
+- **Use `proposal-review.md` as optional supporting context, not as a blocking
+  stage**
 - **Log stage completion** for observability tracking
 
 ---

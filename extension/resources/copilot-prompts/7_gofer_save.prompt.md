@@ -387,5 +387,5 @@ This command works with:
 - `#8_gofer_resume` - Paired resume command
 - `#5_gofer_implement` - Can resume implementation
 - `#6_gofer_validate` - Can validate partial progress
-- `/0_business_scenario` - Detects saved sessions
+- `#0_business_scenario` - Detects saved sessions
 - `check-context-health.sh` - Triggers save at thresholds

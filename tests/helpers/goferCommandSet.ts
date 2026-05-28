@@ -12,7 +12,6 @@ export const PIPELINE_STAGE_FILES = [
   '4_gofer_tasks',
   '5_gofer_implement',
   '6_gofer_validate',
-  '6a_gofer_engineering_review',
   '7_gofer_save',
   '7a_stakeholder_comms',
   '8_gofer_resume',

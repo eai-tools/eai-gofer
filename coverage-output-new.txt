@@ -1,8 +1,0 @@
-npm error Missing script: "test:coverage-report"
-npm error
-npm error Did you mean this?
-npm error   npm run test:coverage # run the "test:coverage" package script
-npm error
-npm error To see a list of scripts, run:
-npm error   npm run
-npm error A complete log of this run can be found in: /Users/douglaswross/.npm/_logs/2025-10-25T02_09_17_266Z-debug-0.log

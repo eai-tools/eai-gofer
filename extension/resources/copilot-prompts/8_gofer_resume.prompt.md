@@ -420,7 +420,7 @@ This command works with:
 
 - `#7_gofer_save` - Paired save command
 - `#5_gofer_implement` - Continues implementation
-- `/0_business_scenario` - Can route to resume
+- `#0_business_scenario` - Can route to resume
 - All other Gofer commands - Can be invoked after resume
 
 ---

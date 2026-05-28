@@ -5,7 +5,7 @@
  * T051 (no fake key grep), T052 (read-only enforcement source-grep).
  *
  * The fixture mirrors the 2026-04-25 incident shape: two Gofer-bundle tenants
- * (21 canonical commands each, one canonical + one duplicate) plus a `.system/imagegen`
+ * (23 canonical commands each, one canonical + one duplicate) plus a `.system/imagegen`
  * single-skill tenant.
  */
 
@@ -76,8 +76,8 @@ describe('codex-doctor', () => {
     // Each fixture description is the same byte length; we expect a positive
     // total equal to (skill count * per-description bytes).
     expect(report.descriptionBudgetBytes).toBeGreaterThan(0);
-    // 2 bundles × 21 canonical commands + 1 system skill = 43 SKILL.md files.
-    expect(report.totalSkillFiles).toBe(43);
+    // 2 bundles × 23 canonical commands + 1 system skill = 47 SKILL.md files.
+    expect(report.totalSkillFiles).toBe(47);
     // Each description is roughly ~50 bytes; cumulative will exceed 2048
     // because we have 43 skills. The over-budget exit code path is exercised
     // by the cumulative-budget assertion below; we tolerate either >2048 (as

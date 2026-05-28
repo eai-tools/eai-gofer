@@ -1,0 +1,130 @@
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
+const CHECK_SCRIPT = path.join(
+  REPO_ROOT,
+  '.specify',
+  'scripts',
+  'node',
+  'gofer-workspace-check.mjs'
+);
+const BOOTSTRAP_SCRIPT = path.join(
+  REPO_ROOT,
+  '.specify',
+  'scripts',
+  'node',
+  'gofer-workspace-bootstrap.mjs'
+);
+
+function runJson(scriptPath: string, args: string[]) {
+  const result = spawnSync('node', [scriptPath, ...args], {
+    cwd: REPO_ROOT,
+    encoding: 'utf8',
+  });
+
+  expect(result.stderr).toBe('');
+  expect(result.stdout.trim().length).toBeGreaterThan(0);
+
+  return {
+    exitCode: result.status,
+    payload: JSON.parse(result.stdout),
+  };
+}
+
+describe('Gofer workspace bootstrap scripts', () => {
+  let workspaceRoot = '';
+
+  beforeEach(() => {
+    workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'gofer-workspace-bootstrap-'));
+    fs.mkdirSync(path.join(workspaceRoot, '.git'));
+    fs.writeFileSync(
+      path.join(workspaceRoot, 'package.json'),
+      JSON.stringify(
+        {
+          name: 'bootstrap-fixture',
+          version: '1.0.0',
+          scripts: {
+            build: 'tsc',
+            test: 'vitest run',
+            lint: 'eslint .',
+            format: 'prettier --write .',
+          },
+        },
+        null,
+        2
+      )
+    );
+  });
+
+  afterEach(() => {
+    fs.rmSync(workspaceRoot, { recursive: true, force: true });
+  });
+
+  it('reports missing then bootstraps a healthy Claude workspace without repo-local mirrors', () => {
+    const initial = runJson(CHECK_SCRIPT, [
+      '--workspace',
+      workspaceRoot,
+      '--host',
+      'claude',
+      '--json',
+    ]);
+    expect(initial.exitCode).toBe(2);
+    expect(initial.payload.status).toBe('missing');
+    expect(initial.payload.missingCore).toContain('.specify/.gofer-version');
+
+    const bootstrap = runJson(BOOTSTRAP_SCRIPT, ['--workspace', workspaceRoot, '--host', 'claude']);
+    expect(bootstrap.exitCode).toBe(0);
+    expect(bootstrap.payload.status).toBe('healthy');
+
+    for (const relativePath of [
+      '.specify/.gofer-version',
+      '.specify/commands/0_business_scenario.md',
+      '.specify/templates/spec-template.md',
+      '.specify/scripts/hooks/post-tool-use.mjs',
+      '.specify/scripts/powershell/install-optional-tools.ps1',
+      '.specify/README.md',
+      'AGENTS.md',
+      'CLAUDE.md',
+      '.claude/settings.json',
+      '.gitignore',
+    ]) {
+      expect(
+        fs.existsSync(path.join(workspaceRoot, relativePath)),
+        `${relativePath} should exist`
+      ).toBe(true);
+    }
+
+    expect(fs.existsSync(path.join(workspaceRoot, '.claude', 'commands'))).toBe(false);
+    expect(fs.existsSync(path.join(workspaceRoot, '.agents', 'skills'))).toBe(false);
+
+    const post = runJson(CHECK_SCRIPT, [
+      '--workspace',
+      workspaceRoot,
+      '--host',
+      'claude',
+      '--json',
+    ]);
+    expect(post.exitCode).toBe(0);
+    expect(post.payload.status).toBe('healthy');
+  });
+
+  it('does not overwrite existing instruction files by default', () => {
+    const customAgents = '# custom agents\n';
+    const customClaude = '# custom claude\n';
+    fs.writeFileSync(path.join(workspaceRoot, 'AGENTS.md'), customAgents);
+    fs.writeFileSync(path.join(workspaceRoot, 'CLAUDE.md'), customClaude);
+
+    const bootstrap = runJson(BOOTSTRAP_SCRIPT, ['--workspace', workspaceRoot, '--host', 'claude']);
+    expect(bootstrap.exitCode).toBe(0);
+
+    expect(fs.readFileSync(path.join(workspaceRoot, 'AGENTS.md'), 'utf8')).toBe(customAgents);
+    expect(fs.readFileSync(path.join(workspaceRoot, 'CLAUDE.md'), 'utf8')).toBe(customClaude);
+  });
+});

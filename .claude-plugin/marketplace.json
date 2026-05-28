@@ -1,18 +1,18 @@
 {
   "name": "eai-gofer",
-  "description": "Public EAI Gofer plugin marketplace for agentic spec-driven delivery workflows.",
+  "description": "Public EAI Gofer bundle for Claude Code, Gemini CLI, Codex, and Copilot workflows.",
   "owner": {
     "name": "EnterpriseAI",
     "url": "https://github.com/eai-tools/eai-gofer"
   },
   "metadata": {
-    "description": "Install the EAI Gofer agent plugin for Claude Code, Codex, or Copilot CLI from the public release host.",
+    "description": "Install the EAI Gofer repo marketplace for Claude Code, Gemini CLI, Codex, or Copilot CLI from the public GitHub repository.",
     "version": "3.4.3"
   },
   "plugins": [
     {
       "name": "eai-gofer",
-      "source": "https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer",
+      "source": "./plugins/eai-gofer",
       "description": "Public Gofer workflow for business scenario, research, specification, planning, implementation, validation, and stakeholder communications.",
       "version": "3.4.3",
       "author": {
@@ -29,6 +29,7 @@
         "claude",
         "codex",
         "copilot",
+        "gemini",
         "spec-driven-development"
       ]
     }

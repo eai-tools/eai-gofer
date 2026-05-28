@@ -56,8 +56,9 @@ Gofer ships in two complementary forms:
 
 - **VS Code extension** — installs from the VS Code Marketplace and provides the
   UI, status views, updater, packaged resources, and language-server features.
-- **Agent plugin** — installs into Claude Code, Codex, or GitHub Copilot CLI so
-  the Gofer workflow can run in terminal/chat agents without the VS Code UI.
+- **Public agent bundle** — installs into Claude Code, Codex, or GitHub Copilot
+  CLI, and also carries the repo-local `.gemini/` surface for Gemini CLI so the
+  Gofer workflow can run outside the VS Code UI.
 
 ### VS Code Marketplace
 
@@ -70,20 +71,35 @@ time and to the VS Code Marketplace when the release workflow has `VSCE_PAT`
 configured. Releases from `v3.4.0` onward are kept available there for
 unauthenticated downloads.
 
+Stable public artifact URLs:
+
+- Latest VSIX: `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-latest.vsix`
+- Latest agent bundle zip: `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-latest.zip`
+- Shared public bundle directory: `https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer`
+- Claude marketplace JSON: `https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/claude-marketplace.json`
+- Codex plugin manifest: `https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/codex-plugin.json`
+- Copilot marketplace JSON: `https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/copilot-marketplace.json`
+- Gemini extension manifest: `https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/gemini-extension.json`
+
+Public GitHub repo source for CLI installs:
+
+- `https://github.com/eai-tools/eai-gofer`
+
 ### Agent Plugin Distribution Modes
 
-| Surface            | Marketplace / published mode                                                                                                                                                | Local release-test mode                                                                                |
-| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| Claude Code        | `claude plugin marketplace add https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer --scope user` then `claude plugin install eai-gofer@eai-gofer --scope user` | Download the public zip, unzip to `~/plugins/eai-gofer`, then install `eai-gofer@eai-gofer`            |
-| Codex              | Import `https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer` in the Codex plugin UI, or download the public zip and keep the installed folder stable           | Keep the installed plugin folder at `~/plugins/eai-gofer` when using a downloaded bundle               |
-| GitHub Copilot CLI | `copilot plugin marketplace add https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer` then `copilot plugin install eai-gofer@eai-gofer`                         | `copilot plugin marketplace add ~/plugins/eai-gofer` then `copilot plugin install eai-gofer@eai-gofer` |
+| Surface            | Marketplace / published mode | Local release-test mode |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Claude Code        | `claude plugin marketplace add https://github.com/eai-tools/eai-gofer --scope user --sparse .claude-plugin --sparse plugins/eai-gofer` then `claude plugin install eai-gofer@eai-gofer --scope user` | Unzip to `~/plugins/eai-gofer`, then `claude plugin marketplace add ~/plugins/eai-gofer --scope user` |
+| Codex              | `codex plugin marketplace add https://github.com/eai-tools/eai-gofer --sparse .agents/plugins --sparse plugins/eai-gofer` then `codex plugin add eai-gofer@eai-gofer` | Unzip to `~/plugins/eai-gofer`, then `codex plugin marketplace add ~/plugins/eai-gofer` |
+| GitHub Copilot CLI | `copilot plugin marketplace add https://github.com/eai-tools/eai-gofer` then `copilot plugin install eai-gofer@eai-gofer` | `copilot plugin marketplace add ~/plugins/eai-gofer` then `copilot plugin install eai-gofer@eai-gofer` |
+| Gemini CLI         | `gemini extensions install https://github.com/eai-tools/eai-gofer` | `gemini extensions install ~/plugins/eai-gofer` |
 
 ### Claude Code Plugin
 
-Register the public Gofer plugin marketplace from the public release host:
+Register the public Gofer plugin marketplace from the public GitHub repository:
 
 ```bash
-claude plugin marketplace add https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer --scope user
+claude plugin marketplace add https://github.com/eai-tools/eai-gofer --scope user --sparse .claude-plugin --sparse plugins/eai-gofer
 claude plugin install eai-gofer@eai-gofer --scope user
 ```
 
@@ -91,11 +107,11 @@ For local release testing or explicit version pinning, use the stable folder
 flow. Replace `3.4.0` with any public release version from `3.4.0` onward:
 
 ```bash
-curl -fsSL https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-3.4.0.zip \
-  -o /tmp/eai-gofer-agent-plugin-3.4.0.zip
+curl -fsSL https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-latest.zip \
+  -o /tmp/eai-gofer-agent-plugin-latest.zip
 
 rm -rf ~/plugins/eai-gofer
-unzip /tmp/eai-gofer-agent-plugin-3.4.0.zip -d ~/plugins
+unzip /tmp/eai-gofer-agent-plugin-latest.zip -d ~/plugins
 
 claude plugin marketplace add ~/plugins/eai-gofer --scope user
 claude plugin install eai-gofer@eai-gofer --scope user
@@ -105,10 +121,11 @@ The local marketplace source is the unzipped folder, not the release zip.
 
 ### Codex Plugin
 
-For Codex plugin installs, the public hosted bundle is:
+For Codex plugin installs, use the public GitHub repository as the marketplace source:
 
-```text
-https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer
+```bash
+codex plugin marketplace add https://github.com/eai-tools/eai-gofer --sparse .agents/plugins --sparse plugins/eai-gofer
+codex plugin add eai-gofer@eai-gofer
 ```
 
 For downloaded installs, keep the stable folder path:
@@ -117,30 +134,19 @@ For downloaded installs, keep the stable folder path:
 ~/plugins/eai-gofer/
 ```
 
-Use this local marketplace entry so future updates only replace the folder
-contents:
+Use the downloaded folder itself as the marketplace root:
 
-```json
-{
-  "name": "eai-gofer",
-  "source": {
-    "source": "local",
-    "path": "./"
-  },
-  "policy": {
-    "installation": "AVAILABLE",
-    "authentication": "ON_INSTALL"
-  },
-  "category": "Coding"
-}
+```bash
+codex plugin marketplace add ~/plugins/eai-gofer
+codex plugin add eai-gofer@eai-gofer
 ```
 
 ### GitHub Copilot CLI Plugin
 
-Install through the public release-hosted marketplace:
+Install through the public GitHub repository marketplace:
 
 ```bash
-copilot plugin marketplace add https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer
+copilot plugin marketplace add https://github.com/eai-tools/eai-gofer
 copilot plugin install eai-gofer@eai-gofer
 ```
 
@@ -150,6 +156,28 @@ marketplace, then install from that marketplace:
 ```bash
 copilot plugin marketplace add ~/plugins/eai-gofer
 copilot plugin install eai-gofer@eai-gofer
+```
+
+### Gemini CLI
+
+Gemini can install the Gofer extension directly from the public GitHub
+repository:
+
+```bash
+gemini extensions install https://github.com/eai-tools/eai-gofer
+```
+
+For a downloaded bundle install, unzip the public agent bundle and point Gemini
+at the extracted folder:
+
+```bash
+curl -fsSL https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-latest.zip \
+  -o /tmp/eai-gofer-agent-plugin-latest.zip
+
+rm -rf ~/plugins/eai-gofer
+unzip /tmp/eai-gofer-agent-plugin-latest.zip -d ~/plugins
+
+gemini extensions install ~/plugins/eai-gofer
 ```
 
 ### Release Asset Update Flow
@@ -193,9 +221,9 @@ The published GitHub Release must include:
 | OpenAI Codex   | `.agents/skills/` (legacy `.system/skills/` mirror also emitted) | Ask Codex to use the relevant Gofer skill |
 | Gemini CLI     | `.gemini/commands/gofer/`                                        | `/gofer:1_gofer_research ...`             |
 
-The agent plugin packages the same command set into `commands/`, `agents/`, and
-`skills/` so Claude Code, Codex, and Copilot CLI can discover Gofer from a
-marketplace or local plugin folder.
+The public agent bundle packages the same command set into `commands/`,
+`agents/`, `skills/`, and `.gemini/` so Claude Code, Gemini CLI, Codex, and
+Copilot CLI can discover Gofer from a public bundle or local install folder.
 
 ## Repository Layout
 
@@ -227,7 +255,7 @@ npm test
 npm run lint
 npm run typecheck
 npm run gofer:generate
-npm run gofer:package-plugin -- --version 3.4.0 --sync-repo
+npm run gofer:package-plugin -- --version "$(node -p "require('./extension/package.json').version")" --sync-repo
 ```
 
 ## Configuration and Docs

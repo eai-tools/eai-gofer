@@ -38,7 +38,7 @@ function walkFiles(root: string): string[] {
 }
 
 describe('EAI Gofer agent plugin package', () => {
-  it('packages a zip with Claude, Codex, and Copilot manifests', (): void => {
+  it('packages a zip with Claude, Codex, Copilot, and Gemini install metadata', (): void => {
     const outDir = fs.mkdtempSync(path.join(os.tmpdir(), 'eai-gofer-plugin-'));
     try {
       execFileSync('node', [SCRIPT_PATH, '--version', VERSION, '--out-dir', outDir], {
@@ -48,6 +48,7 @@ describe('EAI Gofer agent plugin package', () => {
 
       const zipPath = path.join(outDir, `eai-gofer-agent-plugin-${VERSION}.zip`);
       const pluginRoot = path.join(outDir, `eai-gofer-agent-plugin-${VERSION}`, 'eai-gofer');
+      const readme = fs.readFileSync(path.join(pluginRoot, 'README.md'), 'utf8');
       expect(fs.existsSync(zipPath)).toBe(true);
       expect(fs.existsSync(pluginRoot)).toBe(true);
 
@@ -58,6 +59,8 @@ describe('EAI Gofer agent plugin package', () => {
         'eai-gofer/.claude-plugin/plugin.json',
         'eai-gofer/.agents/plugins/marketplace.json',
         'eai-gofer/.github/plugin/marketplace.json',
+        'eai-gofer/gemini-extension.json',
+        'eai-gofer/plugins/eai-gofer/plugin.json',
         'eai-gofer/README.md',
         'eai-gofer/assets/eai-gofer-icon.png',
       ]) {
@@ -96,12 +99,24 @@ describe('EAI Gofer agent plugin package', () => {
       expect(claudeManifest.commands).toBeUndefined();
       expect(codexManifest.skills).toBe('./skills/');
       expect(claudeMarketplace.name).toBe('eai-gofer');
-      expect(claudeMarketplace.plugins[0].source).toBe('./');
+      expect(claudeMarketplace.plugins[0].source).toBe('./plugins/eai-gofer');
       expect(codexMarketplace.name).toBe('eai-gofer');
       expect(codexMarketplace.plugins[0].source).toEqual({
         source: 'local',
-        path: './',
+        path: './plugins/eai-gofer',
       });
+      expect(readme).toContain(
+        'claude plugin marketplace add https://github.com/eai-tools/eai-gofer --scope user --sparse .claude-plugin --sparse plugins/eai-gofer'
+      );
+      expect(readme).toContain(
+        'codex plugin marketplace add https://github.com/eai-tools/eai-gofer --sparse .agents/plugins --sparse plugins/eai-gofer'
+      );
+      expect(readme).toContain(
+        'copilot plugin marketplace add https://github.com/eai-tools/eai-gofer'
+      );
+      expect(readme).toContain(
+        'gemini extensions install https://github.com/eai-tools/eai-gofer'
+      );
 
       for (const command of FULL_COMMAND_FILES) {
         expect(fs.existsSync(path.join(pluginRoot, 'commands', `${command}.md`))).toBe(true);
@@ -144,6 +159,26 @@ describe('EAI Gofer agent plugin package', () => {
     expect(offenders).toEqual([]);
   });
 
+  it('repo root exposes marketplace files for repo-based CLI installs', (): void => {
+    const claudeMarketplace = readJson<{
+      plugins: Array<{ source: string }>;
+    }>(path.join(REPO_ROOT, '.claude-plugin', 'marketplace.json'));
+    const copilotMarketplace = readJson<{
+      plugins: Array<{ source: string }>;
+    }>(path.join(REPO_ROOT, '.github', 'plugin', 'marketplace.json'));
+    const codexMarketplace = readJson<{
+      plugins: Array<{ source: { source: string; path: string } }>;
+    }>(path.join(REPO_ROOT, '.agents', 'plugins', 'marketplace.json'));
+
+    expect(claudeMarketplace.plugins[0].source).toBe('./plugins/eai-gofer');
+    expect(copilotMarketplace.plugins[0].source).toBe('./plugins/eai-gofer');
+    expect(codexMarketplace.plugins[0].source).toEqual({
+      source: 'local',
+      path: './plugins/eai-gofer',
+    });
+    expect(fs.existsSync(path.join(REPO_ROOT, 'gemini-extension.json'))).toBe(true);
+  });
+
   it('release workflow publishes VSIX and agent plugin assets', (): void => {
     const workflow = fs.readFileSync(
       path.join(REPO_ROOT, '.github', 'workflows', 'release.yml'),
@@ -155,5 +190,14 @@ describe('EAI Gofer agent plugin package', () => {
     expect(workflow).toContain('VSCE_PAT');
     expect(workflow).toContain('vsce publish --packagePath');
     expect(workflow).toContain('softprops/action-gh-release@v2');
+    expect(workflow).toContain(
+      'https://github.com/eai-tools/eai-gofer --scope user --sparse .claude-plugin --sparse plugins/eai-gofer'
+    );
+    expect(workflow).toContain(
+      'https://github.com/eai-tools/eai-gofer --sparse .agents/plugins --sparse plugins/eai-gofer'
+    );
+    expect(workflow).toContain(
+      'https://github.com/eai-tools/eai-gofer'
+    );
   });
 });

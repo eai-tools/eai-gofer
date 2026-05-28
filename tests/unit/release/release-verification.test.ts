@@ -294,5 +294,13 @@ set -e`);
       expect(RELEASE_SCRIPT).toContain('./eai-gofer-$NEW_VERSION.vsix');
       expect(RELEASE_SCRIPT).toContain('./dist/eai-gofer-agent-plugin-$NEW_VERSION.zip');
     });
+
+    it('should verify the public Gemini manifest alongside Claude and Codex', () => {
+      expect(RELEASE_SCRIPT).toContain(
+        'GEMINI_EXTENSION_URL="https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/gemini-extension.json"'
+      );
+      expect(RELEASE_SCRIPT).toContain('REMOTE_GEMINI_URL=');
+      expect(RELEASE_SCRIPT).toContain('Gemini extension URL is correct');
+    });
   });
 });

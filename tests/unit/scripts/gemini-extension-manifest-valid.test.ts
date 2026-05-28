@@ -19,12 +19,30 @@ const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
 
 const MANIFEST_PATH = path.join(REPO_ROOT, '.gemini', 'extension.json');
 const COMMANDS_DIR = path.join(REPO_ROOT, '.gemini', 'commands', 'gofer');
+const ROOT_PACKAGE_PATH = path.join(REPO_ROOT, 'package.json');
 
 interface Manifest {
   name: string;
   version: string;
   description?: string;
   commands: string;
+  gofer?: {
+    bundle_url?: string;
+    manifest_url?: string;
+    commands_manifest_url?: string;
+    download_url?: string;
+    latest_download_url?: string;
+    vsix_url?: string;
+    latest_vsix_url?: string;
+  };
+}
+
+interface RootPackageJson {
+  version: string;
+}
+
+function expectedVersion(): string {
+  return (JSON.parse(fs.readFileSync(ROOT_PACKAGE_PATH, 'utf8')) as RootPackageJson).version;
 }
 
 describe('gemini extension manifest (T167)', () => {
@@ -39,8 +57,24 @@ describe('gemini extension manifest (T167)', () => {
   it('has name, version, commands fields', (): void => {
     const manifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf8')) as Manifest;
     expect(manifest.name).toBe('eai-gofer');
-    expect(typeof manifest.version).toBe('string');
+    expect(manifest.version).toBe(expectedVersion());
     expect(typeof manifest.commands).toBe('string');
+  });
+
+  it('advertises the public Gemini bundle and manifest URLs', (): void => {
+    const manifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf8')) as Manifest;
+    expect(manifest.gofer?.bundle_url).toBe(
+      'https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer'
+    );
+    expect(manifest.gofer?.manifest_url).toBe(
+      'https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/gemini-extension.json'
+    );
+    expect(manifest.gofer?.commands_manifest_url).toBe(
+      'https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/gemini-commands-manifest.json'
+    );
+    expect(manifest.gofer?.latest_download_url).toBe(
+      'https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-latest.zip'
+    );
   });
 
   it('commands path resolves to .gemini/commands/gofer/', (): void => {

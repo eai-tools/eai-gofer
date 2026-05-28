@@ -1,7 +1,7 @@
 {
   "name": "eai-gofer",
   "version": "3.4.3",
-  "description": "Public Gofer spec-driven delivery workflow: business scenario, research, specify, plan, tasks, implement, validate, and communicate.",
+  "description": "Public Gofer spec-driven delivery workflow for Claude, Gemini, Codex, Copilot, and VS Code.",
   "author": {
     "name": "Enterprise AI Pty Ltd",
     "url": "https://github.com/eai-tools/eai-gofer"
@@ -15,13 +15,15 @@
     "claude-code",
     "codex",
     "copilot",
+    "gemini",
     "spec-driven-development"
   ],
   "category": "Coding",
   "tags": [
     "eai-gofer",
     "gofer",
-    "agentic-coding"
+    "agentic-coding",
+    "gemini"
   ],
   "skills": "./.agents/skills/",
   "agents": "./.claude/agents/",

@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: enterpriseai
   canonicalSource: .specify/commands/1_gofer_research.md
-  canonicalChecksum: 1cadaeaac24141467096af08759628c19620a30888d235504bf68c0b5cc690c4
+  canonicalChecksum: 0c681e2751c55bc8a9582760ce0fbc117776a881643f046397ac837f7f4e4e97
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -57,6 +57,26 @@ $ARGUMENTS
 ```
 
 You **MUST** consider the user input before proceeding (if not empty).
+
+## Execution Depth And Public Risk Labels
+
+Classify the request before spawning agents. Use repository-neutral labels only:
+`docs-only`, `single-repo-code`, `api-contract`, `auth-security`,
+`data-model`, `infra-config`, `release-critical`, or `unknown`.
+
+- **fast**: docs-only or small clarification work. Use one locator/summarizer,
+  keep existing required artifacts concise, and skip optional councils unless
+  evidence contradicts the request.
+- **standard**: ordinary single-repository feature work. Use the core research
+  agents and write the normal artifact set.
+- **full**: API contracts, auth/security, data model, infra/config, release
+  risk, cross-repo impact, or unknown ownership. Use specialist fan-out,
+  explicit evidence, blast-radius notes, and richer test/release obligations.
+
+Artifact-churn rule: preserve existing required artifacts, but do not create
+large optional diagrams, councils, issue lists, or extended reports unless the
+classified risk or user request justifies them. Mark weak claims as inferred or
+unknown instead of inventing certainty.
 
 ## Outline
 
@@ -185,7 +205,9 @@ Show: similar implementations we should model after.
 Include: file paths, code snippets, conventions used."
 ```
 
-**Run all three agents in parallel** for maximum efficiency.
+**Run all three agents in parallel** for maximum efficiency in standard/full
+mode. In fast mode, collapse this into one concise locator/summarizer unless
+the feature touches a full-depth risk label.
 
 ---
 

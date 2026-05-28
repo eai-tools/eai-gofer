@@ -6,26 +6,10 @@
  */
 import { describe, it, expect, beforeAll } from 'vitest';
 import { promises as fs } from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'node:url';
-
-const PROJECT_ROOT = path.resolve(fileURLToPath(new URL('../../../', import.meta.url)));
-const SPEC_PATH = path.join(
-  PROJECT_ROOT,
-  '.specify',
-  'specs',
-  '_archived',
-  '001-cli-innovations-visuals',
-  'spec.md'
-);
-const TASKS_PATH = path.join(
-  PROJECT_ROOT,
-  '.specify',
-  'specs',
-  '_archived',
-  '001-cli-innovations-visuals',
-  'tasks.md'
-);
+import {
+  TRACEABILITY_SPEC_PATH as SPEC_PATH,
+  TRACEABILITY_TASKS_PATH as TASKS_PATH,
+} from '../../helpers/traceabilityFixture';
 
 const SC_PATTERN = /\bSC-\d{3}\b/g;
 

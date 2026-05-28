@@ -17,20 +17,17 @@ Before doing stage/helper work:
    - Claude: `AGENTS.md`, `CLAUDE.md`, `.claude/settings.json`
    - Codex: `AGENTS.md`
    - Copilot: `.github/copilot-instructions.md`
-   - VS Code extension mirrors Claude/Copilot/Gemini resources itself and should
-     still keep the core scaffold healthy
+   - VS Code extension mirrors Claude/Copilot/Gemini resources itself and should still keep the core scaffold healthy
 4. If the repo already has the workspace checker script, prefer running:
    - `node .specify/scripts/node/gofer-workspace-check.mjs --host gemini --json`
 5. If the workspace is missing or stale, ask exactly:
    - **"This repo is missing or stale for Gofer. Initialize/update it now?"**
-6. If the user says yes, run the Gofer workspace bootstrap helper and then
-   resume this command from the top.
-7. If the user says no, stop and explain that Gofer stage/helper work depends on
-   the repo-owned scaffold.
+6. If the user says yes, run the Gofer workspace bootstrap helper and then resume this command from the top.
+7. If the user says no, stop and explain that Gofer stage/helper work depends on the repo-owned scaffold.
 
 ---
-
-## description: Generate actionable task breakdown from implementation plan
+description: Generate actionable task breakdown from implementation plan
+---
 
 # Gofer Tasks
 
@@ -466,10 +463,10 @@ EnterpriseAI is the default profile. Standard profile task generation is used
 only when the user explicitly opts out.
 
 When the workflow profile is `enterpriseai` or no profile is specified,
-`tasks.md` MUST emit deployment tasks in the following ordered chain. Each task
-is independently runnable and the ordering enforces scaffold before deployment
-so that configuration and manifest artifacts exist before any deploy command
-runs.
+`tasks.md` MUST emit deployment
+tasks in the following ordered chain. Each task is independently runnable and
+the ordering enforces scaffold before deployment so that configuration and
+manifest artifacts exist before any deploy command runs.
 
 1. **Vertical Template scaffolding -> `eai init`**
    - Command: `eai init <app-name>`
@@ -490,9 +487,9 @@ The ordering above is non-negotiable: tasks.md MUST instruct the pipeline to sca
 For **application delivery**, task generation MUST treat the UI-first gate as a
 precondition to downstream implementation tasks:
 
-- If `{FEATURE_DIR}/ui-approval.md` does not exist or is not approved, emit only
-  the blocking preview/approval tasks needed to reach approval; do **not** emit
-  downstream implementation tasks as if the UI were already settled.
+- If `{FEATURE_DIR}/ui-approval.md` does not exist or is not approved, emit
+  only the blocking preview/approval tasks needed to reach approval; do **not**
+  emit downstream implementation tasks as if the UI were already settled.
 - If `{FEATURE_DIR}/service-fit-matrix.md` is missing or does not distinguish
   accessible now vs purchasable vs unavailable platform capabilities, emit a
   blocking service-fit task group before normal build tasks.
@@ -543,9 +540,9 @@ precondition to downstream implementation tasks:
   - update `ui-review-log.md`
   - block downstream work until `ui-approval.md` is approved
 - App-delivery service-fit tasks that update `service-fit-matrix.md` using
-  tenant-aware evidence from `eai --describe`, `eai whoami`,
-  `eai tenant select`, `eai resources schema`, `eai verify calls --format json`,
-  or equivalent approved platform evidence.
+  tenant-aware evidence from `eai --describe`, `eai whoami`, `eai tenant
+  select`, `eai resources schema`, `eai verify calls --format json`, or
+  equivalent approved platform evidence.
 - A scope-control task that checks whether any user-facing app process exceeds
   four steps and either combines/automates extra steps or records the approved
   exception and rationale.

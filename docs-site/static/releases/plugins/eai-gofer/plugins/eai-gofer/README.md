@@ -1,6 +1,6 @@
 # EAI Gofer Agent Plugin
 
-Version: 3.4.6
+Version: 3.4.7
 
 This package is the portable Claude, Gemini, Codex, and Copilot workflow layer for public Gofer. It is released beside the VS Code extension, but it does not replace the VSIX UI, status views, updater, or language-server features.
 
@@ -22,10 +22,26 @@ That host publishes:
 
 - Latest VS Code extension: `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-latest.vsix`
 - Latest agent bundle zip: `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-latest.zip`
-- This release VS Code extension: `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-3.4.6.vsix`
-- This release agent bundle zip: `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-3.4.6.zip`
+- This release VS Code extension: `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-3.4.7.vsix`
+- This release agent bundle zip: `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-3.4.7.zip`
 - Shared public bundle directory: `https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer`
 - Gemini extension manifest alias: `https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/gemini-extension.json`
+
+## Core Pipeline
+
+| Stage | Command | Main output |
+| ----- | ------- | ----------- |
+| Business scenario | `/0_business_scenario` | Full pipeline kickoff |
+| Research | `/1_gofer_research` | `research.md` |
+| Specify | `/2_gofer_specify` | `spec.md` |
+| Plan | `/3_gofer_plan` | `plan.md`, `data-model.md`, `contracts/` |
+| Tasks | `/4_gofer_tasks` | `tasks.md`, `traceability.md`, `issues.md` |
+| Implement | `/5_gofer_implement` | Code and doc changes |
+| Validate | `/6_gofer_validate` | Validation artifacts |
+
+`/6_gofer_validate` is the terminal quality gate. It includes the final engineering review loop and replaces the old standalone review stage in the core pipeline.
+
+Optional helpers like `/0a_problem_validation`, `/7_gofer_save`, `/8_gofer_resume`, `/9_gofer_tests`, `/7a_stakeholder_comms`, `/gofer:check-workspace`, and `/gofer:bootstrap-workspace` remain available outside the core 0-6 stage sequence.
 
 ## Distribution Modes
 

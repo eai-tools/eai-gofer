@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [3.4.7] - 2026-05-28
+
+Public repo cleanup, pipeline normalization, and legacy 6a removal
+
 ## [3.4.6] - 2026-05-28
 
 Add public Gofer performance modes and lifecycle hardening from PR #20.

@@ -1,7 +1,7 @@
 {
   "name": "eai-gofer",
-  "version": "3.4.6",
-  "description": "Public Gofer spec-driven delivery workflow: business scenario, research, specify, plan, tasks, implement, validate, and communicate.",
+  "version": "3.4.7",
+  "description": "Public Gofer core pipeline: /0_business_scenario through /6_gofer_validate, plus optional helper commands.",
   "author": {
     "name": "Enterprise AI Pty Ltd",
     "url": "https://github.com/eai-tools/eai-gofer"

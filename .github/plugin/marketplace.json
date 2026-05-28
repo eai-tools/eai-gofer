@@ -7,14 +7,14 @@
   },
   "metadata": {
     "description": "Install the EAI Gofer repo marketplace for Claude Code, Gemini CLI, Codex, or Copilot CLI from the public GitHub repository.",
-    "version": "3.4.6"
+    "version": "3.4.7"
   },
   "plugins": [
     {
       "name": "eai-gofer",
       "source": "./plugins/eai-gofer",
       "description": "Gofer core pipeline from /0_business_scenario through /6_gofer_validate, with optional helper commands.",
-      "version": "3.4.6",
+      "version": "3.4.7",
       "author": {
         "name": "Enterprise AI Pty Ltd",
         "url": "https://github.com/eai-tools/eai-gofer"

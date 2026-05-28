@@ -63,7 +63,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 This command expects in `.specify/specs/{feature}/`:
 
 - `validation-report.md` — Feature validated (PASS) from #6_gofer_validate
-- `problem-brief.md` — Original business problem (from /0a_problem_validation)
+- `problem-brief.md` — Original business problem (from #0a_problem_validation)
 - `spec.md` — Feature specification (from #2_gofer_specify)
 - `spec-summary.md` — Executive summary (from #2_gofer_specify)
 - `assumptions.md` — Tracked assumptions
@@ -282,14 +282,14 @@ stakeholder communications explaining what changed and why.
   FEATURE PIPELINE COMPLETE!
 
   Full Pipeline Summary:
-  0a. /0a_problem_validation  ✓ (Problem validated)
+  0a. #0a_problem_validation  ✓ (Problem validated)
   1.  #1_gofer_research        ✓ (Codebase + market research)
   2.  #2_gofer_specify         ✓ (Spec + business summary)
   3.  #3_gofer_plan            ✓ (Technical architecture)
   4.  #4_gofer_tasks           ✓ (Task breakdown)
   5.  #5_gofer_implement       ✓ (Implementation)
   6.  #6_gofer_validate        ✓ (Quality: [score]/110)
-  7a. /7a_stakeholder_comms    ✓ (Communications package)
+  7a. #7a_stakeholder_comms    ✓ (Communications package)
 
   The feature is ready for stakeholder review and deployment.
 ════════════════════════════════════════════════════════════════

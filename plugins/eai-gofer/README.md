@@ -1,6 +1,6 @@
 # EAI Gofer Agent Plugin
 
-Version: 3.4.6
+Version: 3.4.7
 
 This package is the portable Claude, Gemini, Codex, and Copilot workflow layer for public Gofer. It is released beside the VS Code extension, but it does not replace the VSIX UI, status views, updater, or language-server features.
 
@@ -22,8 +22,8 @@ That host publishes:
 
 - Latest VS Code extension: `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-latest.vsix`
 - Latest agent bundle zip: `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-latest.zip`
-- This release VS Code extension: `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-3.4.6.vsix`
-- This release agent bundle zip: `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-3.4.6.zip`
+- This release VS Code extension: `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-3.4.7.vsix`
+- This release agent bundle zip: `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-3.4.7.zip`
 - Shared public bundle directory: `https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer`
 - Gemini extension manifest alias: `https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/gemini-extension.json`
 

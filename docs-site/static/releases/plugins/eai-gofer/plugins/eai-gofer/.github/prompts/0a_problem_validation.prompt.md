@@ -291,7 +291,7 @@ audits can find them at deterministic paths:
 - `{FEATURE_DIR}/business-analysis.md` — business case, ROI sketch,
   cost-of-doing-nothing summary, and stakeholder impact mapping. Emitted
   unconditionally; this is the primary record consumed by
-  `/7a_stakeholder_comms` and the validation council.
+  `#7a_stakeholder_comms` and the validation council.
 
 When `competitiveAnalysisEnabled=false`, the market-analysis.md file includes
 the following stub at the top so consumers can detect the disabled state
@@ -374,7 +374,7 @@ so they include plain-English companion sections in their outputs.
 ## Quick Reference: Pipeline Position
 
 ```text
-  /0a_problem_validation  ← YOU ARE HERE
+  #0a_problem_validation  ← YOU ARE HERE
        ↓ AUTO
   #1_gofer_research
        ↓ AUTO
@@ -382,16 +382,5 @@ so they include plain-English companion sections in their outputs.
        ↓ AUTO
   ... (rest of pipeline)
        ↓ AUTO
-  /7a_stakeholder_comms
+  #7a_stakeholder_comms
 ```
-
-
-## Pipeline Continuation
-
-This completes the 0a_problem_validation stage. To continue the Gofer pipeline:
-
-**Next Command:** `#1_gofer_research`
-
-The next stage will read the artifacts from this stage and continue the workflow automatically.
-
-**Note:** Copilot Chat supports context preservation. Your conversation history will be maintained as you progress through pipeline stages.

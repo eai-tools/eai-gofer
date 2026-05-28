@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: enterpriseai
   canonicalSource: .specify/commands/6_gofer_validate.md
-  canonicalChecksum: 7550d70b8a3c285a2175e57804baa7ae92194a441671c5d3b817675d157ed514
+  canonicalChecksum: 4c2fd0b6b52e57fcb18cc9232bec9d14ee83af3809d08070148ecf467fd3891e
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -57,10 +57,9 @@ across **three phases**:
 - **Phase C — Engineering Review Loop**: iterative review-fix cycles (up to 5)
   to catch issues rubric-based validation might miss
 
-This is the **sixth stage** of the unified Gofer pipeline. It consolidates the
-former `#6_gofer_validate` and `#6a_gofer_engineering_review` stages into a
-single command; `#6a_gofer_engineering_review` is retained as a
-backwards-compatibility stub that delegates here.
+This is the **sixth and final stage** of the unified Gofer pipeline. It owns
+the full validation, blast-radius, and engineering review workflow inside a
+single terminal command.
 
 A score of **110/110 on the rubric (Phases A + B) is required to pass**. Any
 rubric category scoring 0 triggers failure and a brownfield restart loop. Phase
@@ -1337,9 +1336,7 @@ Proceed to **Phase C: Engineering Review Loop** (inline, Step 10a below), then
 **Step 11: Attribution Logging** and **Step 12: Memory Update Check**.
 
 **No external auto-chain is needed** — Phase C runs inline in this command.
-After Phase C completes, the feature pipeline is complete. The legacy
-`#6a_gofer_engineering_review` stub will detect the
-`engineering-review-report.md` artifact and no-op if invoked.
+After Phase C completes, the feature pipeline is complete.
 
 ### If TOTAL < 110: FAIL
 
@@ -2052,18 +2049,6 @@ This also logs quality metrics (rubric scores, finding counts) to:
 
 ---
 
-
-
-## Pipeline Continuation
-
-This completes the 6_gofer_validate stage. To continue the Gofer pipeline:
-
-**Next Command:** `#6a_gofer_engineering_review`
-
-The next stage will read the artifacts from this stage and continue the workflow automatically.
-
-**Note:** Copilot Chat supports context preservation. Your conversation history will be maintained as you progress through pipeline stages.
-
 ## Key Rules
 
 ### Phase A (Rubric)
@@ -2103,8 +2088,8 @@ The next stage will read the artifacts from this stage and continue the workflow
   brownfield restart instead
 - **This stage is the pipeline terminal** — "PIPELINE COMPLETE" only appears at
   the end of Phase C
-- **Legacy `/6a` is a stub** — it detects `engineering-review-report.md` and
-  no-ops if Phase C already ran
+- **Engineering review is inline** — there is no separate follow-up stage after
+  validation
 
 ### Across All Phases
 

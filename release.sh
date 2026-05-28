@@ -586,7 +586,7 @@ if [ "$HTTP_STATUS" = "200" ]; then
     print_success "VSIX file is accessible (HTTP $HTTP_STATUS)"
 else
     print_warning "VSIX file returned HTTP $HTTP_STATUS - users may not be able to auto-update"
-    print_warning "Check GitHub Pages deployment: https://eai-tools.github.io/eai-gofer/releases.html"
+    print_warning "Check GitHub Pages deployment: https://eai-tools.github.io/eai-gofer/releases"
 fi
 
 print_info "Verifying agent plugin zip is downloadable at: $AGENT_PLUGIN_URL"

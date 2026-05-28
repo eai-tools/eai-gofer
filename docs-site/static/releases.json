@@ -1,8 +1,58 @@
 {
-  "latest_version": "3.4.3",
+  "latest_version": "3.4.4",
   "repository": "eai-tools/eai-gofer",
-  "last_updated": "2026-05-27T23:20:31.005Z",
+  "last_updated": "2026-05-28T02:35:04.633Z",
   "releases": [
+    {
+      "version": "3.4.4",
+      "tag_name": "v3.4.4",
+      "published_at": "2026-05-28T02:35:04.631Z",
+      "download_url": "https://eai-tools.github.io/eai-gofer/releases/eai-gofer-3.4.4.vsix",
+      "notes": "Patch release: publish current release asset fixes and Gofer operating layer planning artifacts",
+      "prerelease": false,
+      "size_mb": 11.4,
+      "public_base_url": "https://eai-tools.github.io/eai-gofer/releases",
+      "assets": {
+        "vscode": {
+          "file_name": "eai-gofer-3.4.4.vsix",
+          "download_url": "https://eai-tools.github.io/eai-gofer/releases/eai-gofer-3.4.4.vsix",
+          "latest_download_url": "https://eai-tools.github.io/eai-gofer/releases/eai-gofer-latest.vsix",
+          "size_mb": 11.4
+        },
+        "claude": {
+          "bundle_url": "https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer",
+          "marketplace_url": "https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/claude-marketplace.json",
+          "manifest_url": "https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/claude-plugin.json",
+          "download_url": "https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-3.4.4.zip",
+          "latest_download_url": "https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-latest.zip",
+          "size_mb": 1.7
+        },
+        "codex": {
+          "bundle_url": "https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer",
+          "marketplace_url": "https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/codex-marketplace.json",
+          "manifest_url": "https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/codex-plugin.json",
+          "download_url": "https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-3.4.4.zip",
+          "latest_download_url": "https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-latest.zip",
+          "size_mb": 1.7
+        },
+        "copilot": {
+          "bundle_url": "https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer",
+          "marketplace_url": "https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/copilot-marketplace.json",
+          "manifest_url": "https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/copilot-plugin.json",
+          "download_url": "https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-3.4.4.zip",
+          "latest_download_url": "https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-latest.zip",
+          "size_mb": 1.7
+        },
+        "gemini": {
+          "bundle_url": "https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer",
+          "manifest_url": "https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/gemini-extension.json",
+          "commands_manifest_url": "https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/gemini-commands-manifest.json",
+          "download_url": "https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-3.4.4.zip",
+          "latest_download_url": "https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-latest.zip",
+          "size_mb": 1.7
+        }
+      }
+    },
     {
       "version": "3.4.3",
       "tag_name": "v3.4.3",
@@ -145,24 +195,6 @@
       "notes": "Add public platform builder workflow guidance",
       "prerelease": false,
       "size_mb": 11.3
-    },
-    {
-      "version": "3.3.0",
-      "tag_name": "v3.3.0",
-      "published_at": "2026-05-10T13:04:03.013Z",
-      "download_url": "https://github.com/eai-tools/eai-gofer/releases/download/v3.3.0/gofer-3.3.0.vsix",
-      "notes": "Refresh live validation for 031/032, restore release/doc validation contracts, and remediate vulnerable transitive dependencies.",
-      "prerelease": false,
-      "size_mb": 11.3
-    },
-    {
-      "version": "3.2.2",
-      "tag_name": "v3.2.2",
-      "published_at": "2026-05-03T09:20:16.201Z",
-      "download_url": "https://github.com/eai-tools/eai-gofer/releases/download/v3.2.2/gofer-3.2.2.vsix",
-      "notes": "Refine the Rules and Memory panel, restore editable markdown flows, and tighten memory curation behavior",
-      "prerelease": false,
-      "size_mb": 12
     }
   ],
   "public_base_url": "https://eai-tools.github.io/eai-gofer/releases"

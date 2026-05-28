@@ -43,7 +43,9 @@ function readMarkdownFrontmatter(content: string): Record<string, unknown> {
     if (currentArrayKey) {
       const arrayItemMatch = rawLine.match(/^\s*-\s*(.+)$/);
       if (arrayItemMatch) {
-        (out[currentArrayKey] as string[]).push(arrayItemMatch[1].trim().replace(/^['"]|['"]$/g, ''));
+        (out[currentArrayKey] as string[]).push(
+          arrayItemMatch[1].trim().replace(/^['"]|['"]$/g, '')
+        );
       }
     }
   }
@@ -87,6 +89,28 @@ const HELPER_BODY_CONTRACTS: Record<
     requiredSections: readonly string[];
   }
 > = {
+  'gofer:check-workspace': {
+    artifactPath: '.specify/logs/workspace-check-report.md',
+    requiredSections: [
+      '## Provenance',
+      '## Workspace Root',
+      '## Core Scaffold',
+      '## Host Requirements',
+      '## Status',
+      '## Recommendation',
+    ],
+  },
+  'gofer:bootstrap-workspace': {
+    artifactPath: '.specify/logs/workspace-bootstrap-report.md',
+    requiredSections: [
+      '## Provenance',
+      '## Workspace Root',
+      '## Bootstrap Source',
+      '## Host Policy',
+      '## Changes Applied',
+      '## Post-Check',
+    ],
+  },
   'gofer:vocabulary': {
     artifactPath: '.specify/specs/{feature}/glossary.md',
     requiredSections: ['## Provenance', '## Term Entries', '## Definitions', '## Source Artifacts'],
@@ -107,7 +131,13 @@ const HELPER_BODY_CONTRACTS: Record<
   },
   'gofer:spec-summary': {
     artifactPath: '.specify/specs/{feature}/spec-summary.md',
-    requiredSections: ['## Provenance', '## What', '## Why', '## Acceptance Criteria', '## Out of Scope'],
+    requiredSections: [
+      '## Provenance',
+      '## What',
+      '## Why',
+      '## Acceptance Criteria',
+      '## Out of Scope',
+    ],
   },
   'gofer:zoom-out': {
     artifactPath: '.specify/specs/{feature}/zoom-out-report.md',
@@ -160,7 +190,9 @@ describe('helper commands cross-CLI parity', () => {
       const sourceDescription = String(sourceFrontmatter.description);
 
       const githubPromptFrontmatter = readMarkdownFrontmatter(readFile(githubPromptRelativePath));
-      const extensionPromptFrontmatter = readMarkdownFrontmatter(readFile(extensionPromptRelativePath));
+      const extensionPromptFrontmatter = readMarkdownFrontmatter(
+        readFile(extensionPromptRelativePath)
+      );
       const agentSkillFrontmatter = readMarkdownFrontmatter(readFile(agentsSkillRelativePath));
       const systemSkillFrontmatter = readMarkdownFrontmatter(readFile(systemSkillRelativePath));
       const geminiDescription = readTomlDescription(readFile(geminiRelativePath));

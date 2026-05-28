@@ -73,13 +73,20 @@ unauthenticated downloads.
 
 Stable public artifact URLs:
 
-- Latest VSIX: `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-latest.vsix`
-- Latest agent bundle zip: `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-latest.zip`
-- Shared public bundle directory: `https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer`
-- Claude marketplace JSON: `https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/claude-marketplace.json`
-- Codex plugin manifest: `https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/codex-plugin.json`
-- Copilot marketplace JSON: `https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/copilot-marketplace.json`
-- Gemini extension manifest: `https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/gemini-extension.json`
+- Latest VSIX:
+  `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-latest.vsix`
+- Latest agent bundle zip:
+  `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-latest.zip`
+- Shared public bundle directory:
+  `https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer`
+- Claude marketplace JSON:
+  `https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/claude-marketplace.json`
+- Codex plugin manifest:
+  `https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/codex-plugin.json`
+- Copilot marketplace JSON:
+  `https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/copilot-marketplace.json`
+- Gemini extension manifest:
+  `https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/gemini-extension.json`
 
 Public GitHub repo source for CLI installs:
 
@@ -87,12 +94,12 @@ Public GitHub repo source for CLI installs:
 
 ### Agent Plugin Distribution Modes
 
-| Surface            | Marketplace / published mode | Local release-test mode |
-| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| Claude Code        | `claude plugin marketplace add https://github.com/eai-tools/eai-gofer --scope user --sparse .claude-plugin --sparse plugins/eai-gofer` then `claude plugin install eai-gofer@eai-gofer --scope user` | Unzip to `~/plugins/eai-gofer`, then `claude plugin marketplace add ~/plugins/eai-gofer --scope user` |
-| Codex              | `codex plugin marketplace add https://github.com/eai-tools/eai-gofer --sparse .agents/plugins --sparse plugins/eai-gofer` then `codex plugin add eai-gofer@eai-gofer` | Unzip to `~/plugins/eai-gofer`, then `codex plugin marketplace add ~/plugins/eai-gofer` |
-| GitHub Copilot CLI | `copilot plugin marketplace add https://github.com/eai-tools/eai-gofer` then `copilot plugin install eai-gofer@eai-gofer` | `copilot plugin marketplace add ~/plugins/eai-gofer` then `copilot plugin install eai-gofer@eai-gofer` |
-| Gemini CLI         | `gemini extensions install https://github.com/eai-tools/eai-gofer` | `gemini extensions install ~/plugins/eai-gofer` |
+| Surface            | Marketplace / published mode                                                                                                                                                                         | Local release-test mode                                                                                |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Claude Code        | `claude plugin marketplace add https://github.com/eai-tools/eai-gofer --scope user --sparse .claude-plugin --sparse plugins/eai-gofer` then `claude plugin install eai-gofer@eai-gofer --scope user` | Unzip to `~/plugins/eai-gofer`, then `claude plugin marketplace add ~/plugins/eai-gofer --scope user`  |
+| Codex              | `codex plugin marketplace add https://github.com/eai-tools/eai-gofer --sparse .agents/plugins --sparse plugins/eai-gofer` then `codex plugin add eai-gofer@eai-gofer`                                | Unzip to `~/plugins/eai-gofer`, then `codex plugin marketplace add ~/plugins/eai-gofer`                |
+| GitHub Copilot CLI | `copilot plugin marketplace add https://github.com/eai-tools/eai-gofer` then `copilot plugin install eai-gofer@eai-gofer`                                                                            | `copilot plugin marketplace add ~/plugins/eai-gofer` then `copilot plugin install eai-gofer@eai-gofer` |
+| Gemini CLI         | `gemini extensions install https://github.com/eai-tools/eai-gofer`                                                                                                                                   | `gemini extensions install ~/plugins/eai-gofer`                                                        |
 
 ### Claude Code Plugin
 
@@ -121,7 +128,8 @@ The local marketplace source is the unzipped folder, not the release zip.
 
 ### Codex Plugin
 
-For Codex plugin installs, use the public GitHub repository as the marketplace source:
+For Codex plugin installs, use the public GitHub repository as the marketplace
+source:
 
 ```bash
 codex plugin marketplace add https://github.com/eai-tools/eai-gofer --sparse .agents/plugins --sparse plugins/eai-gofer
@@ -140,6 +148,11 @@ Use the downloaded folder itself as the marketplace root:
 codex plugin marketplace add ~/plugins/eai-gofer
 codex plugin add eai-gofer@eai-gofer
 ```
+
+The Codex plugin keeps the plain slash-command stages as the primary user
+surface. The plugin skill registry only exposes the umbrella `eai-gofer` skill
+so Codex does not show both `/0_business_scenario` and
+`eai-gofer:0_business_scenario` for every stage.
 
 ### GitHub Copilot CLI Plugin
 

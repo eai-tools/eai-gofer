@@ -41,6 +41,22 @@ const ALL_SURFACES = [
 const PUBLIC_SITE_URL = 'https://eai-tools.github.io/eai-gofer';
 const PUBLIC_RELEASES_URL = `${PUBLIC_SITE_URL}/releases`;
 const PUBLIC_PLUGIN_URL = `${PUBLIC_RELEASES_URL}/plugins/eai-gofer`;
+const SURFACE_WORKSPACE_HOSTS = {
+  'claude': 'claude',
+  'claude-mirror': 'claude',
+  'copilot': 'copilot',
+  'github-prompts': 'copilot',
+  'agents-skills': 'codex',
+  'system-skills': 'codex',
+  'gemini': 'gemini',
+};
+const WORKSPACE_PREFLIGHT_EXCLUDED_COMMANDS = new Set([
+  'gofer:plan',
+  'gofer:side',
+  'gofer:personality',
+  'gofer:check-workspace',
+  'gofer:bootstrap-workspace',
+]);
 
 // ---------------------------------------------------------------------------
 // Exclusion logic
@@ -205,7 +221,11 @@ async function emitClaude(stages, root, dryRun) {
       console.log(`[dry-run] claude: would write ${outPath}`);
     } else {
       await ensureDir(outDir);
-      await fs.writeFile(outPath, stage.body, 'utf8');
+      await fs.writeFile(
+        outPath,
+        injectWorkspacePreflight(stage.body, String(name), SURFACE_WORKSPACE_HOSTS['claude']),
+        'utf8'
+      );
       await removeLegacyGeneratedPath(outPath, legacyPath);
       console.log(`claude: wrote ${outPath}`);
     }
@@ -238,7 +258,15 @@ async function emitClaudeMirror(stages, root, dryRun) {
       console.log(`[dry-run] claude-mirror: would write ${outPath}`);
     } else {
       await ensureDir(outDir);
-      await fs.writeFile(outPath, stage.body, 'utf8');
+      await fs.writeFile(
+        outPath,
+        injectWorkspacePreflight(
+          stage.body,
+          String(name),
+          SURFACE_WORKSPACE_HOSTS['claude-mirror']
+        ),
+        'utf8'
+      );
       await removeLegacyGeneratedPath(outPath, legacyPath);
       console.log(`claude-mirror: wrote ${outPath}`);
     }
@@ -272,7 +300,11 @@ async function emitCopilot(stages, root, dryRun) {
       console.log(`[dry-run] copilot: would write ${outPath}`);
     } else {
       await ensureDir(outDir);
-      await fs.writeFile(outPath, buildCopilotPromptContent(stage), 'utf8');
+      await fs.writeFile(
+        outPath,
+        buildCopilotPromptContent(stage, SURFACE_WORKSPACE_HOSTS['copilot']),
+        'utf8'
+      );
       await removeLegacyGeneratedPath(outPath, legacyPath);
       console.log(`copilot: wrote ${outPath}`);
     }
@@ -306,7 +338,11 @@ async function emitGithubPrompts(stages, root, dryRun) {
       console.log(`[dry-run] github-prompts: would write ${outPath}`);
     } else {
       await ensureDir(outDir);
-      await fs.writeFile(outPath, buildCopilotPromptContent(stage), 'utf8');
+      await fs.writeFile(
+        outPath,
+        buildCopilotPromptContent(stage, SURFACE_WORKSPACE_HOSTS['github-prompts']),
+        'utf8'
+      );
       await removeLegacyGeneratedPath(outPath, legacyPath);
       console.log(`github-prompts: wrote ${outPath}`);
     }
@@ -324,12 +360,12 @@ async function emitGithubPrompts(stages, root, dryRun) {
  * @param {{ frontmatter: Record<string, unknown>, body: string }} stage
  * @returns {string}
  */
-function buildCopilotPromptContent(stage) {
+function buildCopilotPromptContent(stage, host = SURFACE_WORKSPACE_HOSTS['copilot']) {
   const stageName = String(stage.frontmatter.name);
   const { frontmatter, body } = splitMarkdownFrontmatter(stage.body);
   const description = readString(frontmatter.description) ?? String(stage.frontmatter.description);
   const transformedBody = injectPipelineContinuation(
-    transformClaudeContent(body, 'copilot'),
+    injectWorkspacePreflight(transformClaudeContent(body, 'copilot'), stageName, host),
     'copilot',
     stageName
   );
@@ -410,6 +446,7 @@ function transformClaudeContent(content, toPlatform) {
  * @returns {string}
  */
 function injectPipelineContinuation(content, platform, commandName) {
+  void platform;
   const nextCommand = getNextCommand(commandName);
   if (!nextCommand) return content;
 
@@ -420,6 +457,58 @@ function injectPipelineContinuation(content, platform, commandName) {
   }
 
   return content + autoChainSection;
+}
+
+function buildWorkspacePreflightSection(host = 'auto') {
+  return `
+## Workspace Preflight
+
+Before doing stage/helper work:
+
+1. Resolve the repository root.
+2. Check the core Gofer sentinels:
+   - \`.specify/.gofer-version\`
+   - \`.specify/commands/0_business_scenario.md\`
+   - \`.specify/templates/spec-template.md\`
+   - \`.specify/scripts/bash/create-new-feature.sh\`
+   - \`.specify/scripts/node/parse-stage-command.mjs\`
+   - \`.specify/scripts/hooks/post-tool-use.mjs\`
+   - \`.specify/scripts/powershell/install-optional-tools.ps1\`
+   - \`.specify/specs/\`
+   - \`.specify/memory/\`
+3. Check host-specific repo-owned files when relevant:
+   - Claude: \`AGENTS.md\`, \`CLAUDE.md\`, \`.claude/settings.json\`
+   - Codex: \`AGENTS.md\`
+   - Copilot: \`.github/copilot-instructions.md\`
+   - VS Code extension mirrors Claude/Copilot/Gemini resources itself and should still keep the core scaffold healthy
+4. If the repo already has the workspace checker script, prefer running:
+   - \`node .specify/scripts/node/gofer-workspace-check.mjs --host ${host} --json\`
+5. If the workspace is missing or stale, ask exactly:
+   - **"This repo is missing or stale for Gofer. Initialize/update it now?"**
+6. If the user says yes, run the Gofer workspace bootstrap helper and then resume this command from the top.
+7. If the user says no, stop and explain that Gofer stage/helper work depends on the repo-owned scaffold.
+`.trim();
+}
+
+function injectWorkspacePreflight(content, commandName, host = 'auto') {
+  if (WORKSPACE_PREFLIGHT_EXCLUDED_COMMANDS.has(commandName)) {
+    return content;
+  }
+
+  if (content.includes('## Workspace Preflight')) {
+    return content;
+  }
+
+  const section = buildWorkspacePreflightSection(host);
+  const headingMatch = content.match(/^# [^\n]+\n+/);
+  if (!headingMatch) {
+    return `${section}\n\n${content}`;
+  }
+
+  const insertAt = headingMatch[0].length;
+  const prefix = content.slice(0, insertAt);
+  const suffix = content.slice(insertAt).replace(/^\n+/, '');
+  return `${prefix}${section}\n\n${suffix}`;
 }
 
 /**
@@ -496,7 +585,11 @@ async function emitAgentsSkills(stages, root, dryRun) {
     const skillDir = path.join(baseDir, stageStem);
     const outPath = path.join(skillDir, 'SKILL.md');
     const legacySkillDir = path.join(baseDir, String(name));
-    const content = buildSkillContent(String(name), String(description), stage.body);
+    const content = buildSkillContent(
+      String(name),
+      String(description),
+      injectWorkspacePreflight(stage.body, String(name), SURFACE_WORKSPACE_HOSTS['agents-skills'])
+    );
 
     if (dryRun) {
       console.log(`[dry-run] agents-skills: would write ${outPath}`);
@@ -536,7 +629,11 @@ async function emitSystemSkills(stages, root, dryRun) {
     const skillDir = path.join(baseDir, stageStem);
     const outPath = path.join(skillDir, 'SKILL.md');
     const legacySkillDir = path.join(baseDir, String(name));
-    const content = buildSkillContent(String(name), String(description), stage.body);
+    const content = buildSkillContent(
+      String(name),
+      String(description),
+      injectWorkspacePreflight(stage.body, String(name), SURFACE_WORKSPACE_HOSTS['system-skills'])
+    );
 
     if (dryRun) {
       console.log(`[dry-run] system-skills: would write ${outPath}`);
@@ -594,7 +691,11 @@ async function emitGemini(stages, root, dryRun) {
       console.log(`[dry-run] gemini: would write ${tomlPath}`);
     } else {
       await ensureDir(outDir);
-      await fs.writeFile(markdownPath, stage.body, 'utf8');
+      await fs.writeFile(
+        markdownPath,
+        injectWorkspacePreflight(stage.body, String(name), SURFACE_WORKSPACE_HOSTS['gemini']),
+        'utf8'
+      );
       await fs.writeFile(tomlPath, tomlContent, 'utf8');
       await removeLegacyGeneratedPath(markdownPath, legacyMarkdownPath);
       await removeLegacyGeneratedPath(tomlPath, legacyTomlPath);

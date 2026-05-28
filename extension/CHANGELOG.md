@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [3.4.4] - 2026-05-28
+
+Patch release: publish current release asset fixes and Gofer operating layer planning artifacts
+
 ## [3.4.3] - 2026-05-22
 
 Fix GitHub Pages publishing for public VSIX and agent plugin updates

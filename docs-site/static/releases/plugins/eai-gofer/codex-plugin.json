@@ -1,6 +1,6 @@
 {
   "name": "eai-gofer",
-  "version": "3.4.3",
+  "version": "3.4.4",
   "description": "Public Gofer spec-driven delivery workflow for Claude, Codex, Copilot, Gemini, and VS Code.",
   "author": {
     "name": "Enterprise AI Pty Ltd",
@@ -67,7 +67,7 @@
       "gofer:zoom-out"
     ],
     "marketplacePath": "https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer",
-    "releaseAsset": "https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-3.4.3.zip",
-    "vsixAsset": "https://eai-tools.github.io/eai-gofer/releases/eai-gofer-3.4.3.vsix"
+    "releaseAsset": "https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-3.4.4.zip",
+    "vsixAsset": "https://eai-tools.github.io/eai-gofer/releases/eai-gofer-3.4.4.vsix"
   }
 }

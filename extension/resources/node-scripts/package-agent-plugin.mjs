@@ -521,13 +521,17 @@ async function writePluginFolder(pluginRoot, root, version, stages) {
   await copyPluginAssets(root, pluginRoot);
 
   const nestedPluginRoot = path.join(pluginRoot, 'plugins', PLUGIN_NAME);
-  await fs.mkdir(path.dirname(nestedPluginRoot), { recursive: true });
-  await fs.cp(pluginRoot, nestedPluginRoot, {
-    recursive: true,
-    force: true,
-    dereference: false,
-    filter: (source) => !source.startsWith(path.join(pluginRoot, 'plugins')),
-  });
+  await fs.rm(nestedPluginRoot, { recursive: true, force: true });
+  await fs.mkdir(nestedPluginRoot, { recursive: true });
+  for (const entry of await fs.readdir(pluginRoot)) {
+    if (entry === 'plugins') {
+      continue;
+    }
+
+    const source = path.join(pluginRoot, entry);
+    const target = path.join(nestedPluginRoot, entry);
+    await fs.cp(source, target, { recursive: true, force: true, dereference: false });
+  }
 }
 
 async function syncRepoManifests(root, version, stages, stagedPluginRoot) {

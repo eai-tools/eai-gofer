@@ -27,7 +27,7 @@ function readExtensionPackage(): ExtensionPackageShape {
 }
 
 suite('onboarding messaging', () => {
-  test('leads welcome messaging with EnterpriseAI-first positioning while preserving additive compatibility', () => {
+  test('keeps the extension onboarding copy aligned with the public Gofer positioning', () => {
     const packageJson = readExtensionPackage();
     const displayName = packageJson.displayName ?? '';
     const description = packageJson.description ?? '';
@@ -36,28 +36,23 @@ suite('onboarding messaging', () => {
         (entry: ViewsWelcomeEntry) => entry.view === 'goferProgress'
       )?.contents ?? '';
 
-    assert.ok(displayName.includes('EnterpriseAI Vertical App Delivery'));
-    assert.ok(description.includes('EnterpriseAI-first'));
-    assert.ok(welcomeContents.includes('EnterpriseAI vertical app delivery'));
-    assert.ok(welcomeContents.includes('EnterpriseAI-first guidance is the default'));
-    assert.ok(welcomeContents.includes('gofer.workflowProfile=standard'));
+    assert.ok(displayName.includes('Gofer'));
+    assert.ok(description.includes('core Gofer pipeline'));
+    assert.ok(welcomeContents.includes('business scenario'));
+    assert.ok(welcomeContents.includes('research'));
+    assert.ok(welcomeContents.includes('validate'));
   });
 
-  test('keeps EnterpriseAI-first additive messaging aligned across docs and extension initialization surface', () => {
+  test('keeps public Gofer messaging aligned across docs and extension initialization surface', () => {
     const extensionReadme = readFile(path.join(process.cwd(), 'README.md'));
     const rootReadme = readFile(path.join(process.cwd(), '..', 'README.md'));
     const extensionSource = readFile(path.join(process.cwd(), 'src', 'extension.ts'));
 
-    assert.ok(extensionReadme.includes('EnterpriseAI-first vertical app delivery workflow'));
-    assert.ok(
-      extensionReadme.includes('guidance is the default') ||
-        extensionReadme.includes('additive to standard Gofer')
-    );
-
-    assert.ok(rootReadme.includes('defaults to an EnterpriseAI-first workflow profile'));
-    assert.ok(rootReadme.includes('standard workflow as an explicit'));
-
-    assert.ok(extensionSource.includes('EnterpriseAI-first guidance by default'));
-    assert.ok(extensionSource.includes('multi-platform workflows remain supported'));
+    assert.ok(extensionReadme.includes('Gofer VS Code Extension'));
+    assert.ok(extensionReadme.includes('business scenario'));
+    assert.ok(rootReadme.includes('spec-driven delivery workflow'));
+    assert.ok(rootReadme.includes('What Helps A Repo Get Forks And Stars'));
+    assert.ok(extensionSource.includes('Gofer initialized.'));
+    assert.ok(extensionSource.includes('multi-platform workflows'));
   });
 });

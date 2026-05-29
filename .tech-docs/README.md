@@ -1,598 +1,89 @@
 ---
 generated: true
-generated_at: '2026-05-23T17:54:39.953Z'
-source_commit: '047baa06f9bdd86354d43413563a98f893685fb3'
+generated_at: '2026-05-29T10:00:00.000Z'
+source_commit: 'public-launch-readiness'
 ---
 
 # Gofer
 
-Gofer is the public EAI spec-driven delivery workflow for VS Code and AI CLIs.
-It ships a full VS Code extension and portable Claude Code, Codex, and Copilot
-workflow packages. Gofer uses `.specify/`, `gofer.*` VS Code commands, `gofer_*`
-MCP tools, and the `0_business_scenario` through `8_gofer_resume` command set.
+Gofer is a spec-driven delivery workflow for repositories. It provides a shared
+`0-6` pipeline, repo-owned artifacts in `.specify/`, a VS Code extension, and
+portable plugin surfaces for Claude Code, Codex, GitHub Copilot, and Gemini.
 
-## Pipeline
+## Core Pipeline
 
-Gofer has one public delivery pipeline with core delivery stages and resumption
-helpers:
+| Stage             | Command                | Purpose                                                      |
+| ----------------- | ---------------------- | ------------------------------------------------------------ |
+| Business Scenario | `/0_business_scenario` | Kick off the workflow, gather context, and route the work    |
+| Research          | `/1_gofer_research`    | Explore the codebase, constraints, and delivery options      |
+| Specify           | `/2_gofer_specify`     | Write the feature specification                              |
+| Plan              | `/3_gofer_plan`        | Produce architecture, data model, and contracts              |
+| Tasks             | `/4_gofer_tasks`       | Break the work into dependency-ordered execution units       |
+| Implement         | `/5_gofer_implement`   | Make code and documentation changes                          |
+| Validate          | `/6_gofer_validate`    | Run validation, blast-radius review, and final quality gates |
 
-| Stage             | Command                | Purpose                                                                         |
-| ----------------- | ---------------------- | ------------------------------------------------------------------------------- |
-| Business Scenario | `/0_business_scenario` | Define the business problem and route the full Gofer pipeline.                  |
-| Research          | `/1_gofer_research`    | Research the codebase, CLI integrations, and technology landscape.              |
-| Specify           | `/2_gofer_specify`     | Create the feature specification from research and approved proposal review.    |
-| Plan              | `/3_gofer_plan`        | Produce architecture, data model, contracts, and implementation plan.           |
-| Tasks             | `/4_gofer_tasks`       | Break the plan into dependency-ordered, parallelizable work.                    |
-| Implement         | `/5_gofer_implement`   | Make code and documentation changes with implementation evidence.               |
-| Validate          | `/6_gofer_validate`    | Validate behavior, tests, risks, blast radius, and engineering review evidence. |
-| Save              | `/7_gofer_save`        | Create a handoff checkpoint for later resumption.                               |
-| Resume            | `/8_gofer_resume`      | Resume a saved Gofer session from checkpoint state.                             |
+Optional helpers:
 
-## Current Release Feed
+- `/0a_problem_validation`
+- `/7_gofer_save`
+- `/8_gofer_resume`
+- `/9_gofer_tests`
+- `/7a_stakeholder_comms`
+- `/gofer:check-workspace`
+- `/gofer:bootstrap-workspace`
 
-Browse all releases and downloads on the
-**[Releases page](https://eai-tools.github.io/eai-gofer/releases)**.
+## Release Feed
 
-VS Code updates use the Gofer Pages feed:
-
-```text
-https://eai-tools.github.io/eai-gofer/releases.json
-```
-
-VSIX and agent plugin packages are published under:
-
-```text
-https://eai-tools.github.io/eai-gofer/releases/
-```
-
-The hosted Claude/Codex/Copilot plugin bundle is available at:
-
-```text
-https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer
-```
+- Docs and downloads:
+  [eai-tools.github.io/eai-gofer](https://eai-tools.github.io/eai-gofer/)
+- Releases page:
+  [eai-tools.github.io/eai-gofer/releases](https://eai-tools.github.io/eai-gofer/releases)
+- Release feed: `https://eai-tools.github.io/eai-gofer/releases.json`
 
 ## Start Here
 
-- [Technical Overview](overview.md)
+- [Overview](overview.md)
 - [Architecture](architecture.md)
 - [Configuration](configuration.md)
 - [API Reference](api-reference.md)
-- [Release Downloads](https://eai-tools.github.io/eai-gofer/releases)
-
----
-
-# Technical Documentation Index
-
-**Repository:** [eai-tools/eai-gofer](https://github.com/eai-tools/eai-gofer)  
-**Version:** 3.4.3  
-**Generated:** 2026-05-22T18:12:41Z
-
-This directory contains comprehensive technical documentation for the Gofer
-VSCode extension project.
-
----
-
-## What's New in v3.4.3
-
-### Patch Release Updates
-
-- **Version Alignment** - Updated to v3.4.3 with pre-release commit updates
-- **Documentation Refresh** - Updated technical documentation to reflect current
-  state
-- **Stable Release** - Production-ready with agent plugin marketplace
-  distribution
-
-### Previous Release (v3.4.0)
-
-#### Agent Plugin Packaging System
-
-- **Unified Distribution** - Single packaged plugin for Claude Code, Copilot,
-  Codex, and Gemini
-- **Marketplace Integration** - Published to plugin marketplaces for easy
-  installation
-- **Complete Command Surface** - 24 workflow commands + 29 specialized agents
-- **Template Library** - Full specification templates included in distribution
-- **Release Automation** - Plugin zip automatically generated and attached to
-  GitHub releases
-
-#### Installation Examples
-
-```bash
-# Claude Code
-claude plugin marketplace add https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer --scope user
-claude plugin install eai-gofer@eai-gofer --scope user
-
-# GitHub Copilot
-copilot plugin marketplace add https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer
-copilot plugin install eai-gofer@eai-gofer
-```
-
----
-
-## What's New in v3.3.1
-
-### Security Improvements
-
-- **Environment Variable Protection** - Added `.env` to `.gitignore` to prevent
-  accidental commits of credentials
-- **Credential Safety** - Protects API keys and secrets from being committed to
-  version control
-- **Best Practices** - Aligns with security best practices for credential
-  management
-
-### Platform Builder Boundary Documentation
-
-- **Public Platform APIs** - Clear documentation of public platform builder
-  boundaries
-- **Status Vocabulary** - Clarified platform builder status terminology
-- **Safe Artifacts** - Enhanced guidance for platform-safe artifact generation
-- **Internal vs Public** - Defined separation between public builder APIs and
-  internal platform implementation
-
-### Code Quality Improvements
-
-- **Test Artifact Management** - Removed vitest results from version control
-- **Repository Cleanup** - Added vitest results to `.gitignore`
-- **Reduced Noise** - Cleaner git history without test artifacts
-
----
-
-## What's New in v3.3.0
-
-### Dependency Security Patches
-
-- **Vulnerability Resolution** - Addressed vulnerable transitive dependencies
-  via package overrides
-- **Security Hardening** - Updated diff (^8.0.3), postcss (^8.5.10),
-  serialize-javascript (^7.0.0)
-- **Zero Breaking Changes** - Security patches applied without functionality
-  impact
-
-### Documentation & Testing
-
-- **Legacy Docs Retirement** - Consolidated documentation structure, archived
-  legacy docs to `.tech-docs/legacy-src/`
-- **Enhanced Validation** - Realigned documentation validation test coverage
-- **Release Automation** - Improved VSIX packaging and GitHub release management
-
----
-
-## What's New in v3.2.2
-
-### UI-First App Delivery Workflow
-
-- **Preview-Approval-Service-Fit Gates** - App delivery converges on UI earlier
-- **Dual-Mode Shared Pipeline** - App and non-app work coexist in numbered
-  stages
-- **Vertical Template Integration** - Constrained previews with branding
-  workflow
-- **Self-Review Evidence** - Preview validation before stakeholder presentation
-
-### Command Parity & Infrastructure
-
-- **Restored Command Compatibility** - Fixed CLI surface synchronization across
-  platforms
-- **Standardized Documentation** - Enhanced `.tech-docs/` format with executive
-  summaries
-- **Skills Pipeline Augmentation** - Enhanced agent coordination (v3.2.0)
-
----
-
-## What's New in v3.0+
-
-### Multi-Platform CLI Support
-
-- **Claude Code** - Full MCP tool support (40+ tools)
-- **GitHub Copilot Chat** - Prompt files in `.github/prompts/`
-- **OpenAI Codex CLI** - Skill files in `.agents/skills/`
-- **Gemini CLI** - Command files in `.gemini/commands/gofer/`
-- **Auto-detection** - `gofer.defaultCLI` setting with smart detection
-
-### CLI Innovations
-
-- **Source-of-Truth Generator** - Single `.specify/commands/<stage>.md` → 8 CLI
-  surfaces
-- **Visual Artifacts** - 10 persona-pack templates (Impact Canvas, C4, ERD,
-  Heatmaps)
-- **7 Visual Writer Agents** - Specialized diagram generators
-- **Namespace Aliases** - `/gofer:*` prefix for all commands
-- **Codex Budget Doctor** - `npm run gofer:codex-doctor` diagnostic
-
-### Feature Improvements
-
-- **Memory Panel Filter** - Toggle system memories (533 → 0 by default)
-- **Parallel Validation** - 6 agents run concurrently (<60s vs 90-120s)
-- **Cross-Platform Commands** - All 16 pipeline stages on all platforms
-- **AI Usage Panel** - Real-time token usage and cost tracking
-- **Context REPL** - Progressive context management tools
-
----
-
-## Core Documentation
-
-### [Overview](overview.md)
-
-Service identity, tech stack, and quick start guide.
-
-**Contents:**
-
-- Executive summary with service identity table
-- Service purpose and description
-- Technology stack table (TypeScript 5.7.2, Node 20.x, VSCode 1.85.0+)
-- Key entry points (263 TypeScript files across all modules)
-- Local development setup
-- Multi-platform CLI support (v3.0+)
-- Critical integrations matrix
-- Documentation surfaces catalog
-- Team/ownership
-
----
-
-### [Architecture](architecture.md)
-
-Internal architecture and component breakdown.
-
-**Contents:**
-
-- System overview with Mermaid diagrams
-- Component breakdown (Extension, Language Server, Orchestrator)
-- Data flow diagrams
-- Design patterns (8+ patterns identified)
-- Integration points (VSCode, MCP, AI providers)
-- Performance considerations
-
----
-
-### [API Reference](api-reference.md)
-
-MCP tools, VSCode commands, and LSP endpoints.
-
-**Contents:**
-
-- 40+ MCP tools (detailed parameters/responses)
-- VSCode commands (30+ commands)
-- LSP notifications and requests
-- Authentication and rate limits
-- Error handling
-- **Status:** Stable API (v3.2)
-
----
-
-### [Data Model](data-model.md)
-
-File system schema and data structures.
-
-**Contents:**
-
-- Storage architecture with ER diagram
-- Specification directory structure (1 active spec, many archived)
-- File formats (spec.md, tasks.md, plan.md, research.md)
-- Constitution and memory system
-- Logs and telemetry schemas (JSONL format)
-- Migration history (v1.0 → v3.2)
-
----
-
-### [Configuration](configuration.md)
-
-Environment variables and settings.
-
-**Contents:**
-
-- Environment variables (optional - Anthropic, Google, OpenAI, Twilio)
-- VSCode settings (60+ settings in v3.2)
-- **Key Settings:**
-  - `gofer.defaultCLI` - Platform selection
-  - `gofer.workflowProfile` - EnterpriseAI vs standard
-  - `gofer.memory.coverageThreshold` - Memory-first loading
-  - Admin API keys for real usage data
-  - Context management (auto-save at 65%, compaction at 80%)
-  - Budget enforcement (max $10/run default)
-- Configuration files
-- Feature flags
-- Secrets management
-
----
-
-### [Deployment](deployment.md)
-
-Build, release, and deployment processes.
-
-**Contents:**
-
-- Build pipeline (npm, webpack, vsce)
-- CI/CD workflow (GitHub Actions)
-- Release process (release-auto.sh)
-- Installation methods (GitHub releases, marketplace planned)
-- Runtime environment (3 processes: extension, language server, orchestrator)
-- Health checks and monitoring
-- Rollback procedures
-- **Latest VSIX:** gofer-3.2.0.vsix
-
----
-
-### [Dependencies](dependencies.md)
-
-Service dependencies and integration points.
-
-**Contents:**
-
-- Upstream dependencies:
-  - VSCode Platform (required)
-  - Anthropic API (optional - Claude 3.5 Sonnet/Haiku)
-  - Google AI API (optional - Gemini 1.5 Pro/Flash)
-  - OpenAI API (optional - GPT-4)
-  - Twilio (optional - WhatsApp notifications)
-  - GitHub API (optional - auto-updates)
-- Downstream dependents:
-  - Claude Code (primary - full MCP support)
-  - GitHub Copilot (core features)
-  - OpenAI Codex CLI (v3.0+)
-  - Gemini CLI (v3.0+)
-- NPM dependencies (47 production + 54 dev)
-- Dependency diagrams
-- Version constraints (Node 20.x, VSCode 1.85.0+)
-- Security considerations
-
----
-
-### [Changelog](changelog.md)
-
-Recent changes summary.
-
-**Contents:**
-
-- **v3.2.0** - Current release (2026-05-02)
-  - Skills pipeline augmentation
-  - Release index deduplication
-  - Automated documentation updates
-- **v3.1.0** - Command artifact sync
-- **v3.0.0** - Major release (2026-04-28)
-  - CLI innovations + visual artifacts
-  - Source-of-truth generator
-  - 10 persona-pack templates
-- **v2.0.x** - Cross-platform command parity
-- **v1.19.x** - Memory panel filter
-- Historical changes
-- Breaking changes summary (none in v3.x)
-- API stability notes
-
----
-
-## Code Review
-
-### [Code Quality](review/code-quality.md)
-
-Code quality assessment across 6 dimensions.
-
-**Scores (v3.2.0):**
-
-- **Readability:** 9/10
-- **Correctness:** 8/10
-- **Performance:** 8/10
-- **Security:** 8/10
-- **Maintainability:** 9/10
-- **Test Quality:** 8/10
-
-**Overall:** 8.5/10
-
-**Key Findings:**
-
-- ✅ Strong TypeScript usage (95%+ adoption)
-- ✅ Comprehensive test coverage (80%+ target)
-- ✅ Excellent architecture (DI, separation of concerns)
-- ✅ Hook-based monitoring (80% CPU reduction vs polling)
-- ⚠️ Large class files (extension.ts - 800+ lines)
-- ⚠️ Race condition risk (HookBridgeWatcher)
-- ⚠️ Missing error boundaries (large file reads)
-
-**Recommendations:**
-
-1. Add mutex/lock for context updates
-2. Add file size limits and timeouts
-3. Reduce integration test gaps
-4. Refactor large classes
-5. Optimize large file handling
-
----
-
-### [Patterns & Tech Debt](review/patterns.md)
-
-Design patterns and technical debt analysis.
-
-**Patterns Identified:**
-
-1. **Dependency Injection** (tsyringe) - Excellent
-2. **Provider Pattern** (VSCode TreeDataProvider) - Consistent
-3. **Observer Pattern** (Event Emitters) - Type-safe
-4. **Strategy Pattern** (Memory Layers) - MemGPT-inspired
-5. **Command Pattern** - 30+ commands
-6. **Singleton Pattern** - DI container
-7. **Factory Pattern** - LLM providers
-8. **Repository Pattern** - Spec loading
-
-**Anti-Patterns Found:**
-
-- God Object (extension.ts - 800+ lines)
-- Spec parsing duplication (extension + language server)
-- Magic number thresholds (configurable, mitigated)
-- Incomplete error handling (large files)
-
-**Tech Debt:** 3-4 weeks estimated effort for all items
-
-**Priority Order:**
-
-1. God Object refactoring (improves maintainability)
-2. Race condition fix (prevents bugs)
-3. Missing error boundaries (improves robustness)
-4. File size limits (prevents hangs)
-
----
-
-## Quick Navigation
-
-### For New Developers
-
-1. Start with [Overview](overview.md) - Understand what Gofer does
-2. Read [Architecture](architecture.md) - Learn the component structure
-3. Check [Configuration](configuration.md) - Set up your environment
-4. See [Deployment](deployment.md) - Build and test locally
-5. Review [Code Quality](review/code-quality.md) - Understand standards
-
-### For API Consumers
-
-1. Read [API Reference](api-reference.md) - MCP tools and commands
-2. Check [Data Model](data-model.md) - Spec file format
-3. Review [Configuration](configuration.md) - Settings and secrets
-4. See [Changelog](changelog.md) - API stability notes
-
-### For Multi-Platform Users (v3.0+)
-
-1. **Claude Code users** - MCP tools work out of the box (40+ tools)
-2. **GitHub Copilot users** - Commands in `.github/prompts/`
-3. **OpenAI Codex users** - Skills in `.agents/skills/`, run
-   `npm run gofer:codex-doctor`
-4. **Gemini CLI users** - Commands in `.gemini/commands/gofer/`
-5. **Platform selection** - Set `gofer.defaultCLI` in VSCode settings
-
-### For Operations
-
-1. Review [Deployment](deployment.md) - Release process
-2. Check [Dependencies](dependencies.md) - External services
-3. See [Changelog](changelog.md) - Recent changes
-4. Monitor health via status bar indicators
-
-### For Architects
-
-1. Study [Architecture](architecture.md) - System design
-2. Review [Patterns & Tech Debt](review/patterns.md) - Design decisions
-3. Check [Code Quality](review/code-quality.md) - Quality assessment
-4. Analyze [Dependencies](dependencies.md) - Integration points
-
----
-
-## Documentation Maintenance
-
-### Version Tracking
-
-- **Version:** 3.4.3
-- **Commit:** c909d5e497762e9ac614a02d35e58afd5e46dae2
-- **Generated:** 2026-05-22T18:12:41Z
-- **Previous Update:** 2026-05-21T18:15:34Z
-  (0344d6df21fba9738d8bd9f6c26d7602c4e0775e)
-- **Change Summary:** Release v3.4.3 with pre-release updates and documentation
-  refresh
-
-### Regenerating Documentation
-
-To regenerate this documentation:
-
-```bash
-# In Claude Code, Copilot, Codex, or Gemini CLI:
-# "Generate .tech-docs/ for this repository"
-```
-
-The documentation generator:
-
-- Reads package.json, README.md, source code
-- Analyzes architecture and patterns
-- Generates Mermaid diagrams
-- Cross-references .specify/ specs
-- Updates all .tech-docs/ files with current state
-
-### What to Update Manually
-
-When making changes, update these files if applicable:
-
-**Architecture changes:**
-
-- Update [architecture.md](architecture.md) - Component diagrams
-- Update [dependencies.md](dependencies.md) - New service dependencies
-
-**API changes:**
-
-- Update [api-reference.md](api-reference.md) - New tools/commands
-- Update [data-model.md](data-model.md) - Schema changes
-
-**Configuration changes:**
-
-- Update [configuration.md](configuration.md) - New settings
-- Update [deployment.md](deployment.md) - Build process changes
-
-**Release changes:**
-
-- Update [changelog.md](changelog.md) - New release notes
-- Bump `generated` timestamp in frontmatter
-- Update version numbers throughout
-
----
-
-## File Organization
-
-```
-.tech-docs/
-├── README.md                 # This file
-├── overview.md              # Service identity & tech stack
-├── architecture.md          # System architecture & diagrams
-├── api-reference.md         # MCP tools & VSCode commands
-├── data-model.md            # File schemas & data structures
-├── configuration.md         # Settings & environment variables
-├── deployment.md            # Build, release, CI/CD
-├── dependencies.md          # Service dependencies
-├── changelog.md             # Release history
-└── review/
-    ├── code-quality.md      # Code quality assessment
-    └── patterns.md          # Design patterns & tech debt
-```
-
----
-
-## External References
-
-- **User Documentation:** README.md (`README.md`)
-- **Agent Guidelines:** AGENTS.md (`AGENTS.md`)
-- **Project Instructions:** CLAUDE.md (`CLAUDE.md`)
-- **CLI Support Guide:** docs/cli-support.md (`../docs/cli-support.md`) (v3.0+)
-- **GitHub Repository:**
-  [eai-tools/eai-gofer](https://github.com/eai-tools/eai-gofer)
-
----
-
-## Key Metrics
-
-| Metric                  | Value                                         |
-| ----------------------- | --------------------------------------------- |
-| Version                 | 3.4.3                                         |
-| TypeScript Files        | 247 files (all modules)                       |
-| Active Specifications   | 2 (032-ui-first-builder, 031-skills-pipeline) |
-| Archived Specifications | 30+ specs                                     |
-| MCP Tools               | 40+ tools                                     |
-| VSCode Commands         | 30+ commands                                  |
-| VSCode Settings         | 60+ configuration options                     |
-| Test Coverage Target    | 80%+                                          |
-| Supported AI Platforms  | 4 (Claude, Copilot, Codex, Gemini)            |
-| Code Quality Score      | 8.5/10                                        |
-| Tech Debt Effort (all)  | 3-4 weeks                                     |
-| Node Version Required   | 20.x                                          |
-| VSCode Version Required | 1.85.0+                                       |
-
----
-
-## Support
-
-For questions, issues, or contributions:
-
-- **GitHub Issues:**
-  [eai-tools/eai-gofer/issues](https://github.com/eai-tools/eai-gofer/issues)
-- **Documentation:**
-  [eai-tools/eai-gofer#readme](https://github.com/eai-tools/eai-gofer#readme)
-- **Owner:** Enterprise AI Pty Ltd
-- **Website:** [enterpriseai.com.au](https://enterpriseai.com.au)
-
----
-
-## License
-
-This documentation follows the same license as the Gofer project.
-
-© 2025 Enterprise AI Pty Ltd
+- [Documentation Surfaces](documentation-surfaces.md)
+
+## Install Surfaces
+
+| Surface            | Recommended source                       |
+| ------------------ | ---------------------------------------- |
+| VS Code            | Marketplace first, VSIX as fallback      |
+| Claude Code        | `eai-tools/eai-gofer` GitHub marketplace |
+| Codex              | GitHub repo marketplace                  |
+| GitHub Copilot CLI | GitHub repo marketplace                  |
+| Gemini CLI         | GitHub repo install with `--auto-update` |
+
+## Community
+
+- Discussions:
+  [github.com/eai-tools/eai-gofer/discussions](https://github.com/eai-tools/eai-gofer/discussions)
+- Issues:
+  [github.com/eai-tools/eai-gofer/issues](https://github.com/eai-tools/eai-gofer/issues)
+- Wiki:
+  [github.com/eai-tools/eai-gofer/wiki](https://github.com/eai-tools/eai-gofer/wiki)
+- Contributing:
+  [CONTRIBUTING.md](https://github.com/eai-tools/eai-gofer/blob/main/CONTRIBUTING.md)
+- Security:
+  [SECURITY.md](https://github.com/eai-tools/eai-gofer/blob/main/SECURITY.md)
+
+## References
+
+- [GitHub Spec Kit docs](https://github.github.com/spec-kit/index.html)
+- [github/spec-kit](https://github.com/github/spec-kit)
+- [GitHub repository best practices](https://docs.github.com/en/repositories/creating-and-managing-repositories/best-practices-for-repositories)
+- [GitHub Discussions quickstart](https://docs.github.com/discussions/quickstart)
+- [Claude Code plugin marketplaces](https://code.claude.com/docs/en/plugin-marketplaces)
+- [Gemini CLI extensions reference](https://github.com/google-gemini/gemini-cli/blob/main/docs/extensions/reference.md)
+- [VS Code publishing extensions](https://code.visualstudio.com/api/working-with-extensions/publishing-extension)
+
+## Public Launch Notes
+
+This documentation set is being cleaned up for a public launch. Community health
+files, GitHub Discussions, contributor routing, and public install paths are now
+first-class. Remaining legacy enterprise-profile internals are tracked
+separately as follow-up launch work.

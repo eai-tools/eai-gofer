@@ -1,9 +1,12 @@
 {
   "name": "eai-gofer",
   "version": "3.4.7",
-  "description": "Enterprise AI Pty Ltd - Automated spec-driven development system with Claude Code integration",
-  "author": "Enterprise AI Pty Ltd",
-  "license": "SEE LICENSE IN LICENSE",
+  "description": "Spec-driven delivery workflow for VS Code and AI coding CLIs",
+  "author": "EAI Tools",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=24.0.0"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/eai-tools/eai-gofer"

@@ -1,7 +1,7 @@
 {
   "name": "eai-gofer",
   "interface": {
-    "displayName": "EAI Gofer"
+    "displayName": "Gofer"
   },
   "plugins": [
     {

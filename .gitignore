@@ -13,6 +13,11 @@ extension/.specify/specs/*
 .specify/memory/observations.jsonl
 .specify/specs/*/.branch-info.json
 .specify/logs/
+.specify/.orchestrator.log
+.specify/ACTION_PLAN.md
+.specify/.specgofer-version
+.specify/_backup/
+.specify/research/
 .specify/memory/checkpoints/
 .specify/memory/context-health-state.json
 .specify/memory/observation-cache/
@@ -31,6 +36,11 @@ CLAUDE-CODE-USAGE-FIX.md
 AI-USAGE-FIX-SUMMARY.md
 node_modules
 dist/
+extension/dist/
+language-server/dist/
+docs-site/build/
+docs-site/.docusaurus/
+docs-site/node_modules/
 release-assets/
 .env
 *.zip
@@ -44,3 +54,7 @@ test-results/vitest-results.json
 
 # QAgent runtime artifacts
 .qagent/
+
+# Local/public-launch cleanup
+thoughts/
+quality-dashboard/

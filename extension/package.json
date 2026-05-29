@@ -1,15 +1,15 @@
 {
   "name": "gofer",
-  "displayName": "Gofer for EnterpriseAI Vertical App Delivery [PREVIEW]",
+  "displayName": "Gofer [PREVIEW]",
   "description": "Guide repository work from business scenario through the core Gofer pipeline to unified validation inside VS Code.",
   "version": "3.4.7",
   "publisher": "EnterpriseAI",
   "icon": "icon.png",
   "author": {
-    "name": "Enterprise AI Pty Ltd",
-    "url": "https://enterpriseai.com.au"
+    "name": "EAI Tools",
+    "url": "https://github.com/eai-tools/eai-gofer"
   },
-  "license": "SEE LICENSE IN LICENSE",
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/eai-tools/eai-gofer"
@@ -25,9 +25,6 @@
   "keywords": [
     "spec-driven",
     "gofer",
-    "enterpriseai",
-    "enterprise-ai",
-    "platform",
     "github",
     "claude",
     "copilot",
@@ -304,7 +301,7 @@
       "activitybar": [
         {
           "id": "gofer",
-          "title": "Gofer - Enterprise AI",
+          "title": "Gofer",
           "icon": "$(notebook)"
         }
       ]
@@ -334,7 +331,7 @@
     "viewsWelcome": [
       {
         "view": "goferProgress",
-        "contents": "Gofer helps turn a business scenario into EnterpriseAI vertical app delivery inside the repository through the core Gofer pipeline: business scenario, research, specification, planning, tasks, implementation, and unified validation.\n\nNo `.specify` workspace was found yet.\n\n[Initialize Gofer](command:gofer.initialize)\n\nA simple way to start:\n1. Initialize the workspace\n2. Open your AI chat/CLI and run `/0_business_scenario` (or `#0_business_scenario` in Copilot)\n3. Move through the core flow: research → specify → plan → tasks → implement → validate\n4. Treat `/6_gofer_validate` as the terminal quality gate; it includes the final engineering review loop\n\nEnterpriseAI-first guidance is the default when you want that workflow. Set `gofer.workflowProfile=standard` only when you explicitly want the baseline Gofer workflow.\n\nUse **Gofer: Install Optional Developer Tools** if your preferred CLI is not installed locally."
+        "contents": "Gofer helps turn a business scenario into repository work that is easier to research, specify, plan, implement, and validate.\n\nNo `.specify` workspace was found yet.\n\n[Initialize Gofer](command:gofer.initialize)\n\nA simple way to start:\n1. Initialize the workspace\n2. Open your AI chat or CLI and run `/0_business_scenario` (or `#0_business_scenario` in Copilot)\n3. Move through the core flow: business scenario → research → specify → plan → tasks → implement → validate\n4. Treat `/6_gofer_validate` as the terminal quality gate; it includes the final engineering review loop\n\nUse **Gofer: Install Optional Developer Tools** if your preferred CLI is not installed locally."
       },
       {
         "view": "goferAIUsage",
@@ -605,18 +602,18 @@
           ],
           "enumDescriptions": [
             "Standard Gofer behavior when explicitly requested",
-            "EnterpriseAI-focused workflow guidance and artifact defaults"
+            "Legacy EnterpriseAI compatibility profile"
           ],
           "default": "enterpriseai",
           "description": "Workflow profile used for Gofer pipeline guidance",
-          "markdownDescription": "Select the workflow profile Gofer uses during pipeline execution.\n\n- **enterpriseai**: Default EnterpriseAI-first guidance, templates, and artifacts\n- **standard**: Existing baseline behavior when explicitly requested\n\nThis setting is additive and does not remove existing Gofer functionality.",
+          "markdownDescription": "Select the workflow profile Gofer uses during pipeline execution.\n\n- **enterpriseai**: Legacy EnterpriseAI compatibility profile\n- **standard**: Public baseline Gofer workflow\n\nThis setting is additive and does not remove existing Gofer functionality.",
           "order": 28
         },
         "gofer.enterpriseAiUseExternalReferences": {
           "type": "boolean",
           "default": false,
-          "description": "Prefer external EnterpriseAI reference URLs during launch preflight instead of local fallback files",
-          "markdownDescription": "When enabled, Gofer uses external EnterpriseAI reference URLs during launch preflight before falling back to `.specify/references/eai/`.\n\nWhen disabled, Gofer uses local fallback references directly.",
+          "description": "Prefer legacy external EnterpriseAI reference URLs during launch preflight instead of local fallback files",
+          "markdownDescription": "When enabled, Gofer uses legacy external EnterpriseAI reference URLs during launch preflight before falling back to `.specify/references/eai/`.\n\nMost public Gofer users should leave this disabled.",
           "order": 29
         },
         "gofer.codexCommand": {

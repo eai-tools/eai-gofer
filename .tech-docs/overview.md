@@ -1,61 +1,75 @@
 ---
 generated: true
-generated_at: "2026-05-23T17:54:39.953Z"
-source_commit: "047baa06f9bdd86354d43413563a98f893685fb3"
+generated_at: '2026-05-23T17:54:39.953Z'
+source_commit: '047baa06f9bdd86354d43413563a98f893685fb3'
 ---
+
 # Gofer - Technical Overview
 
 ## Executive Summary
 
 | Attribute                | Value                                                                                                                |
 | ------------------------ | -------------------------------------------------------------------------------------------------------------------- |
-| **Service Name**         | Gofer for EnterpriseAI Vertical App Delivery                                                                         |
+| **Service Name**         | Gofer                                                                                                                |
 | **Primary Capability**   | Spec-driven development workflow system with UI-first app delivery and multi-platform AI assistant support           |
 | **Primary Users**        | Software development teams using Claude Code, GitHub Copilot, OpenAI Codex, or Gemini CLI for feature implementation |
 | **Data Sensitivity**     | Low - stores specifications, plans, and code artifacts locally in repository workspace                               |
-| **Current Status**       | Active Development (v3.4.3) - Production-ready with agent plugin marketplace distribution                            |
-| **Last Material Change** | 2026-05-23 - Documentation refresh with updated version numbers and MCP tool count                                   |
+| **Current Status**       | Active Development (v3.4.7) - production-ready with public plugin and VSIX distribution                              |
+| **Last Material Change** | 2026-05-29 - public-launch cleanup, community-health pass, and documentation refresh                                 |
 
 ## Service Identity
 
 **Name:** Gofer  
-**Version:** 3.4.3  
-**Documentation Updated:** 2026-05-22  
-**Publisher:** Enterprise AI Pty Ltd  
+**Version:** 3.4.7  
+**Documentation Updated:** 2026-05-29  
+**Publisher:** EAI Tools  
 **Repository:** [eai-tools/eai-gofer](https://github.com/eai-tools/eai-gofer)
 
-**Description:** Spec-driven development system for AI assistants. Provides 23+ MCP tools that enable Claude Code, GitHub Copilot, OpenAI Codex, and Gemini CLI to autonomously implement features from specifications with UI-first app delivery workflow support and EnterpriseAI platform integration.
+**Description:** Spec-driven development system for AI assistants. Provides the
+Gofer pipeline, repo bootstrap helpers, generated command surfaces, and portable
+installs for Claude Code, GitHub Copilot, OpenAI Codex, Gemini CLI, and VS Code.
 
 ## Purpose
 
-Gofer is a VSCode extension that bridges human specifications with AI implementation through a dual-protocol architecture (LSP + MCP). It provides:
+Gofer is a VSCode extension that bridges human specifications with AI
+implementation through a dual-protocol architecture (LSP + MCP). It provides:
 
-1. **Model Context Protocol (MCP) Tools** - 23+ tools that AI assistants call directly to read specs, execute tasks, validate code, and manage context
-2. **Specification Framework** - Structured `.specify/` directory format for feature specs, plans, and tasks
-3. **Multi-Platform CLI Support** - Commands for Claude Code, GitHub Copilot Chat, OpenAI Codex, and Gemini CLI (24+ commands)
-4. **Autonomous Execution** - Optional orchestrator that drives Claude Code through full implementation cycles with Haiku-based decision making
-5. **Adaptive Context Compaction (ACC)** - 5-stage progressive context management (70%, 80%, 85%, 90%, 99% thresholds)
-6. **Constitution-Based Validation** - Enforces project principles and coding standards through ScopeGuard
-7. **Visual Artifacts** - 10 persona-pack templates (Impact Canvas, C4, ERD, Risk Heatmap) with 7 specialized visual writer agents
-8. **Cost Budget Enforcement** - Tracks token usage and enforces cost limits per pipeline run ($10 default)
-9. **Scope Guard** - Prevents AI from accessing protected files defined in specs (advisory/warning/blocking modes)
-10. **Memory Management** - MemGPT-inspired three-layer memory system with automatic compaction and TF-IDF retrieval
+1. **Model Context Protocol (MCP) Tools** - 23+ tools that AI assistants call
+   directly to read specs, execute tasks, validate code, and manage context
+2. **Specification Framework** - Structured `.specify/` directory format for
+   feature specs, plans, and tasks
+3. **Multi-Platform CLI Support** - Commands for Claude Code, GitHub Copilot
+   Chat, OpenAI Codex, and Gemini CLI (24+ commands)
+4. **Autonomous Execution** - Optional orchestrator that drives Claude Code
+   through full implementation cycles with Haiku-based decision making
+5. **Adaptive Context Compaction (ACC)** - 5-stage progressive context
+   management (70%, 80%, 85%, 90%, 99% thresholds)
+6. **Constitution-Based Validation** - Enforces project principles and coding
+   standards through ScopeGuard
+7. **Visual Artifacts** - 10 persona-pack templates (Impact Canvas, C4, ERD,
+   Risk Heatmap) with 7 specialized visual writer agents
+8. **Cost Budget Enforcement** - Tracks token usage and enforces cost limits per
+   pipeline run ($10 default)
+9. **Scope Guard** - Prevents AI from accessing protected files defined in specs
+   (advisory/warning/blocking modes)
+10. **Memory Management** - MemGPT-inspired three-layer memory system with
+    automatic compaction and TF-IDF retrieval
 
 ## Tech Stack
 
-| Component            | Technology                  | Version        |
-| -------------------- | --------------------------- | -------------- |
-| Language             | TypeScript                  | 5.9.3          |
-| Runtime              | Node.js                     | 20.x+          |
-| Framework            | VSCode Extension API        | 1.93.0+        |
-| Build Tool           | Webpack                     | 5.x            |
-| Testing              | Vitest + Playwright         | 3.2.4 / 1.58.2 |
-| AI SDK               | Anthropic SDK               | 0.67.1         |
-| Language Server      | vscode-languageserver       | 9.0.1          |
-| Dependency Injection | tsyringe                    | 4.10.0         |
-| Schema Validation    | Zod                         | 3.25.76        |
-| File Watching        | chokidar                    | 4.0.3          |
-| Logging              | winston                     | 3.19.0         |
+| Component            | Technology            | Version        |
+| -------------------- | --------------------- | -------------- |
+| Language             | TypeScript            | 5.9.3          |
+| Runtime              | Node.js               | 20.x+          |
+| Framework            | VSCode Extension API  | 1.93.0+        |
+| Build Tool           | Webpack               | 5.x            |
+| Testing              | Vitest + Playwright   | 3.2.4 / 1.58.2 |
+| AI SDK               | Anthropic SDK         | 0.67.1         |
+| Language Server      | vscode-languageserver | 9.0.1          |
+| Dependency Injection | tsyringe              | 4.10.0         |
+| Schema Validation    | Zod                   | 3.25.76        |
+| File Watching        | chokidar              | 4.0.3          |
+| Logging              | winston               | 3.19.0         |
 
 ## Key Entry Points
 
@@ -68,7 +82,8 @@ Gofer is a VSCode extension that bridges human specifications with AI implementa
 - Line 49: `registerServices()` registers all injectable services
 - Registers 75+ commands, 3 views, 2 status bars
 - Initializes LSP client for communication with language server
-- Sets up autonomous orchestration (ACCOrchestrator), memory management, and context health monitoring
+- Sets up autonomous orchestration (ACCOrchestrator), memory management, and
+  context health monitoring
 - **Extension file count:** 247+ TypeScript files (across all modules)
 
 ### Language Server Entry Point
@@ -91,7 +106,8 @@ Gofer is a VSCode extension that bridges human specifications with AI implementa
 - Manages task queue and dependencies
 - IPC status signaling via `.specify/ipc/status.json`
 - WhatsApp notifications via Twilio (optional)
-- **Note:** Extension-based ACC orchestration preferred (see `extension/src/autonomous/ACCOrchestrator.ts`)
+- **Note:** Extension-based ACC orchestration preferred (see
+  `extension/src/autonomous/ACCOrchestrator.ts`)
 
 ## How to Run Locally
 
@@ -149,21 +165,27 @@ npm run gofer:codex-doctor                          # Diagnostic tool
 
 ## Team/Ownership
 
-**Owner:** Enterprise AI Pty Ltd  
-**Contact:** [enterpriseai.com.au](https://enterpriseai.com.au)
+**Owner:** EAI Tools  
+**Primary Contact:**
+[eai-tools/eai-gofer](https://github.com/eai-tools/eai-gofer)
 
 **Key Maintainer Information:**
 
-- Based on CLAUDE.md, the project follows a structured workflow with autonomous bug fixing and self-improvement loops
-- Uses Gofer's own pipeline for development (`/0_business_scenario` → research → specify → plan → tasks → implement → validate)
+- Based on CLAUDE.md, the project follows a structured workflow with autonomous
+  bug fixing and self-improvement loops
+- Uses Gofer's own pipeline for development (`/0_business_scenario` → research →
+  specify → plan → tasks → implement → validate)
 - Specifications stored in `.specify/specs/` directory
 - Constitution principles defined in `.specify/memory/constitution.md`
 
 **Recent Specifications (2026-05):**
 
-- **032-gofer-ui-first-builder** - UI-first app delivery workflow (Completed, v3.2.2)
-- **031-skills-pipeline-augmentation** - Enhanced agent coordination (Completed, v3.2.0)
-- **027-public-builder-runtime** - Public platform builder boundary clarification (Completed, v3.3.1)
+- **032-gofer-ui-first-builder** - UI-first app delivery workflow (Completed,
+  v3.2.2)
+- **031-skills-pipeline-augmentation** - Enhanced agent coordination (Completed,
+  v3.2.0)
+- **027-public-builder-runtime** - Public builder/runtime boundary clarification
+  (Completed, v3.3.1)
 
 ## Project Structure
 
@@ -206,10 +228,10 @@ gofer/
    # From GitHub Releases
    gh release download --repo eai-tools/eai-gofer --pattern "*.vsix"
    code --install-extension gofer-*.vsix
-
-   # Or from Marketplace (when published)
-   code --install-extension EnterpriseAI.gofer
    ```
+
+   Or install from the VS Code Marketplace if the current Gofer listing is
+   available in your environment.
 
 2. **Initialize Repository**
    - Open Command Palette: `Cmd/Ctrl+Shift+P`
@@ -219,7 +241,8 @@ gofer/
 3. **Configure API Keys**
    - Set `gofer.anthropicApiKey` in VSCode settings
    - Optional: `gofer.googleApiKey`, `gofer.openaiApiKey` for LLM Council
-   - Admin keys for billing data: `gofer.anthropicAdminApiKey`, `gofer.openaiAdminApiKey`
+   - Admin keys for billing data: `gofer.anthropicAdminApiKey`,
+     `gofer.openaiAdminApiKey`
 
 4. **Create Specification**
    - Create `.specify/specs/my-feature/spec.md`
@@ -241,20 +264,25 @@ gofer/
 - **GitHub Copilot Chat** - Core features + 2026+ enhancements
 - **OpenAI Codex CLI** - Full feature support via skill system
 - **Gemini CLI** - Command files with namespace support
-- **Auto-detection** - `gofer.defaultCLI` setting (`auto`, `claude`, `copilot`, `codex`, `gemini`)
+- **Auto-detection** - `gofer.defaultCLI` setting (`auto`, `claude`, `copilot`,
+  `codex`, `gemini`)
 
 ### CLI Innovations (v3.0+)
 
-- **Source-of-Truth Generator** - Single canonical `.specify/commands/<stage>.md` emits to 4 CLI surfaces
-- **Visual Artifacts** - 10 persona-pack templates (Impact Canvas, C4, ERD, Heatmaps)
+- **Source-of-Truth Generator** - Single canonical
+  `.specify/commands/<stage>.md` emits to 4 CLI surfaces
+- **Visual Artifacts** - 10 persona-pack templates (Impact Canvas, C4, ERD,
+  Heatmaps)
 - **7 Visual Writer Agents** - Specialized agents for each diagram type
 - **Namespace Aliases** - `/gofer:*` prefix for all commands
 - **Mermaid Export** - `npm run gofer:mermaid-export` (optional)
-- **24+ Pipeline Commands** - Numbered stages + helper commands + control commands
+- **24+ Pipeline Commands** - Numbered stages + helper commands + control
+  commands
 
 ### Adaptive Context Compaction (ACC) v3.2+
 
 5-stage progressive context management:
+
 1. **70% utilization** - Delegation advisory
 2. **80%** - Observation masking (5-turn threshold)
 3. **85%** - Fast pruning (budget cap in truncate mode)
@@ -265,32 +293,49 @@ gofer/
 
 - **Branch-Aware Specs** - Detects Git branch and shows relevant specs
 - **Auto-Updates** - Checks for extension updates automatically
-- **Progress Tracking** - Real-time status in Gofer sidebar with Harvey ball icons (◔ ◑ ◕ ●)
+- **Progress Tracking** - Real-time status in Gofer sidebar with Harvey ball
+  icons (◔ ◑ ◕ ●)
 - **Task Dependencies** - Executes tasks in dependency order via graphlib
-- **Context Health** - Monitors AI context window usage (status bar with color-coded indicators)
-- **Memory Management** - TF-IDF keyword retrieval, continuous compaction, JSONL-based storage
-- **Scope Guard** - Prevents AI from accessing protected files (advisory/warning/blocking modes)
-- **Cost Budget** - Tracks and enforces per-run cost limits ($10 default, configurable)
+- **Context Health** - Monitors AI context window usage (status bar with
+  color-coded indicators)
+- **Memory Management** - TF-IDF keyword retrieval, continuous compaction,
+  JSONL-based storage
+- **Scope Guard** - Prevents AI from accessing protected files
+  (advisory/warning/blocking modes)
+- **Cost Budget** - Tracks and enforces per-run cost limits ($10 default,
+  configurable)
 - **GitHub Codespaces** - Automatic installation in Codespaces
-- **Auto-Context-Continuity (ACC)** - Automatic session save/resume at 65% context threshold
-- **Slop Reduction** - Auto-removes console.log, debugger, @ts-ignore on save (opt-in)
-- **Tool Audit Logging** - All file access logged to `.specify/logs/tool-audit.jsonl`
-- **Research Chunking** - On-demand loading with memory-first strategy (30% coverage threshold)
+- **Auto-Context-Continuity (ACC)** - Automatic session save/resume at 65%
+  context threshold
+- **Slop Reduction** - Auto-removes console.log, debugger, @ts-ignore on save
+  (opt-in)
+- **Tool Audit Logging** - All file access logged to
+  `.specify/logs/tool-audit.jsonl`
+- **Research Chunking** - On-demand loading with memory-first strategy (30%
+  coverage threshold)
 
 ### Recent Additions (v3.0-3.4)
 
 - **Memory Panel Filter** - Toggle to hide system-generated memories
-- **Cross-Platform Command Parity** - All 24+ Gofer commands on Claude, Copilot, Codex, Gemini
+- **Cross-Platform Command Parity** - All 24+ Gofer commands on Claude, Copilot,
+  Codex, Gemini
 - **Parallel Validation** - 6 validation agents run concurrently
 - **Codex Budget Doctor** - `npm run gofer:codex-doctor` diagnostic tool
-- **Plugin Manifests** - `.claude-plugin/`, `.gemini/`, `codex-config.toml` support
-- **AI Usage Panel** - Real-time token usage and cost tracking via provider billing APIs
-- **Resource Diagnostics** - Lightweight performance snapshots (5min intervals, opt-in)
-- **Context REPL** - MCP tools for progressive context management (peek/grep/fold/expand/undo)
+- **Plugin Manifests** - `.claude-plugin/`, `.gemini/`, `codex-config.toml`
+  support
+- **AI Usage Panel** - Real-time token usage and cost tracking via provider
+  billing APIs
+- **Resource Diagnostics** - Lightweight performance snapshots (5min intervals,
+  opt-in)
+- **Context REPL** - MCP tools for progressive context management
+  (peek/grep/fold/expand/undo)
 - **Skills Pipeline Augmentation** - Enhanced agent coordination (v3.2)
-- **UI-First App Delivery** - Preview-approval-service-fit workflow for vertical apps (v3.2.2)
-- **EAI Block Catalog Requirement** - UI generation enforced via block catalog (v3.3.1)
-- **Agent Plugin Packaging** - Automated marketplace distribution for Claude Code, Codex, Copilot CLI (v3.4.0)
+- **UI-First App Delivery** - Preview-approval-service-fit workflow for vertical
+  apps (v3.2.2)
+- **EAI Block Catalog Requirement** - UI generation enforced via block catalog
+  (v3.3.1)
+- **Agent Plugin Packaging** - Automated marketplace distribution for Claude
+  Code, Codex, Copilot CLI (v3.4.0)
 
 ## Data Storage
 
@@ -299,12 +344,17 @@ All data is stored in the `.specify/` directory:
 - **Specs:** `.specify/specs/{spec-id}/spec.md` (Markdown with YAML frontmatter)
 - **Tasks:** `.specify/specs/{spec-id}/tasks.md` (Markdown checklist format)
 - **Memory:** `.specify/memory/memories.jsonl` (Append-only JSONL) - DEPRECATED
-- **Memory (Layered):** `.specify/memory/{core,recall,archival}/*.jsonl` (MemGPT-inspired, opt-in)
-- **Enriched Context:** `.specify/memory/enriched-context.json` (60s freshness, task context)
+- **Memory (Layered):** `.specify/memory/{core,recall,archival}/*.jsonl`
+  (MemGPT-inspired, opt-in)
+- **Enriched Context:** `.specify/memory/enriched-context.json` (60s freshness,
+  task context)
 - **Context Health:** `.specify/memory/context-health-state.json` (30s TTL)
-- **Observation Cache:** `.specify/memory/observation-cache/index.json` (UUID-indexed observations)
-- **Knowledge Graph:** `.specify/memory/knowledge-graph.json` (Entity relationships)
-- **Logs:** `.specify/logs/` (council-usage.jsonl, tool-audit.jsonl, slop-reduction.jsonl, gofer-run-ledger.jsonl)
+- **Observation Cache:** `.specify/memory/observation-cache/index.json`
+  (UUID-indexed observations)
+- **Knowledge Graph:** `.specify/memory/knowledge-graph.json` (Entity
+  relationships)
+- **Logs:** `.specify/logs/` (council-usage.jsonl, tool-audit.jsonl,
+  slop-reduction.jsonl, gofer-run-ledger.jsonl)
 - **State:** `.specify/current-stage.json`, `.specify/ipc/status.json`
 
 No database required - all data is file-based for Git-friendly version control.
@@ -330,7 +380,8 @@ No database required - all data is file-based for Git-friendly version control.
 - **GitHub API** - Optional auto-update checking
 - **GitHub Pages** - Documentation hosting for Docusaurus site
 
-See [./dependencies.md](./dependencies.md) for the full upstream and downstream dependency map.
+See [./dependencies.md](./dependencies.md) for the full upstream and downstream
+dependency map.
 
 ## Documentation Surfaces
 
@@ -358,4 +409,5 @@ This repository maintains multiple documentation surfaces:
 - Nightly-managed `.tech-docs/` content is present for this repository
 - Source commit: `0344d6df21fba9738d8bd9f6c26d7602c4e0775e`
 - Additional repo-local docs surfaces detected: 1 (docs-site/)
-- Recent focus: Agent plugin marketplace distribution, EAI Gofer release alignment, cross-platform command parity
+- Recent focus: agent plugin marketplace distribution, release alignment, and
+  cross-platform command parity

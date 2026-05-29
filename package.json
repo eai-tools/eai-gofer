@@ -51,15 +51,15 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "0.32.1",
-    "chokidar": "4.0.3",
-    "dotenv": "16.6.1",
+    "@anthropic-ai/sdk": "0.100.1",
+    "chokidar": "5.0.0",
+    "dotenv": "17.4.2",
     "gray-matter": "4.0.3",
     "reflect-metadata": "0.2.2",
     "tsyringe": "4.10.0",
     "winston": "3.19.0",
-    "ws": "8.19.0",
-    "zod": "3.25.76"
+    "ws": "8.21.0",
+    "zod": "4.4.3"
   },
   "devDependencies": {
     "@eslint/js": "9.39.4",

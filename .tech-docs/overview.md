@@ -60,7 +60,7 @@ implementation through a dual-protocol architecture (LSP + MCP). It provides:
 | Component            | Technology            | Version        |
 | -------------------- | --------------------- | -------------- |
 | Language             | TypeScript            | 5.9.3          |
-| Runtime              | Node.js               | 20.x+          |
+| Runtime              | Node.js               | 24.x           |
 | Framework            | VSCode Extension API  | 1.93.0+        |
 | Build Tool           | Webpack               | 5.x            |
 | Testing              | Vitest + Playwright   | 3.2.4 / 1.58.2 |

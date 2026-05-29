@@ -22,9 +22,6 @@ function buildButtons(release) {
   if (assets.claude?.marketplace_url) {
     buttons.push({label: 'Open Claude Marketplace', href: assets.claude.marketplace_url});
   }
-  if (assets.claude?.bundle_url) {
-    buttons.push({label: 'Open Public Plugin Bundle', href: assets.claude.bundle_url});
-  }
   if (assets.codex?.manifest_url) {
     buttons.push({label: 'Open Codex Manifest', href: assets.codex.manifest_url});
   }

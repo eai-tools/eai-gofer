@@ -1,294 +1,204 @@
-# Enterprise AI Gofer
+# Gofer
 
-Gofer is a spec-driven workflow for repositories. It helps teams move work from
-an initial business scenario through a core pipeline of research, specification,
-planning, tasks, implementation, and unified validation in `/6_gofer_validate`,
-while keeping the working artifacts in `.specify/`.
+Gofer is a spec-driven delivery workflow for repositories. It gives teams one
+shared pipeline from business scenario through validation, keeps the working
+artifacts in `.specify/`, and ships across VS Code, Claude Code, Codex, GitHub
+Copilot, and Gemini.
 
-It combines a VS Code extension, generated CLI command surfaces, and repo-local
-artifacts so the end-to-end flow stays visible and easier to review across
-business, delivery, and engineering conversations.
+Gofer is designed to be easy to adopt in an existing repo:
 
-Gofer supports Claude Code, GitHub Copilot, Codex, and Gemini command surfaces.
-Gofer defaults to an EnterpriseAI-first workflow profile while preserving the
-standard workflow as an explicit opt-out. Set `gofer.workflowProfile` to
-`standard` only when you explicitly want the baseline workflow.
-
-## EnterpriseAI Public Platform Boundary
-
-When the EnterpriseAI workflow profile is active, Gofer must distinguish public
-builder knowledge from private platform implementation detail. Public artifacts
-can reference EAI CLI commands, PublicAPI behavior, template conventions,
-support documentation, and product-safe statuses such as `available`,
-`operator_required`, `paid_upgrade_required`, `rate_limited`, `blocked`, and
-`unsupported`. They must not describe private service topology, secret
-locations, direct downstream credentials, or bypass paths around plan and AuthZ
-controls.
-
-Use public checks first:
-
-```bash
-eai whoami
-eai doctor --check-updates
-eai workflow readiness <workflow-key>
-eai workflow status <workflow-key>
-eai workflow request <workflow-key> --reason "Describe the app journey"
-eai provision entra --rotate-secret
-```
-
-If the public API reports a missing capability, Gofer should capture whether it
-is available now, purchasable, operator-assisted, or unavailable without new
-platform work, then plan through the public contract rather than asking builders
-to depend on private internals.
+- one core `0-6` delivery pipeline
+- repo-owned artifacts and templates
+- install paths for VS Code and AI coding CLIs
+- generated command surfaces that stay aligned across hosts
 
 ## Quick Start
 
-1. Install or open the Gofer VS Code extension.
-2. Run **Gofer: Initialize Repository** from the Command Palette.
-3. Start with `/0_business_scenario ...` in slash-command CLIs or
-   `#0_business_scenario ...` in Copilot Chat.
-4. Continue through the core pipeline:
-   `business scenario -> research -> specify -> plan -> tasks -> implement -> validate`.
-   `/6_gofer_validate` is the terminal quality gate and includes the final
-   engineering review loop.
+1. Install the VS Code extension or add the public plugin marketplace for your
+   preferred CLI.
+2. Initialize the repository with **Gofer: Initialize Repository** in VS Code,
+   or run the repo bootstrap helper from a CLI host.
+3. Start with `/0_business_scenario` and move through the core pipeline.
 
-## Installation Options
+## Core Pipeline
 
-Gofer ships in two complementary forms:
+| Stage             | Command                | Main output                                    |
+| ----------------- | ---------------------- | ---------------------------------------------- |
+| Business scenario | `/0_business_scenario` | Full pipeline kickoff                          |
+| Research          | `/1_gofer_research`    | `research.md`                                  |
+| Specify           | `/2_gofer_specify`     | `spec.md`                                      |
+| Plan              | `/3_gofer_plan`        | `plan.md`, `data-model.md`, `contracts/`       |
+| Tasks             | `/4_gofer_tasks`       | `tasks.md`, `traceability.md`, `issues.md`     |
+| Implement         | `/5_gofer_implement`   | Code and documentation changes                 |
+| Validate          | `/6_gofer_validate`    | Validation artifacts and final review evidence |
 
-- **VS Code extension** — installs from the VS Code Marketplace and provides the
-  UI, status views, updater, packaged resources, and language-server features.
-- **Public agent bundle** — installs into Claude Code, Codex, or GitHub Copilot
-  CLI, and also carries the repo-local `.gemini/` surface for Gemini CLI so the
-  Gofer workflow can run outside the VS Code UI.
+`/6_gofer_validate` is the terminal quality gate. The previous standalone
+engineering-review stage is now folded into validation.
 
-### VS Code Marketplace
+Optional helpers stay outside the core 0-6 flow:
 
-Install **Gofer for EnterpriseAI Vertical App Delivery** from the VS Code
-Marketplace, or install the release VSIX from GitHub Releases.
+- `/0a_problem_validation`
+- `/7_gofer_save`
+- `/8_gofer_resume`
+- `/9_gofer_tests`
+- `/7a_stakeholder_comms`
+- `/gofer:check-workspace`
+- `/gofer:bootstrap-workspace`
 
-Release automation publishes the VSIX and agent plugin zip to the public GitHub
-Pages release host at `https://eai-tools.github.io/eai-gofer/releases/` every
-time and to the VS Code Marketplace when the release workflow has `VSCE_PAT`
-configured. Releases from `v3.4.0` onward are kept available there for
-unauthenticated downloads.
+## Install
 
-Stable public artifact URLs:
+### VS Code
+
+Recommended: install from the VS Code Marketplace so users receive normal
+Marketplace updates. Manual `.vsix` installs remain supported, but VS Code does
+not auto-update VSIX installs by default.
+
+- Marketplace docs:
+  [Use extensions in Visual Studio Code](https://code.visualstudio.com/docs/getstarted/extensions)
+- Publishing/update behavior:
+  [Publishing Extensions](https://code.visualstudio.com/api/working-with-extensions/publishing-extension)
+- VSIX update note:
+  [Extension Marketplace](https://code.visualstudio.com/docs/editor/extension-marketplace?azure-portal=true)
+
+Public release assets:
 
 - Latest VSIX:
   `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-latest.vsix`
-- Latest agent bundle zip:
-  `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-latest.zip`
-- Shared public bundle directory:
-  `https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer`
-- Claude marketplace JSON:
-  `https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/claude-marketplace.json`
-- Codex plugin manifest:
-  `https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/codex-plugin.json`
-- Copilot marketplace JSON:
-  `https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/copilot-marketplace.json`
-- Gemini extension manifest:
-  `https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/gemini-extension.json`
+- Versioned releases: `https://eai-tools.github.io/eai-gofer/releases/`
 
-Public GitHub repo source for CLI installs:
+### Claude Code
 
-- `https://github.com/eai-tools/eai-gofer`
-
-### Agent Plugin Distribution Modes
-
-| Surface            | Marketplace / published mode                                                                                                                                                                         | Local release-test mode                                                                                |
-| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| Claude Code        | `claude plugin marketplace add https://github.com/eai-tools/eai-gofer --scope user --sparse .claude-plugin --sparse plugins/eai-gofer` then `claude plugin install eai-gofer@eai-gofer --scope user` | Unzip to `~/plugins/eai-gofer`, then `claude plugin marketplace add ~/plugins/eai-gofer --scope user`  |
-| Codex              | `codex plugin marketplace add https://github.com/eai-tools/eai-gofer --sparse .agents/plugins --sparse plugins/eai-gofer` then `codex plugin add eai-gofer@eai-gofer`                                | Unzip to `~/plugins/eai-gofer`, then `codex plugin marketplace add ~/plugins/eai-gofer`                |
-| GitHub Copilot CLI | `copilot plugin marketplace add https://github.com/eai-tools/eai-gofer` then `copilot plugin install eai-gofer@eai-gofer`                                                                            | `copilot plugin marketplace add ~/plugins/eai-gofer` then `copilot plugin install eai-gofer@eai-gofer` |
-| Gemini CLI         | `gemini extensions install https://github.com/eai-tools/eai-gofer`                                                                                                                                   | `gemini extensions install ~/plugins/eai-gofer`                                                        |
-
-### Claude Code Plugin
-
-Register the public Gofer plugin marketplace from the public GitHub repository:
+Recommended install path:
 
 ```bash
-claude plugin marketplace add https://github.com/eai-tools/eai-gofer --scope user --sparse .claude-plugin --sparse plugins/eai-gofer
+claude plugin marketplace add eai-tools/eai-gofer --scope user --sparse .claude-plugin --sparse plugins/eai-gofer
 claude plugin install eai-gofer@eai-gofer --scope user
 ```
 
-For local release testing or explicit version pinning, use the stable folder
-flow. Replace `3.4.0` with any public release version from `3.4.0` onward:
+References:
 
-```bash
-curl -fsSL https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-latest.zip \
-  -o /tmp/eai-gofer-agent-plugin-latest.zip
+- [Discover and install plugins](https://code.claude.com/docs/en/discover-plugins)
+- [Create and distribute a plugin marketplace](https://code.claude.com/docs/en/plugin-marketplaces)
+- [Plugins reference](https://code.claude.com/docs/en/plugins-reference)
 
-rm -rf ~/plugins/eai-gofer
-unzip /tmp/eai-gofer-agent-plugin-latest.zip -d ~/plugins
+### Codex
 
-claude plugin marketplace add ~/plugins/eai-gofer --scope user
-claude plugin install eai-gofer@eai-gofer --scope user
-```
-
-The local marketplace source is the unzipped folder, not the release zip.
-
-### Codex Plugin
-
-For Codex plugin installs, use the public GitHub repository as the marketplace
-source:
+Recommended install path:
 
 ```bash
 codex plugin marketplace add https://github.com/eai-tools/eai-gofer --sparse .agents/plugins --sparse plugins/eai-gofer
 codex plugin add eai-gofer@eai-gofer
 ```
 
-For downloaded installs, keep the stable folder path:
+### GitHub Copilot CLI
 
-```text
-~/plugins/eai-gofer/
-```
-
-Use the downloaded folder itself as the marketplace root:
-
-```bash
-codex plugin marketplace add ~/plugins/eai-gofer
-codex plugin add eai-gofer@eai-gofer
-```
-
-The Codex plugin keeps the plain slash-command stages as the primary user
-surface. The plugin skill registry only exposes the umbrella `eai-gofer` skill
-so Codex does not show both `/0_business_scenario` and
-`eai-gofer:0_business_scenario` for every stage.
-
-### GitHub Copilot CLI Plugin
-
-Install through the public GitHub repository marketplace:
+Recommended install path:
 
 ```bash
 copilot plugin marketplace add https://github.com/eai-tools/eai-gofer
 copilot plugin install eai-gofer@eai-gofer
 ```
 
-For local release testing, register the same unzipped folder as a local
-marketplace, then install from that marketplace:
+References:
 
-```bash
-copilot plugin marketplace add ~/plugins/eai-gofer
-copilot plugin install eai-gofer@eai-gofer
-```
+- [Finding and installing Copilot CLI plugins](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/plugins-finding-installing)
+- [Copilot CLI plugin marketplace](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/plugins-marketplace)
 
 ### Gemini CLI
 
-Gemini can install the Gofer extension directly from the public GitHub
-repository:
+Recommended install path:
 
 ```bash
-gemini extensions install https://github.com/eai-tools/eai-gofer
+gemini extensions install https://github.com/eai-tools/eai-gofer --auto-update
 ```
 
-For a downloaded bundle install, unzip the public agent bundle and point Gemini
-at the extracted folder:
+Reference:
+
+- [Gemini CLI extensions reference](https://github.com/google-gemini/gemini-cli/blob/main/docs/extensions/reference.md)
+
+### Downloadable Bundle
+
+For offline testing or pinned installs, use the public agent bundle zip:
 
 ```bash
 curl -fsSL https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-latest.zip \
   -o /tmp/eai-gofer-agent-plugin-latest.zip
-
-rm -rf ~/plugins/eai-gofer
-unzip /tmp/eai-gofer-agent-plugin-latest.zip -d ~/plugins
-
-gemini extensions install ~/plugins/eai-gofer
 ```
 
-### Release Asset Update Flow
+The public release feed is:
 
-For every new Gofer release, use the canonical release script. It bumps
-versions, regenerates command surfaces, packages the VSIX, packages the agent
-plugin zip, updates the public release host, runs validation, and publishes the
-release:
-
-```bash
-./release.sh patch "Fix validation findings"
+```text
+https://eai-tools.github.io/eai-gofer/releases.json
 ```
-
-`release-auto.sh` remains as a compatibility wrapper and forwards to
-`release.sh`.
-
-The published GitHub Release must include:
-
-- `eai-gofer-<version>.vsix`
-- `eai-gofer-agent-plugin-<version>.zip`
-- `gofer-v<version>.tar.gz`
-
-## Pipeline Stages
-
-| Stage             | Command                | Main output                                |
-| ----------------- | ---------------------- | ------------------------------------------ |
-| Business scenario | `/0_business_scenario` | Full pipeline kickoff                      |
-| Research          | `/1_gofer_research`    | `research.md`                              |
-| Specify           | `/2_gofer_specify`     | `spec.md`                                  |
-| Plan              | `/3_gofer_plan`        | `plan.md`, `data-model.md`, contracts      |
-| Tasks             | `/4_gofer_tasks`       | `tasks.md`, `traceability.md`, `issues.md` |
-| Implement         | `/5_gofer_implement`   | Code and doc changes                       |
-| Validate          | `/6_gofer_validate`    | Validation artifacts                       |
-
-`/6_gofer_validate` is the final stage of the core pipeline. It absorbs the
-former standalone engineering-review gate and produces the terminal validation
-artifacts for the feature.
-
-Optional helpers remain available outside the core 0-6 pipeline:
-
-- `/0a_problem_validation` for deeper problem framing before research
-- `/7_gofer_save` and `/8_gofer_resume` for continuity
-- `/9_gofer_tests` for test generation support
-- `/7a_stakeholder_comms` for post-validation communications
-- `/gofer:check-workspace` and `/gofer:bootstrap-workspace` for repo bootstrap
-
-## Assistant Surfaces
-
-| Assistant      | Generated surface                                                | Command style                             |
-| -------------- | ---------------------------------------------------------------- | ----------------------------------------- |
-| Claude Code    | `.claude/commands/`                                              | `/1_gofer_research ...`                   |
-| GitHub Copilot | `.github/prompts/`                                               | `#1_gofer_research ...`                   |
-| OpenAI Codex   | `.agents/skills/` (legacy `.system/skills/` mirror also emitted) | Ask Codex to use the relevant Gofer skill |
-| Gemini CLI     | `.gemini/commands/gofer/`                                        | `/gofer:1_gofer_research ...`             |
-
-The public agent bundle packages the same command set into `commands/`,
-`agents/`, `skills/`, and `.gemini/` so Claude Code, Gemini CLI, Codex, and
-Copilot CLI can discover Gofer from a public bundle or local install folder.
 
 ## Repository Layout
 
-| Path                 | Purpose                                           |
-| -------------------- | ------------------------------------------------- |
-| `extension/`         | VS Code extension package and packaged resources  |
-| `language-server/`   | Language server and MCP-facing support            |
-| `src/`               | Node-based orchestration and generation utilities |
-| `docs/`              | User and developer documentation                  |
-| `.specify/commands/` | Canonical Gofer command source                    |
-| `.specify/specs/`    | Feature artifacts and generated deliverables      |
-
-## Configuration
-
-```json
-{
-  "gofer.workflowProfile": "enterpriseai",
-  "gofer.autoInitialize": false,
-  "gofer.preferredAI": "ask"
-}
-```
+| Path                  | Purpose                                       |
+| --------------------- | --------------------------------------------- |
+| `extension/`          | VS Code extension package                     |
+| `language-server/`    | Language server and MCP-facing support        |
+| `src/`                | Node-based orchestration and utilities        |
+| `.specify/commands/`  | Canonical command source                      |
+| `.specify/templates/` | Repo bootstrap templates and helpers          |
+| `.specify/specs/`     | Local working artifacts created per feature   |
+| `plugins/eai-gofer/`  | Portable plugin bundle for CLI hosts          |
+| `.tech-docs/`         | Public documentation source for the docs site |
 
 ## Development
 
 ```bash
 npm install
 cd extension && npm run compile
-npm test
+cd ..
+npm run build
 npm run lint
 npm run typecheck
+npm test
 npm run gofer:generate
-npm run gofer:package-plugin -- --version "$(node -p "require('./extension/package.json').version")" --sync-repo
+npm run gofer:package-plugin -- --sync-repo
 ```
 
-## Configuration and Docs
+## Community
 
-- `extension/README.md` — VS Code extension usage
-- `docs/guides/configuration.md` — manifest-backed settings reference
-- `extension/package.json` — authoritative VS Code command and settings contract
-- `docs/cli-support.md` — CLI setup guidance for Claude, Copilot, Codex, and
-  Gemini
+- Questions and usage help:
+  [GitHub Discussions](https://github.com/eai-tools/eai-gofer/discussions)
+- Bugs and feature requests:
+  [GitHub Issues](https://github.com/eai-tools/eai-gofer/issues)
+- Project wiki: [GitHub Wiki](https://github.com/eai-tools/eai-gofer/wiki)
+- Security guidance: [SECURITY.md](./SECURITY.md)
+- Contribution guidance: [CONTRIBUTING.md](./CONTRIBUTING.md)
+- Support policy: [SUPPORT.md](./SUPPORT.md)
+
+Roadmap-fit issues may also receive an automation-generated draft intake PR so a
+human reviewer can scope the work before implementation starts.
+
+## Related Projects And References
+
+Gofer sits in the same broader ecosystem as specification-driven and
+agent-oriented developer tooling. Useful references:
+
+- [GitHub Spec Kit docs](https://github.github.com/spec-kit/index.html)
+- [github/spec-kit](https://github.com/github/spec-kit)
+- [GitHub repository best practices](https://docs.github.com/en/repositories/creating-and-managing-repositories/best-practices-for-repositories)
+- [GitHub Discussions quickstart](https://docs.github.com/discussions/quickstart)
+- [Setting guidelines for contributors](https://docs.github.com/en/communities/setting-up-your-project-for-healthy-contributions/setting-guidelines-for-repository-contributors?apiVersion=2022-11-28)
+
+## What Helps A Repo Get Forks And Stars
+
+The basics are not optional:
+
+- a permissive open-source license
+- a 5-minute quick start that actually works
+- clear screenshots or demos
+- active issue triage and visible roadmap items
+- contributor docs, security policy, and support routing
+- predictable releases and changelog discipline
+- public install/update paths for every supported host
+
+Gofer now uses the Apache-2.0 license. `Enterprise AI` and `EnterpriseAI` remain
+Enterprise AI Pty Ltd marks; see [TRADEMARKS.md](./TRADEMARKS.md) and the
+current legal page at
+[enterpriseaigroup.com/terms-of-use](https://enterpriseaigroup.com/terms-of-use).
+
+The remaining work before a real public launch is the final legacy-enterprise
+cleanup.

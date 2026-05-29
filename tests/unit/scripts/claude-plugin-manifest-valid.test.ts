@@ -54,7 +54,7 @@ describe('agent plugin manifests', () => {
 
     expect(manifest.name).toBe('eai-gofer');
     expect(manifest.version).toBe(expectedVersion());
-    expect(manifest.author.name).toBe('Enterprise AI Pty Ltd');
+    expect(manifest.author.name).toBe('EAI Tools');
     expect(Array.isArray((manifest as unknown as { commands?: unknown }).commands)).toBe(false);
     expect(manifest.skills).toBe('./.agents/skills/');
     expect(manifest.agents).toBeUndefined();

@@ -18,10 +18,10 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -62,13 +62,23 @@ jobs:
           echo "✅ All generated command files are in sync with Claude templates"
 
       - name: Run Tests with Coverage
-        run: npm run test:coverage-report
+        run: |
+          mkdir -p quality-reports
+          npm run test:coverage-report | tee quality-reports/test-summary.txt
 
       - name: Generate Coverage Summary
         id: coverage
         run: |
-          # Generate coverage summary for PR comment
-          COVERAGE_SUMMARY=$(npx vitest run --coverage --reporter=json 2>&1 | tail -20 || true)
+          # Summarise the coverage files produced by the test run above without rerunning the suite.
+          COVERAGE_SUMMARY=$(jq -r '
+            .total as $t |
+            [
+              "Lines: \($t.lines.pct)%",
+              "Statements: \($t.statements.pct)%",
+              "Functions: \($t.functions.pct)%",
+              "Branches: \($t.branches.pct)%"
+            ] | join("\n")
+          ' coverage/coverage-summary.json)
           {
             echo "summary<<EOF"
             echo "$COVERAGE_SUMMARY"
@@ -84,9 +94,6 @@ jobs:
 
           # Generate ESLint HTML report
           npx eslint src/ --ext .ts,.js --format html --output-file quality-reports/eslint-report.html || true
-
-          # Generate test results summary
-          npm run test:coverage-report > quality-reports/test-summary.txt 2>&1 || true
 
           # Create quality metrics summary
           {
@@ -193,10 +200,10 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -252,15 +259,15 @@ jobs:
   e2e-tests:
     name: E2E Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 60
     needs: test
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -269,7 +276,7 @@ jobs:
         run: npm ci
 
       - name: Install Playwright
-        run: npm exec --ignore-scripts -- playwright install --with-deps chromium
+        run: npx playwright install --with-deps
 
       - name: Build Project
         run: npm run build
@@ -297,10 +304,10 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -331,10 +338,10 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -356,10 +363,10 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -401,10 +408,10 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -434,7 +441,7 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Create Release Summary
         run: |

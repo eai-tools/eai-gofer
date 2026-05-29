@@ -13,7 +13,7 @@ export interface ResourceSnapshotConfig {
 
 // Extension constants
 export const EXTENSION_NAME = 'gofer';
-export const EXTENSION_DISPLAY_NAME = 'Gofer (Enterprise AI)';
+export const EXTENSION_DISPLAY_NAME = 'Gofer';
 // Read version from package.json to keep it in sync
 export const EXTENSION_VERSION = packageJson.version;
 

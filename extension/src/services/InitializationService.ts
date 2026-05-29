@@ -257,7 +257,7 @@ export class InitializationService {
       await migrator.syncMissingResources();
     }
 
-    vscode.window.setStatusBarMessage('$(notebook) Gofer - Enterprise AI ready', 3000);
+    vscode.window.setStatusBarMessage('$(notebook) Gofer ready', 3000);
   }
 
   /**

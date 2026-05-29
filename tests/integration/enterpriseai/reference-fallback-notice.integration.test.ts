@@ -21,7 +21,7 @@ function createFixtureDir(prefix: string): string {
 }
 
 function seedFallbackReferences(workspaceRoot: string): void {
-  const fallbackDir = path.join(workspaceRoot, '.specify', 'references', 'eai');
+  const fallbackDir = path.join(workspaceRoot, '.specify', 'references', 'platform');
   fs.mkdirSync(fallbackDir, { recursive: true });
   fs.writeFileSync(path.join(fallbackDir, 'eai.md'), '# eai cli fallback\n', 'utf8');
   fs.writeFileSync(path.join(fallbackDir, 'vertical-template.md'), '# vertical fallback\n', 'utf8');
@@ -36,7 +36,7 @@ describe('enterpriseai reference fallback notice (root integration)', () => {
     fs.rmSync(fixturesDir, { recursive: true, force: true });
 
     try {
-      const fallbackDir = path.join(fixturesDir, '.specify', 'references', 'eai');
+      const fallbackDir = path.join(fixturesDir, '.specify', 'references', 'platform');
       fs.mkdirSync(fallbackDir, { recursive: true });
       fs.writeFileSync(
         path.join(fallbackDir, `${legacyReferenceName}.md`),
@@ -49,7 +49,7 @@ describe('enterpriseai reference fallback notice (root integration)', () => {
           runId: 'run_legacy_eai_alias',
           referenceTypes: [legacyDocsReferenceName],
           externalReferencesEnabled: false,
-          fallbackPath: '.specify/references/eai/',
+          fallbackPath: '.specify/references/platform/',
         },
         {
           workspaceRoot: fixturesDir,
@@ -60,7 +60,7 @@ describe('enterpriseai reference fallback notice (root integration)', () => {
         {
           type: 'eai',
           source: 'local-fallback',
-          path: `.specify/references/eai/${legacyReferenceName}.md`,
+          path: `.specify/references/platform/${legacyReferenceName}.md`,
         },
       ]);
     } finally {
@@ -92,7 +92,7 @@ describe('enterpriseai reference fallback notice (root integration)', () => {
           runId: 'run_029_0001',
           referenceTypes: ['eai', 'vertical-template', 'deployment-repo'],
           externalReferencesEnabled: true,
-          fallbackPath: '.specify/references/eai/',
+          fallbackPath: '.specify/references/platform/',
         },
         {
           workspaceRoot: fixturesDir,
@@ -128,7 +128,7 @@ describe('enterpriseai reference fallback notice (root integration)', () => {
       expect(consumedPayloads).toHaveLength(1);
       expect(notices).toHaveLength(1);
       expect(notices[0].message).toContain('using local docs');
-      expect(notices[0].message).toContain('.specify/references/eai/');
+      expect(notices[0].message).toContain('.specify/references/platform/');
       expect(eventHandlers.consumerCount()).toBe(0);
     } finally {
       fs.rmSync(fixturesDir, { recursive: true, force: true });

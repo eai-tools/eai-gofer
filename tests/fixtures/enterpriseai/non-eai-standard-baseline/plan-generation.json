@@ -15,7 +15,7 @@
       },
       "deploymentConventions": {
         "included": false,
-        "referencePath": ".specify/references/eai/deployment-repo.md",
+        "referencePath": ".specify/references/platform/deployment-repo.md",
         "conventions": []
       },
       "requiredReferenceIndicators": {
@@ -48,7 +48,7 @@
         },
         "deploymentConventions": {
           "included": false,
-          "referencePath": ".specify/references/eai/deployment-repo.md",
+          "referencePath": ".specify/references/platform/deployment-repo.md",
           "conventions": []
         },
         "requiredReferenceIndicators": {

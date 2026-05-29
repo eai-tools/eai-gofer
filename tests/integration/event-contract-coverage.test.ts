@@ -60,7 +60,7 @@ describe('enterpriseai event contract coverage gate (root integration)', () => {
     fs.rmSync(deploymentFixtureDir, { recursive: true, force: true });
 
     try {
-      const fallbackDir = path.join(fallbackFixtureDir, '.specify', 'references', 'eai');
+      const fallbackDir = path.join(fallbackFixtureDir, '.specify', 'references', 'platform');
       const featureDir = path.join(
         fallbackFixtureDir,
         '.specify',
@@ -156,7 +156,7 @@ describe('enterpriseai event contract coverage gate (root integration)', () => {
           runId: 'run_evt_004',
           referenceTypes: ['eai', 'vertical-template', 'deployment-repo'],
           externalReferencesEnabled: false,
-          fallbackPath: '.specify/references/eai/',
+          fallbackPath: '.specify/references/platform/',
         },
         {
           workspaceRoot: fallbackFixtureDir,
@@ -199,9 +199,9 @@ describe('enterpriseai event contract coverage gate (root integration)', () => {
           workflowProfile: 'enterpriseai',
           specPath: '.specify/specs/029-enterpriseai-student-vertical-builder/spec.md',
           resolvedReferences: {
-            eaiCli: '.specify/references/eai/eai.md',
-            verticalTemplate: '.specify/references/eai/vertical-template.md',
-            deploymentRepo: '.specify/references/eai/deployment-repo.md',
+            eaiCli: '.specify/references/platform/eai.md',
+            verticalTemplate: '.specify/references/platform/vertical-template.md',
+            deploymentRepo: '.specify/references/platform/deployment-repo.md',
           },
           installedEaiCliVersion: '2.7.4',
         },

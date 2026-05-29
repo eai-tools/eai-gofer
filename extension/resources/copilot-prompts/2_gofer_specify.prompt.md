@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: enterpriseai
   canonicalSource: .specify/commands/2_gofer_specify.md
-  canonicalChecksum: 264217cd8ac4a6d48fa81faa7d23f118a9af88a856c9120b2ac6f4d599269603
+  canonicalChecksum: 91586015bf78374cc0a96c207a1c6ac6fefd361f66b7f18277c35355bd6395a9
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -672,9 +672,11 @@ At minimum the map must name:
 1. **Vertical App**: the student-facing or business-facing vertical being
    delivered (maps to the `vertical-template` reference).
 2. **EAI Services**: the EnterpriseAI platform services the vertical consumes
-   (maps to entries in `.specify/references/eai/eai.md`).
+   (maps to the current public platform documentation or explicitly provided
+   project references).
 3. **Deployment Target**: the deployment environment and pipeline that will host
-   the running vertical (maps to `.specify/references/eai/deployment-repo.md`).
+   the running vertical (maps to the configured deployment documentation for the
+   target project).
 
 Each link in the chain must reference the internal API contract that carries the
 integration payload (for example `IAP-001` → `IAP-002` → `IAP-003`) so the plan

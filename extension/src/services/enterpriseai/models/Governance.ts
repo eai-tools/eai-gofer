@@ -88,8 +88,8 @@ export function validateEaiReferenceSource(source: EaiReferenceSource): Validati
     errors.push('referenceType is invalid.');
   }
 
-  if (!source.localFallbackPath.startsWith('.specify/references/eai/')) {
-    errors.push('localFallbackPath must start with .specify/references/eai/.');
+  if (!source.localFallbackPath.startsWith('.specify/references/platform/')) {
+    errors.push('localFallbackPath must start with .specify/references/platform/.');
   }
 
   if (!isEaiReferenceAvailabilityStatus(source.availabilityStatus)) {

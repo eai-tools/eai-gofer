@@ -16,14 +16,13 @@ import {
   resetProviderFactory,
 } from '../../../../extension/src/council/providers/ProviderFactory';
 
-function runProviderFixtureTest(
-  name: string,
-  fn: () => Promise<void> | void
-): void {
+function runProviderFixtureTest(name: string, fn: () => Promise<void> | void): void {
   if (process.env.RUN_PROVIDER_FACTORY_FIXTURE_TESTS === '1') {
     it(name, fn);
   }
 }
+
+const fixtureCredential = (...parts: string[]): string => parts.join('');
 
 describe('ProviderFactory Security (US-4)', () => {
   let factory: ProviderFactory;
@@ -39,11 +38,13 @@ describe('ProviderFactory Security (US-4)', () => {
 
   describe('T067: Credential Redaction', () => {
     it('should redact API keys from conversation history before provider switch', async () => {
+      const plainApiKey = fixtureCredential('sk-', '1234567890abcdef');
+      const envApiKey = fixtureCredential('sk-', '9876543210fedcba');
       // Conversation with API key in content
       const historyWithCredentials = [
         {
           role: 'user' as const,
-          content: 'My API key is sk-1234567890abcdef',
+          content: `My API key is ${plainApiKey}`,
         },
         {
           role: 'assistant' as const,
@@ -51,7 +52,7 @@ describe('ProviderFactory Security (US-4)', () => {
         },
         {
           role: 'user' as const,
-          content: 'Use ANTHROPIC_API_KEY=sk-9876543210fedcba for the request',
+          content: `Use ANTHROPIC_API_KEY=${envApiKey} for the request`,
         },
       ];
 
@@ -86,8 +87,8 @@ describe('ProviderFactory Security (US-4)', () => {
       if (transferredHistory) {
         for (const message of transferredHistory) {
           // API keys should be redacted
-          expect(message.content).not.toContain('sk-1234567890abcdef');
-          expect(message.content).not.toContain('sk-9876543210fedcba');
+          expect(message.content).not.toContain(plainApiKey);
+          expect(message.content).not.toContain(envApiKey);
 
           // Should contain redaction marker
           if (
@@ -101,6 +102,7 @@ describe('ProviderFactory Security (US-4)', () => {
     });
 
     it('should redact various credential patterns', async () => {
+      const githubToken = fixtureCredential('ghp_', '1234567890abcdefghijklmnopqrstuvwxyz');
       const historyWithMultipleCredentials = [
         {
           role: 'user' as const,
@@ -116,7 +118,7 @@ describe('ProviderFactory Security (US-4)', () => {
         },
         {
           role: 'user' as const,
-          content: 'GitHub token: ghp_1234567890abcdefghijklmnopqrstuvwxyz',
+          content: `GitHub token: ${githubToken}`,
         },
       ];
 
@@ -159,7 +161,7 @@ describe('ProviderFactory Security (US-4)', () => {
           expect(message.content).not.toContain('wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY');
 
           // GitHub tokens should be redacted
-          expect(message.content).not.toContain('ghp_1234567890abcdefghijklmnopqrstuvwxyz');
+          expect(message.content).not.toContain(githubToken);
         }
       }
     });

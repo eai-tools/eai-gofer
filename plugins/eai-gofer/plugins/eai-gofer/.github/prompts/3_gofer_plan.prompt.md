@@ -1,6 +1,8 @@
 ---
 name: 3_gofer_plan
-description: Create a detailed technical implementation plan with architecture, data model, and contracts.
+description:
+  Create a detailed technical implementation plan with architecture, data model,
+  and contracts.
 agent: copilot-workspace
 tools:
   - Read
@@ -12,7 +14,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: enterpriseai
   canonicalSource: .specify/commands/3_gofer_plan.md
-  canonicalChecksum: 0d3743b1ec83dba959601c41bcaea90b2ec8c0740bf8fdf815f2cf48bcbd8d43
+  canonicalChecksum: d436b24abe26f4632f3a0fed89cdafb75e5c110860624210f04734ef92ada02a
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -35,14 +37,16 @@ Before doing stage/helper work:
    - Claude: `AGENTS.md`, `CLAUDE.md`, `.claude/settings.json`
    - Codex: `AGENTS.md`
    - Copilot: `.github/copilot-instructions.md`
-   - VS Code extension mirrors Claude/Copilot/Gemini resources itself and should still keep the core scaffold healthy
+   - VS Code extension mirrors Claude/Copilot/Gemini resources itself and should
+     still keep the core scaffold healthy
 4. If the repo already has the workspace checker script, prefer running:
    - `node .specify/scripts/node/gofer-workspace-check.mjs --host copilot --json`
 5. If the workspace is missing or stale, ask exactly:
    - **"This repo is missing or stale for Gofer. Initialize/update it now?"**
-6. If the user says yes, run the Gofer workspace bootstrap helper and then resume this command from the top.
-7. If the user says no, stop and explain that Gofer stage/helper work depends on the repo-owned scaffold.
-
+6. If the user says yes, run the Gofer workspace bootstrap helper and then
+   resume this command from the top.
+7. If the user says no, stop and explain that Gofer stage/helper work depends on
+   the repo-owned scaffold.
 
 # Gofer Plan
 
@@ -95,10 +99,10 @@ If missing, prompt user to run the prerequisite stage.
 6. Spec coverage validation
 7. Output: `plan.md`, `data-model.md`, `contracts/`, `quickstart.md`
 8. EnterpriseAI default output: task-ready references to `context-bundle.md`,
-   `contract-pack.md`, `reuse-scan.md`, `audit-history.md`, and for app
-   delivery `ui-review-log.md`, `ui-approval.md`, and
-   `service-fit-matrix.md`, including public-readiness, block-porting, DAISY
-   decoupling, Storybook, theme override, and package-profile decisions
+   `contract-pack.md`, `reuse-scan.md`, `audit-history.md`, and for app delivery
+   `ui-review-log.md`, `ui-approval.md`, and `service-fit-matrix.md`, including
+   public-readiness, block-porting, DAISY decoupling, Storybook, theme override,
+   and package-profile decisions
 
 ---
 
@@ -132,8 +136,8 @@ Planning dispatches multiple agents — keep main context lightweight.
    directly):
    - Note feature name from FEATURE_DIR
    - Note whether `discovery.md`, `.specify/memory/constitution.md` exist
-   - Note whether `ui-preview-brief.md`, `ui-review-log.md`,
-     `ui-approval.md`, and `service-fit-matrix.md` exist
+   - Note whether `ui-preview-brief.md`, `ui-review-log.md`, `ui-approval.md`,
+     and `service-fit-matrix.md` exist
    - Note external/internal/hybrid profile choice, package lane, coupling
      status, Storybook story IDs, theme override points, custom-block
      exceptions, and public-readiness status when app delivery applies
@@ -594,7 +598,6 @@ Artifacts created:
 Engineering Review: PASSED (cycle [N] of 5)
 ```
 
-
 ---
 
 ## LLM Council Integration (Optional)
@@ -617,14 +620,13 @@ When the workflow profile is `enterpriseai`, `plan.md` MUST capture:
 
 1. **EAI CLI version pin** — record the installed `eai` version as a
    `major.minor` pin (for example `2.0`). The plan stage resolves the local
-   version via `eai --version`, strips the patch component, and writes the
-   pin to the `EnterpriseAI Profile Metadata` block of `plan-template.md` so
-   every downstream task is reproducible. Plans MUST apply
+   version via `eai --version`, strips the patch component, and writes the pin
+   to the `EnterpriseAI Profile Metadata` block of `plan-template.md` so every
+   downstream task is reproducible. Plans MUST apply
    `pin guidance to `major.minor`` and never to a specific patch release.
-2. **Deployment convention** — reference
-   `.specify/references/eai/deployment-repo.md` for the canonical deployment
-   pipeline and note which environment (dev/staging/prod) each deliverable
-   targets.
+2. **Deployment convention** — reference the configured deployment documentation
+   for the target project and note which environment (dev/staging/prod) each
+   deliverable targets.
 3. **Integration map handoff** — restate the Vertical App → EAI Services →
    Deployment Target chain from `spec.md` and bind each link to a task
    identifier in `tasks.md`.
@@ -644,9 +646,9 @@ When the workflow profile is `enterpriseai`, `plan.md` MUST capture:
    the preview loop before plan/tasks are considered complete. The plan MUST:
    - keep the first preview constrained to Vertical Template blocks unless an
      approved extension is recorded
-   - cite `eai blocks describe <id>` evidence for every selected block ID,
-     plus the ResourceAPI/Object Type fields from `eai resources schema` that
-     feed each block
+   - cite `eai blocks describe <id>` evidence for every selected block ID, plus
+     the ResourceAPI/Object Type fields from `eai resources schema` that feed
+     each block
    - record override points for theme tokens, `presentationConfig`, copy,
      data/action bindings, and client extension blocks
    - capture whether client branding/logos are in scope
@@ -659,20 +661,22 @@ When the workflow profile is `enterpriseai`, `plan.md` MUST capture:
    before tasks are treated as complete. The matrix must distinguish:
    - accessible now
    - purchasable but unavailable now
-   - unavailable without new platform work
-   The plan must source this evidence from `eai --describe`, `eai whoami`,
-   `eai tenant select`, `eai resources schema`, `eai verify calls --format
-   json`, `eai workflow readiness <workflow-key>`, `eai workflow status
-   <workflow-key>`, `eai workflow request <workflow-key>`, `eai provision
-   entra --rotate-secret`, or documented equivalent public platform evidence.
-8. **Reuse-before-create decision log** — reference `{FEATURE_DIR}/reuse-scan.md`
-   for every new or extended EnterpriseAI object type, API/event, workflow, or
-   module.
+   - unavailable without new platform work The plan must source this evidence
+     from `eai --describe`, `eai whoami`, `eai tenant select`,
+     `eai resources schema`, `eai verify calls --format json`,
+     `eai workflow readiness <workflow-key>`,
+     `eai workflow status <workflow-key>`,
+     `eai workflow request <workflow-key>`,
+     `eai provision entra --rotate-secret`, or documented equivalent public
+     platform evidence.
+8. **Reuse-before-create decision log** — reference
+   `{FEATURE_DIR}/reuse-scan.md` for every new or extended EnterpriseAI object
+   type, API/event, workflow, or module.
 9. **Audit history seed** — create or update `{FEATURE_DIR}/audit-history.md`
    with stable finding IDs, decision exceptions, owner, expiry, and review
    cadence so validation can track recurring issues.
-10. **Public/private knowledge split** — identify which implementation facts
-    are safe for public docs, Gofer guidance, EAI CLI help, or Vertical Template
+10. **Public/private knowledge split** — identify which implementation facts are
+    safe for public docs, Gofer guidance, EAI CLI help, or Vertical Template
     comments, and which facts are internal-only. Plans must express blocked
     states as public-safe actions (`operator_required`, `upgrade_required`, or
     documented support URL) rather than exposing private service topology.
@@ -715,17 +719,17 @@ Logs to: `.specify/logs/pipeline.jsonl`
 
 ---
 
-
-
 ## Pipeline Continuation
 
 This completes the 3_gofer_plan stage. To continue the Gofer pipeline:
 
 **Next Command:** `#4_gofer_tasks`
 
-The next stage will read the artifacts from this stage and continue the workflow automatically.
+The next stage will read the artifacts from this stage and continue the workflow
+automatically.
 
-**Note:** Copilot Chat supports context preservation. Your conversation history will be maintained as you progress through pipeline stages.
+**Note:** Copilot Chat supports context preservation. Your conversation history
+will be maintained as you progress through pipeline stages.
 
 ## Key Rules
 

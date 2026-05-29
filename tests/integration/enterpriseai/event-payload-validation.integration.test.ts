@@ -32,7 +32,7 @@ function createEventPayloadFixtures(): Record<EventContractId, Record<string, un
     'EVT-004': {
       eventId: 'evt_004',
       runId: 'run_001',
-      fallbackPath: '.specify/references/eai/',
+      fallbackPath: '.specify/references/platform/',
       unavailableExternalReferences: ['eai-docs'],
       userNoticeRequired: true,
     },

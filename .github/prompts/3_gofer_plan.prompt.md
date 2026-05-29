@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: enterpriseai
   canonicalSource: .specify/commands/3_gofer_plan.md
-  canonicalChecksum: 0d3743b1ec83dba959601c41bcaea90b2ec8c0740bf8fdf815f2cf48bcbd8d43
+  canonicalChecksum: d436b24abe26f4632f3a0fed89cdafb75e5c110860624210f04734ef92ada02a
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -621,10 +621,9 @@ When the workflow profile is `enterpriseai`, `plan.md` MUST capture:
    pin to the `EnterpriseAI Profile Metadata` block of `plan-template.md` so
    every downstream task is reproducible. Plans MUST apply
    `pin guidance to `major.minor`` and never to a specific patch release.
-2. **Deployment convention** — reference
-   `.specify/references/eai/deployment-repo.md` for the canonical deployment
-   pipeline and note which environment (dev/staging/prod) each deliverable
-   targets.
+2. **Deployment convention** — reference the configured deployment
+   documentation for the target project and note which environment
+   (dev/staging/prod) each deliverable targets.
 3. **Integration map handoff** — restate the Vertical App → EAI Services →
    Deployment Target chain from `spec.md` and bind each link to a task
    identifier in `tasks.md`.

@@ -62,13 +62,23 @@ jobs:
           echo "✅ All generated command files are in sync with Claude templates"
 
       - name: Run Tests with Coverage
-        run: npm run test:coverage-report
+        run: |
+          mkdir -p quality-reports
+          npm run test:coverage-report | tee quality-reports/test-summary.txt
 
       - name: Generate Coverage Summary
         id: coverage
         run: |
-          # Generate coverage summary for PR comment
-          COVERAGE_SUMMARY=$(npx vitest run --coverage --reporter=json 2>&1 | tail -20 || true)
+          # Summarise the coverage files produced by the test run above without rerunning the suite.
+          COVERAGE_SUMMARY=$(jq -r '
+            .total as $t |
+            [
+              "Lines: \($t.lines.pct)%",
+              "Statements: \($t.statements.pct)%",
+              "Functions: \($t.functions.pct)%",
+              "Branches: \($t.branches.pct)%"
+            ] | join("\n")
+          ' coverage/coverage-summary.json)
           {
             echo "summary<<EOF"
             echo "$COVERAGE_SUMMARY"
@@ -84,9 +94,6 @@ jobs:
 
           # Generate ESLint HTML report
           npx eslint src/ --ext .ts,.js --format html --output-file quality-reports/eslint-report.html || true
-
-          # Generate test results summary
-          npm run test:coverage-report > quality-reports/test-summary.txt 2>&1 || true
 
           # Create quality metrics summary
           {

@@ -1,85 +1,40 @@
 # Pull Request
 
-## Description
+## Summary
 
-<!-- Provide a brief description of the changes in this PR -->
+<!-- Explain the user-facing or maintainer-facing change in plain language. -->
 
-## Related Specification
+## Why
 
-<!-- Link to the specification this PR implements -->
-Specification: `.specify/specs/XXX-feature-name/`
+<!-- What problem does this change solve? Link the issue or discussion when available. -->
 
-## Type of Change
+Closes #
 
-- [ ] 🐛 Bug fix (non-breaking change which fixes an issue)
-- [ ] ✨ New feature (non-breaking change which adds functionality)
-- [ ] 💥 Breaking change (fix or feature that would cause existing functionality to not work as expected)
-- [ ] 📝 Documentation update
-- [ ] 🔧 Configuration change
-- [ ] ♻️ Code refactoring
-- [ ] ✅ Test update
+## Surface Area
 
-## Changes Made
+- [ ] VS Code extension
+- [ ] Claude Code plugin
+- [ ] Codex plugin
+- [ ] GitHub Copilot plugin
+- [ ] Gemini extension
+- [ ] Docs / site only
+- [ ] Release / packaging only
 
-<!-- List the key changes in this PR -->
+## Validation
 
--
--
--
+- [ ] `npm run build`
+- [ ] `npm run lint`
+- [ ] `npm run typecheck`
+- [ ] `npm test`
+- [ ] `npm run gofer:generate` if command surfaces changed
+- [ ] `npm run gofer:package-plugin -- --sync-repo` if plugin packaging changed
 
-## Testing
+## Artifacts
 
-<!-- Describe the testing you've done -->
+- [ ] README updated if install, support, or workflow behavior changed
+- [ ] `.tech-docs/` updated if public docs changed
+- [ ] Screenshots or examples added when UI behavior changed
 
-- [ ] Unit tests added/updated
-- [ ] Integration tests added/updated
-- [ ] E2E tests added/updated
-- [ ] Manual testing completed
-- [ ] All tests passing locally
+## Notes
 
-## Quality Checks
-
-- [ ] Code builds without errors
-- [ ] All tests pass
-- [ ] Linting passes (`npm run lint`)
-- [ ] Type checking passes (`npm run typecheck`)
-- [ ] Code formatting applied (`npm run format`)
-- [ ] Coverage meets minimum threshold (80%)
-
-## Documentation
-
-- [ ] Code comments added/updated
-- [ ] API documentation updated
-- [ ] README updated (if needed)
-- [ ] Specification updated to "completed" status
-
-## Screenshots/Examples
-
-<!-- If applicable, add screenshots or code examples -->
-
-## Breaking Changes
-
-<!-- List any breaking changes and migration steps -->
-
-None / N/A
-
-## Deployment Notes
-
-<!-- Any special deployment considerations -->
-
-None / N/A
-
-## Checklist
-
-- [ ] My code follows the project's style guidelines (see `AGENTS.md`)
-- [ ] I have performed a self-review of my code
-- [ ] I have commented my code, particularly in hard-to-understand areas
-- [ ] I have made corresponding changes to the documentation
-- [ ] My changes generate no new warnings or errors
-- [ ] I have added tests that prove my fix is effective or that my feature works
-- [ ] New and existing unit tests pass locally with my changes
-- [ ] Any dependent changes have been merged and published
-
-## Additional Context
-
-<!-- Add any other context about the PR here -->
+<!-- Anything reviewers should look at closely, migration notes, or follow-up work. -->

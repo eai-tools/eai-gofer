@@ -1,30 +1,17 @@
 {
   "name": "eai-gofer",
   "version": "3.4.7",
-  "description": "Public Gofer core pipeline and helper commands for Claude, Gemini, Codex, Copilot, and VS Code.",
+  "description": "Gofer core pipeline and helper commands for Claude, Gemini, Codex, Copilot, and VS Code.",
   "author": {
-    "name": "Enterprise AI Pty Ltd",
+    "name": "EAI Tools",
     "url": "https://github.com/eai-tools/eai-gofer"
   },
   "homepage": "https://github.com/eai-tools/eai-gofer",
   "repository": "https://github.com/eai-tools/eai-gofer",
-  "license": "SEE LICENSE IN LICENSE",
-  "keywords": [
-    "eai-gofer",
-    "gofer",
-    "claude-code",
-    "codex",
-    "copilot",
-    "gemini",
-    "spec-driven-development"
-  ],
+  "license": "Apache-2.0",
+  "keywords": ["eai-gofer", "gofer", "claude-code", "codex", "copilot", "gemini", "spec-driven-development"],
   "category": "Coding",
-  "tags": [
-    "eai-gofer",
-    "gofer",
-    "agentic-coding",
-    "gemini"
-  ],
+  "tags": ["eai-gofer", "gofer", "agentic-coding", "gemini"],
   "skills": "./plugin-skills/",
   "agents": "./agents/",
   "commands": "./commands/"

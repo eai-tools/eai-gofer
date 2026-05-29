@@ -21,14 +21,19 @@ describe('Workflow profile defaults', () => {
     expect(workflowProfile.enum).toEqual(['standard', 'enterpriseai']);
   });
 
-  it('documents workflowProfile in root and extension readmes', () => {
-    const rootReadme = fs.readFileSync(path.join(process.cwd(), 'README.md'), 'utf8');
+  it('documents workflowProfile in public config docs and keeps extension docs focused on user setup', () => {
+    const configDoc = fs.readFileSync(
+      path.join(process.cwd(), '.tech-docs', 'configuration.md'),
+      'utf8'
+    );
     const extensionReadme = fs.readFileSync(
       path.join(process.cwd(), 'extension', 'README.md'),
       'utf8'
     );
 
-    expect(rootReadme).toContain('"gofer.workflowProfile": "enterpriseai"');
-    expect(extensionReadme).toContain('`gofer.workflowProfile`');
+    expect(configDoc).toContain('`gofer.workflowProfile`');
+    expect(configDoc).toContain('"gofer.workflowProfile": "standard"');
+    expect(extensionReadme).toContain('Gofer VS Code Extension');
+    expect(extensionReadme).toContain('Gofer: Initialize Repository');
   });
 });

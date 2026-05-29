@@ -1,5 +1,5 @@
 /**
- * Verifies the EAI Gofer Claude/Codex/Copilot plugin package.
+ * Verifies the Gofer Claude/Codex/Copilot plugin package.
  */
 import { describe, it, expect } from 'vitest';
 import { execFileSync } from 'node:child_process';
@@ -37,7 +37,7 @@ function walkFiles(root: string): string[] {
   return results;
 }
 
-describe('EAI Gofer agent plugin package', () => {
+describe('Gofer agent plugin package', () => {
   it('packages a zip with Claude, Codex, Copilot, and Gemini install metadata', (): void => {
     const outDir = fs.mkdtempSync(path.join(os.tmpdir(), 'eai-gofer-plugin-'));
     try {

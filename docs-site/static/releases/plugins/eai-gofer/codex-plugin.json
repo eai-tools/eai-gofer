@@ -8,16 +8,8 @@
   },
   "homepage": "https://github.com/eai-tools/eai-gofer",
   "repository": "https://github.com/eai-tools/eai-gofer",
-  "license": "SEE LICENSE IN LICENSE",
-  "keywords": [
-    "eai-gofer",
-    "gofer",
-    "codex",
-    "claude",
-    "copilot",
-    "gemini",
-    "spec-driven-development"
-  ],
+  "license": "Apache-2.0",
+  "keywords": ["eai-gofer", "gofer", "codex", "claude", "copilot", "gemini", "spec-driven-development"],
   "skills": "./plugin-skills/",
   "interface": {
     "displayName": "EAI Gofer",
@@ -25,10 +17,7 @@
     "longDescription": "Run Gofer’s core /0_business_scenario → /6_gofer_validate workflow, with optional bootstrap, save/resume, testing, and communications helpers.",
     "developerName": "EnterpriseAI",
     "category": "Coding",
-    "capabilities": [
-      "Interactive",
-      "Write"
-    ],
+    "capabilities": ["Interactive", "Write"],
     "websiteURL": "https://github.com/eai-tools/eai-gofer",
     "defaultPrompt": [
       "Run Gofer research for this feature",

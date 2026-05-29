@@ -1,8 +1,9 @@
 ---
 generated: true
-generated_at: "2026-05-23T17:54:39.953Z"
-source_commit: "047baa06f9bdd86354d43413563a98f893685fb3"
+generated_at: '2026-05-23T17:54:39.953Z'
+source_commit: '047baa06f9bdd86354d43413563a98f893685fb3'
 ---
+
 # Gofer - Deployment
 
 ## Executive Summary
@@ -11,9 +12,11 @@ Gofer is deployed through three distribution channels:
 
 1. **VS Code Marketplace** - Extension VSIX (primary)
 2. **GitHub Releases** - VSIX + agent plugin ZIP + source tarball
-3. **Agent Plugin Marketplaces** - Claude Code, Copilot CLI, Codex local installations
+3. **Agent Plugin Marketplaces** - Claude Code, Copilot CLI, Codex local
+   installations
 
-All deployments are automated via GitHub Actions CI/CD pipelines with version tagging and semantic versioning.
+All deployments are automated via GitHub Actions CI/CD pipelines with version
+tagging and semantic versioning.
 
 ## Deployment Architecture
 
@@ -23,44 +26,44 @@ flowchart TB
         Dev["Developer"]
         Git["Git Repository<br/>eai-tools/eai-gofer"]
     end
-    
+
     subgraph "CI/CD (GitHub Actions)"
         CI["CI Pipeline<br/>ci.yml"]
         Release["Release Pipeline<br/>release.yml"]
         Pages["Pages Pipeline<br/>pages.yml"]
     end
-    
+
     subgraph "Distribution"
-        VSCodeMarketplace["VS Code Marketplace<br/>EnterpriseAI.gofer"]
+        VSCodeMarketplace["VS Code Marketplace<br/>Gofer"]
         GitHubReleases["GitHub Releases<br/>VSIX + Plugin ZIP"]
         ClaudeMarket["Claude Plugin Marketplace<br/>eai-tools/eai-gofer"]
         CopilotMarket["Copilot Plugin Marketplace"]
         LocalPlugins["Local Plugin Installs<br/>~/plugins/eai-gofer"]
     end
-    
+
     subgraph "Documentation"
         GHPages["GitHub Pages<br/>docs site"]
     end
-    
+
     subgraph "End Users"
         VSCode["VS Code Users"]
         Claude["Claude Code Users"]
         Copilot["Copilot Users"]
         Codex["Codex Users"]
     end
-    
+
     Dev -->|Push/Tag| Git
     Git -->|Trigger| CI
     Git -->|Tag v*| Release
     Git -->|.tech-docs change| Pages
-    
+
     Release -->|Publish| VSCodeMarketplace
     Release -->|Upload Assets| GitHubReleases
     Release -->|Register| ClaudeMarket
     Release -->|Register| CopilotMarket
-    
+
     Pages -->|Deploy| GHPages
-    
+
     VSCodeMarketplace -->|Install| VSCode
     GitHubReleases -->|Download| VSCode
     ClaudeMarket -->|Install| Claude
@@ -83,10 +86,12 @@ flowchart TB
 #### CI Pipeline (`.github/workflows/ci.yml`)
 
 **Triggers:**
+
 - Push to `main`, `develop`, `feature/*`, `hotfix/*`
 - Pull requests to `main`, `develop`
 
 **Jobs:**
+
 1. **Code Quality Gates** (10min timeout)
    - Install dependencies
    - Run linter (`npm run lint`)
@@ -105,17 +110,20 @@ flowchart TB
 #### Release Pipeline (`.github/workflows/release.yml`)
 
 **Triggers:**
+
 - Push tags matching `v*.*.*`
 - Manual workflow dispatch with version input
 
 **Jobs:**
+
 1. **Build and Publish Release** (30min timeout)
    - Checkout repository
    - Install dependencies
    - Run tests
    - Build all components (`npm run build:all`)
    - Generate command surfaces (`npm run gofer:generate`)
-   - Package agent plugin (`npm run gofer:package-plugin -- --version X.Y.Z --sync-repo`)
+   - Package agent plugin
+     (`npm run gofer:package-plugin -- --version X.Y.Z --sync-repo`)
    - Package extension VSIX (`npx vsce package`)
    - Create GitHub Release
    - Upload release assets:
@@ -125,17 +133,20 @@ flowchart TB
    - Publish to VS Code Marketplace (if `VSCE_PAT` configured)
 
 **Required Secrets:**
+
 - `VSCE_PAT` - VS Code Marketplace Personal Access Token (optional)
 - `GITHUB_TOKEN` - Automatically provided by GitHub Actions
 
 #### Pages Pipeline (`.github/workflows/pages.yml`)
 
 **Triggers:**
+
 - Push to `main` with changes to `.tech-docs/**` or `docs-site/**`
 - Manual workflow dispatch
 - Workflow call from release pipeline
 
 **Jobs:**
+
 1. **Deploy GitHub Pages** (15min timeout)
    - Checkout repository
    - Install docs-site dependencies (`cd docs-site && npm ci`)
@@ -144,7 +155,8 @@ flowchart TB
    - Upload artifact
    - Deploy to GitHub Pages
 
-**Published URL:** [enterpriseaigroup.github.io/tech-docs](https://enterpriseaigroup.github.io/tech-docs)
+**Published URL:**
+[eai-tools.github.io/eai-gofer/docs](https://eai-tools.github.io/eai-gofer/docs)
 
 ### GitHub Pages
 
@@ -164,7 +176,8 @@ flowchart TB
 
 ### CI Health Monitoring
 
-- **GitHub Actions Status:** [enterpriseaigroup/tech-docs/actions](https://github.com/enterpriseaigroup/tech-docs/actions)
+- **GitHub Actions Status:**
+  [eai-tools/eai-gofer/actions](https://github.com/eai-tools/eai-gofer/actions)
 - **Coverage Reports:** Artifacts uploaded to GitHub Actions
 - **Test Results:** CTRF JSON reports
 
@@ -173,6 +186,7 @@ flowchart TB
 ### Manual Deployment Steps
 
 1. **Bump Version Numbers**
+
    ```bash
    # Update package.json files
    npm version minor  # or major, patch
@@ -181,16 +195,19 @@ flowchart TB
    ```
 
 2. **Generate Command Surfaces**
+
    ```bash
    npm run gofer:generate
    ```
 
 3. **Package Agent Plugin**
+
    ```bash
    npm run gofer:package-plugin -- --version 3.4.0 --sync-repo
    ```
 
 4. **Test Locally**
+
    ```bash
    npm test
    npm run build:all
@@ -199,6 +216,7 @@ flowchart TB
    ```
 
 5. **Create Git Tag**
+
    ```bash
    git add -A
    git commit -m "chore: bump version to 3.4.0"
@@ -214,6 +232,7 @@ flowchart TB
 ### Automated Deployment (Recommended)
 
 1. **Create and Push Tag**
+
    ```bash
    git tag v3.4.0
    git push origin v3.4.0
@@ -232,23 +251,25 @@ flowchart TB
 
 Each GitHub Release includes:
 
-| Asset | Description | Size |
-| ----- | ----------- | ---- |
-| `eai-gofer-X.Y.Z.vsix` | VS Code extension package | ~10MB |
+| Asset                              | Description                           | Size   |
+| ---------------------------------- | ------------------------------------- | ------ |
+| `eai-gofer-X.Y.Z.vsix`             | VS Code extension package             | ~10MB  |
 | `eai-gofer-agent-plugin-X.Y.Z.zip` | Agent plugin for Claude/Copilot/Codex | ~500KB |
-| `gofer-vX.Y.Z.tar.gz` | Source code tarball | ~2MB |
+| `gofer-vX.Y.Z.tar.gz`              | Source code tarball                   | ~2MB   |
 
 ## Agent Plugin Distribution
 
 ### Claude Code Plugin
 
 **Marketplace Registration:**
+
 ```bash
 claude plugin marketplace add eai-tools/eai-gofer --scope user
 claude plugin install eai-gofer@eai-gofer --scope user
 ```
 
 **Local Installation (for testing):**
+
 ```bash
 # Download release ZIP
 gh release download v3.4.0 \
@@ -268,12 +289,14 @@ claude plugin install eai-gofer@eai-gofer-local --scope user
 ### Copilot CLI Plugin
 
 **Marketplace Registration:**
+
 ```bash
 copilot plugin marketplace add eai-tools/eai-gofer
 copilot plugin install eai-gofer@eai-gofer
 ```
 
 **Local Installation:**
+
 ```bash
 copilot plugin marketplace add ~/plugins/eai-gofer
 copilot plugin install eai-gofer@eai-gofer-local
@@ -282,6 +305,7 @@ copilot plugin install eai-gofer@eai-gofer-local
 ### Codex Plugin
 
 **Local Installation Only:**
+
 - Extract agent plugin ZIP to `~/plugins/eai-gofer/`
 - Add via Codex local marketplace/import
 - Keep path stable for updates
@@ -291,20 +315,25 @@ copilot plugin install eai-gofer@eai-gofer-local
 ### Rollback Extension
 
 1. **Identify Last Known Good Version**
-   - Check GitHub Releases: [enterpriseaigroup/tech-docs/releases](https://github.com/enterpriseaigroup/tech-docs/releases)
+   - Check GitHub Releases:
+     [eai-tools/eai-gofer/releases](https://github.com/eai-tools/eai-gofer/releases)
    - Example: `v3.3.1`
 
 2. **Download Previous VSIX**
+
    ```bash
    gh release download v3.3.1 --repo eai-tools/eai-gofer --pattern "*.vsix"
    ```
 
 3. **Uninstall Current Version**
+
    ```bash
-   code --uninstall-extension EnterpriseAI.gofer
+   code --list-extensions | rg gofer
+   code --uninstall-extension <matching-gofer-extension-id>
    ```
 
 4. **Install Previous Version**
+
    ```bash
    code --install-extension eai-gofer-3.3.1.vsix
    ```
@@ -315,17 +344,19 @@ copilot plugin install eai-gofer@eai-gofer-local
 ### Rollback Agent Plugin
 
 1. **Remove Current Plugin**
+
    ```bash
    claude plugin uninstall eai-gofer@eai-gofer
    ```
 
 2. **Install Previous Version**
+
    ```bash
    # Download previous release
    gh release download v3.3.1 \
      --repo eai-tools/eai-gofer \
      --pattern "eai-gofer-agent-plugin-3.3.1.zip"
-   
+
    # Install previous version
    unzip eai-gofer-agent-plugin-3.3.1.zip -d ~/plugins/eai-gofer-3.3.1
    claude plugin marketplace add ~/plugins/eai-gofer-3.3.1
@@ -365,7 +396,7 @@ copilot plugin install eai-gofer@eai-gofer-local
 
 - **Dependency Scanning:** Renovate bot for dependency updates
 - **npm Audit:** Run during CI
-- **License Compliance:** MIT license, compatible dependencies
+- **License Compliance:** Apache-2.0 license, compatible dependencies
 
 ## Disaster Recovery
 
@@ -379,7 +410,7 @@ copilot plugin install eai-gofer@eai-gofer-local
 
 ```bash
 # Clone repository
-git clone https://github.com/enterpriseaigroup/tech-docs.git
+git clone https://github.com/eai-tools/eai-gofer.git
 cd eai-gofer
 
 # Install dependencies
@@ -426,4 +457,5 @@ cd extension && npx vsce package
 
 - **Branch:** `main` (tagged release)
 - **Auto-Deploy:** Yes (on tag push)
-- **Distribution:** VS Code Marketplace + GitHub Releases + Agent Plugin Marketplaces
+- **Distribution:** VS Code Marketplace + GitHub Releases + Agent Plugin
+  Marketplaces

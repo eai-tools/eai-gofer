@@ -30,7 +30,7 @@ describe('Config - Constants', () => {
     });
 
     it('should have correct display name', () => {
-      expect(EXTENSION_DISPLAY_NAME).toBe('Gofer (Enterprise AI)');
+      expect(EXTENSION_DISPLAY_NAME).toBe('Gofer');
     });
 
     it('should have a valid version string', () => {

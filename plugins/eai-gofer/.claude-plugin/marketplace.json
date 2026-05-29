@@ -1,8 +1,8 @@
 {
   "name": "eai-gofer",
-  "description": "Public EAI Gofer bundle for Claude Code, Gemini CLI, Codex, and Copilot workflows.",
+  "description": "Public Gofer bundle for Claude Code, Gemini CLI, Codex, and Copilot workflows.",
   "owner": {
-    "name": "EnterpriseAI",
+    "name": "EAI Tools",
     "url": "https://github.com/eai-tools/eai-gofer"
   },
   "plugins": [
@@ -12,21 +12,13 @@
       "description": "Gofer core pipeline from /0_business_scenario through /6_gofer_validate, with optional helper commands.",
       "version": "3.4.7",
       "author": {
-        "name": "Enterprise AI Pty Ltd",
+        "name": "EAI Tools",
         "url": "https://github.com/eai-tools/eai-gofer"
       },
       "homepage": "https://github.com/eai-tools/eai-gofer",
       "repository": "https://github.com/eai-tools/eai-gofer",
       "category": "Coding",
-      "tags": [
-        "eai-gofer",
-        "gofer",
-        "claude",
-        "codex",
-        "copilot",
-        "gemini",
-        "spec-driven-development"
-      ]
+      "tags": ["eai-gofer", "gofer", "claude", "codex", "copilot", "gemini", "spec-driven-development"]
     }
   ]
 }

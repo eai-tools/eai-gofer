@@ -363,7 +363,7 @@ export function initializeLogging(context: vscode.ExtensionContext): Logger {
   const logger = Logger.getInstance('Gofer');
 
   // Add output channel for user visibility
-  const outputChannel = new OutputChannelLogger('Gofer - Enterprise AI');
+  const outputChannel = new OutputChannelLogger('Gofer');
   logger.addOutput(outputChannel);
 
   // Add console logging in development

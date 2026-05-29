@@ -199,7 +199,7 @@ describe('Gofer agent plugin package', () => {
     expect(workflow).toContain('eai-gofer-agent-plugin-${{ steps.version.outputs.version }}.zip');
     expect(workflow).toContain('VSCE_PAT');
     expect(workflow).toContain('vsce publish --packagePath');
-    expect(workflow).toContain('softprops/action-gh-release@v2');
+    expect(workflow).toContain('softprops/action-gh-release@v3');
     expect(workflow).toContain(
       'https://github.com/eai-tools/eai-gofer --scope user --sparse .claude-plugin --sparse plugins/eai-gofer'
     );

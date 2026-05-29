@@ -125,7 +125,7 @@ jobs:
 
       - name: Comment PR with Test Results
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('fs');
@@ -165,14 +165,14 @@ jobs:
             });
 
       - name: Upload Coverage Reports
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v6
         with:
           files: ./coverage/lcov.info
           fail_ci_if_error: false
           verbose: true
 
       - name: Upload Coverage HTML Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: coverage-report-${{ github.run_number }}
@@ -180,7 +180,7 @@ jobs:
           retention-days: 30
 
       - name: Upload Quality Reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: quality-reports-${{ github.run_number }}
@@ -247,7 +247,7 @@ jobs:
 
       - name: Upload Test Results
         if: matrix.component == 'orchestrator'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: unit-test-results
           path: |
@@ -288,7 +288,7 @@ jobs:
 
       - name: Upload E2E Test Results
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: e2e-test-results
           path: |
@@ -393,7 +393,7 @@ jobs:
           npx @vscode/vsce package
 
       - name: Upload Extension Package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: vscode-extension
           path: extension/*.vsix
@@ -425,7 +425,7 @@ jobs:
           CI: true
 
       - name: Upload Coverage Reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-report
           path: coverage/
@@ -457,7 +457,7 @@ jobs:
           } > release-summary.md
 
       - name: Upload Release Summary
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-summary
           path: release-summary.md

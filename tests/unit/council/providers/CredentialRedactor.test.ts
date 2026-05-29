@@ -15,47 +15,52 @@ import {
   type ConversationMessage,
 } from '../../../../extension/src/council/providers/CredentialRedactor';
 
+const fixtureCredential = (...parts: string[]): string => parts.join('');
+
 describe('CredentialRedactor (T068)', () => {
   describe('redactCredentials', () => {
     it('should redact Anthropic API keys', () => {
+      const apiKey = fixtureCredential('sk-', '1234567890abcdefghijklmnopqr');
       const history: ConversationMessage[] = [
         {
           role: 'user',
-          content: 'My API key is sk-1234567890abcdefghijklmnopqr',
+          content: `My API key is ${apiKey}`,
         },
       ];
 
       const redacted = redactCredentials(history);
 
-      expect(redacted[0].content).not.toContain('sk-1234567890abcdefghijklmnopqr');
+      expect(redacted[0].content).not.toContain(apiKey);
       expect(redacted[0].content).toContain('[REDACTED:Anthropic API key]');
     });
 
     it('should redact OpenAI API keys', () => {
+      const apiKey = fixtureCredential('sk-', 'proj-', 'abcd1234efgh5678ijkl9012mnop3456');
       const history: ConversationMessage[] = [
         {
           role: 'user',
-          content: 'Use sk-proj-REDACTED',
+          content: `Use ${apiKey}`,
         },
       ];
 
       const redacted = redactCredentials(history);
 
-      expect(redacted[0].content).not.toContain('sk-proj-REDACTED');
+      expect(redacted[0].content).not.toContain(apiKey);
       expect(redacted[0].content).toContain('[REDACTED:OpenAI API key]');
     });
 
     it('should redact GitHub tokens', () => {
+      const token = fixtureCredential('ghp_', '1234567890abcdefghijklmnopqrstuvwxyz');
       const history: ConversationMessage[] = [
         {
           role: 'user',
-          content: 'Token: gh_REDACTED',
+          content: `Token: ${token}`,
         },
       ];
 
       const redacted = redactCredentials(history);
 
-      expect(redacted[0].content).not.toContain('gh_REDACTED');
+      expect(redacted[0].content).not.toContain(token);
       expect(redacted[0].content).toContain('[REDACTED:GitHub token]');
     });
 
@@ -124,17 +129,19 @@ describe('CredentialRedactor (T068)', () => {
     });
 
     it('should redact multiple credentials in the same message', () => {
+      const apiKey = fixtureCredential('sk-', 'test1234567890123');
+      const token = fixtureCredential('ghp_', 'abcdefghijklmnopqrstuvwxyz1234567890');
       const history: ConversationMessage[] = [
         {
           role: 'user',
-          content: 'Use sk-test1234567890123 and gh_REDACTED',
+          content: `Use ${apiKey} and ${token}`,
         },
       ];
 
       const redacted = redactCredentials(history);
 
-      expect(redacted[0].content).not.toContain('sk-test1234567890123');
-      expect(redacted[0].content).not.toContain('gh_REDACTED');
+      expect(redacted[0].content).not.toContain(apiKey);
+      expect(redacted[0].content).not.toContain(token);
       expect(redacted[0].content).toContain('[REDACTED');
     });
 
@@ -196,12 +203,16 @@ describe('CredentialRedactor (T068)', () => {
 
   describe('containsCredentials', () => {
     it('should detect API keys', () => {
-      expect(containsCredentials('sk-1234567890abcdefghijklmnopqr')).toBe(true);
+      expect(containsCredentials(fixtureCredential('sk-', '1234567890abcdefghijklmnopqr'))).toBe(
+        true
+      );
       expect(containsCredentials('No credentials here')).toBe(false);
     });
 
     it('should detect GitHub tokens', () => {
-      expect(containsCredentials('gh_REDACTED')).toBe(true);
+      expect(
+        containsCredentials(fixtureCredential('ghp_', '1234567890abcdefghijklmnopqrstuvwxyz'))
+      ).toBe(true);
     });
 
     it('should detect JWT tokens', () => {

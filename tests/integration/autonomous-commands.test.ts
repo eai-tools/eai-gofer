@@ -331,7 +331,7 @@ status: approved
   });
 
   function createFallbackReferenceFiles(rootPath: string): void {
-    const fallbackDir = path.join(rootPath, '.specify', 'references', 'eai');
+    const fallbackDir = path.join(rootPath, '.specify', 'references', 'platform');
     fs.mkdirSync(fallbackDir, { recursive: true });
     fs.writeFileSync(path.join(fallbackDir, 'eai.md'), '# EAI CLI');
     fs.writeFileSync(path.join(fallbackDir, 'vertical-template.md'), '# Vertical Template');

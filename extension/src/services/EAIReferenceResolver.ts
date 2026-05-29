@@ -69,7 +69,7 @@ export class EAIReferenceResolver {
     const fallbackNotice = userNoticeRequired
       ? {
           runId,
-          fallbackPath: '.specify/references/eai/',
+          fallbackPath: '.specify/references/platform/',
           unavailableExternalReferences,
           userNoticeRequired: true,
         }

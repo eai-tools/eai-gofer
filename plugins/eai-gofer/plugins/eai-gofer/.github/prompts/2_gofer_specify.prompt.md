@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: enterpriseai
   canonicalSource: .specify/commands/2_gofer_specify.md
-  canonicalChecksum: 264217cd8ac4a6d48fa81faa7d23f118a9af88a856c9120b2ac6f4d599269603
+  canonicalChecksum: 91586015bf78374cc0a96c207a1c6ac6fefd361f66b7f18277c35355bd6395a9
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -35,14 +35,16 @@ Before doing stage/helper work:
    - Claude: `AGENTS.md`, `CLAUDE.md`, `.claude/settings.json`
    - Codex: `AGENTS.md`
    - Copilot: `.github/copilot-instructions.md`
-   - VS Code extension mirrors Claude/Copilot/Gemini resources itself and should still keep the core scaffold healthy
+   - VS Code extension mirrors Claude/Copilot/Gemini resources itself and should
+     still keep the core scaffold healthy
 4. If the repo already has the workspace checker script, prefer running:
    - `node .specify/scripts/node/gofer-workspace-check.mjs --host copilot --json`
 5. If the workspace is missing or stale, ask exactly:
    - **"This repo is missing or stale for Gofer. Initialize/update it now?"**
-6. If the user says yes, run the Gofer workspace bootstrap helper and then resume this command from the top.
-7. If the user says no, stop and explain that Gofer stage/helper work depends on the repo-owned scaffold.
-
+6. If the user says yes, run the Gofer workspace bootstrap helper and then
+   resume this command from the top.
+7. If the user says no, stop and explain that Gofer stage/helper work depends on
+   the repo-owned scaffold.
 
 # Gofer Specify
 
@@ -146,10 +148,11 @@ Before starting specification, assess context window health:
 
 ## Step 1.25: Optional Proposal Review Context
 
-`proposal-review.md` is optional supporting context between research and specification.
+`proposal-review.md` is optional supporting context between research and
+specification.
 
-- If `proposal-review.md` is missing: continue using `research.md` as the
-  source of truth.
+- If `proposal-review.md` is missing: continue using `research.md` as the source
+  of truth.
 - If `proposal-review.md` exists: capture any business-scenario guidance,
   architecture direction, selected option, and user overrides it records.
 - If `proposal-review.md` records a clear user-approved direction: treat that as
@@ -364,8 +367,9 @@ After both agents complete:
    - All user stories have acceptance criteria
    - Success criteria are measurable and technology-agnostic
    - Dependencies reference correct codebase components from research
-  - Scenario and architecture choices from proposal-review.md are reflected
-   - Research traceability matrix is complete
+
+- Scenario and architecture choices from proposal-review.md are reflected
+- Research traceability matrix is complete
 
 2. **Check research coverage** — From the validator agent:
    - If MISSING items found: Edit spec.md to add missing coverage
@@ -623,7 +627,6 @@ Sequence Diagrams: {FEATURE_DIR}/sequence-diagrams/
 Selected Option: Option {N} - {Name}
 ```
 
-
 ---
 
 ## Guidelines
@@ -672,9 +675,11 @@ At minimum the map must name:
 1. **Vertical App**: the student-facing or business-facing vertical being
    delivered (maps to the `vertical-template` reference).
 2. **EAI Services**: the EnterpriseAI platform services the vertical consumes
-   (maps to entries in `.specify/references/eai/eai.md`).
+   (maps to the current public platform documentation or explicitly provided
+   project references).
 3. **Deployment Target**: the deployment environment and pipeline that will host
-   the running vertical (maps to `.specify/references/eai/deployment-repo.md`).
+   the running vertical (maps to the configured deployment documentation for the
+   target project).
 
 Each link in the chain must reference the internal API contract that carries the
 integration payload (for example `IAP-001` → `IAP-002` → `IAP-003`) so the plan
@@ -687,23 +692,23 @@ stage can bind implementation tasks directly to specification clauses.
 When EnterpriseAI is active or no profile is specified, generate
 `{FEATURE_DIR}/contract-pack.md` with these required sections:
 
-| Section | Required Content |
-| ------- | ---------------- |
-| Actors | Business users, administrators, approvers, external systems, support roles |
-| Object Types | Reused, extended, and newly proposed EnterpriseAI object types with owners |
-| Workflows and Journeys | External user journeys and internal orchestration flows as separate views; app delivery must include the four-step-or-fewer AI-augmented journey |
-| UI Preview and Approval | For app delivery: preview brief, Vertical Template constraints, branding inputs, preview validation evidence expectations, review-log requirements, approval gate rules; for non-app work: mark not applicable |
-| AI Assistance Contract | Step goal, assistance mode, context used, generated output, user controls, confidence/evidence, audit trail, completion signal, and escalation for each app step |
-| EnterpriseAI Service Fit | For app delivery: desired capabilities, evidence source, accessible now vs purchasable vs unavailable classification, selected direction, and blocked-capability handling |
-| Public Platform Boundary | Public docs/help/CLI/PublicAPI behavior the builder may rely on; private platform details intentionally excluded; upgrade/operator-required paths expressed as product-safe user actions |
-| Permissions and Tenant Boundaries | Identity, authorization, policy, isolation, and tenant assumptions |
-| APIs and Events | ResourceAPI surfaces, events, payload ownership, and contract-test hooks |
-| Deployment and Runtime | Environment, config, observability, rollback, and operating assumptions |
-| Acceptance Tests | Business, security, data, architecture, operational, and regression checks |
+| Section                           | Required Content                                                                                                                                                                                               |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Actors                            | Business users, administrators, approvers, external systems, support roles                                                                                                                                     |
+| Object Types                      | Reused, extended, and newly proposed EnterpriseAI object types with owners                                                                                                                                     |
+| Workflows and Journeys            | External user journeys and internal orchestration flows as separate views; app delivery must include the four-step-or-fewer AI-augmented journey                                                               |
+| UI Preview and Approval           | For app delivery: preview brief, Vertical Template constraints, branding inputs, preview validation evidence expectations, review-log requirements, approval gate rules; for non-app work: mark not applicable |
+| AI Assistance Contract            | Step goal, assistance mode, context used, generated output, user controls, confidence/evidence, audit trail, completion signal, and escalation for each app step                                               |
+| EnterpriseAI Service Fit          | For app delivery: desired capabilities, evidence source, accessible now vs purchasable vs unavailable classification, selected direction, and blocked-capability handling                                      |
+| Public Platform Boundary          | Public docs/help/CLI/PublicAPI behavior the builder may rely on; private platform details intentionally excluded; upgrade/operator-required paths expressed as product-safe user actions                       |
+| Permissions and Tenant Boundaries | Identity, authorization, policy, isolation, and tenant assumptions                                                                                                                                             |
+| APIs and Events                   | ResourceAPI surfaces, events, payload ownership, and contract-test hooks                                                                                                                                       |
+| Deployment and Runtime            | Environment, config, observability, rollback, and operating assumptions                                                                                                                                        |
+| Acceptance Tests                  | Business, security, data, architecture, operational, and regression checks                                                                                                                                     |
 
 The contract pack must link every new object type/API/workflow back to
-`reuse-scan.md` and must flag any "create new" decision that lacks evidence.
-For EnterpriseAI public-facing work, the contract pack must also separate:
+`reuse-scan.md` and must flag any "create new" decision that lacks evidence. For
+EnterpriseAI public-facing work, the contract pack must also separate:
 
 - **Public builder knowledge**: EAI CLI commands, PublicAPI responses, template
   configuration, support documentation, and user-safe statuses such as
@@ -733,8 +738,8 @@ Logs to: `.specify/logs/pipeline.jsonl`
   is stabilized, run `gofer:vocabulary` inline and write
   `.specify/specs/{feature}/glossary.md` using the same artifact contract as the
   standalone helper.
-- If the operator explicitly requests the `spec-summary` selector after `spec.md`
-  is stabilized, run `gofer:spec-summary` inline and write
+- If the operator explicitly requests the `spec-summary` selector after
+  `spec.md` is stabilized, run `gofer:spec-summary` inline and write
   `.specify/specs/{feature}/spec-summary.md` using the same artifact contract as
   the standalone helper.
 - If `spec.md` is missing, continue the stage normally and report that the
@@ -742,13 +747,14 @@ Logs to: `.specify/logs/pipeline.jsonl`
 - These selectors are optional and do not change stage progress, routing, or
   pipeline state.
 
-
 ## Pipeline Continuation
 
 This completes the 2_gofer_specify stage. To continue the Gofer pipeline:
 
 **Next Command:** `#3_gofer_plan`
 
-The next stage will read the artifacts from this stage and continue the workflow automatically.
+The next stage will read the artifacts from this stage and continue the workflow
+automatically.
 
-**Note:** Copilot Chat supports context preservation. Your conversation history will be maintained as you progress through pipeline stages.
+**Note:** Copilot Chat supports context preservation. Your conversation history
+will be maintained as you progress through pipeline stages.

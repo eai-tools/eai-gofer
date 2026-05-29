@@ -1,9 +1,9 @@
 {
   "name": "eai-gofer",
   "version": "3.4.7",
-  "description": "Public Gofer core pipeline and helper commands for Claude, Gemini, Codex, Copilot, and VS Code.",
+  "description": "Gofer core pipeline and helper commands for Claude, Gemini, Codex, Copilot, and VS Code.",
   "author": {
-    "name": "Enterprise AI Pty Ltd",
+    "name": "EAI Tools",
     "url": "https://github.com/eai-tools/eai-gofer"
   },
   "homepage": "https://github.com/eai-tools/eai-gofer",

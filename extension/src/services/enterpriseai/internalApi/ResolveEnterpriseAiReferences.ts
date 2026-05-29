@@ -64,7 +64,7 @@ export interface ResolveEnterpriseAiReferencesOptions {
   eventPublisher?: (payload: ReferenceFallbackUsedEventPayload) => void;
 }
 
-const DEFAULT_FALLBACK_PATH = '.specify/references/eai/';
+const DEFAULT_FALLBACK_PATH = '.specify/references/platform/';
 const LEGACY_EAI_REFERENCE_NAME = ['eai', 'cli'].join('-');
 const LEGACY_EAI_REFERENCE_DOCS = `${LEGACY_EAI_REFERENCE_NAME}-docs`;
 const LEGACY_EAI_REFERENCE_DOCS_UNDERSCORE = ['eai', 'cli', 'docs'].join('_');

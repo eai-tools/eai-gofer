@@ -42,7 +42,7 @@ function createInternalApiPayloadFixtures(): Record<
       runId: 'run_001',
       referenceTypes: ['eai_docs', 'vertical_template_docs', 'deployment_repo_docs'],
       externalReferencesEnabled: false,
-      fallbackPath: '.specify/references/eai/',
+      fallbackPath: '.specify/references/platform/',
     },
     'IAP-005': {
       runId: 'run_001',
@@ -58,9 +58,9 @@ function createInternalApiPayloadFixtures(): Record<
       workflowProfile: 'enterpriseai',
       specPath: '.specify/specs/029-enterpriseai-student-vertical-builder/spec.md',
       resolvedReferences: {
-        eaiCli: '.specify/references/eai/eai.md',
-        verticalTemplate: '.specify/references/eai/vertical-template.md',
-        deploymentRepo: '.specify/references/eai/deployment-repo.md',
+        eaiCli: '.specify/references/platform/eai.md',
+        verticalTemplate: '.specify/references/platform/vertical-template.md',
+        deploymentRepo: '.specify/references/platform/deployment-repo.md',
       },
       installedEaiCliVersion: '2.7.4',
     },
@@ -131,7 +131,7 @@ function createEventPayloadFixtures(): Record<EventContractId, Record<string, un
     'EVT-004': {
       eventId: 'evt_004',
       runId: 'run_001',
-      fallbackPath: '.specify/references/eai/',
+      fallbackPath: '.specify/references/platform/',
       unavailableExternalReferences: ['eai-docs'],
       userNoticeRequired: true,
     },

@@ -613,7 +613,7 @@
           "type": "boolean",
           "default": false,
           "description": "Prefer legacy external EnterpriseAI reference URLs during launch preflight instead of local fallback files",
-          "markdownDescription": "When enabled, Gofer uses legacy external EnterpriseAI reference URLs during launch preflight before falling back to `.specify/references/eai/`.\n\nMost public Gofer users should leave this disabled.",
+          "markdownDescription": "When enabled, Gofer uses legacy external EnterpriseAI reference URLs during launch preflight before falling back to `.specify/references/platform/`.\n\nMost public Gofer users should leave this disabled.",
           "order": 29
         },
         "gofer.codexCommand": {

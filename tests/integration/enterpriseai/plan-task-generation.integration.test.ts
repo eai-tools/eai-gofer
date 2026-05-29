@@ -80,9 +80,9 @@ describe('enterpriseai plan/task generation (root integration)', () => {
       workflowProfile: 'enterpriseai',
       specPath: '.specify/specs/029-enterpriseai-student-vertical-builder/spec.md',
       resolvedReferences: {
-        eaiCli: '.specify/references/eai/eai.md',
-        verticalTemplate: '.specify/references/eai/vertical-template.md',
-        deploymentRepo: '.specify/references/eai/deployment-repo.md',
+        eaiCli: '.specify/references/platform/eai.md',
+        verticalTemplate: '.specify/references/platform/vertical-template.md',
+        deploymentRepo: '.specify/references/platform/deployment-repo.md',
       },
       installedEaiCliVersion: '2.7.4',
       competitiveAnalysisEnabled: true,

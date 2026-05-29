@@ -15,7 +15,7 @@ suite('enterpriseai reference fallback notice (extension integration)', () => {
 
   setup(async () => {
     await fs.rm(fixturesDir, { recursive: true, force: true });
-    const fallbackDir = path.join(fixturesDir, '.specify', 'references', 'eai');
+    const fallbackDir = path.join(fixturesDir, '.specify', 'references', 'platform');
     await fs.mkdir(fallbackDir, { recursive: true });
     await fs.writeFile(path.join(fallbackDir, 'eai.md'), '# eai cli fallback\n', 'utf8');
     await fs.writeFile(
@@ -53,7 +53,7 @@ suite('enterpriseai reference fallback notice (extension integration)', () => {
         runId: 'run_029_0001',
         referenceTypes: ['eai_docs', 'vertical_template_docs'],
         externalReferencesEnabled: false,
-        fallbackPath: '.specify/references/eai/',
+        fallbackPath: '.specify/references/platform/',
       },
       {
         workspaceRoot: fixturesDir,
@@ -85,12 +85,12 @@ suite('enterpriseai reference fallback notice (extension integration)', () => {
     assert.strictEqual(consumedPayloads.length, 1);
     assert.strictEqual(notices.length, 1);
     assert.ok(notices[0].message.includes('using local docs'));
-    assert.ok(notices[0].message.includes('.specify/references/eai/'));
+    assert.ok(notices[0].message.includes('.specify/references/platform/'));
     assert.strictEqual(eventHandlers.consumerCount(), 0);
   });
 
   test('accepts legacy eai reference aliases and fallback filenames', async () => {
-    const fallbackDir = path.join(fixturesDir, '.specify', 'references', 'eai');
+    const fallbackDir = path.join(fixturesDir, '.specify', 'references', 'platform');
     const legacyReferenceName = ['eai', 'cli'].join('-');
     const legacyDocsReferenceName = ['eai', 'cli', 'docs'].join('_');
     await fs.rm(path.join(fallbackDir, 'eai.md'), { force: true });
@@ -105,7 +105,7 @@ suite('enterpriseai reference fallback notice (extension integration)', () => {
         runId: 'run_legacy_eai_alias',
         referenceTypes: [legacyDocsReferenceName],
         externalReferencesEnabled: false,
-        fallbackPath: '.specify/references/eai/',
+        fallbackPath: '.specify/references/platform/',
       },
       {
         workspaceRoot: fixturesDir,
@@ -116,7 +116,7 @@ suite('enterpriseai reference fallback notice (extension integration)', () => {
       {
         type: 'eai',
         source: 'local-fallback',
-        path: `.specify/references/eai/${legacyReferenceName}.md`,
+        path: `.specify/references/platform/${legacyReferenceName}.md`,
       },
     ]);
   });
@@ -144,7 +144,7 @@ suite('enterpriseai reference fallback notice (extension integration)', () => {
         runId: 'run_029_external_unreachable',
         referenceTypes: ['eai'],
         externalReferencesEnabled: true,
-        fallbackPath: '.specify/references/eai/',
+        fallbackPath: '.specify/references/platform/',
       },
       {
         workspaceRoot: fixturesDir,

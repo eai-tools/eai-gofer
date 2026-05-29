@@ -993,7 +993,7 @@ async function resolveInitialCommand(specId: string, workspacePath: string): Pro
         runId: `launch-${specId}-${commandName}`,
         referenceTypes: ENTERPRISE_AI_REFERENCE_TYPES,
         externalReferencesEnabled: useExternalReferences,
-        fallbackPath: '.specify/references/eai/',
+        fallbackPath: '.specify/references/platform/',
       },
       {
         workspaceRoot: workspacePath,

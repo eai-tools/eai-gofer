@@ -600,10 +600,9 @@ When the workflow profile is `enterpriseai`, `plan.md` MUST capture:
    pin to the `EnterpriseAI Profile Metadata` block of `plan-template.md` so
    every downstream task is reproducible. Plans MUST apply
    `pin guidance to `major.minor`` and never to a specific patch release.
-2. **Deployment convention** — reference
-   `.specify/references/eai/deployment-repo.md` for the canonical deployment
-   pipeline and note which environment (dev/staging/prod) each deliverable
-   targets.
+2. **Deployment convention** — reference the configured deployment
+   documentation for the target project and note which environment
+   (dev/staging/prod) each deliverable targets.
 3. **Integration map handoff** — restate the Vertical App → EAI Services →
    Deployment Target chain from `spec.md` and bind each link to a task
    identifier in `tasks.md`.

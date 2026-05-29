@@ -11,7 +11,7 @@ import { type EaiReferenceSource } from '../../../services/enterpriseai/models/G
 
 suite('enterpriseai workflow profile contracts', () => {
   const fixturesRoot = path.join(__dirname, 'fixtures-workflow');
-  const fallbackFile = path.join(fixturesRoot, '.specify', 'references', 'eai', 'eai.md');
+  const fallbackFile = path.join(fixturesRoot, '.specify', 'references', 'platform', 'eai.md');
 
   setup(async () => {
     await fs.mkdir(path.dirname(fallbackFile), { recursive: true });
@@ -34,7 +34,7 @@ suite('enterpriseai workflow profile contracts', () => {
       {
         referenceId: 'ref_001',
         referenceType: 'eai_docs',
-        localFallbackPath: '.specify/references/eai/eai.md',
+        localFallbackPath: '.specify/references/platform/eai.md',
         availabilityStatus: 'external_unavailable',
         lastCheckedAt: new Date().toISOString(),
       },

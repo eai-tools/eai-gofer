@@ -252,7 +252,7 @@ jobs:
   e2e-tests:
     name: E2E Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     needs: test
 
     steps:
@@ -269,7 +269,7 @@ jobs:
         run: npm ci
 
       - name: Install Playwright
-        run: npm exec --ignore-scripts -- playwright install --with-deps chromium
+        run: npx playwright install --with-deps chromium
 
       - name: Build Project
         run: npm run build

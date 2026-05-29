@@ -62,7 +62,7 @@ jobs:
             --github-output "$GITHUB_OUTPUT"
 
       - name: Ensure intake labels exist
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('fs');
@@ -212,7 +212,7 @@ jobs:
             --out triage-comment.md > /dev/null
 
       - name: Upsert triage comment
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('fs');

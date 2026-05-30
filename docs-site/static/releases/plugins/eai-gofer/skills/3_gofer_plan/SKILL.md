@@ -1,15 +1,11 @@
 ---
 name: 3_gofer_plan
+description: "Create a detailed technical implementation plan with architecture, data model, and contracts."
+---
+
+---
 description:
-  'Create a detailed technical implementation plan with architecture, data
-  model, and contracts.'
----
-
----
-
-description: Generate technical implementation plan with architecture and
-contracts
-
+  Generate technical implementation plan with architecture and contracts
 ---
 
 # Gofer Plan
@@ -26,21 +22,25 @@ $ARGUMENTS
 
 You **MUST** consider the user input before proceeding (if not empty).
 
-## Execution Depth And Planning Surface
+## Execution Profile And Planning Surface
 
 Use the research/spec risk classification to choose planning depth:
 
 - **fast**: produce the smallest viable plan, only for docs-only or very small
   low-risk work.
 - **standard**: produce the normal plan, data/contracts only when relevant, and
-  a concrete test strategy.
+  a concrete test strategy. Standard is the catch-all for work that is not fast,
+  full, or dynamic.
 - **full**: include contract compatibility, auth/security, data migration,
   infra/config, rollback, and release sequencing where the generic risk labels
   require them.
+- **dynamic**: produce a workflow DAG, shard plan, reducer plan,
+  verifier/refuter pass, resumable progress ledger, budget limits, and stop
+  conditions before implementation starts.
 
 Avoid artifact churn. Optional diagrams, extended architecture councils,
 generated issue packs, and broad release plans are only warranted when risk is
-full-depth or the user asks for them.
+full/dynamic-depth or the user asks for them.
 
 ## Prerequisites
 
@@ -63,10 +63,13 @@ If missing, prompt user to run the prerequisite stage.
 6. Spec coverage validation
 7. Output: `plan.md`, `data-model.md`, `contracts/`, `quickstart.md`
 8. EnterpriseAI default output: task-ready references to `context-bundle.md`,
-   `contract-pack.md`, `reuse-scan.md`, `audit-history.md`, and for app delivery
-   `ui-review-log.md`, `ui-approval.md`, and `service-fit-matrix.md`, including
-   public-readiness, block-porting, DAISY decoupling, Storybook, theme override,
-   and package-profile decisions
+   `contract-pack.md`, `reuse-scan.md`, `audit-history.md`, and for app
+   delivery `ui-review-log.md`, `ui-approval.md`, and
+   `service-fit-matrix.md`, including public-readiness, block-porting, DAISY
+   decoupling, Storybook, theme override, and package-profile decisions
+9. Dynamic-only output: `workflow-dag.md` with shards, inputs, outputs,
+   reducer expectations, verifier/refuter evidence, budget limits, stop
+   conditions, and resumable progress location
 
 ---
 
@@ -100,8 +103,8 @@ Planning dispatches multiple agents — keep main context lightweight.
    directly):
    - Note feature name from FEATURE_DIR
    - Note whether `discovery.md`, `.specify/memory/constitution.md` exist
-   - Note whether `ui-preview-brief.md`, `ui-review-log.md`, `ui-approval.md`,
-     and `service-fit-matrix.md` exist
+   - Note whether `ui-preview-brief.md`, `ui-review-log.md`,
+     `ui-approval.md`, and `service-fit-matrix.md` exist
    - Note external/internal/hybrid profile choice, package lane, coupling
      status, Storybook story IDs, theme override points, custom-block
      exceptions, and public-readiness status when app delivery applies
@@ -306,6 +309,19 @@ Output to {FEATURE_DIR}/visuals/data-model-erd.md."
 These three artifacts (c4-container.md, bounded-context.md, data-model-erd.md)
 are required for the developer persona pack. The persona-pack completeness gate
 at /4_gofer_tasks start will warn if any are missing.
+
+### Dynamic-Only: Workflow DAG Writer
+
+When `effectiveProfile=dynamic`, write `{FEATURE_DIR}/workflow-dag.md` before
+task generation. It must define:
+
+- independent shards and why they can run separately
+- input artifacts each shard may read
+- output artifacts each shard must produce
+- reducer synthesis expectations
+- verifier/refuter checks for contradictions or overreach
+- budget limits, stop conditions, and confirmation gates
+- resumable progress location outside the chat transcript
 
 ---
 
@@ -558,6 +574,7 @@ Artifacts created:
 - data-model.md: Entity definitions
 - contracts/: API specifications
 - quickstart.md: Testing guide
+- workflow-dag.md: Dynamic shard/reducer plan (only when effectiveProfile=dynamic)
 
 Engineering Review: PASSED (cycle [N] of 5)
 ```
@@ -588,13 +605,13 @@ When the workflow profile is `enterpriseai`, `plan.md` MUST capture:
 
 1. **EAI CLI version pin** — record the installed `eai` version as a
    `major.minor` pin (for example `2.0`). The plan stage resolves the local
-   version via `eai --version`, strips the patch component, and writes the pin
-   to the `EnterpriseAI Profile Metadata` block of `plan-template.md` so every
-   downstream task is reproducible. Plans MUST apply
+   version via `eai --version`, strips the patch component, and writes the
+   pin to the `EnterpriseAI Profile Metadata` block of `plan-template.md` so
+   every downstream task is reproducible. Plans MUST apply
    `pin guidance to `major.minor`` and never to a specific patch release.
-2. **Deployment convention** — reference the configured deployment documentation
-   for the target project and note which environment (dev/staging/prod) each
-   deliverable targets.
+2. **Deployment convention** — reference the configured deployment
+   documentation for the target project and note which environment
+   (dev/staging/prod) each deliverable targets.
 3. **Integration map handoff** — restate the Vertical App → EAI Services →
    Deployment Target chain from `spec.md` and bind each link to a task
    identifier in `tasks.md`.
@@ -614,9 +631,9 @@ When the workflow profile is `enterpriseai`, `plan.md` MUST capture:
    the preview loop before plan/tasks are considered complete. The plan MUST:
    - keep the first preview constrained to Vertical Template blocks unless an
      approved extension is recorded
-   - cite `eai blocks describe <id>` evidence for every selected block ID, plus
-     the ResourceAPI/Object Type fields from `eai resources schema` that feed
-     each block
+   - cite `eai blocks describe <id>` evidence for every selected block ID,
+     plus the ResourceAPI/Object Type fields from `eai resources schema` that
+     feed each block
    - record override points for theme tokens, `presentationConfig`, copy,
      data/action bindings, and client extension blocks
    - capture whether client branding/logos are in scope
@@ -629,22 +646,20 @@ When the workflow profile is `enterpriseai`, `plan.md` MUST capture:
    before tasks are treated as complete. The matrix must distinguish:
    - accessible now
    - purchasable but unavailable now
-   - unavailable without new platform work The plan must source this evidence
-     from `eai --describe`, `eai whoami`, `eai tenant select`,
-     `eai resources schema`, `eai verify calls --format json`,
-     `eai workflow readiness <workflow-key>`,
-     `eai workflow status <workflow-key>`,
-     `eai workflow request <workflow-key>`,
-     `eai provision entra --rotate-secret`, or documented equivalent public
-     platform evidence.
-8. **Reuse-before-create decision log** — reference
-   `{FEATURE_DIR}/reuse-scan.md` for every new or extended EnterpriseAI object
-   type, API/event, workflow, or module.
+   - unavailable without new platform work
+   The plan must source this evidence from `eai --describe`, `eai whoami`,
+   `eai tenant select`, `eai resources schema`, `eai verify calls --format
+   json`, `eai workflow readiness <workflow-key>`, `eai workflow status
+   <workflow-key>`, `eai workflow request <workflow-key>`, `eai provision
+   entra --rotate-secret`, or documented equivalent public platform evidence.
+8. **Reuse-before-create decision log** — reference `{FEATURE_DIR}/reuse-scan.md`
+   for every new or extended EnterpriseAI object type, API/event, workflow, or
+   module.
 9. **Audit history seed** — create or update `{FEATURE_DIR}/audit-history.md`
    with stable finding IDs, decision exceptions, owner, expiry, and review
    cadence so validation can track recurring issues.
-10. **Public/private knowledge split** — identify which implementation facts are
-    safe for public docs, Gofer guidance, EAI CLI help, or Vertical Template
+10. **Public/private knowledge split** — identify which implementation facts
+    are safe for public docs, Gofer guidance, EAI CLI help, or Vertical Template
     comments, and which facts are internal-only. Plans must express blocked
     states as public-safe actions (`operator_required`, `upgrade_required`, or
     documented support URL) rather than exposing private service topology.

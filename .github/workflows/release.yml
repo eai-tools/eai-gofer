@@ -47,6 +47,12 @@ jobs:
             extension/package-lock.json
             language-server/package-lock.json
 
+      # npm 11.6.2 has a false-positive `npm ls` bug that flags strip-ansi@7.2.0
+      # as invalid for ^7.0.1 (it satisfies it), which aborts `vsce package`.
+      # Pin a known-good npm so the Marketplace packaging step is deterministic.
+      - name: Pin npm
+        run: npm install -g npm@10.9.2
+
       - name: Resolve Release Version
         id: version
         run: |

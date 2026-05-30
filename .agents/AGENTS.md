@@ -2,15 +2,14 @@
 
 This file documents all Gofer pipeline commands available as agent skills.
 
-Generated: 2026-05-29T23:10:31.099Z
+Generated: 2026-05-30T04:51:42.846Z
 
 ## Commands
 
 ### Business Scenario
-
 ---
-
-## description: Triage business scenario and orchestrate the unified Gofer pipeline
+description: Triage business scenario and orchestrate the unified Gofer pipeline
+---
 
 # Gofer Orchestrator
 
@@ -21,12 +20,10 @@ Before doing stage/helper work:
 1. Resolve the repository root....
 
 ### Problem Validation
-
 ---
-
-description: Validate business problem using 5 Whys analysis, stakeholder impact
-mapping, and market landscape research before any solution design
-
+description:
+  Validate business problem using 5 Whys analysis, stakeholder impact mapping,
+  and market landscape research before any solution design
 ---
 
 # Gofer Problem Validation
@@ -34,12 +31,9 @@ mapping, and market landscape research before any solution design
 You are vali...
 
 ### Gofer Cloud
-
 ---
-
-description: READ-ONLY cloud infrastructure analysis for Azure, AWS, GCP
-deployments
-
+description:
+  READ-ONLY cloud infrastructure analysis for Azure, AWS, GCP deployments
 ---
 
 # Gofer Cloud
@@ -48,10 +42,9 @@ You are conducting comprehensive READ-ONLY analysis of cloud deployments and
 infrastructu...
 
 ### Gofer Research
-
 ---
-
-## description: Deep codebase and technology research for feature implementation
+description: Deep codebase and technology research for feature implementation
+---
 
 # Gofer Research
 
@@ -59,23 +52,19 @@ You are conducting comprehensive research to understand the codebase before
 specifying a new fe...
 
 ### Gofer Specify
-
 ---
-
-## description: Create feature specification informed by codebase research
+description: Create feature specification informed by codebase research
+---
 
 # Gofer Specify
 
 You are creating a feature specification informed by prior codebase research.
-This is the \*\*second sta...
+This is the **second sta...
 
 ### Gofer Plan
-
 ---
-
-description: Generate technical implementation plan with architecture and
-contracts
-
+description:
+  Generate technical implementation plan with architecture and contracts
 ---
 
 # Gofer Plan
@@ -84,10 +73,9 @@ You are creating a detailed technical implementation plan. This is the **third
 stage** of t...
 
 ### Gofer Tasks
-
 ---
-
-## description: Generate actionable task breakdown from implementation plan
+description: Generate actionable task breakdown from implementation plan
+---
 
 # Gofer Tasks
 
@@ -95,23 +83,20 @@ You are generating an actionable, dependency-ordered task breakdown. This is the
 **fourth stage** of th...
 
 ### Gofer Implement
-
 ---
-
-## description: Execute tasks from tasks.md to implement the feature
+description: Execute tasks from tasks.md to implement the feature
+---
 
 # Gofer Implement
 
 You are executing the implementation plan by processing all tasks from tasks.md.
-This is the \*\*fifth stage...
+This is the **fifth stage...
 
 ### Gofer Validate
-
 ---
-
-description: Unified validation, blast-radius analysis, and engineering review
-(3 phases, 110-point rubric)
-
+description:
+  Unified validation, blast-radius analysis, and engineering review (3 phases,
+  110-point rubric)
 ---
 
 # Gofer Validate
@@ -119,10 +104,9 @@ description: Unified validation, blast-radius analysis, and engineering review
 You are validating that the implementation meets engineering ...
 
 ### Gofer Save
-
 ---
-
-## description: Save session progress with comprehensive checkpoint for resumption
+description: Save session progress with comprehensive checkpoint for resumption
+---
 
 # Gofer Save
 
@@ -130,12 +114,10 @@ You are creating a comprehensive progress checkpoint when the user needs to
 pause work on a featu...
 
 ### Stakeholder Communications
-
 ---
-
-description: Generate stakeholder communications package including release
-notes, demo script, change management brief, and success metrics
-
+description:
+  Generate stakeholder communications package including release notes, demo
+  script, change management brief, and success metrics
 ---
 
 # Gofer Stakeholder Communications
@@ -143,12 +125,9 @@ notes, demo script, change management brief, and success metrics
 You are gen...
 
 ### Gofer Resume
-
 ---
-
-description: Resume work from saved session checkpoint with full context
-restoration
-
+description:
+  Resume work from saved session checkpoint with full context restoration
 ---
 
 # Gofer Resume
@@ -157,12 +136,10 @@ You are resuming previously saved work by restoring full context and continuing
 implemen...
 
 ### Gofer Tests
-
 ---
-
-description: Define acceptance test cases using DSL approach before or during
-implementation
-
+description:
+  Define acceptance test cases using DSL approach before or during
+  implementation
 ---
 
 # Gofer Tests
@@ -187,12 +164,9 @@ Write the result to `.specify/logs/workspace-check-report.md`. The check itself
 is read-only. ...
 
 ### Gofer Constitution
-
 ---
-
-description: Create or update project constitution with coding principles and
-guidelines
-
+description:
+  Create or update project constitution with coding principles and guidelines
 ---
 
 # Gofer Constitution
@@ -210,10 +184,9 @@ results to `.specify/specs/{feature}/diagnose-report.md`.
 Use this when an implementation, test, or i...
 
 ### Gofer Hydrate
-
 ---
-
-## description: Reverse-engineer specification from existing code (Hydration)
+description: Reverse-engineer specification from existing code (Hydration)
+---
 
 # Gofer Hydrate
 
@@ -266,8 +239,8 @@ Use this helper when you want to work test-first inside the ...
 
 # Gofer Vocabulary
 
-Extract the feature's shared domain language into a canonical glossary and write
-it to `.specify/specs/{feature}/glossary.md`.
+Extract the feature's shared domain language into a canonical glossary and
+write it to `.specify/specs/{feature}/glossary.md`.
 
 Use this when research, specification, contracts, o...
 

@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: enterpriseai
   canonicalSource: .specify/commands/2_gofer_specify.md
-  canonicalChecksum: 91586015bf78374cc0a96c207a1c6ac6fefd361f66b7f18277c35355bd6395a9
+  canonicalChecksum: 4f66064111a428ae374ea1e261817c6e19de383c26f9159858de39533f73807e
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -57,11 +57,17 @@ $ARGUMENTS
 
 You **MUST** consider the user input before proceeding (if not empty).
 
-## Execution Depth And Artifact Churn
+## Execution Profile And Artifact Churn
 
-Carry forward the `fast` / `standard` / `full` depth chosen in research. Keep
-labels generic: `docs-only`, `single-repo-code`, `api-contract`,
-`auth-security`, `data-model`, `infra-config`, `release-critical`, `unknown`.
+Carry forward the `fast` / `standard` / `full` / `dynamic` profile chosen in
+research. Keep labels generic: `docs-only`, `single-repo-code`, `cross-repo`,
+`api-contract`, `auth-security`, `data-model`, `infra-config`,
+`release-critical`, `broad-fanout`, `unknown-blast-radius`, `unknown`.
+
+Also read `execution-profile.md` when present. Keep the same
+`effectiveProfile` unless new evidence changes the risk labels; if that
+happens, update the file and explain the new `profileFloor`,
+`effectiveProfile`, and reason in `traceability.md`.
 
 - **fast** specs should be short and scoped, with no new optional artifact set
   unless research found implementation risk.
@@ -69,6 +75,9 @@ labels generic: `docs-only`, `single-repo-code`, `api-contract`,
   test expectations, and protected boundaries.
 - **full** specs must explicitly capture contract, security, data, infra,
   rollout, and validation obligations with evidence references.
+- **dynamic** specs must capture decomposition boundaries, shard ownership,
+  unresolved blast-radius questions, reducer evidence expectations, and
+  confirmation gates.
 
 Do not rediscover context already summarized in `research.md` or
 `proposal-review.md`; consume it, cite it, and only reopen files when a claim is

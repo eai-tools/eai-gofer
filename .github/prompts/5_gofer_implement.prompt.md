@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: enterpriseai
   canonicalSource: .specify/commands/5_gofer_implement.md
-  canonicalChecksum: c56c84a8caddc9498855ddd132be7d0c506f988baf875cff965e0a336f3ea3c1
+  canonicalChecksum: 0033cc308c1441346f23076d9e7708b4e6328e2d2ee1db606954cfe6247c4515
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -57,7 +57,7 @@ $ARGUMENTS
 
 You **MUST** consider the user input before proceeding (if not empty).
 
-## Execution Depth During Implementation
+## Execution Profile During Implementation
 
 Before editing, re-check the planned depth and generic risk labels from
 `tasks.md` / `plan.md`:
@@ -69,6 +69,10 @@ Before editing, re-check the planned depth and generic risk labels from
 - **full**: open the relevant contracts, security, data, infra, release, and
   rollback artifacts before code changes; update tests before or alongside the
   fix.
+- **dynamic**: confirm `workflow-dag.md` exists and `requiresConfirmation` is
+  false before executing shard-oriented work. Run each shard against its declared
+  inputs/outputs, then run the reducer and verifier/refuter pass before marking
+  tasks complete.
 
 If the implementation reveals a higher-risk surface than planned, stop and
 upgrade the depth before continuing. Do not silently broaden scope.

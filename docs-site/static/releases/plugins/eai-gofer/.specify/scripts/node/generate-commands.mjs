@@ -223,7 +223,9 @@ async function emitClaude(stages, root, dryRun) {
       await ensureDir(outDir);
       await fs.writeFile(
         outPath,
-        injectWorkspacePreflight(stage.body, String(name), SURFACE_WORKSPACE_HOSTS['claude']),
+        injectTokenCostPolicy(
+          injectWorkspacePreflight(stage.body, String(name), SURFACE_WORKSPACE_HOSTS['claude'])
+        ),
         'utf8'
       );
       await removeLegacyGeneratedPath(outPath, legacyPath);
@@ -260,10 +262,12 @@ async function emitClaudeMirror(stages, root, dryRun) {
       await ensureDir(outDir);
       await fs.writeFile(
         outPath,
-        injectWorkspacePreflight(
-          stage.body,
-          String(name),
-          SURFACE_WORKSPACE_HOSTS['claude-mirror']
+        injectTokenCostPolicy(
+          injectWorkspacePreflight(
+            stage.body,
+            String(name),
+            SURFACE_WORKSPACE_HOSTS['claude-mirror']
+          )
         ),
         'utf8'
       );
@@ -365,7 +369,9 @@ function buildCopilotPromptContent(stage, host = SURFACE_WORKSPACE_HOSTS['copilo
   const { frontmatter, body } = splitMarkdownFrontmatter(stage.body);
   const description = readString(frontmatter.description) ?? String(stage.frontmatter.description);
   const transformedBody = injectPipelineContinuation(
-    injectWorkspacePreflight(transformClaudeContent(body, 'copilot'), stageName, host),
+    injectTokenCostPolicy(
+      injectWorkspacePreflight(transformClaudeContent(body, 'copilot'), stageName, host)
+    ),
     'copilot',
     stageName
   );
@@ -476,6 +482,8 @@ Before doing stage/helper work:
    - \`.specify/scripts/node/parse-stage-command.mjs\`
    - \`.specify/scripts/hooks/post-tool-use.mjs\`
    - \`.specify/scripts/powershell/install-optional-tools.ps1\`
+   - \`.specify/templates/gofer-model-policy.yaml\`
+   - \`.specify/memory/gofer-model-policy.yaml\`
    - \`.specify/specs/\`
    - \`.specify/memory/\`
 3. Check host-specific repo-owned files when relevant:
@@ -505,6 +513,83 @@ function injectWorkspacePreflight(content, commandName, host = 'auto') {
   }
 
   const section = buildWorkspacePreflightSection(host);
+  const headingMatch = content.match(/^# [^\n]+\n+/);
+  if (!headingMatch) {
+    return `${section}\n\n${content}`;
+  }
+
+  const insertAt = headingMatch[0].length;
+  const prefix = content.slice(0, insertAt);
+  const suffix = content.slice(insertAt).replace(/^\n+/, '');
+  return `${prefix}${section}\n\n${suffix}`;
+}
+
+function buildTokenCostPolicySection() {
+  return `
+## Token And Cost Policy
+<!-- gofer:token-cost-policy:start -->
+
+Before spawning agents, calling tools, or loading large files:
+
+1. Treat \`.specify/memory/gofer-model-policy.yaml\` as the repo-owned source of truth for simple, medium, hard, and arbiter model routing. If it is missing, run \`/gofer:bootstrap-workspace\` before continuing.
+2. Use the cheapest capable model first.
+   - Claude: Haiku for scouting/extraction; Sonnet for normal implementation, synthesis, validation, and security; Opus for high-risk arbitration or release-critical failures.
+   - Codex/OpenAI: GPT mini for simple coding; GPT nano only for locate/classify/summarize/mechanical work; GPT-5.3-Codex or flagship GPT for tool-heavy coding, architecture, and release-critical validation.
+   - Gemini: Flash-Lite for cheap large-context scan/summarize; Flash for default research synthesis; Pro for large-context architecture or high-risk arbitration.
+   - Copilot: prefer Auto for simple and default work; ask the user before choosing a paid/high-tier picker model for hard security, architecture, or release gates.
+3. Keep raw tool output out of the main conversation context. Save stable findings to \`.specify/specs/{feature}/context-bundle.md\`, then work from summaries.
+4. Use provider prompt/context caching only for stable, non-secret prefixes: Gofer scaffold, AGENTS/CLAUDE/Copilot instructions, constitution, repo map, stage contracts, and validation rubric.
+5. Before continuing after large research, planning, implementation, or validation bursts, checkpoint the durable artifacts and compact/clear/resume context when the host supports it.
+6. Escalate model tier only when a cheaper pass is low-confidence, contradictory, security-sensitive, or blocking release quality.
+<!-- gofer:token-cost-policy:end -->
+`.trim();
+}
+
+function injectTokenCostPolicy(content) {
+  const section = buildTokenCostPolicySection();
+  const startMarker = '<!-- gofer:token-cost-policy:start -->';
+  const endMarker = '<!-- gofer:token-cost-policy:end -->';
+
+  if (content.includes(startMarker) && content.includes(endMarker)) {
+    const headingIndex = content.indexOf('## Token And Cost Policy');
+    const endIndex = content.indexOf(endMarker, headingIndex) + endMarker.length;
+    const suffix = content.slice(endIndex).replace(/^\n+/, '');
+    return suffix
+      ? `${content.slice(0, headingIndex).trimEnd()}\n\n${section}\n\n${suffix}`
+      : `${content.slice(0, headingIndex).trimEnd()}\n\n${section}\n`;
+  }
+
+  if (content.includes('## Token And Cost Policy')) {
+    const legacyPolicyPattern =
+      /## Token And Cost Policy\n\nBefore spawning agents, calling tools, or loading large files:\n\n[\s\S]*?^6\. Escalate model tier only when a cheaper pass is low-confidence, contradictory, security-sensitive, or blocking release quality\.\n?/m;
+    const legacyMatch = content.match(legacyPolicyPattern);
+    if (legacyMatch && legacyMatch.index !== undefined) {
+      const suffix = content.slice(legacyMatch.index + legacyMatch[0].length).replace(/^\n+/, '');
+      return suffix
+        ? `${content.slice(0, legacyMatch.index).trimEnd()}\n\n${section}\n\n${suffix}`
+        : `${content.slice(0, legacyMatch.index).trimEnd()}\n\n${section}\n`;
+    }
+
+    const headingIndex = content.indexOf('## Token And Cost Policy');
+    const nextHeading = content.indexOf('\n## ', headingIndex + 1);
+    if (nextHeading !== -1) {
+      return `${content.slice(0, headingIndex).trimEnd()}\n\n${section}\n\n${content
+        .slice(nextHeading)
+        .replace(/^\n+/, '')}`;
+    }
+
+    return content;
+  }
+
+  if (content.includes('## Workspace Preflight')) {
+    const nextHeading = content.indexOf('\n## ', content.indexOf('## Workspace Preflight') + 1);
+    if (nextHeading !== -1) {
+      return `${content.slice(0, nextHeading).trimEnd()}\n\n${section}\n\n${content
+        .slice(nextHeading)
+        .replace(/^\n+/, '')}`;
+    }
+  }
+
   const headingMatch = content.match(/^# [^\n]+\n+/);
   if (!headingMatch) {
     return `${section}\n\n${content}`;
@@ -591,7 +676,9 @@ async function emitAgentsSkills(stages, root, dryRun) {
     const content = buildSkillContent(
       String(name),
       String(description),
-      injectWorkspacePreflight(stage.body, String(name), SURFACE_WORKSPACE_HOSTS['agents-skills'])
+      injectTokenCostPolicy(
+        injectWorkspacePreflight(stage.body, String(name), SURFACE_WORKSPACE_HOSTS['agents-skills'])
+      )
     );
 
     if (dryRun) {
@@ -635,7 +722,9 @@ async function emitSystemSkills(stages, root, dryRun) {
     const content = buildSkillContent(
       String(name),
       String(description),
-      injectWorkspacePreflight(stage.body, String(name), SURFACE_WORKSPACE_HOSTS['system-skills'])
+      injectTokenCostPolicy(
+        injectWorkspacePreflight(stage.body, String(name), SURFACE_WORKSPACE_HOSTS['system-skills'])
+      )
     );
 
     if (dryRun) {
@@ -696,7 +785,9 @@ async function emitGemini(stages, root, dryRun) {
       await ensureDir(outDir);
       await fs.writeFile(
         markdownPath,
-        injectWorkspacePreflight(stage.body, String(name), SURFACE_WORKSPACE_HOSTS['gemini']),
+        injectTokenCostPolicy(
+          injectWorkspacePreflight(stage.body, String(name), SURFACE_WORKSPACE_HOSTS['gemini'])
+        ),
         'utf8'
       );
       await fs.writeFile(tomlPath, tomlContent, 'utf8');

@@ -62,7 +62,7 @@ council:
       model: gemini-3-flash-preview
     openai:
       enabled: true
-      model: gpt-5.2
+      model: gpt-5.4-mini
   stages:
     gofer_plan: council
     gofer_analyze: council

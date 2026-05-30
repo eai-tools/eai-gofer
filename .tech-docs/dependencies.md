@@ -24,9 +24,9 @@ External services are optional and user-configured.
 
 | Service           | Purpose                                               | Authentication           | Rate Limit                                | Criticality |
 | ----------------- | ----------------------------------------------------- | ------------------------ | ----------------------------------------- | ----------- |
-| **Anthropic API** | Claude 3.5 Sonnet/Haiku for autonomous implementation | API Key (user-provided)  | 50 req/min (Sonnet), 1000 req/min (Haiku) | Optional    |
-| **Google AI API** | Gemini 1.5 Pro/Flash for LLM Council validation       | API Key (user-provided)  | 60 req/min (Pro), 1500 req/min (Flash)    | Optional    |
-| **OpenAI API**    | GPT-4o for LLM Council validation                     | API Key (user-provided)  | 10,000 req/min                            | Optional    |
+| **Anthropic API** | Claude Haiku/Sonnet/Opus routes from the Gofer model policy | API Key (user-provided)  | Provider/account dependent                | Optional    |
+| **Google AI API** | Gemini Flash-Lite/Flash/Pro routes from the Gofer model policy | API Key (user-provided)  | Provider/account dependent                | Optional    |
+| **OpenAI API**    | GPT mini/nano/Codex/flagship routes from the Gofer model policy | API Key (user-provided)  | Provider/account dependent                | Optional    |
 | **Twilio API**    | WhatsApp notifications (orchestrator only)            | Account SID + Auth Token | Varies by plan                            | Optional    |
 | **GitHub API**    | Auto-update checking                                  | No auth (public API)     | 60 req/hour (unauthenticated)             | Optional    |
 

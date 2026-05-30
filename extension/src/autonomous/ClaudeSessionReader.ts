@@ -62,9 +62,13 @@ const APPROVED_FIELDS = new Set([
 /** Model context window sizes (tokens) */
 const MODEL_CONTEXT_LIMITS: Record<string, number> = {
   // Claude Opus models
+  'claude-opus-4-8': 1000000,
+  'claude-opus-4-7': 1000000,
+  'claude-opus-4-6': 1000000,
   'claude-opus-4-5-20251101': 200000,
   'claude-opus-4-20250514': 200000,
   // Claude Sonnet models
+  'claude-sonnet-4-6': 1000000,
   'claude-sonnet-4-20250514': 200000,
   'claude-sonnet-4-5-20250514': 200000,
   'claude-3-5-sonnet-20241022': 200000,
@@ -423,14 +427,19 @@ export class ClaudeSessionReader {
    * @returns Context window size in tokens
    */
   getModelContextLimit(modelId: string): number {
+    const normalizedModelId = modelId.trim();
+    if (!normalizedModelId) {
+      return DEFAULT_CONTEXT_LIMIT;
+    }
+
     // Try exact match first
-    if (MODEL_CONTEXT_LIMITS[modelId]) {
-      return MODEL_CONTEXT_LIMITS[modelId];
+    if (MODEL_CONTEXT_LIMITS[normalizedModelId]) {
+      return MODEL_CONTEXT_LIMITS[normalizedModelId];
     }
 
     // Try prefix match (e.g., "claude-opus-4-5" matches "claude-opus-4-5-20251101")
     for (const [key, limit] of Object.entries(MODEL_CONTEXT_LIMITS)) {
-      if (modelId.startsWith(key) || key.startsWith(modelId)) {
+      if (normalizedModelId.startsWith(key) || key.startsWith(normalizedModelId)) {
         return limit;
       }
     }

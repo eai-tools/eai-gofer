@@ -128,8 +128,8 @@ describe.skip('Council Providers - Real API Integration Tests', () => {
 
   describe('GoogleProvider - Real API', () => {
     const apiKey = process.env.GOOGLE_API_KEY;
-    // Use env var for model or default to gemini-2.5-flash (gemini-3-flash-preview often overloaded)
-    const modelId = process.env.GOOGLE_MODEL || 'gemini-2.5-flash';
+    // Use env var for model or default to the current low-cost large-context route.
+    const modelId = process.env.GOOGLE_MODEL || 'gemini-3.1-flash-lite';
 
     beforeAll(() => {
       if (!apiKey) {
@@ -188,8 +188,8 @@ describe.skip('Council Providers - Real API Integration Tests', () => {
 
   describe('OpenAIProvider - Real API', () => {
     const apiKey = process.env.OPENAI_API_KEY;
-    // Use env var for model or default to gpt-5.2 (2026 default)
-    const modelId = process.env.OPENAI_MODEL || 'gpt-5.2';
+    // Use env var for model or default to gpt-5.4-mini (2026 default)
+    const modelId = process.env.OPENAI_MODEL || 'gpt-5.4-mini';
     let providerHealthy = false;
 
     beforeAll(async () => {
@@ -284,13 +284,13 @@ describe.skip('Council Providers - Real API Integration Tests', () => {
           providers.push(
             new GoogleProvider(
               process.env.GOOGLE_API_KEY!,
-              process.env.GOOGLE_MODEL || 'gemini-2.5-flash'
+              process.env.GOOGLE_MODEL || 'gemini-3.1-flash-lite'
             )
           );
         }
         if (hasApiKey('OPENAI_API_KEY')) {
           providers.push(
-            new OpenAIProvider(process.env.OPENAI_API_KEY!, process.env.OPENAI_MODEL || 'gpt-5.2')
+            new OpenAIProvider(process.env.OPENAI_API_KEY!, process.env.OPENAI_MODEL || 'gpt-5.4-mini')
           );
         }
 
@@ -330,7 +330,7 @@ describe.skip('Council Providers - Real API Integration Tests', () => {
         );
         const google = new GoogleProvider(
           process.env.GOOGLE_API_KEY!,
-          process.env.GOOGLE_MODEL || 'gemini-2.5-flash'
+          process.env.GOOGLE_MODEL || 'gemini-3.1-flash-lite'
         );
 
         // Get responses from both providers

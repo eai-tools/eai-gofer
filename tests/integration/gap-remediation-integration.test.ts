@@ -174,15 +174,16 @@ describe('Gap Remediation Integration', () => {
       const enforcer = new CostBudgetEnforcer(
         {
           maxCostUsd: 1.0,
+          maxTokensPerRun: 2_000_000,
           warningThreshold: 0.8,
         },
         runLedger
       );
 
       // Record enough usage to cross 80% warning threshold
-      // anthropic input rate: $0.003/1k tokens
-      // $0.80 = 266,667 tokens, use 270,000 to be safe
-      enforcer.recordUsage(270_000, 0);
+      // anthropic input rate: $0.001/1k tokens
+      // $0.80 = 800,000 tokens, use 810,000 to be safe
+      enforcer.recordUsage(810_000, 0);
 
       const snapshot = enforcer.getSnapshot();
       expect(snapshot.status).toBe('warning');
@@ -222,7 +223,7 @@ describe('Gap Remediation Integration', () => {
       );
 
       // Record enough to exceed $0.01 budget
-      enforcer.recordUsage(10_000, 0); // 10000 * 0.003/1000 = $0.03
+      enforcer.recordUsage(10_000, 0); // 10000 * 0.001/1000 = $0.01
 
       expect(enforcer.getSnapshot().status).toBe('exceeded');
 

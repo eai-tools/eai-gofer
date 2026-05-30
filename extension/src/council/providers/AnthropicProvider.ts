@@ -69,12 +69,18 @@ export class AnthropicProvider extends BaseLLMProvider {
       // Extract text content from response
       const textContent = response.content.find((block) => block.type === 'text');
       const content = textContent && 'text' in textContent ? textContent.text : '';
+      const usage = response.usage as Anthropic.Usage & {
+        cache_creation_input_tokens?: number;
+        cache_read_input_tokens?: number;
+      };
 
       return {
         content,
         usage: {
-          inputTokens: response.usage.input_tokens,
-          outputTokens: response.usage.output_tokens,
+          inputTokens: usage.input_tokens,
+          outputTokens: usage.output_tokens,
+          cacheReadTokens: usage.cache_read_input_tokens ?? 0,
+          cacheWriteTokens: usage.cache_creation_input_tokens ?? 0,
         },
         model: response.model,
         providerId: this.id,

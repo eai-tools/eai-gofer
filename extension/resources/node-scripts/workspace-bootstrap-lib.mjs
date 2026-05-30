@@ -14,6 +14,8 @@ export const CORE_SENTINELS = [
   path.join('.specify', 'scripts', 'node', 'parse-stage-command.mjs'),
   path.join('.specify', 'scripts', 'hooks', 'post-tool-use.mjs'),
   path.join('.specify', 'scripts', 'powershell', 'install-optional-tools.ps1'),
+  path.join('.specify', 'templates', 'gofer-model-policy.yaml'),
+  path.join('.specify', 'memory', 'gofer-model-policy.yaml'),
   path.join('.specify', 'specs'),
   path.join('.specify', 'memory'),
 ];
@@ -639,6 +641,23 @@ async function writeTextFile(filePath, content, dryRun) {
   }
 }
 
+async function writeModelPolicyIfMissing(workspaceRoot, sourceRoot, dryRun) {
+  const sourcePath = path.join(sourceRoot, '.specify', 'templates', 'gofer-model-policy.yaml');
+  const targetPath = path.join(workspaceRoot, '.specify', 'memory', 'gofer-model-policy.yaml');
+
+  let template = '';
+  try {
+    template = await fs.readFile(sourcePath, 'utf8');
+  } catch (error) {
+    if (error?.code === 'ENOENT') {
+      return false;
+    }
+    throw error;
+  }
+
+  return writeFileIfMissing(targetPath, template, dryRun);
+}
+
 async function mergeGitignore(workspaceRoot, dryRun) {
   const gitignorePath = path.join(workspaceRoot, '.gitignore');
   let existing = '';
@@ -692,6 +711,13 @@ Run the unified Gofer pipeline with:
 \`\`\`
 
 Artifacts are stored in \`.specify/specs/{feature}/\`.
+
+## Model Policy
+
+Edit \`.specify/memory/gofer-model-policy.yaml\` to tune simple, medium, hard,
+and arbiter model routes for Claude, Codex/OpenAI, Gemini, and Copilot. The
+file is copied from \`.specify/templates/gofer-model-policy.yaml\` when missing
+and is not overwritten by bootstrap.
 `;
 }
 
@@ -769,6 +795,10 @@ export async function bootstrapWorkspace({
     if (copied) {
       changed.push(relativePath);
     }
+  }
+
+  if (await writeModelPolicyIfMissing(workspaceRoot, sourceRoot, dryRun)) {
+    changed.push(path.join('.specify', 'memory', 'gofer-model-policy.yaml'));
   }
 
   await writeTextFile(

@@ -56,8 +56,8 @@ describe('CostBudgetEnforcer', () => {
     enforcer.recordUsage(1000, 500);
     const snapshot = enforcer.getSnapshot();
 
-    // 1000 input * 0.003/1000 + 500 output * 0.015/1000 = 0.003 + 0.0075 = 0.0105
-    expect(snapshot.currentCostUsd).toBeCloseTo(0.0105, 4);
+    // 1000 input * 0.001/1000 + 500 output * 0.005/1000 = 0.001 + 0.0025 = 0.0035
+    expect(snapshot.currentCostUsd).toBeCloseTo(0.0035, 4);
     expect(snapshot.currentTokens).toBe(1500);
   });
 
@@ -73,17 +73,17 @@ describe('CostBudgetEnforcer', () => {
     enforcer.recordUsage(1000, 0, 'unknown-provider');
     const snapshot = enforcer.getSnapshot();
 
-    // Falls back to anthropic: 1000 * 0.003/1000 = 0.003
-    expect(snapshot.currentCostUsd).toBeCloseTo(0.003, 4);
+    // Falls back to anthropic: 1000 * 0.001/1000 = 0.001
+    expect(snapshot.currentCostUsd).toBeCloseTo(0.001, 4);
   });
 
   it('should transition to warning at 80% threshold', () => {
-    // With default $10 budget, 80% = $8.00
-    // anthropic input rate: $0.003/1k tokens
-    // Need $8.00 worth: 8.0 / 0.003 * 1000 = 2,666,667 input tokens
-    const enforcer80 = new CostBudgetEnforcer({ maxCostUsd: 1.0 }, mockLedger);
-    // $0.80 at anthropic input rate: 0.80 / 0.003 * 1000 = 266,667 tokens
-    enforcer80.recordUsage(270_000, 0);
+    const enforcer80 = new CostBudgetEnforcer(
+      { maxCostUsd: 1.0, maxTokensPerRun: 2_000_000 },
+      mockLedger
+    );
+    // $0.81 at anthropic input rate: 0.81 / 0.001 * 1000 = 810,000 tokens
+    enforcer80.recordUsage(810_000, 0);
 
     const snapshot = enforcer80.getSnapshot();
     expect(snapshot.status).toBe('warning');
@@ -157,9 +157,12 @@ describe('CostBudgetEnforcer', () => {
   });
 
   it('should emit budget_warning to ledger on warning transition', () => {
-    const warningEnforcer = new CostBudgetEnforcer({ maxCostUsd: 1.0 }, mockLedger);
+    const warningEnforcer = new CostBudgetEnforcer(
+      { maxCostUsd: 1.0, maxTokensPerRun: 2_000_000 },
+      mockLedger
+    );
     // Record enough to cross 80%
-    warningEnforcer.recordUsage(270_000, 0);
+    warningEnforcer.recordUsage(810_000, 0);
 
     expect(mockLedger.log).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -184,10 +187,13 @@ describe('CostBudgetEnforcer', () => {
   });
 
   it('should NOT emit repeated events for the same status', () => {
-    const smallEnforcer = new CostBudgetEnforcer({ maxCostUsd: 1.0 }, mockLedger);
+    const smallEnforcer = new CostBudgetEnforcer(
+      { maxCostUsd: 1.0, maxTokensPerRun: 2_000_000 },
+      mockLedger
+    );
 
     // Cross warning threshold
-    smallEnforcer.recordUsage(270_000, 0);
+    smallEnforcer.recordUsage(810_000, 0);
     const callCount1 = (mockLedger.log as ReturnType<typeof vi.fn>).mock.calls.length;
 
     // Record more usage still in warning range
@@ -214,9 +220,22 @@ describe('CostBudgetEnforcer', () => {
   });
 
   it('should have correct COST_PER_1K_TOKENS rates', () => {
-    expect(COST_PER_1K_TOKENS.anthropic).toEqual({ input: 0.003, output: 0.015 });
-    expect(COST_PER_1K_TOKENS.google).toEqual({ input: 0.00025, output: 0.0005 });
-    expect(COST_PER_1K_TOKENS.openai).toEqual({ input: 0.005, output: 0.015 });
+    expect(COST_PER_1K_TOKENS.anthropic).toMatchObject({
+      input: 0.001,
+      cachedInput: 0.0001,
+      cacheWrite: 0.00125,
+      output: 0.005,
+    });
+    expect(COST_PER_1K_TOKENS.google).toMatchObject({
+      input: 0.00025,
+      cachedInput: 0.000025,
+      output: 0.0015,
+    });
+    expect(COST_PER_1K_TOKENS.openai).toMatchObject({
+      input: 0.00075,
+      cachedInput: 0.000075,
+      output: 0.0045,
+    });
   });
 
   it('should handle custom config overrides', () => {

@@ -313,6 +313,7 @@ export class ResourceSyncer implements IResourceOperations {
     await this.createGoferStructure();
     await this.syncCanonicalCommands();
     await this.copyBundledTemplates();
+    await this.ensureDefaultModelPolicy();
 
     // Restore constitution if it existed
     if (existingConstitution) {
@@ -1479,6 +1480,14 @@ Optional helpers such as \`/0a_problem_validation\`, \`/7_gofer_save\`,
 \`/8_gofer_resume\`, and \`/7a_stakeholder_comms\` support the workflow without
 adding extra core pipeline stages.
 
+## Model Policy
+
+Gofer creates a user-owned model policy at
+\`.specify/memory/gofer-model-policy.yaml\` from the shipped
+\`.specify/templates/gofer-model-policy.yaml\` template. Edit the memory copy to
+tune simple, medium, hard, and arbiter model routes for Claude, Codex/OpenAI,
+Gemini, and Copilot. Bootstrap should not overwrite local edits.
+
 ## Constitution
 
 Define your project principles in \`memory/constitution.md\`:
@@ -1723,6 +1732,33 @@ AI agents validate code against the constitution before and during the final
       ['*.md', '*.yaml'],
       false
     );
+  }
+
+  public async ensureDefaultModelPolicy(): Promise<void> {
+    try {
+      const targetPath = path.join(this.specifyPath, 'memory', 'gofer-model-policy.yaml');
+      if (await FileUtils.exists(targetPath)) {
+        this.logger.debug('ResourceSyncer', 'Preserving existing gofer-model-policy.yaml');
+        return;
+      }
+
+      const sourcePath = path.join(
+        this.getExtensionPath(),
+        'resources',
+        'templates',
+        'gofer-model-policy.yaml'
+      );
+      const policy = await fs.readFile(sourcePath, 'utf-8');
+      await this.writeManagedFile(targetPath, policy);
+      this.logger.info('ResourceSyncer', 'Created default gofer-model-policy.yaml');
+    } catch (error) {
+      this.logger.warn(
+        'ResourceSyncer',
+        `Failed to create default model policy: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
+    }
   }
 
   public async syncCanonicalCommands(): Promise<void> {

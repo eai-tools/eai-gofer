@@ -207,9 +207,9 @@ All MCP tools return errors in the following format:
 
 - **MCP Tools:** No rate limiting (local execution)
 - **External APIs:** Subject to provider limits:
-  - Anthropic API: 50 req/min (Sonnet), 1000 req/min (Haiku)
-  - Google AI API: 60 req/min (Gemini Pro), 1500 req/min (Flash)
-  - OpenAI API: 10,000 req/min (GPT-4o)
+  - Anthropic API: provider/account dependent; model route comes from `.specify/memory/gofer-model-policy.yaml`
+  - Google AI API: provider/account dependent; model route comes from `.specify/memory/gofer-model-policy.yaml`
+  - OpenAI API: provider/account dependent; model route comes from `.specify/memory/gofer-model-policy.yaml`
 
 ### Authentication
 

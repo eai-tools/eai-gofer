@@ -366,9 +366,9 @@ No database required - all data is file-based for Git-friendly version control.
 | System                    | Type       | Purpose                                                   | Criticality                 |
 | ------------------------- | ---------- | --------------------------------------------------------- | --------------------------- |
 | **VS Code Extension API** | Platform   | Extension host, commands, views, language server protocol | Required                    |
-| **Anthropic API**         | Upstream   | Claude 3.5 Sonnet/Haiku for autonomous implementation     | Optional (Claude Code only) |
-| **Google AI API**         | Upstream   | Gemini 1.5 Pro/Flash for LLM Council validation           | Optional                    |
-| **OpenAI API**            | Upstream   | GPT-4 for LLM Council validation                          | Optional                    |
+| **Anthropic API**         | Upstream   | Claude Haiku/Sonnet/Opus routes from `.specify/memory/gofer-model-policy.yaml` | Optional (Claude Code only) |
+| **Google AI API**         | Upstream   | Gemini Flash-Lite/Flash/Pro routes from the Gofer model policy | Optional                    |
+| **OpenAI API**            | Upstream   | GPT mini/nano/Codex/flagship routes from the Gofer model policy | Optional                    |
 | **Claude Code CLI**       | Downstream | Primary consumer of MCP tools (23 tools)                  | Primary                     |
 | **GitHub Copilot**        | Downstream | Consumer of prompt files (`.github/prompts/`)             | Core                        |
 | **OpenAI Codex CLI**      | Downstream | Consumer of skill files (`.agents/skills/`)               | Core                        |

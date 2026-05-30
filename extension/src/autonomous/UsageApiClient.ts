@@ -470,6 +470,9 @@ export class UsageApiClient implements UsageDataSource {
       singleSessions: 0,
       totalInputTokens: 0,
       totalOutputTokens: 0,
+      totalCachedInputTokens: 0,
+      totalCacheReadTokens: 0,
+      totalCacheWriteTokens: 0,
       totalCostUsd: 0,
       avgDurationMs: 0,
       byProvider: {},
@@ -481,6 +484,9 @@ export class UsageApiClient implements UsageDataSource {
     for (const partial of partials) {
       merged.totalInputTokens += partial.totalInputTokens ?? 0;
       merged.totalOutputTokens += partial.totalOutputTokens ?? 0;
+      merged.totalCachedInputTokens += partial.totalCachedInputTokens ?? 0;
+      merged.totalCacheReadTokens += partial.totalCacheReadTokens ?? 0;
+      merged.totalCacheWriteTokens += partial.totalCacheWriteTokens ?? 0;
       merged.totalCostUsd += partial.totalCostUsd ?? 0;
 
       if (partial.byProvider) {

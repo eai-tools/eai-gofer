@@ -1,6 +1,6 @@
 # Gofer Agent Plugin
 
-Version: 3.4.8
+Version: 3.5.0
 
 This package is the portable Claude, Gemini, Codex, and Copilot workflow layer for Gofer. It is released beside the VS Code extension, but it does not replace the VSIX UI, status views, updater, or language-server features.
 
@@ -22,8 +22,8 @@ That host publishes:
 
 - Latest VS Code extension: `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-latest.vsix`
 - Latest agent bundle zip: `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-latest.zip`
-- This release VS Code extension: `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-3.4.8.vsix`
-- This release agent bundle zip: `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-3.4.8.zip`
+- This release VS Code extension: `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-3.5.0.vsix`
+- This release agent bundle zip: `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-3.5.0.zip`
 - Claude marketplace manifest: `https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/claude-marketplace.json`
 - Codex manifest: `https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/codex-plugin.json`
 - Copilot marketplace manifest: `https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/copilot-marketplace.json`
@@ -134,3 +134,17 @@ Downloaded bundle install:
 ```bash
 gemini extensions install ~/plugins/eai-gofer
 ```
+
+## Model Policy
+
+After bootstrap, each repository gets a user-owned model policy at:
+
+```text
+.specify/memory/gofer-model-policy.yaml
+```
+
+The shipped default is copied from `.specify/templates/gofer-model-policy.yaml`
+and is not overwritten by bootstrap. Use it to tune simple, medium, hard, and
+arbiter model routes for Claude, Codex/OpenAI, Gemini, and Copilot. Copilot
+defaults to `Auto` for simple/default work because exact model availability is
+controlled by the Copilot client, plan, and organization policy.

@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [3.5.0] - 2026-05-30
+
+Add model cost policy and cross-surface routing
+
 ## [3.4.7] - 2026-05-28
 
 Public repo cleanup, pipeline normalization, and legacy 6a removal

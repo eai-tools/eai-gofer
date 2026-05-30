@@ -2,7 +2,7 @@
 
 This file documents all Gofer pipeline commands available as agent skills.
 
-Generated: 2026-05-30T05:29:41.743Z
+Generated: 2026-05-30T05:31:19.425Z
 
 ## Commands
 

@@ -10,7 +10,7 @@
 
 import { CLIProviderAdapter, ParsedCLIOutput } from './CLIProviderAdapter';
 import { ClaudeOutputParser } from './ClaudeOutputParser';
-import { ProviderId, QueryRequest } from '../../types';
+import { DEFAULT_MODELS, ProviderId, QueryRequest } from '../../types';
 import { registerProvider } from '../ProviderFactory';
 
 /**
@@ -26,9 +26,9 @@ export class ClaudeCodeCLIProvider extends CLIProviderAdapter {
   /**
    * Constructor
    * @param cliCommand - Command to execute (default: 'claude')
-   * @param model - Model identifier (default: 'claude-opus-4')
+   * @param model - Model identifier (defaults to the cost-optimized Claude model)
    */
-  constructor(cliCommand: string = 'claude', model: string = 'claude-opus-4') {
+  constructor(cliCommand: string = 'claude', model: string = DEFAULT_MODELS['claude-cli']) {
     super(cliCommand, model);
     this.model = model;
     this.outputParser = new ClaudeOutputParser();

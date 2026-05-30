@@ -11,25 +11,22 @@ description:
 
 # Gofer Validate
 
-You are validating that the implementation meets engineering quality standards
-across **three phases**:
+## Token And Cost Policy
+<!-- gofer:token-cost-policy:start -->
 
-- **Phase A — Rubric Validation**: 10-category engineering rubric scored only
-  from real evidence (Categories 1-10, up to 100 points)
-- **Phase B — Blast Radius Analysis**: risk to other code, interface contracts,
-  error logging/observability, submodule and repo-wide impact, dependency risk,
-  rollback readiness, release-checklist compliance (Category 11, 10 points)
-- **Phase C — Engineering Review Loop**: iterative review-fix cycles (up to 5)
-  to catch issues rubric-based validation might miss
+Before spawning agents, calling tools, or loading large files:
 
-This is the **sixth and final stage** of the unified Gofer pipeline. It owns
-the full validation, blast-radius, and engineering review workflow inside a
-single terminal command.
-
-A score of **110/110 on the rubric (Phases A + B) is required to pass**. Any
-rubric category scoring 0 triggers failure and a brownfield restart loop. Phase
-C then runs 1-5 iterative review-fix cycles until all Red/Yellow findings are
-resolved or 5 cycles complete.
+1. Treat `.specify/memory/gofer-model-policy.yaml` as the repo-owned source of truth for simple, medium, hard, and arbiter model routing. If it is missing, run `/gofer:bootstrap-workspace` before continuing.
+2. Use the cheapest capable model first.
+   - Claude: Haiku for scouting/extraction; Sonnet for normal implementation, synthesis, validation, and security; Opus for high-risk arbitration or release-critical failures.
+   - Codex/OpenAI: GPT mini for simple coding; GPT nano only for locate/classify/summarize/mechanical work; GPT-5.3-Codex or flagship GPT for tool-heavy coding, architecture, and release-critical validation.
+   - Gemini: Flash-Lite for cheap large-context scan/summarize; Flash for default research synthesis; Pro for large-context architecture or high-risk arbitration.
+   - Copilot: prefer Auto for simple and default work; ask the user before choosing a paid/high-tier picker model for hard security, architecture, or release gates.
+3. Keep raw tool output out of the main conversation context. Save stable findings to `.specify/specs/{feature}/context-bundle.md`, then work from summaries.
+4. Use provider prompt/context caching only for stable, non-secret prefixes: Gofer scaffold, AGENTS/CLAUDE/Copilot instructions, constitution, repo map, stage contracts, and validation rubric.
+5. Before continuing after large research, planning, implementation, or validation bursts, checkpoint the durable artifacts and compact/clear/resume context when the host supports it.
+6. Escalate model tier only when a cheaper pass is low-confidence, contradictory, security-sensitive, or blocking release quality.
+<!-- gofer:token-cost-policy:end -->
 
 ## User Input
 
@@ -318,17 +315,17 @@ strategy (#13):
 
 ```
 # Diverge: 3 attack perspectives
-Task: subagent_type="validate-security-red-team", model="sonnet"
+Task: subagent_type="validate-security-red-team", model="opus"
 Prompt: "Perspective 1: OWASP Top 10 attack analysis for feature [FEATURE_NAME].
 Scan all new/modified files from tasks.md. Attack from OWASP perspective.
 Return findings with exploit steps (<2000 tokens)."
 
-Task: subagent_type="validate-security-red-team", model="sonnet"
+Task: subagent_type="validate-security-red-team", model="opus"
 Prompt: "Perspective 2: Business logic abuse analysis for feature [FEATURE_NAME].
 Scan all new/modified files from tasks.md. Attack business logic.
 Return findings with exploit steps (<2000 tokens)."
 
-Task: subagent_type="validate-security-red-team", model="sonnet"
+Task: subagent_type="validate-security-red-team", model="opus"
 Prompt: "Perspective 3: CVE search for feature [FEATURE_NAME].
 Check package.json dependencies for known CVEs.
 Return findings with advisory references (<2000 tokens)."
@@ -548,7 +545,7 @@ Logs', 'PII Risk', 'Metric Coverage Delta', 'Trace Propagation'."
 ### Agent 11: Dependency & Submodule Impact (with npm audit delta)
 
 ```
-Task: subagent_type="research-dependency-evaluator", model="sonnet"
+Task: subagent_type="research-dependency-evaluator", model="haiku"
 Prompt: "Dependency and submodule blast-radius analysis for feature
 [FEATURE_NAME].
 
@@ -579,7 +576,7 @@ Bumps', 'Lockfile Drift', 'CVE Delta', 'Submodule Boundary Crossings'."
 ### Agent 12: Rollback Readiness & Release Checklist
 
 ```
-Task: subagent_type="tasks-rollback-planner", model="sonnet"
+Task: subagent_type="tasks-rollback-planner", model="haiku"
 Prompt: "Rollback readiness + release-checklist review for feature
 [FEATURE_NAME].
 
@@ -1031,7 +1028,7 @@ frontmatter `pass:` marker is bumped from 1 to 2 so downstream consumers can
 tell which pass produced the artefact.
 
 ```
-Task: subagent_type="visual-canvas-writer", model="sonnet"
+Task: subagent_type="visual-canvas-writer", model="haiku"
 Prompt: "Pass-2 refresh for {FEATURE_DIR}/visuals/impact-canvas.md.
 Read validation council output from {FEATURE_DIR}/validation.md.
 Replace ONLY the topThreeRisks section with the council's top three risks.
@@ -1061,7 +1058,7 @@ top-quadrant entries that pass-1 (run from this same stage before validation)
 populated from the spec NFR / Out-of-Scope sections.
 
 ```
-Task: subagent_type="visual-risk-writer", model="sonnet"
+Task: subagent_type="visual-risk-writer", model="haiku"
 Prompt: "Pass 2: refresh risk heatmap for feature [FEATURE_NAME].
 
 Feature directory: {FEATURE_DIR}

@@ -1236,7 +1236,7 @@ export async function launchClaudeCode(specId: string): Promise<void> {
     if (autonomousMode && apiKey && autonomousResponder) {
       outputChannel.appendLine('🤖 Autonomous mode ENABLED');
       outputChannel.appendLine('   Claude Code questions will be answered automatically');
-      outputChannel.appendLine('   Using Claude 3.5 Haiku with full context');
+      outputChannel.appendLine('   Using Claude Haiku with full context');
       outputChannel.appendLine('   Terminal output is being captured and monitored\n');
 
       // Start monitoring after Claude Code initializes (after 10 seconds)
@@ -1290,7 +1290,7 @@ async function startAutonomousMonitoring(specId: string, workspacePath: string):
 
   outputChannel?.appendLine('🔍 Starting autonomous question monitoring...');
   outputChannel?.appendLine('   Watching for "(esc)" prompt in terminal output');
-  outputChannel?.appendLine('   Will send questions to Claude 3.5 Haiku with full context\n');
+  outputChannel?.appendLine('   Will send questions to Claude Haiku with full context\n');
 
   // Use shell integration to monitor command execution
   vscode.window.onDidChangeTerminalShellIntegration((e) => {

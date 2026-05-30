@@ -217,7 +217,7 @@ Which approach should I use?
         expect(response).toBe('/5_gofer_implement\n');
         expect(mockCreate).toHaveBeenCalledWith(
           expect.objectContaining({
-            model: 'claude-3-5-haiku-20241022',
+            model: 'claude-haiku-4-5',
             max_tokens: 1024,
           })
         );

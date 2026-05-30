@@ -4,10 +4,9 @@
  * Single source of truth for provider pricing rates.
  * Used by AIUsageMonitor, CostBudgetEnforcer, and UsageLogger.
  *
- * Rates as of March 2026:
- * - Anthropic (Claude): $3/M input, $15/M output
- * - OpenAI (GPT): $5/M input, $15/M output
- * - Google (Gemini): $0.25/M input, $0.50/M output
+ * Rates verified May 2026 against official provider pricing docs.
+ * Keep this table deliberately model-specific: Gofer routes cheap scouting
+ * work to cheap models, and estimates must reflect the configured model.
  *
  * Feature 025: AI Token Usage Tracking Panel
  */
@@ -18,12 +17,18 @@ import type { PricingConfig } from '../types/aiUsage';
  * Cost per 1,000 tokens by provider (USD).
  *
  * Formula: (tokens / 1000) * rate = cost in USD
- * Equivalent to per-million rates: anthropic input = $3/M = $0.003/K
+ * Equivalent to per-million rates: $1/M = $0.001/K.
  */
 export const COST_PER_1K_TOKENS: Record<string, PricingConfig> = {
-  anthropic: { input: 0.003, output: 0.015 },
-  google: { input: 0.00025, output: 0.0005 },
-  openai: { input: 0.005, output: 0.015 },
+  anthropic: { input: 0.001, cachedInput: 0.0001, cacheWrite: 0.00125, output: 0.005 },
+  google: {
+    input: 0.00025,
+    cachedInput: 0.000025,
+    cacheStoragePerHour: 0.001,
+    output: 0.0015,
+  },
+  openai: { input: 0.00075, cachedInput: 0.000075, output: 0.0045 },
+  copilot: { input: 0.00025, cachedInput: 0.000025, output: 0.002 },
 };
 
 /**
@@ -34,50 +39,190 @@ export const COST_PER_1K_TOKENS: Record<string, PricingConfig> = {
  * - OpenAI: https://openai.com/pricing
  * - Google: https://ai.google.dev/pricing
  *
- * Last verified: 2026-03-19
+ * Last verified: 2026-05-30
  */
 export const MODEL_PRICING: Record<string, PricingConfig> = {
   // Anthropic Claude Models
-  'claude-opus-4-6': { input: 0.005, output: 0.025 }, // $5/M, $25/M
-  'claude-opus-4-5': { input: 0.005, output: 0.025 }, // $5/M, $25/M
-  'claude-sonnet-4-5': { input: 0.003, output: 0.015 }, // $3/M, $15/M
-  'claude-sonnet-4': { input: 0.003, output: 0.015 }, // $3/M, $15/M
-  'claude-haiku-4-5': { input: 0.001, output: 0.005 }, // $1/M, $5/M
-  'claude-haiku-3-5': { input: 0.00025, output: 0.00125 }, // $0.25/M, $1.25/M
+  'claude-opus-4-8': {
+    input: 0.005,
+    cachedInput: 0.0005,
+    cacheWrite: 0.00625,
+    output: 0.025,
+  },
+  'claude-opus-4-7': {
+    input: 0.005,
+    cachedInput: 0.0005,
+    cacheWrite: 0.00625,
+    output: 0.025,
+  },
+  'claude-opus-4-6': {
+    input: 0.005,
+    cachedInput: 0.0005,
+    cacheWrite: 0.00625,
+    output: 0.025,
+  },
+  'claude-opus-4-5': {
+    input: 0.005,
+    cachedInput: 0.0005,
+    cacheWrite: 0.00625,
+    output: 0.025,
+  },
+  'claude-sonnet-4-6': {
+    input: 0.003,
+    cachedInput: 0.0003,
+    cacheWrite: 0.00375,
+    output: 0.015,
+  },
+  'claude-sonnet-4-5': {
+    input: 0.003,
+    cachedInput: 0.0003,
+    cacheWrite: 0.00375,
+    output: 0.015,
+  },
+  'claude-sonnet-4': {
+    input: 0.003,
+    cachedInput: 0.0003,
+    cacheWrite: 0.00375,
+    output: 0.015,
+  },
+  'claude-haiku-4-5': {
+    input: 0.001,
+    cachedInput: 0.0001,
+    cacheWrite: 0.00125,
+    output: 0.005,
+  },
+  'claude-haiku-3-5': {
+    input: 0.0008,
+    cachedInput: 0.00008,
+    cacheWrite: 0.001,
+    output: 0.004,
+  },
 
   // OpenAI Models
+  'gpt-5.5-pro': { input: 0.03, cachedInput: 0.003, output: 0.18 },
+  'gpt-5.5': { input: 0.005, cachedInput: 0.0005, output: 0.03 },
+  'gpt-5.4': { input: 0.0025, cachedInput: 0.00025, output: 0.015 },
+  'gpt-5.4-mini': { input: 0.00075, cachedInput: 0.000075, output: 0.0045 },
+  'gpt-5.4-nano': { input: 0.0002, cachedInput: 0.00002, output: 0.00125 },
+  'gpt-5.3-codex': { input: 0.00175, cachedInput: 0.000175, output: 0.014 },
+  'gpt-5.2-codex': { input: 0.00175, cachedInput: 0.000175, output: 0.014 },
+  'gpt-5.2': { input: 0.00175, cachedInput: 0.000175, output: 0.014 },
+  'gpt-5-mini': { input: 0.00025, cachedInput: 0.000025, output: 0.002 },
+  'gpt-5-nano': { input: 0.00005, cachedInput: 0.000005, output: 0.0004 },
   'gpt-4': { input: 0.03, output: 0.06 }, // $30/M, $60/M
   'gpt-4-turbo': { input: 0.01, output: 0.03 }, // $10/M, $30/M
-  'gpt-4o': { input: 0.005, output: 0.015 }, // $5/M, $15/M
+  'gpt-4o': { input: 0.0025, cachedInput: 0.00125, output: 0.01 },
+  'gpt-4o-mini': { input: 0.00015, cachedInput: 0.000075, output: 0.0006 },
   'gpt-3.5-turbo': { input: 0.0005, output: 0.0015 }, // $0.50/M, $1.50/M
   o1: { input: 0.015, output: 0.06 }, // $15/M, $60/M
   'o1-mini': { input: 0.003, output: 0.012 }, // $3/M, $12/M
 
   // Google Gemini Models
+  'gemini-3.5-flash': {
+    input: 0.0015,
+    cachedInput: 0.00015,
+    cacheStoragePerHour: 0.001,
+    output: 0.009,
+  },
+  'gemini-3.1-flash-lite': {
+    input: 0.00025,
+    cachedInput: 0.000025,
+    cacheStoragePerHour: 0.001,
+    output: 0.0015,
+  },
+  'gemini-3.1-flash-lite-preview': {
+    input: 0.00025,
+    cachedInput: 0.000025,
+    cacheStoragePerHour: 0.001,
+    output: 0.0015,
+  },
+  'gemini-3-flash-preview': {
+    input: 0.0005,
+    cachedInput: 0.00005,
+    cacheStoragePerHour: 0.001,
+    output: 0.003,
+  },
+  'gemini-3.1-pro-preview': {
+    input: 0.002,
+    cachedInput: 0.0002,
+    cacheStoragePerHour: 0.0045,
+    output: 0.012,
+  },
+  'gemini-2.5-flash-lite': {
+    input: 0.0001,
+    cachedInput: 0.00001,
+    cacheStoragePerHour: 0.001,
+    output: 0.0004,
+  },
+  'gemini-2.5-flash': {
+    input: 0.0003,
+    cachedInput: 0.00005,
+    cacheStoragePerHour: 0.001,
+    output: 0.0025,
+  },
+  'gemini-2.5-pro': {
+    input: 0.00125,
+    cachedInput: 0.00031,
+    cacheStoragePerHour: 0.0045,
+    output: 0.01,
+  },
+  'gemini-3-flash': {
+    input: 0.0005,
+    cachedInput: 0.00005,
+    cacheStoragePerHour: 0.001,
+    output: 0.003,
+  },
+  'gemini-3.1-pro': {
+    input: 0.002,
+    cachedInput: 0.0002,
+    cacheStoragePerHour: 0.0045,
+    output: 0.012,
+  },
   'gemini-1.5-pro': { input: 0.00125, output: 0.005 }, // $1.25/M, $5/M
   'gemini-1.5-flash': { input: 0.000075, output: 0.0003 }, // $0.075/M, $0.30/M
   'gemini-pro': { input: 0.0005, output: 0.0015 }, // $0.50/M, $1.50/M
+
+  // GitHub Copilot AI-credit model table entries
+  'copilot:gpt-5-mini': { input: 0.00025, cachedInput: 0.000025, output: 0.002 },
+  'copilot:raptor-mini': { input: 0.00025, cachedInput: 0.000025, output: 0.002 },
 };
 
 /**
  * Default model to use for each provider when model cannot be determined.
  */
 export const DEFAULT_MODELS: Record<string, string> = {
-  anthropic: 'claude-sonnet-4-5',
-  openai: 'gpt-4-turbo',
-  google: 'gemini-1.5-flash',
+  anthropic: 'claude-haiku-4-5',
+  openai: 'gpt-5.4-mini',
+  google: 'gemini-3.1-flash-lite',
+  copilot: 'copilot:gpt-5-mini',
 };
 
 /**
  * Timestamp when pricing data was last updated.
  * Used by isPricingStale() to warn when rates may be outdated.
  */
-export const PRICING_LAST_UPDATED = new Date('2026-03-19').getTime();
+export const PRICING_LAST_UPDATED = new Date('2026-05-30').getTime();
 
 /**
  * Default provider used when providerId is not specified
  */
 export const DEFAULT_PROVIDER = 'anthropic';
+
+/**
+ * Optional cache token inputs for providers with prompt/context caching.
+ */
+export interface CacheTokenUsage {
+  /** OpenAI-style cached input tokens, or generic provider cached read tokens */
+  cachedInputTokens?: number;
+  /** Anthropic/Gemini cache-read tokens */
+  cacheReadTokens?: number;
+  /** Anthropic/Gemini cache-write/cache-creation tokens */
+  cacheWriteTokens?: number;
+  /** Back-compat alias for cacheWriteTokens */
+  cacheCreationTokens?: number;
+  /** Provider cache storage measured as token-hours */
+  cacheStorageTokenHours?: number;
+}
 
 /**
  * Check if pricing data is stale (>90 days old).
@@ -149,7 +294,8 @@ export function calculateCost(
   inputTokens: number,
   outputTokens: number,
   providerId: string = DEFAULT_PROVIDER,
-  modelId?: string
+  modelId?: string,
+  cacheUsage: CacheTokenUsage = {}
 ): number {
   let rates: PricingConfig;
 
@@ -161,5 +307,26 @@ export function calculateCost(
     rates = COST_PER_1K_TOKENS[providerId] ?? COST_PER_1K_TOKENS[DEFAULT_PROVIDER];
   }
 
-  return (inputTokens * rates.input + outputTokens * rates.output) / 1000;
+  const uncachedInputTokens = Math.max(0, inputTokens);
+  const generatedOutputTokens = Math.max(0, outputTokens);
+  const cachedInputTokens =
+    Math.max(0, cacheUsage.cachedInputTokens ?? 0) +
+    Math.max(0, cacheUsage.cacheReadTokens ?? 0);
+  const cacheWriteTokens = Math.max(
+    0,
+    cacheUsage.cacheWriteTokens ?? cacheUsage.cacheCreationTokens ?? 0
+  );
+  const cacheStorageTokenHours = Math.max(0, cacheUsage.cacheStorageTokenHours ?? 0);
+
+  const cacheReadRate = rates.cacheRead ?? rates.cachedInput ?? rates.input;
+  const cacheWriteRate = rates.cacheWrite ?? rates.input;
+  const cacheStorageRate = rates.cacheStoragePerHour ?? 0;
+
+  return (
+    uncachedInputTokens * rates.input +
+    cachedInputTokens * cacheReadRate +
+    cacheWriteTokens * cacheWriteRate +
+    cacheStorageTokenHours * cacheStorageRate +
+    generatedOutputTokens * rates.output
+  ) / 1000;
 }

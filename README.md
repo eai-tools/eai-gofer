@@ -45,6 +45,30 @@ Optional helpers stay outside the core 0-6 flow:
 - `/gofer:check-workspace`
 - `/gofer:bootstrap-workspace`
 
+## Model And Cost Policy
+
+Gofer bootstraps a repo-owned model policy at:
+
+```text
+.specify/memory/gofer-model-policy.yaml
+```
+
+The shipped default comes from `.specify/templates/gofer-model-policy.yaml`.
+Bootstrap creates the memory copy when it is missing and does not overwrite
+local edits.
+
+Default posture:
+
+- Claude: Haiku for simple scouting, Sonnet for normal work, Opus for hard
+  security/architecture/release gates.
+- Codex/OpenAI: GPT mini for simple coding, GPT nano only for mechanical
+  locate/classify/summarize work, GPT-5.3-Codex or flagship GPT for hard
+  tool-heavy coding and arbitration.
+- Gemini: Flash-Lite for cheap large-context scanning, Flash for normal
+  synthesis, Pro for hard large-context architecture/research gates.
+- Copilot: `Auto` for simple/default work; ask before selecting a paid/high-tier
+  picker model for hard review.
+
 ## Install
 
 ### VS Code

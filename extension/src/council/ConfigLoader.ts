@@ -21,7 +21,7 @@ import {
 /**
  * Valid provider IDs for validation
  */
-const VALID_PROVIDER_IDS: ProviderId[] = ['anthropic', 'google', 'openai'];
+const VALID_PROVIDER_IDS: ProviderId[] = ['anthropic', 'google', 'openai', 'claude-cli', 'codex-cli'];
 
 /**
  * Valid council modes

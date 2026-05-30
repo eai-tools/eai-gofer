@@ -2,7 +2,7 @@
  * Claude Code Autonomous Responder
  *
  * Monitors Claude Code terminal output for questions and automatically
- * responds using Claude 3.5 Haiku with full context (constitution, spec, tasks).
+ * responds using Claude Haiku with full context (constitution, spec, tasks).
  */
 
 import * as vscode from 'vscode';
@@ -675,7 +675,7 @@ If question found: Provide the answer (number only for multiple choice, clear te
         .replace(/\{tasks\}/g, fullContext.tasks || 'No tasks found')
         .replace(/\{workState\}/g, workStateInstructions);
 
-      this.outputChannel.appendLine('🤔 Asking Claude 3.5 Haiku to analyze context...');
+      this.outputChannel.appendLine('🤔 Asking Claude Haiku 4.5 to analyze context...');
 
       // Log full prompt details to file
       await this.writeLog('\n' + '='.repeat(80));
@@ -686,10 +686,10 @@ If question found: Provide the answer (number only for multiple choice, clear te
       await this.writeLog('\n--- USER PROMPT ---');
       await this.writeLog(userPrompt);
       await this.writeLog('\n' + '='.repeat(80));
-      await this.writeLog('Sending to Claude 3.5 Haiku (model: claude-3-5-haiku-20241022)...');
+      await this.writeLog('Sending to Claude Haiku 4.5 (model: claude-haiku-4-5)...');
 
       const response = await this.anthropic.messages.create({
-        model: 'claude-3-5-haiku-20241022', // Claude 3.5 Haiku (latest version)
+        model: 'claude-haiku-4-5',
         max_tokens: 1024,
         system: systemPrompt,
         messages: [

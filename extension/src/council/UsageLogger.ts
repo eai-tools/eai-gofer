@@ -9,7 +9,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { UsageMetrics, CouncilConfig } from './types';
+import { UsageMetrics, CouncilConfig, ProviderUsageBreakdown } from './types';
 import type { UsageDataSource } from '../types/aiUsage';
 import { Logger } from '../utils/logger';
 import { calculateCost } from '../config/pricing';
@@ -30,6 +30,12 @@ export interface UsageLogEntry {
   inputTokens: number;
   /** Total output tokens */
   outputTokens: number;
+  /** Cached input/cache-read tokens */
+  cachedInputTokens?: number;
+  /** Provider cache-read tokens */
+  cacheReadTokens?: number;
+  /** Provider cache-write/cache-creation tokens */
+  cacheWriteTokens?: number;
   /** Estimated cost in USD */
   estimatedCostUsd: number;
   /** Duration in milliseconds */
@@ -37,7 +43,7 @@ export interface UsageLogEntry {
   /** Number of providers used */
   providerCount: number;
   /** Provider breakdown */
-  providers: Record<string, { tokens: number; costUsd: number }>;
+  providers: Record<string, ProviderUsageBreakdown>;
 }
 
 /**
@@ -54,6 +60,12 @@ export interface UsageSummary {
   totalInputTokens: number;
   /** Total output tokens */
   totalOutputTokens: number;
+  /** Total cached input/cache-read tokens */
+  totalCachedInputTokens: number;
+  /** Total provider cache-read tokens */
+  totalCacheReadTokens: number;
+  /** Total provider cache-write/cache-creation tokens */
+  totalCacheWriteTokens: number;
   /** Total estimated cost in USD */
   totalCostUsd: number;
   /** Average session duration in ms */
@@ -120,10 +132,13 @@ export class UsageLogger implements UsageDataSource {
       councilMode,
       inputTokens: usage.totalTokensInput,
       outputTokens: usage.totalTokensOutput,
+      cachedInputTokens: usage.totalCachedInputTokens ?? 0,
+      cacheReadTokens: usage.totalCacheReadTokens ?? 0,
+      cacheWriteTokens: usage.totalCacheWriteTokens ?? 0,
       estimatedCostUsd: usage.estimatedCostUsd,
       durationMs: usage.durationMs,
       providerCount: Object.keys(usage.providerBreakdown).length,
-      providers: usage.providerBreakdown as Record<string, { tokens: number; costUsd: number }>,
+      providers: usage.providerBreakdown as Record<string, ProviderUsageBreakdown>,
     };
   }
 
@@ -137,15 +152,29 @@ export class UsageLogger implements UsageDataSource {
     config: CouncilConfig,
     estimatedInputTokens: number,
     estimatedOutputTokens: number
-  ): { estimatedCostUsd: number; providerCount: number; breakdown: Record<string, number> } {
+  ): {
+    estimatedCostUsd: number;
+    providerCount: number;
+    breakdown: Record<string, number>;
+    models: Record<string, string>;
+  } {
     const enabledProviders = config.providers.filter((p) => p.enabled);
     const breakdown: Record<string, number> = {};
+    const models: Record<string, string> = {};
     let totalCost = 0;
 
     for (const provider of enabledProviders) {
-      const providerCost = calculateCost(estimatedInputTokens, estimatedOutputTokens, provider.providerId);
+      const providerCost = calculateCost(
+        estimatedInputTokens,
+        estimatedOutputTokens,
+        provider.providerId,
+        provider.model
+      );
 
       breakdown[provider.providerId] = providerCost;
+      if (provider.model) {
+        models[provider.providerId] = provider.model;
+      }
       totalCost += providerCost;
     }
 
@@ -161,6 +190,7 @@ export class UsageLogger implements UsageDataSource {
       estimatedCostUsd: totalCost,
       providerCount: enabledProviders.length,
       breakdown,
+      models,
     };
   }
 
@@ -187,6 +217,9 @@ export class UsageLogger implements UsageDataSource {
       singleSessions: 0,
       totalInputTokens: 0,
       totalOutputTokens: 0,
+      totalCachedInputTokens: 0,
+      totalCacheReadTokens: 0,
+      totalCacheWriteTokens: 0,
       totalCostUsd: 0,
       avgDurationMs: 0,
       byProvider: {},
@@ -241,6 +274,9 @@ export class UsageLogger implements UsageDataSource {
 
         summary.totalInputTokens += entry.inputTokens;
         summary.totalOutputTokens += entry.outputTokens;
+        summary.totalCachedInputTokens += entry.cachedInputTokens ?? 0;
+        summary.totalCacheReadTokens += entry.cacheReadTokens ?? 0;
+        summary.totalCacheWriteTokens += entry.cacheWriteTokens ?? 0;
         summary.totalCostUsd += entry.estimatedCostUsd;
         totalDuration += entry.durationMs;
 
@@ -302,6 +338,10 @@ export class UsageLogger implements UsageDataSource {
     );
     lines.push(`  - Input: ${summary.totalInputTokens.toLocaleString()}`);
     lines.push(`  - Output: ${summary.totalOutputTokens.toLocaleString()}`);
+    if (summary.totalCachedInputTokens || summary.totalCacheReadTokens || summary.totalCacheWriteTokens) {
+      lines.push(`  - Cached input/read: ${summary.totalCachedInputTokens.toLocaleString()}`);
+      lines.push(`  - Cache writes: ${summary.totalCacheWriteTokens.toLocaleString()}`);
+    }
 
     lines.push(`\nEstimated Cost: $${summary.totalCostUsd.toFixed(4)}`);
     lines.push(`Average Duration: ${(summary.avgDurationMs / 1000).toFixed(2)}s`);

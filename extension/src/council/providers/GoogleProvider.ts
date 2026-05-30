@@ -89,12 +89,20 @@ export class GoogleProvider extends BaseLLMProvider {
       const response = result.response;
       const content = response.text();
       const usage = response.usageMetadata;
+      const usageWithCache = usage as
+        | (typeof usage & {
+            cachedContentTokenCount?: number;
+          })
+        | undefined;
+      const cacheReadTokens = usageWithCache?.cachedContentTokenCount ?? 0;
+      const uncachedInputTokens = Math.max(0, (usage?.promptTokenCount ?? 0) - cacheReadTokens);
 
       return {
         content,
         usage: {
-          inputTokens: usage?.promptTokenCount ?? 0,
+          inputTokens: uncachedInputTokens,
           outputTokens: usage?.candidatesTokenCount ?? 0,
+          cacheReadTokens,
         },
         model: this.model,
         providerId: this.id,

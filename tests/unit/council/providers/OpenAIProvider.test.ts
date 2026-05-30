@@ -16,7 +16,7 @@ describe('OpenAIProvider', () => {
   let mockClient: OpenAIClient;
   let mockCreate: ReturnType<typeof vi.fn>;
   const mockApiKey = 'sk-test-key';
-  const mockModel = 'gpt-5.2';
+  const mockModel = 'gpt-5.4-mini';
 
   beforeEach(() => {
     vi.clearAllMocks();

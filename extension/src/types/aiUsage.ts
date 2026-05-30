@@ -126,6 +126,14 @@ export interface PricingConfig {
   input: number;
   /** Cost per 1K output tokens in USD */
   output: number;
+  /** Cost per 1K cached input/cache-read tokens in USD */
+  cachedInput?: number;
+  /** Cost per 1K provider cache-read tokens in USD */
+  cacheRead?: number;
+  /** Cost per 1K provider cache-write/cache-creation tokens in USD */
+  cacheWrite?: number;
+  /** Cost per 1K cached tokens per hour in USD, where a provider bills storage separately */
+  cacheStoragePerHour?: number;
 }
 
 /**

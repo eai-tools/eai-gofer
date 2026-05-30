@@ -30,6 +30,7 @@ import {
   Synthesis,
   PeerReview,
 } from './types';
+import { calculateCost } from '../config/pricing';
 
 /**
  * Options for dispatching a council request
@@ -195,6 +196,17 @@ export class CouncilOrchestrator {
     this.reportProgress(`Querying ${provider.name}...`, 50);
 
     const response = await provider.query(options.request);
+    const estimatedCostUsd = calculateCost(
+      response.usage.inputTokens,
+      response.usage.outputTokens,
+      response.providerId,
+      response.model,
+      {
+        cachedInputTokens: response.usage.cachedInputTokens ?? 0,
+        cacheReadTokens: response.usage.cacheReadTokens ?? 0,
+        cacheWriteTokens: response.usage.cacheWriteTokens ?? 0,
+      }
+    );
 
     this.reportProgress('Response received', 100);
 
@@ -205,12 +217,22 @@ export class CouncilOrchestrator {
       usage: {
         totalTokensInput: response.usage.inputTokens,
         totalTokensOutput: response.usage.outputTokens,
-        estimatedCostUsd: 0, // Will be calculated if needed
+        totalCachedInputTokens:
+          (response.usage.cachedInputTokens ?? 0) + (response.usage.cacheReadTokens ?? 0),
+        totalCacheReadTokens: response.usage.cacheReadTokens ?? 0,
+        totalCacheWriteTokens: response.usage.cacheWriteTokens ?? 0,
+        estimatedCostUsd,
         durationMs: 0,
         providerBreakdown: {
           [response.providerId]: {
             tokens: response.usage.inputTokens + response.usage.outputTokens,
-            costUsd: 0,
+            costUsd: estimatedCostUsd,
+            model: response.model,
+            inputTokens: response.usage.inputTokens,
+            outputTokens: response.usage.outputTokens,
+            cachedInputTokens: response.usage.cachedInputTokens ?? 0,
+            cacheReadTokens: response.usage.cacheReadTokens ?? 0,
+            cacheWriteTokens: response.usage.cacheWriteTokens ?? 0,
           },
         } as UsageMetrics['providerBreakdown'],
       },

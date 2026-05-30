@@ -10,7 +10,7 @@
 
 import { CLIProviderAdapter, ParsedCLIOutput } from './CLIProviderAdapter';
 import { CodexOutputParser } from './CodexOutputParser';
-import { ProviderId, QueryRequest } from '../../types';
+import { DEFAULT_MODELS, ProviderId, QueryRequest } from '../../types';
 import { registerProvider } from '../ProviderFactory';
 
 /**
@@ -26,9 +26,9 @@ export class CodexCLIProvider extends CLIProviderAdapter {
   /**
    * Constructor
    * @param cliCommand - Command to execute (default: 'codex')
-   * @param model - Model identifier (default: 'gpt-5')
+   * @param model - Model identifier (defaults to the cost-optimized Codex model)
    */
-  constructor(cliCommand: string = 'codex', model: string = 'gpt-5') {
+  constructor(cliCommand: string = 'codex', model: string = DEFAULT_MODELS['codex-cli']) {
     super(cliCommand, model);
     this.model = model;
     this.outputParser = new CodexOutputParser();

@@ -12,12 +12,29 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: enterpriseai
   canonicalSource: .specify/commands/0_business_scenario.md
-  canonicalChecksum: 8cfff0d0136f09ec99fae1cb26241bf07e2f2167565fe93b735ca14d2e60a5ed
+  canonicalChecksum: 3a81fa67bfaa7ff4280f7b591a42acb6aa12f3e63c0496e7c47689c8d64e3368
   metadataSource: scripts/generate-commands.ts
 ---
 
 
 # Gofer Orchestrator
+
+## Token And Cost Policy
+<!-- gofer:token-cost-policy:start -->
+
+Before spawning agents, calling tools, or loading large files:
+
+1. Treat `.specify/memory/gofer-model-policy.yaml` as the repo-owned source of truth for simple, medium, hard, and arbiter model routing. If it is missing, run `/gofer:bootstrap-workspace` before continuing.
+2. Use the cheapest capable model first.
+   - Claude: Haiku for scouting/extraction; Sonnet for normal implementation, synthesis, validation, and security; Opus for high-risk arbitration or release-critical failures.
+   - Codex/OpenAI: GPT mini for simple coding; GPT nano only for locate/classify/summarize/mechanical work; GPT-5.3-Codex or flagship GPT for tool-heavy coding, architecture, and release-critical validation.
+   - Gemini: Flash-Lite for cheap large-context scan/summarize; Flash for default research synthesis; Pro for large-context architecture or high-risk arbitration.
+   - Copilot: prefer Auto for simple and default work; ask the user before choosing a paid/high-tier picker model for hard security, architecture, or release gates.
+3. Keep raw tool output out of the main conversation context. Save stable findings to `.specify/specs/{feature}/context-bundle.md`, then work from summaries.
+4. Use provider prompt/context caching only for stable, non-secret prefixes: Gofer scaffold, AGENTS/CLAUDE/Copilot instructions, constitution, repo map, stage contracts, and validation rubric.
+5. Before continuing after large research, planning, implementation, or validation bursts, checkpoint the durable artifacts and compact/clear/resume context when the host supports it.
+6. Escalate model tier only when a cheaper pass is low-confidence, contradictory, security-sensitive, or blocking release quality.
+<!-- gofer:token-cost-policy:end -->
 
 ## Workspace Preflight
 
@@ -32,6 +49,8 @@ Before doing stage/helper work:
    - `.specify/scripts/node/parse-stage-command.mjs`
    - `.specify/scripts/hooks/post-tool-use.mjs`
    - `.specify/scripts/powershell/install-optional-tools.ps1`
+   - `.specify/templates/gofer-model-policy.yaml`
+   - `.specify/memory/gofer-model-policy.yaml`
    - `.specify/specs/`
    - `.specify/memory/`
 3. Check host-specific repo-owned files when relevant:

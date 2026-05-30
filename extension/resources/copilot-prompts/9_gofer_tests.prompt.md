@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: enterpriseai
   canonicalSource: .specify/commands/9_gofer_tests.md
-  canonicalChecksum: 0a6baf44d5add8fccc5ee6deb6aed559ef42d0e19aa6f4afc2733335e42ef744
+  canonicalChecksum: 50c124d1544cb5b920f839f00f1f700251e65d5cff6fac9cfc7f672f49f5c89b
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -29,6 +29,8 @@ Before doing stage/helper work:
    - `.specify/scripts/node/parse-stage-command.mjs`
    - `.specify/scripts/hooks/post-tool-use.mjs`
    - `.specify/scripts/powershell/install-optional-tools.ps1`
+   - `.specify/templates/gofer-model-policy.yaml`
+   - `.specify/memory/gofer-model-policy.yaml`
    - `.specify/specs/`
    - `.specify/memory/`
 3. Check host-specific repo-owned files when relevant:
@@ -46,9 +48,22 @@ Before doing stage/helper work:
 
 # Gofer Tests
 
-You are defining acceptance test cases for a feature using a Domain Specific
-Language (DSL) approach. This command can be run **before implementation**
-(test-first) or **during implementation** to define test coverage.
+## Token And Cost Policy
+<!-- gofer:token-cost-policy:start -->
+
+Before spawning agents, calling tools, or loading large files:
+
+1. Treat `.specify/memory/gofer-model-policy.yaml` as the repo-owned source of truth for simple, medium, hard, and arbiter model routing. If it is missing, run `/gofer:bootstrap-workspace` before continuing.
+2. Use the cheapest capable model first.
+   - Claude: Haiku for scouting/extraction; Sonnet for normal implementation, synthesis, validation, and security; Opus for high-risk arbitration or release-critical failures.
+   - Codex/OpenAI: GPT mini for simple coding; GPT nano only for locate/classify/summarize/mechanical work; GPT-5.3-Codex or flagship GPT for tool-heavy coding, architecture, and release-critical validation.
+   - Gemini: Flash-Lite for cheap large-context scan/summarize; Flash for default research synthesis; Pro for large-context architecture or high-risk arbitration.
+   - Copilot: prefer Auto for simple and default work; ask the user before choosing a paid/high-tier picker model for hard security, architecture, or release gates.
+3. Keep raw tool output out of the main conversation context. Save stable findings to `.specify/specs/{feature}/context-bundle.md`, then work from summaries.
+4. Use provider prompt/context caching only for stable, non-secret prefixes: Gofer scaffold, AGENTS/CLAUDE/Copilot instructions, constitution, repo map, stage contracts, and validation rubric.
+5. Before continuing after large research, planning, implementation, or validation bursts, checkpoint the durable artifacts and compact/clear/resume context when the host supports it.
+6. Escalate model tier only when a cheaper pass is low-confidence, contradictory, security-sensitive, or blocking release quality.
+<!-- gofer:token-cost-policy:end -->
 
 ## User Input
 

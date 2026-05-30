@@ -11,7 +11,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import type { ProviderId } from '../council/types';
+import { DEFAULT_MODELS, type ProviderId } from '../council/types';
 import type { CLIUsageAdapter, UsageEntry } from './cli/CLIUsageAdapter';
 import { calculateCost } from '../config/pricing';
 import { Logger } from '../utils/logger';
@@ -168,7 +168,7 @@ export class CodexUsageAdapter implements CLIUsageAdapter {
       }
 
       // Extract model (Bug #2 fix - T008)
-      const model = entry.model || 'gpt-4-turbo';
+      const model = entry.model || DEFAULT_MODELS['codex-cli'];
 
       // Calculate cost using detected model (Bug #2 fix - T009)
       const costUsd = calculateCost(inputTokens, outputTokens, 'openai', model);

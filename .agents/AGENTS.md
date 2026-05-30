@@ -2,7 +2,7 @@
 
 This file documents all Gofer pipeline commands available as agent skills.
 
-Generated: 2026-05-30T04:51:42.846Z
+Generated: 2026-05-30T05:29:41.743Z
 
 ## Commands
 
@@ -13,11 +13,10 @@ description: Triage business scenario and orchestrate the unified Gofer pipeline
 
 # Gofer Orchestrator
 
-## Workspace Preflight
+## Token And Cost Policy
+<!-- gofer:token-cost-policy:start -->
 
-Before doing stage/helper work:
-
-1. Resolve the repository root....
+Before spawning agents,...
 
 ### Problem Validation
 ---
@@ -28,7 +27,7 @@ description:
 
 # Gofer Problem Validation
 
-You are vali...
+## Token And...
 
 ### Gofer Cloud
 ---
@@ -38,8 +37,10 @@ description:
 
 # Gofer Cloud
 
-You are conducting comprehensive READ-ONLY analysis of cloud deployments and
-infrastructu...
+## Token And Cost Policy
+<!-- gofer:token-cost-policy:start -->
+
+Before spawning agents, ...
 
 ### Gofer Research
 ---
@@ -48,8 +49,10 @@ description: Deep codebase and technology research for feature implementation
 
 # Gofer Research
 
-You are conducting comprehensive research to understand the codebase before
-specifying a new fe...
+## Token And Cost Policy
+<!-- gofer:token-cost-policy:start -->
+
+Before spawning agents, callin...
 
 ### Gofer Specify
 ---
@@ -58,8 +61,10 @@ description: Create feature specification informed by codebase research
 
 # Gofer Specify
 
-You are creating a feature specification informed by prior codebase research.
-This is the **second sta...
+## Token And Cost Policy
+<!-- gofer:token-cost-policy:start -->
+
+Before spawning agents, calling tools...
 
 ### Gofer Plan
 ---
@@ -69,8 +74,10 @@ description:
 
 # Gofer Plan
 
-You are creating a detailed technical implementation plan. This is the **third
-stage** of t...
+## Token And Cost Policy
+<!-- gofer:token-cost-policy:start -->
+
+Before spawning agents, ca...
 
 ### Gofer Tasks
 ---
@@ -79,8 +86,10 @@ description: Generate actionable task breakdown from implementation plan
 
 # Gofer Tasks
 
-You are generating an actionable, dependency-ordered task breakdown. This is the
-**fourth stage** of th...
+## Token And Cost Policy
+<!-- gofer:token-cost-policy:start -->
+
+Before spawning agents, calling tools,...
 
 ### Gofer Implement
 ---
@@ -89,8 +98,10 @@ description: Execute tasks from tasks.md to implement the feature
 
 # Gofer Implement
 
-You are executing the implementation plan by processing all tasks from tasks.md.
-This is the **fifth stage...
+## Token And Cost Policy
+<!-- gofer:token-cost-policy:start -->
+
+Before spawning agents, calling tools, or...
 
 ### Gofer Validate
 ---
@@ -101,7 +112,8 @@ description:
 
 # Gofer Validate
 
-You are validating that the implementation meets engineering ...
+## Token And Cost Policy
+<!-- gofer:token-cost-policy:start -...
 
 ### Gofer Save
 ---
@@ -110,8 +122,10 @@ description: Save session progress with comprehensive checkpoint for resumption
 
 # Gofer Save
 
-You are creating a comprehensive progress checkpoint when the user needs to
-pause work on a featu...
+## Token And Cost Policy
+<!-- gofer:token-cost-policy:start -->
+
+Before spawning agents, calling ...
 
 ### Stakeholder Communications
 ---
@@ -122,7 +136,7 @@ description:
 
 # Gofer Stakeholder Communications
 
-You are gen...
+## Token An...
 
 ### Gofer Resume
 ---
@@ -132,8 +146,10 @@ description:
 
 # Gofer Resume
 
-You are resuming previously saved work by restoring full context and continuing
-implemen...
+## Token And Cost Policy
+<!-- gofer:token-cost-policy:start -->
+
+Before spawning agents,...
 
 ### Gofer Tests
 ---
@@ -144,24 +160,32 @@ description:
 
 # Gofer Tests
 
-You are defining acceptance test cases for a feature using a Domain Specific
-La...
+## Token And Cost Policy
+<!-- gofer:token-cost-policy:start -->
+
+Before spawnin...
 
 ### Gofer Workspace Bootstrap
 
 # Gofer Workspace Bootstrap
 
-Use this command to create or update the repo-owned Gofer scaffold for the
-current workspace and write the result to
-`.specify/logs/workspace-bootstrap-report.md`. This i...
+## Token And Cost Policy
+<!-- gofer:token-cost-policy:start -->
+
+Before spawning agents, calling tools, or loading large files:
+
+1. Treat `.specify/memory/gofer-model-pol...
 
 ### Gofer Workspace Check
 
 # Gofer Workspace Check
 
-Use this command to run the fast Gofer repo preflight before stage/helper work.
-Write the result to `.specify/logs/workspace-check-report.md`. The check itself
-is read-only. ...
+## Token And Cost Policy
+<!-- gofer:token-cost-policy:start -->
+
+Before spawning agents, calling tools, or loading large files:
+
+1. Treat `.specify/memory/gofer-model-policy....
 
 ### Gofer Constitution
 ---
@@ -171,17 +195,21 @@ description:
 
 # Gofer Constitution
 
-You are creating or updating the project constitution - a set of principles,
-c...
+## Token And Cost Policy
+<!-- gofer:token-cost-policy:start -->
+
+Before spawni...
 
 ### Gofer Diagnose
 
 # Gofer Diagnose
 
-Run a structured reproduce-minimize-instrument-fix investigation and write the
-results to `.specify/specs/{feature}/diagnose-report.md`.
+## Token And Cost Policy
+<!-- gofer:token-cost-policy:start -->
 
-Use this when an implementation, test, or i...
+Before spawning agents, calling tools, or loading large files:
+
+1. Treat `.specify/memory/gofer-model-policy.yaml` a...
 
 ### Gofer Hydrate
 ---
@@ -190,65 +218,84 @@ description: Reverse-engineer specification from existing code (Hydration)
 
 # Gofer Hydrate
 
-You are analyzing existing code and generating a compliant specification
-(`spec.md`) and task list ...
+## Token And Cost Policy
+<!-- gofer:token-cost-policy:start -->
+
+Before spawning agents, calling to...
 
 ### Gofer Personality
 
 # Gofer Personality
 
-Set the assistant personality for the current Gofer session. The chosen preset
-adjusts tone and verbosity without changing the technical content, artifacts, or
-pipeline behavior ...
+## Token And Cost Policy
+<!-- gofer:token-cost-policy:start -->
+
+Before spawning agents, calling tools, or loading large files:
+
+1. Treat `.specify/memory/gofer-model-policy.yaml...
 
 ### Gofer Plan Mode Toggle
 
 # Gofer Plan Mode Toggle
 
-When invoked, this command signals the host CLI to enter plan mode for the next
-user prompt, requesting a structured plan instead of immediate execution. Use it
-before compl...
+## Token And Cost Policy
+<!-- gofer:token-cost-policy:start -->
+
+Before spawning agents, calling tools, or loading large files:
+
+1. Treat `.specify/memory/gofer-model-policy...
 
 ### Gofer Side Conversation
 
 # Gofer Side Conversation
 
-Open a side conversation in the active CLI without disturbing the main Gofer
-pipeline state. Use this when you need to ask a quick clarifying question, run
-an exploratory s...
+## Token And Cost Policy
+<!-- gofer:token-cost-policy:start -->
+
+Before spawning agents, calling tools, or loading large files:
+
+1. Treat `.specify/memory/gofer-model-polic...
 
 ### Gofer Spec Summary
 
 # Gofer Spec Summary
 
-Generate a business-friendly summary of the current feature and write it to
-`.specify/specs/{feature}/spec-summary.md`.
+## Token And Cost Policy
+<!-- gofer:token-cost-policy:start -->
 
-Use this when a stakeholder or implementation team needs...
+Before spawning agents, calling tools, or loading large files:
+
+1. Treat `.specify/memory/gofer-model-policy.yam...
 
 ### Gofer TDD
 
 # Gofer TDD
 
-Guide a red-green-refactor loop for the active feature and write the cycle log
-to `.specify/specs/{feature}/tdd-session.md`.
+## Token And Cost Policy
+<!-- gofer:token-cost-policy:start -->
 
-Use this helper when you want to work test-first inside the ...
+Before spawning agents, calling tools, or loading large files:
+
+1. Treat `.specify/memory/gofer-model-policy.yaml` as the...
 
 ### Gofer Vocabulary
 
 # Gofer Vocabulary
 
-Extract the feature's shared domain language into a canonical glossary and
-write it to `.specify/specs/{feature}/glossary.md`.
+## Token And Cost Policy
+<!-- gofer:token-cost-policy:start -->
 
-Use this when research, specification, contracts, o...
+Before spawning agents, calling tools, or loading large files:
+
+1. Treat `.specify/memory/gofer-model-policy.yaml`...
 
 ### Gofer Zoom Out
 
 # Gofer Zoom Out
 
-Expand the current feature into its surrounding system context and write the
-result to `.specify/specs/{feature}/zoom-out-report.md`.
+## Token And Cost Policy
+<!-- gofer:token-cost-policy:start -->
 
-Use this helper when the feature needs broader...
+Before spawning agents, calling tools, or loading large files:
+
+1. Treat `.specify/memory/gofer-model-policy.yaml` a...

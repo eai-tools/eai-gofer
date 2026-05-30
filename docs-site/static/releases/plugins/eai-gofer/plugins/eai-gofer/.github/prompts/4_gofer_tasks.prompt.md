@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: enterpriseai
   canonicalSource: .specify/commands/4_gofer_tasks.md
-  canonicalChecksum: 64e267a712edf110a32584e76c310ed55ee0dcdfb2388dc90a3905c48a65067c
+  canonicalChecksum: 4e7ac2b82b10bc20335b0b1f033d4a21bfb71e7d6285c7eaab401418fda6ff7f
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -57,7 +57,7 @@ $ARGUMENTS
 
 You **MUST** consider the user input before proceeding (if not empty).
 
-## Execution Depth And Task Sizing
+## Execution Profile And Task Sizing
 
 Preserve the selected depth from earlier stages:
 
@@ -68,11 +68,15 @@ Preserve the selected depth from earlier stages:
   traceability.
 - **full**: add tasks for contract compatibility, security review, migration or
   config safety, rollout/rollback, and blast-radius verification.
+- **dynamic**: require `workflow-dag.md`, then generate shard-aligned tasks,
+  reducer tasks, verifier/refuter tasks, budget/stop-condition checks, and a
+  resumable progress ledger before implementation starts.
 
 Every task should name a real file or directory when known. If ownership or
 files are unknown, mark that as `unknown` and add a discovery task instead of
 fabricating a path. Keep optional artifacts out of the plan unless they support
-the selected risk label.
+the selected risk label. Do not convert dynamic shard tasks into implementation
+work until the DAG confirmation gate is resolved.
 
 ## Prerequisites
 

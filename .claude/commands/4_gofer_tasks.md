@@ -42,7 +42,7 @@ $ARGUMENTS
 
 You **MUST** consider the user input before proceeding (if not empty).
 
-## Execution Depth And Task Sizing
+## Execution Profile And Task Sizing
 
 Preserve the selected depth from earlier stages:
 
@@ -53,11 +53,15 @@ Preserve the selected depth from earlier stages:
   traceability.
 - **full**: add tasks for contract compatibility, security review, migration or
   config safety, rollout/rollback, and blast-radius verification.
+- **dynamic**: require `workflow-dag.md`, then generate shard-aligned tasks,
+  reducer tasks, verifier/refuter tasks, budget/stop-condition checks, and a
+  resumable progress ledger before implementation starts.
 
 Every task should name a real file or directory when known. If ownership or
 files are unknown, mark that as `unknown` and add a discovery task instead of
 fabricating a path. Keep optional artifacts out of the plan unless they support
-the selected risk label.
+the selected risk label. Do not convert dynamic shard tasks into implementation
+work until the DAG confirmation gate is resolved.
 
 ## Prerequisites
 

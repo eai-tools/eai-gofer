@@ -44,21 +44,25 @@ $ARGUMENTS
 
 You **MUST** consider the user input before proceeding (if not empty).
 
-## Execution Depth And Planning Surface
+## Execution Profile And Planning Surface
 
 Use the research/spec risk classification to choose planning depth:
 
 - **fast**: produce the smallest viable plan, only for docs-only or very small
   low-risk work.
 - **standard**: produce the normal plan, data/contracts only when relevant, and
-  a concrete test strategy.
+  a concrete test strategy. Standard is the catch-all for work that is not fast,
+  full, or dynamic.
 - **full**: include contract compatibility, auth/security, data migration,
   infra/config, rollback, and release sequencing where the generic risk labels
   require them.
+- **dynamic**: produce a workflow DAG, shard plan, reducer plan,
+  verifier/refuter pass, resumable progress ledger, budget limits, and stop
+  conditions before implementation starts.
 
 Avoid artifact churn. Optional diagrams, extended architecture councils,
 generated issue packs, and broad release plans are only warranted when risk is
-full-depth or the user asks for them.
+full/dynamic-depth or the user asks for them.
 
 ## Prerequisites
 
@@ -85,6 +89,9 @@ If missing, prompt user to run the prerequisite stage.
    delivery `ui-review-log.md`, `ui-approval.md`, and
    `service-fit-matrix.md`, including public-readiness, block-porting, DAISY
    decoupling, Storybook, theme override, and package-profile decisions
+9. Dynamic-only output: `workflow-dag.md` with shards, inputs, outputs,
+   reducer expectations, verifier/refuter evidence, budget limits, stop
+   conditions, and resumable progress location
 
 ---
 
@@ -324,6 +331,19 @@ Output to {FEATURE_DIR}/visuals/data-model-erd.md."
 These three artifacts (c4-container.md, bounded-context.md, data-model-erd.md)
 are required for the developer persona pack. The persona-pack completeness gate
 at /4_gofer_tasks start will warn if any are missing.
+
+### Dynamic-Only: Workflow DAG Writer
+
+When `effectiveProfile=dynamic`, write `{FEATURE_DIR}/workflow-dag.md` before
+task generation. It must define:
+
+- independent shards and why they can run separately
+- input artifacts each shard may read
+- output artifacts each shard must produce
+- reducer synthesis expectations
+- verifier/refuter checks for contradictions or overreach
+- budget limits, stop conditions, and confirmation gates
+- resumable progress location outside the chat transcript
 
 ---
 
@@ -576,6 +596,7 @@ Artifacts created:
 - data-model.md: Entity definitions
 - contracts/: API specifications
 - quickstart.md: Testing guide
+- workflow-dag.md: Dynamic shard/reducer plan (only when effectiveProfile=dynamic)
 
 Engineering Review: PASSED (cycle [N] of 5)
 ```

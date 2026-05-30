@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: enterpriseai
   canonicalSource: .specify/commands/1_gofer_research.md
-  canonicalChecksum: 0c681e2751c55bc8a9582760ce0fbc117776a881643f046397ac837f7f4e4e97
+  canonicalChecksum: 34b4f73a00f23507e88e12f5008ca95bed0d41dd3f0ec86c68f35551da39304a
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -58,25 +58,49 @@ $ARGUMENTS
 
 You **MUST** consider the user input before proceeding (if not empty).
 
-## Execution Depth And Public Risk Labels
+## Execution Profile And Public Risk Labels
 
-Classify the request before spawning agents. Use repository-neutral labels only:
-`docs-only`, `single-repo-code`, `api-contract`, `auth-security`,
-`data-model`, `infra-config`, `release-critical`, or `unknown`.
+Classify the request before spawning agents. Choose exactly one effective
+execution profile. This is a per-run depth decision: it controls research
+depth, agent fanout, and artifact production for this feature. It does not
+change the repo's broader workflow/content family, such as the optional VS Code
+`gofer.workflowProfile` setting.
 
-- **fast**: docs-only or small clarification work. Use one locator/summarizer,
-  keep existing required artifacts concise, and skip optional councils unless
-  evidence contradicts the request.
-- **standard**: ordinary single-repository feature work. Use the core research
-  agents and write the normal artifact set.
-- **full**: API contracts, auth/security, data model, infra/config, release
-  risk, cross-repo impact, or unknown ownership. Use specialist fan-out,
-  explicit evidence, blast-radius notes, and richer test/release obligations.
+Use repository-neutral labels only: `docs-only`, `single-repo-code`,
+`cross-repo`, `api-contract`, `auth-security`, `data-model`, `infra-config`,
+`release-critical`, `broad-fanout`, `unknown-blast-radius`, or `unknown`.
+
+- **fast**: docs-only, small clarification work, or clearly bounded low-risk
+  single-repo work. Use one locator/summarizer, keep existing required
+  artifacts concise, and skip optional councils unless evidence contradicts the
+  request.
+- **standard**: ordinary single-repository feature work. Standard is the
+  catch-all for work that is not fast, full, or dynamic.
+- **full**: bounded high-risk work such as known cross-repo impact, API
+  contracts, auth/security, data model, infra/config, release risk, or migration
+  risk. Use specialist fan-out, explicit evidence, blast-radius notes, and
+  richer test/release obligations.
+- **dynamic**: explicit dynamic workflow requests, workspace-wide
+  audits/sweeps/migrations, unknown blast radius, broad fanout, or work spanning
+  more than three repos/workstreams. Do not launch broad shard fanout during
+  research; identify shard candidates and confirmation gates first.
+
+Use this priority order so profiles are mutually exclusive and collectively
+exhaustive: dynamic first, then full, then fast, then standard as the catch-all.
+Users may request a deeper profile. Do not run below the computed
+`profileFloor` without explicit approval.
+
+Record the decision in `.specify/specs/{feature}/execution-profile.md` with
+frontmatter fields: `classificationVersion`, `requestedProfile`,
+`profileFloor`, `effectiveProfile`, `riskLabels`, `overrideStatus`,
+`requiresConfirmation`, and `classificationReason`. If `dynamic` is selected by
+the classifier but was not explicitly requested, set `requiresConfirmation:
+true` and stop for confirmation before broad fanout work.
 
 Artifact-churn rule: preserve existing required artifacts, but do not create
-large optional diagrams, councils, issue lists, or extended reports unless the
-classified risk or user request justifies them. Mark weak claims as inferred or
-unknown instead of inventing certainty.
+large optional diagrams, councils, issue lists, workflow DAGs, or extended
+reports unless the classified risk or user request justifies them. Mark weak
+claims as inferred or unknown instead of inventing certainty.
 
 ## Outline
 
@@ -207,7 +231,9 @@ Include: file paths, code snippets, conventions used."
 
 **Run all three agents in parallel** for maximum efficiency in standard/full
 mode. In fast mode, collapse this into one concise locator/summarizer unless
-the feature touches a full-depth risk label.
+the feature touches a full-depth risk label. In dynamic mode, do not start broad
+fanout yet; have these agents identify candidate shards, unresolved ownership,
+and evidence needed before P3 builds the workflow DAG.
 
 ---
 
@@ -215,7 +241,8 @@ the feature touches a full-depth risk label.
 
 After the core research agents complete, optionally run additional perspective
 strategies for deeper analysis. **Skip this step if the feature is
-straightforward or time-constrained.**
+straightforward or time-constrained.** For dynamic mode, use this step to test
+the proposed shard boundaries and stop conditions, not to execute the shards.
 
 ### Strategy #6: Research Perspective Multiplier
 

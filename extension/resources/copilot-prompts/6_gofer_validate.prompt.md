@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: enterpriseai
   canonicalSource: .specify/commands/6_gofer_validate.md
-  canonicalChecksum: 4c2fd0b6b52e57fcb18cc9232bec9d14ee83af3809d08070148ecf467fd3891e
+  canonicalChecksum: c37dbdf5080e0cc2f9c396e9b7b27054e60ebff2c62d49dc0cda43e61a8e7748
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -74,7 +74,7 @@ $ARGUMENTS
 
 You **MUST** consider the user input before proceeding (if not empty).
 
-## Execution Depth And Validation Cost
+## Execution Profile And Validation Cost
 
 Validation must respect the final risk label:
 
@@ -85,6 +85,10 @@ Validation must respect the final risk label:
 - **full**: preserve the existing blast-radius, evidence gates, review loop,
   scoring, and release-readiness checks; require evidence for contract,
   security, data, infra/config, rollback, and cross-repository claims.
+- **dynamic**: preserve the full validation behavior, then also verify
+  `execution-profile.md`, `workflow-dag.md`, shard outputs, reducer synthesis,
+  verifier/refuter evidence, budget/stop-condition evidence, and any explicit
+  user confirmation required before broad fanout work.
 
 Archived specs under `.specify/specs/_*/` are historical context and must not
 inflate active context-health estimates or current blast-radius manifests.

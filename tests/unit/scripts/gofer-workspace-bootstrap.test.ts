@@ -87,6 +87,8 @@ describe('Gofer workspace bootstrap scripts', () => {
       '.specify/.gofer-version',
       '.specify/commands/0_business_scenario.md',
       '.specify/templates/spec-template.md',
+      '.specify/templates/gofer-model-policy.yaml',
+      '.specify/memory/gofer-model-policy.yaml',
       '.specify/scripts/hooks/post-tool-use.mjs',
       '.specify/scripts/powershell/install-optional-tools.ps1',
       '.specify/README.md',
@@ -118,13 +120,25 @@ describe('Gofer workspace bootstrap scripts', () => {
   it('does not overwrite existing instruction files by default', () => {
     const customAgents = '# custom agents\n';
     const customClaude = '# custom claude\n';
+    const customModelPolicy = 'version: 1\nprofile: custom\n';
     fs.writeFileSync(path.join(workspaceRoot, 'AGENTS.md'), customAgents);
     fs.writeFileSync(path.join(workspaceRoot, 'CLAUDE.md'), customClaude);
+    fs.mkdirSync(path.join(workspaceRoot, '.specify', 'memory'), { recursive: true });
+    fs.writeFileSync(
+      path.join(workspaceRoot, '.specify', 'memory', 'gofer-model-policy.yaml'),
+      customModelPolicy
+    );
 
     const bootstrap = runJson(BOOTSTRAP_SCRIPT, ['--workspace', workspaceRoot, '--host', 'claude']);
     expect(bootstrap.exitCode).toBe(0);
 
     expect(fs.readFileSync(path.join(workspaceRoot, 'AGENTS.md'), 'utf8')).toBe(customAgents);
     expect(fs.readFileSync(path.join(workspaceRoot, 'CLAUDE.md'), 'utf8')).toBe(customClaude);
+    expect(
+      fs.readFileSync(
+        path.join(workspaceRoot, '.specify', 'memory', 'gofer-model-policy.yaml'),
+        'utf8'
+      )
+    ).toBe(customModelPolicy);
   });
 });

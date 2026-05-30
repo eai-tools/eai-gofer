@@ -134,3 +134,17 @@ Downloaded bundle install:
 ```bash
 gemini extensions install ~/plugins/eai-gofer
 ```
+
+## Model Policy
+
+After bootstrap, each repository gets a user-owned model policy at:
+
+```text
+.specify/memory/gofer-model-policy.yaml
+```
+
+The shipped default is copied from `.specify/templates/gofer-model-policy.yaml`
+and is not overwritten by bootstrap. Use it to tune simple, medium, hard, and
+arbiter model routes for Claude, Codex/OpenAI, Gemini, and Copilot. Copilot
+defaults to `Auto` for simple/default work because exact model availability is
+controlled by the Copilot client, plan, and organization policy.

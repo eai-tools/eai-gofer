@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: enterpriseai
   canonicalSource: .specify/commands/3_gofer_plan.md
-  canonicalChecksum: e2555e51baa9d0cd7b56ec7511e9e8d3a4835e0eb2c35d81639b47f7117eac95
+  canonicalChecksum: 52255171daa08441ff47e23e17c3bb627ac2ce0016d6478fe16596eb3cd0b9a8
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -29,6 +29,8 @@ Before doing stage/helper work:
    - `.specify/scripts/node/parse-stage-command.mjs`
    - `.specify/scripts/hooks/post-tool-use.mjs`
    - `.specify/scripts/powershell/install-optional-tools.ps1`
+   - `.specify/templates/gofer-model-policy.yaml`
+   - `.specify/memory/gofer-model-policy.yaml`
    - `.specify/specs/`
    - `.specify/memory/`
 3. Check host-specific repo-owned files when relevant:
@@ -46,9 +48,22 @@ Before doing stage/helper work:
 
 # Gofer Plan
 
-You are creating a detailed technical implementation plan. This is the **third
-stage** of the unified Gofer pipeline, combining architecture design, data
-modeling, and API contracts.
+## Token And Cost Policy
+<!-- gofer:token-cost-policy:start -->
+
+Before spawning agents, calling tools, or loading large files:
+
+1. Treat `.specify/memory/gofer-model-policy.yaml` as the repo-owned source of truth for simple, medium, hard, and arbiter model routing. If it is missing, run `/gofer:bootstrap-workspace` before continuing.
+2. Use the cheapest capable model first.
+   - Claude: Haiku for scouting/extraction; Sonnet for normal implementation, synthesis, validation, and security; Opus for high-risk arbitration or release-critical failures.
+   - Codex/OpenAI: GPT mini for simple coding; GPT nano only for locate/classify/summarize/mechanical work; GPT-5.3-Codex or flagship GPT for tool-heavy coding, architecture, and release-critical validation.
+   - Gemini: Flash-Lite for cheap large-context scan/summarize; Flash for default research synthesis; Pro for large-context architecture or high-risk arbitration.
+   - Copilot: prefer Auto for simple and default work; ask the user before choosing a paid/high-tier picker model for hard security, architecture, or release gates.
+3. Keep raw tool output out of the main conversation context. Save stable findings to `.specify/specs/{feature}/context-bundle.md`, then work from summaries.
+4. Use provider prompt/context caching only for stable, non-secret prefixes: Gofer scaffold, AGENTS/CLAUDE/Copilot instructions, constitution, repo map, stage contracts, and validation rubric.
+5. Before continuing after large research, planning, implementation, or validation bursts, checkpoint the durable artifacts and compact/clear/resume context when the host supports it.
+6. Escalate model tier only when a cheaper pass is low-confidence, contradictory, security-sensitive, or blocking release quality.
+<!-- gofer:token-cost-policy:end -->
 
 ## User Input
 
@@ -326,17 +341,17 @@ contracts, dispatch three visual-writer sub-agents in parallel to produce the
 developer-persona-pack visuals:
 
 ```
-Task: subagent_type="visual-c4-writer", model="sonnet"
+Task: subagent_type="visual-c4-writer", model="haiku"
 Prompt: "Generate C4 Context and Container diagrams for {FEATURE_NAME}.
 Feature dir: {FEATURE_DIR}. Read spec.md, research.md, plan.md.
 Output to {FEATURE_DIR}/visuals/c4-context.md and c4-container.md."
 
-Task: subagent_type="visual-bounded-context-writer", model="sonnet"
+Task: subagent_type="visual-bounded-context-writer", model="haiku"
 Prompt: "Generate bounded-context map for {FEATURE_NAME}.
 Feature dir: {FEATURE_DIR}. Read plan.md, data-model.md, contracts/.
 Output to {FEATURE_DIR}/visuals/bounded-context.md."
 
-Task: subagent_type="visual-erd-writer", model="sonnet"
+Task: subagent_type="visual-erd-writer", model="haiku"
 Prompt: "Generate data-model ERD for {FEATURE_NAME}.
 Feature dir: {FEATURE_DIR}. Read data-model.md.
 Output to {FEATURE_DIR}/visuals/data-model-erd.md."
@@ -529,7 +544,7 @@ Data model: [entities and relationships from plan]"
 Run all 4 in parallel, then judge:
 
 ```
-Task: subagent_type="multi-perspective-judge", model="sonnet"
+Task: subagent_type="multi-perspective-judge", model="opus"
 Prompt: "Judge verdict type: data model robustness assessment.
 [paste all 4 agent outputs]"
 ```

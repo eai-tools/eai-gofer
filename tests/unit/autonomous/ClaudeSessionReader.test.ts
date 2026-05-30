@@ -491,6 +491,11 @@ describe('ClaudeSessionReader', () => {
       expect(reader.getModelContextLimit('claude-3-5-haiku-20241022')).toBe(200000);
     });
 
+    it('should return 1M for current Claude Opus and Sonnet routes', () => {
+      expect(reader.getModelContextLimit('claude-opus-4-8')).toBe(1000000);
+      expect(reader.getModelContextLimit('claude-sonnet-4-6')).toBe(1000000);
+    });
+
     it('should return 200k for unknown models', () => {
       expect(reader.getModelContextLimit('unknown-model')).toBe(200000);
     });

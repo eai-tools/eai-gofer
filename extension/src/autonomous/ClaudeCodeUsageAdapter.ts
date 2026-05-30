@@ -207,10 +207,14 @@ export class ClaudeCodeUsageAdapter {
 
           // Calculate cost using detected provider and model (Bug #2 fix)
           const cost = calculateCost(
-            inputTokens + cacheCreationTokens,
+            inputTokens,
             outputTokens,
             provider,
-            model
+            model,
+            {
+              cacheWriteTokens: cacheCreationTokens,
+              cacheReadTokens,
+            }
           );
 
           usageEntries.push({

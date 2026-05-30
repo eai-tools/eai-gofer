@@ -64,7 +64,7 @@ export class OpenAIProvider extends BaseLLMProvider {
 
       messages.push({ role: 'user', content: request.prompt });
 
-      // GPT-5.2+ models use max_completion_tokens instead of max_tokens
+      // GPT-5-family models use max_completion_tokens instead of max_tokens.
       const isGpt5 = this.model.startsWith('gpt-5');
       const tokenParam = isGpt5
         ? { max_completion_tokens: request.maxTokens }
@@ -82,12 +82,18 @@ export class OpenAIProvider extends BaseLLMProvider {
 
       const content = response.choices[0]?.message?.content ?? '';
       const usage = response.usage;
+      const usageDetails = usage?.prompt_tokens_details as
+        | { cached_tokens?: number }
+        | undefined;
+      const cachedInputTokens = usageDetails?.cached_tokens ?? 0;
+      const uncachedInputTokens = Math.max(0, (usage?.prompt_tokens ?? 0) - cachedInputTokens);
 
       return {
         content,
         usage: {
-          inputTokens: usage?.prompt_tokens ?? 0,
+          inputTokens: uncachedInputTokens,
           outputTokens: usage?.completion_tokens ?? 0,
+          cachedInputTokens,
         },
         model: response.model,
         providerId: this.id,
@@ -102,7 +108,7 @@ export class OpenAIProvider extends BaseLLMProvider {
    */
   async healthCheck(): Promise<boolean> {
     try {
-      // GPT-5.2+ models use max_completion_tokens instead of max_tokens
+      // GPT-5-family models use max_completion_tokens instead of max_tokens.
       const isGpt5 = this.model.startsWith('gpt-5');
       const tokenParam = isGpt5 ? { max_completion_tokens: 10 } : { max_tokens: 10 };
 

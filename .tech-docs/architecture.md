@@ -45,9 +45,9 @@ flowchart TB
     end
 
     subgraph "External Services"
-        AnthropicAPI["Anthropic API<br/>(Claude 3.5)"]
-        GoogleAPI["Google AI API<br/>(Gemini)"]
-        OpenAIAPI["OpenAI API<br/>(GPT-4)"]
+        AnthropicAPI["Anthropic API<br/>(Claude policy routes)"]
+        GoogleAPI["Google AI API<br/>(Gemini policy routes)"]
+        OpenAIAPI["OpenAI API<br/>(GPT/Codex policy routes)"]
     end
 
     User -->|Uses| VSCode
@@ -449,9 +449,9 @@ protected_files:
 
 ### API Rate Limiting
 
-- **Anthropic API:** 50 requests/min (Sonnet), 1000 requests/min (Haiku)
-- **Google AI API:** 60 requests/min (Gemini Pro), 1500 requests/min (Flash)
-- **OpenAI API:** 10,000 requests/min (GPT-4o)
+- **Anthropic API:** Provider/account dependent; routed by `.specify/memory/gofer-model-policy.yaml`
+- **Google AI API:** Provider/account dependent; routed by `.specify/memory/gofer-model-policy.yaml`
+- **OpenAI API:** Provider/account dependent; routed by `.specify/memory/gofer-model-policy.yaml`
 - **Cost Budget:** Default $10 per run, enforced by `CostBudgetEnforcer`
 
 ## Operational Notes

@@ -13,6 +13,22 @@ settings), environment variables (`.env` for secrets), and file-based config
 (`.specify/` directory). Configuration is layered: defaults → user settings →
 workspace settings, with workspace taking precedence.
 
+## Repo-Owned Model Policy
+
+Gofer bootstraps `.specify/memory/gofer-model-policy.yaml` from
+`.specify/templates/gofer-model-policy.yaml`. The memory copy is user-owned and
+is not overwritten by bootstrap. Use it to tune model routing:
+
+- `simple`: cheap capable defaults for routine work.
+- `mechanical`: ultra-cheap locate/classify/summarize routes where supported.
+- `medium`: normal implementation, synthesis, validation, and research.
+- `hard`: best available model for security, architecture, release-critical
+  review, or repeated failure.
+- `arbiter`: optional final frontier route for cross-model disagreements.
+
+Copilot uses `Auto` for simple/default work because Copilot model availability
+is controlled by the client, plan, and organization policy.
+
 ## VS Code Settings
 
 ### API Keys

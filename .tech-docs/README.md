@@ -58,6 +58,16 @@ Optional helpers:
 | GitHub Copilot CLI | GitHub repo marketplace                  |
 | Gemini CLI         | GitHub repo install with `--auto-update` |
 
+## Model And Cost Policy
+
+Bootstrap creates a user-owned model policy at
+`.specify/memory/gofer-model-policy.yaml` from the shipped
+`.specify/templates/gofer-model-policy.yaml` template. Edit the memory copy to
+tune simple, medium, hard, and arbiter routes across Claude, Codex/OpenAI,
+Gemini, and Copilot. Copilot uses `Auto` for simple/default work by default
+because exact model availability depends on client, plan, and organization
+policy.
+
 ## Community
 
 - Discussions:

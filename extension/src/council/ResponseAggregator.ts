@@ -25,6 +25,7 @@ import {
   getOpinionsToReview,
   canPerformPeerReview,
 } from './peerReview';
+import { calculateCost } from '../config/pricing';
 
 /**
  * Configuration for the response aggregator
@@ -84,18 +85,6 @@ const DEFAULT_MIN_QUORUM = 2;
  * Anonymous ID labels for council members
  */
 const MEMBER_LABELS = ['Member A', 'Member B', 'Member C', 'Member D'];
-
-/**
- * Estimated cost per 1000 tokens by provider (in USD)
- * These are approximations for estimation purposes
- */
-const COST_PER_1K_TOKENS: Record<ProviderId, { input: number; output: number }> = {
-  anthropic: { input: 0.003, output: 0.015 },
-  google: { input: 0.00025, output: 0.0005 },
-  openai: { input: 0.005, output: 0.015 },
-  'claude-cli': { input: 0.003, output: 0.015 },
-  'codex-cli': { input: 0.005, output: 0.015 },
-};
 
 /**
  * Response Aggregator for collecting and processing multi-provider responses
@@ -349,6 +338,9 @@ export class ResponseAggregator {
   calculateUsageMetrics(result: AggregatedResponses): UsageMetrics {
     let totalTokensInput = 0;
     let totalTokensOutput = 0;
+    let totalCachedInputTokens = 0;
+    let totalCacheReadTokens = 0;
+    let totalCacheWriteTokens = 0;
     let estimatedCostUsd = 0;
     const providerBreakdown: UsageMetrics['providerBreakdown'] =
       {} as UsageMetrics['providerBreakdown'];
@@ -361,26 +353,48 @@ export class ResponseAggregator {
 
       const inputTokens = response.usage.inputTokens;
       const outputTokens = response.usage.outputTokens;
+      const cachedInputTokens = response.usage.cachedInputTokens ?? 0;
+      const cacheReadTokens = response.usage.cacheReadTokens ?? 0;
+      const cacheWriteTokens = response.usage.cacheWriteTokens ?? 0;
 
       totalTokensInput += inputTokens;
       totalTokensOutput += outputTokens;
+      totalCachedInputTokens += cachedInputTokens + cacheReadTokens;
+      totalCacheReadTokens += cacheReadTokens;
+      totalCacheWriteTokens += cacheWriteTokens;
 
-      // Calculate cost for this provider
-      const costRates = COST_PER_1K_TOKENS[successResult.providerId];
-      const providerCost =
-        (inputTokens / 1000) * costRates.input + (outputTokens / 1000) * costRates.output;
+      const providerCost = calculateCost(
+        inputTokens,
+        outputTokens,
+        successResult.providerId,
+        response.model,
+        {
+          cachedInputTokens,
+          cacheReadTokens,
+          cacheWriteTokens,
+        }
+      );
 
       estimatedCostUsd += providerCost;
 
       providerBreakdown[successResult.providerId] = {
         tokens: inputTokens + outputTokens,
         costUsd: providerCost,
+        model: response.model,
+        inputTokens,
+        outputTokens,
+        cachedInputTokens,
+        cacheReadTokens,
+        cacheWriteTokens,
       };
     }
 
     return {
       totalTokensInput,
       totalTokensOutput,
+      totalCachedInputTokens,
+      totalCacheReadTokens,
+      totalCacheWriteTokens,
       estimatedCostUsd,
       durationMs: result.durationMs,
       providerBreakdown,

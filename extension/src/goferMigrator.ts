@@ -345,6 +345,7 @@ export class GoferMigrator {
 
     // Copy all resources
     await this.resourceSyncer.copyBundledTemplates();
+    await this.resourceSyncer.ensureDefaultModelPolicy();
     await this.resourceSyncer.setupClaudeCommands();
     await this.resourceSyncer.setupClaudeAgents();
     await this.resourceSyncer.setupCopilotPrompts();

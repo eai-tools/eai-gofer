@@ -48,7 +48,7 @@ export interface LLMProviderInfo {
   name: string;
   /** Whether provider is active for council use */
   enabled: boolean;
-  /** Model identifier (e.g., "claude-opus-4-5", "gemini-3-flash") */
+  /** Model identifier (e.g., "claude-haiku-4-5", "gemini-3.1-flash-lite") */
   model: string;
   /** Current availability state */
   status: ProviderStatus;
@@ -131,6 +131,12 @@ export type SessionStatus = 'collecting' | 'reviewing' | 'synthesizing' | 'compl
 export interface ProviderUsageBreakdown {
   tokens: number;
   costUsd: number;
+  model?: string;
+  inputTokens?: number;
+  outputTokens?: number;
+  cachedInputTokens?: number;
+  cacheReadTokens?: number;
+  cacheWriteTokens?: number;
 }
 
 /**
@@ -139,6 +145,9 @@ export interface ProviderUsageBreakdown {
 export interface UsageMetrics {
   totalTokensInput: number;
   totalTokensOutput: number;
+  totalCachedInputTokens?: number;
+  totalCacheReadTokens?: number;
+  totalCacheWriteTokens?: number;
   estimatedCostUsd: number;
   durationMs: number;
   providerBreakdown: Record<ProviderId, ProviderUsageBreakdown>;
@@ -345,6 +354,9 @@ export interface QueryRequest {
 export interface QueryUsage {
   inputTokens: number;
   outputTokens: number;
+  cachedInputTokens?: number;
+  cacheReadTokens?: number;
+  cacheWriteTokens?: number;
 }
 
 /**
@@ -418,7 +430,7 @@ export const DEFAULT_COUNCIL_CONFIG: CouncilConfig = {
   peerReview: false,
   minQuorum: 2,
   timeout: 30000,
-  providers: [{ providerId: 'anthropic', enabled: true, model: 'claude-opus-4-5-20251101' }],
+  providers: [{ providerId: 'anthropic', enabled: true, model: 'claude-haiku-4-5' }],
   stages: {
     gofer_plan: 'single',
     gofer_analyze: 'single',
@@ -451,9 +463,9 @@ export const PROVIDER_NAMES: Record<ProviderId, string> = {
  * Default models per provider
  */
 export const DEFAULT_MODELS: Record<ProviderId, string> = {
-  anthropic: 'claude-opus-4-5-20251101',
-  google: 'gemini-3-flash-preview',
-  openai: 'gpt-5.2',
-  'claude-cli': 'claude-opus-4',
-  'codex-cli': 'gpt-5',
+  anthropic: 'claude-haiku-4-5',
+  google: 'gemini-3.1-flash-lite',
+  openai: 'gpt-5.4-mini',
+  'claude-cli': 'claude-haiku-4-5',
+  'codex-cli': 'gpt-5.4-mini',
 };

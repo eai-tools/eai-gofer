@@ -94,7 +94,7 @@ describe('ResponseAggregator', () => {
         createMockProvider('openai', {
           content: 'Response from OpenAI',
           usage: { inputTokens: 12, outputTokens: 22 },
-          model: 'gpt-5.2',
+          model: 'gpt-5.4-mini',
           providerId: 'openai',
         }),
       ];
@@ -118,7 +118,7 @@ describe('ResponseAggregator', () => {
         createMockProvider('openai', {
           content: 'Response from OpenAI',
           usage: { inputTokens: 12, outputTokens: 22 },
-          model: 'gpt-5.2',
+          model: 'gpt-5.4-mini',
           providerId: 'openai',
         }),
       ];
@@ -174,7 +174,7 @@ describe('ResponseAggregator', () => {
         createMockProvider('openai', {
           content: 'Another fast response',
           usage: { inputTokens: 12, outputTokens: 22 },
-          model: 'gpt-5.2',
+          model: 'gpt-5.4-mini',
           providerId: 'openai',
         }),
       ];
@@ -246,7 +246,7 @@ describe('ResponseAggregator', () => {
           response: {
             content: 'OpenAI response',
             usage: { inputTokens: 12, outputTokens: 22 },
-            model: 'gpt-5.2',
+            model: 'gpt-5.4-mini',
             providerId: 'openai',
           },
         },

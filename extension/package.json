@@ -961,7 +961,7 @@
     "chokidar": "3.6.0",
     "express": "5.2.1",
     "fast-glob": "3.3.3",
-    "fix-path": "4.0.0",
+    "fix-path": "5.0.0",
     "graphlib": "2.1.8",
     "jszip": "3.10.1",
     "node-pty-prebuilt-multiarch": "0.10.1-pre.5",

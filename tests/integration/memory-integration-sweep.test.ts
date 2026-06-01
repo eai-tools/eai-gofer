@@ -95,7 +95,9 @@ describe('Memory System Integration Sweep (T053)', () => {
         loadSpec: vi.fn().mockResolvedValue(mockSpec),
         updateTaskStatus: vi.fn(),
       };
-      vi.mocked(GoferLoader).mockImplementation(() => mockGoferLoader);
+      vi.mocked(GoferLoader).mockImplementation(function () {
+        return mockGoferLoader;
+      });
 
       const mcpHandler = new MCPToolHandler(tmpDir, { sendNotification: vi.fn() });
 

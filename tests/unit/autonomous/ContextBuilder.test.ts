@@ -34,30 +34,34 @@ vi.mock('../../../extension/src/utils/logger', () => ({
 
 // Mock MemoryManager
 vi.mock('../../../extension/src/autonomous/MemoryManager', () => ({
-  MemoryManager: vi.fn().mockImplementation(() => ({
-    search: vi.fn().mockResolvedValue({ memories: [], total: 0 }),
-    save: vi.fn(),
-    get: vi.fn(),
-    delete: vi.fn(),
-    consolidate: vi.fn(),
-    loadByPriority: vi.fn().mockResolvedValue({
-      memories: [],
-      totalConsidered: 0,
-      loadTime: 0,
-      filtered: false,
-    }),
-    calculatePriorityScore: vi.fn().mockReturnValue(50),
-    calculateRelevanceScore: vi.fn().mockReturnValue(50),
-    recordUsage: vi.fn().mockResolvedValue(undefined),
-  })),
+  MemoryManager: vi.fn().mockImplementation(function () {
+    return {
+      search: vi.fn().mockResolvedValue({ memories: [], total: 0 }),
+      save: vi.fn(),
+      get: vi.fn(),
+      delete: vi.fn(),
+      consolidate: vi.fn(),
+      loadByPriority: vi.fn().mockResolvedValue({
+        memories: [],
+        totalConsidered: 0,
+        loadTime: 0,
+        filtered: false,
+      }),
+      calculatePriorityScore: vi.fn().mockReturnValue(50),
+      calculateRelevanceScore: vi.fn().mockReturnValue(50),
+      recordUsage: vi.fn().mockResolvedValue(undefined),
+    };
+  }),
 }));
 
 // Mock HintLoader to avoid file system dependencies
 vi.mock('../../../extension/src/autonomous/HintLoader', () => ({
-  HintLoader: vi.fn().mockImplementation(() => ({
-    loadForTask: vi.fn().mockResolvedValue({ mergedContent: null, loadedHints: [] }),
-    dispose: vi.fn(),
-  })),
+  HintLoader: vi.fn().mockImplementation(function () {
+    return {
+      loadForTask: vi.fn().mockResolvedValue({ mergedContent: null, loadedHints: [] }),
+      dispose: vi.fn(),
+    };
+  }),
 }));
 
 describe('ContextBuilder', () => {

@@ -35,12 +35,14 @@ vi.mock('tsyringe', () => ({
 }));
 
 vi.mock('../../../extension/src/services/Logger', () => ({
-  Logger: vi.fn().mockImplementation(() => ({
-    info: vi.fn(),
-    debug: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-  })),
+  Logger: vi.fn().mockImplementation(function () {
+    return {
+      info: vi.fn(),
+      debug: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
+    };
+  }),
 }));
 
 vi.mock('../../../extension/src/config', () => ({

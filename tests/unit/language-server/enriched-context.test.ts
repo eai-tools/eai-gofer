@@ -6,7 +6,6 @@ import { MCPToolHandler } from '../../../language-server/src/mcp/toolHandler.js'
 import { GoferLoader } from '../../../language-server/src/utils/goferLoader.js';
 
 vi.mock('../../../language-server/src/utils/goferLoader.js');
-vi.mock('@anthropic-ai/sdk');
 vi.mock('vscode-languageserver');
 
 /**

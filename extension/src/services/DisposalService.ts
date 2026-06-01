@@ -126,21 +126,6 @@ export class DisposalService {
       resources.workspaceContextProvider = undefined;
     }
 
-    // Stop Claude Code terminals (dynamic import to avoid blocking)
-    try {
-      const { stopClaudeCode } = await import('../autonomousCommands');
-      await stopClaudeCode();
-      this.logger.debug('DisposalService', 'Claude Code terminals stopped');
-    } catch (error) {
-      this.logger.error(
-        'DisposalService',
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          operation: 'stopClaudeCode',
-        }
-      );
-    }
-
     // Dispose context health monitoring
     this.disposeContextHealthMonitoring(resources);
 

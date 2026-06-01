@@ -141,9 +141,7 @@ suite('enterpriseai marp opt-in preservation (extension integration)', () => {
     const stakeholderCommand = await fs.readFile(commandPath, 'utf8');
 
     assert.ok(stakeholderCommand.includes('opt-in'));
-    assert.ok(
-      stakeholderCommand.includes('default recommendation for `workflowProfile=enterpriseai`')
-    );
+    assert.ok(stakeholderCommand.includes('recommended only for `workflowProfile=enterpriseai`'));
     assert.ok(stakeholderCommand.includes('release-notes.md'));
     assert.ok(stakeholderCommand.includes('demo-script.md'));
   });

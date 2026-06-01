@@ -245,11 +245,11 @@ export function validateBranchName(branchName: string): InputValidationResult {
   const gitBranchPattern = /^[a-zA-Z0-9/_-]+$/;
 
   const blockedPatterns = [
-    /^\./,      // Cannot start with .
+    /^\./, // Cannot start with .
     /\.\./, // Cannot contain ..
-    /\/\//,     // Cannot contain //
-    /@\{/,      // Cannot contain @{
-    /\/$/,      // Cannot end with /
+    /\/\//, // Cannot contain //
+    /@\{/, // Cannot contain @{
+    /\/$/, // Cannot end with /
   ];
 
   return validateCommandInput(branchName, {
@@ -272,24 +272,6 @@ export function validateCommitMessage(message: string): InputValidationResult {
     allowEmpty: false,
     maxLength: 500,
     minLength: 1,
-  });
-}
-
-/**
- * Validate API key format
- *
- * @param apiKey - API key from user
- * @returns Validation result
- */
-export function validateApiKey(apiKey: string): InputValidationResult {
-  // API keys are typically base64 or hex strings
-  const apiKeyPattern = /^[a-zA-Z0-9_-]+$/;
-
-  return validateCommandInput(apiKey, {
-    allowEmpty: false,
-    maxLength: 256,
-    minLength: 8,
-    pattern: apiKeyPattern,
   });
 }
 
@@ -337,10 +319,7 @@ export function sanitizeForShell(input: string): string | null {
  * @param options - Validation options
  * @returns Array of sanitized inputs (invalid inputs filtered out)
  */
-export function sanitizeInputs(
-  inputs: string[],
-  options: ValidationOptions = {}
-): string[] {
+export function sanitizeInputs(inputs: string[], options: ValidationOptions = {}): string[] {
   return inputs
     .map((input) => sanitizeCommandInput(input, options))
     .filter((input): input is string => input !== null);
@@ -354,10 +333,7 @@ export function sanitizeInputs(
  * @returns Sanitized input
  * @throws Error if input is invalid
  */
-export function sanitizeInputOrThrow(
-  input: string,
-  options: ValidationOptions = {}
-): string {
+export function sanitizeInputOrThrow(input: string, options: ValidationOptions = {}): string {
   const result = validateCommandInput(input, options);
 
   if (!result.valid) {

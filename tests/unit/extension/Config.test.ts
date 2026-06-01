@@ -125,10 +125,9 @@ describe('Config - Constants', () => {
 
   describe('Config Keys', () => {
     it('should define all configuration keys', () => {
-      expect(CONFIG_KEYS.anthropicApiKey).toBe('gofer.anthropicApiKey');
       expect(CONFIG_KEYS.autoInitialize).toBe('gofer.autoInitialize');
       expect(CONFIG_KEYS.preferredAi).toBe('gofer.preferredAI');
-      expect(CONFIG_KEYS.yoloSlopReductionEnabled).toBe('gofer.yoloSlopReduction.enabled');
+      expect(CONFIG_KEYS.cliProvider).toBe('gofer.cliProvider');
     });
 
     it('should have all config keys prefixed with gofer.', () => {
@@ -147,8 +146,8 @@ describe('Config - Constants', () => {
       expect(DEFAULTS.preferredAi).toBe('ask');
     });
 
-    it('should have correct default for yoloSlopReductionEnabled', () => {
-      expect(DEFAULTS.yoloSlopReductionEnabled).toBe(false);
+    it('should have correct default for cliProvider', () => {
+      expect(DEFAULTS.cliProvider).toBe('auto');
     });
   });
 
@@ -381,24 +380,9 @@ describe('Config - Integration Scenarios', () => {
 describe('Config - Feature 026 Settings Validation', () => {
   it('should define polling interval defaults within valid range', () => {
     const pollingIntervalSetting =
-      packageJson.contributes.configuration.properties['gofer.aiUsage.api.pollingInterval'];
+      packageJson.contributes.configuration.properties['gofer.aiUsage.polling.interval'];
 
     expect(pollingIntervalSetting.default).toBeGreaterThanOrEqual(pollingIntervalSetting.minimum);
     expect(pollingIntervalSetting.default).toBeLessThanOrEqual(pollingIntervalSetting.maximum);
-  });
-
-  it('should validate admin key format patterns', () => {
-    const anthropicAdminSetting =
-      packageJson.contributes.configuration.properties['gofer.anthropicAdminApiKey'];
-
-    expect(anthropicAdminSetting.description).toContain('sk-ant-admin');
-    expect(anthropicAdminSetting.markdownDescription).toContain('sk-ant-admin');
-  });
-
-  it('should have feature flag default to true', () => {
-    const apiClientSetting =
-      packageJson.contributes.configuration.properties['gofer.aiUsage.useApiClient'];
-
-    expect(apiClientSetting.default).toBe(true);
   });
 });

@@ -2000,20 +2000,6 @@ Before completing validation, verify:
 
 ---
 
-## LLM Council Integration (Optional)
-
-When council mode is enabled for `gofer_validate` stage:
-
-1. Multiple LLMs review the implementation independently
-2. Each provider scores the rubric from their perspective
-3. Chairman synthesizes scores — uses the **lowest** score for each category
-   (conservative approach)
-4. Highlights consensus issues (high confidence)
-5. Notes divergent assessments needing human judgment
-6. Usage logged to `.specify/logs/council-usage.jsonl`
-
----
-
 ## Observability Logging
 
 At stage completion, log metrics:

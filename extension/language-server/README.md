@@ -1,7 +1,8 @@
 # Gofer Language Server
 
 A dual-protocol server implementing both Language Server Protocol (LSP) and
-Model Context Protocol (MCP) for spec-driven development with AI coding agents.
+Model Context Protocol (MCP) for business specification-driven development with
+AI coding agents.
 
 ## Overview
 

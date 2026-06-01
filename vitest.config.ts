@@ -11,13 +11,8 @@ export default defineConfig({
     exclude: [
       'tests/e2e/**',
       'tests/manual/**',
-      'tests/integration/council/**',
-      'tests/integration/claude-api-flow.test.ts',
-      'tests/integration/TerminalLifecycle.test.ts',
       'tests/integration/spec-loading-flow.test.ts',
-      'tests/integration/orchestrator.test.ts',
       'tests/integration/lsp-mcp/**',
-      'tests/integration/autonomous/AIUsageAutoDiscovery.integration.test.ts',
       'node_modules/**',
       'dist/**',
       'extension/**',
@@ -25,9 +20,7 @@ export default defineConfig({
       'src/**/*.test.ts', // Exclude VSCode extension tests (use VSCode test runner)
       // Exclude WIP feature tests that import non-existent modules or cause NODE_MODULE_VERSION errors
       'tests/unit/autonomous/CodexUsageAdapter.test.ts',
-      'tests/unit/autonomous/ClaudeCodeUsageAdapter.test.ts',
       'tests/unit/autonomous/observation-tracking.test.ts',
-      'tests/unit/autonomousCommands.test.ts',
       'tests/unit/autonomous/acc-integration.test.ts',
       'tests/unit/autonomous/contextbuilder-wiring.test.ts',
       'tests/unit/exponentialBackoff.test.ts',
@@ -78,11 +71,6 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
       '@extension': path.resolve(__dirname, './extension/src'),
       '@language-server': path.resolve(__dirname, './language-server/src'),
-    },
-  },
-  server: {
-    deps: {
-      inline: ['@anthropic-ai/sdk', '@google/generative-ai'],
     },
   },
 });

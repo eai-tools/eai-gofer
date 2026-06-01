@@ -1,8 +1,9 @@
 ---
 generated: true
-generated_at: "2026-05-23T17:54:39.953Z"
-source_commit: "047baa06f9bdd86354d43413563a98f893685fb3"
+generated_at: '2026-05-23T17:54:39.953Z'
+source_commit: '047baa06f9bdd86354d43413563a98f893685fb3'
 ---
+
 # Patterns and Tech Debt
 
 ## Design Patterns Identified
@@ -295,9 +296,9 @@ class LLMProviderFactory {
 
 **Usage:**
 
-- LLM council multi-provider validation
-- Cost calculation per provider
-- Rate limit handling
+- CLI provider routing across Claude, Codex, Copilot, and Gemini
+- Cost and model-policy guidance per provider
+- Rate-limit and credential-error handling
 
 ---
 
@@ -883,8 +884,8 @@ maintainability crisis.
 
 - Excellent use of TypeScript and dependency injection (tsyringe)
 - Consistent provider pattern for VS Code UI components
-- Comprehensive spec infrastructure (413 spec files, 1 active + 40 archived)
-- Strong testing volume (288 test files)
+- Repo-owned Gofer scaffold with active specs kept out of the public baseline
+- Strong testing volume (270 Vitest/Playwright test files)
 - Good separation of concerns at the architectural level
 
 **Critical Weaknesses:**

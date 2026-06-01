@@ -74,10 +74,6 @@ export class MCPConfigHelper {
       path.join('language-server', 'dist', 'server.js')
     );
 
-    // Get API key from VSCode settings or environment variable
-    const config = vscode.workspace.getConfiguration('gofer');
-    const apiKey = config.get<string>('anthropicApiKey') || '${env:ANTHROPIC_API_KEY}';
-
     // MCP configuration
     const mcpConfig = {
       mcp: {
@@ -86,7 +82,7 @@ export class MCPConfigHelper {
             command: 'node',
             args: [serverPath],
             env: {
-              ANTHROPIC_API_KEY: apiKey,
+              ANTHROPIC_API_KEY: '${env:ANTHROPIC_API_KEY}',
             },
             description: 'Gofer - Spec-driven development orchestrator',
           },
@@ -185,26 +181,15 @@ export class MCPConfigHelper {
       if (choice === 'Configure Now') {
         await this.createOrUpdateConfig();
 
-        // Check if API key is set in settings or environment
-        const config = vscode.workspace.getConfiguration('gofer');
-        const settingsApiKey = config.get<string>('anthropicApiKey');
-        const hasApiKey = !!settingsApiKey || !!process.env.ANTHROPIC_API_KEY;
+        const hasApiKey = !!process.env.ANTHROPIC_API_KEY;
 
         if (!hasApiKey) {
-          const settingChoice = await vscode.window.showWarningMessage(
+          await vscode.window.showWarningMessage(
             '🔑 Anthropic API Key Required\n\n' +
-              'Set your API key in VSCode settings or environment variable.',
+              'Set ANTHROPIC_API_KEY in your environment before using Claude MCP tools.',
             { modal: false },
-            'Open Settings',
             'Later'
           );
-
-          if (settingChoice === 'Open Settings') {
-            vscode.commands.executeCommand(
-              'workbench.action.openSettings',
-              'gofer.anthropicApiKey'
-            );
-          }
         } else {
           vscode.window
             .showInformationMessage(

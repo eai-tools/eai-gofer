@@ -1,7 +1,7 @@
 /**
  * Research Summarizer
  *
- * Uses LLM to summarize research chunks into discovery memories.
+ * Uses an optional summarizer to condense research chunks into discovery memories.
  * Caches summaries to avoid re-summarization of unchanged content.
  *
  * T040: Phase 5 - LLM Integration
@@ -9,9 +9,16 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import type { AutonomousLLMProvider } from './LLMProvider';
 import type { ResearchChunker, ResearchChunk } from './ResearchChunker';
 import { extractKeywords, computeDocumentSimilarity } from './TfIdfUtil';
+
+export interface SummarizerProvider {
+  isAvailable(): boolean;
+  summarize(
+    prompt: string,
+    maxTokens?: number
+  ): Promise<{ text: string; inputTokens: number; outputTokens: number; cached: boolean } | null>;
+}
 
 /** Maximum number of summary cache entries to keep in memory */
 const MAX_SUMMARY_CACHE_SIZE = 200;
@@ -58,14 +65,14 @@ Summary:`;
  * Summarizes research chunks via LLM and saves as discovery memories.
  */
 export class ResearchSummarizer {
-  private readonly llmProvider: AutonomousLLMProvider;
+  private readonly llmProvider: SummarizerProvider;
   private readonly researchChunker: ResearchChunker;
   private readonly memoryManager: MemoryManagerLike;
   private readonly workspaceRoot: string;
   private cache: Map<string, SummaryCache> = new Map();
 
   constructor(
-    llmProvider: AutonomousLLMProvider,
+    llmProvider: SummarizerProvider,
     researchChunker: ResearchChunker,
     memoryManager: MemoryManagerLike,
     workspaceRoot: string
@@ -102,7 +109,9 @@ export class ResearchSummarizer {
         const summary = useLLM
           ? await this.summarizeChunk(chunk)
           : this.deterministicSummarize(chunk);
-        if (!summary) {continue;}
+        if (!summary) {
+          continue;
+        }
 
         await this.memoryManager.save({
           category: 'discovery',
@@ -215,7 +224,9 @@ export class ResearchSummarizer {
 
     for (const line of lines) {
       const trimmed = line.trim();
-      if (!trimmed) {continue;}
+      if (!trimmed) {
+        continue;
+      }
       // Keep headings
       if (trimmed.startsWith('#')) {
         summaryParts.push(trimmed);
@@ -293,7 +304,9 @@ export class ResearchSummarizer {
     const indexResult = await this.researchChunker.indexResearchFile(specId);
     const chunks = indexResult.chunks;
 
-    if (chunks.length === 0) {return '';}
+    if (chunks.length === 0) {
+      return '';
+    }
 
     // Extract keywords from each chunk
     const chunkKeywords: Array<{ chunk: ResearchChunk; keywords: string[] }> = chunks.map(
@@ -309,13 +322,17 @@ export class ResearchSummarizer {
     const used = new Set<string>();
 
     for (let i = 0; i < chunkKeywords.length; i++) {
-      if (used.has(chunkKeywords[i].chunk.id)) {continue;}
+      if (used.has(chunkKeywords[i].chunk.id)) {
+        continue;
+      }
       used.add(chunkKeywords[i].chunk.id);
 
       const group = { representative: chunkKeywords[i].chunk, merged: [] as ResearchChunk[] };
 
       for (let j = i + 1; j < chunkKeywords.length; j++) {
-        if (used.has(chunkKeywords[j].chunk.id)) {continue;}
+        if (used.has(chunkKeywords[j].chunk.id)) {
+          continue;
+        }
 
         const similarity = computeDocumentSimilarity(
           chunkKeywords[i].chunk.content,

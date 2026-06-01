@@ -1,12 +1,17 @@
 # Gofer
 
-Gofer is a spec-driven delivery workflow for repositories. It gives teams one
-shared pipeline from business scenario through validation, keeps the working
-artifacts in `.specify/`, and ships across VS Code, Claude Code, Codex, GitHub
-Copilot, and Gemini.
+Gofer is a business specification-driven delivery workflow for repositories. It
+gives teams one shared pipeline from business scenario through validation, keeps
+the working artifacts in `.specify/`, and ships across VS Code, Claude Code,
+Codex, GitHub Copilot, and Gemini.
 
 Gofer is designed to be easy to adopt in an existing repo:
 
+- helps everyone, not just coders, write good code, that delivers a business
+  outcome
+- Work with AI to generate what you need whether it is business case, executive
+  summary, technical diagram of otherwise for you and your stakeholders to know
+  what will be built, not find out it is wrong later
 - one core `0-6` delivery pipeline
 - repo-owned artifacts and templates
 - install paths for VS Code and AI coding CLIs
@@ -14,11 +19,16 @@ Gofer is designed to be easy to adopt in an existing repo:
 
 ## Quick Start
 
+![Gofer first run demo](./assets/gofer-first-run.svg)
+
 1. Install the VS Code extension or add the public plugin marketplace for your
    preferred CLI.
 2. Initialize the repository with **Gofer: Initialize Repository** in VS Code,
    or run the repo bootstrap helper from a CLI host.
 3. Start with `/0_business_scenario` and move through the core pipeline.
+
+For copy-paste commands across VS Code, Claude Code, Codex, Copilot, and Gemini,
+see the [5-minute first run guide](./.tech-docs/first-run.md).
 
 ## Core Pipeline
 

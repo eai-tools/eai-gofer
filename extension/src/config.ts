@@ -1,11 +1,6 @@
 import * as vscode from 'vscode';
 import packageJson from '../package.json';
 
-export interface ResourceSnapshotConfig {
-  enabled: boolean;
-  intervalMs: number;
-}
-
 /**
  * Extension configuration constants and settings management
  * Centralizes all configuration values and provides typed access to VSCode settings
@@ -69,57 +64,22 @@ export const VIEWS = {
 
 // Configuration keys
 export const CONFIG_KEYS = {
-  anthropicApiKey: 'gofer.anthropicApiKey',
-  googleApiKey: 'gofer.googleApiKey',
-  openaiApiKey: 'gofer.openaiApiKey',
-  claudeCodeMode: 'gofer.claudeCodeMode',
   claudeCodeCommand: 'gofer.claudeCodeCommand',
   cliProvider: 'gofer.cliProvider',
   defaultCLI: 'gofer.defaultCLI',
   codexCommand: 'gofer.codexCommand',
   autoInitialize: 'gofer.autoInitialize',
   preferredAi: 'gofer.preferredAI',
-  yoloSlopReductionEnabled: 'gofer.yoloSlopReduction.enabled',
-  yoloSlopReductionNotifyEvery: 'gofer.yoloSlopReduction.notifyEvery',
-  contextWindowAutoExecuteSave: 'gofer.contextWindow.autoExecuteSave',
-  contextWindowAutoSaveThreshold: 'gofer.contextWindow.autoSaveThreshold',
-  contextWindowAutoResumeAfterSave: 'gofer.contextWindow.autoResumeAfterSave',
-  contextWindowContinuousSlopReductionEnabled:
-    'gofer.contextWindow.continuousSlopReduction.enabled',
-  contextWindowContinuousSlopReductionIntervalMs:
-    'gofer.contextWindow.continuousSlopReduction.intervalMs',
-  diagnosticsResourceSnapshotsEnabled: 'gofer.diagnostics.resourceSnapshots.enabled',
-  diagnosticsResourceSnapshotsIntervalMs: 'gofer.diagnostics.resourceSnapshots.intervalMs',
-  scopeGuardMode: 'gofer.scopeGuard.mode',
-  budgetMaxCostUsd: 'gofer.budgets.maxCostUsd',
-  budgetMaxTokensPerRun: 'gofer.budgets.maxTokensPerRun',
-  budgetEnforcementMode: 'gofer.budgets.enforcementMode',
-  memoryCoverageThreshold: 'gofer.memory.coverageThreshold',
 } as const;
 
 // Default values
 export const DEFAULTS = {
-  claudeCodeMode: 'standard' as const,
   claudeCodeCommand: 'claude',
   cliProvider: 'auto' as const,
   defaultCLI: 'auto' as const,
   codexCommand: 'codex',
   autoInitialize: false,
   preferredAi: 'ask',
-  yoloSlopReductionEnabled: false,
-  yoloSlopReductionNotifyEvery: 10,
-  contextWindowAutoExecuteSave: true,
-  contextWindowAutoSaveThreshold: 0.65,
-  contextWindowAutoResumeAfterSave: true,
-  contextWindowContinuousSlopReductionEnabled: false,
-  contextWindowContinuousSlopReductionIntervalMs: 2 * 60 * 1000,
-  diagnosticsResourceSnapshotsEnabled: true,
-  diagnosticsResourceSnapshotsIntervalMs: 5 * 60 * 1000,
-  scopeGuardMode: 'warning',
-  budgetMaxCostUsd: 10.0,
-  budgetMaxTokensPerRun: 500_000,
-  budgetEnforcementMode: 'advisory',
-  memoryCoverageThreshold: 30,
 } as const;
 
 // File patterns
@@ -158,53 +118,13 @@ export class ConfigManager {
   }
 
   /**
-   * Get Anthropic API key
-   */
-  public getAnthropicApiKey(): string {
-    return this.config.get<string>(CONFIG_KEYS.anthropicApiKey.replace('gofer.', ''), '') || '';
-  }
-
-  /**
-   * Get Google AI API key (for Gemini)
-   */
-  public getGoogleApiKey(): string {
-    return this.config.get<string>(CONFIG_KEYS.googleApiKey.replace('gofer.', ''), '') || '';
-  }
-
-  /**
-   * Get OpenAI API key (for GPT)
-   */
-  public getOpenaiApiKey(): string {
-    return this.config.get<string>(CONFIG_KEYS.openaiApiKey.replace('gofer.', ''), '') || '';
-  }
-
-  /**
-   * Get Claude Code launch mode
-   */
-  public getClaudeCodeMode(): 'standard' | 'yolo' | 'custom' {
-    return this.config.get<'standard' | 'yolo' | 'custom'>(
-      CONFIG_KEYS.claudeCodeMode.replace('gofer.', ''),
-      DEFAULTS.claudeCodeMode
-    );
-  }
-
-  /**
-   * Get the resolved Claude Code command based on mode setting
+   * Get the Claude Code command/path used by CLI provider execution.
    */
   public getClaudeCodeCommand(): string {
-    const mode = this.getClaudeCodeMode();
-    switch (mode) {
-      case 'yolo':
-        return 'claude --dangerously-skip-permissions';
-      case 'custom':
-        return this.config.get<string>(
-          CONFIG_KEYS.claudeCodeCommand.replace('gofer.', ''),
-          DEFAULTS.claudeCodeCommand
-        );
-      case 'standard':
-      default:
-        return 'claude';
-    }
+    return this.config.get<string>(
+      CONFIG_KEYS.claudeCodeCommand.replace('gofer.', ''),
+      DEFAULTS.claudeCodeCommand
+    );
   }
 
   /**
@@ -263,143 +183,6 @@ export class ConfigManager {
    */
   public getPerformanceMode(): 'fast' | 'balanced' | 'thorough' {
     return 'balanced';
-  }
-
-  /**
-   * Get YOLO slop reduction enabled setting
-   */
-  public getSlopReductionEnabled(): boolean {
-    return this.config.get<boolean>(
-      CONFIG_KEYS.yoloSlopReductionEnabled.replace('gofer.', ''),
-      DEFAULTS.yoloSlopReductionEnabled
-    );
-  }
-
-  /**
-   * Get YOLO slop reduction notification frequency
-   */
-  public getSlopReductionNotifyEvery(): number {
-    return this.config.get<number>(
-      CONFIG_KEYS.yoloSlopReductionNotifyEvery.replace('gofer.', ''),
-      DEFAULTS.yoloSlopReductionNotifyEvery
-    );
-  }
-
-  /**
-   * Get context window auto-execute save setting
-   */
-  public getContextWindowAutoExecuteSave(): boolean {
-    return this.config.get<boolean>(
-      CONFIG_KEYS.contextWindowAutoExecuteSave.replace('gofer.', ''),
-      DEFAULTS.contextWindowAutoExecuteSave
-    );
-  }
-
-  /**
-   * Get context window auto-save threshold
-   */
-  public getContextWindowAutoSaveThreshold(): number {
-    return this.config.get<number>(
-      CONFIG_KEYS.contextWindowAutoSaveThreshold.replace('gofer.', ''),
-      DEFAULTS.contextWindowAutoSaveThreshold
-    );
-  }
-
-  /**
-   * Get context window auto-resume after save setting
-   */
-  public getContextWindowAutoResumeAfterSave(): boolean {
-    return this.config.get<boolean>(
-      CONFIG_KEYS.contextWindowAutoResumeAfterSave.replace('gofer.', ''),
-      DEFAULTS.contextWindowAutoResumeAfterSave
-    );
-  }
-
-  /**
-   * Get continuous slop reduction enabled setting.
-   */
-  public getContinuousSlopReductionEnabled(): boolean {
-    return this.config.get<boolean>(
-      CONFIG_KEYS.contextWindowContinuousSlopReductionEnabled.replace('gofer.', ''),
-      DEFAULTS.contextWindowContinuousSlopReductionEnabled
-    );
-  }
-
-  /**
-   * Get continuous slop reduction interval in milliseconds.
-   */
-  public getContinuousSlopReductionIntervalMs(): number {
-    return this.config.get<number>(
-      CONFIG_KEYS.contextWindowContinuousSlopReductionIntervalMs.replace('gofer.', ''),
-      DEFAULTS.contextWindowContinuousSlopReductionIntervalMs
-    );
-  }
-
-  /**
-   * Get resource snapshot diagnostics settings.
-   */
-  public getResourceSnapshotConfig(): ResourceSnapshotConfig {
-    return {
-      enabled: this.config.get<boolean>(
-        CONFIG_KEYS.diagnosticsResourceSnapshotsEnabled.replace('gofer.', ''),
-        DEFAULTS.diagnosticsResourceSnapshotsEnabled
-      ),
-      intervalMs: this.config.get<number>(
-        CONFIG_KEYS.diagnosticsResourceSnapshotsIntervalMs.replace('gofer.', ''),
-        DEFAULTS.diagnosticsResourceSnapshotsIntervalMs
-      ),
-    };
-  }
-
-  /**
-   * Get ScopeGuard enforcement mode
-   */
-  public getScopeGuardMode(): 'advisory' | 'warning' | 'blocking' {
-    return this.config.get<'advisory' | 'warning' | 'blocking'>(
-      CONFIG_KEYS.scopeGuardMode.replace('gofer.', ''),
-      DEFAULTS.scopeGuardMode as 'warning'
-    );
-  }
-
-  /**
-   * Get budget max cost in USD
-   */
-  public getBudgetMaxCostUsd(): number {
-    return this.config.get<number>(
-      CONFIG_KEYS.budgetMaxCostUsd.replace('gofer.', ''),
-      DEFAULTS.budgetMaxCostUsd
-    );
-  }
-
-  /**
-   * Get budget max tokens per run
-   */
-  public getBudgetMaxTokensPerRun(): number {
-    return this.config.get<number>(
-      CONFIG_KEYS.budgetMaxTokensPerRun.replace('gofer.', ''),
-      DEFAULTS.budgetMaxTokensPerRun
-    );
-  }
-
-  /**
-   * Get budget enforcement mode
-   */
-  public getBudgetEnforcementMode(): 'advisory' | 'truncate' | 'blocking' {
-    return this.config.get<'advisory' | 'truncate' | 'blocking'>(
-      CONFIG_KEYS.budgetEnforcementMode.replace('gofer.', ''),
-      DEFAULTS.budgetEnforcementMode as 'advisory'
-    );
-  }
-
-  /**
-   * T032: Get memory coverage threshold for tiered loading (0-100, default 30)
-   * When memory coverage exceeds this %, skip research docs and load memories only.
-   */
-  public getMemoryCoverageThreshold(): number {
-    return this.config.get<number>(
-      CONFIG_KEYS.memoryCoverageThreshold.replace('gofer.', ''),
-      DEFAULTS.memoryCoverageThreshold
-    );
   }
 
   /**
@@ -484,23 +267,8 @@ export class ConfigManager {
    */
   public getAll(): Record<string, unknown> {
     return {
-      anthropicApiKey: this.getAnthropicApiKey(),
-      googleApiKey: this.getGoogleApiKey(),
-      openaiApiKey: this.getOpenaiApiKey(),
       autoInitialize: this.getAutoInitialize(),
       preferredAI: this.getPreferredAI(),
-      yoloSlopReductionEnabled: this.getSlopReductionEnabled(),
-      yoloSlopReductionNotifyEvery: this.getSlopReductionNotifyEvery(),
-      contextWindowAutoExecuteSave: this.getContextWindowAutoExecuteSave(),
-      contextWindowAutoSaveThreshold: this.getContextWindowAutoSaveThreshold(),
-      contextWindowAutoResumeAfterSave: this.getContextWindowAutoResumeAfterSave(),
-      contextWindowContinuousSlopReductionEnabled: this.getContinuousSlopReductionEnabled(),
-      contextWindowContinuousSlopReductionIntervalMs: this.getContinuousSlopReductionIntervalMs(),
-      resourceSnapshotConfig: this.getResourceSnapshotConfig(),
-      scopeGuardMode: this.getScopeGuardMode(),
-      budgetMaxCostUsd: this.getBudgetMaxCostUsd(),
-      budgetMaxTokensPerRun: this.getBudgetMaxTokensPerRun(),
-      budgetEnforcementMode: this.getBudgetEnforcementMode(),
     };
   }
 }

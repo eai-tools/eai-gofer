@@ -1,9 +1,13 @@
 import { defineConfig } from '@vscode/test-cli';
 
 export default defineConfig({
-  files: ['tests/e2e/**/*.test.ts', '!tests/e2e/workflow.test.ts'],
+  files: [
+    'extension/out/test/suite/**/*.test.js',
+    'extension/out/test/suite/**/*.integration.test.js',
+  ],
+  extensionDevelopmentPath: './extension',
   version: 'stable',
-  workspaceFolder: './test-workspace',
+  workspaceFolder: './extension/test-workspace',
   mocha: {
     ui: 'bdd',
     timeout: 20000,

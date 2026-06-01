@@ -8,22 +8,6 @@
     "gofer": {
       "type": "object",
       "properties": {
-        "anthropicApiKey": {
-          "type": "string",
-          "description": "Anthropic API key for Claude models"
-        },
-        "googleApiKey": {
-          "type": "string",
-          "description": "Google API key for Gemini models"
-        },
-        "xaiApiKey": {
-          "type": "string",
-          "description": "xAI API key for Grok models"
-        },
-        "openaiApiKey": {
-          "type": "string",
-          "description": "OpenAI API key"
-        },
         "context": {
           "type": "object",
           "properties": {
@@ -133,57 +117,6 @@
               "default": 10000
             }
           }
-        },
-        "council": {
-          "type": "object",
-          "properties": {
-            "enabled": {
-              "type": "boolean",
-              "description": "Enable LLM Council mode",
-              "default": false
-            },
-            "quorum": {
-              "type": "integer",
-              "description": "Minimum providers required for consensus",
-              "minimum": 1,
-              "maximum": 10,
-              "default": 2
-            },
-            "timeout": {
-              "type": "integer",
-              "description": "Timeout per provider request (ms)",
-              "minimum": 5000,
-              "maximum": 300000,
-              "default": 30000
-            }
-          }
-        },
-        "yoloSlopReduction": {
-          "type": "object",
-          "properties": {
-            "enabled": {
-              "type": "boolean",
-              "description": "Enable YOLO mode for automatic slop reduction",
-              "default": false
-            },
-            "autoFix": {
-              "type": "boolean",
-              "description": "Automatically fix detected slop",
-              "default": false
-            },
-            "patterns": {
-              "type": "array",
-              "description": "Slop patterns to detect",
-              "items": {
-                "type": "string"
-              }
-            }
-          }
-        },
-        "autonomousMode": {
-          "type": "boolean",
-          "description": "Enable autonomous monitoring for Claude Code terminal sessions",
-          "default": true
         },
         "languageServer": {
           "type": "object",

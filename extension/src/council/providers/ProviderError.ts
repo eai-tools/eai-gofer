@@ -11,7 +11,7 @@ import { ProviderId } from '../types';
  * Error codes for provider failures
  */
 export enum ProviderErrorCode {
-  /** API key is missing or invalid */
+  /** Provider authentication failed */
   AUTHENTICATION_FAILED = 'AUTHENTICATION_FAILED',
   /** Provider returned a rate limit error (429) */
   RATE_LIMITED = 'RATE_LIMITED',
@@ -124,7 +124,7 @@ export class ProviderError extends Error {
  */
 export function authenticationError(
   providerId: ProviderId,
-  message = 'Authentication failed - check API key'
+  message = 'Authentication failed - run the provider login command or configure its environment'
 ): ProviderError {
   return new ProviderError(message, ProviderErrorCode.AUTHENTICATION_FAILED, providerId, {
     statusCode: 401,
@@ -187,7 +187,7 @@ export function apiError(
  */
 export function notConfiguredError(providerId: ProviderId): ProviderError {
   return new ProviderError(
-    `Provider ${providerId} is not configured - API key missing`,
+    `Provider ${providerId} is not configured - CLI provider is unavailable`,
     ProviderErrorCode.NOT_CONFIGURED,
     providerId
   );

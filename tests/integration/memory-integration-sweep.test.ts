@@ -9,7 +9,6 @@ import { WorkspaceContextProvider } from '../../extension/src/autonomous/Workspa
 import { ContextHealthMonitor } from '../../extension/src/autonomous/ContextHealthMonitor';
 
 vi.mock('../../language-server/src/utils/goferLoader.js');
-vi.mock('@anthropic-ai/sdk');
 vi.mock('vscode-languageserver');
 
 /**

@@ -69,7 +69,6 @@ describe('MCP Integration (T084)', () => {
     it('should allow MCP setup when defaultCLI is "claude"', async () => {
       mockConfig['defaultCLI'] = 'claude';
       mockConfig['cliProvider'] = 'auto';
-      mockConfig['anthropicApiKey'] = 'test-key';
 
       // Mock fs operations to succeed
       const fs = await import('fs/promises');
@@ -87,7 +86,6 @@ describe('MCP Integration (T084)', () => {
     it('should allow MCP setup when defaultCLI is "auto" and cliProvider is "claude"', async () => {
       mockConfig['defaultCLI'] = 'auto';
       mockConfig['cliProvider'] = 'claude';
-      mockConfig['anthropicApiKey'] = 'test-key';
 
       // Mock fs operations
       const fs = await import('fs/promises');
@@ -148,7 +146,6 @@ describe('MCP Integration (T084)', () => {
   describe('Graceful Degradation', () => {
     it('should handle missing directory creation gracefully', async () => {
       mockConfig['defaultCLI'] = 'claude';
-      mockConfig['anthropicApiKey'] = 'test-key';
 
       const fs = await import('fs/promises');
       // Mock mkdir to fail but writeFile to succeed (directory already exists)
@@ -162,7 +159,6 @@ describe('MCP Integration (T084)', () => {
 
     it('should handle write errors by throwing', async () => {
       mockConfig['defaultCLI'] = 'claude';
-      mockConfig['anthropicApiKey'] = 'test-key';
 
       const fs = await import('fs/promises');
       vi.mocked(fs.mkdir).mockResolvedValue(undefined);

@@ -498,8 +498,8 @@ Version: 1.0 Generated: 2026-03-18 Total Processes: 127
 | ID   | Process                                | Method | Description                                 | PTY Required? |
 | ---- | -------------------------------------- | ------ | ------------------------------------------- | ------------- |
 | N2.1 | **Configure CLI provider preference**  | 🔵 CMD | Set `gofer.cliProvider` (claude/codex/auto) | ❌ No         |
-| N2.2 | **Configure council mode**             | 🔵 CMD | Edit `.specify/memory/council-config.yaml`  | ❌ No         |
-| N2.3 | **Configure autonomous mode settings** | 🔵 CMD | Set `gofer.autonomous.*` settings           | ❌ No         |
+| N2.2 | **Configure council mode**             | 🔵 CMD | Retired legacy council configuration        | ❌ No         |
+| N2.3 | **Configure autonomous mode settings** | 🔵 CMD | Retired legacy autonomous tuning settings   | ❌ No         |
 | N2.4 | **Configure context thresholds**       | 🔵 CMD | Set warning/critical/handoff thresholds     | ❌ No         |
 
 #### N3. Workspace Management

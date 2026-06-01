@@ -105,7 +105,6 @@ implementation through a dual-protocol architecture (LSP + MCP). It provides:
 - Coordinates Claude Code terminal sessions
 - Manages task queue and dependencies
 - IPC status signaling via `.specify/ipc/status.json`
-- WhatsApp notifications via Twilio (optional)
 - **Note:** Extension-based ACC orchestration preferred (see
   `extension/src/autonomous/ACCOrchestrator.ts`)
 
@@ -194,11 +193,11 @@ gofer/
 ├── extension/           # VSCode extension (UI, commands, views)
 │   ├── src/             # TypeScript source (247+ files)
 │   │   ├── autonomous/  # ACC, context management, scope guard
-│   │   ├── council/     # LLM Council, command generation
+│   │   ├── council/     # CLI provider routing and command generation
 │   │   ├── services/    # DI services, config, state
 │   │   └── ui/          # Tree view providers
 │   ├── language-server/ # Bundled LSP server (copied during build)
-│   └── package.json     # Extension manifest (67+ commands, 91+ settings)
+│   └── package.json     # Extension manifest (41 commands, 13 settings)
 ├── language-server/     # LSP + MCP server (source)
 │   ├── src/             # Server implementation
 │   │   ├── mcp/         # MCP tool handler (29 tools)
@@ -238,11 +237,11 @@ gofer/
    - Run: `Gofer: Initialize Repository` (or `Ctrl+Shift+Alt+I`)
    - Creates `.specify/` folder structure
 
-3. **Configure API Keys**
-   - Set `gofer.anthropicApiKey` in VSCode settings
-   - Optional: `gofer.googleApiKey`, `gofer.openaiApiKey` for LLM Council
-   - Admin keys for billing data: `gofer.anthropicAdminApiKey`,
-     `gofer.openaiAdminApiKey`
+3. **Configure AI CLI access**
+   - Run the provider login command for your chosen tool, such as `claude login`
+     or `codex login`
+   - Optionally set `gofer.defaultCLI`, `gofer.claudeCodeCommand`, or
+     `gofer.codexCommand` in VS Code settings
 
 4. **Create Specification**
    - Create `.specify/specs/my-feature/spec.md`
@@ -353,7 +352,7 @@ All data is stored in the `.specify/` directory:
   (UUID-indexed observations)
 - **Knowledge Graph:** `.specify/memory/knowledge-graph.json` (Entity
   relationships)
-- **Logs:** `.specify/logs/` (council-usage.jsonl, tool-audit.jsonl,
+- **Logs:** `.specify/logs/` (context-usage.jsonl, tool-audit.jsonl,
   slop-reduction.jsonl, gofer-run-ledger.jsonl)
 - **State:** `.specify/current-stage.json`, `.specify/ipc/status.json`
 
@@ -363,20 +362,19 @@ No database required - all data is file-based for Git-friendly version control.
 
 ### Primary Integrations
 
-| System                    | Type       | Purpose                                                   | Criticality                 |
-| ------------------------- | ---------- | --------------------------------------------------------- | --------------------------- |
-| **VS Code Extension API** | Platform   | Extension host, commands, views, language server protocol | Required                    |
-| **Anthropic API**         | Upstream   | Claude Haiku/Sonnet/Opus routes from `.specify/memory/gofer-model-policy.yaml` | Optional (Claude Code only) |
-| **Google AI API**         | Upstream   | Gemini Flash-Lite/Flash/Pro routes from the Gofer model policy | Optional                    |
-| **OpenAI API**            | Upstream   | GPT mini/nano/Codex/flagship routes from the Gofer model policy | Optional                    |
-| **Claude Code CLI**       | Downstream | Primary consumer of MCP tools (23 tools)                  | Primary                     |
-| **GitHub Copilot**        | Downstream | Consumer of prompt files (`.github/prompts/`)             | Core                        |
-| **OpenAI Codex CLI**      | Downstream | Consumer of skill files (`.agents/skills/`)               | Core                        |
-| **Gemini CLI**            | Downstream | Consumer of command files (`.gemini/commands/gofer/`)     | Core                        |
+| System                    | Type       | Purpose                                                      | Criticality |
+| ------------------------- | ---------- | ------------------------------------------------------------ | ----------- |
+| **VS Code Extension API** | Platform   | Extension host, commands, views, language server protocol    | Required    |
+| **Claude Code CLI**       | Upstream   | Claude routes from `.specify/memory/gofer-model-policy.yaml` | Optional    |
+| **Gemini CLI**            | Upstream   | Gemini routes from the Gofer model policy                    | Optional    |
+| **OpenAI Codex CLI**      | Upstream   | Codex/OpenAI routes from the Gofer model policy              | Optional    |
+| **Claude Code CLI**       | Downstream | Primary consumer of MCP tools (23 tools)                     | Primary     |
+| **GitHub Copilot**        | Downstream | Consumer of prompt files (`.github/prompts/`)                | Core        |
+| **OpenAI Codex CLI**      | Downstream | Consumer of skill files (`.agents/skills/`)                  | Core        |
+| **Gemini CLI**            | Downstream | Consumer of command files (`.gemini/commands/gofer/`)        | Core        |
 
 ### Secondary Integrations
 
-- **Twilio API** - Optional WhatsApp notifications for orchestrator runs
 - **GitHub API** - Optional auto-update checking
 - **GitHub Pages** - Documentation hosting for Docusaurus site
 

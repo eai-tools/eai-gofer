@@ -11,15 +11,6 @@ import { Connection } from 'vscode-languageserver';
 vi.mock('../utils/goferLoader');
 vi.mock('vscode-languageserver');
 
-// Mock Anthropic SDK
-vi.mock('@anthropic-ai/sdk', () => ({
-  default: vi.fn().mockImplementation(() => ({
-    messages: {
-      create: vi.fn()
-    }
-  }))
-}));
-
 describe('MCPToolHandler', () => {
   let toolHandler: MCPToolHandler;
   let mockConnection: Connection;
@@ -28,19 +19,20 @@ describe('MCPToolHandler', () => {
   beforeEach(() => {
     // Reset all mocks
     vi.clearAllMocks();
-    
+
     // Create mock connection
     mockConnection = {
       sendNotification: vi.fn(),
       onNotification: vi.fn(),
-      onRequest: vi.fn()
+      onRequest: vi.fn(),
     } as unknown as typeof mockConnection;
 
     // Create tool handler
     toolHandler = new MCPToolHandler('/test/workspace', mockConnection);
 
     // Get the mocked GoferLoader instance
-    mockGoferLoader = (toolHandler as unknown as { goferLoader: typeof mockGoferLoader }).goferLoader;
+    mockGoferLoader = (toolHandler as unknown as { goferLoader: typeof mockGoferLoader })
+      .goferLoader;
   });
 
   afterEach(() => {
@@ -95,20 +87,18 @@ describe('MCPToolHandler', () => {
 
       it('should log security violations', async () => {
         const consoleSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
-        
+
         await toolHandler.updateTaskStatus('../../etc/passwd', 'T001', 'completed');
-        
-        expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('Security Violation')
-        );
+
+        expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Security Violation'));
         expect(mockConnection.sendNotification).toHaveBeenCalledWith(
           'gofer/securityViolation',
           expect.objectContaining({
             type: 'SECURITY_VIOLATION',
-            message: 'Path traversal attempt in specId'
+            message: 'Path traversal attempt in specId',
           })
         );
-        
+
         consoleSpy.mockRestore();
       });
     });
@@ -138,13 +128,21 @@ describe('MCPToolHandler', () => {
 
       it('should reject task ID that is too long', async () => {
         const longTaskId = 'T' + '1'.repeat(20);
-        const result = await toolHandler.updateTaskStatus('001-valid-spec', longTaskId, 'completed');
+        const result = await toolHandler.updateTaskStatus(
+          '001-valid-spec',
+          longTaskId,
+          'completed'
+        );
         expect(result.success).toBe(false);
         expect(result.error).toContain('too long');
       });
 
       it('should reject task ID with invalid format', async () => {
-        const result = await toolHandler.updateTaskStatus('001-valid-spec', 'invalid-task', 'completed');
+        const result = await toolHandler.updateTaskStatus(
+          '001-valid-spec',
+          'invalid-task',
+          'completed'
+        );
         expect(result.success).toBe(false);
         expect(result.error).toContain('must match format');
       });
@@ -153,7 +151,7 @@ describe('MCPToolHandler', () => {
     describe('status validation', () => {
       it('should accept valid status values', async () => {
         const validStatuses = ['pending', 'in_progress', 'completed', 'blocked', 'failed'];
-        
+
         for (const status of validStatuses) {
           const result = await toolHandler.updateTaskStatus('001-valid-spec', 'T001', status);
           expect(result.success).toBe(true);
@@ -161,7 +159,11 @@ describe('MCPToolHandler', () => {
       });
 
       it('should reject invalid status values', async () => {
-        const result = await toolHandler.updateTaskStatus('001-valid-spec', 'T001', 'invalid-status');
+        const result = await toolHandler.updateTaskStatus(
+          '001-valid-spec',
+          'T001',
+          'invalid-status'
+        );
         expect(result.success).toBe(false);
         expect(result.error).toContain('Invalid status');
         expect(result.errorCode).toBe('INVALID_STATUS');
@@ -178,10 +180,24 @@ describe('MCPToolHandler', () => {
             title: 'Test Spec',
             status: 'in_progress',
             tasks: [
-              { id: 'T001', description: 'Task 1', status: 'completed', dependencies: [], parallel: false, attempts: 0 },
-              { id: 'T002', description: 'Task 2', status: 'pending', dependencies: ['T001'], parallel: false, attempts: 0 }
-            ]
-          }
+              {
+                id: 'T001',
+                description: 'Task 1',
+                status: 'completed',
+                dependencies: [],
+                parallel: false,
+                attempts: 0,
+              },
+              {
+                id: 'T002',
+                description: 'Task 2',
+                status: 'pending',
+                dependencies: ['T001'],
+                parallel: false,
+                attempts: 0,
+              },
+            ],
+          },
         ];
 
         mockGoferLoader.loadAllSpecs = vi.fn().mockResolvedValue(mockSpecs);
@@ -196,7 +212,7 @@ describe('MCPToolHandler', () => {
           title: 'Test Spec',
           status: 'in_progress',
           taskCount: 2,
-          completedTasks: 1
+          completedTasks: 1,
         });
       });
 
@@ -228,10 +244,24 @@ describe('MCPToolHandler', () => {
             title: 'Test Spec',
             status: 'in_progress',
             tasks: [
-              { id: 'T001', description: 'Task 1', status: 'completed', dependencies: [], parallel: false, attempts: 0 },
-              { id: 'T002', description: 'Task 2', status: 'pending', dependencies: ['T001'], parallel: false, attempts: 0 }
-            ]
-          }
+              {
+                id: 'T001',
+                description: 'Task 1',
+                status: 'completed',
+                dependencies: [],
+                parallel: false,
+                attempts: 0,
+              },
+              {
+                id: 'T002',
+                description: 'Task 2',
+                status: 'pending',
+                dependencies: ['T001'],
+                parallel: false,
+                attempts: 0,
+              },
+            ],
+          },
         ];
 
         mockGoferLoader.loadAllSpecs = vi.fn().mockResolvedValue(mockSpecs);
@@ -242,11 +272,11 @@ describe('MCPToolHandler', () => {
         expect(result.task).toMatchObject({
           id: 'T002',
           description: 'Task 2',
-          status: 'pending'
+          status: 'pending',
         });
         expect(result.spec).toMatchObject({
           id: '001-test-spec',
-          title: 'Test Spec'
+          title: 'Test Spec',
         });
       });
 
@@ -257,9 +287,16 @@ describe('MCPToolHandler', () => {
             title: 'Test Spec',
             status: 'completed',
             tasks: [
-              { id: 'T001', description: 'Task 1', status: 'completed', dependencies: [], parallel: false, attempts: 0 }
-            ]
-          }
+              {
+                id: 'T001',
+                description: 'Task 1',
+                status: 'completed',
+                dependencies: [],
+                parallel: false,
+                attempts: 0,
+              },
+            ],
+          },
         ];
 
         mockGoferLoader.loadAllSpecs = vi.fn().mockResolvedValue(mockSpecs);
@@ -280,8 +317,15 @@ describe('MCPToolHandler', () => {
           description: 'Test description',
           status: 'in_progress',
           tasks: [
-            { id: 'T001', description: 'Task 1', status: 'pending', dependencies: [], parallel: false, attempts: 0 }
-          ]
+            {
+              id: 'T001',
+              description: 'Task 1',
+              status: 'pending',
+              dependencies: [],
+              parallel: false,
+              attempts: 0,
+            },
+          ],
         };
 
         mockGoferLoader.loadSpec = vi.fn().mockResolvedValue(mockSpec);
@@ -291,11 +335,11 @@ describe('MCPToolHandler', () => {
         expect(result.success).toBe(true);
         expect(result.task).toMatchObject({
           id: 'T001',
-          description: 'Task 1'
+          description: 'Task 1',
         });
         expect(result.spec).toMatchObject({
           id: '001-test-spec',
-          title: 'Test Spec'
+          title: 'Test Spec',
         });
       });
 
@@ -312,7 +356,7 @@ describe('MCPToolHandler', () => {
         const mockSpec = {
           id: '001-test-spec',
           title: 'Test Spec',
-          tasks: []
+          tasks: [],
         };
 
         mockGoferLoader.loadSpec = vi.fn().mockResolvedValue(mockSpec);

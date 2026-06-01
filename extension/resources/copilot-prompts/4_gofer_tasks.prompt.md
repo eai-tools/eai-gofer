@@ -10,9 +10,9 @@ tools:
   - WebSearch
 argument-hint: feature-name-or-description
 gofer:
-  workflowProfile: enterpriseai
+  workflowProfile: standard
   canonicalSource: .specify/commands/4_gofer_tasks.md
-  canonicalChecksum: 8115e7a70d469a7494feacfb4e41c7755c53b71dc91caae0a8fa1b2af6daccb1
+  canonicalChecksum: 8db6e7249ef082db0a9bfd6e759d28ad4da90691df965362169499d0b317c176
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -494,23 +494,13 @@ Engineering Review: PASSED (cycle [N] of 5)
 
 ---
 
-## LLM Council Integration (Optional)
-
-When council mode is enabled for task generation:
-
-1. Multiple LLMs analyze the plan for task completeness
-2. Different perspectives on dependency ordering
-3. Chairman synthesizes optimal task breakdown
-4. Usage logged to `.specify/logs/council-usage.jsonl`
-
----
-
 ## Ordered Runnable Task-Generation Guidance
 
-EnterpriseAI is the default profile. Standard profile task generation is used
-only when the user explicitly opts out.
+The standard Gofer workflow is the public default. EnterpriseAI task generation
+is migration-only and used only when `workflowProfile` is explicitly
+`enterpriseai`.
 
-When the workflow profile is `enterpriseai` or no profile is specified,
+When the workflow profile is explicitly `enterpriseai`,
 `tasks.md` MUST emit deployment
 tasks in the following ordered chain. Each task is independently runnable and
 the ordering enforces scaffold before deployment so that configuration and

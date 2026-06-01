@@ -38,6 +38,7 @@ AI-USAGE-FIX-SUMMARY.md
 node_modules
 dist/
 extension/dist/
+extension/out/
 language-server/dist/
 docs-site/build/
 docs-site/.docusaurus/
@@ -50,8 +51,11 @@ release-assets/
 docs-site/static/releases/*.vsix
 !docs-site/static/releases/*.vsix
 !docs-site/static/releases/*.zip
-test-results/vitest-results.json
-test-results/vitest-results.json
+.vscode-test/
+extension/.vscode-test/
+playwright-report/
+test-results/
+tests/integration/test-workspace-*/
 
 # QAgent runtime artifacts
 .qagent/

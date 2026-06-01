@@ -42,9 +42,6 @@ vi.mock('../../../extension/src/config', () => ({
   ConfigManager: {
     getInstance: vi.fn(() => ({
       getAutoInitialize: vi.fn(() => false),
-      getContextWindowAutoSaveThreshold: vi.fn(() => 80),
-      getContextWindowAutoExecuteSave: vi.fn(() => false),
-      getContextWindowAutoResumeAfterSave: vi.fn(() => false),
     })),
   },
 }));

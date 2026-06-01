@@ -275,7 +275,7 @@ describe('CLI Provider Switching Integration Tests (R8)', () => {
         }),
       } as any);
 
-      const claudeProvider = await factory.getCLIProvider();
+      await factory.getCLIProvider();
 
       // Switch to Codex CLI
       vi.mocked(vscode.workspace.getConfiguration).mockReturnValue({
@@ -344,6 +344,7 @@ describe('CLI Provider Switching Integration Tests (R8)', () => {
       } as any);
 
       const firstProvider = await factory.getCLIProvider();
+      expect(firstProvider.id).toBe('claude-cli');
 
       // Change command path
       vi.mocked(vscode.workspace.getConfiguration).mockReturnValue({

@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [3.5.1] - 2026-06-01
+
+Public launch readiness issue closure
+
 ## [3.5.0] - 2026-05-30
 
 Add model cost policy and cross-surface routing

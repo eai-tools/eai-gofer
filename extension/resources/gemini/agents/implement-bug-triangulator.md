@@ -1,6 +1,7 @@
 ---
 name: implement-bug-triangulator
-description: Triangulates bug root causes from 3 independent investigation approaches
+description:
+  Triangulates bug root causes from 3 independent investigation approaches
 kind: local
 model: gemini-3-flash-preview
 temperature: 0.2
@@ -94,4 +95,3 @@ root cause.
 - **Don't guess** — if your approach doesn't find evidence, say so.
 - **Recommended model**: sonnet (bug investigation requires reasoning about code
   behavior).
-

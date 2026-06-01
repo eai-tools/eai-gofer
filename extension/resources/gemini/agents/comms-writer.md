@@ -1,6 +1,8 @@
 ---
 name: comms-writer
-description: Generates stakeholder-facing communications including release notes, demo scripts, change management briefs, and training outlines
+description:
+  Generates stakeholder-facing communications including release notes, demo
+  scripts, change management briefs, and training outlines
 kind: local
 model: gemini-3.1-flash-lite
 temperature: 0.2
@@ -157,4 +159,3 @@ Create each document tailored to its audience:
 - **Include timelines** — consultants need to plan around dates
 - **Think about change resistance** — address concerns proactively
 - **Make it copy-pasteable** — these documents get shared as-is
-

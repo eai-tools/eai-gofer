@@ -116,4 +116,3 @@ This agent blocks validation (scores 0 in Security Posture) if ANY:
 - **Check both new and modified files** — security regressions in modified code
   are equally critical
 - **Be specific** — exact file path, line number, and the problematic pattern
-

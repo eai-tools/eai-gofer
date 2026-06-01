@@ -1,6 +1,8 @@
 ---
 name: business-problem-validator
-description: Validates business problem statements using 5 Whys root cause analysis, stakeholder impact mapping, and business case assessment
+description:
+  Validates business problem statements using 5 Whys root cause analysis,
+  stakeholder impact mapping, and business case assessment
 kind: local
 model: gemini-3-flash-preview
 temperature: 0.2
@@ -167,4 +169,3 @@ For each stakeholder group:
 - **Suggest process solutions first** — code is expensive, process is cheap
 - **Focus on value** — a well-defined problem is half the solution
 - **Don't assume software is the answer** — sometimes it isn't
-

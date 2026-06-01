@@ -1,6 +1,7 @@
 ---
 name: plan-migration-path-finder
-description: Finds migration paths using 4 different strategies for changing existing code
+description:
+  Finds migration paths using 4 different strategies for changing existing code
 kind: local
 model: gemini-3-flash-preview
 temperature: 0.2
@@ -95,4 +96,3 @@ strategies and selects the best fit for the risk tolerance and constraints.
   risk.
 - **Recommended model**: sonnet (migration planning requires reasoning about
   state transitions).
-

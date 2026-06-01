@@ -1,6 +1,8 @@
 ---
 name: implement-error-hardener
-description: Hardens error handling from 2 perspectives - fault injection and incident analysis
+description:
+  Hardens error handling from 2 perspectives - fault injection and incident
+  analysis
 kind: local
 model: gemini-3-flash-preview
 temperature: 0.2
@@ -83,4 +85,3 @@ prioritizes which gaps to fix.
   current context.
 - **Recommended model**: haiku for fault injection (pattern scanning), sonnet
   for incident analysis (web search + reasoning).
-

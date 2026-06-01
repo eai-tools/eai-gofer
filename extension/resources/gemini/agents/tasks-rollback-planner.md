@@ -1,6 +1,7 @@
 ---
 name: tasks-rollback-planner
-description: Plans rollback strategy for each implementation phase to enable safe recovery
+description:
+  Plans rollback strategy for each implementation phase to enable safe recovery
 kind: local
 model: gemini-3.1-flash-lite
 temperature: 0.2
@@ -89,4 +90,3 @@ Reports LOW confidence if:
 - **Flag irreversible steps** — these need checkpoints, not just rollback plans.
 - **Recommended model**: sonnet (requires reasoning about state transitions and
   dependencies).
-

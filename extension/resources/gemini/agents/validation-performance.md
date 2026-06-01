@@ -121,4 +121,3 @@ This agent blocks validation (scores 0 in Performance Baseline) if ANY:
 - **Focus on new/modified files** — don't audit the entire codebase
 - **AI code loves execSync** — this is the #1 performance anti-pattern in
   AI-generated code
-

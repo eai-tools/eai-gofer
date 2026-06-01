@@ -1,6 +1,8 @@
 ---
 name: scope-creep-detector
-description: Detects scope creep by comparing current spec/tasks against original problem brief and constraints
+description:
+  Detects scope creep by comparing current spec/tasks against original problem
+  brief and constraints
 kind: local
 model: gemini-3.1-flash-lite
 temperature: 0.2
@@ -151,4 +153,3 @@ Evidence:
   discovery, it's not creep even if it's not in the problem brief
 - **Don't block on Gray findings** — some scope evolution is natural
 - **Write for the consultant** — they need to explain this to their client
-

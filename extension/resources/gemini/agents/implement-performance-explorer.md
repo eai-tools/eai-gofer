@@ -1,6 +1,8 @@
 ---
 name: implement-performance-explorer
-description: Explores 3 performance optimization approaches - caching, lazy loading, and parallelization
+description:
+  Explores 3 performance optimization approaches - caching, lazy loading, and
+  parallelization
 kind: local
 model: gemini-3-flash-preview
 temperature: 0.2
@@ -94,4 +96,3 @@ This agent does not block. The judge selects the highest-impact optimizations.
 - **Respect existing architecture** — don't propose rewrites for marginal gains.
 - **Recommended model**: sonnet (performance analysis requires reasoning about
   execution paths).
-

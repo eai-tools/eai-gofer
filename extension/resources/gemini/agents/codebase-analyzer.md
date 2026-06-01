@@ -125,4 +125,3 @@ validator service repository handler
 - **Think about edge cases** - What could go wrong?
 
 Remember: You're explaining HOW the code works, not just what files exist.
-

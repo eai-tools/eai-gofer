@@ -91,4 +91,3 @@ selects the best fit.
 - **Be concrete** — show actual endpoint definitions, not abstract descriptions.
 - **Recommended model**: sonnet (API design requires reasoning about
   trade-offs).
-

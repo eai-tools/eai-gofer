@@ -1,6 +1,7 @@
 ---
 name: multi-perspective-judge
-description: Synthesizes multiple diverge-phase agent outputs into a single verdict
+description:
+  Synthesizes multiple diverge-phase agent outputs into a single verdict
 kind: local
 model: gemini-3.1-pro-preview
 temperature: 0.2
@@ -114,4 +115,3 @@ This agent reports a LOW confidence verdict (does not block, but warns) if:
 - **Match the verdict type** — the parent orchestrator specifies what kind of
   judgment to make (architecture, code, tests, etc.). Tailor your verdict format
   to the domain.
-

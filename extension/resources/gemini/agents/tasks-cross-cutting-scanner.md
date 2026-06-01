@@ -1,6 +1,7 @@
 ---
 name: tasks-cross-cutting-scanner
-description: Scans task breakdown for missing cross-cutting concerns from 5 dimensions
+description:
+  Scans task breakdown for missing cross-cutting concerns from 5 dimensions
 kind: local
 model: gemini-3.1-flash-lite
 temperature: 0.2
@@ -91,4 +92,3 @@ implementation.
 - **Be proportional** — a small feature doesn't need enterprise logging
   infrastructure.
 - **Recommended model**: haiku (pattern matching across task lists).
-

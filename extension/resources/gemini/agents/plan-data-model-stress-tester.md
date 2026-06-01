@@ -1,6 +1,8 @@
 ---
 name: plan-data-model-stress-tester
-description: Stress-tests data models from 4 perspectives - scale, concurrency, evolution, edge cases
+description:
+  Stress-tests data models from 4 perspectives - scale, concurrency, evolution,
+  edge cases
 kind: local
 model: gemini-3.1-flash-lite
 temperature: 0.2
@@ -94,4 +96,3 @@ and flags weaknesses found by 2+ perspectives as HIGH priority.
 - **Stay in your perspective** — don't cross into other stress areas.
 - **Recommended model**: haiku for pattern-based stress testing (1, 4), sonnet
   for reasoning-heavy perspectives (2, 3).
-

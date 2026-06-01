@@ -1,6 +1,8 @@
 ---
 name: research-dependency-evaluator
-description: Evaluates proposed dependencies from 3 perspectives - adopt, find alternatives, or build without
+description:
+  Evaluates proposed dependencies from 3 perspectives - adopt, find
+  alternatives, or build without
 kind: local
 model: gemini-3.1-flash-lite
 temperature: 0.2
@@ -105,4 +107,3 @@ Reports LOW confidence if:
 - **Be honest about unknowns** — if you can't find data for a metric, say so
   rather than guessing.
 - **Recommended model**: haiku (search-optimized, data gathering focus).
-

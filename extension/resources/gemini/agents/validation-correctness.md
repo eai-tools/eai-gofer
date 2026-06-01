@@ -104,4 +104,3 @@ This agent blocks validation (scores 0 in Functional Correctness) if:
 - **Be specific** — cite file paths and line numbers for all evidence
 - **Distinguish real from theatrical** — a passing test is not the same as a
   verified criterion
-

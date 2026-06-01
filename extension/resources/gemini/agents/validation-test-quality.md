@@ -1,6 +1,7 @@
 ---
 name: validation-test-quality
-description: Validates test authenticity, mock ratios, and mutation testing scores
+description:
+  Validates test authenticity, mock ratios, and mutation testing scores
 kind: local
 model: gemini-3.1-flash-lite
 temperature: 0.2
@@ -146,4 +147,3 @@ This agent blocks validation (scores 0 in Test Authenticity) if ANY:
   the entire test suite
 - **Quality over quantity** — 5 real tests beat 50 placeholder tests
 - **Report the worst offenders first** — sort findings by severity
-

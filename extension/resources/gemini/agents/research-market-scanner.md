@@ -1,6 +1,8 @@
 ---
 name: research-market-scanner
-description: Scans market landscape for commercial solutions, open-source alternatives, and industry benchmarks to inform build-vs-buy decisions
+description:
+  Scans market landscape for commercial solutions, open-source alternatives, and
+  industry benchmarks to inform build-vs-buy decisions
 kind: local
 model: gemini-3.1-flash-lite
 temperature: 0.2
@@ -136,4 +138,3 @@ Use Grep/Glob to check:
 - **Flag uncertainty** — clearly mark estimates vs confirmed data
 - **Focus on fit** — a great product that doesn't fit is useless
 - **Consider total cost of ownership** — not just sticker price
-

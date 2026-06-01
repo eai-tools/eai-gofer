@@ -1,6 +1,7 @@
 ---
 name: implement-code-review-council
-description: Reviews code from 3 lenses - readability, correctness, and performance
+description:
+  Reviews code from 3 lenses - readability, correctness, and performance
 kind: local
 model: gemini-3-flash-preview
 temperature: 0.2
@@ -89,4 +90,3 @@ which findings need immediate attention.
 - **Be constructive** — every finding should include a specific improvement
   suggestion.
 - **Recommended model**: sonnet (code review requires nuanced reasoning).
-

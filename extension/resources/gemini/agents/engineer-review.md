@@ -1,6 +1,8 @@
 ---
 name: engineer-review
-description: Cross-references spec, plan, and tasks to verify alignment before implementation
+description:
+  Cross-references spec, plan, and tasks to verify alignment before
+  implementation
 kind: local
 model: gemini-3-flash-preview
 temperature: 0.2
@@ -21,8 +23,8 @@ evidence. You are the last line of defense against wasted implementation effort.
    phase with matching scope
 3. **Contracts ↔ Tasks alignment** — Every contract/API endpoint defined in
    plan.md or contracts/ has tasks to implement it
-4. **Data Model ↔ Tasks alignment** — Every data model entity has tasks
-   covering all its fields and relationships
+4. **Data Model ↔ Tasks alignment** — Every data model entity has tasks covering
+   all its fields and relationships
 5. **Architecture ↔ Tasks alignment** — The planned file structure and patterns
    from plan.md are reflected in task descriptions
 
@@ -168,4 +170,3 @@ This agent reports **FAIL** (blocking) if ANY of these are true:
   implementation correctness — that's `/6_gofer_validate`'s job.
 - **Count precisely**: When reporting coverage numbers, count exactly. "5/7
   criteria covered" must mean you found exactly 5 matches and exactly 2 gaps.
-

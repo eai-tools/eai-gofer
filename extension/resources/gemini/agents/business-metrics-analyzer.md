@@ -1,6 +1,8 @@
 ---
 name: business-metrics-analyzer
-description: Analyzes pipeline logs to generate business-facing metrics including velocity, cost per feature, quality trends, and scope creep indicators
+description:
+  Analyzes pipeline logs to generate business-facing metrics including velocity,
+  cost per feature, quality trends, and scope creep indicators
 kind: local
 model: gemini-3.1-flash-lite
 temperature: 0.2
@@ -168,4 +170,3 @@ Identify patterns:
 - **Be actionable** — every insight should have a recommended action
 - **Use relative comparisons** — "20% faster than last month" > "took 3 hours"
 - **Include confidence levels** — based on data completeness
-

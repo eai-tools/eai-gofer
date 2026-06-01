@@ -1,6 +1,8 @@
 ---
 name: assumption-tracker
-description: Tracks, validates, and monitors assumptions throughout the pipeline, flagging disproven assumptions that require spec revision
+description:
+  Tracks, validates, and monitors assumptions throughout the pipeline, flagging
+  disproven assumptions that require spec revision
 kind: local
 model: gemini-3.1-flash-lite
 temperature: 0.2
@@ -167,4 +169,3 @@ For each disproven assumption:
 - Preferred interaction patterns
 - Access to required devices/tools
 - Training willingness
-

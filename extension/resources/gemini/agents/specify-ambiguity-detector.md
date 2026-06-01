@@ -1,6 +1,8 @@
 ---
 name: specify-ambiguity-detector
-description: Detects specification ambiguities by having 3 agents independently interpret the same spec
+description:
+  Detects specification ambiguities by having 3 agents independently interpret
+  the same spec
 kind: local
 model: gemini-3-flash-preview
 temperature: 0.2
@@ -93,3 +95,4 @@ HIGH ambiguity if agents' pseudocode diverges on more than 30% of criteria.
 - **Focus on behavior, not structure** — your pseudocode should show what happens, not how code is organized.
 - **Recommended model**: sonnet (requires reasoning about specification semantics).
 
+```

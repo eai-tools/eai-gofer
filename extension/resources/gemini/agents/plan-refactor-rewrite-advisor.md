@@ -1,6 +1,7 @@
 ---
 name: plan-refactor-rewrite-advisor
-description: Compares incremental refactor vs clean rewrite approaches for code changes
+description:
+  Compares incremental refactor vs clean rewrite approaches for code changes
 kind: local
 model: gemini-3-flash-preview
 temperature: 0.2
@@ -97,4 +98,3 @@ selects the better fit based on the specific feature context and risk tolerance.
 - **Be honest about costs** — every approach has downsides. State them clearly.
 - **Recommended model**: sonnet (requires analysis of existing code and
   planning).
-

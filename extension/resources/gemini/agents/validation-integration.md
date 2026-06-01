@@ -130,4 +130,3 @@ This agent blocks validation (scores 0 in Integration Reality) if ANY:
 - **Mock-heavy integration tests are a red flag** — an "integration test" that
   mocks everything is just a unit test with extra steps
 - **Be specific about mismatches** — show the expected type vs actual type
-

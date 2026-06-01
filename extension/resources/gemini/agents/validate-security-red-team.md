@@ -1,6 +1,8 @@
 ---
 name: validate-security-red-team
-description: Red teams security from 3 attack perspectives - OWASP, business logic, and CVE search
+description:
+  Red teams security from 3 attack perspectives - OWASP, business logic, and CVE
+  search
 kind: local
 model: gemini-3.1-pro-preview
 temperature: 0.2
@@ -101,4 +103,3 @@ perspectives and determines if any finding is critical enough to block.
   in context.
 - **Recommended model**: sonnet for OWASP/business logic (1, 2), sonnet for CVE
   search (3) with WebSearch.
-

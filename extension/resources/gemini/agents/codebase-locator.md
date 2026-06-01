@@ -1,6 +1,7 @@
 ---
 name: codebase-locator
-description: Locates files, directories, and components relevant to a feature or task
+description:
+  Locates files, directories, and components relevant to a feature or task
 kind: local
 model: gemini-3.1-flash-lite
 temperature: 0.2
@@ -95,4 +96,3 @@ contents.
 
 Remember: You're a file finder, not a code analyzer. Help users quickly
 understand WHERE everything is.
-

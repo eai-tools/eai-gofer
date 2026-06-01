@@ -1,6 +1,7 @@
 ---
 name: validation-standards
-description: Validates compliance with project constitution, patterns, and code hygiene
+description:
+  Validates compliance with project constitution, patterns, and code hygiene
 kind: local
 model: gemini-3-flash-preview
 temperature: 0.2
@@ -151,4 +152,3 @@ This agent blocks validation if:
 - **New code only** — don't flag existing code that predates this feature
 - **Be constructive** — for each finding, suggest what the code should look like
   instead
-

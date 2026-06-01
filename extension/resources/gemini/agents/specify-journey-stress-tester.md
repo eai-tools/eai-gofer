@@ -1,6 +1,7 @@
 ---
 name: specify-journey-stress-tester
-description: Stress-tests user journeys from 4 persona perspectives to find spec gaps
+description:
+  Stress-tests user journeys from 4 persona perspectives to find spec gaps
 kind: local
 model: gemini-3.1-flash-lite
 temperature: 0.2
@@ -92,4 +93,3 @@ gaps are flagged as MEDIUM priority.
   "error handling is weak."
 - **Recommended model**: haiku for persona walkthrough (pattern-following),
   sonnet for synthesis.
-

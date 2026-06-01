@@ -1,6 +1,8 @@
 ---
 name: implement-test-diversifier
-description: Generates test suites from 4 different testing perspectives for comprehensive coverage
+description:
+  Generates test suites from 4 different testing perspectives for comprehensive
+  coverage
 kind: local
 model: gemini-3-flash-preview
 temperature: 0.2
@@ -80,3 +82,4 @@ This agent does not block. The judge merges test suites from all 4 perspectives.
 - **Match existing test conventions** — use the same imports, patterns, and assertions.
 - **Recommended model**: haiku for simple perspectives (1), sonnet for complex perspectives (2, 3, 4).
 
+```

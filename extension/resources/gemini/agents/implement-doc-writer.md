@@ -1,6 +1,8 @@
 ---
 name: implement-doc-writer
-description: Writes documentation from 3 audience perspectives - end-user, developer, and ops
+description:
+  Writes documentation from 3 audience perspectives - end-user, developer, and
+  ops
 kind: local
 model: gemini-3.1-flash-lite
 temperature: 0.2
@@ -88,4 +90,3 @@ into a complete documentation package.
 - **Include examples** — documentation without examples is incomplete.
 - **Recommended model**: haiku for structured docs (1, 3), sonnet for API
   reference (2).
-

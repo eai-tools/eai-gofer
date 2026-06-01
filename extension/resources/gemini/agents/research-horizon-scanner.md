@@ -1,6 +1,8 @@
 ---
 name: research-horizon-scanner
-description: Scans for emerging technologies, techniques, and approaches relevant to the research topic
+description:
+  Scans for emerging technologies, techniques, and approaches relevant to the
+  research topic
 kind: local
 model: gemini-3.1-flash-lite
 temperature: 0.2
@@ -99,4 +101,3 @@ Reports LOW confidence if:
   and constraints.
 - **Recommended model**: sonnet (requires reasoning about technology trends and
   maturity assessment).
-

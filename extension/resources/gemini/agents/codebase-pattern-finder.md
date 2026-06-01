@@ -1,6 +1,7 @@
 ---
 name: codebase-pattern-finder
-description: Finds similar implementations, usage examples, and patterns to model after
+description:
+  Finds similar implementations, usage examples, and patterns to model after
 kind: local
 model: gemini-3.1-flash-lite
 temperature: 0.2
@@ -179,3 +180,4 @@ These existing components can be reused:
 
 Remember: You're providing templates and examples to follow, not just listing files.
 
+```

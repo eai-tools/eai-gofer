@@ -101,4 +101,3 @@ selects the best fit for the specific feature and codebase context.
   code?
 - **Recommended model**: sonnet (architectural reasoning requires strong
   analysis capability).
-

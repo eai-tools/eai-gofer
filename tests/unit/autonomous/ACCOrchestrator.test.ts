@@ -55,36 +55,42 @@ vi.mock('vscode', () => ({
 
 // Mock MemoryManager
 vi.mock('../../../extension/src/autonomous/MemoryManager', () => ({
-  MemoryManager: vi.fn().mockImplementation(() => ({
-    search: vi.fn().mockResolvedValue({ memories: [], total: 0 }),
-    save: vi.fn(),
-    loadByPriority: vi.fn().mockResolvedValue({
-      memories: [],
-      totalConsidered: 0,
-      loadTime: 0,
-      filtered: false,
-    }),
-    calculatePriorityScore: vi.fn().mockReturnValue(50),
-    calculateRelevanceScore: vi.fn().mockReturnValue(50),
-    recordUsage: vi.fn().mockResolvedValue(undefined),
-  })),
+  MemoryManager: vi.fn().mockImplementation(function () {
+    return {
+      search: vi.fn().mockResolvedValue({ memories: [], total: 0 }),
+      save: vi.fn(),
+      loadByPriority: vi.fn().mockResolvedValue({
+        memories: [],
+        totalConsidered: 0,
+        loadTime: 0,
+        filtered: false,
+      }),
+      calculatePriorityScore: vi.fn().mockReturnValue(50),
+      calculateRelevanceScore: vi.fn().mockReturnValue(50),
+      recordUsage: vi.fn().mockResolvedValue(undefined),
+    };
+  }),
 }));
 
 // Mock HintLoader
 vi.mock('../../../extension/src/autonomous/HintLoader', () => ({
-  HintLoader: vi.fn().mockImplementation(() => ({
-    loadForTask: vi.fn().mockResolvedValue({ mergedContent: null, loadedHints: [] }),
-    dispose: vi.fn(),
-  })),
+  HintLoader: vi.fn().mockImplementation(function () {
+    return {
+      loadForTask: vi.fn().mockResolvedValue({ mergedContent: null, loadedHints: [] }),
+      dispose: vi.fn(),
+    };
+  }),
 }));
 
 // Mock ContextUsageLogger
 vi.mock('../../../extension/src/autonomous/ContextUsageLogger', () => ({
-  ContextUsageLogger: vi.fn().mockImplementation(() => ({
-    logHandoff: vi.fn().mockResolvedValue(undefined),
-    log: vi.fn().mockResolvedValue(undefined),
-    logStageTransition: vi.fn().mockResolvedValue(undefined),
-  })),
+  ContextUsageLogger: vi.fn().mockImplementation(function () {
+    return {
+      logHandoff: vi.fn().mockResolvedValue(undefined),
+      log: vi.fn().mockResolvedValue(undefined),
+      logStageTransition: vi.fn().mockResolvedValue(undefined),
+    };
+  }),
 }));
 
 import { ContextBuilder } from '../../../extension/src/autonomous/ContextBuilder';

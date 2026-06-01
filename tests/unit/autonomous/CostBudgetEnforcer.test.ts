@@ -8,11 +8,13 @@ import { RunLedger } from '../../../extension/src/autonomous/RunLedger';
 
 // Mock RunLedger
 vi.mock('../../../extension/src/autonomous/RunLedger', () => ({
-  RunLedger: vi.fn().mockImplementation(() => ({
-    log: vi.fn().mockResolvedValue(undefined),
-    readLog: vi.fn().mockResolvedValue([]),
-    getLogPath: vi.fn().mockReturnValue('/tmp/test-ledger.jsonl'),
-  })),
+  RunLedger: vi.fn().mockImplementation(function () {
+    return {
+      log: vi.fn().mockResolvedValue(undefined),
+      readLog: vi.fn().mockResolvedValue([]),
+      getLogPath: vi.fn().mockReturnValue('/tmp/test-ledger.jsonl'),
+    };
+  }),
 }));
 
 // Mock Logger

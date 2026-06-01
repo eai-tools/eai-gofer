@@ -38,7 +38,9 @@ vi.mock('vscode', () => {
       executeCommand: vi.fn(),
     },
     StatusBarAlignment: { Left: 1, Right: 2 },
-    ThemeColor: vi.fn((id: string) => ({ id })),
+    ThemeColor: class ThemeColor {
+      constructor(public id: string) {}
+    },
     QuickPickItemKind: { Separator: -1 },
   };
 });

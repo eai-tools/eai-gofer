@@ -606,21 +606,11 @@ If implementation was interrupted:
 
 ---
 
-## LLM Council Integration (Optional)
-
-When council mode is enabled:
-
-1. Complex implementation decisions go to all providers
-2. Different approaches compared
-3. Chairman synthesizes best solution
-4. Usage logged to `.specify/logs/council-usage.jsonl`
-
----
-
 ## EnterpriseAI Deployment Preflight Gate (Manifest/Config)
 
-EnterpriseAI is the default profile. Standard profile runs skip this gate only
-when the user explicitly opts out.
+The standard Gofer workflow is the public default. EnterpriseAI deployment
+preflight is migration-only and runs only when `workflowProfile` is explicitly
+`enterpriseai`.
 
 Before any deployment task emitted by `/4_gofer_tasks` completes, this stage
 MUST execute deployment preflight checks (manifest/config gate). A task that

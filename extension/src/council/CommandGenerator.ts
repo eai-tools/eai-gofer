@@ -528,10 +528,7 @@ The next stage will read the artifacts from this stage and continue the workflow
       return explicitProfile;
     }
 
-    return /enterpriseai/i.test(sourceMetadata.content) ||
-      /enterpriseai/i.test(sourceMetadata.description)
-      ? 'enterpriseai'
-      : 'enterpriseai';
+    return 'standard';
   }
 
   private asRecord(value: unknown): Record<string, unknown> {

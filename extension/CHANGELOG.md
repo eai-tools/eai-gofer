@@ -20,7 +20,8 @@ Auto-release
 
 ## [3.4.4] - 2026-05-28
 
-Patch release: publish current release asset fixes and Gofer operating layer planning artifacts
+Patch release: publish current release asset fixes and Gofer operating layer
+planning artifacts
 
 ## [3.4.3] - 2026-05-22
 
@@ -28,11 +29,13 @@ Fix GitHub Pages publishing for public VSIX and agent plugin updates
 
 ## [3.4.2] - 2026-05-22
 
-Consolidate release automation and publish unified public VSIX, Claude, and Codex plugin assets
+Consolidate release automation and publish unified public VSIX, Claude, and
+Codex plugin assets
 
 ## [3.4.1] - 2026-05-22
 
-Consolidate release automation and publish unified public VSIX, Claude, and Codex plugin assets
+Consolidate release automation and publish unified public VSIX, Claude, and
+Codex plugin assets
 
 ## [3.3.1] - 2026-05-13
 
@@ -62,15 +65,10 @@ Augment skills pipeline with new helpers and stricter validation
 
 - Shortened the extension README to the current manifest-backed command and
   settings surface.
-- Removed stale VS Code documentation for unsupported command-palette actions
-  and setup paths, including `Gofer: Configure WhatsApp Integration`,
-  `Gofer: Test WhatsApp Connection`, `Gofer: View Pending Escalations`, and the
-  older hidden context-window setting examples.
-- Removed the unsupported autonomous notification-route settings
-  `gofer.autonomous.notificationChannel`,
-  `gofer.autonomous.whatsappPhoneNumber`, and `gofer.autonomous.emailAddress`
-  from the public VS Code configuration surface and deleted outdated migration /
-  WhatsApp guides.
+- Removed stale VS Code documentation for unsupported command-palette actions,
+  obsolete setup paths, and older hidden context-window setting examples.
+- Removed unsupported autonomous notification-route settings from the public VS
+  Code configuration surface and deleted outdated setup guides.
 - Removed the no-op public settings `gofer.claudeTerminalName`,
   `gofer.autoValidate`, and `gofer.showWelcome` from the manifest-backed VS Code
   settings surface after confirming they no longer had runtime consumers.
@@ -130,12 +128,12 @@ upstream fix. Purely dev-only. All 2549 tests pass.
 
 ## [2.0.10] - 2026-04-20
 
-infra(release): add scripts/sync-extension-resources.sh and wire into
-release-auto.sh so every VSIX bundles current canonical content. Adds 10 missing
-templates (stakeholder-comms, business-metrics, discovery, problem-brief,
-assumptions, brownfield-analysis, spec-summary, session-handoff, journey/,
-sequence-diagrams/) to extension/resources/templates/ so eai init delivers them.
-Prevents the v2.0.5-v2.0.8 class of stale-bundle regressions.
+infra(release): add scripts/sync-extension-resources.sh and wire into the
+release workflow so every VSIX bundles current canonical content. Adds 10
+missing templates (stakeholder-comms, business-metrics, discovery,
+problem-brief, assumptions, brownfield-analysis, spec-summary, session-handoff,
+journey/, sequence-diagrams/) to extension/resources/templates/ so eai init
+delivers them. Prevents the v2.0.5-v2.0.8 class of stale-bundle regressions.
 
 ## [2.0.9] - 2026-04-20
 
@@ -294,16 +292,9 @@ feat: provider API usage tracking (Feature 026)
 
 ## [Unreleased]
 
-feat: Provider API Usage Tracking (Feature 026)
-
-- AI Usage panel now shows real billing data from Anthropic and OpenAI APIs
-- Configure admin API keys in settings: `gofer.anthropicAdminApiKey`,
-  `gofer.openaiAdminApiKey`
-- Configurable API polling interval (default 60s):
-  `gofer.aiUsage.api.pollingInterval`
-- Graceful degradation when admin keys not configured
-- Rollback flag: set `gofer.aiUsage.useApiClient: false` to revert to local
-  JSONL data
+- AI Usage panel reads local CLI usage logs without requiring provider API keys.
+- Removed direct provider billing API settings and legacy multi-provider API
+  orchestration.
 
 ## [1.19.2] - 2026-03-15
 
@@ -593,11 +584,9 @@ Context Continuity Overhaul - 11 improvements to context management
 
 ## [1.1.0] - 2026-02-03
 
-### LLM Council
+### CLI Provider Routing
 
-- Multi-provider parallel execution for research and analysis workflows
-- Get diverse perspectives from multiple AI providers simultaneously
-- Chairman synthesis combines the best insights into a unified output
+- Added CLI provider routing for research and analysis workflows.
 
 ## [1.0.3] - 2026-01-27
 

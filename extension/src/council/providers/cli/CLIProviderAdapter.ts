@@ -151,9 +151,11 @@ export abstract class CLIProviderAdapter extends BaseLLMProvider {
             usage: {
               inputTokens: parsed.usage.inputTokens,
               outputTokens: parsed.usage.outputTokens,
+              totalTokens: parsed.usage.inputTokens + parsed.usage.outputTokens,
             },
             model: this.model,
             providerId: this.id,
+            durationMs: 0,
           };
         } catch (err) {
           const provErr =

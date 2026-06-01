@@ -1,15 +1,22 @@
 /**
- * LLM-powered content extractor for Memory System v2
+ * Content extractor for Memory System v2
  *
  * Generates tiered ContextLayer representations (L0/L1/L2) for memory content
- * using Claude Haiku via AutonomousLLMProvider. Degrades gracefully to
- * deterministic truncation when the LLM is unavailable or rate-limited.
+ * using an optional CLI-backed summarizer. Degrades gracefully to deterministic
+ * truncation when no summarizer is configured, unavailable, or rate-limited.
  *
  * Feature 029: Memory System v2 - Tiered Context Loading
  */
 
-import { AutonomousLLMProvider } from '../LLMProvider';
 import type { ContextLayer } from '../types';
+
+export interface SummarizerProvider {
+  isAvailable(): boolean;
+  summarize(
+    prompt: string,
+    maxTokens?: number
+  ): Promise<{ text: string; inputTokens: number; outputTokens: number; cached: boolean } | null>;
+}
 
 // Token budgets for LLM calls
 const ABSTRACT_MAX_TOKENS = 100;
@@ -39,8 +46,8 @@ const OVERVIEW_PROMPT_HEADER =
 /**
  * Extracts tiered ContextLayer representations from raw content.
  *
- * Uses AutonomousLLMProvider (Claude Haiku) when available; falls back to
- * deterministic truncation for offline / rate-limited scenarios.
+ * Uses the injected summarizer when available; falls back to deterministic
+ * truncation for offline / rate-limited scenarios.
  *
  * @example
  * ```typescript
@@ -52,21 +59,13 @@ const OVERVIEW_PROMPT_HEADER =
  * ```
  */
 export class LLMExtractor {
-  private readonly provider: AutonomousLLMProvider | null;
+  private readonly provider: SummarizerProvider | null;
 
   /**
-   * @param provider - Optional pre-configured AutonomousLLMProvider instance.
-   * @param workspaceRoot - Optional workspace root used to construct a default
-   *   provider when `provider` is omitted. Ignored if `provider` is supplied.
+   * @param provider - Optional pre-configured summarizer instance.
    */
-  constructor(provider?: AutonomousLLMProvider, workspaceRoot?: string) {
-    if (provider !== undefined) {
-      this.provider = provider;
-    } else if (workspaceRoot !== undefined) {
-      this.provider = new AutonomousLLMProvider({ workspaceRoot });
-    } else {
-      this.provider = null;
-    }
+  constructor(provider?: SummarizerProvider) {
+    this.provider = provider ?? null;
   }
 
   /**

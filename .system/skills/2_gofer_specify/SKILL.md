@@ -109,7 +109,7 @@ If these don't exist, prompt user to run `/1_gofer_research` first.
 4. Review agent output, handle clarifications
 5. Optional multi-perspective review
 6. Output: `.specify/specs/{feature}/spec.md`
-7. EnterpriseAI default output: `.specify/specs/{feature}/contract-pack.md`
+7. EnterpriseAI profile output: `.specify/specs/{feature}/contract-pack.md`
 
 ---
 
@@ -315,7 +315,7 @@ Rules:
   sections beyond marking them "Not applicable"
 
 Write the complete specification to {FEATURE_DIR}/spec.md.
-When EnterpriseAI is active or no profile is specified, also write
+When `workflowProfile` is explicitly `enterpriseai`, also write
 {FEATURE_DIR}/contract-pack.md using the contract pack requirements below.
 
 Return a structured summary:
@@ -673,8 +673,8 @@ Success criteria must be:
 
 ## EnterpriseAI Integration Map Requirements
 
-EnterpriseAI is the default profile. Standard-profile outputs remain unchanged
-only when the user explicitly opts out.
+The standard Gofer workflow is the public default. EnterpriseAI profile outputs
+remain opt-in and migration-only.
 
 When the workflow profile is `enterpriseai`, `spec.md` MUST include an explicit
 **Integration Map** section that traces the flow from end-user interaction to
@@ -704,7 +704,7 @@ stage can bind implementation tasks directly to specification clauses.
 
 ## EnterpriseAI Contract Pack Requirements
 
-When EnterpriseAI is active or no profile is specified, generate
+When `workflowProfile` is explicitly `enterpriseai`, generate
 `{FEATURE_DIR}/contract-pack.md` with these required sections:
 
 | Section | Required Content |

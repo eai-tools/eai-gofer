@@ -36,7 +36,6 @@ vi.mock('vscode', () => {
       getConfiguration: vi.fn(() => ({
         get: vi.fn((key: string, defaultValue: unknown) => {
           if (key === 'aiUsage.polling.interval') return 5000;
-          if (key === 'aiUsage.api.pollingInterval') return 60000;
           return defaultValue;
         }),
       })),
@@ -52,41 +51,32 @@ vi.mock('vscode', () => {
 });
 
 import { AIUsageMonitor } from '../../../extension/src/autonomous/AIUsageMonitor';
-import type { UsageLogger, UsageSummary } from '../../../extension/src/council/UsageLogger';
+import type { UsageDataSource, UsageSummary } from '../../../extension/src/types/aiUsage';
 import type { CostBudgetEnforcer } from '../../../extension/src/autonomous/CostBudgetEnforcer';
 
 /**
- * Create a mock UsageLogger
+ * Create a mock local usage data source.
  */
-function createMockUsageLogger(summary?: Partial<UsageSummary>): UsageLogger {
+function createMockUsageDataSource(summary?: Partial<UsageSummary>): UsageDataSource {
   const defaultSummary: UsageSummary = {
     totalSessions: 3,
-    councilSessions: 2,
-    singleSessions: 1,
     totalInputTokens: 100000,
     totalOutputTokens: 50000,
+    totalCachedInputTokens: 0,
+    totalCacheReadTokens: 0,
+    totalCacheWriteTokens: 0,
     totalCostUsd: 2.45,
-    avgDurationMs: 5000,
     byProvider: {
-      anthropic: { tokens: 80000, costUsd: 1.5, sessions: 2 },
-      openai: { tokens: 40000, costUsd: 0.75, sessions: 1 },
-      google: { tokens: 30000, costUsd: 0.2, sessions: 1 },
+      'claude-code': { requests: 2, tokens: 80000, costUsd: 1.5 },
+      'codex-cli': { requests: 1, tokens: 40000, costUsd: 0.75 },
+      copilot: { requests: 1, tokens: 30000, costUsd: 0.2 },
     },
-    byStage: {},
-    fromDate: '',
-    toDate: '',
     ...summary,
   };
 
   return {
     getUsageSummary: vi.fn().mockResolvedValue(defaultSummary),
-    getLogPath: vi.fn().mockReturnValue('/workspace/.specify/logs/council-usage.jsonl'),
-    appendUsageLog: vi.fn(),
-    createLogEntry: vi.fn(),
-    estimateUsage: vi.fn(),
-    formatEstimate: vi.fn(),
-    formatSummary: vi.fn(),
-  } as unknown as UsageLogger;
+  } as unknown as UsageDataSource;
 }
 
 /**
@@ -118,12 +108,12 @@ function createMockEnforcer(
 
 describe('AIUsageMonitor', () => {
   let monitor: AIUsageMonitor;
-  let mockLogger: UsageLogger;
+  let mockLogger: UsageDataSource;
   let mockEnforcer: CostBudgetEnforcer;
 
   beforeEach(() => {
     vi.useFakeTimers();
-    mockLogger = createMockUsageLogger();
+    mockLogger = createMockUsageDataSource();
     mockEnforcer = createMockEnforcer();
     monitor = new AIUsageMonitor('/workspace', mockLogger, mockEnforcer);
   });
@@ -197,7 +187,7 @@ describe('AIUsageMonitor', () => {
     });
 
     it('should return empty data on error', async () => {
-      const errorLogger = createMockUsageLogger();
+      const errorLogger = createMockUsageDataSource();
       (errorLogger.getUsageSummary as ReturnType<typeof vi.fn>).mockRejectedValue(
         new Error('File not found')
       );
@@ -238,42 +228,42 @@ describe('AIUsageMonitor', () => {
     it('should map provider data correctly', async () => {
       const data = await monitor.getUsageData('current');
 
-      const anthropic = data.providers.find((p) => p.providerId === 'anthropic');
-      expect(anthropic).toBeDefined();
-      expect(anthropic!.costUsd).toBe(1.5);
+      const claude = data.providers.find((p) => p.providerId === 'claude-code');
+      expect(claude).toBeDefined();
+      expect(claude!.costUsd).toBe(1.5);
 
-      const openai = data.providers.find((p) => p.providerId === 'openai');
-      expect(openai).toBeDefined();
-      expect(openai!.costUsd).toBe(0.75);
+      const codex = data.providers.find((p) => p.providerId === 'codex-cli');
+      expect(codex).toBeDefined();
+      expect(codex!.costUsd).toBe(0.75);
 
-      const google = data.providers.find((p) => p.providerId === 'google');
-      expect(google).toBeDefined();
-      expect(google!.costUsd).toBe(0.2);
+      const copilot = data.providers.find((p) => p.providerId === 'copilot');
+      expect(copilot).toBeDefined();
+      expect(copilot!.costUsd).toBe(0.2);
     });
 
     it('should estimate input/output split using global ratio', async () => {
       const data = await monitor.getUsageData('current');
 
       // Global ratio: 100000/(100000+50000) = 0.667 input
-      const anthropic = data.providers.find((p) => p.providerId === 'anthropic')!;
+      const anthropic = data.providers.find((p) => p.providerId === 'claude-code')!;
       const expectedInputTokens = Math.round(80000 * (100000 / 150000));
       expect(anthropic.inputTokens).toBe(expectedInputTokens);
       expect(anthropic.outputTokens).toBe(80000 - expectedInputTokens);
     });
 
     it('should use 60/40 split when no global ratio available', async () => {
-      const zeroLogger = createMockUsageLogger({
+      const zeroLogger = createMockUsageDataSource({
         totalInputTokens: 0,
         totalOutputTokens: 0,
         byProvider: {
-          anthropic: { tokens: 1000, costUsd: 0.01, sessions: 1 },
+          'claude-code': { requests: 1, tokens: 1000, costUsd: 0.01 },
         },
       });
 
       const zeroMonitor = new AIUsageMonitor('/workspace', zeroLogger);
       const data = await zeroMonitor.getUsageData('current');
 
-      const anthropic = data.providers.find((p) => p.providerId === 'anthropic')!;
+      const anthropic = data.providers.find((p) => p.providerId === 'claude-code')!;
       expect(anthropic.inputTokens).toBe(600); // 60% of 1000
       expect(anthropic.outputTokens).toBe(400); // 40% of 1000
 

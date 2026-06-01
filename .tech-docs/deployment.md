@@ -384,7 +384,8 @@ copilot plugin install eai-gofer@eai-gofer-local
 
 - **VSCE_PAT:** Stored in GitHub repository secrets (encrypted)
 - **GITHUB_TOKEN:** Auto-generated, scoped to repository
-- **API Keys:** Never committed, stored in VS Code settings or `.env`
+- **API Keys:** Never committed; use provider CLI/app login, GitHub secrets,
+  shell secrets, or local `.env` files where a tool explicitly supports them
 
 ### Code Signing
 

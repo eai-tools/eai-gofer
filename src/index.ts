@@ -7,12 +7,6 @@ import * as path from 'path';
 dotenv.config();
 
 async function main(): Promise<void> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
-    process.stderr.write('❌ ANTHROPIC_API_KEY not set in environment\n');
-    process.exit(1);
-  }
-
   const specDir = process.env.SPEC_DIR || path.join(process.cwd(), '.specify', 'specs');
   const workspaceDir = process.env.WORKSPACE_DIR || process.cwd();
 
@@ -38,7 +32,7 @@ async function main(): Promise<void> {
 
 📁 Spec directory: ${specDir}
 📁 Workspace: ${workspaceDir}
-🤖 Using Claude 3.7 Sonnet (Direct API)
+🤖 Provider: external CLI session / Gofer command surface
 ${notificationStatus}
 `);
 

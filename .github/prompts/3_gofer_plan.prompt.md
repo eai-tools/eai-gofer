@@ -10,9 +10,9 @@ tools:
   - WebSearch
 argument-hint: feature-name-or-description
 gofer:
-  workflowProfile: enterpriseai
+  workflowProfile: standard
   canonicalSource: .specify/commands/3_gofer_plan.md
-  canonicalChecksum: 52255171daa08441ff47e23e17c3bb627ac2ce0016d6478fe16596eb3cd0b9a8
+  canonicalChecksum: 036edcba7077c1ea0fa7153805f4d0e7dc2f6bc6309ec1b907e5ee34db0f58c0
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -113,7 +113,7 @@ If missing, prompt user to run the prerequisite stage.
 5. Optional multi-perspective review
 6. Spec coverage validation
 7. Output: `plan.md`, `data-model.md`, `contracts/`, `quickstart.md`
-8. EnterpriseAI default output: task-ready references to `context-bundle.md`,
+8. EnterpriseAI profile output: task-ready references to `context-bundle.md`,
    `contract-pack.md`, `reuse-scan.md`, `audit-history.md`, and for app
    delivery `ui-review-log.md`, `ui-approval.md`, and
    `service-fit-matrix.md`, including public-readiness, block-porting, DAISY
@@ -630,17 +630,6 @@ Artifacts created:
 Engineering Review: PASSED (cycle [N] of 5)
 ```
 
-
----
-
-## LLM Council Integration (Optional)
-
-When council mode is enabled for `gofer_plan` stage:
-
-1. Technical research queries go to all configured LLM providers
-2. Different perspectives on architecture decisions
-3. Chairman synthesizes best practices from multiple sources
-4. Usage logged to `.specify/logs/council-usage.jsonl`
 
 ---
 

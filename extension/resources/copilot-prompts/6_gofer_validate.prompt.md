@@ -10,9 +10,9 @@ tools:
   - WebSearch
 argument-hint: feature-name-or-description
 gofer:
-  workflowProfile: enterpriseai
+  workflowProfile: standard
   canonicalSource: .specify/commands/6_gofer_validate.md
-  canonicalChecksum: ff8ad74f8a361b053f9f7ff5419446469758aab669114cad22c567bf99bc408b
+  canonicalChecksum: 8e4813fa8c042114994b70c55d3e34f329830738b0819f5e7eb73e7885c8b5ed
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -2022,20 +2022,6 @@ Before completing validation, verify:
 - [ ] Any significant decisions made -> recorded in decisions/?
 - [ ] Any gotchas or workarounds -> documented for future reference?
 - [ ] Feature-specific learnings -> captured in research.md?
-
----
-
-## LLM Council Integration (Optional)
-
-When council mode is enabled for `gofer_validate` stage:
-
-1. Multiple LLMs review the implementation independently
-2. Each provider scores the rubric from their perspective
-3. Chairman synthesizes scores — uses the **lowest** score for each category
-   (conservative approach)
-4. Highlights consensus issues (high confidence)
-5. Notes divergent assessments needing human judgment
-6. Usage logged to `.specify/logs/council-usage.jsonl`
 
 ---
 

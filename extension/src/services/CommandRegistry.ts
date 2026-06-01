@@ -59,12 +59,6 @@ interface TreeViewCommandItem {
   path?: string;
 }
 
-interface SpecCommandItem {
-  id?: string;
-  spec?: { id?: string };
-  label?: string;
-}
-
 interface ConstitutionArticleCommand {
   number: string | number;
   title: string;
@@ -336,7 +330,9 @@ export class CommandRegistry {
           },
         });
 
-        if (!specName) {return;}
+        if (!specName) {
+          return;
+        }
 
         const specsPath = path.join(deps.workspacePath, '.specify', 'specs', specName.trim());
         const specFile = path.join(specsPath, 'spec.md');
@@ -368,7 +364,9 @@ export class CommandRegistry {
     context.subscriptions.push(
       vscode.commands.registerCommand('gofer.openSpec', async (uri?: vscode.Uri) => {
         const specFile = uri?.fsPath || '';
-        if (!specFile) {return;}
+        if (!specFile) {
+          return;
+        }
 
         try {
           const doc = await vscode.workspace.openTextDocument(specFile);
@@ -392,77 +390,29 @@ export class CommandRegistry {
   }
 
   /**
-   * Register Claude Code terminal commands
+   * Register autonomous execution commands.
+   *
+   * The old VS Code Play-button terminal launcher was removed because it used
+   * direct API-key automation and did not reliably drive Claude Code. The
+   * supported path is the CLI provider-backed autonomous driver below.
    */
   private registerClaudeCodeCommands(
     context: vscode.ExtensionContext,
     _deps: CommandDependencies
   ): void {
-    // gofer.startClaudeCode - Launch Claude Code for a spec
-    context.subscriptions.push(
-      vscode.commands.registerCommand('gofer.startClaudeCode', async (item?: SpecCommandItem) => {
-        try {
-          const { launchClaudeCode } = await import('../autonomousCommands');
-
-          let spec = item;
-          if (item && item.spec && item.label) {
-            spec = item.spec;
-          }
-
-          if (!spec || !spec.id) {
-            vscode.window.showErrorMessage('Invalid spec: missing ID');
-            return;
-          }
-
-          await launchClaudeCode(spec.id);
-        } catch (error) {
-          vscode.window.showErrorMessage(
-            `Failed to start Claude Code: ${error instanceof Error ? error.message : String(error)}`
-          );
-        }
-      })
-    );
-
-    // gofer.stopClaudeCode
-    context.subscriptions.push(
-      vscode.commands.registerCommand('gofer.stopClaudeCode', async () => {
-        const { stopClaudeCode } = await import('../autonomousCommands');
-        await stopClaudeCode();
-      })
-    );
-
-    // gofer.pauseClaudeCode
-    context.subscriptions.push(
-      vscode.commands.registerCommand('gofer.pauseClaudeCode', async () => {
-        const { pauseClaudeCode } = await import('../autonomousCommands');
-        await pauseClaudeCode();
-      })
-    );
-
-    // gofer.resumeClaudeCode
-    context.subscriptions.push(
-      vscode.commands.registerCommand('gofer.resumeClaudeCode', async () => {
-        const { resumeClaudeCode } = await import('../autonomousCommands');
-        await resumeClaudeCode();
-      })
-    );
-
     // gofer.startAutonomous - Start autonomous execution for a spec
     // Called by specCommands.ts:executeSpec() and autonomousCommands.ts dependency cascade
     context.subscriptions.push(
-      vscode.commands.registerCommand(
-        'gofer.startAutonomous',
-        async (spec: Spec) => {
-          try {
-            const { startAutonomousExecution } = await import('../autonomousCommands');
-            await startAutonomousExecution(context, spec, _deps.progressProvider);
-          } catch (error) {
-            vscode.window.showErrorMessage(
-              `Failed to start autonomous execution: ${error instanceof Error ? error.message : String(error)}`
-            );
-          }
+      vscode.commands.registerCommand('gofer.startAutonomous', async (spec: Spec) => {
+        try {
+          const { startAutonomousExecution } = await import('../autonomousCommands');
+          await startAutonomousExecution(context, spec, _deps.progressProvider);
+        } catch (error) {
+          vscode.window.showErrorMessage(
+            `Failed to start autonomous execution: ${error instanceof Error ? error.message : String(error)}`
+          );
         }
-      )
+      })
     );
 
     context.subscriptions.push(
@@ -532,7 +482,9 @@ export class CommandRegistry {
         'gofer.showContextCategoryContent',
         async (sessionId: string, categoryName: string) => {
           const workspacePath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-          if (!workspacePath) {return;}
+          if (!workspacePath) {
+            return;
+          }
 
           const { ContextContentPanel } = await import('../ui/ContextContentPanel');
           const panel = ContextContentPanel.createOrShow(context.extensionUri, workspacePath);
@@ -549,21 +501,27 @@ export class CommandRegistry {
 
     // Show details commands
     context.subscriptions.push(
-      vscode.commands.registerCommand('gofer.showSpecDetails', async (item?: TreeViewCommandItem) => {
-        if (item?.uri) {
-          const doc = await vscode.workspace.openTextDocument(item.uri);
-          await vscode.window.showTextDocument(doc);
+      vscode.commands.registerCommand(
+        'gofer.showSpecDetails',
+        async (item?: TreeViewCommandItem) => {
+          if (item?.uri) {
+            const doc = await vscode.workspace.openTextDocument(item.uri);
+            await vscode.window.showTextDocument(doc);
+          }
         }
-      })
+      )
     );
 
     context.subscriptions.push(
-      vscode.commands.registerCommand('gofer.showTaskDetails', async (item?: TreeViewCommandItem) => {
-        if (item?.uri) {
-          const doc = await vscode.workspace.openTextDocument(item.uri);
-          await vscode.window.showTextDocument(doc);
+      vscode.commands.registerCommand(
+        'gofer.showTaskDetails',
+        async (item?: TreeViewCommandItem) => {
+          if (item?.uri) {
+            const doc = await vscode.workspace.openTextDocument(item.uri);
+            await vscode.window.showTextDocument(doc);
+          }
         }
-      })
+      )
     );
 
     // gofer.showSectionDetails - Constitution section view
@@ -612,18 +570,21 @@ export class CommandRegistry {
 
     // Open With... context menu commands
     context.subscriptions.push(
-      vscode.commands.registerCommand('gofer.openWithPreview', async (item: TreeViewCommandItem) => {
-        const { openWithPreview } = await import('../webviewHelpers');
-        await openWithPreview(item);
-      })
+      vscode.commands.registerCommand(
+        'gofer.openWithPreview',
+        async (item: TreeViewCommandItem) => {
+          const { openWithPreview } = await import('../webviewHelpers');
+          await openWithPreview(item);
+        }
+      )
     );
 
     context.subscriptions.push(
       vscode.commands.registerCommand(
         'gofer.openWithMarkSharp',
         async (item: TreeViewCommandItem) => {
-        const { openWithMarkSharp } = await import('../webviewHelpers');
-        await openWithMarkSharp(item);
+          const { openWithMarkSharp } = await import('../webviewHelpers');
+          await openWithMarkSharp(item);
         }
       )
     );
@@ -632,8 +593,8 @@ export class CommandRegistry {
       vscode.commands.registerCommand(
         'gofer.openWithMarkdownEditor',
         async (item: TreeViewCommandItem) => {
-        const { openWithMarkdownEditor } = await import('../webviewHelpers');
-        await openWithMarkdownEditor(item);
+          const { openWithMarkdownEditor } = await import('../webviewHelpers');
+          await openWithMarkdownEditor(item);
         }
       )
     );
@@ -642,8 +603,8 @@ export class CommandRegistry {
       vscode.commands.registerCommand(
         'gofer.openWithMarkdownWYSIWYG',
         async (item: TreeViewCommandItem) => {
-        const { openWithMarkdownWYSIWYG } = await import('../webviewHelpers');
-        await openWithMarkdownWYSIWYG(item);
+          const { openWithMarkdownWYSIWYG } = await import('../webviewHelpers');
+          await openWithMarkdownWYSIWYG(item);
         }
       )
     );

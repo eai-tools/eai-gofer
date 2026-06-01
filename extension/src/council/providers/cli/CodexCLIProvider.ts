@@ -111,7 +111,7 @@ export class CodexCLIProvider extends CLIProviderAdapter {
   public translateError(error: string): string {
     // Authentication errors
     if (error.includes('API key') || error.includes('authentication') || error.includes('401')) {
-      return 'Authentication failed: Invalid or missing OpenAI API key. Please check your OpenAI API key in settings.';
+      return 'Authentication failed: run `codex login` or set OPENAI_API_KEY in your shell environment.';
     }
 
     // Rate limiting
@@ -165,5 +165,5 @@ export class CodexCLIProvider extends CLIProviderAdapter {
 // Register provider in factory
 registerProvider(
   'codex-cli',
-  CodexCLIProvider as unknown as new (apiKey: string, model: string) => CLIProviderAdapter
+  CodexCLIProvider as unknown as new (cliCommand: string, model: string) => CLIProviderAdapter
 );

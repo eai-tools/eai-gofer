@@ -190,11 +190,11 @@ export interface OrchestratorConfig {
     sessionPath: string;
     phoneNumber?: string;
   };
-  claude: {
-    apiKey: string;
-    model: string;
-    maxTokens: number;
-    rateLimit: number;
+  cliProvider?: {
+    command: string;
+    model?: string;
+    maxTokens?: number;
+    rateLimit?: number;
   };
 }
 

@@ -1,13 +1,19 @@
 ---
 generated: true
-generated_at: "2026-05-23T17:54:39.953Z"
-source_commit: "047baa06f9bdd86354d43413563a98f893685fb3"
+generated_at: '2026-05-23T17:54:39.953Z'
+source_commit: '047baa06f9bdd86354d43413563a98f893685fb3'
 ---
+
 # Gofer - Architecture
 
 ## Executive Summary
 
-Gofer implements a dual-protocol architecture (LSP + MCP) that bridges VSCode Extension API with AI assistant tools. The system uses dependency injection (tsyringe) for service lifecycle management and follows a progressive context management strategy through Adaptive Context Compaction (ACC). Trust boundaries are enforced via ScopeGuard, and all tool invocations are audited to `.specify/logs/tool-audit.jsonl`.
+Gofer implements a dual-protocol architecture (LSP + MCP) that bridges VSCode
+Extension API with AI assistant tools. The system uses dependency injection
+(tsyringe) for service lifecycle management and follows a progressive context
+management strategy through Adaptive Context Compaction (ACC). Trust boundaries
+are enforced via ScopeGuard, and all tool invocations are audited to
+`.specify/logs/tool-audit.jsonl`.
 
 ## High-Level System Context
 
@@ -45,9 +51,9 @@ flowchart TB
     end
 
     subgraph "External Services"
-        AnthropicAPI["Anthropic API<br/>(Claude policy routes)"]
-        GoogleAPI["Google AI API<br/>(Gemini policy routes)"]
-        OpenAIAPI["OpenAI API<br/>(GPT/Codex policy routes)"]
+        ClaudeService["Claude provider service<br/>(via Claude Code CLI)"]
+        GeminiService["Gemini provider service<br/>(via Gemini CLI)"]
+        CodexService["OpenAI provider service<br/>(via Codex CLI)"]
     end
 
     User -->|Uses| VSCode
@@ -57,21 +63,21 @@ flowchart TB
     ExtHost -->|Updates| UI
     ExtHost -->|Manages| StateManager
     ExtHost -->|Orchestrates| ACCOrch
-    
+
     LSPServer -->|Handles Tools| MCPHandler
     LSPServer -->|Loads Specs| GoferLoader
     MCPHandler -->|Reads/Writes| Specify
     GoferLoader -->|Reads| Specify
-    
+
     Claude -->|MCP Tools| LSPServer
     Copilot -->|Reads| Generated
     Codex -->|Reads| Generated
     Gemini -->|Reads| Generated
-    
+
     ExtHost -->|Generates| Generated
-    ExtHost -->|Optional| AnthropicAPI
-    ExtHost -->|Optional| GoogleAPI
-    ExtHost -->|Optional| OpenAIAPI
+    Claude -->|Provider account| ClaudeService
+    Gemini -->|Provider account| GeminiService
+    Codex -->|Provider account| CodexService
 ```
 
 ## Runtime Flow: Feature Implementation
@@ -84,7 +90,7 @@ sequenceDiagram
     participant MCP as MCP Handler
     participant FS as File System (.specify/)
     participant Extension as VS Code Extension
-    
+
     User->>ClaudeCode: /0_business_scenario Add auth
     ClaudeCode->>LSP: MCP: tools/call("gofer_read_spec")
     LSP->>MCP: Route to tool handler
@@ -92,23 +98,23 @@ sequenceDiagram
     FS-->>MCP: Return spec data
     MCP-->>LSP: Return JSON response
     LSP-->>ClaudeCode: Spec content
-    
+
     ClaudeCode->>LSP: MCP: tools/call("gofer_research")
     MCP->>FS: Write research.md
     MCP->>Extension: Notify progress update
     Extension->>User: Show progress in sidebar
-    
+
     ClaudeCode->>LSP: MCP: tools/call("gofer_create_plan")
     MCP->>FS: Write plan.md
-    
+
     ClaudeCode->>LSP: MCP: tools/call("gofer_execute_task")
     MCP->>FS: Update tasks.md status
     MCP->>FS: Log to tool-audit.jsonl
-    
+
     ClaudeCode->>LSP: MCP: tools/call("gofer_validate_code")
     MCP->>FS: Write validation results
     MCP-->>ClaudeCode: Validation report
-    
+
     ClaudeCode-->>User: Implementation complete
     Extension->>User: Update progress: ● Complete
 ```
@@ -123,14 +129,14 @@ flowchart TB
         Activate["activate()<br/>extension.ts"]
         DI["Dependency Injection<br/>tsyringe container"]
     end
-    
+
     subgraph "Core Services"
         Config["ConfigManager<br/>settings.json"]
         State["StateManager<br/>workspace state"]
         Logger["Logger<br/>winston"]
         Disposals["DisposalService<br/>cleanup"]
     end
-    
+
     subgraph "Autonomous Features"
         ACC["ACCOrchestrator<br/>Context management"]
         Memory["MemoryManager<br/>3-layer system"]
@@ -138,37 +144,37 @@ flowchart TB
         Audit["ToolAuditLogger<br/>MCP audit log"]
         Budget["CostBudgetEnforcer<br/>Cost tracking"]
     end
-    
+
     subgraph "UI Components"
         Progress["ProgressProvider<br/>Spec progress tree"]
         AIUsage["AIUsageProvider<br/>Token usage panel"]
         MemoryUI["MemoryProvider<br/>Memory tree view"]
         StatusBar["Context Health<br/>Status bar"]
     end
-    
+
     subgraph "Command Generation"
-        Council["LLM Council<br/>Multi-model validation"]
+        Router["CLI Provider Router<br/>Surface selection"]
         CommandGen["CrossPlatformCommandRouter<br/>CLI surface generation"]
     end
-    
+
     Activate --> DI
     DI --> Config
     DI --> State
     DI --> Logger
     DI --> Disposals
-    
+
     Activate --> ACC
     Activate --> Memory
     Activate --> ScopeGuard
     Activate --> Audit
     Activate --> Budget
-    
+
     Activate --> Progress
     Activate --> AIUsage
     Activate --> MemoryUI
     Activate --> StatusBar
-    
-    Activate --> Council
+
+    Activate --> Router
     Activate --> CommandGen
 ```
 
@@ -180,7 +186,7 @@ flowchart LR
         Connection["LSP Connection<br/>vscode-languageserver"]
         Init["onInitialize<br/>Capability registration"]
     end
-    
+
     subgraph "MCP Tools (23 tools)"
         SpecTools["Spec Management<br/>read_spec, create_spec"]
         TaskTools["Task Execution<br/>execute_task, query_tasks"]
@@ -188,21 +194,21 @@ flowchart LR
         ContextTools["Context Management<br/>peek, grep, fold, expand"]
         ValidationTools["Validation<br/>validate_code, run_tests"]
     end
-    
+
     subgraph "Utilities"
         GoferLoader["GoferLoader<br/>Spec caching"]
         SpecCache["SpecCache<br/>Performance optimization"]
         ResearchChunker["ResearchChunker<br/>Memory-first loading"]
         ValidationSvc["ValidationService<br/>Code quality checks"]
     end
-    
+
     Connection --> Init
     Init --> SpecTools
     Init --> TaskTools
     Init --> MemoryTools
     Init --> ContextTools
     Init --> ValidationTools
-    
+
     SpecTools --> GoferLoader
     SpecTools --> SpecCache
     TaskTools --> ResearchChunker
@@ -216,35 +222,35 @@ flowchart LR
 ```mermaid
 flowchart TB
     Start["User Initiates<br/>/0_business_scenario"]
-    
+
     subgraph "Research Phase"
         Research["Generate research.md<br/>Codebase analysis"]
         ResearchStore["Store in .specify/specs/*/"]
     end
-    
+
     subgraph "Specification Phase"
         Specify["Generate spec.md<br/>Requirements + Acceptance Criteria"]
         SpecStore["Store with YAML frontmatter"]
     end
-    
+
     subgraph "Planning Phase"
         Plan["Generate plan.md<br/>Architecture + Contracts"]
         DataModel["Generate data-model.md<br/>ERD diagrams"]
         PlanStore["Store planning artifacts"]
     end
-    
+
     subgraph "Tasks Phase"
         Tasks["Generate tasks.md<br/>Dependency-ordered"]
         Traceability["Generate traceability.md<br/>Task-to-spec mapping"]
         TaskStore["Store task breakdown"]
     end
-    
+
     subgraph "Implementation Phase"
         Execute["Execute tasks<br/>Code changes"]
         Validate["Run validation<br/>6 parallel agents"]
         AuditLog["Log to tool-audit.jsonl"]
     end
-    
+
     Start --> Research
     Research --> ResearchStore
     ResearchStore --> Specify
@@ -268,7 +274,7 @@ flowchart TB
         Monitor["Context Health Monitor<br/>Polls every 30s"]
         State["context-health-state.json<br/>30s TTL cache"]
     end
-    
+
     subgraph "ACC Stages"
         S70["70% - Delegation Advisory"]
         S80["80% - Observation Masking"]
@@ -276,7 +282,7 @@ flowchart TB
         S90["90% - Aggressive Masking"]
         S99["99% - Full Compaction"]
     end
-    
+
     subgraph "Actions"
         Delegate["Suggest subagent delegation"]
         Mask["Mask old observations (5+ turns)"]
@@ -284,7 +290,7 @@ flowchart TB
         Compact["Compact all observations"]
         Save["Auto-save session checkpoint"]
     end
-    
+
     Monitor --> State
     State --> S70
     S70 -->|>70%| Delegate
@@ -342,7 +348,8 @@ export class StateManager {
 
 - **Pattern:** Multiple output formats from single source
 - **Location:** `extension/src/council/CrossPlatformCommandRouter.ts`
-- **Purpose:** Generate Claude, Copilot, Codex, Gemini commands from canonical source
+- **Purpose:** Generate Claude, Copilot, Codex, Gemini commands from canonical
+  source
 - **Example:** Single `.specify/commands/*.md` → 4 CLI surfaces
 
 ### 6. Observer Pattern (File Watching)
@@ -357,13 +364,16 @@ export class StateManager {
 - **Pattern:** Wrap MCP tool calls with audit logging
 - **Location:** `extension/src/autonomous/ToolAuditLogger.ts`
 - **Purpose:** Log all file access operations to JSONL
-- **Example:** Every MCP tool call logged with timestamp, operation, files accessed
+- **Example:** Every MCP tool call logged with timestamp, operation, files
+  accessed
 
 ## Trust Boundaries and Security
 
 ### Authentication Flow
 
-No authentication required - Gofer operates entirely locally within VS Code workspace. External API keys are optional and user-provided via VS Code settings.
+No Gofer-specific authentication is required. Gofer operates locally within the
+VS Code workspace and delegates AI access to Claude, Codex, Copilot, and Gemini
+through each tool's normal login or app session.
 
 ### Authorization Controls
 
@@ -377,25 +387,31 @@ Protected files defined in spec frontmatter:
 
 ```yaml
 protected_files:
-  - "src/auth/*.ts"
-  - ".env"
-  - "secrets/"
+  - 'src/auth/*.ts'
+  - '.env'
+  - 'secrets/'
 ```
 
 ### Security Controls
 
-1. **Tool Audit Logging** - All MCP tool invocations logged to `.specify/logs/tool-audit.jsonl`
-2. **Cost Budget Enforcement** - Prevents runaway AI costs (default $10 limit per run)
-3. **Environment Variable Validation** - `.env` files ignored by git, never committed
-4. **API Key Protection** - Keys stored in VS Code settings (encrypted by VS Code)
+1. **Tool Audit Logging** - All MCP tool invocations logged to
+   `.specify/logs/tool-audit.jsonl`
+2. **Model Policy Guidance** - `.specify/memory/gofer-model-policy.yaml`
+   documents routing and cost tradeoffs
+3. **Environment Variable Validation** - `.env` files ignored by git, never
+   committed
+4. **Credential Delegation** - Gofer does not store provider API keys in VS Code
+   settings
 5. **File System Sandboxing** - MCP tools restricted to workspace directory
 6. **Input Validation** - Zod schemas validate all MCP tool inputs
 
 ### Data Sensitivity
 
-- **Low Sensitivity:** Specifications, plans, tasks (intended for version control)
+- **Low Sensitivity:** Specifications, plans, tasks (intended for version
+  control)
 - **Medium Sensitivity:** Memory observations (may contain code snippets)
-- **High Sensitivity:** API keys (never logged or committed)
+- **High Sensitivity:** API keys and tokens managed by provider CLIs, shell
+  secrets, or external secret managers (never logged or committed)
 
 ## Integration Points
 
@@ -404,7 +420,7 @@ protected_files:
 - **Commands:** 67+ registered commands via `contributes.commands`
 - **Views:** 3 tree views (Progress, AI Usage, Memory)
 - **Status Bars:** 2 status bar items (Context Health, AI Usage)
-- **Configuration:** 91+ settings via `contributes.configuration`
+- **Configuration:** 13 settings via `contributes.configuration`
 - **Language Server:** Stdio transport via `LanguageClient`
 
 ### Model Context Protocol (MCP)
@@ -416,19 +432,17 @@ protected_files:
 
 ### AI Assistant Integrations
 
-| Assistant      | Integration Method          | Command Discovery         | Tool Access            |
-| -------------- | --------------------------- | ------------------------- | ---------------------- |
-| Claude Code    | MCP via LSP                 | `.claude/commands/`       | Direct (23 tools)      |
-| GitHub Copilot | Prompt files                | `.github/prompts/`        | Indirect (files only)  |
-| OpenAI Codex   | Skill files                 | `.agents/skills/`         | Indirect (files only)  |
-| Gemini CLI     | Command files               | `.gemini/commands/gofer/` | Indirect (files only)  |
+| Assistant      | Integration Method | Command Discovery         | Tool Access           |
+| -------------- | ------------------ | ------------------------- | --------------------- |
+| Claude Code    | MCP via LSP        | `.claude/commands/`       | Direct (23 tools)     |
+| GitHub Copilot | Prompt files       | `.github/prompts/`        | Indirect (files only) |
+| OpenAI Codex   | Skill files        | `.agents/skills/`         | Indirect (files only) |
+| Gemini CLI     | Command files      | `.gemini/commands/gofer/` | Indirect (files only) |
 
 ### External Service Integrations
 
-- **Anthropic API:** Optional, for autonomous orchestration
-- **Google AI API:** Optional, for LLM Council validation
-- **OpenAI API:** Optional, for LLM Council validation
-- **Twilio API:** Optional, for WhatsApp notifications
+- **AI CLIs:** Claude, Codex, Copilot, and Gemini use their normal CLI or app
+  authentication flows
 - **GitHub API:** Optional, for auto-update checking
 
 ## Performance Characteristics
@@ -447,11 +461,14 @@ protected_files:
 - **Log Writing:** Append-only JSONL, no blocking
 - **File Watching:** Debounced with 300ms delay
 
-### API Rate Limiting
+### Provider Rate Limiting
 
-- **Anthropic API:** Provider/account dependent; routed by `.specify/memory/gofer-model-policy.yaml`
-- **Google AI API:** Provider/account dependent; routed by `.specify/memory/gofer-model-policy.yaml`
-- **OpenAI API:** Provider/account dependent; routed by `.specify/memory/gofer-model-policy.yaml`
+- **Claude Code CLI:** Provider/account dependent; routed by
+  `.specify/memory/gofer-model-policy.yaml`
+- **Gemini CLI:** Provider/account dependent; routed by
+  `.specify/memory/gofer-model-policy.yaml`
+- **OpenAI Codex CLI:** Provider/account dependent; routed by
+  `.specify/memory/gofer-model-policy.yaml`
 - **Cost Budget:** Default $10 per run, enforced by `CostBudgetEnforcer`
 
 ## Operational Notes
@@ -460,14 +477,15 @@ protected_files:
 
 - **Language Server:** Heartbeat via LSP connection
 - **Extension Activation:** `onStartupFinished` event
-- **Context Health:** Monitored via status bar with color indicators (green/yellow/orange/red)
+- **Context Health:** Monitored via status bar with color indicators
+  (green/yellow/orange/red)
 
 ### Logging
 
 - **Extension Logs:** Winston logger, output channel in VS Code
 - **Language Server Logs:** LSP connection console
 - **Tool Audit Logs:** `.specify/logs/tool-audit.jsonl`
-- **Council Usage Logs:** `.specify/logs/council-usage.jsonl`
+- **Context Usage Logs:** `.specify/logs/context-usage.jsonl`
 - **Run Ledger:** `.specify/logs/gofer-run-ledger.jsonl`
 
 ### Monitoring

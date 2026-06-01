@@ -1,7 +1,9 @@
 ---
 name: 7a_stakeholder_comms
-description: "Generate stakeholder-facing communications: release notes, demo scripts, and change briefs."
-title: "Stakeholder Communications"
+description:
+  'Generate stakeholder-facing communications: release notes, demo scripts, and
+  change briefs.'
+title: 'Stakeholder Communications'
 category: utility
 surfaces:
   - claude
@@ -15,29 +17,49 @@ surfaces:
   - system-skills
 aliases: [gofer:comms]
 ---
+
 ---
-description:
-  Generate stakeholder communications package including release notes, demo
-  script, change management brief, and success metrics
+
+description: Generate stakeholder communications package including release
+notes, demo script, change management brief, and success metrics
+
 ---
 
 # Gofer Stakeholder Communications
 
 ## Token And Cost Policy
+
 <!-- gofer:token-cost-policy:start -->
 
 Before spawning agents, calling tools, or loading large files:
 
-1. Treat `.specify/memory/gofer-model-policy.yaml` as the repo-owned source of truth for simple, medium, hard, and arbiter model routing. If it is missing, run `/gofer:bootstrap-workspace` before continuing.
+1. Treat `.specify/memory/gofer-model-policy.yaml` as the repo-owned source of
+   truth for simple, medium, hard, and arbiter model routing. If it is missing,
+   run `/gofer:bootstrap-workspace` before continuing.
 2. Use the cheapest capable model first.
-   - Claude: Haiku for scouting/extraction; Sonnet for normal implementation, synthesis, validation, and security; Opus for high-risk arbitration or release-critical failures.
-   - Codex/OpenAI: GPT mini for simple coding; GPT nano only for locate/classify/summarize/mechanical work; GPT-5.3-Codex or flagship GPT for tool-heavy coding, architecture, and release-critical validation.
-   - Gemini: Flash-Lite for cheap large-context scan/summarize; Flash for default research synthesis; Pro for large-context architecture or high-risk arbitration.
-   - Copilot: prefer Auto for simple and default work; ask the user before choosing a paid/high-tier picker model for hard security, architecture, or release gates.
-3. Keep raw tool output out of the main conversation context. Save stable findings to `.specify/specs/{feature}/context-bundle.md`, then work from summaries.
-4. Use provider prompt/context caching only for stable, non-secret prefixes: Gofer scaffold, AGENTS/CLAUDE/Copilot instructions, constitution, repo map, stage contracts, and validation rubric.
-5. Before continuing after large research, planning, implementation, or validation bursts, checkpoint the durable artifacts and compact/clear/resume context when the host supports it.
-6. Escalate model tier only when a cheaper pass is low-confidence, contradictory, security-sensitive, or blocking release quality.
+   - Claude: Haiku for scouting/extraction; Sonnet for normal implementation,
+     synthesis, validation, and security; Opus for high-risk arbitration or
+     release-critical failures.
+   - Codex/OpenAI: GPT mini for simple coding; GPT nano only for
+     locate/classify/summarize/mechanical work; GPT-5.3-Codex or flagship GPT
+     for tool-heavy coding, architecture, and release-critical validation.
+   - Gemini: Flash-Lite for cheap large-context scan/summarize; Flash for
+     default research synthesis; Pro for large-context architecture or high-risk
+     arbitration.
+   - Copilot: prefer Auto for simple and default work; ask the user before
+     choosing a paid/high-tier picker model for hard security, architecture, or
+     release gates.
+3. Keep raw tool output out of the main conversation context. Save stable
+   findings to `.specify/specs/{feature}/context-bundle.md`, then work from
+   summaries.
+4. Use provider prompt/context caching only for stable, non-secret prefixes:
+   Gofer scaffold, AGENTS/CLAUDE/Copilot instructions, constitution, repo map,
+   stage contracts, and validation rubric.
+5. Before continuing after large research, planning, implementation, or
+   validation bursts, checkpoint the durable artifacts and compact/clear/resume
+   context when the host supports it.
+6. Escalate model tier only when a cheaper pass is low-confidence,
+contradictory, security-sensitive, or blocking release quality.
 <!-- gofer:token-cost-policy:end -->
 
 ## User Input
@@ -289,11 +311,11 @@ stakeholder communications explaining what changed and why.
 
 ## Marp Presentation Deck (EnterpriseAI Profile Extension)
 
-EnterpriseAI is the default profile. Marp output is opt-in per run and remains
-the default recommendation for `workflowProfile=enterpriseai`. When Marp output
-is enabled, generate the general stakeholder deck and the persona deck pack.
-Standard-profile runs skip this step only when the user explicitly opts out;
-Release Notes and the Demo Script (5-minute walkthrough) remain the core
+The standard Gofer workflow is the public default. Marp output is opt-in per run
+and remains recommended only for `workflowProfile=enterpriseai`. When Marp
+output is enabled, generate the general stakeholder deck and the persona deck
+pack. Standard-profile runs skip this step only when the user explicitly opts
+out; Release Notes and the Demo Script (5-minute walkthrough) remain the core
 deliverables as `release-notes.md` and `demo-script.md`.
 
 When enabled, generate `{FEATURE_DIR}/presentation.marp.md`. The file MUST use
@@ -345,18 +367,18 @@ Every section title above (`Problem Statement`,
 
 Generate these additional decks under `{FEATURE_DIR}/presentations/`:
 
-| Deck | Decision-Rights Audience | Required Focus |
-| ---- | ------------------------ | -------------- |
-| `executive.marp.md` | Executive committee | Strategic value, funding gate, risk appetite |
-| `business.marp.md` | Business owner | User journey, operational value, adoption |
-| `internal-delivery.marp.md` | Delivery lead | Dependency plan, red/green loop, delivery risks |
-| `enterprise-architecture.marp.md` | Enterprise architecture | Platform fit, context bundle, contract pack, reuse decisions |
-| `ciso.marp.md` | CISO | Identity, tenant boundary, controls, residual risk |
-| `data-architecture.marp.md` | Data architecture | Object types, lineage, quality, governance |
-| `cio.marp.md` | CIO | Platform strategy, operating model, reuse roadmap |
-| `cfo.marp.md` | CFO | Investment case, benefit tracking, cost risk |
-| `coo.marp.md` | COO | Process change, rollout readiness, support model |
-| `risk-compliance.marp.md` | Risk/compliance | Obligations, evidence, exceptions, audit trail |
+| Deck                              | Decision-Rights Audience | Required Focus                                               |
+| --------------------------------- | ------------------------ | ------------------------------------------------------------ |
+| `executive.marp.md`               | Executive committee      | Strategic value, funding gate, risk appetite                 |
+| `business.marp.md`                | Business owner           | User journey, operational value, adoption                    |
+| `internal-delivery.marp.md`       | Delivery lead            | Dependency plan, red/green loop, delivery risks              |
+| `enterprise-architecture.marp.md` | Enterprise architecture  | Platform fit, context bundle, contract pack, reuse decisions |
+| `ciso.marp.md`                    | CISO                     | Identity, tenant boundary, controls, residual risk           |
+| `data-architecture.marp.md`       | Data architecture        | Object types, lineage, quality, governance                   |
+| `cio.marp.md`                     | CIO                      | Platform strategy, operating model, reuse roadmap            |
+| `cfo.marp.md`                     | CFO                      | Investment case, benefit tracking, cost risk                 |
+| `coo.marp.md`                     | COO                      | Process change, rollout readiness, support model             |
+| `risk-compliance.marp.md`         | Risk/compliance          | Obligations, evidence, exceptions, audit trail               |
 
 Every persona deck MUST include:
 
@@ -414,15 +436,3 @@ visual generators if needed.
 - **Include timelines** — consultants need to plan around dates
 - **Quantify everything** — numbers > adjectives
 - **Demo script must work** — test it mentally before writing
-
----
-
-## LLM Council Integration
-
-When council mode is configured in `.specify/memory/council-config.yaml` for
-stakeholder communications:
-
-1. Multiple LLMs draft communications independently
-2. Chairman synthesizes best elements from each
-3. Ensures diverse writing styles and perspectives
-4. Usage logged to `.specify/logs/council-usage.jsonl`

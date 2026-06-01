@@ -10,9 +10,9 @@ tools:
   - WebSearch
 argument-hint: feature-name-or-description
 gofer:
-  workflowProfile: enterpriseai
+  workflowProfile: standard
   canonicalSource: .specify/commands/5_gofer_implement.md
-  canonicalChecksum: 277030bbf5329e0422740d59b7c9fa204aca61c2ba5aafa8d49be0c0c8816eb4
+  canonicalChecksum: 886647176bea64b6645ebce392e03eaaac630b29fb923851c3157580dda829aa
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -629,21 +629,11 @@ If implementation was interrupted:
 
 ---
 
-## LLM Council Integration (Optional)
-
-When council mode is enabled:
-
-1. Complex implementation decisions go to all providers
-2. Different approaches compared
-3. Chairman synthesizes best solution
-4. Usage logged to `.specify/logs/council-usage.jsonl`
-
----
-
 ## EnterpriseAI Deployment Preflight Gate (Manifest/Config)
 
-EnterpriseAI is the default profile. Standard profile runs skip this gate only
-when the user explicitly opts out.
+The standard Gofer workflow is the public default. EnterpriseAI deployment
+preflight is migration-only and runs only when `workflowProfile` is explicitly
+`enterpriseai`.
 
 Before any deployment task emitted by `#4_gofer_tasks` completes, this stage
 MUST execute deployment preflight checks (manifest/config gate). A task that

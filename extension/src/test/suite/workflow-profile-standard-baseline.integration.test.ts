@@ -6,9 +6,9 @@ import {
 } from '../../config/workflowProfile';
 
 suite('Workflow Profile Defaults', () => {
-  test('defaults unknown values to enterpriseai', () => {
-    assert.strictEqual(normalizeWorkflowProfile(undefined), 'enterpriseai');
-    assert.strictEqual(normalizeWorkflowProfile('invalid'), 'enterpriseai');
+  test('defaults unknown values to standard', () => {
+    assert.strictEqual(normalizeWorkflowProfile(undefined), 'standard');
+    assert.strictEqual(normalizeWorkflowProfile('invalid'), 'standard');
   });
 
   test('recognizes valid workflow profile values', () => {

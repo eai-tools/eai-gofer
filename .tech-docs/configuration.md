@@ -8,7 +8,7 @@ source_commit: '047baa06f9bdd86354d43413563a98f893685fb3'
 
 ## Executive Summary
 
-Gofer configuration is managed through VS Code settings (50+ manifest-backed
+Gofer configuration is managed through VS Code settings (13 manifest-backed
 settings), environment variables (`.env` for secrets), and file-based config
 (`.specify/` directory). Configuration is layered: defaults → user settings →
 workspace settings, with workspace taking precedence.
@@ -31,127 +31,72 @@ is controlled by the client, plan, and organization policy.
 
 ## VS Code Settings
 
-### API Keys
+### CLI Authentication
 
-| Setting                      | Type   | Default | Description                              |
-| ---------------------------- | ------ | ------- | ---------------------------------------- |
-| `gofer.anthropicApiKey`      | string | `""`    | Anthropic API key for Claude models      |
-| `gofer.googleApiKey`         | string | `""`    | Google AI API key for Gemini models      |
-| `gofer.openaiApiKey`         | string | `""`    | OpenAI API key for GPT models            |
-| `gofer.anthropicAdminApiKey` | string | `""`    | Anthropic admin API key for billing data |
-| `gofer.openaiAdminApiKey`    | string | `""`    | OpenAI admin API key for billing data    |
+Gofer no longer stores provider API keys in VS Code settings. Claude, Codex,
+Copilot, and Gemini should use each tool's normal login/session state. For CLIs
+that support environment fallback, set those variables in your shell or secret
+manager, not in repository files.
 
 **Security Notes:**
 
-- API keys are stored in VS Code settings (encrypted by VS Code)
-- Never commit API keys to version control
-- Admin keys are optional and only used for cost tracking
+- Never commit API keys, tokens, or credentials to version control.
+- Prefer `claude login`, `codex login`, Gemini CLI login, and Copilot account
+  state over direct provider SDK/API-key configuration.
+- Gofer usage panels read local CLI usage artifacts and logs; they do not use
+  Gofer-managed provider credentials.
 
 ### Workflow Profile
 
-| Setting                 | Type    | Default          | Description                                                                                                                                       |
-| ----------------------- | ------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gofer.workflowProfile` | enum    | `"enterpriseai"` | Legacy compatibility toggle. Public Gofer usage should prefer `standard`; `enterpriseai` remains only for older workflow contracts until retired. |
-| `gofer.autoInitialize`  | boolean | `false`          | Auto-initialize `.specify/` on workspace open                                                                                                     |
-| `gofer.preferredAI`     | enum    | `"ask"`          | Preferred AI assistant: `ask`, `claude`, `copilot`, `codex`, `gemini`                                                                             |
-| `gofer.defaultCLI`      | enum    | `"auto"`         | Default CLI surface: `auto`, `claude`, `copilot`, `codex`, `gemini`                                                                               |
+| Setting                 | Type    | Default      | Description                                                                                      |
+| ----------------------- | ------- | ------------ | ------------------------------------------------------------------------------------------------ |
+| `gofer.workflowProfile` | enum    | `"standard"` | Public baseline workflow. Use `enterpriseai` only for older workflow contracts during migration. |
+| `gofer.autoInitialize`  | boolean | `false`      | Auto-initialize `.specify/` on workspace open                                                    |
+| `gofer.preferredAI`     | enum    | `"ask"`      | Preferred AI assistant: `ask`, `claude`, `copilot`, `codex`, `gemini`                            |
+| `gofer.defaultCLI`      | enum    | `"auto"`     | Default CLI surface: `auto`, `claude`, `copilot`, `codex`, `gemini`                              |
 
 ### AI Usage and Billing
 
-| Setting                             | Type    | Default   | Description                                                                        |
-| ----------------------------------- | ------- | --------- | ---------------------------------------------------------------------------------- |
-| `gofer.aiUsage.useApiClient`        | boolean | `true`    | Fetch provider billing data from Anthropic/OpenAI APIs instead of local usage logs |
-| `gofer.aiUsage.api.pollingInterval` | number  | `60000`   | Polling interval for provider billing APIs in milliseconds                         |
-| `gofer.aiUsage.statusBar.enabled`   | boolean | `true`    | Show current session AI usage cost in the VS Code status bar                       |
-| `gofer.aiUsage.polling.interval`    | number  | `3600000` | Fallback usage polling interval when the watcher is not active                     |
+| Setting                           | Type    | Default   | Description                                                  |
+| --------------------------------- | ------- | --------- | ------------------------------------------------------------ |
+| `gofer.aiUsage.statusBar.enabled` | boolean | `true`    | Show current session AI usage cost in the VS Code status bar |
+| `gofer.aiUsage.polling.interval`  | number  | `3600000` | Local usage polling interval when the watcher is not active  |
 
 ### CLI and Workflow Selection
 
-| Setting                                   | Type    | Default      | Description                                                                                                          |
-| ----------------------------------------- | ------- | ------------ | -------------------------------------------------------------------------------------------------------------------- |
-| `gofer.cliProvider`                       | enum    | `"auto"`     | AI CLI provider for autonomous mode: `claude`, `codex`, `copilot`, `gemini`, `auto`                                  |
-| `gofer.claudeCodeMode`                    | enum    | `"standard"` | Launch mode for Claude Code: `standard`, `yolo`, `custom`                                                            |
-| `gofer.claudeCodeCommand`                 | string  | `"claude"`   | Custom command used when `gofer.claudeCodeMode` is `custom`                                                          |
-| `gofer.codexCommand`                      | string  | `"codex"`    | Custom path to the Codex CLI executable                                                                              |
-| `gofer.markdownViewer`                    | enum    | `"preview"`  | Markdown viewer integration to open when clicking files                                                              |
-| `gofer.enterpriseAiUseExternalReferences` | boolean | `false`      | Legacy external reference toggle for older compatibility flows. Public Gofer installs do not need it for normal use. |
-
-### Autonomous Orchestration
-
-| Setting                                           | Type    | Default  | Description                                                                |
-| ------------------------------------------------- | ------- | -------- | -------------------------------------------------------------------------- |
-| `gofer.autonomousMode`                            | boolean | `true`   | Enable Gofer’s autonomous Claude Code session monitoring and response flow |
-| `gofer.autonomous.showTerminals`                  | boolean | `true`   | Keep autonomous Claude Code terminals visible while work is running        |
-| `gofer.autonomous.maxRetries`                     | number  | `3`      | Maximum recoverable retry attempts during autonomous execution             |
-| `gofer.autonomous.tokenWarningThreshold`          | number  | `150000` | Token threshold for warning that the context window is nearing capacity    |
-| `gofer.autonomous.tokenActionThreshold`           | number  | `180000` | Token threshold that triggers a fresh terminal/context handoff             |
-| `gofer.autonomous.compactionThreshold`            | number  | `80`     | Context usage percentage that triggers automatic compaction                |
-| `gofer.autonomous.questionTimeout`                | number  | `300000` | Milliseconds to wait for a human answer before pausing                     |
-| `gofer.autonomous.runFinalValidation`             | boolean | `true`   | Run final validation after implementation completes                        |
-| `gofer.autonomous.validateConstitution`           | boolean | `true`   | Validate completed work against the project constitution                   |
-| `gofer.autonomous.enableEngineeringReview`        | boolean | `true`   | Request engineering reviews at configured completion milestones            |
-| `gofer.autonomous.enablePerformanceReview`        | boolean | `true`   | Request performance reviews near completion                                |
-| `gofer.autonomous.engineeringReviewMinCompletion` | number  | `40`     | Minimum completion percentage before engineering review can trigger        |
-| `gofer.autonomous.engineeringReviewMaxCompletion` | number  | `80`     | Maximum completion percentage for engineering review triggering            |
-| `gofer.autonomous.performanceReviewMinCompletion` | number  | `70`     | Minimum completion percentage before performance review can trigger        |
+| Setting                   | Type   | Default     | Description                                                                         |
+| ------------------------- | ------ | ----------- | ----------------------------------------------------------------------------------- |
+| `gofer.cliProvider`       | enum   | `"auto"`    | AI CLI provider for autonomous mode: `claude`, `codex`, `copilot`, `gemini`, `auto` |
+| `gofer.claudeCodeCommand` | string | `"claude"`  | Command or path used when Gofer invokes the Claude Code CLI                         |
+| `gofer.codexCommand`      | string | `"codex"`   | Custom path to the Codex CLI executable                                             |
+| `gofer.markdownViewer`    | enum   | `"preview"` | Markdown viewer integration to open when clicking files                             |
 
 ### Context and Memory
 
-| Setting                                                  | Type    | Default  | Description                                                                         |
-| -------------------------------------------------------- | ------- | -------- | ----------------------------------------------------------------------------------- |
-| `gofer.useLayeredMemory`                                 | boolean | `false`  | Enable MemGPT-style layered memory (core, recall, archival)                         |
-| `gofer.memory.coverageThreshold`                         | number  | `30`     | Memory coverage percentage needed before skipping research documents                |
-| `gofer.observationPreservePatterns`                      | array   | `[]`     | Extra regex patterns whose observations must never be masked                        |
-| `gofer.stageDetectionStalenessMinutes`                   | number  | `30`     | How long cached stage detection stays fresh before heuristic fallback               |
-| `gofer.contextWindow.autoExecuteSave`                    | boolean | `true`   | Automatically execute `/7_gofer_save` when context usage crosses the save threshold |
-| `gofer.contextWindow.autoSaveThreshold`                  | number  | `0.65`   | Context utilization ratio that triggers an automatic save                           |
-| `gofer.contextWindow.autoResumeAfterSave`                | boolean | `true`   | Automatically execute `/8_gofer_resume` after `/7_gofer_save`                       |
-| `gofer.contextWindow.continuousSlopReduction.enabled`    | boolean | `false`  | Enable periodic workspace-wide slop reduction scans                                 |
-| `gofer.contextWindow.continuousSlopReduction.intervalMs` | number  | `120000` | Interval for background workspace-wide slop reduction scans                         |
-| `gofer.yoloSlopReduction.enabled`                        | boolean | `false`  | Remove common slop patterns on save for supported source files                      |
-| `gofer.yoloSlopReduction.notifyEvery`                    | number  | `10`     | How often to surface slop-reduction notifications                                   |
-
-### Guardrails and Diagnostics
-
-| Setting                                          | Type    | Default      | Description                                                    |
-| ------------------------------------------------ | ------- | ------------ | -------------------------------------------------------------- |
-| `gofer.scopeGuard.mode`                          | enum    | `"warning"`  | ScopeGuard enforcement mode: `advisory`, `warning`, `blocking` |
-| `gofer.budgets.maxCostUsd`                       | number  | `10`         | Maximum estimated USD cost for a single pipeline run           |
-| `gofer.budgets.maxTokensPerRun`                  | number  | `500000`     | Maximum total tokens allowed for a single pipeline run         |
-| `gofer.budgets.enforcementMode`                  | enum    | `"advisory"` | Budget response mode: `advisory`, `truncate`, `blocking`       |
-| `gofer.diagnostics.resourceSnapshots.enabled`    | boolean | `true`       | Periodically log lightweight process resource snapshots        |
-| `gofer.diagnostics.resourceSnapshots.intervalMs` | number  | `300000`     | Interval for logging resource snapshots                        |
+| Setting                                | Type    | Default | Description                                                           |
+| -------------------------------------- | ------- | ------- | --------------------------------------------------------------------- |
+| `gofer.useLayeredMemory`               | boolean | `false` | Enable MemGPT-style layered memory (core, recall, archival)           |
+| `gofer.observationPreservePatterns`    | array   | `[]`    | Extra regex patterns whose observations must never be masked          |
+| `gofer.stageDetectionStalenessMinutes` | number  | `30`    | How long cached stage detection stays fresh before heuristic fallback |
 
 ## Environment Variables
 
 Configuration via `.env` file (never commit to Git):
 
-| Variable                 | Required | Default          | Description                                        |
-| ------------------------ | -------- | ---------------- | -------------------------------------------------- |
-| `ANTHROPIC_API_KEY`      | No       | -                | Anthropic API key (alternative to VS Code setting) |
-| `GOOGLE_API_KEY`         | No       | -                | Google AI API key                                  |
-| `OPENAI_API_KEY`         | No       | -                | OpenAI API key                                     |
-| `TWILIO_ACCOUNT_SID`     | No       | -                | Twilio account SID (optional notifications)        |
-| `TWILIO_AUTH_TOKEN`      | No       | -                | Twilio auth token                                  |
-| `TWILIO_WHATSAPP_NUMBER` | No       | -                | Twilio WhatsApp number                             |
-| `WHATSAPP_PHONE_NUMBER`  | No       | -                | Recipient WhatsApp number                          |
-| `LOG_LEVEL`              | No       | `info`           | Logging level: `debug`, `info`, `warn`, `error`    |
-| `SPECS_DIR`              | No       | `.specify/specs` | Specifications directory                           |
-| `MAX_RETRIES`            | No       | `3`              | Max retries for failed operations                  |
+| Variable            | Required | Default          | Description                                     |
+| ------------------- | -------- | ---------------- | ----------------------------------------------- |
+| `ANTHROPIC_API_KEY` | No       | -                | Optional Claude CLI auth fallback               |
+| `OPENAI_API_KEY`    | No       | -                | Optional Codex/OpenAI CLI auth fallback         |
+| `LOG_LEVEL`         | No       | `info`           | Logging level: `debug`, `info`, `warn`, `error` |
+| `SPECS_DIR`         | No       | `.specify/specs` | Specifications directory                        |
+| `MAX_RETRIES`       | No       | `3`              | Max retries for failed operations               |
 
 **Example `.env`:**
 
 ```bash
-# LLM API Keys
+# Optional CLI auth fallback. Prefer provider CLI login state where possible.
 ANTHROPIC_API_KEY=sk-ant-api03-your-key-here
-GOOGLE_API_KEY=AIza-your-key-here
 OPENAI_API_KEY=sk-your-key-here
-
-# Optional: Twilio WhatsApp Integration
-TWILIO_ACCOUNT_SID=your_twilio_account_sid_here
-TWILIO_AUTH_TOKEN=your_twilio_auth_token_here
-TWILIO_WHATSAPP_NUMBER=+14155238886
-WHATSAPP_PHONE_NUMBER=+1234567890
 
 # Logging
 LOG_LEVEL=info
@@ -206,7 +151,6 @@ protected_files:
   - 'src/auth/*.ts'
   - '.env'
 budget_override: 5.0 # Override global budget for this spec
-council_enabled: true # Enable LLM Council for this spec
 ---
 ```
 
@@ -220,26 +164,26 @@ council_enabled: true # Enable LLM Council for this spec
 
 ## Secrets Management
 
-### Where to Store API Keys
+### Where to Store Provider Credentials
 
-1. **Recommended:** VS Code User Settings (encrypted by VS Code)
-   - `Cmd/Ctrl+Shift+P` → "Preferences: Open User Settings (JSON)"
-   - Add: `"gofer.anthropicApiKey": "sk-ant-api03-..."`
+1. **Recommended:** Provider CLI login/session state
+   - Run each provider's login command, for example `claude login` or
+     `codex login`.
+   - Let the provider CLI manage credentials outside the repository.
 
-2. **Alternative:** Environment variables in `.env` file
-   - Create `.env` in repository root
-   - Add to `.gitignore` to prevent commit
-   - Load via `dotenv` in orchestrator
+2. **Alternative:** Shell environment variables
+   - Use only when a provider CLI requires or supports them.
+   - Keep them in your shell profile, secret manager, or CI secret store.
 
-3. **Not Recommended:** Workspace settings (`.vscode/settings.json`)
-   - May be committed to Git if not careful
-   - Use only for non-sensitive settings
+3. **Not Recommended:** Workspace settings or repository files
+   - `.vscode/settings.json`, `.env`, and scaffold files may be committed.
+   - Use workspace settings only for non-sensitive Gofer behavior.
 
 ### Secret Rotation
 
-- No built-in secret rotation
-- Manually update API keys in VS Code settings or `.env`
-- Keys are never logged or committed by Gofer
+- Rotate credentials through the provider CLI, provider console, or CI secret
+  store.
+- Keys are never logged or committed by Gofer.
 
 ## Required Configuration for Features
 
@@ -255,55 +199,27 @@ council_enabled: true # Enable LLM Council for this spec
 
 ```json
 {
-  "gofer.anthropicApiKey": "sk-ant-api03-...",
-  "gofer.googleApiKey": "AIza-...",
-  "gofer.openaiApiKey": "sk-...",
   "gofer.defaultCLI": "auto",
-  "gofer.aiUsage.useApiClient": true
-}
-```
-
-### Autonomous Orchestration
-
-```json
-{
-  "gofer.anthropicApiKey": "sk-ant-api03-...",
-  "gofer.budgets.maxCostUsd": 10,
-  "gofer.budgets.enforcementMode": "advisory",
-  "gofer.scopeGuard.mode": "warning",
-  "gofer.useLayeredMemory": true,
-  "gofer.contextWindow.autoExecuteSave": true
+  "gofer.claudeCodeCommand": "claude",
+  "gofer.codexCommand": "codex"
 }
 ```
 
 ## Troubleshooting
 
-### Issue: API Key Not Recognized
+### Issue: CLI Provider Not Authenticated
 
-- **Cause:** Key not set or invalid format
-- **Fix:** Verify key in VS Code settings: `Cmd/Ctrl+Shift+P` → "Preferences:
-  Open User Settings (JSON)"
+- **Cause:** Provider CLI is not logged in or its environment is missing.
+- **Fix:** Run the provider login command, for example `claude login` or
+  `codex login`.
 - **Verify:** Check extension output: `View` → `Output` → Select "Gofer"
-
-### Issue: Automatic Context Save Not Triggering
-
-- **Cause:** Auto-save disabled or threshold set too high
-- **Fix:** Enable auto-save: `"gofer.contextWindow.autoExecuteSave": true`
-- **Verify:** Check that `/7_gofer_save` is sent when usage crosses
-  `gofer.contextWindow.autoSaveThreshold`
 
 ### Issue: Layered Memory Not Loading
 
 - **Cause:** Layered memory is not enabled
 - **Fix:** Enable layered memory: `"gofer.useLayeredMemory": true`
-- **Verify:** Check that context assembly prefers memory coverage when it meets
-  `gofer.memory.coverageThreshold`
-
-### Issue: Cost Budget Exceeded
-
-- **Cause:** Budget too low or unexpected high token usage
-- **Fix:** Increase budget: `"gofer.budgets.maxCostUsd": 20`
-- **Verify:** Check `.specify/logs/gofer-run-ledger.jsonl` for actual costs
+- **Verify:** Check that context assembly reports layered-memory use in the
+  Gofer output log.
 
 ## Configuration Migration
 
@@ -311,8 +227,8 @@ council_enabled: true # Enable LLM Council for this spec
 
 - Review the manifest-backed settings above and remove any legacy workspace or
   user settings that no longer appear in the current `gofer.*` manifest.
-- Refresh saved workspace examples to use the current budget keys
-  (`gofer.budgets.*`) and layered memory key (`gofer.useLayeredMemory`).
+- Refresh saved workspace examples to remove retired tuning keys and keep only
+  manifest-backed settings such as `gofer.useLayeredMemory`.
 
 ### Legacy `enterpriseai` Compatibility
 

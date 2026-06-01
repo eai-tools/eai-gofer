@@ -11,24 +11,23 @@ source_commit: '047baa06f9bdd86354d43413563a98f893685fb3'
 Gofer has three dependency categories:
 
 1. **Production Dependencies** (npm packages) - 8 core packages
-2. **Development Dependencies** - 26 packages for build, test, lint
-3. **External Service Dependencies** - 3 optional AI APIs (Anthropic, Google,
-   OpenAI)
+2. **Development Dependencies** - packages for build, test, lint, and release
+3. **External Service Dependencies** - optional AI assistant CLIs and hosted
+   services
 
 All dependencies are managed via npm with lock files for reproducible builds.
 External services are optional and user-configured.
 
 ## Upstream Dependencies (Services This Repo Calls)
 
-### External APIs (Optional)
+### External Services (Optional)
 
-| Service           | Purpose                                               | Authentication           | Rate Limit                                | Criticality |
-| ----------------- | ----------------------------------------------------- | ------------------------ | ----------------------------------------- | ----------- |
-| **Anthropic API** | Claude Haiku/Sonnet/Opus routes from the Gofer model policy | API Key (user-provided)  | Provider/account dependent                | Optional    |
-| **Google AI API** | Gemini Flash-Lite/Flash/Pro routes from the Gofer model policy | API Key (user-provided)  | Provider/account dependent                | Optional    |
-| **OpenAI API**    | GPT mini/nano/Codex/flagship routes from the Gofer model policy | API Key (user-provided)  | Provider/account dependent                | Optional    |
-| **Twilio API**    | WhatsApp notifications (orchestrator only)            | Account SID + Auth Token | Varies by plan                            | Optional    |
-| **GitHub API**    | Auto-update checking                                  | No auth (public API)     | 60 req/hour (unauthenticated)             | Optional    |
+| Service              | Purpose                                         | Authentication             | Rate Limit                    | Criticality |
+| -------------------- | ----------------------------------------------- | -------------------------- | ----------------------------- | ----------- |
+| **Claude Code CLI**  | Claude routes from the Gofer model policy       | Provider CLI login/session | Provider/account dependent    | Optional    |
+| **Gemini CLI**       | Gemini routes from the Gofer model policy       | Provider CLI login/session | Provider/account dependent    | Optional    |
+| **OpenAI Codex CLI** | Codex/OpenAI routes from the Gofer model policy | Provider CLI login/session | Provider/account dependent    | Optional    |
+| **GitHub API**       | Auto-update checking                            | No auth (public API)       | 60 req/hour (unauthenticated) | Optional    |
 
 ### VS Code Platform
 
@@ -60,29 +59,40 @@ External services are optional and user-configured.
 
 ### Core Runtime Dependencies
 
-| Package             | Version | Purpose                                  | License      |
-| ------------------- | ------- | ---------------------------------------- | ------------ |
-| `@anthropic-ai/sdk` | 0.32.1  | Anthropic API client for Claude models   | MIT          |
-| `chokidar`          | 4.0.3   | File system watching for spec changes    | MIT          |
-| `dotenv`            | 16.6.1  | Environment variable loading             | BSD-2-Clause |
-| `gray-matter`       | 4.0.3   | YAML frontmatter parsing for specs       | MIT          |
-| `reflect-metadata`  | 0.2.2   | TypeScript decorator metadata            | Apache-2.0   |
-| `tsyringe`          | 4.10.0  | Dependency injection container           | MIT          |
-| `winston`           | 3.19.0  | Logging framework                        | MIT          |
-| `ws`                | 8.19.0  | WebSocket support (future MCP transport) | MIT          |
-| `zod`               | 3.25.76 | Schema validation for MCP tools          | MIT          |
+| Package            | Version | Purpose                               | License      |
+| ------------------ | ------- | ------------------------------------- | ------------ |
+| `chokidar`         | 4.0.3   | File system watching for spec changes | MIT          |
+| `dotenv`           | 16.6.1  | Environment variable loading          | BSD-2-Clause |
+| `gray-matter`      | 4.0.3   | YAML frontmatter parsing for specs    | MIT          |
+| `reflect-metadata` | 0.2.2   | TypeScript decorator metadata         | Apache-2.0   |
+| `tsyringe`         | 4.10.0  | Dependency injection container        | MIT          |
+| `winston`          | 3.19.0  | Logging framework                     | MIT          |
+| `ws`               | 8.21.0  | WebSocket support                     | MIT          |
+| `zod`              | 3.25.76 | Schema validation for MCP tools       | MIT          |
 
-**Total Production Dependencies:** 9 packages
+**Total Production Dependencies:** 8 packages
 
 ### Extension-Specific Dependencies
 
 Additional dependencies in `extension/package.json`:
 
-| Package             | Version | Purpose                                  | License |
-| ------------------- | ------- | ---------------------------------------- | ------- |
-| `graphlib`          | 2.1.8   | Task dependency graph resolution         | MIT     |
-| `uuid`              | 10.0.0  | Observation ID generation                | MIT     |
-| `@anthropic-ai/sdk` | 0.67.1  | Anthropic API client (extension version) | MIT     |
+| Package                       | Version      | Purpose                          | License    |
+| ----------------------------- | ------------ | -------------------------------- | ---------- |
+| `@lydell/node-pty`            | 1.2.0-beta.3 | Pseudo-terminal integration      | MIT        |
+| `ajv`                         | 8.18.0       | JSON schema validation           | MIT        |
+| `body-parser`                 | 2.2.2        | Local HTTP request parsing       | MIT        |
+| `chokidar`                    | 3.6.0        | Extension-side file watching     | MIT        |
+| `express`                     | 5.2.1        | Local service endpoints          | MIT        |
+| `fast-glob`                   | 3.3.3        | Resource discovery               | MIT        |
+| `fix-path`                    | 4.0.0        | macOS PATH normalization         | MIT        |
+| `graphlib`                    | 2.1.8        | Task dependency graph resolution | MIT        |
+| `jszip`                       | 3.10.1       | ZIP/resource packaging           | MIT/GPL    |
+| `node-pty-prebuilt-multiarch` | 0.10.1-pre.5 | Terminal fallback support        | MIT        |
+| `reflect-metadata`            | 0.2.2        | TypeScript decorator metadata    | Apache-2.0 |
+| `tsyringe`                    | 4.10.0       | Dependency injection container   | MIT        |
+| `uuid`                        | 11.1.1       | Observation ID generation        | MIT        |
+| `vscode-languageclient`       | 9.0.1        | Language server client           | MIT        |
+| `ws`                          | 8.21.0       | WebSocket support                | MIT        |
 
 ## Development Dependencies
 
@@ -120,12 +130,10 @@ Additional dependencies in `extension/package.json`:
 
 ### Optional Development APIs
 
-| Package                 | Version | Purpose                         |
-| ----------------------- | ------- | ------------------------------- |
-| `openai`                | 4.104.0 | OpenAI API client (dev only)    |
-| `@google/generative-ai` | 0.21.0  | Google AI API client (dev only) |
+Gofer no longer keeps direct provider SDKs as development dependencies. Tests
+that exercise provider behavior use CLI-provider seams and local fixtures.
 
-**Total Development Dependencies:** 26 packages
+Development dependency counts are tracked by the npm manifests and lock files.
 
 ## Dependency Diagram
 
@@ -144,10 +152,11 @@ graph LR
         Gemini["Gemini CLI"]
     end
 
-    subgraph "External APIs"
-        AnthropicAPI["Anthropic API"]
-        GoogleAPI["Google AI API"]
-        OpenAIAPI["OpenAI API"]
+    subgraph "External Services"
+        ClaudeCLI["Claude Code CLI"]
+        GeminiCLI["Gemini CLI"]
+        CodexCLI["OpenAI Codex CLI"]
+        GitHubAPI["GitHub API"]
     end
 
     subgraph "VS Code Platform"
@@ -160,29 +169,28 @@ graph LR
         winston["winston<br/>(logging)"]
         zod["zod<br/>(validation)"]
         chokidar["chokidar<br/>(file watch)"]
-        anthropicSDK["@anthropic-ai/sdk"]
+        graphlib["graphlib<br/>(task graph)"]
     end
 
     Ext --> VSCodeAPI
     Ext --> LSPAPI
     Ext --> tsyringe
     Ext --> winston
-    Ext --> anthropicSDK
+    Ext --> graphlib
 
     LS --> LSPAPI
     LS --> zod
     LS --> chokidar
-
-    Orch --> anthropicSDK
 
     Claude -->|MCP Tools| LS
     Copilot -->|Prompt Files| Ext
     Codex -->|Skill Files| Ext
     Gemini -->|Command Files| Ext
 
-    Ext -.->|Optional| AnthropicAPI
-    Ext -.->|Optional| GoogleAPI
-    Ext -.->|Optional| OpenAIAPI
+    Ext -.->|Optional| GitHubAPI
+    Claude -.->|Provider account| ClaudeCLI
+    Codex -.->|Provider account| CodexCLI
+    Gemini -.->|Provider account| GeminiCLI
 ```
 
 ## Dependency Update Strategy
@@ -202,7 +210,7 @@ graph LR
 
 ### Version Constraints
 
-- **Production:** Pin to specific versions (`@anthropic-ai/sdk@0.32.1`)
+- **Production:** Pin to specific versions (`zod@3.25.76`)
 - **Development:** Allow minor updates (`vitest@^3.2.4`)
 - **VS Code API:** Minimum version (`^1.93.0`)
 
@@ -222,11 +230,13 @@ Security and compatibility overrides in `package.json`:
 
 ## Critical Dependency Risks
 
-### Anthropic SDK (@anthropic-ai/sdk)
+### AI Assistant CLIs
 
-- **Risk:** Breaking API changes
-- **Mitigation:** Pin to specific version, monitor changelog
-- **Fallback:** Graceful degradation (optional dependency)
+- **Risk:** CLI output, auth flows, or model availability can change
+- **Mitigation:** Keep provider routing behind CLI adapters and validate through
+  integration tests
+- **Fallback:** Surface clear install/login guidance and let users choose a
+  different configured CLI
 
 ### VS Code Extension API
 

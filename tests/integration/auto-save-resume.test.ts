@@ -3,19 +3,18 @@
  *
  * Exercises the full chain:
  *   ContextHealthMonitor detects 65% threshold
- *   → AutoHandoffTrigger sends /7_gofer_save to pty (command + \r as separate writes)
+ *   → AutoHandoffTrigger sends /7_gofer_save to the active terminal
  *   → Polls for session-checkpoint.md (Gap #1: replaces fixed 3s wait)
- *   → Sends /clear then /8_gofer_resume to same pty (save/clear/resume cycle)
+ *   → Sends /clear then /8_gofer_resume to the same terminal (save/clear/resume cycle)
  *
- * NOTE: sendPtyCommand() writes command text and \r as two separate pty.write()
- * calls with a 500ms delay (METHOD 5 pattern for PTY reliability).
+ * NOTE: Terminal commands are sent with a short delay between entries so the
+ * host CLI has time to process the save/clear/resume sequence.
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-// Removed: import type { IPty } from 'node-pty' - no longer using PTY
 
 // Mock Logger
 vi.mock('../../extension/src/utils/logger', () => ({

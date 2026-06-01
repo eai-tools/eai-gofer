@@ -46,10 +46,6 @@ const REMOVED_SURFACE_PATTERNS: RemovedSurfacePattern[] = [
     pattern: /gofer\.autonomous\.notificationChannel/,
   },
   {
-    label: 'removed autonomous whatsappPhoneNumber setting',
-    pattern: /gofer\.autonomous\.whatsappPhoneNumber/,
-  },
-  {
     label: 'removed autonomous emailAddress setting',
     pattern: /gofer\.autonomous\.emailAddress/,
   },
@@ -64,14 +60,6 @@ const REMOVED_SURFACE_PATTERNS: RemovedSurfacePattern[] = [
   {
     label: 'removed showWelcome setting',
     pattern: /gofer\.showWelcome/,
-  },
-  {
-    label: 'deleted WhatsApp setup guide reference',
-    pattern: /docs\/WHATSAPP_SETUP\.md/,
-  },
-  {
-    label: 'deleted two-way WhatsApp guide reference',
-    pattern: /docs\/TWO_WAY_WHATSAPP\.md/,
   },
   {
     label: 'deleted migration guide reference',

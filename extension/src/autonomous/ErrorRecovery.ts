@@ -214,7 +214,7 @@ export class ErrorRecovery {
 
           return error;
         }
-    } catch (_err) {
+      } catch (_err) {
         const attempt: RetryAttempt = {
           attemptNumber,
           timestamp: new Date().toISOString(),
@@ -253,7 +253,7 @@ export class ErrorRecovery {
       escalated: true,
       escalatedAt: new Date().toISOString(),
       formattedForVSCode: this.formatForVSCode(error),
-      formattedForWhatsApp: this.formatForWhatsApp(error),
+      formattedForCompactMessage: this.formatForCompactMessage(error),
     };
 
     return escalation;
@@ -299,9 +299,9 @@ export class ErrorRecovery {
   }
 
   /**
-   * Format error for WhatsApp (300 char limit)
+   * Format error for compact notification surfaces.
    */
-  private formatForWhatsApp(error: ErrorInfo): string {
+  private formatForCompactMessage(error: ErrorInfo): string {
     let message = `❌ Task ${error.taskId} failed after ${error.retryAttempts.length} retries.\n`;
     message += `Error: ${error.errorMessage.substring(0, 150)}`;
 

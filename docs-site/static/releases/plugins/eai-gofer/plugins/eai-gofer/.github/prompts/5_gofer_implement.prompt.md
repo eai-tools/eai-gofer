@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: standard
   canonicalSource: .specify/commands/5_gofer_implement.md
-  canonicalChecksum: 886647176bea64b6645ebce392e03eaaac630b29fb923851c3157580dda829aa
+  canonicalChecksum: ef902612be7a9890311e1e7c7d50c2090c5b1afe190b81f329a4d97846cf4509
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -37,32 +37,52 @@ Before doing stage/helper work:
    - Claude: `AGENTS.md`, `CLAUDE.md`, `.claude/settings.json`
    - Codex: `AGENTS.md`
    - Copilot: `.github/copilot-instructions.md`
-   - VS Code extension mirrors Claude/Copilot/Gemini resources itself and should still keep the core scaffold healthy
+   - VS Code extension mirrors Claude/Copilot/Gemini resources itself and should
+     still keep the core scaffold healthy
 4. If the repo already has the workspace checker script, prefer running:
    - `node .specify/scripts/node/gofer-workspace-check.mjs --host copilot --json`
 5. If the workspace is missing or stale, ask exactly:
    - **"This repo is missing or stale for Gofer. Initialize/update it now?"**
-6. If the user says yes, run the Gofer workspace bootstrap helper and then resume this command from the top.
-7. If the user says no, stop and explain that Gofer stage/helper work depends on the repo-owned scaffold.
-
+6. If the user says yes, run the Gofer workspace bootstrap helper and then
+   resume this command from the top.
+7. If the user says no, stop and explain that Gofer stage/helper work depends on
+   the repo-owned scaffold.
 
 # Gofer Implement
 
 ## Token And Cost Policy
+
 <!-- gofer:token-cost-policy:start -->
 
 Before spawning agents, calling tools, or loading large files:
 
-1. Treat `.specify/memory/gofer-model-policy.yaml` as the repo-owned source of truth for simple, medium, hard, and arbiter model routing. If it is missing, run `/gofer:bootstrap-workspace` before continuing.
+1. Treat `.specify/memory/gofer-model-policy.yaml` as the repo-owned source of
+   truth for simple, medium, hard, and arbiter model routing. If it is missing,
+   run `/gofer:bootstrap-workspace` before continuing.
 2. Use the cheapest capable model first.
-   - Claude: Haiku for scouting/extraction; Sonnet for normal implementation, synthesis, validation, and security; Opus for high-risk arbitration or release-critical failures.
-   - Codex/OpenAI: GPT mini for simple coding; GPT nano only for locate/classify/summarize/mechanical work; GPT-5.3-Codex or flagship GPT for tool-heavy coding, architecture, and release-critical validation.
-   - Gemini: Flash-Lite for cheap large-context scan/summarize; Flash for default research synthesis; Pro for large-context architecture or high-risk arbitration.
-   - Copilot: prefer Auto for simple and default work; ask the user before choosing a paid/high-tier picker model for hard security, architecture, or release gates.
-3. Keep raw tool output out of the main conversation context. Save stable findings to `.specify/specs/{feature}/context-bundle.md`, then work from summaries.
-4. Use provider prompt/context caching only for stable, non-secret prefixes: Gofer scaffold, AGENTS/CLAUDE/Copilot instructions, constitution, repo map, stage contracts, and validation rubric.
-5. Before continuing after large research, planning, implementation, or validation bursts, checkpoint the durable artifacts and compact/clear/resume context when the host supports it.
-6. Escalate model tier only when a cheaper pass is low-confidence, contradictory, security-sensitive, or blocking release quality.
+   - Claude: Haiku for scouting/extraction; Sonnet for normal implementation,
+     synthesis, validation, and security; Opus for high-risk arbitration or
+     release-critical failures.
+   - Codex/OpenAI: GPT mini for simple coding; GPT nano only for
+     locate/classify/summarize/mechanical work; GPT-5.3-Codex or flagship GPT
+     for tool-heavy coding, architecture, and release-critical validation.
+   - Gemini: Flash-Lite for cheap large-context scan/summarize; Flash for
+     default research synthesis; Pro for large-context architecture or high-risk
+     arbitration.
+   - Copilot: prefer Auto for simple and default work; ask the user before
+     choosing a paid/high-tier picker model for hard security, architecture, or
+     release gates.
+3. Keep raw tool output out of the main conversation context. Save stable
+   findings to `.specify/specs/{feature}/context-bundle.md`, then work from
+   summaries.
+4. Use provider prompt/context caching only for stable, non-secret prefixes:
+   Gofer scaffold, AGENTS/CLAUDE/Copilot instructions, constitution, repo map,
+   stage contracts, and validation rubric.
+5. Before continuing after large research, planning, implementation, or
+   validation bursts, checkpoint the durable artifacts and compact/clear/resume
+   context when the host supports it.
+6. Escalate model tier only when a cheaper pass is low-confidence,
+contradictory, security-sensitive, or blocking release quality.
 <!-- gofer:token-cost-policy:end -->
 
 ## User Input
@@ -86,9 +106,9 @@ Before editing, re-check the planned depth and generic risk labels from
   rollback artifacts before code changes; update tests before or alongside the
   fix.
 - **dynamic**: confirm `workflow-dag.md` exists and `requiresConfirmation` is
-  false before executing shard-oriented work. Run each shard against its declared
-  inputs/outputs, then run the reducer and verifier/refuter pass before marking
-  tasks complete.
+  false before executing shard-oriented work. Run each shard against its
+  declared inputs/outputs, then run the reducer and verifier/refuter pass before
+  marking tasks complete.
 
 If the implementation reveals a higher-risk surface than planned, stop and
 upgrade the depth before continuing. Do not silently broaden scope.
@@ -613,7 +633,6 @@ After implementation complete and review gate passes:
 ════════════════════════════════════════════════════════════════
 ```
 
-
 ---
 
 ## Resumption Support
@@ -637,13 +656,13 @@ preflight is migration-only and runs only when `workflowProfile` is explicitly
 
 Before any deployment task emitted by `#4_gofer_tasks` completes, this stage
 MUST execute deployment preflight checks (manifest/config gate). A task that
-invokes `eai deploy` is not marked complete until all of the following files
-are present at the workspace root and pass their readiness checks:
+invokes `eai deploy` is not marked complete until all of the following files are
+present at the workspace root and pass their readiness checks:
 
-| Required File  | Purpose                                                 |
-| -------------- | ------------------------------------------------------- |
-| `manifest.yml` | Vertical application manifest (from `eai init`) |
-| `config.json`  | Runtime configuration bundle (environment-specific)     |
+| Required File  | Purpose                                             |
+| -------------- | --------------------------------------------------- |
+| `manifest.yml` | Vertical application manifest (from `eai init`)     |
+| `config.json`  | Runtime configuration bundle (environment-specific) |
 
 ### Gate behaviour
 
@@ -672,21 +691,22 @@ separation from `tasks.md`:
   workspace as the default UI lego-block source. Any create-new UI concept must
   be justified in the approved plan and approval artifacts.
 - Before implementing UI, run or inspect `eai --describe`, `eai blocks list`,
-  `eai blocks describe <id>` for every selected block, and
-  `eai resources schema`. Implementation notes must cite the block IDs,
-  required resources, bindings, package lane, coupling status, Storybook story
-  IDs, theme override points, and any approved custom-block exception.
+  `eai blocks describe <id>` for every selected block, and `resource schema`.
+  Implementation notes must cite the block IDs, required resources, bindings,
+  package lane, coupling status, Storybook story IDs, theme override points, and
+  any approved custom-block exception.
 - Reject unknown component names during implementation unless `tasks.md` and
   `ui-approval.md` explicitly authorize a custom extension block and manifest.
-- Treat package-profile, block-porting, DAISY decoupling, and public-readiness
-  tasks as first-class implementation tasks, not polish. External and hybrid
-  profile work is incomplete until package exports, Storybook stories, theme
-  overrides, consumer smoke checks, and unsupported custom-block exceptions are
-  resolved or explicitly deferred by approval artifacts.
-- Do not let public or hybrid package lanes import DAISY internals directly.
-  Use `eai resources schema`, an adapter boundary, or an approved internal-only
-  exception; record the coupling status in implementation notes and
-  `ui-review-log.md`.
+- Treat package-profile, block-porting, source-platform decoupling, and
+  public-readiness tasks as first-class implementation tasks, not polish.
+  External and hybrid profile work is incomplete until package exports,
+  Storybook stories, theme overrides, consumer smoke checks, and unsupported
+  custom-block exceptions are resolved or explicitly deferred by approval
+  artifacts.
+- Do not let public or hybrid package lanes import source-platform internals
+  directly. Use `resource schema`, an adapter boundary, or an approved
+  restricted-source exception; record the coupling status in implementation
+  notes and `ui-review-log.md`.
 - For application delivery, implement the four-step-or-fewer AI-augmented
   process as the user-facing spine. Each step must preserve its business goal,
   AI assistance mode, contextual prefill or conversational support, completion
@@ -696,11 +716,11 @@ separation from `tasks.md`:
   self-review evidence and append it to `{FEATURE_DIR}/ui-review-log.md`.
 - For application delivery, after UI approval and before treating platform
   selection as complete, update `{FEATURE_DIR}/service-fit-matrix.md` with
-  tenant-aware evidence from `eai --describe`, `eai whoami`, `eai tenant
-  select`, `eai resources schema`, `eai verify calls --format json`, or
-  equivalent approved platform evidence. The matrix must distinguish
-  accessible now, purchasable but unavailable now, and unavailable without new
-  platform work.
+  tenant-aware evidence from `eai --describe`, `eai whoami`,
+  `eai tenant select`, `resource schema`, `eai verify calls --format json`, or
+  equivalent approved platform evidence. The matrix must distinguish accessible
+  now, purchasable but unavailable now, and unavailable without new platform
+  work.
 - For non-app work, skip the preview, approval, branding, and service-fit gates
   while preserving the same numbered stage flow.
 - Do not add extra user-facing app steps unless `plan.md` records why they
@@ -723,17 +743,17 @@ Logs to: `.specify/logs/pipeline.jsonl`
 
 ---
 
-
-
 ## Pipeline Continuation
 
 This completes the 5_gofer_implement stage. To continue the Gofer pipeline:
 
 **Next Command:** `#6_gofer_validate`
 
-The next stage will read the artifacts from this stage and continue the workflow automatically.
+The next stage will read the artifacts from this stage and continue the workflow
+automatically.
 
-**Note:** Copilot Chat supports context preservation. Your conversation history will be maintained as you progress through pipeline stages.
+**Note:** Copilot Chat supports context preservation. Your conversation history
+will be maintained as you progress through pipeline stages.
 
 ## Key Rules
 
@@ -757,8 +777,8 @@ The next stage will read the artifacts from this stage and continue the workflow
 - If the operator explicitly requests `diagnose` and `spec.md` is present, run
   `gofer:diagnose` inline; bug context, failing output, or equivalent failure
   evidence may supplement the investigation. Write
-  `.specify/specs/{feature}/diagnose-report.md` using the same artifact
-  contract as the standalone helper.
+  `.specify/specs/{feature}/diagnose-report.md` using the same artifact contract
+  as the standalone helper.
 - If the required inputs are missing, continue the stage normally and report
   that the helper was not run.
 - These selectors are optional and do not change stage progress, routing, or

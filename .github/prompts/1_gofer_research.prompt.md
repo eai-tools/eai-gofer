@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: standard
   canonicalSource: .specify/commands/1_gofer_research.md
-  canonicalChecksum: 1b9078167330a573a11e74f605520b57b089f42d461efc2286ff05715da13288
+  canonicalChecksum: 1a5df620659987ad5148463c56ea2d9363f5b387ad3380bc0009a2faae194168
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -388,7 +388,7 @@ explicitly `enterpriseai`, generate:
      translation, contextual prefill, recommendation, validation, completion
      checks, audit logging, and escalation.
    - Existing UI block/package assets, Storybook story IDs, theme override
-     points, and DAISY dependencies that affect reuse, porting, or decoupling.
+     points, and source-platform dependencies that affect reuse, porting, or decoupling.
    - Decision for each candidate: reuse, extend, or create new.
    - Rationale, evidence path, and stakeholder/architecture owner if a new
      platform concept is recommended.
@@ -403,13 +403,13 @@ explicitly `enterpriseai`, generate:
      considered.
    - Block catalog evidence: run `eai --describe`, `eai blocks list`,
      `eai blocks describe <id>` for each candidate, and
-     `eai resources schema`; record stable block IDs, required resources,
+     `resource schema`; record stable block IDs, required resources,
      data/action bindings, Storybook story IDs, theme override points, package
      lane, coupling status, and any custom-block exception that needs approval.
-   - Block porting and DAISY decoupling evidence: identify whether each selected
-     block is reused as-is, ported into a package lane, or blocked by DAISY
-     coupling; define the adapter/resource-schema boundary for any decoupling
-     work.
+   - Block porting and source-platform decoupling evidence: identify whether
+     each selected block is reused as-is, ported into a package lane, or
+     blocked by source-platform coupling; define the adapter/resource-schema
+     boundary for any decoupling work.
    - Public-readiness evidence: for external or hybrid profiles, capture package
      exports, consumer-facing constraints, accessibility/theming expectations,
      and what still prevents public consumption.
@@ -457,7 +457,7 @@ Once all agents complete:
    - Preview-first rationale and the smallest useful MVP to show first
    - Vertical Template reuse constraints and any approved extension gaps
    - External/internal/hybrid profile choice, package lane, coupling status,
-     public-readiness target, block-porting needs, and DAISY decoupling status
+     public-readiness target, block-porting needs, and source-platform decoupling status
    - Candidate capability-discovery inputs for the later service-fit gate
    - Non-app runs must explicitly state "Not applicable"
 

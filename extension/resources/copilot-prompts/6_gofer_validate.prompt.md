@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: standard
   canonicalSource: .specify/commands/6_gofer_validate.md
-  canonicalChecksum: 8e4813fa8c042114994b70c55d3e34f329830738b0819f5e7eb73e7885c8b5ed
+  canonicalChecksum: 14d3c55e3093952f0dbd134e7c983fb2925996eefad30169dd6674e21dadb108
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -1940,8 +1940,8 @@ For application delivery, validation MUST also check
   default and that any create-new UI concept was explicitly approved rather
   than silently introduced.
 - Validation confirms that block-porting tasks produced the expected package
-  surface and that public or hybrid lanes do not directly depend on DAISY
-  internals unless an approved internal-only exception is recorded.
+  surface and that public or hybrid lanes do not directly depend on source platform
+  internals unless an approved restricted-source exception is recorded.
 - Chatbot, voice, accessibility, translation, contextual prefill, validation,
   and step-goal assistance claims are covered by acceptance tests where they are
   in scope.

@@ -177,7 +177,7 @@ jobs:
         with:
           name: coverage-report-${{ github.run_number }}
           path: coverage/
-          retention-days: 30
+          retention-days: 7
 
       - name: Upload Quality Reports
         uses: actions/upload-artifact@v7
@@ -185,7 +185,7 @@ jobs:
         with:
           name: quality-reports-${{ github.run_number }}
           path: quality-reports/
-          retention-days: 30
+          retention-days: 7
 
   # Job 2: Build and Test Core Components
   test:
@@ -414,7 +414,7 @@ jobs:
         with:
           name: vscode-extension
           path: extension/*.vsix
-          retention-days: 30
+          retention-days: 7
 
   # Job 6: Test Coverage Report
   coverage:
@@ -478,4 +478,4 @@ jobs:
         with:
           name: release-summary
           path: release-summary.md
-          retention-days: 30
+          retention-days: 7

@@ -31,7 +31,7 @@
       "surfaces": ["Docs / site", "Release / packaging", "Cross-platform"],
       "likelyPaths": ["README.md", ".tech-docs/", "SUPPORT.md", "CONTRIBUTING.md", "SECURITY.md", ".github/"],
       "acceptanceSignals": [
-        "No internal-only or private/IP content remains in tracked public-facing docs and metadata",
+        "No restricted-source or private/IP content remains in tracked public-facing docs and metadata",
         "Support, contribution, and security routes are obvious to external users",
         "Public repo messaging matches the released Gofer product"
       ],

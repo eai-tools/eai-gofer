@@ -110,7 +110,7 @@ export class ClaudeCodeCLIProvider extends CLIProviderAdapter {
   public translateError(error: string): string {
     // Authentication errors
     if (error.includes('API key') || error.includes('authentication') || error.includes('401')) {
-      return 'Authentication failed: run `claude login` or set ANTHROPIC_API_KEY in your shell environment.';
+      return 'Authentication failed: run `claude login` and retry.';
     }
 
     // Rate limiting

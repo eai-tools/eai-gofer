@@ -5,7 +5,7 @@
  * When Claude Code's PostToolUse hook writes an observation file, this bridge
  * ingests it so ACC stages 2-4 have actual data to operate on.
  *
- * Works in both PTY and normal terminal modes — it listens to
+ * Works independently of terminal launch mode: it listens to
  * MultiSessionBridgeWatcher's 'bridge-update' event, which fires regardless
  * of how Claude Code was launched.
  */
@@ -20,7 +20,7 @@ import type { BridgeData } from './HookBridgeWatcher';
 import { Logger } from '../utils/logger';
 
 /** Maps Claude Code tool names to ObservationType */
- 
+
 const TOOL_TYPE_MAP = new Map<string, ObservationType>([
   ['Read', 'file_read'],
   ['Bash', 'command_output'],

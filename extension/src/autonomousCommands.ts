@@ -25,7 +25,6 @@ import { Logger } from './services/Logger';
 import type { ProgressProvider } from './progressProvider';
 import type { Spec } from './goferParser';
 import type { LLMProvider } from './council/providers/LLMProvider';
-// Removed: import { wireClaudePtyToAutoHandoff } - no longer needed without PTY support
 
 // Shared singleton instances (set from extension.ts)
 let sharedMemoryManager: MemoryManager | undefined;
@@ -160,7 +159,6 @@ export async function startAutonomousExecution(
     enableParallelTester: false, // User Story 2 feature
     showTerminals: true,
     notificationChannel: 'vscode',
-    whatsappPhoneNumber: null,
     emailAddress: null,
     maxRetries: 3,
     tokenWarningThreshold: 150000,

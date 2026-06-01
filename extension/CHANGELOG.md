@@ -257,32 +257,32 @@ Fix AI usage tracking bugs #2/#3 + security/performance fixes
 
 ## [1.22.0] - 2026-03-18
 
-Remove PTY terminal dependency, use native VSCode terminal API
+Remove terminal transport dependency, use native VSCode terminal API
 
 ## [1.21.0] - 2026-03-18
 
-feat: automatic context management via sub-agent dispatch + @lydell/node-pty
-migration
+feat: automatic context management via sub-agent dispatch plus terminal
+transport migration
 
 ## [1.20.7] - 2026-03-18
 
-fix: Remove electron-rebuild to preserve cross-platform node-pty binaries for
+fix: Remove electron-rebuild to preserve cross-platform terminal binaries for
 Codespaces
 
 ## [1.20.6] - 2026-03-18
 
-fix: Add cross-platform support for Codespaces/Linux - replaced node-pty with
-node-pty-prebuilt-multiarch
+fix: Add cross-platform support for Codespaces/Linux - replaced native terminal
+dependency with multi-platform terminal package
 
 ## [1.20.5] - 2026-03-18
 
-fix: Add cross-platform support for Codespaces/Linux - replaced node-pty with
-node-pty-prebuilt-multiarch
+fix: Add cross-platform support for Codespaces/Linux - replaced native terminal
+dependency with multi-platform terminal package
 
 ## [1.20.4] - 2026-03-18
 
-fix: Add cross-platform support for Codespaces/Linux - replaced node-pty with
-node-pty-prebuilt-multiarch to include linux-x64 native binaries
+fix: Add cross-platform support for Codespaces/Linux - replaced native terminal
+dependency with multi-platform package including linux-x64 binaries
 
 ## [1.20.2] - 2026-03-15
 
@@ -422,8 +422,8 @@ Fix memory leaks from leaked event listeners and untracked timers
 
 ## [1.13.3] - 2026-02-27
 
-Fix PTY command submission: send carriage return separately with 500ms delay to
-match working pattern
+Fix terminal command submission: send carriage return separately with 500ms
+delay to match working pattern
 
 ## [1.13.2] - 2026-02-26
 
@@ -446,7 +446,8 @@ autonomousMonitoringInterval, stability tracking, maybeNotify
 
 ## [1.12.1] - 2026-02-23
 
-fix: save/clear/resume context reset, silent slop reduction, PTY cleanup on exit
+fix: save/clear/resume context reset, silent slop reduction, terminal cleanup on
+exit
 
 ## [1.12.0] - 2026-02-23
 

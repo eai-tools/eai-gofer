@@ -92,19 +92,16 @@ export class TestEnvironment {
     process.env.SPEC_DIR = '.specify';
     process.env.WORKSPACE_DIR = this.config.workspace;
 
-    // Mock API keys for testing
-    process.env.ANTHROPIC_API_KEY = 'test-claude-key-12345';
-    process.env.WHATSAPP_ENABLED = 'true';
-    process.env.WHATSAPP_PHONE_NUMBER = '1234567890@c.us';
+    process.env.GOFER_TEST_CLI_SESSION = 'mock';
+    process.env.GOFER_TEST_NOTIFICATIONS = 'enabled';
   }
 
   /**
    * Reset test environment
    */
   public static resetTestEnv(): void {
-    delete process.env.ANTHROPIC_API_KEY;
-    delete process.env.WHATSAPP_ENABLED;
-    delete process.env.WHATSAPP_PHONE_NUMBER;
+    delete process.env.GOFER_TEST_CLI_SESSION;
+    delete process.env.GOFER_TEST_NOTIFICATIONS;
   }
 
   /**

@@ -311,6 +311,7 @@ export class MemoryManager implements IMemoryManager {
           await fsPromises.writeFile(notePath, frontmatter + newMemory.content, {
             encoding: 'utf-8',
             flag: 'wx',
+            mode: 0o600,
           });
           // 018 T030: Store notePath and truncate JSONL content for long memories
           const truncatedContent = newMemory.content.slice(0, 200) + '... [see markdown note]';

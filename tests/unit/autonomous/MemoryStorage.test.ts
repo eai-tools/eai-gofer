@@ -71,7 +71,7 @@ describe('MemoryStorage', () => {
       expect(fs.writeFile).toHaveBeenCalledWith(
         expect.stringContaining('memories.jsonl'),
         expect.stringContaining('legacy-1'),
-        'utf-8'
+        { encoding: 'utf-8', mode: 0o600 }
       );
     });
 
@@ -334,7 +334,7 @@ describe('MemoryStorage', () => {
       expect(fs.writeFile).toHaveBeenCalledWith(
         expect.stringContaining('memories.jsonl'),
         expect.any(String),
-        'utf-8'
+        { encoding: 'utf-8', mode: 0o600 }
       );
 
       // Verify c1 is excluded (tombstoned) and c2 is included

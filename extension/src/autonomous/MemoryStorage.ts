@@ -690,6 +690,6 @@ export class MemoryStorage {
   }
 
   private async atomicWriteFile(targetPath: string, content: string): Promise<void> {
-    await fs.writeFile(targetPath, content, 'utf-8');
+    await fs.writeFile(targetPath, content, { encoding: 'utf-8', mode: 0o600 });
   }
 }

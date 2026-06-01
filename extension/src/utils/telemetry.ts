@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { randomUUID } from 'crypto';
 import { ConfigManager } from '../config';
 import { Logger } from './logger';
 
@@ -285,7 +286,7 @@ export class TelemetryCollector {
    * Generate unique session ID
    */
   private generateSessionId(): string {
-    return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `session_${Date.now()}_${randomUUID()}`;
   }
 
   /**

@@ -1358,9 +1358,9 @@ export class ResourceSyncer implements IResourceOperations {
       const claudeCommandsDir = path.join(this.workspacePath, '.claude', 'commands');
       const tasksCommandPath = path.join(claudeCommandsDir, 'gofer.tasks.md');
 
-      // Check if gofer.tasks.md exists
+      let content: string;
       try {
-        await fs.access(tasksCommandPath);
+        content = await fs.readFile(tasksCommandPath, 'utf-8');
       } catch (error: unknown) {
         if (isNodeErrorWithCode(error) && error.code === 'ENOENT') {
           this.logger.debug('ResourceSyncer', 'gofer.tasks.md not found, skipping check');
@@ -1369,7 +1369,6 @@ export class ResourceSyncer implements IResourceOperations {
         throw error;
       }
 
-      let content = await fs.readFile(tasksCommandPath, 'utf-8');
       const originalContent = content;
       let needsUpdate = false;
 

@@ -1766,9 +1766,6 @@ ${notes || 'No additional notes.'}
     try {
       const targetPath = scanPath || path.join(this.workspacePath, 'extension', 'src');
       const fsSync = await import('fs');
-      if (!fsSync.existsSync(targetPath)) {
-        return { success: false, error: `Path not found: ${targetPath}` };
-      }
 
       // Inline slop scanning to avoid cross-package import
       const SLOP_PATTERNS = [
@@ -1809,15 +1806,14 @@ ${notes || 'No additional notes.'}
       }> = [];
       let filesScanned = 0;
 
-      const stat = fsSync.statSync(targetPath);
-      if (stat.isFile()) {
-        const content = fsSync.readFileSync(targetPath, 'utf-8');
+      const scanFile = (filePath: string): void => {
+        const content = fsSync.readFileSync(filePath, 'utf-8');
         const lines = content.split('\n');
         for (let i = 0; i < lines.length; i++) {
           for (const p of SLOP_PATTERNS) {
             if (p.regex.test(lines[i])) {
               matches.push({
-                file: targetPath,
+                file: filePath,
                 line: i + 1,
                 pattern: p.name,
                 severity: p.severity,
@@ -1826,8 +1822,20 @@ ${notes || 'No additional notes.'}
             }
           }
         }
+      };
+
+      try {
+        scanFile(targetPath);
         filesScanned = 1;
-      } else {
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+          return { success: false, error: `Path not found: ${targetPath}` };
+        }
+
+        if ((error as NodeJS.ErrnoException).code !== 'EISDIR') {
+          throw error;
+        }
+
         const walk = (dir: string): void => {
           if (filesScanned >= 200) return;
           try {
@@ -1844,21 +1852,7 @@ ${notes || 'No additional notes.'}
                 walk(fp);
               } else if (entry.isFile() && SCAN_EXT.has(path.extname(entry.name))) {
                 filesScanned++;
-                const content = fsSync.readFileSync(fp, 'utf-8');
-                const lines = content.split('\n');
-                for (let i = 0; i < lines.length; i++) {
-                  for (const p of SLOP_PATTERNS) {
-                    if (p.regex.test(lines[i])) {
-                      matches.push({
-                        file: fp,
-                        line: i + 1,
-                        pattern: p.name,
-                        severity: p.severity,
-                        message: p.message,
-                      });
-                    }
-                  }
-                }
+                scanFile(fp);
               }
             }
           } catch {

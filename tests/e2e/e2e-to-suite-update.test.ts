@@ -12,7 +12,8 @@ import * as os from 'os';
  * 3. Hydration (Spec Generation)
  */
 
-const WORKSPACE_PATH = process.env.WORKSPACE_PATH || path.join(os.tmpdir(), 'gofer-e2e-update');
+const WORKSPACE_PATH =
+  process.env.WORKSPACE_PATH || fs.mkdtempSync(path.join(os.tmpdir(), 'gofer-e2e-update-'));
 const SPEC_DIR = path.join(WORKSPACE_PATH, '.specify');
 
 test.describe('Gofer Brownfield Improvements', () => {

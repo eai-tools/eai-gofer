@@ -13,7 +13,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { createHash } from 'crypto';
-import { CANONICAL_DESCRIPTIONS, validateDescriptions } from './canonical-descriptions.mjs';
+import { validateDescriptions } from './canonical-descriptions.mjs';
 import { parseStageCommand } from './parse-stage-command.mjs';
 
 // ---------------------------------------------------------------------------

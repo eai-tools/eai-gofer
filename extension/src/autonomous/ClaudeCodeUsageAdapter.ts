@@ -109,16 +109,12 @@ export class ClaudeCodeUsageAdapter {
   async getCurrentUser(): Promise<string | null> {
     try {
       const settingsPath = path.join(this.claudeDir, 'settings.json');
-
-      try {
-        await fs.promises.access(settingsPath);
-      } catch {
-        return null;
-      }
-
       const settings = JSON.parse(await fs.promises.readFile(settingsPath, 'utf-8'));
       return settings.email || settings.user || null;
-    } catch (_error) {
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        return null;
+      }
       this.logger.warn('Failed to read user from settings');
       return null;
     }

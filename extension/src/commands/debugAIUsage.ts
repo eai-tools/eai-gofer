@@ -20,20 +20,28 @@ export async function debugAIUsageCommand(workspacePath: string): Promise<void> 
 
   outputChannel.appendLine('1. Claude Code Installation:');
 
-  const claudeDirExists = await fs.promises
-    .access(claudeDir)
-    .then(() => true)
-    .catch(() => false);
-  const historyPathExists = await fs.promises
-    .access(historyPath)
-    .then(() => true)
-    .catch(() => false);
+  let claudeDirExists = false;
+  try {
+    claudeDirExists = (await fs.promises.stat(claudeDir)).isDirectory();
+  } catch {
+    claudeDirExists = false;
+  }
+
+  let historyStats: fs.Stats | undefined;
+  try {
+    const stats = await fs.promises.stat(historyPath);
+    if (stats.isFile()) {
+      historyStats = stats;
+    }
+  } catch {
+    historyStats = undefined;
+  }
+  const historyPathExists = historyStats !== undefined;
 
   outputChannel.appendLine(`   ~/.claude exists: ${claudeDirExists}`);
   outputChannel.appendLine(`   history.jsonl exists: ${historyPathExists}`);
 
-  if (historyPathExists) {
-    const historyStats = await fs.promises.stat(historyPath);
+  if (historyPathExists && historyStats) {
     outputChannel.appendLine(`   history.jsonl size: ${historyStats.size} bytes`);
   }
 
@@ -42,19 +50,21 @@ export async function debugAIUsageCommand(workspacePath: string): Promise<void> 
   outputChannel.appendLine('\n2. Context Usage Log:');
   outputChannel.appendLine(`   Path: ${contextLogPath}`);
 
-  const contextLogExists = await fs.promises
-    .access(contextLogPath)
-    .then(() => true)
-    .catch(() => false);
+  let contextLogContent: string | undefined;
+  try {
+    contextLogContent = await fs.promises.readFile(contextLogPath, 'utf-8');
+  } catch {
+    contextLogContent = undefined;
+  }
+  const contextLogExists = contextLogContent !== undefined;
   outputChannel.appendLine(`   Exists: ${contextLogExists}`);
 
-  if (contextLogExists) {
-    const stats = await fs.promises.stat(contextLogPath);
-    outputChannel.appendLine(`   Size: ${(stats.size / 1024 / 1024).toFixed(2)} MB`);
+  if (contextLogContent !== undefined) {
+    const sizeBytes = Buffer.byteLength(contextLogContent, 'utf-8');
+    outputChannel.appendLine(`   Size: ${(sizeBytes / 1024 / 1024).toFixed(2)} MB`);
 
     // Count health_check entries
-    const content = await fs.promises.readFile(contextLogPath, 'utf-8');
-    const lines = content.split('\n').filter(Boolean);
+    const lines = contextLogContent.split('\n').filter(Boolean);
     const healthChecks = lines.filter((line) => {
       try {
         const entry = JSON.parse(line);

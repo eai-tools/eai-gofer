@@ -15,6 +15,7 @@
  */
 
 import * as vscode from 'vscode';
+import { randomUUID } from 'crypto';
 import { TerminalManager } from './TerminalManager';
 import { OutputMonitor } from './OutputMonitor';
 import { ErrorRecovery } from './ErrorRecovery';
@@ -299,7 +300,7 @@ export class AutonomousDriver {
    * Create new session instance
    */
   private async createSession(specId: string, spec: SessionSpecLike): Promise<AutonomousSession> {
-    const sessionId = `session-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+    const sessionId = `session-${Date.now()}-${randomUUID()}`;
 
     return {
       sessionId,

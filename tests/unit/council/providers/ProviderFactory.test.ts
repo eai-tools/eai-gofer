@@ -56,7 +56,7 @@ describe('ProviderFactory Security (US-4)', () => {
         },
         {
           role: 'user' as const,
-          content: `Use ANTHROPIC_API_KEY = ${envApiKey} for the request`,
+          content: `Use PROVIDER_API_KEY = ${envApiKey} for the request`,
         },
       ];
 
@@ -95,10 +95,7 @@ describe('ProviderFactory Security (US-4)', () => {
           expect(message.content).not.toContain(envApiKey);
 
           // Should contain redaction marker
-          if (
-            message.content.includes('API key') ||
-            message.content.includes('ANTHROPIC_API_KEY')
-          ) {
+          if (message.content.includes('API key') || message.content.includes('PROVIDER_API_KEY')) {
             expect(message.content).toMatch(/\[REDACTED\]/);
           }
         }
@@ -266,7 +263,7 @@ describe('ProviderFactory Security (US-4)', () => {
       const historyWithEnvVars = [
         {
           role: 'user' as const,
-          content: `export OPENAI_API_KEY = ${openAiKey}`,
+          content: `export PROVIDER_API_KEY = ${openAiKey}`,
         },
         {
           role: 'user' as const,
@@ -308,8 +305,8 @@ describe('ProviderFactory Security (US-4)', () => {
           expect(message.content).not.toContain('SuperSecret123');
 
           // Variable names should be preserved
-          if (message.content.includes('OPENAI_API_KEY')) {
-            expect(message.content).toMatch(/OPENAI_API_KEY.*\[REDACTED\]/);
+          if (message.content.includes('PROVIDER_API_KEY')) {
+            expect(message.content).toMatch(/PROVIDER_API_KEY.*\[REDACTED\]/);
           }
         }
       }

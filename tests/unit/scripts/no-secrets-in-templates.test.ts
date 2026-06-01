@@ -3,8 +3,8 @@
  *
  * NFR-005 forbids embedding credentials, tokens, API keys, or any other
  * secret material inside templates or stage-command source-of-truth
- * files. Documentation references to env-var NAMES (e.g. "set
- * OPENAI_API_KEY before running") are allowed; embedded VALUES are not.
+ * files. Documentation references to generic env-var NAMES are allowed;
+ * embedded VALUES are not.
  *
  * The scan covers:
  *   - .specify/templates/visuals/*.md
@@ -84,8 +84,6 @@ const PATTERNS: Array<{ name: string; re: RegExp; allowDocRef?: boolean }> = [
  * value is allowed. Detection still flags `NAME=long-value`.
  */
 const ALLOWED_DOC_KEYWORDS = new Set([
-  'OPENAI_API_KEY',
-  'ANTHROPIC_API_KEY',
   'GITHUB_TOKEN',
   'AWS_ACCESS_KEY_ID',
   'AWS_SECRET_ACCESS_KEY',

@@ -5,8 +5,5 @@
     "message": "Not authenticated. You must be logged in to use Codex CLI.",
     "details": "No valid session found. Please run 'codex login' to authenticate with your OpenAI account."
   },
-  "instructions": [
-    "Run: codex login",
-    "Or set OPENAI_API_KEY environment variable"
-  ]
+  "instructions": ["Run: codex login"]
 }

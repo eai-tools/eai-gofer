@@ -10,17 +10,7 @@ async function main(): Promise<void> {
   const specDir = process.env.SPEC_DIR || path.join(process.cwd(), '.specify', 'specs');
   const workspaceDir = process.env.WORKSPACE_DIR || process.cwd();
 
-  const whatsappConfig = {
-    enabled: process.env.WHATSAPP_ENABLED === 'true',
-    phoneNumber: process.env.WHATSAPP_PHONE_NUMBER || '', // Format: 1234567890@c.us
-    sessionPath: '.wwebjs_auth',
-  };
-
-  // Determine notification method
-  let notificationStatus = '📱 Notifications: Disabled';
-  if (whatsappConfig.enabled && whatsappConfig.phoneNumber) {
-    notificationStatus = '💬 Notifications: WhatsApp (scan QR on first run)';
-  }
+  const notificationStatus = 'Notifications: VS Code / CLI only';
 
   process.stdout.write(`
 ╔═══════════════════════════════════════════════════════════╗
@@ -32,7 +22,7 @@ async function main(): Promise<void> {
 
 📁 Spec directory: ${specDir}
 📁 Workspace: ${workspaceDir}
-🤖 Provider: external CLI session / Gofer command surface
+Provider: external CLI session / Gofer command surface
 ${notificationStatus}
 `);
 

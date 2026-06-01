@@ -145,34 +145,15 @@ export class CLIHealthChecker {
     cliCommand: string
   ): Promise<boolean> {
     try {
-      if (cliType === 'claude') {
-        // Check for ANTHROPIC_API_KEY or config file
-        if (process.env.ANTHROPIC_API_KEY) {
-          return true;
-        }
+      const { stdout } = await execFile(cliCommand, ['--help'], {
+        timeout: CLI_HEALTH_CHECK_TIMEOUT_MS,
+      });
 
-        // Try to run a simple command to verify auth
-        // (This is a placeholder - actual implementation would depend on CLI capabilities)
-        const { stdout } = await execFile(cliCommand, ['--help'], {
-          timeout: CLI_HEALTH_CHECK_TIMEOUT_MS,
-        });
-
-        // If we got help output, CLI is functional
-        return stdout.length > 0;
-      } else {
-        // Codex CLI auth check
-        // Check for OPENAI_API_KEY or session
-        if (process.env.OPENAI_API_KEY) {
-          return true;
-        }
-
-        // Try help command
-        const { stdout } = await execFile(cliCommand, ['--help'], {
-          timeout: CLI_HEALTH_CHECK_TIMEOUT_MS,
-        });
-
-        return stdout.length > 0;
-      }
+      // Gofer no longer treats provider API-key environment variables as the
+      // public setup path. The host CLI owns authentication through its login
+      // or session mechanism; a functioning help command is the safest cheap
+      // preflight we can run without sending a prompt.
+      return stdout.length > 0;
     } catch {
       // Auth check failed
       return false;
@@ -202,9 +183,9 @@ export class CLIHealthChecker {
    */
   static getAuthInstructions(cliType: 'claude' | 'codex'): string {
     if (cliType === 'claude') {
-      return 'Set ANTHROPIC_API_KEY environment variable or run: claude login';
+      return 'Run: claude login';
     }
-    return 'Set OPENAI_API_KEY environment variable or run: codex login';
+    return 'Run: codex login';
   }
 
   /**

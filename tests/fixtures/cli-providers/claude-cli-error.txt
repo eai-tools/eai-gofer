@@ -1,13 +1,10 @@
 Error: authentication failed
 
-The ANTHROPIC_API_KEY environment variable is not set and no valid authentication configuration was found at ~/.claude/config.json.
+No valid Claude CLI login session was found.
 
-Please authenticate using one of the following methods:
+Please authenticate using the provider CLI:
 
-1. Set the ANTHROPIC_API_KEY environment variable:
-   export ANTHROPIC_API_KEY=<anthropic-api-key>
-
-2. Run the login command:
+1. Run the login command:
    claude login
 
 For more information, visit: https://docs.anthropic.com/claude-code

@@ -25,7 +25,7 @@ describe('enterpriseai ui-first app-delivery guidance (root integration)', () =>
     expect(researchCommand).toContain('Vertical Template constraint map');
     expect(researchCommand).toContain('Preview validation plan');
     expect(researchCommand).toContain('external/internal/hybrid profile');
-    expect(researchCommand).toContain('DAISY decoupling');
+    expect(researchCommand).toContain('source-platform decoupling');
     expect(researchCommand).toContain('Storybook story IDs');
     expect(researchCommand).toContain('theme override points');
 
@@ -52,7 +52,7 @@ describe('enterpriseai ui-first app-delivery guidance (root integration)', () =>
     expect(implementCommand).toContain('service-fit-matrix.md');
     expect(implementCommand).toContain('For non-app work, skip the preview');
     expect(implementCommand).toContain('public-readiness');
-    expect(implementCommand).toContain('DAISY internals');
+    expect(implementCommand).toContain('source-platform internals');
 
     expect(validateCommand).toContain('ui-review-log.md');
     expect(validateCommand).toContain('ui-approval.md');

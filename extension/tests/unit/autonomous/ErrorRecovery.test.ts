@@ -489,8 +489,8 @@ describe('ErrorRecovery', () => {
       expect(escalation.formattedForVSCode).toContain('API authentication failed');
 
       // Should have formatted message for WhatsApp
-      expect(escalation.formattedForWhatsApp).toBeDefined();
-      expect(escalation.formattedForWhatsApp.length).toBeLessThan(300); // WhatsApp limit
+      expect(escalation.formattedForCompactMessage).toBeDefined();
+      expect(escalation.formattedForCompactMessage.length).toBeLessThan(300);
     });
   });
 

@@ -5,9 +5,8 @@ import * as path from 'path';
 /**
  * T052: Verify single MemoryManager instance is used across components.
  *
- * Validates the shared singleton pattern structurally because
- * autonomousCommands.ts imports node-pty (native module) which may
- * not be available in the test Node.js version.
+ * Validates the shared singleton pattern structurally without activating the
+ * full VS Code command surface.
  */
 describe('MemoryManager Singleton (T052)', () => {
   const filePath = path.resolve(__dirname, '../../../extension/src/autonomousCommands.ts');

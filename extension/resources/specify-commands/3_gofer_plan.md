@@ -90,7 +90,7 @@ If missing, prompt user to run the prerequisite stage.
 8. EnterpriseAI profile output: task-ready references to `context-bundle.md`,
    `contract-pack.md`, `reuse-scan.md`, `audit-history.md`, and for app
    delivery `ui-review-log.md`, `ui-approval.md`, and
-   `service-fit-matrix.md`, including public-readiness, block-porting, DAISY
+   `service-fit-matrix.md`, including public-readiness, block-porting, source platform
    decoupling, Storybook, theme override, and package-profile decisions
 9. Dynamic-only output: `workflow-dag.md` with shards, inputs, outputs,
    reducer expectations, verifier/refuter evidence, budget limits, stop
@@ -193,8 +193,8 @@ Generate the COMPLETE plan.md with these sections:
 9. AI-Readable Blocks Bridge:
    - Package profile choice: external, internal, or hybrid
    - Package lane for each UI block or package surface
-   - Coupling status, including DAISY decoupling boundary or approved
-     internal-only exception
+   - Coupling status, including source-platform decoupling boundary or approved
+     restricted-source exception
    - Block porting plan with stable block IDs, Storybook story IDs, theme
      override points, and custom-block exceptions
    - Public-readiness tasks required before an external or hybrid package is
@@ -207,7 +207,7 @@ Rules:
 - Reference specific file paths for all components
 - Plan must be specific enough for task generation
 - Resolve all unknowns — no NEEDS CLARIFICATION in the plan
-- App-delivery plans MUST make public-readiness, block porting, DAISY
+- App-delivery plans MUST make public-readiness, block porting, source platform
   decoupling, Storybook coverage, theme overrides, and package-profile work
   visible enough for `/4_gofer_tasks` to emit first-class runnable tasks
 
@@ -646,7 +646,7 @@ When the workflow profile is `enterpriseai`, `plan.md` MUST capture:
    - keep the first preview constrained to Vertical Template blocks unless an
      approved extension is recorded
    - cite `eai blocks describe <id>` evidence for every selected block ID,
-     plus the ResourceAPI/Object Type fields from `eai resources schema` that
+     plus the ResourceAPI/Object Type fields from `resource schema` that
      feed each block
    - record override points for theme tokens, `presentationConfig`, copy,
      data/action bindings, and client extension blocks
@@ -662,7 +662,7 @@ When the workflow profile is `enterpriseai`, `plan.md` MUST capture:
    - purchasable but unavailable now
    - unavailable without new platform work
    The plan must source this evidence from `eai --describe`, `eai whoami`,
-   `eai tenant select`, `eai resources schema`, `eai verify calls --format
+   `eai tenant select`, `resource schema`, `eai verify calls --format
    json`, `eai workflow readiness <workflow-key>`, `eai workflow status
    <workflow-key>`, `eai workflow request <workflow-key>`, `eai provision
    entra --rotate-secret`, or documented equivalent public platform evidence.
@@ -674,7 +674,7 @@ When the workflow profile is `enterpriseai`, `plan.md` MUST capture:
    cadence so validation can track recurring issues.
 10. **Public/private knowledge split** — identify which implementation facts
     are safe for public docs, Gofer guidance, EAI CLI help, or Vertical Template
-    comments, and which facts are internal-only. Plans must express blocked
+    comments, and which facts are restricted-source. Plans must express blocked
     states as public-safe actions (`operator_required`, `upgrade_required`, or
     documented support URL) rather than exposing private service topology.
 

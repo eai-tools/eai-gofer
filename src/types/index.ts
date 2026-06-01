@@ -146,7 +146,7 @@ export interface Notification {
   message: string;
   context: NotificationContext;
   deliveryStatus: 'queued' | 'sending' | 'delivered' | 'failed' | 'persisted';
-  deliveryMethod: 'whatsapp' | 'file-fallback';
+  deliveryMethod: 'vscode' | 'file-fallback';
   deliveryError?: string;
   respondedAt?: string;
   response?: string;
@@ -185,10 +185,6 @@ export interface OrchestratorConfig {
   scaleLimits: {
     maxSpecs: number;
     maxTasksPerSpec: number;
-  };
-  whatsapp?: {
-    sessionPath: string;
-    phoneNumber?: string;
   };
   cliProvider?: {
     command: string;
@@ -233,7 +229,4 @@ export type EventType =
   | 'scale_limit_exceeded'
   | 'retry_scheduled'
   | 'claude_api_call'
-  | 'claude_rate_limit'
-  | 'whatsapp_auth_required'
-  | 'whatsapp_connected'
-  | 'whatsapp_disconnected';
+  | 'claude_rate_limit';

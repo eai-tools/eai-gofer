@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: standard
   canonicalSource: .specify/commands/2_gofer_specify.md
-  canonicalChecksum: 828ed9f5bac1991a8b056432b2d908581de499c1904f611652974c42d32667d6
+  canonicalChecksum: 01861627d5a3154c2d647e253f0a2a192487e29ef9daaf9dd517bad62cfed467
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -289,8 +289,8 @@ If ui-preview-brief.md exists, use it to:
 - Require Storybook story IDs and theme override points for every reusable or
   ported block; if no story exists, make story creation or an approved exception
   part of the requirements
-- Require DAISY-coupled blocks to define the decoupling boundary through
-  `eai resources schema`, an adapter, or an explicit internal-only exception
+- Require source-platform-coupled blocks to define the decoupling boundary through
+  `resource schema`, an adapter, or an explicit restricted-source exception
 - Carry forward branding/logo requirements as explicit scope, not as implied
   polish
 - Require preview self-review evidence such as screenshot, local render proof,

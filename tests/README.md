@@ -73,7 +73,6 @@ Component interaction tests with real dependencies:
 #### Running CLI-Provider Integration Tests
 
 For tests that exercise external AI CLIs, log in with the provider CLI first.
-Environment variables are optional fallback auth for CLIs that support them:
 
 ```bash
 # Run all integration tests
@@ -82,8 +81,8 @@ npm run test:integration
 # Run CLI provider tests
 npm test -- tests/integration/council/
 
-# Optional fallback auth
-ANTHROPIC_API_KEY=<anthropic-api-key> OPENAI_API_KEY=<openai-api-key> npm run test:integration
+claude login
+codex login
 ```
 
 **Note:** Tests should prefer `claude login`, `codex login`, and local CLI state

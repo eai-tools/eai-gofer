@@ -209,14 +209,14 @@ export interface ErrorEscalation {
   escalated: boolean;
   escalatedAt: string;
   formattedForVSCode: string;
-  formattedForWhatsApp: string;
+  formattedForCompactMessage: string;
 }
 
 // ============================================================================
 // Question Routing
 // ============================================================================
 
-export type NotificationChannel = 'vscode' | 'whatsapp' | 'email';
+export type NotificationChannel = 'vscode' | 'email';
 export type QuestionConfidence = 'high' | 'medium' | 'low';
 
 export interface Question {
@@ -289,7 +289,6 @@ export interface DriverOptions {
 
   // Notification preferences
   notificationChannel: NotificationChannel;
-  whatsappPhoneNumber: string | null;
   emailAddress: string | null;
 
   // Thresholds

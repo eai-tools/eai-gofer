@@ -121,11 +121,7 @@ const LEGACY_DOC_PREFIX_PATHS = [
   '../../.tech-docs/architecture.md',
   '../../.tech-docs/review/patterns.md',
 ];
-const DELETED_LEGACY_DOC_PATHS = [
-  'docs/migration-guide.md',
-  'docs/WHATSAPP_SETUP.md',
-  'docs/TWO_WAY_WHATSAPP.md',
-];
+const DELETED_LEGACY_DOC_PATHS = ['docs/migration-guide.md'];
 const REMOVED_DIRECT_PROVIDER_SETTINGS = [
   'gofer.anthropicApiKey',
   'gofer.googleApiKey',
@@ -579,7 +575,6 @@ describe('Command Registration Validation', () => {
     const properties = packageJson.contributes.configuration.properties;
 
     expect(properties['gofer.autonomous.notificationChannel']).toBeUndefined();
-    expect(properties['gofer.autonomous.whatsappPhoneNumber']).toBeUndefined();
     expect(properties['gofer.autonomous.emailAddress']).toBeUndefined();
     expect(properties['gofer.claudeTerminalName']).toBeUndefined();
     expect(properties['gofer.autoValidate']).toBeUndefined();

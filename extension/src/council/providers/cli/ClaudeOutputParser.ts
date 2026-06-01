@@ -61,7 +61,9 @@ export class ClaudeOutputParser implements CLIOutputParser {
    */
   extractTokenUsage(output: string): { inputTokens: number; outputTokens: number } {
     // Try to find usage pattern in output
-    const usageMatch = output.match(/Usage:\s*([\d,]+)\s*input tokens?,\s*([\d,]+)\s*output tokens?/i);
+    const usageMatch = output.match(
+      /Usage:\s*([\d,]+)\s*input tokens?,\s*([\d,]+)\s*output tokens?/i
+    );
 
     if (!usageMatch) {
       // No usage found, return zeros
@@ -87,12 +89,8 @@ export class ClaudeOutputParser implements CLIOutputParser {
    */
   detectErrors(output: string): string | null {
     // Check for authentication errors
-    if (
-      output.includes('authentication') ||
-      output.includes('API key') ||
-      output.includes('ANTHROPIC_API_KEY')
-    ) {
-      return 'Authentication failed. Set ANTHROPIC_API_KEY or run: claude login';
+    if (output.includes('authentication') || output.includes('API key')) {
+      return 'Authentication failed. Run: claude login';
     }
 
     // Check for rate limiting

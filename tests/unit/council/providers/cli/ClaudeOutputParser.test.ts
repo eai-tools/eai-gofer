@@ -25,7 +25,9 @@ Usage: 12,500 input tokens, 3,400 output tokens`;
 
       const result = parser.parse(output);
 
-      expect(result.content).toBe('Hello! How can I help you today?\n\nI can assist with various tasks.');
+      expect(result.content).toBe(
+        'Hello! How can I help you today?\n\nI can assist with various tasks.'
+      );
       expect(result.usage.inputTokens).toBe(12500);
       expect(result.usage.outputTokens).toBe(3400);
       expect(result.error).toBeUndefined();
@@ -56,7 +58,7 @@ Some footer text without usage`;
     });
 
     it('should detect authentication errors', () => {
-      const output = `Error: authentication failed. Please set ANTHROPIC_API_KEY`;
+      const output = `Error: authentication failed. Please run the login command.`;
 
       const result = parser.parse(output);
 
@@ -166,7 +168,7 @@ Usage: 100 input tokens, 50 output tokens`;
       const error = parser.detectErrors('authentication failed');
 
       expect(error).toContain('Authentication failed');
-      expect(error).toContain('ANTHROPIC_API_KEY');
+      expect(error).toContain('claude login');
     });
 
     it('should detect authentication errors with "API key"', () => {

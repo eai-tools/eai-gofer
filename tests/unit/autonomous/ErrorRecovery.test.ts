@@ -444,9 +444,9 @@ describe('ErrorRecovery - Retry Strategy', () => {
   beforeEach(() => {
     // Use short delays for testing
     errorRecovery = new ErrorRecovery({
-      level1: 10,   // 10ms
-      level2: 20,   // 20ms
-      level3: 30,   // 30ms
+      level1: 10, // 10ms
+      level2: 20, // 20ms
+      level3: 30, // 30ms
     });
   });
 
@@ -494,9 +494,10 @@ describe('ErrorRecovery - Retry Strategy', () => {
         escalated: false,
       };
 
-      const callback = vi.fn()
+      const callback = vi
+        .fn()
         .mockResolvedValueOnce(false) // Fail first attempt
-        .mockResolvedValueOnce(true);  // Success second attempt
+        .mockResolvedValueOnce(true); // Success second attempt
 
       const result = await errorRecovery.retryWithStrategy(error, callback);
 
@@ -525,10 +526,11 @@ describe('ErrorRecovery - Retry Strategy', () => {
         escalated: false,
       };
 
-      const callback = vi.fn()
+      const callback = vi
+        .fn()
         .mockResolvedValueOnce(false) // Fail first
         .mockResolvedValueOnce(false) // Fail second
-        .mockResolvedValueOnce(true);  // Success third
+        .mockResolvedValueOnce(true); // Success third
 
       const result = await errorRecovery.retryWithStrategy(error, callback);
 
@@ -662,9 +664,10 @@ describe('ErrorRecovery - Retry Strategy', () => {
         escalated: false,
       };
 
-      const callback = vi.fn()
+      const callback = vi
+        .fn()
         .mockResolvedValueOnce(false) // Fail level 1
-        .mockResolvedValueOnce(true);  // Success level 2
+        .mockResolvedValueOnce(true); // Success level 2
 
       const result = await errorRecovery.retryWithStrategy(error, callback);
 
@@ -687,10 +690,11 @@ describe('ErrorRecovery - Retry Strategy', () => {
         escalated: false,
       };
 
-      const callback = vi.fn()
+      const callback = vi
+        .fn()
         .mockResolvedValueOnce(false) // Fail level 1
         .mockResolvedValueOnce(false) // Fail level 2
-        .mockResolvedValueOnce(true);  // Success level 3
+        .mockResolvedValueOnce(true); // Success level 3
 
       const result = await errorRecovery.retryWithStrategy(error, callback);
 
@@ -759,7 +763,7 @@ describe('ErrorRecovery - Escalation', () => {
     expect(escalation.escalated).toBe(true);
     expect(escalation.escalatedAt).toBeTruthy();
     expect(escalation.formattedForVSCode).toBeTruthy();
-    expect(escalation.formattedForWhatsApp).toBeTruthy();
+    expect(escalation.formattedForCompactMessage).toBeTruthy();
   });
 
   it('should mark error as escalated', () => {

@@ -81,9 +81,6 @@ export class MCPConfigHelper {
           gofer: {
             command: 'node',
             args: [serverPath],
-            env: {
-              ANTHROPIC_API_KEY: '${env:ANTHROPIC_API_KEY}',
-            },
             description: 'Gofer - Spec-driven development orchestrator',
           },
         },
@@ -140,12 +137,12 @@ export class MCPConfigHelper {
   async getStatus(): Promise<{
     exists: boolean;
     configured: boolean;
-    hasApiKey: boolean;
+    authDelegatedToCli: boolean;
   }> {
     const exists = await this.configExists();
 
     if (!exists) {
-      return { exists: false, configured: false, hasApiKey: false };
+      return { exists: false, configured: false, authDelegatedToCli: true };
     }
 
     const mcpConfigPath = path.join(this.workspacePath, '.vscode', 'mcp.json');
@@ -154,11 +151,10 @@ export class MCPConfigHelper {
       const config = JSON.parse(content);
 
       const configured = !!config.mcp?.servers?.gofer;
-      const hasApiKey = !!process.env.ANTHROPIC_API_KEY;
 
-      return { exists: true, configured, hasApiKey };
+      return { exists: true, configured, authDelegatedToCli: true };
     } catch {
-      return { exists: true, configured: false, hasApiKey: false };
+      return { exists: true, configured: false, authDelegatedToCli: true };
     }
   }
 
@@ -181,27 +177,16 @@ export class MCPConfigHelper {
       if (choice === 'Configure Now') {
         await this.createOrUpdateConfig();
 
-        const hasApiKey = !!process.env.ANTHROPIC_API_KEY;
-
-        if (!hasApiKey) {
-          await vscode.window.showWarningMessage(
-            '🔑 Anthropic API Key Required\n\n' +
-              'Set ANTHROPIC_API_KEY in your environment before using Claude MCP tools.',
-            { modal: false },
-            'Later'
-          );
-        } else {
-          vscode.window
-            .showInformationMessage(
-              '✅ MCP configured! Reload VSCode to activate Gofer MCP tools.',
-              'Reload Now'
-            )
-            .then((choice) => {
-              if (choice === 'Reload Now') {
-                vscode.commands.executeCommand('workbench.action.reloadWindow');
-              }
-            });
-        }
+        vscode.window
+          .showInformationMessage(
+            '✅ MCP configured! Reload VSCode to activate Gofer MCP tools.',
+            'Reload Now'
+          )
+          .then((choice) => {
+            if (choice === 'Reload Now') {
+              vscode.commands.executeCommand('workbench.action.reloadWindow');
+            }
+          });
       } else if (choice === 'Learn More') {
         vscode.env.openExternal(
           vscode.Uri.parse('https://code.visualstudio.com/blogs/2025/06/12/full-mcp-spec-support')

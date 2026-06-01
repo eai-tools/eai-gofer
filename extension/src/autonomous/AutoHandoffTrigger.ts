@@ -24,7 +24,6 @@ import type { TaskContext } from './ContextBuilder';
 import { Logger } from '../utils/logger';
 import { CheckpointValidator } from './CheckpointValidator';
 import type { SlopReducer } from './SlopReducer';
-// Removed: import type { IPty } from 'node-pty-prebuilt-multiarch' - no longer needed without PTY support
 
 /**
  * Configuration for auto-handoff trigger.
@@ -108,7 +107,6 @@ export class AutoHandoffTrigger implements vscode.Disposable {
   private usageLogger: ContextUsageLogger | null = null;
   private contextBuilder: ContextBuilder | null = null;
   private slopReducer: SlopReducer | null = null;
-  // Removed: private claudePtyProcess: IPty | null = null - PTY support removed
   private claudeVscodeTerminal: vscode.Terminal | null = null;
   private lastNotificationTime: number = 0;
   private currentSessionId: string = '';
@@ -226,8 +224,6 @@ export class AutoHandoffTrigger implements vscode.Disposable {
     this.startContinuousSlopScanning();
   }
 
-  // Removed: setClaudePtyProcess() - PTY support removed
-
   /**
    * Sets the Claude Code VSCode terminal for automated commands.
    */
@@ -292,9 +288,15 @@ export class AutoHandoffTrigger implements vscode.Disposable {
    * 4. Show confirmation notification
    */
   private async executeAutoSave(status: ContextHealthStatus): Promise<void> {
-    if (!this.config.enabled) {return;}
-    if (this.isInCooldown()) {return;}
-    if (this.pendingNotification) {return;}
+    if (!this.config.enabled) {
+      return;
+    }
+    if (this.isInCooldown()) {
+      return;
+    }
+    if (this.pendingNotification) {
+      return;
+    }
 
     this.pendingNotification = true;
     this.lastNotificationTime = Date.now();
@@ -454,9 +456,15 @@ export class AutoHandoffTrigger implements vscode.Disposable {
    * 3. Show notification summarizing what was done
    */
   private async autoReduceSlop(status: ContextHealthStatus): Promise<void> {
-    if (!this.config.enabled) {return;}
-    if (this.isInCooldown()) {return;}
-    if (this.pendingNotification) {return;}
+    if (!this.config.enabled) {
+      return;
+    }
+    if (this.isInCooldown()) {
+      return;
+    }
+    if (this.pendingNotification) {
+      return;
+    }
 
     this.pendingNotification = true;
     this.lastNotificationTime = Date.now();
@@ -500,7 +508,7 @@ export class AutoHandoffTrigger implements vscode.Disposable {
   }
 
   /**
-   * Sends /7_gofer_save, /clear, /8_gofer_resume in sequence to the PTY.
+   * Sends /7_gofer_save, /clear, /8_gofer_resume in sequence to the active terminal.
    * This resets the context window without killing the terminal:
    *   1. /7_gofer_save — writes checkpoint to disk
    *   2. Wait for checkpoint file to appear on disk (confirms save completed)
@@ -907,9 +915,13 @@ export class AutoHandoffTrigger implements vscode.Disposable {
       const tiers = { full: 0, keyPoints: 0, masked: 0 };
       let totalObsTokens = 0;
       for (const obs of allObs) {
-        if (obs.decayTier === 'full') {tiers.full++;}
-        else if (obs.decayTier === 'key-points') {tiers.keyPoints++;}
-        else {tiers.masked++;}
+        if (obs.decayTier === 'full') {
+          tiers.full++;
+        } else if (obs.decayTier === 'key-points') {
+          tiers.keyPoints++;
+        } else {
+          tiers.masked++;
+        }
         totalObsTokens += obs.tokenEstimate;
       }
       lines.push(
@@ -952,7 +964,9 @@ export class AutoHandoffTrigger implements vscode.Disposable {
    * Returns null if no entries exist.
    */
   private readFailedApproaches(): string | null {
-    if (!this.workspaceRoot) {return null;}
+    if (!this.workspaceRoot) {
+      return null;
+    }
     const filePath = path.join(this.workspaceRoot, '.specify/logs/failed-approaches.jsonl');
     return this.readJsonlEntries(filePath, (entry: Record<string, unknown>) => {
       const approach = entry.approach || 'Unknown approach';
@@ -966,7 +980,9 @@ export class AutoHandoffTrigger implements vscode.Disposable {
    * Returns null if no entries exist.
    */
   private readSessionMemories(): string | null {
-    if (!this.workspaceRoot) {return null;}
+    if (!this.workspaceRoot) {
+      return null;
+    }
     const filePath = path.join(this.workspaceRoot, '.specify/logs/session-memory.jsonl');
     return this.readJsonlEntries(filePath, (entry: Record<string, unknown>) => {
       const type = entry.type || 'learning';
@@ -985,10 +1001,14 @@ export class AutoHandoffTrigger implements vscode.Disposable {
     formatter: (entry: Record<string, unknown>) => string
   ): string | null {
     try {
-      if (!fs.existsSync(filePath)) {return null;}
+      if (!fs.existsSync(filePath)) {
+        return null;
+      }
       const content = fs.readFileSync(filePath, 'utf-8');
       const lines = content.split('\n').filter((line) => line.trim().length > 0);
-      if (lines.length === 0) {return null;}
+      if (lines.length === 0) {
+        return null;
+      }
 
       const formatted: string[] = [];
       for (const line of lines) {

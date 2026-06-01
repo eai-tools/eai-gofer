@@ -1,11 +1,11 @@
-# Gofer
+# EAI Gofer
 
-Gofer is a business specification-driven delivery workflow for repositories. It
-gives teams one shared pipeline from business scenario through validation, keeps
-the working artifacts in `.specify/`, and ships across VS Code, Claude Code,
-Codex, GitHub Copilot, and Gemini.
+EAI Gofer is a business specification-driven delivery workflow for repositories.
+It gives teams one shared pipeline from business scenario through validation,
+keeps the working artifacts in `.specify/`, and ships across VS Code, Claude
+Code, Codex, GitHub Copilot, and Gemini.
 
-Gofer is designed to be easy to adopt in an existing repo:
+EAI Gofer is designed to be easy to adopt in an existing repo:
 
 - helps everyone, not just coders, write good code, that delivers a business
   outcome
@@ -19,7 +19,7 @@ Gofer is designed to be easy to adopt in an existing repo:
 
 ## Quick Start
 
-![Gofer first run demo](./assets/gofer-first-run.svg)
+![EAI Gofer first run demo](./assets/gofer-first-run.svg)
 
 1. Install the VS Code extension or add the public plugin marketplace for your
    preferred CLI.
@@ -57,7 +57,7 @@ Optional helpers stay outside the core 0-6 flow:
 
 ## Model And Cost Policy
 
-Gofer bootstraps a repo-owned model policy at:
+EAI Gofer bootstraps a repo-owned model policy at:
 
 ```text
 .specify/memory/gofer-model-policy.yaml
@@ -208,7 +208,7 @@ human reviewer can scope the work before implementation starts.
 
 ## Related Projects And References
 
-Gofer sits in the same broader ecosystem as specification-driven and
+EAI Gofer sits in the same broader ecosystem as specification-driven and
 agent-oriented developer tooling. Useful references:
 
 - [GitHub Spec Kit docs](https://github.github.com/spec-kit/index.html)
@@ -229,8 +229,8 @@ The basics are not optional:
 - predictable releases and changelog discipline
 - public install/update paths for every supported host
 
-Gofer now uses the Apache-2.0 license. `Enterprise AI` and `EnterpriseAI` remain
-Enterprise AI Pty Ltd marks; see [TRADEMARKS.md](./TRADEMARKS.md) and the
+EAI Gofer now uses the Apache-2.0 license. `Enterprise AI` and `EnterpriseAI`
+remain Enterprise AI Pty Ltd marks; see [TRADEMARKS.md](./TRADEMARKS.md) and the
 current legal page at
 [enterpriseaigroup.com/terms-of-use](https://enterpriseaigroup.com/terms-of-use).
 

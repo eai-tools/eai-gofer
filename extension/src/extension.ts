@@ -1130,13 +1130,16 @@ async function tryWireRunId(
 ): Promise<void> {
   try {
     const specsDir = path.join(workspacePath, '.specify', 'specs');
+    let entries: fs.Dirent[];
     try {
-      await fs.promises.access(specsDir);
-    } catch {
-      return;
+      entries = await fs.promises.readdir(specsDir, { withFileTypes: true });
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        return;
+      }
+      throw error;
     }
 
-    const entries = await fs.promises.readdir(specsDir, { withFileTypes: true });
     let latestRunId = '';
     let latestTime = 0;
 
@@ -1146,9 +1149,9 @@ async function tryWireRunId(
       }
       const statePath = path.join(specsDir, entry.name, 'pipeline-state.json');
       try {
+        const content = await fs.promises.readFile(statePath, 'utf-8');
         const stat = await fs.promises.stat(statePath);
         if (stat.mtimeMs > latestTime) {
-          const content = await fs.promises.readFile(statePath, 'utf-8');
           const state = JSON.parse(content);
           if (state.runId) {
             latestRunId = state.runId;

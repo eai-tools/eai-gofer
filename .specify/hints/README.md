@@ -1,7 +1,7 @@
 # Hints Directory
 
 This directory contains markdown files with coding standards, patterns, and
-context for Gofer's autonomous implementation.
+context for EAI Gofer's autonomous implementation.
 
 ## How Hints Work
 

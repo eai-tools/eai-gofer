@@ -1,9 +1,9 @@
-# Gofer VS Code Extension
+# EAI Gofer VS Code Extension
 
-Gofer brings the business specification-driven workflow into VS Code. It keeps
-repository work visible from business scenario through validation, mirrors the
-repo-owned `.specify/` scaffold, and packages the resources needed by the Gofer
-pipeline.
+EAI Gofer brings the business specification-driven workflow into VS Code. It
+keeps repository work visible from business scenario through validation, mirrors
+the repo-owned `.specify/` scaffold, and packages the resources needed by the
+EAI Gofer pipeline.
 
 ## What It Does
 
@@ -12,7 +12,7 @@ pipeline.
 - Work with AI to generate what you need whether it is business case, executive
   summary, technical diagram of otherwise for you and your stakeholders to know
   what will be built, not find out it is wrong later
-- initializes the repo-owned Gofer scaffold
+- initializes the repo-owned EAI Gofer scaffold
 - surfaces specs, memory, and progress inside VS Code
 - helps launch and monitor supported AI CLI workflows
 - keeps the VS Code surface aligned with the portable

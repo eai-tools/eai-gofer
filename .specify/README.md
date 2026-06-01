@@ -1,4 +1,4 @@
-# Gofer - Specification Directory
+# EAI Gofer - Specification Directory
 
 This folder contains all project specifications for AI-driven feature
 development.
@@ -21,7 +21,7 @@ development.
 
 ### Using Claude Code (Recommended)
 
-Run the unified Gofer pipeline with a single command:
+Run the unified EAI Gofer pipeline with a single command:
 
 ```
 /0_business_scenario Add user authentication with OAuth2 and JWT
@@ -36,7 +36,7 @@ This automatically chains through all stages:
 5. **Implement** → Executes tasks phase by phase
 6. **Validate** → Verifies against spec and constitution
 
-## Unified Gofer Pipeline
+## Unified EAI Gofer Pipeline
 
 | Stage        | Command              | Output                             |
 | ------------ | -------------------- | ---------------------------------- |
@@ -64,4 +64,4 @@ AI agents validate code against the constitution before implementation.
 
 - **Full Documentation**: https://github.com/eai-tools/eai-gofer
 - **AI Agent Guidelines**: See AGENTS.md in your project root
-- **Gofer Extension**: View specs and progress in VSCode sidebar
+- **EAI Gofer Extension**: View specs and progress in VSCode sidebar

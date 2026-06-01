@@ -9,7 +9,7 @@ import { GoferMigrator } from '../../goferMigrator.js';
 
 /**
  * Performance Tests for Large Repository Scenarios
- * 
+ *
  * These tests validate extension performance with:
  * - 100+ specifications
  * - 1000+ tasks
@@ -48,8 +48,7 @@ suite('Performance Tests', () => {
   });
 
   suite('Large Specification Repository', () => {
-    
-    test('should handle 100+ specifications efficiently', async function() {
+    test('should handle 100+ specifications efficiently', async function () {
       this.timeout(10000); // 10 seconds max
 
       // Create large .specify structure
@@ -69,7 +68,7 @@ suite('Performance Tests', () => {
 id: "feature-${i.toString().padStart(3, '0')}"
 title: "Feature ${i}"
 status: "${i % 3 === 0 ? 'completed' : i % 3 === 1 ? 'in_progress' : 'draft'}"
-created: "2025-10-${(i % 28 + 1).toString().padStart(2, '0')}"
+created: "2025-10-${((i % 28) + 1).toString().padStart(2, '0')}"
 priority: "${i % 4 === 0 ? 'critical' : i % 4 === 1 ? 'high' : i % 4 === 2 ? 'medium' : 'low'}"
 ---
 
@@ -79,8 +78,10 @@ priority: "${i % 4 === 0 ? 'critical' : i % 4 === 1 ? 'high' : i % 4 === 2 ? 'me
 This is specification number ${i} for performance testing.
 
 ## Tasks
-${Array.from({ length: 10 }, (_, j) => 
-  `- [${Math.random() > 0.5 ? 'x' : ' '}] #T${(i * 10 + j + 1).toString().padStart(3, '0')} Task ${j + 1} for feature ${i} (deps: ${j > 0 ? `T${(i * 10 + j).toString().padStart(3, '0')}` : 'none'})`
+${Array.from(
+  { length: 10 },
+  (_, j) =>
+    `- [${Math.random() > 0.5 ? 'x' : ' '}] #T${(i * 10 + j + 1).toString().padStart(3, '0')} Task ${j + 1} for feature ${i} (deps: ${j > 0 ? `T${(i * 10 + j).toString().padStart(3, '0')}` : 'none'})`
 ).join('\n')}
 
 ## Dependencies
@@ -101,30 +102,41 @@ ${Array.from({ length: 10 }, (_, j) =>
       // Test parser performance
       const parseStartTime = Date.now();
       const parser = new GoferParser(performanceTestDir);
-      
+
       const allSpecs = await parser.loadAllSpecs();
 
       const parseTime = Date.now() - parseStartTime;
-      console.log(`Parsed ${specCount} specs in ${parseTime}ms (${parseTime / specCount}ms per spec)`);
+      console.log(
+        `Parsed ${specCount} specs in ${parseTime}ms (${parseTime / specCount}ms per spec)`
+      );
 
       // Verify performance benchmarks
-      assert.ok(parseTime < 5000, `Parsing ${specCount} specs should take < 5 seconds, took ${parseTime}ms`);
-      assert.ok(parseTime / specCount < 50, `Average parse time should be < 50ms per spec, was ${parseTime / specCount}ms`);
-      
+      assert.ok(
+        parseTime < 5000,
+        `Parsing ${specCount} specs should take < 5 seconds, took ${parseTime}ms`
+      );
+      assert.ok(
+        parseTime / specCount < 50,
+        `Average parse time should be < 50ms per spec, was ${parseTime / specCount}ms`
+      );
+
       // Verify all specs were parsed correctly
       assert.strictEqual(allSpecs.length, specCount, 'All specs should be parsed');
-      assert.ok(allSpecs.every((spec) => spec && spec.id), 'All specs should have valid data');
+      assert.ok(
+        allSpecs.every((spec) => spec && spec.id),
+        'All specs should have valid data'
+      );
 
       // Test memory usage
       const memUsage = process.memoryUsage();
       const heapUsedMB = memUsage.heapUsed / 1024 / 1024;
       console.log(`Memory usage: ${heapUsedMB.toFixed(2)}MB heap`);
-      
+
       // Memory should be reasonable for 150 specs
       assert.ok(heapUsedMB < 200, `Memory usage should be < 200MB, was ${heapUsedMB.toFixed(2)}MB`);
     });
 
-    test('should render tree view efficiently with 1000+ tasks', async function() {
+    test('should render tree view efficiently with 1000+ tasks', async function () {
       this.timeout(15000); // 15 seconds max
 
       // Create specs with many tasks
@@ -134,7 +146,7 @@ ${Array.from({ length: 10 }, (_, j) =>
 
       const specCount = 50;
       const tasksPerSpec = 25; // 50 * 25 = 1250 total tasks
-      
+
       for (let i = 1; i <= specCount; i++) {
         const specDir = path.join(specsDir, `high-task-feature-${i}`);
         fs.mkdirSync(specDir, { recursive: true });
@@ -142,8 +154,8 @@ ${Array.from({ length: 10 }, (_, j) =>
         const tasks = Array.from({ length: tasksPerSpec }, (_, j) => {
           const taskNum = i * 100 + j + 1;
           const status = Math.random() > 0.7 ? 'x' : ' ';
-          const deps = j > 0 ? `T${i * 100 + j}` : 
-                      j > 5 ? `T${i * 100 + j - 1}, T${i * 100 + j - 2}` : 'none';
+          const deps =
+            j > 5 ? `T${i * 100 + j - 1}, T${i * 100 + j - 2}` : j > 0 ? `T${i * 100 + j}` : 'none';
           return `- [${status}] #T${taskNum.toString().padStart(4, '0')} Complex task ${j + 1} with detailed description and long name (deps: ${deps})`;
         }).join('\n');
 
@@ -170,16 +182,19 @@ This spec has ${tasksPerSpec} tasks for performance testing.
       const providerStartTime = Date.now();
       const progressProvider = new ProgressProvider(performanceTestDir, undefined, 0);
       progressProvider.getChildren(); // Trigger load
-      
+
       // Wait for provider to load
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await new Promise((resolve) => setTimeout(resolve, 50));
       while (progressProvider.isLoadingSpecs() || progressProvider.isDebouncing()) {
-        await new Promise(resolve => setTimeout(resolve, 50));
+        await new Promise((resolve) => setTimeout(resolve, 50));
       }
-      
+
       // Simulate tree view rendering
       const rootItems = await progressProvider.getChildren();
-      assert.ok(rootItems.length === specCount, `Should have ${specCount} root items, but got ${rootItems.length}`);
+      assert.ok(
+        rootItems.length === specCount,
+        `Should have ${specCount} root items, but got ${rootItems.length}`
+      );
 
       let totalTasks = 0;
       for (const rootItem of rootItems) {
@@ -191,20 +206,26 @@ This spec has ${tasksPerSpec} tasks for performance testing.
       console.log(`Rendered tree view with ${totalTasks} tasks in ${renderTime}ms`);
 
       // Performance assertions
-      assert.ok(renderTime < 3000, `Tree view rendering should take < 3 seconds, took ${renderTime}ms`);
+      assert.ok(
+        renderTime < 3000,
+        `Tree view rendering should take < 3 seconds, took ${renderTime}ms`
+      );
       assert.strictEqual(totalTasks, specCount * tasksPerSpec, 'All tasks should be rendered');
-      
+
       // Test individual spec expansion performance
       const expansionStartTime = Date.now();
       const firstSpec = rootItems[0];
       const firstSpecTasks = await progressProvider.getChildren(firstSpec);
       const expansionTime = Date.now() - expansionStartTime;
-      
+
       console.log(`Expanded spec with ${firstSpecTasks.length} tasks in ${expansionTime}ms`);
-      assert.ok(expansionTime < 100, `Individual spec expansion should take < 100ms, took ${expansionTime}ms`);
+      assert.ok(
+        expansionTime < 100,
+        `Individual spec expansion should take < 100ms, took ${expansionTime}ms`
+      );
     });
 
-    test('should handle large constitution documents efficiently', async function() {
+    test('should handle large constitution documents efficiently', async function () {
       this.timeout(8000); // 8 seconds max
 
       const specifyDir = path.join(performanceTestDir, '.specify');
@@ -217,7 +238,9 @@ This spec has ${tasksPerSpec} tasks for performance testing.
 ## Table of Contents
 ${Array.from({ length: 50 }, (_, i) => `- [Article ${i + 1}: Section ${i + 1}](#article-${i + 1})`).join('\n')}
 
-${Array.from({ length: 50 }, (_, i) => `
+${Array.from(
+  { length: 50 },
+  (_, i) => `
 ## Article ${i + 1}: Advanced Development Principle ${i + 1}
 
 ### Section ${i + 1}.1: Core Requirements
@@ -244,7 +267,8 @@ interface Example${i + 1} {
   };
 }
 \`\`\`
-`).join('\n')}
+`
+).join('\n')}
 
 ## Appendix: Performance Requirements
 - Constitution parsing: < 500ms
@@ -261,16 +285,21 @@ interface Example${i + 1} {
       // Test ConstitutionProvider performance
       const parseStartTime = Date.now();
       const constitutionProvider = new ConstitutionProvider(performanceTestDir);
-      
+
       const constitutionItems = await constitutionProvider.getChildren();
       const parseTime = Date.now() - parseStartTime;
-      
-      console.log(`Parsed constitution with ${constitutionItems.length} articles in ${parseTime}ms`);
+
+      console.log(
+        `Parsed constitution with ${constitutionItems.length} articles in ${parseTime}ms`
+      );
 
       // Performance assertions
-      assert.ok(parseTime < 1000, `Constitution parsing should take < 1 second, took ${parseTime}ms`);
+      assert.ok(
+        parseTime < 1000,
+        `Constitution parsing should take < 1 second, took ${parseTime}ms`
+      );
       assert.ok(constitutionItems.length >= 50, 'Should parse all articles');
-      
+
       // Test navigation performance
       const navigationStartTime = Date.now();
       let totalSections = 0;
@@ -279,12 +308,15 @@ interface Example${i + 1} {
         totalSections += sections.length;
       }
       const navigationTime = Date.now() - navigationStartTime;
-      
+
       console.log(`Navigated ${totalSections} sections in ${navigationTime}ms`);
-      assert.ok(navigationTime < 500, `Section navigation should take < 500ms, took ${navigationTime}ms`);
+      assert.ok(
+        navigationTime < 500,
+        `Section navigation should take < 500ms, took ${navigationTime}ms`
+      );
     });
 
-    test('should handle complex dependency graphs efficiently', async function() {
+    test('should handle complex dependency graphs efficiently', async function () {
       this.timeout(12000); // 12 seconds max
 
       const specifyDir = path.join(performanceTestDir, '.specify');
@@ -294,7 +326,7 @@ interface Example${i + 1} {
       // Create specs with complex dependency relationships
       const specCount = 100;
       const maxDepsPerTask = 5;
-      
+
       for (let i = 1; i <= specCount; i++) {
         const specDir = path.join(specsDir, `complex-deps-${i.toString().padStart(3, '0')}`);
         fs.mkdirSync(specDir, { recursive: true });
@@ -302,7 +334,7 @@ interface Example${i + 1} {
         // Generate tasks with complex dependencies
         const tasks = Array.from({ length: 15 }, (_, j) => {
           const taskId = `T${(i * 100 + j + 1).toString().padStart(4, '0')}`;
-          
+
           // Create complex dependency chains
           const deps = [];
           if (j > 0) {
@@ -325,7 +357,7 @@ interface Example${i + 1} {
 
           const depString = deps.length > 0 ? deps.slice(0, maxDepsPerTask).join(', ') : 'none';
           const status = Math.random() > 0.6 ? 'x' : ' ';
-          
+
           return `- [${status}] #${taskId} Complex task ${j + 1} with multiple dependencies (deps: ${depString})`;
         }).join('\n');
 
@@ -353,30 +385,41 @@ ${i > 10 ? `- Complex dependency on: complex-deps-${(i - 5).toString().padStart(
       // Test dependency parsing performance
       const dependencyStartTime = Date.now();
       const parser = new GoferParser(performanceTestDir);
-      
+
       const specsWithDeps = await parser.loadAllSpecs();
 
       const dependencyParseTime = Date.now() - dependencyStartTime;
-      console.log(`Parsed ${specCount} specs with complex dependencies in ${dependencyParseTime}ms`);
+      console.log(
+        `Parsed ${specCount} specs with complex dependencies in ${dependencyParseTime}ms`
+      );
 
       // Performance assertions
-      assert.ok(dependencyParseTime < 8000, `Dependency parsing should take < 8 seconds, took ${dependencyParseTime}ms`);
-      
+      assert.ok(
+        dependencyParseTime < 8000,
+        `Dependency parsing should take < 8 seconds, took ${dependencyParseTime}ms`
+      );
+
       // Verify dependency structure
-      const totalTasksParsed = specsWithDeps.reduce((sum, spec) => sum + (spec.tasks?.length || 0), 0);
+      const totalTasksParsed = specsWithDeps.reduce(
+        (sum, spec) => sum + (spec.tasks?.length || 0),
+        0
+      );
       console.log(`Total tasks parsed: ${totalTasksParsed}`);
-      assert.ok(totalTasksParsed >= 1500, `Should parse all tasks correctly, but got ${totalTasksParsed}`);
+      assert.ok(
+        totalTasksParsed >= 1500,
+        `Should parse all tasks correctly, but got ${totalTasksParsed}`
+      );
 
       // Test ProgressProvider performance with dependencies
       const progressProvider = new ProgressProvider(performanceTestDir, undefined, 0);
       progressProvider.getChildren(); // Trigger load
-      
+
       // Wait for provider to load
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await new Promise((resolve) => setTimeout(resolve, 50));
       while (progressProvider.isLoadingSpecs() || progressProvider.isDebouncing()) {
-        await new Promise(resolve => setTimeout(resolve, 50));
+        await new Promise((resolve) => setTimeout(resolve, 50));
       }
-      
+
       const rootItems = await progressProvider.getChildren();
       let totalTasksInProvider = 0;
       for (const rootItem of rootItems) {
@@ -384,12 +427,15 @@ ${i > 10 ? `- Complex dependency on: complex-deps-${(i - 5).toString().padStart(
         totalTasksInProvider += tasks.length;
       }
       console.log(`Total tasks in provider: ${totalTasksInProvider}`);
-      assert.ok(totalTasksInProvider >= 1500, `Provider should show all tasks, but got ${totalTasksInProvider}`);
+      assert.ok(
+        totalTasksInProvider >= 1500,
+        `Provider should show all tasks, but got ${totalTasksInProvider}`
+      );
 
       // Test dependency resolution performance (simulated)
       const resolutionStartTime = Date.now();
       let resolvedDependencies = 0;
-      
+
       for (const spec of specsWithDeps) {
         if (spec.tasks) {
           for (const task of spec.tasks) {
@@ -400,16 +446,18 @@ ${i > 10 ? `- Complex dependency on: complex-deps-${(i - 5).toString().padStart(
           }
         }
       }
-      
+
       const resolutionTime = Date.now() - resolutionStartTime;
       console.log(`Resolved ${resolvedDependencies} dependencies in ${resolutionTime}ms`);
-      assert.ok(resolutionTime < 2000, `Dependency resolution should take < 2 seconds, took ${resolutionTime}ms`);
+      assert.ok(
+        resolutionTime < 2000,
+        `Dependency resolution should take < 2 seconds, took ${resolutionTime}ms`
+      );
     });
   });
 
   suite('Migration Performance', () => {
-    
-    test('should migrate large legacy repositories efficiently', async function() {
+    test('should migrate large legacy repositories efficiently', async function () {
       this.timeout(30000); // 30 seconds max
 
       // Create large legacy JSON structure
@@ -421,14 +469,14 @@ ${i > 10 ? `- Complex dependency on: complex-deps-${(i - 5).toString().padStart(
         id: `legacy-spec-${i + 1}`,
         title: `Legacy Specification ${i + 1}`,
         status: i % 3 === 0 ? 'completed' : i % 3 === 1 ? 'in-progress' : 'pending',
-        created: `2025-10-${(i % 28 + 1).toString().padStart(2, '0')}`,
+        created: `2025-10-${((i % 28) + 1).toString().padStart(2, '0')}`,
         tasks: Array.from({ length: 20 }, (_, j) => ({
           id: `T${((i + 1) * 100 + j + 1).toString().padStart(4, '0')}`,
           title: `Legacy task ${j + 1} for spec ${i + 1}`,
           status: Math.random() > 0.5 ? 'completed' : 'pending',
           dependencies: j > 0 ? [`T${((i + 1) * 100 + j).toString().padStart(4, '0')}`] : [],
-          description: `Detailed description for legacy task ${j + 1} in specification ${i + 1}. This task involves complex operations and multiple steps that need to be preserved during migration.`
-        }))
+          description: `Detailed description for legacy task ${j + 1} in specification ${i + 1}. This task involves complex operations and multiple steps that need to be preserved during migration.`,
+        })),
       }));
 
       fs.writeFileSync(
@@ -442,32 +490,35 @@ ${i > 10 ? `- Complex dependency on: complex-deps-${(i - 5).toString().padStart(
       // Test migration performance
       const migrationStartTime = Date.now();
       const migrator = new GoferMigrator(legacyDir);
-      
+
       const exists = await migrator.exists();
       assert.ok(exists, 'Legacy structure should be detected');
 
       await migrator.upgrade({ skipConfirmation: true });
       const migrationTime = Date.now() - migrationStartTime;
-      
+
       console.log(`Migrated ${specCount} specs with ${specCount * 20} tasks in ${migrationTime}ms`);
 
       // Performance assertions
-      assert.ok(migrationTime < 10000, `Migration should take < 10 seconds, took ${migrationTime}ms`);
-      
+      assert.ok(
+        migrationTime < 10000,
+        `Migration should take < 10 seconds, took ${migrationTime}ms`
+      );
+
       // Verify migration results
       const migratedSpecsDir = path.join(legacyDir, '.specify', 'specs');
       assert.ok(fs.existsSync(migratedSpecsDir), 'Migrated specs directory should exist');
-      
+
       const migratedSpecs = fs.readdirSync(migratedSpecsDir);
       assert.strictEqual(migratedSpecs.length, specCount, 'All specs should be migrated');
-      
+
       // Verify a sample migrated spec
       const sampleSpec = migratedSpecs[0];
       const sampleSpecPath = path.join(migratedSpecsDir, sampleSpec, 'spec.md');
       const sampleTasksPath = path.join(migratedSpecsDir, sampleSpec, 'tasks.md');
       assert.ok(fs.existsSync(sampleSpecPath), 'Sample spec file should exist');
       assert.ok(fs.existsSync(sampleTasksPath), 'Sample tasks file should exist');
-      
+
       const sampleContent = fs.readFileSync(sampleSpecPath, 'utf8');
       const sampleTasksContent = fs.readFileSync(sampleTasksPath, 'utf8');
       assert.ok(sampleContent.includes('---'), 'Should have YAML frontmatter');
@@ -480,8 +531,7 @@ ${i > 10 ? `- Complex dependency on: complex-deps-${(i - 5).toString().padStart(
   });
 
   suite('Memory and Resource Management', () => {
-    
-    test('should maintain reasonable memory usage under load', async function() {
+    test('should maintain reasonable memory usage under load', async function () {
       this.timeout(20000); // 20 seconds max
 
       const initialMemory = process.memoryUsage();
@@ -490,12 +540,12 @@ ${i > 10 ? `- Complex dependency on: complex-deps-${(i - 5).toString().padStart(
       // Simulate heavy workload
       const workloadResults = [];
       const iterations = 10;
-      
+
       for (let i = 0; i < iterations; i++) {
         // Create temporary large spec structure
         const tempDir = path.join(performanceTestDir, `temp-${i}`);
         fs.mkdirSync(tempDir, { recursive: true });
-        
+
         const specifyDir = path.join(tempDir, '.specify', 'specs');
         fs.mkdirSync(specifyDir, { recursive: true });
 
@@ -503,7 +553,7 @@ ${i > 10 ? `- Complex dependency on: complex-deps-${(i - 5).toString().padStart(
         for (let j = 0; j < 20; j++) {
           const specDir = path.join(specifyDir, `load-test-${i}-${j}`);
           fs.mkdirSync(specDir, { recursive: true });
-          
+
           const specContent = `---
 id: "load-test-${i}-${j}"
 title: "Load Test Spec ${i}-${j}"
@@ -517,52 +567,62 @@ ${Array.from({ length: 50 }, (_, k) => `## Section ${k + 1}\nContent for section
 ## Tasks
 ${Array.from({ length: 30 }, (_, k) => `- [ ] #T${i}${j}${k.toString().padStart(2, '0')} Task ${k + 1} (deps: none)`).join('\n')}
 `;
-          
+
           fs.writeFileSync(path.join(specDir, 'spec.md'), specContent);
         }
 
         // Parse specs to simulate workload
-      const provider = new ProgressProvider(tempDir, undefined, 0);
+        const provider = new ProgressProvider(tempDir, undefined, 0);
 
-      provider.getChildren();
-      await new Promise(resolve => setTimeout(resolve, 50));
-      while (provider.isLoadingSpecs() || provider.isDebouncing()) {
-        await new Promise(resolve => setTimeout(resolve, 50));
-      }
+        provider.getChildren();
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        while (provider.isLoadingSpecs() || provider.isDebouncing()) {
+          await new Promise((resolve) => setTimeout(resolve, 50));
+        }
 
-      const specs = await provider.getChildren();
-      workloadResults.push(specs.length);
+        const specs = await provider.getChildren();
+        workloadResults.push(specs.length);
 
         // Check memory after each iteration
         const currentMemory = process.memoryUsage();
         const heapUsedMB = currentMemory.heapUsed / 1024 / 1024;
-        console.log(`Iteration ${i + 1}: ${heapUsedMB.toFixed(2)}MB heap, processed ${specs.length} specs`);
+        console.log(
+          `Iteration ${i + 1}: ${heapUsedMB.toFixed(2)}MB heap, processed ${specs.length} specs`
+        );
 
         // Clean up to prevent excessive disk usage
         fs.rmSync(tempDir, { recursive: true, force: true });
-        
+
         // Force garbage collection if available
         if (global.gc) {
           global.gc();
         }
 
         // Memory should not grow excessively
-        assert.ok(heapUsedMB < 500, `Memory usage should stay < 500MB, was ${heapUsedMB.toFixed(2)}MB at iteration ${i + 1}`);
+        assert.ok(
+          heapUsedMB < 500,
+          `Memory usage should stay < 500MB, was ${heapUsedMB.toFixed(2)}MB at iteration ${i + 1}`
+        );
       }
 
       const finalMemory = process.memoryUsage();
       const memoryGrowth = (finalMemory.heapUsed - initialMemory.heapUsed) / 1024 / 1024;
       console.log(`Memory growth: ${memoryGrowth.toFixed(2)}MB`);
-      
+
       // Memory growth should be reasonable
-      assert.ok(memoryGrowth < 100, `Memory growth should be < 100MB, was ${memoryGrowth.toFixed(2)}MB`);
-      assert.ok(workloadResults.every(count => count === 20), 'All iterations should process correct number of specs');
+      assert.ok(
+        memoryGrowth < 100,
+        `Memory growth should be < 100MB, was ${memoryGrowth.toFixed(2)}MB`
+      );
+      assert.ok(
+        workloadResults.every((count) => count === 20),
+        'All iterations should process correct number of specs'
+      );
     });
   });
 
   suite('Concurrent Operations', () => {
-    
-    test('should handle concurrent parsing operations efficiently', async function() {
+    test('should handle concurrent parsing operations efficiently', async function () {
       this.timeout(15000); // 15 seconds max
 
       // Create multiple spec directories
@@ -577,7 +637,7 @@ ${Array.from({ length: 30 }, (_, k) => `- [ ] #T${i}${j}${k.toString().padStart(
       for (let i = 1; i <= specCount; i++) {
         const specDir = path.join(specsDir, `concurrent-test-${i}`);
         fs.mkdirSync(specDir, { recursive: true });
-        
+
         const specFile = path.join(specDir, 'spec.md');
         const specContent = `---
 id: "concurrent-test-${i}"
@@ -587,7 +647,7 @@ status: "draft"
 
 # Concurrent Test ${i}
 `;
-        
+
         fs.writeFileSync(specFile, specContent);
 
         const tasksContent = `# Tasks\n${Array.from({ length: 10 }, (_, j) => `- [ ] #T${i}${j.toString().padStart(2, '0')} Task ${j + 1} (deps: ${j > 0 ? `T${i}${(j - 1).toString().padStart(2, '0')}` : 'none'})`).join('\n')}\n`;
@@ -598,18 +658,24 @@ status: "draft"
       // Test concurrent parsing
       const concurrentStartTime = Date.now();
       const parser = new GoferParser(performanceTestDir);
-      
+
       // Load all specs concurrently using the parser's built-in method
       const results = await parser.loadAllSpecs();
       const concurrentTime = Date.now() - concurrentStartTime;
-      
+
       console.log(`Concurrent parsing of ${specCount} specs completed in ${concurrentTime}ms`);
 
       // Performance assertions
-      assert.ok(concurrentTime < 5000, `Concurrent parsing should take < 5 seconds, took ${concurrentTime}ms`);
+      assert.ok(
+        concurrentTime < 5000,
+        `Concurrent parsing should take < 5 seconds, took ${concurrentTime}ms`
+      );
       assert.strictEqual(results.length, specCount, 'All specs should be parsed');
-      assert.ok(results.every((spec) => spec && spec.id), 'All specs should have valid data');
-      
+      assert.ok(
+        results.every((spec) => spec && spec.id),
+        'All specs should have valid data'
+      );
+
       // Compare with sequential parsing (simulate loading individual specs)
       const sequentialStartTime = Date.now();
       const sequentialResults = [];
@@ -623,11 +689,16 @@ status: "draft"
         }
       }
       const sequentialTime = Date.now() - sequentialStartTime;
-      
-      console.log(`Sequential parsing took ${sequentialTime}ms (${(sequentialTime / concurrentTime).toFixed(2)}x slower)`);
-      
+
+      console.log(
+        `Sequential parsing took ${sequentialTime}ms (${(sequentialTime / concurrentTime).toFixed(2)}x slower)`
+      );
+
       // Concurrent should be faster than sequential (with some tolerance for test environment)
-      assert.ok(concurrentTime <= sequentialTime * 1.2, 'Concurrent parsing should not be significantly slower than sequential');
+      assert.ok(
+        concurrentTime <= sequentialTime * 1.2,
+        'Concurrent parsing should not be significantly slower than sequential'
+      );
     });
   });
 });

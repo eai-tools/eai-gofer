@@ -70,9 +70,13 @@ describe('MemoryStorage', () => {
 
       // Should have written the JSONL file
       expect(fs.writeFile).toHaveBeenCalledWith(
-        expect.stringContaining('memories.jsonl'),
+        expect.stringMatching(/\.memories\.jsonl\.[^.]+\.tmp$/),
         expect.stringContaining('legacy-1'),
-        'utf-8'
+        { encoding: 'utf-8', flag: 'wx' }
+      );
+      expect(fs.rename).toHaveBeenCalledWith(
+        expect.stringMatching(/\.memories\.jsonl\.[^.]+\.tmp$/),
+        expect.stringContaining('memories.jsonl')
       );
     });
 
@@ -332,9 +336,9 @@ describe('MemoryStorage', () => {
 
       // Verify atomic write pattern
       expect(fs.writeFile).toHaveBeenCalledWith(
-        expect.stringContaining('.tmp'),
+        expect.stringMatching(/\.memories\.jsonl\.[^.]+\.tmp$/),
         expect.any(String),
-        'utf-8'
+        { encoding: 'utf-8', flag: 'wx' }
       );
       expect(fs.rename).toHaveBeenCalled();
 

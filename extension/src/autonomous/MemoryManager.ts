@@ -308,7 +308,17 @@ export class MemoryManager implements IMemoryManager {
             '---',
             '',
           ].join('\n');
-          await fsPromises.writeFile(notePath, frontmatter + newMemory.content, 'utf-8');
+          const tempNotePath = path.join(notesDir, `.${newMemory.id}.${uuidv4()}.tmp`);
+          try {
+            await fsPromises.writeFile(tempNotePath, frontmatter + newMemory.content, {
+              encoding: 'utf-8',
+              flag: 'wx',
+            });
+            await fsPromises.rename(tempNotePath, notePath);
+          } catch (error) {
+            await fsPromises.rm(tempNotePath, { force: true }).catch(() => undefined);
+            throw error;
+          }
           // 018 T030: Store notePath and truncate JSONL content for long memories
           const truncatedContent = newMemory.content.slice(0, 200) + '... [see markdown note]';
           await this.storage.update(newMemory.id, {
@@ -550,7 +560,8 @@ export class MemoryManager implements IMemoryManager {
   }
 
   isManagedMemoryNotePath(filePath: string): boolean {
-    const notesRoot = path.join(this.workspaceRoot, '.specify', 'memory', 'memory-notes') + path.sep;
+    const notesRoot =
+      path.join(this.workspaceRoot, '.specify', 'memory', 'memory-notes') + path.sep;
     return filePath.startsWith(notesRoot) && filePath.endsWith('.md');
   }
 
@@ -1374,14 +1385,6 @@ export class MemoryManager implements IMemoryManager {
    */
   private async loadLocal(): Promise<Memory[]> {
     try {
-      const exists = await fsPromises
-        .access(this.localMemoryPath)
-        .then(() => true)
-        .catch(() => false);
-      if (!exists) {
-        return [];
-      }
-
       const data = await fsPromises.readFile(this.localMemoryPath, 'utf-8');
       const stored: StoredMemories = JSON.parse(data);
 

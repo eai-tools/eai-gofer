@@ -4,11 +4,11 @@ import * as fsSync from 'fs';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
 import { promisify } from 'util';
 import { Logger } from './services/Logger';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 const RELEASES_HOST = 'eai-tools.github.io';
 const RELEASES_PATH_PREFIX = '/eai-gofer/releases/';
 const GITHUB_RELEASES_HOST = 'github.com';
@@ -332,9 +332,8 @@ export class AutoUpdater {
         let codeCommand = null;
         for (const codePath of possibleCodePaths) {
           try {
-            await execAsync(
-              `which "${codePath}" 2>/dev/null || command -v "${codePath}" 2>/dev/null`
-            );
+            const locator = process.platform === 'win32' ? 'where' : 'which';
+            await execFileAsync(locator, [codePath]);
             codeCommand = codePath;
             break;
           } catch {
@@ -349,9 +348,11 @@ export class AutoUpdater {
         }
 
         // Install the extension using CLI
-        const { stderr } = await execAsync(
-          `"${codeCommand}" --install-extension "${vsixPath}" --force`
-        );
+        const { stderr } = await execFileAsync(codeCommand, [
+          '--install-extension',
+          vsixPath,
+          '--force',
+        ]);
 
         if (
           stderr &&

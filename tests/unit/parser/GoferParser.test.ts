@@ -1,8 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { GoferParser, YAMLFrontmatter, Spec, SpecStatus } from '../../../extension/src/goferParser';
+import { GoferParser, SpecStatus } from '../../../extension/src/goferParser';
 import { createTestWorkspace, cleanupTestWorkspace, createTestSpec } from '../../helpers/workspace';
-import * as path from 'path';
-import * as fs from 'fs/promises';
 
 describe('GoferParser - YAML Frontmatter Extraction', () => {
   let workspace: string;
@@ -331,9 +329,9 @@ updated: 2025-01-15
       const specs = await parser.loadAllSpecs();
 
       expect(specs).toHaveLength(3);
-      expect(specs.map(s => s.title)).toContain('First Spec');
-      expect(specs.map(s => s.title)).toContain('Second Spec');
-      expect(specs.map(s => s.title)).toContain('Third Spec');
+      expect(specs.map((s) => s.title)).toContain('First Spec');
+      expect(specs.map((s) => s.title)).toContain('Second Spec');
+      expect(specs.map((s) => s.title)).toContain('Third Spec');
     });
   });
 

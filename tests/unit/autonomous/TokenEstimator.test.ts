@@ -24,7 +24,6 @@ describe('TokenEstimator', () => {
 
     it('handles code blocks with higher token density', () => {
       const code = '```typescript\nconst x = 1;\nconst y = 2;\n```';
-      const prose = '```typescript\nconst x = 1;\nconst y = 2;\n```';
       const codeResult = estimator.estimate(code);
       // Code has 3 chars/token (denser)
       expect(codeResult).toBeGreaterThan(0);

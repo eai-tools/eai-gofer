@@ -11,7 +11,7 @@
  */
 
 import { describe, it, expect, beforeAll } from 'vitest';
-import { readFile, readdir, stat } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 import * as fs from 'node:fs';
 import path from 'node:path';
 
@@ -42,11 +42,11 @@ describe('persona-pack template line and byte budget (T152, NFR-003)', () => {
 
     for (const fileName of templateFiles) {
       const filePath = path.join(TEMPLATE_DIR, fileName);
-      const s = await stat(filePath);
       const content = await readFile(filePath, 'utf8');
+      const bytes = Buffer.byteLength(content, 'utf8');
       const lineCount = content.split(/\r?\n/).length;
 
-      expect(s.size, `${fileName} is ${s.size} bytes (max ${BYTE_LIMIT})`).toBeLessThanOrEqual(
+      expect(bytes, `${fileName} is ${bytes} bytes (max ${BYTE_LIMIT})`).toBeLessThanOrEqual(
         BYTE_LIMIT
       );
 
@@ -86,9 +86,8 @@ describe('persona-pack template line and byte budget (T152, NFR-003)', () => {
 
         beforeAll(async () => {
           const filePath = path.join(TEMPLATE_DIR, fileName);
-          const s = await stat(filePath);
           const content = await readFile(filePath, 'utf8');
-          bytes = s.size;
+          bytes = Buffer.byteLength(content, 'utf8');
           lines = content.split(/\r?\n/).length;
         });
 

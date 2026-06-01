@@ -131,8 +131,7 @@ export class PlatformDetector {
 
     // Determine platform
     let platform: PlatformType | 'auto' = 'auto';
-    let detectionMethod: 'user-setting' | 'directory-check' | 'execution-context' | 'fallback' =
-      'fallback';
+    let detectionMethod: 'user-setting' | 'directory-check' | 'execution-context' | 'fallback';
     let isExplicit = false;
     let isAutoDetected = false;
 

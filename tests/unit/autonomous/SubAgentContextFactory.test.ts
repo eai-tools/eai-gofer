@@ -3,7 +3,7 @@
  * Feature 029: Memory System v2 - T034, T035, T036
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { SubAgentContextFactory } from '../../../extension/src/autonomous/memory/SubAgentContextFactory';
 import type { MemoryManager } from '../../../extension/src/autonomous/MemoryManager';
 import type { ScoredMemory } from '../../../extension/src/autonomous/memory';

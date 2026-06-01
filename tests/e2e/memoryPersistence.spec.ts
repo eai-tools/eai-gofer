@@ -10,8 +10,7 @@
  * To run: npm run test:e2e (requires proper VSCode test environment setup)
  */
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect } from 'vitest';
 
 /**
  * E2E Test Suite for Memory Persistence

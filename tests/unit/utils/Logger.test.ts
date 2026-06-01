@@ -9,15 +9,13 @@
  * - Structured logging with event types
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { LogEntry } from '../../../src/types';
 
 describe('Logger', () => {
-  let mockTransports: any[];
-  let loggerInstance: any;
-
   beforeEach(() => {
-    mockTransports = [];
     vi.resetModules();
   });
 
@@ -194,9 +192,7 @@ describe('Logger', () => {
       vi.doMock('winston', () => ({
         default: {
           createLogger: vi.fn((config) => {
-            fileTransportConfig = config.transports.find(
-              (t: any) => t.constructor.name === 'File'
-            );
+            fileTransportConfig = config.transports.find((t: any) => t.constructor.name === 'File');
             return {
               info: vi.fn(),
               warn: vi.fn(),
@@ -230,9 +226,7 @@ describe('Logger', () => {
       vi.doMock('winston', () => ({
         default: {
           createLogger: vi.fn((config) => {
-            fileTransportConfig = config.transports.find(
-              (t: any) => t.constructor.name === 'File'
-            );
+            fileTransportConfig = config.transports.find((t: any) => t.constructor.name === 'File');
             return {
               info: vi.fn(),
               warn: vi.fn(),

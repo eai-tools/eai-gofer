@@ -138,7 +138,7 @@ export class MemoryStorage {
 
       // Write each memory as a JSONL line
       const lines = memories.map((m) => JSON.stringify(m)).join('\n') + '\n';
-      await fs.writeFile(this.jsonlPath, lines, 'utf-8');
+      await this.atomicWriteFile(this.jsonlPath, lines);
     } catch {
       // No legacy file or parse error — start fresh
     }
@@ -562,10 +562,7 @@ export class MemoryStorage {
     const activeMemories = Array.from(this.index.values()).map((e) => e.memory);
     const lines = activeMemories.map((m) => JSON.stringify(m)).join('\n') + '\n';
 
-    // Atomic write: write to temp, then rename
-    const tempPath = this.jsonlPath + '.tmp';
-    await fs.writeFile(tempPath, lines, 'utf-8');
-    await fs.rename(tempPath, this.jsonlPath);
+    await this.atomicWriteFile(this.jsonlPath, lines);
   }
 
   // --------------------------------------------------------------------------
@@ -685,10 +682,23 @@ export class MemoryStorage {
       memory.content,
     ].join('\n');
 
-    await fs.writeFile(fullNotePath, mdContent, 'utf-8');
+    await this.atomicWriteFile(fullNotePath, mdContent);
 
     // Truncate JSONL content and add notePath reference
     const truncated = memory.content.slice(0, 200) + '... [see markdown note]';
     return { ...memory, content: truncated, notePath };
+  }
+
+  private async atomicWriteFile(targetPath: string, content: string): Promise<void> {
+    const dir = path.dirname(targetPath);
+    const tempPath = path.join(dir, `.${path.basename(targetPath)}.${crypto.randomUUID()}.tmp`);
+
+    try {
+      await fs.writeFile(tempPath, content, { encoding: 'utf-8', flag: 'wx' });
+      await fs.rename(tempPath, targetPath);
+    } catch (error) {
+      await fs.rm(tempPath, { force: true }).catch(() => undefined);
+      throw error;
+    }
   }
 }

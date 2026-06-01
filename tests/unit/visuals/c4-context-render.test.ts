@@ -9,12 +9,31 @@ function countWords(text: string): number {
   return text.trim().split(/\s+/).filter(Boolean).length;
 }
 
+function stripHtmlComments(content: string): string {
+  let output = '';
+  let index = 0;
+
+  while (index < content.length) {
+    const start = content.indexOf('<!--', index);
+    if (start === -1) {
+      output += content.slice(index);
+      break;
+    }
+
+    output += content.slice(index, start);
+    const end = content.indexOf('-->', start + 4);
+    index = end === -1 ? content.length : end + 3;
+  }
+
+  return output;
+}
+
 function extractPreamble(content: string): string {
   // Remove frontmatter
   const fmEnd = content.indexOf('\n---', 4);
   let body = fmEnd > 0 ? content.slice(fmEnd + 4) : content;
   // Strip HTML comments (single- and multi-line) before line-walk.
-  body = body.replace(/<!--[\s\S]*?-->/g, '');
+  body = stripHtmlComments(body);
   const lines = body.split(/\r?\n/);
   const buffer: string[] = [];
   let inFence = false;

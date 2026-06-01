@@ -12,7 +12,7 @@
  * They are skipped by default to avoid requiring CLI installations in CI.
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
@@ -25,8 +25,7 @@ describe.skipIf(!E2E_ENABLED)('Pipeline Provider Parity E2E Tests', () => {
 
   beforeEach(async () => {
     // Create temporary test workspace
-    testWorkspace = path.join(os.tmpdir(), `gofer-e2e-test-${Date.now()}`);
-    await fs.mkdir(testWorkspace, { recursive: true });
+    testWorkspace = await fs.mkdtemp(path.join(os.tmpdir(), 'gofer-e2e-test-'));
 
     // Initialize test workspace with minimal project structure
     await fs.mkdir(path.join(testWorkspace, '.specify'), { recursive: true });
@@ -37,7 +36,7 @@ describe.skipIf(!E2E_ENABLED)('Pipeline Provider Parity E2E Tests', () => {
     // Cleanup test workspace
     try {
       await fs.rm(testWorkspace, { recursive: true, force: true });
-    } catch (err) {
+    } catch {
       // Ignore cleanup errors
     }
   });
@@ -54,13 +53,11 @@ describe.skipIf(!E2E_ENABLED)('Pipeline Provider Parity E2E Tests', () => {
       // 7. Capture research.md output
       // 8. Compare structures (not exact content, as LLMs vary)
       // 9. Verify both have similar sections and formatting
-
       // Example structure comparison:
       // - Both should have "## Codebase Analysis" section
       // - Both should have "## Technology Context" section
       // - Both should have code blocks
       // - Heading count should be within 20% of each other
-
       // Implementation requires:
       // - VSCode command execution via vscode.commands.executeCommand
       // - File system operations to read generated files
@@ -135,7 +132,7 @@ function parseMarkdownStructure(markdown: string): {
   const wordCount = markdown.split(/\s+/).length;
 
   return {
-    sections: sections.map(s => s.replace(/^## /, '')),
+    sections: sections.map((s) => s.replace(/^## /, '')),
     headingCount,
     hasCodeBlocks,
     wordCount,
@@ -182,14 +179,16 @@ function areStructuresSimilar(
   }
 
   // Check section overlap (at least 50% common sections)
-  const commonSections = structure1.sections.filter(s =>
-    structure2.sections.some(s2 => s2.toLowerCase().includes(s.toLowerCase()) || s.toLowerCase().includes(s2.toLowerCase()))
+  const commonSections = structure1.sections.filter((s) =>
+    structure2.sections.some(
+      (s2) =>
+        s2.toLowerCase().includes(s.toLowerCase()) || s.toLowerCase().includes(s2.toLowerCase())
+    )
   );
-  const sectionOverlap = commonSections.length / Math.max(structure1.sections.length, structure2.sections.length);
+  const sectionOverlap =
+    commonSections.length / Math.max(structure1.sections.length, structure2.sections.length);
   if (sectionOverlap < 0.5) {
-    reasons.push(
-      `Section overlap too low: ${(sectionOverlap * 100).toFixed(0)}% (expected >50%)`
-    );
+    reasons.push(`Section overlap too low: ${(sectionOverlap * 100).toFixed(0)}% (expected >50%)`);
   }
 
   return {
@@ -208,7 +207,7 @@ async function waitForFileExists(filePath: string, timeoutMs = 30000): Promise<b
       await fs.access(filePath);
       return true;
     } catch {
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
     }
   }
   return false;

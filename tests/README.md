@@ -83,7 +83,7 @@ npm run test:integration
 npm test -- tests/integration/council/
 
 # Optional fallback auth
-ANTHROPIC_API_KEY=sk-xxx OPENAI_API_KEY=sk-xxx npm run test:integration
+ANTHROPIC_API_KEY=<anthropic-api-key> OPENAI_API_KEY=<openai-api-key> npm run test:integration
 ```
 
 **Note:** Tests should prefer `claude login`, `codex login`, and local CLI state

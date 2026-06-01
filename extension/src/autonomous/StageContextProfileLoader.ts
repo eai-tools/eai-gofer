@@ -118,9 +118,6 @@ export class StageContextProfileLoader {
     const configPath = this.getConfigPath();
     const warnings: string[] = [];
     try {
-      // Check if config file exists
-      await fs.promises.access(configPath);
-
       // Read and parse YAML
       const content = await fs.promises.readFile(configPath, 'utf-8');
       const parsed = yaml.parse(content) as StageContextProfileConfig;

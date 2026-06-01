@@ -281,8 +281,10 @@ export class ClaudeSessionReader {
    * @returns The tail content as a string
    */
   tailReadFile(filePath: string, bytes: number = DEFAULT_TAIL_BYTES): string {
+    let fd: number | undefined;
     try {
-      const stat = fs.statSync(filePath);
+      fd = fs.openSync(filePath, 'r');
+      const stat = fs.fstatSync(fd);
       const fileSize = stat.size;
 
       if (fileSize === 0) {
@@ -290,21 +292,19 @@ export class ClaudeSessionReader {
       }
 
       if (fileSize <= bytes) {
-        return fs.readFileSync(filePath, 'utf-8');
+        return fs.readFileSync(fd, 'utf-8');
       }
 
       const start = fileSize - bytes;
       const buffer = Buffer.alloc(bytes);
-      const fd = fs.openSync(filePath, 'r');
-
-      try {
-        fs.readSync(fd, buffer, 0, bytes, start);
-        return buffer.toString('utf-8');
-      } finally {
-        fs.closeSync(fd);
-      }
+      fs.readSync(fd, buffer, 0, bytes, start);
+      return buffer.toString('utf-8');
     } catch {
       return '';
+    } finally {
+      if (fd !== undefined) {
+        fs.closeSync(fd);
+      }
     }
   }
 

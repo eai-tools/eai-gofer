@@ -308,19 +308,10 @@ export class MemoryManager implements IMemoryManager {
             '---',
             '',
           ].join('\n');
-          const tempNotePath = path.join(notesDir, `.${newMemory.id}.${uuidv4()}.tmp`);
-          let noteHandle: Awaited<ReturnType<typeof fsPromises.open>> | undefined;
-          try {
-            noteHandle = await fsPromises.open(tempNotePath, 'wx');
-            await noteHandle.writeFile(frontmatter + newMemory.content, 'utf-8');
-            await noteHandle.close();
-            noteHandle = undefined;
-            await fsPromises.rename(tempNotePath, notePath);
-          } catch (error) {
-            await noteHandle?.close().catch(() => undefined);
-            await fsPromises.rm(tempNotePath, { force: true }).catch(() => undefined);
-            throw error;
-          }
+          await fsPromises.writeFile(notePath, frontmatter + newMemory.content, {
+            encoding: 'utf-8',
+            flag: 'wx',
+          });
           // 018 T030: Store notePath and truncate JSONL content for long memories
           const truncatedContent = newMemory.content.slice(0, 200) + '... [see markdown note]';
           await this.storage.update(newMemory.id, {

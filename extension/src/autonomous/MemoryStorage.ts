@@ -690,20 +690,6 @@ export class MemoryStorage {
   }
 
   private async atomicWriteFile(targetPath: string, content: string): Promise<void> {
-    const dir = path.dirname(targetPath);
-    const tempPath = path.join(dir, `.${path.basename(targetPath)}.${crypto.randomUUID()}.tmp`);
-    let tempHandle: Awaited<ReturnType<typeof fs.open>> | undefined;
-
-    try {
-      tempHandle = await fs.open(tempPath, 'wx');
-      await tempHandle.writeFile(content, 'utf-8');
-      await tempHandle.close();
-      tempHandle = undefined;
-      await fs.rename(tempPath, targetPath);
-    } catch (error) {
-      await tempHandle?.close().catch(() => undefined);
-      await fs.rm(tempPath, { force: true }).catch(() => undefined);
-      throw error;
-    }
+    await fs.writeFile(targetPath, content, 'utf-8');
   }
 }

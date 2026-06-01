@@ -1,6 +1,6 @@
 {
   "name": "eai-gofer",
-  "version": "3.5.1",
+  "version": "3.5.2",
   "description": "Gofer core pipeline and helper commands for Claude, Gemini, Codex, Copilot, and VS Code.",
   "author": {
     "name": "EAI Tools",

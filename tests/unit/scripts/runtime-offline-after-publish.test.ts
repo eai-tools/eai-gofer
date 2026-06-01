@@ -68,7 +68,7 @@ function stripComments(content: string, ext: string): string {
   }
   if (ext === '.toml' || ext === '.md') {
     // Strip toml `#` and markdown content treating `<!-- -->` as comment.
-    return content
+    const withoutTomlComments = content
       .split('\n')
       .map((line) => {
         if (ext === '.toml' && line.trim().startsWith('#')) return '';

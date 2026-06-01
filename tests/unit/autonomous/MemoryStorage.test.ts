@@ -4,6 +4,15 @@ import * as fs from 'fs/promises';
 
 vi.mock('fs/promises'); // mock-justified: filesystem I/O boundary — no real FS in unit tests
 
+function mockFileHandle(onWrite?: (data: string) => void): Awaited<ReturnType<typeof fs.open>> {
+  return {
+    writeFile: vi.fn(async (data: string) => {
+      onWrite?.(data);
+    }),
+    close: vi.fn(async () => undefined),
+  } as unknown as Awaited<ReturnType<typeof fs.open>>;
+}
+
 describe('MemoryStorage', () => {
   let storage: MemoryStorage;
   const mockWorkspace = '/test/workspace';
@@ -18,6 +27,7 @@ describe('MemoryStorage', () => {
     vi.mocked(fs.readFile).mockRejectedValue(new Error('ENOENT'));
     vi.mocked(fs.appendFile).mockResolvedValue(undefined);
     vi.mocked(fs.writeFile).mockResolvedValue(undefined);
+    vi.mocked(fs.open).mockResolvedValue(mockFileHandle());
     vi.mocked(fs.rename).mockResolvedValue(undefined);
   });
 
@@ -69,11 +79,12 @@ describe('MemoryStorage', () => {
       await storage.initialize();
 
       // Should have written the JSONL file
-      expect(fs.writeFile).toHaveBeenCalledWith(
+      expect(fs.open).toHaveBeenCalledWith(
         expect.stringMatching(/\.memories\.jsonl\.[^.]+\.tmp$/),
-        expect.stringContaining('legacy-1'),
-        { encoding: 'utf-8', flag: 'wx' }
+        'wx'
       );
+      const handle = await vi.mocked(fs.open).mock.results[0].value;
+      expect(handle.writeFile).toHaveBeenCalledWith(expect.stringContaining('legacy-1'), 'utf-8');
       expect(fs.rename).toHaveBeenCalledWith(
         expect.stringMatching(/\.memories\.jsonl\.[^.]+\.tmp$/),
         expect.stringContaining('memories.jsonl')
@@ -328,17 +339,18 @@ describe('MemoryStorage', () => {
       // After rebuildIndex: c1 is tombstoned (deleted from index), c2 is active
       // compact() should write only c2's data — tombstone removes c1 from the index
       let writtenContent = '';
-      vi.mocked(fs.writeFile).mockImplementation(async (_path, data) => {
-        writtenContent = data as string;
-      });
+      vi.mocked(fs.open).mockResolvedValue(
+        mockFileHandle((data) => {
+          writtenContent = data;
+        })
+      );
 
       await storage.compact();
 
       // Verify atomic write pattern
-      expect(fs.writeFile).toHaveBeenCalledWith(
+      expect(fs.open).toHaveBeenCalledWith(
         expect.stringMatching(/\.memories\.jsonl\.[^.]+\.tmp$/),
-        expect.any(String),
-        { encoding: 'utf-8', flag: 'wx' }
+        'wx'
       );
       expect(fs.rename).toHaveBeenCalled();
 

@@ -443,13 +443,12 @@ export class WorkspaceContextProvider {
     const hasValidFile = (name: string, heading?: string): boolean => {
       const filePath = path.join(specDir, name);
       try {
-        const stat = fs.statSync(filePath);
-        if (stat.size < 100) {
+        const content = fs.readFileSync(filePath, 'utf-8');
+        if (Buffer.byteLength(content, 'utf-8') < 100) {
           return false;
         }
         if (heading) {
-          const content = fs.readFileSync(filePath, 'utf-8').slice(0, 500);
-          return content.includes(heading);
+          return content.slice(0, 500).includes(heading);
         }
         return true;
       } catch {
@@ -551,7 +550,9 @@ export class WorkspaceContextProvider {
    * 019 F2: Check if a transition is backward (regression).
    */
   private isBackwardTransition(from: GoferStage, to: GoferStage): boolean {
-    if (from === 'unknown' || to === 'unknown') {return false;}
+    if (from === 'unknown' || to === 'unknown') {
+      return false;
+    }
     const fromIdx = WorkspaceContextProvider.STAGE_ORDER.indexOf(from);
     const toIdx = WorkspaceContextProvider.STAGE_ORDER.indexOf(to);
     return toIdx < fromIdx;

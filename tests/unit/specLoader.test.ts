@@ -142,7 +142,7 @@ created: "2025-10-21"
       vi.mocked(fs.readFile).mockImplementation(async (filePath) => {
         const fp = String(filePath);
         if (fp.includes('001-valid-spec')) {
-          return mockSpecContent.replace('001-valid-spec', '001-valid-spec');
+          return mockSpecContent;
         } else if (fp.includes('002-another-valid')) {
           return mockSpecContent.replace('001-valid-spec', '002-another-valid');
         } else if (fp.includes('tasks.md')) {

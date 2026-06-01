@@ -1,15 +1,17 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { SpecLoader } from '../../src/orchestrator/SpecLoader';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import { tmpdir } from 'os';
 
 describe('SpecLoader - Task Persistence', () => {
   let specLoader: SpecLoader;
-  const testWorkspaceDir = '/tmp/test-specs-workspace';
-  const testSpecDir = path.join(testWorkspaceDir, '.specify', 'specs');
+  let testWorkspaceDir: string;
+  let testSpecDir: string;
 
   beforeEach(async () => {
+    testWorkspaceDir = await fs.mkdtemp(path.join(tmpdir(), 'gofer-specs-workspace-'));
+    testSpecDir = path.join(testWorkspaceDir, '.specify', 'specs');
     specLoader = new SpecLoader(testSpecDir);
 
     // Create test directory structure

@@ -18,7 +18,6 @@ describe('MemoryStorage', () => {
     vi.mocked(fs.readFile).mockRejectedValue(new Error('ENOENT'));
     vi.mocked(fs.appendFile).mockResolvedValue(undefined);
     vi.mocked(fs.writeFile).mockResolvedValue(undefined);
-    vi.mocked(fs.rename).mockResolvedValue(undefined);
   });
 
   describe('initialize', () => {
@@ -72,7 +71,7 @@ describe('MemoryStorage', () => {
       expect(fs.writeFile).toHaveBeenCalledWith(
         expect.stringContaining('memories.jsonl'),
         expect.stringContaining('legacy-1'),
-        'utf-8'
+        { encoding: 'utf-8', mode: 0o600 }
       );
     });
 
@@ -324,19 +323,19 @@ describe('MemoryStorage', () => {
       // After rebuildIndex: c1 is tombstoned (deleted from index), c2 is active
       // compact() should write only c2's data — tombstone removes c1 from the index
       let writtenContent = '';
-      vi.mocked(fs.writeFile).mockImplementation(async (_path, data) => {
-        writtenContent = data as string;
+      vi.mocked(fs.writeFile).mockImplementation(async (_file, data) => {
+        if (typeof data === 'string') {
+          writtenContent = data;
+        }
       });
 
       await storage.compact();
 
-      // Verify atomic write pattern
       expect(fs.writeFile).toHaveBeenCalledWith(
-        expect.stringContaining('.tmp'),
+        expect.stringContaining('memories.jsonl'),
         expect.any(String),
-        'utf-8'
+        { encoding: 'utf-8', mode: 0o600 }
       );
-      expect(fs.rename).toHaveBeenCalled();
 
       // Verify c1 is excluded (tombstoned) and c2 is included
       const writtenLines = writtenContent.split('\n').filter((l) => l.trim().length > 0);

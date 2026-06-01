@@ -565,13 +565,10 @@ export class ResearchChunker {
     indexPath: string,
     researchPath: string
   ): Promise<ResearchIndex | null> {
+    let indexHandle: Awaited<ReturnType<typeof fs.open>> | undefined;
     try {
-      if (!fsSync.existsSync(indexPath)) {
-        return null;
-      }
-
-      // Check if research.md is newer than index
-      const indexStat = await fs.stat(indexPath);
+      indexHandle = await fs.open(indexPath, 'r');
+      const indexStat = await indexHandle.stat();
       const researchStat = await fs.stat(researchPath);
 
       if (researchStat.mtimeMs > indexStat.mtimeMs) {
@@ -579,12 +576,14 @@ export class ResearchChunker {
       }
 
       // Load and parse index
-      const content = await fs.readFile(indexPath, 'utf-8');
+      const content = await indexHandle.readFile('utf-8');
       const index: ResearchIndex = JSON.parse(content);
 
       return index;
     } catch {
       return null;
+    } finally {
+      await indexHandle?.close();
     }
   }
 

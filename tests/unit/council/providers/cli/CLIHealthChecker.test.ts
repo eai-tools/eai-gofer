@@ -4,6 +4,8 @@
  * Tests for CLI health checking utilities.
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { CLIHealthChecker } from '../../../../../extension/src/council/providers/cli/CLIHealthChecker';
 
@@ -122,7 +124,7 @@ describe('CLIHealthChecker', () => {
       const originalEnv = process.env.ANTHROPIC_API_KEY;
 
       try {
-        process.env.ANTHROPIC_API_KEY = 'sk-ant-test-key';
+        process.env.ANTHROPIC_API_KEY = 'test-anthropic-key';
 
         const result = await CLIHealthChecker.check('claude', 'claude');
 

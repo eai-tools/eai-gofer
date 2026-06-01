@@ -98,7 +98,6 @@ async function generateCoverageBadges(total) {
       const color = badge.value >= 80 ? 'brightgreen' : 
                    badge.value >= 60 ? 'yellow' : 'red';
       
-      const badgeUrl = `https://img.shields.io/badge/coverage%20${badge.name}-${badge.value}%25-${color}`;
       const badgeSvg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="104" height="20">
   <linearGradient id="b" x2="0" y2="100%">
     <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>

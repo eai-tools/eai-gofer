@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-var-requires */
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-require-imports */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 // Skip this test suite - AutonomousOrchestrator not yet implemented
 // TODO: Re-enable when spec 005-autonomous-claude-driver is implemented
@@ -167,8 +166,6 @@ describe.skip('AutonomousOrchestrator - Exponential Backoff', () => {
   describe('Performance Impact', () => {
     it('should not block other operations during backoff', async () => {
       const calculateBackoff = (orchestrator as any).calculateBackoffDelay.bind(orchestrator);
-
-      const delay = calculateBackoff(0);
 
       // The delay calculation itself should be instant
       const startTime = Date.now();

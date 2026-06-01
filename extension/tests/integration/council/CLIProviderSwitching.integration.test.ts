@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { ProviderFactory, getProviderFactory } from '../../../src/council/providers/ProviderFactory';
+import { ProviderFactory } from '../../../src/council/providers/ProviderFactory';
 import type { LLMProvider } from '../../../src/council/providers/LLMProvider';
 import type { QueryRequest } from '../../../src/council/types';
 
@@ -176,7 +176,7 @@ describe('CLI Provider Switching Integration Tests (R8)', () => {
         }),
       } as any);
 
-      const claudeProvider = await factory.getCLIProvider();
+      await factory.getCLIProvider();
       expect(claudeProvider.id).toBe('claude-cli');
 
       // Simulate conversation history by adding to provider's internal state
@@ -251,7 +251,7 @@ describe('CLI Provider Switching Integration Tests (R8)', () => {
         }),
       } as any);
 
-      const claudeProvider = await factory.getCLIProvider();
+      await factory.getCLIProvider();
       expect(claudeProvider.id).toBe('claude-cli');
 
       // Verify history was preserved

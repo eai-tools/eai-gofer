@@ -4,12 +4,12 @@
  * This file runs before all tests to set up the test environment.
  *
  * For CLI-provider integration tests, use provider login state or environment variables:
- *   OPENAI_API_KEY=sk-...
+ *   OPENAI_API_KEY=<openai-api-key>
  *
  * You can either:
  *   1. Add them to .env file in project root
  *   2. Export them in your shell before running tests
- *   3. Prefix the test command: OPENAI_API_KEY=... npm test
+ *   3. Prefix the test command with an OPENAI_API_KEY value.
  */
 
 import { vi } from 'vitest';

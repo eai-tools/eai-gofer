@@ -30,7 +30,7 @@ describe('Migration Integration: migrateToLayered()', () => {
   let manager: MemoryManager;
 
   beforeEach(async () => {
-    workspaceRoot = path.join(os.tmpdir(), `gofer-migrate-test-${Date.now()}`);
+    workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'gofer-migrate-test-'));
     await fs.mkdir(path.join(workspaceRoot, '.specify', 'memory'), { recursive: true });
     manager = new MemoryManager(mockContext, workspaceRoot);
   });
@@ -120,9 +120,9 @@ describe('Migration Integration: migrateToLayered()', () => {
     await manager.initializeStorage();
 
     // Save memory with layers already
-    const extractor = await import(
-      '../../../extension/src/autonomous/memory/LLMExtractor'
-    ).then((m) => new m.LLMExtractor());
+    const extractor = await import('../../../extension/src/autonomous/memory/LLMExtractor').then(
+      (m) => new m.LLMExtractor()
+    );
     const layers = await extractor.generateLayers('Already layered content.');
     await manager.save({
       category: 'test',

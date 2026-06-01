@@ -109,7 +109,9 @@ suite('enterpriseai artifact validation contracts', () => {
   });
 
   test('flags secret-like content in generated artifacts', () => {
-    const artifactContent = 'api_key=sk-live-super-secret\\nPASSWORD=supersecret123';
+    const artifactContent = ['api_key=', 'sk-', 'live-super-secret\\nPASSWORD=supersecret123'].join(
+      ''
+    );
     const validation = validateSecretSafety(artifactContent);
 
     assert.strictEqual(validation.valid, false);

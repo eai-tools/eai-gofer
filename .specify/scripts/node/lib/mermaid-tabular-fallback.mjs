@@ -260,5 +260,5 @@ function renderC4(source) {
 }
 
 function escapeCell(value) {
-  return String(value).replace(/\|/g, '\\|');
+  return String(value).replace(/\\/g, '\\\\').replace(/\|/g, '\\|');
 }

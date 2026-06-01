@@ -95,8 +95,8 @@ Configuration via `.env` file (never commit to Git):
 
 ```bash
 # Optional CLI auth fallback. Prefer provider CLI login state where possible.
-ANTHROPIC_API_KEY=OPENAI_API_KEY_REDACTED
-OPENAI_API_KEY=sk-your-key-here
+ANTHROPIC_API_KEY=<anthropic-api-key>
+OPENAI_API_KEY=<openai-api-key>
 
 # Logging
 LOG_LEVEL=info

@@ -7,6 +7,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as os from 'os';
 import { ResearchChunker, ResearchIndex } from '../../../extension/src/autonomous/ResearchChunker';
 
 // Mock the Logger
@@ -22,12 +23,14 @@ vi.mock('../../../extension/src/utils/logger', () => ({
 }));
 
 describe('ResearchChunker', () => {
-  const testWorkspace = '/tmp/test-workspace';
-  const specsDir = path.join(testWorkspace, '.specify/specs');
+  let testWorkspace: string;
+  let specsDir: string;
   let chunker: ResearchChunker;
 
   beforeEach(async () => {
     // Create test directory structure
+    testWorkspace = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'gofer-research-workspace-'));
+    specsDir = path.join(testWorkspace, '.specify/specs');
     await fs.promises.mkdir(specsDir, { recursive: true });
     chunker = new ResearchChunker(testWorkspace);
   });

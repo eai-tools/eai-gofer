@@ -23,6 +23,10 @@ function runProviderFixtureTest(name: string, fn: () => Promise<void> | void): v
 }
 
 const fixtureCredential = (...parts: string[]): string => parts.join('');
+const fixtureJwtHeader = (): string =>
+  fixtureCredential('ey', 'JhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9');
+const fixtureAwsSecret = (): string =>
+  fixtureCredential('wJalrXUtnFEMI/', 'K7MDENG/bPxRfiCYEXAMPLEKEY');
 
 describe('ProviderFactory Security (US-4)', () => {
   let factory: ProviderFactory;
@@ -103,10 +107,12 @@ describe('ProviderFactory Security (US-4)', () => {
 
     it('should redact various credential patterns', async () => {
       const githubToken = fixtureCredential('ghp_', '1234567890abcdefghijklmnopqrstuvwxyz');
+      const jwtHeader = fixtureJwtHeader();
+      const awsSecret = fixtureAwsSecret();
       const historyWithMultipleCredentials = [
         {
           role: 'user' as const,
-          content: 'Bearer token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9',
+          content: `Bearer token: ${jwtHeader}`,
         },
         {
           role: 'user' as const,
@@ -114,7 +120,7 @@ describe('ProviderFactory Security (US-4)', () => {
         },
         {
           role: 'user' as const,
-          content: 'AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
+          content: `AWS_SECRET_ACCESS_KEY=${awsSecret}`,
         },
         {
           role: 'user' as const,
@@ -152,13 +158,13 @@ describe('ProviderFactory Security (US-4)', () => {
       if (transferredHistory) {
         for (const message of transferredHistory) {
           // JWT tokens should be redacted
-          expect(message.content).not.toContain('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9');
+          expect(message.content).not.toContain(jwtHeader);
 
           // Passwords should be redacted
           expect(message.content).not.toContain('MySecretPass123!');
 
           // AWS keys should be redacted
-          expect(message.content).not.toContain('wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY');
+          expect(message.content).not.toContain(awsSecret);
 
           // GitHub tokens should be redacted
           expect(message.content).not.toContain(githubToken);

@@ -16,6 +16,18 @@ import {
 } from '../../../../extension/src/council/providers/CredentialRedactor';
 
 const fixtureCredential = (...parts: string[]): string => parts.join('');
+const fixtureJwt = (signature = 'signature'): string =>
+  fixtureCredential(
+    'ey',
+    'JhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9',
+    '.',
+    'ey',
+    'JzdWIiOiIxMjM0NTY3ODkwIn0',
+    '.',
+    signature
+  );
+const fixtureAwsSecret = (): string =>
+  fixtureCredential('wJalrXUtnFEMI/', 'K7MDENG/bPxRfiCYEXAMPLEKEY');
 
 describe('CredentialRedactor (T068)', () => {
   describe('redactCredentials', () => {
@@ -65,31 +77,32 @@ describe('CredentialRedactor (T068)', () => {
     });
 
     it('should redact JWT tokens', () => {
+      const jwt = fixtureJwt();
       const history: ConversationMessage[] = [
         {
           role: 'user',
-          content:
-            'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.signature',
+          content: `Bearer ${jwt}`,
         },
       ];
 
       const redacted = redactCredentials(history);
 
-      expect(redacted[0].content).not.toContain('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9');
+      expect(redacted[0].content).not.toContain(jwt);
       expect(redacted[0].content).toContain('[REDACTED:JWT token]');
     });
 
     it('should redact AWS credentials', () => {
+      const awsSecret = fixtureAwsSecret();
       const history: ConversationMessage[] = [
         {
           role: 'user',
-          content: 'AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY',
+          content: `AWS_SECRET_ACCESS_KEY=${awsSecret}`,
         },
       ];
 
       const redacted = redactCredentials(history);
 
-      expect(redacted[0].content).not.toContain('wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY');
+      expect(redacted[0].content).not.toContain(awsSecret);
       expect(redacted[0].content).toContain('[REDACTED');
     });
 
@@ -216,11 +229,8 @@ describe('CredentialRedactor (T068)', () => {
     });
 
     it('should detect JWT tokens', () => {
-      expect(
-        containsCredentials(
-          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
-        )
-      ).toBe(true);
+      const signature = fixtureCredential('SflKxwRJSMeKKF2QT4fwpMeJf36', 'POk6yJV_adQssw5c');
+      expect(containsCredentials(fixtureJwt(signature))).toBe(true);
     });
 
     it('should detect environment variables with secrets', () => {

@@ -1,4 +1,3 @@
-import Anthropic from '@anthropic-ai/sdk';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
@@ -16,48 +15,36 @@ export interface ValidationResult {
   message?: string;
 }
 
+const SECRET_PATTERNS = [
+  {
+    pattern: /(?:API_KEY|APIKEY|SECRET_KEY|SECRET|TOKEN)\s*[=:]\s*["']?([a-zA-Z0-9_-]{12,})["']?/gi,
+    description: 'Possible hard-coded credential',
+  },
+  {
+    pattern: /sk-[a-zA-Z0-9_-]{16,}/g,
+    description: 'Possible model provider API key',
+  },
+];
+
 export class ValidationService {
-  private anthropic: Anthropic;
-  private workspaceRoot: string;
+  constructor(private readonly workspaceRoot: string) {}
 
-  constructor(apiKey: string, workspaceRoot: string) {
-    this.anthropic = new Anthropic({ apiKey });
-    this.workspaceRoot = workspaceRoot;
-  }
-
-  async validateWithCouncil(
-    filePath: string,
-    useCouncil: boolean = true
-  ): Promise<ValidationResult> {
+  async validateFile(filePath: string): Promise<ValidationResult> {
     try {
       const fileContent = await fs.readFile(filePath, 'utf-8');
       const constitution = await this.loadConstitution();
+      const issues = this.validateContent(fileContent, filePath, constitution);
+      const criticalIssues = issues.filter((issue) => issue.severity === 'critical');
 
-      // Core validation (Chairman)
-      const chairmanResult = await this.validateAsRole(
-        'Senior Architect',
-        constitution,
-        fileContent,
-        filePath
-      );
-
-      if (!useCouncil || !chairmanResult.isValid) {
-        return chairmanResult;
-      }
-
-      // Peer Review (Security)
-      const securityResult = await this.validateAsRole(
-        'Security Specialist',
-        constitution,
-        fileContent,
-        filePath
-      );
-
-      // Peer Review (QA)
-      const qaResult = await this.validateAsRole('QA Lead', constitution, fileContent, filePath);
-
-      // Synthesize
-      return this.synthesizeResults([chairmanResult, securityResult, qaResult]);
+      return {
+        isValid: criticalIssues.length === 0,
+        issues,
+        suggestions: this.buildSuggestions(issues),
+        message:
+          criticalIssues.length === 0
+            ? 'Static validation passed'
+            : `Static validation found ${criticalIssues.length} critical issue(s)`,
+      };
     } catch (error) {
       return {
         isValid: false,
@@ -75,108 +62,110 @@ export class ValidationService {
 
   private async loadConstitution(): Promise<string> {
     try {
-      const p = path.join(this.workspaceRoot, '.specify', 'memory', 'constitution.md');
-      return await fs.readFile(p, 'utf-8');
+      const constitutionPath = path.join(
+        this.workspaceRoot,
+        '.specify',
+        'memory',
+        'constitution.md'
+      );
+      return await fs.readFile(constitutionPath, 'utf-8');
     } catch {
-      return `
-# Constitution
-
-- No mocking allowed.
-- TypeScript strict mode required.
-- No 'any' type.
-      `;
+      return [
+        '# Constitution',
+        '',
+        '- TypeScript strict mode required.',
+        '- Avoid unsafe `any` usage.',
+        '- Do not hard-code secrets.',
+      ].join('\n');
     }
   }
 
-  private async validateAsRole(
-    role: string,
-    constitution: string,
-    code: string,
-    filePath: string
-  ): Promise<ValidationResult> {
-    const prompt = `
-      You are a ${role} in the "Council" of automated code reviewers.
-      Your job is to strictly validate the following code file against our Constitution.
-      
-      FILE: ${filePath}
-      
-      CONSTITUTION:
-      ${constitution}
-      
-      CODE:
-      ${code}
-      
-      Respond only with a JSON object in this format:
-      {
-        "isValid": boolean,
-        "issues": [ { "severity": "critical|warning", "category": "string", "description": "string", "location": "string" } ],
-        "suggestions": ["string"]
-      }
-    `;
+  private validateContent(
+    content: string,
+    filePath: string,
+    constitution: string
+  ): ValidationIssue[] {
+    const issues: ValidationIssue[] = [];
 
-    try {
-      const response = await this.anthropic.messages.create({
-        model: 'claude-3-5-sonnet-20241022',
-        max_tokens: 4000,
-        messages: [{ role: 'user', content: prompt }],
+    if (content.trim().length === 0) {
+      issues.push({
+        severity: 'critical',
+        category: 'Content',
+        description: 'File is empty',
       });
+    }
 
-      const content = response.content[0].type === 'text' ? response.content[0].text : '';
-      // Extract JSON
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        return JSON.parse(jsonMatch[0]) as ValidationResult;
+    this.findSecrets(content, issues);
+
+    if (/\bany\b/.test(content) && /no ['`]?any['`]? type|avoid unsafe `any`/i.test(constitution)) {
+      issues.push({
+        severity: 'warning',
+        category: 'Type Safety',
+        description: 'File contains `any`; verify this is necessary and constrained.',
+      });
+    }
+
+    if (filePath.endsWith('.ts') || filePath.endsWith('.tsx')) {
+      this.validateTypeScript(content, issues);
+    }
+
+    return issues;
+  }
+
+  private findSecrets(content: string, issues: ValidationIssue[]): void {
+    for (const { pattern, description } of SECRET_PATTERNS) {
+      pattern.lastIndex = 0;
+      let match: RegExpExecArray | null;
+      while ((match = pattern.exec(content)) !== null) {
+        issues.push({
+          severity: 'critical',
+          category: 'Security',
+          description,
+          location: `L${this.lineForIndex(content, match.index)}`,
+        });
       }
-      return {
-        isValid: false,
-        issues: [
-          {
-            severity: 'critical',
-            category: 'Parsing',
-            description: 'Failed to parse validation response',
-          },
-        ],
-        suggestions: [],
-      };
-    } catch (e) {
-      return {
-        isValid: false,
-        issues: [
-          {
-            severity: 'critical',
-            category: 'System',
-            description: 'Validation failed: ' + (e as Error).message,
-          },
-        ],
-        suggestions: [],
-      };
     }
   }
 
-  private synthesizeResults(results: ValidationResult[]): ValidationResult {
-    const allIssues = results.flatMap((r) => r.issues);
+  private validateTypeScript(content: string, issues: ValidationIssue[]): void {
+    if (content.includes('console.log(')) {
+      issues.push({
+        severity: 'info',
+        category: 'Maintainability',
+        description: 'File contains console.log; ensure this is intentional.',
+      });
+    }
 
-    // Deduplicate issues by description
-    const seen = new Set();
-    const uniqueIssues = allIssues.filter((i) => {
-      const key = `${i.category}:${i.description}`;
-      if (seen.has(key)) {
-        return false;
+    if (content.includes('TODO') || content.includes('FIXME')) {
+      issues.push({
+        severity: 'info',
+        category: 'Completeness',
+        description: 'File contains TODO/FIXME markers.',
+      });
+    }
+  }
+
+  private buildSuggestions(issues: ValidationIssue[]): string[] {
+    const suggestions = new Set<string>();
+
+    for (const issue of issues) {
+      if (issue.category === 'Security') {
+        suggestions.add(
+          'Move secrets to environment variables, secret stores, or CLI login state.'
+        );
       }
-      seen.add(key);
-      return true;
-    });
+      if (issue.category === 'Type Safety') {
+        suggestions.add('Replace `any` with a specific type or a narrow unknown guard.');
+      }
+      if (issue.category === 'Content') {
+        suggestions.add('Add implementation content or remove the empty file.');
+      }
+    }
 
-    const criticalIssues = uniqueIssues.filter((i) => i.severity === 'critical');
-    const isValid = criticalIssues.length === 0;
+    return Array.from(suggestions);
+  }
 
-    return {
-      isValid,
-      issues: uniqueIssues,
-      suggestions: [...new Set(results.flatMap((r) => r.suggestions))],
-      message: isValid
-        ? 'Approved by Council'
-        : `Rejected by Council (${criticalIssues.length} critical issues)`,
-    };
+  private lineForIndex(content: string, index: number): number {
+    return content.slice(0, index).split('\n').length;
   }
 }

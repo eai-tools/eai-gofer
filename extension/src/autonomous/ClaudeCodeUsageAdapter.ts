@@ -14,6 +14,7 @@ import * as path from 'path';
 import * as os from 'os';
 import { calculateCost } from '../config/pricing';
 import { Logger } from '../utils/logger';
+import type { UsageSummary } from '../types/aiUsage';
 
 export interface ConversationUsage {
   conversationId: string;
@@ -108,16 +109,12 @@ export class ClaudeCodeUsageAdapter {
   async getCurrentUser(): Promise<string | null> {
     try {
       const settingsPath = path.join(this.claudeDir, 'settings.json');
-
-      try {
-        await fs.promises.access(settingsPath);
-      } catch {
-        return null;
-      }
-
       const settings = JSON.parse(await fs.promises.readFile(settingsPath, 'utf-8'));
       return settings.email || settings.user || null;
-    } catch (_error) {
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        return null;
+      }
       this.logger.warn('Failed to read user from settings');
       return null;
     }
@@ -126,7 +123,9 @@ export class ClaudeCodeUsageAdapter {
   /**
    * Detect provider from conversation metadata.
    */
-  private detectProvider(entry: ConversationMetadata): 'claude-code' | 'codex' | 'copilot' | 'unknown' {
+  private detectProvider(
+    entry: ConversationMetadata
+  ): 'claude-code' | 'codex' | 'copilot' | 'unknown' {
     // Check version field for Claude Code
     if (entry.version && entry.version.includes('claude')) {
       return 'claude-code';
@@ -184,15 +183,23 @@ export class ClaudeCodeUsageAdapter {
           }
 
           // Skip non-assistant entries (no usage data)
-          if (entry.type !== 'assistant') {continue;}
+          if (entry.type !== 'assistant') {
+            continue;
+          }
 
           // Skip entries without usage data (usage is at entry.message.usage in Claude Code format)
-          if (!entry.message?.usage) {continue;}
+          if (!entry.message?.usage) {
+            continue;
+          }
 
           // Parse timestamp
           const timestamp = new Date(entry.timestamp);
-          if (fromDate && timestamp < fromDate) {continue;}
-          if (toDate && timestamp > toDate) {continue;}
+          if (fromDate && timestamp < fromDate) {
+            continue;
+          }
+          if (toDate && timestamp > toDate) {
+            continue;
+          }
 
           // Extract token usage from entry.message.usage (Claude Code format)
           const usage = entry.message.usage;
@@ -206,16 +213,10 @@ export class ClaudeCodeUsageAdapter {
           const model = entry.message?.model || 'unknown';
 
           // Calculate cost using detected provider and model (Bug #2 fix)
-          const cost = calculateCost(
-            inputTokens,
-            outputTokens,
-            provider,
-            model,
-            {
-              cacheWriteTokens: cacheCreationTokens,
-              cacheReadTokens,
-            }
-          );
+          const cost = calculateCost(inputTokens, outputTokens, provider, model, {
+            cacheWriteTokens: cacheCreationTokens,
+            cacheReadTokens,
+          });
 
           usageEntries.push({
             conversationId,
@@ -231,7 +232,7 @@ export class ClaudeCodeUsageAdapter {
             provider,
             model,
           });
-          } catch (_err) {
+        } catch (_err) {
           // Skip malformed lines
           continue;
         }
@@ -410,104 +411,47 @@ export class ClaudeCodeUsageAdapter {
   }
 
   /**
-   * Convert usage to council-usage.jsonl format and write.
-   *
-   * This syncs discovered usage to the council log for display in the AI Usage panel.
+   * Return an aggregate summary for AIUsageMonitor without writing repo files.
    */
-  async syncToCouncilLog(): Promise<number> {
-    try {
-      const councilLogPath = path.join(
-        this.workspacePath,
-        '.specify',
-        'logs',
-        'council-usage.jsonl'
-      );
+  async getUsageSummary(fromDate?: Date, toDate?: Date): Promise<UsageSummary> {
+    const usage = await this.getWorkspaceUsage(fromDate, toDate);
+    const byProvider: UsageSummary['byProvider'] = {};
+    const sessions = new Set<string>();
 
-      // Get workspace usage from last 7 days
-      const weekAgo = new Date();
-      weekAgo.setDate(weekAgo.getDate() - 7);
+    for (const entry of usage) {
+      sessions.add(entry.sessionId);
+      const existing = byProvider[entry.provider] ?? {
+        requests: 0,
+        tokens: 0,
+        costUsd: 0,
+        inputTokens: 0,
+        outputTokens: 0,
+        cacheReadTokens: 0,
+        cacheWriteTokens: 0,
+        cachedInputTokens: 0,
+      };
 
-      const usage = await this.getWorkspaceUsage(weekAgo);
-
-      if (usage.length === 0) {
-        this.logger.info('No usage data found to sync');
-        return 0;
-      }
-
-      // Create directory if needed
-      const councilDir = path.dirname(councilLogPath);
-      try {
-        await fs.promises.access(councilDir);
-      } catch {
-        await fs.promises.mkdir(councilDir, { recursive: true });
-      }
-
-      // Read existing entries to avoid duplicates
-      const existingConversationIds = new Set<string>();
-      try {
-        await fs.promises.access(councilLogPath);
-        const existing = await fs.promises.readFile(councilLogPath, 'utf-8');
-        for (const line of existing.trim().split('\n').filter(Boolean)) {
-          try {
-            const entry = JSON.parse(line);
-            // Use conversationId + timestamp as unique key
-            if (entry.conversationId && entry.timestamp) {
-              existingConversationIds.add(`${entry.conversationId}:${entry.timestamp}`);
-            }
-          } catch {
-            // Skip malformed lines
-          }
-        }
-      } catch {
-        // File doesn't exist yet, that's OK
-      }
-
-      let entriesAdded = 0;
-      const entriesToAppend: string[] = [];
-
-      // Collect new entries
-      for (const entry of usage) {
-        const key = `${entry.conversationId}:${entry.timestamp}`;
-        if (existingConversationIds.has(key)) {continue;}
-
-        // Format as UsageLogEntry for compatibility with UsageLogger
-        const councilEntry = {
-          timestamp: entry.timestamp,
-          sessionId: entry.sessionId,
-          conversationId: entry.conversationId,
-          stage: `auto-discovered-${entry.provider}`,
-          councilMode: false,
-          inputTokens: entry.inputTokens,
-          outputTokens: entry.outputTokens,
-          estimatedCostUsd: entry.costUsd,
-          durationMs: 0,
-          providerCount: 1,
-          providers: {
-            anthropic: {
-              tokens: entry.totalTokens,
-              costUsd: entry.costUsd,
-            },
-          },
-        };
-
-        entriesToAppend.push(JSON.stringify(councilEntry) + '\n');
-        entriesAdded++;
-      }
-
-      // Write all new entries in one operation
-      if (entriesToAppend.length > 0) {
-        await fs.promises.appendFile(councilLogPath, entriesToAppend.join(''), 'utf-8');
-      }
-
-      this.logger.info('Synced usage to council log', { entriesAdded });
-      return entriesAdded;
-    } catch (error) {
-      this.logger.error(
-        'Failed to sync to council log',
-        error instanceof Error ? error : new Error(String(error))
-      );
-      return 0;
+      existing.requests += 1;
+      existing.tokens += entry.totalTokens;
+      existing.costUsd += entry.costUsd;
+      existing.inputTokens = (existing.inputTokens ?? 0) + entry.inputTokens;
+      existing.outputTokens = (existing.outputTokens ?? 0) + entry.outputTokens;
+      existing.cacheReadTokens = (existing.cacheReadTokens ?? 0) + entry.cacheReadTokens;
+      existing.cacheWriteTokens = (existing.cacheWriteTokens ?? 0) + entry.cacheCreationTokens;
+      existing.cachedInputTokens = (existing.cachedInputTokens ?? 0) + entry.cacheReadTokens;
+      byProvider[entry.provider] = existing;
     }
+
+    return {
+      totalSessions: sessions.size,
+      totalCostUsd: usage.reduce((sum, entry) => sum + entry.costUsd, 0),
+      totalInputTokens: usage.reduce((sum, entry) => sum + entry.inputTokens, 0),
+      totalOutputTokens: usage.reduce((sum, entry) => sum + entry.outputTokens, 0),
+      totalCachedInputTokens: usage.reduce((sum, entry) => sum + entry.cacheReadTokens, 0),
+      totalCacheReadTokens: usage.reduce((sum, entry) => sum + entry.cacheReadTokens, 0),
+      totalCacheWriteTokens: usage.reduce((sum, entry) => sum + entry.cacheCreationTokens, 0),
+      byProvider,
+    };
   }
 }
 

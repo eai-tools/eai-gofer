@@ -67,8 +67,8 @@ suite('enterpriseai non-eai routing regression (extension integration)', () => {
     const standardCodex = await router.routeCommand('0_business_scenario', 'codex', 'standard');
     const standardCopilot = await router.routeCommand('0_business_scenario', 'copilot', 'standard');
 
-    assert.strictEqual(normalizeWorkflowProfile(undefined), 'enterpriseai');
-    assert.strictEqual(normalizeWorkflowProfile('unexpected-value'), 'enterpriseai');
+    assert.strictEqual(normalizeWorkflowProfile(undefined), 'standard');
+    assert.strictEqual(normalizeWorkflowProfile('unexpected-value'), 'standard');
 
     assert.strictEqual(standardClaude.syntax, '/0_business_scenario');
     assert.strictEqual(standardCodex.syntax, '$ $0_business_scenario');

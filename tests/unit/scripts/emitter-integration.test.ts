@@ -392,7 +392,7 @@ describe('generate-commands emitters (integration)', () => {
       expect(content).toContain('name: 1_gofer_research');
       expect(content).toContain('agent: copilot-workspace');
       expect(content).toContain('gofer:');
-      expect(content).toContain('workflowProfile: enterpriseai');
+      expect(content).toContain('workflowProfile: standard');
       expect(content).toContain('canonicalSource: .specify/commands/1_gofer_research.md');
     });
   });
@@ -419,7 +419,7 @@ describe('generate-commands emitters (integration)', () => {
       expect(content).toContain('name: 1_gofer_research');
       expect(content).toContain('agent: copilot-workspace');
       expect(content).toContain('gofer:');
-      expect(content).toContain('workflowProfile: enterpriseai');
+      expect(content).toContain('workflowProfile: standard');
       expect(content).toContain('canonicalSource: .specify/commands/1_gofer_research.md');
     });
   });

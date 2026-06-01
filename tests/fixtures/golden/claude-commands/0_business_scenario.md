@@ -877,15 +877,15 @@ If context window is filling up:
 
 ## EnterpriseAI Profile Extensions
 
-EnterpriseAI is the default Gofer workflow profile. Use the standard workflow
-only when the user explicitly asks to opt out with wording such as "standard",
-"non-EAI", or "do not use EnterpriseAI". The sections below add EnterpriseAI
-guardrails on top of the standard orchestrator; explicit standard-profile
-outputs remain unchanged.
+The standard Gofer workflow is the public default. EnterpriseAI guidance is a
+legacy compatibility profile and must be used only when `workflowProfile` is
+explicitly set to `enterpriseai` or the user asks for that migration path. The
+sections below add EnterpriseAI guardrails on top of the standard orchestrator;
+standard-profile outputs remain unchanged.
 
 ### EnterpriseAI-First Discovery Framing (MANDATORY)
 
-When the workflow profile is `enterpriseai` or no profile is specified:
+When the workflow profile is explicitly `enterpriseai`:
 
 - Frame every discovery option as an EnterpriseAI platform delivery outcome.
 - Do **not** present non-EAI platforms as primary recommendations.

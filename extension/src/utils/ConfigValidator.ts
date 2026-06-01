@@ -79,7 +79,6 @@ export class ConfigValidator {
 
     // Additional custom validations
     this.validateThresholdOrdering(configObject, result);
-    this.validateApiKeys(configObject, result);
 
     return result;
   }
@@ -92,7 +91,11 @@ export class ConfigValidator {
    * @param defaultValue - Fallback value if invalid
    * @returns Validated value or default
    */
-  public getValidatedValue<T>(config: vscode.WorkspaceConfiguration, key: string, defaultValue: T): T {
+  public getValidatedValue<T>(
+    config: vscode.WorkspaceConfiguration,
+    key: string,
+    defaultValue: T
+  ): T {
     const value = config.get<T>(key);
 
     if (value === undefined) {
@@ -176,7 +179,10 @@ export class ConfigValidator {
    * @param config - Configuration object
    * @param result - Validation result to update
    */
-  private validateThresholdOrdering(config: Record<string, unknown>, result: ValidationResult): void {
+  private validateThresholdOrdering(
+    config: Record<string, unknown>,
+    result: ValidationResult
+  ): void {
     const gofer = config.gofer as Record<string, unknown> | undefined;
     const context = gofer?.context as Record<string, unknown> | undefined;
 
@@ -204,39 +210,6 @@ export class ConfigValidator {
   }
 
   /**
-   * Validate API keys (warn if missing when council mode enabled)
-   *
-   * @param config - Configuration object
-   * @param result - Validation result to update
-   */
-  private validateApiKeys(config: Record<string, unknown>, result: ValidationResult): void {
-    const gofer = config.gofer as Record<string, unknown> | undefined;
-    const council = gofer?.council as Record<string, unknown> | undefined;
-
-    if (!gofer || !council) {
-      return;
-    }
-
-    const councilEnabled = council.enabled as boolean | undefined;
-
-    if (councilEnabled) {
-      const hasAnthropicKey = !!gofer.anthropicApiKey;
-      const hasGoogleKey = !!gofer.googleApiKey;
-      const hasXaiKey = !!gofer.xaiApiKey;
-      const hasOpenaiKey = !!gofer.openaiApiKey;
-
-      const keyCount = [hasAnthropicKey, hasGoogleKey, hasXaiKey, hasOpenaiKey].filter(Boolean)
-        .length;
-
-      if (keyCount < 2) {
-        result.warnings.push(
-          'Council mode enabled but fewer than 2 API keys configured. Configure multiple providers for best results.'
-        );
-      }
-    }
-  }
-
-  /**
    * Log validation results
    *
    * @param result - Validation result
@@ -255,14 +228,10 @@ export class ConfigValidator {
     }
 
     if (!result.valid) {
-      this.logger.error(
-        'ConfigValidator',
-        new Error('Configuration validation failed'),
-        {
-          context,
-          errors: result.errors,
-        }
-      );
+      this.logger.error('ConfigValidator', new Error('Configuration validation failed'), {
+        context,
+        errors: result.errors,
+      });
     }
   }
 

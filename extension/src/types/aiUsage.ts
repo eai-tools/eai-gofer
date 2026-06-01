@@ -8,7 +8,6 @@
 
 import * as vscode from 'vscode';
 import type { ConversationUsage } from '../autonomous/ClaudeCodeUsageAdapter';
-import type { UsageSummary } from '../council/UsageLogger';
 
 /**
  * Supported AI provider identifiers
@@ -60,7 +59,7 @@ export interface AIUsageData {
   /** Active session ID (only for 'current' period) */
   sessionId?: string;
   /** Error state for this period's data */
-  error?: 'admin_key_required' | 'not_configured' | 'api_not_available' | 'api_error';
+  error?: 'not_configured' | 'api_not_available' | 'api_error';
   /** Detailed error message for display */
   errorMessage?: string;
   /** Unix timestamp (ms) of last successful data fetch */
@@ -105,18 +104,39 @@ export class AIUsageItem extends vscode.TreeItem {
 }
 
 /**
- * Abstraction for usage data sources (file-based or API-based).
- * Implemented by UsageLogger (local JSONL) and UsageApiClient (provider APIs).
+ * Provider-level usage totals used by AIUsageMonitor data sources.
+ */
+export interface UsageProviderSummary {
+  requests: number;
+  tokens: number;
+  costUsd: number;
+  inputTokens?: number;
+  outputTokens?: number;
+  cachedInputTokens?: number;
+  cacheReadTokens?: number;
+  cacheWriteTokens?: number;
+}
+
+/**
+ * Aggregated usage summary across one or more local CLI data sources.
+ */
+export interface UsageSummary {
+  totalSessions: number;
+  totalCostUsd: number;
+  totalInputTokens: number;
+  totalOutputTokens: number;
+  totalCachedInputTokens: number;
+  totalCacheReadTokens: number;
+  totalCacheWriteTokens: number;
+  byProvider: Record<string, UsageProviderSummary>;
+}
+
+/**
+ * Abstraction for local CLI usage data sources.
  */
 export interface UsageDataSource {
   getUsageSummary(fromDate?: Date, toDate?: Date): Promise<UsageSummary>;
 }
-
-/**
- * Re-export UsageSummary type for consumers that import from this module.
- * The canonical definition lives in council/UsageLogger.ts.
- */
-export type { UsageSummary };
 
 /**
  * Pricing configuration per provider

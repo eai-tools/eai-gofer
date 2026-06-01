@@ -255,6 +255,23 @@ jobs:
             coverage/
           retention-days: 7
 
+  # Required branch-protection aggregate for the matrix above.
+  build-test-required:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: test
+    if: always()
+
+    steps:
+      - name: Verify Build & Test Matrix
+        run: |
+          if [ "${{ needs.test.result }}" != "success" ]; then
+            echo "Build & Test matrix result: ${{ needs.test.result }}"
+            exit 1
+          fi
+          echo "Build & Test matrix passed"
+
   # Job 2: E2E Tests
   e2e-tests:
     name: E2E Tests

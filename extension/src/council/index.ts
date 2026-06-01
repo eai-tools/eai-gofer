@@ -1,23 +1,9 @@
 /**
- * LLM Council Integration Module
- *
- * Enables multi-provider parallel execution across AI providers (Anthropic, Google, OpenAI)
- * with the requesting LLM acting as Chairman to synthesize diverse perspectives.
- *
- * @see .specify/specs/009-llm-council-integration/
+ * CLI command routing and provider module.
  */
 
 // Type definitions
 export * from './types';
-
-// Configuration
-export {
-  ConfigLoader,
-  getConfigLoader,
-  resetConfigLoader,
-  parseYamlConfig,
-  validateConfig,
-} from './ConfigLoader';
 
 // Providers
 export {

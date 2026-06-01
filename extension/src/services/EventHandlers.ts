@@ -10,7 +10,6 @@
 import { injectable } from 'tsyringe';
 import * as vscode from 'vscode';
 import { Logger } from './Logger';
-import { ConfigManager } from '../config';
 import type { ProgressProvider } from '../progressProvider';
 import type { MemoryProvider } from '../memoryProvider';
 import type { BranchSpecManager } from '../branchSpecManager';
@@ -120,7 +119,9 @@ export class EventHandlers {
       let branchChangeTimer: ReturnType<typeof setTimeout> | null = null;
 
       const disposable = repo.state.onDidChange(() => {
-        if (branchChangeTimer) {return;} // Already scheduled
+        if (branchChangeTimer) {
+          return;
+        } // Already scheduled
 
         branchChangeTimer = setTimeout(() => {
           branchChangeTimer = null;
@@ -224,7 +225,9 @@ export class EventHandlers {
    * Reload observation preserve patterns from config
    */
   private reloadObservationPatterns(deps: EventHandlerDependencies): void {
-    if (!deps.sharedContextBuilder) {return;}
+    if (!deps.sharedContextBuilder) {
+      return;
+    }
 
     const newPatterns = vscode.workspace
       .getConfiguration('gofer')
@@ -254,7 +257,9 @@ export class EventHandlers {
    * Reload layered memory setting from config
    */
   private reloadLayeredMemorySetting(deps: EventHandlerDependencies): void {
-    if (!deps.sharedContextBuilder) {return;}
+    if (!deps.sharedContextBuilder) {
+      return;
+    }
 
     const useLayered = vscode.workspace
       .getConfiguration('gofer')
@@ -274,7 +279,9 @@ export class EventHandlers {
    * Reload staleness threshold from config
    */
   private reloadStalenessThreshold(deps: EventHandlerDependencies): void {
-    if (!deps.workspaceContextProvider) {return;}
+    if (!deps.workspaceContextProvider) {
+      return;
+    }
 
     const newMinutes = vscode.workspace
       .getConfiguration('gofer')
@@ -316,18 +323,11 @@ export class EventHandlers {
   }
 
   /**
-   * Register document save listener for SlopReducer auto-fix
+   * Register document save listener for markdown memory-note sync.
    */
   private registerDocumentSaveListener(deps: EventHandlerDependencies): void {
-    // Dynamic import of SlopReducer to avoid circular dependencies
-    const { SlopReducer } = require('../autonomous/SlopReducer');
-    const slopReducer = new SlopReducer(deps.workspacePath);
-
     deps.context.subscriptions.push(
       vscode.workspace.onDidSaveTextDocument(async (doc) => {
-        const config = ConfigManager.getInstance();
-        config.refresh();
-
         try {
           const syncedMemory = await deps.memoryManager?.syncMarkdownNoteDocument(doc.uri.fsPath);
           if (syncedMemory) {
@@ -342,18 +342,10 @@ export class EventHandlers {
             `Failed to sync edited memory note: ${error instanceof Error ? error.message : String(error)}`
           );
         }
-
-        if (!config.getSlopReductionEnabled()) {return;}
-
-        const filePath = doc.uri.fsPath;
-        if (!slopReducer.isEligibleFile(filePath)) {return;}
-        if (slopReducer.isTestFile(filePath)) {return;}
-
-        slopReducer.reduceFile(filePath);
       })
     );
 
-    this.logger.debug('EventHandlers', 'Document save listener registered (SlopReducer)');
+    this.logger.debug('EventHandlers', 'Document save listener registered');
   }
 
   /**
@@ -371,7 +363,9 @@ export class EventHandlers {
 
     deps.hookBridgeWatcher.on('bridge-update', () => {
       const violations = scopeGuard.getViolations();
-      if (violations.length === 0) {return;}
+      if (violations.length === 0) {
+        return;
+      }
 
       const diagMap = new Map<string, vscode.Diagnostic[]>();
 

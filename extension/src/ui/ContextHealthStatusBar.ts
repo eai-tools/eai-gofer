@@ -366,18 +366,11 @@ export class ContextHealthStatusBar implements vscode.Disposable {
 
     // No real session: show a simple message, not a full breakdown
     if (status.dataSource !== 'real') {
-      const config = vscode.workspace.getConfiguration('gofer');
-      const mode = config.get<string>('claudeCodeMode', 'standard');
-      const modeLabel = mode === 'yolo' ? 'Yolo' : mode === 'custom' ? 'Custom' : 'Standard';
       const items: Array<vscode.QuickPickItem & { action?: string }> = [
         {
           label: '$(info) No active Claude Code session',
-          detail: 'Start a Claude Code session to see real context usage from API token data.',
-        },
-        {
-          label: `$(play) Start Claude Code (${modeLabel})`,
-          description: mode === 'yolo' ? 'Skips permission prompts' : 'Open a terminal and launch',
-          action: 'startClaude',
+          detail:
+            'Start Claude Code from your terminal or use Gofer autonomous execution from the spec command.',
         },
         {
           label: '$(refresh) Refresh Status',
@@ -754,118 +747,7 @@ export class ContextHealthStatusBar implements vscode.Disposable {
       case 'history':
         await this.showStatusHistory();
         break;
-
-      case 'startClaude':
-        await this.launchClaudeCodeTerminal();
-        break;
     }
-  }
-
-  /**
-   * Launch Claude Code in a new terminal using the configured command.
-   * Ensures hooks are installed before launching.
-   */
-  private async launchClaudeCodeTerminal(): Promise<void> {
-    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-    if (!workspaceFolder) {
-      vscode.window.showWarningMessage('No workspace folder open.');
-      return;
-    }
-
-    // Ensure hooks are installed before launching
-    try {
-      const { GoferMigrator } = await import('../goferMigrator');
-      const migrator = new GoferMigrator(workspaceFolder.uri.fsPath);
-      await migrator.installHooksConfig();
-    } catch (error) {
-      console.warn('[ContextHealthStatusBar] Failed to install hooks before launch:', error);
-    }
-
-    const config = vscode.workspace.getConfiguration('gofer');
-    const mode = config.get<string>('claudeCodeMode', 'standard');
-    let claudeCmd: string;
-    switch (mode) {
-      case 'yolo':
-        claudeCmd = 'claude --dangerously-skip-permissions';
-        break;
-      case 'custom':
-        claudeCmd = config.get<string>('claudeCodeCommand', 'claude');
-        break;
-      default:
-        claudeCmd = 'claude';
-    }
-
-    const terminal = vscode.window.createTerminal({
-      name: 'Claude Code',
-      cwd: workspaceFolder.uri,
-    });
-    terminal.show();
-
-    // Build enriched context before launching (same pattern as PTY mode)
-    try {
-      const { getSharedContextBuilder } = await import('../autonomousCommands');
-      const contextBuilder = getSharedContextBuilder();
-      if (contextBuilder) {
-        const { ContextBridgeWriter } = await import('../autonomous/ContextBridgeWriter');
-        const bridgeWriter = new ContextBridgeWriter(contextBuilder, workspaceFolder.uri.fsPath);
-        await Promise.race([
-          bridgeWriter.writeEnrichedContext({
-            taskId: 'current',
-            specId: '',
-            description: 'Active session',
-          }),
-          new Promise<void>((resolve) => setTimeout(resolve, 500)),
-        ]);
-      }
-    } catch {
-      /* Non-fatal: launch proceeds without enrichment */
-    }
-
-    terminal.sendText(claudeCmd);
-    await vscode.commands.executeCommand('setContext', 'gofer.claudeCodeRunning', true);
-
-    // Wire terminal to AutoHandoffTrigger for save/clear/resume support
-    try {
-      const { wireClaudeTerminalToAutoHandoff } = await import('../autoHandoffBridge');
-      wireClaudeTerminalToAutoHandoff(terminal);
-    } catch {
-      // Non-fatal: auto-handoff bridge may not be available
-    }
-
-    // Clean up when terminal closes (outside try so context flag always clears)
-    const closeListener = vscode.window.onDidCloseTerminal(async (closedTerminal) => {
-      if (closedTerminal === terminal) {
-        try {
-          const { wireClaudeTerminalToAutoHandoff } = await import('../autoHandoffBridge');
-          wireClaudeTerminalToAutoHandoff(null);
-        } catch {
-          /* Non-fatal */
-        }
-
-        // Session-end cleanup: memory consolidation + KnowledgeGraph save
-        try {
-          const { getSharedMemoryManager, getSharedContextBuilder } = await import(
-            '../autonomousCommands'
-          );
-          const memoryManager = getSharedMemoryManager();
-          if (memoryManager) {
-            memoryManager.consolidate().catch(() => {});
-          }
-          const cb = getSharedContextBuilder();
-          if (cb) {
-            const graph = cb.getKnowledgeGraph();
-            if (graph) {
-              graph.save().catch(() => {});
-            }
-          }
-        } catch {
-          /* Non-fatal */
-        }
-
-        await vscode.commands.executeCommand('setContext', 'gofer.claudeCodeRunning', false);
-        closeListener.dispose();
-      }
-    });
   }
 
   /**

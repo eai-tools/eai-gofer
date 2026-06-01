@@ -3,7 +3,7 @@
  *
  * Tests complete auto-compaction workflow during autonomous execution:
  * - Spec with 100+ tasks running to completion
- * - Automatic compaction triggered at 80% threshold
+ * - Automatic handoff triggered at the configured context auto-save threshold
  * - Context reduction to ~40% while preserving recent work
  * - User notifications and UI updates
  *
@@ -13,8 +13,7 @@
  * To run: npm run test:e2e (requires proper VSCode test environment setup)
  */
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect } from 'vitest';
 
 /**
  * E2E Test Suite for Automatic Context Compaction
@@ -24,9 +23,9 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
  * 2. User starts autonomous execution
  * 3. AutonomousDriver executes tasks sequentially
  * 4. Context grows with each completed task
- * 5. At 80% threshold, auto-compaction triggers
- * 6. User sees notification: "Context compacted: X tasks summarized"
- * 7. Execution continues with reduced context
+ * 5. At the auto-save threshold, Gofer sends `/7_gofer_save`
+ * 6. If enabled, Gofer follows with `/8_gofer_resume`
+ * 7. Execution continues with a fresh context window
  * 8. Process repeats if needed for very large specs
  */
 describe('Auto-Compaction E2E Tests', () => {
@@ -39,8 +38,8 @@ describe('Auto-Compaction E2E Tests', () => {
       // 1. Create spec with 120 tasks in .specify/specs/test-large-spec/
       // 2. Start autonomous execution via command
       // 3. Monitor context usage during execution
-      // 4. Verify compaction triggers around task 60-70 (when context hits 80%)
-      // 5. Verify notification appears: "Context compacted: X tasks summarized"
+      // 4. Verify handoff triggers when context reaches the configured auto-save threshold
+      // 5. Verify notification/log entry appears for the save/resume handoff
       // 6. Verify execution continues after compaction
       // 7. Verify all 120 tasks complete successfully
       // 8. Verify final session has compaction history
@@ -166,21 +165,18 @@ describe('Auto-Compaction E2E Tests', () => {
   });
 
   describe('Threshold Configuration', () => {
-    it('should respect custom threshold from settings', async () => {
+    it('should trigger at the internal handoff threshold', async () => {
       // Test steps:
-      // 1. Set gofer.autonomous.compactionThreshold to 70
-      // 2. Start execution with large spec
-      // 3. Verify compaction triggers at 70% (earlier than default 80%)
-      // 4. Verify notification mentions correct threshold
+      // 1. Create a large spec
+      // 2. Start execution
+      // 3. Verify handoff triggers at the internal auto-save threshold
+      // 4. Verify notification mentions the handoff threshold
 
       // Implementation:
       /*
-      await vscode.workspace.getConfiguration('gofer.autonomous')
-        .update('compactionThreshold', 70, vscode.ConfigurationTarget.Workspace);
-
-      // Start execution and verify compaction at 70%
+      // Start execution and verify handoff around the internal threshold
       const session = await startExecutionAndWaitForCompaction('test-spec');
-      expect(session.compactionHistory[0].usageAtTrigger).toBeLessThan(75);
+      expect(session.handoffHistory[0].usageAtTrigger).toBeLessThan(0.75);
       */
 
       // Placeholder assertion

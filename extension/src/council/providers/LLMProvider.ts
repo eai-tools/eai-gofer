@@ -1,11 +1,7 @@
 /**
  * LLM Provider Interface
  *
- * Abstract interface for AI provider implementations. Each provider
- * (Anthropic, Google, OpenAI) implements this interface to enable
- * uniform querying in the council pattern.
- *
- * @see .specify/specs/009-llm-council-integration/contracts/llm-provider-api.md
+ * Abstract interface for CLI-backed AI provider implementations.
  */
 
 import {
@@ -52,7 +48,7 @@ export interface LLMProvider {
   query(request: QueryRequest): Promise<QueryResponse>;
 
   /**
-   * Validate API key and check provider availability
+   * Check provider availability
    * @returns true if provider is available
    */
   healthCheck(): Promise<boolean>;
@@ -92,7 +88,7 @@ export abstract class BaseLLMProvider implements LLMProvider {
   abstract query(request: QueryRequest): Promise<QueryResponse>;
 
   /**
-   * Validate API key - must be implemented by each provider
+   * Check provider availability - must be implemented by each provider
    */
   abstract healthCheck(): Promise<boolean>;
 

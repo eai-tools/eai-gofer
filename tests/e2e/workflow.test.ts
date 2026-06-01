@@ -1,8 +1,9 @@
 import { test, expect } from '@playwright/test';
-import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, mkdtempSync } from 'fs';
 import { promises as fsPromises } from 'fs';
 import { spawn, ChildProcess } from 'child_process';
 import { join } from 'path';
+import { tmpdir } from 'os';
 
 /**
  * End-to-End Tests for Gofer System
@@ -11,7 +12,8 @@ import { join } from 'path';
  * using file system operations and the autonomous orchestrator
  */
 
-const WORKSPACE_PATH = process.env.WORKSPACE_PATH || '/tmp/eai-gofer-e2e-test';
+const WORKSPACE_PATH =
+  process.env.WORKSPACE_PATH || mkdtempSync(join(tmpdir(), 'eai-gofer-e2e-test-'));
 const SPEC_DIR = join(WORKSPACE_PATH, '.specify');
 
 test.describe('Gofer E2E Workflow', () => {
@@ -327,7 +329,6 @@ async function startOrchestrator(): Promise<ChildProcess> {
       ...process.env,
       WORKSPACE_DIR: WORKSPACE_PATH,
       SPEC_DIR: SPEC_DIR,
-      ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY || 'test-key',
     },
     detached: true,
   });

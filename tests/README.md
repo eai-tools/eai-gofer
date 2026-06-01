@@ -70,29 +70,24 @@ Component interaction tests with real dependencies:
 
 **Run:** `npm run test:integration`
 
-#### Running Real API Integration Tests
+#### Running CLI-Provider Integration Tests
 
-For tests that call external LLM providers, set environment variables:
+For tests that exercise external AI CLIs, log in with the provider CLI first.
+Environment variables are optional fallback auth for CLIs that support them:
 
 ```bash
-# Run all integration tests with API keys
-ANTHROPIC_API_KEY=sk-xxx \
-GOOGLE_API_KEY=AIza... \
-OPENAI_API_KEY=sk-... \
+# Run all integration tests
 npm run test:integration
 
-# Run only council provider tests
-ANTHROPIC_API_KEY=sk-xxx npm test -- tests/integration/council/
+# Run CLI provider tests
+npm test -- tests/integration/council/
 
-# Run specific provider test
-ANTHROPIC_API_KEY=sk-xxx npm test -- tests/integration/council/providers.integration.test.ts
-
-# Run Claude API flow tests
-ANTHROPIC_API_KEY=sk-xxx npm test -- tests/integration/claude-api-flow.test.ts
+# Optional fallback auth
+ANTHROPIC_API_KEY=sk-xxx OPENAI_API_KEY=sk-xxx npm run test:integration
 ```
 
-**Note:** Tests without API keys will be conditionally skipped using
-`it.runIf()`. The tests log which providers are available at startup.
+**Note:** Tests should prefer `claude login`, `codex login`, and local CLI state
+over direct provider API clients.
 
 ### E2E Tests (`tests/e2e/`)
 

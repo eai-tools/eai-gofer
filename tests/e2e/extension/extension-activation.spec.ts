@@ -150,18 +150,6 @@ Test spec for tree view.
     // Test that the main method exists
     expect(typeof config.createOrUpdateConfig).toBe('function');
   });
-
-  test('orchestrator process can be instantiated with required parameters', async () => {
-    const { OrchestratorProcess } = await import('../../../extension/src/orchestratorProcess.js');
-
-    const orchestrator = new OrchestratorProcess(TEST_WORKSPACE, 'test-api-key');
-    expect(orchestrator).toBeDefined();
-
-    // Test basic functionality exists
-    expect(typeof orchestrator.start).toBe('function');
-    expect(typeof orchestrator.stop).toBe('function');
-    expect(typeof orchestrator.isRunning).toBe('function');
-  });
 });
 
 /**
@@ -197,7 +185,7 @@ async function setupTestWorkspace(): Promise<void> {
 async function cleanupTestWorkspace(): Promise<void> {
   try {
     await fs.rm(TEST_WORKSPACE, { recursive: true, force: true });
-  } catch (error) {
+  } catch {
     // Ignore cleanup errors
   }
 }

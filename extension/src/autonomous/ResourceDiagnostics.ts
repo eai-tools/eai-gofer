@@ -1,6 +1,15 @@
 import * as vscode from 'vscode';
 import { Logger } from '../utils/logger';
-import type { ResourceSnapshotConfig } from '../config';
+
+interface ResourceSnapshotConfig {
+  enabled: boolean;
+  intervalMs: number;
+}
+
+const DEFAULT_RESOURCE_SNAPSHOT_CONFIG: ResourceSnapshotConfig = {
+  enabled: true,
+  intervalMs: 5 * 60 * 1000,
+};
 
 interface InstrumentedProcess extends NodeJS.Process {
   _getActiveHandles?: () => unknown[];
@@ -34,7 +43,7 @@ export class ResourceDiagnostics implements vscode.Disposable {
 
   constructor(
     private readonly workspacePath: string,
-    private readonly config: ResourceSnapshotConfig
+    private readonly config: ResourceSnapshotConfig = DEFAULT_RESOURCE_SNAPSHOT_CONFIG
   ) {}
 
   public start(): void {
@@ -44,9 +53,12 @@ export class ResourceDiagnostics implements vscode.Disposable {
 
     this.captureSnapshot('startup');
 
-    this.intervalId = setInterval(() => {
-      this.captureSnapshot('periodic');
-    }, Math.max(this.config.intervalMs, ResourceDiagnostics.MIN_INTERVAL_MS));
+    this.intervalId = setInterval(
+      () => {
+        this.captureSnapshot('periodic');
+      },
+      Math.max(this.config.intervalMs, ResourceDiagnostics.MIN_INTERVAL_MS)
+    );
 
     this.logger.info('Resource diagnostics started', {
       intervalMs: Math.max(this.config.intervalMs, ResourceDiagnostics.MIN_INTERVAL_MS),

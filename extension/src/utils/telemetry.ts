@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { randomUUID } from 'crypto';
 import { ConfigManager } from '../config';
 import { Logger } from './logger';
 
@@ -19,7 +20,6 @@ export interface TelemetryEvent {
 export interface TelemetryConfig {
   enabled: boolean;
   endpoint?: string;
-  apiKey?: string;
   flushIntervalMs: number;
   maxBatchSize: number;
   enableConsoleLogging: boolean;
@@ -74,10 +74,10 @@ export class TelemetryCollector {
     try {
       // Generate or retrieve anonymous user ID
       this.userId = await this.getOrCreateUserId(context);
-      
+
       // Set up periodic flushing
       this.setupPeriodicFlush();
-      
+
       // Track session start
       this.trackEvent('session.started', {
         extensionVersion: context.extension.packageJSON.version,
@@ -85,7 +85,7 @@ export class TelemetryCollector {
         platform: process.platform,
         arch: process.arch,
       });
-      
+
       this.logger.info('Telemetry system initialized', {
         enabled: this.isEnabled,
         sessionId: this.sessionId,
@@ -117,10 +117,10 @@ export class TelemetryCollector {
     };
 
     this.eventQueue.push(event);
-    
+
     // Update metrics
     this.updateMetrics(eventName, properties, measurements);
-    
+
     // Log in development mode
     if (process.env.NODE_ENV === 'development') {
       this.logger.debug(`Telemetry: ${eventName}`, event);
@@ -136,9 +136,13 @@ export class TelemetryCollector {
    * Track command execution
    */
   public trackCommand(commandName: string, executionTime?: number): void {
-    this.trackEvent('command.executed', {
-      commandName,
-    }, executionTime ? { executionTime } : undefined);
+    this.trackEvent(
+      'command.executed',
+      {
+        commandName,
+      },
+      executionTime ? { executionTime } : undefined
+    );
   }
 
   /**
@@ -154,11 +158,7 @@ export class TelemetryCollector {
   /**
    * Track error occurrence
    */
-  public trackError(
-    errorType: string,
-    errorMessage?: string,
-    context?: TelemetryContext
-  ): void {
+  public trackError(errorType: string, errorMessage?: string, context?: TelemetryContext): void {
     this.trackEvent('error.occurred', {
       errorType,
       errorMessage: this.sanitizeErrorMessage(errorMessage),
@@ -169,34 +169,30 @@ export class TelemetryCollector {
   /**
    * Track performance metric
    */
-  public trackPerformance(
-    metricName: string,
-    value: number,
-    context?: TelemetryContext
-  ): void {
-    this.trackEvent('performance.measured', {
-      metricName,
-      ...this.sanitizeProperties(context),
-    }, { value });
+  public trackPerformance(metricName: string, value: number, context?: TelemetryContext): void {
+    this.trackEvent(
+      'performance.measured',
+      {
+        metricName,
+        ...this.sanitizeProperties(context),
+      },
+      { value }
+    );
   }
 
   /**
    * Track user action
    */
-  public trackUserAction(
-    action: string,
-    target?: string,
-    context?: TelemetryContext
-  ): void {
+  public trackUserAction(action: string, target?: string, context?: TelemetryContext): void {
     const properties: Record<string, string | number | boolean> = {
       action,
       ...this.sanitizeProperties(context),
     };
-    
+
     if (target) {
       properties.target = target;
     }
-    
+
     this.trackEvent('user.action', properties);
   }
 
@@ -211,7 +207,7 @@ export class TelemetryCollector {
     workspaceSize?: number;
   }): void {
     this.trackEvent('workspace.stats', {}, stats);
-    
+
     // Update metrics
     this.metrics.specCount = stats.specCount;
     this.metrics.taskCount = stats.taskCount;
@@ -239,15 +235,15 @@ export class TelemetryCollector {
     try {
       // For now, just log the events (could be sent to analytics service)
       this.logger.info(`Flushing ${events.length} telemetry events`);
-      
+
       // In a real implementation, this would send to an analytics service
       // await this.sendToAnalyticsService(events);
-      
+
       // For privacy compliance, we only log aggregated data
       this.logAggregatedMetrics(events);
     } catch (error) {
       this.logger.error('Failed to flush telemetry events', error as Error);
-      
+
       // Re-queue events for retry (up to a limit)
       if (this.eventQueue.length < 100) {
         this.eventQueue.unshift(...events);
@@ -280,7 +276,7 @@ export class TelemetryCollector {
    */
   private checkTelemetrySettings(): void {
     this.isEnabled = this.config.getTelemetryEnabled() && vscode.env.isTelemetryEnabled;
-    
+
     if (!this.isEnabled) {
       this.logger.info('Telemetry disabled by user settings or VS Code');
     }
@@ -290,7 +286,7 @@ export class TelemetryCollector {
    * Generate unique session ID
    */
   private generateSessionId(): string {
-    return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `session_${Date.now()}_${randomUUID()}`;
   }
 
   /**
@@ -299,14 +295,14 @@ export class TelemetryCollector {
   private async getOrCreateUserId(context: vscode.ExtensionContext): Promise<string> {
     const storageKey = 'gofer.telemetry.userId';
     let userId = context.globalState.get<string>(storageKey);
-    
+
     if (!userId) {
       // Create anonymous hash based on machine ID
       const machineId = vscode.env.machineId;
       userId = this.hashString(machineId).substr(0, 16);
       await context.globalState.update(storageKey, userId);
     }
-    
+
     return userId;
   }
 
@@ -317,7 +313,7 @@ export class TelemetryCollector {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash; // Convert to 32-bit integer
     }
     return Math.abs(hash).toString(36);
@@ -350,17 +346,17 @@ export class TelemetryCollector {
       const command = String(properties.commandName);
       this.metrics.commandExecutions[command] = (this.metrics.commandExecutions[command] || 0) + 1;
     }
-    
+
     if (eventName === 'feature.used' && properties?.featureName) {
       const feature = String(properties.featureName);
       this.metrics.featureUsage[feature] = (this.metrics.featureUsage[feature] || 0) + 1;
     }
-    
+
     if (eventName === 'error.occurred' && properties?.errorType) {
       const errorType = String(properties.errorType);
       this.metrics.errorCounts[errorType] = (this.metrics.errorCounts[errorType] || 0) + 1;
     }
-    
+
     if (eventName === 'performance.measured' && properties?.metricName && measurements?.value) {
       const metric = String(properties.metricName);
       if (!this.metrics.performanceMetrics[metric]) {
@@ -379,15 +375,15 @@ export class TelemetryCollector {
     if (!properties) {
       return undefined;
     }
-    
+
     const sanitized: Record<string, string | number | boolean> = {};
-    
+
     for (const [key, value] of Object.entries(properties)) {
       // Skip sensitive keys
       if (this.isSensitiveKey(key)) {
         continue;
       }
-      
+
       // Sanitize values
       if (typeof value === 'string') {
         sanitized[key] = this.sanitizeString(value);
@@ -397,7 +393,7 @@ export class TelemetryCollector {
         sanitized[key] = String(value);
       }
     }
-    
+
     return sanitized;
   }
 
@@ -416,8 +412,8 @@ export class TelemetryCollector {
       /username/i,
       /path/i, // File paths might contain user info
     ];
-    
-    return sensitivePatterns.some(pattern => pattern.test(key));
+
+    return sensitivePatterns.some((pattern) => pattern.test(key));
   }
 
   /**
@@ -427,20 +423,20 @@ export class TelemetryCollector {
     // Remove file paths
     const pathPattern = /[A-Za-z]:[\\\/][^\\\/\s]*|\/[^\/\s]+/g;
     let sanitized = value.replace(pathPattern, '[PATH]');
-    
+
     // Remove email addresses
     const emailPattern = /\S+@\S+\.\S+/g;
     sanitized = sanitized.replace(emailPattern, '[EMAIL]');
-    
+
     // Remove URLs
     const urlPattern = /https?:\/\/[^\s]+/g;
     sanitized = sanitized.replace(urlPattern, '[URL]');
-    
+
     // Truncate long strings
     if (sanitized.length > 100) {
       sanitized = sanitized.substr(0, 100) + '...';
     }
-    
+
     return sanitized;
   }
 
@@ -451,7 +447,7 @@ export class TelemetryCollector {
     if (!message) {
       return 'No message';
     }
-    
+
     return this.sanitizeString(message);
   }
 
@@ -460,7 +456,7 @@ export class TelemetryCollector {
    */
   private setupPeriodicFlush(): void {
     const flushInterval = 5 * 60 * 1000; // 5 minutes
-    
+
     this.flushTimer = setInterval(() => {
       this.flush();
     }, flushInterval);
@@ -471,11 +467,11 @@ export class TelemetryCollector {
    */
   private logAggregatedMetrics(events: TelemetryEvent[]): void {
     const eventCounts: Record<string, number> = {};
-    
+
     for (const event of events) {
       eventCounts[event.eventName] = (eventCounts[event.eventName] || 0) + 1;
     }
-    
+
     this.logger.info('Telemetry summary', {
       totalEvents: events.length,
       eventTypes: Object.keys(eventCounts).length,
@@ -495,7 +491,7 @@ export class TelemetryCollector {
 export async function initializeTelemetry(context: vscode.ExtensionContext): Promise<void> {
   const telemetry = TelemetryCollector.getInstance();
   await telemetry.initialize(context);
-  
+
   // Set up disposal
   context.subscriptions.push({
     dispose: () => telemetry.dispose(),
@@ -505,13 +501,10 @@ export async function initializeTelemetry(context: vscode.ExtensionContext): Pro
 /**
  * Track command execution with timing
  */
-export function trackCommandWithTiming<T>(
-  commandName: string,
-  fn: () => Promise<T>
-): Promise<T> {
+export function trackCommandWithTiming<T>(commandName: string, fn: () => Promise<T>): Promise<T> {
   const startTime = performance.now();
   const telemetry = TelemetryCollector.getInstance();
-  
+
   return fn().then(
     (result) => {
       const executionTime = performance.now() - startTime;
@@ -530,10 +523,7 @@ export function trackCommandWithTiming<T>(
 /**
  * Track feature usage with context
  */
-export function trackFeatureUsage(
-  featureName: string,
-  context?: TelemetryContext
-): void {
+export function trackFeatureUsage(featureName: string, context?: TelemetryContext): void {
   const telemetry = TelemetryCollector.getInstance();
   telemetry.trackFeature(featureName, context);
 }
@@ -561,11 +551,11 @@ export function withTelemetry(commandName?: string) {
   ) {
     const method = descriptor.value;
     const name = commandName || `${target.constructor.name}.${propertyName}`;
-    
+
     descriptor.value = function (...args: unknown[]) {
       return trackCommandWithTiming(name, () => method.apply(this, args));
     };
-    
+
     return descriptor;
   };
 }

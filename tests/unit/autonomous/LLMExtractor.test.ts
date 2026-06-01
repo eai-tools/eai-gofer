@@ -3,11 +3,13 @@
  * Feature 029: Memory System v2 - T015
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { LLMExtractor } from '../../../extension/src/autonomous/memory/LLMExtractor';
-import type { AutonomousLLMProvider } from '../../../extension/src/autonomous/LLMProvider';
+import { describe, it, expect, vi } from 'vitest';
+import {
+  LLMExtractor,
+  type SummarizerProvider,
+} from '../../../extension/src/autonomous/memory/LLMExtractor';
 
-function makeMockProvider(overrides?: Partial<AutonomousLLMProvider>): AutonomousLLMProvider {
+function makeMockProvider(overrides?: Partial<SummarizerProvider>): SummarizerProvider {
   return {
     isAvailable: vi.fn().mockReturnValue(true),
     summarize: vi.fn().mockResolvedValue({
@@ -17,7 +19,7 @@ function makeMockProvider(overrides?: Partial<AutonomousLLMProvider>): Autonomou
       cached: false,
     }),
     ...overrides,
-  } as unknown as AutonomousLLMProvider;
+  } as unknown as SummarizerProvider;
 }
 
 describe('LLMExtractor', () => {
@@ -117,8 +119,18 @@ describe('LLMExtractor', () => {
       const provider = makeMockProvider({
         summarize: vi
           .fn()
-          .mockResolvedValueOnce({ text: 'Abstract sentence.', inputTokens: 5, outputTokens: 5, cached: false })
-          .mockResolvedValueOnce({ text: 'Overview key points.', inputTokens: 10, outputTokens: 10, cached: false }),
+          .mockResolvedValueOnce({
+            text: 'Abstract sentence.',
+            inputTokens: 5,
+            outputTokens: 5,
+            cached: false,
+          })
+          .mockResolvedValueOnce({
+            text: 'Overview key points.',
+            inputTokens: 10,
+            outputTokens: 10,
+            cached: false,
+          }),
       });
       const extractor = new LLMExtractor(provider);
       const content = 'Full content for layer generation.';

@@ -1,17 +1,23 @@
 ---
 generated: true
-generated_at: "2026-05-23T17:54:39.953Z"
-source_commit: "047baa06f9bdd86354d43413563a98f893685fb3"
+generated_at: '2026-05-23T17:54:39.953Z'
+source_commit: '047baa06f9bdd86354d43413563a98f893685fb3'
 ---
+
 # Gofer - Data Model
 
 ## Executive Summary
 
-Gofer uses a **file-based data model** with no database required. All data is stored in the `.specify/` directory as Markdown, JSON, and JSONL files, making it Git-friendly and human-readable. The schema follows a specification-centric design where each spec has its own directory containing all related artifacts (tasks, research, planning, validation results).
+Gofer uses a **file-based data model** with no database required. All data is
+stored in the `.specify/` directory as Markdown, JSON, and JSONL files, making
+it Git-friendly and human-readable. The schema follows a specification-centric
+design where each spec has its own directory containing all related artifacts
+(tasks, research, planning, validation results).
 
 ## Storage Technology
 
-- **Format:** Markdown (specs, tasks, plans) + JSON (state, config) + JSONL (logs, memory)
+- **Format:** Markdown (specs, tasks, plans) + JSON (state, config) + JSONL
+  (logs, memory)
 - **Location:** `.specify/` directory in repository root
 - **Version Control:** All files are Git-tracked except logs and cache
 - **No Database:** Pure file-based storage for simplicity and transparency
@@ -45,7 +51,7 @@ Gofer uses a **file-based data model** with no database required. All data is st
 │   ├── knowledge-graph.json    # Entity relationships
 │   └── constitution.md         # Project coding principles
 ├── logs/                       # Append-only logs
-│   ├── council-usage.jsonl     # LLM Council invocations
+│   ├── context-usage.jsonl     # Local CLI/session usage observations
 │   ├── tool-audit.jsonl        # MCP tool access audit
 │   ├── slop-reduction.jsonl    # Code slop removal log
 │   └── gofer-run-ledger.jsonl  # Pipeline run ledger with costs
@@ -80,24 +86,24 @@ erDiagram
     Spec ||--o| DataModel : has
     Spec ||--o| Validation : produces
     Spec ||--o| Checkpoint : saves
-    
+
     Task ||--o{ Task : "depends on"
     Task ||--|| TaskStatus : has
     Task }o--|| Spec : "belongs to"
-    
+
     Memory ||--|| MemoryType : has
     Memory }o--o{ Keyword : "indexed by"
     Memory }o--o{ Entity : references
-    
+
     Observation ||--|| UUID : "identified by"
     Observation }o--|| ObservationCache : "stored in"
-    
+
     Entity ||--o{ Entity : "relates to"
     Entity }o--|| KnowledgeGraph : "part of"
-    
+
     LogEntry ||--|| EventType : has
     LogEntry }o--|| Log : "appended to"
-    
+
     Spec {
         string id PK
         string title
@@ -107,7 +113,7 @@ erDiagram
         string[] protected_files
         string[] acceptance_criteria
     }
-    
+
     Task {
         string id PK
         string spec_id FK
@@ -117,12 +123,12 @@ erDiagram
         int priority
         string[] files
     }
-    
+
     TaskStatus {
         string value PK
         string description
     }
-    
+
     Memory {
         string id PK
         enum type
@@ -131,12 +137,12 @@ erDiagram
         string[] tags
         float tfidf_score
     }
-    
+
     MemoryType {
         string value PK
         string description
     }
-    
+
     Observation {
         uuid id PK
         string content
@@ -144,7 +150,7 @@ erDiagram
         boolean masked
         int turn_number
     }
-    
+
     KnowledgeGraph {
         string entity_id PK
         string entity_type
@@ -195,26 +201,23 @@ stage: "implement" # research | specify | plan | tasks | implement | validate
 
 ```markdown
 ## T001: Create User Model
-**Status:** ✅ completed
-**Dependencies:** None
-**Priority:** P0
-**Files:** `src/models/User.ts`
+
+**Status:** ✅ completed **Dependencies:** None **Priority:** P0 **Files:**
+`src/models/User.ts`
 
 Implementation notes...
 
 ## T002: Implement Password Hashing
-**Status:** 🔄 in_progress
-**Dependencies:** T001
-**Priority:** P0
-**Files:** `src/auth/password.ts`
+
+**Status:** 🔄 in_progress **Dependencies:** T001 **Priority:** P0 **Files:**
+`src/auth/password.ts`
 
 Use bcrypt for hashing...
 
 ## T003: Create Login Endpoint
-**Status:** ⏸️ pending
-**Dependencies:** T001, T002
-**Priority:** P1
-**Files:** `src/api/auth.ts`
+
+**Status:** ⏸️ pending **Dependencies:** T001, T002 **Priority:** P1 **Files:**
+`src/api/auth.ts`
 ```
 
 ### Memory Schema (memories.jsonl)
@@ -227,6 +230,7 @@ Use bcrypt for hashing...
 ```
 
 **Memory Types:**
+
 - `procedural` - How to do things
 - `semantic` - What things mean
 - `episodic` - What happened
@@ -289,7 +293,16 @@ Use bcrypt for hashing...
 **Format:** JSONL
 
 ```json
-{"run_id":"run_001","spec_id":"001-login-feature","start_time":"2026-05-20T10:00:00Z","end_time":"2026-05-20T10:30:00Z","stages_completed":["research","specify","plan"],"cost_usd":2.45,"tokens_used":{"sonnet":50000,"haiku":30000},"status":"completed"}
+{
+  "run_id": "run_001",
+  "spec_id": "001-login-feature",
+  "start_time": "2026-05-20T10:00:00Z",
+  "end_time": "2026-05-20T10:30:00Z",
+  "stages_completed": ["research", "specify", "plan"],
+  "cost_usd": 2.45,
+  "tokens_used": { "sonnet": 50000, "haiku": 30000 },
+  "status": "completed"
+}
 ```
 
 ## Data Indexes
@@ -334,7 +347,8 @@ Use bcrypt for hashing...
 ### Memory Constraints
 
 - **ID Format:** `mem_` + incremental number
-- **Type Values:** `procedural`, `semantic`, `episodic`, `decision`, `prospective`
+- **Type Values:** `procedural`, `semantic`, `episodic`, `decision`,
+  `prospective`
 - **Content:** Max 10,000 characters
 - **Tags:** Max 10 tags per memory
 
@@ -349,7 +363,8 @@ Use bcrypt for hashing...
 ### Legacy Format Migration
 
 - **Old Format:** `specs/` directory (no `.specify/` wrapper)
-- **Migration Command:** `gofer.upgrade` (VS Code) or `gofer.fixSpecPaths` (fix references)
+- **Migration Command:** `gofer.upgrade` (VS Code) or `gofer.fixSpecPaths` (fix
+  references)
 - **Backwards Compatibility:** Read-only support for old format
 
 ### Memory Layer Migration
@@ -381,19 +396,20 @@ Use bcrypt for hashing...
 
 ## Data Sensitivity Classification
 
-| Data Type | Sensitivity | Rationale |
-| --------- | ----------- | --------- |
-| Specifications | Low | Intended for version control |
-| Tasks | Low | Intended for version control |
-| Memory (procedural/semantic) | Low | General project knowledge |
-| Memory (episodic/decision) | Medium | May contain code snippets |
-| Observations | Medium | May contain sensitive context |
-| API Keys | High | Never logged or committed |
-| Logs | Low | Audit trail only, no secrets |
+| Data Type                    | Sensitivity | Rationale                     |
+| ---------------------------- | ----------- | ----------------------------- |
+| Specifications               | Low         | Intended for version control  |
+| Tasks                        | Low         | Intended for version control  |
+| Memory (procedural/semantic) | Low         | General project knowledge     |
+| Memory (episodic/decision)   | Medium      | May contain code snippets     |
+| Observations                 | Medium      | May contain sensitive context |
+| API Keys                     | High        | Never logged or committed     |
+| Logs                         | Low         | Audit trail only, no secrets  |
 
 ## Backup and Recovery
 
 - **Version Control:** All `.specify/` content except `logs/` is Git-tracked
-- **Checkpoint Files:** `.specify/specs/*/checkpoint.json` for session resumption
+- **Checkpoint Files:** `.specify/specs/*/checkpoint.json` for session
+  resumption
 - **No Point-in-Time Recovery:** Rely on Git history
 - **Disaster Recovery:** Restore from Git + regenerate logs

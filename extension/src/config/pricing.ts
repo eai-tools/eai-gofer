@@ -2,7 +2,7 @@
  * Consolidated AI Provider Pricing Configuration
  *
  * Single source of truth for provider pricing rates.
- * Used by AIUsageMonitor, CostBudgetEnforcer, and UsageLogger.
+ * Used by AIUsageMonitor, CostBudgetEnforcer, and local CLI usage adapters.
  *
  * Rates verified May 2026 against official provider pricing docs.
  * Keep this table deliberately model-specific: Gofer routes cheap scouting
@@ -310,8 +310,7 @@ export function calculateCost(
   const uncachedInputTokens = Math.max(0, inputTokens);
   const generatedOutputTokens = Math.max(0, outputTokens);
   const cachedInputTokens =
-    Math.max(0, cacheUsage.cachedInputTokens ?? 0) +
-    Math.max(0, cacheUsage.cacheReadTokens ?? 0);
+    Math.max(0, cacheUsage.cachedInputTokens ?? 0) + Math.max(0, cacheUsage.cacheReadTokens ?? 0);
   const cacheWriteTokens = Math.max(
     0,
     cacheUsage.cacheWriteTokens ?? cacheUsage.cacheCreationTokens ?? 0
@@ -323,10 +322,11 @@ export function calculateCost(
   const cacheStorageRate = rates.cacheStoragePerHour ?? 0;
 
   return (
-    uncachedInputTokens * rates.input +
-    cachedInputTokens * cacheReadRate +
-    cacheWriteTokens * cacheWriteRate +
-    cacheStorageTokenHours * cacheStorageRate +
-    generatedOutputTokens * rates.output
-  ) / 1000;
+    (uncachedInputTokens * rates.input +
+      cachedInputTokens * cacheReadRate +
+      cacheWriteTokens * cacheWriteRate +
+      cacheStorageTokenHours * cacheStorageRate +
+      generatedOutputTokens * rates.output) /
+    1000
+  );
 }

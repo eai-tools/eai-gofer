@@ -4,7 +4,6 @@ import { GoferLoader } from '../../language-server/src/utils/goferLoader.js';
 
 // Mock the dependencies
 vi.mock('../../language-server/src/utils/goferLoader.js');
-vi.mock('@anthropic-ai/sdk');
 vi.mock('vscode-languageserver');
 
 describe('MCP Tools Integration', () => {
@@ -315,7 +314,6 @@ describe('MCP Tools Integration', () => {
       const result = await mcpHandler.validateCode(['src/test.ts']);
 
       expect(result.success).toBe(true);
-      // Message varies based on whether ValidationService is initialized (API key present)
       expect(result.message).toBeDefined();
       expect(result.files).toEqual(['src/test.ts']);
     });

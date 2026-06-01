@@ -9,11 +9,11 @@ export function isWorkflowProfile(value: unknown): value is WorkflowProfile {
 }
 
 export function normalizeWorkflowProfile(value: unknown): WorkflowProfile {
-  return value === 'standard' ? 'standard' : 'enterpriseai';
+  return value === 'enterpriseai' ? 'enterpriseai' : 'standard';
 }
 
 export function getWorkflowProfile(configuration?: vscode.WorkspaceConfiguration): WorkflowProfile {
   const goferConfig = configuration ?? vscode.workspace.getConfiguration('gofer');
-  const configured = goferConfig.get<string>('workflowProfile', 'enterpriseai');
+  const configured = goferConfig.get<string>('workflowProfile', 'standard');
   return normalizeWorkflowProfile(configured);
 }

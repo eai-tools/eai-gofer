@@ -601,43 +601,8 @@ describe('Phase 4: Current Stage Persistence (T069)', () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// Phase 5: LLM Integration (T038-T044, T070)
+// Phase 5: Optional Summarizer Integration (T038-T044, T070)
 // ═══════════════════════════════════════════════════════════════════════════════
-
-describe('Phase 5: AutonomousLLMProvider (T038)', () => {
-  const llmPath = path.resolve(__dirname, '../../../extension/src/autonomous/LLMProvider.ts');
-  const llmSource = fs.readFileSync(llmPath, 'utf-8');
-
-  it('should export AutonomousLLMProvider class', () => {
-    expect(llmSource).toContain('export class AutonomousLLMProvider');
-  });
-
-  it('should have summarize method returning SummarizeResult or null', () => {
-    expect(llmSource).toContain('async summarize(prompt: string');
-    expect(llmSource).toContain('Promise<SummarizeResult | null>');
-  });
-
-  it('should implement rate limiting with callTimestamps', () => {
-    expect(llmSource).toContain('callTimestamps');
-    expect(llmSource).toContain('rateLimitPerMinute');
-    expect(llmSource).toContain('isRateLimited()');
-  });
-
-  it('should log usage to JSONL', () => {
-    expect(llmSource).toContain('context-usage.jsonl');
-    expect(llmSource).toContain('logUsage');
-    expect(llmSource).toContain("eventType: 'llm_call'");
-  });
-
-  it('should support client injection for testing', () => {
-    expect(llmSource).toContain('setClient(client: AnthropicClient)');
-  });
-
-  it('should degrade gracefully when no API key', () => {
-    expect(llmSource).toContain('isAvailable()');
-    expect(llmSource).toContain('return null');
-  });
-});
 
 describe('Phase 5: ObservationMasker LLM Enhancement (T039)', () => {
   const maskerPath = path.resolve(
@@ -738,11 +703,10 @@ describe('Phase 5: ContextCompactor LLM Integration (T042)', () => {
 });
 
 describe('Phase 5: Extension Wiring (T041, T043, T070)', () => {
-  // TODO: Restore LLM wiring in InitializationService or extension.ts
-  // After T020 refactoring, the AutonomousLLMProvider, ResearchSummarizer,
-  // and ContextCompactor wiring was not migrated from extension.ts to service files.
+  // TODO: Restore optional summarizer wiring in InitializationService or extension.ts
+  // after provider-backed summarization is available without direct API keys.
 
-  it.skip('should import AutonomousLLMProvider', () => {
+  it.skip('should import a CLI-backed summarizer provider', () => {
     // Requires: import in service file
   });
 
@@ -750,12 +714,12 @@ describe('Phase 5: Extension Wiring (T041, T043, T070)', () => {
     // Requires: import in service file
   });
 
-  it.skip('should create AutonomousLLMProvider with API key from settings', () => {
-    // Requires: getConfiguration('gofer').get<string>('anthropicApiKey')
+  it.skip('should create a summarizer from the selected CLI provider', () => {
+    // Requires: CLI provider-backed implementation
   });
 
   it.skip('should wire LLM to ObservationMasker (T039)', () => {
-    // Requires: setLLMProvider(autonomousLLMProvider)
+    // Requires: setLLMProvider(summarizerProvider)
   });
 
   it.skip('should wire ResearchSummarizer to research-complete event (T041)', () => {
@@ -763,15 +727,15 @@ describe('Phase 5: Extension Wiring (T041, T043, T070)', () => {
   });
 
   it.skip('should wire LLM to ContextCompactor (T043)', () => {
-    // Requires: contextCompactor.setLLMProvider(autonomousLLMProvider)
+    // Requires: contextCompactor.setLLMProvider(summarizerProvider)
   });
 
   it.skip('should wire auto-compaction to critical event (T070)', () => {
     // Requires: on('critical') and enhanceKeyPointsWithLLM()
   });
 
-  it.skip('should log when LLM features are disabled (no API key)', () => {
-    // Requires: 'LLM features disabled' log message
+  it.skip('should log when summarizer features are disabled', () => {
+    // Requires: 'Summarizer features disabled' log message
   });
 });
 

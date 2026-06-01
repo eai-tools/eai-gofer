@@ -22,7 +22,7 @@
     "test:ui": "vitest --ui",
     "test:unit": "vitest run tests/unit",
     "test:integration": "vitest run tests/integration",
-    "test:e2e": "vscode-test",
+    "test:e2e": "npm --prefix extension test",
     "test:e2e:playwright": "playwright test",
     "test:performance": "vitest run tests/performance --reporter=verbose",
     "test:coverage": "vitest run --coverage",
@@ -51,7 +51,6 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "0.32.1",
     "chokidar": "4.0.3",
     "dotenv": "16.6.1",
     "gray-matter": "4.0.3",
@@ -63,7 +62,6 @@
   },
   "devDependencies": {
     "@eslint/js": "9.39.4",
-    "@google/generative-ai": "0.21.0",
     "@playwright/test": "1.58.2",
     "@types/chokidar": "1.7.5",
     "@types/graphlib": "2.1.12",
@@ -80,7 +78,6 @@
     "graphlib": "2.1.8",
     "husky": "9.1.7",
     "lint-staged": "16.3.2",
-    "openai": "4.104.0",
     "prettier": "3.8.1",
     "tsx": "4.21.0",
     "typescript": "5.9.3",

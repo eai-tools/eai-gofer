@@ -174,75 +174,21 @@ export class GoferActivityStatusBar implements vscode.Disposable {
   }
 
   /**
-   * Show QuickPick with option to start Claude Code when no session is active.
+   * Show QuickPick with current session state when no session is active.
    */
   private async showNoSessionPicker(): Promise<void> {
-    const config = vscode.workspace.getConfiguration('gofer');
-    const mode = config.get<string>('claudeCodeMode', 'standard');
-    const modeLabel = mode === 'yolo' ? 'Yolo' : mode === 'custom' ? 'Custom' : 'Standard';
-
-    const items: Array<vscode.QuickPickItem & { action?: string }> = [
+    const items: vscode.QuickPickItem[] = [
       {
         label: '$(info) No active Claude Code session',
-        detail: 'Start Claude Code to enable real-time context and activity monitoring.',
-      },
-      {
-        label: `$(play) Start Claude Code (${modeLabel})`,
-        description: mode === 'yolo' ? 'Skips permission prompts' : 'Open a terminal and launch',
-        action: 'startClaude',
+        detail:
+          'Start Claude Code from your terminal or use Gofer autonomous execution from the spec command.',
       },
     ];
 
-    const selected = await vscode.window.showQuickPick(items, {
+    await vscode.window.showQuickPick(items, {
       title: 'Gofer Memory',
       placeHolder: 'No session detected',
     });
-
-    if (selected?.action === 'startClaude') {
-      await this.launchClaudeCodeTerminal();
-    }
-  }
-
-  /**
-   * Launch Claude Code in a new terminal using the configured command/mode.
-   * Ensures hooks are installed before launching.
-   */
-  private async launchClaudeCodeTerminal(): Promise<void> {
-    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-    if (!workspaceFolder) {
-      vscode.window.showWarningMessage('No workspace folder open.');
-      return;
-    }
-
-    // Ensure hooks are installed before launching
-    try {
-      const { GoferMigrator } = await import('../goferMigrator');
-      const migrator = new GoferMigrator(workspaceFolder.uri.fsPath);
-      await migrator.installHooksConfig();
-    } catch (error) {
-      console.warn('[GoferActivityStatusBar] Failed to install hooks before launch:', error);
-    }
-
-    const config = vscode.workspace.getConfiguration('gofer');
-    const mode = config.get<string>('claudeCodeMode', 'standard');
-    let claudeCmd: string;
-    switch (mode) {
-      case 'yolo':
-        claudeCmd = 'claude --dangerously-skip-permissions';
-        break;
-      case 'custom':
-        claudeCmd = config.get<string>('claudeCodeCommand', 'claude');
-        break;
-      default:
-        claudeCmd = 'claude';
-    }
-
-    const terminal = vscode.window.createTerminal({
-      name: 'Claude Code',
-      cwd: workspaceFolder.uri,
-    });
-    terminal.show();
-    terminal.sendText(claudeCmd);
   }
 
   dispose(): void {

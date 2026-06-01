@@ -1,11 +1,17 @@
 # Gofer VS Code Extension
 
-Gofer brings the spec-driven workflow into VS Code. It keeps repository work
-visible from business scenario through validation, mirrors the repo-owned
-`.specify/` scaffold, and packages the resources needed by the Gofer pipeline.
+Gofer brings the business specification-driven workflow into VS Code. It keeps
+repository work visible from business scenario through validation, mirrors the
+repo-owned `.specify/` scaffold, and packages the resources needed by the Gofer
+pipeline.
 
 ## What It Does
 
+- helps everyone, not just coders, write good code, that delivers a business
+  outcome
+- Work with AI to generate what you need whether it is business case, executive
+  summary, technical diagram of otherwise for you and your stakeholders to know
+  what will be built, not find out it is wrong later
 - initializes the repo-owned Gofer scaffold
 - surfaces specs, memory, and progress inside VS Code
 - helps launch and monitor supported AI CLI workflows
@@ -39,9 +45,8 @@ The authoritative command and settings contract lives in
 {
   "gofer.markdownViewer": "preview",
   "gofer.preferredAI": "ask",
-  "gofer.claudeCodeMode": "standard",
-  "gofer.defaultCLI": "auto",
-  "gofer.autonomous.showTerminals": true
+  "gofer.claudeCodeCommand": "claude",
+  "gofer.defaultCLI": "auto"
 }
 ```
 

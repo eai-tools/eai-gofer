@@ -34,15 +34,6 @@ vi.mock('../../../extension/src/utils/logger', () => ({
   },
 }));
 
-// mock-justified: VSCode API — ConfigManager depends on vscode.workspace.getConfiguration
-vi.mock('../../../extension/src/config', () => ({
-  ConfigManager: {
-    getInstance: () => ({
-      getSlopReductionNotifyEvery: vi.fn().mockReturnValue(10),
-    }),
-  },
-}));
-
 vi.mock('fs', () => ({
   readFileSync: vi.fn(),
   writeFileSync: vi.fn(),

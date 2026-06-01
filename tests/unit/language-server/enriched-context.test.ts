@@ -48,7 +48,9 @@ describe('Enriched Context Bridge Reader (T028)', () => {
       loadSpec: vi.fn().mockResolvedValue(mockSpec),
       updateTaskStatus: vi.fn(),
     };
-    vi.mocked(GoferLoader).mockImplementation(() => mockGoferLoader);
+    vi.mocked(GoferLoader).mockImplementation(function () {
+      return mockGoferLoader;
+    });
 
     mcpHandler = new MCPToolHandler(tmpDir, mockConnection);
   });
@@ -172,7 +174,9 @@ describe('ExecuteTask Backward Compatibility (T029)', () => {
       loadSpec: vi.fn().mockResolvedValue(mockSpec),
       updateTaskStatus: vi.fn(),
     };
-    vi.mocked(GoferLoader).mockImplementation(() => mockGoferLoader);
+    vi.mocked(GoferLoader).mockImplementation(function () {
+      return mockGoferLoader;
+    });
 
     const mockConnection = { sendNotification: vi.fn() };
     mcpHandler = new MCPToolHandler(tmpDir, mockConnection);

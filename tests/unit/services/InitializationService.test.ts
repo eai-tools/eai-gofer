@@ -23,18 +23,22 @@ const mockSyncMissingResources = vi.fn().mockResolvedValue(undefined);
 const mockGetVersionInfo = vi.fn();
 
 vi.mock('../../../extension/src/goferMigrator', () => ({
-  GoferMigrator: vi.fn().mockImplementation(() => ({
-    getVersionInfo: mockGetVersionInfo,
-    upgrade: mockUpgrade,
-    syncMissingResources: mockSyncMissingResources,
-  })),
+  GoferMigrator: vi.fn().mockImplementation(function () {
+    return {
+      getVersionInfo: mockGetVersionInfo,
+      upgrade: mockUpgrade,
+      syncMissingResources: mockSyncMissingResources,
+    };
+  }),
 }));
 
 // Mock MCPConfigHelper
 vi.mock('../../../extension/src/mcpConfig', () => ({
-  MCPConfigHelper: vi.fn().mockImplementation(() => ({
-    autoSetup: vi.fn().mockResolvedValue(undefined),
-  })),
+  MCPConfigHelper: vi.fn().mockImplementation(function () {
+    return {
+      autoSetup: vi.fn().mockResolvedValue(undefined),
+    };
+  }),
 }));
 
 // Mock ConfigManager
@@ -48,29 +52,35 @@ vi.mock('../../../extension/src/config', () => ({
 
 // Mock ConfigValidator
 vi.mock('../../../extension/src/utils/ConfigValidator', () => ({
-  ConfigValidator: vi.fn().mockImplementation(() => ({
-    validateConfiguration: vi.fn(() => ({ valid: true, errors: [], warnings: [] })),
-    logValidationResult: vi.fn(),
-    showValidationErrors: vi.fn(),
-  })),
+  ConfigValidator: vi.fn().mockImplementation(function () {
+    return {
+      validateConfiguration: vi.fn(() => ({ valid: true, errors: [], warnings: [] })),
+      logValidationResult: vi.fn(),
+      showValidationErrors: vi.fn(),
+    };
+  }),
 }));
 
 // Mock autonomous modules to prevent initialization errors
 vi.mock('../../../extension/src/autonomous/ContextHealthMonitor', () => ({
-  ContextHealthMonitor: vi.fn().mockImplementation(() => ({
-    setWorkspaceRoot: vi.fn(),
-    setContextProvider: vi.fn(),
-    checkHealth: vi.fn(),
-    startMonitoring: vi.fn(),
-    on: vi.fn(),
-  })),
+  ContextHealthMonitor: vi.fn().mockImplementation(function () {
+    return {
+      setWorkspaceRoot: vi.fn(),
+      setContextProvider: vi.fn(),
+      checkHealth: vi.fn(),
+      startMonitoring: vi.fn(),
+      on: vi.fn(),
+    };
+  }),
 }));
 
 vi.mock('../../../extension/src/autonomous/AutoHandoffTrigger', () => ({
-  AutoHandoffTrigger: vi.fn().mockImplementation(() => ({
-    connect: vi.fn(),
-    setUsageLogger: vi.fn(),
-  })),
+  AutoHandoffTrigger: vi.fn().mockImplementation(function () {
+    return {
+      connect: vi.fn(),
+      setUsageLogger: vi.fn(),
+    };
+  }),
 }));
 
 vi.mock('../../../extension/src/autoHandoffBridge', () => ({
@@ -78,59 +88,75 @@ vi.mock('../../../extension/src/autoHandoffBridge', () => ({
 }));
 
 vi.mock('../../../extension/src/autonomous/ContextUsageLogger', () => ({
-  ContextUsageLogger: vi.fn().mockImplementation(() => ({
-    logHealthCheck: vi.fn(),
-  })),
+  ContextUsageLogger: vi.fn().mockImplementation(function () {
+    return {
+      logHealthCheck: vi.fn(),
+    };
+  }),
 }));
 
 vi.mock('../../../extension/src/autonomous/WorkspaceContextProvider', () => ({
-  WorkspaceContextProvider: vi.fn().mockImplementation(() => ({
-    setSessionReader: vi.fn(),
-    setHookBridgeWatcher: vi.fn(),
-    getContextAnalysis: vi.fn(),
-  })),
+  WorkspaceContextProvider: vi.fn().mockImplementation(function () {
+    return {
+      setSessionReader: vi.fn(),
+      setHookBridgeWatcher: vi.fn(),
+      getContextAnalysis: vi.fn(),
+    };
+  }),
 }));
 
 vi.mock('../../../extension/src/autonomous/ClaudeSessionReader', () => ({
-  ClaudeSessionReader: vi.fn().mockImplementation(() => ({
-    findActiveSession: vi.fn(() => null),
-  })),
+  ClaudeSessionReader: vi.fn().mockImplementation(function () {
+    return {
+      findActiveSession: vi.fn(() => null),
+    };
+  }),
 }));
 
 vi.mock('../../../extension/src/autonomous/HookBridgeWatcher', () => ({
-  HookBridgeWatcher: vi.fn().mockImplementation(() => ({
-    start: vi.fn(),
-    dispose: vi.fn(),
-  })),
+  HookBridgeWatcher: vi.fn().mockImplementation(function () {
+    return {
+      start: vi.fn(),
+      dispose: vi.fn(),
+    };
+  }),
 }));
 
 vi.mock('../../../extension/src/autonomous/MultiSessionBridgeWatcher', () => ({
-  MultiSessionBridgeWatcher: vi.fn().mockImplementation(() => ({
-    start: vi.fn(),
-    dispose: vi.fn(),
-    on: vi.fn(),
-    getSessionCount: vi.fn(() => 0),
-    isHookDataAvailable: vi.fn(() => false),
-  })),
+  MultiSessionBridgeWatcher: vi.fn().mockImplementation(function () {
+    return {
+      start: vi.fn(),
+      dispose: vi.fn(),
+      on: vi.fn(),
+      getSessionCount: vi.fn(() => 0),
+      isHookDataAvailable: vi.fn(() => false),
+    };
+  }),
 }));
 
 vi.mock('../../../extension/src/autonomous/ClaudeCodeContextScanner', () => ({
-  ClaudeCodeContextScanner: vi.fn().mockImplementation(() => ({
-    invalidate: vi.fn(),
-  })),
+  ClaudeCodeContextScanner: vi.fn().mockImplementation(function () {
+    return {
+      invalidate: vi.fn(),
+    };
+  }),
 }));
 
 vi.mock('../../../extension/src/ui/GoferActivityStatusBar', () => ({
-  GoferActivityStatusBar: vi.fn().mockImplementation(() => ({
-    show: vi.fn(),
-    dispose: vi.fn(),
-  })),
+  GoferActivityStatusBar: vi.fn().mockImplementation(function () {
+    return {
+      show: vi.fn(),
+      dispose: vi.fn(),
+    };
+  }),
 }));
 
 vi.mock('../../../extension/src/branchSpecManager', () => ({
-  BranchSpecManager: vi.fn().mockImplementation(() => ({
-    initializeBranchStructure: vi.fn().mockResolvedValue(undefined),
-  })),
+  BranchSpecManager: vi.fn().mockImplementation(function () {
+    return {
+      initializeBranchStructure: vi.fn().mockResolvedValue(undefined),
+    };
+  }),
 }));
 
 // Must import AFTER mocks

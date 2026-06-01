@@ -1927,8 +1927,8 @@ For application delivery, validation MUST also check
   default and that any create-new UI concept was explicitly approved rather
   than silently introduced.
 - Validation confirms that block-porting tasks produced the expected package
-  surface and that public or hybrid lanes do not directly depend on DAISY
-  internals unless an approved internal-only exception is recorded.
+  surface and that public or hybrid lanes do not directly depend on source platform
+  internals unless an approved restricted-source exception is recorded.
 - Chatbot, voice, accessibility, translation, contextual prefill, validation,
   and step-goal assistance claims are covered by acceptance tests where they are
   in scope.

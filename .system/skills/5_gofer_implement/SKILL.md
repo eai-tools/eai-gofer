@@ -667,18 +667,18 @@ separation from `tasks.md`:
   be justified in the approved plan and approval artifacts.
 - Before implementing UI, run or inspect `eai --describe`, `eai blocks list`,
   `eai blocks describe <id>` for every selected block, and
-  `eai resources schema`. Implementation notes must cite the block IDs,
+  `resource schema`. Implementation notes must cite the block IDs,
   required resources, bindings, package lane, coupling status, Storybook story
   IDs, theme override points, and any approved custom-block exception.
 - Reject unknown component names during implementation unless `tasks.md` and
   `ui-approval.md` explicitly authorize a custom extension block and manifest.
-- Treat package-profile, block-porting, DAISY decoupling, and public-readiness
+- Treat package-profile, block-porting, source-platform decoupling, and public-readiness
   tasks as first-class implementation tasks, not polish. External and hybrid
   profile work is incomplete until package exports, Storybook stories, theme
   overrides, consumer smoke checks, and unsupported custom-block exceptions are
   resolved or explicitly deferred by approval artifacts.
-- Do not let public or hybrid package lanes import DAISY internals directly.
-  Use `eai resources schema`, an adapter boundary, or an approved internal-only
+- Do not let public or hybrid package lanes import source-platform internals directly.
+  Use `resource schema`, an adapter boundary, or an approved restricted-source
   exception; record the coupling status in implementation notes and
   `ui-review-log.md`.
 - For application delivery, implement the four-step-or-fewer AI-augmented
@@ -691,7 +691,7 @@ separation from `tasks.md`:
 - For application delivery, after UI approval and before treating platform
   selection as complete, update `{FEATURE_DIR}/service-fit-matrix.md` with
   tenant-aware evidence from `eai --describe`, `eai whoami`, `eai tenant
-  select`, `eai resources schema`, `eai verify calls --format json`, or
+  select`, `resource schema`, `eai verify calls --format json`, or
   equivalent approved platform evidence. The matrix must distinguish
   accessible now, purchasable but unavailable now, and unavailable without new
   platform work.

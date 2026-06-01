@@ -1,6 +1,7 @@
 .vscode/**
 .vscode-test/**
 src/**
+out/**
 .gitignore
 .yarnrc
 webpack.config.js
@@ -16,12 +17,6 @@ webpack.config.js
 language-server/src/**
 # Exclude all node_modules by default
 node_modules/**
-# But keep node-pty-prebuilt-multiarch with all platform binaries
-!node_modules/node-pty-prebuilt-multiarch/**
-# Explicitly exclude only the build directory (platform-specific artifacts)
-# BUT keep the prebuilds directory (multi-platform binaries)
-node_modules/node-pty-prebuilt-multiarch/build/**
-!node_modules/node-pty-prebuilt-multiarch/prebuilds/**
 # Persona-pack visuals + canonical command source-of-truth must ship in VSIX
 # (T171 — feature 001-cli-innovations-visuals).
 !resources/templates/visuals/**

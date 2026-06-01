@@ -155,8 +155,6 @@ export function isUpgradeInProgress(): boolean {
   return getState().isUpgrading;
 }
 
-// Removed: wireClaudePtyToAutoHandoff() - PTY support removed (feature 001-remove-pty-dependency)
-
 /**
  * Extension activation
  */

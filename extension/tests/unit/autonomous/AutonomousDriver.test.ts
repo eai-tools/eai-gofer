@@ -132,7 +132,6 @@ describe('AutonomousDriver', () => {
       enableParallelTester: false,
       showTerminals: true,
       notificationChannel: 'vscode',
-      whatsappPhoneNumber: null,
       emailAddress: null,
       maxRetries: 3,
       tokenWarningThreshold: 150000,

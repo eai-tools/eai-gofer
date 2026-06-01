@@ -12,7 +12,6 @@ import {
   ContextHealthMonitor,
   type ContextHealthStatus,
 } from '../../../extension/src/autonomous/ContextHealthMonitor';
-// Removed: import type { IPty } from 'node-pty' - no longer using PTY
 import * as os from 'os';
 import * as path from 'path';
 import * as fs from 'fs';

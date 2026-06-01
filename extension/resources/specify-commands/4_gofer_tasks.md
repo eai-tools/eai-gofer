@@ -513,7 +513,7 @@ precondition to downstream implementation tasks:
   exception task with rationale.
 - Add a block-catalog task before any UI implementation task. It MUST run
   `eai --describe`, `eai blocks list`, `eai blocks describe <id>` for selected
-  blocks, and `eai resources schema`; task notes must cite block IDs, resource
+  blocks, and `resource schema`; task notes must cite block IDs, resource
   fields, data/action bindings, package lane, coupling status, Storybook story
   IDs, theme override points, and approved custom-block exceptions.
 - Add package-profile tasks that lock the external/internal/hybrid profile
@@ -522,9 +522,9 @@ precondition to downstream implementation tasks:
 - Add block-porting tasks for every selected Vertical Template block that must
   move into a reusable package lane, including Storybook story ID coverage,
   theme override points, exports, and compatibility checks.
-- Add DAISY decoupling tasks whenever a block or package lane is not
-  internal-only and still depends on DAISY internals; the task must define the
-  resource-schema or adapter boundary and the regression proof that DAISY is no
+- Add source-platform decoupling tasks whenever a block or package lane is not
+  restricted-source and still depends on source-platform internals; the task must define the
+  resource-schema or adapter boundary and the regression proof that source-platform coupling is no
   longer required by the public surface.
 - Add public-readiness tasks for external and hybrid profiles covering public
   exports, docs/examples where already part of the package surface,
@@ -556,7 +556,7 @@ precondition to downstream implementation tasks:
   - block downstream work until `ui-approval.md` is approved
 - App-delivery service-fit tasks that update `service-fit-matrix.md` using
   tenant-aware evidence from `eai --describe`, `eai whoami`, `eai tenant
-  select`, `eai resources schema`, `eai verify calls --format json`, or
+  select`, `resource schema`, `eai verify calls --format json`, or
   equivalent approved platform evidence.
 - A scope-control task that checks whether any user-facing app process exceeds
   four steps and either combines/automates extra steps or records the approved

@@ -98,9 +98,7 @@ Usage: 10 input tokens, 20 output tokens`;
 
       const parsed = provider.parseOutput(output);
 
-      expect(parsed.error).toBe(
-        'Authentication failed. Set ANTHROPIC_API_KEY or run: claude login'
-      );
+      expect(parsed.error).toBe('Authentication failed. Run: claude login');
     });
 
     it('should handle output without separator', () => {

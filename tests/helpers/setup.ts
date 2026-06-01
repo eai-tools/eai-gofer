@@ -3,13 +3,8 @@
  *
  * This file runs before all tests to set up the test environment.
  *
- * For CLI-provider integration tests, use provider login state or environment variables:
- *   OPENAI_API_KEY=<openai-api-key>
- *
- * You can either:
- *   1. Add them to .env file in project root
- *   2. Export them in your shell before running tests
- *   3. Prefix the test command with an OPENAI_API_KEY value.
+ * CLI-provider integration tests should use the provider CLI login/session
+ * state, not direct provider API keys in this repository.
  */
 
 import { vi } from 'vitest';
@@ -221,70 +216,6 @@ vi.mock('../../extension/src/utils/logger', () => ({
   },
 }));
 
-// Mock node-pty (native module)
-vi.mock('node-pty', () => {
-  const mockPtyProcess = {
-    onData: vi.fn(() => {
-      // Store callback for later invocation if needed
-      return;
-    }),
-    onExit: vi.fn(() => {
-      // Store callback for later invocation if needed
-      return;
-    }),
-    write: vi.fn(),
-    kill: vi.fn(),
-    pid: 12345,
-  };
-
-  return {
-    default: {
-      spawn: vi.fn(() => mockPtyProcess),
-    },
-    spawn: vi.fn(() => mockPtyProcess),
-  };
-});
-
-// Mock node-pty-prebuilt-multiarch (native module)
-vi.mock('node-pty-prebuilt-multiarch', () => {
-  const mockPtyProcess = {
-    onData: vi.fn(() => {
-      // Store callback for later invocation if needed
-      return;
-    }),
-    onExit: vi.fn(() => {
-      // Store callback for later invocation if needed
-      return;
-    }),
-    write: vi.fn(),
-    kill: vi.fn(),
-    pid: 12345,
-  };
-
-  return {
-    default: {
-      spawn: vi.fn(() => mockPtyProcess),
-    },
-    spawn: vi.fn(() => mockPtyProcess),
-  };
-});
-
-// Set placeholder CLI-auth environment variables only if not already set.
-if (!process.env.ANTHROPIC_API_KEY) {
-  process.env.ANTHROPIC_API_KEY = 'test-api-key';
-}
-if (!process.env.OPENAI_API_KEY) {
-  process.env.OPENAI_API_KEY = 'test-openai-key';
-}
-if (!process.env.TWILIO_ACCOUNT_SID) {
-  process.env.TWILIO_ACCOUNT_SID = 'test-account-sid';
-}
-if (!process.env.TWILIO_AUTH_TOKEN) {
-  process.env.TWILIO_AUTH_TOKEN = 'test-auth-token';
-}
-if (!process.env.TWILIO_PHONE_NUMBER) {
-  process.env.TWILIO_PHONE_NUMBER = '+1234567890';
-}
-if (!process.env.YOUR_PHONE_NUMBER) {
-  process.env.YOUR_PHONE_NUMBER = '+0987654321';
+if (!process.env.GOFER_TEST_CLI_SESSION) {
+  process.env.GOFER_TEST_CLI_SESSION = 'mock';
 }

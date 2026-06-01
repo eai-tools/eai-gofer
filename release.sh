@@ -311,13 +311,15 @@ else
     exit 1
 fi
 
-# Skip rebuilding - we use node-pty-prebuilt-multiarch with cross-platform binaries
-# Rebuilding would create a single-platform binary that breaks Linux/Codespaces
-print_info "Using prebuilt node-pty-prebuilt-multiarch binaries (cross-platform)..."
-print_success "Skipping rebuild to preserve multi-platform support"
+# No native rebuild is required; the extension runtime is bundled by webpack and
+# language-server dependencies are copied explicitly before VSIX packaging.
+print_info "No native rebuild required for VSIX packaging"
+print_success "Skipping native rebuild"
 
-# Run vsce package and capture both success and failure
-if npx @vscode/vsce package --out "eai-gofer-$NEW_VERSION.vsix" 2>&1; then
+# Run vsce package and capture both success and failure. Dependencies used by
+# the extension runtime are bundled by webpack; language-server dependencies
+# are explicitly included through .vscodeignore.
+if npx @vscode/vsce package --no-dependencies --out "eai-gofer-$NEW_VERSION.vsix" 2>&1; then
     print_success "VSIX package built successfully"
 else
     print_error "Failed to build VSIX package"
@@ -346,50 +348,36 @@ else
     exit 1
 fi
 
-# Validate VSIX contains cross-platform binaries (critical for Codespaces/Linux)
-print_info "Validating cross-platform binary support..."
+# Validate VSIX native-module posture. Gofer no longer packages native PTY
+# modules, so the safest public artifact is one with no native build byproducts.
+print_info "Validating VSIX native dependency posture..."
 VSIX_FILE="./eai-gofer-$NEW_VERSION.vsix"
 
-# Check for linux-x64 prebuilds (required for Codespaces)
-if unzip -l "$VSIX_FILE" | grep -q "prebuilds/linux-x64/node.abi"; then
-    print_success "✓ Linux x64 binaries present"
-else
-    print_error "✗ CRITICAL: Linux x64 binaries missing - extension will fail in Codespaces!"
-    print_error "  Check that node-pty-prebuilt-multiarch is installed correctly"
+# Check for stale native PTY dependencies.
+if unzip -l "$VSIX_FILE" | grep -q "node-pty-prebuilt-multiarch"; then
+    print_error "✗ CRITICAL: stale node-pty-prebuilt-multiarch files are present in the VSIX."
+    print_error "  Gofer no longer uses PTY-native modules; remove them before releasing."
     exit 1
-fi
-
-# Check for darwin binaries (required for macOS)
-if unzip -l "$VSIX_FILE" | grep -q "prebuilds/darwin-x64/node.abi\|prebuilds/darwin-arm64/node.abi"; then
-    print_success "✓ macOS binaries present"
 else
-    print_warning "⚠ macOS binaries missing"
+    print_success "✓ No stale node-pty native dependency files packaged"
 fi
 
 # CRITICAL: Ensure no disallowed platform-specific build artifacts are included.
-# node-pty-prebuilt-multiarch may ship a fallback build/Release binary alongside
-# multi-platform prebuilds; treat that specific path as allowed.
 PTY_BUILD_ARTIFACTS=$(unzip -l "$VSIX_FILE" | grep "build/Release/pty.node" || true)
 if [ -n "$PTY_BUILD_ARTIFACTS" ]; then
-    DISALLOWED_PTY_ARTIFACTS=$(echo "$PTY_BUILD_ARTIFACTS" | grep -v "node_modules/node-pty-prebuilt-multiarch/build/Release/pty.node" || true)
-
-    if [ -n "$DISALLOWED_PTY_ARTIFACTS" ]; then
-        print_error "✗ CRITICAL: Disallowed platform-specific build/Release/pty.node detected!"
-        print_error "  This will break cross-platform support. The electron-rebuild step"
-        print_error "  likely created single-platform artifacts that were included in the VSIX."
-        print_error ""
-        print_error "  Disallowed binaries:"
-        echo "$DISALLOWED_PTY_ARTIFACTS"
-        exit 1
-    fi
-
-    print_warning "Allowed node-pty-prebuilt-multiarch fallback build artifact detected."
-    print_warning "Cross-platform prebuilds are present; continuing release."
+    print_error "✗ CRITICAL: platform-specific build/Release/pty.node detected!"
+    echo "$PTY_BUILD_ARTIFACTS"
+    exit 1
 else
     print_success "✓ No platform-specific build artifacts detected"
 fi
 
-print_success "Cross-platform validation passed"
+if unzip -p "$VSIX_FILE" extension/package.json | grep -q "node-pty"; then
+    print_error "✗ CRITICAL: stale node-pty dependency metadata found in VSIX package.json"
+    exit 1
+fi
+
+print_success "Native dependency validation passed"
 
 # Test VSIX activation before releasing
 print_info "Running VSIX pre-flight tests including activation..."

@@ -5,14 +5,13 @@ import * as path from 'path';
 /**
  * T044: Structural test for observation tracking from terminal output.
  *
- * REMOVED: PTY-based observation tracking was replaced with HookBridgeWatcher
- * in feature 001-remove-pty-dependency. Observation tracking now happens via
+ * Legacy terminal-output observation tracking was replaced with HookBridgeWatcher.
+ * Observation tracking now happens via
  * file system monitoring (.specify/hooks/context-bridge.json) instead of
- * PTY output capture.
+ * terminal output capture.
  */
-describe.skip('Observation Tracking via PTY (T044) - REMOVED', () => {
-  // Tests skipped - PTY-based observation tracking removed in favor of HookBridgeWatcher
-  // See: feature 001-remove-pty-dependency, Phase 2-3 replacement architecture
+describe.skip('Observation Tracking via Terminal Output (T044) - REMOVED', () => {
+  // Tests skipped - terminal-output observation tracking was replaced by HookBridgeWatcher.
 });
 
 /**

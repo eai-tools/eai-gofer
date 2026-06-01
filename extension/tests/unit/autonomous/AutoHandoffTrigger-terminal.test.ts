@@ -1,8 +1,7 @@
 /**
  * Unit tests for AutoHandoffTrigger terminal abstraction (Phase 2)
  *
- * Tests the sendTerminalCommand abstraction that supports both PTY and
- * normal VSCode terminals for save/clear/resume.
+ * Tests the sendTerminalCommand abstraction for save/clear/resume.
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -80,7 +79,7 @@ describe('AutoHandoffTrigger terminal abstraction', () => {
     // Clear terminal
     trigger.setClaudeVscodeTerminal(null);
 
-    // No crashes expected (PTY support removed in feature/001-remove-pty-dependency)
+    // No crashes expected when the terminal is set and cleared.
     expect(true).toBe(true);
   });
 });

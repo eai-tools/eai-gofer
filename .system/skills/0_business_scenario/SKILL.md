@@ -331,7 +331,7 @@ status: complete
 | ----- | -------- |
 | Profile Choice | External / Internal / Hybrid |
 | Package Lane | {{public-package | internal-app | hybrid-adapter | app-local}} |
-| Coupling Status | {{daisy-coupled | daisy-decoupled | hybrid-adapter}} |
+| Coupling Status | {{source-platform-coupled | source-platform-decoupled | hybrid-adapter}} |
 | Public-Readiness Target | {{required | deferred | not-applicable}} |
 | Block Porting Need | {{reuse | port | custom-block-exception}} |
 ```
@@ -464,13 +464,13 @@ and coupling path before research starts:
 | ------------ | ----------------- |
 | Profile choice | External, internal, or hybrid package profile |
 | Package lane | Public reusable block package, internal vertical app, hybrid adapter, or app-local implementation |
-| Coupling status | DAISY-coupled, DAISY-decoupled, or hybrid adapter boundary |
+| Coupling status | source-platform-coupled, source-platform-decoupled, or hybrid adapter boundary |
 | Public-readiness target | Whether the first delivery must be ready for external package consumers |
 | Block porting need | Reuse existing block, port a Vertical Template block, or request a custom-block exception |
 
 External and hybrid profile choices require explicit public-readiness,
-block-porting, DAISY decoupling, Storybook, and theme-override evidence in the
-later Gofer artifacts. Internal-only choices still record why public readiness
+block-porting, source-platform decoupling, Storybook, and theme-override evidence in the
+later Gofer artifacts. Restricted-source choices still record why public readiness
 is not required now.
 
 **First, offer the option to skip:**

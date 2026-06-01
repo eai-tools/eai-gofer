@@ -1,9 +1,12 @@
 {
   "name": "eai-gofer",
-  "description": "Public Gofer bundle for Claude Code, Gemini CLI, Codex, and Copilot workflows.",
   "owner": {
     "name": "EAI Tools",
     "url": "https://github.com/eai-tools/eai-gofer"
+  },
+  "metadata": {
+    "description": "Public Gofer bundle for Claude Code, Gemini CLI, Codex, and Copilot workflows.",
+    "version": "3.5.2"
   },
   "plugins": [
     {

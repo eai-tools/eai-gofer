@@ -216,8 +216,6 @@ function buildPluginManifest(version, paths = {}) {
       'gemini',
       'spec-driven-development',
     ],
-    category: 'Coding',
-    tags: ['eai-gofer', 'gofer', 'agentic-coding', 'gemini'],
     skills: paths.skills ?? `./${UMBRELLA_SKILLS_DIR}/`,
     agents: paths.agents ?? './agents/',
     commands: paths.commands ?? './commands/',
@@ -238,8 +236,6 @@ function buildClaudeManifest(version, paths = {}) {
     repository: REPOSITORY_URL,
     license: 'Apache-2.0',
     keywords: ['eai-gofer', 'gofer', 'claude-code', 'spec-driven-development'],
-    category: 'Coding',
-    tags: ['eai-gofer', 'gofer', 'agentic-coding'],
     skills: paths.skills ?? './skills/',
   };
 }
@@ -247,11 +243,14 @@ function buildClaudeManifest(version, paths = {}) {
 function buildBundleMarketplace(version) {
   return {
     name: 'eai-gofer',
-    description:
-      'Public Gofer bundle for Claude Code, Gemini CLI, Codex, and Copilot workflows.',
     owner: {
       name: 'EAI Tools',
       url: REPOSITORY_URL,
+    },
+    metadata: {
+      description:
+        'Public Gofer bundle for Claude Code, Gemini CLI, Codex, and Copilot workflows.',
+      version,
     },
     plugins: [
       {
@@ -284,8 +283,6 @@ function buildBundleMarketplace(version) {
 function buildRepoMarketplace(version) {
   return {
     name: 'eai-gofer',
-    description:
-      'Public Gofer bundle for Claude Code, Gemini CLI, Codex, and Copilot workflows.',
     owner: {
       name: 'EAI Tools',
       url: REPOSITORY_URL,

@@ -10,7 +10,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import * as os from 'os';
+import { randomUUID } from 'crypto';
 import type { ContextBuilder, TaskContext, BuiltContext } from './ContextBuilder';
 
 /** Shape of the bridge file written to disk */
@@ -66,8 +66,8 @@ export class ContextBridgeWriter {
     const dir = path.dirname(this.bridgePath);
     await fs.promises.mkdir(dir, { recursive: true });
 
-    // Atomic write: write to temp file, then rename
-    const tmpPath = path.join(os.tmpdir(), `gofer-bridge-${Date.now()}.json`);
+    // Atomic write: keep the temp file in the destination directory so rename is safe.
+    const tmpPath = path.join(dir, `.enriched-context.${randomUUID()}.tmp`);
     await fs.promises.writeFile(tmpPath, JSON.stringify(bridge, null, 2), 'utf-8');
     await fs.promises.rename(tmpPath, this.bridgePath);
   }

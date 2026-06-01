@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { GoferParser, Task, TaskStatus } from '../../../extension/src/goferParser';
+import { GoferParser } from '../../../extension/src/goferParser';
 import { createTestWorkspace, cleanupTestWorkspace, createTestSpec } from '../../helpers/workspace';
 import * as path from 'path';
 import * as fs from 'fs/promises';

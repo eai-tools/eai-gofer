@@ -101,14 +101,6 @@ export class CodexUsageAdapter implements CLIUsageAdapter {
     const usageEntries: UsageEntry[] = [];
 
     try {
-      // Check file existence asynchronously
-      try {
-        await fs.promises.access(logFilePath);
-      } catch {
-        this.logger.warn('Codex history file not found', { logFilePath });
-        return [];
-      }
-
       const content = await fs.promises.readFile(logFilePath, 'utf-8');
       const historyData: CodexHistoryFile = JSON.parse(content);
 
@@ -119,12 +111,18 @@ export class CodexUsageAdapter implements CLIUsageAdapter {
 
       for (const session of historyData.sessions) {
         const entry = this.extractUsage(session);
-        if (!entry) {continue;}
+        if (!entry) {
+          continue;
+        }
 
         // Apply date filters
         const timestamp = new Date(entry.timestamp);
-        if (fromDate && timestamp < fromDate) {continue;}
-        if (toDate && timestamp > toDate) {continue;}
+        if (fromDate && timestamp < fromDate) {
+          continue;
+        }
+        if (toDate && timestamp > toDate) {
+          continue;
+        }
 
         usageEntries.push(entry);
       }
@@ -137,6 +135,10 @@ export class CodexUsageAdapter implements CLIUsageAdapter {
 
       return usageEntries;
     } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        this.logger.warn('Codex history file not found', { logFilePath });
+        return [];
+      }
       this.logger.error('Failed to parse Codex history file', error as Error, { logFilePath });
       return [];
     }

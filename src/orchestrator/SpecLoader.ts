@@ -1,5 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
+import { randomUUID } from 'crypto';
 import type { Task, TaskStatus } from '../types/index.js';
 
 // Legacy type compatibility
@@ -325,7 +326,7 @@ export class SpecLoader {
     } else {
       // Legacy JSON format
       const filePath = path.join(this.specDir, `${spec.id}.json`);
-      await fs.writeFile(filePath, JSON.stringify(spec, null, 2));
+      await this.atomicWriteFile(filePath, JSON.stringify(spec, null, 2));
     }
   }
 
@@ -355,7 +356,7 @@ export class SpecLoader {
 
           const newContent = ['---', ...updatedFrontmatter, ...lines.slice(endIndex)].join('\n');
 
-          await fs.writeFile(specMdPath, newContent, 'utf-8');
+          await this.atomicWriteFile(specMdPath, newContent, 'utf-8');
         }
       }
     } catch (error) {
@@ -382,12 +383,26 @@ export class SpecLoader {
         updatedContent = updatedContent.replace(taskIdPattern, `- ${checkbox} #${task.id}`);
       }
 
-      // Write atomically using temp file
-      const tempPath = `${tasksMdPath}.tmp`;
-      await fs.writeFile(tempPath, updatedContent, 'utf-8');
-      await fs.rename(tempPath, tasksMdPath);
+      await this.atomicWriteFile(tasksMdPath, updatedContent, 'utf-8');
     } catch (error) {
       console.error(`Failed to update tasks.md for ${specId}:`, error);
+    }
+  }
+
+  private async atomicWriteFile(
+    targetPath: string,
+    content: string,
+    encoding: BufferEncoding = 'utf-8'
+  ): Promise<void> {
+    const dir = path.dirname(targetPath);
+    const tempPath = path.join(dir, `.${path.basename(targetPath)}.${randomUUID()}.tmp`);
+
+    try {
+      await fs.writeFile(tempPath, content, { encoding, flag: 'wx' });
+      await fs.rename(tempPath, targetPath);
+    } catch (error) {
+      await fs.rm(tempPath, { force: true }).catch(() => undefined);
+      throw error;
     }
   }
 

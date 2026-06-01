@@ -112,26 +112,34 @@ export class MemoryConsolidator {
         try {
           const event = JSON.parse(line) as Record<string, unknown>;
           // T082: Only process stage_complete events
-          if (event.event !== 'stage_complete') {continue;}
+          if (event.event !== 'stage_complete') {
+            continue;
+          }
 
           const sessionId = String(event.sessionId ?? '');
           const stage = String(event.stage ?? '');
 
           // T083: Idempotency - skip already-processed sessions
           const key = `${sessionId}-${stage}`;
-          if (this.processedSessionIds.has(key)) {continue;}
+          if (this.processedSessionIds.has(key)) {
+            continue;
+          }
           this.processedSessionIds.add(key);
 
           // Look for validation or engineering review reports
           const reportPath = event.reportPath as string | undefined;
-          if (!reportPath) {continue;}
+          if (!reportPath) {
+            continue;
+          }
 
           const absPath = path.isAbsolute(reportPath)
             ? reportPath
             : path.join(this.workspaceRoot, reportPath);
 
           const reportContent = await fs.readFile(absPath, 'utf-8').catch(() => null);
-          if (!reportContent) {continue;}
+          if (!reportContent) {
+            continue;
+          }
 
           // Extract Red/Yellow patterns from the report
           const count = await this.extractPatternsFromReport(reportContent, sessionId);
@@ -165,7 +173,9 @@ export class MemoryConsolidator {
       const isRed = /\*\*red\*\*:/i.test(line) || /^-\s*red:/i.test(line);
       const isYellow = /\*\*yellow\*\*:/i.test(line) || /^-\s*yellow:/i.test(line);
 
-      if (!isRed && !isYellow) {continue;}
+      if (!isRed && !isYellow) {
+        continue;
+      }
 
       const description = line
         .replace(/^#+\s*/, '')
@@ -174,7 +184,9 @@ export class MemoryConsolidator {
         .replace(/\b(red|yellow)\b:?\s*/i, '')
         .trim();
 
-      if (description.length < 10) {continue;}
+      if (description.length < 10) {
+        continue;
+      }
 
       const category = isRed ? 'validation_pattern' : 'lesson';
       const tags = isRed
@@ -223,7 +235,9 @@ export class MemoryConsolidator {
     // Step 1: Detect duplicates
     const duplicateGroups = this.findDuplicates(allMemories);
     for (const group of duplicateGroups) {
-      if (group.length <= 1) {continue;}
+      if (group.length <= 1) {
+        continue;
+      }
 
       // Keep the highest-priority memory, archive the rest
       const sorted = [...group].sort((a, b) => (b.priorityIndex ?? 0) - (a.priorityIndex ?? 0));
@@ -246,7 +260,9 @@ export class MemoryConsolidator {
     // Step 1.5: Detect and resolve conflicts (medium overlap + shared tags)
     const conflicts = this.findConflicts(allMemories);
     for (const conflict of conflicts) {
-      if (toArchive.includes(conflict.older.id)) {continue;} // Already archived
+      if (toArchive.includes(conflict.older.id)) {
+        continue;
+      } // Already archived
 
       // Archive older memory with supersededBy reference
       await this.storage.update(conflict.older.id, {
@@ -358,7 +374,9 @@ export class MemoryConsolidator {
   ): Promise<number> {
     const compactionAge = COMPACTION_AGE_DAYS * 24 * 60 * 60 * 1000;
     const staleMemories = memories.filter((memory) => {
-      if (toArchive.includes(memory.id)) {return false;}
+      if (toArchive.includes(memory.id)) {
+        return false;
+      }
       const age = now - memory.created;
       const usage = memory.usedCount ?? 0;
       return age > compactionAge && usage < COMPACTION_MIN_USES && memory.content.length > 200;
@@ -387,7 +405,9 @@ export class MemoryConsolidator {
   ): Promise<number> {
     const decayAge = DECAY_INACTIVE_DAYS * 24 * 60 * 60 * 1000;
     const decayMemories = memories.filter((memory) => {
-      if (toArchive.includes(memory.id)) {return false;}
+      if (toArchive.includes(memory.id)) {
+        return false;
+      }
       const timeSinceUse = now - memory.lastUsed;
       const currentPriority = memory.priorityIndex ?? 0;
       return timeSinceUse > decayAge && currentPriority > 0;
@@ -416,13 +436,17 @@ export class MemoryConsolidator {
     const assigned = new Set<string>();
 
     for (let i = 0; i < memories.length; i++) {
-      if (assigned.has(memories[i].id)) {continue;}
+      if (assigned.has(memories[i].id)) {
+        continue;
+      }
 
       const group: Memory[] = [memories[i]];
       assigned.add(memories[i].id);
 
       for (let j = i + 1; j < memories.length; j++) {
-        if (assigned.has(memories[j].id)) {continue;}
+        if (assigned.has(memories[j].id)) {
+          continue;
+        }
 
         const overlap = this.calculateKeywordOverlap(memories[i].content, memories[j].content);
         if (overlap >= DEDUP_OVERLAP_THRESHOLD) {
@@ -472,7 +496,9 @@ export class MemoryConsolidator {
 
         // Must share at least one tag
         const sharedTags = (a.tags ?? []).filter((t) => (b.tags ?? []).includes(t));
-        if (sharedTags.length === 0) {continue;}
+        if (sharedTags.length === 0) {
+          continue;
+        }
 
         // Newer memory supersedes older
         const [older, newer] = a.created <= b.created ? [a, b] : [b, a];
@@ -501,12 +527,18 @@ export class MemoryConsolidator {
         .filter((w) => w.length >= 3)
     );
 
-    if (words1.size === 0 && words2.size === 0) {return 1;}
-    if (words1.size === 0 || words2.size === 0) {return 0;}
+    if (words1.size === 0 && words2.size === 0) {
+      return 1;
+    }
+    if (words1.size === 0 || words2.size === 0) {
+      return 0;
+    }
 
     let intersection = 0;
     for (const word of words1) {
-      if (words2.has(word)) {intersection++;}
+      if (words2.has(word)) {
+        intersection++;
+      }
     }
 
     const union = new Set([...words1, ...words2]).size;
@@ -521,12 +553,16 @@ export class MemoryConsolidator {
    * Check if a memory's code citations are stale (files changed since creation).
    */
   private async checkCitationStaleness(memory: Memory): Promise<boolean> {
-    if (!memory.citations || memory.citations.length === 0) {return false;}
+    if (!memory.citations || memory.citations.length === 0) {
+      return false;
+    }
 
     for (const citation of memory.citations) {
+      let fileHandle: Awaited<ReturnType<typeof fs.open>> | undefined;
       try {
         const filePath = path.join(this.workspaceRoot, citation.file);
-        const stat = await fs.stat(filePath);
+        fileHandle = await fs.open(filePath, 'r');
+        const stat = await fileHandle.stat();
         const fileModified = stat.mtimeMs;
 
         // If file was modified after the memory was created, it's stale
@@ -536,7 +572,7 @@ export class MemoryConsolidator {
 
         // If a hash was stored, check if content changed
         if (citation.hash) {
-          const content = await fs.readFile(filePath, 'utf-8');
+          const content = await fileHandle.readFile('utf-8');
           const currentHash = crypto
             .createHash('sha256')
             .update(content)
@@ -549,6 +585,8 @@ export class MemoryConsolidator {
       } catch {
         // File doesn't exist anymore — definitely stale
         return true;
+      } finally {
+        await fileHandle?.close();
       }
     }
 

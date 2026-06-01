@@ -159,7 +159,6 @@ describe('Memory Integration Tests', () => {
 
     it('should preserve memory metadata across sessions', async () => {
       // Save memory with specific timestamps
-      const createdTime = Date.now() - 86400000; // 1 day ago
       const lastUsedTime = Date.now() - 3600000; // 1 hour ago
 
       await memoryManager.save({

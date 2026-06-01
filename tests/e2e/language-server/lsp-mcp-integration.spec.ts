@@ -1,7 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { join } from 'path';
 import { promises as fs } from 'fs';
-import { ChildProcess } from 'child_process';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
@@ -21,20 +20,12 @@ const __dirname = dirname(__filename);
 const TEST_WORKSPACE = join(__dirname, '../../fixtures/test-workspace');
 
 test.describe('Language Server E2E', () => {
-  let serverProcess: ChildProcess | undefined;
-
   test.beforeEach(async () => {
     // Setup test workspace
     await setupTestWorkspace();
   });
 
   test.afterEach(async () => {
-    // Stop server if running
-    if (serverProcess) {
-      serverProcess.kill();
-      serverProcess = undefined;
-    }
-
     // Cleanup test workspace
     await cleanupTestWorkspace();
   });
@@ -303,7 +294,7 @@ async function setupTestWorkspace(): Promise<void> {
 async function cleanupTestWorkspace(): Promise<void> {
   try {
     await fs.rm(TEST_WORKSPACE, { recursive: true, force: true });
-  } catch (error) {
+  } catch {
     // Ignore cleanup errors
   }
 }

@@ -52,7 +52,7 @@ describe('ProviderFactory Security (US-4)', () => {
         },
         {
           role: 'user' as const,
-          content: `Use ANTHROPIC_API_KEY=${envApiKey} for the request`,
+          content: `Use ANTHROPIC_API_KEY = ${envApiKey} for the request`,
         },
       ];
 
@@ -256,10 +256,11 @@ describe('ProviderFactory Security (US-4)', () => {
     });
 
     it('should redact environment variable credentials', async () => {
+      const openAiKey = fixtureCredential('sk-proj-', 'abcd1234efgh5678ijkl9012mnop3456');
       const historyWithEnvVars = [
         {
           role: 'user' as const,
-          content: 'export OPENAI_API_KEY=sk-proj-abcd1234',
+          content: `export OPENAI_API_KEY = ${openAiKey}`,
         },
         {
           role: 'user' as const,
@@ -297,7 +298,7 @@ describe('ProviderFactory Security (US-4)', () => {
       if (transferredHistory) {
         for (const message of transferredHistory) {
           // Credentials should be redacted
-          expect(message.content).not.toContain('sk-proj-abcd1234');
+          expect(message.content).not.toContain(openAiKey);
           expect(message.content).not.toContain('SuperSecret123');
 
           // Variable names should be preserved
@@ -311,6 +312,7 @@ describe('ProviderFactory Security (US-4)', () => {
 
   describe('Security Edge Cases', () => {
     it('should not leak credentials through error messages', async () => {
+      const invalidApiKey = fixtureCredential('sk-', 'test-1234567890');
       const historyWithErrorContainingKey = [
         {
           role: 'user' as const,
@@ -318,7 +320,7 @@ describe('ProviderFactory Security (US-4)', () => {
         },
         {
           role: 'assistant' as const,
-          content: 'Error: Invalid API key sk-test-1234567890. Please check your key.',
+          content: `Error: Invalid API key ${invalidApiKey}. Please check your key.`,
         },
       ];
 
@@ -351,7 +353,7 @@ describe('ProviderFactory Security (US-4)', () => {
 
       if (transferredHistory) {
         // Error message should not contain the actual key
-        expect(transferredHistory[1].content).not.toContain('sk-test-1234567890');
+        expect(transferredHistory[1].content).not.toContain(invalidApiKey);
         expect(transferredHistory[1].content).toContain('Error: Invalid API key');
       }
     });

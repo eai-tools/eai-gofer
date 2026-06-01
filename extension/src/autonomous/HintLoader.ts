@@ -326,7 +326,6 @@ export class HintLoader {
           const filename = path.basename(hintPath, '.md');
           if (filename === name) {
             hints.push(hint);
-            found = true;
             break;
           }
         }

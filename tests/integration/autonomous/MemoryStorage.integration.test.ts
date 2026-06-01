@@ -17,7 +17,7 @@ describe('MemoryStorage Integration: Layered JSONL', () => {
   let workspaceRoot: string;
 
   beforeEach(async () => {
-    workspaceRoot = path.join(os.tmpdir(), `gofer-test-${Date.now()}`);
+    workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'gofer-test-'));
     await fs.mkdir(path.join(workspaceRoot, '.specify', 'memory'), { recursive: true });
     storage = new MemoryStorage(workspaceRoot);
     await storage.initialize();

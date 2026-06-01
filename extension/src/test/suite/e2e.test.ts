@@ -178,18 +178,8 @@ suite('E2E GitHub API Tests', () => {
         assert.ok(templateData instanceof ArrayBuffer, 'Should return ArrayBuffer');
         assert.ok(templateData.byteLength > 0, 'Should have content');
 
-        // Create test extraction to verify it's valid
-        const testDir = path.join(testTemplateDir, 'validation');
-        fs.mkdirSync(testDir, { recursive: true });
-
-        // Write to file for validation
-        const testFile = path.join(testDir, 'template.zip');
-        fs.writeFileSync(testFile, Buffer.from(templateData));
-
-        // Verify file was written
-        assert.ok(fs.existsSync(testFile), 'Template file should be written');
-        const stats = fs.statSync(testFile);
-        assert.ok(stats.size > 0, 'Template file should have content');
+        const templateBuffer = Buffer.from(templateData);
+        assert.ok(templateBuffer.length > 0, 'Template buffer should have content');
       } catch (error) {
         console.warn('Template validation failed (acceptable in test):', error);
       }
@@ -233,10 +223,8 @@ suite('E2E GitHub API Tests', () => {
       // Verify .specify structure was created
       assert.ok(fs.existsSync(specifyPath), '.specify directory should exist');
 
-      // Write template data for verification
-      const templateFile = path.join(specifyPath, 'templates.zip');
-      fs.writeFileSync(templateFile, Buffer.from(templateData));
-      assert.ok(fs.existsSync(templateFile), 'Template file should be written');
+      const templateBuffer = Buffer.from(templateData);
+      assert.ok(templateBuffer.length > 0, 'Template buffer should have content');
     });
 
     test('should handle network failures during initialization', async function () {

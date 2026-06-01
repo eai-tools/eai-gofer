@@ -222,9 +222,9 @@ export function analyzeIssue(issue, policy) {
   ].filter((label) => labels.includes(label));
   const labelsToAdd = [statusLabels.triage];
 
-  let status = 'needs-human-triage';
-  let summary = 'Needs human triage';
-  let reason = 'The issue needs a maintainer to confirm scope and roadmap fit.';
+  let status;
+  let summary;
+  let reason;
   let area = areaMatch.area;
   let shouldPreparePr = false;
 

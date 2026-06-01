@@ -359,13 +359,6 @@ describe('ObservationMasker', () => {
       await masker.saveCacheToDisk();
 
       const indexPath = path.join(tempDir, '.specify/memory/observation-cache/index.json');
-      const exists = await fs.promises
-        .access(indexPath)
-        .then(() => true)
-        .catch(() => false);
-
-      expect(exists).toBe(true);
-
       const content = await fs.promises.readFile(indexPath, 'utf-8');
       const parsed = JSON.parse(content);
 

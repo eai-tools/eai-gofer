@@ -79,19 +79,13 @@ function* walk(dir: string): Generator<string> {
 function fileContainsForbidden(file: string): boolean {
   const ext = path.extname(file);
   if (SKIP_EXTENSIONS.has(ext)) return false;
-  let stat: fs.Stats;
-  try {
-    stat = fs.statSync(file);
-  } catch {
-    return false;
-  }
-  if (stat.size > MAX_FILE_BYTES) return false;
   let content: string;
   try {
     content = fs.readFileSync(file, 'utf8');
   } catch {
     return false;
   }
+  if (Buffer.byteLength(content, 'utf8') > MAX_FILE_BYTES) return false;
   return content.includes(FORBIDDEN_KEY);
 }
 

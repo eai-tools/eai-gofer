@@ -212,7 +212,10 @@ export class GoferURIResolver {
     const filePattern = path.basename(globPath);
 
     // Hoist RegExp compilation outside the loop
-    const regexPattern = filePattern.replace(/\./g, '\\.').replace(/\*/g, '.*').replace(/\?/g, '.');
+    const regexPattern = filePattern
+      .replace(/[.+^${}()|[\]\\]/g, '\\$&')
+      .replace(/\*/g, '.*')
+      .replace(/\?/g, '.');
     const fileRegex = new RegExp(`^${regexPattern}$`);
 
     try {

@@ -19,59 +19,37 @@ Before doing stage/helper work:
    - Claude: `AGENTS.md`, `CLAUDE.md`, `.claude/settings.json`
    - Codex: `AGENTS.md`
    - Copilot: `.github/copilot-instructions.md`
-   - VS Code extension mirrors Claude/Copilot/Gemini resources itself and should
-     still keep the core scaffold healthy
+   - VS Code extension mirrors Claude/Copilot/Gemini resources itself and should still keep the core scaffold healthy
 4. If the repo already has the workspace checker script, prefer running:
    - `node .specify/scripts/node/gofer-workspace-check.mjs --host claude --json`
 5. If the workspace is missing or stale, ask exactly:
    - **"This repo is missing or stale for Gofer. Initialize/update it now?"**
-6. If the user says yes, run the Gofer workspace bootstrap helper and then
-   resume this command from the top.
-7. If the user says no, stop and explain that Gofer stage/helper work depends on
-   the repo-owned scaffold.
+6. If the user says yes, run the Gofer workspace bootstrap helper and then resume this command from the top.
+7. If the user says no, stop and explain that Gofer stage/helper work depends on the repo-owned scaffold.
 
 ---
-
-description: Generate stakeholder communications package including release
-notes, demo script, change management brief, and success metrics
-
+description:
+  Generate stakeholder communications package including release notes, demo
+  script, change management brief, and success metrics
 ---
 
 # Gofer Stakeholder Communications
 
 ## Token And Cost Policy
-
 <!-- gofer:token-cost-policy:start -->
 
 Before spawning agents, calling tools, or loading large files:
 
-1. Treat `.specify/memory/gofer-model-policy.yaml` as the repo-owned source of
-   truth for simple, medium, hard, and arbiter model routing. If it is missing,
-   run `/gofer:bootstrap-workspace` before continuing.
+1. Treat `.specify/memory/gofer-model-policy.yaml` as the repo-owned source of truth for simple, medium, hard, and arbiter model routing. If it is missing, run `/gofer:bootstrap-workspace` before continuing.
 2. Use the cheapest capable model first.
-   - Claude: Haiku for scouting/extraction; Sonnet for normal implementation,
-     synthesis, validation, and security; Opus for high-risk arbitration or
-     release-critical failures.
-   - Codex/OpenAI: GPT mini for simple coding; GPT nano only for
-     locate/classify/summarize/mechanical work; GPT-5.3-Codex or flagship GPT
-     for tool-heavy coding, architecture, and release-critical validation.
-   - Gemini: Flash-Lite for cheap large-context scan/summarize; Flash for
-     default research synthesis; Pro for large-context architecture or high-risk
-     arbitration.
-   - Copilot: prefer Auto for simple and default work; ask the user before
-     choosing a paid/high-tier picker model for hard security, architecture, or
-     release gates.
-3. Keep raw tool output out of the main conversation context. Save stable
-   findings to `.specify/specs/{feature}/context-bundle.md`, then work from
-   summaries.
-4. Use provider prompt/context caching only for stable, non-secret prefixes:
-   Gofer scaffold, AGENTS/CLAUDE/Copilot instructions, constitution, repo map,
-   stage contracts, and validation rubric.
-5. Before continuing after large research, planning, implementation, or
-   validation bursts, checkpoint the durable artifacts and compact/clear/resume
-   context when the host supports it.
-6. Escalate model tier only when a cheaper pass is low-confidence,
-contradictory, security-sensitive, or blocking release quality.
+   - Claude: Haiku for scouting/extraction; Sonnet for normal implementation, synthesis, validation, and security; Opus for high-risk arbitration or release-critical failures.
+   - Codex/OpenAI: GPT mini for simple coding; GPT nano only for locate/classify/summarize/mechanical work; GPT-5.3-Codex or flagship GPT for tool-heavy coding, architecture, and release-critical validation.
+   - Gemini: Flash-Lite for cheap large-context scan/summarize; Flash for default research synthesis; Pro for large-context architecture or high-risk arbitration.
+   - Copilot: prefer Auto for simple and default work; ask the user before choosing a paid/high-tier picker model for hard security, architecture, or release gates.
+3. Keep raw tool output out of the main conversation context. Save stable findings to `.specify/specs/{feature}/context-bundle.md`, then work from summaries.
+4. Use provider prompt/context caching only for stable, non-secret prefixes: Gofer scaffold, AGENTS/CLAUDE/Copilot instructions, constitution, repo map, stage contracts, and validation rubric.
+5. Before continuing after large research, planning, implementation, or validation bursts, checkpoint the durable artifacts and compact/clear/resume context when the host supports it.
+6. Escalate model tier only when a cheaper pass is low-confidence, contradictory, security-sensitive, or blocking release quality.
 <!-- gofer:token-cost-policy:end -->
 
 ## User Input
@@ -324,10 +302,10 @@ stakeholder communications explaining what changed and why.
 ## Marp Presentation Deck (EnterpriseAI Profile Extension)
 
 The standard Gofer workflow is the public default. Marp output is opt-in per run
-and remains recommended only for `workflowProfile=enterpriseai`. When Marp
-output is enabled, generate the general stakeholder deck and the persona deck
-pack. Standard-profile runs skip this step only when the user explicitly opts
-out; Release Notes and the Demo Script (5-minute walkthrough) remain the core
+and remains recommended only for `workflowProfile=enterpriseai`. When Marp output
+is enabled, generate the general stakeholder deck and the persona deck pack.
+Standard-profile runs skip this step only when the user explicitly opts out;
+Release Notes and the Demo Script (5-minute walkthrough) remain the core
 deliverables as `release-notes.md` and `demo-script.md`.
 
 When enabled, generate `{FEATURE_DIR}/presentation.marp.md`. The file MUST use
@@ -379,18 +357,18 @@ Every section title above (`Problem Statement`,
 
 Generate these additional decks under `{FEATURE_DIR}/presentations/`:
 
-| Deck                              | Decision-Rights Audience | Required Focus                                               |
-| --------------------------------- | ------------------------ | ------------------------------------------------------------ |
-| `executive.marp.md`               | Executive committee      | Strategic value, funding gate, risk appetite                 |
-| `business.marp.md`                | Business owner           | User journey, operational value, adoption                    |
-| `internal-delivery.marp.md`       | Delivery lead            | Dependency plan, red/green loop, delivery risks              |
-| `enterprise-architecture.marp.md` | Enterprise architecture  | Platform fit, context bundle, contract pack, reuse decisions |
-| `ciso.marp.md`                    | CISO                     | Identity, tenant boundary, controls, residual risk           |
-| `data-architecture.marp.md`       | Data architecture        | Object types, lineage, quality, governance                   |
-| `cio.marp.md`                     | CIO                      | Platform strategy, operating model, reuse roadmap            |
-| `cfo.marp.md`                     | CFO                      | Investment case, benefit tracking, cost risk                 |
-| `coo.marp.md`                     | COO                      | Process change, rollout readiness, support model             |
-| `risk-compliance.marp.md`         | Risk/compliance          | Obligations, evidence, exceptions, audit trail               |
+| Deck | Decision-Rights Audience | Required Focus |
+| ---- | ------------------------ | -------------- |
+| `executive.marp.md` | Executive committee | Strategic value, funding gate, risk appetite |
+| `business.marp.md` | Business owner | User journey, operational value, adoption |
+| `internal-delivery.marp.md` | Delivery lead | Dependency plan, red/green loop, delivery risks |
+| `enterprise-architecture.marp.md` | Enterprise architecture | Platform fit, context bundle, contract pack, reuse decisions |
+| `ciso.marp.md` | CISO | Identity, tenant boundary, controls, residual risk |
+| `data-architecture.marp.md` | Data architecture | Object types, lineage, quality, governance |
+| `cio.marp.md` | CIO | Platform strategy, operating model, reuse roadmap |
+| `cfo.marp.md` | CFO | Investment case, benefit tracking, cost risk |
+| `coo.marp.md` | COO | Process change, rollout readiness, support model |
+| `risk-compliance.marp.md` | Risk/compliance | Obligations, evidence, exceptions, audit trail |
 
 Every persona deck MUST include:
 

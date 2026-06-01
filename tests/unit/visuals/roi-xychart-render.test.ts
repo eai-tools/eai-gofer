@@ -17,7 +17,7 @@
  */
 
 import { describe, it, expect, beforeAll } from 'vitest';
-import { readFile, stat } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
 const REPO_ROOT = path.resolve(__dirname, '../../..');
@@ -54,8 +54,6 @@ describe('ROI xychart render (T151)', () => {
     let content: string;
 
     beforeAll(async () => {
-      const s = await stat(ROI_TEMPLATE);
-      expect(s.isFile()).toBe(true);
       content = await readFile(ROI_TEMPLATE, 'utf8');
     });
 
@@ -86,8 +84,6 @@ describe('ROI xychart render (T151)', () => {
     let content: string;
 
     beforeAll(async () => {
-      const s = await stat(BUSINESS_METRICS_TEMPLATE);
-      expect(s.isFile()).toBe(true);
       content = await readFile(BUSINESS_METRICS_TEMPLATE, 'utf8');
     });
 

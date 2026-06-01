@@ -15,6 +15,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { randomUUID } from 'crypto';
 import { Logger } from '../utils/logger';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -594,13 +595,11 @@ export class ResearchChunker {
     indexPath: string,
     researchPath: string
   ): Promise<ResearchIndex | null> {
+    let indexHandle: Awaited<ReturnType<typeof fs.promises.open>> | undefined;
     try {
-      if (!fs.existsSync(indexPath)) {
-        return null;
-      }
-
       // Check if research.md is newer than index
-      const indexStat = await fs.promises.stat(indexPath);
+      indexHandle = await fs.promises.open(indexPath, 'r');
+      const indexStat = await indexHandle.stat();
       const researchStat = await fs.promises.stat(researchPath);
 
       if (researchStat.mtimeMs > indexStat.mtimeMs) {
@@ -611,7 +610,7 @@ export class ResearchChunker {
       }
 
       // Load and parse index
-      const content = await fs.promises.readFile(indexPath, 'utf-8');
+      const content = await indexHandle.readFile('utf-8');
       const index: ResearchIndex = JSON.parse(content);
 
       this.logger.debug('Research index loaded from disk', { indexPath });
@@ -622,6 +621,8 @@ export class ResearchChunker {
         error: (error as Error).message,
       });
       return null;
+    } finally {
+      await indexHandle?.close();
     }
   }
 
@@ -629,10 +630,17 @@ export class ResearchChunker {
    * Saves an index to disk.
    */
   private async saveIndexToDisk(indexPath: string, index: ResearchIndex): Promise<void> {
+    const dir = path.dirname(indexPath);
+    const tempPath = path.join(dir, `.${path.basename(indexPath)}.${randomUUID()}.tmp`);
     try {
-      await fs.promises.writeFile(indexPath, JSON.stringify(index, null, 2), 'utf-8');
+      await fs.promises.writeFile(tempPath, JSON.stringify(index, null, 2), {
+        encoding: 'utf-8',
+        flag: 'wx',
+      });
+      await fs.promises.rename(tempPath, indexPath);
       this.logger.debug('Research index saved to disk', { indexPath });
     } catch (error) {
+      await fs.promises.rm(tempPath, { force: true }).catch(() => undefined);
       this.logger.error('Failed to save research index', error as Error);
       throw error;
     }

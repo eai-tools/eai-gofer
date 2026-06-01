@@ -90,7 +90,7 @@ describe('Real Context Monitoring Integration (T044)', () => {
   describe('Full Pipeline: JSONL → Reader → Provider → Monitor', () => {
     it('should produce real utilization from mock JSONL data', async () => {
       // Create the Claude projects directory structure
-      const encodedPath = tmpDir.replace(/\//g, '-').replace(/^-/, '-');
+      const encodedPath = tmpDir.replace(/\//g, '-');
       projectDir = path.join(tmpDir, '.claude-home', 'projects', encodedPath);
 
       const sessionId = 'test-session-001';
@@ -159,7 +159,7 @@ describe('Real Context Monitoring Integration (T044)', () => {
     });
 
     it('should persist state with real data source fields', async () => {
-      const encodedPath = tmpDir.replace(/\//g, '-').replace(/^-/, '-');
+      const encodedPath = tmpDir.replace(/\//g, '-');
       projectDir = path.join(tmpDir, '.claude-home', 'projects', encodedPath);
 
       const sessionId = 'test-session-persist';
@@ -195,7 +195,7 @@ describe('Real Context Monitoring Integration (T044)', () => {
 
   describe('Data Source Modes', () => {
     it('should report dataSource "real" with active session', async () => {
-      const encodedPath = tmpDir.replace(/\//g, '-').replace(/^-/, '-');
+      const encodedPath = tmpDir.replace(/\//g, '-');
       projectDir = path.join(tmpDir, '.claude-home', 'projects', encodedPath);
 
       createMockSessionData(projectDir, 'session-real', {

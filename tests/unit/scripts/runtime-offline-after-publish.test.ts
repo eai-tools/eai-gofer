@@ -31,6 +31,36 @@ const REFERENCED_SCRIPTS = [
   path.join(REPO_ROOT, '.specify', 'scripts', 'node', 'package-agent-plugin.mjs'),
 ];
 
+const ALLOWED_URL_HOSTS = new Set([
+  'localhost',
+  '127.0.0.1',
+  'github.com',
+  'eai-tools.github.io',
+  'enterpriseai.com.au',
+  'anthropic.com',
+  'www.anthropic.com',
+  'developers.openai.com',
+]);
+
+function stripHtmlComments(content: string): string {
+  let output = '';
+  let index = 0;
+
+  while (index < content.length) {
+    const start = content.indexOf('<!--', index);
+    if (start === -1) {
+      output += content.slice(index);
+      break;
+    }
+
+    output += content.slice(index, start);
+    const end = content.indexOf('-->', start + 4);
+    index = end === -1 ? content.length : end + 3;
+  }
+
+  return output;
+}
+
 function stripComments(content: string, ext: string): string {
   if (ext === '.json') {
     // JSON has no comments.
@@ -38,14 +68,14 @@ function stripComments(content: string, ext: string): string {
   }
   if (ext === '.toml' || ext === '.md') {
     // Strip toml `#` and markdown content treating `<!-- -->` as comment.
-    return content
+    const withoutTomlComments = content
       .split('\n')
       .map((line) => {
         if (ext === '.toml' && line.trim().startsWith('#')) return '';
         return line;
       })
-      .join('\n')
-      .replace(/<!--[\s\S]*?-->/g, '');
+      .join('\n');
+    return stripHtmlComments(withoutTomlComments);
   }
   if (ext === '.mjs' || ext === '.js' || ext === '.ts') {
     // Strip block comments and line comments
@@ -73,14 +103,11 @@ describe('runtime offline after publish (T170)', () => {
       const liveUrls = urls.filter((u) => {
         // Allow well-known doc/host URLs even outside comments — they're
         // descriptive text, not runtime endpoints.
-        if (u.includes('localhost')) return false;
-        if (u.includes('127.0.0.1')) return false;
-        if (u.includes('github.com')) return false;
-        if (u.includes('eai-tools.github.io')) return false;
-        if (u.includes('enterpriseai.com.au')) return false;
-        if (u.includes('anthropic.com')) return false;
-        if (u.includes('developers.openai.com')) return false;
-        return true;
+        try {
+          return !ALLOWED_URL_HOSTS.has(new URL(u).hostname);
+        } catch {
+          return true;
+        }
       });
       expect(liveUrls, `${file} contains live runtime URL(s): ${liveUrls.join(', ')}`).toEqual([]);
     }

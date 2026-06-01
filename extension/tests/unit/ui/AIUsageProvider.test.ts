@@ -366,9 +366,6 @@ describe('AIUsageProvider', () => {
       provider.setMonitor(mockMonitor);
       provider.setTreeView(mockTreeView);
 
-      const disposables = (provider as any).disposables;
-      const initialLength = disposables.length;
-
       provider.dispose();
 
       expect((provider as any).disposables).toHaveLength(0);

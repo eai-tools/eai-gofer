@@ -159,9 +159,6 @@ describe('Auto-Save/Resume Integration', () => {
     const checkpointPath = path.join(specDir, 'session-checkpoint.md');
     fs.writeFileSync(checkpointPath, '---\nstatus: old\n---\n');
 
-    // Wait a moment to ensure mtime difference is detectable
-    const originalMtime = fs.statSync(checkpointPath).mtimeMs;
-
     let utilization = 54000;
     monitor.setContextProvider(() => ({
       breakdown: { conversation: utilization },
@@ -183,7 +180,7 @@ describe('Auto-Save/Resume Integration', () => {
     // Rewrite the file and force a future mtime so polling detects the change
     // (fake timers don't affect filesystem timestamps, so we set mtime explicitly)
     fs.writeFileSync(checkpointPath, '---\nstatus: paused\nupdated: true\n---\n');
-    const futureTime = new Date(originalMtime + 5000);
+    const futureTime = new Date(Date.now() + 5000);
     fs.utimesSync(checkpointPath, futureTime, futureTime);
 
     // Advance to let polling detect the update

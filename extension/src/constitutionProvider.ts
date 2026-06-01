@@ -72,7 +72,9 @@ export class ConstitutionProvider implements vscode.TreeDataProvider<Constitutio
 
   constructor(workspacePath: string) {
     const specifyRoot =
-      path.basename(workspacePath) === '.specify' ? workspacePath : path.join(workspacePath, '.specify');
+      path.basename(workspacePath) === '.specify'
+        ? workspacePath
+        : path.join(workspacePath, '.specify');
     this.constitutionPath = path.join(specifyRoot, 'memory', 'constitution.md');
     this.loadingPromise = this.loadConstitution();
   }
@@ -167,19 +169,15 @@ export class ConstitutionProvider implements vscode.TreeDataProvider<Constitutio
 
   private async loadConstitution(): Promise<void> {
     try {
-      // Check if the constitution file exists
-      try {
-        await fs.access(this.constitutionPath);
-      } catch (_error) {
-        this.loadError = `Constitution file not found at ${this.constitutionPath}`;
-        this.articles = [];
-        return;
-      }
-
       const content = await fs.readFile(this.constitutionPath, 'utf-8');
       this.parseConstitution(content);
       this.loadError = null;
     } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        this.loadError = `Constitution file not found at ${this.constitutionPath}`;
+        this.articles = [];
+        return;
+      }
       console.error('Error loading constitution:', error);
       this.loadError = error instanceof Error ? error.message : 'Unknown error';
       this.articles = [];
@@ -313,13 +311,11 @@ export class ConstitutionProvider implements vscode.TreeDataProvider<Constitutio
         !line.startsWith('<!--')
       ) {
         // Content directly under an article without a subsection
-        if (!currentSection) {
-          currentSection = {
-            number: '1',
-            title: 'Overview',
-            content: '',
-          };
-        }
+        currentSection = {
+          number: '1',
+          title: 'Overview',
+          content: '',
+        };
         sectionContent.push(line);
       }
     }

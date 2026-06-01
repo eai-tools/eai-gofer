@@ -12,7 +12,7 @@
  * @see 010-gofer-memory-journey/tasks.md T027
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import {
   MemoryHookManager,
   type MemoryManagerLike,
@@ -437,10 +437,7 @@ describe('MemoryHookManager', () => {
     it('should include citations', () => {
       const memories = [
         createMockMemory({
-          citations: [
-            { file: 'src/auth.ts', line: 42 },
-            { file: 'src/utils.ts' },
-          ],
+          citations: [{ file: 'src/auth.ts', line: 42 }, { file: 'src/utils.ts' }],
         }),
       ];
 

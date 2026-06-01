@@ -16,8 +16,7 @@ describe('MemoryStorage - Layered JSONL Schema', () => {
 
   beforeEach(async () => {
     // Create temporary test directory
-    testDir = path.join(os.tmpdir(), `gofer-test-${Date.now()}`);
-    await fs.mkdir(testDir, { recursive: true });
+    testDir = await fs.mkdtemp(path.join(os.tmpdir(), 'gofer-test-'));
     storage = new MemoryStorage(testDir);
     await storage.initialize();
   });
@@ -240,7 +239,7 @@ describe('MemoryStorage - Layered JSONL Schema', () => {
         },
       };
 
-      const saved = await storage.append(memory);
+      await storage.append(memory);
       
       // Reload to get deserialized version
       storage = new MemoryStorage(testDir);

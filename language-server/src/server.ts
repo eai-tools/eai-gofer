@@ -249,16 +249,25 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
               },
               {
                 name: 'gofer_run_tests',
-                description: 'Run tests for a specification',
+                description:
+                  'Detect test framework (vitest/jest/pytest) and run tests with structured result parsing',
                 parameters: {
                   type: 'object',
                   properties: {
                     specId: {
                       type: 'string',
-                      description: 'The specification ID',
+                      description: 'Backward-compatible specification ID or test target',
+                    },
+                    path: {
+                      type: 'string',
+                      description: 'Test file or directory path (defaults to project root)',
+                    },
+                    filter: {
+                      type: 'string',
+                      description: 'Test name filter pattern',
                     },
                   },
-                  required: ['specId'],
+                  required: [],
                 },
               },
               {
@@ -343,7 +352,8 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
               // ── Observation Folding & Peek Tools ──
               {
                 name: 'gofer_peek_observation',
-                description: 'Returns key-points or summary of an observation without full expansion',
+                description:
+                  'Returns key-points or summary of an observation without full expansion',
                 parameters: {
                   type: 'object',
                   properties: {
@@ -386,7 +396,8 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
                     },
                     maxResults: {
                       type: 'number',
-                      description: 'Maximum number of matching observations to return (default: 10)',
+                      description:
+                        'Maximum number of matching observations to return (default: 10)',
                     },
                   },
                   required: ['pattern'],
@@ -451,7 +462,8 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
               },
               {
                 name: 'gofer_context_undo',
-                description: 'Reverts the last fold/expand operation on observations or context sections',
+                description:
+                  'Reverts the last fold/expand operation on observations or context sections',
                 parameters: {
                   type: 'object',
                   properties: {},
@@ -469,7 +481,8 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
               },
               {
                 name: 'gofer_check_slop',
-                description: 'Scans source files for common AI code quality issues (disabled tests, empty catch blocks, as any casts, leftover console.log)',
+                description:
+                  'Scans source files for common AI code quality issues (disabled tests, empty catch blocks, as any casts, leftover console.log)',
                 parameters: {
                   type: 'object',
                   properties: {
@@ -484,37 +497,21 @@ connection.onInitialize(async (params: InitializeParams): Promise<InitializeResu
               // ── 019: Compound REPL and Test Runner ──
               {
                 name: 'gofer_context_repl',
-                description: 'Compound context REPL: batch multiple fold/expand/peek operations in a single call to reduce round-trips',
+                description:
+                  'Compound context REPL: batch multiple fold/expand/peek operations in a single call to reduce round-trips',
                 parameters: {
                   type: 'object',
                   properties: {
                     operations: {
                       type: 'array',
-                      description: 'Array of operations to execute sequentially. Each is {op: "fold"|"expand"|"peek"|"fold-all-older-than", target: "section-name", age?: number}',
+                      description:
+                        'Array of operations to execute sequentially. Each is {op: "fold"|"expand"|"peek"|"fold-all-older-than", target: "section-name", age?: number}',
                       items: {
                         type: 'object',
                       },
                     },
                   },
                   required: ['operations'],
-                },
-              },
-              {
-                name: 'gofer_run_tests',
-                description: 'Detect test framework (vitest/jest/pytest) and run tests with structured result parsing',
-                parameters: {
-                  type: 'object',
-                  properties: {
-                    path: {
-                      type: 'string',
-                      description: 'Test file or directory path (defaults to project root)',
-                    },
-                    filter: {
-                      type: 'string',
-                      description: 'Test name filter pattern',
-                    },
-                  },
-                  required: [],
                 },
               },
             ],
@@ -754,7 +751,10 @@ connection.onRequest(
           break;
 
         case 'gofer_run_tests':
-          result = await mcpToolHandler.runTests(args.specId as string);
+          result = await mcpToolHandler.runTestsDetect(
+            (args.path as string | undefined) ?? (args.specId as string | undefined),
+            args.filter as string | undefined
+          );
           break;
 
         case 'gofer_expand_observation':
@@ -839,11 +839,9 @@ connection.onRequest(
           break;
 
         case 'gofer_context_repl':
-          result = await mcpToolHandler.contextRepl(args.operations as Array<Record<string, unknown>>);
-          break;
-
-        case 'gofer_run_tests':
-          result = await mcpToolHandler.runTestsDetect(args.path as string | undefined, args.filter as string | undefined);
+          result = await mcpToolHandler.contextRepl(
+            args.operations as Array<Record<string, unknown>>
+          );
           break;
 
         default:

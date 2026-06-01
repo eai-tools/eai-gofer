@@ -70,7 +70,7 @@ mkdir -p ~/.gemini
 
 ```bash
 # Get API key from: https://aistudio.google.com/apikey
-export GOOGLE_API_KEY="your-api-key-here"
+export GOOGLE_API_KEY # set this in your shell when needed
 
 # Or configure via CLI
 gemini config set api_key <your-google-api-key>

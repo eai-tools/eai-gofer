@@ -4,7 +4,7 @@
  * Tests for Claude Code CLI provider implementation.
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { ClaudeCodeCLIProvider } from '../../../../../extension/src/council/providers/cli/ClaudeCodeCLIProvider';
 import type { QueryRequest } from '../../../../../extension/src/council/types';
 
@@ -98,7 +98,9 @@ Usage: 10 input tokens, 20 output tokens`;
 
       const parsed = provider.parseOutput(output);
 
-      expect(parsed.error).toBe('Authentication failed. Set ANTHROPIC_API_KEY or run: claude login');
+      expect(parsed.error).toBe(
+        'Authentication failed. Set ANTHROPIC_API_KEY or run: claude login'
+      );
     });
 
     it('should handle output without separator', () => {

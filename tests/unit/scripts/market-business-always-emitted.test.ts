@@ -14,7 +14,7 @@
  */
 
 import { describe, it, expect, beforeAll } from 'vitest';
-import { readFile, stat } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
 const REPO_ROOT = path.resolve(__dirname, '../../..');
@@ -24,8 +24,6 @@ describe('market-analysis & business-analysis always emitted (T154, FR-035)', ()
   let content: string;
 
   beforeAll(async () => {
-    const s = await stat(STAGE_FILE);
-    expect(s.isFile()).toBe(true);
     content = await readFile(STAGE_FILE, 'utf8');
   });
 

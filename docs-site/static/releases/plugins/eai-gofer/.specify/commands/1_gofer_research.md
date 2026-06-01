@@ -1,9 +1,7 @@
 ---
 name: 1_gofer_research
-description:
-  'Research codebase, CLI integrations, and technology landscape for the target
-  feature.'
-title: 'Gofer Research'
+description: "Research codebase, CLI integrations, and technology landscape for the target feature."
+title: "Gofer Research"
 category: pipeline
 surfaces:
   - claude
@@ -17,46 +15,27 @@ surfaces:
   - system-skills
 aliases: [gofer:research]
 ---
-
 ---
-
-## description: Deep codebase and technology research for feature implementation
+description: Deep codebase and technology research for feature implementation
+---
 
 # Gofer Research
 
 ## Token And Cost Policy
-
 <!-- gofer:token-cost-policy:start -->
 
 Before spawning agents, calling tools, or loading large files:
 
-1. Treat `.specify/memory/gofer-model-policy.yaml` as the repo-owned source of
-   truth for simple, medium, hard, and arbiter model routing. If it is missing,
-   run `/gofer:bootstrap-workspace` before continuing.
+1. Treat `.specify/memory/gofer-model-policy.yaml` as the repo-owned source of truth for simple, medium, hard, and arbiter model routing. If it is missing, run `/gofer:bootstrap-workspace` before continuing.
 2. Use the cheapest capable model first.
-   - Claude: Haiku for scouting/extraction; Sonnet for normal implementation,
-     synthesis, validation, and security; Opus for high-risk arbitration or
-     release-critical failures.
-   - Codex/OpenAI: GPT mini for simple coding; GPT nano only for
-     locate/classify/summarize/mechanical work; GPT-5.3-Codex or flagship GPT
-     for tool-heavy coding, architecture, and release-critical validation.
-   - Gemini: Flash-Lite for cheap large-context scan/summarize; Flash for
-     default research synthesis; Pro for large-context architecture or high-risk
-     arbitration.
-   - Copilot: prefer Auto for simple and default work; ask the user before
-     choosing a paid/high-tier picker model for hard security, architecture, or
-     release gates.
-3. Keep raw tool output out of the main conversation context. Save stable
-   findings to `.specify/specs/{feature}/context-bundle.md`, then work from
-   summaries.
-4. Use provider prompt/context caching only for stable, non-secret prefixes:
-   Gofer scaffold, AGENTS/CLAUDE/Copilot instructions, constitution, repo map,
-   stage contracts, and validation rubric.
-5. Before continuing after large research, planning, implementation, or
-   validation bursts, checkpoint the durable artifacts and compact/clear/resume
-   context when the host supports it.
-6. Escalate model tier only when a cheaper pass is low-confidence,
-contradictory, security-sensitive, or blocking release quality.
+   - Claude: Haiku for scouting/extraction; Sonnet for normal implementation, synthesis, validation, and security; Opus for high-risk arbitration or release-critical failures.
+   - Codex/OpenAI: GPT mini for simple coding; GPT nano only for locate/classify/summarize/mechanical work; GPT-5.3-Codex or flagship GPT for tool-heavy coding, architecture, and release-critical validation.
+   - Gemini: Flash-Lite for cheap large-context scan/summarize; Flash for default research synthesis; Pro for large-context architecture or high-risk arbitration.
+   - Copilot: prefer Auto for simple and default work; ask the user before choosing a paid/high-tier picker model for hard security, architecture, or release gates.
+3. Keep raw tool output out of the main conversation context. Save stable findings to `.specify/specs/{feature}/context-bundle.md`, then work from summaries.
+4. Use provider prompt/context caching only for stable, non-secret prefixes: Gofer scaffold, AGENTS/CLAUDE/Copilot instructions, constitution, repo map, stage contracts, and validation rubric.
+5. Before continuing after large research, planning, implementation, or validation bursts, checkpoint the durable artifacts and compact/clear/resume context when the host supports it.
+6. Escalate model tier only when a cheaper pass is low-confidence, contradictory, security-sensitive, or blocking release quality.
 <!-- gofer:token-cost-policy:end -->
 
 ## User Input
@@ -70,9 +49,9 @@ You **MUST** consider the user input before proceeding (if not empty).
 ## Execution Profile And Public Risk Labels
 
 Classify the request before spawning agents. Choose exactly one effective
-execution profile. This is a per-run depth decision: it controls research depth,
-agent fanout, and artifact production for this feature. It does not change the
-repo's broader workflow/content family, such as the optional VS Code
+execution profile. This is a per-run depth decision: it controls research
+depth, agent fanout, and artifact production for this feature. It does not
+change the repo's broader workflow/content family, such as the optional VS Code
 `gofer.workflowProfile` setting.
 
 Use repository-neutral labels only: `docs-only`, `single-repo-code`,
@@ -80,8 +59,9 @@ Use repository-neutral labels only: `docs-only`, `single-repo-code`,
 `release-critical`, `broad-fanout`, `unknown-blast-radius`, or `unknown`.
 
 - **fast**: docs-only, small clarification work, or clearly bounded low-risk
-  single-repo work. Use one locator/summarizer, keep existing required artifacts
-  concise, and skip optional councils unless evidence contradicts the request.
+  single-repo work. Use one locator/summarizer, keep existing required
+  artifacts concise, and skip optional councils unless evidence contradicts the
+  request.
 - **standard**: ordinary single-repository feature work. Standard is the
   catch-all for work that is not fast, full, or dynamic.
 - **full**: bounded high-risk work such as known cross-repo impact, API
@@ -95,15 +75,15 @@ Use repository-neutral labels only: `docs-only`, `single-repo-code`,
 
 Use this priority order so profiles are mutually exclusive and collectively
 exhaustive: dynamic first, then full, then fast, then standard as the catch-all.
-Users may request a deeper profile. Do not run below the computed `profileFloor`
-without explicit approval.
+Users may request a deeper profile. Do not run below the computed
+`profileFloor` without explicit approval.
 
 Record the decision in `.specify/specs/{feature}/execution-profile.md` with
-frontmatter fields: `classificationVersion`, `requestedProfile`, `profileFloor`,
-`effectiveProfile`, `riskLabels`, `overrideStatus`, `requiresConfirmation`, and
-`classificationReason`. If `dynamic` is selected by the classifier but was not
-explicitly requested, set `requiresConfirmation: true` and stop for confirmation
-before broad fanout work.
+frontmatter fields: `classificationVersion`, `requestedProfile`,
+`profileFloor`, `effectiveProfile`, `riskLabels`, `overrideStatus`,
+`requiresConfirmation`, and `classificationReason`. If `dynamic` is selected by
+the classifier but was not explicitly requested, set `requiresConfirmation:
+true` and stop for confirmation before broad fanout work.
 
 Artifact-churn rule: preserve existing required artifacts, but do not create
 large optional diagrams, councils, issue lists, workflow DAGs, or extended
@@ -124,10 +104,8 @@ This is the **first stage** of the unified Gofer pipeline. Your job is to:
 **Output**:
 
 - `.specify/specs/{feature}/research.md`
-- `.specify/specs/{feature}/proposal-review.md` (optional supporting review
-  context)
-- `.specify/specs/{feature}/journeys/base-journey.md` (application delivery
-  default)
+- `.specify/specs/{feature}/proposal-review.md` (optional supporting review context)
+- `.specify/specs/{feature}/journeys/base-journey.md` (application delivery default)
 - `.specify/specs/{feature}/ui-preview-brief.md` (application delivery default)
 - `.specify/specs/{feature}/context-bundle.md` (EnterpriseAI profile only)
 - `.specify/specs/{feature}/reuse-scan.md` (EnterpriseAI profile only)
@@ -165,8 +143,8 @@ If discovery.md exists:
    - Target Users → Research UX patterns appropriate for these users
    - Value Proposition → Research metrics and measurement approaches
    - Competitive Analysis → If researched, focus on differentiation
-   - Application Classification → Determine whether a four-step AI-augmented app
-     journey is required
+   - Application Classification → Determine whether a four-step AI-augmented
+     app journey is required
    - AI-Augmented Journey → If app delivery, preserve the four-step-or-fewer
      journey as the scope spine for research
    - Shared numbered-stage contract → if non-app, preserve the current shared
@@ -240,8 +218,8 @@ Include: file paths, code snippets, conventions used."
 ```
 
 **Run all three agents in parallel** for maximum efficiency in standard/full
-mode. In fast mode, collapse this into one concise locator/summarizer unless the
-feature touches a full-depth risk label. In dynamic mode, do not start broad
+mode. In fast mode, collapse this into one concise locator/summarizer unless
+the feature touches a full-depth risk label. In dynamic mode, do not start broad
 fanout yet; have these agents identify candidate shards, unresolved ownership,
 and evidence needed before P3 builds the workflow DAG.
 
@@ -368,9 +346,9 @@ explicitly `enterpriseai`, generate:
    - Feature summary and approved business scenario.
    - Application classification: app delivery or non-app work, with rationale.
    - Four-step-or-fewer AI-augmented journey summary when app delivery applies.
-   - AI-readable blocks bridge summary: external/internal/hybrid profile choice,
-     package lane, coupling status, public-readiness target, and block porting
-     posture.
+   - AI-readable blocks bridge summary: external/internal/hybrid profile
+     choice, package lane, coupling status, public-readiness target, and block
+     porting posture.
    - Relevant existing specs, code paths, platform references, and API surfaces.
    - EnterpriseAI object types, tenant assumptions, deployment target, and
      validation criteria.
@@ -383,8 +361,7 @@ explicitly `enterpriseai`, generate:
      translation, contextual prefill, recommendation, validation, completion
      checks, audit logging, and escalation.
    - Existing UI block/package assets, Storybook story IDs, theme override
-     points, and source-platform dependencies that affect reuse, porting, or
-     decoupling.
+     points, and source-platform dependencies that affect reuse, porting, or decoupling.
    - Decision for each candidate: reuse, extend, or create new.
    - Rationale, evidence path, and stakeholder/architecture owner if a new
      platform concept is recommended.
@@ -398,19 +375,19 @@ explicitly `enterpriseai`, generate:
      patterns the preview should use before any create-new UI concept is
      considered.
    - Block catalog evidence: run `eai --describe`, `eai blocks list`,
-     `eai blocks describe <id>` for each candidate, and `resource schema`;
-     record stable block IDs, required resources, data/action bindings,
-     Storybook story IDs, theme override points, package lane, coupling status,
-     and any custom-block exception that needs approval.
+     `eai blocks describe <id>` for each candidate, and
+     `resource schema`; record stable block IDs, required resources,
+     data/action bindings, Storybook story IDs, theme override points, package
+     lane, coupling status, and any custom-block exception that needs approval.
    - Block porting and source-platform decoupling evidence: identify whether
-     each selected block is reused as-is, ported into a package lane, or blocked
-     by source-platform coupling; define the adapter/resource-schema boundary
-     for any decoupling work.
+     each selected block is reused as-is, ported into a package lane, or
+     blocked by source-platform coupling; define the adapter/resource-schema
+     boundary for any decoupling work.
    - Public-readiness evidence: for external or hybrid profiles, capture package
      exports, consumer-facing constraints, accessibility/theming expectations,
      and what still prevents public consumption.
-   - Branding inputs: whether client styling, logos, colors, copy tone, or other
-     corporate-brand artifacts must be applied.
+   - Branding inputs: whether client styling, logos, colors, copy tone, or
+     other corporate-brand artifacts must be applied.
    - Preview validation plan: what screenshot, browser-render, or
      Playwright-style self-review evidence must exist before Gofer presents the
      preview to the stakeholder.
@@ -453,8 +430,7 @@ Once all agents complete:
    - Preview-first rationale and the smallest useful MVP to show first
    - Vertical Template reuse constraints and any approved extension gaps
    - External/internal/hybrid profile choice, package lane, coupling status,
-     public-readiness target, block-porting needs, and source-platform
-     decoupling status
+     public-readiness target, block-porting needs, and source-platform decoupling status
    - Candidate capability-discovery inputs for the later service-fit gate
    - Non-app runs must explicitly state "Not applicable"
 
@@ -548,16 +524,14 @@ status: complete
 - **Relevant Specs**: [Existing specs to carry forward]
 - **Relevant Code Paths**: [Files/directories and why they matter]
 - **EnterpriseAI Object Types**: [Known or candidate object types]
-- **Tenant and Deployment Assumptions**: [Tenant, identity, runtime, target
-  environment]
-- **Validation Criteria**: [Business, security, data, architecture, and
-  operational checks]
+- **Tenant and Deployment Assumptions**: [Tenant, identity, runtime, target environment]
+- **Validation Criteria**: [Business, security, data, architecture, and operational checks]
 
 ## Reuse-Before-Create Scan
 
-| Candidate                              | Existing Evidence   | Decision                | Rationale | Owner   |
-| -------------------------------------- | ------------------- | ----------------------- | --------- | ------- |
-| [Object type/API/workflow/module/spec] | [Path or reference] | Reuse/Extend/Create New | [Why]     | [Owner] |
+| Candidate | Existing Evidence | Decision | Rationale | Owner |
+| --------- | ----------------- | -------- | --------- | ----- |
+| [Object type/API/workflow/module/spec] | [Path or reference] | Reuse/Extend/Create New | [Why] | [Owner] |
 
 ## Business Scenario Analysis
 
@@ -739,12 +713,9 @@ After saving `research.md` and `proposal-review.md`:
    - Any open questions needing input
 
 2. **Ask focused follow-up questions only if needed**:
-   - Clarify the preferred business scenario if the research found real
-     alternatives
-   - Clarify the preferred architecture direction if the trade-off is still
-     ambiguous
-   - Confirm whether the user wants to stop after research or continue into
-     specification
+   - Clarify the preferred business scenario if the research found real alternatives
+   - Clarify the preferred architecture direction if the trade-off is still ambiguous
+   - Confirm whether the user wants to stop after research or continue into specification
 
 3. **Run architecture questions one-by-one (MANDATORY when architecture options
    exist)**:
@@ -998,8 +969,7 @@ Logs to: `.specify/logs/pipeline.jsonl`
 - **Research should inform specification directly** - focus on what helps users
   discuss the business scenario and architecture before `spec.md` is written
 - **Maximum 5 open questions** - make informed decisions for the rest
-- **Use `proposal-review.md` as optional supporting context, not as a blocking
-  stage**
+- **Use `proposal-review.md` as optional supporting context, not as a blocking stage**
 - **Log stage completion** for observability tracking
 
 ---

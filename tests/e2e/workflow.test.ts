@@ -327,7 +327,6 @@ async function startOrchestrator(): Promise<ChildProcess> {
       ...process.env,
       WORKSPACE_DIR: WORKSPACE_PATH,
       SPEC_DIR: SPEC_DIR,
-      ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY || 'test-key',
     },
     detached: true,
   });

@@ -1,8 +1,9 @@
 ---
 generated: true
-generated_at: "2026-05-23T17:54:39.953Z"
-source_commit: "047baa06f9bdd86354d43413563a98f893685fb3"
+generated_at: '2026-05-23T17:54:39.953Z'
+source_commit: '047baa06f9bdd86354d43413563a98f893685fb3'
 ---
+
 # Code Quality Assessment
 
 ## Summary
@@ -45,7 +46,8 @@ awareness of maintenance challenges.
 - Comprehensive README.md and CLAUDE.md
 - Inline JSDoc comments on public APIs
 - Architecture documentation in AGENTS.md
-- 413 spec markdown files in `.specify/specs/`
+- Repo-owned scaffold documentation with active specs kept out of the public
+  baseline
 
 ### Findings
 
@@ -92,7 +94,7 @@ awareness of maintenance challenges.
 
 **✅ Comprehensive Test Coverage**
 
-- **288 test files** with actual Vitest/Playwright tests
+- **270 test files** with actual Vitest/Playwright tests
 - Vitest unit tests in `tests/unit/`
 - Playwright E2E tests in `tests/e2e/`
 - Integration tests in `tests/integration/`
@@ -313,8 +315,7 @@ awareness of maintenance challenges.
 
 **⚠️ Insufficient Dependency Audit** (Medium Priority)
 
-- Dependencies: `@anthropic-ai/sdk`, `winston`, `ws`, `chokidar`, `gray-matter`,
-  etc.
+- Dependencies: `winston`, `ws`, `chokidar`, `gray-matter`, etc.
 - **Issue:** No evidence of regular security audits in CI/CD
 - **Recommendation:** Add `npm audit` to CI pipeline, set up Dependabot alerts
 
@@ -350,20 +351,20 @@ awareness of maintenance challenges.
 
 - Centralized ConfigManager in `extension/src/config.ts`
 - Type-safe configuration access
-- Extensive user-facing settings in `extension/package.json`
+- Lean manifest-backed settings surface in `extension/package.json`
 - Workflow profile support
 
 **✅ Testing Infrastructure**
 
-- **288 test files** (unit, integration, E2E, performance)
+- **270 test files** (unit, integration, E2E, performance)
 - Vitest + Playwright configuration
 - Coverage reporting enabled
 - Test scripts: `test:unit`, `test:integration`, `test:e2e`, `test:coverage`
 
 **✅ Release Automation**
 
-- `release-auto.sh` (22KB script) for versioning
-- CLAUDE.md rule: "ALWAYS use `./release-auto.sh patch|minor|major`"
+- `release.sh` for versioning, validation, packaging, and publishing
+- AGENTS.md/CLAUDE.md guidance: use `./release.sh patch|minor|major`
 - Changelog automation
 
 **✅ Developer Documentation**
@@ -371,7 +372,8 @@ awareness of maintenance challenges.
 - CLAUDE.md for AI agents (4KB)
 - AGENTS.md for code quality standards (7KB)
 - README.md comprehensive
-- **413 spec files** in `.specify/specs/`
+- Public baseline keeps feature specs out of git; current local specs are
+  workspace-owned
 
 ### Findings
 
@@ -447,8 +449,8 @@ awareness of maintenance challenges.
 
 **✅ Excellent Test Volume**
 
-- **288 test files** with actual tests (vitest/Playwright)
-- **320+ total test files** including specs
+- **270 test files** with actual tests (Vitest/Playwright)
+- Unit, integration, E2E, and performance coverage across the current suite
 - Unit tests: `tests/unit/`
 - Integration tests: `tests/integration/`
 - E2E tests: `tests/e2e/`
@@ -612,8 +614,8 @@ impact the project's long-term health.
 - TypeScript type safety (9/10)
 - Test volume and diversity (Vitest + Playwright + E2E)
 - Dependency injection architecture (tsyringe)
-- Documentation quantity (413 spec files)
-- Release automation (`release-auto.sh`)
+- Public documentation and repo-owned scaffold guidance
+- Release automation (`release.sh`)
 
 **Critical Issues (Require Immediate Attention):**
 

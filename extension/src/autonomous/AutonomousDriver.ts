@@ -107,11 +107,8 @@ export class AutonomousDriver {
     this.hintLoader = new HintLoader(workspacePath);
     this.contextBuilder = new ContextBuilder(workspacePath, memoryManager, this.hintLoader);
 
-    // T156: Read threshold from VSCode settings and initialize ContextCompactor
-    const config = vscode.workspace.getConfiguration('gofer.autonomous');
-    const threshold = config.get<number>('compactionThreshold', 80) / 100; // Convert percentage to decimal
     this.contextCompactor = new ContextCompactor(workspacePath, {
-      threshold,
+      threshold: 0.8,
       autoCompact: true,
       enableBackup: true,
     });

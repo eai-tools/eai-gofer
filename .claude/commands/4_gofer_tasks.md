@@ -483,23 +483,13 @@ NOW.
 
 ---
 
-## LLM Council Integration (Optional)
-
-When council mode is enabled for task generation:
-
-1. Multiple LLMs analyze the plan for task completeness
-2. Different perspectives on dependency ordering
-3. Chairman synthesizes optimal task breakdown
-4. Usage logged to `.specify/logs/council-usage.jsonl`
-
----
-
 ## Ordered Runnable Task-Generation Guidance
 
-EnterpriseAI is the default profile. Standard profile task generation is used
-only when the user explicitly opts out.
+The standard Gofer workflow is the public default. EnterpriseAI task generation
+is migration-only and used only when `workflowProfile` is explicitly
+`enterpriseai`.
 
-When the workflow profile is `enterpriseai` or no profile is specified,
+When the workflow profile is explicitly `enterpriseai`,
 `tasks.md` MUST emit deployment
 tasks in the following ordered chain. Each task is independently runnable and
 the ordering enforces scaffold before deployment so that configuration and

@@ -43,7 +43,7 @@ test.describe('Gofer Brownfield Improvements', () => {
     expect(fs.existsSync(promptPath)).toBe(true);
 
     const content = fs.readFileSync(promptPath, 'utf-8');
-    expect(content).toContain('Reverse-engineer a Gofer specification');
+    expect(content).toContain('Reverse-engineer specification from existing code');
   });
 
   test('Phase 3: Real World Test Harness Generation', async () => {
@@ -92,7 +92,7 @@ test.describe('Gofer Brownfield Improvements', () => {
     // In a full integration test with the Extension running, the extension would pick this up
   });
 
-  test('Phase 1: Constitutional Council', async () => {
+  test('Phase 1: Static Validation Service', async () => {
     // Verify ValidationService exists
     const validationServicePath = path.join(
       process.cwd(),
@@ -104,8 +104,8 @@ test.describe('Gofer Brownfield Improvements', () => {
     expect(fs.existsSync(validationServicePath)).toBe(true);
 
     const code = fs.readFileSync(validationServicePath, 'utf-8');
-    expect(code).toContain('validateWithCouncil');
-    expect(code).toContain('Senior Architect');
-    expect(code).toContain('Security Specialist');
+    expect(code).toContain('validateFile');
+    expect(code).toContain('Static validation');
+    expect(code).not.toContain('Anthropic');
   });
 });

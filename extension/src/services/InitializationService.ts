@@ -332,21 +332,10 @@ export class InitializationService {
       // Create components
       const contextUsageLogger = new ContextUsageLogger(workspacePath);
 
-      const healthMonitorConfig = {
-        autoSaveThreshold: ConfigManager.getInstance().getContextWindowAutoSaveThreshold(),
-      };
-      const contextHealthMonitor = new ContextHealthMonitor(healthMonitorConfig);
+      const contextHealthMonitor = new ContextHealthMonitor();
       contextHealthMonitor.setWorkspaceRoot(workspacePath);
 
-      const autoHandoffConfig = {
-        autoExecuteSave: ConfigManager.getInstance().getContextWindowAutoExecuteSave(),
-        autoSaveThreshold: ConfigManager.getInstance().getContextWindowAutoSaveThreshold(),
-        autoResumeAfterSave: ConfigManager.getInstance().getContextWindowAutoResumeAfterSave(),
-        enableContinuousSlopReduction:
-          ConfigManager.getInstance().getContinuousSlopReductionEnabled(),
-        slopScanIntervalMs: ConfigManager.getInstance().getContinuousSlopReductionIntervalMs(),
-      };
-      const autoHandoffTrigger = new AutoHandoffTrigger(autoHandoffConfig, workspacePath);
+      const autoHandoffTrigger = new AutoHandoffTrigger(undefined, workspacePath);
       setAutoHandoffTrigger(autoHandoffTrigger);
 
       // Wire status bar

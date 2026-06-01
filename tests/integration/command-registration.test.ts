@@ -7,7 +7,7 @@
  * After T020 refactoring, commands are split across:
  * - extension.ts: registerGlobalCommands() for welcome view commands
  * - CommandRegistry.ts: registerAll() for workspace-specific commands
- * - memoryCommands.ts, specCommands.ts, councilCommands.ts: domain commands
+ * - memoryCommands.ts, specCommands.ts: domain commands
  */
 
 import { describe, it, expect, beforeAll, vi } from 'vitest';
@@ -125,6 +125,68 @@ const DELETED_LEGACY_DOC_PATHS = [
   'docs/migration-guide.md',
   'docs/WHATSAPP_SETUP.md',
   'docs/TWO_WAY_WHATSAPP.md',
+];
+const REMOVED_DIRECT_PROVIDER_SETTINGS = [
+  'gofer.anthropicApiKey',
+  'gofer.googleApiKey',
+  'gofer.openaiApiKey',
+  'gofer.anthropicAdminApiKey',
+  'gofer.openaiAdminApiKey',
+  'gofer.aiUsage.useApiClient',
+  'gofer.aiUsage.api.pollingInterval',
+  'gofer.claudeCodeMode',
+  'gofer.autonomousMode',
+  'gofer.enterpriseAiUseExternalReferences',
+  'gofer.autonomous.showTerminals',
+  'gofer.autonomous.maxRetries',
+  'gofer.autonomous.tokenWarningThreshold',
+  'gofer.autonomous.tokenActionThreshold',
+  'gofer.autonomous.compactionThreshold',
+  'gofer.autonomous.questionTimeout',
+  'gofer.autonomous.runFinalValidation',
+  'gofer.autonomous.validateConstitution',
+  'gofer.autonomous.enableEngineeringReview',
+  'gofer.autonomous.enablePerformanceReview',
+  'gofer.autonomous.engineeringReviewMinCompletion',
+  'gofer.autonomous.engineeringReviewMaxCompletion',
+  'gofer.autonomous.performanceReviewMinCompletion',
+  'gofer.autonomous.engineeringReviewPrompt',
+  'gofer.autonomous.performanceReviewPrompt',
+  'gofer.autonomous.haikuSystemPrompt',
+  'gofer.autonomous.haikuUserPromptTemplate',
+  'gofer.yoloSlopReduction.enabled',
+  'gofer.yoloSlopReduction.notifyEvery',
+  'gofer.contextWindow.autoExecuteSave',
+  'gofer.contextWindow.autoSaveThreshold',
+  'gofer.contextWindow.autoResumeAfterSave',
+  'gofer.contextWindow.continuousSlopReduction.enabled',
+  'gofer.contextWindow.continuousSlopReduction.intervalMs',
+  'gofer.scopeGuard.mode',
+  'gofer.budgets.maxCostUsd',
+  'gofer.budgets.maxTokensPerRun',
+  'gofer.budgets.enforcementMode',
+  'gofer.memory.coverageThreshold',
+  'gofer.diagnostics.resourceSnapshots.enabled',
+  'gofer.diagnostics.resourceSnapshots.intervalMs',
+];
+const REMOVED_CLAUDE_LAUNCHER_COMMANDS = [
+  'gofer.startClaudeCode',
+  'gofer.stopClaudeCode',
+  'gofer.pauseClaudeCode',
+  'gofer.resumeClaudeCode',
+  'gofer.showCouncilStatus',
+];
+const REMOVED_DIRECT_PROVIDER_SDKS = [
+  '@anthropic-ai/sdk',
+  '@google/generative-ai',
+  'openai',
+  'twilio',
+];
+const PACKAGE_JSON_PATHS = [
+  '../../package.json',
+  '../../extension/package.json',
+  '../../language-server/package.json',
+  '../../extension/language-server/package.json',
 ];
 
 const COMMAND_REFERENCE_PATTERN = /(?:\*\*|`)(Gofer:[^`*]+?)(?:\*\*|`)/g;
@@ -318,7 +380,6 @@ describe('Command Registration Validation', () => {
   let commandRegistrySource: string;
   let memoryCommandsSource: string;
   let specCommandsSource: string;
-  let councilCommandsSource: string;
   /** Combined source of all command registration files */
   let allCommandSources: string;
 
@@ -348,12 +409,6 @@ describe('Command Registration Validation', () => {
     const specCommandsPath = path.join(__dirname, '../../extension/src/commands/specCommands.ts');
     specCommandsSource = readFileSync(specCommandsPath, 'utf-8');
 
-    const councilCommandsPath = path.join(
-      __dirname,
-      '../../extension/src/commands/councilCommands.ts'
-    );
-    councilCommandsSource = readFileSync(councilCommandsPath, 'utf-8');
-
     // Read UI status bar sources (some commands are registered in status bar constructors)
     const aiUsageStatusBarPath = path.join(__dirname, '../../extension/src/ui/AIUsageStatusBar.ts');
     const aiUsageStatusBarSource = readFileSync(aiUsageStatusBarPath, 'utf-8');
@@ -377,7 +432,6 @@ describe('Command Registration Validation', () => {
       commandRegistrySource,
       memoryCommandsSource,
       specCommandsSource,
-      councilCommandsSource,
       aiUsageStatusBarSource,
       migrateMemoriesSource,
       queryMemoryUsageSource,
@@ -530,6 +584,22 @@ describe('Command Registration Validation', () => {
     expect(properties['gofer.claudeTerminalName']).toBeUndefined();
     expect(properties['gofer.autoValidate']).toBeUndefined();
     expect(properties['gofer.showWelcome']).toBeUndefined();
+    for (const setting of REMOVED_DIRECT_PROVIDER_SETTINGS) {
+      expect(properties[setting]).toBeUndefined();
+    }
+  });
+
+  it('should not expose removed Claude Code launcher or legacy council commands', () => {
+    const declaredCommands = packageJson.contributes.commands.map((cmd) => cmd.command);
+    const menuCommands = Object.values(packageJson.contributes.menus)
+      .flat()
+      .map((menu) => menu.command);
+
+    for (const command of REMOVED_CLAUDE_LAUNCHER_COMMANDS) {
+      expect(declaredCommands).not.toContain(command);
+      expect(menuCommands).not.toContain(command);
+      expect(allCommandSources).not.toContain(command);
+    }
   });
 
   it('should reference the bundled hydrate prompt filename', () => {
@@ -591,7 +661,7 @@ describe('Command Registration Validation', () => {
     expect(combinedChangelog).toContain('gofer.claudeTerminalName');
     expect(combinedChangelog).toContain('gofer.autoValidate');
     expect(combinedChangelog).toContain('gofer.showWelcome');
-    expect(combinedChangelog).toContain('outdated migration and WhatsApp guides');
+    expect(combinedChangelog).toContain('outdated setup guides');
     expect(combinedChangelog).toContain('manifest-backed command and settings surface');
   });
 
@@ -960,5 +1030,24 @@ describe('Package.json Validation', () => {
 
     const refreshKeybinding = keybindings.find((kb) => kb.command === 'gofer.refreshSpecs');
     expect(refreshKeybinding).toBeDefined();
+  });
+
+  it('should not depend on direct provider SDKs after CLI-provider cleanup', () => {
+    const unexpectedDependencies = PACKAGE_JSON_PATHS.flatMap((relativePath) => {
+      const manifest = JSON.parse(readWorkspaceFile(relativePath)) as {
+        dependencies?: Record<string, string>;
+        devDependencies?: Record<string, string>;
+      };
+      const dependencies = {
+        ...manifest.dependencies,
+        ...manifest.devDependencies,
+      };
+
+      return REMOVED_DIRECT_PROVIDER_SDKS.filter((dependency) =>
+        Object.prototype.hasOwnProperty.call(dependencies, dependency)
+      ).map((dependency) => `${relativePath}: ${dependency}`);
+    });
+
+    expect(unexpectedDependencies).toEqual([]);
   });
 });

@@ -1,9 +1,8 @@
 /**
  * AIUsageMonitor - Service for tracking AI token usage and costs
  *
- * Watches `.specify/logs/council-usage.jsonl` via FileSystemWatcher for real-time
- * updates. Falls back to polling when file watcher is unavailable. Aggregates
- * usage by provider and time period (current session, today, this week).
+ * Polls local CLI conversation logs and aggregates usage by provider and time
+ * period (current session, today, this week).
  *
  * Emits 'usage-update' events consumed by AIUsageProvider (TreeView) and
  * AIUsageStatusBar.
@@ -21,21 +20,18 @@ import type {
   ProviderUsage,
   UsageUpdateEvent,
   UsageDataSource,
+  UsageSummary,
 } from '../types/aiUsage';
-import type { UsageSummary } from '../council/UsageLogger';
 import type { CostBudgetEnforcer } from './CostBudgetEnforcer';
 import type { MultiSessionBridgeWatcher } from './MultiSessionBridgeWatcher';
-import { UsageApiClient } from './UsageApiClient';
 
 /**
  * AIUsageMonitor aggregates AI usage data and emits update events.
  *
- * Uses a hybrid approach: FileSystemWatcher for immediate updates (<500ms)
- * with periodic polling as a fallback (configurable interval, default 5s).
+ * Uses periodic polling plus session bridge events when available.
  */
 export class AIUsageMonitor extends EventEmitter implements vscode.Disposable {
   private readonly logger = Logger.for('AIUsageMonitor');
-  private watcher: vscode.FileSystemWatcher | null = null;
   private pollingTimer: ReturnType<typeof setInterval> | null = null;
   private debounceTimer: ReturnType<typeof setTimeout> | null = null;
   private disposed = false;
@@ -71,14 +67,12 @@ export class AIUsageMonitor extends EventEmitter implements vscode.Disposable {
       );
     }
 
-    // Listen for admin API key config changes (T021)
+    // Listen for local usage polling configuration changes.
     this.configChangeDisposable = vscode.workspace.onDidChangeConfiguration((e) => {
-      if (
-        e.affectsConfiguration('gofer.anthropicAdminApiKey') ||
-        e.affectsConfiguration('gofer.openaiAdminApiKey') ||
-        e.affectsConfiguration('gofer.aiUsage.api.pollingInterval')
-      ) {
-        this.logger.info('Admin API key or polling config changed, refreshing');
+      if (e.affectsConfiguration('gofer.aiUsage.polling.interval')) {
+        this.logger.info('AI usage polling config changed, refreshing');
+        this.cleanupPolling();
+        this.setupPolling();
         this.forceRefresh();
       }
     });
@@ -86,7 +80,7 @@ export class AIUsageMonitor extends EventEmitter implements vscode.Disposable {
 
   /**
    * Start monitoring for usage changes.
-   * Sets up FileSystemWatcher and polling fallback.
+   * Sets up polling and session bridge refreshes.
    */
   startMonitoring(): void {
     if (this.disposed) {
@@ -94,7 +88,6 @@ export class AIUsageMonitor extends EventEmitter implements vscode.Disposable {
       return;
     }
 
-    this.setupFileWatcher();
     this.setupPolling();
     this.setupSessionListener();
 
@@ -108,7 +101,6 @@ export class AIUsageMonitor extends EventEmitter implements vscode.Disposable {
    * Stop monitoring and clean up watchers/timers.
    */
   stopMonitoring(): void {
-    this.cleanupWatcher();
     this.cleanupPolling();
     this.cleanupDebounce();
     this.cleanupSessionListener();
@@ -203,7 +195,9 @@ export class AIUsageMonitor extends EventEmitter implements vscode.Disposable {
    * Dispose all resources.
    */
   dispose(): void {
-    if (this.disposed) {return;}
+    if (this.disposed) {
+      return;
+    }
     this.disposed = true;
 
     this.stopMonitoring();
@@ -263,19 +257,20 @@ export class AIUsageMonitor extends EventEmitter implements vscode.Disposable {
   }
 
   /**
-   * Map UsageLogger summary to AIUsageData format.
+   * Map usage summary to AIUsageData format.
    */
   private mapSummaryToUsageData(period: UsagePeriod, summary: UsageSummary): AIUsageData {
     const providers: ProviderUsage[] = [];
 
     for (const [providerId, providerData] of Object.entries(summary.byProvider)) {
-      // UsageLogger provides total tokens and cost per provider.
-      // Estimate input/output split: use summary-level ratios if available.
       const totalTokens = providerData.tokens;
       let inputTokens: number;
       let outputTokens: number;
 
-      if (summary.totalInputTokens > 0 || summary.totalOutputTokens > 0) {
+      if (providerData.inputTokens !== undefined || providerData.outputTokens !== undefined) {
+        inputTokens = providerData.inputTokens ?? 0;
+        outputTokens = providerData.outputTokens ?? 0;
+      } else if (summary.totalInputTokens > 0 || summary.totalOutputTokens > 0) {
         // Use the global input/output ratio from the summary
         const totalGlobal = summary.totalInputTokens + summary.totalOutputTokens;
         const inputRatio = totalGlobal > 0 ? summary.totalInputTokens / totalGlobal : 0.6;
@@ -338,54 +333,22 @@ export class AIUsageMonitor extends EventEmitter implements vscode.Disposable {
   }
 
   /**
-   * Set up FileSystemWatcher for council-usage.jsonl.
-   * Only used when data source is file-based (UsageLogger).
-   */
-  private setupFileWatcher(): void {
-    // Skip file watching when using API client
-    if (this.dataSource instanceof UsageApiClient) {return;}
-    // Guard against duplicate watchers
-    if (this.watcher) {return;}
-
-    try {
-      const pattern = new vscode.RelativePattern(
-        this.workspacePath,
-        '.specify/logs/council-usage.jsonl'
-      );
-      this.watcher = vscode.workspace.createFileSystemWatcher(pattern);
-
-      const onFileChange = () => this.handleFileChange('file-watch');
-      this.watcher.onDidChange(onFileChange);
-      this.watcher.onDidCreate(onFileChange);
-
-      this.logger.debug('FileSystemWatcher started for council-usage.jsonl');
-    } catch (error) {
-      this.logger.warn('Failed to create FileSystemWatcher, relying on polling', {
-        error: error instanceof Error ? error.message : String(error),
-      });
-    }
-  }
-
-  /**
    * Set up periodic polling.
-   * Uses API polling interval (60s default) for UsageApiClient,
-   * file polling interval (5s default) for UsageLogger.
    */
   private setupPolling(): void {
     // Guard against duplicate intervals
-    if (this.pollingTimer) {return;}
+    if (this.pollingTimer) {
+      return;
+    }
 
     const config = vscode.workspace.getConfiguration('gofer');
-    // API data-source polls at 60s (not 1h) because filesystem watching is
-    // inapplicable for HTTP endpoints. The 1h default applies to the FileSystemWatcher path.
-    const interval =
-      this.dataSource instanceof UsageApiClient
-        ? config.get<number>('aiUsage.api.pollingInterval', 60000)
-        : config.get<number>('aiUsage.polling.interval', 3600000);
+    const interval = config.get<number>('aiUsage.polling.interval', 3600000);
 
     this.pollingTimer = setInterval(() => {
       // Skip polling when panel is not visible (T022)
-      if (!this.panelVisible) {return;}
+      if (!this.panelVisible) {
+        return;
+      }
       this.handleFileChange('polling');
     }, interval);
 
@@ -396,7 +359,9 @@ export class AIUsageMonitor extends EventEmitter implements vscode.Disposable {
    * Set up session change listener.
    */
   private setupSessionListener(): void {
-    if (!this.multiSessionWatcher || this.sessionListenerCleanup) {return;}
+    if (!this.multiSessionWatcher || this.sessionListenerCleanup) {
+      return;
+    }
 
     const onBridgeUpdate = () => {
       this.handleFileChange('session-change');
@@ -418,7 +383,9 @@ export class AIUsageMonitor extends EventEmitter implements vscode.Disposable {
    * Multiple writes within debounceMs trigger only one update.
    */
   private handleFileChange(trigger: UsageUpdateEvent['trigger']): void {
-    if (this.disposed) {return;}
+    if (this.disposed) {
+      return;
+    }
 
     // Debounce rapid changes
     if (this.debounceTimer) {
@@ -455,13 +422,6 @@ export class AIUsageMonitor extends EventEmitter implements vscode.Disposable {
   }
 
   // --- Cleanup Methods ---
-
-  private cleanupWatcher(): void {
-    if (this.watcher) {
-      this.watcher.dispose();
-      this.watcher = null;
-    }
-  }
 
   private cleanupPolling(): void {
     if (this.pollingTimer) {

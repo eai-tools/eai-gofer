@@ -5,6 +5,19 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './tests/e2e',
+  testIgnore: [
+    '**/autoCompaction.spec.ts',
+    '**/dependencyImpact.spec.ts',
+    '**/memoryPersistence.spec.ts',
+    '**/PipelineProviderParity.e2e.test.ts',
+    // These suites exercise Node/VS Code extension internals and are covered by
+    // `npm run test:e2e`; Playwright cannot import the TS extension modules
+    // directly without a separate compiled-module harness.
+    '**/extension/extension-activation.spec.ts',
+    '**/integration/full-system-integration.spec.ts',
+    '**/language-server/lsp-mcp-integration.spec.ts',
+    '**/workflow.test.ts',
+  ],
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */

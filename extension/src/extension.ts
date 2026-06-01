@@ -25,16 +25,11 @@ import { MemoryLayerManager } from './autonomous/MemoryLayerManager';
 import { ACCOrchestrator } from './autonomous/ACCOrchestrator';
 import { ObservationBridge } from './autonomous/ObservationBridge';
 import { ArchitectureDecisionGate } from './services/enterpriseai/governance/ArchitectureDecisionGate';
-import {
-  setSharedContextBuilder,
-  setSharedCrossPlatformCommandRouter,
-  setSharedMemoryManager,
-} from './autonomousCommands';
+import { setSharedContextBuilder, setSharedMemoryManager } from './autonomousCommands';
 import { registerMemoryCommands } from './commands/memoryCommands';
 import { registerMigrateMemoriesCommand } from './commands/migrateMemories';
 import { registerQueryMemoryUsageCommand } from './commands/queryMemoryUsage';
 import { registerSpecCommands } from './commands/specCommands';
-import { registerCouncilCommands } from './commands/councilCommands';
 // Context Health Monitoring (Spec 012)
 import { ContextHealthStatusBar } from './ui/ContextHealthStatusBar';
 import { ScopeGuard } from './autonomous/ScopeGuard';
@@ -42,7 +37,6 @@ import { ToolAuditLogger } from './autonomous/ToolAuditLogger';
 import { RunLedger } from './autonomous/RunLedger';
 import { CostBudgetEnforcer } from './autonomous/CostBudgetEnforcer';
 import { PipelineStateManager } from './autonomous/PipelineStateManager';
-import { ConfigManager } from './config';
 // Hook-based monitoring
 // Context Window Accuracy (Feature 023)
 // Dependency Injection (Phase 3 - Engineering Remediation)
@@ -59,8 +53,6 @@ import {
   type CommandDependencies,
 } from './services';
 import { Logger as LegacyLogger } from './utils/logger';
-// Note: stopClaudeCode is imported dynamically in deactivate() to avoid
-// blocking extension activation if node-pty fails to load
 
 /**
  * Gofer Extension
@@ -428,7 +420,6 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
   logger?.info('Extension', 'Initializing workspace', { workspacePath });
 
   const state = getState();
-  const configManager = ConfigManager.getInstance();
 
   // Resolve InitializationService and initialize workspace
   const initService = getContainer().resolve(InitializationService);
@@ -451,10 +442,7 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
   state.branchSpecManager = components.branchSpecManager;
   const migrator = components.migrator;
 
-  const resourceDiagnostics = new ResourceDiagnostics(
-    workspacePath,
-    configManager.getResourceSnapshotConfig()
-  );
+  const resourceDiagnostics = new ResourceDiagnostics(workspacePath);
   resourceDiagnostics.start();
   resourceDiagnostics.captureSnapshot('workspace-initialized');
   state.resourceDiagnostics = resourceDiagnostics;
@@ -588,7 +576,6 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
   await tryWireRunId(pipelineStateManager, runLedger, workspacePath);
 
   const scopeGuard = new ScopeGuard(workspacePath);
-  scopeGuard.setEnforcementMode(configManager.getScopeGuardMode());
 
   const toolAuditLogger = new ToolAuditLogger(workspacePath, runLedger);
   scopeGuard.setToolAuditLogger(toolAuditLogger);
@@ -599,15 +586,7 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
     state.sharedContextBuilder.setScopeGuard(scopeGuard);
   }
 
-  // Initialize CostBudgetEnforcer with config from settings
-  const costBudgetEnforcer = new CostBudgetEnforcer(
-    {
-      maxCostUsd: configManager.getBudgetMaxCostUsd(),
-      maxTokensPerRun: configManager.getBudgetMaxTokensPerRun(),
-      enforcementMode: configManager.getBudgetEnforcementMode(),
-    },
-    runLedger
-  );
+  const costBudgetEnforcer = new CostBudgetEnforcer({}, runLedger);
   state.costBudgetEnforcer = costBudgetEnforcer;
 
   // Wire CostBudgetEnforcer to shared ContextBuilder (Feature 024)
@@ -626,35 +605,12 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
     }
   }
 
-  // Wire AIUsageMonitor - UsageApiClient for billing APIs, UsageLogger for council session logs
-  // Match the manifest-backed default so billing API data is used unless users opt out.
+  // Wire AIUsageMonitor to local CLI usage logs.
   // CRITICAL: Wrapped in try-catch so AI Usage Panel works even if other init steps fail
   try {
-    const goferConfig = vscode.workspace.getConfiguration('gofer');
-    const useApiClient = goferConfig.get<boolean>('aiUsage.useApiClient', true);
-    logger?.info(
-      'Extension',
-      `[AIUsage] useApiClient = ${useApiClient} (false = UsageLogger, true = UsageApiClient)`
-    );
-
-    let dataSource: import('./types/aiUsage').UsageDataSource;
-    if (useApiClient) {
-      const { UsageApiClient } = await import('./autonomous/UsageApiClient');
-      dataSource = new UsageApiClient((providerId) => {
-        const config = vscode.workspace.getConfiguration('gofer');
-        switch (providerId) {
-          case 'anthropic':
-            return config.get<string>('anthropicAdminApiKey') || undefined;
-          case 'openai':
-            return config.get<string>('openaiAdminApiKey') || undefined;
-          default:
-            return undefined;
-        }
-      });
-    } else {
-      const { getUsageLogger } = await import('./council/UsageLogger');
-      dataSource = getUsageLogger(workspacePath);
-    }
+    const { getClaudeCodeAdapter } = await import('./autonomous/ClaudeCodeUsageAdapter');
+    const dataSource: import('./types/aiUsage').UsageDataSource =
+      getClaudeCodeAdapter(workspacePath);
 
     const aiUsageMonitor = new AIUsageMonitor(
       workspacePath,
@@ -681,55 +637,7 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
     aiUsageMonitor.startMonitoring();
     context.subscriptions.push(aiUsageMonitor);
 
-    // Validate admin key formats on startup (T028)
-    const anthropicAdminKey = goferConfig.get<string>('anthropicAdminApiKey');
-    if (anthropicAdminKey && !anthropicAdminKey.startsWith('sk-ant-admin')) {
-      logger?.warn(
-        'Extension',
-        'Anthropic admin API key may be invalid (expected prefix: sk-ant-admin)'
-      );
-    }
-
-    logger?.info('Extension', 'AIUsageMonitor wired and started successfully');
-
-    // Auto-discover Claude Code usage (OpenUsage-style)
-    const { getClaudeCodeAdapter } = await import('./autonomous/ClaudeCodeUsageAdapter');
-    const claudeAdapter = getClaudeCodeAdapter(workspacePath);
-
-    if (await claudeAdapter.isClaudeCodeInstalled()) {
-      logger?.info('Extension', 'Claude Code detected - enabling auto-discovery');
-
-      // Initial sync
-      const synced = await claudeAdapter.syncToCouncilLog();
-      if (synced > 0) {
-        logger?.info('Extension', `Auto-discovered ${synced} Claude Code sessions`);
-        // Force refresh to show new data
-        aiUsageMonitor.forceRefresh();
-      }
-
-      // Periodic sync every 5 minutes
-      const syncInterval = setInterval(
-        async () => {
-          try {
-            const newEntries = await claudeAdapter.syncToCouncilLog();
-            if (newEntries > 0) {
-              logger?.info('Extension', `Auto-synced ${newEntries} new sessions`);
-              aiUsageMonitor.forceRefresh();
-            }
-          } catch (err) {
-            logger?.warn('Extension', 'Auto-sync failed', { error: err });
-          }
-        },
-        5 * 60 * 1000
-      ); // 5 minutes
-
-      // Cleanup on dispose
-      context.subscriptions.push({
-        dispose: () => clearInterval(syncInterval),
-      });
-    } else {
-      logger?.info('Extension', 'Claude Code not detected - skipping auto-discovery');
-    }
+    logger?.info('Extension', 'AIUsageMonitor wired to local CLI usage and started successfully');
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error));
     logger?.error('Extension', err, {
@@ -747,7 +655,6 @@ async function initializeForWorkspace(context: vscode.ExtensionContext): Promise
   const { CrossPlatformCommandRouter } = await import('./council/CrossPlatformCommandRouter');
   const crossPlatformCommandRouter = new CrossPlatformCommandRouter(workspacePath);
   state.crossPlatformCommandRouter = crossPlatformCommandRouter;
-  setSharedCrossPlatformCommandRouter(crossPlatformCommandRouter);
 
   // Register settings watcher for gofer.defaultCLI changes (clears router cache on change)
   context.subscriptions.push(
@@ -1145,9 +1052,6 @@ function registerGlobalCommands(context: vscode.ExtensionContext): void {
     registerSpecCommands(context, state.progressProvider);
   }
 
-  // Register council commands (always available)
-  registerCouncilCommands(context);
-
   logger?.debug('Extension', 'Global commands registered');
 }
 
@@ -1204,14 +1108,6 @@ export async function deactivate(): Promise<void> {
     PerformanceMonitor.getInstance().dispose();
   } catch {
     // Performance monitor may not have been imported
-  }
-
-  // Stop Claude Code terminals (dynamic import to avoid blocking activation)
-  try {
-    const { stopClaudeCode } = await import('./autonomousCommands');
-    await stopClaudeCode();
-  } catch (error) {
-    logger?.error('Extension', error as Error, { operation: 'stopClaudeCode' });
   }
 
   // Stop Language Server

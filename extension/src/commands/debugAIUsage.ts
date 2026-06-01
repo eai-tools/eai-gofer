@@ -20,8 +20,14 @@ export async function debugAIUsageCommand(workspacePath: string): Promise<void> 
 
   outputChannel.appendLine('1. Claude Code Installation:');
 
-  const claudeDirExists = await fs.promises.access(claudeDir).then(() => true).catch(() => false);
-  const historyPathExists = await fs.promises.access(historyPath).then(() => true).catch(() => false);
+  const claudeDirExists = await fs.promises
+    .access(claudeDir)
+    .then(() => true)
+    .catch(() => false);
+  const historyPathExists = await fs.promises
+    .access(historyPath)
+    .then(() => true)
+    .catch(() => false);
 
   outputChannel.appendLine(`   ~/.claude exists: ${claudeDirExists}`);
   outputChannel.appendLine(`   history.jsonl exists: ${historyPathExists}`);
@@ -36,7 +42,10 @@ export async function debugAIUsageCommand(workspacePath: string): Promise<void> 
   outputChannel.appendLine('\n2. Context Usage Log:');
   outputChannel.appendLine(`   Path: ${contextLogPath}`);
 
-  const contextLogExists = await fs.promises.access(contextLogPath).then(() => true).catch(() => false);
+  const contextLogExists = await fs.promises
+    .access(contextLogPath)
+    .then(() => true)
+    .catch(() => false);
   outputChannel.appendLine(`   Exists: ${contextLogExists}`);
 
   if (contextLogExists) {
@@ -65,49 +74,8 @@ export async function debugAIUsageCommand(workspacePath: string): Promise<void> 
     }
   }
 
-  // Check council-usage.jsonl
-  const councilLogPath = path.join(workspacePath, '.specify/logs/council-usage.jsonl');
-  outputChannel.appendLine('\n3. Council Usage Log:');
-  outputChannel.appendLine(`   Path: ${councilLogPath}`);
-
-  const councilLogExists = await fs.promises.access(councilLogPath).then(() => true).catch(() => false);
-  outputChannel.appendLine(`   Exists: ${councilLogExists}`);
-
-  if (councilLogExists) {
-    const content = await fs.promises.readFile(councilLogPath, 'utf-8');
-    const lines = content.trim().split('\n').filter(Boolean);
-    outputChannel.appendLine(`   Entries: ${lines.length}`);
-
-    if (lines.length > 0) {
-      // Calculate total cost
-      let totalCost = 0;
-      let totalTokens = 0;
-      for (const line of lines) {
-        try {
-          const entry = JSON.parse(line);
-          totalCost += entry.estimatedCostUsd || 0;
-          totalTokens += (entry.inputTokens || 0) + (entry.outputTokens || 0);
-        } catch {
-          // Skip malformed
-        }
-      }
-      outputChannel.appendLine(`   Total cost: $${totalCost.toFixed(2)}`);
-      outputChannel.appendLine(`   Total tokens: ${totalTokens.toLocaleString()}`);
-
-      // Show first entry format
-      outputChannel.appendLine('\n   First entry format:');
-      const firstEntry = JSON.parse(lines[0]);
-      outputChannel.appendLine(`   - Has 'stage': ${!!firstEntry.stage}`);
-      outputChannel.appendLine(`   - Has 'councilMode': ${!!firstEntry.councilMode}`);
-      outputChannel.appendLine(`   - Has 'estimatedCostUsd': ${!!firstEntry.estimatedCostUsd}`);
-      outputChannel.appendLine(`   - Has 'providers': ${!!firstEntry.providers}`);
-      outputChannel.appendLine(`   - Has OLD 'provider': ${!!firstEntry.provider}`);
-      outputChannel.appendLine(`   - Has OLD 'model': ${!!firstEntry.model}`);
-    }
-  }
-
-  // Try manual sync
-  outputChannel.appendLine('\n4. Manual Sync Test:');
+  // Try local usage summary
+  outputChannel.appendLine('\n3. Local CLI Usage Summary:');
   try {
     const { ClaudeCodeUsageAdapter } = await import('../autonomous/ClaudeCodeUsageAdapter');
     const adapter = new ClaudeCodeUsageAdapter(workspacePath);
@@ -116,8 +84,15 @@ export async function debugAIUsageCommand(workspacePath: string): Promise<void> 
     outputChannel.appendLine(`   Claude Code detected: ${isInstalled}`);
 
     if (isInstalled) {
-      const synced = await adapter.syncToCouncilLog();
-      outputChannel.appendLine(`   ✅ Synced ${synced} sessions`);
+      const summary = await adapter.getUsageSummary();
+      outputChannel.appendLine(`   Sessions: ${summary.totalSessions}`);
+      outputChannel.appendLine(`   Cost: $${summary.totalCostUsd.toFixed(2)}`);
+      outputChannel.appendLine(
+        `   Tokens: ${(summary.totalInputTokens + summary.totalOutputTokens).toLocaleString()}`
+      );
+      outputChannel.appendLine(
+        `   Providers: ${Object.keys(summary.byProvider).join(', ') || 'none'}`
+      );
     }
   } catch (err) {
     outputChannel.appendLine(`   ❌ Error: ${err}`);
@@ -125,14 +100,18 @@ export async function debugAIUsageCommand(workspacePath: string): Promise<void> 
   }
 
   // Check AIUsageMonitor
-  outputChannel.appendLine('\n5. Checking if AIUsageMonitor is running...');
+  outputChannel.appendLine('\n4. Checking if AIUsageMonitor is running...');
   outputChannel.appendLine('   (Check "Gofer" output channel for monitor logs)');
 
   outputChannel.appendLine('\n=== Debug Complete ===');
   outputChannel.appendLine('If panel still shows $0, check:');
-  outputChannel.appendLine('1. Is council-usage.jsonl in correct format? (should have "stage", NOT "provider")');
-  outputChannel.appendLine('2. Is AIUsageMonitor using UsageLogger? (check extension.ts)');
-  outputChannel.appendLine('3. Does FileSystemWatcher trigger on file changes?');
+  outputChannel.appendLine('1. Does ~/.claude/projects contain logs for this workspace?');
+  outputChannel.appendLine(
+    '2. Is AIUsageMonitor wired to ClaudeCodeUsageAdapter? (check extension.ts)'
+  );
+  outputChannel.appendLine(
+    '3. Has the usage polling interval elapsed, or did you run Gofer: Refresh AI Usage?'
+  );
 
   vscode.window.showInformationMessage('AI Usage debug info written to output channel');
 }

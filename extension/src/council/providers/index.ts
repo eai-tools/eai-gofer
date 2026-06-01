@@ -1,5 +1,5 @@
 /**
- * LLM Providers Module
+ * CLI Providers Module
  *
  * Exports all provider-related classes and utilities.
  */
@@ -22,11 +22,6 @@ export {
   resetProviderFactory,
   registerProvider,
 } from './ProviderFactory';
-
-// Provider implementations - import to trigger registration
-export { AnthropicProvider } from './AnthropicProvider';
-export { GoogleProvider } from './GoogleProvider';
-export { OpenAIProvider } from './OpenAIProvider';
 
 // CLI provider implementations
 export { ClaudeCodeCLIProvider } from './cli/ClaudeCodeCLIProvider';

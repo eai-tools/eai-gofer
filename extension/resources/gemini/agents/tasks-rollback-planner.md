@@ -90,14 +90,3 @@ Reports LOW confidence if:
 - **Recommended model**: sonnet (requires reasoning about state transitions and
   dependencies).
 
-## LLM Council Mode
-
-When council mode is enabled for the parent workflow, this agent may execute
-across multiple LLM providers simultaneously. In council mode:
-
-- Your findings will be anonymized as "Member A", "Member B", etc.
-- A Chairman LLM will synthesize your rollback strategy with other providers'
-  findings
-- Your response may be peer-reviewed by other council members
-
-Focus on practical rollback planning regardless of council mode.

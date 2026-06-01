@@ -117,6 +117,7 @@ function buildGeminiExtensionManifest(version) {
     name: 'eai-gofer',
     version,
     description: 'Gofer core pipeline and helper commands as a Gemini CLI extension',
+    license: 'Apache-2.0',
     commands: '.gemini/commands/gofer/',
     gofer: {
       bundle_url: PUBLIC_PLUGIN_URL,
@@ -391,7 +392,7 @@ function buildCopilotPromptContent(stage, host = SURFACE_WORKSPACE_HOSTS['copilo
     '  - WebSearch',
     'argument-hint: feature-name-or-description',
     'gofer:',
-    '  workflowProfile: enterpriseai',
+    '  workflowProfile: standard',
     `  canonicalSource: .specify/commands/${sourceFileName}`,
     `  canonicalChecksum: ${canonicalChecksum}`,
     '  metadataSource: scripts/generate-commands.ts',

@@ -497,11 +497,11 @@ export class ResourceSyncer implements IResourceOperations {
     } catch (error: unknown) {
       this.logger.warn(
         'ResourceSyncer',
-        `Unable to read workflow profile from configuration, defaulting to enterpriseai: ${
+        `Unable to read workflow profile from configuration, defaulting to standard: ${
           error instanceof Error ? error.message : String(error)
         }`
       );
-      return 'enterpriseai';
+      return 'standard';
     }
   }
 

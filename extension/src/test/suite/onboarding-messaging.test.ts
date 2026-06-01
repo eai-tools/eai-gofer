@@ -50,7 +50,7 @@ suite('onboarding messaging', () => {
 
     assert.ok(extensionReadme.includes('Gofer VS Code Extension'));
     assert.ok(extensionReadme.includes('business scenario'));
-    assert.ok(rootReadme.includes('spec-driven delivery workflow'));
+    assert.ok(rootReadme.includes('business specification-driven delivery workflow'));
     assert.ok(rootReadme.includes('What Helps A Repo Get Forks And Stars'));
     assert.ok(extensionSource.includes('Gofer initialized.'));
     assert.ok(extensionSource.includes('multi-platform workflows'));

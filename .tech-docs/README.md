@@ -6,9 +6,10 @@ source_commit: 'public-launch-readiness'
 
 # Gofer
 
-Gofer is a spec-driven delivery workflow for repositories. It provides a shared
-`0-6` pipeline, repo-owned artifacts in `.specify/`, a VS Code extension, and
-portable plugin surfaces for Claude Code, Codex, GitHub Copilot, and Gemini.
+Gofer is a business specification-driven delivery workflow for repositories. It
+provides a shared `0-6` pipeline, repo-owned artifacts in `.specify/`, a VS Code
+extension, and portable plugin surfaces for Claude Code, Codex, GitHub Copilot,
+and Gemini.
 
 ## Core Pipeline
 
@@ -43,6 +44,7 @@ Optional helpers:
 ## Start Here
 
 - [Overview](overview.md)
+- [First Run In Five Minutes](first-run.md)
 - [Architecture](architecture.md)
 - [Configuration](configuration.md)
 - [API Reference](api-reference.md)

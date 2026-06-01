@@ -110,7 +110,7 @@ export class ClaudeCodeCLIProvider extends CLIProviderAdapter {
   public translateError(error: string): string {
     // Authentication errors
     if (error.includes('API key') || error.includes('authentication') || error.includes('401')) {
-      return 'Authentication failed: Invalid or missing API key. Please check your Anthropic API key in settings.';
+      return 'Authentication failed: run `claude login` or set ANTHROPIC_API_KEY in your shell environment.';
     }
 
     // Rate limiting
@@ -159,5 +159,5 @@ export class ClaudeCodeCLIProvider extends CLIProviderAdapter {
 // Register provider in factory
 registerProvider(
   'claude-cli',
-  ClaudeCodeCLIProvider as unknown as new (apiKey: string, model: string) => CLIProviderAdapter
+  ClaudeCodeCLIProvider as unknown as new (cliCommand: string, model: string) => CLIProviderAdapter
 );

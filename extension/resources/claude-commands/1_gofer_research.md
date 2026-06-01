@@ -119,8 +119,8 @@ This is the **first stage** of the unified Gofer pipeline. Your job is to:
 - `.specify/specs/{feature}/proposal-review.md` (optional supporting review context)
 - `.specify/specs/{feature}/journeys/base-journey.md` (application delivery default)
 - `.specify/specs/{feature}/ui-preview-brief.md` (application delivery default)
-- `.specify/specs/{feature}/context-bundle.md` (EnterpriseAI default)
-- `.specify/specs/{feature}/reuse-scan.md` (EnterpriseAI default)
+- `.specify/specs/{feature}/context-bundle.md` (EnterpriseAI profile only)
+- `.specify/specs/{feature}/reuse-scan.md` (EnterpriseAI profile only)
 
 ---
 
@@ -351,8 +351,8 @@ When enabled, `market-analysis.md` must include:
 
 ## Step 3.6: Context Bundle and Reuse-Before-Create Scan
 
-EnterpriseAI is the default profile. Unless the user explicitly opts out with
-the standard profile, generate:
+The standard Gofer workflow is the public default. When `workflowProfile` is
+explicitly `enterpriseai`, generate:
 
 1. `{FEATURE_DIR}/context-bundle.md`
    - Feature summary and approved business scenario.
@@ -772,18 +772,6 @@ Key findings:
 **AUTO-CHAIN (DEFAULT)**: Unless the user explicitly asks to stop after
 research, invoke the Skill tool with `skill="/2_gofer_specify"` immediately
 after the research summary and any critical clarification answers are captured.
-
----
-
-## LLM Council Integration (Optional)
-
-When council mode is enabled in `.specify/memory/council-config.yaml` for
-`research_codebase` stage:
-
-1. Each parallel agent queries ALL configured LLM providers
-2. Different LLMs may find different patterns and connections
-3. Chairman synthesizes diverse findings for comprehensive research
-4. Usage logged to `.specify/logs/council-usage.jsonl`
 
 ---
 

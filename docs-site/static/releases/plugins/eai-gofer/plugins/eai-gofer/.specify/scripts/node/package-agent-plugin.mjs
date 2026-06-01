@@ -181,6 +181,7 @@ function buildGeminiManifest(version, paths = {}) {
     name: PLUGIN_NAME,
     version,
     description: 'Gofer core pipeline and helper commands as a Gemini CLI extension',
+    license: 'Apache-2.0',
     commands: paths.commands ?? '.gemini/commands/gofer/',
     gofer: {
       bundle_url: PUBLIC_PLUGIN_URL,

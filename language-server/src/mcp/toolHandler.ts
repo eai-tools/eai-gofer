@@ -10,7 +10,6 @@ import { GoferLoader, Spec, Task } from '../utils/goferLoader';
 import { ValidationService } from '../utils/ValidationService';
 import { TestHarnessGenerator } from '../utils/TestHarnessGenerator';
 import { ResearchChunker } from '../utils/ResearchChunker';
-import Anthropic from '@anthropic-ai/sdk';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
@@ -342,8 +341,7 @@ interface TriggerHandoffResponse {
 
 export class MCPToolHandler {
   private goferLoader: GoferLoader;
-  private anthropic: Anthropic | null = null;
-  private validationService: ValidationService | null = null;
+  private validationService: ValidationService;
   private testHarnessGenerator: TestHarnessGenerator;
   private researchChunker: ResearchChunker;
 
@@ -352,15 +350,9 @@ export class MCPToolHandler {
     private connection: Connection
   ) {
     this.goferLoader = new GoferLoader(workspacePath);
+    this.validationService = new ValidationService(workspacePath);
     this.testHarnessGenerator = new TestHarnessGenerator(workspacePath);
     this.researchChunker = new ResearchChunker(workspacePath);
-
-    // Initialize Anthropic client if API key is available
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (apiKey) {
-      this.anthropic = new Anthropic({ apiKey });
-      this.validationService = new ValidationService(apiKey, workspacePath);
-    }
   }
 
   /**
@@ -744,17 +736,9 @@ export class MCPToolHandler {
 
   /**
    * MCP Tool: gofer_validate_code
-   * Validate code against constitutional requirements
+   * Validate code against constitutional requirements without direct model API calls.
    */
   async validateCode(files: string[]): Promise<ValidateCodeResponse> {
-    if (!this.validationService) {
-      return {
-        success: false,
-        error: 'Validation service not initialized (missing API key)',
-        issues: [],
-      };
-    }
-
     try {
       const allIssues: ValidationIssue[] = [];
       let allValid = true;
@@ -763,8 +747,7 @@ export class MCPToolHandler {
         // Handle both relative and absolute paths
         const fullPath = path.isAbsolute(file) ? file : path.join(this.workspacePath, file);
 
-        // Use the Constitutional Council to validate
-        const result = await this.validationService.validateWithCouncil(fullPath, true);
+        const result = await this.validationService.validateFile(fullPath);
 
         if (!result.isValid) {
           allValid = false;
@@ -804,8 +787,8 @@ export class MCPToolHandler {
         isValid: allValid,
         files: files,
         message: allValid
-          ? 'All files approved by the Constitutional Council.'
-          : `Political deadlock: Council rejects changes with ${allIssues.filter((i) => i.severity === 'error').length} critical issues.`,
+          ? 'All files passed static validation.'
+          : `Static validation found ${allIssues.filter((i) => i.severity === 'error').length} critical issue(s).`,
         issues: allIssues,
       };
     } catch (error) {

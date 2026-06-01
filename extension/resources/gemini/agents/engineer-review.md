@@ -169,16 +169,3 @@ This agent reports **FAIL** (blocking) if ANY of these are true:
 - **Count precisely**: When reporting coverage numbers, count exactly. "5/7
   criteria covered" must mean you found exactly 5 matches and exactly 2 gaps.
 
-## LLM Council Mode
-
-When council mode is enabled for the parent workflow, this agent may execute
-across multiple LLM providers simultaneously. In council mode:
-
-- Your findings will be anonymized as "Member A", "Member B", etc.
-- A Chairman LLM will synthesize your alignment analysis with other providers'
-  findings
-- Different LLMs may identify different alignment gaps
-- Your response may be peer-reviewed by other council members
-
-Focus on thorough, evidence-based alignment validation regardless of council
-mode.

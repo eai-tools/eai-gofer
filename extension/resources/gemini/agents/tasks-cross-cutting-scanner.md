@@ -92,13 +92,3 @@ implementation.
   infrastructure.
 - **Recommended model**: haiku (pattern matching across task lists).
 
-## LLM Council Mode
-
-When council mode is enabled for the parent workflow, this agent may execute
-across multiple LLM providers simultaneously. In council mode:
-
-- Your findings will be anonymized as "Member A", "Member B", etc.
-- A Chairman LLM will synthesize your scan with other providers' findings
-- Your response may be peer-reviewed by other council members
-
-Focus on dimension-specific gap detection regardless of council mode.

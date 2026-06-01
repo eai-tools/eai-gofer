@@ -113,7 +113,7 @@ export class AIUsageProvider implements vscode.TreeDataProvider<AIUsageItem>, vs
       this.logger.info('[setMonitor.onUpdate] Received usage-update event:', {
         trigger: event.trigger,
         periodCount: event.periods.length,
-        totalCosts: event.periods.map(p => `${p.period}: $${p.totalCostUsd.toFixed(2)}`),
+        totalCosts: event.periods.map((p) => `${p.period}: $${p.totalCostUsd.toFixed(2)}`),
       });
       this.invalidateExpensiveCaches();
       this.latestData = event.periods;
@@ -182,7 +182,11 @@ export class AIUsageProvider implements vscode.TreeDataProvider<AIUsageItem>, vs
 
       // Show loading indicator if refresh is in progress
       if (this._loading) {
-        const loadingItem = new AIUsageItem('Refreshing...', 'loading', vscode.TreeItemCollapsibleState.None);
+        const loadingItem = new AIUsageItem(
+          'Refreshing...',
+          'loading',
+          vscode.TreeItemCollapsibleState.None
+        );
         loadingItem.iconPath = new vscode.ThemeIcon('sync~spin');
         loadingItem.description = 'Please wait';
         items.push(loadingItem);
@@ -203,7 +207,11 @@ export class AIUsageProvider implements vscode.TreeDataProvider<AIUsageItem>, vs
 
       // Add separator (visual only, using disabled item)
       if (items.length > 0) {
-        const separator = new AIUsageItem('─────────────────', 'separator', vscode.TreeItemCollapsibleState.None);
+        const separator = new AIUsageItem(
+          '─────────────────',
+          'separator',
+          vscode.TreeItemCollapsibleState.None
+        );
         separator.description = '';
         items.push(separator);
       }
@@ -259,8 +267,12 @@ export class AIUsageProvider implements vscode.TreeDataProvider<AIUsageItem>, vs
 
     // If no monitor is set, the extension may not have initialized properly
     if (!this.monitor) {
-      this.logger.error('[getPeriodItems] CRITICAL: No monitor set! Extension initialization may have failed.');
-      this.logger.error('[getPeriodItems] Check the Output > Gofer logs for "Workspace initialization failed"');
+      this.logger.error(
+        '[getPeriodItems] CRITICAL: No monitor set! Extension initialization may have failed.'
+      );
+      this.logger.error(
+        '[getPeriodItems] Check the Output > Gofer logs for "Workspace initialization failed"'
+      );
       return [];
     }
 
@@ -292,7 +304,7 @@ export class AIUsageProvider implements vscode.TreeDataProvider<AIUsageItem>, vs
 
     this.logger.info('[getPeriodItems] Creating items from data:', {
       periodCount: periodData.length,
-      totalCosts: periodData.map(d => `${d.period}: $${d.totalCostUsd.toFixed(2)}`),
+      totalCosts: periodData.map((d) => `${d.period}: $${d.totalCostUsd.toFixed(2)}`),
     });
 
     return periodData.map((data) => this.createPeriodItem(data));
@@ -344,14 +356,6 @@ export class AIUsageProvider implements vscode.TreeDataProvider<AIUsageItem>, vs
         data.error === 'api_error' ? 'warning' : 'info',
         data.error === 'api_error' ? new vscode.ThemeColor('charts.yellow') : undefined
       );
-      if (data.error === 'admin_key_required' || data.error === 'not_configured') {
-        errorItem.command = {
-          command: 'workbench.action.openSettings',
-          title: 'Open Settings',
-          arguments: ['gofer.anthropicAdminApiKey'],
-        };
-      }
-
       // If we have stale data with an error, show both the error and the data
       if (data.providers.length > 0) {
         const lastUpdatedNote = data.lastUpdated
@@ -381,8 +385,6 @@ export class AIUsageProvider implements vscode.TreeDataProvider<AIUsageItem>, vs
    */
   private getErrorLabel(error: string): string {
     switch (error) {
-      case 'admin_key_required':
-        return 'Admin API key required';
       case 'not_configured':
         return 'Not configured';
       case 'api_not_available':

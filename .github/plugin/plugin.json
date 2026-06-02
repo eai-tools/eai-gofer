@@ -18,13 +18,6 @@
     "gemini",
     "spec-driven-development"
   ],
-  "category": "Coding",
-  "tags": [
-    "eai-gofer",
-    "gofer",
-    "agentic-coding",
-    "gemini"
-  ],
   "skills": "./plugin-skills/",
   "agents": "./.claude/agents/",
   "commands": "./.claude/commands/"

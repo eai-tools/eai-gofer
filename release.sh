@@ -239,6 +239,16 @@ mv "$TEMP_FILE" extension/CHANGELOG.md
 
 print_success "Updated package.json, .gofer-version, and CHANGELOG.md"
 
+# Ensure root generation tools are installed before invoking generators such as
+# generate-commands, which depends on root dev tooling like tsx.
+print_info "Installing root dependencies for generation..."
+if npm install 2>&1; then
+    print_success "Root dependencies installed"
+else
+    print_error "Failed to install root dependencies"
+    exit 1
+fi
+
 # Pre-release hook (FR-001, NFR-011): regenerate every CLI surface from the
 # canonical .specify/commands/<stage>.md source-of-truth so the published
 # artifact is always source-of-truth-derived. MUST run before

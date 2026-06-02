@@ -15,11 +15,5 @@
     "claude-code",
     "spec-driven-development"
   ],
-  "category": "Coding",
-  "tags": [
-    "eai-gofer",
-    "gofer",
-    "agentic-coding"
-  ],
   "skills": "./skills/"
 }

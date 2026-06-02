@@ -1,18 +1,18 @@
-# Gofer Language Server
+# EAI Gofer Language Server
 
 A dual-protocol server implementing both Language Server Protocol (LSP) and
-Model Context Protocol (MCP) for business specification-driven development with
-AI coding agents.
+Model Context Protocol (MCP) for EAI Gofer business specification-driven
+development with AI coding agents.
 
 ## Overview
 
-The Gofer Language Server serves as the bridge between the VSCode extension and
-AI coding agents (Claude Code, GitHub Copilot). It provides:
+The EAI Gofer Language Server serves as the bridge between the VSCode extension
+and AI coding agents (Claude Code, GitHub Copilot). It provides:
 
 - **LSP Communication**: Custom methods for extension-to-server communication
 - **MCP Tools**: 6 tools that AI agents can invoke to interact with
   specifications
-- **Gofer Integration**: Loads and parses GitHub Gofer format specifications
+- **EAI Gofer Integration**: Loads and parses GitHub Gofer format specifications
 - **Real-time Updates**: Notifies extension when task status changes
 
 ## Architecture
@@ -249,7 +249,7 @@ Enable console logging in the VSCode extension output panel:
 
 1. Open VSCode
 2. View → Output
-3. Select "Gofer Language Server" from dropdown
+3. Select "EAI Gofer Language Server" from dropdown
 4. Watch real-time logs
 
 ## Contributing

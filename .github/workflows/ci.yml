@@ -63,12 +63,19 @@ jobs:
 
       - name: Run Tests with Coverage
         run: |
+          set -o pipefail
           mkdir -p quality-reports
-          npm run test:coverage-report | tee quality-reports/test-summary.txt
+          npm run test:coverage-report | tee /tmp/test-summary.txt
+          grep -E "Test Files|Tests|Duration" /tmp/test-summary.txt > quality-reports/test-summary.txt || true
 
       - name: Generate Coverage Summary
         id: coverage
         run: |
+          if [ ! -f coverage/coverage-summary.json ]; then
+            echo "coverage/coverage-summary.json was not generated"
+            exit 1
+          fi
+
           # Summarise the coverage files produced by the test run above without rerunning the suite.
           COVERAGE_SUMMARY=$(jq -r '
             .total as $t |

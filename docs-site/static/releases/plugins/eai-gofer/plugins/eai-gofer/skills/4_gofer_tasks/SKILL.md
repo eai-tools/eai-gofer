@@ -1,49 +1,29 @@
 ---
 name: 4_gofer_tasks
-description:
-  'Break down the implementation plan into dependency-ordered, parallelisable
-  tasks.'
+description: "Break down the implementation plan into dependency-ordered, parallelisable tasks."
 ---
 
 ---
-
-## description: Generate actionable task breakdown from implementation plan
+description: Generate actionable task breakdown from implementation plan
+---
 
 # Gofer Tasks
 
 ## Token And Cost Policy
-
 <!-- gofer:token-cost-policy:start -->
 
 Before spawning agents, calling tools, or loading large files:
 
-1. Treat `.specify/memory/gofer-model-policy.yaml` as the repo-owned source of
-   truth for simple, medium, hard, and arbiter model routing. If it is missing,
-   run `/gofer:bootstrap-workspace` before continuing.
+1. Treat `.specify/memory/gofer-model-policy.yaml` as the repo-owned source of truth for simple, medium, hard, and arbiter model routing. If it is missing, run `/gofer:bootstrap-workspace` before continuing.
 2. Use the cheapest capable model first.
-   - Claude: Haiku for scouting/extraction; Sonnet for normal implementation,
-     synthesis, validation, and security; Opus for high-risk arbitration or
-     release-critical failures.
-   - Codex/OpenAI: GPT mini for simple coding; GPT nano only for
-     locate/classify/summarize/mechanical work; GPT-5.3-Codex or flagship GPT
-     for tool-heavy coding, architecture, and release-critical validation.
-   - Gemini: Flash-Lite for cheap large-context scan/summarize; Flash for
-     default research synthesis; Pro for large-context architecture or high-risk
-     arbitration.
-   - Copilot: prefer Auto for simple and default work; ask the user before
-     choosing a paid/high-tier picker model for hard security, architecture, or
-     release gates.
-3. Keep raw tool output out of the main conversation context. Save stable
-   findings to `.specify/specs/{feature}/context-bundle.md`, then work from
-   summaries.
-4. Use provider prompt/context caching only for stable, non-secret prefixes:
-   Gofer scaffold, AGENTS/CLAUDE/Copilot instructions, constitution, repo map,
-   stage contracts, and validation rubric.
-5. Before continuing after large research, planning, implementation, or
-   validation bursts, checkpoint the durable artifacts and compact/clear/resume
-   context when the host supports it.
-6. Escalate model tier only when a cheaper pass is low-confidence,
-contradictory, security-sensitive, or blocking release quality.
+   - Claude: Haiku for scouting/extraction; Sonnet for normal implementation, synthesis, validation, and security; Opus for high-risk arbitration or release-critical failures.
+   - Codex/OpenAI: GPT mini for simple coding; GPT nano only for locate/classify/summarize/mechanical work; GPT-5.3-Codex or flagship GPT for tool-heavy coding, architecture, and release-critical validation.
+   - Gemini: Flash-Lite for cheap large-context scan/summarize; Flash for default research synthesis; Pro for large-context architecture or high-risk arbitration.
+   - Copilot: prefer Auto for simple and default work; ask the user before choosing a paid/high-tier picker model for hard security, architecture, or release gates.
+3. Keep raw tool output out of the main conversation context. Save stable findings to `.specify/specs/{feature}/context-bundle.md`, then work from summaries.
+4. Use provider prompt/context caching only for stable, non-secret prefixes: Gofer scaffold, AGENTS/CLAUDE/Copilot instructions, constitution, repo map, stage contracts, and validation rubric.
+5. Before continuing after large research, planning, implementation, or validation bursts, checkpoint the durable artifacts and compact/clear/resume context when the host supports it.
+6. Escalate model tier only when a cheaper pass is low-confidence, contradictory, security-sensitive, or blocking release quality.
 <!-- gofer:token-cost-policy:end -->
 
 ## User Input
@@ -485,10 +465,11 @@ The standard Gofer workflow is the public default. EnterpriseAI task generation
 is migration-only and used only when `workflowProfile` is explicitly
 `enterpriseai`.
 
-When the workflow profile is explicitly `enterpriseai`, `tasks.md` MUST emit
-deployment tasks in the following ordered chain. Each task is independently
-runnable and the ordering enforces scaffold before deployment so that
-configuration and manifest artifacts exist before any deploy command runs.
+When the workflow profile is explicitly `enterpriseai`,
+`tasks.md` MUST emit deployment
+tasks in the following ordered chain. Each task is independently runnable and
+the ordering enforces scaffold before deployment so that configuration and
+manifest artifacts exist before any deploy command runs.
 
 1. **Vertical Template scaffolding -> `eai init`**
    - Command: `eai init <app-name>`
@@ -509,9 +490,9 @@ The ordering above is non-negotiable: tasks.md MUST instruct the pipeline to sca
 For **application delivery**, task generation MUST treat the UI-first gate as a
 precondition to downstream implementation tasks:
 
-- If `{FEATURE_DIR}/ui-approval.md` does not exist or is not approved, emit only
-  the blocking preview/approval tasks needed to reach approval; do **not** emit
-  downstream implementation tasks as if the UI were already settled.
+- If `{FEATURE_DIR}/ui-approval.md` does not exist or is not approved, emit
+  only the blocking preview/approval tasks needed to reach approval; do **not**
+  emit downstream implementation tasks as if the UI were already settled.
 - If `{FEATURE_DIR}/service-fit-matrix.md` is missing or does not distinguish
   accessible now vs purchasable vs unavailable platform capabilities, emit a
   blocking service-fit task group before normal build tasks.
@@ -530,9 +511,9 @@ precondition to downstream implementation tasks:
   move into a reusable package lane, including Storybook story ID coverage,
   theme override points, exports, and compatibility checks.
 - Add source-platform decoupling tasks whenever a block or package lane is not
-  restricted-source and still depends on source-platform internals; the task
-  must define the resource-schema or adapter boundary and the regression proof
-  that source-platform coupling is no longer required by the public surface.
+  restricted-source and still depends on source-platform internals; the task must define the
+  resource-schema or adapter boundary and the regression proof that source-platform coupling is no
+  longer required by the public surface.
 - Add public-readiness tasks for external and hybrid profiles covering public
   exports, docs/examples where already part of the package surface,
   accessibility/theming contracts, consumer smoke tests, and unsupported
@@ -562,8 +543,8 @@ precondition to downstream implementation tasks:
   - update `ui-review-log.md`
   - block downstream work until `ui-approval.md` is approved
 - App-delivery service-fit tasks that update `service-fit-matrix.md` using
-  tenant-aware evidence from `eai --describe`, `eai whoami`,
-  `eai tenant select`, `resource schema`, `eai verify calls --format json`, or
+  tenant-aware evidence from `eai --describe`, `eai whoami`, `eai tenant
+  select`, `resource schema`, `eai verify calls --format json`, or
   equivalent approved platform evidence.
 - A scope-control task that checks whether any user-facing app process exceeds
   four steps and either combines/automates extra steps or records the approved

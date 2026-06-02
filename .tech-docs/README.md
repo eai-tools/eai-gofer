@@ -4,12 +4,12 @@ generated_at: '2026-05-29T10:00:00.000Z'
 source_commit: 'public-launch-readiness'
 ---
 
-# Gofer
+# EAI Gofer
 
-Gofer is a business specification-driven delivery workflow for repositories. It
-provides a shared `0-6` pipeline, repo-owned artifacts in `.specify/`, a VS Code
-extension, and portable plugin surfaces for Claude Code, Codex, GitHub Copilot,
-and Gemini.
+EAI Gofer is a business specification-driven delivery workflow for repositories.
+It provides a shared `0-6` pipeline, repo-owned artifacts in `.specify/`, a VS
+Code extension, and portable plugin surfaces for Claude Code, Codex, GitHub
+Copilot, and Gemini.
 
 ## Core Pipeline
 

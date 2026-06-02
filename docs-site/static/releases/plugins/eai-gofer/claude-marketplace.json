@@ -10,7 +10,7 @@
       "name": "eai-gofer",
       "source": "./plugins/eai-gofer",
       "description": "Gofer core pipeline from /0_business_scenario through /6_gofer_validate, with optional helper commands.",
-      "version": "3.5.2",
+      "version": "3.5.3",
       "author": {
         "name": "EAI Tools",
         "url": "https://github.com/eai-tools/eai-gofer"

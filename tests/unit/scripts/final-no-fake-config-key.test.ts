@@ -27,6 +27,7 @@ const SKIP_DIRS = new Set([
   'dist-repro',
   'build',
   'coverage',
+  'quality-reports',
   'out',
   '.husky',
   '.vscode-test',

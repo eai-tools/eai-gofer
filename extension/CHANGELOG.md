@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [3.5.4] - 2026-06-02
+
+Patch release after merging v3.5.3 and plugin manifest validation CI fixes.
+
 ## [3.5.3] - 2026-06-02
 
 Auto-release

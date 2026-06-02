@@ -6,7 +6,7 @@ Each generated `issue-<number>.md` file is a scoped intake brief for a
 roadmap-aligned issue. The corresponding draft PR is meant to help a human
 reviewer:
 
-- confirm the issue fits the current Gofer direction
+- confirm the issue fits the current EAI Gofer direction
 - confirm the likely surface area and acceptance signals
 - decide whether the issue should move into implementation work
 

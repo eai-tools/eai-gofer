@@ -1,11 +1,12 @@
-# Gofer Testing Guide
+# EAI Gofer Testing Guide
 
 This document describes the testing philosophy, infrastructure, and best
-practices for Gofer.
+practices for EAI Gofer.
 
 ## Testing Philosophy: Real Tests with Real Data
 
-Gofer follows a strict **"Real Tests with Real Data"** philosophy. This means:
+EAI Gofer follows a strict **"Real Tests with Real Data"** philosophy. This
+means:
 
 ### What We Do
 

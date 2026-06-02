@@ -1,6 +1,6 @@
 {
   "name": "eai-gofer",
-  "version": "3.5.2",
+  "version": "3.5.3",
   "description": "Spec-driven delivery workflow for VS Code and AI coding CLIs",
   "author": "EAI Tools",
   "license": "Apache-2.0",
@@ -26,7 +26,7 @@
     "test:e2e:playwright": "playwright test",
     "test:performance": "vitest run tests/performance --reporter=verbose",
     "test:coverage": "vitest run --coverage",
-    "test:coverage-report": "vitest run --coverage --reporter=verbose || true",
+    "test:coverage-report": "vitest run --coverage --reporter=verbose",
     "test:all": "npm run test:unit && npm run test:integration && npm run test:e2e && npm run test:performance",
     "quality": "npm run lint && npm run format:check && npm run typecheck && npm run test:coverage-report",
     "quality:fix": "npm run lint:fix && npm run format && npm run test",

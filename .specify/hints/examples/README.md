@@ -14,7 +14,7 @@ starting points for creating your own contextual guidance.
 - **[typescript-patterns.yaml](./typescript-patterns.yaml)** - TypeScript best
   practices and type system usage
 - **[logging-pattern.yaml](./logging-pattern.yaml)** - Structured logging with
-  Gofer Logger
+  EAI Gofer Logger
 
 ## How to Use
 
@@ -38,7 +38,7 @@ starting points for creating your own contextual guidance.
    - Include code examples
    - Link to resources
 
-4. **Reload hints in Gofer**:
+4. **Reload hints in EAI Gofer**:
    ```
    Cmd+Shift+P → Gofer: Reload Hints
    ```

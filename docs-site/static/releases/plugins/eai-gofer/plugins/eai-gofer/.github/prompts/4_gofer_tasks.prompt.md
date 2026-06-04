@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: standard
   canonicalSource: .specify/commands/4_gofer_tasks.md
-  canonicalChecksum: 0f70bfa8f030cb69817405dba2ff5f8ae45c3baf46bb01e52a6ce53c680c5a11
+  canonicalChecksum: 5699c855c37d9068b247cdbca8aade0cbaae891ff197ca94af17d230b1f62e57
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -506,6 +506,22 @@ tasks in the following ordered chain. Each task is independently runnable and
 the ordering enforces scaffold before deployment so that configuration and
 manifest artifacts exist before any deploy command runs.
 
+0. **EAI readiness unblock -> `eai-preflight.md`**
+   - If `{FEATURE_DIR}/eai-preflight.md` is missing, stale, or blocked, emit
+     only the smallest runnable unblock tasks before normal build tasks:
+     install/update `eai`, run `eai login`, run `eai tenant select`, confirm a
+     tenant-admin membership with `eai tenant list --format json`, initialize
+     the EAI app template with `eai init <app-name>` when confirmed, and confirm
+     app enrollment with `eai vertical list/create/select`.
+   - Do not emit object-type, UI, implementation, deployment, or service-fit
+     tasks until EAI readiness is `ready` or explicitly deferred by the user.
+   - Never invent tenant IDs, app keys, app URLs, or platform capabilities.
+     Use `eai --describe`, public EAI docs, and the user's confirmed tenant/app
+     selection as evidence.
+   - Do not emit tasks that establish a non-EAI primary runtime, database,
+     hosting platform, or app framework. Non-EAI technologies can appear only as
+     approved integration/migration/exception tasks after the EAI Platform/Azure
+     fit is recorded.
 1. **Vertical Template scaffolding -> `eai init`**
    - Command: `eai init <app-name>`
    - Produces the working directory, `manifest.yml`, and `config.json` expected
@@ -531,6 +547,9 @@ precondition to downstream implementation tasks:
 - If `{FEATURE_DIR}/service-fit-matrix.md` is missing or does not distinguish
   accessible now vs purchasable vs unavailable platform capabilities, emit a
   blocking service-fit task group before normal build tasks.
+- The first normal build tasks must use the EAI app template, EAI CLI, EAI
+  platform services, and Azure-compatible deployment/supporting services before
+  any custom or third-party implementation task.
 - Use the Vertical Template already scaffolded by `eai` as the default UI
   lego-block source. Any create-new UI concept must appear as an explicit
   exception task with rationale.

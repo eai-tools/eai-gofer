@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: standard
   canonicalSource: .specify/commands/1_gofer_research.md
-  canonicalChecksum: 1a5df620659987ad5148463c56ea2d9363f5b387ad3380bc0009a2faae194168
+  canonicalChecksum: 41223cb38fde64a1013f448c8261495d0d55ae25e98694a5c3a39f83b1289d36
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -133,6 +133,7 @@ This is the **first stage** of the unified Gofer pipeline. Your job is to:
 - `.specify/specs/{feature}/research.md`
 - `.specify/specs/{feature}/proposal-review.md` (optional supporting review context)
 - `.specify/specs/{feature}/journeys/base-journey.md` (application delivery default)
+- `.specify/specs/{feature}/eai-preflight.md` (EAI app delivery default)
 - `.specify/specs/{feature}/ui-preview-brief.md` (application delivery default)
 - `.specify/specs/{feature}/context-bundle.md` (EnterpriseAI profile only)
 - `.specify/specs/{feature}/reuse-scan.md` (EnterpriseAI profile only)
@@ -161,6 +162,7 @@ Check if discovery.md exists for this feature:
 
 ```bash
 ls -la .specify/specs/{feature}/discovery.md 2>/dev/null
+ls -la .specify/specs/{feature}/eai-preflight.md 2>/dev/null
 ```
 
 If discovery.md exists:
@@ -174,6 +176,8 @@ If discovery.md exists:
      app journey is required
    - AI-Augmented Journey → If app delivery, preserve the four-step-or-fewer
      journey as the scope spine for research
+   - EAI Preflight → If present, preserve CLI install/login/tenant/template/app
+     readiness decisions and do not re-ask for information already confirmed
    - Shared numbered-stage contract → if non-app, preserve the current shared
      stages without adding app-only preview or service-fit requirements
 
@@ -377,6 +381,10 @@ explicitly `enterpriseai`, generate:
      choice, package lane, coupling status, public-readiness target, and block
      porting posture.
    - Relevant existing specs, code paths, platform references, and API surfaces.
+   - EAI preflight summary: CLI version, login/account status, tenant readiness,
+     template initialization state, app enrollment readiness, block catalog
+     readiness, and next action. Do not include tokens, secrets, tenant-private
+     payloads, or `.env.local` values.
    - EnterpriseAI object types, tenant assumptions, deployment target, and
      validation criteria.
    - A compact "what the next agent needs" section to avoid dumping entire
@@ -389,6 +397,9 @@ explicitly `enterpriseai`, generate:
      checks, audit logging, and escalation.
    - Existing UI block/package assets, Storybook story IDs, theme override
      points, and source-platform dependencies that affect reuse, porting, or decoupling.
+   - EAI Platform/Azure stack fit for every app-delivery capability. Treat EAI
+     Platform services as primary evidence, Azure as the preferred supporting
+     substrate, and unrelated app stacks as exceptions only.
    - Decision for each candidate: reuse, extend, or create new.
    - Rationale, evidence path, and stakeholder/architecture owner if a new
      platform concept is recommended.
@@ -420,9 +431,38 @@ explicitly `enterpriseai`, generate:
      preview to the stakeholder.
    - Non-app runs MUST skip this artifact and record "Not applicable" in
      `research.md`.
+4. `{FEATURE_DIR}/eai-preflight.md` (EAI app delivery only, created by
+   `#0_business_scenario` when possible and updated here when missing or stale)
+   - Verify the safe public EAI source set used for research:
+     `https://eai-tools.github.io/eai/docs/overview`,
+     `https://eai-tools.github.io/eai/docs/api-reference`,
+     `https://eai-tools.github.io/eai/registry/`,
+     `https://eai-tools.github.io/eai/scenarios`, and
+     `https://github.com/eai-tools/eai-app-template`.
+   - Record whether `eai --describe` found the expected scaffolding,
+     authentication, tenant, vertical app, block catalog, diagnostics,
+     Gofer-refresh, and template-check commands.
+   - Record whether the app template markers exist:
+     `src/eai.config/object-types.ts`, `src/eai.config/register.ts`,
+     `.env.example`, `.npmrc`, and `package.json`.
+   - Record whether the current repo is ready for `eai verify`, needs
+     `eai init <app-name>`, or must avoid scaffolding because it is a non-empty
+     non-EAI repo.
+   - Record the app stack policy decision: EAI Platform including the EAI app
+     template first, Azure second, or approved non-EAI exception.
+   - Record the selected package profile and block-catalog readiness evidence
+     from `eai blocks list`, `eai blocks readiness`, and selected
+     `eai blocks describe <id>` calls.
+   - Record only product-safe status labels such as `ready`,
+     `account_required`, `login_required`, `tenant_required`,
+     `operator_required`, `template_required`, `user_confirmation_required`,
+     or `not_applicable`.
 
 Do not recommend a new EnterpriseAI object type, API/event, workflow, or module
-until the reuse-before-create scan is complete.
+until the reuse-before-create scan is complete. Do not recommend a non-EAI app
+runtime, database, hosting platform, or primary service as the default app
+substrate; use it only as an explicit integration/migration reference or
+approved exception after the EAI Platform/Azure fit has been evaluated.
 
 ---
 
@@ -545,12 +585,16 @@ status: complete
 - **Primary Value**: [Core value delivered]
 - **Measurable Goal**: [Quantified target]
 - **EnterpriseAI-First Rationale**: [Why EAI is the primary fit]
+- **EAI Platform/Azure Stack Fit**: [EAI services and Azure capabilities to use;
+  exceptions only if approved]
 
 ## Context Bundle Summary
 
 - **Relevant Specs**: [Existing specs to carry forward]
 - **Relevant Code Paths**: [Files/directories and why they matter]
 - **EnterpriseAI Object Types**: [Known or candidate object types]
+- **EAI Platform Services and Azure Capabilities**: [Primary platform services,
+  supporting Azure services, and any blocked capabilities]
 - **Tenant and Deployment Assumptions**: [Tenant, identity, runtime, target environment]
 - **Validation Criteria**: [Business, security, data, architecture, and operational checks]
 

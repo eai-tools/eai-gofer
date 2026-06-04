@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: standard
   canonicalSource: .specify/commands/2_gofer_specify.md
-  canonicalChecksum: 01861627d5a3154c2d647e253f0a2a192487e29ef9daaf9dd517bad62cfed467
+  canonicalChecksum: de8c855e127837fc394618e13091eacfd1bb6711ffec72e50527f63d97747a60
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -256,8 +256,9 @@ Generate the COMPLETE spec.md following this structure:
 11. Research Traceability — Matrix mapping each research finding to a spec section
 12. AI-Augmented 4-Step Journey — required for app delivery, not applicable for explicit non-app work
 13. UI Preview And Approval Gate — required for app delivery, not applicable for explicit non-app work
-14. EnterpriseAI Service Fit — required for app delivery, not applicable for explicit non-app work
-15. EnterpriseAI Contract Pack Summary — actors, object types, workflows, permissions, APIs/events, runtime assumptions, acceptance tests
+14. EAI Platform/Azure App Stack Policy — required for app delivery, not applicable for explicit non-app work
+15. EnterpriseAI Service Fit — required for app delivery, not applicable for explicit non-app work
+16. EnterpriseAI Contract Pack Summary — actors, object types, workflows, permissions, APIs/events, runtime assumptions, acceptance tests
 
 If discovery.md exists, use it to:
 - Use Problem Statement for Overview motivation
@@ -720,6 +721,8 @@ When `workflowProfile` is explicitly `enterpriseai`, generate
 | Object Types | Reused, extended, and newly proposed EnterpriseAI object types with owners |
 | Workflows and Journeys | External user journeys and internal orchestration flows as separate views; app delivery must include the four-step-or-fewer AI-augmented journey |
 | UI Preview and Approval | For app delivery: preview brief, Vertical Template constraints, branding inputs, preview validation evidence expectations, review-log requirements, approval gate rules; for non-app work: mark not applicable |
+| EAI App Delivery Preflight | For EAI app delivery: CLI version/install state, account/login state, tenant role, template initialization readiness, app enrollment readiness, block catalog readiness, and blocked/deferred decisions |
+| EAI Platform/Azure Stack Policy | For app delivery: EAI Platform as primary app substrate, Azure as preferred cloud/supporting substrate, custom code constrained to the EAI template, and non-EAI stacks only as approved exceptions |
 | AI Assistance Contract | Step goal, assistance mode, context used, generated output, user controls, confidence/evidence, audit trail, completion signal, and escalation for each app step |
 | EnterpriseAI Service Fit | For app delivery: desired capabilities, evidence source, accessible now vs purchasable vs unavailable classification, selected direction, and blocked-capability handling |
 | Public Platform Boundary | Public docs/help/CLI/PublicAPI behavior the builder may rely on; private platform details intentionally excluded; upgrade/operator-required paths expressed as product-safe user actions |

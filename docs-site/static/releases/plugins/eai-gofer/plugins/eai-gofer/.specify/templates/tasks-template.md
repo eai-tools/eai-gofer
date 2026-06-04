@@ -33,6 +33,9 @@ implementation:
 - `ui-approval.md` exists and is approved
 - `service-fit-matrix.md` exists and distinguishes accessible now, purchasable,
   and unavailable platform capabilities
+- normal build tasks use the EAI app template, EAI platform services, and
+  Azure-compatible support services before any custom or third-party app
+  substrate
 - preview work stays inside approved Vertical Template blocks unless an
   exception task is recorded
 - package lane, coupling status, Storybook story IDs, theme override points,

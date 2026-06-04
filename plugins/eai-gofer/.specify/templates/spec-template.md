@@ -115,6 +115,8 @@ _Example of marking unclear requirements:_
 - **Mode**: [application delivery | non-app work]
 - **Shared numbered stages preserved**: yes
 - **Journey requirement**: [four-step AI-augmented journey | not applicable]
+- **App stack policy**: [EAI Platform including app template first, Azure second
+  | approved non-EAI exception | not applicable]
 
 ## UI Preview & Approval Gate _(application delivery only)_
 
@@ -148,6 +150,8 @@ _Example of marking unclear requirements:_
   `resource schema`, `eai verify calls --format json`, or approved equivalent]
 - **Decision states**: [accessible now | purchasable but unavailable now |
   unavailable without new platform work]
+- **Non-EAI stack handling**: [not used | integration target | migration
+  reference | approved exception with owner/expiry]
 
 ## Success Criteria _(mandatory)_
 

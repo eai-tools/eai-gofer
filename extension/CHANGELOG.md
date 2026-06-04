@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [3.5.5] - 2026-06-04
+
+Add EAI Platform app delivery preflight and stack policy
+
 ## [3.5.4] - 2026-06-02
 
 Patch release after merging v3.5.3 and plugin manifest validation CI fixes.

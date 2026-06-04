@@ -68,6 +68,12 @@ classification rationale in `discovery.md`.
 For app delivery, record how the approved UI maps to platform capabilities. For
 non-app work, mark this section "Not applicable".
 
+| Stack Layer        | Decision                                                          | Evidence            |
+| ------------------ | ----------------------------------------------------------------- | ------------------- |
+| Primary substrate  | EAI Platform, including EAI app template                          | {{path-or-command}} |
+| Cloud/support      | Azure or EAI-compatible Azure service                             | {{path-or-command}} |
+| Non-EAI technology | Not used / integration / migration reference / approved exception | {{path-or-command}} |
+
 | Capability  | Evidence Source     | Status                                 | Selected Direction |
 | ----------- | ------------------- | -------------------------------------- | ------------------ |
 | {{service}} | {{path-or-command}} | Accessible / Purchasable / Unavailable | {{decision}}       |

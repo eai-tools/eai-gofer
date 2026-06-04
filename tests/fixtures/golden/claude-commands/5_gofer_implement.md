@@ -631,6 +631,14 @@ separation from `tasks.md`:
 - For application delivery, use the Vertical Template already installed in the
   workspace as the default UI lego-block source. Any create-new UI concept must
   be justified in the approved plan and approval artifacts.
+- For application delivery, implement on EAI Platform first, including the EAI
+  app template, and Azure second: use the EAI scaffold, PublicAPI/object
+  types/workflows/block catalog, ResourceAPI/resource schema, tenant/app
+  enrollment, provisioning, diagnostics, and Azure-compatible
+  deployment/supporting services before any non-EAI exception. Do not introduce a
+  non-EAI primary runtime, database, hosting platform, or app stack unless
+  `plan.md`, `service-fit-matrix.md`, and approval artifacts record it as an
+  explicit exception.
 - Before implementing UI, run or inspect `eai --describe`, `eai blocks list`,
   `eai blocks describe <id>` for every selected block, and
   `resource schema`. Implementation notes must cite the block IDs,

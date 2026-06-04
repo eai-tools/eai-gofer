@@ -1924,6 +1924,12 @@ For application delivery, validation MUST also check
   capability, the evidence source used to evaluate it, and whether it is
   accessible now, purchasable but unavailable now, or unavailable without new
   platform work.
+- The delivered app uses EAI Platform, including the EAI app template, as the
+  primary app substrate and Azure as the preferred cloud/supporting substrate.
+  Any Firebase, Supabase, Vercel primary runtime, AWS, GCP, bespoke backend,
+  unmanaged database, or unrelated SaaS dependency is rejected unless it is
+  recorded as an approved integration/migration/exception with rationale, owner,
+  expiry, and validation evidence.
 - The approved external/internal/hybrid profile choice, package lane, coupling
   status, Storybook story IDs, theme override points, public-readiness target,
   and custom-block exceptions are present in the preview/approval/service-fit

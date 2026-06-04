@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: standard
   canonicalSource: .specify/commands/5_gofer_implement.md
-  canonicalChecksum: ef902612be7a9890311e1e7c7d50c2090c5b1afe190b81f329a4d97846cf4509
+  canonicalChecksum: 3b54947cd083556d6e8b2ab14c1b3025cff6f38f8c909a2516842f78ed5763d3
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -671,6 +671,14 @@ separation from `tasks.md`:
 - For application delivery, use the Vertical Template already installed in the
   workspace as the default UI lego-block source. Any create-new UI concept must
   be justified in the approved plan and approval artifacts.
+- For application delivery, implement on EAI Platform first, including the EAI
+  app template, and Azure second: use the EAI scaffold, PublicAPI/object
+  types/workflows/block catalog, ResourceAPI/resource schema, tenant/app
+  enrollment, provisioning, diagnostics, and Azure-compatible
+  deployment/supporting services before any non-EAI exception. Do not introduce a
+  non-EAI primary runtime, database, hosting platform, or app stack unless
+  `plan.md`, `service-fit-matrix.md`, and approval artifacts record it as an
+  explicit exception.
 - Before implementing UI, run or inspect `eai --describe`, `eai blocks list`,
   `eai blocks describe <id>` for every selected block, and
   `resource schema`. Implementation notes must cite the block IDs,

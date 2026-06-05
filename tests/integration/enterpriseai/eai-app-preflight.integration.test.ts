@@ -17,6 +17,10 @@ describe('enterpriseai eai app delivery preflight (root integration)', () => {
     expect(scenarioCommand).toContain('EAI App Delivery Preflight');
     expect(scenarioCommand).toContain('EAI Platform And Azure App Stack Policy');
     expect(scenarioCommand).toContain('EAI Platform first, including the EAI app template');
+    expect(scenarioCommand).toContain('/gofer:eai-first-run');
+    expect(scenarioCommand).toContain('GitHub Codespaces');
+    expect(scenarioCommand).toContain('node --version');
+    expect(scenarioCommand).toContain('npm config get');
     expect(scenarioCommand).toMatch(
       /App delivery in EAI Gofer means EAI Platform\s+delivery by default/
     );

@@ -111,6 +111,20 @@ const HELPER_BODY_CONTRACTS: Record<
       '## Post-Check',
     ],
   },
+  'gofer:eai-first-run': {
+    artifactPath: '.specify/logs/eai-first-run-report.md',
+    requiredSections: [
+      '## Provenance',
+      '## Host And Platform',
+      '## Workspace Root',
+      '## Prerequisite Checks',
+      '## EAI CLI',
+      '## Login And Tenant',
+      '## Template Initialization',
+      '## Gofer Scaffold',
+      '## Next Action',
+    ],
+  },
   'gofer:vocabulary': {
     artifactPath: '.specify/specs/{feature}/glossary.md',
     requiredSections: ['## Provenance', '## Term Entries', '## Definitions', '## Source Artifacts'],

@@ -123,24 +123,41 @@ with an unrelated non-EAI stack.
    - If the user asks for a non-EAI app stack, ask whether they want to leave the
      EAI Gofer app-delivery path. If yes, record the exception and stop EAI app
      implementation guidance; if no, keep the EAI Platform/Azure stack policy.
-2. **Install or update the EAI CLI when needed**
-   - Check `command -v eai` and `eai --version`.
-   - If `eai` is missing, install it for the user:
+2. **Run first-run setup when prerequisites are missing**
+   - If Git, Node.js, npm, `eai`, login, tenant access, the EAI app template, or
+     the Gofer scaffold is missing or stale, run `/gofer:eai-first-run` before
+     research, specification, planning, or implementation.
+   - `/gofer:eai-first-run` is the cross-platform setup contract for macOS,
+     Linux, Windows, GitHub Codespaces, Claude Code, Codex, Copilot, Gemini, and
+     VS Code. It checks first, asks only when action is needed, installs the EAI
+     CLI when approved, confirms login and tenant, runs `eai init <project-name>
+     --skip-prompts --tenant <active-tenant-id>` when approved, verifies Gofer
+     files, and then returns here.
+   - If `/0_business_scenario` is unavailable in a new repo, the user should run
+     the plugin-level `/gofer:eai-first-run` command after installing or
+     updating the Gofer plugin.
+3. **Install or update the EAI CLI when needed**
+   - Check `git --version`, `node --version`, `npm --version`, `npm config get
+     @eai-tools:registry`, and `eai --version`.
+   - If `eai` is missing and the user approves, install it:
      ```bash
      npm config set @eai-tools:registry https://eai-tools.github.io/eai/registry/ --location=user
      npm install -g @eai-tools/cli
      eai --version
      ```
-   - If install fails, stop EAI app delivery and give the user the exact
-     commands above plus the EAI account/setup link. Continue only if the user
-     explicitly chooses a non-EAI path.
-3. **Discover CLI capabilities before assuming syntax**
+   - On Windows, use the same npm commands in PowerShell and avoid shell
+     redirection. In GitHub Codespaces, prefer user-level npm and avoid `sudo`
+     unless the user explicitly approves. If install fails, stop EAI app
+     delivery and give the user the exact commands above plus the EAI
+     account/setup link. Continue only if the user explicitly chooses a non-EAI
+     path.
+4. **Discover CLI capabilities before assuming syntax**
    - Run `eai --describe` and prefer advertised subcommands/options over stale
      remembered syntax.
    - Use JSON only where the CLI advertises it. `eai tenant list --format json`
      is suitable for automation; `eai whoami` may be plain text on current
      versions.
-4. **Check account, login, and tenant readiness**
+5. **Check account, login, and tenant readiness**
    - Run `eai whoami` to confirm login, active tenant, profile, token status,
      and PublicAPI context.
    - If not logged in or the token is expired, run `eai login` and then
@@ -151,7 +168,7 @@ with an unrelated non-EAI stack.
    - If no tenant is available, tell the user they need an EAI Platform account
      and tenant access before Gofer can build an EAI app. Do not fabricate
      tenant IDs or continue into implementation.
-5. **Check EAI template/project readiness**
+6. **Check EAI template/project readiness**
    - Detect existing template markers before scaffolding:
      - `src/eai.config/object-types.ts`
      - `src/eai.config/register.ts`
@@ -166,7 +183,7 @@ with an unrelated non-EAI stack.
    - If the repo is non-empty or already contains source files, do not scaffold
      over it silently. Ask whether to initialize a new sibling EAI app directory
      with `eai init <app-name>`, or to stop and let the user prepare the repo.
-6. **Check app enrollment capability before build planning**
+7. **Check app enrollment capability before build planning**
    - Once app name and tenant are confirmed, run `eai vertical list --format
      json` to confirm the tenant's current app enrollments.
    - Before creating anything remote, ask the user to confirm the app name,
@@ -179,7 +196,7 @@ with an unrelated non-EAI stack.
    - Provision storage, Entra app registration, environment sync, object types,
      and deployment only in the later plan/tasks/implement stages after the
      business scenario and UI approval gates are complete.
-7. **Check template block and platform knowledge for research**
+8. **Check template block and platform knowledge for research**
    - Run or plan to run `eai blocks list --format json`, `eai blocks readiness
      --package-profile <external|internal|hybrid> --format json`, and `eai
      blocks describe <id> --format json` for candidate UI blocks.

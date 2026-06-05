@@ -23,9 +23,16 @@ EAI Gofer is designed to be easy to adopt in an existing repo:
 
 1. Install the VS Code extension or add the public plugin marketplace for your
    preferred CLI.
-2. Initialize the repository with **Gofer: Initialize Repository** in VS Code,
-   or run the repo bootstrap helper from a CLI host.
-3. Start with `/0_business_scenario` and move through the core pipeline.
+2. For a first EAI Platform app, run `/gofer:eai-first-run`. It checks Git,
+   Node.js, npm, EAI CLI, login, tenant access, the EAI app template, and the
+   Gofer repo scaffold before the pipeline starts.
+3. If you only need to add Gofer to an existing repo, run **Gofer: Initialize
+   Repository** in VS Code or `/gofer:bootstrap-workspace` from a CLI host.
+4. Start with `/0_business_scenario` and move through the core pipeline.
+
+If `/0_business_scenario` is unknown in a new repo, the host has not loaded the
+Gofer plugin or repo commands yet. Install/update the plugin first, then run
+`/gofer:eai-first-run` to prepare the workspace and start the app build.
 
 For copy-paste commands across VS Code, Claude Code, Codex, Copilot, and Gemini,
 see the [5-minute first run guide](./.tech-docs/first-run.md).
@@ -54,6 +61,7 @@ Optional helpers stay outside the core 0-6 flow:
 - `/7a_stakeholder_comms`
 - `/gofer:check-workspace`
 - `/gofer:bootstrap-workspace`
+- `/gofer:eai-first-run`
 
 ## Model And Cost Policy
 
@@ -164,6 +172,41 @@ The public release feed is:
 ```text
 https://eai-tools.github.io/eai-gofer/releases.json
 ```
+
+## First EAI Platform App Setup
+
+`/gofer:eai-first-run` replaces the long website setup prompt for users who have
+installed a supported AI coding host. It works as a plugin-level command, so it
+can run before `.specify/` exists in the target repo.
+
+The command:
+
+- detects Claude Code, Codex, Copilot, Gemini, VS Code, GitHub Codespaces, OS,
+  shell, and workspace folder
+- checks Git, Node.js, npm, the scoped EAI npm registry, and `eai --version`
+- asks before installing Git, Node.js, npm, EAI CLI, opening browser login, or
+  changing tenant/project state
+- uses
+  `npm config set @eai-tools:registry https://eai-tools.github.io/eai/registry/ --location=user`
+  and `npm install -g @eai-tools/cli` when EAI CLI installation is approved
+- runs `eai --describe`, `eai whoami`, and `eai tenant list --format json`
+  before assuming CLI syntax or tenant readiness
+- asks for the project display name, proposes a lowercase kebab-case CLI name,
+  confirms the active tenant, then runs
+  `eai init <project-name> --skip-prompts --tenant <active-tenant-id>` when
+  approved
+- verifies `.specify/` and Gofer files created by `eai init`, runs
+  `/gofer:bootstrap-workspace` if the repo scaffold is missing or stale, and
+  writes a safe `.specify/logs/eai-first-run-report.md`
+
+Cross-platform behavior:
+
+| Environment       | Behavior                                                                               |
+| ----------------- | -------------------------------------------------------------------------------------- |
+| macOS             | Use Homebrew only when it already exists; otherwise use standard installers.           |
+| Linux             | Prefer existing tools; detect `apt`, `dnf`, `yum`, or `zypper` if install is approved. |
+| Windows           | Use PowerShell-safe commands and prefer `winget`; do not assume Git Bash.              |
+| GitHub Codespaces | Prefer devcontainer/user-level npm and avoid `sudo` unless explicitly approved.        |
 
 ## Repository Layout
 

@@ -76,8 +76,8 @@ describe('codex-doctor', () => {
     // Each fixture description is the same byte length; we expect a positive
     // total equal to (skill count * per-description bytes).
     expect(report.descriptionBudgetBytes).toBeGreaterThan(0);
-    // 2 bundles × 22 canonical commands + 1 system skill = 45 SKILL.md files.
-    expect(report.totalSkillFiles).toBe(45);
+    // 2 bundles × canonical commands + 1 system skill.
+    expect(report.totalSkillFiles).toBe(CANONICAL_GOFER_STAGES.length * 2 + 1);
     // Each description is roughly ~50 bytes; cumulative will exceed 2048
     // because we have 43 skills. The over-budget exit code path is exercised
     // by the cumulative-budget assertion below; we tolerate either >2048 (as

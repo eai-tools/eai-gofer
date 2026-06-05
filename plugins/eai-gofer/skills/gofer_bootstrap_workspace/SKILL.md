@@ -1,25 +1,44 @@
 ---
 name: gofer:bootstrap-workspace
-description: "Create or update the repo-owned Gofer scaffold for the current workspace."
+description:
+  'Create or update the repo-owned Gofer scaffold for the current workspace.'
 ---
 
 # Gofer Workspace Bootstrap
 
 ## Token And Cost Policy
+
 <!-- gofer:token-cost-policy:start -->
 
 Before spawning agents, calling tools, or loading large files:
 
-1. Treat `.specify/memory/gofer-model-policy.yaml` as the repo-owned source of truth for simple, medium, hard, and arbiter model routing. If it is missing, run `/gofer:bootstrap-workspace` before continuing.
+1. Treat `.specify/memory/gofer-model-policy.yaml` as the repo-owned source of
+   truth for simple, medium, hard, and arbiter model routing. If it is missing,
+   run `/gofer:bootstrap-workspace` before continuing.
 2. Use the cheapest capable model first.
-   - Claude: Haiku for scouting/extraction; Sonnet for normal implementation, synthesis, validation, and security; Opus for high-risk arbitration or release-critical failures.
-   - Codex/OpenAI: GPT mini for simple coding; GPT nano only for locate/classify/summarize/mechanical work; GPT-5.3-Codex or flagship GPT for tool-heavy coding, architecture, and release-critical validation.
-   - Gemini: Flash-Lite for cheap large-context scan/summarize; Flash for default research synthesis; Pro for large-context architecture or high-risk arbitration.
-   - Copilot: prefer Auto for simple and default work; ask the user before choosing a paid/high-tier picker model for hard security, architecture, or release gates.
-3. Keep raw tool output out of the main conversation context. Save stable findings to `.specify/specs/{feature}/context-bundle.md`, then work from summaries.
-4. Use provider prompt/context caching only for stable, non-secret prefixes: Gofer scaffold, AGENTS/CLAUDE/Copilot instructions, constitution, repo map, stage contracts, and validation rubric.
-5. Before continuing after large research, planning, implementation, or validation bursts, checkpoint the durable artifacts and compact/clear/resume context when the host supports it.
-6. Escalate model tier only when a cheaper pass is low-confidence, contradictory, security-sensitive, or blocking release quality.
+   - Claude: Haiku for scouting/extraction; Sonnet for normal implementation,
+     synthesis, validation, and security; Opus for high-risk arbitration or
+     release-critical failures.
+   - Codex/OpenAI: GPT mini for simple coding; GPT nano only for
+     locate/classify/summarize/mechanical work; GPT-5.3-Codex or flagship GPT
+     for tool-heavy coding, architecture, and release-critical validation.
+   - Gemini: Flash-Lite for cheap large-context scan/summarize; Flash for
+     default research synthesis; Pro for large-context architecture or high-risk
+     arbitration.
+   - Copilot: prefer Auto for simple and default work; ask the user before
+     choosing a paid/high-tier picker model for hard security, architecture, or
+     release gates.
+3. Keep raw tool output out of the main conversation context. Save stable
+   findings to `.specify/specs/{feature}/context-bundle.md`, then work from
+   summaries.
+4. Use provider prompt/context caching only for stable, non-secret prefixes:
+   Gofer scaffold, AGENTS/CLAUDE/Copilot instructions, constitution, repo map,
+   stage contracts, and validation rubric.
+5. Before continuing after large research, planning, implementation, or
+   validation bursts, checkpoint the durable artifacts and compact/clear/resume
+   context when the host supports it.
+6. Escalate model tier only when a cheaper pass is low-confidence,
+contradictory, security-sensitive, or blocking release quality.
 <!-- gofer:token-cost-policy:end -->
 
 ## Guardrails
@@ -115,7 +134,15 @@ If the workspace is still stale because the repo-local scripts are older than
 the currently installed plugin bundle, explain that clearly and keep the
 selected source bundle as the truth for the update.
 
-## Step 5: Write The Workspace Bootstrap Report
+## Step 5: Continue EAI App First-Run Setup When Needed
+
+If the user is building an EAI Platform app and Git, Node.js, npm, the EAI CLI,
+login, tenant access, or EAI app template readiness is still missing, run
+`/gofer:eai-first-run` next. Do not ask again when the workspace is healthy;
+only ask when an install, browser login, tenant selection, or `eai init` action
+is actually needed.
+
+## Step 6: Write The Workspace Bootstrap Report
 
 Write the artifact only to `.specify/logs/workspace-bootstrap-report.md`.
 

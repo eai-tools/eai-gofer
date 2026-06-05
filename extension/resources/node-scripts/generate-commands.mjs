@@ -56,6 +56,7 @@ const WORKSPACE_PREFLIGHT_EXCLUDED_COMMANDS = new Set([
   'gofer:personality',
   'gofer:check-workspace',
   'gofer:bootstrap-workspace',
+  'gofer:eai-first-run',
 ]);
 
 // ---------------------------------------------------------------------------

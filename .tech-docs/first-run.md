@@ -70,9 +70,21 @@ gemini extensions install https://github.com/eai-tools/eai-gofer --auto-update
 
 ## 2. Initialize The Repository
 
-In VS Code, run **Gofer: Initialize Repository**.
+For a first EAI Platform app, run:
 
-In a CLI host, run the bootstrap helper if it is available:
+```text
+/gofer:eai-first-run
+```
+
+That command checks Git, Node.js, npm, the scoped EAI registry, EAI CLI, login,
+tenant access, project folder, EAI app template readiness, and Gofer scaffold
+health before the first business scenario starts.
+
+In VS Code, **Gofer: Initialize Repository** remains available when you only
+need the repo-owned Gofer scaffold.
+
+In a CLI host, run the scaffold-only bootstrap helper when you are not creating
+an EAI Platform app:
 
 ```text
 /gofer:bootstrap-workspace
@@ -87,6 +99,10 @@ This repo is missing or stale for Gofer. Initialize/update it now?
 Choose yes. Gofer should create or refresh `.specify/`, host command files, and
 the model policy template.
 
+If `/0_business_scenario` is unknown, install or update the Gofer plugin for the
+host first, then run `/gofer:eai-first-run`. The first-run command is designed
+to work before `.specify/` exists.
+
 ## 3. Start The First Feature
 
 Use the host-specific command syntax:
@@ -98,6 +114,10 @@ Use the host-specific command syntax:
 | Codex          | `Use the 0_business_scenario skill: I want to add passwordless login for customers`                          |
 | GitHub Copilot | `#0_business_scenario I want to add passwordless login for customers`                                        |
 | Gemini CLI     | `/gofer:0_business_scenario I want to add passwordless login for customers`                                  |
+
+For first EAI Platform app setup, start with `/gofer:eai-first-run` instead of
+the stage command. It will hand you back to `/0_business_scenario` once the EAI
+CLI, login, tenant, app template, and Gofer scaffold are ready.
 
 Answer the questions Gofer asks about business value, users, constraints,
 success measures, risks, and known systems.

@@ -1,6 +1,6 @@
 {
   "name": "eai-gofer",
-  "version": "3.5.5",
+  "version": "3.5.6",
   "description": "Gofer core pipeline and helper commands for Claude, Codex, Copilot, Gemini, and VS Code.",
   "author": {
     "name": "EAI Tools",
@@ -31,6 +31,7 @@
     ],
     "websiteURL": "https://github.com/eai-tools/eai-gofer",
     "defaultPrompt": [
+      "Set up my first EAI Platform app with Gofer",
       "Run Gofer research for this feature",
       "Create a Gofer implementation plan",
       "Validate this branch with Gofer"
@@ -58,6 +59,7 @@
       "gofer:check-workspace",
       "gofer_constitution",
       "gofer:diagnose",
+      "gofer:eai-first-run",
       "gofer_hydrate",
       "gofer:personality",
       "gofer:plan",
@@ -68,7 +70,7 @@
       "gofer:zoom-out"
     ],
     "marketplacePath": "https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer",
-    "releaseAsset": "https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-3.5.5.zip",
-    "vsixAsset": "https://eai-tools.github.io/eai-gofer/releases/eai-gofer-3.5.5.vsix"
+    "releaseAsset": "https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-3.5.6.zip",
+    "vsixAsset": "https://eai-tools.github.io/eai-gofer/releases/eai-gofer-3.5.6.vsix"
   }
 }

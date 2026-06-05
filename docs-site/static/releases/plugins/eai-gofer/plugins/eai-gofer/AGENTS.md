@@ -100,6 +100,10 @@ stale scaffold.
 
 Create or update the repo-owned Gofer scaffold for the current workspace.
 
+### gofer:eai-first-run
+
+Prepare tools, login, tenant, template, and Gofer for a first EAI app.
+
 ### gofer:vocabulary
 
 Extract domain terminology into a canonical feature glossary.

@@ -10,17 +10,18 @@ updated: '{{iso_timestamp}}'
 
 ## Summary
 
-| Field                       | Status  | Evidence              |
-| --------------------------- | ------- | --------------------- | ---------------------------- | ---------------------------------------------------------------------------------- | --------------------------------------- |
-| EAI app delivery applies    | {{yes   | no}}                  | {{classification evidence}}  |
-| CLI installed               | {{ready | missing               | failed}}                     | {{command -v eai, eai --version}}                                                  |
-| CLI capabilities discovered | {{ready | blocked}}             | {{eai --describe timestamp}} |
-| Logged in                   | {{ready | login_required        | account_required}}           | {{eai whoami summary, no tokens}}                                                  |
-| Tenant ready                | {{ready | tenant_required       | operator_required}}          | {{tenant role category, no private payloads}}                                      |
-| Template ready              | {{ready | template_required     | deferred}}                   | {{template markers or eai verify result}}                                          |
-| App enrollment ready        | {{ready | confirmation_required | blocked                      | deferred}}                                                                         | {{vertical list/create/select summary}} |
-| Block catalog ready         | {{ready | blocked               | deferred}}                   | {{blocks list/readiness/describe summary}}                                         |
-| App stack policy            | {{ready | exception_required    | blocked}}                    | {{EAI Platform including app template first, Azure second, or approved exception}} |
+| Field                       | Status                                           | Evidence                                                                           |
+| --------------------------- | ------------------------------------------------ | ---------------------------------------------------------------------------------- |
+| EAI app delivery applies    | {{yes/no}}                                       | {{classification evidence}}                                                        |
+| First-run setup             | {{ready/missing/deferred}}                       | {{gofer:eai-first-run summary or not required}}                                    |
+| CLI installed               | {{ready/missing/failed}}                         | {{eai path, eai --version}}                                                        |
+| CLI capabilities discovered | {{ready/blocked}}                                | {{eai --describe timestamp}}                                                       |
+| Logged in                   | {{ready/login_required/account_required}}        | {{eai whoami summary, no tokens}}                                                  |
+| Tenant ready                | {{ready/tenant_required/operator_required}}      | {{tenant role category, no private payloads}}                                      |
+| Template ready              | {{ready/template_required/deferred}}             | {{template markers or eai verify result}}                                          |
+| App enrollment ready        | {{ready/confirmation_required/blocked/deferred}} | {{vertical list/create/select summary}}                                            |
+| Block catalog ready         | {{ready/blocked/deferred}}                       | {{blocks list/readiness/describe summary}}                                         |
+| App stack policy            | {{ready/exception_required/blocked}}             | {{EAI Platform including app template first, Azure second, or approved exception}} |
 
 ## Safe Public Sources Used
 
@@ -46,25 +47,25 @@ updated: '{{iso_timestamp}}'
 
 ## Template Markers
 
-| Marker                           | Present |
-| -------------------------------- | ------- | ---- |
-| `src/eai.config/object-types.ts` | {{yes   | no}} |
-| `src/eai.config/register.ts`     | {{yes   | no}} |
-| `.env.example`                   | {{yes   | no}} |
-| `.npmrc`                         | {{yes   | no}} |
-| `package.json`                   | {{yes   | no}} |
+| Marker                           | Present    |
+| -------------------------------- | ---------- |
+| `src/eai.config/object-types.ts` | {{yes/no}} |
+| `src/eai.config/register.ts`     | {{yes/no}} |
+| `.env.example`                   | {{yes/no}} |
+| `.npmrc`                         | {{yes/no}} |
+| `package.json`                   | {{yes/no}} |
 
 ## Decisions
 
-| Decision              | Value                | Rationale          |
-| --------------------- | -------------------- | ------------------ | --------------------- | ------------------- | ---------- | ---------- |
-| Initialize template   | {{yes                | no                 | deferred}}            | {{reason}}          |
-| App directory         | {{current_repo       | new_sibling        | existing_eai_app}}    | {{reason}}          |
-| Company tenant        | {{selected           | blocked            | deferred}}            | {{safe label only}} |
-| Child tenant boundary | {{none               | required           | deferred}}            | {{reason}}          |
-| Package profile       | {{external           | internal           | hybrid                | deferred}}          | {{reason}} |
-| App enrollment        | {{existing           | create_confirmed   | confirmation_required | blocked             | deferred}} | {{reason}} |
-| App stack             | {{eai_platform_azure | approved_exception | blocked}}             | {{reason}}          |
+| Decision              | Value                                                                | Rationale           |
+| --------------------- | -------------------------------------------------------------------- | ------------------- |
+| Initialize template   | {{yes/no/deferred}}                                                  | {{reason}}          |
+| App directory         | {{current_repo/new_sibling/existing_eai_app}}                        | {{reason}}          |
+| Company tenant        | {{selected/blocked/deferred}}                                        | {{safe label only}} |
+| Child tenant boundary | {{none/required/deferred}}                                           | {{reason}}          |
+| Package profile       | {{external/internal/hybrid/deferred}}                                | {{reason}}          |
+| App enrollment        | {{existing/create_confirmed/confirmation_required/blocked/deferred}} | {{reason}}          |
+| App stack             | {{eai_platform_azure/approved_exception/blocked}}                    | {{reason}}          |
 
 ## App Stack Policy
 

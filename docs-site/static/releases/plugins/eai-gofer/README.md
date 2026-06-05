@@ -1,6 +1,6 @@
 # Gofer Agent Plugin
 
-Version: 3.5.5
+Version: 3.5.6
 
 This package is the portable Claude, Gemini, Codex, and Copilot workflow layer for Gofer. It is released beside the VS Code extension, but it does not replace the VSIX UI, status views, updater, or language-server features.
 
@@ -22,12 +22,18 @@ That host publishes:
 
 - Latest VS Code extension: `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-latest.vsix`
 - Latest agent bundle zip: `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-latest.zip`
-- This release VS Code extension: `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-3.5.5.vsix`
-- This release agent bundle zip: `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-3.5.5.zip`
+- This release VS Code extension: `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-3.5.6.vsix`
+- This release agent bundle zip: `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-3.5.6.zip`
 - Claude marketplace manifest: `https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/claude-marketplace.json`
 - Codex manifest: `https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/codex-plugin.json`
 - Copilot marketplace manifest: `https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/copilot-marketplace.json`
 - Gemini extension manifest: `https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/gemini-extension.json`
+
+## First EAI Platform App
+
+Run `/gofer:eai-first-run` before `/0_business_scenario` when a new user, machine, repo, tenant, or EAI app template is not ready. The command is allowed to run before `.specify/` exists. It checks Git, Node.js, npm, EAI CLI, registry, login, tenant, `eai init <project-name> --skip-prompts --tenant <active-tenant-id>`, and Gofer scaffold readiness across macOS, Linux, Windows, and GitHub Codespaces.
+
+If `/0_business_scenario` is unknown in a new repo, install or update this plugin first, then run `/gofer:eai-first-run`.
 
 ## Core Pipeline
 
@@ -43,7 +49,7 @@ That host publishes:
 
 `/6_gofer_validate` is the terminal quality gate. It includes the final engineering review loop and replaces the old standalone review stage in the core pipeline.
 
-Optional helpers like `/0a_problem_validation`, `/7_gofer_save`, `/8_gofer_resume`, `/9_gofer_tests`, `/7a_stakeholder_comms`, `/gofer:check-workspace`, and `/gofer:bootstrap-workspace` remain available outside the core 0-6 stage sequence.
+Optional helpers like `/0a_problem_validation`, `/7_gofer_save`, `/8_gofer_resume`, `/9_gofer_tests`, `/7a_stakeholder_comms`, `/gofer:check-workspace`, `/gofer:bootstrap-workspace`, and `/gofer:eai-first-run` remain available outside the core 0-6 stage sequence.
 
 ## Distribution Modes
 

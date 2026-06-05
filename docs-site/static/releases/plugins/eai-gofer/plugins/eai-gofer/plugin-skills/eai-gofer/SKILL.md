@@ -5,9 +5,13 @@ description: "Run the public Gofer core pipeline and helper commands in Claude, 
 
 # Gofer
 
-Version: 3.5.5
+Version: 3.5.6
 
 Use this skill when the user asks to run, install, update, or understand Gofer without the VS Code extension UI.
+
+## First EAI Platform App
+
+If the user is starting a first EAI Platform app, run `/gofer:eai-first-run` before `/0_business_scenario`. It is allowed to run before `.specify/` exists and checks Git, Node.js, npm, the scoped EAI registry, EAI CLI, login, tenant, `eai init`, and Gofer scaffold readiness with user approval gates.
 
 ## Token And Cost Policy
 
@@ -36,6 +40,7 @@ Use this skill when the user asks to run, install, update, or understand Gofer w
 - `gofer:check-workspace` - Check whether this repo is initialized for Gofer and explain any missing or stale scaffold.
 - `gofer_constitution` - Create or update project constitution with coding principles and guidelines.
 - `gofer:diagnose` - Run a reproduce-minimize-instrument-fix loop for bugs and failing tests.
+- `gofer:eai-first-run` - Prepare a new machine or repo for the first EAI Gofer app build.
 - `gofer_hydrate` - Reverse-engineer specification from existing code (Hydration).
 - `gofer:personality` - Set the assistant personality for this Gofer session: friendly, pragmatic, or none (default).
 - `gofer:plan` - Toggle plan mode in the active CLI session for the next user prompt; non-pipeline control command.

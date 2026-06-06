@@ -33,6 +33,7 @@ describe('enterpriseai ui-first app-delivery guidance (root integration)', () =>
     expect(planCommand).toContain('ui-approval.md');
     expect(planCommand).toContain('service-fit-matrix.md');
     expect(planCommand).toContain('eai --describe');
+    expect(planCommand).toContain('eai resources schema');
     expect(planCommand).toContain('eai verify calls --format');
     expect(planCommand).toContain('public-readiness');
     expect(planCommand).toContain('block-porting');
@@ -46,12 +47,14 @@ describe('enterpriseai ui-first app-delivery guidance (root integration)', () =>
     expect(tasksCommand).toContain('coupling status');
     expect(tasksCommand).toContain('custom-block exceptions');
     expect(tasksCommand).toContain('external/internal/hybrid');
+    expect(tasksCommand).toContain('eai resources schema --format json');
 
     expect(implementCommand).toContain('ui-approval.md');
     expect(implementCommand).toContain('ui-review-log.md');
     expect(implementCommand).toContain('service-fit-matrix.md');
     expect(implementCommand).toContain('For non-app work, skip the preview');
     expect(implementCommand).toContain('public-readiness');
+    expect(implementCommand).toContain('eai resources schema --format json');
     expect(implementCommand).toContain('source-platform internals');
 
     expect(validateCommand).toContain('ui-review-log.md');

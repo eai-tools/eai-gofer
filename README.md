@@ -189,12 +189,21 @@ The command:
 - uses
   `npm config set @eai-tools:registry https://eai-tools.github.io/eai/registry/ --location=user`
   and `npm install -g @eai-tools/cli` when EAI CLI installation is approved
-- runs `eai --describe`, `eai whoami`, and `eai tenant list --format json`
-  before assuming CLI syntax or tenant readiness
+- runs `eai update --check`, `eai --describe`, `eai whoami`, and
+  `eai tenant list --format json` before assuming CLI syntax or tenant readiness
 - asks for the project display name, proposes a lowercase kebab-case CLI name,
   confirms the active tenant, then runs
-  `eai init <project-name> --skip-prompts --tenant <active-tenant-id>` when
-  approved
+  `eai init <project-name> --skip-prompts --company-tenant <active-tenant-id>`
+  when approved
+- treats `E001` from `eai verify`, `eai template check`, or
+  `eai doctor --check-updates` as "this repo is not yet an EAI app project",
+  then offers initialization instead of leaving the user at a dead end
+- runs `eai template check --format json` and
+  `eai gofer refresh --check --format json` when the repo already looks like an
+  EAI app so Gofer can see EAI template drift and Gofer scaffold drift early
+- uses `eai resources schema --format json` and
+  `eai workflow readiness --format json` later in the pipeline to ground block,
+  data, and workflow choices in actual platform capabilities
 - verifies `.specify/` and Gofer files created by `eai init`, runs
   `/gofer:bootstrap-workspace` if the repo scaffold is missing or stale, and
   writes a safe `.specify/logs/eai-first-run-report.md`

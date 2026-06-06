@@ -97,7 +97,7 @@ Why relevant: [Explanation]
 - **Public-readiness target**: [required / deferred / not applicable]
 - **Vertical Template constraints**: [approved blocks/patterns to reuse first]
 - **Block catalog discovery**: [`eai --describe`, `eai blocks list`, candidate
-  `eai blocks describe <id>` results, and `resource schema` evidence]
+  `eai blocks describe <id>` results, and `eai resources schema` evidence]
 - **Selected block IDs**: [stable IDs, required resources, bindings, override
   points, Storybook story IDs, theme override points, package lane, coupling
   status, and custom-block exceptions]
@@ -112,7 +112,8 @@ Why relevant: [Explanation]
 ### Service-Fit Discovery Inputs
 
 - **Capability discovery sources**: [`eai --describe`, `eai whoami`, `eai tenant
-  select`, `resource schema`, `eai verify calls --format json`, or equivalent]
+  select`, `eai resources schema`, `eai verify calls --format json`, or
+  equivalent]
 - **What must be decided after UI approval**: [service selection questions]
 - **Non-app note**: [write "Not applicable" when this feature is non-app work]
 

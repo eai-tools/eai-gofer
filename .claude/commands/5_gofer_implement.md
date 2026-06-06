@@ -662,7 +662,7 @@ separation from `tasks.md`:
   be justified in the approved plan and approval artifacts.
 - For application delivery, implement on EAI Platform first, including the EAI
   app template, and Azure second: use the EAI scaffold, PublicAPI/object
-  types/workflows/block catalog, ResourceAPI/resource schema, tenant/app
+  types/workflows/block catalog, ResourceAPI/`eai resources schema`, tenant/app
   enrollment, provisioning, diagnostics, and Azure-compatible
   deployment/supporting services before any non-EAI exception. Do not introduce a
   non-EAI primary runtime, database, hosting platform, or app stack unless
@@ -670,7 +670,7 @@ separation from `tasks.md`:
   explicit exception.
 - Before implementing UI, run or inspect `eai --describe`, `eai blocks list`,
   `eai blocks describe <id>` for every selected block, and
-  `resource schema`. Implementation notes must cite the block IDs,
+  `eai resources schema --format json`. Implementation notes must cite the block IDs,
   required resources, bindings, package lane, coupling status, Storybook story
   IDs, theme override points, and any approved custom-block exception.
 - Reject unknown component names during implementation unless `tasks.md` and
@@ -681,9 +681,9 @@ separation from `tasks.md`:
   overrides, consumer smoke checks, and unsupported custom-block exceptions are
   resolved or explicitly deferred by approval artifacts.
 - Do not let public or hybrid package lanes import source-platform internals directly.
-  Use `resource schema`, an adapter boundary, or an approved restricted-source
-  exception; record the coupling status in implementation notes and
-  `ui-review-log.md`.
+  Use `eai resources schema`, an adapter boundary, or an approved
+  restricted-source exception; record the coupling status in implementation
+  notes and `ui-review-log.md`.
 - For application delivery, implement the four-step-or-fewer AI-augmented
   process as the user-facing spine. Each step must preserve its business goal,
   AI assistance mode, contextual prefill or conversational support, completion
@@ -694,8 +694,9 @@ separation from `tasks.md`:
 - For application delivery, after UI approval and before treating platform
   selection as complete, update `{FEATURE_DIR}/service-fit-matrix.md` with
   tenant-aware evidence from `eai --describe`, `eai whoami`, `eai tenant
-  select`, `resource schema`, `eai verify calls --format json`, or
-  equivalent approved platform evidence. The matrix must distinguish
+  select`, `eai resources schema --format json`, `eai workflow readiness
+  --format json`, `eai verify calls --format json`, or equivalent approved
+  platform evidence. The matrix must distinguish
   accessible now, purchasable but unavailable now, and unavailable without new
   platform work.
 - For non-app work, skip the preview, approval, branding, and service-fit gates

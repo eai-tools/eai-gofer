@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: standard
   canonicalSource: .specify/commands/1_gofer_research.md
-  canonicalChecksum: 41223cb38fde64a1013f448c8261495d0d55ae25e98694a5c3a39f83b1289d36
+  canonicalChecksum: 7415b29c5874228193397c55497517c31a1f375639253008f2527091fbfa2de2
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -414,7 +414,7 @@ explicitly `enterpriseai`, generate:
      considered.
    - Block catalog evidence: run `eai --describe`, `eai blocks list`,
      `eai blocks describe <id>` for each candidate, and
-     `resource schema`; record stable block IDs, required resources,
+     `eai resources schema --format json`; record stable block IDs, required resources,
      data/action bindings, Storybook story IDs, theme override points, package
      lane, coupling status, and any custom-block exception that needs approval.
    - Block porting and source-platform decoupling evidence: identify whether
@@ -440,14 +440,20 @@ explicitly `enterpriseai`, generate:
      `https://eai-tools.github.io/eai/scenarios`, and
      `https://github.com/eai-tools/eai-app-template`.
    - Record whether `eai --describe` found the expected scaffolding,
-     authentication, tenant, vertical app, block catalog, diagnostics,
-     Gofer-refresh, and template-check commands.
+     authentication, tenant, vertical app, resource schema, workflow
+     readiness, block catalog, diagnostics, Gofer-refresh, and template-check
+     commands.
+   - Record whether `eai update --check` reports the installed CLI is current
+     or requires an upgrade before app delivery proceeds.
    - Record whether the app template markers exist:
      `src/eai.config/object-types.ts`, `src/eai.config/register.ts`,
      `.env.example`, `.npmrc`, and `package.json`.
    - Record whether the current repo is ready for `eai verify`, needs
      `eai init <app-name>`, or must avoid scaffolding because it is a non-empty
      non-EAI repo.
+   - Record whether `eai template check --format json` and `eai gofer refresh
+     --check --format json` succeed, report drift, or return `E001` because the
+     repo is not yet an EAI app project.
    - Record the app stack policy decision: EAI Platform including the EAI app
      template first, Azure second, or approved non-EAI exception.
    - Record the selected package profile and block-catalog readiness evidence

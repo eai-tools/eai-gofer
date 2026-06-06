@@ -110,7 +110,7 @@ Examples of foundational tasks (adjust based on your project):
 - [ ] T010 Lock external/internal/hybrid package profile and package lane from
       `ui-preview-brief.md`
 - [ ] T011 Run `eai --describe`, `eai blocks list`, `eai blocks describe <id>`,
-      and `resource schema`; record block IDs, resource bindings, coupling
+      and `eai resources schema`; record block IDs, resource bindings, coupling
       status, Storybook story IDs, theme override points, and custom-block
       exceptions
 - [ ] T012 Add block-porting, source-platform decoupling, and public-readiness

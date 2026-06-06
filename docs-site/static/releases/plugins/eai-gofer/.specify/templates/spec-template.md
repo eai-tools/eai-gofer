@@ -130,7 +130,7 @@ _Example of marking unclear requirements:_
   reused]
 - **Block catalog evidence**: [`eai blocks list`, `eai blocks describe <id>`,
   selected block IDs, and any custom-block exception]
-- **Resource bindings**: [`resource schema` fields/actions/events used by
+- **Resource bindings**: [`eai resources schema` fields/actions/events used by
   selected blocks]
 - **Storybook story IDs**: [story IDs for reusable/ported blocks, or approved
   exception]
@@ -147,7 +147,8 @@ _Example of marking unclear requirements:_
 - **Capability selection must happen**: after UI approval and before plan/tasks
   are considered complete
 - **Evidence sources**: [`eai --describe`, `eai whoami`, `eai tenant select`,
-  `resource schema`, `eai verify calls --format json`, or approved equivalent]
+  `eai resources schema`, `eai verify calls --format json`, or approved
+  equivalent]
 - **Decision states**: [accessible now | purchasable but unavailable now |
   unavailable without new platform work]
 - **Non-EAI stack handling**: [not used | integration target | migration

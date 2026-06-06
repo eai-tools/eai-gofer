@@ -416,7 +416,7 @@ That host publishes:
 
 ## First EAI Platform App
 
-Run \`/gofer:eai-first-run\` before \`/0_business_scenario\` when a new user, machine, repo, tenant, or EAI app template is not ready. The command is allowed to run before \`.specify/\` exists. It checks Git, Node.js, npm, EAI CLI, registry, login, tenant, \`eai init <project-name> --skip-prompts --tenant <active-tenant-id>\`, and Gofer scaffold readiness across macOS, Linux, Windows, and GitHub Codespaces.
+Run \`/gofer:eai-first-run\` before \`/0_business_scenario\` when a new user, machine, repo, tenant, or EAI app template is not ready. The command is allowed to run before \`.specify/\` exists. It checks Git, Node.js, npm, EAI CLI, registry, \`eai update --check\`, login, tenant, \`eai init <project-name> --skip-prompts --company-tenant <active-tenant-id>\`, and Gofer scaffold readiness across macOS, Linux, Windows, and GitHub Codespaces.
 
 If \`/0_business_scenario\` is unknown in a new repo, install or update this plugin first, then run \`/gofer:eai-first-run\`.
 

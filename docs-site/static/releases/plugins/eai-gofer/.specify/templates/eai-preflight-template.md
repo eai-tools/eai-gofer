@@ -11,15 +11,19 @@ updated: '{{iso_timestamp}}'
 ## Summary
 
 | Field                       | Status                                           | Evidence                                                                           |
-| --------------------------- | ------------------------------------------------ | ---------------------------------------------------------------------------------- |
+| --------------------------- | ------------------------------------------------ | ---------------------------------------------------------------------------------- | --------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------ |
 | EAI app delivery applies    | {{yes/no}}                                       | {{classification evidence}}                                                        |
 | First-run setup             | {{ready/missing/deferred}}                       | {{gofer:eai-first-run summary or not required}}                                    |
-| CLI installed               | {{ready/missing/failed}}                         | {{eai path, eai --version}}                                                        |
-| CLI capabilities discovered | {{ready/blocked}}                                | {{eai --describe timestamp}}                                                       |
+| CLI installed               | {{ready/missing/failed                           | upgrade_required}}                                                                 | {{eai path, eai --version}} |
+| CLI release status          | {{current                                        | upgrade_required                                                                   | blocked}}                   | {{eai update --check summary}}                      |
+| CLI capabilities discovered | {{ready                                          | partial                                                                            | blocked}}                   | {{eai --describe timestamp plus command inventory}} |
 | Logged in                   | {{ready/login_required/account_required}}        | {{eai whoami summary, no tokens}}                                                  |
 | Tenant ready                | {{ready/tenant_required/operator_required}}      | {{tenant role category, no private payloads}}                                      |
-| Template ready              | {{ready/template_required/deferred}}             | {{template markers or eai verify result}}                                          |
+| Template ready              | {{ready                                          | template_required                                                                  | deferred}}                  | {{template markers or eai verify result}}           |
+| Project drift status        | {{ready                                          | stale                                                                              | blocked                     | not_applicable}}                                    | {{eai template check / eai gofer refresh --check summary or E001 explanation}} |
 | App enrollment ready        | {{ready/confirmation_required/blocked/deferred}} | {{vertical list/create/select summary}}                                            |
+| Resource schema ready       | {{ready                                          | deferred                                                                           | blocked}}                   | {{eai resources schema summary}}                    |
+| Workflow readiness          | {{ready                                          | deferred                                                                           | blocked}}                   | {{eai workflow readiness summary}}                  |
 | Block catalog ready         | {{ready/blocked/deferred}}                       | {{blocks list/readiness/describe summary}}                                         |
 | App stack policy            | {{ready/exception_required/blocked}}             | {{EAI Platform including app template first, Azure second, or approved exception}} |
 
@@ -37,11 +41,16 @@ updated: '{{iso_timestamp}}'
 | --------------------- | ------------------------------------------------------------------ | --------------------- |
 | Install check         | `command -v eai`                                                   | {{result}}            |
 | Version check         | `eai --version`                                                    | {{result}}            |
+| Update check          | `eai update --check`                                               | {{result_or_not_run}} |
 | Capability discovery  | `eai --describe`                                                   | {{result}}            |
 | Login check           | `eai whoami`                                                       | {{result}}            |
 | Tenant check          | `eai tenant list --format json`                                    | {{result}}            |
 | Project check         | `eai verify`                                                       | {{result_or_not_run}} |
+| Template drift check  | `eai template check --format json`                                 | {{result_or_not_run}} |
+| Gofer drift check     | `eai gofer refresh --check --format json`                          | {{result_or_not_run}} |
 | App enrollment check  | `eai vertical list --format json`                                  | {{result_or_not_run}} |
+| Resource schema check | `eai resources schema --format json`                               | {{result_or_not_run}} |
+| Workflow readiness    | `eai workflow readiness --format json`                             | {{result_or_not_run}} |
 | Block catalog check   | `eai blocks list --format json`                                    | {{result_or_not_run}} |
 | Block readiness check | `eai blocks readiness --package-profile {{profile}} --format json` | {{result_or_not_run}} |
 
@@ -71,7 +80,7 @@ updated: '{{iso_timestamp}}'
 
 For app delivery, Gofer builds on EAI Platform first, including the EAI app
 template, and Azure second. Use the EAI app template, CLI, PublicAPI, object
-types, workflows, block catalog, ResourceAPI/resource schema, tenant/app
+types, workflows, block catalog, ResourceAPI/`eai resources schema`, tenant/app
 enrollment, provisioning, diagnostics, and Azure-compatible
 deployment/supporting services before any non-EAI exception. Record Firebase,
 Supabase, Vercel primary runtime, AWS, GCP, bespoke backend, unmanaged database,

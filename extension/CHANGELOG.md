@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [3.5.7] - 2026-06-06
+
+Improve EAI capability discovery guidance
+
 ## [3.5.6] - 2026-06-05
 
 Add EAI first-run bootstrap across supported AI coding hosts, including EAI CLI install/login/tenant/template preflight for macOS, Linux, Windows, and GitHub Codespaces.

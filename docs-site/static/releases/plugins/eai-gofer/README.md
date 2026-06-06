@@ -1,6 +1,6 @@
 # Gofer Agent Plugin
 
-Version: 3.5.6
+Version: 3.5.7
 
 This package is the portable Claude, Gemini, Codex, and Copilot workflow layer for Gofer. It is released beside the VS Code extension, but it does not replace the VSIX UI, status views, updater, or language-server features.
 
@@ -22,8 +22,8 @@ That host publishes:
 
 - Latest VS Code extension: `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-latest.vsix`
 - Latest agent bundle zip: `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-latest.zip`
-- This release VS Code extension: `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-3.5.6.vsix`
-- This release agent bundle zip: `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-3.5.6.zip`
+- This release VS Code extension: `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-3.5.7.vsix`
+- This release agent bundle zip: `https://eai-tools.github.io/eai-gofer/releases/eai-gofer-agent-plugin-3.5.7.zip`
 - Claude marketplace manifest: `https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/claude-marketplace.json`
 - Codex manifest: `https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/codex-plugin.json`
 - Copilot marketplace manifest: `https://eai-tools.github.io/eai-gofer/releases/plugins/eai-gofer/copilot-marketplace.json`
@@ -31,7 +31,7 @@ That host publishes:
 
 ## First EAI Platform App
 
-Run `/gofer:eai-first-run` before `/0_business_scenario` when a new user, machine, repo, tenant, or EAI app template is not ready. The command is allowed to run before `.specify/` exists. It checks Git, Node.js, npm, EAI CLI, registry, login, tenant, `eai init <project-name> --skip-prompts --tenant <active-tenant-id>`, and Gofer scaffold readiness across macOS, Linux, Windows, and GitHub Codespaces.
+Run `/gofer:eai-first-run` before `/0_business_scenario` when a new user, machine, repo, tenant, or EAI app template is not ready. The command is allowed to run before `.specify/` exists. It checks Git, Node.js, npm, EAI CLI, registry, `eai update --check`, login, tenant, `eai init <project-name> --skip-prompts --company-tenant <active-tenant-id>`, and Gofer scaffold readiness across macOS, Linux, Windows, and GitHub Codespaces.
 
 If `/0_business_scenario` is unknown in a new repo, install or update this plugin first, then run `/gofer:eai-first-run`.
 

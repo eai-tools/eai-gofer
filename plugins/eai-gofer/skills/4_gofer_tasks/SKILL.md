@@ -476,8 +476,9 @@ manifest artifacts exist before any deploy command runs.
      only the smallest runnable unblock tasks before normal build tasks:
      install/update `eai`, run `eai login`, run `eai tenant select`, confirm a
      tenant-admin membership with `eai tenant list --format json`, initialize
-     the EAI app template with `eai init <app-name>` when confirmed, and confirm
-     app enrollment with `eai vertical list/create/select`.
+     the EAI app template with `eai init <app-name> --skip-prompts
+     --company-tenant <tenant-id>` when confirmed, and confirm app enrollment
+     with `eai vertical list/create/select`.
    - Do not emit object-type, UI, implementation, deployment, or service-fit
      tasks until EAI readiness is `ready` or explicitly deferred by the user.
    - Never invent tenant IDs, app keys, app URLs, or platform capabilities.
@@ -488,7 +489,7 @@ manifest artifacts exist before any deploy command runs.
      approved integration/migration/exception tasks after the EAI Platform/Azure
      fit is recorded.
 1. **Vertical Template scaffolding -> `eai init`**
-   - Command: `eai init <app-name>`
+   - Command: `eai init <app-name> --skip-prompts --company-tenant <tenant-id>`
    - Produces the working directory, `manifest.yml`, and `config.json` expected
      by subsequent tasks.
 2. **Local validation -> `eai verify`**
@@ -520,9 +521,10 @@ precondition to downstream implementation tasks:
   exception task with rationale.
 - Add a block-catalog task before any UI implementation task. It MUST run
   `eai --describe`, `eai blocks list`, `eai blocks describe <id>` for selected
-  blocks, and `resource schema`; task notes must cite block IDs, resource
-  fields, data/action bindings, package lane, coupling status, Storybook story
-  IDs, theme override points, and approved custom-block exceptions.
+  blocks, and `eai resources schema --format json`; task notes must cite block
+  IDs, resource fields, data/action bindings, package lane, coupling status,
+  Storybook story IDs, theme override points, and approved custom-block
+  exceptions.
 - Add package-profile tasks that lock the external/internal/hybrid profile
   choice and the package lane before any public, shared, or app-local block
   implementation begins.
@@ -563,8 +565,9 @@ precondition to downstream implementation tasks:
   - block downstream work until `ui-approval.md` is approved
 - App-delivery service-fit tasks that update `service-fit-matrix.md` using
   tenant-aware evidence from `eai --describe`, `eai whoami`, `eai tenant
-  select`, `resource schema`, `eai verify calls --format json`, or
-  equivalent approved platform evidence.
+  select`, `eai resources schema --format json`, `eai workflow readiness
+  --format json`, `eai verify calls --format json`, or equivalent approved
+  platform evidence.
 - A scope-control task that checks whether any user-facing app process exceeds
   four steps and either combines/automates extra steps or records the approved
   exception and rationale.

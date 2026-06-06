@@ -130,9 +130,10 @@ with an unrelated non-EAI stack.
    - `/gofer:eai-first-run` is the cross-platform setup contract for macOS,
      Linux, Windows, GitHub Codespaces, Claude Code, Codex, Copilot, Gemini, and
      VS Code. It checks first, asks only when action is needed, installs the EAI
-     CLI when approved, confirms login and tenant, runs `eai init <project-name>
-     --skip-prompts --tenant <active-tenant-id>` when approved, verifies Gofer
-     files, and then returns here.
+     CLI when approved, checks `eai update --check`, confirms login and tenant,
+     runs `eai init <project-name> --skip-prompts --company-tenant
+     <active-tenant-id>` when approved, verifies Gofer files, and then returns
+     here.
    - If `/0_business_scenario` is unavailable in a new repo, the user should run
      the plugin-level `/gofer:eai-first-run` command after installing or
      updating the Gofer plugin.
@@ -151,12 +152,17 @@ with an unrelated non-EAI stack.
      delivery and give the user the exact commands above plus the EAI
      account/setup link. Continue only if the user explicitly chooses a non-EAI
      path.
+   - If `eai` is already installed, run `eai update --check`. If the CLI is
+     behind, record `upgrade_required` and ask before running `eai update`.
 4. **Discover CLI capabilities before assuming syntax**
    - Run `eai --describe` and prefer advertised subcommands/options over stale
      remembered syntax.
    - Use JSON only where the CLI advertises it. `eai tenant list --format json`
      is suitable for automation; `eai whoami` may be plain text on current
      versions.
+   - Record whether the installed CLI advertises `eai vertical`, `eai resources
+     schema`, `eai workflow readiness`, `eai template check`, `eai gofer
+     refresh --check`, and `eai blocks`.
 5. **Check account, login, and tenant readiness**
    - Run `eai whoami` to confirm login, active tenant, profile, token status,
      and PublicAPI context.
@@ -178,6 +184,10 @@ with an unrelated non-EAI stack.
    - Run `eai verify` only when the repo appears to be an EAI project. If
      `eai verify` reports `E001` or "Not in an EAI project", treat the repo as
      not initialized from the EAI app template.
+   - If the repo appears to be an EAI project and the commands are advertised,
+     run `eai template check --format json` and `eai gofer refresh --check
+     --format json` to identify EAI template or Gofer scaffold drift before
+     planning implementation.
    - For a new or empty app workspace, ask:
      **"This looks like an EAI app build, but this repo has not been initialized from the EAI app template. Initialize it with `eai init <app-name>` now?"**
    - If the repo is non-empty or already contains source files, do not scaffold
@@ -200,6 +210,10 @@ with an unrelated non-EAI stack.
    - Run or plan to run `eai blocks list --format json`, `eai blocks readiness
      --package-profile <external|internal|hybrid> --format json`, and `eai
      blocks describe <id> --format json` for candidate UI blocks.
+   - Run or plan to run `eai resources schema --format json` and
+     `eai workflow readiness --format json` so later stages can cite actual
+     platform resource fields, actions, events, and workflow availability
+     instead of guessing.
    - Use the EAI scenario library to map the business problem to the common
      four-step pattern: capture demand/context, prepare the decision, execute
      and collaborate, then resolve/explain/improve.
@@ -214,10 +228,12 @@ For EAI app delivery, create or update
 | Field | Required Content |
 | ----- | ---------------- |
 | CLI install | `eai` path, version, install/update action taken |
+| CLI release status | `eai update --check` result and whether upgrade is required |
 | CLI capability source | `eai --describe` timestamp and relevant commands found |
 | Login status | Logged in / needs login / account required, without tokens or secrets |
 | Tenant readiness | Active tenant status, role category, whether app enrollment is allowed |
 | Template readiness | Already EAI template / needs `eai init` / non-EAI repo decision |
+| Drift readiness | `eai template check` / `eai gofer refresh --check` result or `E001` explanation |
 | App enrollment | Existing app, new app to create, or blocked pending user confirmation |
 | Block catalog readiness | Available block commands and package profile compatibility evidence |
 | App stack policy | EAI Platform including app template first, Azure second, or approved exception |

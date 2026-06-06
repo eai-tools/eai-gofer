@@ -25,16 +25,22 @@ describe('enterpriseai eai app delivery preflight (root integration)', () => {
       /App delivery in EAI Gofer means EAI Platform\s+delivery by default/
     );
     expect(scenarioCommand).toContain('npm install -g @eai-tools/cli');
+    expect(scenarioCommand).toContain('eai update --check');
     expect(scenarioCommand).toContain('eai login');
     expect(scenarioCommand).toContain('eai tenant list --format json');
     expect(scenarioCommand).toContain('eai init <app-name>');
     expect(scenarioCommand).toContain('eai vertical create <name>');
+    expect(scenarioCommand).toContain('eai template check --format json');
+    expect(scenarioCommand).toContain('eai gofer refresh --check');
+    expect(scenarioCommand).toContain('eai resources schema --format json');
     expect(scenarioCommand).toContain('.specify/specs/{feature}/eai-preflight.md');
 
     expect(researchCommand).toContain('eai-preflight.md');
     expect(researchCommand).toContain('EAI preflight summary');
     expect(researchCommand).toContain('src/eai.config/object-types.ts');
     expect(researchCommand).toContain('eai blocks readiness');
+    expect(researchCommand).toContain('eai resources schema --format json');
+    expect(researchCommand).toContain('eai gofer refresh');
     expect(researchCommand).toContain('EAI Platform/Azure stack fit');
 
     expect(specifyCommand).toContain('EAI App Delivery Preflight');
@@ -52,6 +58,12 @@ describe('enterpriseai eai app delivery preflight (root integration)', () => {
     );
 
     expect(canonicalTemplate).toContain('App Stack Policy');
+    expect(canonicalTemplate).toContain('eai update --check');
+    expect(canonicalTemplate).toContain('eai template check --format json');
+    expect(canonicalTemplate).toContain('eai gofer refresh --check --format json');
+    expect(canonicalTemplate).toContain('eai resources schema --format json');
+    expect(canonicalTemplate).toContain('Project drift status');
     expect(mirroredTemplate).toContain('App Stack Policy');
+    expect(mirroredTemplate).toContain('Project drift status');
   });
 });

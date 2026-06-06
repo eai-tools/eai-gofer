@@ -137,7 +137,7 @@ work, state why this gate is not applicable.
 | Preview scope     | `ui-preview-brief.md`                          | [how the MVP preview scope is defined]                                                                   |
 | Platform describe | `eai --describe`                               | [CLI version, tenant/platform capability notes, package lane]                                            |
 | Block catalog     | `eai blocks list` / `eai blocks describe <id>` | [selected IDs, Storybook story IDs, theme override points, coupling status, and custom-block exceptions] |
-| Resource bindings | `resource schema`                              | [object fields/actions/events feeding selected blocks]                                                   |
+| Resource bindings | `eai resources schema`                         | [object fields/actions/events feeding selected blocks]                                                   |
 | Preview evidence  | `ui-review-log.md`                             | [screenshot, local render, or Playwright-style proof]                                                    |
 | UI approval       | `ui-approval.md`                               | [who approves and when]                                                                                  |
 | Service fit       | `service-fit-matrix.md`                        | [how accessible vs purchasable vs unavailable is proved]                                                 |
@@ -149,7 +149,7 @@ work, state why this gate is not applicable.
 | Package profile            | [external / internal / hybrid]                               | [where tasks will enforce profile choice] |
 | Package lane               | [public package / internal app / hybrid adapter / app-local] | [package/export path]                     |
 | Block porting              | [reuse / port / custom-block exception]                      | [block IDs and story IDs]                 |
-| source-platform decoupling | [coupled / decoupled / adapter boundary]                     | [resource schema or adapter path]         |
+| source-platform decoupling | [coupled / decoupled / adapter boundary]                     | [eai resources schema or adapter path]    |
 | Public-readiness           | [required / deferred / not applicable]                       | [consumer-facing checks]                  |
 
 ## Complexity Tracking

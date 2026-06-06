@@ -654,7 +654,7 @@ When the workflow profile is `enterpriseai`, `plan.md` MUST capture:
    - keep the first preview constrained to Vertical Template blocks unless an
      approved extension is recorded
    - cite `eai blocks describe <id>` evidence for every selected block ID,
-     plus the ResourceAPI/Object Type fields from `resource schema` that
+     plus the ResourceAPI/Object Type fields from `eai resources schema` that
      feed each block
    - record override points for theme tokens, `presentationConfig`, copy,
      data/action bindings, and client extension blocks
@@ -670,10 +670,11 @@ When the workflow profile is `enterpriseai`, `plan.md` MUST capture:
    - purchasable but unavailable now
    - unavailable without new platform work
    The plan must source this evidence from `eai --describe`, `eai whoami`,
-   `eai tenant select`, `resource schema`, `eai verify calls --format
-   json`, `eai workflow readiness <workflow-key>`, `eai workflow status
-   <workflow-key>`, `eai workflow request <workflow-key>`, `eai provision
-   entra --rotate-secret`, or documented equivalent public platform evidence.
+   `eai tenant select`, `eai resources schema --format json`,
+   `eai verify calls --format json`, `eai workflow readiness [workflow-key]
+   --format json`, `eai workflow status <workflow-key>`, `eai workflow request
+   <workflow-key>`, `eai provision entra --rotate-secret`, or documented
+   equivalent public platform evidence.
 10. **Reuse-before-create decision log** — reference `{FEATURE_DIR}/reuse-scan.md`
    for every new or extended EnterpriseAI object type, API/event, workflow, or
    module.

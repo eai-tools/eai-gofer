@@ -27,10 +27,17 @@ describe('enterpriseai first-run bootstrap command', () => {
       'npm config set @eai-tools:registry https://eai-tools.github.io/eai/registry/ --location=user'
     );
     expect(command).toContain('npm install -g @eai-tools/cli');
+    expect(command).toContain('eai update --check');
     expect(command).toContain('eai --describe');
     expect(command).toContain('eai whoami');
     expect(command).toContain('eai tenant list --format json');
-    expect(command).toContain('eai init <project-name> --skip-prompts --tenant <active-tenant-id>');
+    expect(command).toContain(
+      'eai init <project-name> --skip-prompts --company-tenant <active-tenant-id>'
+    );
+    expect(command).toContain('eai template check --format json');
+    expect(command).toContain('eai gofer refresh --check --format json');
+    expect(command).toContain('eai doctor --check-updates');
+    expect(command).toContain('E001');
     expect(command).toContain('.specify/logs/eai-first-run-report.md');
     expect(command).toContain('/0_business_scenario <what you want to build>');
   });

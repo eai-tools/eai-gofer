@@ -247,7 +247,7 @@ If ui-preview-brief.md exists, use it to:
   ported block; if no story exists, make story creation or an approved exception
   part of the requirements
 - Require source-platform-coupled blocks to define the decoupling boundary through
-  `resource schema`, an adapter, or an explicit restricted-source exception
+  `eai resources schema`, an adapter, or an explicit restricted-source exception
 - Carry forward branding/logo requirements as explicit scope, not as implied
   polish
 - Require preview self-review evidence such as screenshot, local render proof,

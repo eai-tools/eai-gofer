@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: standard
   canonicalSource: .specify/commands/gofer_eai_first_run.md
-  canonicalChecksum: 5a3fa1d2067c19e129f226ecefd4473a481b491ebcfa4ee04d2e43ea1a8883df
+  canonicalChecksum: 90358a4dbc388b3b3d5286cc55ef74c1be5e1371a188a4242959c87a0ec34974
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -113,6 +113,15 @@ If the scoped registry already equals
 `https://eai-tools.github.io/eai/registry/`, do not rewrite it. If it points
 somewhere else, show the current value and ask before changing it.
 
+If `eai` is already installed, run:
+
+```bash
+eai update --check
+```
+
+If an update is available, explain the currently installed version versus the
+latest available version and ask before running `eai update`.
+
 If install fails, stop EAI app delivery and give the user the exact failed
 command, the public setup link, and the account requirement. Continue only if
 the user explicitly chooses a non-EAI path.
@@ -128,6 +137,17 @@ eai --describe
 Prefer commands and options advertised by the installed CLI over remembered
 syntax. Use JSON only where the CLI advertises it. Record a safe summary in the
 first-run report.
+
+Specifically note whether the installed CLI advertises the commands needed for:
+
+- app scaffolding via `eai init`
+- tenant selection via `eai tenant select`
+- app enrollment via `eai vertical`
+- resource schema discovery via `eai resources schema`
+- workflow readiness via `eai workflow readiness`
+- project drift checks via `eai template check`
+- Gofer drift checks via `eai gofer refresh --check`
+- UI block discovery via `eai blocks`
 
 ## Step 5: Login, Tenant, And Account Readiness
 
@@ -183,13 +203,22 @@ Detect existing template markers before scaffolding:
 - `package.json`
 
 If the repo already looks like an EAI app, run `eai verify` and continue with
-the existing project.
+the existing project. If the installed CLI advertises them, also run:
+
+```bash
+eai template check --format json
+eai gofer refresh --check --format json
+```
+
+If `eai verify`, `eai template check`, or `eai doctor --check-updates`
+returns `E001` or reports "Not in an EAI project", treat the repo as not yet
+initialized from the EAI app template and explain that clearly.
 
 If this is an empty or approved target folder, ask for final confirmation and
 run the advertised equivalent of:
 
 ```bash
-eai init <project-name> --skip-prompts --tenant <active-tenant-id>
+eai init <project-name> --skip-prompts --company-tenant <active-tenant-id>
 ```
 
 If the CLI requires additional safe answers, gather them first. If the repo is
@@ -265,10 +294,14 @@ Each section should include:
 - Host, OS, shell, and workspace root
 - Git, Node.js, npm, and EAI CLI versions
 - EAI registry status
+- EAI CLI release status from `eai update --check`
 - EAI CLI capability source (`eai --describe` timestamp)
+- EAI capability inventory for init, tenant, vertical, resources, workflow,
+  template, Gofer-refresh, and blocks commands
 - Login status without tokens
 - Tenant readiness without private payloads
 - Template readiness
+- Template/Gofer drift status and any `E001` explanation
 - Gofer scaffold readiness
 - Project path
 - Next action

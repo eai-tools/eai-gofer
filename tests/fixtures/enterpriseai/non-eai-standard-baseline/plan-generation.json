@@ -20,7 +20,7 @@
       },
       "requiredReferenceIndicators": {
         "eaiCli": true,
-        "verticalTemplate": true,
+        "eaiAppTemplate": true,
         "deploymentRepo": true
       },
       "pinnedEaiCli": {
@@ -53,7 +53,7 @@
         },
         "requiredReferenceIndicators": {
           "eaiCli": true,
-          "verticalTemplate": true,
+          "eaiAppTemplate": true,
           "deploymentRepo": true
         },
         "pinnedEaiCli": {

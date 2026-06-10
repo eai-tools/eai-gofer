@@ -3,7 +3,7 @@ import * as path from 'path';
 import { validateEventPayload } from '../contracts/EventPayloadSchemas';
 import { validateInternalApiPayload } from '../contracts/InternalApiSchemas';
 
-export type EnterpriseAiReferenceType = 'eai' | 'vertical-template' | 'deployment-repo';
+export type EnterpriseAiReferenceType = 'eai' | 'eai-app-template' | 'deployment-repo';
 export type EnterpriseAiReferenceSource = 'external' | 'local-fallback';
 
 export interface ResolveEnterpriseAiReferencesRequest {
@@ -71,7 +71,7 @@ const LEGACY_EAI_REFERENCE_DOCS_UNDERSCORE = ['eai', 'cli', 'docs'].join('_');
 
 const REFERENCE_FILE_NAMES: Readonly<Record<EnterpriseAiReferenceType, string>> = {
   eai: 'eai.md',
-  'vertical-template': 'vertical-template.md',
+  'eai-app-template': 'eai-app-template.md',
   'deployment-repo': 'deployment-repo.md',
 };
 
@@ -82,9 +82,9 @@ const REFERENCE_TYPE_ALIASES: Readonly<Record<string, EnterpriseAiReferenceType>
   [LEGACY_EAI_REFERENCE_NAME]: 'eai',
   [LEGACY_EAI_REFERENCE_DOCS]: 'eai',
   [LEGACY_EAI_REFERENCE_DOCS_UNDERSCORE]: 'eai',
-  vertical_template_docs: 'vertical-template',
-  'vertical-template': 'vertical-template',
-  'vertical-template-docs': 'vertical-template',
+  eai_app_template_docs: 'eai-app-template',
+  'eai-app-template': 'eai-app-template',
+  'eai-app-template-docs': 'eai-app-template',
   deployment_repo_docs: 'deployment-repo',
   'deployment-repo': 'deployment-repo',
   'deployment-repo-docs': 'deployment-repo',

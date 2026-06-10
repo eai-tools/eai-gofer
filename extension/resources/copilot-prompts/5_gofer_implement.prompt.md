@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: standard
   canonicalSource: .specify/commands/5_gofer_implement.md
-  canonicalChecksum: a63fe87e175264a4b7a323f1ce2ca4544c7982cf475253fa101b3399ecd3b18d
+  canonicalChecksum: dbc5ea4e0eeeb0b225c4021a6ba42e48d185a341056a2ee7c2d7c35cb719696f
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -668,7 +668,7 @@ separation from `tasks.md`:
   `{FEATURE_DIR}/ui-approval.md` is missing or not approved. App-delivery runs
   MUST NOT continue as though the UI is settled when approval has not been
   recorded.
-- For application delivery, use the Vertical Template already installed in the
+- For application delivery, use the EAI App Template already installed in the
   workspace as the default UI lego-block source. Any create-new UI concept must
   be justified in the approved plan and approval artifacts.
 - For application delivery, implement on EAI Platform first, including the EAI

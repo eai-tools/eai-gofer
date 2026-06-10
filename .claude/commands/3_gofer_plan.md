@@ -680,7 +680,7 @@ When the workflow profile is `enterpriseai`, `plan.md` MUST capture:
 8. **UI-first approval gate handoff** — for app delivery, reference
    `{FEATURE_DIR}/ui-preview-brief.md` and require the planning stage to lock
    the preview loop before plan/tasks are considered complete. The plan MUST:
-   - keep the first preview constrained to Vertical Template blocks unless an
+   - keep the first preview constrained to EAI App Template blocks unless an
      approved extension is recorded
    - cite `eai blocks describe <id>` evidence for every selected block ID,
      plus the ResourceAPI/Object Type fields from `eai resources schema` that
@@ -711,7 +711,7 @@ When the workflow profile is `enterpriseai`, `plan.md` MUST capture:
    with stable finding IDs, decision exceptions, owner, expiry, and review
    cadence so validation can track recurring issues.
 12. **Public/private knowledge split** — identify which implementation facts
-    are safe for public docs, Gofer guidance, EAI CLI help, or Vertical Template
+    are safe for public docs, Gofer guidance, EAI CLI help, or EAI App Template
     comments, and which facts are restricted-source. Plans must express blocked
     states as public-safe actions (`operator_required`, `upgrade_required`, or
     documented support URL) rather than exposing private service topology.

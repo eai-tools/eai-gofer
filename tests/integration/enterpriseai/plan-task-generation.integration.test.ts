@@ -81,7 +81,7 @@ describe('enterpriseai plan/task generation (root integration)', () => {
       specPath: '.specify/specs/029-enterpriseai-student-vertical-builder/spec.md',
       resolvedReferences: {
         eaiCli: '.specify/references/platform/eai.md',
-        verticalTemplate: '.specify/references/platform/vertical-template.md',
+        eaiAppTemplate: '.specify/references/platform/eai-app-template.md',
         deploymentRepo: '.specify/references/platform/deployment-repo.md',
       },
       installedEaiCliVersion: '2.7.4',
@@ -109,7 +109,7 @@ describe('enterpriseai plan/task generation (root integration)', () => {
     expect(result.response.metadata.deploymentConventions.included).toBe(true);
     expect(result.response.metadata.requiredReferenceIndicators).toEqual({
       eaiCli: true,
-      verticalTemplate: true,
+      eaiAppTemplate: true,
       deploymentRepo: true,
     });
 

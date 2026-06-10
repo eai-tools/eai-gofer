@@ -611,7 +611,7 @@ remove existing non-app functionality or fork Gofer into unrelated products.
 
 | Mode | Stage Behavior |
 | ---- | -------------- |
-| Application delivery | Shared stages gain EAI Platform/Azure stack enforcement, a UI-first interview, a Vertical Template constrained preview loop, preview self-review, optional branding intake, an explicit UI approval gate, and a post-approval EnterpriseAI service-fit gate before plan/tasks are finalized |
+| Application delivery | Shared stages gain EAI Platform/Azure stack enforcement, a UI-first interview, an EAI App Template constrained preview loop, preview self-review, optional branding intake, an explicit UI approval gate, and a post-approval EnterpriseAI service-fit gate before plan/tasks are finalized |
 | Non-app work | Shared stages preserve the current research, documentation, exploration, bug-fix, migration, audit, and other non-app workflows without app-only preview, branding, or service-fit requirements |
 
 ---
@@ -640,7 +640,7 @@ For app delivery, the default early process is:
 1. **Interview and visual brief** — understand the MVP outcome, must-have
    screens, target users, workflow goals, and whether client branding or logos
    must be applied.
-2. **Constrained MVP preview** — generate the first preview from the Vertical
+2. **Constrained MVP preview** — generate the first preview from the EAI App Template
    Template blocks already installed in the project by `eai`, rather than
    from an unconstrained custom UI.
 3. **Preview self-review and approval** — use screenshot or Playwright-style
@@ -662,7 +662,7 @@ and coupling path before research starts:
 | Package lane | Public reusable block package, internal vertical app, hybrid adapter, or app-local implementation |
 | Coupling status | source-platform-coupled, source-platform-decoupled, or hybrid adapter boundary |
 | Public-readiness target | Whether the first delivery must be ready for external package consumers |
-| Block porting need | Reuse existing block, port a Vertical Template block, or request a custom-block exception |
+| Block porting need | Reuse existing block, port an EAI App Template block, or request a custom-block exception |
 
 External and hybrid profile choices require explicit public-readiness,
 block-porting, source-platform decoupling, Storybook, and theme-override evidence in the
@@ -1110,7 +1110,7 @@ stages to create these artifacts without re-interviewing the user:
 | Artifact | Required Content |
 | -------- | ---------------- |
 | `journeys/base-journey.md` | Application classification, four-step-or-fewer AI-augmented customer journey, step goals, AI assistance, context used, controls, completion criteria |
-| `ui-preview-brief.md` | App-delivery-only preview brief: target screens, Vertical Template component constraints, branding inputs, preview validation expectations |
+| `ui-preview-brief.md` | App-delivery-only preview brief: target screens, EAI App Template component constraints, branding inputs, preview validation expectations |
 | `ui-review-log.md` | App-delivery-only iteration log: preview evidence, requested changes, accepted changes, unresolved issues |
 | `ui-approval.md` | App-delivery-only approval gate: approved preview, approved branding, approved component exceptions, approver and timestamp |
 | `service-fit-matrix.md` | App-delivery-only service selection evidence: desired platform capability, evidence source, accessible now vs purchasable vs unavailable, selected direction |

@@ -44,7 +44,7 @@ function validateResolvedReferences(value: unknown): string[] {
     return ['resolvedReferences must be an object.'];
   }
 
-  const requiredFields = ['eaiCli', 'verticalTemplate', 'deploymentRepo'] as const;
+  const requiredFields = ['eaiCli', 'eaiAppTemplate', 'deploymentRepo'] as const;
   const errors: string[] = [];
 
   for (const field of requiredFields) {

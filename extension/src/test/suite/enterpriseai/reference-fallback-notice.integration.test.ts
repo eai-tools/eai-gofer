@@ -19,8 +19,8 @@ suite('enterpriseai reference fallback notice (extension integration)', () => {
     await fs.mkdir(fallbackDir, { recursive: true });
     await fs.writeFile(path.join(fallbackDir, 'eai.md'), '# eai cli fallback\n', 'utf8');
     await fs.writeFile(
-      path.join(fallbackDir, 'vertical-template.md'),
-      '# vertical fallback\n',
+      path.join(fallbackDir, 'eai-app-template.md'),
+      '# eai app template fallback\n',
       'utf8'
     );
     await fs.writeFile(
@@ -51,7 +51,7 @@ suite('enterpriseai reference fallback notice (extension integration)', () => {
     const result = await resolveEnterpriseAiReferences(
       {
         runId: 'run_029_0001',
-        referenceTypes: ['eai_docs', 'vertical_template_docs'],
+        referenceTypes: ['eai_docs', 'eai_app_template_docs'],
         externalReferencesEnabled: false,
         fallbackPath: '.specify/references/platform/',
       },
@@ -72,7 +72,7 @@ suite('enterpriseai reference fallback notice (extension integration)', () => {
     assert.strictEqual(result.response.userNoticeRequired, true);
     assert.deepStrictEqual(result.response.unavailableExternalReferences, [
       'eai',
-      'vertical-template',
+      'eai-app-template',
     ]);
     assert.strictEqual(
       result.response.resolvedReferences.every(

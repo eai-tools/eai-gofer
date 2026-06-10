@@ -17,12 +17,12 @@ describe('enterpriseai ui-first app-delivery guidance (root integration)', () =>
 
     expect(scenarioCommand).toContain('Shared Numbered Stage Contract');
     expect(scenarioCommand).toContain('UI-First App-Delivery Default');
-    expect(scenarioCommand).toContain('Vertical Template');
+    expect(scenarioCommand).toContain('EAI App Template');
     expect(scenarioCommand).toContain('service-fit gate');
     expect(scenarioCommand).toContain('Non-app work');
 
     expect(researchCommand).toContain('ui-preview-brief.md');
-    expect(researchCommand).toContain('Vertical Template constraint map');
+    expect(researchCommand).toContain('EAI App Template constraint map');
     expect(researchCommand).toContain('Preview validation plan');
     expect(researchCommand).toContain('external/internal/hybrid profile');
     expect(researchCommand).toContain('source-platform decoupling');
@@ -42,7 +42,7 @@ describe('enterpriseai ui-first app-delivery guidance (root integration)', () =>
     expect(tasksCommand).toContain('App-Delivery Preconditions Inside Shared Stages');
     expect(tasksCommand).toContain('ui-approval.md');
     expect(tasksCommand).toContain('service-fit-matrix.md');
-    expect(tasksCommand).toContain('Vertical Template');
+    expect(tasksCommand).toContain('EAI App Template');
     expect(tasksCommand).toContain('package lane');
     expect(tasksCommand).toContain('coupling status');
     expect(tasksCommand).toContain('custom-block exceptions');

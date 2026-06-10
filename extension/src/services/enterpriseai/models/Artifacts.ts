@@ -27,7 +27,7 @@ export const ARTIFACT_GENERATION_STATUSES = [
 export type ArtifactGenerationStatus = (typeof ARTIFACT_GENERATION_STATUSES)[number];
 
 export const TASK_TYPES = [
-  'vertical_template_scaffold',
+  'eai_app_template_scaffold',
   'eai_deploy',
   'deployment_convention',
   'validation',
@@ -254,12 +254,12 @@ export function validateEnterpriseAiTaskOrdering(tasks: readonly TaskItem[]): Va
   const errors: string[] = [];
 
   const scaffoldTasks = tasks.filter(
-    (task) => normalizeTaskType(task.taskType) === 'vertical_template_scaffold'
+    (task) => normalizeTaskType(task.taskType) === 'eai_app_template_scaffold'
   );
   const deployTasks = tasks.filter((task) => normalizeTaskType(task.taskType) === 'eai_deploy');
 
   if (scaffoldTasks.length < 1) {
-    errors.push('At least one vertical_template_scaffold task is required for enterpriseai runs.');
+    errors.push('At least one eai_app_template_scaffold task is required for enterpriseai runs.');
   }
 
   if (deployTasks.length < 1) {

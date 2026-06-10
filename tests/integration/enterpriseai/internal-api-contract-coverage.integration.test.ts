@@ -60,7 +60,7 @@ function createInternalApiPayloadFixtures(): Record<
     },
     'IAP-004': {
       runId: 'run_001',
-      referenceTypes: ['eai_docs', 'vertical_template_docs', 'deployment_repo_docs'],
+      referenceTypes: ['eai_docs', 'eai_app_template_docs', 'deployment_repo_docs'],
       externalReferencesEnabled: false,
       fallbackPath: '.specify/references/platform/',
     },
@@ -79,7 +79,7 @@ function createInternalApiPayloadFixtures(): Record<
       specPath: '.specify/specs/029-enterpriseai-student-vertical-builder/spec.md',
       resolvedReferences: {
         eaiCli: '.specify/references/platform/eai.md',
-        verticalTemplate: '.specify/references/platform/vertical-template.md',
+        eaiAppTemplate: '.specify/references/platform/eai-app-template.md',
         deploymentRepo: '.specify/references/platform/deployment-repo.md',
       },
       installedEaiCliVersion: '2.7.4',
@@ -155,8 +155,8 @@ describe('enterpriseai internal API + external posture contract coverage (root i
       fs.mkdirSync(featureDir, { recursive: true });
       fs.writeFileSync(path.join(fallbackDir, 'eai.md'), '# eai cli fallback\n', 'utf8');
       fs.writeFileSync(
-        path.join(fallbackDir, 'vertical-template.md'),
-        '# vertical fallback\n',
+        path.join(fallbackDir, 'eai-app-template.md'),
+        '# eai app template fallback\n',
         'utf8'
       );
       fs.writeFileSync(
@@ -223,7 +223,7 @@ describe('enterpriseai internal API + external posture contract coverage (root i
       const iap004 = await resolveEnterpriseAiReferences(
         {
           runId: 'run_coverage_001',
-          referenceTypes: ['eai_docs', 'vertical_template_docs', 'deployment_repo_docs'],
+          referenceTypes: ['eai_docs', 'eai_app_template_docs', 'deployment_repo_docs'],
           externalReferencesEnabled: false,
           fallbackPath: '.specify/references/platform/',
         },
@@ -256,7 +256,7 @@ describe('enterpriseai internal API + external posture contract coverage (root i
         specPath: '.specify/specs/029-enterpriseai-student-vertical-builder/spec.md',
         resolvedReferences: {
           eaiCli: '.specify/references/platform/eai.md',
-          verticalTemplate: '.specify/references/platform/vertical-template.md',
+          eaiAppTemplate: '.specify/references/platform/eai-app-template.md',
           deploymentRepo: '.specify/references/platform/deployment-repo.md',
         },
         installedEaiCliVersion: '2.7.4',

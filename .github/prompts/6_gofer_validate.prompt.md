@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: standard
   canonicalSource: .specify/commands/6_gofer_validate.md
-  canonicalChecksum: bcfbfe2c1e2838f590c116f59a197224d7ba3b05c62351a43a3639dab0175fb9
+  canonicalChecksum: 7b873eb84544f7c2ea402a5d3892e52631dc411862d39b823f563601fe8251dd
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -1926,7 +1926,7 @@ For application delivery, validation MUST also check
   with screenshot, local render proof, Playwright-style evidence, or an
   explicit reasoned exception.
 - `{FEATURE_DIR}/ui-approval.md` records the approved preview, approved
-  branding/logo decisions, any approved Vertical Template exceptions, the
+  branding/logo decisions, any approved EAI App Template exceptions, the
   approver, and approval timestamp.
 - `{FEATURE_DIR}/service-fit-matrix.md` records each desired platform
   capability, the evidence source used to evaluate it, and whether it is
@@ -1942,7 +1942,7 @@ For application delivery, validation MUST also check
   status, Storybook story IDs, theme override points, public-readiness target,
   and custom-block exceptions are present in the preview/approval/service-fit
   artifacts and match the delivered implementation.
-- Validation confirms that app-delivery runs used Vertical Template blocks by
+- Validation confirms that app-delivery runs used EAI App Template blocks by
   default and that any create-new UI concept was explicitly approved rather
   than silently introduced.
 - Validation confirms that block-porting tasks produced the expected package

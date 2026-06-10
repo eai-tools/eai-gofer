@@ -74,7 +74,7 @@ suite('enterpriseai artifact validation contracts', () => {
       taskId: 'task_scaffold',
       runId: 'run_001',
       artifactId: 'artifact_tasks',
-      taskType: 'vertical_template_scaffold',
+      taskType: 'eai_app_template_scaffold',
       orderIndex: 0,
       title: 'Scaffold app template',
       validationStatus: 'checked',

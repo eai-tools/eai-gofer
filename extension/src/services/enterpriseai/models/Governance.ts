@@ -1,6 +1,6 @@
 export const EAI_REFERENCE_TYPES = [
   'eai_docs',
-  'vertical_template_docs',
+  'eai_app_template_docs',
   'deployment_repo_docs',
 ] as const;
 

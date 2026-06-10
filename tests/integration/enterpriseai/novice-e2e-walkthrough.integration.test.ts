@@ -50,8 +50,8 @@ function seedFallbackReferences(workspaceRoot: string): void {
   fs.mkdirSync(referencesDirPath, { recursive: true });
   fs.writeFileSync(path.join(referencesDirPath, 'eai.md'), '# eai reference\n', 'utf8');
   fs.writeFileSync(
-    path.join(referencesDirPath, 'vertical-template.md'),
-    '# vertical-template reference\n',
+    path.join(referencesDirPath, 'eai-app-template.md'),
+    '# eai-app-template reference\n',
     'utf8'
   );
   fs.writeFileSync(
@@ -181,7 +181,7 @@ describe('enterpriseai novice e2e walkthrough (root integration)', () => {
       const referencesResult = await resolveEnterpriseAiReferences(
         {
           runId: 'run_029_novice_flow',
-          referenceTypes: ['eai', 'vertical-template', 'deployment-repo'],
+          referenceTypes: ['eai', 'eai-app-template', 'deployment-repo'],
           externalReferencesEnabled: false,
           fallbackPath: '.specify/references/platform/',
         },
@@ -210,15 +210,15 @@ describe('enterpriseai novice e2e walkthrough (root integration)', () => {
         (
           acc: {
             eaiCli: string;
-            verticalTemplate: string;
+            eaiAppTemplate: string;
             deploymentRepo: string;
           },
           reference
         ) => {
           if (reference.type === 'eai') {
             acc.eaiCli = reference.path;
-          } else if (reference.type === 'vertical-template') {
-            acc.verticalTemplate = reference.path;
+          } else if (reference.type === 'eai-app-template') {
+            acc.eaiAppTemplate = reference.path;
           } else if (reference.type === 'deployment-repo') {
             acc.deploymentRepo = reference.path;
           }
@@ -226,7 +226,7 @@ describe('enterpriseai novice e2e walkthrough (root integration)', () => {
         },
         {
           eaiCli: '',
-          verticalTemplate: '',
+          eaiAppTemplate: '',
           deploymentRepo: '',
         }
       );

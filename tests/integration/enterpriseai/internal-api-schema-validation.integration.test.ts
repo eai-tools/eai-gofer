@@ -33,7 +33,7 @@ function createInternalApiPayloadFixtures(): Record<
     },
     'IAP-004': {
       runId: 'run_001',
-      referenceTypes: ['eai_docs', 'vertical_template_docs', 'deployment_repo_docs'],
+      referenceTypes: ['eai_docs', 'eai_app_template_docs', 'deployment_repo_docs'],
       externalReferencesEnabled: false,
       fallbackPath: '.specify/references/platform/',
     },
@@ -52,7 +52,7 @@ function createInternalApiPayloadFixtures(): Record<
       specPath: '.specify/specs/029-enterpriseai-student-vertical-builder/spec.md',
       resolvedReferences: {
         eaiCli: '.specify/references/platform/eai.md',
-        verticalTemplate: '.specify/references/platform/vertical-template.md',
+        eaiAppTemplate: '.specify/references/platform/eai-app-template.md',
         deploymentRepo: '.specify/references/platform/deployment-repo.md',
       },
       installedEaiCliVersion: '2.7.4',

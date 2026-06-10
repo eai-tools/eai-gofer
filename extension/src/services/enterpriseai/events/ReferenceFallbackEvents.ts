@@ -21,8 +21,8 @@ export interface ReferenceFallbackEventHandlers {
 const REFERENCE_LABELS: Readonly<Record<string, string>> = {
   eai: 'EAI CLI reference',
   eai_docs: 'EAI CLI reference',
-  'vertical-template': 'Vertical Template reference',
-  vertical_template_docs: 'Vertical Template reference',
+  'eai-app-template': 'EAI App Template reference',
+  eai_app_template_docs: 'EAI App Template reference',
   'deployment-repo': 'Deployment repository reference',
   deployment_repo_docs: 'Deployment repository reference',
 };

@@ -24,7 +24,11 @@ function seedFallbackReferences(workspaceRoot: string): void {
   const fallbackDir = path.join(workspaceRoot, '.specify', 'references', 'platform');
   fs.mkdirSync(fallbackDir, { recursive: true });
   fs.writeFileSync(path.join(fallbackDir, 'eai.md'), '# eai cli fallback\n', 'utf8');
-  fs.writeFileSync(path.join(fallbackDir, 'vertical-template.md'), '# vertical fallback\n', 'utf8');
+  fs.writeFileSync(
+    path.join(fallbackDir, 'eai-app-template.md'),
+    '# eai app template fallback\n',
+    'utf8'
+  );
   fs.writeFileSync(path.join(fallbackDir, 'deployment-repo.md'), '# deployment fallback\n', 'utf8');
 }
 
@@ -90,7 +94,7 @@ describe('enterpriseai reference fallback notice (root integration)', () => {
       const result = await resolveEnterpriseAiReferences(
         {
           runId: 'run_029_0001',
-          referenceTypes: ['eai', 'vertical-template', 'deployment-repo'],
+          referenceTypes: ['eai', 'eai-app-template', 'deployment-repo'],
           externalReferencesEnabled: true,
           fallbackPath: '.specify/references/platform/',
         },
@@ -116,7 +120,7 @@ describe('enterpriseai reference fallback notice (root integration)', () => {
       expect(result.contractId).toBe('IAP-004');
       expect(result.response.status).toBe('resolved');
       expect(result.response.userNoticeRequired).toBe(true);
-      expect(result.response.unavailableExternalReferences).toEqual(['eai', 'vertical-template']);
+      expect(result.response.unavailableExternalReferences).toEqual(['eai', 'eai-app-template']);
       expect(
         result.response.resolvedReferences.find((reference) => reference.type === 'eai')?.source
       ).toBe('local-fallback');

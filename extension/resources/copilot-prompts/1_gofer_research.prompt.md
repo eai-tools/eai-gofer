@@ -12,7 +12,7 @@ argument-hint: feature-name-or-description
 gofer:
   workflowProfile: standard
   canonicalSource: .specify/commands/1_gofer_research.md
-  canonicalChecksum: 7415b29c5874228193397c55497517c31a1f375639253008f2527091fbfa2de2
+  canonicalChecksum: 5896f69460f255c971de89f82cf20564247912b0d720c8b22a1bd2344e18d84a
   metadataSource: scripts/generate-commands.ts
 ---
 
@@ -409,7 +409,7 @@ explicitly `enterpriseai`, generate:
    - Package profile: selected external/internal/hybrid profile choice, package
      lane, coupling status, public-readiness target, and why that lane is
      appropriate for this feature.
-   - Vertical Template constraint map: which approved template blocks or layout
+   - EAI App Template constraint map: which approved template blocks or layout
      patterns the preview should use before any create-new UI concept is
      considered.
    - Block catalog evidence: run `eai --describe`, `eai blocks list`,
@@ -501,7 +501,7 @@ Once all agents complete:
    - Why this should be EnterpriseAI-first
 4. **Application-Delivery Gate Summary** (app delivery only)
    - Preview-first rationale and the smallest useful MVP to show first
-   - Vertical Template reuse constraints and any approved extension gaps
+   - EAI App Template reuse constraints and any approved extension gaps
    - External/internal/hybrid profile choice, package lane, coupling status,
      public-readiness target, block-porting needs, and source-platform decoupling status
    - Candidate capability-discovery inputs for the later service-fit gate

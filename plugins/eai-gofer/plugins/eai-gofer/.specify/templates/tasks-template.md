@@ -36,8 +36,8 @@ implementation:
 - normal build tasks use the EAI app template, EAI platform services, and
   Azure-compatible support services before any custom or third-party app
   substrate
-- preview work stays inside approved Vertical Template blocks unless an
-  exception task is recorded
+- preview work stays inside approved EAI App Template blocks unless an exception
+  task is recorded
 - package lane, coupling status, Storybook story IDs, theme override points,
   custom-block exceptions, and external/internal/hybrid profile choice are
   recorded before UI implementation tasks begin

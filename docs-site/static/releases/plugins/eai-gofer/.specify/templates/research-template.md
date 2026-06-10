@@ -95,7 +95,7 @@ Why relevant: [Explanation]
 - **Coupling status**: [source-platform-coupled / source-platform-decoupled /
   hybrid-adapter]
 - **Public-readiness target**: [required / deferred / not applicable]
-- **Vertical Template constraints**: [approved blocks/patterns to reuse first]
+- **EAI App Template constraints**: [approved blocks/patterns to reuse first]
 - **Block catalog discovery**: [`eai --describe`, `eai blocks list`, candidate
   `eai blocks describe <id>` results, and `eai resources schema` evidence]
 - **Selected block IDs**: [stable IDs, required resources, bindings, override

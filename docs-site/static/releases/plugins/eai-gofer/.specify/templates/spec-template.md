@@ -126,7 +126,7 @@ _Example of marking unclear requirements:_
 - **Coupling status**: [source-platform-coupled / source-platform-decoupled /
   hybrid-adapter]
 - **Public-readiness target**: [required / deferred / not applicable]
-- **Vertical Template constraints**: [which approved blocks/patterns must be
+- **EAI App Template constraints**: [which approved blocks/patterns must be
   reused]
 - **Block catalog evidence**: [`eai blocks list`, `eai blocks describe <id>`,
   selected block IDs, and any custom-block exception]

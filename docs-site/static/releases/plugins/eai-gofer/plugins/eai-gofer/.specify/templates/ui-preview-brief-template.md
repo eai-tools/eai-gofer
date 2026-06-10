@@ -30,7 +30,7 @@ status: draft
 | Coupling status         | {{source-platform-coupled-source-platform-decoupled-hybrid-adapter}} |
 | Public-readiness target | {{required-deferred-not-applicable}}                                 |
 
-## Vertical Template Constraints
+## EAI App Template Constraints
 
 | Constraint                    | Decision                                          |
 | ----------------------------- | ------------------------------------------------- |

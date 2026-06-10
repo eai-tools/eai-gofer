@@ -251,7 +251,7 @@ If journeys/base-journey.md exists and is classified as app delivery, use it to:
   editability, and accessibility at each AI-assisted step
 
 If ui-preview-brief.md exists, use it to:
-- Require the first MVP preview to stay inside the approved Vertical Template
+- Require the first MVP preview to stay inside the approved EAI App Template
   blocks before any create-new UI concept is proposed
 - Require the specification to preserve the selected external/internal/hybrid
   profile choice, package lane, coupling status, public-readiness target, and
@@ -672,7 +672,7 @@ Vertical App -> EAI Services -> Deployment Target
 At minimum the map must name:
 
 1. **Vertical App**: the student-facing or business-facing vertical being
-   delivered (maps to the `vertical-template` reference).
+   delivered (maps to the `eai-app-template` reference).
 2. **EAI Services**: the EnterpriseAI platform services the vertical consumes
    (maps to the current public platform documentation or explicitly provided
    project references).
@@ -696,7 +696,7 @@ When `workflowProfile` is explicitly `enterpriseai`, generate
 | Actors | Business users, administrators, approvers, external systems, support roles |
 | Object Types | Reused, extended, and newly proposed EnterpriseAI object types with owners |
 | Workflows and Journeys | External user journeys and internal orchestration flows as separate views; app delivery must include the four-step-or-fewer AI-augmented journey |
-| UI Preview and Approval | For app delivery: preview brief, Vertical Template constraints, branding inputs, preview validation evidence expectations, review-log requirements, approval gate rules; for non-app work: mark not applicable |
+| UI Preview and Approval | For app delivery: preview brief, EAI App Template constraints, branding inputs, preview validation evidence expectations, review-log requirements, approval gate rules; for non-app work: mark not applicable |
 | EAI App Delivery Preflight | For EAI app delivery: CLI version/install state, account/login state, tenant role, template initialization readiness, app enrollment readiness, block catalog readiness, and blocked/deferred decisions |
 | EAI Platform/Azure Stack Policy | For app delivery: EAI Platform as primary app substrate, Azure as preferred cloud/supporting substrate, custom code constrained to the EAI template, and non-EAI stacks only as approved exceptions |
 | AI Assistance Contract | Step goal, assistance mode, context used, generated output, user controls, confidence/evidence, audit trail, completion signal, and escalation for each app step |

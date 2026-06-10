@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [3.5.8] - 2026-06-10
+
+Retire Vertical Template references for EAI App Template
+
 ## [3.5.7] - 2026-06-06
 
 Improve EAI capability discovery guidance

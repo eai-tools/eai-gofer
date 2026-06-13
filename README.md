@@ -13,6 +13,7 @@ EAI Gofer is designed to be easy to adopt in an existing repo:
   summary, technical diagram of otherwise for you and your stakeholders to know
   what will be built, not find out it is wrong later
 - one core `0-6` delivery pipeline
+- closed-loop goal reconciliation with repo-owned goal ledgers and drift checks
 - repo-owned artifacts and templates
 - install paths for VS Code and AI coding CLIs
 - generated command surfaces that stay aligned across hosts
@@ -51,6 +52,16 @@ see the [5-minute first run guide](./.tech-docs/first-run.md).
 
 `/6_gofer_validate` is the terminal quality gate. The previous standalone
 engineering-review stage is now folded into validation.
+
+Gofer now treats the pipeline as a closed loop, not just a straight line:
+
+- `/1_gofer_research` seeds `goal-ledger.json` with business goals, metrics,
+  owners, delivery states, and re-loop triggers.
+- `/4_gofer_tasks` keeps `traceability.md` as the requirement-to-task-to-code
+  contract.
+- `/6_gofer_validate` runs the objective outcome gate, refreshes code/test
+  evidence, and writes `goal-rebaseline-report.md` when goals, assumptions,
+  contracts, UX scope, or implementation drift.
 
 Optional helpers stay outside the core 0-6 flow:
 
@@ -240,6 +251,7 @@ npm run build
 npm run lint
 npm run typecheck
 npm test
+npm run gofer:closed-loop-audit -- --feature-dir .specify/specs/<feature>
 npm run gofer:generate
 npm run gofer:package-plugin -- --sync-repo
 ```

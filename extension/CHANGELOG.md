@@ -2,6 +2,10 @@
 
 All notable changes to the Gofer extension will be documented in this file.
 
+## [3.6.0] - 2026-06-13
+
+Closed-loop goal reconciliation and validation flow upgrades
+
 ## [3.5.8] - 2026-06-10
 
 Retire Vertical Template references for EAI App Template

@@ -255,4 +255,18 @@ describe('gofer-closed-loop-audit.mjs', () => {
     expect(result.exitCode).toBe(1);
     expect(result.payload.recommendedStartStage).toBe('1_research');
   });
+
+  it('reopens validation when repo-root watched paths move after validation', async () => {
+    const validationPath = path.join(featureDir, 'validation-report.md');
+    const srcPath = path.join(workspaceRoot, 'src', 'example.ts');
+
+    setTime(validationPath, Date.now() - 10_000);
+    setTime(srcPath, Date.now());
+
+    const result = await runAudit(workspaceRoot, featureDir, ['--strict']);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.payload.status).toBe('drift');
+    expect(result.payload.recommendedStartStage).toBe('6_validate');
+  });
 });

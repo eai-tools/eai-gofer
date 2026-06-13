@@ -50,7 +50,14 @@ jobs:
           feature_arg="${{ github.event_name == 'workflow_dispatch' && inputs.feature_dir || '' }}"
           feature_dirs=()
           if [ -n "$feature_arg" ]; then
-            feature_dirs+=("$feature_arg")
+            if [ -d "$feature_arg" ]; then
+              feature_dirs+=("$feature_arg")
+            elif [ -d ".specify/specs/$feature_arg" ]; then
+              feature_dirs+=(".specify/specs/$feature_arg")
+            else
+              echo "::error::Feature directory not found: $feature_arg"
+              exit 1
+            fi
           else
             while IFS= read -r feature_dir; do
               feature_dirs+=("$feature_dir")

@@ -319,6 +319,17 @@ function resolveEvidencePath(ref, workspaceRoot, featureDir) {
   return attempts;
 }
 
+async function latestMtimeForRef(ref, workspaceRoot, featureDir) {
+  const attempts = resolveEvidencePath(ref, workspaceRoot, featureDir) || [];
+  for (const attempt of attempts) {
+    if (!(await pathExists(attempt))) {
+      continue;
+    }
+    return latestMtimeMs(attempt);
+  }
+  return null;
+}
+
 function pickEarlierStage(currentStage, candidateStage) {
   if (!candidateStage) {
     return currentStage;
@@ -675,15 +686,17 @@ async function analyzeFeature({ featureDir, workspaceRoot }) {
 
   if (goalLedger?.reloopTriggers && Array.isArray(goalLedger.reloopTriggers)) {
     for (const trigger of goalLedger.reloopTriggers) {
-      const baselinePath = path.join(featureDir, trigger.baselineArtifact || '');
-      const baselineMtime = await latestMtimeMs(baselinePath);
+      const baselineMtime = await latestMtimeForRef(
+        trigger.baselineArtifact || '',
+        workspaceRoot,
+        featureDir
+      );
       if (baselineMtime == null) {
         continue;
       }
 
       for (const watch of Array.isArray(trigger.watch) ? trigger.watch : []) {
-        const watchPath = path.join(featureDir, watch);
-        const watchMtime = await latestMtimeMs(watchPath);
+        const watchMtime = await latestMtimeForRef(watch, workspaceRoot, featureDir);
         if (watchMtime != null && watchMtime > baselineMtime) {
           result.status = result.status === 'fail' ? 'fail' : 'drift';
           result.recommendedStartStage = pickEarlierStage(

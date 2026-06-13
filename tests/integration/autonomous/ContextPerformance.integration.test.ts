@@ -12,6 +12,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import * as os from 'os';
 import * as path from 'path';
 
 // Unmock fs module for integration tests
@@ -27,11 +28,11 @@ import { HintLoader } from '../../../extension/src/autonomous/HintLoader';
 import { ResearchChunker } from '../../../extension/src/autonomous/ResearchChunker';
 
 describe('Context Performance Validation (T076-T079)', () => {
-  const testWorkspaceRoot = path.join(__dirname, 'test-workspace-performance');
-  const specsDir = path.join(testWorkspaceRoot, '.specify', 'specs');
-  const memoryDir = path.join(testWorkspaceRoot, '.specify', 'memory');
-  const logsDir = path.join(testWorkspaceRoot, '.specify', 'logs');
-  const globalStoragePath = path.join(testWorkspaceRoot, 'global-storage');
+  let testWorkspaceRoot: string;
+  let specsDir: string;
+  let memoryDir: string;
+  let logsDir: string;
+  let globalStoragePath: string;
 
   let contextBuilder: ContextBuilder;
   let healthMonitor: ContextHealthMonitor;
@@ -39,25 +40,26 @@ describe('Context Performance Validation (T076-T079)', () => {
   let memoryManager: MemoryManager;
   let hintLoader: HintLoader;
   let researchChunker: ResearchChunker;
-
-  const mockVSCodeContext = {
-    globalStoragePath,
-    globalState: {
-      get: vi.fn().mockReturnValue(undefined),
-      update: vi.fn().mockResolvedValue(undefined),
-    },
-  } as any;
+  let mockVSCodeContext: any;
 
   beforeEach(() => {
-    // Clean up and create test workspace
-    if (fs.existsSync(testWorkspaceRoot)) {
-      fs.rmSync(testWorkspaceRoot, { recursive: true });
-    }
-
+    testWorkspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'gofer-context-performance-'));
+    specsDir = path.join(testWorkspaceRoot, '.specify', 'specs');
+    memoryDir = path.join(testWorkspaceRoot, '.specify', 'memory');
+    logsDir = path.join(testWorkspaceRoot, '.specify', 'logs');
+    globalStoragePath = path.join(testWorkspaceRoot, 'global-storage');
     fs.mkdirSync(specsDir, { recursive: true });
     fs.mkdirSync(memoryDir, { recursive: true });
     fs.mkdirSync(logsDir, { recursive: true });
     fs.mkdirSync(globalStoragePath, { recursive: true });
+
+    mockVSCodeContext = {
+      globalStoragePath,
+      globalState: {
+        get: vi.fn().mockReturnValue(undefined),
+        update: vi.fn().mockResolvedValue(undefined),
+      },
+    } as any;
 
     // Create constitution
     fs.writeFileSync(
@@ -93,7 +95,7 @@ describe('Context Performance Validation (T076-T079)', () => {
   afterEach(() => {
     hintLoader?.dispose();
     healthMonitor?.dispose();
-    if (fs.existsSync(testWorkspaceRoot)) {
+    if (testWorkspaceRoot && fs.existsSync(testWorkspaceRoot)) {
       fs.rmSync(testWorkspaceRoot, { recursive: true });
     }
   });
